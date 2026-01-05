@@ -35,3 +35,5 @@ next-env.d.ts
 
 # orchids
 .orchids/
+!.orchids/orchids.json
+.orchids.json
