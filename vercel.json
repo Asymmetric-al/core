@@ -1,0 +1,3 @@
+{
+  "buildCommand": "rm -rf .next && next build"
+}
