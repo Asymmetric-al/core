@@ -88,7 +88,15 @@ A seamless experience for kingdom partners to manage their giving and follow mis
 
 ## Development
 
-**Package Manager**: This project uses **bun** (v1.3+). Do not use npm/yarn/pnpm.
+This project is optimized for both local development and the **Orchids (orchids.app)** cloud environment.
+
+### Package Manager
+This project uses **bun** (v1.3+). Do not use npm/yarn/pnpm.
+
+### Orchids Integration
+The project includes `.orchids.json` and `.orchids/orchids.json` for seamless syncing with the Orchids IDE.
+- **Project ID**: `3b489e38-0f05-4024-b3e1-af15281301d4`
+- **Startup Command**: `bun run dev`
 
 ```bash
 # Install dependencies
