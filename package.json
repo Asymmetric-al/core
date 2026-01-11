@@ -4,8 +4,8 @@
   "private": true,
   "packageManager": "bun@1.3.4",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "bun --bun next dev",
+    "build": "bun --bun next build",
     "start": "next start",
     "lint": "eslint --cache --cache-location .next/cache/eslint/",
     "typecheck": "tsc --noEmit",
