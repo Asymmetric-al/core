@@ -1,5 +1,4 @@
-
-import { format, differenceInDays, parseISO } from 'date-fns';
+import { format, differenceInDays, parseISO } from "date-fns";
 
 /**
  * Parses a 'YYYY-MM-DD' string into a local Date object.
@@ -7,7 +6,10 @@ import { format, differenceInDays, parseISO } from 'date-fns';
  */
 export const parseLocalYMD = (dateStr: string): Date => {
   if (!dateStr) return new Date();
-  const [y, m, d] = dateStr.split('-').map(Number);
+  const parts = dateStr.split("-").map(Number);
+  const y = parts[0] ?? 0;
+  const m = parts[1] ?? 1;
+  const d = parts[2] ?? 1;
   return new Date(y, m - 1, d);
 };
 
@@ -15,9 +17,9 @@ export const parseLocalYMD = (dateStr: string): Date => {
  * Formats a date string or Date object into a standard 'MMM d, yyyy' format.
  */
 export const formatDate = (date: string | Date): string => {
-  if (!date) return '';
-  const d = typeof date === 'string' ? parseLocalYMD(date) : date;
-  return format(d, 'MMM d, yyyy');
+  if (!date) return "";
+  const d = typeof date === "string" ? parseLocalYMD(date) : date;
+  return format(d, "MMM d, yyyy");
 };
 
 /**

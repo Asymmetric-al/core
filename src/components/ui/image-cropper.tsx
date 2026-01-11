@@ -1,31 +1,38 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { useState, useCallback, useRef, useEffect } from 'react'
-import Cropper, { Area, Point } from 'react-easy-crop'
+import * as React from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
+import Cropper, { Area, Point } from "react-easy-crop";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Slider } from '@/components/ui/slider'
-import { getCroppedImg, CropArea } from '@/lib/image-utils'
-import { RotateCw, ZoomIn, ZoomOut, Scissors, Loader2, AlertCircle } from 'lucide-react'
-import { toast } from 'sonner'
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { getCroppedImg, CropArea } from "@/lib/image-utils";
+import {
+  RotateCw,
+  ZoomIn,
+  ZoomOut,
+  Scissors,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
+import { toast } from "sonner";
 
 interface ImageCropperProps {
-  image: string
-  aspect?: number
-  onCropComplete: (croppedImage: Blob) => void
-  onCancel: () => void
-  open: boolean
-  minZoom?: number
-  maxZoom?: number
-  outputFormat?: 'image/webp' | 'image/jpeg' | 'image/png'
-  quality?: number
+  image: string;
+  aspect?: number;
+  onCropComplete: (croppedImage: Blob) => void;
+  onCancel: () => void;
+  open: boolean;
+  minZoom?: number;
+  maxZoom?: number;
+  outputFormat?: "image/webp" | "image/jpeg" | "image/png";
+  quality?: number;
 }
 
 export function ImageCropper({
@@ -36,44 +43,44 @@ export function ImageCropper({
   open,
   minZoom = 1,
   maxZoom = 3,
-  outputFormat = 'image/webp',
+  outputFormat = "image/webp",
   quality = 0.92,
 }: ImageCropperProps) {
-  const [crop, setCrop] = useState<Point>({ x: 0, y: 0 })
-  const [zoom, setZoom] = useState(1)
-  const [rotation, setRotation] = useState(0)
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [imageError, setImageError] = useState(false)
-  const processingRef = useRef(false)
+  const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const processingRef = useRef(false);
 
   useEffect(() => {
     if (open) {
-      setCrop({ x: 0, y: 0 })
-      setZoom(1)
-      setRotation(0)
-      setCroppedAreaPixels(null)
-      setImageError(false)
-      processingRef.current = false
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+      setRotation(0);
+      setCroppedAreaPixels(null);
+      setImageError(false);
+      processingRef.current = false;
     }
-  }, [open, image])
+  }, [open, image]);
 
   const onCropChange = useCallback((newCrop: Point) => {
-    setCrop(newCrop)
-  }, [])
+    setCrop(newCrop);
+  }, []);
 
   const onZoomChange = useCallback((newZoom: number) => {
-    setZoom(newZoom)
-  }, [])
+    setZoom(newZoom);
+  }, []);
 
   const onCropAreaComplete = useCallback((_croppedArea: Area, pixels: Area) => {
-    setCroppedAreaPixels(pixels)
-  }, [])
+    setCroppedAreaPixels(pixels);
+  }, []);
 
   const handleSave = useCallback(async () => {
-    if (!croppedAreaPixels || processingRef.current) return
-    processingRef.current = true
-    setIsProcessing(true)
+    if (!croppedAreaPixels || processingRef.current) return;
+    processingRef.current = true;
+    setIsProcessing(true);
 
     try {
       const croppedImage = await getCroppedImg(
@@ -82,32 +89,39 @@ export function ImageCropper({
         rotation,
         { horizontal: false, vertical: false },
         { outputFormat, quality }
-      )
+      );
 
       if (croppedImage) {
-        onCropComplete(croppedImage)
+        onCropComplete(croppedImage);
       } else {
-        throw new Error('Failed to generate cropped image')
+        throw new Error("Failed to generate cropped image");
       }
     } catch (e) {
-      console.error('Crop error:', e)
-      toast.error('Failed to crop image. Please try again.')
+      console.error("Crop error:", e);
+      toast.error("Failed to crop image. Please try again.");
     } finally {
-      setIsProcessing(false)
-      processingRef.current = false
+      setIsProcessing(false);
+      processingRef.current = false;
     }
-  }, [croppedAreaPixels, image, rotation, outputFormat, quality, onCropComplete])
+  }, [
+    croppedAreaPixels,
+    image,
+    rotation,
+    outputFormat,
+    quality,
+    onCropComplete,
+  ]);
 
   const handleCancel = useCallback(() => {
     if (!isProcessing) {
-      onCancel()
+      onCancel();
     }
-  }, [isProcessing, onCancel])
+  }, [isProcessing, onCancel]);
 
   const handleImageError = useCallback(() => {
-    setImageError(true)
-    toast.error('Failed to load image for cropping')
-  }, [])
+    setImageError(true);
+    toast.error("Failed to load image for cropping");
+  }, []);
 
   if (imageError) {
     return (
@@ -126,7 +140,7 @@ export function ImageCropper({
           </div>
         </DialogContent>
       </Dialog>
-    )
+    );
   }
 
   return (
@@ -151,8 +165,8 @@ export function ImageCropper({
             onZoomChange={onZoomChange}
             onMediaLoaded={() => setImageError(false)}
             classes={{
-              containerClassName: 'rounded-none',
-              mediaClassName: 'max-h-full',
+              containerClassName: "rounded-none",
+              mediaClassName: "max-h-full",
             }}
           />
         </div>
@@ -166,7 +180,7 @@ export function ImageCropper({
                 min={minZoom}
                 max={maxZoom}
                 step={0.1}
-                onValueChange={([val]) => setZoom(val)}
+                onValueChange={([val]) => val !== undefined && setZoom(val)}
                 className="flex-1"
               />
               <ZoomIn className="h-4 w-4 text-zinc-400 flex-shrink-0" />
@@ -179,10 +193,12 @@ export function ImageCropper({
                 min={0}
                 max={360}
                 step={1}
-                onValueChange={([val]) => setRotation(val)}
+                onValueChange={([val]) => val !== undefined && setRotation(val)}
                 className="flex-1"
               />
-              <span className="text-[10px] font-bold text-zinc-400 w-8 text-right">{rotation}°</span>
+              <span className="text-[10px] font-bold text-zinc-400 w-8 text-right">
+                {rotation}°
+              </span>
             </div>
           </div>
 
@@ -208,12 +224,12 @@ export function ImageCropper({
                   Processing
                 </>
               ) : (
-                'Apply Crop'
+                "Apply Crop"
               )}
             </Button>
           </DialogFooter>
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
