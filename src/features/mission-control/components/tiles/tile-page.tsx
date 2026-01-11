@@ -1,15 +1,15 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import type { Tile } from '@/lib/mission-control/types'
-import { PageHeader } from '../patterns/page-header'
-import { getIcon } from '../icons'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import Link from "next/link";
+import type { Tile } from "@/lib/mission-control/types";
+import { PageHeader } from "../patterns/page-header";
+import { DynamicIcon } from "../icons";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface TilePageProps {
-  tile: Tile
-  children?: React.ReactNode
+  tile: Tile;
+  children?: React.ReactNode;
 }
 
 export function TilePage({ tile, children }: TilePageProps) {
@@ -21,17 +21,16 @@ export function TilePage({ tile, children }: TilePageProps) {
         breadcrumbs={[{ label: tile.title }]}
         actions={
           <div className="flex gap-2">
-            {tile.quickActions.slice(0, 2).map((action) => {
-              const Icon = action.icon ? getIcon(action.icon) : null
-              return (
-                <Link key={action.label} href={`/mc${action.href}`}>
-                  <Button size="sm">
-                    {Icon && <Icon className="mr-2 h-4 w-4" />}
-                    {action.label}
-                  </Button>
-                </Link>
-              )
-            })}
+            {tile.quickActions.slice(0, 2).map((action) => (
+              <Link key={action.label} href={`/mc${action.href}`}>
+                <Button size="sm">
+                  {action.icon && (
+                    <DynamicIcon name={action.icon} className="mr-2 h-4 w-4" />
+                  )}
+                  {action.label}
+                </Button>
+              </Link>
+            ))}
           </div>
         }
       />
@@ -50,22 +49,28 @@ export function TilePage({ tile, children }: TilePageProps) {
               <CardTitle className="text-base">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-2">
-              {tile.quickActions.map((action) => {
-                const Icon = action.icon ? getIcon(action.icon) : null
-                return (
-                  <Link key={action.label} href={`/mc${action.href}`}>
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      {Icon && <Icon className="mr-2 h-4 w-4" />}
-                      {action.label}
-                    </Button>
-                  </Link>
-                )
-              })}
+              {tile.quickActions.map((action) => (
+                <Link key={action.label} href={`/mc${action.href}`}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start"
+                  >
+                    {action.icon && (
+                      <DynamicIcon
+                        name={action.icon}
+                        className="mr-2 h-4 w-4"
+                      />
+                    )}
+                    {action.label}
+                  </Button>
+                </Link>
+              ))}
             </CardContent>
           </Card>
         </div>
         {children}
       </div>
     </div>
-  )
+  );
 }
