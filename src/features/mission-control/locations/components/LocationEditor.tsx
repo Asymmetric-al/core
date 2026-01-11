@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { z } from "zod";
 import {
   Sheet,
   SheetContent,
@@ -31,21 +31,25 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Location, useUpsertLocation, useLinkedEntities } from "../hooks/use-locations";
+import {
+  Location,
+  useUpsertLocation,
+  useLinkedEntities,
+} from "../hooks/use-locations";
 import { Loader2, Trash2 } from "lucide-react";
 
-const locationSchema = z.zod.object({
-  id: z.zod.string().optional(),
-  title: z.zod.string().min(1, "Title is required"),
-  summary: z.zod.string().optional(),
-  type: z.zod.enum(["missionary", "project", "custom"]),
-  linked_id: z.zod.string().nullable().optional(),
-  status: z.zod.enum(["draft", "published"]),
-  lat: z.zod.number(),
-  lng: z.zod.number(),
+const locationSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().min(1, "Title is required"),
+  summary: z.string().optional(),
+  type: z.enum(["missionary", "project", "custom"]),
+  linked_id: z.string().nullable().optional(),
+  status: z.enum(["draft", "published"]),
+  lat: z.number(),
+  lng: z.number(),
 });
 
-type LocationFormValues = z.zod.infer<typeof locationSchema>;
+type LocationFormValues = z.infer<typeof locationSchema>;
 
 interface LocationEditorProps {
   location: Partial<Location> | null;
@@ -124,7 +128,11 @@ export function LocationEditor({
                     Location Title
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. Amazon Medical Center" {...field} className="rounded-xl border-zinc-200" />
+                    <Input
+                      placeholder="e.g. Amazon Medical Center"
+                      {...field}
+                      className="rounded-xl border-zinc-200"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -145,7 +153,9 @@ export function LocationEditor({
                         type="number"
                         step="any"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        onChange={(e) =>
+                          field.onChange(parseFloat(e.target.value))
+                        }
                         className="rounded-xl border-zinc-200"
                       />
                     </FormControl>
@@ -166,7 +176,9 @@ export function LocationEditor({
                         type="number"
                         step="any"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        onChange={(e) =>
+                          field.onChange(parseFloat(e.target.value))
+                        }
                         className="rounded-xl border-zinc-200"
                       />
                     </FormControl>
@@ -212,7 +224,8 @@ export function LocationEditor({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                      Link to {selectedType === "missionary" ? "Missionary" : "Project"}
+                      Link to{" "}
+                      {selectedType === "missionary" ? "Missionary" : "Project"}
                     </FormLabel>
                     <Select
                       onValueChange={field.onChange}
@@ -232,7 +245,9 @@ export function LocationEditor({
                             </SelectItem>
                           ))
                         ) : (
-                          <SelectItem value="none" disabled>No projects found</SelectItem>
+                          <SelectItem value="none" disabled>
+                            No projects found
+                          </SelectItem>
                         )}
                       </SelectContent>
                     </Select>
@@ -296,7 +311,7 @@ export function LocationEditor({
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {location?.id ? "Update Location" : "Save Location"}
               </Button>
-              
+
               {location?.id && onDelete && (
                 <Button
                   type="button"
