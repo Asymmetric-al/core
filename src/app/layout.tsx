@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
-  keywords: siteConfig.keywords,
+  keywords: [...siteConfig.keywords],
   authors: [{ name: siteConfig.name, url: siteConfig.url }],
   creator: siteConfig.name,
   publisher: siteConfig.name,
@@ -113,10 +113,20 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://images.unsplash.com" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
-        <link rel="preconnect" href="https://kzeybagjclwsxpkjshqa.supabase.co" />
-        <link rel="dns-prefetch" href="https://kzeybagjclwsxpkjshqa.supabase.co" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        
+        <link
+          rel="preconnect"
+          href="https://kzeybagjclwsxpkjshqa.supabase.co"
+        />
+        <link
+          rel="dns-prefetch"
+          href="https://kzeybagjclwsxpkjshqa.supabase.co"
+        />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -136,9 +146,7 @@ export default function RootLayout({
         >
           <QueryProvider>
             <Suspense fallback={null}>
-              <NuqsAdapter>
-                {children}
-              </NuqsAdapter>
+              <NuqsAdapter>{children}</NuqsAdapter>
             </Suspense>
           </QueryProvider>
         </ThemeProvider>
