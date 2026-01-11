@@ -14,7 +14,8 @@
     "test:e2e:ui": "playwright test --ui",
     "test:a11y": "playwright test tests/e2e/accessibility.spec.ts",
     "test:perf": "playwright test tests/e2e/performance.spec.ts",
-    "lighthouse": "lhci autorun"
+    "lighthouse": "lhci autorun",
+    "generate:icons": "node scripts/generate-icons.js"
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",
