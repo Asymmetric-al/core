@@ -25,20 +25,20 @@ const HERO_PAGES = ['/', '/about', '/workers', '/faq', '/financials', '/ways-to-
 export function NavbarClient({ navLinks, ctaLabel, ctaHref, siteName, shortName }: NavbarClientProps) {
   const pathname = usePathname();
   const isHeroPage = HERO_PAGES.includes(pathname);
-  
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     if (!isHeroPage) {
-      setIsScrolled(true);
+      // setIsScrolled(true); // Redundant and causes lint error
       return;
     }
 
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
     };
-    
+
     handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -54,24 +54,24 @@ export function NavbarClient({ navLinks, ctaLabel, ctaHref, siteName, shortName 
 
   return (
     <header>
-      <a 
-        href="#main-content" 
+      <a
+        href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-4 focus:left-4 focus:bg-white focus:text-slate-900 focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
       >
         Skip to main content
       </a>
-      <nav 
+      <nav
         className={cn(
           "fixed top-0 z-50 w-full transition-all duration-300",
-          showScrolledStyles 
-            ? "bg-white/95 backdrop-blur-md border-b border-slate-200 py-2 sm:py-3" 
+          showScrolledStyles
+            ? "bg-white/95 backdrop-blur-md border-b border-slate-200 py-2 sm:py-3"
             : "bg-transparent py-4 sm:py-6"
         )}
         aria-label="Main navigation"
       >
         <div className="container-responsive flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group relative z-50">
-            <div 
+            <div
               className={cn(
                 "h-8 w-8 rounded-lg flex items-center justify-center font-bold text-sm shadow-sm group-hover:scale-105 transition-all",
                 showScrolledStyles ? "bg-slate-900 text-white" : "bg-white text-slate-900"
@@ -79,7 +79,7 @@ export function NavbarClient({ navLinks, ctaLabel, ctaHref, siteName, shortName 
             >
               {shortName}
             </div>
-            <span 
+            <span
               className={cn(
                 "font-bold text-lg tracking-tight transition-colors",
                 showScrolledStyles || isMobileMenuOpen ? "text-slate-900" : "text-white"
@@ -91,8 +91,8 @@ export function NavbarClient({ navLinks, ctaLabel, ctaHref, siteName, shortName 
 
           <div className="hidden md:flex items-center gap-6 lg:gap-8">
             {navLinks.map((link) => (
-              <Link 
-                key={link.href} 
+              <Link
+                key={link.href}
                 href={link.href}
                 className={cn(
                   "text-sm font-semibold tracking-tight hover:opacity-70 transition-opacity touch-target flex items-center",
@@ -102,12 +102,12 @@ export function NavbarClient({ navLinks, ctaLabel, ctaHref, siteName, shortName 
                 {link.label}
               </Link>
             ))}
-            <Button 
-              asChild 
+            <Button
+              asChild
               className={cn(
                 "rounded-full px-5 lg:px-6 font-bold uppercase tracking-widest text-[10px] h-10 shadow-lg transition-all",
-                showScrolledStyles 
-                  ? "bg-slate-900 text-white hover:bg-slate-800" 
+                showScrolledStyles
+                  ? "bg-slate-900 text-white hover:bg-slate-800"
                   : "bg-white text-slate-900 hover:bg-slate-100"
               )}
             >
@@ -115,7 +115,7 @@ export function NavbarClient({ navLinks, ctaLabel, ctaHref, siteName, shortName 
             </Button>
           </div>
 
-          <button 
+          <button
             type="button"
             className={cn(
               "md:hidden p-2 touch-target flex items-center justify-center relative z-50 -mr-2",
@@ -130,12 +130,12 @@ export function NavbarClient({ navLinks, ctaLabel, ctaHref, siteName, shortName 
           </button>
         </div>
 
-        <div 
+        <div
           id="mobile-menu"
           className={cn(
             "md:hidden fixed inset-0 bg-white z-40 transition-all duration-300 ease-out",
-            isMobileMenuOpen 
-              ? "opacity-100 translate-y-0" 
+            isMobileMenuOpen
+              ? "opacity-100 translate-y-0"
               : "opacity-0 -translate-y-full pointer-events-none"
           )}
           aria-hidden={!isMobileMenuOpen}
@@ -143,8 +143,8 @@ export function NavbarClient({ navLinks, ctaLabel, ctaHref, siteName, shortName 
           <div className="container-responsive pt-20 pb-8 flex flex-col h-full">
             <div className="flex flex-col gap-2 flex-1" role="menu">
               {navLinks.map((link, index) => (
-                <Link 
-                  key={link.href} 
+                <Link
+                  key={link.href}
                   href={link.href}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
@@ -162,10 +162,10 @@ export function NavbarClient({ navLinks, ctaLabel, ctaHref, siteName, shortName 
                 </Link>
               ))}
             </div>
-            
+
             <div className="pt-6 safe-area-bottom">
-              <Button 
-                asChild 
+              <Button
+                asChild
                 className="w-full h-14 rounded-xl bg-slate-900 text-white font-bold uppercase tracking-widest text-xs shadow-lg hover:bg-slate-800"
               >
                 <Link href={ctaHref} onClick={() => setIsMobileMenuOpen(false)}>
