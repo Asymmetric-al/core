@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/static-components */
 "use client";
 
 import React, { lazy, Suspense, useMemo } from "react";
@@ -56,11 +57,14 @@ export function DynamicIcon({ name, fallback, ...props }: DynamicIconProps) {
     return null;
   }, [name]);
 
-  if (!kebabName) {
+  const LucideIcon = useMemo(() => {
+    if (!kebabName) return null;
+    return lazy(dynamicIconImports[kebabName]);
+  }, [kebabName]);
+
+  if (!LucideIcon) {
     return <Settings {...props} />;
   }
-
-  const LucideIcon = lazy(dynamicIconImports[kebabName]);
 
   return (
     <Suspense
