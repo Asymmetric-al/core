@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/static-components */
 "use client";
 
 import React, { lazy, Suspense, useMemo } from "react";
@@ -71,13 +72,9 @@ interface DynamicIconProps extends Omit<LucideProps, "ref" | "name"> {
 }
 
 export function DynamicIcon({ name, fallback, ...props }: DynamicIconProps) {
-  // If name is already an icon component, render it directly
-  if (typeof name === "function") {
-    const IconComponent = name;
-    return <IconComponent {...props} />;
-  }
-
   const kebabName = useMemo(() => {
+    if (typeof name === "function") return null;
+
     if (!name || typeof name !== "string") return null;
     // If it's already kebab-case or a valid key in dynamicIconImports, use it
     if (name in dynamicIconImports)
@@ -89,11 +86,20 @@ export function DynamicIcon({ name, fallback, ...props }: DynamicIconProps) {
     return null;
   }, [name]);
 
-  if (!kebabName) {
-    return <Settings {...props} />;
+  const LucideIcon = useMemo(() => {
+    if (!kebabName) return null;
+    return lazy(dynamicIconImports[kebabName]);
+  }, [kebabName]);
+
+  // If name is already an icon component, render it directly
+  if (typeof name === "function") {
+    const IconComponent = name;
+    return <IconComponent {...props} />;
   }
 
-  const LucideIcon = lazy(dynamicIconImports[kebabName]);
+  if (!LucideIcon) {
+    return <Settings {...props} />;
+  }
 
   return (
     <Suspense

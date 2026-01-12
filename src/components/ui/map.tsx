@@ -76,15 +76,15 @@ function Loader() {
   );
 }
 
-export function Map({ 
-  children, 
-  styles, 
-  center, 
-  zoom, 
-  initialViewState, 
-  className, 
+export function Map({
+  children,
+  styles,
+  center,
+  zoom,
+  initialViewState,
+  className,
   onLoad,
-  onClick 
+  onClick
 }: MapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<maplibregl.Map | null>(null);
@@ -134,7 +134,7 @@ export function Map({
 
       map.on("error", (e) => {
         console.error("MapLibre error:", e);
-        setMapLoaded(true); 
+        setMapLoaded(true);
       });
 
       if (onClick) {
@@ -251,6 +251,7 @@ export function MapMarker({
       .setLngLat([longitude, latitude])
       .addTo(map);
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMarker(m);
     setElement(el);
 
@@ -312,6 +313,7 @@ export function MarkerPopup({
     if (!marker) return;
 
     const el = document.createElement("div");
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setContainer(el);
 
     const popup = new maplibregl.Popup({
@@ -352,11 +354,11 @@ export function MapOverlay({
   children: ReactNode;
   className?: string;
   position?:
-    | "top-left"
-    | "top-right"
-    | "bottom-left"
-    | "bottom-right"
-    | "center";
+  | "top-left"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-right"
+  | "center";
 }) {
   const positions = {
     "top-left": "top-4 left-4",
