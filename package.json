@@ -114,6 +114,7 @@
     "@types/node": "^20",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "canvas": "^3.2.1",
     "eslint": "^9",
     "eslint-config-next": "^16.1.0",
     "tailwindcss": "^4",

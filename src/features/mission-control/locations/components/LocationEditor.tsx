@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -103,7 +103,10 @@ export function LocationEditor({
     });
   };
 
-  const selectedType = form.watch("type");
+  const selectedType = useWatch({
+    control: form.control,
+    name: "type",
+  });
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
