@@ -67,7 +67,7 @@ export function AboutHero() {
 export function AboutBelief() {
   return (
     <section className="py-40 bg-white relative overflow-hidden">
-      <div className="container mx-auto px-6 max-w-6xl">
+      <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-32 items-center">
           <motion.div {...fadeInUp} className="space-y-12">
             <div className="space-y-6">
@@ -109,10 +109,11 @@ export function AboutBelief() {
             <div className="aspect-square bg-slate-50 rounded-3xl p-8 flex items-center justify-center border border-slate-100 shadow-xl overflow-hidden relative group">
               <div className="absolute inset-0 opacity-20 pointer-events-none grayscale group-hover:grayscale-0 transition-all duration-700">
                 <Image
-                  src="https://images.unsplash.com/photo-1536053468241-7649c0d6628c?q=80&w=2000"
+                  src="https://images.unsplash.com/photo-1509099836639-18ba1795216d?q=80&w=2000"
                   fill
                   className="object-cover"
                   alt="Community members gathering together"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
                   loading="eager"
                   priority
                 />
