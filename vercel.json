@@ -1,6 +1,0 @@
-{
-  "bunVersion": "1.x",
-  "buildCommand": "rm -rf .next && next build",
-  "installCommand": "bun install",
-  "outputDirectory": ".next"
-}
