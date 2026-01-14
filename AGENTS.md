@@ -69,6 +69,7 @@ If both skills apply:
 - Follow `rules/frontend.md` before changing UI/components
 - Follow `rules/backend.md` before changing Supabase/auth/data access
 - Follow `rules/testing.md` before adding/updating tests or changing flows
+- Follow `rules/shadcn-studio-mcp.md` when using the shadcn/studio MCP workflows (/cui, /rui, /iui, /ftc)
 
 When work touches one of these areas, open the relevant rule doc first and apply it.
 
