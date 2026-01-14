@@ -31,6 +31,7 @@ src/
 - **Icons**: Import from `lucide-react` (e.g., `import { ChevronRight } from 'lucide-react'`).
 
 ## Component Rules
+- If using shadcn/studio MCP to generate UI (blocks/components/pages), follow `rules/shadcn-studio-mcp.md` and do not deviate from the workflow.
 1.  **"Use Client"**: Only add `'use client'` when necessary (interactivity, hooks). Default to Server Components.
 2.  **Shadcn UI**: Use the existing components in `src/components/ui`. Do not invent new primitives if one exists.
 3.  **Tailwind**:
