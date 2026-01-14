@@ -4,9 +4,9 @@ A high-performance, enterprise-grade Next.js 16.1 application for mission-focuse
 
 ## Architecture & Tech Stack
 
-- **Framework**: Next.js 16.1Densitynsitynsity (App Router, Turbopack) - *Optimized for Performance*
-- **UI System**: Tailwind CSS 4 + shadcn/ui (Maia Theme) + Radix UI +  Base UI
-- **Theme**:  Light Zinc Aesthetic (Zinc/Zinc), Shadcn/UI Maia Theme
+- **Framework**: Next.js 16.1 (App Router, Turbopack) - *Optimized for Performance*
+- **UI System**: Tailwind CSS 4 + shadcn/ui (MAIA Style) + Radix UI
+- **Theme**: Forced Light Zinc Aesthetic (Zinc/Zinc)
 - **Database**: Supabase (PostgreSQL) + Prisma
 - **Authentication**: Supabase Auth (Unified across platforms)
 - **Payments**: Stripe (Advanced integration)
