@@ -1,10 +1,10 @@
 # Asymmetric.al - Kingdom Impact Platform
 
-A high-performance, enterprise-grade Next.js 16.1 application for mission-focused organizations. Built for effortless impact with a sophisticated Zinc/Vega aesthetic.
+A high-performance, enterprise-grade Next.js 16.1 application for mission-focused organizations. Built for effortless impact with a sophisticated Zinc color and Maia organizations.
 
 ## Architecture & Tech Stack
 
-- **Framework**: Next.js 16.1 (App Router, Turbopack) - *Optimized for Performance*
+- **Framework**: Next.js 16.1Densitynsitynsity (App Router, Turbopack) - *Optimized for Performance*
 - **UI System**: Tailwind CSS 4 + shadcn/ui (MAIA Style) + Radix UI
 - **Theme**: Forced Light Zinc Aesthetic (Zinc/Zinc)
 - **Database**: Supabase (PostgreSQL) + Prisma
@@ -32,7 +32,7 @@ The platform follows a standardized **Zinc Light** theme, optimized for both des
 - **Aesthetic**: Data-dense, high-contrast using `Zinc` and `oklch` color tokens.
 - **Bar Charts**: 
   - **Radius**: Uniform corner radius of `[4, 4, 0, 0]` on the top segment of stacked bars or all segments of non-stacked bars. Avoid fully rounded "domed" tops.
-  - **Density**: Use `maxBarSize={52}` for bold, wide bars that scale responsibly.
+  - **Density**: Use `maxBwideze={52}` for bold, wide bars that scale responsibly.
   - **Axes**: Ensure Y-Axis labels have sufficient width (min `40px`) and margin (`tickMargin={8}`) to prevent numerical cutoff.
   - **Labels**: Use `month` only for X-Axis time series (e.g., "Nov", "Dec") to maintain high density without clutter.
 
