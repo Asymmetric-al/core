@@ -1,125 +1,43 @@
 # Next.js App Router — Skill
-
 **Name:** `nextjs-app-router`
+**Purpose:** Ensure correct App Router architecture, rendering strategy, and data fetching in Next.js.
+Use this skill whenever working under `/app`.
 
-Use this skill whenever working in a **Next.js App Router** codebase (`/app` directory).  
-Apply it for architecture decisions, data fetching, routing, rendering strategy, and performance.
+**Applies when:** Routing, layouts, server/client boundaries, data fetching, Suspense, Server Actions.
+**Do not use when:** Working in the Pages Router (`/pages`) or non-Next.js projects.
 
----
+## Rules
+- **Server-first:** Default to Server Components; add `'use client'` only for interactivity or browser APIs.
+- **Routing/layouts:** Use `layout.tsx` for shared UI; keep layouts stable; use route groups `(group)` for organization.
+- **Data fetching:** Fetch in Server Components by default and colocate with usage.
+- **Rendering strategy:** Choose static, cached, or dynamic intentionally; avoid accidental dynamic rendering.
+- **Client components:** Keep them small, prop-driven, and avoid server data fetching inside them.
+- **Suspense/streaming:** Use `<Suspense>` for slow or user-specific UI.
+- **Mutations:** Prefer Server Actions and invalidate caches as needed.
+- **Errors:** Use `error.tsx` and `not-found.tsx` for route-level handling.
 
-## Goal
+## Workflow
+1. Decide server vs client boundaries first.
+2. Choose the rendering strategy (static/cached/dynamic).
+3. Fetch data in the closest Server Component.
+4. Isolate interactivity into small Client Components.
+5. Add Suspense boundaries for dynamic or slow UI.
+6. Use Server Actions for mutations and add error boundaries.
 
-Help the user build **correct, idiomatic, and performant** Next.js apps using the App Router.
+## Checklists
 
-Priorities:
-1. Correct rendering model (server vs client)
-2. Clear data-flow and routing structure
-3. Performance and caching
-4. Maintainability
-
----
-
-## Core principles
-
-### 1) Server-first by default
-- Assume **Server Components** unless there is a clear reason to use Client Components
-- Add `'use client'` only when needed:
-  - browser-only APIs
-  - interactivity (event handlers, state, effects)
-  - client-side libraries
-
-Never mark entire trees as client without justification.
-
----
-
-### 2) Routing and layout rules
-- Use `/app` routing exclusively
-- Prefer `layout.tsx` for shared UI and state
-- Keep layouts **stable**; avoid unnecessary re-renders
-- Use route groups `(group)` to organize without affecting URLs
-
----
-
-### 3) Data fetching rules
-- Fetch data in **Server Components** by default
-- Co-locate data fetching with the component that needs it
-- Avoid fetching the same data in multiple places
-
-When data is:
-- shared → cache it
-- request-specific → keep it dynamic
-- user-specific → isolate it
-
----
-
-### 4) Rendering strategies
-Choose intentionally:
-- **Static**: build-time, no request dependency
-- **Cached**: shared data with revalidation
-- **Dynamic**: request-specific, streamed if possible
-
-Avoid accidental dynamic rendering.
-
----
-
-### 5) Client Components
-Use Client Components only for:
-- forms and inputs
-- interactive UI
-- animations
-- browser-only APIs
-
-Client Components should:
-- be small
-- receive data via props
-- never fetch server data directly unless required
-
----
-
-### 6) Suspense and streaming
-- Use `<Suspense>` to isolate slow or dynamic parts
-- Stream user-specific or low-priority UI
-- Keep fallback UI minimal and predictable
-
----
-
-### 7) Mutations
-- Prefer **Server Actions**
-- Mutations should:
-  - live close to the data they affect
-  - trigger cache invalidation when needed
-- Avoid client-side mutation logic when a Server Action works
-
----
-
-### 8) Error handling
-- Use `error.tsx` for route-level errors
-- Use `not-found.tsx` for missing resources
-- Do not swallow errors in data fetching
-
----
-
-## Common mistakes to prevent
-
-- Marking entire pages as `'use client'`
-- Reading request data in shared/cached logic
-- Fetching data in Client Components unnecessarily
-- Overusing route segment config instead of code-local control
-- Mixing routing concerns with UI logic
-
----
-
-## Review checklist
-
+### Implementation checklist
 - [ ] Server Components used by default
 - [ ] Client Components are small and justified
 - [ ] Data fetching is colocated and not duplicated
 - [ ] Rendering strategy is explicit
-- [ ] Suspense boundaries isolate dynamic UI
+- [ ] Suspense isolates dynamic UI
 - [ ] Server Actions used for mutations
-- [ ] Errors handled at the route level
 
----
+### Review checklist
+- [ ] No accidental `'use client'` on large trees
+- [ ] No server data fetching inside client-only components
+- [ ] Errors handled via `error.tsx` / `not-found.tsx`
 
 ## Minimal examples
 
@@ -152,13 +70,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 }
 ```
 
----
-
-## How to apply this skill
-
-When making changes:
-1. Decide server vs client first
-2. Choose the rendering strategy intentionally
-3. Fetch data in the closest Server Component
-4. Isolate interactivity and user-specific UI
-5. Use Suspense to control loading behavior
+## Common mistakes / pitfalls
+- Marking entire pages as `'use client'`
+- Fetching server data in Client Components
+- Reading request data in shared/cached logic
+- Overusing route segment config instead of code-local controls
+- Mixing routing concerns with component UI logic

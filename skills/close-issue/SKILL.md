@@ -1,151 +1,53 @@
----
-name: close-issue
-description: Finalize an Asymmetric.al AL-### issue by verifying acceptance criteria, running the quality gate, committing and pushing changes, updating the PR, and marking it ready for review. Use when asked to close/finish/ship an AL-### issue or prepare a PR for review/merge.
----
+# Close Issue — Skill
+**Name:** `close-issue`
+**Purpose:** Finalize an `AL-###` issue by verifying acceptance criteria, running quality gates, and marking the PR ready for review.
+Use this when the user asks to close/finish/ship an issue or prepare a PR.
 
-# Close Issue
+**Applies when:** Preparing a PR for review/merge or closing an issue.
+**Do not use when:** Starting or implementing an issue (use `start-issue` or `ship-issue`).
 
-Finalize implementation with comprehensive checks, commit final changes, and mark the PR ready for review.
-
-## Context / rules
-- Quality gate must pass: `bun run lint && bun run typecheck && bun run build`
-- PR workflow: Draft PR -> Ready for Review -> Approved -> Merged
-- Issue identifiers: `AL-###` (GitHub Issues)
-- Prefer GitHub MCP for PR/issue operations. Do not assume `gh` exists unless verified.
+## Rules
+- Quality gate must pass: `bun run lint && bun run typecheck && bun run build`.
+- PR workflow: Draft -> Ready for Review -> Approved -> Merged.
+- Prefer GitHub MCP for PR/issue operations.
 
 ## Workflow
+1. **Pre-flight:** Verify feature branch and clean working tree.
+   - Run: `git status`, `git branch --show-current`.
+   - If on `main`/`develop`, stop and ask to switch.
+2. **Identify issue keys:** Check branch name or recent commits.
+   - Run: `git log -20 --oneline`.
+3. **Verify acceptance criteria:** Use GitHub MCP to fetch issue body and checklist.
+4. **Scan TODO/FIXME:** Check changed files for TODO/FIXME.
+5. **Run quality gate:** Fix failures and re-run until clean.
+6. **Commit/push:** Use `skills/commit/SKILL.md` and `git push`.
+7. **Update PR:** Add summary/testing/`fixes AL-###`, then mark ready.
 
-### 1) Pre-flight verification (git)
-- Must be on a feature branch (not `develop`, `main`, or `master`).
-- Identify whether the working tree is clean.
+## Checklists
 
-Run:
+### Pre-flight checklist
+- [ ] On a feature branch (not `main`/`develop`)
+- [ ] Issue keys identified
+- [ ] Acceptance criteria confirmed
 
-```bash
-git status
-git branch --show-current
-```
+### Final checklist
+- [ ] Quality gate passes
+- [ ] No unintended TODO/FIXME
+- [ ] PR updated and ready for review
 
-If current branch is `develop`, `main`, or `master`, STOP and tell the user to checkout the feature branch.
+## Minimal examples
 
-### 2) Identify associated issues (AL-###)
-Infer issue keys from:
-- branch name containing `AL-\d+`
-- recent commit messages containing `ref AL-\d+`
-
-Run:
-
-```bash
-git log -20 --oneline
-```
-
-If you find issue keys:
-- deduplicate and sort ascending numerically
-- ask the user to confirm the final list
-If you cannot find any:
-- ask the user for the `AL-###` key(s) explicitly
-
-### 3) Verify acceptance criteria (from GitHub issue body)
-For each confirmed `AL-###`:
-- Use GitHub MCP to locate the issue (search by `AL-###` in title/body).
-- Fetch the issue body and extract acceptance criteria:
-  - Prefer the section `## Acceptance Criteria`
-  - Otherwise extract any markdown task list items (`- [ ]` / `- [x]`)
-- Present the extracted checklist and ask the user to confirm all are met.
-If not met:
-- STOP and ask whether to implement missing items now.
-
-### 4) Verify TODO/FIXME status in changed files
-Check only files changed relative to `origin/develop` (if available) to avoid noise.
-
-Run:
-
-```bash
-git fetch origin develop
-git diff --name-only origin/develop...HEAD
-```
-
-Then search those files for TODO/FIXME:
-
-```bash
-git diff --name-only origin/develop...HEAD | xargs -I{} grep -n "TODO\|FIXME" "{}" || true
-```
-
-If TODO/FIXME are found:
-- show the lines/paths
-- ask the user whether each is intentional
-- if not intentional, fix them before continuing
-
-### 5) Run the quality gate
-Run:
-
+### Quality gate
 ```bash
 bun run lint && bun run typecheck && bun run build
 ```
 
-If any step fails:
-- identify which step failed from output
-- fix the problem
-- stage and commit fixes using the `commit` skill (preferred), ensuring `ref AL-###` is included when applicable
-- push the branch
-- rerun the quality gate
-
-Limit: after 5 iterations, STOP and ask user how to proceed.
-
-### 6) Commit and push any remaining changes
-If there are uncommitted changes after checks pass:
-- stage all
-- commit using the `commit` skill (preferred)
-- push
-
-Run:
-
+### Find TODO/FIXME in changed files
 ```bash
-git status
-git add -A
-git push
+git diff --name-only origin/develop...HEAD | xargs -I{} grep -n "TODO\|FIXME" "{}" || true
 ```
 
-### 7) Locate the PR for this branch (GitHub MCP preferred)
-- Use GitHub MCP to find the PR associated with the current branch.
-- If none exists, STOP and ask the user whether to create a draft PR using the `start-issue` skill.
-
-### 8) Update PR description (MCP preferred)
-Update the PR body to include:
-- Summary of changes (3-6 bullets)
-- Testing performed (what you ran)
-- Quality gate status (explicitly state it passed)
-- Related issues section with `fixes AL-###` lines (one per issue)
-
-Do not remove existing useful content; append/update the relevant sections.
-
-### 9) Request reviewers (only if user provides)
-Ask: “Who should review this PR?”
-- If user provides GitHub handles, add them as reviewers via GitHub MCP.
-- If user does not provide reviewers, skip this step.
-
-### 10) Add a short PR comment (optional)
-If the user wants, add a comment with:
-- What changed
-- What to focus review on
-- Any risk areas
-
-Use GitHub MCP.
-
-### 11) Mark PR Ready for Review
-Convert the PR from draft to ready using GitHub MCP.
-
-### 12) Final output
-Return:
-- PR URL
-- branch name
-- issues (`AL-###` list)
-- confirmation that quality gate passed
-- reviewers requested (if any)
-
-## Success criteria
-- Quality gate passes
-- No unintended TODO/FIXME left behind
-- Changes committed and pushed
-- PR body includes `fixes AL-###`
-- PR marked ready for review
+## Common mistakes / pitfalls
+- Marking PR ready before checks pass
+- Ignoring TODO/FIXME in changed files
+- Closing issues without confirming acceptance criteria

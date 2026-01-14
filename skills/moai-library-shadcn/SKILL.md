@@ -1,77 +1,37 @@
----
-name: moai-library-shadcn
-description: Use this skill whenever working with **shadcn/ui**: component selection and composition, Tailwind tokens/theme customization, accessibility and Radix primitives, building/maintaining a coherent design system citeturn4view3.
----
-
 # shadcn/ui Design System — Skill
-
 **Name:** `moai-library-shadcn`
+**Purpose:** Build a consistent, accessible component system using shadcn/ui and Radix primitives.
+Use this skill whenever selecting, composing, or customizing shadcn/ui components.
 
-Use this skill whenever working with **shadcn/ui**:
-- component selection and composition
-- Tailwind tokens/theme customization
-- accessibility and Radix primitives
-- building/maintaining a coherent design system citeturn4view3
+**Applies when:** Working with shadcn/ui components, Radix primitives, or Tailwind tokens/themes.
+**Do not use when:** The UI does not use shadcn/ui or Radix components.
 
----
+## Rules
+- **shadcn/ui is copied-in code:** Treat components as first-party and keep them consistent.
+- **Tokens over one-offs:** Centralize colors, spacing, radius, and typography.
+- **Prefer Radix for behavior:** Use Radix for focus management and keyboard handling.
+- **Composable APIs:** Favor slots and sensible defaults; avoid prop explosions.
+- **Accessibility is required:** Labels, descriptions, and visible focus states.
 
-## Goal
+## Workflow
+1. Identify the design tokens involved (color/spacing/radius/typography).
+2. Choose the closest existing shadcn/ui component.
+3. Compose via Radix primitives instead of re-implementing behavior.
+4. Keep API surface small and predictable.
+5. Verify keyboard and a11y behavior.
 
-Build an **owned, consistent, accessible** component system using shadcn/ui.
+## Checklists
 
-Priorities:
-1. Consistency (tokens + patterns)
-2. Accessibility (Radix defaults, correct semantics)
-3. Maintainable component ownership (copied-in code)
-4. Clear composition patterns (not prop explosions)
-
----
-
-## Core principles
-
-### 1) Remember what shadcn/ui is
-- Not a packaged component library
-- You **copy components into your repo** and own them (so treat them like first-party code) citeturn4view3
-
-### 2) Tokens over one-off styles
-- Centralize colors, radii, spacing, typography via Tailwind config/CSS variables
-- Components consume tokens; pages should not redefine them
-
-### 3) Prefer Radix primitives for behavior
-- Use Radix for focus management, keyboard handling, aria defaults
-- Avoid re-implementing popovers/menus/dialog behavior
-
-### 4) Component APIs should be composable
-- Provide slots (`children`) and sensible defaults
-- Expose escape hatches (`className`, `asChild`) where appropriate
-- Avoid dozens of boolean props
-
-### 5) Accessibility is a feature
-- Labels, descriptions, error text
-- Focus rings visible and consistent
-- Reduced motion support where animations exist
-
----
-
-## Common mistakes to prevent
-
-- Forking components wildly without updating tokens
-- Inconsistent spacing/radius across components
-- Using non-semantic elements for controls
-- Duplicating similar components instead of extracting a base
-
----
-
-## Review checklist
-
+### Implementation checklist
 - [ ] Tokens are centralized (colors/radius/typography)
-- [ ] Components follow the same spacing/radius patterns
-- [ ] Radix-based components keep keyboard support intact
-- [ ] `className` is merged consistently
-- [ ] `asChild` used correctly (no invalid DOM nesting)
-- [ ] Forms include labels + error messaging
+- [ ] Components follow shared spacing/radius patterns
+- [ ] Radix behavior and keyboard support preserved
+- [ ] `className` merging is consistent
+- [ ] `asChild` used correctly
 
----
+### Review checklist
+- [ ] Forms include labels and error messaging
+- [ ] No duplicate variants or near-identical components
 
 ## Minimal examples
 
@@ -99,18 +59,14 @@ export function Panel() {
       <CardHeader>
         <CardTitle>Overview</CardTitle>
       </CardHeader>
-      <CardContent>…</CardContent>
+      <CardContent>...</CardContent>
     </Card>
   );
 }
 ```
 
----
-
-## How to apply this skill
-
-1. Identify the design token(s) involved (color/spacing/radius)
-2. Choose the closest existing shadcn/ui component
-3. Prefer composition + Radix primitives over custom behavior
-4. Keep API surface small and consistent
-5. Add an example usage and verify keyboard/a11y
+## Common mistakes / pitfalls
+- Forking components without updating tokens
+- Inconsistent spacing/radius across components
+- Using non-semantic elements for controls
+- Duplicating components instead of extracting a base
