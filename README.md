@@ -5,7 +5,7 @@ A high-performance, enterprise-grade Next.js 16.1 application for mission-focuse
 ## Architecture & Tech Stack
 
 - **Framework**: Next.js 16.1Densitynsitynsity (App Router, Turbopack) - *Optimized for Performance*
-- **UI System**: Tailwind CSS 4 + shadcn/ui (MAIA Style) + Radix UI
+- **UI System**: Tailwind CSS 4 + shadcn/ui (Maia Theme) + Radix UI
 - **Theme**: Forced Light Zinc Aesthetic (Zinc/Zinc)
 - **Database**: Supabase (PostgreSQL) + Prisma
 - **Authentication**: Supabase Auth (Unified across platforms)
@@ -84,7 +84,7 @@ A seamless experience for kingdom partners to manage their giving and follow mis
   - **Automatic Integration**: When a donor makes a contribution to a missionary or clicks "Follow" on their profile, that missionary's feed is automatically integrated into the donor's personalized dashboard.
   - **Real-Time Updates**: Donors receive instant access to stories, prayer requests, and progress reports, allowing them to see exactly how their partnership is making a difference.
   - **Two-Way Interaction**: Donors can respond with reactions and comments, fostering a genuine relationship between the field and the support base.
-- Route: `/donor-dashboard`
+- Route: `/donor-portal`
 
 ## Development
 
@@ -93,9 +93,6 @@ This project is optimized for both local development and the **Orchids (orchids.
 ### Package Manager
 This project uses **bun** (v1.3+). Do not use npm/yarn/pnpm.
 
-### Orchids Integration
-The project includes `.orchids.json` and `.orchids/orchids.json` for seamless syncing with the Orchids IDE.
-- **Project ID**: `3b489e38-0f05-4024-b3e1-af15281301d4`
 - **Startup Command**: `bun run dev`
 
 ```bash
@@ -138,7 +135,7 @@ bun outdated
 
 1. **RSC First**: Keep components as React Server Components unless interactivity is required.
 2. **Next.js 16.1 Compliance**: Always `await` dynamic `params` and `searchParams` in routes and layouts.
-3. **Zinc Aesthetic**: Use `zinc-900` for primary actions and `zinc-500` for secondary text.
+3. **Zinc and Shadcn/ui Maia Aesthetic**: Use `zinc-900` for primary actions and `zinc-500` for secondary text.
 4. **Responsive Integrity**: Test all UI changes on both 375px (Mobile) and 1440px (Desktop) viewports.
 
 ---
