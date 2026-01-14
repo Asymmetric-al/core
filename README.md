@@ -1,19 +1,19 @@
 # Asymmetric.al - Kingdom Impact Platform
 
-A high-performance, enterprise-grade Next.js 16.1 application for mission-focused organizations. Built for effortless impact with a sophisticated Zinc color and Maia theme.
+A high-performance, enterprise-grade Next.js 16.1 application for mission-focused organizations. Built for effortless impact with a sophisticated Zinc color and Shadcn/UI Maia theme.
 
 ## Architecture & Tech Stack
 
 - **Framework**: Next.js 16.1Densitynsitynsity (App Router, Turbopack) - *Optimized for Performance*
-- **UI System**: Tailwind CSS 4 + shadcn/ui (Maia Theme) + Radix UI
-- **Theme**: Forced Light Zinc Aesthetic (Zinc/Zinc)
+- **UI System**: Tailwind CSS 4 + shadcn/ui (Maia Theme) + Radix UI +  Base UI
+- **Theme**:  Light Zinc Aesthetic (Zinc/Zinc), Shadcn/UI Maia Theme
 - **Database**: Supabase (PostgreSQL) + Prisma
 - **Authentication**: Supabase Auth (Unified across platforms)
 - **Payments**: Stripe (Advanced integration)
 - **State Management**: React 19 + TanStack Query v5
-- **Animations**: Framer Motion + Tailwind Motion
+- **Animations**: Motion + Tailwind Motion
 
-## UX/UI Standards (December 2025)
+## UX/UI Standards (Shadcn/UI December 2025)
 
 The platform follows a standardized **Zinc Light** theme, optimized for both desktop and mobile viewports with a seamless, responsive transition.
 
@@ -47,8 +47,8 @@ In a live production environment, the platform uses dynamic routing based on hos
 | :--- | :--- | :--- |
 | **Public Site** | `tenanturl.org/` | Root application serving public content and giving pages. |
 | **Organization Admin** | `tenanturl.org/admin` | Administrative interface for the organization (Mission Control). |
-| **Missionaries/Workers** | `my.tenanturl.org` | Dedicated subdomain for field workers to manage their support and donors. |
-| **Donors/Partners** | `tenanturl.org/dashboard` | Portal for donors to manage their contributions and pledges. |
+| **Missionaries/Field Workers** | `my.tenanturl.org` | Dedicated subdomain for field workers to manage their support and donors. |
+| **Donors/Partners** | `tenanturl.org/givingportal` | Portal for donors to manage their contributions and pledges. |
 
 ### Demo Site Accessibility
 For this demonstration and development environment, we have implemented aliases to allow easy access to all modules from a single domain:
@@ -64,15 +64,15 @@ For this demonstration and development environment, we have implemented aliases 
 
 ## Project Modules
 
-### Mission Control (MC)
+### Mission Control (Admin Dashboard)
 The administrative headquarters for organization leaders. Manage CRM, Contributions, Member Care, and Mobilization with advanced reporting and automation tools.
 - Route: `/mc`
 
 ### Missionary Dashboard
 Empowering field missionaries with donor engagement tools, task management, and impact feeds.
-- **My Feed**: A high-fidelity social engagement platform designed for missionaries to share their journey directly with their support base.
+- **My Feed/Ministry Updates**: A high-fidelity social engagement platform designed for missionaries to share their journey directly with their support base.
   - **Functionality**: Supports rich text (HTML) storytelling, multi-media carousels for multiple photos, and real-time interaction (Likes, Prayers, Comments).
-  - **Premium Style**: Features a high-end "Vega" aesthetic with animated micro-interactions. Clicking a reaction triggers a delightful burst of floating emoji particles (❤️, 🙏, 🔥) and visceral pulsing effects.
+  - **Premium Style**: Features a high-end "Maia" aesthetic with animated micro-interactions. Clicking a reaction triggers a delightful burst of floating emoji particles (❤️, 🙏, 🔥) and visceral pulsing effects.
   - **Workflow**: Missionaries can save drafts, manage visibility (Public vs Partners Only), and handle follower requests with manual or automated approval levels.
   - **Media Management**: Integrated media toolbar allows for quick image uploads and carousel creation to make updates visually engaging.
 - Route: `/missionary-dashboard`
@@ -146,9 +146,8 @@ To run this project locally with a fully functional demo experience, follow thes
 
 ### 1. Prerequisites
 - **Bun**: This project uses Bun (v1.3+).
-- **Supabase CLI**: Required for local Supabase.
-- **Docker Desktop**: Supabase runs in Docker.
-
+- **Supabase
+  
 ### 2. Quick Start (Automated)
 ```bash
 ./setup-local.sh
