@@ -21,20 +21,22 @@ The platform follows a standardized **Zinc Light** theme, optimized for both des
 - **Primary**: Inter (`tracking-tight`)
 - **Mono**: Geist Mono
 - **Headings**: Refined tracking and bold weight for clarity
-
+  
 ### Design Tokens
-- **Padding**: Standardized `px-4 py-6 sm:px-6` for main content areas.
-- **Borders**: Subtle `zinc-200/60` borders with refined border-radius.
-- **Motion**: Staggered reveals and smooth transitions using `MotionPreset`.
-- **Responsive**: Mobile-first navigation with robust drawers (Sheet) for sidebar access on smaller screens.
+
+* **Padding**: Standardized `px-4 py-6 sm:px-6` for main content areas.
+* **Borders**: Use maia theme tokens, not hard coded zinc. Default to `border-border` or `border-border/60`. Keep rounding driven by the Maia radius token `--radius`.
+* **Motion**: Staggered reveals and smooth transitions using `MotionPreset`.
+* **Responsive**: Mobile-first navigation with robust drawers (Sheet) for sidebar access on smaller screens.
 
 ### Chart Standards
-- **Aesthetic**: Data-dense, high-contrast using `Zinc` and `oklch` color tokens.
-- **Bar Charts**: 
-  - **Radius**: Uniform corner radius of `[4, 4, 0, 0]` on the top segment of stacked bars or all segments of non-stacked bars. Avoid fully rounded "domed" tops.
-  - **Density**: Use `maxBwideze={52}` for bold, wide bars that scale responsibly.
-  - **Axes**: Ensure Y-Axis labels have sufficient width (min `40px`) and margin (`tickMargin={8}`) to prevent numerical cutoff.
-  - **Labels**: Use `month` only for X-Axis time series (e.g., "Nov", "Dec") to maintain high density without clutter.
+
+* **Aesthetic**: Data-dense, high-contrast using Maia `oklch` theme tokens. Use `--chart-1` through `--chart-5` for series colors.
+* **Bar Charts**:
+  * **Radius**: Uniform corner radius of `[4, 4, 0, 0]` on the top segment of stacked bars or all segments of non-stacked bars. Avoid fully rounded domed tops.
+  * **Density**: Use `maxBarSize={52}` for bold, wide bars that scale responsibly.
+  * **Axes**: Ensure Y-Axis labels have sufficient width (min `40px`) and margin (`tickMargin={8}`) to prevent numerical cutoff.
+  * **Labels**: Use `month` only for X-Axis time series (e.g., "Nov", "Dec") to maintain high density without clutter.
 
 ## Multi-Tenant Architecture & Routing
 
