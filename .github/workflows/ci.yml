@@ -44,6 +44,12 @@ jobs:
   build:
     name: build
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy
+      SUPABASE_URL: https://example.supabase.co
+      SUPABASE_ANON_KEY: dummy
+      SUPABASE_SERVICE_ROLE_KEY: dummy
     steps:
       - uses: actions/checkout@v4
 
@@ -56,5 +62,3 @@ jobs:
 
       - name: Build
         run: bun run build
-
-        
