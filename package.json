@@ -17,7 +17,13 @@
     "verify:e2e": "bun scripts/verify-e2e.mjs",
     "verify:e2e:loop": "bun scripts/verify-e2e-loop.mjs",
     "lighthouse": "lhci autorun",
-    "generate:icons": "node scripts/generate-icons.js"
+    "generate:icons": "node scripts/generate-icons.js",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:reset": "supabase db reset",
+    "supabase:status": "supabase status",
+    "setup:local": "bash ./setup-local.sh",
+    "setup:verify": "bash ./scripts/setup-verify.sh"
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",

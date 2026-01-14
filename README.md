@@ -5,7 +5,7 @@ A high-performance, enterprise-grade Next.js 16.1 application for mission-focuse
 ## Architecture & Tech Stack
 
 - **Framework**: Next.js 16.1 (App Router, Turbopack) - *Optimized for Performance*
-- **UI System**: Tailwind CSS 4 + shadcn/ui (Vega Style) + Radix UI
+- **UI System**: Tailwind CSS 4 + shadcn/ui (MAIA Style) + Radix UI
 - **Theme**: Forced Light Zinc Aesthetic (Zinc/Zinc)
 - **Database**: Supabase (PostgreSQL) + Prisma
 - **Authentication**: Supabase Auth (Unified across platforms)
@@ -149,31 +149,22 @@ To run this project locally with a fully functional demo experience, follow thes
 
 ### 1. Prerequisites
 - **Bun**: This project uses Bun (v1.3+).
-- **Supabase Account**: You'll need a Supabase project for Auth and Database.
+- **Supabase CLI**: Required for local Supabase.
+- **Docker Desktop**: Supabase runs in Docker.
 
-### 2. Environment Configuration
-Copy `.env.example` to `.env.local` and fill in your Supabase credentials:
-
+### 2. Quick Start (Automated)
 ```bash
-cp .env.example .env.local
+./setup-local.sh
 ```
 
-### 3. Database Initialization
-1. Go to your **Supabase Dashboard** > **SQL Editor**.
-2. Create a new query and paste the contents of `supabase/schema.sql`.
-3. Run the query. This will:
-   - Create all necessary tables (`profiles`, `posts`, `donors`, `missionaries`, etc.)
-   - Set up the `handle_new_user` trigger for automatic profile creation.
-   - Create the default tenant (Organization) required for the demo.
-   - Disable RLS for development ease (Note: Enable in production!).
+This installs dependencies, starts local Supabase, and resets + seeds the local database.
 
-### 4. Running the App
+### 3. Run the App
 ```bash
-bun install
 bun run dev
 ```
 
-### 5. Using the Demo
+### 4. Using the Demo
 The demo login flow is powered by `/api/auth/demo-account`. 
 1. Navigate to `/login`.
 2. Click any of the **Demo Login** buttons (Mission Control, Missionary, or Donor).
