@@ -1,6 +1,6 @@
 # Asymmetric.al - Kingdom Impact Platform
 
-A high-performance, enterprise-grade Next.js 16.1 application for mission-focused organizations. Built for effortless impact with a sophisticated Zinc color and Maia organizations.
+A high-performance, enterprise-grade Next.js 16.1 application for mission-focused organizations. Built for effortless impact with a sophisticated Zinc color and Maia theme.
 
 ## Architecture & Tech Stack
 
