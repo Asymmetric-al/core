@@ -1,79 +1,40 @@
----
-name: motion
-description: Use this skill whenever implementing **React animations** with Motion (`motion/react`, formerly `framer-motion`): gestures (hover/tap/drag), layout transitions, exit animations (`AnimatePresence`), scroll/viewport effects citeturn4view2.
----
-
 # Motion (Framer Motion) — Skill
-
 **Name:** `motion`
+**Purpose:** Implement smooth, accessible animations with `motion/react` in React.
+Use this skill whenever adding animations, gestures, or layout transitions.
 
-Use this skill whenever implementing **React animations** with Motion (`motion/react`, formerly `framer-motion`):
-- gestures (hover/tap/drag)
-- layout transitions
-- exit animations (`AnimatePresence`)
-- scroll/viewport effects citeturn4view2
+**Applies when:** Using `motion/react` (`motion`, `AnimatePresence`, `useScroll`, etc.).
+**Do not use when:** No animations are needed or the component is strictly server-rendered.
 
----
+## Rules
+- **Client-only boundary:** Motion requires `'use client'`; keep client islands small.
+- **Start simple:** Begin with opacity/translate before adding spring physics.
+- **Use the right tool:** `AnimatePresence` for enter/exit, `layout` for layout, `whileHover`/`whileTap` for gestures.
+- **Respect reduced motion:** Use `useReducedMotion()`.
+- **Bundle discipline:** Use `LazyMotion` for larger motion surfaces.
 
-## Goal
+## Workflow
+1. Identify the UX purpose (feedback, transition, focus).
+2. Add the smallest `'use client'` boundary.
+3. Implement enter/exit or layout transitions correctly.
+4. Respect reduced motion preferences.
+5. Check performance and bundle size.
 
-Create **smooth, intentional** animations that don’t break UX or performance.
+## Checklists
 
-Priorities:
-1. Correct component boundaries (`'use client'` in Next.js)
-2. Accessible motion (reduced-motion)
-3. Predictable enter/exit and layout transitions
-4. Keep bundles small
-
----
-
-## Core principles
-
-### 1) Client-only boundary (Next.js)
-- Motion components require `'use client'`
-- Keep client islands small (wrap only animated parts)
-
-### 2) Prefer simple transitions first
-- Start with opacity + translate
-- Add spring physics only when it improves feel
-
-### 3) Use the right tool
-- Enter/exit → `AnimatePresence`
-- Layout changes → `layout` / `LayoutGroup`
-- Gestures → `whileHover`, `whileTap`, `drag`
-- Scroll/viewport → `whileInView`, `useScroll`, `useTransform`
-
-### 4) Respect reduced motion
-- Use `useReducedMotion()` and reduce/disable non-essential motion
-
-### 5) Bundle discipline
-- Use `LazyMotion` when motion is a large dependency surface (especially apps with many routes) citeturn4view2
-
----
-
-## Common mistakes to prevent
-
-- Exit animations not running because component is unmounted without `AnimatePresence`
-- Animating layout without `layout`
-- Putting Motion in a huge client tree in Next.js
-- Animating large lists without virtualization / without limiting re-renders
-
----
-
-## Review checklist
-
+### Implementation checklist
 - [ ] `'use client'` only where needed
-- [ ] Reduced motion behavior is defined
+- [ ] Reduced motion behavior defined
 - [ ] `AnimatePresence` wraps conditional UI
 - [ ] Layout transitions use `layout`
-- [ ] Animations don’t re-run on every render
-- [ ] Bundle impact is considered (`LazyMotion`)
 
----
+### Review checklist
+- [ ] Animations don’t re-run on every render
+- [ ] Motion code doesn’t expand the client tree unnecessarily
 
 ## Minimal examples
 
-### Enter/exit (modal or toast)
+### Enter/exit
 ```tsx
 "use client";
 
@@ -107,7 +68,7 @@ export function Expander({ open }: { open: boolean }) {
   return (
     <motion.div layout className="overflow-hidden rounded-md border p-3">
       <div className="font-medium">Title</div>
-      {open ? <div className="mt-2 text-sm">More content…</div> : null}
+      {open ? <div className="mt-2 text-sm">More content...</div> : null}
     </motion.div>
   );
 }
@@ -133,12 +94,8 @@ export function FadeIn({ children }: { children: React.ReactNode }) {
 }
 ```
 
----
-
-## How to apply this skill
-
-1. Identify the UX purpose (feedback, transition, focus)
-2. Add the smallest `'use client'` boundary
-3. Implement enter/exit or layout correctly
-4. Ensure reduced-motion is respected
-5. Check list/route performance and bundle size
+## Common mistakes / pitfalls
+- Unmounting without `AnimatePresence` (exit animations never run)
+- Animating layout without `layout`
+- Putting Motion in a huge client tree
+- Animating large lists without virtualization

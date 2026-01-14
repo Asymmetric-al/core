@@ -1,64 +1,36 @@
----
-name: recharts
-description: Use this skill whenever building **React charts** with **Recharts** (`LineChart`, `BarChart`, `AreaChart`, `PieChart`, `ResponsiveContainer`). citeturn2view0
----
-
 # Recharts — Skill
-
 **Name:** `recharts`
+**Purpose:** Build responsive, readable charts with Recharts using correct data mapping and composition.
+Use this skill whenever creating charts with Recharts.
 
-Use this skill whenever building **React charts** with **Recharts** (`LineChart`, `BarChart`, `AreaChart`, `PieChart`, `ResponsiveContainer`). citeturn2view0
+**Applies when:** Using `LineChart`, `BarChart`, `AreaChart`, `PieChart`, `ResponsiveContainer`.
+**Do not use when:** Charts are not built with Recharts.
 
----
+## Rules
+- **Always responsive:** Wrap charts in `ResponsiveContainer` and ensure a fixed height parent.
+- **Explicit data model:** Normalize data and use stable `dataKey` values.
+- **Pick the simplest chart:** Use `LineChart` for trends, `BarChart` for comparisons, `AreaChart` for cumulative/volume, `PieChart` for part-to-whole.
+- **Interactivity:** Add `Tooltip`; add `Legend` when multiple series exist.
+- **Performance:** Disable animation for large/static dashboards and reduce point count.
 
-## Goal
+## Workflow
+1. Define the data shape and stable keys.
+2. Choose the simplest chart that answers the question.
+3. Wrap in `ResponsiveContainer` with a height.
+4. Add axes, tooltip, and legend as needed.
+5. Disable animation or aggregate data for large sets.
 
-Ship **correct, responsive, readable** charts with minimal Recharts glue code.
+## Checklists
 
-Priorities:
-1. Correct chart composition (axes / grid / tooltip)
-2. Responsive sizing
-3. Data mapping correctness (`dataKey`)
-4. Performance with large datasets
-
----
-
-## Core principles
-
-### 1) Always be responsive
-- Wrap charts in `ResponsiveContainer`
-- Provide explicit `width` and `height` (or a parent with a fixed height)
-
-### 2) Keep the data model explicit
-- Normalize inputs into a stable array of objects
-- Use consistent keys and `dataKey` for every series
-
-### 3) Choose the simplest chart that answers the question
-- Trend over time → `LineChart`
-- Compare categories → `BarChart`
-- Cumulative/volume → `AreaChart`
-- Part-to-whole → `PieChart` citeturn2view0
-
-### 4) Interactivity is not optional for dashboards
-- Add `Tooltip`
-- Add `Legend` when multiple series exist
-
-### 5) Performance defaults
-- Disable animations for large/static dashboards: `isAnimationActive={false}`
-- Limit point count (aggregate / bucket) before rendering
-
----
-
-## Review checklist
-
+### Implementation checklist
 - [ ] Chart is wrapped in `ResponsiveContainer`
-- [ ] X/Y axes are present and labeled when needed
-- [ ] Tooltip works and shows the right units
-- [ ] `dataKey` matches actual field names
-- [ ] Animations disabled for large datasets
-- [ ] Colors are accessible (contrast / color-blind safe)
+- [ ] X/Y axes are present when needed
+- [ ] Tooltip shows correct units
+- [ ] `dataKey` matches field names
 
----
+### Review checklist
+- [ ] Animations disabled for large datasets
+- [ ] Colors are accessible
 
 ## Minimal examples
 
@@ -111,13 +83,8 @@ export function CustomTooltip({ active, label, payload }: TooltipProps) {
 }
 ```
 
----
-
-## How to apply this skill
-
-When implementing a chart:
-1. Define the data shape and keys first
-2. Pick the simplest chart type
-3. Add `ResponsiveContainer`, axes, and tooltip
-4. Validate `dataKey`s against real data
-5. Turn off animation if performance matters
+## Common mistakes / pitfalls
+- Missing `ResponsiveContainer` or fixed-height parent
+- Mismatched `dataKey` values
+- Over-animating large dashboards
+- Rendering too many points without aggregation

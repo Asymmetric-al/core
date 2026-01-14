@@ -1,61 +1,61 @@
----
-trigger: always_on
----
+# General Project Rules — Rules
+**Name:** `general-rules`
+**Purpose:** Baseline workflow, labeling, CI gates, and repo hygiene for Asymmetric.al.
+Use this as the default rulebook for any repo change or AL-### issue workflow.
 
-# Asymmetric.al General Rules
+**Applies when:** Any change in this repo, especially AL-### issues, branches, commits, and PRs.
+**Do not use when:** Working outside this repo or discussing non-repo topics.
 
-## Project Identity
-- **Project Name**: Asymmetric.al
-- **Issue Key Convention**: `AL-###`
+## Rules
+- **Project name:** Asymmetric.al
+- **Issue key format:** `AL-###`
+- **Main branch:** `main` is protected. Do not push directly.
+- **Tech stack (reference):** Next.js 15 (App Router), React 19, TypeScript 5.8, Tailwind CSS 4, Supabase client libraries, package manager `bun`.
 
-## Tech Stack
-- **Framework**: Next.js 15 (App Router)
-- **Library**: React 19
-- **Language**: TypeScript 5.8
-- **Styling**: Tailwind CSS 4
-- **Backend**: Supabase (Client Libraries)
-- **Package Manager**: bun
+### Label taxonomy (required for every issue)
+- Complexity: `complexity:simple | complexity:easy | complexity:medium | complexity:hard`
+- Status: `status:todo | status:blocked | status:needs-review | status:ready`
+- Type: `type:bug | type:feature | type:chore | type:refactor | type:docs`
+
+**Rule:** Exactly one label from each category. Do not mix multiple labels from the same category.
+
+### CI gates (must pass before merge)
+- `bun run lint`
+- `bun run typecheck`
+- `bun run build`
+
+### File hygiene
+- Keep changes minimal and localized to the task.
+- Prefer small, atomic PRs.
+- Do not manually edit generated files unless necessary.
+
+### Documentation rule
+- Do not create or update `.md` files unless explicitly asked by the user.
+- If build steps change, update `README.md` and `docs/CONTRIBUTING.md`.
 
 ## Workflow
-1.  **Issue**: Every change starts with a GitHub issue (`AL-###`).
-2.  **Branch**: Create a branch from the issue (e.g., `feature/AL-123-description` or `fix/AL-123-bug`).
-3.  **Implementation**: precise changes, `bun run dev` to test.
-4.  **PR**: Open a PR referencing the issue. Ensure all CI checks pass.
+1. **Issue:** Every change starts with a GitHub issue (`AL-###`).
+2. **Branch:** Create a feature branch from the issue (e.g., `feature/AL-123-description` or `fix/AL-123-bug`).
+3. **Implementation:** Make precise changes; validate locally as needed.
+4. **PR:** Open a PR referencing the issue; ensure CI gates pass.
 
-## Issue Labels
-Every issue must have exactly one label from each of the following categories:
+## Checklists
 
-1.  **Complexity**:
-    - `complexity:simple`
-    - `complexity:easy`
-    - `complexity:medium`
-    - `complexity:hard`
-2.  **Status**:
-    - `status:todo`
-    - `status:blocked`
-    - `status:needs-review`
-    - `status:ready`
-3.  **Type**:
-    - `type:bug`
-    - `type:feature`
-    - `type:chore`
-    - `type:refactor`
-    - `type:docs`
+### Issue checklist
+- [ ] Issue uses `AL-###` format
+- [ ] Exactly one label from each category
 
-**Rule**: Assignments must be mutually exclusive within categories (e.g., an issue cannot be both `simple` and `hard`).
+### PR checklist
+- [ ] Branch is not `main`
+- [ ] CI gates pass (`lint`, `typecheck`, `build`)
+- [ ] Changes are minimal and scoped
 
-## Repo Rules & CI
-- **Main Branch**: `main` is protected. No direct pushes.
-- **CI Gates**:
-    - Lint: `bun run lint`
-    - Typecheck: `bun run typecheck`
-- **Build**: Must pass `bun run build` before merging.
+## Minimal examples
+- Branch name: `feature/AL-123-add-metrics-card`
+- CI command: `bun run lint && bun run typecheck && bun run build`
 
-## File Hygiene
-- **Scope**: Keep changes minimal and localized to the task.
-- **PR Size**: Prefer small, atomic PRs over massive changes.
-- **Generated Files**: Do not manually edit generated files (e.g., lockfiles, build artifacts) unless necessary.
-
-## Documentation
-- **No Unnecessary Docs**: Do not create or update `.md` files (summaries, plans) unless explicitly asked by the user.
-- **Maintain**: Keep `README.md` and `CONTRIBUTING.md` accurate if you modify build steps.
+## Common mistakes / pitfalls
+- Skipping the issue or using a non-`AL-###` identifier
+- Applying multiple labels from the same category
+- Pushing directly to `main`
+- Editing generated files without need

@@ -1,124 +1,41 @@
 # Cache Components (Next.js) — Skill
+**Name:** `cache-components`
+**Purpose:** Build correct cached/dynamic boundaries in Next.js App Router when Cache Components or PPR are in use.
+Use this skill to avoid request-context leaks and to enforce proper cache invalidation.
 
-Use this skill when working in a Next.js App Router codebase with **Cache Components enabled** (e.g. `cacheComponents: true`) or when adopting **Partial Prerendering (PPR)**.
+**Applies when:** `cacheComponents: true`, Partial Prerendering (PPR), `'use cache'`, `cacheLife`, `cacheTag`, `updateTag`, `revalidateTag`.
+**Do not use when:** Working in the Pages Router or when Cache Components/PPR are not enabled.
 
-## Goal
+## Rules
+- **Cached vs dynamic:** Shared data should be cached; request/user-specific data must be dynamic and streamed behind `<Suspense>`.
+- **No request context inside cache:** Never call `cookies()`, `headers()`, or auth/session inside a `'use cache'` scope.
+- **Cached functions must be async:** Any `'use cache'` function/component must be `async`.
+- **Prefer code-local caching:** Favor `'use cache'`, `cacheLife`, `cacheTag` over route-segment config (`revalidate`, `dynamic`).
+- **Mutations must invalidate tags:** Use `updateTag` for immediate consistency or `revalidateTag` for background refresh.
+- **PPR + generateStaticParams:** Do not return empty arrays; keep request-specific logic out of the shell.
 
-Build pages with:
-- a mostly static shell
-- cached shared data/components
-- dynamic, request-specific UI streamed behind `<Suspense>`
+## Workflow
+1. Classify each data dependency as shared or request-specific.
+2. For shared data, add `'use cache'` + `cacheTag` (and `cacheLife` if needed).
+3. For request/user-specific data, keep it dynamic and render behind `<Suspense>`.
+4. Split cached logic from request logic if needed.
+5. Invalidate tags after mutations.
 
-Priorities: **correctness → performance → ergonomics**.
+## Checklists
 
----
+### Implementation checklist
+- [ ] Shared data uses `'use cache'`
+- [ ] Cached scopes have `cacheTag`
+- [ ] No request data inside cached scopes
+- [ ] Dynamic UI is isolated behind `<Suspense>`
+- [ ] Cached functions are `async`
+- [ ] Mutations invalidate correct tags
 
-## Core rules
+### Review checklist
+- [ ] Route segment config avoided unless required
+- [ ] PPR shells do not include request-specific logic
 
-### 1) Cached vs dynamic
-If a component/function does I/O:
-
-**Cached (preferred when shared across users)**
-- Add `'use cache'`
-- Optionally set `cacheLife(...)`
-- Add `cacheTag(...)`
-
-**Dynamic (required when request-specific)**
-- Uses `cookies()`, `headers()`, auth/session, or request-derived `searchParams`
-- Must render behind `<Suspense>`
-
-**Rule of thumb:** shared = cache, user-specific = dynamic + Suspense.
-
-### 2) No request context inside cache
-Never access `cookies()`, `headers()`, auth/session, or request-derived values inside a `'use cache'` scope.
-
-If request data is needed:
-- read it outside the cache
-- pass only safe inputs into cached functions
-- or keep the whole thing dynamic
-
-### 3) Cached functions must be async
-Any function or component using `'use cache'` must be `async`.
-
-### 4) Prefer code-local caching
-Avoid route-segment config:
-- `export const revalidate`
-- `export const dynamic`
-
-Prefer:
-- `'use cache'`
-- `cacheLife(...)`
-- `cacheTag(...)`
-- `updateTag(...)` / `revalidateTag(...)`
-
-### 5) Mutations must invalidate tags
-After data mutations:
-- Use `updateTag(tag)` for immediate consistency
-- Or `revalidateTag(tag)` for background refresh
-
----
-
-## Patterns
-
-### Cached shared data
-- `'use cache'`
-- semantic tags
-- appropriate cache lifetime
-
-### Dynamic user-specific UI
-- no caching
-- isolate behind `<Suspense>`
-
-### Hybrid pages
-- static shell
-- cached shared data
-- small streamed dynamic sections
-
----
-
-## Error fixes
-
-**Request data outside Suspense**
-- Move into a component rendered inside `<Suspense>`
-
-**Uncached data outside Suspense**
-- Add `'use cache'` or move behind `<Suspense>`
-
-**Request data inside cache**
-- Split request logic from cached logic
-- Or make the component dynamic
-
----
-
-## PPR + generateStaticParams
-- Never return an empty array
-- Use params to generate reusable shells
-- Keep request-specific logic out of the shell
-
----
-
-## Review checklist
-
-- Shared data is cached
-- Cached scopes have tags
-- No request data inside cache
-- Dynamic UI is isolated and streamed
-- Mutations invalidate correct tags
-- Segment config avoided unless required
-
----
-
-## Tag conventions
-
-- Collection: `products`
-- Scoped: `products:${category}`
-- Entity: `product:${id}`
-
-Invalidate the smallest correct scope.
-
----
-
-## Examples
+## Minimal examples
 
 ### Cached function
 ```ts
@@ -160,3 +77,10 @@ export async function updateProduct(id: string) {
   updateTag('products')
 }
 ```
+
+## Common mistakes / pitfalls
+- Reading cookies/headers/session inside `'use cache'`
+- Missing cache tags on cached functions
+- Rendering request-specific data outside `<Suspense>`
+- Forgetting to invalidate tags after mutations
+- Returning an empty array from `generateStaticParams`
