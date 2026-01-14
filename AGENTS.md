@@ -1,85 +1,99 @@
-# Project instructions
+# Agent Router — Rules
+**Name:** `agents-router`
+**Purpose:** Single routing/index for rules and skills in this repo. Use it to decide which docs to load and which tools to use before editing.
+This file is the deterministic entry point for all agent work in `asymmetrical-platform`.
 
-## Tooling: docs + repo context (required)
+**Applies when:** Any task inside this repo.
+**Do not use when:** Working outside this repo or doing general, non-repo conversation.
 
-### When to use Nia (default for repo work)
-Use Nia FIRST whenever the task involves ANY of the following:
-- “where is…”, “how does…”, “what calls…”, “find…”, “trace…”
-- architecture, patterns, entry points, or data flow
-- refactors, renames, multi-file edits, or anything with non-trivial blast radius
-- debugging regressions that may involve multiple modules
-- verifying how this repo already integrates with a vendor or service
+## Tooling (Required)
 
-What to do with Nia:
-- search for the relevant symbols, routes, or paths
-- read the top matching files/sections
-- cite exact file paths and the specific functions/components involved
+### Nia (default for repo context)
+**Use when:**
+- "where is...", "how does...", "what calls...", "find...", "trace..."
+- architecture, patterns, entry points, data flow
+- refactors/renames/multi-file edits
+- regressions across modules
+- verifying existing integrations
 
-If Nia cannot find evidence:
+**Actions:**
+- search relevant symbols/routes/paths
+- read top matches
+- cite exact file paths and specific functions/components
+
+**If Nia cannot find evidence:**
 - say so explicitly
-- fall back to ripgrep + direct file reads (show commands or paths checked)
+- fall back to `rg` + direct file reads (show commands or paths checked)
 
----
+### Context7 (default for third-party APIs)
+**Use when:**
+- any third-party library/framework/API surface is involved
 
-### When to use Context7 (default for third-party APIs)
-Use Context7 FIRST whenever code depends on third-party libraries, frameworks, or APIs.
-- Prefer specifying the Context7 library ID when known (e.g. `/vercel/next.js`)
-- Do not guess third-party APIs when Context7 is available
-- If Context7 is unavailable, consult upstream docs and state assumptions
+**Actions:**
+- resolve library ID
+- query docs for the exact API
 
----
+**If Context7 is unavailable:**
+- consult upstream docs
+- state assumptions explicitly
 
-## Next.js–specific skills (required when applicable)
+## Routing Rules (Deterministic)
+Load rulebooks before editing files in their domain.
 
-### `nextjs-app-router` skill
-Use **`skills/nextjs-app-router/SKILL.md`** whenever:
-- working in a Next.js App Router codebase (`/app`)
-- deciding Server vs Client Components
-- designing layouts, routing, or data-fetching structure
-- reviewing rendering strategy, Suspense usage, or Server Actions
+- **General workflow / AL-### / CI gates / labels:** `rules/general.md`
+- **Frontend UI/components/styling/UX:** `rules/frontend.md`
+- **Backend/Supabase/auth/data access/migrations:** `rules/backend.md`
+- **Testing/Playwright/a11y/perf gates:** `rules/testing.md`
+- **shadcn/studio MCP workflows (/cui, /rui, /iui, /ftc):** `rules/shadcn-studio-mcp.md` (only when running those workflows)
 
-This skill defines the **baseline architectural and rendering rules** for all Next.js work.
+## Skill Routing (Deterministic)
+Load the skill(s) below when the trigger matches.
 
-### `cache-components` skill
-Use **`skills/cache-components/SKILL.md`** whenever:
-- `cacheComponents: true` is enabled
-- Partial Prerendering (PPR) is in use or being introduced
-- adding or reviewing `'use cache'`, `cacheLife`, `cacheTag`
-- handling cache invalidation after mutations
-- debugging Suspense vs cached vs dynamic rendering errors
+- **Next.js App Router structure, rendering, data fetching:** `skills/nextjs-app-router/SKILL.md`
+- **Cache Components / PPR / cacheTag & invalidation:** `skills/cache-components/SKILL.md`
+- **React component design/refactor:** `skills/react-component-dev/SKILL.md`
+- **shadcn/ui system usage:** `skills/moai-library-shadcn/SKILL.md`
+- **Motion animations (`motion/react`):** `skills/motion/SKILL.md`
+- **Recharts:** `skills/rechart/SKILL.md`
+- **TanStack Table v8:** `skills/tanstack-table/SKILL.md`
+- **GitHub issue/PR workflows (AL-###):**
+  - Write issue: `skills/write-issue/SKILL.md`
+  - Start issue: `skills/start-issue/SKILL.md`
+  - Ship issue: `skills/ship-issue/SKILL.md`
+  - Close issue: `skills/close-issue/SKILL.md`
+  - Create issues batch: `skills/create-issues/SKILL.md`
+- **Commit message creation:** `skills/commit/SKILL.md`
 
-This skill is the **authoritative rulebook** for caching boundaries, invalidation, and correctness.
-
-If both skills apply:
-- Use `nextjs-app-router` for overall structure
-- Use `cache-components` for data fetching, caching, and rendering decisions
-
----
-
-## Output expectations
+## Output Requirements
 - Prefer minimal, surgical diffs
 - Always show exact file paths changed
 - If behavior changes, update docs and include a quick verification step (commands or steps)
 - If making a multi-file change, summarize the blast radius (modules/files impacted)
 
----
+## Quality Gate (Required)
+- Do not include secrets, tokens, or credentials in docs.
+- Do not allow conflicting instructions across rulebooks; reconcile and document the single source of truth.
+- Every rules/skill/workflow doc must include: triggers, workflow steps, and a checklist. Update the doc if any section is missing.
 
-## Local rulebooks (required when relevant)
-- Follow `rules/general.md` for AL-### workflow, labels, and CI gates
-- Follow `rules/frontend.md` before changing UI/components
-- Follow `rules/backend.md` before changing Supabase/auth/data access
-- Follow `rules/testing.md` before adding/updating tests or changing flows
-- Follow `rules/shadcn-studio-mcp.md` when using the shadcn/studio MCP workflows (/cui, /rui, /iui, /ftc)
+## Checklists
 
-When work touches one of these areas, open the relevant rule doc first and apply it.
+### Routing checklist
+- [ ] Identified domain(s) and opened the matching rulebook(s)
+- [ ] Applied required skills based on triggers
+- [ ] Used Nia or Context7 when required (or explicitly noted fallback)
 
----
+### Response checklist
+- [ ] File paths are explicit
+- [ ] Behavior changes include verification steps
+- [ ] Blast radius summarized for multi-file edits
 
-## GitHub workflows (AL-###)
-If the task is to write, start, ship, or close an AL-### issue/PR workflow, follow the matching skill:
-- `skills/write-issue/SKILL.md`
-- `skills/start-issue/SKILL.md`
-- `skills/ship-issue/SKILL.md`
-- `skills/close-issue/SKILL.md`
+## Minimal examples
+- **"Where is auth handled?"** -> Use Nia to find auth entry points; then open `rules/backend.md`.
+- **"Add a new UI card component."** -> Open `rules/frontend.md` and `skills/react-component-dev/SKILL.md`.
+- **"Use /cui for a page."** -> Open `rules/shadcn-studio-mcp.md` and follow its workflow exactly.
 
-Prefer GitHub MCP for GitHub operations when available; otherwise follow the repo’s standard GitHub workflow.
+## Common mistakes / pitfalls
+- Skipping Nia on multi-file or architecture questions
+- Using shadcn/studio tools without `rules/shadcn-studio-mcp.md`
+- Mixing rulebooks with conflicting instructions instead of reconciling them
+- Forgetting to update docs after behavior changes

@@ -1,75 +1,37 @@
----
-name: react-component-dev
-description: Use this skill whenever creating/refactoring **React components** with strong: composition patterns, accessibility defaults, predictable props and ref forwarding citeturn4view1.
----
-
 # React Component Development — Skill
-
 **Name:** `react-component-dev`
+**Purpose:** Build reusable, accessible React components with predictable APIs and ref forwarding.
+Use this skill when creating or refactoring components.
 
-Use this skill whenever creating/refactoring **React components** with strong:
-- composition patterns
-- accessibility defaults
-- predictable props and ref forwarding citeturn4view1
+**Applies when:** Building new components, refactoring UI components, or defining component APIs.
+**Do not use when:** Only editing styles or content in existing components without API changes.
 
----
+## Rules
+- **Composition over configuration:** Prefer `children`/slots over many boolean props.
+- **Forward refs:** If a component renders a DOM element, use `forwardRef`.
+- **Accessibility:** Use semantic HTML first; add ARIA only when needed.
+- **Predictable props:** Follow controlled/uncontrolled conventions.
+- **Small and testable:** Extract complex behavior into hooks.
 
-## Goal
+## Workflow
+1. Define the component’s responsibility and minimal usage.
+2. Choose the API shape (controlled vs uncontrolled as needed).
+3. Implement with semantic HTML and accessibility defaults.
+4. Add `forwardRef` for DOM-rendering components.
+5. Extract complex behavior into hooks if needed.
 
-Produce **reusable, accessible, well-structured** components.
+## Checklists
 
-Priorities:
-1. API design (props + composition)
-2. Accessibility and keyboard support
-3. Ref forwarding when rendering DOM
-4. Maintainable file organization
-
----
-
-## Core principles
-
-### 1) Composition over configuration
-- Prefer `children`, slots, and render props over huge prop enums
-- Make the “happy path” easy, but allow escape hatches
-
-### 2) Forward refs by default for DOM-wrapping components
-- If the component renders a DOM element, use `forwardRef`
-- Expose the correct element type via generics
-
-### 3) Accessibility first
-- Keyboard interactions (focus, enter/space where appropriate)
-- ARIA only when needed; prefer semantic elements
-- Respect reduced motion
-
-### 4) Predictable props
-- Prefer controlled/uncontrolled conventions (`value`/`defaultValue`, `onChange`)
-- Avoid boolean prop explosions; group behavior into a single prop object when needed
-
-### 5) Keep components small and testable
-- Split complex behavior into hooks
-- Keep rendering pure; side-effects in hooks
-
----
-
-## Common mistakes to prevent
-
-- Not forwarding refs for input-like components
-- Using `div` for buttons/links
-- Props that encode styling variants without a consistent pattern
-- Complex components without a minimal example usage
-
----
-
-## Review checklist
-
-- [ ] Component has a clear single responsibility
-- [ ] DOM-rendering components forward refs
-- [ ] Uses semantic HTML (button, a, input, dialog)
+### Implementation checklist
+- [ ] Component has a single responsibility
+- [ ] DOM components forward refs
+- [ ] Semantic HTML used
 - [ ] Keyboard interaction works
-- [ ] Props align with React conventions
-- [ ] Example usage included (copy/paste)
+- [ ] Props follow React conventions
 
----
+### Review checklist
+- [ ] API is small and composable
+- [ ] Example usage is included
 
 ## Minimal examples
 
@@ -97,7 +59,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button";
 ```
 
-### Compound component (slot-like API)
+### Compound component
 ```tsx
 export function Card({ children }: { children: React.ReactNode }) {
   return <div className="rounded-lg border p-4">{children}</div>;
@@ -110,13 +72,8 @@ export function CardBody({ children }: { children: React.ReactNode }) {
 }
 ```
 
----
-
-## How to apply this skill
-
-When asked to build a component:
-1. Define the component’s job and minimal usage first
-2. Decide controlled/uncontrolled needs
-3. Implement with semantic HTML + a11y
-4. Add `forwardRef` if it renders DOM
-5. Extract behavior into hooks when complexity grows
+## Common mistakes / pitfalls
+- Missing `forwardRef` on input-like components
+- Using `div` for buttons/links
+- Overloading components with boolean props
+- Shipping components without a minimal usage example

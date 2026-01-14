@@ -1,58 +1,85 @@
-# Frontend Rules (Asymmetric.al)
+# Frontend Rules — Rules
+**Name:** `frontend-rules`
+**Purpose:** Guardrails for Next.js App Router UI work (components, styling, forms, and state).
+Use this before changing anything under `src/app`, `src/components`, or `src/features` that affects UI.
 
-## Tech Stack
-- **Framework**: Next.js 15 (App Router)
-- **Core**: React 19, TypeScript 5.8
-- **Styling**: Tailwind CSS 4
-- **State**: TanStack Query v5 (Server), React Context (Client/UI)
-- **Forms**: React Hook Form + Zod
-- **UI Architecture**: Shadcn UI (Radix Primitives) + Lucide Icons
+**Applies when:** UI/components/layout/styling changes, client interactions, or frontend data fetching.
+**Do not use when:** The task is strictly backend/data/migration work (use `rules/backend.md`) or testing-only work (use `rules/testing.md`).
 
-## Code Organization
+## Rules
 
-### Directory Structure
-Follow the **Feature-based** organization pattern:
-```
-src/
-  app/               # Next.js App Router (pages/layouts)
-  components/
-    ui/              # Shared UI components (Button, Input) - do not edit unless necessary
-    dashboard/       # Dashboard specific components
-  features/          # Domain features
-    auth/
-      components/    # Auth-specific components
-      hooks/         # Auth hooks
-      types.ts       # Auth types
-  lib/               # Singleton utilities (Supabase, Utils)
-```
+### Architecture and organization
+- Follow the feature-based structure under `src/features`.
+- Keep shared UI primitives in `src/components/ui` (do not edit unless necessary).
 
 ### Imports
-- **Absolute Imports**: Always use `@/` alias (e.g., `import { Button } from '@/components/ui/button'`).
-- **Icons**: Import from `lucide-react` (e.g., `import { ChevronRight } from 'lucide-react'`).
+- Use absolute imports via `@/` (e.g., `import { Button } from '@/components/ui/button'`).
+- Import icons from `lucide-react`.
 
-## Component Rules
-- If using shadcn/studio MCP to generate UI (blocks/components/pages), follow `rules/shadcn-studio-mcp.md` and do not deviate from the workflow.
-1.  **"Use Client"**: Only add `'use client'` when necessary (interactivity, hooks). Default to Server Components.
-2.  **Shadcn UI**: Use the existing components in `src/components/ui`. Do not invent new primitives if one exists.
-3.  **Tailwind**:
-    - Use utility classes for everything.
-    - Use `cn()` for class merging.
-    - Avoid arbitrary values (`w-[123px]`)—use design tokens (`w-32`).
+### Component rules
+- Use `'use client'` only when required (hooks, state, browser APIs).
+- Reuse existing components in `src/components/ui` before creating new primitives.
+- Tailwind rules:
+  - Use utility classes for everything.
+  - Use `cn()` for class merging.
+  - Avoid arbitrary values like `w-[123px]`; use tokens like `w-32`.
 
-## State Management
-- **Server State**: Use TanStack Query (`useQuery`, `useMutation`) for all async data.
-    - **Keys**: Use array-based keys: `['users', id]`.
-    - **Mutations**: Invalidate queries on success.
-- **Client State**: Use `useState` or `useReducer` for local state. Use React Context for strictly global UI state (theming, toasts).
-- **Zustand**: **Do not use**. This repo does not currently have Zustand installed.
+### shadcn/studio MCP workflows (conditional)
+- If you are using shadcn/studio MCP workflows (`/cui`, `/rui`, `/iui`, `/ftc`), follow `rules/shadcn-studio-mcp.md` exactly.
+- Do not apply shadcn/studio MCP rules for manual UI edits.
 
-## Forms
-- **Validation**: Strict Zod schemas for all inputs.
-- **Pattern**:
-    ```tsx
-    const form = useForm({ resolver: zodResolver(schema) })
-    return <Form {...form}><form onSubmit={...}></form></Form>
-    ```
+### State management
+- **Server state:** TanStack Query v5 (`useQuery`, `useMutation`). Use array keys (e.g., `['users', id]`). Invalidate queries on mutation success.
+- **Client state:** `useState`/`useReducer` for local state; React Context for global UI state.
+- **Do not use Zustand.** It is not installed.
 
-## Testing
-*(If frontend tests are added, generic RTL patterns apply, but standard CI currently only enforces build/lint/typecheck)*.
+### Forms
+- Use React Hook Form + Zod validation.
+
+### Frontend testing
+- Follow `rules/testing.md` for Playwright/a11y/perf expectations.
+
+## Workflow
+1. Identify if the change is Server or Client and apply `skills/nextjs-app-router/SKILL.md` when relevant.
+2. Reuse existing UI primitives (`src/components/ui`) before creating new ones.
+3. Keep Tailwind usage token-based and consistent.
+4. Use TanStack Query for async data and invalidate on mutations.
+5. If shadcn/studio MCP is used, switch to `rules/shadcn-studio-mcp.md` and follow it exactly.
+
+## Checklists
+
+### Implementation checklist
+- [ ] `'use client'` only where required
+- [ ] Existing UI primitives reused when possible
+- [ ] Tailwind uses tokens (no arbitrary values)
+- [ ] TanStack Query used for async server data
+- [ ] Forms use React Hook Form + Zod
+
+### Review checklist
+- [ ] Imports use `@/` alias
+- [ ] Icons imported from `lucide-react`
+- [ ] No Zustand usage
+- [ ] shadcn/studio MCP rules used only when running `/cui`, `/rui`, `/iui`, `/ftc`
+
+## Minimal examples
+
+### Absolute import
+```tsx
+import { Button } from '@/components/ui/button'
+```
+
+### Form setup
+```tsx
+const form = useForm({ resolver: zodResolver(schema) })
+return (
+  <Form {...form}>
+    <form onSubmit={form.handleSubmit(onSubmit)} />
+  </Form>
+)
+```
+
+## Common mistakes / pitfalls
+- Marking entire pages as `'use client'` without need
+- Creating new UI primitives that already exist in `src/components/ui`
+- Using arbitrary Tailwind values instead of tokens
+- Using Zustand or other unapproved state libraries
