@@ -5,8 +5,8 @@ This guide helps new developers get started with the Give Hope codebase. Target:
 ## Quick Start
 
 ```bash
-# 1. Automated local setup (installs deps + starts Supabase + seeds DB)
-./setup-local.sh
+# 1. Automated cloud setup (installs deps + links Supabase + pushes schema/seed)
+./setup-cloud.sh --project-ref <your-project-ref>
 
 # 2. Start development
 bun run dev
@@ -15,32 +15,32 @@ bun run dev
 open http://localhost:3000
 ```
 
-## Local Supabase
+If needed, copy `.env.example` to `.env.local` and fill in the Supabase keys before running the app.
 
-Local Supabase runs via the Supabase CLI + Docker using `supabase/config.toml`.
+## Supabase Cloud
 
-- **What `supabase start` does**: Spins up the local Supabase stack (Postgres, Auth, Storage, Realtime, Studio, Inbucket) in Docker using the ports in `supabase/config.toml`.
-- **Supabase Studio**: http://localhost:54323
-- **Reset DB + seed**: `supabase db reset` (runs local migrations and `supabase/seed.sql`).
-- **Expected ports**:
-  - API: `54321`
-  - DB: `54322`
-  - Studio: `54323`
-  - Inbucket: `54324`
-- **Common conflicts**: Another Postgres/Supabase instance already using the ports. Stop the conflicting service or update ports in `supabase/config.toml`.
-- **Env vars**: See the [Environment Variable Matrix](#environment-variable-matrix) for **Required vs Optional** values when running locally.
+This repo uses a hosted Supabase project (no local Docker).
+
+- **Link the project**: `supabase link --project-ref <your-project-ref>`
+- **Deploy schema + seed**: `supabase db push --include-seed`
+- **Schema source**: `supabase/schema.sql`
+- **Seed data**: `supabase/seed.sql`
+- **Schema changes**: Update `supabase/schema.sql` and create a new migration for deployment.
+- **Env vars**: See the [Environment Variable Matrix](#environment-variable-matrix) for required values.
 
 ## Environment Variable Matrix
 
-Use this matrix to decide what you need for local development vs production. "Required" means the related feature will not work without it.
+Use this matrix to decide what you need for cloud development vs production. "Required" means the related feature will not work without it.
 
-| Variable | Requirement | Purpose | Local example / default | Feature impact if missing |
+| Variable | Requirement | Purpose | Example / default | Feature impact if missing |
 |---|---|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Required (local + prod) | Supabase project URL | `https://your-project.supabase.co` | Auth + data access fail; API routes error. |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Required (local + prod) | Client-safe Supabase key | `your-anon-key` | Client auth/data fail; middleware errors. |
-| `SUPABASE_SERVICE_ROLE_KEY` | Required (local + prod) | Server admin key | `your-service-role-key` | Server API routes (admin, donations, profiles, etc.) fail. |
-| `DATABASE_URL` | Optional (local) | Direct DB connection string | `postgresql://...` | DB tooling/migrations/maintenance scripts fail. |
-| `NEXT_PUBLIC_SITE_URL` | Optional (local), recommended in prod | Base site URL for SEO + Unlayer | `http://localhost:3000` (default: `https://givehope.org`) | SEO links + allowed domains use fallback. |
+| `NEXT_PUBLIC_SUPABASE_URL` | Required | Supabase project URL | `https://your-project.supabase.co` | Auth + data access fail; API routes error. |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Required | Client-safe Supabase key | `your-anon-key` | Client auth/data fail; middleware errors. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Required | Server admin key | `your-service-role-key` | Server API routes (admin, donations, profiles, etc.) fail. |
+| `SUPABASE_PROJECT_REF` | Required (setup) | Supabase project ref for CLI linking | `your-project-ref` | Setup/linking fails. |
+| `SUPABASE_DB_PASSWORD` | Required for non-interactive setup | DB password used by `supabase link` | `your-db-password` | Setup prompts or fails in CI. |
+| `DATABASE_URL` | Required | Direct DB connection string | `postgresql://...` | DB tooling/verification scripts fail. |
+| `NEXT_PUBLIC_SITE_URL` | Optional (dev), recommended in prod | Base site URL for SEO + Unlayer | `http://localhost:3000` (default: `https://givehope.org`) | SEO links + allowed domains use fallback. |
 | `GOOGLE_SITE_VERIFICATION` | Optional | Google site verification | empty | No verification meta tag. |
 | `BING_SITE_VERIFICATION` | Optional | Bing site verification | empty | No verification meta tag. |
 | `NEXT_PUBLIC_MAIN_DOMAIN` | Optional | Main domain for subdomain routing | `localhost:3000` | Subdomain routing uses default. |
@@ -72,15 +72,18 @@ Use this matrix to decide what you need for local development vs production. "Re
 
 | Issue | Quick fix |
 |---|---|
-| Docker not running | Start Docker Desktop and wait for it to finish booting, then re-run `./setup-local.sh`. |
 | Supabase CLI missing | Install it (`brew install supabase/tap/supabase`) and re-run setup. |
-| Ports busy (`54321-54324`) | Stop the conflicting service or change ports in `supabase/config.toml`, then `supabase stop` + `supabase start`. |
-| Stale Docker volumes / broken local DB | Run `supabase stop --no-backup` then `supabase start`, or reset with `supabase db reset`. |
+| Supabase CLI not logged in | Run `supabase login`, then re-run `./setup-cloud.sh`. |
+| Project not linked | Run `supabase link --project-ref <your-project-ref>` or re-run setup. |
+| `supabase db push` fails | Confirm DB password and project access; re-run setup with `--db-password`. |
+| `DATABASE_URL` missing | Add it to `.env.local` or export it in your shell. |
 
 ## Common Commands
 
 | Command | Description |
 |---------|-------------|
+| `bun run setup:cloud` | Install deps, link Supabase project, push schema + seed |
+| `bun run supabase:push` | Push schema + seed to the linked Supabase project |
 | `bun run dev` | Start dev server (Turbopack) |
 | `bun run lint` | Run ESLint |
 | `bun run typecheck` | Run TypeScript type checker |

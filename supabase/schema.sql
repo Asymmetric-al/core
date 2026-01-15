@@ -1,5 +1,5 @@
 -- Supabase Schema for Asymmetric.al
--- Optimized for local development and demo environments
+-- Canonical schema for the hosted Supabase project
 
 -- Enable extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
