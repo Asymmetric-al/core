@@ -142,20 +142,23 @@ bun outdated
 
 ---
 
-## Local Setup & Development
+## Cloud Setup & Development
 
-To run this project locally with a fully functional demo experience, follow these steps:
+To run this project locally against the hosted Supabase project, follow these steps:
 
 ### 1. Prerequisites
 - **Bun**: This project uses Bun (v1.3+).
-- **Supabase
+- **Supabase CLI**: Install and login (`supabase login`), and ensure you have access to the cloud project.
   
 ### 2. Quick Start (Automated)
 ```bash
-./setup-local.sh
+./setup-cloud.sh --project-ref <your-project-ref>
 ```
+Or run `bun run setup:cloud`.
 
-This installs dependencies, starts local Supabase, and resets + seeds the local database.
+This installs dependencies, links the Supabase project, and pushes schema + seed data (`supabase db push --include-seed`).
+You can also set `SUPABASE_PROJECT_REF` (and optionally `SUPABASE_DB_PASSWORD`) instead of passing flags.
+Make sure `.env.local` has the required Supabase keys (copy from `.env.example` if needed).
 
 ### 3. Run the App
 ```bash
@@ -171,4 +174,3 @@ The demo login flow is powered by `/api/auth/demo-account`.
 ---
 
 Built with ❤️ for the Kingdom.
-

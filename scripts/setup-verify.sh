@@ -19,42 +19,22 @@ fail() {
   FAIL=1
 }
 
-require_cmd() {
-  local cmd="$1"
-  local hint="$2"
+if [[ -f ".env.local" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source .env.local
+  set +a
+fi
 
-  if ! command -v "$cmd" >/dev/null 2>&1; then
-    fail "Missing required command: $cmd. $hint"
-    return 1
-  fi
-}
-
-log "Checking Supabase status..."
-if ! require_cmd supabase "Install Supabase CLI (e.g. brew install supabase/tap/supabase)"; then
+if [[ -z "${DATABASE_URL:-}" ]]; then
+  fail "DATABASE_URL not set. Export it or add it to .env.local."
   exit 1
 fi
 
-STATUS_OUTPUT="$(supabase status 2>/dev/null || true)"
-if [[ -z "$STATUS_OUTPUT" ]]; then
-  fail "Supabase is not running. Start it with 'bun run supabase:start'."
-fi
+DB_URL="$DATABASE_URL"
+log "Checking cloud database via DATABASE_URL..."
 
-API_URL="$(echo "$STATUS_OUTPUT" | sed -nE 's/^API URL:[[:space:]]+//p' | head -n1 || true)"
-STUDIO_URL="$(echo "$STATUS_OUTPUT" | sed -nE 's/^Studio URL:[[:space:]]+//p' | head -n1 || true)"
-if [[ -n "$API_URL" ]]; then
-  log "API URL: $API_URL"
-fi
-if [[ -n "$STUDIO_URL" ]]; then
-  log "Studio URL: $STUDIO_URL"
-fi
-
-DB_URL="$(echo "$STATUS_OUTPUT" | sed -nE 's/^DB URL:[[:space:]]+//p' | head -n1 || true)"
-if [[ -z "$DB_URL" ]]; then
-  DB_URL="$(echo "$STATUS_OUTPUT" | grep -Eo 'postgresql://[^[:space:]]+' | head -n1 || true)"
-fi
-if [[ -z "$DB_URL" ]]; then
-  warn "Unable to parse DB URL from 'supabase status'; skipping SQL checks."
-else
+if [[ -n "$DB_URL" ]]; then
   SEED_FILE="$ROOT_DIR/supabase/seed.sql"
   if [[ ! -f "$SEED_FILE" ]]; then
     warn "Seed file not found at $SEED_FILE; skipping SQL checks."
@@ -71,7 +51,7 @@ else
           SQL="${SQL}SELECT '${table}' AS table, COUNT(*) AS count FROM ${table};"$'\n'
         done <<< "$TABLES"
         if ! psql "$DB_URL" -v ON_ERROR_STOP=1 -c "$SQL"; then
-          fail "SQL checks failed. Verify the database is running and seeded."
+          fail "SQL checks failed. Verify the database is reachable and seeded."
         fi
       else
         warn "psql not found; skipping SQL checks. Install Postgres client tools to enable counts."
