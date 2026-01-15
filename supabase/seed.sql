@@ -1,8 +1,5 @@
--- Deterministic seed data for local development and demos.
+-- Deterministic seed data for cloud development and demos.
 -- Covers all tables used by routes/hooks and common app flows.
-
--- Required for crypt() in auth.users inserts.
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- =========================
 -- TENANT
@@ -34,7 +31,7 @@ VALUES
     'authenticated',
     'authenticated',
     'admin@givehope.test',
-    crypt('password', gen_salt('bf')),
+    extensions.crypt('password'::text, extensions.gen_salt('bf'::text)),
     NOW(),
     '{"provider":"email","providers":["email"],"tenant_id":"00000000-0000-0000-0000-000000000001"}'::jsonb,
     '{"first_name":"Grace","last_name":"Admin","full_name":"Grace Admin","avatar_url":"https://example.com/avatars/admin.png","role":"admin"}'::jsonb,
@@ -47,7 +44,7 @@ VALUES
     'authenticated',
     'authenticated',
     'jordan.rivera@givehope.test',
-    crypt('password', gen_salt('bf')),
+    extensions.crypt('password'::text, extensions.gen_salt('bf'::text)),
     NOW(),
     '{"provider":"email","providers":["email"],"tenant_id":"00000000-0000-0000-0000-000000000001"}'::jsonb,
     '{"first_name":"Jordan","last_name":"Rivera","full_name":"Jordan Rivera","avatar_url":"https://example.com/avatars/jordan.png","role":"missionary"}'::jsonb,
@@ -60,7 +57,7 @@ VALUES
     'authenticated',
     'authenticated',
     'ava.chen@givehope.test',
-    crypt('password', gen_salt('bf')),
+    extensions.crypt('password'::text, extensions.gen_salt('bf'::text)),
     NOW(),
     '{"provider":"email","providers":["email"],"tenant_id":"00000000-0000-0000-0000-000000000001"}'::jsonb,
     '{"first_name":"Ava","last_name":"Chen","full_name":"Ava Chen","avatar_url":"https://example.com/avatars/ava.png","role":"missionary"}'::jsonb,
@@ -73,7 +70,7 @@ VALUES
     'authenticated',
     'authenticated',
     'pat.lopez@donors.test',
-    crypt('password', gen_salt('bf')),
+    extensions.crypt('password'::text, extensions.gen_salt('bf'::text)),
     NOW(),
     '{"provider":"email","providers":["email"],"tenant_id":"00000000-0000-0000-0000-000000000001"}'::jsonb,
     '{"first_name":"Pat","last_name":"Lopez","full_name":"Pat Lopez","avatar_url":"https://example.com/avatars/pat.png","role":"donor"}'::jsonb,
@@ -86,7 +83,7 @@ VALUES
     'authenticated',
     'authenticated',
     'sam.carter@donors.test',
-    crypt('password', gen_salt('bf')),
+    extensions.crypt('password'::text, extensions.gen_salt('bf'::text)),
     NOW(),
     '{"provider":"email","providers":["email"],"tenant_id":"00000000-0000-0000-0000-000000000001"}'::jsonb,
     '{"first_name":"Sam","last_name":"Carter","full_name":"Sam Carter","avatar_url":"https://example.com/avatars/sam.png","role":"donor"}'::jsonb,
@@ -99,7 +96,7 @@ VALUES
     'authenticated',
     'authenticated',
     'riley.singh@donors.test',
-    crypt('password', gen_salt('bf')),
+    extensions.crypt('password'::text, extensions.gen_salt('bf'::text)),
     NOW(),
     '{"provider":"email","providers":["email"],"tenant_id":"00000000-0000-0000-0000-000000000001"}'::jsonb,
     '{"first_name":"Riley","last_name":"Singh","full_name":"Riley Singh","avatar_url":"https://example.com/avatars/riley.png","role":"donor"}'::jsonb,

@@ -18,11 +18,8 @@
     "verify:e2e:loop": "bun scripts/verify-e2e-loop.mjs",
     "lighthouse": "lhci autorun",
     "generate:icons": "node scripts/generate-icons.js",
-    "supabase:start": "supabase start",
-    "supabase:stop": "supabase stop",
-    "supabase:reset": "supabase db reset",
-    "supabase:status": "supabase status",
-    "setup:local": "bash ./setup-local.sh",
+    "supabase:push": "supabase db push --include-seed",
+    "setup:cloud": "bash ./setup-cloud.sh",
     "setup:verify": "bash ./scripts/setup-verify.sh"
   },
   "dependencies": {
