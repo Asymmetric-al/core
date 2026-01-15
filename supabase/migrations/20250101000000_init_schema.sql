@@ -1,8 +1,10 @@
 -- Supabase Schema for Asymmetric.al
--- Optimized for local development and demo environments
+-- Baseline migration for the hosted Supabase project
 
 -- Enable extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
 
 -- ==========================================
 -- TABLES
@@ -10,7 +12,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 1. Tenants (Organizations)
 CREATE TABLE IF NOT EXISTS public.tenants (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
     slug TEXT NOT NULL UNIQUE,
     org_post_visibility TEXT DEFAULT 'all_donors',
@@ -40,7 +42,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 
 -- 3. Missionaries
 CREATE TABLE IF NOT EXISTS public.missionaries (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID REFERENCES public.tenants(id),
     profile_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
     bio TEXT,
@@ -58,7 +60,7 @@ CREATE TABLE IF NOT EXISTS public.missionaries (
 
 -- 4. Donors
 CREATE TABLE IF NOT EXISTS public.donors (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID REFERENCES public.tenants(id),
     profile_id UUID REFERENCES public.profiles(id),
     missionary_id UUID REFERENCES public.profiles(id), -- The missionary this donor is primarily associated with
@@ -97,7 +99,7 @@ CREATE TABLE IF NOT EXISTS public.donors (
 
 -- 5. Funds (Projects / Designated Funds)
 CREATE TABLE IF NOT EXISTS public.funds (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID REFERENCES public.tenants(id),
     name TEXT NOT NULL,
     description TEXT,
@@ -115,7 +117,7 @@ CREATE TABLE IF NOT EXISTS public.funds (
 
 -- 6. Posts (Updates from Missionaries or Org)
 CREATE TABLE IF NOT EXISTS public.posts (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID REFERENCES public.tenants(id),
     missionary_id UUID REFERENCES public.profiles(id),
     title TEXT,
@@ -135,7 +137,7 @@ CREATE TABLE IF NOT EXISTS public.posts (
 
 -- 7. Interactions
 CREATE TABLE IF NOT EXISTS public.post_likes (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     post_id UUID REFERENCES public.posts(id) ON DELETE CASCADE,
     user_id UUID REFERENCES auth.users(id),
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -143,7 +145,7 @@ CREATE TABLE IF NOT EXISTS public.post_likes (
 );
 
 CREATE TABLE IF NOT EXISTS public.post_prayers (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     post_id UUID REFERENCES public.posts(id) ON DELETE CASCADE,
     user_id UUID REFERENCES auth.users(id),
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -151,7 +153,7 @@ CREATE TABLE IF NOT EXISTS public.post_prayers (
 );
 
 CREATE TABLE IF NOT EXISTS public.post_fires (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     post_id UUID REFERENCES public.posts(id) ON DELETE CASCADE,
     user_id UUID REFERENCES auth.users(id),
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -159,7 +161,7 @@ CREATE TABLE IF NOT EXISTS public.post_fires (
 );
 
 CREATE TABLE IF NOT EXISTS public.post_comments (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     post_id UUID REFERENCES public.posts(id) ON DELETE CASCADE,
     user_id UUID REFERENCES auth.users(id),
     parent_id UUID REFERENCES public.post_comments(id),
@@ -170,7 +172,7 @@ CREATE TABLE IF NOT EXISTS public.post_comments (
 
 -- 8. Donations
 CREATE TABLE IF NOT EXISTS public.donations (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID REFERENCES public.tenants(id) DEFAULT '00000000-0000-0000-0000-000000000001',
     donor_id UUID REFERENCES public.donors(id),
     missionary_id UUID REFERENCES public.missionaries(id),
@@ -190,7 +192,7 @@ CREATE TABLE IF NOT EXISTS public.donations (
 
 -- 9. Follows (Donors following missionaries)
 CREATE TABLE IF NOT EXISTS public.follows (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID REFERENCES public.tenants(id),
     donor_id UUID REFERENCES public.donors(id),
     missionary_id UUID REFERENCES public.profiles(id),
@@ -200,7 +202,7 @@ CREATE TABLE IF NOT EXISTS public.follows (
 
 -- 10. Donor Feed Preferences
 CREATE TABLE IF NOT EXISTS public.donor_feed_preferences (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     donor_id UUID REFERENCES public.donors(id),
     tenant_id UUID REFERENCES public.tenants(id),
     show_org_posts BOOLEAN DEFAULT TRUE,
@@ -217,7 +219,7 @@ CREATE TABLE IF NOT EXISTS public.donor_feed_preferences (
 
 -- 11. Donor Activities
 CREATE TABLE IF NOT EXISTS public.donor_activities (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     donor_id UUID REFERENCES public.donors(id),
     type TEXT NOT NULL,
     title TEXT NOT NULL,
@@ -233,7 +235,7 @@ CREATE TABLE IF NOT EXISTS public.donor_activities (
 
 -- 12. Donor Pledges
 CREATE TABLE IF NOT EXISTS public.donor_pledges (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     donor_id UUID REFERENCES public.donors(id),
     amount NUMERIC DEFAULT 0,
     frequency TEXT,
@@ -252,7 +254,7 @@ CREATE TABLE IF NOT EXISTS public.donor_pledges (
 
 -- 13. Follower Requests
 CREATE TABLE IF NOT EXISTS public.follower_requests (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     donor_id UUID REFERENCES public.donors(id),
     missionary_id UUID REFERENCES public.profiles(id),
     status TEXT DEFAULT 'pending',
@@ -265,7 +267,7 @@ CREATE TABLE IF NOT EXISTS public.follower_requests (
 
 -- 14. Locations
 CREATE TABLE IF NOT EXISTS public.locations (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID REFERENCES public.tenants(id),
     title TEXT NOT NULL,
     lat DOUBLE PRECISION NOT NULL,
@@ -282,7 +284,7 @@ CREATE TABLE IF NOT EXISTS public.locations (
 
 -- 15. Missionary Tasks
 CREATE TABLE IF NOT EXISTS public.missionary_tasks (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     missionary_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
     donor_id UUID REFERENCES public.donors(id),
     title VARCHAR NOT NULL,
@@ -299,7 +301,7 @@ CREATE TABLE IF NOT EXISTS public.missionary_tasks (
 
 -- 16. PDF Templates
 CREATE TABLE IF NOT EXISTS public.pdf_templates (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID REFERENCES public.tenants(id),
     name TEXT NOT NULL,
     description TEXT,
@@ -320,7 +322,7 @@ CREATE TABLE IF NOT EXISTS public.pdf_templates (
 
 -- 17. Audit Logs
 CREATE TABLE IF NOT EXISTS public.audit_logs (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID REFERENCES public.tenants(id),
     user_id UUID,
     action TEXT NOT NULL,
@@ -334,7 +336,7 @@ CREATE TABLE IF NOT EXISTS public.audit_logs (
 
 -- 18. Assets
 CREATE TABLE IF NOT EXISTS public.assets (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     public_id TEXT NOT NULL,
     secure_url TEXT NOT NULL,
     width INTEGER,
