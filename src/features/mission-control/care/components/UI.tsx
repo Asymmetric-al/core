@@ -1,9 +1,12 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import Image, { type ImageLoader } from 'next/image';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { X, ChevronLeft, ChevronRight, ChevronDown, Check } from 'lucide-react';
 import { format, isSameDay, startOfMonth, subMonths, addMonths, getDay, getDaysInMonth } from 'date-fns';
+
+const passthroughImageLoader: ImageLoader = ({ src }) => src;
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -210,9 +213,26 @@ export const Avatar: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ classNa
   </div>
 );
 
-export const AvatarImage: React.FC<React.ImgHTMLAttributes<HTMLImageElement>> = ({ src, alt, className, ...props }) => (
-  <img data-slot="avatar-image" src={src} alt={alt} className={cn('aspect-square size-full object-cover', className)} {...props} />
-);
+type AvatarImageProps = Omit<React.ComponentProps<typeof Image>, 'fill' | 'width' | 'height'> & {
+  className?: string;
+};
+
+export const AvatarImage: React.FC<AvatarImageProps> = ({ src, alt = '', className, sizes = '32px', ...props }) => {
+  if (!src) return null;
+  return (
+    <Image
+      data-slot="avatar-image"
+      src={src}
+      alt={alt}
+      fill
+      sizes={sizes}
+      loader={passthroughImageLoader}
+      unoptimized
+      className={cn('object-cover', className)}
+      {...props}
+    />
+  );
+};
 
 export const AvatarFallback: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ children, className, ...props }) => (
   <div data-slot="avatar-fallback" className={cn('bg-muted flex size-full items-center justify-center rounded-xl text-xs font-semibold text-muted-foreground uppercase', className)} {...props}>

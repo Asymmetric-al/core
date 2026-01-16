@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useState, useRef, useCallback } from 'react'
+import Image, { type ImageLoader } from 'next/image'
 import { Button } from '@/components/ui/button'
 import { ImageCropper } from './image-cropper'
 import { toast } from 'sonner'
@@ -17,6 +18,8 @@ import {
   createDownscaledPreview,
   formatFileSize,
 } from '@/lib/image-utils'
+
+const passthroughImageLoader: ImageLoader = ({ src }) => src
 
 export interface ImageUploadProps {
   value?: string
@@ -313,9 +316,13 @@ export function ImageUpload({
         <div className="flex flex-col items-center gap-4">
           {value ? (
             <div className="relative group">
-              <img
+              <Image
                 src={value}
                 alt="Uploaded"
+                width={96}
+                height={96}
+                loader={passthroughImageLoader}
+                unoptimized
                 className="h-24 w-24 rounded-full object-cover border-2 border-zinc-200"
               />
               {onRemove && (

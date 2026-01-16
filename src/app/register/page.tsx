@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -15,6 +15,12 @@ export default function RegisterPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [demoAvailability, setDemoAvailability] = useState({
+    admin: false,
+    missionary: false,
+    donor: false,
+  })
+  const demoUnavailable = !demoAvailability.admin && !demoAvailability.missionary && !demoAvailability.donor
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -23,7 +29,40 @@ export default function RegisterPage() {
     role: ''
   })
 
+  useEffect(() => {
+    let active = true
+    async function loadDemoAvailability() {
+      try {
+        const response = await fetch('/api/auth/demo-account')
+        if (!response.ok) {
+          throw new Error('Demo status unavailable')
+        }
+        const data = await response.json()
+        if (active && data?.availableRoles) {
+          setDemoAvailability({
+            admin: Boolean(data.availableRoles.admin),
+            missionary: Boolean(data.availableRoles.missionary),
+            donor: Boolean(data.availableRoles.donor),
+          })
+        }
+      } catch {
+        if (active) {
+          setDemoAvailability({ admin: false, missionary: false, donor: false })
+        }
+      }
+    }
+
+    loadDemoAvailability()
+    return () => {
+      active = false
+    }
+  }, [])
+
   async function handleDemoAccount(role: 'admin' | 'missionary' | 'donor') {
+    if (!demoAvailability[role]) {
+      setError('Demo login unavailable')
+      return
+    }
     setLoading(true)
     setError(null)
 
@@ -34,23 +73,14 @@ export default function RegisterPage() {
         body: JSON.stringify({ role })
       })
 
-      const data = await response.json()
+      const data = await response.json().catch(() => ({}))
 
-      if (!response.ok) {
-        setError(data.error || 'Failed to create demo account')
-        setLoading(false)
-        return
-      }
-
-      const supabase = createClient()
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password
-      })
-
-      if (signInError) {
-        setError(signInError.message)
-        setLoading(false)
+      if (!response.ok || data?.ok !== true) {
+        const message = data?.error
+          ?? (response.status === 401 || response.status === 403
+            ? 'Invalid demo credentials'
+            : 'Demo login unavailable')
+        setError(message)
         return
       }
 
@@ -62,10 +92,10 @@ export default function RegisterPage() {
         router.push('/donor-dashboard')
       }
     } catch {
-      setError('Failed to create demo account')
+      setError('Demo login unavailable')
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -208,7 +238,7 @@ export default function RegisterPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => handleDemoAccount('admin')}
-                disabled={loading}
+                disabled={loading || !demoAvailability.admin}
                 className="text-xs"
               >
                 <Sparkles className="mr-1 h-3 w-3" />
@@ -218,7 +248,7 @@ export default function RegisterPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => handleDemoAccount('missionary')}
-                disabled={loading}
+                disabled={loading || !demoAvailability.missionary}
                 className="text-xs"
               >
                 <Sparkles className="mr-1 h-3 w-3" />
@@ -228,13 +258,18 @@ export default function RegisterPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => handleDemoAccount('donor')}
-                disabled={loading}
+                disabled={loading || !demoAvailability.donor}
                 className="text-xs"
               >
                 <Sparkles className="mr-1 h-3 w-3" />
                 Donor
               </Button>
             </div>
+            {demoUnavailable && (
+              <p className="mt-2 text-center text-xs text-muted-foreground">
+                Demo login unavailable.
+              </p>
+            )}
           </div>
 
           <p className="mt-4 text-center text-sm text-muted-foreground">

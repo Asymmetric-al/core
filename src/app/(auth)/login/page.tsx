@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -15,8 +15,47 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
     const [formData, setFormData] = useState({ email: '', password: '' })
+    const [demoAvailability, setDemoAvailability] = useState({
+      admin: false,
+      missionary: false,
+      donor: false,
+    })
+    const demoUnavailable = !demoAvailability.admin && !demoAvailability.missionary && !demoAvailability.donor
+
+    useEffect(() => {
+      let active = true
+      async function loadDemoAvailability() {
+        try {
+          const response = await fetch('/api/auth/demo-account')
+          if (!response.ok) {
+            throw new Error('Demo status unavailable')
+          }
+          const data = await response.json()
+          if (active && data?.availableRoles) {
+            setDemoAvailability({
+              admin: Boolean(data.availableRoles.admin),
+              missionary: Boolean(data.availableRoles.missionary),
+              donor: Boolean(data.availableRoles.donor),
+            })
+          }
+        } catch {
+          if (active) {
+            setDemoAvailability({ admin: false, missionary: false, donor: false })
+          }
+        }
+      }
+
+      loadDemoAvailability()
+      return () => {
+        active = false
+      }
+    }, [])
   
     async function handleDemoLogin(role: 'admin' | 'missionary' | 'donor') {
+      if (!demoAvailability[role]) {
+        setError('Demo login unavailable')
+        return
+      }
       setLoading(true)
       setError(null)
       try {
@@ -25,36 +64,22 @@ export default function LoginPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ role })
         })
-        const data = await res.json()
-        if (data.error) throw new Error(data.error)
-        
-        const supabase = createClient()
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password
-      })
-      if (authError) throw authError
-      
-      // Ensure session is set and profile exists
-      await supabase.auth.getSession()
-      
-      // Retry for profile if necessary (up to 3 times)
-      let profile = null
-      for (let i = 0; i < 3; i++) {
-        const { data: p } = await supabase.from('profiles').select('role').single()
-        if (p) {
-          profile = p
-          break
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok || data?.ok !== true) {
+          const message = data?.error
+            ?? (res.status === 401 || res.status === 403
+              ? 'Invalid demo credentials'
+              : 'Demo login unavailable')
+          throw new Error(message)
         }
-        await new Promise(r => setTimeout(r, 500))
-      }
 
       const target = role === 'admin' ? '/mc' : role === 'missionary' ? '/missionary-dashboard' : '/donor-dashboard'
       router.push(target)
       router.refresh()
 
       } catch (e: any) {
-        setError(e.message)
+        setError(e.message || 'Demo login unavailable')
+      } finally {
         setLoading(false)
       }
     }
@@ -113,10 +138,15 @@ export default function LoginPage() {
           </div>
 
             <div className="grid grid-cols-1 gap-2">
-              <Button variant="outline" onClick={() => handleDemoLogin('admin')} disabled={loading} className="w-full">Mission Control (Admin Dashboard)</Button>
-              <Button variant="outline" onClick={() => handleDemoLogin('missionary')} disabled={loading} className="w-full">Missionary Dashboard</Button>
-              <Button variant="outline" onClick={() => handleDemoLogin('donor')} disabled={loading} className="w-full">Donor Portal</Button>
+              <Button variant="outline" onClick={() => handleDemoLogin('admin')} disabled={loading || !demoAvailability.admin} className="w-full">Mission Control (Admin Dashboard)</Button>
+              <Button variant="outline" onClick={() => handleDemoLogin('missionary')} disabled={loading || !demoAvailability.missionary} className="w-full">Missionary Dashboard</Button>
+              <Button variant="outline" onClick={() => handleDemoLogin('donor')} disabled={loading || !demoAvailability.donor} className="w-full">Donor Portal</Button>
             </div>
+            {demoUnavailable && (
+              <p className="mt-3 text-center text-xs text-muted-foreground">
+                Demo login unavailable.
+              </p>
+            )}
 
           <p className="mt-4 text-center text-sm text-muted-foreground">Don&apos;t have an account? <Link href="/register" className="text-primary hover:underline">Register</Link></p>
         </CardContent>

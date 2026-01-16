@@ -1340,24 +1340,7 @@ export default function MinistryUpdatesPage() {
     fetchFollowerRequests()
   }, [fetchPosts, fetchFollowerRequests])
 
-  useEffect(() => {
-    if (
-      !postContent ||
-      postContent === '<p></p>' ||
-      postContent === '<p><br></p>' ||
-      isSaving ||
-      (activeTab === 'published' && !editingPostId)
-    )
-      return
-
-    const timer = setTimeout(() => {
-      handlePost('draft')
-    }, 30000)
-
-    return () => clearTimeout(timer)
-  }, [postContent])
-
-  const handlePost = async (status: PostStatus = 'published') => {
+  const handlePost = useCallback(async (status: PostStatus = 'published') => {
     const plainText = postContent.replace(/<[^>]*>?/gm, '').trim()
     if (!plainText && !postContent.includes('<img')) return
 
@@ -1405,7 +1388,39 @@ export default function MinistryUpdatesPage() {
     } finally {
       setIsSaving(false)
     }
-  }
+  }, [
+    postContent,
+    postType,
+    postPrivacy,
+    selectedMedia,
+    editingPostId,
+    activeTab,
+    setIsSaving,
+    setDrafts,
+    setPosts,
+    setLastSaved,
+    setPostContent,
+    setEditingPostId,
+    setPostType,
+    setSelectedMedia,
+  ])
+
+  useEffect(() => {
+    if (
+      !postContent ||
+      postContent === '<p></p>' ||
+      postContent === '<p><br></p>' ||
+      isSaving ||
+      (activeTab === 'published' && !editingPostId)
+    )
+      return
+
+    const timer = setTimeout(() => {
+      handlePost('draft')
+    }, 30000)
+
+    return () => clearTimeout(timer)
+  }, [postContent, isSaving, activeTab, editingPostId, handlePost])
 
   const handleEditDraft = (draft: Post) => {
     setPostContent(draft.content)
