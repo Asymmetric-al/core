@@ -16,8 +16,10 @@
     "test:perf": "playwright test tests/e2e/performance.spec.ts",
     "verify:e2e": "bun scripts/verify-e2e.mjs",
     "verify:e2e:loop": "bun scripts/verify-e2e-loop.mjs",
+    "verify": "./scripts/verify",
     "lighthouse": "lhci autorun",
     "generate:icons": "node scripts/generate-icons.js",
+    "setup": "./scripts/setup",
     "setup:verify": "bash ./scripts/setup-verify.sh"
   },
   "dependencies": {
