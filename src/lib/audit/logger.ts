@@ -1,5 +1,5 @@
-import { createClient } from '@supabase/supabase-js'
 import type { AuthenticatedContext } from '@/lib/auth/context'
+import { getAdminClient } from '@/lib/supabase/admin'
 
 export type AuditAction =
   | 'create'
@@ -40,12 +40,13 @@ export interface AuditLogEntry {
   userAgent?: string
 }
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
 export async function logAuditEvent(entry: AuditLogEntry): Promise<void> {
+  const { client: supabaseAdmin, error } = getAdminClient()
+  if (!supabaseAdmin) {
+    console.warn('[audit] Skipping audit log:', error)
+    return
+  }
+
   try {
     await supabaseAdmin.from('audit_logs').insert({
       tenant_id: entry.tenantId,

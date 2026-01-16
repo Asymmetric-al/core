@@ -5,10 +5,13 @@ This guide helps new developers get started with the Give Hope codebase. Target:
 ## Quick Start
 
 ```bash
-# 1. Automated cloud setup (installs deps + links Supabase + pushes schema/seed)
-./setup-cloud.sh --project-ref <your-project-ref>
+# 1. Configure environment
+cp .env.example .env.local
+# set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
+# keep .env.local aligned with .env.example
 
-# 2. Start development
+# 2. Install deps + start development
+bun install
 bun run dev
 
 # 3. Open browser
@@ -19,27 +22,21 @@ If needed, copy `.env.example` to `.env.local` and fill in the Supabase keys bef
 
 ## Supabase Cloud
 
-This repo uses a hosted Supabase project (no local Docker).
+This repo uses a hosted Supabase project (no local Docker). Contributors do not use the Supabase CLI or push schema/seed from this repo. The cloud database is managed outside this codebase.
 
-- **Link the project**: `supabase link --project-ref <your-project-ref>`
-- **Deploy schema + seed**: `supabase db push --include-seed`
-- **Schema source**: `supabase/schema.sql`
-- **Seed data**: `supabase/seed.sql`
-- **Schema changes**: Update `supabase/schema.sql` and create a new migration for deployment.
-- **Env vars**: See the [Environment Variable Matrix](#environment-variable-matrix) for required values.
+- **Required env vars**: Only `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+- **Access**: Ask a maintainer for the shared dev project URL + anon key.
+- **Schema/seed**: Managed by maintainers or CI in a separate workflow/repo.
 
 ## Environment Variable Matrix
 
 Use this matrix to decide what you need for cloud development vs production. "Required" means the related feature will not work without it.
+This table mirrors `.env.example`. Internal-only vars (for example `NODE_ENV`, `CI`, `SUPABASE_SERVICE_ROLE_KEY`) are provided by the runtime or maintainers and are not required for contributors.
 
 | Variable | Requirement | Purpose | Example / default | Feature impact if missing |
 |---|---|---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Required | Supabase project URL | `https://your-project.supabase.co` | Auth + data access fail; API routes error. |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Required | Client-safe Supabase key | `your-anon-key` | Client auth/data fail; middleware errors. |
-| `SUPABASE_SERVICE_ROLE_KEY` | Required | Server admin key | `your-service-role-key` | Server API routes (admin, donations, profiles, etc.) fail. |
-| `SUPABASE_PROJECT_REF` | Required (setup) | Supabase project ref for CLI linking | `your-project-ref` | Setup/linking fails. |
-| `SUPABASE_DB_PASSWORD` | Required for non-interactive setup | DB password used by `supabase link` | `your-db-password` | Setup prompts or fails in CI. |
-| `DATABASE_URL` | Required | Direct DB connection string | `postgresql://...` | DB tooling/verification scripts fail. |
 | `NEXT_PUBLIC_SITE_URL` | Optional (dev), recommended in prod | Base site URL for SEO + Unlayer | `http://localhost:3000` (default: `https://givehope.org`) | SEO links + allowed domains use fallback. |
 | `GOOGLE_SITE_VERIFICATION` | Optional | Google site verification | empty | No verification meta tag. |
 | `BING_SITE_VERIFICATION` | Optional | Bing site verification | empty | No verification meta tag. |
@@ -62,28 +59,26 @@ Use this matrix to decide what you need for cloud development vs production. "Re
 | `NEXT_PUBLIC_SENTRY_DSN` | Optional | Sentry DSN | empty | Monitoring disabled (warning logged). |
 | `CRON_SECRET` | Optional (recommended in prod) | Bearer token for cron endpoints | `random-string` | Cron endpoints unauthenticated. |
 | `ALLOW_DEMO_ACCOUNTS` | Optional | Allow demo accounts in prod | `false` | Demo account API disabled in production. |
-| `SENDGRID_WEBHOOK_VERIFICATION_KEY` | Optional | Verify SendGrid webhook signatures | empty | Webhook verification unavailable. |
-| `EMAIL_ENCRYPTION_KEY` | Optional | Encrypt stored email provider keys | `base64-32-bytes` | Email credential encryption disabled. |
+| `DEMO_ADMIN_EMAIL` | Optional | Demo admin email | empty | Demo admin login disabled. |
+| `DEMO_MISSIONARY_EMAIL` | Optional | Demo missionary email | empty | Demo missionary login disabled. |
+| `DEMO_DONOR_EMAIL` | Optional | Demo donor email | empty | Demo donor login disabled. |
+| `DEMO_PASSWORD` | Optional | Demo account password (shared) | empty | Demo login disabled. |
 | `PLAYWRIGHT_BASE_URL` | Optional | Base URL for Playwright | `http://localhost:3000` | Uses default if unset. |
 | `VERIFY_E2E_PROJECTS` | Optional | Run all Playwright projects | `all` | Only Chromium project runs. |
-| `CI` | Optional (set by CI) | Playwright CI behavior toggles | `true/false` | Local behavior unaffected. |
 
 ## Troubleshooting
 
 | Issue | Quick fix |
 |---|---|
-| Supabase CLI missing | Install it (`brew install supabase/tap/supabase`) and re-run setup. |
-| Supabase CLI not logged in | Run `supabase login`, then re-run `./setup-cloud.sh`. |
-| Project not linked | Run `supabase link --project-ref <your-project-ref>` or re-run setup. |
-| `supabase db push` fails | Confirm DB password and project access; re-run setup with `--db-password`. |
-| `DATABASE_URL` missing | Add it to `.env.local` or export it in your shell. |
+| Supabase envs missing | Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.local`. |
+| Supabase URL not reachable | Verify the URL or request access to the shared dev project. |
+| Demo login disabled | Ensure `DEMO_ADMIN_EMAIL`, `DEMO_MISSIONARY_EMAIL`, `DEMO_DONOR_EMAIL`, and `DEMO_PASSWORD` are set for pre-seeded users. |
 
 ## Common Commands
 
 | Command | Description |
 |---------|-------------|
-| `bun run setup:cloud` | Install deps, link Supabase project, push schema + seed |
-| `bun run supabase:push` | Push schema + seed to the linked Supabase project |
+| `bun run setup:verify` | Validate env vars + basic connectivity |
 | `bun run dev` | Start dev server (Turbopack) |
 | `bun run lint` | Run ESLint |
 | `bun run typecheck` | Run TypeScript type checker |

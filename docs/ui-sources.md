@@ -3,7 +3,6 @@
 This document serves as the single source of truth for UI block references and inspiration. Use these sources to find candidate blocks for implementation.
 
 ## Block Discovery & Reference
-- **Orchids Docs**: [https://docs.orchids.app](https://docs.orchids.app) - Official documentation.
 - **Shoogle**: [https://shoogle.dev](https://shoogle.dev) - shadcn blocks search.
 - **lucide-react**: [https://lucide.dev](https://lucide.dev) - Standard icon library.
 - **lucide-animated**: [https://github.com/StevenLeRoux/lucide-animated](https://github.com/StevenLeRoux/lucide-animated) - Animated Lucide icons.
