@@ -182,4 +182,4 @@ FOR INSERT WITH CHECK (bucket_id = 'profiles');
 - Sharp uses libvips which processes images in streaming fashion
 - Memory usage is proportional to image dimensions, not file size
 - Large images (>10000px) may take 2-5 seconds to process
-- Vercel/Railway default timeout is 10-30 seconds (sufficient for most images)
+- Many serverless platforms default to 10-30 seconds (sufficient for most images)

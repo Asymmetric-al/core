@@ -170,15 +170,13 @@ Sends a test email.
 
 ### Environment Variables
 
-```bash
-# .env.local
+No environment variables are required for the current SendGrid integration. API keys are provided via the UI and validated server-side.
 
-# For webhook signature verification (future)
-SENDGRID_WEBHOOK_VERIFICATION_KEY=
+Future enhancements (not implemented) may introduce:
+- `EMAIL_ENCRYPTION_KEY` for encrypted key storage
+- `SENDGRID_WEBHOOK_VERIFICATION_KEY` for webhook signature verification
 
-# For encrypting stored API keys (future)
-EMAIL_ENCRYPTION_KEY=
-```
+These are intentionally not listed in `.env.example` until the features exist in code.
 
 ### Constants
 

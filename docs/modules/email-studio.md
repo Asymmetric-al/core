@@ -151,8 +151,6 @@ NEXT_PUBLIC_EMAIL_FOOTER_TEXT=YourOrg | 123 Main St | City, ST 12345
 | `NEXT_PUBLIC_BRAND_ACCENT_COLOR` | No | Accent color hex (default: "#2563eb") |
 | `NEXT_PUBLIC_BRAND_LOGO_URL` | No | Logo URL for email headers |
 | `NEXT_PUBLIC_EMAIL_FOOTER_TEXT` | No | Default footer text |
-| `SENDGRID_WEBHOOK_VERIFICATION_KEY` | No | For webhook signature verification |
-| `EMAIL_ENCRYPTION_KEY` | No | 32-byte base64 key for storing API keys |
 
 ---
 

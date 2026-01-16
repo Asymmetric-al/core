@@ -18,8 +18,6 @@
     "verify:e2e:loop": "bun scripts/verify-e2e-loop.mjs",
     "lighthouse": "lhci autorun",
     "generate:icons": "node scripts/generate-icons.js",
-    "supabase:push": "supabase db push --include-seed",
-    "setup:cloud": "bash ./setup-cloud.sh",
     "setup:verify": "bash ./scripts/setup-verify.sh"
   },
   "dependencies": {
@@ -92,7 +90,6 @@
     "next": "16.1.1",
     "next-themes": "^0.4.6",
     "nuqs": "^2.8.6",
-    "orchids-visual-edits": "^1.0.12",
     "react": "19.2.3",
     "react-day-picker": "^9.11.2",
     "react-dom": "19.2.3",

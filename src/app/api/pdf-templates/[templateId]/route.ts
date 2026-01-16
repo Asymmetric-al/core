@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { getAuthContext, requireRole, type AuthenticatedContext } from '@/lib/auth/context'
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+import { getAdminClient } from '@/lib/supabase/admin'
 
 interface RouteParams {
   params: Promise<{ templateId: string }>
@@ -13,6 +8,11 @@ interface RouteParams {
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    const { client: supabaseAdmin, error: adminError } = getAdminClient()
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: adminError }, { status: 503 })
+    }
+
     const auth = await getAuthContext()
     requireRole(auth, ['admin', 'super_admin'])
     const ctx = auth as AuthenticatedContext
@@ -43,6 +43,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
+    const { client: supabaseAdmin, error: adminError } = getAdminClient()
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: adminError }, { status: 503 })
+    }
+
     const auth = await getAuthContext()
     requireRole(auth, ['admin', 'super_admin'])
     const ctx = auth as AuthenticatedContext
@@ -122,6 +127,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
+    const { client: supabaseAdmin, error: adminError } = getAdminClient()
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: adminError }, { status: 503 })
+    }
+
     const auth = await getAuthContext()
     requireRole(auth, ['admin', 'super_admin'])
     const ctx = auth as AuthenticatedContext
