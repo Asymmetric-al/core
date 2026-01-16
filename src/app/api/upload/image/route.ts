@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { getAdminClient } from "@/lib/supabase/admin";
 
 export interface ImageVariant {
   key: string;
@@ -31,6 +26,11 @@ const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
 export async function POST(request: NextRequest) {
   try {
+    const { client: supabaseAdmin, error: adminError } = getAdminClient();
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: adminError }, { status: 503 });
+    }
+
     const authHeader = request.headers.get("authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

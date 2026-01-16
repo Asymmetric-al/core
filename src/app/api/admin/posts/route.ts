@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { getAuthContext, requireAuth, requireRole, type AuthenticatedContext } from '@/lib/auth/context'
 import { createAuditLogger } from '@/lib/audit/logger'
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+import { getAdminClient } from '@/lib/supabase/admin'
 
 export async function GET(request: NextRequest) {
   try {
+    const { client: supabaseAdmin, error: adminError } = getAdminClient()
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: adminError }, { status: 503 })
+    }
+
     const auth = await getAuthContext()
     requireRole(auth, ['admin', 'super_admin'])
     const ctx = auth as AuthenticatedContext
@@ -86,6 +86,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const { client: supabaseAdmin, error: adminError } = getAdminClient()
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: adminError }, { status: 503 })
+    }
+
     const auth = await getAuthContext()
     requireRole(auth, ['admin', 'super_admin'])
     const ctx = auth as AuthenticatedContext

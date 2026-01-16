@@ -31,14 +31,7 @@ yarn-error.log*
 .env.test
 !.env.example
 
-# vercel
-.vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# orchids
-.orchids/
-!.orchids/orchids.json
-.orchids.json

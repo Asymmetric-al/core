@@ -32,10 +32,6 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'grainy-gradients.vercel.app',
-      },
-      {
-        protocol: 'https',
         hostname: 'www.transparenttextures.com',
       },
     ],

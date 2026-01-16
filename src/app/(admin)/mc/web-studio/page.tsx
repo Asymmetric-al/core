@@ -272,7 +272,7 @@ export default function WebStudio() {
                     <div className="w-full h-full rounded-xl border border-slate-200 bg-white shadow-2xl overflow-hidden flex flex-col">
                         <div className="h-8 border-b border-slate-100 flex items-center px-3 gap-1.5 shrink-0 bg-slate-50/50">
                             <div className="flex gap-1"><div className="w-2 h-2 rounded-full bg-red-400" /><div className="w-2 h-2 rounded-full bg-amber-400" /><div className="w-2 h-2 rounded-full bg-emerald-400" /></div>
-                            <div className="mx-auto bg-white border border-slate-200 rounded h-5 w-48 text-[8px] font-mono flex items-center justify-center text-slate-400">orchids.app/the-miller-family</div>
+                            <div className="mx-auto bg-white border border-slate-200 rounded h-5 w-48 text-[8px] font-mono flex items-center justify-center text-slate-400">example.com/the-miller-family</div>
                         </div>
                         <div className="flex-1 overflow-auto">
                             <PreviewContent mode="desktop" coverImage={coverImage} profileImage={profileImage} basicInfo={basicInfo} projects={projects} />

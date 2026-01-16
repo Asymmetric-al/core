@@ -1,16 +1,13 @@
 import { createSchema, createYoga } from 'graphql-yoga'
-import { createClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { getAuthContext, requireAuth, requireRole, type AuthContext, type AuthenticatedContext } from '@/lib/auth/context'
 import { createAuditLogger } from '@/lib/audit/logger'
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+import { getAdminClient } from '@/lib/supabase/admin'
 
 interface GraphQLContext {
   auth: AuthContext
   request: Request
+  supabaseAdmin: SupabaseClient
 }
 
 const typeDefs = /* GraphQL */ `
@@ -181,7 +178,7 @@ const resolvers = {
   Query: {
     me: async (_: unknown, __: unknown, ctx: GraphQLContext) => {
       if (!ctx.auth.isAuthenticated) return null
-      const { data } = await supabaseAdmin
+      const { data } = await ctx.supabaseAdmin
         .from('profiles')
         .select('*')
         .eq('id', ctx.auth.profileId)
@@ -192,7 +189,7 @@ const resolvers = {
     myProfile: async (_: unknown, __: unknown, ctx: GraphQLContext) => {
       requireAuth(ctx.auth)
       const auth = ctx.auth as AuthenticatedContext
-      const { data } = await supabaseAdmin
+      const { data } = await ctx.supabaseAdmin
         .from('profiles')
         .select('*')
         .eq('id', auth.profileId)
@@ -207,7 +204,7 @@ const resolvers = {
       const limit = args.limit || 20
       const offset = args.offset || 0
 
-      const { data } = await supabaseAdmin
+      const { data } = await ctx.supabaseAdmin
         .from('missionaries')
         .select('*, profile:profiles!profile_id(*)')
         .eq('tenant_id', auth.tenantId)
@@ -220,7 +217,7 @@ const resolvers = {
       requireAuth(ctx.auth)
       const auth = ctx.auth as AuthenticatedContext
 
-      const { data } = await supabaseAdmin
+      const { data } = await ctx.supabaseAdmin
         .from('missionaries')
         .select('*, profile:profiles!profile_id(*)')
         .eq('id', args.id)
@@ -236,7 +233,7 @@ const resolvers = {
       const limit = args.limit || 20
       const offset = args.offset || 0
 
-      const { data: posts } = await supabaseAdmin
+      const { data: posts } = await ctx.supabaseAdmin
         .from('posts')
         .select('*, missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))')
         .eq('tenant_id', auth.tenantId)
@@ -244,13 +241,13 @@ const resolvers = {
         .range(offset, offset + limit - 1)
 
       const postIds = (posts || []).map((p: { id: string }) => p.id)
-      const { data: likes } = await supabaseAdmin
+      const { data: likes } = await ctx.supabaseAdmin
         .from('post_likes')
         .select('post_id')
         .in('post_id', postIds)
         .eq('user_id', auth.userId)
 
-      const { data: prayers } = await supabaseAdmin
+      const { data: prayers } = await ctx.supabaseAdmin
         .from('post_prayers')
         .select('post_id')
         .in('post_id', postIds)
@@ -270,7 +267,7 @@ const resolvers = {
       requireAuth(ctx.auth)
       const auth = ctx.auth as AuthenticatedContext
 
-      const { data: post } = await supabaseAdmin
+      const { data: post } = await ctx.supabaseAdmin
         .from('posts')
         .select('*, missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))')
         .eq('id', args.id)
@@ -279,14 +276,14 @@ const resolvers = {
 
       if (!post) return null
 
-      const { data: like } = await supabaseAdmin
+      const { data: like } = await ctx.supabaseAdmin
         .from('post_likes')
         .select('id')
         .eq('post_id', args.id)
         .eq('user_id', auth.userId)
         .single()
 
-      const { data: prayer } = await supabaseAdmin
+      const { data: prayer } = await ctx.supabaseAdmin
         .from('post_prayers')
         .select('id')
         .eq('post_id', args.id)
@@ -306,7 +303,7 @@ const resolvers = {
       const limit = args.limit || 20
       const offset = args.offset || 0
 
-      const { data } = await supabaseAdmin
+      const { data } = await ctx.supabaseAdmin
         .from('donations')
         .select('*, donor:profiles!donor_id(*), missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))')
         .eq('donor_id', auth.profileId)
@@ -323,7 +320,7 @@ const resolvers = {
       const limit = args.limit || 20
       const offset = args.offset || 0
 
-      const { data: missionary } = await supabaseAdmin
+      const { data: missionary } = await ctx.supabaseAdmin
         .from('missionaries')
         .select('id')
         .eq('profile_id', auth.profileId)
@@ -332,7 +329,7 @@ const resolvers = {
 
       if (!missionary) return []
 
-      const { data } = await supabaseAdmin
+      const { data } = await ctx.supabaseAdmin
         .from('donations')
         .select('*, donor:profiles!donor_id(*), missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))')
         .eq('missionary_id', missionary.id)
@@ -349,7 +346,7 @@ const resolvers = {
       const limit = args.limit || 50
       const offset = args.offset || 0
 
-      const { data } = await supabaseAdmin
+      const { data } = await ctx.supabaseAdmin
         .from('audit_logs')
         .select('*')
         .eq('tenant_id', auth.tenantId)
@@ -371,7 +368,7 @@ const resolvers = {
       if (args.input.lastName) updates.last_name = args.input.lastName
       if (args.input.avatarUrl !== undefined) updates.avatar_url = args.input.avatarUrl
 
-      const { data, error } = await supabaseAdmin
+      const { data, error } = await ctx.supabaseAdmin
         .from('profiles')
         .update(updates)
         .eq('id', auth.profileId)
@@ -390,7 +387,7 @@ const resolvers = {
       const auth = ctx.auth as AuthenticatedContext
       const audit = createAuditLogger(auth, ctx.request)
 
-      const { data: missionary } = await supabaseAdmin
+      const { data: missionary } = await ctx.supabaseAdmin
         .from('missionaries')
         .select('id')
         .eq('profile_id', auth.profileId)
@@ -399,7 +396,7 @@ const resolvers = {
 
       if (!missionary) throw new Error('Missionary profile not found')
 
-      const { data: post, error } = await supabaseAdmin
+      const { data: post, error } = await ctx.supabaseAdmin
         .from('posts')
         .insert({
           tenant_id: auth.tenantId,
@@ -421,7 +418,7 @@ const resolvers = {
       const auth = ctx.auth as AuthenticatedContext
       const audit = createAuditLogger(auth, ctx.request)
 
-      const { data: post } = await supabaseAdmin
+      const { data: post } = await ctx.supabaseAdmin
         .from('posts')
         .select('*, missionary:missionaries!missionary_id(profile_id)')
         .eq('id', args.id)
@@ -433,7 +430,7 @@ const resolvers = {
         throw new Error('Not authorized to delete this post')
       }
 
-      const { error } = await supabaseAdmin
+      const { error } = await ctx.supabaseAdmin
         .from('posts')
         .delete()
         .eq('id', args.id)
@@ -449,7 +446,7 @@ const resolvers = {
       requireAuth(ctx.auth)
       const auth = ctx.auth as AuthenticatedContext
 
-      const { data: post } = await supabaseAdmin
+      const { data: post } = await ctx.supabaseAdmin
         .from('posts')
         .select('id')
         .eq('id', args.postId)
@@ -458,8 +455,8 @@ const resolvers = {
 
       if (!post) throw new Error('Post not found')
 
-      await supabaseAdmin.from('post_likes').upsert({ post_id: args.postId, user_id: auth.userId }, { onConflict: 'post_id,user_id' })
-      await supabaseAdmin.rpc('increment_post_like_count', { post_id: args.postId })
+      await ctx.supabaseAdmin.from('post_likes').upsert({ post_id: args.postId, user_id: auth.userId }, { onConflict: 'post_id,user_id' })
+      await ctx.supabaseAdmin.rpc('increment_post_like_count', { post_id: args.postId })
       return true
     },
 
@@ -467,13 +464,13 @@ const resolvers = {
       requireAuth(ctx.auth)
       const auth = ctx.auth as AuthenticatedContext
 
-      const { error } = await supabaseAdmin
+      const { error } = await ctx.supabaseAdmin
         .from('post_likes')
         .delete()
         .eq('post_id', args.postId)
         .eq('user_id', auth.userId)
 
-      if (!error) await supabaseAdmin.rpc('decrement_post_like_count', { post_id: args.postId })
+      if (!error) await ctx.supabaseAdmin.rpc('decrement_post_like_count', { post_id: args.postId })
       return true
     },
 
@@ -481,7 +478,7 @@ const resolvers = {
       requireAuth(ctx.auth)
       const auth = ctx.auth as AuthenticatedContext
 
-      const { data: post } = await supabaseAdmin
+      const { data: post } = await ctx.supabaseAdmin
         .from('posts')
         .select('id')
         .eq('id', args.postId)
@@ -490,8 +487,8 @@ const resolvers = {
 
       if (!post) throw new Error('Post not found')
 
-      await supabaseAdmin.from('post_prayers').upsert({ post_id: args.postId, user_id: auth.userId }, { onConflict: 'post_id,user_id' })
-      await supabaseAdmin.rpc('increment_post_prayer_count', { post_id: args.postId })
+      await ctx.supabaseAdmin.from('post_prayers').upsert({ post_id: args.postId, user_id: auth.userId }, { onConflict: 'post_id,user_id' })
+      await ctx.supabaseAdmin.rpc('increment_post_prayer_count', { post_id: args.postId })
       return true
     },
 
@@ -499,13 +496,13 @@ const resolvers = {
       requireAuth(ctx.auth)
       const auth = ctx.auth as AuthenticatedContext
 
-      const { error } = await supabaseAdmin
+      const { error } = await ctx.supabaseAdmin
         .from('post_prayers')
         .delete()
         .eq('post_id', args.postId)
         .eq('user_id', auth.userId)
 
-      if (!error) await supabaseAdmin.rpc('decrement_post_prayer_count', { post_id: args.postId })
+      if (!error) await ctx.supabaseAdmin.rpc('decrement_post_prayer_count', { post_id: args.postId })
       return true
     },
 
@@ -513,7 +510,7 @@ const resolvers = {
       requireAuth(ctx.auth)
       const auth = ctx.auth as AuthenticatedContext
 
-      const { data: post } = await supabaseAdmin
+      const { data: post } = await ctx.supabaseAdmin
         .from('posts')
         .select('id')
         .eq('id', args.postId)
@@ -522,7 +519,7 @@ const resolvers = {
 
       if (!post) throw new Error('Post not found')
 
-      const { data: comment, error } = await supabaseAdmin
+      const { data: comment, error } = await ctx.supabaseAdmin
         .from('post_comments')
         .insert({ post_id: args.postId, user_id: auth.userId, content: args.content })
         .select('*, author:profiles!user_id(*)')
@@ -530,7 +527,7 @@ const resolvers = {
 
       if (error) throw new Error(error.message)
 
-      await supabaseAdmin.rpc('increment_post_comment_count', { post_id: args.postId })
+      await ctx.supabaseAdmin.rpc('increment_post_comment_count', { post_id: args.postId })
       return mapComment(comment)
     },
 
@@ -539,7 +536,7 @@ const resolvers = {
       const auth = ctx.auth as AuthenticatedContext
       const audit = createAuditLogger(auth, ctx.request)
 
-      const { data: missionary } = await supabaseAdmin
+      const { data: missionary } = await ctx.supabaseAdmin
         .from('missionaries')
         .select('id')
         .eq('id', args.input.missionaryId)
@@ -548,7 +545,7 @@ const resolvers = {
 
       if (!missionary) throw new Error('Missionary not found')
 
-      const { data: donation, error } = await supabaseAdmin
+      const { data: donation, error } = await ctx.supabaseAdmin
         .from('donations')
         .insert({
           tenant_id: auth.tenantId,
@@ -577,7 +574,7 @@ const resolvers = {
       if (args.input.missionField !== undefined) updates.mission_field = args.input.missionField
       if (args.input.fundingGoal !== undefined) updates.funding_goal = args.input.fundingGoal
 
-      const { data, error } = await supabaseAdmin
+      const { data, error } = await ctx.supabaseAdmin
         .from('missionaries')
         .update(updates)
         .eq('profile_id', auth.profileId)
@@ -596,7 +593,7 @@ const resolvers = {
       const auth = ctx.auth as AuthenticatedContext
       const audit = createAuditLogger(auth, ctx.request)
 
-      const { data: targetProfile } = await supabaseAdmin
+      const { data: targetProfile } = await ctx.supabaseAdmin
         .from('profiles')
         .select('id, role')
         .eq('id', args.input.userId)
@@ -607,7 +604,7 @@ const resolvers = {
 
       const oldRole = targetProfile.role
 
-      const { data, error } = await supabaseAdmin
+      const { data, error } = await ctx.supabaseAdmin
         .from('profiles')
         .update({ role: args.input.role, updated_at: new Date().toISOString() })
         .eq('id', args.input.userId)
@@ -709,20 +706,39 @@ const yoga = createYoga<{ request: Request }>({
   schema: createSchema({ typeDefs, resolvers }),
   graphqlEndpoint: '/api/graphql',
   fetchAPI: { Response },
-  context: async ({ request }) => ({
-    auth: await getAuthContext(),
-    request,
-  }),
+  context: async ({ request }) => {
+    const auth = await getAuthContext()
+    const { client: supabaseAdmin, error } = getAdminClient()
+    if (!supabaseAdmin) {
+      throw new Error(error)
+    }
+    return { auth, request, supabaseAdmin }
+  },
 })
 
+function adminUnavailableResponse() {
+  const { client, error } = getAdminClient()
+  if (client) return null
+  return new Response(JSON.stringify({ error }), {
+    status: 503,
+    headers: { 'content-type': 'application/json' },
+  })
+}
+
 export async function GET(request: Request) {
+  const unavailable = adminUnavailableResponse()
+  if (unavailable) return unavailable
   return yoga.handle(request, { request })
 }
 
 export async function POST(request: Request) {
+  const unavailable = adminUnavailableResponse()
+  if (unavailable) return unavailable
   return yoga.handle(request, { request })
 }
 
 export async function OPTIONS(request: Request) {
+  const unavailable = adminUnavailableResponse()
+  if (unavailable) return unavailable
   return yoga.handle(request, { request })
 }

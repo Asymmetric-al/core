@@ -1,13 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
 import { getAuthContext, requireAuth, requireRole, type AuthenticatedContext } from '@/lib/auth/context'
 import { createAuditLogger } from '@/lib/audit/logger'
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+import { getAdminClient } from '@/lib/supabase/admin'
 
 function getStripeClient(secretKey: string): Stripe {
   return new Stripe(secretKey, { apiVersion: '2025-02-24.acacia' })
@@ -15,6 +10,11 @@ function getStripeClient(secretKey: string): Stripe {
 
 export async function POST(request: NextRequest) {
   try {
+    const { client: supabaseAdmin, error: adminError } = getAdminClient()
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: adminError }, { status: 503 })
+    }
+
     const auth = await getAuthContext()
     requireRole(auth, ['donor', 'admin'])
     const ctx = auth as AuthenticatedContext
@@ -180,6 +180,11 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const { client: supabaseAdmin, error: adminError } = getAdminClient()
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: adminError }, { status: 503 })
+    }
+
     const auth = await getAuthContext()
     requireAuth(auth)
     const ctx = auth as AuthenticatedContext
