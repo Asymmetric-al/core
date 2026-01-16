@@ -1,7 +1,7 @@
 # Agent Router — Rules
 **Name:** `agents-router`
 **Purpose:** Single routing/index for rules and skills in this repo. Use it to decide which docs to load and which tools to use before editing.
-This file is the deterministic entry point for all agent work in `asymmetrical-platform`.
+This file is the deterministic entry point for all agent work in `core`.
 
 **Applies when:** Any task inside this repo.
 **Do not use when:** Working outside this repo or doing general, non-repo conversation.
