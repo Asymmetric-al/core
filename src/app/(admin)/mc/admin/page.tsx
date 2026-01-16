@@ -167,7 +167,7 @@ export default function AdminPage() {
               { name: 'Supabase Database', status: 'Operational' },
               { name: 'Stripe Payments', status: 'Operational' },
               { name: 'Postmark Email', status: 'Operational' },
-              { name: 'Vercel Deployment', status: 'Operational' }
+              { name: 'Cloud Deployment', status: 'Operational' }
             ].map((service) => (
               <div key={service.name} className="flex items-center justify-between rounded-lg border border-slate-100 bg-slate-50/50 p-3">
                 <span className="text-sm font-medium text-slate-700">{service.name}</span>

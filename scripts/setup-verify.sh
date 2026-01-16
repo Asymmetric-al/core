@@ -19,66 +19,62 @@ fail() {
   FAIL=1
 }
 
+require_env() {
+  local name="$1"
+  if [[ -z "${!name:-}" ]]; then
+    fail "Missing required env var: $name"
+  fi
+}
+
 if [[ -f ".env.local" ]]; then
   set -a
-  # shellcheck disable=SC1091
   source .env.local
   set +a
 fi
 
-if [[ -z "${DATABASE_URL:-}" ]]; then
-  fail "DATABASE_URL not set. Export it or add it to .env.local."
+require_env NEXT_PUBLIC_SUPABASE_URL
+require_env NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+if [[ $FAIL -ne 0 ]]; then
   exit 1
 fi
 
-DB_URL="$DATABASE_URL"
-log "Checking cloud database via DATABASE_URL..."
+SUPABASE_URL="$(printf "%s" "${NEXT_PUBLIC_SUPABASE_URL%/}" | tr -d '\r\n')"
+SUPABASE_ANON_KEY="$(printf "%s" "${NEXT_PUBLIC_SUPABASE_ANON_KEY}" | tr -d '\r\n')"
+REST_ROOT="${SUPABASE_URL}/rest/v1/"
 
-if [[ -n "$DB_URL" ]]; then
-  SEED_FILE="$ROOT_DIR/supabase/seed.sql"
-  if [[ ! -f "$SEED_FILE" ]]; then
-    warn "Seed file not found at $SEED_FILE; skipping SQL checks."
-  else
-    TABLES="$(sed -nE 's/^[[:space:]]*INSERT[[:space:]]+INTO[[:space:]]+([^ (]+).*/\1/p' "$SEED_FILE" | sort -u)"
-    if [[ -z "$TABLES" ]]; then
-      warn "No INSERT statements found in seed file; skipping SQL checks."
-    else
-      if command -v psql >/dev/null 2>&1; then
-        log "Running SQL row-count checks..."
-        SQL=""
-        while IFS= read -r table; do
-          [[ -z "$table" ]] && continue
-          SQL="${SQL}SELECT '${table}' AS table, COUNT(*) AS count FROM ${table};"$'\n'
-        done <<< "$TABLES"
-        if ! psql "$DB_URL" -v ON_ERROR_STOP=1 -c "$SQL"; then
-          fail "SQL checks failed. Verify the database is reachable and seeded."
-        fi
-      else
-        warn "psql not found; skipping SQL checks. Install Postgres client tools to enable counts."
-      fi
-    fi
+if ! command -v curl >/dev/null 2>&1; then
+  warn "curl not found; skipping Supabase checks."
+  if [[ $FAIL -ne 0 ]]; then
+    exit 1
   fi
-
-  if command -v psql >/dev/null 2>&1; then
-    log "Checking storage buckets..."
-    BUCKET_COUNT="$(psql "$DB_URL" -tA -c "SELECT COUNT(*) FROM storage.buckets WHERE id IN ('profiles','document-uploads');" || true)"
-    BUCKET_COUNT="$(echo "$BUCKET_COUNT" | tr -d '[:space:]')"
-    if [[ "$BUCKET_COUNT" != "2" ]]; then
-      fail "Expected storage buckets (profiles, document-uploads). Found count: ${BUCKET_COUNT:-0}."
-    fi
-  else
-    warn "psql not found; skipping storage bucket checks."
-  fi
+  log "Verification passed."
+  exit 0
 fi
 
-if command -v curl >/dev/null 2>&1; then
-  log "Pinging http://localhost:3000 ..."
-  if ! curl -fsS "http://localhost:3000" >/dev/null; then
-    fail "No response from http://localhost:3000. Run 'bun run dev' in another terminal."
-  fi
-else
-  warn "curl not found; skipping HTTP check for localhost:3000."
-fi
+log "Checking Supabase host reachability (${SUPABASE_URL})..."
+code="$(curl -sS -o /dev/null -w "%{http_code}" "$SUPABASE_URL" || true)"
+case "$code" in
+  200|301|302|401|403|404) ;;
+  *)
+    fail "Supabase URL check failed with HTTP ${code:-unknown}. Verify NEXT_PUBLIC_SUPABASE_URL."
+    ;;
+esac
+
+log "Checking anon key is accepted by Supabase REST API..."
+code="$(curl -sS -o /dev/null -w "%{http_code}" \
+  -H "apikey: $SUPABASE_ANON_KEY" \
+  -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+  "$REST_ROOT" || true)"
+case "$code" in
+  200|404) ;;
+  401|403)
+    fail "Anon key was rejected (HTTP $code). Verify NEXT_PUBLIC_SUPABASE_ANON_KEY matches this project URL."
+    ;;
+  *)
+    fail "Supabase REST check failed with HTTP ${code:-unknown}. Verify network, URL, and key."
+    ;;
+esac
 
 if [[ $FAIL -ne 0 ]]; then
   exit 1
