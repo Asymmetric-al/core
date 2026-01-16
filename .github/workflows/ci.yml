@@ -82,6 +82,10 @@ jobs:
 
       - name: Write .env.local
         run: |
+          if [[ -z "${NEXT_PUBLIC_SUPABASE_URL:-}" || -z "${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}" ]]; then
+            echo "error: Missing required CI secrets: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY" >&2
+            exit 1
+          fi
           cp .env.example .env.local
           printf "\nNEXT_PUBLIC_SUPABASE_URL=%s\n" "$NEXT_PUBLIC_SUPABASE_URL" >> .env.local
           printf "NEXT_PUBLIC_SUPABASE_ANON_KEY=%s\n" "$NEXT_PUBLIC_SUPABASE_ANON_KEY" >> .env.local
@@ -123,3 +127,31 @@ jobs:
           if [[ -f /tmp/dev-server.pid ]]; then
             kill "$(cat /tmp/dev-server.pid)" || true
           fi
+
+  setup-windows:
+    name: setup-windows
+    runs-on: windows-latest
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.4"
+
+      - name: Write .env.local
+        shell: pwsh
+        run: |
+          if (-not $env:NEXT_PUBLIC_SUPABASE_URL -or -not $env:NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            Write-Error "error: Missing required CI secrets: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY"
+            exit 1
+          }
+          Copy-Item .env.example .env.local
+          Add-Content .env.local "`nNEXT_PUBLIC_SUPABASE_URL=$env:NEXT_PUBLIC_SUPABASE_URL"
+          Add-Content .env.local "NEXT_PUBLIC_SUPABASE_ANON_KEY=$env:NEXT_PUBLIC_SUPABASE_ANON_KEY"
+
+      - name: Setup (PowerShell)
+        shell: pwsh
+        run: ./scripts/setup.ps1

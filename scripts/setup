@@ -48,9 +48,6 @@ else
   log ".env.local already exists"
 fi
 
-log "Installing dependencies..."
-bun install
-
 if [[ -f ".env.local" ]]; then
   set -a
   # shellcheck disable=SC1091
@@ -76,10 +73,16 @@ check_required_env "NEXT_PUBLIC_SUPABASE_URL" "https://your-project.supabase.co"
 check_required_env "NEXT_PUBLIC_SUPABASE_ANON_KEY" "your-anon-key"
 
 if [[ $missing -ne 0 ]]; then
-  fail "Missing required env vars in .env.local: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY."
-  log "Fill them in .env.local, then re-run ./scripts/setup"
+  fail "Missing required env vars in .env.local. This is expected on first run."
+  log "Edit .env.local and set:"
+  log "  - NEXT_PUBLIC_SUPABASE_URL"
+  log "  - NEXT_PUBLIC_SUPABASE_ANON_KEY"
+  log "Then re-run ./scripts/setup"
   exit 1
 fi
+
+log "Installing dependencies..."
+bun install
 
 log "Running setup verification..."
 if bun run setup:verify; then

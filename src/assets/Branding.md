@@ -1,6 +1,6 @@
 # Branding & Customization
 
-This project is fully white-labeled. The current "Give Hope" styling is a demo implementation.
+This Asymmetric.al codebase is fully white-labeled. The current "Give Hope" styling is a demo implementation for the test frontend.
 
 ## Quick Start: Swapping Branding
 
