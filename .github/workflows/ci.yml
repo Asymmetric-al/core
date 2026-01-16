@@ -46,7 +46,6 @@ jobs:
     name: build
     runs-on: ubuntu-latest
     env:
-      # Public envs (client-safe)
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
     steps:
@@ -64,8 +63,8 @@ jobs:
 
   onboarding-test:
     name: onboarding-test
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request' && secrets.NEXT_PUBLIC_SUPABASE_URL != '' && secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY != '' }}
     env:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
@@ -78,10 +77,9 @@ jobs:
 
       - name: Write .env.local
         run: |
-          cat > .env.local <<EOF
-          NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
-          EOF
+          cp .env.example .env.local
+          printf "\nNEXT_PUBLIC_SUPABASE_URL=%s\n" "$NEXT_PUBLIC_SUPABASE_URL" >> .env.local
+          printf "NEXT_PUBLIC_SUPABASE_ANON_KEY=%s\n" "$NEXT_PUBLIC_SUPABASE_ANON_KEY" >> .env.local
 
       - name: Setup
         run: ./scripts/setup
@@ -105,6 +103,14 @@ jobs:
 
       - name: Verify
         run: ./scripts/verify
+
+      - name: Dump dev server log on failure
+        if: failure()
+        run: |
+          echo "==> /tmp/dev-server.log (tail)"
+          tail -n 200 /tmp/dev-server.log || true
+          echo "==> GET / (headers)"
+          curl -sS -i --max-time 5 http://localhost:3000/ || true
 
       - name: Stop dev server
         if: always()
