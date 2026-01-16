@@ -61,8 +61,8 @@ jobs:
       - name: Build
         run: bun run build
 
-  onboarding-test:
-    name: onboarding-test
+  onboarding:
+    name: onboarding
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'pull_request' }}
     env:
