@@ -64,7 +64,7 @@ jobs:
   onboarding-test:
     name: onboarding-test
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'pull_request' && secrets.NEXT_PUBLIC_SUPABASE_URL != '' && secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY != '' }}
+    if: ${{ github.event_name == 'pull_request' }}
     env:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
@@ -74,6 +74,11 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.3.4"
+
+      - name: Ensure curl is available
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl
 
       - name: Write .env.local
         run: |
