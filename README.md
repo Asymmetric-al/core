@@ -2,6 +2,20 @@
 
 A high-performance, enterprise-grade Next.js 16.1 application for mission-focused organizations. Built for effortless impact with a sophisticated Zinc color and Shadcn/UI Maia theme.
 
+## Quickstart
+
+```bash
+./scripts/setup
+# edit .env.local and set:
+# NEXT_PUBLIC_SUPABASE_URL
+# NEXT_PUBLIC_SUPABASE_ANON_KEY
+bun run dev
+./scripts/verify
+```
+
+**Required:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`  
+**Optional:** All other entries in `.env.example` (Stripe, demo accounts, Unlayer, etc.)
+
 ## Architecture & Tech Stack
 
 - **Framework**: Next.js 16.1Densitynsitynsity (App Router, Turbopack) - *Optimized for Performance*
@@ -97,19 +111,9 @@ This project uses **bun** (v1.3+). Do not use npm/yarn/pnpm.
 
 - **Startup Command**: `bun run dev`
 
-```bash
-# Install dependencies
-bun install
-
-# Run development server (Turbopack enabled)
-bun run dev
-
-# Lint & Typecheck (Recommended before commit)
-bun run lint && bun run typecheck
-
-# Run E2E tests
-bun run test:e2e
-```
+Common commands:
+- `bun run lint` and `bun run typecheck`
+- `bun run test:e2e`
 
 ### Key Dependencies
 
@@ -146,22 +150,9 @@ bun outdated
 
 To run this project locally against the hosted Supabase project, you only need the public URL + anon key.
 
-### 1. Prerequisites
-- **Bun**: This project uses Bun (v1.3+).
-
-### 2. Configure environment
-```bash
-cp .env.example .env.local
-```
-Set the required values in `.env.local`:
+Follow the Quickstart above, and set these required values in `.env.local`:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-
-### 3. Run the App
-```bash
-bun install
-bun run dev
-```
 
 ### How to request access
 Ask a maintainer for access to the shared dev Supabase project and request the project URL + anon key. Do not request service-role keys or database credentials.

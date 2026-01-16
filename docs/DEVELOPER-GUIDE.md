@@ -4,21 +4,16 @@ This guide helps new developers get started with the Give Hope codebase. Target:
 
 ## Quick Start
 
+Follow the canonical Quickstart in `README.md`:
+
 ```bash
-# 1. Configure environment
-cp .env.example .env.local
-# set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
-# keep .env.local aligned with .env.example
-
-# 2. Install deps + start development
-bun install
+./scripts/setup
+# edit .env.local and set:
+# NEXT_PUBLIC_SUPABASE_URL
+# NEXT_PUBLIC_SUPABASE_ANON_KEY
 bun run dev
-
-# 3. Open browser
-open http://localhost:3000
+./scripts/verify
 ```
-
-If needed, copy `.env.example` to `.env.local` and fill in the Supabase keys before running the app.
 
 ## Supabase Cloud
 
