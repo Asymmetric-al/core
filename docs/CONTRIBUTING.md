@@ -1,6 +1,7 @@
 # Contributing Guide
 
-Welcome to the Give Hope codebase! This guide will help you get started quickly.
+Welcome to the Asymmetric.al codebase! This guide will help you get started quickly.
+The "Give Hope" tenant you may see in the UI is a demo/test frontend and not the organization.
 
 ## Quick Start
 
@@ -8,7 +9,7 @@ Follow the canonical Quickstart in `README.md`:
 
 ```bash
 ./scripts/setup
-# edit .env.local and set:
+# set these required values in .env.local:
 # NEXT_PUBLIC_SUPABASE_URL
 # NEXT_PUBLIC_SUPABASE_ANON_KEY
 bun run dev

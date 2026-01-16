@@ -15,7 +15,8 @@ This document provides a comprehensive overview of the codebase architecture for
 
 ## Project Overview
 
-**Give Hope** is a multi-tenant platform for mission-focused organizations built with:
+**Asymmetric.al** is a multi-tenant platform for mission-focused organizations built with:
+The "Give Hope" tenant name you may see in UI defaults is a demo/test frontend, not the organization.
 
 | Technology | Purpose |
 |------------|---------|

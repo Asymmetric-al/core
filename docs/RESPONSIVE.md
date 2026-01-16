@@ -1,6 +1,6 @@
 # Responsive Design System
 
-This document defines the responsive design standards for the Give Hope platform. Following these guidelines ensures consistent, perceptually uniform layouts across all screen sizes.
+This document defines the responsive design standards for the Asymmetric.al platform. Following these guidelines ensures consistent, perceptually uniform layouts across all screen sizes.
 
 ## Design Philosophy
 

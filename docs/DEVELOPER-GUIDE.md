@@ -1,6 +1,7 @@
 # Developer Guide
 
-This guide helps new developers get started with the Give Hope codebase. Target: make your first change within 1 hour.
+This guide helps new developers get started with the Asymmetric.al codebase. Target: make your first change within 1 hour.
+The "Give Hope" tenant name that appears in some demo defaults is a test frontend, not the organization.
 
 ## Quick Start
 
@@ -8,7 +9,7 @@ Follow the canonical Quickstart in `README.md`:
 
 ```bash
 ./scripts/setup
-# edit .env.local and set:
+# set these required values in .env.local:
 # NEXT_PUBLIC_SUPABASE_URL
 # NEXT_PUBLIC_SUPABASE_ANON_KEY
 bun run dev
