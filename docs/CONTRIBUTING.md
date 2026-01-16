@@ -4,20 +4,18 @@ Welcome to the Give Hope codebase! This guide will help you get started quickly.
 
 ## Quick Start
 
+Follow the canonical Quickstart in `README.md`:
+
 ```bash
-# 1. Install dependencies
-bun install
-
-# 2. Set up environment variables
-cp .env.example .env.local
-# Fill in your Supabase and Stripe credentials
-
-# 3. Start development server
+./scripts/setup
+# edit .env.local and set:
+# NEXT_PUBLIC_SUPABASE_URL
+# NEXT_PUBLIC_SUPABASE_ANON_KEY
 bun run dev
-
-# 4. Open in browser
-open http://localhost:3000
+./scripts/verify
 ```
+
+Stripe credentials are optional and only required when testing donation flows.
 
 ---
 
