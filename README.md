@@ -6,7 +6,8 @@ A high-performance, enterprise-grade Next.js 16.1 application for mission-focuse
 
 ```bash
 ./scripts/setup
-# edit .env.local and set:
+# first run creates .env.local with placeholders
+# fill these required values, then re-run ./scripts/setup:
 # NEXT_PUBLIC_SUPABASE_URL
 # NEXT_PUBLIC_SUPABASE_ANON_KEY
 bun run dev
@@ -15,6 +16,38 @@ bun run dev
 
 **Required:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`  
 **Optional:** All other entries in `.env.example` (Stripe, demo accounts, Unlayer, etc.)
+
+### Windows
+
+Windows PowerShell 5.1:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\setup.ps1
+```
+
+PowerShell 7+:
+
+```powershell
+pwsh -File .\scripts\setup.ps1
+```
+
+First run creates `.env.local`. Fill these required values, then re-run the setup:
+`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+Skip dependency install if you already ran it:
+
+```powershell
+pwsh -File .\scripts\setup.ps1 -SkipInstall
+```
+
+#### PowerShell script checks (optional)
+
+Install and run PSScriptAnalyzer locally (not required):
+
+```powershell
+Install-Module PSScriptAnalyzer -Scope CurrentUser
+Invoke-ScriptAnalyzer -Path .\scripts\setup.ps1, .\scripts\lib\*.ps1
+```
 
 ## Architecture & Tech Stack
 
