@@ -1,9 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+import { getAdminClient } from '@/lib/supabase/admin'
 
 interface AnomalyResult {
   type: string
@@ -13,6 +8,12 @@ interface AnomalyResult {
 }
 
 export async function scanAuditLogs(): Promise<AnomalyResult[]> {
+  const { client: supabaseAdmin, error } = getAdminClient()
+  if (!supabaseAdmin) {
+    console.warn('[audit-scan] Skipping audit scan:', error)
+    return []
+  }
+
   const anomalies: AnomalyResult[] = []
   const now = new Date()
   const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
@@ -93,6 +94,12 @@ export async function scanAuditLogs(): Promise<AnomalyResult[]> {
 }
 
 export async function recordAnomaly(anomaly: AnomalyResult) {
+  const { client: supabaseAdmin, error } = getAdminClient()
+  if (!supabaseAdmin) {
+    console.warn('[audit-scan] Skipping anomaly record:', error)
+    return
+  }
+
   await supabaseAdmin.from('audit_logs').insert({
     tenant_id: null,
     user_id: '00000000-0000-0000-0000-000000000000',

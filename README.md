@@ -90,7 +90,7 @@ A seamless experience for kingdom partners to manage their giving and follow mis
 
 ## Development
 
-This project is optimized for both local development and the **Orchids (orchids.app)** cloud environment.
+This project is optimized for both local development and the **Example Cloud (example.com)** environment.
 
 ### Package Manager
 This project uses **bun** (v1.3+). Do not use npm/yarn/pnpm.
@@ -142,34 +142,33 @@ bun outdated
 
 ---
 
-## Cloud Setup & Development
+## App-Connected Development
 
-To run this project locally against the hosted Supabase project, follow these steps:
+To run this project locally against the hosted Supabase project, you only need the public URL + anon key.
 
 ### 1. Prerequisites
 - **Bun**: This project uses Bun (v1.3+).
-- **Supabase CLI**: Install and login (`supabase login`), and ensure you have access to the cloud project.
-  
-### 2. Quick Start (Automated)
-```bash
-./setup-cloud.sh --project-ref <your-project-ref>
-```
-Or run `bun run setup:cloud`.
 
-This installs dependencies, links the Supabase project, and pushes schema + seed data (`supabase db push --include-seed`).
-You can also set `SUPABASE_PROJECT_REF` (and optionally `SUPABASE_DB_PASSWORD`) instead of passing flags.
-Make sure `.env.local` has the required Supabase keys (copy from `.env.example` if needed).
+### 2. Configure environment
+```bash
+cp .env.example .env.local
+```
+Set the required values in `.env.local`:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 ### 3. Run the App
 ```bash
+bun install
 bun run dev
 ```
 
-### 4. Using the Demo
-The demo login flow is powered by `/api/auth/demo-account`. 
-1. Navigate to `/login`.
-2. Click any of the **Demo Login** buttons (Mission Control, Missionary, or Donor).
-3. The app will automatically create a temporary demo user in your Supabase project and log you in with the correct role.
+### How to request access
+Ask a maintainer for access to the shared dev Supabase project and request the project URL + anon key. Do not request service-role keys or database credentials.
+
+### Demo login (optional)
+The demo login flow uses `/api/auth/demo-account` with the public anon client and pre-seeded demo users.
+Set `DEMO_ADMIN_EMAIL`, `DEMO_MISSIONARY_EMAIL`, `DEMO_DONOR_EMAIL`, and `DEMO_PASSWORD` in `.env.local` to enable the demo buttons.
 
 ---
 

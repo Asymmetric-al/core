@@ -1,4 +1,4 @@
-import { createAdminClient } from '@/lib/supabase/admin'
+import { getAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
@@ -12,7 +12,10 @@ export async function GET(request: Request) {
   }
 
   try {
-    const supabase = createAdminClient()
+    const { client: supabase, error: adminError } = getAdminClient()
+    if (!supabase) {
+      return NextResponse.json({ error: adminError }, { status: 503 })
+    }
     const { data: users, error } = await supabase.auth.admin.listUsers()
 
     if (error) {

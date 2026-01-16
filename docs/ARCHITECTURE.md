@@ -390,8 +390,6 @@ const breakpoint = useBreakpoint()  // 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
 |----------|---------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key (client-safe) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase admin key (server-only) |
-| `DATABASE_URL` | Direct database connection |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe public key |
 | `STRIPE_SECRET_KEY` | Stripe secret key (server-only) |
 

@@ -60,7 +60,7 @@ function getEnvironment(): 'development' | 'staging' | 'production' {
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
     return 'development'
   }
-  if (hostname.includes('staging') || hostname.includes('preview') || hostname.includes('vercel.app')) {
+  if (hostname.includes('staging') || hostname.includes('preview')) {
     return 'staging'
   }
   return 'production'
