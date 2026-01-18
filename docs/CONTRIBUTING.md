@@ -18,6 +18,8 @@ bun run dev
 
 Stripe credentials are optional and only required when testing donation flows.
 
+Optional MCP tooling configuration for contributors is documented in `docs/mcp-config.example.toml`.
+
 ---
 
 ## Development Workflow
