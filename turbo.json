@@ -1,0 +1,55 @@
+{
+  "$schema": "https://turborepo.org/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**"],
+      "env": ["NODE_ENV", "NEXT_PUBLIC_*", "GOOGLE_SITE_VERIFICATION", "BING_SITE_VERIFICATION"]
+    },
+    "lint": {
+      "outputs": [".next/cache/eslint/**"]
+    },
+    "typecheck": {
+      "outputs": ["tsconfig.tsbuildinfo"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "test:e2e": {
+      "cache": false
+    },
+    "test:e2e:ui": {
+      "cache": false,
+      "persistent": true
+    },
+    "test:a11y": {
+      "cache": false
+    },
+    "test:perf": {
+      "cache": false
+    },
+    "lighthouse": {
+      "cache": false
+    },
+    "verify": {
+      "cache": false
+    },
+    "verify:e2e": {
+      "cache": false
+    },
+    "verify:e2e:loop": {
+      "cache": false,
+      "persistent": true
+    },
+    "generate:icons": {
+      "cache": false
+    },
+    "setup": {
+      "cache": false
+    },
+    "setup:verify": {
+      "cache": false
+    }
+  }
+}

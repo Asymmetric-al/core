@@ -40,8 +40,7 @@ Optional MCP tooling configuration for contributors is documented in `docs/mcp-c
 
 ```bash
 # Always run these before committing
-bun run lint       # Check for linting errors
-bun run typecheck  # Check for type errors
+bunx turbo run lint typecheck  # Cached checks via Turborepo
 ```
 
 ---
@@ -141,6 +140,53 @@ import type { User } from '@/types'
 ```
 
 ---
+
+## Turborepo Workflow
+
+Turborepo orchestrates tasks and enables caching where appropriate. Local scripts still work, but Turbo is the recommended path for consistency with CI.
+
+### Common Commands
+
+```bash
+# Local dev
+bunx turbo run dev
+
+# Cached checks
+bunx turbo run lint typecheck build
+```
+
+Lint caching does not require restored outputs; restoring the ESLint cache is optional.
+
+### Remote Cache (Internal Only)
+
+Remote caching uses **Vercel Remote Cache** and is enabled for internal PRs and `main` branch CI. Fork PRs are not supported.
+
+- **CI env vars** (stored in GitHub secrets/vars, never committed):
+  - `TURBO_TOKEN` (secret)
+  - `TURBO_TEAM` (team slug; variable or secret)
+
+### Env Hashing Policy (Build)
+
+Build cache keys must reflect only env vars that impact build output.
+
+- **Included**: `NEXT_PUBLIC_*` plus any non-public envs that are used at build time (e.g., `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION`).
+- **Excluded**: runtime-only or unrelated envs that do not affect build output.
+
+Avoid footguns:
+- Don’t include unrelated envs (causes unnecessary cache misses).
+- Don’t bake timestamps or release IDs unless you want cache invalidation.
+- Keep wildcards minimal and intentional.
+
+### Cache Correctness Validation Matrix
+
+Run the following after changes to confirm caching is correct:
+
+| Change | Command | Expected Result | Evidence |
+| --- | --- | --- | --- |
+| Change a source file | `bunx turbo run build` | Cache miss for `build` | Task re-executes |
+| Change a relevant env var | `bunx turbo run build` | Cache miss for `build` | Env invalidates hash |
+| Change an irrelevant env var | `bunx turbo run build` | Cache hit for `build` | Task skipped, cache hit shown |
+| Change config (`next.config.mjs`, `tsconfig.json`, `eslint.config.mjs`) | `bunx turbo run build` / `lint` / `typecheck` | Cache miss for affected task(s) | Cache miss shown in output |
 
 ## File Organization
 
