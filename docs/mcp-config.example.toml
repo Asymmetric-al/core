@@ -1,0 +1,77 @@
+########## MCP Servers ##########
+
+# This template lists MCP servers commonly used/recommended in this repo.
+# Treat it as a starting point, not a required shape or workflow.
+#
+# Use it however you prefer:
+# - copy it to any local filename/path you like
+# - split it into multiple files if that fits your setup
+# - customize args/env to match your own tooling
+#
+# Do not commit credentials or tokens.
+
+
+# [mcp_servers.shadcn]
+# command = "npx"
+# args = ["-y", "shadcn@latest", "mcp"]
+# env = { EMAIL = "you@example.com", LICENSE_KEY = "..." }
+
+###
+
+# [mcp_servers.postgres]
+# command = "docker"
+# args = ["run", "-i", "--rm", "-e", "DATABASE_URI", "crystaldba/postgres-mcp", "--access-mode=restricted"]
+# env = { DATABASE_URI = "postgresql://username:password@localhost:5432/dbname" }
+
+###
+
+# [mcp_servers.twenty]
+# command = "npx"
+# args = ["-y", "twenty-mcp-server", "start", "--stdio"]
+# env = { TWENTY_API_KEY = "...", TWENTY_BASE_URL = "https://your-twenty-instance.com" }
+
+###
+
+# [mcp_servers.github]
+# url = "https://api.githubcopilot.com/mcp"
+# http_headers = { "Authorization" = "Bearer ghp_..." }
+
+###
+
+# [mcp_servers.nia]
+# command = "pipx"
+# args = ["run", "--no-cache", "nia-mcp-server"]
+# startup_timeout_ms = 30000
+
+# [mcp_servers.nia.env]
+# NIA_API_KEY = "nk_..."
+# NIA_API_URL = "https://apigcp.trynia.ai/"
+
+###
+
+# [mcp_servers.context7]
+# command = "npx"
+# args = ["-y", "@upstash/context7-mcp"]
+
+###
+
+# [mcp_servers.vercel]
+# url = "https://mcp.vercel.com"
+
+###
+
+# [mcp_servers.stripe]
+# url = "https://mcp.stripe.com"
+
+###
+
+# [mcp_servers.directus]
+# command = "npx"
+# args = ["@directus/content-mcp@latest"]
+# env = { DIRECTUS_URL = "https://your-directus-instance.com", DIRECTUS_TOKEN = "..." }
+
+###
+
+# [mcp_servers.playwright]
+# command = "npx"
+# args = ["@playwright/mcp@latest"]
