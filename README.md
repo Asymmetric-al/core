@@ -148,6 +148,15 @@ Common commands:
 - `bun run lint` and `bun run typecheck`
 - `bun run test:e2e`
 
+### Turborepo (Task Orchestration + Cache)
+
+Use Turbo for consistent task execution (and caching where applicable):
+
+- Local dev: `bunx turbo run dev`
+- Cached checks: `bunx turbo run lint typecheck build`
+
+Remote caching (Vercel Remote Cache) is enabled for internal PRs and `main` branch CI only. Fork PRs are not supported.
+
 ### Key Dependencies
 
 | Package | Version | Notes |
@@ -164,7 +173,7 @@ Common commands:
 
 ```bash
 # Full verification suite
-bun run typecheck && bun run lint && bun run build
+bunx turbo run typecheck lint build
 
 # Check for outdated packages
 bun outdated
