@@ -10,7 +10,7 @@ Use this when the user asks to "ship" an issue.
 - Issues are `AL-###` and titles follow `AL-###: ...`.
 - Branches and PRs are based on `develop`.
 - Commits include `ref AL-###` when applicable.
-- Quality gate: `bun run lint && bun run typecheck && bun run build`.
+- Quality gate: `bun run format:check && bun run lint && bun run typecheck && bun run build`.
 
 ## Workflow
 1. **Determine repo:** Prefer `git remote get-url origin`; otherwise ask for `owner/repo`.
@@ -46,7 +46,7 @@ Use this when the user asks to "ship" an issue.
 
 ### Quality gate
 ```bash
-bun run lint && bun run typecheck && bun run build
+bun run format:check && bun run lint && bun run typecheck && bun run build
 ```
 
 ## Common mistakes / pitfalls

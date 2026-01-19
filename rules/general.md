@@ -20,6 +20,7 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 **Rule:** Exactly one label from each category. Do not mix multiple labels from the same category.
 
 ### CI gates (must pass before merge)
+- `bun run format:check`
 - `bun run lint`
 - `bun run typecheck`
 - `bun run build`
@@ -30,7 +31,6 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 - Do not manually edit generated files unless necessary.
 
 ### Documentation rule
-- Do not create or update `.md` files unless explicitly asked by the user.
 - If build steps change, update `README.md` and `docs/CONTRIBUTING.md`.
 
 ## Workflow
@@ -52,7 +52,7 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 
 ## Minimal examples
 - Branch name: `feature/AL-123-add-metrics-card`
-- CI command: `bun run lint && bun run typecheck && bun run build`
+- CI command: `bun run format:check && bun run lint && bun run typecheck && bun run build`
 
 ## Common mistakes / pitfalls
 - Skipping the issue or using a non-`AL-###` identifier
