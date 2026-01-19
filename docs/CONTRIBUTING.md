@@ -40,6 +40,7 @@ Optional MCP tooling configuration for contributors is documented in `docs/mcp-c
 
 ```bash
 # Always run these before committing
+bun run format:check
 bunx turbo run lint typecheck  # Cached checks via Turborepo
 ```
 
@@ -153,6 +154,9 @@ bunx turbo run dev
 
 # Cached checks
 bunx turbo run lint typecheck build
+
+# Format check
+bun run format:check
 ```
 
 Lint caching does not require restored outputs; restoring the ESLint cache is optional.

@@ -3,7 +3,7 @@
 **Purpose:** Define how to run and write tests (Playwright E2E, a11y, and perf gates).
 Use this when adding tests, modifying critical flows, or verifying changes.
 
-**Applies when:** Adding/updating tests, touching critical user flows, or asked to run tests.
+**Applies when:** Adding/updating tests, touching critical user flows, preparing a PR for review, or asked to run tests.
 **Do not use when:** Changes are purely documentation or non-functional and do not require tests.
 
 ## Rules
@@ -13,9 +13,9 @@ Use this when adding tests, modifying critical flows, or verifying changes.
 - **Performance:** Playwright-based Web Vitals assertions.
 
 ## Workflow
-1. Decide the test scope (a11y, perf, or user flow).
-2. Add coverage to the appropriate Playwright specs.
-3. Run the relevant Playwright command(s).
+1. Decide the test scope (e2e, a11y, perf, or specific user flow).
+2. Add coverage to the appropriate Playwright specs if needed.
+3. Run the relevant Playwright command(s) before marking a PR ready.
 4. Fix failures before proceeding.
 
 ## Checklists
@@ -29,12 +29,23 @@ Use this when adding tests, modifying critical flows, or verifying changes.
 - [ ] Tests are isolated and deterministic
 - [ ] Locators use `getByRole` or `getByText`
 - [ ] No XPath or brittle CSS selectors
+- [ ] Test commands captured in PR summary when closing issues
 
 ## Minimal examples
 
 ### Run all E2E tests
 ```bash
 bun run test:e2e
+```
+
+### Run a11y checks
+```bash
+bun run test:a11y
+```
+
+### Run perf checks
+```bash
+bun run test:perf
 ```
 
 ### Run in UI mode
