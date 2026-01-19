@@ -198,10 +198,10 @@ export function AboutValues() {
                       item.color === "emerald"
                         ? "bg-emerald-50 text-emerald-600"
                         : item.color === "blue"
-                        ? "bg-blue-50 text-blue-600"
-                        : item.color === "amber"
-                        ? "bg-amber-50 text-amber-600"
-                        : "bg-red-50 text-red-600"
+                          ? "bg-blue-50 text-blue-600"
+                          : item.color === "amber"
+                            ? "bg-amber-50 text-amber-600"
+                            : "bg-red-50 text-red-600",
                     )}
                   >
                     <item.icon className="h-6 w-6" />

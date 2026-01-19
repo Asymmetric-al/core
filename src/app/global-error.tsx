@@ -1,52 +1,52 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
 
 export default function GlobalError({
   error,
   reset,
 }: {
-  error: Error & { digest?: string }
-  reset: () => void
+  error: Error & { digest?: string };
+  reset: () => void;
 }) {
-  const [retryCount, setRetryCount] = useState(0)
-  const [isRetrying, setIsRetrying] = useState(false)
+  const [retryCount, setRetryCount] = useState(0);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   useEffect(() => {
     // Avoid importing Sentry in dev/CI where it can break under Turbopack/OpenTelemetry.
     // Keep it enabled in production where it matters.
-    if (process.env.NODE_ENV !== 'production') return
+    if (process.env.NODE_ENV !== "production") return;
 
-    void import('@sentry/nextjs')
+    void import("@sentry/nextjs")
       .then((Sentry) => {
-        Sentry.captureException(error)
+        Sentry.captureException(error);
       })
       .catch(() => {
         // Never let error reporting crash the error boundary.
-      })
-  }, [error])
+      });
+  }, [error]);
 
   const handleRetry = () => {
-    setIsRetrying(true)
-    setRetryCount((prev) => prev + 1)
+    setIsRetrying(true);
+    setRetryCount((prev) => prev + 1);
 
     // On second retry, force a full page reload to clear any corrupted state/HMR cache
     if (retryCount >= 1) {
-      window.location.reload()
-      return
+      window.location.reload();
+      return;
     }
 
-    reset()
+    reset();
 
     // Reset the retrying state after a short delay
     setTimeout(() => {
-      setIsRetrying(false)
-    }, 1500)
-  }
+      setIsRetrying(false);
+    }, 1500);
+  };
 
   const handleGoHome = () => {
-    window.location.href = '/'
-  }
+    window.location.href = "/";
+  };
 
   return (
     <html lang="en">
@@ -57,7 +57,8 @@ export default function GlobalError({
               Something went wrong
             </h1>
             <p className="text-slate-500 max-w-md mx-auto">
-              A critical application error occurred. We&apos;ve been notified and are looking into it.
+              A critical application error occurred. We&apos;ve been notified
+              and are looking into it.
             </p>
           </div>
 
@@ -72,30 +73,30 @@ export default function GlobalError({
               onClick={handleRetry}
               disabled={isRetrying}
               style={{
-                borderRadius: '0.75rem',
-                backgroundColor: '#0f172a',
-                padding: '0.75rem 1.5rem',
-                color: 'white',
-                border: 'none',
-                cursor: isRetrying ? 'not-allowed' : 'pointer',
-                fontWeight: '600',
-                transition: 'all 0.2s',
+                borderRadius: "0.75rem",
+                backgroundColor: "#0f172a",
+                padding: "0.75rem 1.5rem",
+                color: "white",
+                border: "none",
+                cursor: isRetrying ? "not-allowed" : "pointer",
+                fontWeight: "600",
+                transition: "all 0.2s",
                 opacity: isRetrying ? 0.7 : 1,
               }}
             >
-              {isRetrying ? 'Retrying...' : 'Try again'}
+              {isRetrying ? "Retrying..." : "Try again"}
             </button>
             <button
               onClick={handleGoHome}
               style={{
-                borderRadius: '0.75rem',
-                backgroundColor: 'white',
-                padding: '0.75rem 1.5rem',
-                color: '#0f172a',
-                border: '1px solid #e2e8f0',
-                cursor: 'pointer',
-                fontWeight: '600',
-                transition: 'all 0.2s',
+                borderRadius: "0.75rem",
+                backgroundColor: "white",
+                padding: "0.75rem 1.5rem",
+                color: "#0f172a",
+                border: "1px solid #e2e8f0",
+                cursor: "pointer",
+                fontWeight: "600",
+                transition: "all 0.2s",
               }}
             >
               Go home
@@ -104,5 +105,5 @@ export default function GlobalError({
         </div>
       </body>
     </html>
-  )
+  );
 }

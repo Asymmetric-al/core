@@ -1,7 +1,7 @@
-"use client"
-"use no memo"
+"use client";
+"use no memo";
 
-import * as React from "react"
+import * as React from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -17,10 +17,10 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
-import { Search, Inbox } from "lucide-react"
+} from "@tanstack/react-table";
+import { Search, Inbox } from "lucide-react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -28,44 +28,47 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Checkbox } from "@/components/ui/checkbox"
-import { DataTableToolbar } from "./data-table-toolbar"
-import { DataTablePagination } from "./data-table-pagination"
-import { DataTableActionBar } from "./data-table-action-bar"
-import { DataTableSkeleton, DataTableLoadingOverlay } from "./data-table-skeleton"
-import type { DataTableFilterField, DataTableConfig } from "./types"
+} from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DataTableToolbar } from "./data-table-toolbar";
+import { DataTablePagination } from "./data-table-pagination";
+import { DataTableActionBar } from "./data-table-action-bar";
+import {
+  DataTableSkeleton,
+  DataTableLoadingOverlay,
+} from "./data-table-skeleton";
+import type { DataTableFilterField, DataTableConfig } from "./types";
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
-  filterFields?: DataTableFilterField<TData>[]
-  searchKey?: string
-  searchPlaceholder?: string
-  config?: DataTableConfig
-  isLoading?: boolean
-  pageCount?: number
-  onPaginationChange?: (pagination: PaginationState) => void
-  onSortingChange?: (sorting: SortingState) => void
-  onFiltersChange?: (filters: ColumnFiltersState) => void
-  onRowSelectionChange?: (selection: RowSelectionState) => void
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+  filterFields?: DataTableFilterField<TData>[];
+  searchKey?: string;
+  searchPlaceholder?: string;
+  config?: DataTableConfig;
+  isLoading?: boolean;
+  pageCount?: number;
+  onPaginationChange?: (pagination: PaginationState) => void;
+  onSortingChange?: (sorting: SortingState) => void;
+  onFiltersChange?: (filters: ColumnFiltersState) => void;
+  onRowSelectionChange?: (selection: RowSelectionState) => void;
   actionBarActions?: {
-    label: string
-    icon?: React.ComponentType<{ className?: string }>
-    onClick: (rows: TData[]) => void
-    variant?: "default" | "destructive"
-  }[]
-  className?: string
-  tableClassName?: string
-  emptyState?: React.ReactNode
-  toolbar?: React.ReactNode
+    label: string;
+    icon?: React.ComponentType<{ className?: string }>;
+    onClick: (rows: TData[]) => void;
+    variant?: "default" | "destructive";
+  }[];
+  className?: string;
+  tableClassName?: string;
+  emptyState?: React.ReactNode;
+  toolbar?: React.ReactNode;
   initialState?: {
-    pagination?: PaginationState
-    sorting?: SortingState
-    columnFilters?: ColumnFiltersState
-    columnVisibility?: VisibilityState
-    rowSelection?: RowSelectionState
-  }
+    pagination?: PaginationState;
+    sorting?: SortingState;
+    columnFilters?: ColumnFiltersState;
+    columnVisibility?: VisibilityState;
+    rowSelection?: RowSelectionState;
+  };
 }
 
 export function DataTable<TData, TValue>({
@@ -97,59 +100,61 @@ export function DataTable<TData, TValue>({
     manualPagination = false,
     manualSorting = false,
     manualFiltering = false,
-  } = config
+  } = config;
 
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>(
-    initialState.rowSelection ?? {}
-  )
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(
-    initialState.columnVisibility ?? {}
-  )
+    initialState.rowSelection ?? {},
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>(initialState.columnVisibility ?? {});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    initialState.columnFilters ?? []
-  )
+    initialState.columnFilters ?? [],
+  );
   const [sorting, setSorting] = React.useState<SortingState>(
-    initialState.sorting ?? []
-  )
+    initialState.sorting ?? [],
+  );
   const [pagination, setPagination] = React.useState<PaginationState>(
     initialState.pagination ?? {
       pageIndex: 0,
       pageSize: 10,
-    }
-  )
+    },
+  );
 
-  const selectColumn = React.useMemo<ColumnDef<TData, unknown>>(() => ({
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className="translate-y-0.5"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="translate-y-0.5"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-    size: 40,
-  }), [])
+  const selectColumn = React.useMemo<ColumnDef<TData, unknown>>(
+    () => ({
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+          className="translate-y-0.5"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+          className="translate-y-0.5"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+      size: 40,
+    }),
+    [],
+  );
 
   const tableColumns = React.useMemo(() => {
     if (enableRowSelection) {
-      return [selectColumn, ...columns]
+      return [selectColumn, ...columns];
     }
-    return columns
-  }, [columns, enableRowSelection, selectColumn])
+    return columns;
+  }, [columns, enableRowSelection, selectColumn]);
 
   // eslint-disable-next-line react-hooks/incompatible-library -- "use no memo" directive applied, warning acknowledged
   const table = useReactTable({
@@ -170,39 +175,41 @@ export function DataTable<TData, TValue>({
     manualFiltering,
     onRowSelectionChange: (updater) => {
       const newSelection =
-        typeof updater === "function" ? updater(rowSelection) : updater
-      setRowSelection(newSelection)
-      onRowSelectionChange?.(newSelection)
+        typeof updater === "function" ? updater(rowSelection) : updater;
+      setRowSelection(newSelection);
+      onRowSelectionChange?.(newSelection);
     },
     onSortingChange: (updater) => {
       const newSorting =
-        typeof updater === "function" ? updater(sorting) : updater
-      setSorting(newSorting)
-      onSortingChange?.(newSorting)
+        typeof updater === "function" ? updater(sorting) : updater;
+      setSorting(newSorting);
+      onSortingChange?.(newSorting);
     },
     onColumnFiltersChange: (updater) => {
       const newFilters =
-        typeof updater === "function" ? updater(columnFilters) : updater
-      setColumnFilters(newFilters)
-      onFiltersChange?.(newFilters)
+        typeof updater === "function" ? updater(columnFilters) : updater;
+      setColumnFilters(newFilters);
+      onFiltersChange?.(newFilters);
     },
     onColumnVisibilityChange: setColumnVisibility,
     onPaginationChange: (updater) => {
       const newPagination =
-        typeof updater === "function" ? updater(pagination) : updater
-      setPagination(newPagination)
-      onPaginationChange?.(newPagination)
+        typeof updater === "function" ? updater(pagination) : updater;
+      setPagination(newPagination);
+      onPaginationChange?.(newPagination);
     },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: manualFiltering ? undefined : getFilteredRowModel(),
-    getPaginationRowModel: manualPagination ? undefined : getPaginationRowModel(),
+    getPaginationRowModel: manualPagination
+      ? undefined
+      : getPaginationRowModel(),
     getSortedRowModel: manualSorting ? undefined : getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
-  })
+  });
 
   if (isLoading && data.length === 0) {
-    return <DataTableSkeleton columnCount={columns.length} />
+    return <DataTableSkeleton columnCount={columns.length} />;
   }
 
   const defaultEmptyState = (
@@ -212,15 +219,16 @@ export function DataTable<TData, TValue>({
       </div>
       <h3 className="text-lg font-semibold">No results found</h3>
       <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-        Try adjusting your search or filter criteria to find what you&apos;re looking for.
+        Try adjusting your search or filter criteria to find what you&apos;re
+        looking for.
       </p>
     </div>
-  )
+  );
 
   return (
     <div className={cn("w-full space-y-4", className)}>
-      {enableFilters && (
-        toolbar ?? (
+      {enableFilters &&
+        (toolbar ?? (
           <DataTableToolbar
             table={table}
             filterFields={filterFields}
@@ -228,15 +236,14 @@ export function DataTable<TData, TValue>({
             searchPlaceholder={searchPlaceholder}
             enableColumnVisibility={enableColumnVisibility}
           />
-        )
-      )}
+        ))}
 
       <div className="relative">
         <DataTableLoadingOverlay isLoading={isLoading} />
         <div
           className={cn(
             "rounded-2xl border border-border bg-card overflow-hidden shadow-sm",
-            tableClassName
+            tableClassName,
           )}
         >
           <Table>
@@ -247,26 +254,29 @@ export function DataTable<TData, TValue>({
                   className="hover:bg-transparent border-border"
                 >
                   {headerGroup.headers.map((header) => {
-                    const meta = header.column.columnDef.meta
+                    const meta = header.column.columnDef.meta;
                     return (
                       <TableHead
                         key={header.id}
                         className={cn(
                           "h-12 px-4 text-xs font-semibold text-muted-foreground",
-                          meta?.headerClassName
+                          meta?.headerClassName,
                         )}
                         style={{
-                          width: header.getSize() !== 150 ? header.getSize() : undefined,
+                          width:
+                            header.getSize() !== 150
+                              ? header.getSize()
+                              : undefined,
                         }}
                       >
                         {header.isPlaceholder
                           ? null
                           : flexRender(
                               header.column.columnDef.header,
-                              header.getContext()
+                              header.getContext(),
                             )}
                       </TableHead>
-                    )
+                    );
                   })}
                 </TableRow>
               ))}
@@ -280,7 +290,7 @@ export function DataTable<TData, TValue>({
                     className="hover:bg-muted/30 transition-colors border-border data-[state=selected]:bg-muted/50"
                   >
                     {row.getVisibleCells().map((cell) => {
-                      const meta = cell.column.columnDef.meta
+                      const meta = cell.column.columnDef.meta;
                       return (
                         <TableCell
                           key={cell.id}
@@ -288,19 +298,16 @@ export function DataTable<TData, TValue>({
                         >
                           {flexRender(
                             cell.column.columnDef.cell,
-                            cell.getContext()
+                            cell.getContext(),
                           )}
                         </TableCell>
-                      )
+                      );
                     })}
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell
-                    colSpan={tableColumns.length}
-                    className="h-64"
-                  >
+                  <TableCell colSpan={tableColumns.length} className="h-64">
                     {emptyState ?? defaultEmptyState}
                   </TableCell>
                 </TableRow>
@@ -311,14 +318,17 @@ export function DataTable<TData, TValue>({
       </div>
 
       {enablePagination && (
-        <DataTablePagination table={table} showSelectedCount={enableRowSelection} />
+        <DataTablePagination
+          table={table}
+          showSelectedCount={enableRowSelection}
+        />
       )}
 
       {enableRowSelection && (
         <DataTableActionBar table={table} actions={actionBarActions} />
       )}
     </div>
-  )
+  );
 }
 
-export { DataTable as default }
+export { DataTable as default };

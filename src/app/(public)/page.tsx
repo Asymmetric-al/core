@@ -1,14 +1,14 @@
-import type { Metadata } from 'next';
-import { pageMetadata } from '@/lib/seo/metadata';
-import { DonateActionJsonLd } from '@/lib/seo/json-ld';
-import { 
-  HomeHero, 
-  HomeMission, 
-  HomeStats, 
-  HomeFeatured, 
-  HomeCTA, 
-  LiveTicker 
-} from '@/components/public/home-sections';
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/metadata";
+import { DonateActionJsonLd } from "@/lib/seo/json-ld";
+import {
+  HomeHero,
+  HomeMission,
+  HomeStats,
+  HomeFeatured,
+  HomeCTA,
+  LiveTicker,
+} from "@/components/public/home-sections";
 
 export const metadata: Metadata = pageMetadata.home;
 

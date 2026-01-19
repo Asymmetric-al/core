@@ -1,45 +1,45 @@
-'use client'
+"use client";
 
-import { useEffect, useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { AlertCircle, RefreshCw } from 'lucide-react'
+import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { AlertCircle, RefreshCw } from "lucide-react";
 
 export default function Error({
   error,
   reset,
 }: {
-  error: Error & { digest?: string }
-  reset: () => void
+  error: Error & { digest?: string };
+  reset: () => void;
 }) {
-  const router = useRouter()
-  const [isRetrying, setIsRetrying] = useState(false)
-  const [retryCount, setRetryCount] = useState(0)
+  const router = useRouter();
+  const [isRetrying, setIsRetrying] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    console.error('Application error:', error)
-  }, [error])
+    console.error("Application error:", error);
+  }, [error]);
 
   const handleRetry = useCallback(() => {
-    setIsRetrying(true)
-    setRetryCount(prev => prev + 1)
-    
+    setIsRetrying(true);
+    setRetryCount((prev) => prev + 1);
+
     if (retryCount >= 1) {
-      window.location.reload()
-      return
+      window.location.reload();
+      return;
     }
-    
-    reset()
-    router.refresh()
-    
+
+    reset();
+    router.refresh();
+
     setTimeout(() => {
-      setIsRetrying(false)
-    }, 1000)
-  }, [reset, router, retryCount])
+      setIsRetrying(false);
+    }, 1000);
+  }, [reset, router, retryCount]);
 
   const handleGoHome = useCallback(() => {
-    window.location.href = '/'
-  }, [])
+    window.location.href = "/";
+  }, []);
 
   return (
     <div className="flex min-h-[400px] flex-col items-center justify-center gap-4 p-8">
@@ -48,10 +48,13 @@ export default function Error({
       </div>
       <h2 className="text-xl font-semibold">Something went wrong</h2>
       <p className="text-center text-muted-foreground max-w-md">
-        An unexpected error occurred. Please try again or contact support if the problem persists.
+        An unexpected error occurred. Please try again or contact support if the
+        problem persists.
       </p>
       {error.digest && (
-        <p className="text-xs text-muted-foreground">Error ID: {error.digest}</p>
+        <p className="text-xs text-muted-foreground">
+          Error ID: {error.digest}
+        </p>
       )}
       <div className="flex gap-2">
         <Button onClick={handleRetry} disabled={isRetrying}>
@@ -61,7 +64,7 @@ export default function Error({
               Retrying...
             </>
           ) : (
-            'Try again'
+            "Try again"
           )}
         </Button>
         <Button variant="outline" onClick={handleGoHome}>
@@ -69,5 +72,5 @@ export default function Error({
         </Button>
       </div>
     </div>
-  )
+  );
 }

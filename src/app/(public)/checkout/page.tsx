@@ -1,6 +1,6 @@
-import type { Metadata } from 'next';
-import { pageMetadata } from '@/lib/seo/metadata';
-import { CheckoutPageClient } from './checkout-client';
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/metadata";
+import { CheckoutPageClient } from "./checkout-client";
 
 export const metadata: Metadata = pageMetadata.checkout;
 

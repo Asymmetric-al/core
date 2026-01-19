@@ -1,18 +1,26 @@
-"use client"
+"use client";
 
-import { useCallback, useMemo } from "react"
-import { Trash2Icon } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { useCallback, useMemo } from "react";
+import { Trash2Icon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { FilterTextInput, FilterNumberInput, FilterCurrencyInput, FilterDateInput } from "./filter-value-inputs"
-import { FilterSelectInput, FilterMultiSelectInput } from "./filter-select-inputs"
+} from "@/components/ui/select";
+import {
+  FilterTextInput,
+  FilterNumberInput,
+  FilterCurrencyInput,
+  FilterDateInput,
+} from "./filter-value-inputs";
+import {
+  FilterSelectInput,
+  FilterMultiSelectInput,
+} from "./filter-select-inputs";
 import {
   type FilterCondition,
   type FilterFieldDefinition,
@@ -22,17 +30,17 @@ import {
   OPERATORS_BY_TYPE,
   VALUE_LESS_OPERATORS,
   getDefaultValue,
-} from "./types"
+} from "./types";
 
 interface FilterRowProps {
-  condition: FilterCondition
-  fields: FilterFieldDefinition[]
-  onFieldChange: (fieldId: string) => void
-  onOperatorChange: (operator: FilterOperator) => void
-  onValueChange: (value: FilterValue) => void
-  onRemove: () => void
-  showRemove?: boolean
-  className?: string
+  condition: FilterCondition;
+  fields: FilterFieldDefinition[];
+  onFieldChange: (fieldId: string) => void;
+  onOperatorChange: (operator: FilterOperator) => void;
+  onValueChange: (value: FilterValue) => void;
+  onRemove: () => void;
+  showRemove?: boolean;
+  className?: string;
 }
 
 export function FilterRow({
@@ -47,48 +55,50 @@ export function FilterRow({
 }: FilterRowProps) {
   const field = useMemo(
     () => fields.find((f) => f.id === condition.field),
-    [fields, condition.field]
-  )
+    [fields, condition.field],
+  );
 
   const availableOperators = useMemo(() => {
-    if (!field) return []
-    return field.operators ?? OPERATORS_BY_TYPE[field.type] ?? []
-  }, [field])
+    if (!field) return [];
+    return field.operators ?? OPERATORS_BY_TYPE[field.type] ?? [];
+  }, [field]);
 
-  const showValueInput = !VALUE_LESS_OPERATORS.includes(condition.operator)
+  const showValueInput = !VALUE_LESS_OPERATORS.includes(condition.operator);
 
   const handleFieldChange = useCallback(
     (newFieldId: string) => {
-      onFieldChange(newFieldId)
+      onFieldChange(newFieldId);
     },
-    [onFieldChange]
-  )
+    [onFieldChange],
+  );
 
   const handleOperatorChange = useCallback(
     (newOperator: string) => {
-      const op = newOperator as FilterOperator
-      onOperatorChange(op)
+      const op = newOperator as FilterOperator;
+      onOperatorChange(op);
       if (VALUE_LESS_OPERATORS.includes(op)) {
-        onValueChange(null)
+        onValueChange(null);
       } else if (field) {
         const needsReset =
           (op === "between" && condition.operator !== "between") ||
           (condition.operator === "between" && op !== "between") ||
-          (["in", "not_in"].includes(op) && !["in", "not_in"].includes(condition.operator)) ||
-          (["in", "not_in"].includes(condition.operator) && !["in", "not_in"].includes(op))
+          (["in", "not_in"].includes(op) &&
+            !["in", "not_in"].includes(condition.operator)) ||
+          (["in", "not_in"].includes(condition.operator) &&
+            !["in", "not_in"].includes(op));
         if (needsReset) {
-          onValueChange(getDefaultValue(field.type, op))
+          onValueChange(getDefaultValue(field.type, op));
         }
       }
     },
-    [field, condition.operator, onOperatorChange, onValueChange]
-  )
+    [field, condition.operator, onOperatorChange, onValueChange],
+  );
 
   return (
     <div
       className={cn(
         "flex flex-wrap items-center gap-2 rounded-lg border bg-card p-2",
-        className
+        className,
       )}
     >
       <Select value={condition.field} onValueChange={handleFieldChange}>
@@ -137,18 +147,23 @@ export function FilterRow({
         </Button>
       )}
     </div>
-  )
+  );
 }
 
 interface FilterValueInputProps {
-  field: FilterFieldDefinition
-  operator: FilterOperator
-  value: FilterValue
-  onChange: (value: FilterValue) => void
+  field: FilterFieldDefinition;
+  operator: FilterOperator;
+  value: FilterValue;
+  onChange: (value: FilterValue) => void;
 }
 
-function FilterValueInput({ field, operator, value, onChange }: FilterValueInputProps) {
-  const isMultiSelect = ["in", "not_in"].includes(operator)
+function FilterValueInput({
+  field,
+  operator,
+  value,
+  onChange,
+}: FilterValueInputProps) {
+  const isMultiSelect = ["in", "not_in"].includes(operator);
 
   switch (field.type) {
     case "text":
@@ -159,7 +174,7 @@ function FilterValueInput({ field, operator, value, onChange }: FilterValueInput
           value={value}
           onChange={onChange}
         />
-      )
+      );
     case "number":
       return (
         <FilterNumberInput
@@ -168,7 +183,7 @@ function FilterValueInput({ field, operator, value, onChange }: FilterValueInput
           value={value}
           onChange={onChange}
         />
-      )
+      );
     case "currency":
       return (
         <FilterCurrencyInput
@@ -177,7 +192,7 @@ function FilterValueInput({ field, operator, value, onChange }: FilterValueInput
           value={value}
           onChange={onChange}
         />
-      )
+      );
     case "date":
     case "datetime":
       return (
@@ -187,7 +202,7 @@ function FilterValueInput({ field, operator, value, onChange }: FilterValueInput
           value={value}
           onChange={onChange}
         />
-      )
+      );
     case "select":
       if (isMultiSelect) {
         return (
@@ -197,7 +212,7 @@ function FilterValueInput({ field, operator, value, onChange }: FilterValueInput
             value={value}
             onChange={onChange}
           />
-        )
+        );
       }
       return (
         <FilterSelectInput
@@ -206,7 +221,7 @@ function FilterValueInput({ field, operator, value, onChange }: FilterValueInput
           value={value}
           onChange={onChange}
         />
-      )
+      );
     case "multi-select":
       return (
         <FilterMultiSelectInput
@@ -215,9 +230,9 @@ function FilterValueInput({ field, operator, value, onChange }: FilterValueInput
           value={value}
           onChange={onChange}
         />
-      )
+      );
     case "boolean":
-      return null
+      return null;
     default:
       return (
         <FilterTextInput
@@ -226,6 +241,6 @@ function FilterValueInput({ field, operator, value, onChange }: FilterValueInput
           value={value}
           onChange={onChange}
         />
-      )
+      );
   }
 }

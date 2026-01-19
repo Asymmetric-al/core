@@ -1,19 +1,19 @@
-'use client'
+"use client";
 
-import type { ReactNode } from 'react'
-import { X, ExternalLink } from 'lucide-react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { cn } from '@/lib/utils'
+import type { ReactNode } from "react";
+import { X, ExternalLink } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 
 interface DetailsDrawerProps {
-  open: boolean
-  onClose: () => void
-  title?: string
-  fullPageHref?: string
-  children: ReactNode
-  className?: string
+  open: boolean;
+  onClose: () => void;
+  title?: string;
+  fullPageHref?: string;
+  children: ReactNode;
+  className?: string;
 }
 
 export function DetailsDrawer({
@@ -24,13 +24,13 @@ export function DetailsDrawer({
   children,
   className,
 }: DetailsDrawerProps) {
-  if (!open) return null
+  if (!open) return null;
 
   return (
     <div
       className={cn(
-        'flex h-full w-96 flex-col border-l border-border bg-background',
-        className
+        "flex h-full w-96 flex-col border-l border-border bg-background",
+        className,
       )}
     >
       <div className="flex h-14 items-center justify-between border-b border-border px-4">
@@ -45,7 +45,12 @@ export function DetailsDrawer({
               </Button>
             </Link>
           )}
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={onClose}
+          >
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -54,5 +59,5 @@ export function DetailsDrawer({
         <div className="p-4">{children}</div>
       </ScrollArea>
     </div>
-  )
+  );
 }

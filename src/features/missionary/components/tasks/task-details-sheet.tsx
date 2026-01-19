@@ -61,7 +61,7 @@ export function TaskDetailsSheet({
             <div
               className={cn(
                 "h-10 w-10 rounded-xl flex items-center justify-center shrink-0",
-                typeConfig.bgColor
+                typeConfig.bgColor,
               )}
             >
               <typeConfig.icon className={cn("h-5 w-5", typeConfig.color)} />
@@ -95,7 +95,7 @@ export function TaskDetailsSheet({
                 "h-9",
                 isCompleted
                   ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                  : ""
+                  : "",
               )}
             >
               {isCompleted ? (
@@ -150,7 +150,7 @@ export function TaskDetailsSheet({
                     task.status === "waiting" &&
                       "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300",
                     task.status === "completed" &&
-                      "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300"
+                      "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300",
                   )}
                 >
                   {task.status.replace("_", " ")}
@@ -168,10 +168,10 @@ export function TaskDetailsSheet({
                       task.priority === "high"
                         ? "bg-destructive"
                         : task.priority === "medium"
-                        ? "bg-amber-500"
-                        : task.priority === "low"
-                        ? "bg-blue-500"
-                        : "bg-muted-foreground/30"
+                          ? "bg-amber-500"
+                          : task.priority === "low"
+                            ? "bg-blue-500"
+                            : "bg-muted-foreground/30",
                     )}
                   />
                   <span className="text-sm font-medium text-foreground">

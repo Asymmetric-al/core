@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Menu, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Menu, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface NavLink {
   label: string;
@@ -20,9 +20,22 @@ interface NavbarClientProps {
   shortName: string;
 }
 
-const HERO_PAGES = ['/', '/about', '/workers', '/faq', '/financials', '/ways-to-give'];
+const HERO_PAGES = [
+  "/",
+  "/about",
+  "/workers",
+  "/faq",
+  "/financials",
+  "/ways-to-give",
+];
 
-export function NavbarClient({ navLinks, ctaLabel, ctaHref, siteName, shortName }: NavbarClientProps) {
+export function NavbarClient({
+  navLinks,
+  ctaLabel,
+  ctaHref,
+  siteName,
+  shortName,
+}: NavbarClientProps) {
   const pathname = usePathname();
   const isHeroPage = HERO_PAGES.includes(pathname);
 
@@ -40,13 +53,15 @@ export function NavbarClient({ navLinks, ctaLabel, ctaHref, siteName, shortName 
     };
 
     handleScroll();
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [isHeroPage]);
 
   useEffect(() => {
-    document.body.style.overflow = isMobileMenuOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    document.body.style.overflow = isMobileMenuOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [isMobileMenuOpen]);
 
   const displayName = siteName.toUpperCase();
@@ -65,16 +80,21 @@ export function NavbarClient({ navLinks, ctaLabel, ctaHref, siteName, shortName 
           "fixed top-0 z-50 w-full transition-all duration-300",
           showScrolledStyles
             ? "bg-white/95 backdrop-blur-md border-b border-slate-200 py-2 sm:py-3"
-            : "bg-transparent py-4 sm:py-6"
+            : "bg-transparent py-4 sm:py-6",
         )}
         aria-label="Main navigation"
       >
         <div className="container-responsive flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group relative z-50">
+          <Link
+            href="/"
+            className="flex items-center gap-2 group relative z-50"
+          >
             <div
               className={cn(
                 "h-8 w-8 rounded-lg flex items-center justify-center font-bold text-sm shadow-sm group-hover:scale-105 transition-all",
-                showScrolledStyles ? "bg-slate-900 text-white" : "bg-white text-slate-900"
+                showScrolledStyles
+                  ? "bg-slate-900 text-white"
+                  : "bg-white text-slate-900",
               )}
             >
               {shortName}
@@ -82,10 +102,15 @@ export function NavbarClient({ navLinks, ctaLabel, ctaHref, siteName, shortName 
             <span
               className={cn(
                 "font-bold text-lg tracking-tight transition-colors",
-                showScrolledStyles || isMobileMenuOpen ? "text-slate-900" : "text-white"
+                showScrolledStyles || isMobileMenuOpen
+                  ? "text-slate-900"
+                  : "text-white",
               )}
             >
-              {displayName.slice(0, 4)}<span className="font-light opacity-60">{displayName.slice(4)}</span>
+              {displayName.slice(0, 4)}
+              <span className="font-light opacity-60">
+                {displayName.slice(4)}
+              </span>
             </span>
           </Link>
 
@@ -96,7 +121,9 @@ export function NavbarClient({ navLinks, ctaLabel, ctaHref, siteName, shortName 
                 href={link.href}
                 className={cn(
                   "text-sm font-semibold tracking-tight hover:opacity-70 transition-opacity touch-target flex items-center",
-                  showScrolledStyles ? "text-slate-600 hover:text-slate-900" : "text-white/90"
+                  showScrolledStyles
+                    ? "text-slate-600 hover:text-slate-900"
+                    : "text-white/90",
                 )}
               >
                 {link.label}
@@ -108,7 +135,7 @@ export function NavbarClient({ navLinks, ctaLabel, ctaHref, siteName, shortName 
                 "rounded-full px-5 lg:px-6 font-bold uppercase tracking-widest text-[10px] h-10 shadow-lg transition-all",
                 showScrolledStyles
                   ? "bg-slate-900 text-white hover:bg-slate-800"
-                  : "bg-white text-slate-900 hover:bg-slate-100"
+                  : "bg-white text-slate-900 hover:bg-slate-100",
               )}
             >
               <Link href={ctaHref}>{ctaLabel}</Link>
@@ -119,14 +146,20 @@ export function NavbarClient({ navLinks, ctaLabel, ctaHref, siteName, shortName 
             type="button"
             className={cn(
               "md:hidden p-2 touch-target flex items-center justify-center relative z-50 -mr-2",
-              showScrolledStyles || isMobileMenuOpen ? "text-slate-900" : "text-white"
+              showScrolledStyles || isMobileMenuOpen
+                ? "text-slate-900"
+                : "text-white",
             )}
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
             aria-expanded={isMobileMenuOpen}
             aria-controls="mobile-menu"
           >
-            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {isMobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
           </button>
         </div>
 
@@ -136,7 +169,7 @@ export function NavbarClient({ navLinks, ctaLabel, ctaHref, siteName, shortName 
             "md:hidden fixed inset-0 bg-white z-40 transition-all duration-300 ease-out",
             isMobileMenuOpen
               ? "opacity-100 translate-y-0"
-              : "opacity-0 -translate-y-full pointer-events-none"
+              : "opacity-0 -translate-y-full pointer-events-none",
           )}
           aria-hidden={!isMobileMenuOpen}
         >
@@ -150,11 +183,13 @@ export function NavbarClient({ navLinks, ctaLabel, ctaHref, siteName, shortName 
                   className={cn(
                     "text-xl font-bold text-slate-900 py-4 border-b border-slate-100 touch-target flex items-center",
                     "transition-all duration-300",
-                    isMobileMenuOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4",
+                    isMobileMenuOpen
+                      ? "opacity-100 translate-x-0"
+                      : "opacity-0 -translate-x-4",
                     index === 0 && "nav-delay-1",
                     index === 1 && "nav-delay-2",
                     index === 2 && "nav-delay-3",
-                    index === 3 && "nav-delay-4"
+                    index === 3 && "nav-delay-4",
                   )}
                   role="menuitem"
                 >

@@ -1,40 +1,40 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import type { Row, Table } from "@tanstack/react-table"
-import Image from "next/image"
-import { MoreHorizontal, ChevronRight } from "lucide-react"
+import * as React from "react";
+import type { Row, Table } from "@tanstack/react-table";
+import Image from "next/image";
+import { MoreHorizontal, ChevronRight } from "lucide-react";
 
-import { cn } from "@/lib/utils"
-import { Card, CardContent } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 
 interface DataTableCardViewProps<TData> {
-  rows: Row<TData>[]
-  primaryField?: string
-  secondaryField?: string
-  tertiaryField?: string
-  badgeField?: string
-  avatarField?: string
-  enableRowSelection?: boolean
-  onRowClick?: (row: Row<TData>) => void
+  rows: Row<TData>[];
+  primaryField?: string;
+  secondaryField?: string;
+  tertiaryField?: string;
+  badgeField?: string;
+  avatarField?: string;
+  enableRowSelection?: boolean;
+  onRowClick?: (row: Row<TData>) => void;
   rowActions?: {
-    label: string
-    icon?: React.ComponentType<{ className?: string }>
-    onClick: (row: TData) => void
-    variant?: "default" | "destructive"
-  }[]
-  renderCard?: (row: Row<TData>) => React.ReactNode
-  className?: string
+    label: string;
+    icon?: React.ComponentType<{ className?: string }>;
+    onClick: (row: TData) => void;
+    variant?: "default" | "destructive";
+  }[];
+  renderCard?: (row: Row<TData>) => React.ReactNode;
+  className?: string;
 }
 
 export function DataTableCardView<TData>({
@@ -55,7 +55,7 @@ export function DataTableCardView<TData>({
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <p className="text-sm text-muted-foreground">No results found</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -66,7 +66,7 @@ export function DataTableCardView<TData>({
             <div key={row.id} className="relative">
               {renderCard(row)}
             </div>
-          )
+          );
         }
 
         return (
@@ -82,27 +82,27 @@ export function DataTableCardView<TData>({
             onRowClick={onRowClick}
             rowActions={rowActions}
           />
-        )
+        );
       })}
     </div>
-  )
+  );
 }
 
 interface DataTableCardItemProps<TData> {
-  row: Row<TData>
-  primaryField?: string
-  secondaryField?: string
-  tertiaryField?: string
-  badgeField?: string
-  avatarField?: string
-  enableRowSelection?: boolean
-  onRowClick?: (row: Row<TData>) => void
+  row: Row<TData>;
+  primaryField?: string;
+  secondaryField?: string;
+  tertiaryField?: string;
+  badgeField?: string;
+  avatarField?: string;
+  enableRowSelection?: boolean;
+  onRowClick?: (row: Row<TData>) => void;
   rowActions?: {
-    label: string
-    icon?: React.ComponentType<{ className?: string }>
-    onClick: (row: TData) => void
-    variant?: "default" | "destructive"
-  }[]
+    label: string;
+    icon?: React.ComponentType<{ className?: string }>;
+    onClick: (row: TData) => void;
+    variant?: "default" | "destructive";
+  }[];
 }
 
 function DataTableCardItem<TData>({
@@ -116,18 +116,18 @@ function DataTableCardItem<TData>({
   onRowClick,
   rowActions,
 }: DataTableCardItemProps<TData>) {
-  const original = row.original as Record<string, unknown>
-  const isSelected = row.getIsSelected()
+  const original = row.original as Record<string, unknown>;
+  const isSelected = row.getIsSelected();
 
-  const primaryValue = primaryField ? String(original[primaryField] ?? "") : ""
+  const primaryValue = primaryField ? String(original[primaryField] ?? "") : "";
   const secondaryValue = secondaryField
     ? String(original[secondaryField] ?? "")
-    : ""
+    : "";
   const tertiaryValue = tertiaryField
     ? String(original[tertiaryField] ?? "")
-    : ""
-  const badgeValue = badgeField ? String(original[badgeField] ?? "") : ""
-  const avatarValue = avatarField ? String(original[avatarField] ?? "") : ""
+    : "";
+  const badgeValue = badgeField ? String(original[badgeField] ?? "") : "";
+  const avatarValue = avatarField ? String(original[avatarField] ?? "") : "";
 
   return (
     <Card
@@ -136,17 +136,14 @@ function DataTableCardItem<TData>({
         "hover:shadow-md hover:border-primary/20",
         "active:scale-[0.99]",
         isSelected && "border-primary bg-primary/5",
-        onRowClick && "cursor-pointer"
+        onRowClick && "cursor-pointer",
       )}
       onClick={() => onRowClick?.(row)}
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           {enableRowSelection && (
-            <div
-              className="pt-0.5"
-              onClick={(e) => e.stopPropagation()}
-            >
+            <div className="pt-0.5" onClick={(e) => e.stopPropagation()}>
               <Checkbox
                 checked={isSelected}
                 onCheckedChange={(checked) => row.toggleSelected(!!checked)}
@@ -155,23 +152,23 @@ function DataTableCardItem<TData>({
             </div>
           )}
 
-            {avatarValue && (
-              <div className="size-10 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden relative">
-                {avatarValue.startsWith("http") ? (
-                  <Image
-                    src={avatarValue}
-                    alt=""
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                ) : (
-                  <span className="text-sm font-medium text-muted-foreground">
-                    {avatarValue.charAt(0).toUpperCase()}
-                  </span>
-                )}
-              </div>
-            )}
+          {avatarValue && (
+            <div className="size-10 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden relative">
+              {avatarValue.startsWith("http") ? (
+                <Image
+                  src={avatarValue}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              ) : (
+                <span className="text-sm font-medium text-muted-foreground">
+                  {avatarValue.charAt(0).toUpperCase()}
+                </span>
+              )}
+            </div>
+          )}
 
           <div className="flex-1 min-w-0 space-y-1">
             <div className="flex items-start justify-between gap-2">
@@ -208,17 +205,18 @@ function DataTableCardItem<TData>({
                     <DropdownMenuContent align="end" className="rounded-xl">
                       {rowActions.map((action, index) => (
                         <React.Fragment key={action.label}>
-                          {action.variant === "destructive" &&
-                            index > 0 && <DropdownMenuSeparator />}
+                          {action.variant === "destructive" && index > 0 && (
+                            <DropdownMenuSeparator />
+                          )}
                           <DropdownMenuItem
                             onClick={(e) => {
-                              e.stopPropagation()
-                              action.onClick(row.original)
+                              e.stopPropagation();
+                              action.onClick(row.original);
                             }}
                             className={cn(
                               "rounded-lg",
                               action.variant === "destructive" &&
-                                "text-destructive focus:text-destructive"
+                                "text-destructive focus:text-destructive",
                             )}
                           >
                             {action.icon && (
@@ -245,25 +243,25 @@ function DataTableCardItem<TData>({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 interface DataTableMobileViewProps<TData> {
-  table: Table<TData>
-  primaryField?: string
-  secondaryField?: string
-  tertiaryField?: string
-  badgeField?: string
-  avatarField?: string
-  onRowClick?: (row: Row<TData>) => void
+  table: Table<TData>;
+  primaryField?: string;
+  secondaryField?: string;
+  tertiaryField?: string;
+  badgeField?: string;
+  avatarField?: string;
+  onRowClick?: (row: Row<TData>) => void;
   rowActions?: {
-    label: string
-    icon?: React.ComponentType<{ className?: string }>
-    onClick: (row: TData) => void
-    variant?: "default" | "destructive"
-  }[]
-  renderCard?: (row: Row<TData>) => React.ReactNode
-  className?: string
+    label: string;
+    icon?: React.ComponentType<{ className?: string }>;
+    onClick: (row: TData) => void;
+    variant?: "default" | "destructive";
+  }[];
+  renderCard?: (row: Row<TData>) => React.ReactNode;
+  className?: string;
 }
 
 export function DataTableMobileView<TData>({
@@ -278,7 +276,7 @@ export function DataTableMobileView<TData>({
   renderCard,
   className,
 }: DataTableMobileViewProps<TData>) {
-  const rows = table.getRowModel().rows
+  const rows = table.getRowModel().rows;
 
   return (
     <DataTableCardView
@@ -294,5 +292,5 @@ export function DataTableMobileView<TData>({
       renderCard={renderCard}
       className={className}
     />
-  )
+  );
 }

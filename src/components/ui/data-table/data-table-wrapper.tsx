@@ -1,14 +1,20 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { AlertCircle, Inbox, RefreshCcw } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { DataTable } from './data-table';
-import { DataTableSkeleton } from './data-table-skeleton';
-import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyMedia } from '@/components/ui/empty';
-import type { ColumnDef } from '@tanstack/react-table';
-import type { DataTableFilterField, DataTableConfig } from './types';
+import * as React from "react";
+import { AlertCircle, Inbox, RefreshCcw } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { DataTable } from "./data-table";
+import { DataTableSkeleton } from "./data-table-skeleton";
+import {
+  Empty,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyMedia,
+} from "@/components/ui/empty";
+import type { ColumnDef } from "@tanstack/react-table";
+import type { DataTableFilterField, DataTableConfig } from "./types";
 
 interface DataTableWrapperProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -50,13 +56,22 @@ export function DataTableWrapper<TData, TValue>({
 }: DataTableWrapperProps<TData, TValue>) {
   if (isError) {
     return (
-      <div className={cn("flex flex-col items-center justify-center py-20 text-center", className)}>
+      <div
+        className={cn(
+          "flex flex-col items-center justify-center py-20 text-center",
+          className,
+        )}
+      >
         <div className="rounded-2xl bg-destructive/10 p-4 mb-4">
           <AlertCircle className="size-10 text-destructive" />
         </div>
-        <h3 className="text-lg font-black uppercase tracking-widest text-zinc-900">Something went wrong</h3>
+        <h3 className="text-lg font-black uppercase tracking-widest text-zinc-900">
+          Something went wrong
+        </h3>
         <p className="text-sm text-zinc-500 mt-2 max-w-sm font-medium">
-          {error instanceof Error ? error.message : error || "We couldn't load the data. Please try again."}
+          {error instanceof Error
+            ? error.message
+            : error || "We couldn't load the data. Please try again."}
         </p>
         {onRetry && (
           <Button
@@ -83,21 +98,16 @@ export function DataTableWrapper<TData, TValue>({
   const customEmptyState = emptyState ? (
     <Empty className="py-20">
       <EmptyHeader>
-        <EmptyMedia variant="icon">
-          {emptyState.icon || <Inbox />}
-        </EmptyMedia>
+        <EmptyMedia variant="icon">{emptyState.icon || <Inbox />}</EmptyMedia>
         <EmptyTitle className="font-black uppercase tracking-widest text-zinc-900">
           {emptyState.title || "No data found"}
         </EmptyTitle>
         <EmptyDescription className="font-medium">
-          {emptyState.description || "There are no items to display at this time."}
+          {emptyState.description ||
+            "There are no items to display at this time."}
         </EmptyDescription>
       </EmptyHeader>
-      {emptyState.action && (
-        <div className="mt-2">
-          {emptyState.action}
-        </div>
-      )}
+      {emptyState.action && <div className="mt-2">{emptyState.action}</div>}
     </Empty>
   ) : undefined;
 

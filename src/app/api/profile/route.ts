@@ -1,133 +1,156 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getAuthContext, requireAuth, type AuthenticatedContext } from '@/lib/auth/context'
-import { createAuditLogger } from '@/lib/audit/logger'
-import { getAdminClient } from '@/lib/supabase/admin'
+import { NextRequest, NextResponse } from "next/server";
+import {
+  getAuthContext,
+  requireAuth,
+  type AuthenticatedContext,
+} from "@/lib/auth/context";
+import { createAuditLogger } from "@/lib/audit/logger";
+import { getAdminClient } from "@/lib/supabase/admin";
 
 export async function GET() {
   try {
-    const { client: supabaseAdmin, error: adminError } = getAdminClient()
+    const { client: supabaseAdmin, error: adminError } = getAdminClient();
     if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 })
+      return NextResponse.json({ error: adminError }, { status: 503 });
     }
 
-    const auth = await getAuthContext()
-    requireAuth(auth)
-    const ctx = auth as AuthenticatedContext
+    const auth = await getAuthContext();
+    requireAuth(auth);
+    const ctx = auth as AuthenticatedContext;
 
     const { data: profile, error: profileError } = await supabaseAdmin
-      .from('profiles')
-      .select('*')
-      .eq('id', ctx.profileId)
-      .eq('tenant_id', ctx.tenantId)
-      .single()
+      .from("profiles")
+      .select("*")
+      .eq("id", ctx.profileId)
+      .eq("tenant_id", ctx.tenantId)
+      .single();
 
-    if (profileError) return NextResponse.json({ error: profileError.message }, { status: 500 })
+    if (profileError)
+      return NextResponse.json(
+        { error: profileError.message },
+        { status: 500 },
+      );
 
-    let profileData = { ...profile }
+    let profileData = { ...profile };
 
-    if (ctx.role === 'missionary') {
+    if (ctx.role === "missionary") {
       let { data: missionary, error: missionaryError } = await supabaseAdmin
-        .from('missionaries')
-        .select('*')
-        .eq('profile_id', ctx.profileId)
-        .single()
+        .from("missionaries")
+        .select("*")
+        .eq("profile_id", ctx.profileId)
+        .single();
 
-      if (missionaryError && missionaryError.code === 'PGRST116') {
+      if (missionaryError && missionaryError.code === "PGRST116") {
         const { data: newMissionary, error: createError } = await supabaseAdmin
-          .from('missionaries')
+          .from("missionaries")
           .insert({ profile_id: ctx.profileId })
           .select()
-          .single()
-        
+          .single();
+
         if (!createError && newMissionary) {
-          missionary = newMissionary
-          missionaryError = null
+          missionary = newMissionary;
+          missionaryError = null;
         }
       }
 
       if (!missionaryError && missionary) {
-        profileData = { ...profileData, missionary }
+        profileData = { ...profileData, missionary };
       }
     }
 
-    return NextResponse.json({ profile: profileData })
+    return NextResponse.json({ profile: profileData });
   } catch (e) {
-    const message = e instanceof Error ? e.message : 'Internal error'
-    return NextResponse.json({ error: message }, { status: message.includes('Unauthorized') ? 401 : 500 })
+    const message = e instanceof Error ? e.message : "Internal error";
+    return NextResponse.json(
+      { error: message },
+      { status: message.includes("Unauthorized") ? 401 : 500 },
+    );
   }
 }
 
 export async function PATCH(request: NextRequest) {
   try {
-    const { client: supabaseAdmin, error: adminError } = getAdminClient()
+    const { client: supabaseAdmin, error: adminError } = getAdminClient();
     if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 })
+      return NextResponse.json({ error: adminError }, { status: 503 });
     }
 
-    const auth = await getAuthContext()
-    requireAuth(auth)
-    const ctx = auth as AuthenticatedContext
-    const audit = createAuditLogger(ctx, request)
+    const auth = await getAuthContext();
+    requireAuth(auth);
+    const ctx = auth as AuthenticatedContext;
+    const audit = createAuditLogger(ctx, request);
 
-    const body = await request.json()
-    const { 
-      firstName, 
-      lastName, 
+    const body = await request.json();
+    const {
+      firstName,
+      lastName,
       avatarUrl,
       bio,
       tagline,
       location,
       phone,
       coverUrl,
-      socialLinks
-    } = body
+      socialLinks,
+    } = body;
 
     // Update profile
-    const profileUpdates: Record<string, any> = { updated_at: new Date().toISOString() }
-    if (firstName) profileUpdates.first_name = firstName
-    if (lastName) profileUpdates.last_name = lastName
-    if (avatarUrl !== undefined) profileUpdates.avatar_url = avatarUrl
+    const profileUpdates: Record<string, any> = {
+      updated_at: new Date().toISOString(),
+    };
+    if (firstName) profileUpdates.first_name = firstName;
+    if (lastName) profileUpdates.last_name = lastName;
+    if (avatarUrl !== undefined) profileUpdates.avatar_url = avatarUrl;
 
     const { data: profile, error: profileError } = await supabaseAdmin
-      .from('profiles')
+      .from("profiles")
       .update(profileUpdates)
-      .eq('id', ctx.profileId)
-      .eq('tenant_id', ctx.tenantId)
+      .eq("id", ctx.profileId)
+      .eq("tenant_id", ctx.tenantId)
       .select()
-      .single()
+      .single();
 
-    if (profileError) return NextResponse.json({ error: profileError.message }, { status: 500 })
+    if (profileError)
+      return NextResponse.json(
+        { error: profileError.message },
+        { status: 500 },
+      );
 
-    let profileData = { ...profile }
+    let profileData = { ...profile };
 
     // Update missionary record if applicable
-    if (ctx.role === 'missionary') {
-        const missionaryUpdates: Record<string, any> = { updated_at: new Date().toISOString() }
-        if (bio !== undefined) missionaryUpdates.bio = bio
-        if (tagline !== undefined) missionaryUpdates.tagline = tagline
-        if (location !== undefined) missionaryUpdates.location = location
-        if (phone !== undefined) missionaryUpdates.phone = phone
-        if (coverUrl !== undefined) missionaryUpdates.cover_url = coverUrl
-        if (socialLinks !== undefined) missionaryUpdates.social_links = socialLinks
+    if (ctx.role === "missionary") {
+      const missionaryUpdates: Record<string, any> = {
+        updated_at: new Date().toISOString(),
+      };
+      if (bio !== undefined) missionaryUpdates.bio = bio;
+      if (tagline !== undefined) missionaryUpdates.tagline = tagline;
+      if (location !== undefined) missionaryUpdates.location = location;
+      if (phone !== undefined) missionaryUpdates.phone = phone;
+      if (coverUrl !== undefined) missionaryUpdates.cover_url = coverUrl;
+      if (socialLinks !== undefined)
+        missionaryUpdates.social_links = socialLinks;
 
-        if (Object.keys(missionaryUpdates).length > 1) {
+      if (Object.keys(missionaryUpdates).length > 1) {
         const { data: missionary, error: missionaryError } = await supabaseAdmin
-          .from('missionaries')
+          .from("missionaries")
           .update(missionaryUpdates)
-          .eq('profile_id', ctx.profileId)
+          .eq("profile_id", ctx.profileId)
           .select()
-          .single()
+          .single();
 
         if (!missionaryError && missionary) {
-          profileData = { ...profileData, missionary }
+          profileData = { ...profileData, missionary };
         }
       }
     }
 
-    await audit.log('profile_updated', 'profile', ctx.profileId, body)
-    return NextResponse.json({ profile: profileData })
+    await audit.log("profile_updated", "profile", ctx.profileId, body);
+    return NextResponse.json({ profile: profileData });
   } catch (e) {
-    const message = e instanceof Error ? e.message : 'Internal error'
-    return NextResponse.json({ error: message }, { status: message.includes('Unauthorized') ? 401 : 500 })
+    const message = e instanceof Error ? e.message : "Internal error";
+    return NextResponse.json(
+      { error: message },
+      { status: message.includes("Unauthorized") ? 401 : 500 },
+    );
   }
 }

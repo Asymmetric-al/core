@@ -4,15 +4,15 @@ This document describes how TanStack Query, TanStack Table, and TanStack DB are 
 
 ## Package Versions
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `@tanstack/react-query` | ^5.90.15 | Server state management |
-| `@tanstack/react-query-devtools` | ^5.90.15 | Development debugging |
-| `@tanstack/react-table` | ^8.21.3 | Headless table UI |
-| `@tanstack/db` | ^0.5.16 | Client-side database collections |
-| `@tanstack/react-db` | ^0.1.60 | React bindings for TanStack DB |
-| `@tanstack/query-db-collection` | ^1.0.12 | Query-based collections |
-| `@tanstack/react-virtual` | ^3.13.13 | Virtualized lists |
+| Package                          | Version  | Purpose                          |
+| -------------------------------- | -------- | -------------------------------- |
+| `@tanstack/react-query`          | ^5.90.15 | Server state management          |
+| `@tanstack/react-query-devtools` | ^5.90.15 | Development debugging            |
+| `@tanstack/react-table`          | ^8.21.3  | Headless table UI                |
+| `@tanstack/db`                   | ^0.5.16  | Client-side database collections |
+| `@tanstack/react-db`             | ^0.1.60  | React bindings for TanStack DB   |
+| `@tanstack/query-db-collection`  | ^1.0.12  | Query-based collections          |
+| `@tanstack/react-virtual`        | ^3.13.13 | Virtualized lists                |
 
 ## Architecture
 
@@ -25,11 +25,7 @@ The application uses a single unified `TanStackDBProvider` that provides both Ta
 import { TanStackDBProvider } from "@/lib/db";
 
 export default function RootLayout({ children }) {
-  return (
-    <TanStackDBProvider>
-      {children}
-    </TanStackDBProvider>
-  );
+  return <TanStackDBProvider>{children}</TanStackDBProvider>;
 }
 ```
 
@@ -49,63 +45,63 @@ src/lib/db/
 Collections are defined using `queryCollectionOptions` from `@tanstack/query-db-collection`:
 
 ```typescript
-import { createCollection } from '@tanstack/db'
-import { queryCollectionOptions } from '@tanstack/query-db-collection'
+import { createCollection } from "@tanstack/db";
+import { queryCollectionOptions } from "@tanstack/query-db-collection";
 
 export const postsCollection = createCollection<Post>(
   queryCollectionOptions({
-    queryKey: ['posts'],
+    queryKey: ["posts"],
     queryClient: getQueryClient(),
     getKey: (item) => item.id,
     queryFn: async () => {
-      const supabase = getSupabase()
+      const supabase = getSupabase();
       const { data, error } = await supabase
-        .from('posts')
-        .select('*')
-        .order('created_at', { ascending: false })
-      if (error) throw error
-      return data ?? []
+        .from("posts")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
     },
     onInsert: async ({ transaction }) => {
-      const supabase = getSupabase()
-      const posts = transaction.mutations.map((m) => m.modified)
-      const { error } = await supabase.from('posts').insert(posts)
-      if (error) throw error
+      const supabase = getSupabase();
+      const posts = transaction.mutations.map((m) => m.modified);
+      const { error } = await supabase.from("posts").insert(posts);
+      if (error) throw error;
     },
     onUpdate: async ({ transaction }) => {
-      const supabase = getSupabase()
+      const supabase = getSupabase();
       await Promise.all(
         transaction.mutations.map(async (mutation) => {
           const { error } = await supabase
-            .from('posts')
+            .from("posts")
             .update(mutation.modified)
-            .eq('id', mutation.key as string)
-          if (error) throw error
-        })
-      )
+            .eq("id", mutation.key as string);
+          if (error) throw error;
+        }),
+      );
     },
     onDelete: async ({ transaction }) => {
-      const supabase = getSupabase()
-      const ids = transaction.mutations.map((m) => m.key as string)
-      const { error } = await supabase.from('posts').delete().in('id', ids)
-      if (error) throw error
+      const supabase = getSupabase();
+      const ids = transaction.mutations.map((m) => m.key as string);
+      const { error } = await supabase.from("posts").delete().in("id", ids);
+      if (error) throw error;
     },
-  })
-)
+  }),
+);
 ```
 
 ### Available Collections
 
-| Collection | Table | Mutations |
-|------------|-------|-----------|
-| `profilesCollection` | profiles | Read-only |
-| `missionariesCollection` | missionaries | Read-only |
-| `donorsCollection` | donors | Read-only |
-| `postsCollection` | posts | Insert, Update, Delete |
-| `postCommentsCollection` | post_comments | Insert |
-| `donationsCollection` | donations | Read-only |
-| `fundsCollection` | funds | Read-only |
-| `followsCollection` | follows | Insert, Delete |
+| Collection               | Table         | Mutations              |
+| ------------------------ | ------------- | ---------------------- |
+| `profilesCollection`     | profiles      | Read-only              |
+| `missionariesCollection` | missionaries  | Read-only              |
+| `donorsCollection`       | donors        | Read-only              |
+| `postsCollection`        | posts         | Insert, Update, Delete |
+| `postCommentsCollection` | post_comments | Insert                 |
+| `donationsCollection`    | donations     | Read-only              |
+| `fundsCollection`        | funds         | Read-only              |
+| `followsCollection`      | follows       | Insert, Delete         |
 
 ## Custom Hooks
 
@@ -114,46 +110,44 @@ export const postsCollection = createCollection<Post>(
 The `useLiveQuery` hook from `@tanstack/react-db` provides reactive queries with joins:
 
 ```typescript
-import { useLiveQuery, eq } from '@tanstack/react-db'
+import { useLiveQuery, eq } from "@tanstack/react-db";
 
 export function usePostsWithAuthors(missionaryId?: string) {
   return useLiveQuery((q) => {
-    let query = q.from({ post: postsCollection })
-    
+    let query = q.from({ post: postsCollection });
+
     if (missionaryId) {
-      query = query.where(({ post }) => eq(post.missionary_id, missionaryId))
+      query = query.where(({ post }) => eq(post.missionary_id, missionaryId));
     }
-    
+
     return query
-      .join(
-        { missionary: missionariesCollection },
-        ({ post, missionary }) => eq(post.missionary_id, missionary!.id)
+      .join({ missionary: missionariesCollection }, ({ post, missionary }) =>
+        eq(post.missionary_id, missionary!.id),
       )
-      .join(
-        { profile: profilesCollection },
-        ({ missionary, profile }) => eq(missionary!.profile_id, profile.id)
+      .join({ profile: profilesCollection }, ({ missionary, profile }) =>
+        eq(missionary!.profile_id, profile.id),
       )
       .select(({ post, profile }) => ({
         ...post,
         author: profile,
       }))
-      .orderBy(({ post }) => post.created_at, 'desc')
-  })
+      .orderBy(({ post }) => post.created_at, "desc");
+  });
 }
 ```
 
 ### Available Hooks
 
-| Hook | Purpose |
-|------|---------|
-| `usePostsWithAuthors` | Posts with author profile data |
+| Hook                              | Purpose                          |
+| --------------------------------- | -------------------------------- |
+| `usePostsWithAuthors`             | Posts with author profile data   |
 | `usePostsForFollowedMissionaries` | Posts from followed missionaries |
-| `useDonorGivingHistory` | Donor's donation history |
-| `useMissionarySupporters` | Missionary's supporters list |
-| `useCommentsWithAuthors` | Comments with author data |
-| `useFundsWithProgress` | Funds with progress calculation |
-| `useMissionaryDashboard` | Missionary dashboard data |
-| `useMissionaryStats` | Missionary statistics |
+| `useDonorGivingHistory`           | Donor's donation history         |
+| `useMissionarySupporters`         | Missionary's supporters list     |
+| `useCommentsWithAuthors`          | Comments with author data        |
+| `useFundsWithProgress`            | Funds with progress calculation  |
+| `useMissionaryDashboard`          | Missionary dashboard data        |
+| `useMissionaryStats`              | Missionary statistics            |
 
 ## TanStack Table
 
@@ -162,8 +156,8 @@ TanStack Table is used for data grids. The data table components are in `src/com
 ### Basic Usage
 
 ```tsx
-import { DataTable } from '@/components/ui/data-table'
-import { columns } from './columns'
+import { DataTable } from "@/components/ui/data-table";
+import { columns } from "./columns";
 
 export function ContributionsTable({ data }) {
   return (
@@ -173,7 +167,7 @@ export function ContributionsTable({ data }) {
       enableRowSelection
       enablePagination
     />
-  )
+  );
 }
 ```
 
@@ -194,13 +188,13 @@ export function ContributionsTable({ data }) {
 Collections use the Supabase client from `@/lib/supabase/client`:
 
 ```typescript
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from "@/lib/supabase/client";
 
 function getSupabase() {
   if (!supabaseClient) {
-    supabaseClient = createClient()
+    supabaseClient = createClient();
   }
-  return supabaseClient
+  return supabaseClient;
 }
 ```
 
@@ -214,10 +208,10 @@ The shared QueryClient is configured with:
 new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60 * 1000,      // 1 minute
-      gcTime: 5 * 60 * 1000,     // 5 minutes
+      staleTime: 60 * 1000, // 1 minute
+      gcTime: 5 * 60 * 1000, // 5 minutes
       refetchOnWindowFocus: false,
     },
   },
-})
+});
 ```

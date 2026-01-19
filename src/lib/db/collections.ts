@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 export {
   profilesCollection,
@@ -9,4 +9,4 @@ export {
   donationsCollection,
   fundsCollection,
   followsCollection,
-} from './client-db'
+} from "./client-db";

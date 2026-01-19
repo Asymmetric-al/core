@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import { useState, useEffect, useEffectEvent, useMemo, memo } from 'react'
-import { useRouter } from 'next/navigation'
-import { Search } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { useState, useEffect, useEffectEvent, useMemo, memo } from "react";
+import { useRouter } from "next/navigation";
+import { Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   CommandDialog,
   CommandEmpty,
@@ -11,34 +11,37 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/components/ui/command'
-import { TILES } from '@/lib/mission-control/tiles'
-import { getIcon } from '../icons'
-import { useMC } from '@/lib/mission-control/context'
+} from "@/components/ui/command";
+import { TILES } from "@/lib/mission-control/tiles";
+import { getIcon } from "../icons";
+import { useMC } from "@/lib/mission-control/context";
 
 export const GlobalSearch = memo(function GlobalSearch() {
-  const [open, setOpen] = useState(false)
-  const router = useRouter()
-  const { role } = useMC()
+  const [open, setOpen] = useState(false);
+  const router = useRouter();
+  const { role } = useMC();
 
   const onKeyDown = useEffectEvent((e: KeyboardEvent) => {
-    if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
-      e.preventDefault()
-      setOpen((prev) => !prev)
+    if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      setOpen((prev) => !prev);
     }
-  })
+  });
 
   useEffect(() => {
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [])
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, []);
 
-  const filteredTiles = useMemo(() => TILES.filter((tile) => tile.roles.includes(role)), [role])
+  const filteredTiles = useMemo(
+    () => TILES.filter((tile) => tile.roles.includes(role)),
+    [role],
+  );
 
   const handleSelect = useEffectEvent((path: string) => {
-    router.push(path)
-    setOpen(false)
-  })
+    router.push(path);
+    setOpen(false);
+  });
 
   return (
     <>
@@ -59,19 +62,22 @@ export const GlobalSearch = memo(function GlobalSearch() {
           <CommandEmpty>No results found.</CommandEmpty>
           <CommandGroup heading="Navigation">
             {filteredTiles.map((tile) => {
-              const Icon = getIcon(tile.icon)
+              const Icon = getIcon(tile.icon);
               return (
-                <CommandItem key={tile.id} onSelect={() => handleSelect(`/mc${tile.route}`)}>
+                <CommandItem
+                  key={tile.id}
+                  onSelect={() => handleSelect(`/mc${tile.route}`)}
+                >
                   <Icon className="mr-2 h-4 w-4" />
                   <span>{tile.title}</span>
                 </CommandItem>
-              )
+              );
             })}
           </CommandGroup>
           <CommandGroup heading="Quick Actions">
             {filteredTiles.slice(0, 4).flatMap((tile) =>
               tile.quickActions.slice(0, 2).map((action) => {
-                const Icon = action.icon ? getIcon(action.icon) : Search
+                const Icon = action.icon ? getIcon(action.icon) : Search;
                 return (
                   <CommandItem
                     key={`${tile.id}-${action.label}`}
@@ -79,14 +85,16 @@ export const GlobalSearch = memo(function GlobalSearch() {
                   >
                     <Icon className="mr-2 h-4 w-4" />
                     <span>{action.label}</span>
-                    <span className="ml-auto text-xs text-muted-foreground">{tile.title}</span>
+                    <span className="ml-auto text-xs text-muted-foreground">
+                      {tile.title}
+                    </span>
                   </CommandItem>
-                )
-              })
+                );
+              }),
             )}
           </CommandGroup>
         </CommandList>
       </CommandDialog>
     </>
-  )
-})
+  );
+});

@@ -2,14 +2,14 @@
 
 import React from "react";
 import { type ColumnDef } from "@tanstack/react-table";
-import { 
-  MoreHorizontal, 
-  MapPin, 
-  Globe, 
-  User, 
+import {
+  MoreHorizontal,
+  MapPin,
+  Globe,
+  User,
   Activity,
   Trash2,
-  Edit2
+  Edit2,
 } from "lucide-react";
 
 import { Location, LocationStatus, LocationType } from "../hooks/use-locations";
@@ -17,11 +17,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTableWrapper } from "@/components/ui/data-table/data-table-wrapper";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
@@ -32,16 +32,18 @@ interface LocationTableProps {
   onDelete: (id: string) => void;
 }
 
-export function LocationTable({ 
-  data, 
-  isLoading, 
-  onEdit, 
-  onDelete 
+export function LocationTable({
+  data,
+  isLoading,
+  onEdit,
+  onDelete,
 }: LocationTableProps) {
   const columns: ColumnDef<Location>[] = [
     {
       accessorKey: "title",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Location" />,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Location" />
+      ),
       cell: ({ row }) => (
         <div className="flex items-center gap-3 py-1">
           <div className="flex size-8 items-center justify-center rounded-lg bg-zinc-100 border border-zinc-200">
@@ -60,13 +62,17 @@ export function LocationTable({
     },
     {
       accessorKey: "type",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Type" />,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Type" />
+      ),
       cell: ({ row }) => {
         const type = row.original.type;
         return (
           <div className="flex items-center gap-2">
             {type === "missionary" && <User className="size-3 text-zinc-400" />}
-            {type === "project" && <Activity className="size-3 text-zinc-400" />}
+            {type === "project" && (
+              <Activity className="size-3 text-zinc-400" />
+            )}
             {type === "custom" && <Globe className="size-3 text-zinc-400" />}
             <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.1em]">
               {type}
@@ -77,17 +83,19 @@ export function LocationTable({
     },
     {
       accessorKey: "status",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Status" />
+      ),
       cell: ({ row }) => {
         const status = row.original.status;
         return (
-          <Badge 
-            variant="outline" 
+          <Badge
+            variant="outline"
             className={cn(
               "text-[9px] font-black h-5 uppercase tracking-widest px-2.5 rounded-full border-none shadow-none",
-              status === "published" 
-                ? "bg-emerald-500/10 text-emerald-600" 
-                : "bg-zinc-100 text-zinc-500"
+              status === "published"
+                ? "bg-emerald-500/10 text-emerald-600"
+                : "bg-zinc-100 text-zinc-500",
             )}
           >
             {status}
@@ -97,7 +105,9 @@ export function LocationTable({
     },
     {
       accessorKey: "updated_at",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Last Updated" />,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Last Updated" />
+      ),
       cell: ({ row }) => (
         <div className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest tabular-nums">
           {new Date(row.original.updated_at).toLocaleDateString("en-US", {
@@ -114,18 +124,25 @@ export function LocationTable({
         <div className="flex justify-end pr-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-lg"
+              >
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40 rounded-xl border-zinc-100 shadow-xl">
-              <DropdownMenuItem 
+            <DropdownMenuContent
+              align="end"
+              className="w-40 rounded-xl border-zinc-100 shadow-xl"
+            >
+              <DropdownMenuItem
                 onClick={() => onEdit(row.original)}
                 className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 focus:text-zinc-900"
               >
                 <Edit2 className="mr-2 h-3.5 w-3.5" /> Edit
               </DropdownMenuItem>
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={() => onDelete(row.original.id)}
                 className="text-[10px] font-bold uppercase tracking-widest text-red-600 focus:text-red-700"
               >

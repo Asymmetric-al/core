@@ -1,13 +1,19 @@
-import { createSchema, createYoga } from 'graphql-yoga'
-import type { SupabaseClient } from '@supabase/supabase-js'
-import { getAuthContext, requireAuth, requireRole, type AuthContext, type AuthenticatedContext } from '@/lib/auth/context'
-import { createAuditLogger } from '@/lib/audit/logger'
-import { getAdminClient } from '@/lib/supabase/admin'
+import { createSchema, createYoga } from "graphql-yoga";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  getAuthContext,
+  requireAuth,
+  requireRole,
+  type AuthContext,
+  type AuthenticatedContext,
+} from "@/lib/auth/context";
+import { createAuditLogger } from "@/lib/audit/logger";
+import { getAdminClient } from "@/lib/supabase/admin";
 
 interface GraphQLContext {
-  auth: AuthContext
-  request: Request
-  supabaseAdmin: SupabaseClient
+  auth: AuthContext;
+  request: Request;
+  supabaseAdmin: SupabaseClient;
 }
 
 const typeDefs = /* GraphQL */ `
@@ -172,456 +178,597 @@ const typeDefs = /* GraphQL */ `
     updateMissionaryProfile(input: UpdateMissionaryInput!): Missionary!
     updateUserRole(input: UpdateUserRoleInput!): Profile!
   }
-`
+`;
 
 const resolvers = {
   Query: {
     me: async (_: unknown, __: unknown, ctx: GraphQLContext) => {
-      if (!ctx.auth.isAuthenticated) return null
+      if (!ctx.auth.isAuthenticated) return null;
       const { data } = await ctx.supabaseAdmin
-        .from('profiles')
-        .select('*')
-        .eq('id', ctx.auth.profileId)
-        .single()
-      return mapProfile(data)
+        .from("profiles")
+        .select("*")
+        .eq("id", ctx.auth.profileId)
+        .single();
+      return mapProfile(data);
     },
 
     myProfile: async (_: unknown, __: unknown, ctx: GraphQLContext) => {
-      requireAuth(ctx.auth)
-      const auth = ctx.auth as AuthenticatedContext
+      requireAuth(ctx.auth);
+      const auth = ctx.auth as AuthenticatedContext;
       const { data } = await ctx.supabaseAdmin
-        .from('profiles')
-        .select('*')
-        .eq('id', auth.profileId)
-        .eq('tenant_id', auth.tenantId)
-        .single()
-      return mapProfile(data)
+        .from("profiles")
+        .select("*")
+        .eq("id", auth.profileId)
+        .eq("tenant_id", auth.tenantId)
+        .single();
+      return mapProfile(data);
     },
 
-    missionaries: async (_: unknown, args: { limit?: number; offset?: number }, ctx: GraphQLContext) => {
-      requireAuth(ctx.auth)
-      const auth = ctx.auth as AuthenticatedContext
-      const limit = args.limit || 20
-      const offset = args.offset || 0
+    missionaries: async (
+      _: unknown,
+      args: { limit?: number; offset?: number },
+      ctx: GraphQLContext,
+    ) => {
+      requireAuth(ctx.auth);
+      const auth = ctx.auth as AuthenticatedContext;
+      const limit = args.limit || 20;
+      const offset = args.offset || 0;
 
       const { data } = await ctx.supabaseAdmin
-        .from('missionaries')
-        .select('*, profile:profiles!profile_id(*)')
-        .eq('tenant_id', auth.tenantId)
-        .range(offset, offset + limit - 1)
+        .from("missionaries")
+        .select("*, profile:profiles!profile_id(*)")
+        .eq("tenant_id", auth.tenantId)
+        .range(offset, offset + limit - 1);
 
-      return (data || []).map(mapMissionary)
+      return (data || []).map(mapMissionary);
     },
 
-    missionary: async (_: unknown, args: { id: string }, ctx: GraphQLContext) => {
-      requireAuth(ctx.auth)
-      const auth = ctx.auth as AuthenticatedContext
+    missionary: async (
+      _: unknown,
+      args: { id: string },
+      ctx: GraphQLContext,
+    ) => {
+      requireAuth(ctx.auth);
+      const auth = ctx.auth as AuthenticatedContext;
 
       const { data } = await ctx.supabaseAdmin
-        .from('missionaries')
-        .select('*, profile:profiles!profile_id(*)')
-        .eq('id', args.id)
-        .eq('tenant_id', auth.tenantId)
-        .single()
+        .from("missionaries")
+        .select("*, profile:profiles!profile_id(*)")
+        .eq("id", args.id)
+        .eq("tenant_id", auth.tenantId)
+        .single();
 
-      return data ? mapMissionary(data) : null
+      return data ? mapMissionary(data) : null;
     },
 
-    posts: async (_: unknown, args: { limit?: number; offset?: number }, ctx: GraphQLContext) => {
-      requireAuth(ctx.auth)
-      const auth = ctx.auth as AuthenticatedContext
-      const limit = args.limit || 20
-      const offset = args.offset || 0
+    posts: async (
+      _: unknown,
+      args: { limit?: number; offset?: number },
+      ctx: GraphQLContext,
+    ) => {
+      requireAuth(ctx.auth);
+      const auth = ctx.auth as AuthenticatedContext;
+      const limit = args.limit || 20;
+      const offset = args.offset || 0;
 
       const { data: posts } = await ctx.supabaseAdmin
-        .from('posts')
-        .select('*, missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))')
-        .eq('tenant_id', auth.tenantId)
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1)
+        .from("posts")
+        .select(
+          "*, missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))",
+        )
+        .eq("tenant_id", auth.tenantId)
+        .order("created_at", { ascending: false })
+        .range(offset, offset + limit - 1);
 
-      const postIds = (posts || []).map((p: { id: string }) => p.id)
+      const postIds = (posts || []).map((p: { id: string }) => p.id);
       const { data: likes } = await ctx.supabaseAdmin
-        .from('post_likes')
-        .select('post_id')
-        .in('post_id', postIds)
-        .eq('user_id', auth.userId)
+        .from("post_likes")
+        .select("post_id")
+        .in("post_id", postIds)
+        .eq("user_id", auth.userId);
 
       const { data: prayers } = await ctx.supabaseAdmin
-        .from('post_prayers')
-        .select('post_id')
-        .in('post_id', postIds)
-        .eq('user_id', auth.userId)
+        .from("post_prayers")
+        .select("post_id")
+        .in("post_id", postIds)
+        .eq("user_id", auth.userId);
 
-      const likedSet = new Set((likes || []).map((l: { post_id: string }) => l.post_id))
-      const prayedSet = new Set((prayers || []).map((p: { post_id: string }) => p.post_id))
+      const likedSet = new Set(
+        (likes || []).map((l: { post_id: string }) => l.post_id),
+      );
+      const prayedSet = new Set(
+        (prayers || []).map((p: { post_id: string }) => p.post_id),
+      );
 
       return (posts || []).map((post: Record<string, unknown>) => ({
         ...mapPost(post),
         userLiked: likedSet.has(post.id as string),
         userPrayed: prayedSet.has(post.id as string),
-      }))
+      }));
     },
 
     post: async (_: unknown, args: { id: string }, ctx: GraphQLContext) => {
-      requireAuth(ctx.auth)
-      const auth = ctx.auth as AuthenticatedContext
+      requireAuth(ctx.auth);
+      const auth = ctx.auth as AuthenticatedContext;
 
       const { data: post } = await ctx.supabaseAdmin
-        .from('posts')
-        .select('*, missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))')
-        .eq('id', args.id)
-        .eq('tenant_id', auth.tenantId)
-        .single()
+        .from("posts")
+        .select(
+          "*, missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))",
+        )
+        .eq("id", args.id)
+        .eq("tenant_id", auth.tenantId)
+        .single();
 
-      if (!post) return null
+      if (!post) return null;
 
       const { data: like } = await ctx.supabaseAdmin
-        .from('post_likes')
-        .select('id')
-        .eq('post_id', args.id)
-        .eq('user_id', auth.userId)
-        .single()
+        .from("post_likes")
+        .select("id")
+        .eq("post_id", args.id)
+        .eq("user_id", auth.userId)
+        .single();
 
       const { data: prayer } = await ctx.supabaseAdmin
-        .from('post_prayers')
-        .select('id')
-        .eq('post_id', args.id)
-        .eq('user_id', auth.userId)
-        .single()
+        .from("post_prayers")
+        .select("id")
+        .eq("post_id", args.id)
+        .eq("user_id", auth.userId)
+        .single();
 
       return {
         ...mapPost(post),
         userLiked: !!like,
         userPrayed: !!prayer,
-      }
+      };
     },
 
-    myDonations: async (_: unknown, args: { limit?: number; offset?: number }, ctx: GraphQLContext) => {
-      requireRole(ctx.auth, ['donor', 'admin'])
-      const auth = ctx.auth as AuthenticatedContext
-      const limit = args.limit || 20
-      const offset = args.offset || 0
+    myDonations: async (
+      _: unknown,
+      args: { limit?: number; offset?: number },
+      ctx: GraphQLContext,
+    ) => {
+      requireRole(ctx.auth, ["donor", "admin"]);
+      const auth = ctx.auth as AuthenticatedContext;
+      const limit = args.limit || 20;
+      const offset = args.offset || 0;
 
       const { data } = await ctx.supabaseAdmin
-        .from('donations')
-        .select('*, donor:profiles!donor_id(*), missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))')
-        .eq('donor_id', auth.profileId)
-        .eq('tenant_id', auth.tenantId)
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1)
+        .from("donations")
+        .select(
+          "*, donor:profiles!donor_id(*), missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))",
+        )
+        .eq("donor_id", auth.profileId)
+        .eq("tenant_id", auth.tenantId)
+        .order("created_at", { ascending: false })
+        .range(offset, offset + limit - 1);
 
-      return (data || []).map(mapDonation)
+      return (data || []).map(mapDonation);
     },
 
-    mySupporters: async (_: unknown, args: { limit?: number; offset?: number }, ctx: GraphQLContext) => {
-      requireRole(ctx.auth, ['missionary', 'admin'])
-      const auth = ctx.auth as AuthenticatedContext
-      const limit = args.limit || 20
-      const offset = args.offset || 0
+    mySupporters: async (
+      _: unknown,
+      args: { limit?: number; offset?: number },
+      ctx: GraphQLContext,
+    ) => {
+      requireRole(ctx.auth, ["missionary", "admin"]);
+      const auth = ctx.auth as AuthenticatedContext;
+      const limit = args.limit || 20;
+      const offset = args.offset || 0;
 
       const { data: missionary } = await ctx.supabaseAdmin
-        .from('missionaries')
-        .select('id')
-        .eq('profile_id', auth.profileId)
-        .eq('tenant_id', auth.tenantId)
-        .single()
+        .from("missionaries")
+        .select("id")
+        .eq("profile_id", auth.profileId)
+        .eq("tenant_id", auth.tenantId)
+        .single();
 
-      if (!missionary) return []
+      if (!missionary) return [];
 
       const { data } = await ctx.supabaseAdmin
-        .from('donations')
-        .select('*, donor:profiles!donor_id(*), missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))')
-        .eq('missionary_id', missionary.id)
-        .eq('tenant_id', auth.tenantId)
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1)
+        .from("donations")
+        .select(
+          "*, donor:profiles!donor_id(*), missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))",
+        )
+        .eq("missionary_id", missionary.id)
+        .eq("tenant_id", auth.tenantId)
+        .order("created_at", { ascending: false })
+        .range(offset, offset + limit - 1);
 
-      return (data || []).map(mapDonation)
+      return (data || []).map(mapDonation);
     },
 
-    auditLogs: async (_: unknown, args: { limit?: number; offset?: number }, ctx: GraphQLContext) => {
-      requireRole(ctx.auth, ['admin'])
-      const auth = ctx.auth as AuthenticatedContext
-      const limit = args.limit || 50
-      const offset = args.offset || 0
+    auditLogs: async (
+      _: unknown,
+      args: { limit?: number; offset?: number },
+      ctx: GraphQLContext,
+    ) => {
+      requireRole(ctx.auth, ["admin"]);
+      const auth = ctx.auth as AuthenticatedContext;
+      const limit = args.limit || 50;
+      const offset = args.offset || 0;
 
       const { data } = await ctx.supabaseAdmin
-        .from('audit_logs')
-        .select('*')
-        .eq('tenant_id', auth.tenantId)
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1)
+        .from("audit_logs")
+        .select("*")
+        .eq("tenant_id", auth.tenantId)
+        .order("created_at", { ascending: false })
+        .range(offset, offset + limit - 1);
 
-      return (data || []).map(mapAuditLog)
+      return (data || []).map(mapAuditLog);
     },
   },
 
   Mutation: {
-    updateMyProfile: async (_: unknown, args: { input: { firstName?: string; lastName?: string; avatarUrl?: string } }, ctx: GraphQLContext) => {
-      requireAuth(ctx.auth)
-      const auth = ctx.auth as AuthenticatedContext
-      const audit = createAuditLogger(auth, ctx.request)
+    updateMyProfile: async (
+      _: unknown,
+      args: {
+        input: { firstName?: string; lastName?: string; avatarUrl?: string };
+      },
+      ctx: GraphQLContext,
+    ) => {
+      requireAuth(ctx.auth);
+      const auth = ctx.auth as AuthenticatedContext;
+      const audit = createAuditLogger(auth, ctx.request);
 
-      const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
-      if (args.input.firstName) updates.first_name = args.input.firstName
-      if (args.input.lastName) updates.last_name = args.input.lastName
-      if (args.input.avatarUrl !== undefined) updates.avatar_url = args.input.avatarUrl
+      const updates: Record<string, unknown> = {
+        updated_at: new Date().toISOString(),
+      };
+      if (args.input.firstName) updates.first_name = args.input.firstName;
+      if (args.input.lastName) updates.last_name = args.input.lastName;
+      if (args.input.avatarUrl !== undefined)
+        updates.avatar_url = args.input.avatarUrl;
 
       const { data, error } = await ctx.supabaseAdmin
-        .from('profiles')
+        .from("profiles")
         .update(updates)
-        .eq('id', auth.profileId)
-        .eq('tenant_id', auth.tenantId)
+        .eq("id", auth.profileId)
+        .eq("tenant_id", auth.tenantId)
         .select()
-        .single()
+        .single();
 
-      if (error) throw new Error(error.message)
+      if (error) throw new Error(error.message);
 
-      await audit.log('profile_updated', 'profile', auth.profileId, args.input)
-      return mapProfile(data)
+      await audit.log("profile_updated", "profile", auth.profileId, args.input);
+      return mapProfile(data);
     },
 
-    createPost: async (_: unknown, args: { input: { content: string; media?: Array<{ url: string; type: string; width?: number; height?: number }> } }, ctx: GraphQLContext) => {
-      requireRole(ctx.auth, ['missionary'])
-      const auth = ctx.auth as AuthenticatedContext
-      const audit = createAuditLogger(auth, ctx.request)
+    createPost: async (
+      _: unknown,
+      args: {
+        input: {
+          content: string;
+          media?: Array<{
+            url: string;
+            type: string;
+            width?: number;
+            height?: number;
+          }>;
+        };
+      },
+      ctx: GraphQLContext,
+    ) => {
+      requireRole(ctx.auth, ["missionary"]);
+      const auth = ctx.auth as AuthenticatedContext;
+      const audit = createAuditLogger(auth, ctx.request);
 
       const { data: missionary } = await ctx.supabaseAdmin
-        .from('missionaries')
-        .select('id')
-        .eq('profile_id', auth.profileId)
-        .eq('tenant_id', auth.tenantId)
-        .single()
+        .from("missionaries")
+        .select("id")
+        .eq("profile_id", auth.profileId)
+        .eq("tenant_id", auth.tenantId)
+        .single();
 
-      if (!missionary) throw new Error('Missionary profile not found')
+      if (!missionary) throw new Error("Missionary profile not found");
 
       const { data: post, error } = await ctx.supabaseAdmin
-        .from('posts')
+        .from("posts")
         .insert({
           tenant_id: auth.tenantId,
           missionary_id: missionary.id,
           content: args.input.content,
           media: args.input.media || [],
         })
-        .select('*, missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))')
-        .single()
+        .select(
+          "*, missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))",
+        )
+        .single();
 
-      if (error) throw new Error(error.message)
+      if (error) throw new Error(error.message);
 
-      await audit.logPost(post.id, 'post_created')
-      return { ...mapPost(post), userLiked: false, userPrayed: false }
+      await audit.logPost(post.id, "post_created");
+      return { ...mapPost(post), userLiked: false, userPrayed: false };
     },
 
-    deletePost: async (_: unknown, args: { id: string }, ctx: GraphQLContext) => {
-      requireRole(ctx.auth, ['missionary', 'admin'])
-      const auth = ctx.auth as AuthenticatedContext
-      const audit = createAuditLogger(auth, ctx.request)
+    deletePost: async (
+      _: unknown,
+      args: { id: string },
+      ctx: GraphQLContext,
+    ) => {
+      requireRole(ctx.auth, ["missionary", "admin"]);
+      const auth = ctx.auth as AuthenticatedContext;
+      const audit = createAuditLogger(auth, ctx.request);
 
       const { data: post } = await ctx.supabaseAdmin
-        .from('posts')
-        .select('*, missionary:missionaries!missionary_id(profile_id)')
-        .eq('id', args.id)
-        .eq('tenant_id', auth.tenantId)
-        .single()
+        .from("posts")
+        .select("*, missionary:missionaries!missionary_id(profile_id)")
+        .eq("id", args.id)
+        .eq("tenant_id", auth.tenantId)
+        .single();
 
-      if (!post) throw new Error('Post not found')
-      if (auth.role !== 'admin' && post.missionary?.profile_id !== auth.profileId) {
-        throw new Error('Not authorized to delete this post')
+      if (!post) throw new Error("Post not found");
+      if (
+        auth.role !== "admin" &&
+        post.missionary?.profile_id !== auth.profileId
+      ) {
+        throw new Error("Not authorized to delete this post");
       }
 
       const { error } = await ctx.supabaseAdmin
-        .from('posts')
+        .from("posts")
         .delete()
-        .eq('id', args.id)
-        .eq('tenant_id', auth.tenantId)
+        .eq("id", args.id)
+        .eq("tenant_id", auth.tenantId);
 
-      if (error) throw new Error(error.message)
+      if (error) throw new Error(error.message);
 
-      await audit.logPost(args.id, 'post_deleted')
-      return true
+      await audit.logPost(args.id, "post_deleted");
+      return true;
     },
 
-    likePost: async (_: unknown, args: { postId: string }, ctx: GraphQLContext) => {
-      requireAuth(ctx.auth)
-      const auth = ctx.auth as AuthenticatedContext
+    likePost: async (
+      _: unknown,
+      args: { postId: string },
+      ctx: GraphQLContext,
+    ) => {
+      requireAuth(ctx.auth);
+      const auth = ctx.auth as AuthenticatedContext;
 
       const { data: post } = await ctx.supabaseAdmin
-        .from('posts')
-        .select('id')
-        .eq('id', args.postId)
-        .eq('tenant_id', auth.tenantId)
-        .single()
+        .from("posts")
+        .select("id")
+        .eq("id", args.postId)
+        .eq("tenant_id", auth.tenantId)
+        .single();
 
-      if (!post) throw new Error('Post not found')
+      if (!post) throw new Error("Post not found");
 
-      await ctx.supabaseAdmin.from('post_likes').upsert({ post_id: args.postId, user_id: auth.userId }, { onConflict: 'post_id,user_id' })
-      await ctx.supabaseAdmin.rpc('increment_post_like_count', { post_id: args.postId })
-      return true
+      await ctx.supabaseAdmin
+        .from("post_likes")
+        .upsert(
+          { post_id: args.postId, user_id: auth.userId },
+          { onConflict: "post_id,user_id" },
+        );
+      await ctx.supabaseAdmin.rpc("increment_post_like_count", {
+        post_id: args.postId,
+      });
+      return true;
     },
 
-    unlikePost: async (_: unknown, args: { postId: string }, ctx: GraphQLContext) => {
-      requireAuth(ctx.auth)
-      const auth = ctx.auth as AuthenticatedContext
+    unlikePost: async (
+      _: unknown,
+      args: { postId: string },
+      ctx: GraphQLContext,
+    ) => {
+      requireAuth(ctx.auth);
+      const auth = ctx.auth as AuthenticatedContext;
 
       const { error } = await ctx.supabaseAdmin
-        .from('post_likes')
+        .from("post_likes")
         .delete()
-        .eq('post_id', args.postId)
-        .eq('user_id', auth.userId)
+        .eq("post_id", args.postId)
+        .eq("user_id", auth.userId);
 
-      if (!error) await ctx.supabaseAdmin.rpc('decrement_post_like_count', { post_id: args.postId })
-      return true
+      if (!error)
+        await ctx.supabaseAdmin.rpc("decrement_post_like_count", {
+          post_id: args.postId,
+        });
+      return true;
     },
 
-    prayForPost: async (_: unknown, args: { postId: string }, ctx: GraphQLContext) => {
-      requireAuth(ctx.auth)
-      const auth = ctx.auth as AuthenticatedContext
+    prayForPost: async (
+      _: unknown,
+      args: { postId: string },
+      ctx: GraphQLContext,
+    ) => {
+      requireAuth(ctx.auth);
+      const auth = ctx.auth as AuthenticatedContext;
 
       const { data: post } = await ctx.supabaseAdmin
-        .from('posts')
-        .select('id')
-        .eq('id', args.postId)
-        .eq('tenant_id', auth.tenantId)
-        .single()
+        .from("posts")
+        .select("id")
+        .eq("id", args.postId)
+        .eq("tenant_id", auth.tenantId)
+        .single();
 
-      if (!post) throw new Error('Post not found')
+      if (!post) throw new Error("Post not found");
 
-      await ctx.supabaseAdmin.from('post_prayers').upsert({ post_id: args.postId, user_id: auth.userId }, { onConflict: 'post_id,user_id' })
-      await ctx.supabaseAdmin.rpc('increment_post_prayer_count', { post_id: args.postId })
-      return true
+      await ctx.supabaseAdmin
+        .from("post_prayers")
+        .upsert(
+          { post_id: args.postId, user_id: auth.userId },
+          { onConflict: "post_id,user_id" },
+        );
+      await ctx.supabaseAdmin.rpc("increment_post_prayer_count", {
+        post_id: args.postId,
+      });
+      return true;
     },
 
-    unprayForPost: async (_: unknown, args: { postId: string }, ctx: GraphQLContext) => {
-      requireAuth(ctx.auth)
-      const auth = ctx.auth as AuthenticatedContext
+    unprayForPost: async (
+      _: unknown,
+      args: { postId: string },
+      ctx: GraphQLContext,
+    ) => {
+      requireAuth(ctx.auth);
+      const auth = ctx.auth as AuthenticatedContext;
 
       const { error } = await ctx.supabaseAdmin
-        .from('post_prayers')
+        .from("post_prayers")
         .delete()
-        .eq('post_id', args.postId)
-        .eq('user_id', auth.userId)
+        .eq("post_id", args.postId)
+        .eq("user_id", auth.userId);
 
-      if (!error) await ctx.supabaseAdmin.rpc('decrement_post_prayer_count', { post_id: args.postId })
-      return true
+      if (!error)
+        await ctx.supabaseAdmin.rpc("decrement_post_prayer_count", {
+          post_id: args.postId,
+        });
+      return true;
     },
 
-    addComment: async (_: unknown, args: { postId: string; content: string }, ctx: GraphQLContext) => {
-      requireAuth(ctx.auth)
-      const auth = ctx.auth as AuthenticatedContext
+    addComment: async (
+      _: unknown,
+      args: { postId: string; content: string },
+      ctx: GraphQLContext,
+    ) => {
+      requireAuth(ctx.auth);
+      const auth = ctx.auth as AuthenticatedContext;
 
       const { data: post } = await ctx.supabaseAdmin
-        .from('posts')
-        .select('id')
-        .eq('id', args.postId)
-        .eq('tenant_id', auth.tenantId)
-        .single()
+        .from("posts")
+        .select("id")
+        .eq("id", args.postId)
+        .eq("tenant_id", auth.tenantId)
+        .single();
 
-      if (!post) throw new Error('Post not found')
+      if (!post) throw new Error("Post not found");
 
       const { data: comment, error } = await ctx.supabaseAdmin
-        .from('post_comments')
-        .insert({ post_id: args.postId, user_id: auth.userId, content: args.content })
-        .select('*, author:profiles!user_id(*)')
-        .single()
+        .from("post_comments")
+        .insert({
+          post_id: args.postId,
+          user_id: auth.userId,
+          content: args.content,
+        })
+        .select("*, author:profiles!user_id(*)")
+        .single();
 
-      if (error) throw new Error(error.message)
+      if (error) throw new Error(error.message);
 
-      await ctx.supabaseAdmin.rpc('increment_post_comment_count', { post_id: args.postId })
-      return mapComment(comment)
+      await ctx.supabaseAdmin.rpc("increment_post_comment_count", {
+        post_id: args.postId,
+      });
+      return mapComment(comment);
     },
 
-    createDonation: async (_: unknown, args: { input: { missionaryId: string; amount: number; currency?: string } }, ctx: GraphQLContext) => {
-      requireRole(ctx.auth, ['donor', 'admin'])
-      const auth = ctx.auth as AuthenticatedContext
-      const audit = createAuditLogger(auth, ctx.request)
+    createDonation: async (
+      _: unknown,
+      args: {
+        input: { missionaryId: string; amount: number; currency?: string };
+      },
+      ctx: GraphQLContext,
+    ) => {
+      requireRole(ctx.auth, ["donor", "admin"]);
+      const auth = ctx.auth as AuthenticatedContext;
+      const audit = createAuditLogger(auth, ctx.request);
 
       const { data: missionary } = await ctx.supabaseAdmin
-        .from('missionaries')
-        .select('id')
-        .eq('id', args.input.missionaryId)
-        .eq('tenant_id', auth.tenantId)
-        .single()
+        .from("missionaries")
+        .select("id")
+        .eq("id", args.input.missionaryId)
+        .eq("tenant_id", auth.tenantId)
+        .single();
 
-      if (!missionary) throw new Error('Missionary not found')
+      if (!missionary) throw new Error("Missionary not found");
 
       const { data: donation, error } = await ctx.supabaseAdmin
-        .from('donations')
+        .from("donations")
         .insert({
           tenant_id: auth.tenantId,
           donor_id: auth.profileId,
           missionary_id: args.input.missionaryId,
           amount: args.input.amount,
-          currency: args.input.currency || 'usd',
-          status: 'pending',
+          currency: args.input.currency || "usd",
+          status: "pending",
         })
-        .select('*, donor:profiles!donor_id(*), missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))')
-        .single()
+        .select(
+          "*, donor:profiles!donor_id(*), missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))",
+        )
+        .single();
 
-      if (error) throw new Error(error.message)
+      if (error) throw new Error(error.message);
 
-      await audit.logDonation(donation.id, 'donation_created', { amount: args.input.amount, missionaryId: args.input.missionaryId })
-      return mapDonation(donation)
+      await audit.logDonation(donation.id, "donation_created", {
+        amount: args.input.amount,
+        missionaryId: args.input.missionaryId,
+      });
+      return mapDonation(donation);
     },
 
-    updateMissionaryProfile: async (_: unknown, args: { input: { bio?: string; missionField?: string; fundingGoal?: number } }, ctx: GraphQLContext) => {
-      requireRole(ctx.auth, ['missionary'])
-      const auth = ctx.auth as AuthenticatedContext
-      const audit = createAuditLogger(auth, ctx.request)
+    updateMissionaryProfile: async (
+      _: unknown,
+      args: {
+        input: { bio?: string; missionField?: string; fundingGoal?: number };
+      },
+      ctx: GraphQLContext,
+    ) => {
+      requireRole(ctx.auth, ["missionary"]);
+      const auth = ctx.auth as AuthenticatedContext;
+      const audit = createAuditLogger(auth, ctx.request);
 
-      const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
-      if (args.input.bio !== undefined) updates.bio = args.input.bio
-      if (args.input.missionField !== undefined) updates.mission_field = args.input.missionField
-      if (args.input.fundingGoal !== undefined) updates.funding_goal = args.input.fundingGoal
+      const updates: Record<string, unknown> = {
+        updated_at: new Date().toISOString(),
+      };
+      if (args.input.bio !== undefined) updates.bio = args.input.bio;
+      if (args.input.missionField !== undefined)
+        updates.mission_field = args.input.missionField;
+      if (args.input.fundingGoal !== undefined)
+        updates.funding_goal = args.input.fundingGoal;
 
       const { data, error } = await ctx.supabaseAdmin
-        .from('missionaries')
+        .from("missionaries")
         .update(updates)
-        .eq('profile_id', auth.profileId)
-        .eq('tenant_id', auth.tenantId)
-        .select('*, profile:profiles!profile_id(*)')
-        .single()
+        .eq("profile_id", auth.profileId)
+        .eq("tenant_id", auth.tenantId)
+        .select("*, profile:profiles!profile_id(*)")
+        .single();
 
-      if (error) throw new Error(error.message)
+      if (error) throw new Error(error.message);
 
-      await audit.log('update', 'missionary', data.id, args.input)
-      return mapMissionary(data)
+      await audit.log("update", "missionary", data.id, args.input);
+      return mapMissionary(data);
     },
 
-    updateUserRole: async (_: unknown, args: { input: { userId: string; role: 'donor' | 'missionary' | 'admin' } }, ctx: GraphQLContext) => {
-      requireRole(ctx.auth, ['admin'])
-      const auth = ctx.auth as AuthenticatedContext
-      const audit = createAuditLogger(auth, ctx.request)
+    updateUserRole: async (
+      _: unknown,
+      args: {
+        input: { userId: string; role: "donor" | "missionary" | "admin" };
+      },
+      ctx: GraphQLContext,
+    ) => {
+      requireRole(ctx.auth, ["admin"]);
+      const auth = ctx.auth as AuthenticatedContext;
+      const audit = createAuditLogger(auth, ctx.request);
 
       const { data: targetProfile } = await ctx.supabaseAdmin
-        .from('profiles')
-        .select('id, role')
-        .eq('id', args.input.userId)
-        .eq('tenant_id', auth.tenantId)
-        .single()
+        .from("profiles")
+        .select("id, role")
+        .eq("id", args.input.userId)
+        .eq("tenant_id", auth.tenantId)
+        .single();
 
-      if (!targetProfile) throw new Error('User not found')
+      if (!targetProfile) throw new Error("User not found");
 
-      const oldRole = targetProfile.role
+      const oldRole = targetProfile.role;
 
       const { data, error } = await ctx.supabaseAdmin
-        .from('profiles')
+        .from("profiles")
         .update({ role: args.input.role, updated_at: new Date().toISOString() })
-        .eq('id', args.input.userId)
-        .eq('tenant_id', auth.tenantId)
+        .eq("id", args.input.userId)
+        .eq("tenant_id", auth.tenantId)
         .select()
-        .single()
+        .single();
 
-      if (error) throw new Error(error.message)
+      if (error) throw new Error(error.message);
 
-      await audit.logRoleChange(args.input.userId, oldRole, args.input.role)
-      return mapProfile(data)
+      await audit.logRoleChange(args.input.userId, oldRole, args.input.role);
+      return mapProfile(data);
     },
   },
-}
+};
 
 function mapProfile(data: Record<string, unknown> | null) {
-  if (!data) return null
+  if (!data) return null;
   return {
     id: data.id,
     tenantId: data.tenant_id,
@@ -633,7 +780,7 @@ function mapProfile(data: Record<string, unknown> | null) {
     avatarUrl: data.avatar_url,
     createdAt: data.created_at,
     updatedAt: data.updated_at,
-  }
+  };
 }
 
 function mapMissionary(data: Record<string, unknown>) {
@@ -648,14 +795,16 @@ function mapMissionary(data: Record<string, unknown>) {
     createdAt: data.created_at,
     updatedAt: data.updated_at,
     posts: [],
-  }
+  };
 }
 
 function mapPost(data: Record<string, unknown>) {
   return {
     id: data.id,
     tenantId: data.tenant_id,
-    missionary: data.missionary ? mapMissionary(data.missionary as Record<string, unknown>) : null,
+    missionary: data.missionary
+      ? mapMissionary(data.missionary as Record<string, unknown>)
+      : null,
     content: data.content,
     media: data.media || [],
     likeCount: data.like_count,
@@ -663,7 +812,7 @@ function mapPost(data: Record<string, unknown>) {
     commentCount: data.comment_count,
     createdAt: data.created_at,
     updatedAt: data.updated_at,
-  }
+  };
 }
 
 function mapDonation(data: Record<string, unknown>) {
@@ -671,12 +820,14 @@ function mapDonation(data: Record<string, unknown>) {
     id: data.id,
     tenantId: data.tenant_id,
     donor: mapProfile(data.donor as Record<string, unknown>),
-    missionary: data.missionary ? mapMissionary(data.missionary as Record<string, unknown>) : null,
+    missionary: data.missionary
+      ? mapMissionary(data.missionary as Record<string, unknown>)
+      : null,
     amount: data.amount,
     currency: data.currency,
     status: data.status,
     createdAt: data.created_at,
-  }
+  };
 }
 
 function mapComment(data: Record<string, unknown>) {
@@ -686,7 +837,7 @@ function mapComment(data: Record<string, unknown>) {
     author: mapProfile(data.author as Record<string, unknown>),
     content: data.content,
     createdAt: data.created_at,
-  }
+  };
 }
 
 function mapAuditLog(data: Record<string, unknown>) {
@@ -699,46 +850,46 @@ function mapAuditLog(data: Record<string, unknown>) {
     resourceId: data.resource_id,
     details: data.details ? JSON.stringify(data.details) : null,
     createdAt: data.created_at,
-  }
+  };
 }
 
 const yoga = createYoga<{ request: Request }>({
   schema: createSchema({ typeDefs, resolvers }),
-  graphqlEndpoint: '/api/graphql',
+  graphqlEndpoint: "/api/graphql",
   fetchAPI: { Response },
   context: async ({ request }) => {
-    const auth = await getAuthContext()
-    const { client: supabaseAdmin, error } = getAdminClient()
+    const auth = await getAuthContext();
+    const { client: supabaseAdmin, error } = getAdminClient();
     if (!supabaseAdmin) {
-      throw new Error(error)
+      throw new Error(error);
     }
-    return { auth, request, supabaseAdmin }
+    return { auth, request, supabaseAdmin };
   },
-})
+});
 
 function adminUnavailableResponse() {
-  const { client, error } = getAdminClient()
-  if (client) return null
+  const { client, error } = getAdminClient();
+  if (client) return null;
   return new Response(JSON.stringify({ error }), {
     status: 503,
-    headers: { 'content-type': 'application/json' },
-  })
+    headers: { "content-type": "application/json" },
+  });
 }
 
 export async function GET(request: Request) {
-  const unavailable = adminUnavailableResponse()
-  if (unavailable) return unavailable
-  return yoga.handle(request, { request })
+  const unavailable = adminUnavailableResponse();
+  if (unavailable) return unavailable;
+  return yoga.handle(request, { request });
 }
 
 export async function POST(request: Request) {
-  const unavailable = adminUnavailableResponse()
-  if (unavailable) return unavailable
-  return yoga.handle(request, { request })
+  const unavailable = adminUnavailableResponse();
+  if (unavailable) return unavailable;
+  return yoga.handle(request, { request });
 }
 
 export async function OPTIONS(request: Request) {
-  const unavailable = adminUnavailableResponse()
-  if (unavailable) return unavailable
-  return yoga.handle(request, { request })
+  const unavailable = adminUnavailableResponse();
+  if (unavailable) return unavailable;
+  return yoga.handle(request, { request });
 }

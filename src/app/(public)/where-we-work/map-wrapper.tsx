@@ -5,7 +5,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 
-import { usePublicLocations, Location } from "@/features/mission-control/locations/hooks/use-locations";
+import {
+  usePublicLocations,
+  Location,
+} from "@/features/mission-control/locations/hooks/use-locations";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -35,7 +38,17 @@ import {
 
 function SearchIcon({ className }: { className?: string }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
       <circle cx="11" cy="11" r="8" />
       <path d="m21 21-4.3-4.3" />
     </svg>
@@ -44,7 +57,17 @@ function SearchIcon({ className }: { className?: string }) {
 
 function XIcon({ className }: { className?: string }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
       <path d="M18 6 6 18" />
       <path d="m6 6 12 12" />
     </svg>
@@ -53,7 +76,17 @@ function XIcon({ className }: { className?: string }) {
 
 function ChevronRightIcon({ className }: { className?: string }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
       <path d="m9 18 6-6-6-6" />
     </svg>
   );
@@ -61,7 +94,17 @@ function ChevronRightIcon({ className }: { className?: string }) {
 
 function GlobeIcon({ className }: { className?: string }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
       <circle cx="12" cy="12" r="10" />
       <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
       <path d="M2 12h20" />
@@ -71,7 +114,17 @@ function GlobeIcon({ className }: { className?: string }) {
 
 function ArrowLeftIcon({ className }: { className?: string }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
       <path d="m12 19-7-7 7-7" />
       <path d="M19 12H5" />
     </svg>
@@ -80,7 +133,17 @@ function ArrowLeftIcon({ className }: { className?: string }) {
 
 function HeartIcon({ className }: { className?: string }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
       <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
     </svg>
   );
@@ -88,7 +151,17 @@ function HeartIcon({ className }: { className?: string }) {
 
 function ExternalLinkIcon({ className }: { className?: string }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
       <path d="M15 3h6v6" />
       <path d="M10 14 21 3" />
       <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
@@ -98,7 +171,17 @@ function ExternalLinkIcon({ className }: { className?: string }) {
 
 function MapPinIcon({ className }: { className?: string }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
       <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
       <circle cx="12" cy="10" r="3" />
     </svg>
@@ -141,21 +224,21 @@ const MARKER_COLORS = {
   },
 } as const;
 
-function LocationSearchCommand({ 
-  locations, 
-  onSelect, 
-  open, 
-  onOpenChange 
-}: { 
+function LocationSearchCommand({
+  locations,
+  onSelect,
+  open,
+  onOpenChange,
+}: {
   locations: Location[];
   onSelect: (loc: Location) => void;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
   const grouped = useMemo(() => {
-    const missionaries = locations.filter(l => l.type === "missionary");
-    const projects = locations.filter(l => l.type === "project");
-    const custom = locations.filter(l => l.type === "custom");
+    const missionaries = locations.filter((l) => l.type === "missionary");
+    const projects = locations.filter((l) => l.type === "project");
+    const custom = locations.filter((l) => l.type === "custom");
     return { missionaries, projects, custom };
   }, [locations]);
 
@@ -164,18 +247,27 @@ function LocationSearchCommand({
       <DialogContent className="sm:max-w-[480px] p-0 gap-0 overflow-hidden">
         <DialogHeader className="sr-only">
           <DialogTitle>Search Locations</DialogTitle>
-          <DialogDescription>Find missionaries and projects around the world</DialogDescription>
+          <DialogDescription>
+            Find missionaries and projects around the world
+          </DialogDescription>
         </DialogHeader>
         <Command className="rounded-lg border-0 shadow-none">
-          <CommandInput placeholder="Search locations, workers, projects..." className="h-14 text-base" />
+          <CommandInput
+            placeholder="Search locations, workers, projects..."
+            className="h-14 text-base"
+          />
           <CommandList className="max-h-[400px]">
             <CommandEmpty className="py-12">
               <div className="flex flex-col items-center gap-2">
                 <div className="size-12 rounded-full bg-muted flex items-center justify-center">
                   <SearchIcon className="size-5 text-muted-foreground" />
                 </div>
-                <p className="text-sm font-medium text-foreground">No results found</p>
-                <p className="text-xs text-muted-foreground">Try a different search term</p>
+                <p className="text-sm font-medium text-foreground">
+                  No results found
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Try a different search term
+                </p>
               </div>
             </CommandEmpty>
             {grouped.missionaries.length > 0 && (
@@ -190,11 +282,18 @@ function LocationSearchCommand({
                     }}
                     className="gap-3 py-3 cursor-pointer"
                   >
-                    <div className={cn("size-2.5 rounded-full shrink-0", MARKER_COLORS.missionary.bg)} />
+                    <div
+                      className={cn(
+                        "size-2.5 rounded-full shrink-0",
+                        MARKER_COLORS.missionary.bg,
+                      )}
+                    />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{loc.title}</p>
                       {loc.summary && (
-                        <p className="text-xs text-muted-foreground truncate">{loc.summary}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {loc.summary}
+                        </p>
                       )}
                     </div>
                     <ChevronRightIcon className="size-4 text-muted-foreground shrink-0" />
@@ -214,11 +313,18 @@ function LocationSearchCommand({
                     }}
                     className="gap-3 py-3 cursor-pointer"
                   >
-                    <div className={cn("size-2.5 rounded-full shrink-0", MARKER_COLORS.project.bg)} />
+                    <div
+                      className={cn(
+                        "size-2.5 rounded-full shrink-0",
+                        MARKER_COLORS.project.bg,
+                      )}
+                    />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{loc.title}</p>
                       {loc.summary && (
-                        <p className="text-xs text-muted-foreground truncate">{loc.summary}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {loc.summary}
+                        </p>
                       )}
                     </div>
                     <ChevronRightIcon className="size-4 text-muted-foreground shrink-0" />
@@ -238,11 +344,18 @@ function LocationSearchCommand({
                     }}
                     className="gap-3 py-3 cursor-pointer"
                   >
-                    <div className={cn("size-2.5 rounded-full shrink-0", MARKER_COLORS.custom.bg)} />
+                    <div
+                      className={cn(
+                        "size-2.5 rounded-full shrink-0",
+                        MARKER_COLORS.custom.bg,
+                      )}
+                    />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{loc.title}</p>
                       {loc.summary && (
-                        <p className="text-xs text-muted-foreground truncate">{loc.summary}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {loc.summary}
+                        </p>
                       )}
                     </div>
                     <ChevronRightIcon className="size-4 text-muted-foreground shrink-0" />
@@ -257,9 +370,17 @@ function LocationSearchCommand({
   );
 }
 
-function HoverTooltip({ location, visible }: { location: Location; visible: boolean }) {
-  const colors = MARKER_COLORS[location.type as keyof typeof MARKER_COLORS] || MARKER_COLORS.custom;
-  
+function HoverTooltip({
+  location,
+  visible,
+}: {
+  location: Location;
+  visible: boolean;
+}) {
+  const colors =
+    MARKER_COLORS[location.type as keyof typeof MARKER_COLORS] ||
+    MARKER_COLORS.custom;
+
   return (
     <AnimatePresence>
       {visible && (
@@ -273,9 +394,13 @@ function HoverTooltip({ location, visible }: { location: Location; visible: bool
           <div className="bg-popover border border-border rounded-xl shadow-xl px-3 py-2 whitespace-nowrap">
             <div className="flex items-center gap-2">
               <div className={cn("size-1.5 rounded-full", colors.bg)} />
-              <span className="text-xs font-semibold text-foreground">{location.title}</span>
+              <span className="text-xs font-semibold text-foreground">
+                {location.title}
+              </span>
             </div>
-            <p className={cn("text-[10px] font-medium mt-0.5", colors.text)}>{colors.label}</p>
+            <p className={cn("text-[10px] font-medium mt-0.5", colors.text)}>
+              {colors.label}
+            </p>
           </div>
           <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1">
             <div className="w-2 h-2 bg-popover border-r border-b border-border rotate-45" />
@@ -286,20 +411,22 @@ function HoverTooltip({ location, visible }: { location: Location; visible: bool
   );
 }
 
-function MarkerDot({ 
-  location, 
-  isSelected, 
+function MarkerDot({
+  location,
+  isSelected,
   onSelect,
   onHover,
-  isHovered 
-}: { 
-  location: Location; 
-  isSelected: boolean; 
+  isHovered,
+}: {
+  location: Location;
+  isSelected: boolean;
   onSelect: () => void;
   onHover: (hovered: boolean) => void;
   isHovered: boolean;
 }) {
-  const colors = MARKER_COLORS[location.type as keyof typeof MARKER_COLORS] || MARKER_COLORS.custom;
+  const colors =
+    MARKER_COLORS[location.type as keyof typeof MARKER_COLORS] ||
+    MARKER_COLORS.custom;
 
   return (
     <MapMarker
@@ -308,28 +435,35 @@ function MarkerDot({
       onClick={onSelect}
     >
       <MarkerContent>
-        <div 
+        <div
           className="relative"
           onMouseEnter={() => onHover(true)}
           onMouseLeave={() => onHover(false)}
         >
-          <HoverTooltip location={location} visible={isHovered && !isSelected} />
-          
-          <div className={cn(
-            "relative transition-all duration-200 ease-out cursor-pointer",
-            isSelected ? "z-50" : "z-10 hover:z-40"
-          )}>
-            <div className={cn(
-              "rounded-full border-[1.5px] border-white/90 dark:border-zinc-900/90 shadow-md transition-all duration-200 ease-out",
-              colors.bg,
-              isSelected 
-                ? "size-3.5 ring-[3px] shadow-lg" 
-                : "size-2 hover:size-2.5",
-              isSelected && colors.ring
-            )} />
-            
+          <HoverTooltip
+            location={location}
+            visible={isHovered && !isSelected}
+          />
+
+          <div
+            className={cn(
+              "relative transition-all duration-200 ease-out cursor-pointer",
+              isSelected ? "z-50" : "z-10 hover:z-40",
+            )}
+          >
+            <div
+              className={cn(
+                "rounded-full border-[1.5px] border-white/90 dark:border-zinc-900/90 shadow-md transition-all duration-200 ease-out",
+                colors.bg,
+                isSelected
+                  ? "size-3.5 ring-[3px] shadow-lg"
+                  : "size-2 hover:size-2.5",
+                isSelected && colors.ring,
+              )}
+            />
+
             {isSelected && (
-              <motion.div 
+              <motion.div
                 initial={{ scale: 1, opacity: 0.4 }}
                 animate={{ scale: 2.5, opacity: 0 }}
                 transition={{ duration: 1.2, repeat: Infinity }}
@@ -343,20 +477,22 @@ function MarkerDot({
   );
 }
 
-function DetailDialog({ 
-  location, 
-  open, 
-  onOpenChange 
-}: { 
-  location: Location | null; 
-  open: boolean; 
+function DetailDialog({
+  location,
+  open,
+  onOpenChange,
+}: {
+  location: Location | null;
+  open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
   if (!location) return null;
-  
-  const colors = MARKER_COLORS[location.type as keyof typeof MARKER_COLORS] || MARKER_COLORS.custom;
+
+  const colors =
+    MARKER_COLORS[location.type as keyof typeof MARKER_COLORS] ||
+    MARKER_COLORS.custom;
   const hasImage = location.image_public_id;
-  const imageUrl = hasImage 
+  const imageUrl = hasImage
     ? `https://res.cloudinary.com/demo/image/upload/w_800,h_500,c_fill/${location.image_public_id}`
     : null;
 
@@ -365,9 +501,11 @@ function DetailDialog({
       <DialogContent className="sm:max-w-[520px] p-0 gap-0 overflow-hidden">
         <DialogHeader className="sr-only">
           <DialogTitle>{location.title}</DialogTitle>
-          <DialogDescription>{location.summary || "View location details"}</DialogDescription>
+          <DialogDescription>
+            {location.summary || "View location details"}
+          </DialogDescription>
         </DialogHeader>
-        
+
         {imageUrl ? (
           <div className="relative h-52 bg-muted overflow-hidden">
             <Image
@@ -378,7 +516,7 @@ function DetailDialog({
               sizes="520px"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            <button 
+            <button
               onClick={() => onOpenChange(false)}
               className="absolute top-3 right-3 size-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center hover:bg-black/60 transition-colors"
             >
@@ -386,9 +524,15 @@ function DetailDialog({
             </button>
           </div>
         ) : (
-          <div className={cn("relative h-32 bg-gradient-to-br", colors.gradient, "flex items-center justify-center")}>
+          <div
+            className={cn(
+              "relative h-32 bg-gradient-to-br",
+              colors.gradient,
+              "flex items-center justify-center",
+            )}
+          >
             <GlobeIcon className="size-12 text-white/30" />
-            <button 
+            <button
               onClick={() => onOpenChange(false)}
               className="absolute top-3 right-3 size-8 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center hover:bg-black/40 transition-colors"
             >
@@ -399,13 +543,24 @@ function DetailDialog({
 
         <div className="p-6">
           <div className="flex items-center gap-2 mb-3">
-            <Badge variant="secondary" className={cn("text-[10px] font-semibold uppercase tracking-wider", colors.bgLight, colors.text, "border", colors.borderLight)}>
+            <Badge
+              variant="secondary"
+              className={cn(
+                "text-[10px] font-semibold uppercase tracking-wider",
+                colors.bgLight,
+                colors.text,
+                "border",
+                colors.borderLight,
+              )}
+            >
               {colors.label}
             </Badge>
           </div>
-          
-          <h2 className="text-xl font-bold text-foreground mb-2">{location.title}</h2>
-          
+
+          <h2 className="text-xl font-bold text-foreground mb-2">
+            {location.title}
+          </h2>
+
           {location.summary && (
             <p className="text-muted-foreground text-sm leading-relaxed mb-6">
               {location.summary}
@@ -422,20 +577,30 @@ function DetailDialog({
           <div className="flex gap-3">
             {location.linked_id && location.type === "missionary" ? (
               <>
-                <Link href={`/workers/${location.linked_id}`} className="flex-1">
+                <Link
+                  href={`/workers/${location.linked_id}`}
+                  className="flex-1"
+                >
                   <Button className="w-full h-11 rounded-xl font-semibold gap-2">
                     <ExternalLinkIcon className="size-4" />
                     View Profile
                   </Button>
                 </Link>
                 <Link href={`/checkout?missionary=${location.linked_id}`}>
-                  <Button variant="secondary" size="icon" className="size-11 rounded-xl shrink-0">
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="size-11 rounded-xl shrink-0"
+                  >
                     <HeartIcon className="size-4" />
                   </Button>
                 </Link>
               </>
             ) : (
-              <Button variant="secondary" className="w-full h-11 rounded-xl font-semibold">
+              <Button
+                variant="secondary"
+                className="w-full h-11 rounded-xl font-semibold"
+              >
                 Learn More
               </Button>
             )}
@@ -446,23 +611,31 @@ function DetailDialog({
   );
 }
 
-function MobileDetailSheet({ location, onClose }: { location: Location; onClose: () => void }) {
-  const colors = MARKER_COLORS[location.type as keyof typeof MARKER_COLORS] || MARKER_COLORS.custom;
+function MobileDetailSheet({
+  location,
+  onClose,
+}: {
+  location: Location;
+  onClose: () => void;
+}) {
+  const colors =
+    MARKER_COLORS[location.type as keyof typeof MARKER_COLORS] ||
+    MARKER_COLORS.custom;
   const hasImage = location.image_public_id;
-  const imageUrl = hasImage 
+  const imageUrl = hasImage
     ? `https://res.cloudinary.com/demo/image/upload/w_800,h_400,c_fill/${location.image_public_id}`
     : null;
 
   return (
     <>
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 lg:hidden" 
-        onClick={onClose} 
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 lg:hidden"
+        onClick={onClose}
       />
-      <motion.div 
+      <motion.div
         initial={{ y: "100%" }}
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
@@ -472,7 +645,7 @@ function MobileDetailSheet({ location, onClose }: { location: Location; onClose:
         <div className="sticky top-0 bg-card p-3 flex justify-center">
           <div className="w-12 h-1 bg-muted-foreground/20 rounded-full" />
         </div>
-        
+
         {imageUrl && (
           <div className="relative h-40 mx-4 rounded-2xl overflow-hidden mb-4">
             <Image
@@ -484,9 +657,18 @@ function MobileDetailSheet({ location, onClose }: { location: Location; onClose:
             />
           </div>
         )}
-        
+
         <div className="px-6 pb-8 pt-2">
-          <Badge variant="secondary" className={cn("text-[10px] font-semibold uppercase tracking-wider mb-3", colors.bgLight, colors.text, "border", colors.borderLight)}>
+          <Badge
+            variant="secondary"
+            className={cn(
+              "text-[10px] font-semibold uppercase tracking-wider mb-3",
+              colors.bgLight,
+              colors.text,
+              "border",
+              colors.borderLight,
+            )}
+          >
             {colors.label}
           </Badge>
 
@@ -503,24 +685,39 @@ function MobileDetailSheet({ location, onClose }: { location: Location; onClose:
           <div className="flex gap-3">
             {location.linked_id && location.type === "missionary" ? (
               <>
-                <Link href={`/workers/${location.linked_id}`} className="flex-1">
+                <Link
+                  href={`/workers/${location.linked_id}`}
+                  className="flex-1"
+                >
                   <Button className="w-full h-12 rounded-xl font-semibold gap-2">
                     <ExternalLinkIcon className="size-4" />
                     View Profile
                   </Button>
                 </Link>
                 <Link href={`/checkout?missionary=${location.linked_id}`}>
-                  <Button variant="secondary" size="icon" className="size-12 rounded-xl shrink-0">
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="size-12 rounded-xl shrink-0"
+                  >
                     <HeartIcon className="size-4" />
                   </Button>
                 </Link>
               </>
             ) : (
-              <Button variant="secondary" className="flex-1 h-12 rounded-xl font-semibold">
+              <Button
+                variant="secondary"
+                className="flex-1 h-12 rounded-xl font-semibold"
+              >
                 Learn More
               </Button>
             )}
-            <Button variant="outline" size="icon" onClick={onClose} className="size-12 rounded-xl shrink-0">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onClose}
+              className="size-12 rounded-xl shrink-0"
+            >
               <XIcon className="size-5" />
             </Button>
           </div>
@@ -534,7 +731,9 @@ export function WhereWeWorkMap() {
   const { data: locations, isLoading } = usePublicLocations();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const [mapCenter, setMapCenter] = useState<[number, number] | undefined>(undefined);
+  const [mapCenter, setMapCenter] = useState<[number, number] | undefined>(
+    undefined,
+  );
   const [mapZoom, setMapZoom] = useState<number | undefined>(undefined);
   const [searchOpen, setSearchOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
@@ -561,48 +760,57 @@ export function WhereWeWorkMap() {
 
   const selectedLocation = useMemo(() => {
     if (!selectedId || !locations) return null;
-    return locations.find(loc => loc.id === selectedId) || null;
+    return locations.find((loc) => loc.id === selectedId) || null;
   }, [selectedId, locations]);
 
   const stats = useMemo(() => {
     if (!locations) return { total: 0, missionaries: 0, projects: 0 };
     return {
       total: locations.length,
-      missionaries: locations.filter(l => l.type === "missionary").length,
-      projects: locations.filter(l => l.type === "project").length,
+      missionaries: locations.filter((l) => l.type === "missionary").length,
+      projects: locations.filter((l) => l.type === "project").length,
     };
   }, [locations]);
 
-  const handleSelectLocation = useCallback((loc: Location) => {
-    setSelectedId(loc.id);
-    setMapCenter([loc.lng, loc.lat]);
-    setMapZoom(6);
-    
-    if (isMobile) {
-      setShowMobileSheet(true);
-    } else {
-      setDetailDialogOpen(true);
-    }
-  }, [isMobile]);
+  const handleSelectLocation = useCallback(
+    (loc: Location) => {
+      setSelectedId(loc.id);
+      setMapCenter([loc.lng, loc.lat]);
+      setMapZoom(6);
 
-  const handleMarkerClick = useCallback((loc: Location) => {
-    setSelectedId(loc.id);
-    setMapCenter([loc.lng, loc.lat]);
-    setMapZoom(6);
-    
-    if (isMobile) {
-      setShowMobileSheet(true);
-    } else {
-      setDetailDialogOpen(true);
-    }
-  }, [isMobile]);
+      if (isMobile) {
+        setShowMobileSheet(true);
+      } else {
+        setDetailDialogOpen(true);
+      }
+    },
+    [isMobile],
+  );
+
+  const handleMarkerClick = useCallback(
+    (loc: Location) => {
+      setSelectedId(loc.id);
+      setMapCenter([loc.lng, loc.lat]);
+      setMapZoom(6);
+
+      if (isMobile) {
+        setShowMobileSheet(true);
+      } else {
+        setDetailDialogOpen(true);
+      }
+    },
+    [isMobile],
+  );
 
   const handleCloseDetail = useCallback(() => {
     setDetailDialogOpen(false);
     setShowMobileSheet(false);
   }, []);
 
-  const mapInitialViewState = useMemo(() => ({ longitude: 15, latitude: 20, zoom: 2 }), []);
+  const mapInitialViewState = useMemo(
+    () => ({ longitude: 15, latitude: 20, zoom: 2 }),
+    [],
+  );
 
   return (
     <div className="relative w-full min-h-[100dvh] bg-background">
@@ -613,27 +821,35 @@ export function WhereWeWorkMap() {
           initialViewState={mapInitialViewState}
           className="absolute inset-0 w-full h-full"
         >
-          <MapControls 
-            position="bottom-right" 
-            className="bottom-6 right-4 lg:bottom-8 lg:right-8" 
+          <MapControls
+            position="bottom-right"
+            className="bottom-6 right-4 lg:bottom-8 lg:right-8"
             showFullscreen={!isMobile}
           />
-          <MapStyleToggle 
-            position="bottom-right" 
-            className="bottom-[140px] lg:bottom-[180px] right-4 lg:right-8" 
+          <MapStyleToggle
+            position="bottom-right"
+            className="bottom-[140px] lg:bottom-[180px] right-4 lg:right-8"
           />
-          
-          <MapLegend title="Legend" position="bottom-left" className="bottom-8 left-8">
+
+          <MapLegend
+            title="Legend"
+            position="bottom-left"
+            className="bottom-8 left-8"
+          >
             <div className="flex items-center gap-2.5">
               <div className="size-2 rounded-full bg-emerald-500" />
-              <span className="text-xs font-medium text-muted-foreground">Global Workers</span>
+              <span className="text-xs font-medium text-muted-foreground">
+                Global Workers
+              </span>
             </div>
             <div className="flex items-center gap-2.5">
               <div className="size-2 rounded-full bg-violet-500" />
-              <span className="text-xs font-medium text-muted-foreground">Projects</span>
+              <span className="text-xs font-medium text-muted-foreground">
+                Projects
+              </span>
             </div>
           </MapLegend>
-          
+
           {locations?.map((loc) => (
             <MarkerDot
               key={loc.id}
@@ -648,9 +864,9 @@ export function WhereWeWorkMap() {
 
         <div className="absolute top-4 left-4 z-30 flex items-center gap-3">
           <Link href="/">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="h-10 rounded-xl bg-card/95 backdrop-blur-md border-border/50 shadow-lg hover:bg-card gap-2"
             >
               <ArrowLeftIcon className="size-4" />
@@ -660,7 +876,7 @@ export function WhereWeWorkMap() {
         </div>
 
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
-          <motion.div 
+          <motion.div
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
@@ -671,7 +887,9 @@ export function WhereWeWorkMap() {
               className="flex items-center gap-3 px-4 py-3 hover:bg-accent/50 transition-colors w-full"
             >
               <SearchIcon className="size-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground font-medium">Search locations...</span>
+              <span className="text-sm text-muted-foreground font-medium">
+                Search locations...
+              </span>
               <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground ml-auto">
                 <span className="text-xs">⌘</span>K
               </kbd>
@@ -680,7 +898,7 @@ export function WhereWeWorkMap() {
         </div>
 
         <div className="absolute top-4 right-4 z-30 flex items-center gap-2">
-          <motion.div 
+          <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.3 }}
@@ -688,32 +906,44 @@ export function WhereWeWorkMap() {
           >
             <div className="flex items-center gap-1.5">
               <div className="size-2 rounded-full bg-emerald-500" />
-              <span className="text-xs font-semibold text-foreground">{stats.missionaries}</span>
+              <span className="text-xs font-semibold text-foreground">
+                {stats.missionaries}
+              </span>
             </div>
             <div className="w-px h-4 bg-border" />
             <div className="flex items-center gap-1.5">
               <div className="size-2 rounded-full bg-violet-500" />
-              <span className="text-xs font-semibold text-foreground">{stats.projects}</span>
+              <span className="text-xs font-semibold text-foreground">
+                {stats.projects}
+              </span>
             </div>
           </motion.div>
         </div>
 
         <AnimatePresence>
           {selectedLocation && !detailDialogOpen && !showMobileSheet && (
-            <motion.div 
+            <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 20, opacity: 0 }}
               className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30"
             >
               <button
-                onClick={() => isMobile ? setShowMobileSheet(true) : setDetailDialogOpen(true)}
+                onClick={() =>
+                  isMobile
+                    ? setShowMobileSheet(true)
+                    : setDetailDialogOpen(true)
+                }
                 className="bg-card/95 backdrop-blur-xl shadow-2xl rounded-full pl-4 pr-2 py-2 flex items-center gap-3 border border-border/50 hover:bg-card transition-colors group"
               >
-                <div className={cn(
-                  "size-2.5 rounded-full",
-                  MARKER_COLORS[selectedLocation.type as keyof typeof MARKER_COLORS]?.bg || MARKER_COLORS.custom.bg
-                )} />
+                <div
+                  className={cn(
+                    "size-2.5 rounded-full",
+                    MARKER_COLORS[
+                      selectedLocation.type as keyof typeof MARKER_COLORS
+                    ]?.bg || MARKER_COLORS.custom.bg,
+                  )}
+                />
                 <span className="text-sm font-semibold text-foreground truncate max-w-[200px]">
                   {selectedLocation.title}
                 </span>
@@ -737,8 +967,17 @@ export function WhereWeWorkMap() {
               animate={{ y: [0, 4, 0] }}
               transition={{ duration: 1.5, repeat: Infinity }}
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m6 9 6 6 6-6"/>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="m6 9 6 6 6-6" />
               </svg>
             </motion.div>
           </motion.div>
@@ -762,7 +1001,10 @@ export function WhereWeWorkMap() {
 
       <AnimatePresence>
         {showMobileSheet && selectedLocation && (
-          <MobileDetailSheet location={selectedLocation} onClose={handleCloseDetail} />
+          <MobileDetailSheet
+            location={selectedLocation}
+            onClose={handleCloseDetail}
+          />
         )}
       </AnimatePresence>
     </div>

@@ -25,21 +25,27 @@ User selects/drops file
 ## Key Modules
 
 ### `src/lib/image-utils.ts`
+
 Core utilities for image processing:
+
 - `validateImageFile(file)` - Validates MIME type, extension, and file size
 - `loadImageAsDataUrl(file)` - Converts File to base64 data URL
 - `validateImageLoads(dataUrl)` - Verifies image can be rendered
 - `getCroppedImg(src, crop, rotation, flip, options)` - Generates cropped Blob
 
 ### `src/components/ui/image-upload.tsx`
+
 Main upload component with drag-and-drop support:
+
 - Handles file selection (click or drag)
 - Opens cropper dialog
 - Uploads cropped result to Supabase Storage
 - Supports custom children via render props pattern
 
 ### `src/components/ui/image-cropper.tsx`
+
 Dialog-based image cropper using `react-easy-crop`:
+
 - Zoom and rotation controls
 - Touch-friendly for mobile
 - Outputs WebP by default (configurable)
@@ -47,15 +53,17 @@ Dialog-based image cropper using `react-easy-crop`:
 ## Usage
 
 ### Basic Usage (Default UI)
+
 ```tsx
 <ImageUpload
   value={avatarUrl}
   onChange={(url) => setAvatarUrl(url)}
-  onRemove={() => setAvatarUrl('')}
+  onRemove={() => setAvatarUrl("")}
 />
 ```
 
 ### Custom Trigger
+
 ```tsx
 <ImageUpload
   value={avatarUrl}
@@ -68,12 +76,13 @@ Dialog-based image cropper using `react-easy-crop`:
 ```
 
 ### Cover Photo (Wide Aspect)
+
 ```tsx
 <ImageUpload
   value={coverUrl}
   onChange={(url) => setCoverUrl(url)}
   path="covers"
-  aspect={3/1}
+  aspect={3 / 1}
 >
   <CoverPhotoPlaceholder />
 </ImageUpload>
@@ -82,25 +91,27 @@ Dialog-based image cropper using `react-easy-crop`:
 ## Props
 
 ### ImageUpload
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `value` | `string` | - | Current image URL |
-| `onChange` | `(url: string) => void` | - | Called with new URL after upload |
-| `onRemove` | `() => void` | - | Called when remove button clicked |
-| `bucket` | `string` | `'profiles'` | Supabase Storage bucket |
-| `path` | `string` | `'avatars'` | Path prefix in bucket |
-| `aspect` | `number` | `1` | Aspect ratio for cropper |
-| `disabled` | `boolean` | `false` | Disable upload |
+
+| Prop       | Type                    | Default      | Description                       |
+| ---------- | ----------------------- | ------------ | --------------------------------- |
+| `value`    | `string`                | -            | Current image URL                 |
+| `onChange` | `(url: string) => void` | -            | Called with new URL after upload  |
+| `onRemove` | `() => void`            | -            | Called when remove button clicked |
+| `bucket`   | `string`                | `'profiles'` | Supabase Storage bucket           |
+| `path`     | `string`                | `'avatars'`  | Path prefix in bucket             |
+| `aspect`   | `number`                | `1`          | Aspect ratio for cropper          |
+| `disabled` | `boolean`               | `false`      | Disable upload                    |
 
 ### ImageCropper
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `image` | `string` | - | Base64 data URL to crop |
-| `aspect` | `number` | `1` | Aspect ratio |
-| `onCropComplete` | `(blob: Blob) => void` | - | Called with cropped image |
-| `onCancel` | `() => void` | - | Called when dialog closed |
-| `outputFormat` | `string` | `'image/webp'` | Output MIME type |
-| `quality` | `number` | `0.92` | Output quality (0-1) |
+
+| Prop             | Type                   | Default        | Description               |
+| ---------------- | ---------------------- | -------------- | ------------------------- |
+| `image`          | `string`               | -              | Base64 data URL to crop   |
+| `aspect`         | `number`               | `1`            | Aspect ratio              |
+| `onCropComplete` | `(blob: Blob) => void` | -              | Called with cropped image |
+| `onCancel`       | `() => void`           | -              | Called when dialog closed |
+| `outputFormat`   | `string`               | `'image/webp'` | Output MIME type          |
+| `quality`        | `number`               | `0.92`         | Output quality (0-1)      |
 
 ## Validation Rules
 
@@ -111,6 +122,7 @@ Dialog-based image cropper using `react-easy-crop`:
 ## Error Handling
 
 All errors surface as toast notifications:
+
 - `"Unsupported file type..."` - Invalid MIME/extension
 - `"File is too large..."` - Exceeds 10MB limit
 - `"The image appears to be corrupt..."` - Failed to load
@@ -120,21 +132,21 @@ All errors surface as toast notifications:
 ## Extending
 
 ### Adding a new upload target
+
 1. Use `<ImageUpload>` with custom `bucket` and `path`
 2. Ensure the bucket exists in Supabase with appropriate RLS policies
 3. Handle the `onChange` callback to persist the URL
 
 ### Changing output format
+
 Pass `outputFormat` and `quality` to `ImageCropper` (or modify defaults in `getCroppedImg`):
+
 ```tsx
-<ImageCropper
-  outputFormat="image/jpeg"
-  quality={0.85}
-  {...otherProps}
-/>
+<ImageCropper outputFormat="image/jpeg" quality={0.85} {...otherProps} />
 ```
 
 ### Adding new validation rules
+
 Extend `validateImageFile()` in `image-utils.ts`.
 
 ## Supabase Storage Setup
@@ -143,18 +155,18 @@ The system expects a `profiles` bucket with these policies:
 
 ```sql
 -- Public read access
-CREATE POLICY "Public Access" ON storage.objects 
+CREATE POLICY "Public Access" ON storage.objects
 FOR SELECT USING (bucket_id = 'profiles');
 
 -- Authenticated users can upload
-CREATE POLICY "Authenticated Upload" ON storage.objects 
+CREATE POLICY "Authenticated Upload" ON storage.objects
 FOR INSERT WITH CHECK (bucket_id = 'profiles');
 
 -- Owners can update/delete their files
-CREATE POLICY "Owner Update" ON storage.objects 
+CREATE POLICY "Owner Update" ON storage.objects
 FOR UPDATE USING (bucket_id = 'profiles' AND auth.uid() = owner);
 
-CREATE POLICY "Owner Delete" ON storage.objects 
+CREATE POLICY "Owner Delete" ON storage.objects
 FOR DELETE USING (bucket_id = 'profiles' AND auth.uid() = owner);
 ```
 
@@ -169,11 +181,13 @@ FOR DELETE USING (bucket_id = 'profiles' AND auth.uid() = owner);
 ## Testing
 
 Run the E2E tests:
+
 ```bash
 npx playwright test tests/e2e/upload-crop.spec.ts
 ```
 
 Key test scenarios:
+
 - File picker upload → crop → save → image appears
 - Drag-and-drop upload → crop → save
 - Cancel during crop → original state preserved

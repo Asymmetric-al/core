@@ -65,7 +65,9 @@ function Loader() {
         <div className="relative size-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
       </div>
       <div className="flex gap-1.5 items-center">
-        <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Loading Map</span>
+        <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+          Loading Map
+        </span>
         <div className="flex gap-1">
           <span className="size-1 rounded-full bg-primary animate-bounce" />
           <span className="size-1 rounded-full bg-primary animate-bounce [animation-delay:150ms]" />
@@ -84,7 +86,7 @@ export function Map({
   initialViewState,
   className,
   onLoad,
-  onClick
+  onClick,
 }: MapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<maplibregl.Map | null>(null);
@@ -104,7 +106,7 @@ export function Map({
 
     const mapCenter: [number, number] = initialViewState
       ? [initialViewState.longitude, initialViewState.latitude]
-      : center ?? [0, 20];
+      : (center ?? [0, 20]);
     const mapZoom = initialViewState?.zoom ?? zoom ?? 2;
 
     try {
@@ -183,7 +185,7 @@ export function Map({
 
   const contextValue = useMemo(
     () => ({ map: mapInstance, isLoaded: mapLoaded }),
-    [mapInstance, mapLoaded]
+    [mapInstance, mapLoaded],
   );
 
   return (
@@ -192,7 +194,7 @@ export function Map({
         ref={containerRef}
         className={cn(
           "relative w-full h-full min-h-[400px] bg-zinc-100 dark:bg-zinc-900",
-          className
+          className,
         )}
       >
         {!mapLoaded && <Loader />}
@@ -286,14 +288,14 @@ export function MarkerContent({
     <div
       className={cn(
         "relative transition-transform duration-200 hover:scale-110",
-        className
+        className,
       )}
     >
       {children ?? (
         <div className="size-6 rounded-full border-4 border-white bg-primary shadow-xl ring-2 ring-primary/20" />
       )}
     </div>,
-    element
+    element,
   );
 }
 
@@ -337,12 +339,12 @@ export function MarkerPopup({
     <div
       className={cn(
         "relative rounded-2xl border border-zinc-200/50 bg-white dark:bg-zinc-900 p-0 text-zinc-900 dark:text-zinc-50 shadow-2xl",
-        className
+        className,
       )}
     >
       {children}
     </div>,
-    container
+    container,
   );
 }
 
@@ -354,11 +356,11 @@ export function MapOverlay({
   children: ReactNode;
   className?: string;
   position?:
-  | "top-left"
-  | "top-right"
-  | "bottom-left"
-  | "bottom-right"
-  | "center";
+    | "top-left"
+    | "top-right"
+    | "bottom-left"
+    | "bottom-right"
+    | "center";
 }) {
   const positions = {
     "top-left": "top-4 left-4",
@@ -377,7 +379,17 @@ export function MapOverlay({
 
 function ZoomInIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600 dark:text-zinc-400">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="text-zinc-600 dark:text-zinc-400"
+    >
       <line x1="12" y1="5" x2="12" y2="19" />
       <line x1="5" y1="12" x2="19" y2="12" />
     </svg>
@@ -386,7 +398,17 @@ function ZoomInIcon() {
 
 function ZoomOutIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600 dark:text-zinc-400">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="text-zinc-600 dark:text-zinc-400"
+    >
       <line x1="5" y1="12" x2="19" y2="12" />
     </svg>
   );
@@ -394,7 +416,17 @@ function ZoomOutIcon() {
 
 function LocateIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600 dark:text-zinc-400">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="text-zinc-600 dark:text-zinc-400"
+    >
       <line x1="2" y1="12" x2="5" y2="12" />
       <line x1="19" y1="12" x2="22" y2="12" />
       <line x1="12" y1="2" x2="12" y2="5" />
@@ -407,7 +439,17 @@ function LocateIcon() {
 
 function MaximizeIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600 dark:text-zinc-400">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="text-zinc-600 dark:text-zinc-400"
+    >
       <path d="M8 3H5a2 2 0 0 0-2 2v3" />
       <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
       <path d="M3 16v3a2 2 0 0 0 2 2h3" />
@@ -418,7 +460,17 @@ function MaximizeIcon() {
 
 function SunIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="text-zinc-400"
+    >
       <circle cx="12" cy="12" r="4" />
       <path d="M12 2v2" />
       <path d="M12 20v2" />
@@ -434,7 +486,17 @@ function SunIcon() {
 
 function MoonIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="text-zinc-600"
+    >
       <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
     </svg>
   );
@@ -469,31 +531,52 @@ export function MapControls({
   const handleFullscreen = useCallback(() => {
     const el = map?.getContainer();
     if (!el) return;
-    document.fullscreenElement ? document.exitFullscreen() : el.requestFullscreen();
+    document.fullscreenElement
+      ? document.exitFullscreen()
+      : el.requestFullscreen();
   }, [map]);
 
   if (!isLoaded) return null;
 
   return (
-    <MapOverlay position={position} className={cn("flex flex-col gap-2", className)}>
+    <MapOverlay
+      position={position}
+      className={cn("flex flex-col gap-2", className)}
+    >
       <div className="flex flex-col rounded-2xl border border-zinc-200/80 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl shadow-lg overflow-hidden ring-1 ring-black/5">
         {showZoom && (
           <>
-            <button onClick={handleZoomIn} className="p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors border-b border-zinc-100 dark:border-zinc-800" title="Zoom In">
+            <button
+              onClick={handleZoomIn}
+              className="p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors border-b border-zinc-100 dark:border-zinc-800"
+              title="Zoom In"
+            >
               <ZoomInIcon />
             </button>
-            <button onClick={handleZoomOut} className="p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors border-b border-zinc-100 dark:border-zinc-800" title="Zoom Out">
+            <button
+              onClick={handleZoomOut}
+              className="p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors border-b border-zinc-100 dark:border-zinc-800"
+              title="Zoom Out"
+            >
               <ZoomOutIcon />
             </button>
           </>
         )}
         {showGeolocate && (
-          <button onClick={handleGeolocate} className="p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors border-b border-zinc-100 dark:border-zinc-800" title="Find My Location">
+          <button
+            onClick={handleGeolocate}
+            className="p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors border-b border-zinc-100 dark:border-zinc-800"
+            title="Find My Location"
+          >
             <LocateIcon />
           </button>
         )}
         {showFullscreen && (
-          <button onClick={handleFullscreen} className="p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors" title="Toggle Fullscreen">
+          <button
+            onClick={handleFullscreen}
+            className="p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            title="Toggle Fullscreen"
+          >
             <MaximizeIcon />
           </button>
         )}
@@ -541,7 +624,10 @@ export function MapLegend({
   if (!isLoaded) return null;
 
   return (
-    <MapOverlay position={position} className={cn("hidden lg:block", className)}>
+    <MapOverlay
+      position={position}
+      className={cn("hidden lg:block", className)}
+    >
       <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-xl p-4 min-w-[160px] ring-1 ring-black/5">
         <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-3">
           {title}

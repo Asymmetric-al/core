@@ -7,7 +7,7 @@ export {
   donationsCollection,
   fundsCollection,
   followsCollection,
-} from './collections'
+} from "./collections";
 
 export {
   usePostsWithAuthors,
@@ -18,6 +18,6 @@ export {
   useFundsWithProgress,
   useMissionaryDashboard,
   useMissionaryStats,
-} from './hooks'
+} from "./hooks";
 
-export { QueryProvider, getQueryClient } from './query-provider'
+export { QueryProvider, getQueryClient } from "./query-provider";

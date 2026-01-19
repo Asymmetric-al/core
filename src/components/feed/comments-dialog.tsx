@@ -1,79 +1,83 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { formatDistanceToNow } from 'date-fns'
-import { Send } from 'lucide-react'
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { formatDistanceToNow } from "date-fns";
+import { Send } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Spinner } from '@/components/ui/spinner'
-import { ScrollArea } from '@/components/ui/scroll-area'
+} from "@/components/ui/dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Comment {
-  id: string
-  content: string
-  created_at: string
+  id: string;
+  content: string;
+  created_at: string;
   user: {
-    id: string
-    first_name: string
-    last_name: string
-    avatar_url: string | null
-  }
+    id: string;
+    first_name: string;
+    last_name: string;
+    avatar_url: string | null;
+  };
 }
 
 interface CommentsDialogProps {
-  postId: string
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  postId: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export function CommentsDialog({ postId, open, onOpenChange }: CommentsDialogProps) {
-  const [content, setContent] = useState('')
-  const queryClient = useQueryClient()
+export function CommentsDialog({
+  postId,
+  open,
+  onOpenChange,
+}: CommentsDialogProps) {
+  const [content, setContent] = useState("");
+  const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['comments', postId],
+    queryKey: ["comments", postId],
     queryFn: async () => {
-      const res = await fetch(`/api/posts/${postId}/comments`)
-      if (!res.ok) throw new Error('Failed to fetch comments')
-      return res.json()
+      const res = await fetch(`/api/posts/${postId}/comments`);
+      if (!res.ok) throw new Error("Failed to fetch comments");
+      return res.json();
     },
     enabled: open,
     staleTime: 30000,
-  })
+  });
 
   const addComment = useMutation({
     mutationFn: async (content: string) => {
       const res = await fetch(`/api/posts/${postId}/comments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content }),
-      })
-      if (!res.ok) throw new Error('Failed to add comment')
-      return res.json()
+      });
+      if (!res.ok) throw new Error("Failed to add comment");
+      return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['comments', postId] })
-      queryClient.invalidateQueries({ queryKey: ['posts'] })
-      setContent('')
+      queryClient.invalidateQueries({ queryKey: ["comments", postId] });
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      setContent("");
     },
-  })
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (content.trim()) {
-      addComment.mutate(content.trim())
+      addComment.mutate(content.trim());
     }
-  }
+  };
 
-  const comments: Comment[] = data?.comments ?? []
+  const comments: Comment[] = data?.comments ?? [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -108,7 +112,7 @@ export function CommentsDialog({ postId, open, onOpenChange }: CommentsDialogPro
                     <p className="text-sm">
                       <span className="font-semibold">
                         {comment.user.first_name} {comment.user.last_name}
-                      </span>{' '}
+                      </span>{" "}
                       {comment.content}
                     </p>
                     <p className="text-xs text-muted-foreground">
@@ -142,5 +146,5 @@ export function CommentsDialog({ postId, open, onOpenChange }: CommentsDialogPro
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

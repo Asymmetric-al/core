@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState, useMemo, useCallback } from "react"
+import { useState, useMemo, useCallback } from "react";
 import {
   startOfDay,
   endOfDay,
@@ -18,25 +18,25 @@ import {
   subQuarters,
   subYears,
   format,
-} from "date-fns"
-import { CalendarIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
+} from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import type { DateRange } from "react-day-picker"
-import type { DateRangePreset } from "./types"
+} from "@/components/ui/select";
+import type { DateRange } from "react-day-picker";
+import type { DateRangePreset } from "./types";
 
 export const DATE_RANGE_PRESETS: DateRangePreset[] = [
   {
@@ -51,11 +51,11 @@ export const DATE_RANGE_PRESETS: DateRangePreset[] = [
     id: "yesterday",
     label: "Yesterday",
     getValue: () => {
-      const yesterday = subDays(new Date(), 1)
+      const yesterday = subDays(new Date(), 1);
       return {
         from: startOfDay(yesterday),
         to: endOfDay(yesterday),
-      }
+      };
     },
   },
   {
@@ -102,11 +102,11 @@ export const DATE_RANGE_PRESETS: DateRangePreset[] = [
     id: "last_week",
     label: "Last week",
     getValue: () => {
-      const lastWeek = subWeeks(new Date(), 1)
+      const lastWeek = subWeeks(new Date(), 1);
       return {
         from: startOfWeek(lastWeek, { weekStartsOn: 0 }),
         to: endOfWeek(lastWeek, { weekStartsOn: 0 }),
-      }
+      };
     },
   },
   {
@@ -121,11 +121,11 @@ export const DATE_RANGE_PRESETS: DateRangePreset[] = [
     id: "last_month",
     label: "Last month",
     getValue: () => {
-      const lastMonth = subMonths(new Date(), 1)
+      const lastMonth = subMonths(new Date(), 1);
       return {
         from: startOfMonth(lastMonth),
         to: endOfMonth(lastMonth),
-      }
+      };
     },
   },
   {
@@ -140,11 +140,11 @@ export const DATE_RANGE_PRESETS: DateRangePreset[] = [
     id: "last_quarter",
     label: "Last quarter",
     getValue: () => {
-      const lastQuarter = subQuarters(new Date(), 1)
+      const lastQuarter = subQuarters(new Date(), 1);
       return {
         from: startOfQuarter(lastQuarter),
         to: endOfQuarter(lastQuarter),
-      }
+      };
     },
   },
   {
@@ -159,22 +159,22 @@ export const DATE_RANGE_PRESETS: DateRangePreset[] = [
     id: "last_year",
     label: "Last year",
     getValue: () => {
-      const lastYear = subYears(new Date(), 1)
+      const lastYear = subYears(new Date(), 1);
       return {
         from: startOfYear(lastYear),
         to: endOfYear(lastYear),
-      }
+      };
     },
   },
-]
+];
 
 interface DateRangeFilterProps {
-  value: { from: Date | null; to: Date | null } | null
-  onChange: (value: { from: Date | null; to: Date | null } | null) => void
-  presets?: DateRangePreset[]
-  placeholder?: string
-  className?: string
-  align?: "start" | "center" | "end"
+  value: { from: Date | null; to: Date | null } | null;
+  onChange: (value: { from: Date | null; to: Date | null } | null) => void;
+  presets?: DateRangePreset[];
+  placeholder?: string;
+  className?: string;
+  align?: "start" | "center" | "end";
 }
 
 export function DateRangeFilter({
@@ -185,57 +185,57 @@ export function DateRangeFilter({
   className,
   align = "start",
 }: DateRangeFilterProps) {
-  const [open, setOpen] = useState(false)
-  const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
+  const [open, setOpen] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
 
   const dateRange: DateRange | undefined = useMemo(() => {
-    if (!value?.from) return undefined
+    if (!value?.from) return undefined;
     return {
       from: value.from,
       to: value.to ?? undefined,
-    }
-  }, [value])
+    };
+  }, [value]);
 
   const displayValue = useMemo(() => {
-    if (!value?.from) return null
-    if (!value.to) return format(value.from, "MMM d, yyyy")
+    if (!value?.from) return null;
+    if (!value.to) return format(value.from, "MMM d, yyyy");
     if (value.from.getTime() === value.to.getTime()) {
-      return format(value.from, "MMM d, yyyy")
+      return format(value.from, "MMM d, yyyy");
     }
-    return `${format(value.from, "MMM d")} - ${format(value.to, "MMM d, yyyy")}`
-  }, [value])
+    return `${format(value.from, "MMM d")} - ${format(value.to, "MMM d, yyyy")}`;
+  }, [value]);
 
   const handlePresetSelect = useCallback(
     (presetId: string) => {
-      const preset = presets.find((p) => p.id === presetId)
+      const preset = presets.find((p) => p.id === presetId);
       if (preset) {
-        const range = preset.getValue()
-        onChange({ from: range.from, to: range.to })
-        setSelectedPreset(presetId)
+        const range = preset.getValue();
+        onChange({ from: range.from, to: range.to });
+        setSelectedPreset(presetId);
       }
     },
-    [presets, onChange]
-  )
+    [presets, onChange],
+  );
 
   const handleCalendarSelect = useCallback(
     (range: DateRange | undefined) => {
       if (!range) {
-        onChange(null)
+        onChange(null);
       } else {
         onChange({
           from: range.from ?? null,
           to: range.to ?? null,
-        })
+        });
       }
-      setSelectedPreset(null)
+      setSelectedPreset(null);
     },
-    [onChange]
-  )
+    [onChange],
+  );
 
   const handleClear = useCallback(() => {
-    onChange(null)
-    setSelectedPreset(null)
-  }, [onChange])
+    onChange(null);
+    setSelectedPreset(null);
+  }, [onChange]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -245,7 +245,7 @@ export function DateRangeFilter({
           className={cn(
             "h-8 w-[240px] justify-start px-2 text-left text-sm font-normal",
             !displayValue && "text-muted-foreground",
-            className
+            className,
           )}
         >
           <CalendarIcon className="mr-2 size-3.5" />
@@ -296,15 +296,15 @@ export function DateRangeFilter({
         </div>
       </PopoverContent>
     </Popover>
-  )
+  );
 }
 
 interface QuickDateFilterProps {
-  value: { from: Date | null; to: Date | null } | null
-  onChange: (value: { from: Date | null; to: Date | null } | null) => void
-  presets?: DateRangePreset[]
-  placeholder?: string
-  className?: string
+  value: { from: Date | null; to: Date | null } | null;
+  onChange: (value: { from: Date | null; to: Date | null } | null) => void;
+  presets?: DateRangePreset[];
+  placeholder?: string;
+  className?: string;
 }
 
 export function QuickDateFilter({
@@ -315,34 +315,34 @@ export function QuickDateFilter({
   className,
 }: QuickDateFilterProps) {
   const selectedPreset = useMemo(() => {
-    if (!value?.from || !value?.to) return ""
-    
+    if (!value?.from || !value?.to) return "";
+
     for (const preset of presets) {
-      const range = preset.getValue()
+      const range = preset.getValue();
       if (
         range.from.getTime() === value.from.getTime() &&
         range.to.getTime() === value.to.getTime()
       ) {
-        return preset.id
+        return preset.id;
       }
     }
-    return "custom"
-  }, [value, presets])
+    return "custom";
+  }, [value, presets]);
 
   const handleChange = useCallback(
     (presetId: string) => {
       if (!presetId || presetId === "any") {
-        onChange(null)
-        return
+        onChange(null);
+        return;
       }
-      const preset = presets.find((p) => p.id === presetId)
+      const preset = presets.find((p) => p.id === presetId);
       if (preset) {
-        const range = preset.getValue()
-        onChange({ from: range.from, to: range.to })
+        const range = preset.getValue();
+        onChange({ from: range.from, to: range.to });
       }
     },
-    [presets, onChange]
-  )
+    [presets, onChange],
+  );
 
   return (
     <Select value={selectedPreset} onValueChange={handleChange}>
@@ -358,5 +358,5 @@ export function QuickDateFilter({
         ))}
       </SelectContent>
     </Select>
-  )
+  );
 }

@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
-import { memo } from 'react'
-import { GlobalSearch } from './app-shell/global-search'
-import { NotificationsMenu } from './notifications-menu'
-import { ProfileMenu } from './profile-menu'
-import { TenantSwitcher } from './tenant-switcher'
-import { MobileSidebar } from './mobile-sidebar'
-import { Separator } from '@/components/ui/separator'
+import { memo } from "react";
+import { GlobalSearch } from "./app-shell/global-search";
+import { NotificationsMenu } from "./notifications-menu";
+import { ProfileMenu } from "./profile-menu";
+import { TenantSwitcher } from "./tenant-switcher";
+import { MobileSidebar } from "./mobile-sidebar";
+import { Separator } from "@/components/ui/separator";
 
 export const TopBar = memo(function TopBar() {
   return (
@@ -22,5 +22,5 @@ export const TopBar = memo(function TopBar() {
         <ProfileMenu />
       </div>
     </header>
-  )
-})
+  );
+});

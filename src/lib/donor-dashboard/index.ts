@@ -1,1 +1,1 @@
-export * from './feed-preferences'
+export * from "./feed-preferences";

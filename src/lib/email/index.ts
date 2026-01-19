@@ -41,7 +41,7 @@ export {
   createSendGridClient,
   type SendGridValidationResult,
   type SendEmailOptions,
-} from './sendgrid'
+} from "./sendgrid";
 
 export {
   SENDGRID_API_BASE,
@@ -55,4 +55,4 @@ export {
   DELIVERABILITY_HELP_URLS,
   type SendGridErrorCode,
   type HttpStatusCode,
-} from './constants'
+} from "./constants";

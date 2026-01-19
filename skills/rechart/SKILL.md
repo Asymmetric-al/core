@@ -1,4 +1,5 @@
 # Recharts — Skill
+
 **Name:** `recharts`
 **Purpose:** Build responsive, readable charts with Recharts using correct data mapping and composition.
 Use this skill whenever creating charts with Recharts.
@@ -7,6 +8,7 @@ Use this skill whenever creating charts with Recharts.
 **Do not use when:** Charts are not built with Recharts.
 
 ## Rules
+
 - **Always responsive:** Wrap charts in `ResponsiveContainer` and ensure a fixed height parent.
 - **Explicit data model:** Normalize data and use stable `dataKey` values.
 - **Pick the simplest chart:** Use `LineChart` for trends, `BarChart` for comparisons, `AreaChart` for cumulative/volume, `PieChart` for part-to-whole.
@@ -14,6 +16,7 @@ Use this skill whenever creating charts with Recharts.
 - **Performance:** Disable animation for large/static dashboards and reduce point count.
 
 ## Workflow
+
 1. Define the data shape and stable keys.
 2. Choose the simplest chart that answers the question.
 3. Wrap in `ResponsiveContainer` with a height.
@@ -23,28 +26,45 @@ Use this skill whenever creating charts with Recharts.
 ## Checklists
 
 ### Implementation checklist
+
 - [ ] Chart is wrapped in `ResponsiveContainer`
 - [ ] X/Y axes are present when needed
 - [ ] Tooltip shows correct units
 - [ ] `dataKey` matches field names
 
 ### Review checklist
+
 - [ ] Animations disabled for large datasets
 - [ ] Colors are accessible
 
 ## Minimal examples
 
 ### Line chart (trend)
+
 ```tsx
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
 } from "recharts";
 
-export function SalesChart({ data }: { data: Array<{ month: string; sales: number }> }) {
+export function SalesChart({
+  data,
+}: {
+  data: Array<{ month: string; sales: number }>;
+}) {
   return (
     <div style={{ height: 320 }}>
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 8, right: 16, bottom: 8, left: 8 }}>
+        <LineChart
+          data={data}
+          margin={{ top: 8, right: 16, bottom: 8, left: 8 }}
+        >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="month" />
           <YAxis />
@@ -59,6 +79,7 @@ export function SalesChart({ data }: { data: Array<{ month: string; sales: numbe
 ```
 
 ### Custom tooltip
+
 ```tsx
 type TooltipProps = {
   active?: boolean;
@@ -84,6 +105,7 @@ export function CustomTooltip({ active, label, payload }: TooltipProps) {
 ```
 
 ## Common mistakes / pitfalls
+
 - Missing `ResponsiveContainer` or fixed-height parent
 - Mismatched `dataKey` values
 - Over-animating large dashboards

@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import { memo, useMemo } from 'react'
-import { Bell } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { memo, useMemo } from "react";
+import { Bell } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,35 +10,58 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 
 interface Notification {
-  id: string
-  title: string
-  description: string
-  time: string
+  id: string;
+  title: string;
+  description: string;
+  time: string;
 }
 
 const STUB_NOTIFICATIONS: Notification[] = [
-  { id: '1', title: 'New donation received', description: '$500 from John Smith', time: '2m ago' },
-  { id: '2', title: 'Background check complete', description: 'Sarah Johnson - Approved', time: '1h ago' },
-  { id: '3', title: 'Event registration', description: '15 new registrations', time: '3h ago' },
-]
+  {
+    id: "1",
+    title: "New donation received",
+    description: "$500 from John Smith",
+    time: "2m ago",
+  },
+  {
+    id: "2",
+    title: "Background check complete",
+    description: "Sarah Johnson - Approved",
+    time: "1h ago",
+  },
+  {
+    id: "3",
+    title: "Event registration",
+    description: "15 new registrations",
+    time: "3h ago",
+  },
+];
 
-const NotificationItem = memo(function NotificationItem({ notification }: { notification: Notification }) {
+const NotificationItem = memo(function NotificationItem({
+  notification,
+}: {
+  notification: Notification;
+}) {
   return (
     <DropdownMenuItem className="flex flex-col items-start gap-1 px-3 py-3 cursor-pointer">
       <div className="flex w-full items-start justify-between gap-2">
         <span className="text-sm font-medium">{notification.title}</span>
-        <span className="shrink-0 text-[10px] text-muted-foreground">{notification.time}</span>
+        <span className="shrink-0 text-[10px] text-muted-foreground">
+          {notification.time}
+        </span>
       </div>
-      <span className="text-xs text-muted-foreground">{notification.description}</span>
+      <span className="text-xs text-muted-foreground">
+        {notification.description}
+      </span>
     </DropdownMenuItem>
-  )
-})
+  );
+});
 
 export const NotificationsMenu = memo(function NotificationsMenu() {
-  const notifications = useMemo(() => STUB_NOTIFICATIONS, [])
+  const notifications = useMemo(() => STUB_NOTIFICATIONS, []);
 
   return (
     <DropdownMenu>
@@ -72,5 +95,5 @@ export const NotificationsMenu = memo(function NotificationsMenu() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
-})
+  );
+});

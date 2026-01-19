@@ -8,19 +8,19 @@ Email Studio provides a visual email builder that enables non-technical users to
 
 ## Current Implementation Status
 
-| Feature | Status | Location |
-|---------|--------|----------|
-| Unlayer Editor Integration | Complete | `src/components/studio/UnlayerEditor.tsx` |
-| Email Studio Page | Complete | `src/app/(admin)/mc/email/page.tsx` |
-| Configuration System | Complete | `src/config/email-studio.ts` |
-| Type Definitions | Complete | `src/types/email-studio.ts` |
-| Setup Status Component | Complete | `src/components/studio/EmailStudioSetupStatus.tsx` |
-| HTML Export | Complete | Via `exportHtml()` method |
-| PDF Export | Complete | Via `exportPdf()` method |
-| Template Save | Partial | UI complete, API stubbed |
-| SendGrid Integration | Complete | `src/lib/email/sendgrid.ts` |
-| Template Database Storage | Planned | Requires Supabase table |
-| Campaign Management | Planned | Bulk sends with scheduling |
+| Feature                    | Status   | Location                                           |
+| -------------------------- | -------- | -------------------------------------------------- |
+| Unlayer Editor Integration | Complete | `src/components/studio/UnlayerEditor.tsx`          |
+| Email Studio Page          | Complete | `src/app/(admin)/mc/email/page.tsx`                |
+| Configuration System       | Complete | `src/config/email-studio.ts`                       |
+| Type Definitions           | Complete | `src/types/email-studio.ts`                        |
+| Setup Status Component     | Complete | `src/components/studio/EmailStudioSetupStatus.tsx` |
+| HTML Export                | Complete | Via `exportHtml()` method                          |
+| PDF Export                 | Complete | Via `exportPdf()` method                           |
+| Template Save              | Partial  | UI complete, API stubbed                           |
+| SendGrid Integration       | Complete | `src/lib/email/sendgrid.ts`                        |
+| Template Database Storage  | Planned  | Requires Supabase table                            |
+| Campaign Management        | Planned  | Bulk sends with scheduling                         |
 
 ---
 
@@ -74,6 +74,7 @@ src/
 #### Free Mode (No Setup Required)
 
 Email Studio works out-of-the-box in free mode with these features:
+
 - Drag-and-drop editor
 - Basic templates
 - HTML export
@@ -109,6 +110,7 @@ NEXT_PUBLIC_UNLAYER_WHITE_LABEL=true
 See [SendGrid Integration](./sendgrid-integration.md) for complete setup instructions.
 
 Quick setup:
+
 1. Create SendGrid account at [signup.sendgrid.com](https://signup.sendgrid.com)
 2. Create API key with `mail.send` permission
 3. Verify sender email or authenticate domain
@@ -141,16 +143,16 @@ NEXT_PUBLIC_EMAIL_FOOTER_TEXT=YourOrg | 123 Main St | City, ST 12345
 
 ## Environment Variables Reference
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `NEXT_PUBLIC_UNLAYER_PROJECT_ID` | No | Unlayer project ID (enables paid features) |
-| `NEXT_PUBLIC_UNLAYER_WHITE_LABEL` | No | Set `true` for white-label mode |
-| `NEXT_PUBLIC_UNLAYER_ALLOWED_DOMAINS` | No | Comma-separated list of allowed domains |
-| `NEXT_PUBLIC_BRAND_NAME` | No | Organization name (default: "GiveHope") |
-| `NEXT_PUBLIC_BRAND_PRIMARY_COLOR` | No | Primary color hex (default: "#0f172a") |
-| `NEXT_PUBLIC_BRAND_ACCENT_COLOR` | No | Accent color hex (default: "#2563eb") |
-| `NEXT_PUBLIC_BRAND_LOGO_URL` | No | Logo URL for email headers |
-| `NEXT_PUBLIC_EMAIL_FOOTER_TEXT` | No | Default footer text |
+| Variable                              | Required | Description                                |
+| ------------------------------------- | -------- | ------------------------------------------ |
+| `NEXT_PUBLIC_UNLAYER_PROJECT_ID`      | No       | Unlayer project ID (enables paid features) |
+| `NEXT_PUBLIC_UNLAYER_WHITE_LABEL`     | No       | Set `true` for white-label mode            |
+| `NEXT_PUBLIC_UNLAYER_ALLOWED_DOMAINS` | No       | Comma-separated list of allowed domains    |
+| `NEXT_PUBLIC_BRAND_NAME`              | No       | Organization name (default: "GiveHope")    |
+| `NEXT_PUBLIC_BRAND_PRIMARY_COLOR`     | No       | Primary color hex (default: "#0f172a")     |
+| `NEXT_PUBLIC_BRAND_ACCENT_COLOR`      | No       | Accent color hex (default: "#2563eb")      |
+| `NEXT_PUBLIC_BRAND_LOGO_URL`          | No       | Logo URL for email headers                 |
+| `NEXT_PUBLIC_EMAIL_FOOTER_TEXT`       | No       | Default footer text                        |
 
 ---
 
@@ -159,89 +161,93 @@ NEXT_PUBLIC_EMAIL_FOOTER_TEXT=YourOrg | 123 Main St | City, ST 12345
 ### Using the UnlayerEditor Component
 
 ```tsx
-import { UnlayerEditor, UnlayerEditorHandle } from '@/components/studio/UnlayerEditor'
+import {
+  UnlayerEditor,
+  UnlayerEditorHandle,
+} from "@/components/studio/UnlayerEditor";
 
 function MyEmailEditor() {
-  const editorRef = useRef<UnlayerEditorHandle>(null)
+  const editorRef = useRef<UnlayerEditorHandle>(null);
 
   const handleExport = async () => {
-    const { html, design } = await editorRef.current.exportHtml()
-    console.log('HTML:', html)
-    console.log('Design JSON:', design)
-  }
+    const { html, design } = await editorRef.current.exportHtml();
+    console.log("HTML:", html);
+    console.log("Design JSON:", design);
+  };
 
   return (
     <UnlayerEditor
       ref={editorRef}
       mode="email"
       editorId="my-editor"
-      onReady={(config) => console.log('Editor ready', config)}
-      onDesignUpdate={(design) => console.log('Design changed')}
+      onReady={(config) => console.log("Editor ready", config)}
+      onDesignUpdate={(design) => console.log("Design changed")}
       className="h-full"
       appearance={{
-        theme: 'modern_light',
-        panels: { tools: { dock: 'right' } }
+        theme: "modern_light",
+        panels: { tools: { dock: "right" } },
       }}
     />
-  )
+  );
 }
 ```
 
 ### Editor Handle Methods
 
-| Method | Returns | Description |
-|--------|---------|-------------|
-| `exportHtml(options?)` | `Promise<UnlayerExportHTML>` | Export design as HTML |
-| `exportPdf(options?)` | `Promise<UnlayerPdfExportResult>` | Export as PDF (requires project ID) |
-| `exportDesign()` | `Promise<UnlayerDesignJSON>` | Get raw design JSON |
-| `loadDesign(design)` | `void` | Load a design into the editor |
-| `saveDesign()` | `Promise<UnlayerDesignJSON>` | Save current design |
-| `setMergeTags(tags)` | `void` | Update merge tags dynamically |
-| `showPreview(device)` | `void` | Show preview ('desktop' or 'mobile') |
-| `undo()` | `void` | Undo last action |
-| `redo()` | `void` | Redo last undone action |
-| `getConfig()` | `StudioConfig` | Get current configuration |
+| Method                 | Returns                           | Description                          |
+| ---------------------- | --------------------------------- | ------------------------------------ |
+| `exportHtml(options?)` | `Promise<UnlayerExportHTML>`      | Export design as HTML                |
+| `exportPdf(options?)`  | `Promise<UnlayerPdfExportResult>` | Export as PDF (requires project ID)  |
+| `exportDesign()`       | `Promise<UnlayerDesignJSON>`      | Get raw design JSON                  |
+| `loadDesign(design)`   | `void`                            | Load a design into the editor        |
+| `saveDesign()`         | `Promise<UnlayerDesignJSON>`      | Save current design                  |
+| `setMergeTags(tags)`   | `void`                            | Update merge tags dynamically        |
+| `showPreview(device)`  | `void`                            | Show preview ('desktop' or 'mobile') |
+| `undo()`               | `void`                            | Undo last action                     |
+| `redo()`               | `void`                            | Redo last undone action              |
+| `getConfig()`          | `StudioConfig`                    | Get current configuration            |
 
 ### UnlayerEditor Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `mode` | `'email' \| 'web' \| 'popup' \| 'document'` | `'email'` | Editor display mode |
-| `initialDesign` | `UnlayerDesignJSON` | Blank template | Initial design to load |
-| `projectId` | `number` | From env | Override Unlayer project ID |
-| `editorId` | `string` | Auto-generated | Unique editor instance ID |
-| `onReady` | `(config) => void` | - | Called when editor is ready |
-| `onLoad` | `() => void` | - | Called when editor starts loading |
-| `onDesignUpdate` | `(design) => void` | - | Called on any design change |
-| `onSave` | `(data) => void` | - | Called when save is triggered |
-| `onExport` | `(data) => void` | - | Called after HTML export |
-| `className` | `string` | - | CSS classes for wrapper |
-| `appearance` | `UnlayerAppearance` | Default | Editor appearance settings |
-| `mergeTags` | `UnlayerMergeTags` | Default | Merge tags configuration |
-| `user` | `{ id?, email?, name? }` | - | Current user info |
-| `locale` | `string` | `'en-US'` | Editor locale |
-| `customCSS` | `string[]` | `[]` | Custom CSS to inject |
-| `customJS` | `string[]` | `[]` | Custom JS to inject |
+| Prop             | Type                                        | Default        | Description                       |
+| ---------------- | ------------------------------------------- | -------------- | --------------------------------- |
+| `mode`           | `'email' \| 'web' \| 'popup' \| 'document'` | `'email'`      | Editor display mode               |
+| `initialDesign`  | `UnlayerDesignJSON`                         | Blank template | Initial design to load            |
+| `projectId`      | `number`                                    | From env       | Override Unlayer project ID       |
+| `editorId`       | `string`                                    | Auto-generated | Unique editor instance ID         |
+| `onReady`        | `(config) => void`                          | -              | Called when editor is ready       |
+| `onLoad`         | `() => void`                                | -              | Called when editor starts loading |
+| `onDesignUpdate` | `(design) => void`                          | -              | Called on any design change       |
+| `onSave`         | `(data) => void`                            | -              | Called when save is triggered     |
+| `onExport`       | `(data) => void`                            | -              | Called after HTML export          |
+| `className`      | `string`                                    | -              | CSS classes for wrapper           |
+| `appearance`     | `UnlayerAppearance`                         | Default        | Editor appearance settings        |
+| `mergeTags`      | `UnlayerMergeTags`                          | Default        | Merge tags configuration          |
+| `user`           | `{ id?, email?, name? }`                    | -              | Current user info                 |
+| `locale`         | `string`                                    | `'en-US'`      | Editor locale                     |
+| `customCSS`      | `string[]`                                  | `[]`           | Custom CSS to inject              |
+| `customJS`       | `string[]`                                  | `[]`           | Custom JS to inject               |
 
 ### Export Options
 
 ```typescript
 // HTML Export
 const { html, design } = await editorRef.current.exportHtml({
-  minify: true,      // Minify HTML output
-  cleanup: true,     // Clean up CSS
-  mergeTags: {       // Replace merge tags with values
-    first_name: 'John',
-    last_name: 'Doe'
-  }
-})
+  minify: true, // Minify HTML output
+  cleanup: true, // Clean up CSS
+  mergeTags: {
+    // Replace merge tags with values
+    first_name: "John",
+    last_name: "Doe",
+  },
+});
 
 // PDF Export (requires Unlayer project ID)
 const { url, design } = await editorRef.current.exportPdf({
   mergeTags: {
-    first_name: 'John'
-  }
-})
+    first_name: "John",
+  },
+});
 ```
 
 ---
@@ -252,20 +258,21 @@ Merge tags allow dynamic content insertion. The system provides pre-configured t
 
 ### Available Categories
 
-| Category | Tags | Description |
-|----------|------|-------------|
-| `organization` | `org_name`, `org_address`, `org_phone`, `org_email`, `org_website` | Organization details |
-| `recipient` | `first_name`, `last_name`, `full_name`, `email`, `salutation` | Recipient personalization |
-| `donation` | `donation_amount`, `donation_date`, `donation_method`, `donation_id`, `ytd_giving`, `tax_receipt_number` | Donation details |
-| `missionary` | `missionary_name`, `missionary_location`, `missionary_bio`, `support_level`, `support_goal` | Missionary info |
-| `links` | `unsubscribe_link`, `view_in_browser`, `donate_link`, `profile_link`, `preferences_link` | Action links |
-| `campaign` | `campaign_name`, `campaign_goal`, `campaign_raised`, `campaign_end_date` | Campaign details |
+| Category       | Tags                                                                                                     | Description               |
+| -------------- | -------------------------------------------------------------------------------------------------------- | ------------------------- |
+| `organization` | `org_name`, `org_address`, `org_phone`, `org_email`, `org_website`                                       | Organization details      |
+| `recipient`    | `first_name`, `last_name`, `full_name`, `email`, `salutation`                                            | Recipient personalization |
+| `donation`     | `donation_amount`, `donation_date`, `donation_method`, `donation_id`, `ytd_giving`, `tax_receipt_number` | Donation details          |
+| `missionary`   | `missionary_name`, `missionary_location`, `missionary_bio`, `support_level`, `support_goal`              | Missionary info           |
+| `links`        | `unsubscribe_link`, `view_in_browser`, `donate_link`, `profile_link`, `preferences_link`                 | Action links              |
+| `campaign`     | `campaign_name`, `campaign_goal`, `campaign_raised`, `campaign_end_date`                                 | Campaign details          |
 
 ### Merge Tag Format
 
 Tags use double curly brace syntax: `{{tag_name}}`
 
 Example email content:
+
 ```html
 <p>Dear {{first_name}},</p>
 <p>Thank you for your gift of {{donation_amount}} on {{donation_date}}.</p>
@@ -330,30 +337,30 @@ Critical CSS in `globals.css`:
 
 ## Keyboard Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| `Cmd/Ctrl + S` | Open save dialog |
-| `Cmd/Ctrl + Z` | Undo |
-| `Cmd/Ctrl + Shift + Z` | Redo |
-| `Cmd/Ctrl + E` | Export HTML |
-| `Esc` | Exit fullscreen mode |
+| Shortcut               | Action               |
+| ---------------------- | -------------------- |
+| `Cmd/Ctrl + S`         | Open save dialog     |
+| `Cmd/Ctrl + Z`         | Undo                 |
+| `Cmd/Ctrl + Shift + Z` | Redo                 |
+| `Cmd/Ctrl + E`         | Export HTML          |
+| `Esc`                  | Exit fullscreen mode |
 
 ---
 
 ## Feature Availability by Tier
 
-| Feature | Free | Configured | White-Label |
-|---------|------|------------|-------------|
-| Drag-and-drop editor | Yes | Yes | Yes |
-| Basic templates | Yes | Yes | Yes |
-| HTML export | Yes | Yes | Yes |
-| Mobile preview | Yes | Yes | Yes |
-| Stock images | No | Yes | Yes |
-| Custom blocks | No | Yes | Yes |
-| Team collaboration | No | Yes | Yes |
-| Remove Unlayer branding | No | No | Yes |
-| AI writing assistant | No | No | Yes |
-| Custom fonts | No | No | Yes |
+| Feature                 | Free | Configured | White-Label |
+| ----------------------- | ---- | ---------- | ----------- |
+| Drag-and-drop editor    | Yes  | Yes        | Yes         |
+| Basic templates         | Yes  | Yes        | Yes         |
+| HTML export             | Yes  | Yes        | Yes         |
+| Mobile preview          | Yes  | Yes        | Yes         |
+| Stock images            | No   | Yes        | Yes         |
+| Custom blocks           | No   | Yes        | Yes         |
+| Team collaboration      | No   | Yes        | Yes         |
+| Remove Unlayer branding | No   | No         | Yes         |
+| AI writing assistant    | No   | No         | Yes         |
+| Custom fonts            | No   | No         | Yes         |
 
 ---
 

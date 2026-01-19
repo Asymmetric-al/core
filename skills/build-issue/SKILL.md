@@ -1,4 +1,5 @@
 # Build Issue — Skill
+
 **Name:** `build-issue`
 **Purpose:** Implement one or more `AL-###` GitHub issues with small, testable changes that match repo rules.
 Use this skill when the user asks to implement/build/solve an issue.
@@ -7,6 +8,7 @@ Use this skill when the user asks to implement/build/solve an issue.
 **Do not use when:** Writing issues (`skills/write-issue/SKILL.md`), starting work (`skills/start-issue/SKILL.md`), or closing/shipping (`skills/close-issue/SKILL.md`).
 
 ## Rules
+
 - Issue keys must match `AL-###`.
 - Prefer GitHub MCP for issue/PR lookups and updates.
 - Use Nia for codebase search/trace (paths, entry points, patterns).
@@ -17,6 +19,7 @@ Use this skill when the user asks to implement/build/solve an issue.
 - Quality gate for handoff: `bun run lint && bun run typecheck && bun run build`.
 
 ## Workflow
+
 1. **Confirm issue key(s):** If missing, ask for `AL-###`. Validate format.
 2. **Fetch issue details (MCP):** Capture title, context, acceptance criteria, and testing notes.
 3. **Load rulebooks/skills:** Always apply `rules/general.md`. Add `rules/frontend.md`, `rules/backend.md`, or `rules/testing.md` as needed. Load any matching skills (e.g., Next.js App Router, cache components).
@@ -30,11 +33,13 @@ Use this skill when the user asks to implement/build/solve an issue.
 ## Checklists
 
 ### Input checklist
+
 - [ ] `AL-###` key confirmed
 - [ ] Issue details fetched via GitHub MCP
 - [ ] On a feature branch (not `main`/`develop`)
 
 ### Build checklist
+
 - [ ] Relevant rulebooks/skills loaded
 - [ ] Plan approved by user
 - [ ] Changes scoped to acceptance criteria
@@ -42,6 +47,7 @@ Use this skill when the user asks to implement/build/solve an issue.
 - [ ] Commits are small and atomic
 
 ### Verification checklist
+
 - [ ] Relevant tests run
 - [ ] Quality gate passed (or explicitly deferred)
 - [ ] Doc update approval requested if behavior changed
@@ -49,19 +55,23 @@ Use this skill when the user asks to implement/build/solve an issue.
 ## Minimal examples
 
 ### Plan snippet
+
 ```markdown
 ## Implementation Plan (AL-123)
+
 - Update {path} to {behavior}
 - Add {test} for {scenario}
 - Verify with `bun run lint && bun run typecheck && bun run build`
 ```
 
 ### Commit with issue reference
+
 ```bash
 git commit -m "feat(feature): add XYZ" -m "ref AL-123"
 ```
 
 ## Common mistakes / pitfalls
+
 - Implementing without a valid `AL-###` key
 - Skipping Nia when tracing affected areas
 - Using third-party APIs without Context7

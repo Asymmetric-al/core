@@ -1,29 +1,29 @@
-"use client"
+"use client";
 
-import type { Table } from "@tanstack/react-table"
+import type { Table } from "@tanstack/react-table";
 import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-} from "lucide-react"
+} from "lucide-react";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { DEFAULT_PAGE_SIZES } from "./types"
+} from "@/components/ui/select";
+import { DEFAULT_PAGE_SIZES } from "./types";
 
 interface DataTablePaginationProps<TData> {
-  table: Table<TData>
-  pageSizes?: readonly number[]
-  showSelectedCount?: boolean
-  className?: string
+  table: Table<TData>;
+  pageSizes?: readonly number[];
+  showSelectedCount?: boolean;
+  className?: string;
 }
 
 export function DataTablePagination<TData>({
@@ -33,7 +33,12 @@ export function DataTablePagination<TData>({
   className,
 }: DataTablePaginationProps<TData>) {
   return (
-    <div className={cn("flex flex-col sm:flex-row items-center justify-between gap-4 py-4", className)}>
+    <div
+      className={cn(
+        "flex flex-col sm:flex-row items-center justify-between gap-4 py-4",
+        className,
+      )}
+    >
       <div className="flex items-center gap-4 text-sm text-muted-foreground">
         {showSelectedCount && (
           <div className="flex-1 whitespace-nowrap">
@@ -48,7 +53,7 @@ export function DataTablePagination<TData>({
           <Select
             value={`${table.getState().pagination.pageSize}`}
             onValueChange={(value) => {
-              table.setPageSize(Number(value))
+              table.setPageSize(Number(value));
             }}
           >
             <SelectTrigger className="h-9 w-[72px] rounded-xl">
@@ -111,5 +116,5 @@ export function DataTablePagination<TData>({
         </div>
       </div>
     </div>
-  )
+  );
 }
