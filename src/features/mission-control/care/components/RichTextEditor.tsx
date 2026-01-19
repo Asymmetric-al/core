@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { Textarea } from '@/components/ui/textarea';
+import React from "react";
+import { Textarea } from "@/components/ui/textarea";
 
 interface RichTextEditorProps {
   value: string;
@@ -11,13 +10,13 @@ interface RichTextEditorProps {
   onKeyDown?: (e: React.KeyboardEvent) => void;
 }
 
-export const RichTextEditor: React.FC<RichTextEditorProps> = ({ 
-  value, 
-  onChange, 
-  placeholder, 
+export const RichTextEditor: React.FC<RichTextEditorProps> = ({
+  value,
+  onChange,
+  placeholder,
   className,
   minHeight,
-  onKeyDown
+  onKeyDown,
 }) => {
   // Simple implementation using Textarea for now to avoid dependency issues with tiptap in this environment
   // In a full implementation, this would be a Tiptap wrapper.

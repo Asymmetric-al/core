@@ -11,17 +11,17 @@ This document defines the responsive design standards for the Asymmetric.al plat
 
 ## Breakpoints
 
-| Name | Width | Usage |
-|------|-------|-------|
-| xs | < 640px | Mobile phones |
-| sm | 640px+ | Large phones, small tablets |
-| md | 768px+ | Tablets |
-| lg | 1024px+ | Small laptops, tablets landscape |
-| xl | 1280px+ | Laptops, desktops |
-| 2xl | 1536px+ | Large desktops |
+| Name | Width   | Usage                            |
+| ---- | ------- | -------------------------------- |
+| xs   | < 640px | Mobile phones                    |
+| sm   | 640px+  | Large phones, small tablets      |
+| md   | 768px+  | Tablets                          |
+| lg   | 1024px+ | Small laptops, tablets landscape |
+| xl   | 1280px+ | Laptops, desktops                |
+| 2xl  | 1536px+ | Large desktops                   |
 
 ```tsx
-import { BREAKPOINTS } from '@/lib/responsive'
+import { BREAKPOINTS } from "@/lib/responsive";
 // BREAKPOINTS = { sm: 640, md: 768, lg: 1024, xl: 1280, '2xl': 1536 }
 ```
 
@@ -133,13 +133,13 @@ The system uses CSS custom properties that automatically adjust at each breakpoi
 ## React Hooks
 
 ```tsx
-import { 
-  useIsMobile,      // < md (768px)
-  useIsTablet,      // md to lg (768-1024px)
-  useIsDesktop,     // >= lg (1024px)
-  useBreakpoint,    // 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
-  useResponsive     // { isMobile, isTablet, isDesktop, breakpoint, width }
-} from '@/hooks/use-mobile'
+import {
+  useIsMobile, // < md (768px)
+  useIsTablet, // md to lg (768-1024px)
+  useIsDesktop, // >= lg (1024px)
+  useBreakpoint, // 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
+  useResponsive, // { isMobile, isTablet, isDesktop, breakpoint, width }
+} from "@/hooks/use-mobile";
 ```
 
 ## Best Practices
@@ -227,7 +227,7 @@ export default function ExamplePage() {
         <div className="lg:col-span-4">Sidebar</div>
       </div>
     </div>
-  )
+  );
 }
 ```
 

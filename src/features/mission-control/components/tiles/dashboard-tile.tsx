@@ -12,13 +12,19 @@ interface DashboardTileProps {
   className?: string;
 }
 
-export function DashboardTile({ name, description, icon: Icon, href, className }: DashboardTileProps) {
+export function DashboardTile({
+  name,
+  description,
+  icon: Icon,
+  href,
+  className,
+}: DashboardTileProps) {
   return (
-    <Link 
+    <Link
       href={href}
       className={cn(
         "group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200 bg-white p-6 transition-all duration-300 hover:border-zinc-300 hover:shadow-xl hover:shadow-zinc-200/40",
-        className
+        className,
       )}
     >
       <div>
@@ -32,7 +38,7 @@ export function DashboardTile({ name, description, icon: Icon, href, className }
           {description}
         </p>
       </div>
-      
+
       <div className="mt-6 flex items-center justify-between border-t border-zinc-50 pt-4 transition-colors group-hover:border-zinc-100">
         <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 transition-colors group-hover:text-zinc-900">
           Access Module

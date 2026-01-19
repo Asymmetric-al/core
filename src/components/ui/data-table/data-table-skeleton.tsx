@@ -1,23 +1,23 @@
-"use client"
+"use client";
 
-import type { Table } from "@tanstack/react-table"
-import { Loader2 } from "lucide-react"
+import type { Table } from "@tanstack/react-table";
+import { Loader2 } from "lucide-react";
 
-import { cn } from "@/lib/utils"
-import { Skeleton } from "@/components/ui/skeleton"
+import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table as UITable,
   TableBody,
   TableCell,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 
 interface DataTableSkeletonProps<TData> {
-  table?: Table<TData>
-  columnCount?: number
-  rowCount?: number
-  showPagination?: boolean
-  className?: string
+  table?: Table<TData>;
+  columnCount?: number;
+  rowCount?: number;
+  showPagination?: boolean;
+  className?: string;
 }
 
 export function DataTableSkeleton<TData>({
@@ -27,8 +27,8 @@ export function DataTableSkeleton<TData>({
   showPagination = true,
   className,
 }: DataTableSkeletonProps<TData>) {
-  const columns = table?.getAllColumns().length || columnCount
-  const rows = table?.getState().pagination.pageSize || rowCount
+  const columns = table?.getAllColumns().length || columnCount;
+  const rows = table?.getState().pagination.pageSize || rowCount;
 
   return (
     <div className={cn("w-full space-y-4", className)}>
@@ -49,7 +49,7 @@ export function DataTableSkeleton<TData>({
                     <Skeleton
                       className={cn(
                         "h-5 rounded-lg",
-                        colIndex === 0 ? "w-8" : "w-full max-w-32"
+                        colIndex === 0 ? "w-8" : "w-full max-w-32",
                       )}
                     />
                   </TableCell>
@@ -73,19 +73,19 @@ export function DataTableSkeleton<TData>({
         </div>
       )}
     </div>
-  )
+  );
 }
 
 interface DataTableLoadingOverlayProps {
-  isLoading?: boolean
-  className?: string
+  isLoading?: boolean;
+  className?: string;
 }
 
 export function DataTableLoadingOverlay({
   isLoading = false,
   className,
 }: DataTableLoadingOverlayProps) {
-  if (!isLoading) return null
+  if (!isLoading) return null;
 
   return (
     <div
@@ -93,7 +93,7 @@ export function DataTableLoadingOverlay({
         "absolute inset-0 z-10 flex items-center justify-center",
         "bg-background/60 backdrop-blur-sm",
         "rounded-2xl",
-        className
+        className,
       )}
     >
       <div className="flex flex-col items-center gap-2">
@@ -103,5 +103,5 @@ export function DataTableLoadingOverlay({
         </span>
       </div>
     </div>
-  )
+  );
 }

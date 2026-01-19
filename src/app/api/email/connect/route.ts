@@ -49,44 +49,47 @@
  * @module app/api/email/connect
  */
 
-import { NextResponse } from 'next/server'
-import { validateSendGridApiKey } from '@/lib/email/sendgrid'
-import type { ConnectSendGridRequest, ConnectSendGridResponse } from '@/types/email'
+import { NextResponse } from "next/server";
+import { validateSendGridApiKey } from "@/lib/email/sendgrid";
+import type {
+  ConnectSendGridRequest,
+  ConnectSendGridResponse,
+} from "@/types/email";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as ConnectSendGridRequest
+    const body = (await request.json()) as ConnectSendGridRequest;
 
     if (!body.apiKey) {
       return NextResponse.json(
-        { success: false, error: 'API key is required' },
-        { status: 400 }
-      )
+        { success: false, error: "API key is required" },
+        { status: 400 },
+      );
     }
 
     if (!body.defaultFromEmail) {
       return NextResponse.json(
-        { success: false, error: 'From email is required' },
-        { status: 400 }
-      )
+        { success: false, error: "From email is required" },
+        { status: 400 },
+      );
     }
 
     if (!body.defaultFromName) {
       return NextResponse.json(
-        { success: false, error: 'From name is required' },
-        { status: 400 }
-      )
+        { success: false, error: "From name is required" },
+        { status: 400 },
+      );
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(body.defaultFromEmail)) {
       return NextResponse.json(
-        { success: false, error: 'Invalid email format' },
-        { status: 400 }
-      )
+        { success: false, error: "Invalid email format" },
+        { status: 400 },
+      );
     }
 
-    const validationResult = await validateSendGridApiKey(body.apiKey)
+    const validationResult = await validateSendGridApiKey(body.apiKey);
 
     if (!validationResult.valid) {
       return NextResponse.json(
@@ -95,30 +98,32 @@ export async function POST(request: Request) {
           error: validationResult.error,
           errorCode: validationResult.errorCode,
         },
-        { status: 400 }
-      )
+        { status: 400 },
+      );
     }
 
-    const senderEmail = body.defaultFromEmail.toLowerCase()
-    const senderDomain = senderEmail.split('@')[1]
+    const senderEmail = body.defaultFromEmail.toLowerCase();
+    const senderDomain = senderEmail.split("@")[1];
 
     const isVerifiedSender = validationResult.senderIdentities?.some(
-      sender => sender.from_email.toLowerCase() === senderEmail && sender.verified
-    )
+      (sender) =>
+        sender.from_email.toLowerCase() === senderEmail && sender.verified,
+    );
 
     const isAuthenticatedDomain = validationResult.domainAuthentication?.some(
-      domain => domain.domain === senderDomain && domain.valid
-    )
+      (domain) => domain.domain === senderDomain && domain.valid,
+    );
 
-    const warnings = [...(validationResult.warnings || [])]
+    const warnings = [...(validationResult.warnings || [])];
 
     if (!isVerifiedSender && !isAuthenticatedDomain) {
       warnings.push({
-        code: 'SENDER_NOT_VERIFIED',
+        code: "SENDER_NOT_VERIFIED",
         message: `The sender email "${body.defaultFromEmail}" is not verified. You must verify this email address or authenticate its domain in SendGrid before sending emails.`,
-        severity: 'error',
-        helpUrl: 'https://docs.sendgrid.com/ui/sending-email/sender-verification',
-      })
+        severity: "error",
+        helpUrl:
+          "https://docs.sendgrid.com/ui/sending-email/sender-verification",
+      });
     }
 
     const response: ConnectSendGridResponse = {
@@ -128,15 +133,14 @@ export async function POST(request: Request) {
       domainAuthentication: validationResult.domainAuthentication,
       deliverabilityScore: validationResult.deliverabilityScore,
       warnings,
-    }
+    };
 
-    return NextResponse.json(response)
-
+    return NextResponse.json(response);
   } catch (error) {
-    console.error('[API] Email connect error:', error)
+    console.error("[API] Email connect error:", error);
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    )
+      { success: false, error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

@@ -77,12 +77,12 @@ Accepts an image file, processes it server-side using Sharp, and uploads optimiz
 
 Edit `src/app/api/upload/image/route.ts` to adjust:
 
-| Constant | Default | Description |
-|----------|---------|-------------|
-| `DISPLAY_MAX_DIMENSION` | 1200 | Maximum width/height for display variant |
-| `THUMBNAIL_MAX_DIMENSION` | 200 | Thumbnail size (square, center-cropped) |
-| `OUTPUT_QUALITY` | 85 | WebP quality (1-100) |
-| `MAX_FILE_SIZE` | 50MB | Maximum upload size |
+| Constant                  | Default | Description                              |
+| ------------------------- | ------- | ---------------------------------------- |
+| `DISPLAY_MAX_DIMENSION`   | 1200    | Maximum width/height for display variant |
+| `THUMBNAIL_MAX_DIMENSION` | 200     | Thumbnail size (square, center-cropped)  |
+| `OUTPUT_QUALITY`          | 85      | WebP quality (1-100)                     |
+| `MAX_FILE_SIZE`           | 50MB    | Maximum upload size                      |
 
 ## Client-Side Limits
 
@@ -108,23 +108,28 @@ The client (`src/lib/image-utils.ts`) enforces a **50MB safeguard limit** to pre
 ### To add a new variant:
 
 1. Add resize logic in the API route:
+
 ```typescript
 const newVariantBuffer = await sharp(buffer)
-  .resize(800, 800, { fit: 'inside' })
+  .resize(800, 800, { fit: "inside" })
   .webp({ quality: OUTPUT_QUALITY })
-  .toBuffer()
+  .toBuffer();
 ```
 
 2. Upload to storage:
+
 ```typescript
-const newVariantPath = `${path}/${baseName}-newvariant.webp`
-await supabaseAdmin.storage.from(bucket).upload(newVariantPath, newVariantBuffer, {
-  contentType: 'image/webp',
-  upsert: true,
-})
+const newVariantPath = `${path}/${baseName}-newvariant.webp`;
+await supabaseAdmin.storage
+  .from(bucket)
+  .upload(newVariantPath, newVariantBuffer, {
+    contentType: "image/webp",
+    upsert: true,
+  });
 ```
 
 3. Include in response:
+
 ```typescript
 const result = {
   // ...existing variants
@@ -132,27 +137,28 @@ const result = {
     key: newVariantPath,
     url: publicUrl,
     // ...metadata
-  }
-}
+  },
+};
 ```
 
 ### To change output format:
 
 Replace `.webp({ quality: OUTPUT_QUALITY })` with:
+
 - JPEG: `.jpeg({ quality: OUTPUT_QUALITY, mozjpeg: true })`
 - PNG: `.png({ compressionLevel: 9 })`
 - AVIF: `.avif({ quality: OUTPUT_QUALITY })`
 
 ## Error Handling
 
-| Error | Status | Cause |
-|-------|--------|-------|
-| `Unauthorized` | 401 | Missing or invalid Bearer token |
-| `No file provided` | 400 | Missing file in FormData |
-| `Unsupported file type` | 400 | File MIME not in allowed list |
-| `File too large` | 400 | Exceeds 50MB limit |
-| `Invalid or corrupt image` | 400 | Sharp couldn't read image metadata |
-| `Upload failed` | 500 | Supabase Storage error |
+| Error                      | Status | Cause                              |
+| -------------------------- | ------ | ---------------------------------- |
+| `Unauthorized`             | 401    | Missing or invalid Bearer token    |
+| `No file provided`         | 400    | Missing file in FormData           |
+| `Unsupported file type`    | 400    | File MIME not in allowed list      |
+| `File too large`           | 400    | Exceeds 50MB limit                 |
+| `Invalid or corrupt image` | 400    | Sharp couldn't read image metadata |
+| `Upload failed`            | 500    | Supabase Storage error             |
 
 ## Storage Bucket Setup
 

@@ -1,8 +1,12 @@
-'use client'
+"use client";
 
-import { QueryClient, QueryClientProvider, isServer } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { type ReactNode } from 'react'
+import {
+  QueryClient,
+  QueryClientProvider,
+  isServer,
+} from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { type ReactNode } from "react";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -12,40 +16,40 @@ function makeQueryClient() {
         gcTime: 5 * 60 * 1000,
         refetchOnWindowFocus: false,
         retry: (failureCount, error) => {
-          if (error instanceof Error && error.message.includes('401')) return false
-          if (error instanceof Error && error.message.includes('403')) return false
-          return failureCount < 3
+          if (error instanceof Error && error.message.includes("401"))
+            return false;
+          if (error instanceof Error && error.message.includes("403"))
+            return false;
+          return failureCount < 3;
         },
       },
       mutations: {
         retry: false,
       },
     },
-  })
+  });
 }
 
-let browserQueryClient: QueryClient | undefined = undefined
+let browserQueryClient: QueryClient | undefined = undefined;
 
 export function getQueryClient() {
   if (isServer) {
-    return makeQueryClient()
+    return makeQueryClient();
   }
   if (!browserQueryClient) {
-    browserQueryClient = makeQueryClient()
+    browserQueryClient = makeQueryClient();
   }
-  return browserQueryClient
+  return browserQueryClient;
 }
 
 interface QueryProviderProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export function QueryProvider({ children }: QueryProviderProps) {
-  const queryClient = getQueryClient()
+  const queryClient = getQueryClient();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  )
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
 }

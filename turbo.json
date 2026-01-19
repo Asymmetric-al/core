@@ -4,7 +4,12 @@
     "build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**"],
-      "env": ["NODE_ENV", "NEXT_PUBLIC_*", "GOOGLE_SITE_VERIFICATION", "BING_SITE_VERIFICATION"]
+      "env": [
+        "NODE_ENV",
+        "NEXT_PUBLIC_*",
+        "GOOGLE_SITE_VERIFICATION",
+        "BING_SITE_VERIFICATION"
+      ]
     },
     "lint": {
       "outputs": [".next/cache/eslint/**"]

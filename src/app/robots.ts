@@ -1,14 +1,14 @@
-import type { MetadataRoute } from 'next'
-import { siteConfig } from '@/config/site'
+import type { MetadataRoute } from "next";
+import { siteConfig } from "@/config/site";
 
 export default function robots(): MetadataRoute.Robots {
-  const { routes } = siteConfig
+  const { routes } = siteConfig;
 
   return {
     rules: [
       {
-        userAgent: '*',
-        allow: '/',
+        userAgent: "*",
+        allow: "/",
         disallow: [
           routes.dashboards.admin,
           `${routes.dashboards.admin}/`,
@@ -16,32 +16,32 @@ export default function robots(): MetadataRoute.Robots {
           `${routes.dashboards.missionary}/`,
           routes.dashboards.donor,
           `${routes.dashboards.donor}/`,
-          '/admin-dashboard',
-          '/admin-dashboard/',
+          "/admin-dashboard",
+          "/admin-dashboard/",
           routes.auth.login,
           routes.auth.register,
-          '/auth/',
-          '/api/',
+          "/auth/",
+          "/api/",
         ],
       },
       {
-        userAgent: 'GPTBot',
-        disallow: ['/'],
+        userAgent: "GPTBot",
+        disallow: ["/"],
       },
       {
-        userAgent: 'ChatGPT-User',
-        disallow: ['/'],
+        userAgent: "ChatGPT-User",
+        disallow: ["/"],
       },
       {
-        userAgent: 'CCBot',
-        disallow: ['/'],
+        userAgent: "CCBot",
+        disallow: ["/"],
       },
       {
-        userAgent: 'anthropic-ai',
-        disallow: ['/'],
+        userAgent: "anthropic-ai",
+        disallow: ["/"],
       },
     ],
     sitemap: `${siteConfig.url}/sitemap.xml`,
     host: siteConfig.url,
-  }
+  };
 }

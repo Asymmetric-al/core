@@ -1,27 +1,30 @@
-'use client'
+"use client";
 
-import React from 'react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { MapPin, Activity, Info } from 'lucide-react'
-import { motion } from 'motion/react'
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { MapPin, Activity, Info } from "lucide-react";
+import { motion } from "motion/react";
 
 interface BriefingItem {
-  id: string
-  workerName: string
-  location: string
-  activity: string
-  impact: string
-  status: string
+  id: string;
+  workerName: string;
+  location: string;
+  activity: string;
+  impact: string;
+  status: string;
 }
 
 interface MissionBriefingProps {
-  feeds: BriefingItem[]
-  activeSupport: string[]
+  feeds: BriefingItem[];
+  activeSupport: string[];
 }
 
-export function MissionBriefing({ feeds, activeSupport }: MissionBriefingProps) {
-  const briefingItems = feeds.filter(f => activeSupport.includes(f.id))
+export function MissionBriefing({
+  feeds,
+  activeSupport,
+}: MissionBriefingProps) {
+  const briefingItems = feeds.filter((f) => activeSupport.includes(f.id));
 
   return (
     <Card className="bg-zinc-900 border-none shadow-xl overflow-hidden relative group rounded-xl">
@@ -39,7 +42,7 @@ export function MissionBriefing({ feeds, activeSupport }: MissionBriefingProps) 
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 lg:gap-x-12 gap-y-6 sm:gap-y-8">
           {briefingItems.map((item, idx) => (
-            <motion.div 
+            <motion.div
               key={item.id}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
@@ -68,5 +71,5 @@ export function MissionBriefing({ feeds, activeSupport }: MissionBriefingProps) 
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -1,9 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { createClient } from '@/lib/supabase/client';
-import { toast } from 'sonner';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
 
-export type LocationType = 'missionary' | 'project' | 'custom';
-export type LocationStatus = 'draft' | 'published';
+export type LocationType = "missionary" | "project" | "custom";
+export type LocationStatus = "draft" | "published";
 
 export interface Location {
   id: string;
@@ -23,13 +23,13 @@ export interface Location {
 
 export function useLocations() {
   return useQuery({
-    queryKey: ['locations'],
+    queryKey: ["locations"],
     queryFn: async () => {
       const supabase = createClient();
       const { data, error } = await supabase
-        .from('locations')
-        .select('*')
-        .order('sort_key', { ascending: true });
+        .from("locations")
+        .select("*")
+        .order("sort_key", { ascending: true });
 
       if (error) throw error;
       return data as Location[];
@@ -39,14 +39,14 @@ export function useLocations() {
 
 export function usePublicLocations() {
   return useQuery({
-    queryKey: ['locations', 'public'],
+    queryKey: ["locations", "public"],
     queryFn: async () => {
       const supabase = createClient();
       const { data, error } = await supabase
-        .from('locations')
-        .select('*')
-        .eq('status', 'published')
-        .order('sort_key', { ascending: true });
+        .from("locations")
+        .select("*")
+        .eq("status", "published")
+        .order("sort_key", { ascending: true });
 
       if (error) throw error;
       return data as Location[];
@@ -61,7 +61,7 @@ export function useUpsertLocation() {
     mutationFn: async (location: Partial<Location>) => {
       const supabase = createClient();
       const { data, error } = await supabase
-        .from('locations')
+        .from("locations")
         .upsert(location)
         .select()
         .single();
@@ -70,8 +70,8 @@ export function useUpsertLocation() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['locations'] });
-      toast.success('Location saved successfully');
+      queryClient.invalidateQueries({ queryKey: ["locations"] });
+      toast.success("Location saved successfully");
     },
     onError: (error) => {
       toast.error(`Error saving location: ${error.message}`);
@@ -85,16 +85,13 @@ export function useDeleteLocation() {
   return useMutation({
     mutationFn: async (id: string) => {
       const supabase = createClient();
-      const { error } = await supabase
-        .from('locations')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from("locations").delete().eq("id", id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['locations'] });
-      toast.success('Location deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ["locations"] });
+      toast.success("Location deleted successfully");
     },
     onError: (error) => {
       toast.error(`Error deleting location: ${error.message}`);
@@ -104,13 +101,13 @@ export function useDeleteLocation() {
 
 export function useLinkedEntities() {
   return useQuery({
-    queryKey: ['linked-entities'],
+    queryKey: ["linked-entities"],
     queryFn: async () => {
       const supabase = createClient();
       const { data: missionaries, error: mError } = await supabase
-        .from('profiles')
-        .select('id, full_name')
-        .eq('role', 'missionary');
+        .from("profiles")
+        .select("id, full_name")
+        .eq("role", "missionary");
 
       if (mError) throw mError;
 

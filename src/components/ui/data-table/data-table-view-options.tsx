@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import type { Table } from "@tanstack/react-table"
-import { Settings2 } from "lucide-react"
+import type { Table } from "@tanstack/react-table";
+import { Settings2 } from "lucide-react";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -12,11 +12,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 
 interface DataTableViewOptionsProps<TData> {
-  table: Table<TData>
-  className?: string
+  table: Table<TData>;
+  className?: string;
 }
 
 export function DataTableViewOptions<TData>({
@@ -27,8 +27,8 @@ export function DataTableViewOptions<TData>({
     .getAllColumns()
     .filter(
       (column) =>
-        typeof column.accessorFn !== "undefined" && column.getCanHide()
-    )
+        typeof column.accessorFn !== "undefined" && column.getCanHide(),
+    );
 
   return (
     <DropdownMenu>
@@ -37,7 +37,10 @@ export function DataTableViewOptions<TData>({
           aria-label="Toggle columns"
           variant="outline"
           size="sm"
-          className={cn("ml-auto hidden h-9 lg:flex gap-2 rounded-xl", className)}
+          className={cn(
+            "ml-auto hidden h-9 lg:flex gap-2 rounded-xl",
+            className,
+          )}
         >
           <Settings2 className="size-4" aria-hidden="true" />
           View
@@ -47,7 +50,7 @@ export function DataTableViewOptions<TData>({
         <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {columns.map((column) => {
-          const columnMeta = column.columnDef.meta
+          const columnMeta = column.columnDef.meta;
           return (
             <DropdownMenuCheckboxItem
               key={column.id}
@@ -57,9 +60,9 @@ export function DataTableViewOptions<TData>({
             >
               {columnMeta?.label ?? column.id}
             </DropdownMenuCheckboxItem>
-          )
+          );
         })}
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

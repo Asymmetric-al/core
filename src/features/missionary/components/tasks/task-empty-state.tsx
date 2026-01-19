@@ -1,18 +1,23 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { motion } from 'motion/react'
-import { Plus, CheckCircle2, FilterX } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import * as React from "react";
+import { motion } from "motion/react";
+import { Plus, CheckCircle2, FilterX } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface EmptyStateProps {
-  filter: string
-  hasFilters?: boolean
-  onClearFilters?: () => void
-  onCreateTask: () => void
+  filter: string;
+  hasFilters?: boolean;
+  onClearFilters?: () => void;
+  onCreateTask: () => void;
 }
 
-export function EmptyState({ filter, hasFilters, onClearFilters, onCreateTask }: EmptyStateProps) {
+export function EmptyState({
+  filter,
+  hasFilters,
+  onClearFilters,
+  onCreateTask,
+}: EmptyStateProps) {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.98 }}
@@ -27,23 +32,23 @@ export function EmptyState({ filter, hasFilters, onClearFilters, onCreateTask }:
           <CheckCircle2 className="h-8 w-8 text-muted-foreground" />
         )}
       </div>
-      
+
       <h3 className="text-lg font-semibold text-foreground mb-2">
-        {hasFilters 
-          ? 'No matching tasks' 
-          : filter === 'all' 
-            ? 'No tasks yet' 
-            : 'All clear!'}
+        {hasFilters
+          ? "No matching tasks"
+          : filter === "all"
+            ? "No tasks yet"
+            : "All clear!"}
       </h3>
-      
+
       <p className="text-sm text-muted-foreground max-w-sm mb-6">
-        {hasFilters 
+        {hasFilters
           ? "We couldn't find any tasks matching your current filters. Try adjusting your search or clearing filters."
-          : filter === 'all'
-            ? 'Get started by creating your first task to track partner engagements and follow-ups.'
-            : `No tasks found in the ${filter.replace('_', ' ')} view. Great job staying on top of your work!`}
+          : filter === "all"
+            ? "Get started by creating your first task to track partner engagements and follow-ups."
+            : `No tasks found in the ${filter.replace("_", " ")} view. Great job staying on top of your work!`}
       </p>
-      
+
       <div className="flex items-center gap-3">
         {hasFilters && onClearFilters && (
           <Button variant="outline" onClick={onClearFilters}>
@@ -56,5 +61,5 @@ export function EmptyState({ filter, hasFilters, onClearFilters, onCreateTask }:
         </Button>
       </div>
     </motion.div>
-  )
+  );
 }

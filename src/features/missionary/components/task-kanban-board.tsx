@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import * as React from 'react'
+import * as React from "react";
 import {
   DndContext,
   DragOverlay,
@@ -13,47 +13,76 @@ import {
   DragOverEvent,
   DragEndEvent,
   defaultDropAnimationSideEffects,
-} from '@dnd-kit/core'
+} from "@dnd-kit/core";
 import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
   useSortable,
-} from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import { 
-  GripVertical, 
-  Plus, 
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
+  GripVertical,
+  Plus,
   Calendar,
   CheckCircle2,
   Clock,
   AlertCircle,
   PauseCircle,
-  MoreHorizontal
-} from 'lucide-react'
-import { format } from 'date-fns'
+  MoreHorizontal,
+} from "lucide-react";
+import { format } from "date-fns";
 
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { cn } from '@/lib/utils'
-import type { Task, TaskStatus } from '@/lib/missionary/types'
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
+import type { Task, TaskStatus } from "@/lib/missionary/types";
 
-const COLUMNS: { id: TaskStatus; label: string; icon: React.ElementType; color: string }[] = [
-  { id: 'not_started', label: 'To Do', icon: Clock, color: 'text-zinc-500 bg-zinc-50' },
-  { id: 'in_progress', label: 'In Progress', icon: AlertCircle, color: 'text-sky-600 bg-sky-50' },
-  { id: 'waiting', label: 'Waiting', icon: PauseCircle, color: 'text-amber-600 bg-amber-50' },
-  { id: 'completed', label: 'Done', icon: CheckCircle2, color: 'text-emerald-600 bg-emerald-50' },
-]
+const COLUMNS: {
+  id: TaskStatus;
+  label: string;
+  icon: React.ElementType;
+  color: string;
+}[] = [
+  {
+    id: "not_started",
+    label: "To Do",
+    icon: Clock,
+    color: "text-zinc-500 bg-zinc-50",
+  },
+  {
+    id: "in_progress",
+    label: "In Progress",
+    icon: AlertCircle,
+    color: "text-sky-600 bg-sky-50",
+  },
+  {
+    id: "waiting",
+    label: "Waiting",
+    icon: PauseCircle,
+    color: "text-amber-600 bg-amber-50",
+  },
+  {
+    id: "completed",
+    label: "Done",
+    icon: CheckCircle2,
+    color: "text-emerald-600 bg-emerald-50",
+  },
+];
 
 interface TaskKanbanBoardProps {
-  tasks: Task[]
-  onMoveTask: (taskId: string, newStatus: TaskStatus, newIndex: number) => Promise<boolean>
-  onEditTask: (task: Task) => void
-  onCompleteTask: (task: Task) => void
-  onDeleteTask: (task: Task) => void
-  onCreateTask?: (status: TaskStatus) => void
+  tasks: Task[];
+  onMoveTask: (
+    taskId: string,
+    newStatus: TaskStatus,
+    newIndex: number,
+  ) => Promise<boolean>;
+  onEditTask: (task: Task) => void;
+  onCompleteTask: (task: Task) => void;
+  onDeleteTask: (task: Task) => void;
+  onCreateTask?: (status: TaskStatus) => void;
 }
 
 export function TaskKanbanBoard({
@@ -64,8 +93,8 @@ export function TaskKanbanBoard({
   onDeleteTask,
   onCreateTask,
 }: TaskKanbanBoardProps) {
-  const [activeTask, setActiveTask] = React.useState<Task | null>(null)
-  
+  const [activeTask, setActiveTask] = React.useState<Task | null>(null);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -74,74 +103,79 @@ export function TaskKanbanBoard({
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
-  )
+    }),
+  );
 
   const tasksByStatus = React.useMemo(() => {
-    const grouped = COLUMNS.reduce((acc, col) => {
-      acc[col.id] = tasks
-        .filter(t => t.status === col.id)
-        .sort((a, b) => a.sort_key - b.sort_key)
-      return acc
-    }, {} as Record<TaskStatus, Task[]>)
-    return grouped
-  }, [tasks])
+    const grouped = COLUMNS.reduce(
+      (acc, col) => {
+        acc[col.id] = tasks
+          .filter((t) => t.status === col.id)
+          .sort((a, b) => a.sort_key - b.sort_key);
+        return acc;
+      },
+      {} as Record<TaskStatus, Task[]>,
+    );
+    return grouped;
+  }, [tasks]);
 
   function handleDragStart(event: DragStartEvent) {
-    const { active } = event
-    const task = tasks.find(t => t.id === active.id)
-    if (task) setActiveTask(task)
+    const { active } = event;
+    const task = tasks.find((t) => t.id === active.id);
+    if (task) setActiveTask(task);
   }
 
   function handleDragOver(event: DragOverEvent) {
-    const { active, over } = event
-    if (!over) return
+    const { active, over } = event;
+    if (!over) return;
 
-    const activeId = active.id
-    const overId = over.id
+    const activeId = active.id;
+    const overId = over.id;
 
-    if (activeId === overId) return
+    if (activeId === overId) return;
 
     // Logic for cross-column dragging if needed for visual feedback
   }
 
   async function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event
-    setActiveTask(null)
+    const { active, over } = event;
+    setActiveTask(null);
 
-    if (!over) return
+    if (!over) return;
 
-    const activeId = active.id as string
-    const overId = over.id as string
+    const activeId = active.id as string;
+    const overId = over.id as string;
 
-    const activeTask = tasks.find(t => t.id === activeId)
-    if (!activeTask) return
+    const activeTask = tasks.find((t) => t.id === activeId);
+    if (!activeTask) return;
 
     // Find the status of the container we dropped over
-    let overStatus: TaskStatus | null = null
-    let overIndex = -1
+    let overStatus: TaskStatus | null = null;
+    let overIndex = -1;
 
     // Check if overId is a column ID
-    const isOverColumn = COLUMNS.some(col => col.id === overId)
-    
+    const isOverColumn = COLUMNS.some((col) => col.id === overId);
+
     if (isOverColumn) {
-      overStatus = overId as TaskStatus
-      overIndex = tasksByStatus[overStatus].length
+      overStatus = overId as TaskStatus;
+      overIndex = tasksByStatus[overStatus].length;
     } else {
-      const overTask = tasks.find(t => t.id === overId)
+      const overTask = tasks.find((t) => t.id === overId);
       if (overTask) {
-        overStatus = overTask.status
-        overIndex = tasksByStatus[overStatus].findIndex(t => t.id === overId)
+        overStatus = overTask.status;
+        overIndex = tasksByStatus[overStatus].findIndex((t) => t.id === overId);
       }
     }
 
-    if (!overStatus) return
+    if (!overStatus) return;
 
     // If dropped in same column and same index, do nothing
-    const activeIndex = tasksByStatus[activeTask.status].findIndex(t => t.id === activeId)
-    if (activeTask.status === overStatus && activeIndex === overIndex) return
+    const activeIndex = tasksByStatus[activeTask.status].findIndex(
+      (t) => t.id === activeId,
+    );
+    if (activeTask.status === overStatus && activeIndex === overIndex) return;
 
-    await onMoveTask(activeId, overStatus, overIndex)
+    await onMoveTask(activeId, overStatus, overIndex);
   }
 
   return (
@@ -169,19 +203,21 @@ export function TaskKanbanBoard({
         ))}
       </div>
 
-      <DragOverlay dropAnimation={{
-        sideEffects: defaultDropAnimationSideEffects({
-          styles: {
-            active: {
-              opacity: '0.5',
+      <DragOverlay
+        dropAnimation={{
+          sideEffects: defaultDropAnimationSideEffects({
+            styles: {
+              active: {
+                opacity: "0.5",
+              },
             },
-          },
-        }),
-      }}>
+          }),
+        }}
+      >
         {activeTask ? (
           <div className="w-[320px] rotate-2 scale-105 transition-transform">
-            <KanbanCard 
-              task={activeTask} 
+            <KanbanCard
+              task={activeTask}
               isOverlay
               onEdit={() => {}}
               onComplete={() => {}}
@@ -191,19 +227,19 @@ export function TaskKanbanBoard({
         ) : null}
       </DragOverlay>
     </DndContext>
-  )
+  );
 }
 
 interface KanbanColumnProps {
-  id: TaskStatus
-  title: string
-  icon: React.ElementType
-  color: string
-  tasks: Task[]
-  onEditTask: (task: Task) => void
-  onCompleteTask: (task: Task) => void
-  onDeleteTask: (task: Task) => void
-  onCreateTask?: (status: TaskStatus) => void
+  id: TaskStatus;
+  title: string;
+  icon: React.ElementType;
+  color: string;
+  tasks: Task[];
+  onEditTask: (task: Task) => void;
+  onCompleteTask: (task: Task) => void;
+  onDeleteTask: (task: Task) => void;
+  onCreateTask?: (status: TaskStatus) => void;
 }
 
 function KanbanColumn({
@@ -229,9 +265,9 @@ function KanbanColumn({
             <span className="ml-2 text-zinc-400 font-bold">{tasks.length}</span>
           </h3>
         </div>
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           className="size-8 rounded-lg hover:bg-white"
           onClick={() => onCreateTask?.(id)}
         >
@@ -239,7 +275,11 @@ function KanbanColumn({
         </Button>
       </div>
 
-      <SortableContext id={id} items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+      <SortableContext
+        id={id}
+        items={tasks.map((t) => t.id)}
+        strategy={verticalListSortingStrategy}
+      >
         <div className="flex-1 overflow-y-auto pr-2 space-y-3 min-h-[150px] rounded-3xl group bg-zinc-100/30 p-2 border border-transparent hover:border-zinc-200/50 transition-colors">
           {tasks.map((task) => (
             <KanbanCard
@@ -258,18 +298,24 @@ function KanbanColumn({
         </div>
       </SortableContext>
     </div>
-  )
+  );
 }
 
 interface KanbanCardProps {
-  task: Task
-  isOverlay?: boolean
-  onEdit: (task: Task) => void
-  onComplete: (task: Task) => void
-  onDelete: (task: Task) => void
+  task: Task;
+  isOverlay?: boolean;
+  onEdit: (task: Task) => void;
+  onComplete: (task: Task) => void;
+  onDelete: (task: Task) => void;
 }
 
-function KanbanCard({ task, isOverlay, onEdit, onComplete, onDelete }: KanbanCardProps) {
+function KanbanCard({
+  task,
+  isOverlay,
+  onEdit,
+  onComplete,
+  onDelete,
+}: KanbanCardProps) {
   const {
     attributes,
     listeners,
@@ -277,19 +323,19 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete, onDelete }: KanbanCar
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: task.id })
+  } = useSortable({ id: task.id });
 
   const style = {
     transform: CSS.Translate.toString(transform),
     transition,
-  }
+  };
 
   const priorityColor = {
-    high: 'text-rose-600 bg-rose-50 border-rose-100',
-    medium: 'text-amber-600 bg-amber-50 border-amber-100',
-    low: 'text-sky-600 bg-sky-50 border-sky-100',
-    none: 'text-zinc-500 bg-zinc-100 border-zinc-200',
-  }[task.priority]
+    high: "text-rose-600 bg-rose-50 border-rose-100",
+    medium: "text-amber-600 bg-amber-50 border-amber-100",
+    low: "text-sky-600 bg-sky-50 border-sky-100",
+    none: "text-zinc-500 bg-zinc-100 border-zinc-200",
+  }[task.priority];
 
   if (isDragging) {
     return (
@@ -298,7 +344,7 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete, onDelete }: KanbanCar
         style={style}
         className="h-[140px] rounded-2xl bg-zinc-100/50 border-2 border-dashed border-zinc-300"
       />
-    )
+    );
   }
 
   return (
@@ -307,29 +353,31 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete, onDelete }: KanbanCar
       style={style}
       className={cn(
         "rounded-2xl border-zinc-200/60 shadow-sm hover:shadow-md transition-all group cursor-default select-none bg-white",
-        isOverlay && "shadow-2xl border-zinc-900/10 ring-1 ring-zinc-900/5"
+        isOverlay && "shadow-2xl border-zinc-900/10 ring-1 ring-zinc-900/5",
       )}
     >
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start justify-between gap-2">
-          <div 
-            {...attributes} 
+          <div
+            {...attributes}
             {...listeners}
             className="mt-1 cursor-grab active:cursor-grabbing hover:text-zinc-900 text-zinc-300"
           >
             <GripVertical className="size-4" />
           </div>
           <div className="flex-1">
-            <h4 className={cn(
-              "text-sm font-bold leading-tight line-clamp-2",
-              task.status === 'completed' && "text-zinc-400 line-through"
-            )}>
+            <h4
+              className={cn(
+                "text-sm font-bold leading-tight line-clamp-2",
+                task.status === "completed" && "text-zinc-400 line-through",
+              )}
+            >
               {task.title}
             </h4>
           </div>
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="size-7 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
             onClick={() => onEdit(task)}
           >
@@ -344,15 +392,21 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete, onDelete }: KanbanCar
         )}
 
         <div className="flex flex-wrap gap-2 pt-1">
-          {task.priority !== 'none' && (
-            <Badge variant="outline" className={cn("text-[8px] h-5 font-black uppercase tracking-widest px-2 border", priorityColor)}>
+          {task.priority !== "none" && (
+            <Badge
+              variant="outline"
+              className={cn(
+                "text-[8px] h-5 font-black uppercase tracking-widest px-2 border",
+                priorityColor,
+              )}
+            >
               {task.priority}
             </Badge>
           )}
           {task.due_date && (
             <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-zinc-400 bg-zinc-50 px-2 py-0.5 rounded-lg border border-zinc-100">
               <Calendar className="size-3" />
-              {format(new Date(task.due_date), 'MMM d')}
+              {format(new Date(task.due_date), "MMM d")}
             </div>
           )}
         </div>
@@ -373,20 +427,22 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete, onDelete }: KanbanCar
               </div>
             )}
           </div>
-          
+
           <Button
             variant="ghost"
             size="sm"
             className={cn(
               "h-7 px-2 rounded-lg text-[8px] font-black uppercase tracking-widest",
-              task.status === 'completed' ? "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50" : "text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50"
+              task.status === "completed"
+                ? "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                : "text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50",
             )}
             onClick={() => onComplete(task)}
           >
-            {task.status === 'completed' ? 'Done' : 'Mark Done'}
+            {task.status === "completed" ? "Done" : "Mark Done"}
           </Button>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

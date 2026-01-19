@@ -1,4 +1,7 @@
-import { PageHeaderSkeleton, TableSkeleton } from '@/features/mission-control/components/patterns/skeletons'
+import {
+  PageHeaderSkeleton,
+  TableSkeleton,
+} from "@/features/mission-control/components/patterns/skeletons";
 
 export default function Loading() {
   return (
@@ -8,5 +11,5 @@ export default function Loading() {
         <TableSkeleton />
       </div>
     </div>
-  )
+  );
 }

@@ -8,21 +8,21 @@ PDF Studio provides a visual document builder using Unlayer's `displayMode: 'doc
 
 ## Current Implementation Status
 
-| Feature | Status | Location |
-|---------|--------|----------|
-| Unlayer Editor Integration | Complete | `src/components/studio/UnlayerEditor.tsx` |
-| PDF Studio Page | Complete | `src/app/(admin)/mc/pdf/page.tsx` |
-| Configuration System | Complete | `src/config/pdf-studio.ts` |
-| Type Definitions | Complete | `src/types/pdf-studio.ts` |
-| Setup Status Component | Complete | `src/components/studio/PDFStudioSetupStatus.tsx` |
-| HTML Export | Complete | Via `exportHtml()` method |
-| PDF Export | Complete | Via `exportPdf()` method (requires project ID) |
-| Template Save (API) | Complete | `src/app/api/pdf-templates/route.ts` |
-| Template CRUD | Complete | Create, Read, Update, Delete |
-| Database Storage | Complete | `pdf_templates` table in Supabase |
-| Template Categories | Complete | Tax receipt, donation receipt, statements, etc. |
-| Page Size Options | Complete | Letter, A4, Legal |
-| Orientation Options | Complete | Portrait, Landscape |
+| Feature                    | Status   | Location                                         |
+| -------------------------- | -------- | ------------------------------------------------ |
+| Unlayer Editor Integration | Complete | `src/components/studio/UnlayerEditor.tsx`        |
+| PDF Studio Page            | Complete | `src/app/(admin)/mc/pdf/page.tsx`                |
+| Configuration System       | Complete | `src/config/pdf-studio.ts`                       |
+| Type Definitions           | Complete | `src/types/pdf-studio.ts`                        |
+| Setup Status Component     | Complete | `src/components/studio/PDFStudioSetupStatus.tsx` |
+| HTML Export                | Complete | Via `exportHtml()` method                        |
+| PDF Export                 | Complete | Via `exportPdf()` method (requires project ID)   |
+| Template Save (API)        | Complete | `src/app/api/pdf-templates/route.ts`             |
+| Template CRUD              | Complete | Create, Read, Update, Delete                     |
+| Database Storage           | Complete | `pdf_templates` table in Supabase                |
+| Template Categories        | Complete | Tax receipt, donation receipt, statements, etc.  |
+| Page Size Options          | Complete | Letter, A4, Legal                                |
+| Orientation Options        | Complete | Portrait, Landscape                              |
 
 ---
 
@@ -74,6 +74,7 @@ src/
 #### Free Mode Limitations
 
 PDF Studio works in free mode with limitations:
+
 - Drag-and-drop editor works
 - HTML export works
 - **PDF export requires a configured Unlayer project ID**
@@ -146,15 +147,15 @@ NEXT_PUBLIC_PDF_FOOTER_TEXT=YourOrg | 123 Main St | City, ST 12345 | EIN: 12-345
 
 ## Environment Variables Reference
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `NEXT_PUBLIC_UNLAYER_PROJECT_ID` | **Yes** (for PDF export) | Unlayer project ID |
-| `NEXT_PUBLIC_UNLAYER_WHITE_LABEL` | No | Set `true` for white-label mode |
-| `NEXT_PUBLIC_UNLAYER_ALLOWED_DOMAINS` | No | Comma-separated list of allowed domains |
-| `NEXT_PUBLIC_BRAND_NAME` | No | Organization name (default: "GiveHope") |
-| `NEXT_PUBLIC_BRAND_PRIMARY_COLOR` | No | Primary color hex (default: "#0f172a") |
-| `NEXT_PUBLIC_BRAND_ACCENT_COLOR` | No | Accent color hex (default: "#2563eb") |
-| `NEXT_PUBLIC_PDF_FOOTER_TEXT` | No | Default footer text for PDFs |
+| Variable                              | Required                 | Description                             |
+| ------------------------------------- | ------------------------ | --------------------------------------- |
+| `NEXT_PUBLIC_UNLAYER_PROJECT_ID`      | **Yes** (for PDF export) | Unlayer project ID                      |
+| `NEXT_PUBLIC_UNLAYER_WHITE_LABEL`     | No                       | Set `true` for white-label mode         |
+| `NEXT_PUBLIC_UNLAYER_ALLOWED_DOMAINS` | No                       | Comma-separated list of allowed domains |
+| `NEXT_PUBLIC_BRAND_NAME`              | No                       | Organization name (default: "GiveHope") |
+| `NEXT_PUBLIC_BRAND_PRIMARY_COLOR`     | No                       | Primary color hex (default: "#0f172a")  |
+| `NEXT_PUBLIC_BRAND_ACCENT_COLOR`      | No                       | Accent color hex (default: "#2563eb")   |
+| `NEXT_PUBLIC_PDF_FOOTER_TEXT`         | No                       | Default footer text for PDFs            |
 
 ---
 
@@ -163,34 +164,37 @@ NEXT_PUBLIC_PDF_FOOTER_TEXT=YourOrg | 123 Main St | City, ST 12345 | EIN: 12-345
 ### Using the UnlayerEditor for Documents
 
 ```tsx
-import { UnlayerEditor, UnlayerEditorHandle } from '@/components/studio/UnlayerEditor'
+import {
+  UnlayerEditor,
+  UnlayerEditorHandle,
+} from "@/components/studio/UnlayerEditor";
 
 function MyPDFEditor() {
-  const editorRef = useRef<UnlayerEditorHandle>(null)
+  const editorRef = useRef<UnlayerEditorHandle>(null);
 
   const handleExportPdf = async () => {
     const { url, design } = await editorRef.current.exportPdf({
       mergeTags: {
-        first_name: 'John',
-        donation_amount: '$100.00'
-      }
-    })
-    
+        first_name: "John",
+        donation_amount: "$100.00",
+      },
+    });
+
     if (url) {
-      window.open(url, '_blank')
+      window.open(url, "_blank");
     }
-  }
+  };
 
   return (
     <UnlayerEditor
       ref={editorRef}
-      mode="document"  // Critical: use "document" mode for PDFs
+      mode="document" // Critical: use "document" mode for PDFs
       editorId="pdf-editor"
-      onReady={(config) => console.log('Editor ready', config)}
-      onDesignUpdate={(design) => console.log('Design changed')}
+      onReady={(config) => console.log("Editor ready", config)}
+      onDesignUpdate={(design) => console.log("Design changed")}
       className="h-full"
     />
-  )
+  );
 }
 ```
 
@@ -202,15 +206,15 @@ The `exportPdf()` method calls Unlayer's cloud-based PDF generation:
 // Client-side export (via editor)
 const { url, design } = await editorRef.current.exportPdf({
   mergeTags: {
-    first_name: 'John',
-    last_name: 'Doe',
-    donation_amount: '$500.00'
-  }
-})
+    first_name: "John",
+    last_name: "Doe",
+    donation_amount: "$500.00",
+  },
+});
 
 if (url) {
   // URL is a temporary link to the generated PDF
-  window.open(url, '_blank')
+  window.open(url, "_blank");
 }
 ```
 
@@ -218,23 +222,23 @@ For server-side PDF generation, use Unlayer's Cloud API:
 
 ```typescript
 // Server-side (requires Unlayer API key)
-const response = await fetch('https://api.unlayer.com/v2/export/pdf', {
-  method: 'POST',
+const response = await fetch("https://api.unlayer.com/v2/export/pdf", {
+  method: "POST",
   headers: {
-    'Authorization': `Basic ${Buffer.from(`${UNLAYER_API_KEY}:`).toString('base64')}`,
-    'Content-Type': 'application/json'
+    Authorization: `Basic ${Buffer.from(`${UNLAYER_API_KEY}:`).toString("base64")}`,
+    "Content-Type": "application/json",
   },
   body: JSON.stringify({
-    displayMode: 'document',
+    displayMode: "document",
     design: templateDesign,
     mergeTags: {
-      first_name: 'John',
-      donation_amount: '$500.00'
-    }
-  })
-})
+      first_name: "John",
+      donation_amount: "$500.00",
+    },
+  }),
+});
 
-const { url } = await response.json()
+const { url } = await response.json();
 ```
 
 ---
@@ -243,16 +247,16 @@ const { url } = await response.json()
 
 PDF Studio supports predefined template categories for common nonprofit use cases:
 
-| Category | Value | Description |
-|----------|-------|-------------|
-| Tax Receipt | `tax_receipt` | Year-end tax receipts for donors |
+| Category         | Value              | Description                         |
+| ---------------- | ------------------ | ----------------------------------- |
+| Tax Receipt      | `tax_receipt`      | Year-end tax receipts for donors    |
 | Donation Receipt | `donation_receipt` | Individual donation acknowledgments |
-| Annual Statement | `annual_statement` | Yearly giving statements |
-| Letter | `letter` | General correspondence letters |
-| Certificate | `certificate` | Certificates and awards |
-| Report | `report` | Financial or ministry reports |
-| Invoice | `invoice` | Billing and invoice documents |
-| Custom | `custom` | Custom document templates |
+| Annual Statement | `annual_statement` | Yearly giving statements            |
+| Letter           | `letter`           | General correspondence letters      |
+| Certificate      | `certificate`      | Certificates and awards             |
+| Report           | `report`           | Financial or ministry reports       |
+| Invoice          | `invoice`          | Billing and invoice documents       |
+| Custom           | `custom`           | Custom document templates           |
 
 ---
 
@@ -260,18 +264,18 @@ PDF Studio supports predefined template categories for common nonprofit use case
 
 ### Supported Page Sizes
 
-| Size | Dimensions | Use Case |
-|------|------------|----------|
-| US Letter | 8.5" x 11" | Standard US documents |
-| A4 | 210mm x 297mm | International standard |
-| US Legal | 8.5" x 14" | Legal documents |
+| Size      | Dimensions    | Use Case               |
+| --------- | ------------- | ---------------------- |
+| US Letter | 8.5" x 11"    | Standard US documents  |
+| A4        | 210mm x 297mm | International standard |
+| US Legal  | 8.5" x 14"    | Legal documents        |
 
 ### Orientations
 
-| Orientation | Use Case |
-|-------------|----------|
-| Portrait | Standard documents, letters, receipts |
-| Landscape | Reports, certificates, wide tables |
+| Orientation | Use Case                              |
+| ----------- | ------------------------------------- |
+| Portrait    | Standard documents, letters, receipts |
+| Landscape   | Reports, certificates, wide tables    |
 
 ---
 
@@ -284,6 +288,7 @@ GET /api/pdf-templates?category=tax_receipt&status=published
 ```
 
 Query parameters:
+
 - `category` - Filter by category
 - `status` - Filter by status (draft, published, archived)
 
@@ -336,14 +341,14 @@ PDF Studio includes document-specific merge tags in addition to standard tags:
 
 ### Document-Specific Tags
 
-| Category | Tags | Description |
-|----------|------|-------------|
-| `organization` | `org_name`, `org_address`, `org_phone`, `org_email`, `org_website`, `org_ein` | Organization details including EIN |
-| `recipient` | `first_name`, `last_name`, `full_name`, `email`, `address_line1`, `address_line2`, `city`, `state`, `zip`, `country` | Full address support |
-| `donation` | `donation_amount`, `donation_date`, `donation_method`, `donation_id`, `ytd_giving`, `tax_receipt_number`, `gift_designation` | Donation details |
-| `document` | `document_date`, `document_number`, `fiscal_year`, `tax_year`, `statement_period` | Document metadata |
-| `missionary` | `missionary_name`, `missionary_location`, `missionary_id`, `support_account` | Missionary info |
-| `tax_receipt` | `receipt_number`, `receipt_date`, `total_contributions`, `goods_services_value`, `tax_deductible_amount`, `tax_statement` | IRS-compliant receipt fields |
+| Category       | Tags                                                                                                                         | Description                        |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| `organization` | `org_name`, `org_address`, `org_phone`, `org_email`, `org_website`, `org_ein`                                                | Organization details including EIN |
+| `recipient`    | `first_name`, `last_name`, `full_name`, `email`, `address_line1`, `address_line2`, `city`, `state`, `zip`, `country`         | Full address support               |
+| `donation`     | `donation_amount`, `donation_date`, `donation_method`, `donation_id`, `ytd_giving`, `tax_receipt_number`, `gift_designation` | Donation details                   |
+| `document`     | `document_date`, `document_number`, `fiscal_year`, `tax_year`, `statement_period`                                            | Document metadata                  |
+| `missionary`   | `missionary_name`, `missionary_location`, `missionary_id`, `support_account`                                                 | Missionary info                    |
+| `tax_receipt`  | `receipt_number`, `receipt_date`, `total_contributions`, `goods_services_value`, `tax_deductible_amount`, `tax_statement`    | IRS-compliant receipt fields       |
 
 ### Tax Receipt Example
 
@@ -357,8 +362,10 @@ PDF Studio includes document-specific merge tags in addition to standard tags:
 <p>Date: {{receipt_date}}</p>
 
 <p>Dear {{full_name}},</p>
-<p>Thank you for your generous contributions totaling <strong>{{total_contributions}}</strong> 
-during the {{tax_year}} tax year.</p>
+<p>
+  Thank you for your generous contributions totaling
+  <strong>{{total_contributions}}</strong> during the {{tax_year}} tax year.
+</p>
 
 <p>{{tax_statement}}</p>
 ```
@@ -367,14 +374,14 @@ during the {{tax_year}} tax year.</p>
 
 ## Keyboard Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| `Cmd/Ctrl + S` | Open save dialog |
-| `Cmd/Ctrl + Z` | Undo |
-| `Cmd/Ctrl + Shift + Z` | Redo |
-| `Cmd/Ctrl + E` | Export HTML |
-| `Cmd/Ctrl + P` | Export PDF |
-| `Esc` | Exit fullscreen mode |
+| Shortcut               | Action               |
+| ---------------------- | -------------------- |
+| `Cmd/Ctrl + S`         | Open save dialog     |
+| `Cmd/Ctrl + Z`         | Undo                 |
+| `Cmd/Ctrl + Shift + Z` | Redo                 |
+| `Cmd/Ctrl + E`         | Export HTML          |
+| `Cmd/Ctrl + P`         | Export PDF           |
+| `Esc`                  | Exit fullscreen mode |
 
 ---
 
@@ -387,9 +394,9 @@ PDF Studio uses the same layout pattern as Email Studio:
   <div className="flex-1 min-h-0 overflow-hidden">           // Page container
     <header className="h-12 md:h-14 shrink-0">               // Fixed toolbar
     <div className="flex-1 relative overflow-hidden">         // Editor container
-      <UnlayerEditor 
-        mode="document" 
-        className="absolute inset-0" 
+      <UnlayerEditor
+        mode="document"
+        className="absolute inset-0"
       />
     </div>
   </div>
@@ -400,17 +407,17 @@ PDF Studio uses the same layout pattern as Email Studio:
 
 ## Feature Availability by Tier
 
-| Feature | Free | Configured | White-Label |
-|---------|------|------------|-------------|
-| Drag-and-drop editor | Yes | Yes | Yes |
-| HTML export | Yes | Yes | Yes |
-| **PDF export** | **No** | **Yes** | **Yes** |
-| Document preview | Yes | Yes | Yes |
-| Stock images | No | Yes | Yes |
-| Custom blocks | No | Yes | Yes |
-| Remove Unlayer branding | No | No | Yes |
-| AI writing assistant | No | No | Yes |
-| Custom fonts | No | No | Yes |
+| Feature                 | Free   | Configured | White-Label |
+| ----------------------- | ------ | ---------- | ----------- |
+| Drag-and-drop editor    | Yes    | Yes        | Yes         |
+| HTML export             | Yes    | Yes        | Yes         |
+| **PDF export**          | **No** | **Yes**    | **Yes**     |
+| Document preview        | Yes    | Yes        | Yes         |
+| Stock images            | No     | Yes        | Yes         |
+| Custom blocks           | No     | Yes        | Yes         |
+| Remove Unlayer branding | No     | No         | Yes         |
+| AI writing assistant    | No     | No         | Yes         |
+| Custom fonts            | No     | No         | Yes         |
 
 ---
 
@@ -422,7 +429,8 @@ PDF Studio uses the same layout pattern as Email Studio:
 
 **Cause**: No Unlayer project ID configured.
 
-**Solution**: 
+**Solution**:
+
 1. Create a project at [dashboard.unlayer.com](https://dashboard.unlayer.com)
 2. Add `NEXT_PUBLIC_UNLAYER_PROJECT_ID=123456` to `.env.local`
 3. Restart the dev server
@@ -431,7 +439,8 @@ PDF Studio uses the same layout pattern as Email Studio:
 
 **Cause**: The PDF is still being generated or there was a server-side error.
 
-**Solution**: 
+**Solution**:
+
 1. Check your Unlayer project has PDF export enabled (may require a paid plan)
 2. Verify your domain is in the allowed domains list
 3. Check browser console for API errors
@@ -441,6 +450,7 @@ PDF Studio uses the same layout pattern as Email Studio:
 **Cause**: Not on a white-label plan or misconfigured.
 
 **Solution**:
+
 1. Upgrade to an Unlayer plan with white-label
 2. Enable white-label in Project Settings
 3. Add `NEXT_PUBLIC_UNLAYER_WHITE_LABEL=true` to `.env.local`
@@ -451,6 +461,7 @@ PDF Studio uses the same layout pattern as Email Studio:
 **Cause**: Database permission or tenant_id issue.
 
 **Solution**:
+
 1. Ensure Supabase RLS policies allow inserts
 2. Verify the user has a valid tenant_id
 3. Check browser Network tab for API error details
@@ -482,17 +493,20 @@ When creating tax receipt templates, include these required elements:
    - Description of contribution
 
 4. **Required Statement** (no goods/services provided):
+
    > "No goods or services were provided in exchange for this contribution."
 
 5. **Required Statement** (goods/services provided):
    > "The estimated fair market value of goods/services provided is $X.XX. The tax-deductible portion of your contribution is $Y.YY."
 
 Example merge tag for tax statement:
+
 ```
 {{tax_statement}}
 ```
 
 Sample values:
+
 - "No goods or services were provided in exchange for this contribution."
 - "Goods or services valued at $50.00 were provided. Your tax-deductible amount is $450.00."
 

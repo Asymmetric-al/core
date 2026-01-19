@@ -1,32 +1,32 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import type { Table } from "@tanstack/react-table"
-import { X, Trash2, Download, MoreHorizontal, Check } from "lucide-react"
-import { AnimatePresence, motion } from "motion/react"
+import * as React from "react";
+import type { Table } from "@tanstack/react-table";
+import { X, Trash2, Download, MoreHorizontal, Check } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 
 interface FloatingActionBarAction<TData> {
-  label: string
-  icon?: React.ComponentType<{ className?: string }>
-  onClick: (rows: TData[]) => void
-  variant?: "default" | "destructive"
-  hideOnMobile?: boolean
+  label: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  onClick: (rows: TData[]) => void;
+  variant?: "default" | "destructive";
+  hideOnMobile?: boolean;
 }
 
 interface DataTableFloatingBarProps<TData> {
-  table: Table<TData>
-  actions?: FloatingActionBarAction<TData>[]
-  className?: string
+  table: Table<TData>;
+  actions?: FloatingActionBarAction<TData>[];
+  className?: string;
 }
 
 export function DataTableFloatingBar<TData>({
@@ -34,17 +34,17 @@ export function DataTableFloatingBar<TData>({
   actions,
   className,
 }: DataTableFloatingBarProps<TData>) {
-  const selectedRows = table.getFilteredSelectedRowModel().rows
-  const selectedCount = selectedRows.length
+  const selectedRows = table.getFilteredSelectedRowModel().rows;
+  const selectedCount = selectedRows.length;
 
-  if (selectedCount === 0) return null
+  if (selectedCount === 0) return null;
 
   const defaultActions: FloatingActionBarAction<TData>[] = [
     {
       label: "Export",
       icon: Download,
       onClick: (rows) => {
-        console.log("Export selected rows:", rows)
+        console.log("Export selected rows:", rows);
       },
       variant: "default",
     },
@@ -52,15 +52,15 @@ export function DataTableFloatingBar<TData>({
       label: "Delete",
       icon: Trash2,
       onClick: (rows) => {
-        console.log("Delete selected rows:", rows)
+        console.log("Delete selected rows:", rows);
       },
       variant: "destructive",
     },
-  ]
+  ];
 
-  const allActions = actions ?? defaultActions
-  const visibleActions = allActions.filter((a) => !a.hideOnMobile).slice(0, 2)
-  const overflowActions = allActions.slice(2)
+  const allActions = actions ?? defaultActions;
+  const visibleActions = allActions.filter((a) => !a.hideOnMobile).slice(0, 2);
+  const overflowActions = allActions.slice(2);
 
   return (
     <AnimatePresence>
@@ -75,7 +75,7 @@ export function DataTableFloatingBar<TData>({
           "bg-foreground text-background",
           "rounded-2xl shadow-2xl",
           "max-w-[calc(100vw-2rem)]",
-          className
+          className,
         )}
       >
         <div className="flex items-center gap-2 shrink-0">
@@ -102,7 +102,7 @@ export function DataTableFloatingBar<TData>({
                 "h-8 px-2 sm:px-3 gap-1.5 rounded-xl",
                 "text-background hover:bg-background/10 hover:text-background",
                 action.variant === "destructive" &&
-                  "hover:bg-destructive/20 hover:text-destructive-foreground"
+                  "hover:bg-destructive/20 hover:text-destructive-foreground",
               )}
             >
               {action.icon && (
@@ -126,8 +126,9 @@ export function DataTableFloatingBar<TData>({
               <DropdownMenuContent align="end" className="rounded-xl">
                 {overflowActions.map((action, index) => (
                   <React.Fragment key={action.label}>
-                    {action.variant === "destructive" &&
-                      index > 0 && <DropdownMenuSeparator />}
+                    {action.variant === "destructive" && index > 0 && (
+                      <DropdownMenuSeparator />
+                    )}
                     <DropdownMenuItem
                       onClick={() =>
                         action.onClick(selectedRows.map((row) => row.original))
@@ -135,7 +136,7 @@ export function DataTableFloatingBar<TData>({
                       className={cn(
                         "rounded-lg gap-2",
                         action.variant === "destructive" &&
-                          "text-destructive focus:text-destructive"
+                          "text-destructive focus:text-destructive",
                       )}
                     >
                       {action.icon && <action.icon className="size-4" />}
@@ -161,5 +162,5 @@ export function DataTableFloatingBar<TData>({
         </Button>
       </motion.div>
     </AnimatePresence>
-  )
+  );
 }

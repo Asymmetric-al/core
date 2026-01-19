@@ -1,24 +1,24 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import type { Table } from "@tanstack/react-table"
-import { Search, X, SlidersHorizontal } from "lucide-react"
+import * as React from "react";
+import type { Table } from "@tanstack/react-table";
+import { Search, X, SlidersHorizontal } from "lucide-react";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { DataTableViewOptions } from "./data-table-view-options"
-import { DataTableFacetedFilter } from "./data-table-faceted-filter"
-import type { DataTableFilterField } from "./types"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { DataTableViewOptions } from "./data-table-view-options";
+import { DataTableFacetedFilter } from "./data-table-faceted-filter";
+import type { DataTableFilterField } from "./types";
 
 interface DataTableToolbarProps<TData> {
-  table: Table<TData>
-  filterFields?: DataTableFilterField<TData>[]
-  searchKey?: string
-  searchPlaceholder?: string
-  enableColumnVisibility?: boolean
-  className?: string
-  children?: React.ReactNode
+  table: Table<TData>;
+  filterFields?: DataTableFilterField<TData>[];
+  searchKey?: string;
+  searchPlaceholder?: string;
+  enableColumnVisibility?: boolean;
+  className?: string;
+  children?: React.ReactNode;
 }
 
 export function DataTableToolbar<TData>({
@@ -30,7 +30,7 @@ export function DataTableToolbar<TData>({
   className,
   children,
 }: DataTableToolbarProps<TData>) {
-  const isFiltered = table.getState().columnFilters.length > 0
+  const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
     <div className={cn("flex flex-col gap-4 py-4", className)}>
@@ -40,7 +40,9 @@ export function DataTableToolbar<TData>({
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
               placeholder={searchPlaceholder}
-              value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
+              value={
+                (table.getColumn(searchKey)?.getFilterValue() as string) ?? ""
+              }
               onChange={(event) =>
                 table.getColumn(searchKey)?.setFilterValue(event.target.value)
               }
@@ -50,8 +52,8 @@ export function DataTableToolbar<TData>({
         )}
         <div className="flex flex-1 flex-wrap items-center gap-2">
           {filterFields.map((field) => {
-            const column = table.getColumn(String(field.id))
-            if (!column || !field.options) return null
+            const column = table.getColumn(String(field.id));
+            if (!column || !field.options) return null;
 
             return (
               <DataTableFacetedFilter
@@ -60,7 +62,7 @@ export function DataTableToolbar<TData>({
                 title={field.label}
                 options={field.options}
               />
-            )
+            );
           })}
           {isFiltered && (
             <Button
@@ -80,5 +82,5 @@ export function DataTableToolbar<TData>({
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,22 +1,22 @@
-import * as React from 'react'
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Sparkles, ArrowUpRight } from 'lucide-react'
+import * as React from "react";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Sparkles, ArrowUpRight } from "lucide-react";
 
 interface Activity {
-  id: number
-  type: string
-  donor: string
-  amount: number
-  isNew?: boolean
-  date: string
+  id: number;
+  type: string;
+  donor: string;
+  amount: number;
+  isNew?: boolean;
+  date: string;
 }
 
 interface ActivityFeedProps {
-  activities: Activity[]
+  activities: Activity[];
 }
 
 export function ActivityFeed({ activities }: ActivityFeedProps) {
@@ -27,10 +27,14 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600 border border-blue-100/50">
             <Sparkles className="h-4.5 w-4.5" />
           </div>
-            <div>
-              <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 leading-none mb-1">Live Updates</CardTitle>
-              <p className="text-lg font-bold text-zinc-900 tracking-tighter">Recent Contributions</p>
-            </div>
+          <div>
+            <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 leading-none mb-1">
+              Live Updates
+            </CardTitle>
+            <p className="text-lg font-bold text-zinc-900 tracking-tighter">
+              Recent Contributions
+            </p>
+          </div>
         </div>
         <Button
           variant="ghost"
@@ -52,17 +56,19 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
             >
               <Avatar className="h-9 w-9 border border-zinc-100 shadow-sm rounded-lg">
                 <AvatarFallback
-                  className={`text-[10px] font-bold rounded-lg ${activity.type === 'gift' ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-400'}`}
+                  className={`text-[10px] font-bold rounded-lg ${activity.type === "gift" ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-400"}`}
                 >
                   {activity.donor
-                    .split(' ')
+                    .split(" ")
                     .map((n) => n[0])
-                    .join('')}
+                    .join("")}
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="truncate text-sm font-bold text-zinc-900 tracking-tight">{activity.donor}</p>
+                  <p className="truncate text-sm font-bold text-zinc-900 tracking-tight">
+                    {activity.donor}
+                  </p>
                   {activity.isNew && (
                     <Badge className="bg-emerald-500 text-white border-none text-[8px] font-black uppercase tracking-widest px-1.5 h-3.5 rounded">
                       NEW
@@ -70,14 +76,17 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
                   )}
                 </div>
                 <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">
-                  {activity.type === 'gift' ? 'Strategic Gift' : 'Sustaining'} · {activity.date}
+                  {activity.type === "gift" ? "Strategic Gift" : "Sustaining"} ·{" "}
+                  {activity.date}
                 </p>
               </div>
-              <p className="text-sm font-bold text-emerald-600 tracking-tighter">+${activity.amount.toLocaleString()}</p>
+              <p className="text-sm font-bold text-emerald-600 tracking-tighter">
+                +${activity.amount.toLocaleString()}
+              </p>
             </div>
           ))}
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

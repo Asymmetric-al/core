@@ -5,16 +5,17 @@ This Asymmetric.al codebase is fully white-labeled. The current "Give Hope" styl
 ## Quick Start: Swapping Branding
 
 1. **Update `src/config/site.ts`** - Central source for brand name and config:
+
    ```ts
    export const brandConfig = {
-     name: 'Your Org Name',      // Main brand name
-     shortName: 'YO',            // 2-letter abbreviation for avatars
-     tagline: 'Your tagline',
+     name: "Your Org Name", // Main brand name
+     shortName: "YO", // 2-letter abbreviation for avatars
+     tagline: "Your tagline",
      feed: {
-       orgName: 'Your Org Name',
-       orgHandle: '@yourorg',
+       orgName: "Your Org Name",
+       orgHandle: "@yourorg",
      },
-   }
+   };
    ```
 
 2. **Color Scheme** - Update Tailwind classes:
@@ -23,25 +24,28 @@ This Asymmetric.al codebase is fully white-labeled. The current "Give Hope" styl
 
 ## Branding Touchpoints
 
-| Location | What to Update |
-|----------|----------------|
-| `src/config/site.ts` | `siteConfig.name`, `brandConfig.*` |
-| `src/components/brand-logo.tsx` | Logo component, avatar styling |
+| Location                                       | What to Update                        |
+| ---------------------------------------------- | ------------------------------------- |
+| `src/config/site.ts`                           | `siteConfig.name`, `brandConfig.*`    |
+| `src/components/brand-logo.tsx`                | Logo component, avatar styling        |
 | `src/app/(admin)/mc/feed/org-updates/page.tsx` | Uses `brandConfig.name` in page title |
-| `src/app/(admin)/mc/feed/page.tsx` | Uses `BrandAvatar` for org posts |
-| `src/app/layout.tsx` | Root metadata |
-| `src/components/app-sidebar.tsx` | Sidebar logo rendering |
-| `src/components/public/footer.tsx` | Public-facing footer |
+| `src/app/(admin)/mc/feed/page.tsx`             | Uses `BrandAvatar` for org posts      |
+| `src/app/layout.tsx`                           | Root metadata                         |
+| `src/components/app-sidebar.tsx`               | Sidebar logo rendering                |
+| `src/components/public/footer.tsx`             | Public-facing footer                  |
 
 ## Components
 
 ### `BrandLogo` / `BrandAvatar`
+
 Centralized brand display components in `src/components/brand-logo.tsx`:
+
 - `BrandLogo` - Square logo for headers/compose areas
 - `BrandAvatar` - Circular avatar for feed posts
 - `BrandName` - Text-only brand name
 
 ### Usage
+
 ```tsx
 import { BrandAvatar, BrandLogo, brandConfig } from '@/components/brand-logo'
 
@@ -58,6 +62,7 @@ import { BrandAvatar, BrandLogo, brandConfig } from '@/components/brand-logo'
 ## Demo Brand
 
 Current demo uses:
+
 - **Name**: Give Hope
 - **Short Name**: GH
 - **Style**: High-contrast black/zinc palette

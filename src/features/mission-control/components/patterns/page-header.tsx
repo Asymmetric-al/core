@@ -1,22 +1,27 @@
-'use client'
+"use client";
 
-import type { ReactNode } from 'react'
-import { ChevronRight } from '../icons'
-import Link from 'next/link'
+import type { ReactNode } from "react";
+import { ChevronRight } from "../icons";
+import Link from "next/link";
 
 interface BreadcrumbItem {
-  label: string
-  href?: string
+  label: string;
+  href?: string;
 }
 
 interface PageHeaderProps {
-  title: string
-  description?: string
-  breadcrumbs?: BreadcrumbItem[]
-  actions?: ReactNode
+  title: string;
+  description?: string;
+  breadcrumbs?: BreadcrumbItem[];
+  actions?: ReactNode;
 }
 
-export function PageHeader({ title, description, breadcrumbs, actions }: PageHeaderProps) {
+export function PageHeader({
+  title,
+  description,
+  breadcrumbs,
+  actions,
+}: PageHeaderProps) {
   return (
     <div className="border-b border-border bg-background px-6 py-4 lg:px-8">
       {breadcrumbs && breadcrumbs.length > 0 && (
@@ -48,5 +53,5 @@ export function PageHeader({ title, description, breadcrumbs, actions }: PageHea
         {actions && <div className="flex items-center gap-2">{actions}</div>}
       </div>
     </div>
-  )
+  );
 }

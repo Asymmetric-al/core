@@ -361,7 +361,7 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                         "flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 relative z-10",
                         frequency === "one-time"
                           ? "bg-white text-slate-900 shadow-sm"
-                          : "text-slate-500 hover:text-slate-700"
+                          : "text-slate-500 hover:text-slate-700",
                       )}
                     >
                       One-Time
@@ -372,7 +372,7 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                         "flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 relative z-10",
                         frequency === "monthly"
                           ? "bg-white text-blue-600 shadow-sm"
-                          : "text-slate-500 hover:text-slate-700"
+                          : "text-slate-500 hover:text-slate-700",
                       )}
                     >
                       Monthly
@@ -385,7 +385,7 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                         "relative h-14 rounded-xl border-2 transition-all duration-300 bg-white flex items-center overflow-hidden cursor-text group",
                         isInputFocused
                           ? "border-blue-600 ring-4 ring-blue-50/50"
-                          : "border-slate-200 hover:border-slate-300"
+                          : "border-slate-200 hover:border-slate-300",
                       )}
                       onClick={() =>
                         document.getElementById("custom-amount-input")?.focus()
@@ -396,7 +396,7 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                           "absolute left-5 text-xl font-bold transition-colors pointer-events-none",
                           isInputFocused || customAmount
                             ? "text-slate-900"
-                            : "text-slate-300"
+                            : "text-slate-300",
                         )}
                       >
                         $
@@ -427,7 +427,7 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                             "py-2.5 rounded-xl border text-sm font-bold transition-all active:scale-95",
                             amount === amt && !customAmount
                               ? "border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-100"
-                              : "border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-slate-900 hover:bg-slate-50"
+                              : "border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-slate-900 hover:bg-slate-50",
                           )}
                         >
                           ${amt}

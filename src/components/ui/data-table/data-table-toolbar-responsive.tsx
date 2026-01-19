@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import type { Table } from "@tanstack/react-table"
+import * as React from "react";
+import type { Table } from "@tanstack/react-table";
 import {
   Search,
   X,
@@ -11,12 +11,12 @@ import {
   RefreshCw,
   ChevronDown,
   Filter,
-} from "lucide-react"
+} from "lucide-react";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Sheet,
   SheetContent,
@@ -25,7 +25,7 @@ import {
   SheetTitle,
   SheetTrigger,
   SheetFooter,
-} from "@/components/ui/sheet"
+} from "@/components/ui/sheet";
 import {
   Drawer,
   DrawerContent,
@@ -34,7 +34,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
   DrawerFooter,
-} from "@/components/ui/drawer"
+} from "@/components/ui/drawer";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -42,34 +42,34 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Separator } from "@/components/ui/separator"
-import { DataTableFacetedFilter } from "./data-table-faceted-filter"
-import type { DataTableFilterField } from "./types"
+} from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
+import { DataTableFacetedFilter } from "./data-table-faceted-filter";
+import type { DataTableFilterField } from "./types";
 import {
   FilterBuilder,
   ActiveFilters,
   createEmptyFilterState,
   type AdvancedFilterState,
   type FilterFieldDefinition,
-} from "./filters"
+} from "./filters";
 
 interface DataTableToolbarResponsiveProps<TData> {
-  table: Table<TData>
-  filterFields?: DataTableFilterField<TData>[]
-  advancedFilterFields?: FilterFieldDefinition[]
-  advancedFilter?: AdvancedFilterState
-  onAdvancedFilterChange?: (filter: AdvancedFilterState) => void
-  searchKey?: string
-  searchPlaceholder?: string
-  enableColumnVisibility?: boolean
-  enableAdvancedFilter?: boolean
-  enableExport?: boolean
-  onExport?: () => void
-  onRefresh?: () => void
-  isLoading?: boolean
-  className?: string
-  children?: React.ReactNode
+  table: Table<TData>;
+  filterFields?: DataTableFilterField<TData>[];
+  advancedFilterFields?: FilterFieldDefinition[];
+  advancedFilter?: AdvancedFilterState;
+  onAdvancedFilterChange?: (filter: AdvancedFilterState) => void;
+  searchKey?: string;
+  searchPlaceholder?: string;
+  enableColumnVisibility?: boolean;
+  enableAdvancedFilter?: boolean;
+  enableExport?: boolean;
+  onExport?: () => void;
+  onRefresh?: () => void;
+  isLoading?: boolean;
+  className?: string;
+  children?: React.ReactNode;
 }
 
 export function DataTableToolbarResponsive<TData>({
@@ -89,43 +89,43 @@ export function DataTableToolbarResponsive<TData>({
   className,
   children,
 }: DataTableToolbarResponsiveProps<TData>) {
-  const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false)
-  const [searchOpen, setSearchOpen] = React.useState(false)
-  const isFiltered = table.getState().columnFilters.length > 0
+  const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
+  const [searchOpen, setSearchOpen] = React.useState(false);
+  const isFiltered = table.getState().columnFilters.length > 0;
   const [localFilter, setLocalFilter] = React.useState<AdvancedFilterState>(
-    advancedFilter ?? createEmptyFilterState()
-  )
+    advancedFilter ?? createEmptyFilterState(),
+  );
 
   const activeFilterCount = React.useMemo(() => {
-    let count = table.getState().columnFilters.length
+    let count = table.getState().columnFilters.length;
     if (advancedFilter) {
-      count += advancedFilter.conditions.length
+      count += advancedFilter.conditions.length;
     }
-    return count
-  }, [table, advancedFilter])
+    return count;
+  }, [table, advancedFilter]);
 
   const handleAdvancedFilterChange = React.useCallback(
     (filter: AdvancedFilterState) => {
-      setLocalFilter(filter)
-      onAdvancedFilterChange?.(filter)
+      setLocalFilter(filter);
+      onAdvancedFilterChange?.(filter);
     },
-    [onAdvancedFilterChange]
-  )
+    [onAdvancedFilterChange],
+  );
 
   const resetAllFilters = React.useCallback(() => {
-    table.resetColumnFilters()
+    table.resetColumnFilters();
     if (onAdvancedFilterChange) {
-      onAdvancedFilterChange(createEmptyFilterState())
+      onAdvancedFilterChange(createEmptyFilterState());
     }
-    setLocalFilter(createEmptyFilterState())
-  }, [table, onAdvancedFilterChange])
+    setLocalFilter(createEmptyFilterState());
+  }, [table, onAdvancedFilterChange]);
 
   const columns = table
     .getAllColumns()
     .filter(
       (column) =>
-        typeof column.accessorFn !== "undefined" && column.getCanHide()
-    )
+        typeof column.accessorFn !== "undefined" && column.getCanHide(),
+    );
 
   return (
     <div className={cn("flex flex-col gap-3", className)}>
@@ -168,8 +168,8 @@ export function DataTableToolbarResponsive<TData>({
 
         <div className="hidden lg:flex flex-wrap items-center gap-2">
           {filterFields.map((field) => {
-            const column = table.getColumn(String(field.id))
-            if (!column || !field.options) return null
+            const column = table.getColumn(String(field.id));
+            if (!column || !field.options) return null;
 
             return (
               <DataTableFacetedFilter
@@ -178,7 +178,7 @@ export function DataTableToolbarResponsive<TData>({
                 title={field.label}
                 options={field.options}
               />
-            )
+            );
           })}
           {enableAdvancedFilter && advancedFilterFields.length > 0 && (
             <FilterBuilder
@@ -264,7 +264,7 @@ export function DataTableToolbarResponsive<TData>({
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {columns.map((column) => {
-                  const columnMeta = column.columnDef.meta
+                  const columnMeta = column.columnDef.meta;
                   return (
                     <DropdownMenuCheckboxItem
                       key={column.id}
@@ -276,7 +276,7 @@ export function DataTableToolbarResponsive<TData>({
                     >
                       {columnMeta?.label ?? column.id}
                     </DropdownMenuCheckboxItem>
-                  )
+                  );
                 })}
               </DropdownMenuContent>
             </DropdownMenu>
@@ -325,20 +325,20 @@ export function DataTableToolbarResponsive<TData>({
           </div>
         )}
     </div>
-  )
+  );
 }
 
 interface MobileFiltersDrawerProps<TData> {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  table: Table<TData>
-  filterFields: DataTableFilterField<TData>[]
-  advancedFilterFields: FilterFieldDefinition[]
-  advancedFilter: AdvancedFilterState
-  onAdvancedFilterChange: (filter: AdvancedFilterState) => void
-  activeFilterCount: number
-  onReset: () => void
-  enableAdvancedFilter: boolean
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  table: Table<TData>;
+  filterFields: DataTableFilterField<TData>[];
+  advancedFilterFields: FilterFieldDefinition[];
+  advancedFilter: AdvancedFilterState;
+  onAdvancedFilterChange: (filter: AdvancedFilterState) => void;
+  activeFilterCount: number;
+  onReset: () => void;
+  enableAdvancedFilter: boolean;
 }
 
 function MobileFiltersDrawer<TData>({
@@ -382,8 +382,8 @@ function MobileFiltersDrawer<TData>({
               <h4 className="text-sm font-medium">Quick Filters</h4>
               <div className="flex flex-wrap gap-2">
                 {filterFields.map((field) => {
-                  const column = table.getColumn(String(field.id))
-                  if (!column || !field.options) return null
+                  const column = table.getColumn(String(field.id));
+                  if (!column || !field.options) return null;
 
                   return (
                     <DataTableFacetedFilter
@@ -392,7 +392,7 @@ function MobileFiltersDrawer<TData>({
                       title={field.label}
                       options={field.options}
                     />
-                  )
+                  );
                 })}
               </div>
             </div>
@@ -431,5 +431,5 @@ function MobileFiltersDrawer<TData>({
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
-  )
+  );
 }

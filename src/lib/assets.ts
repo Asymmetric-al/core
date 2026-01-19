@@ -1,11 +1,11 @@
-import { createClient } from '@/lib/supabase/server'
-import { CloudinaryUploadResponse } from './cloudinary-client'
+import { createClient } from "@/lib/supabase/server";
+import { CloudinaryUploadResponse } from "./cloudinary-client";
 
 export interface SaveAssetOptions {
-  userId?: string
-  tenantId?: string
-  purpose?: string
-  metadata?: Record<string, any>
+  userId?: string;
+  tenantId?: string;
+  purpose?: string;
+  metadata?: Record<string, any>;
 }
 
 /**
@@ -13,12 +13,12 @@ export interface SaveAssetOptions {
  */
 export async function saveAssetMetadata(
   cloudinaryData: CloudinaryUploadResponse,
-  options: SaveAssetOptions = {}
+  options: SaveAssetOptions = {},
 ) {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from('assets')
+    .from("assets")
     .insert({
       public_id: cloudinaryData.public_id,
       secure_url: cloudinaryData.secure_url,
@@ -34,15 +34,15 @@ export async function saveAssetMetadata(
         ...options.metadata,
         version: cloudinaryData.version,
         created_at: cloudinaryData.created_at,
-      }
+      },
     })
     .select()
-    .single()
+    .single();
 
   if (error) {
-    console.error('Error saving asset metadata:', error)
-    throw new Error(`Failed to save asset metadata: ${error.message}`)
+    console.error("Error saving asset metadata:", error);
+    throw new Error(`Failed to save asset metadata: ${error.message}`);
   }
 
-  return data
+  return data;
 }

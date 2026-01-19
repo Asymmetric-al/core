@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { type ColumnDef } from '@tanstack/react-table'
-import { MoreHorizontal } from 'lucide-react'
+import { type ColumnDef } from "@tanstack/react-table";
+import { MoreHorizontal } from "lucide-react";
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,23 +13,27 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { DataTableColumnHeader } from '@/components/ui/data-table'
-import { cn, formatCurrency } from '@/lib/utils'
-import type { Contact } from './types'
-import { STAGE_COLORS } from './types'
+} from "@/components/ui/dropdown-menu";
+import { DataTableColumnHeader } from "@/components/ui/data-table";
+import { cn, formatCurrency } from "@/lib/utils";
+import type { Contact } from "./types";
+import { STAGE_COLORS } from "./types";
 
 interface ColumnOptions {
-  onViewContact: (contact: Contact) => void
+  onViewContact: (contact: Contact) => void;
 }
 
-export function getColumns({ onViewContact }: ColumnOptions): ColumnDef<Contact>[] {
+export function getColumns({
+  onViewContact,
+}: ColumnOptions): ColumnDef<Contact>[] {
   return [
     {
       accessorKey: "name",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Name" />
+      ),
       cell: ({ row }) => {
-        const contact = row.original
+        const contact = row.original;
         return (
           <div className="flex items-center gap-3">
             <Avatar className="h-9 w-9 border border-border">
@@ -39,16 +43,18 @@ export function getColumns({ onViewContact }: ColumnOptions): ColumnDef<Contact>
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
-              <button 
+              <button
                 onClick={() => onViewContact(contact)}
                 className="font-semibold text-sm text-foreground leading-none hover:text-primary hover:underline decoration-primary/30 underline-offset-4 transition-all text-left"
               >
                 {contact.name}
               </button>
-              <span className="text-xs text-muted-foreground mt-0.5">{contact.title}</span>
+              <span className="text-xs text-muted-foreground mt-0.5">
+                {contact.title}
+              </span>
             </div>
           </div>
-        )
+        );
       },
       meta: {
         label: "Name",
@@ -56,7 +62,9 @@ export function getColumns({ onViewContact }: ColumnOptions): ColumnDef<Contact>
     },
     {
       accessorKey: "company",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Company" />,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Company" />
+      ),
       cell: ({ row }) => (
         <span className="text-sm text-muted-foreground font-medium">
           {row.getValue("company")}
@@ -81,23 +89,25 @@ export function getColumns({ onViewContact }: ColumnOptions): ColumnDef<Contact>
     },
     {
       accessorKey: "stage",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Stage" />,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Stage" />
+      ),
       cell: ({ row }) => {
-        const stage = row.getValue("stage") as string
+        const stage = row.getValue("stage") as string;
         return (
-          <Badge 
-            variant="outline" 
+          <Badge
+            variant="outline"
             className={cn(
               "text-[9px] uppercase font-semibold tracking-wide px-2.5 py-0.5 h-6 shadow-none rounded-lg border-transparent",
-              STAGE_COLORS[stage as keyof typeof STAGE_COLORS]
+              STAGE_COLORS[stage as keyof typeof STAGE_COLORS],
             )}
           >
             {stage}
           </Badge>
-        )
+        );
       },
       filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id))
+        return value.includes(row.getValue(id));
       },
       meta: {
         label: "Stage",
@@ -115,7 +125,11 @@ export function getColumns({ onViewContact }: ColumnOptions): ColumnDef<Contact>
       accessorKey: "value",
       header: ({ column }) => (
         <div className="text-right">
-          <DataTableColumnHeader column={column} title="Value" className="justify-end" />
+          <DataTableColumnHeader
+            column={column}
+            title="Value"
+            className="justify-end"
+          />
         </div>
       ),
       cell: ({ row }) => (
@@ -129,14 +143,16 @@ export function getColumns({ onViewContact }: ColumnOptions): ColumnDef<Contact>
     },
     {
       accessorKey: "owner",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Owner" />,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Owner" />
+      ),
       cell: ({ row }) => (
         <span className="text-sm text-muted-foreground">
           {row.getValue("owner")}
         </span>
       ),
       filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id))
+        return value.includes(row.getValue(id));
       },
       meta: {
         label: "Owner",
@@ -176,38 +192,45 @@ export function getColumns({ onViewContact }: ColumnOptions): ColumnDef<Contact>
     {
       id: "actions",
       cell: ({ row }) => {
-        const contact = row.original
+        const contact = row.original;
         return (
           <div className="flex justify-end">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground rounded-xl">
+                <Button
+                  variant="ghost"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground rounded-xl"
+                >
                   <span className="sr-only">Open menu</span>
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 rounded-xl">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => navigator.clipboard.writeText(contact.email)}
                   className="rounded-lg"
                 >
                   Copy Email
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => onViewContact(contact)}
                   className="rounded-lg"
                 >
                   View Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem className="rounded-lg">Log Activity</DropdownMenuItem>
-                <DropdownMenuItem className="rounded-lg">Schedule Meeting</DropdownMenuItem>
+                <DropdownMenuItem className="rounded-lg">
+                  Log Activity
+                </DropdownMenuItem>
+                <DropdownMenuItem className="rounded-lg">
+                  Schedule Meeting
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        )
+        );
       },
     },
-  ]
+  ];
 }

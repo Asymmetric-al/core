@@ -1,22 +1,22 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { motion, AnimatePresence } from 'motion/react'
-import { CheckCircle2, Trash2, X, ChevronDown } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import * as React from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { CheckCircle2, Trash2, X, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import type { TaskStatus } from '@/lib/missionary/types'
+} from "@/components/ui/dropdown-menu";
+import type { TaskStatus } from "@/lib/missionary/types";
 
 interface TaskBulkActionsBarProps {
-  selectedCount: number
-  onClear: () => void
-  onUpdateStatus: (status: TaskStatus) => void
-  onDelete: () => void
+  selectedCount: number;
+  onClear: () => void;
+  onUpdateStatus: (status: TaskStatus) => void;
+  onDelete: () => void;
 }
 
 export function TaskBulkActionsBar({
@@ -25,7 +25,7 @@ export function TaskBulkActionsBar({
   onUpdateStatus,
   onDelete,
 }: TaskBulkActionsBarProps) {
-  if (selectedCount === 0) return null
+  if (selectedCount === 0) return null;
 
   return (
     <AnimatePresence>
@@ -45,17 +45,15 @@ export function TaskBulkActionsBar({
             <X className="h-4 w-4" />
             <span className="sr-only">Clear selection</span>
           </Button>
-          
-          <span className="text-sm font-medium">
-            {selectedCount} selected
-          </span>
+
+          <span className="text-sm font-medium">{selectedCount} selected</span>
 
           <div className="h-4 w-px bg-primary-foreground/20" />
 
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onUpdateStatus('completed')}
+            onClick={() => onUpdateStatus("completed")}
             className="h-8 text-primary-foreground hover:text-primary-foreground hover:bg-primary-foreground/10"
           >
             <CheckCircle2 className="h-4 w-4 mr-2" />
@@ -74,16 +72,16 @@ export function TaskBulkActionsBar({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="center">
-              <DropdownMenuItem onClick={() => onUpdateStatus('not_started')}>
+              <DropdownMenuItem onClick={() => onUpdateStatus("not_started")}>
                 Not Started
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onUpdateStatus('in_progress')}>
+              <DropdownMenuItem onClick={() => onUpdateStatus("in_progress")}>
                 In Progress
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onUpdateStatus('waiting')}>
+              <DropdownMenuItem onClick={() => onUpdateStatus("waiting")}>
                 Waiting
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onUpdateStatus('deferred')}>
+              <DropdownMenuItem onClick={() => onUpdateStatus("deferred")}>
                 Deferred
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -103,5 +101,5 @@ export function TaskBulkActionsBar({
         </div>
       </motion.div>
     </AnimatePresence>
-  )
+  );
 }

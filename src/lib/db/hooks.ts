@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useLiveQuery, eq } from '@tanstack/react-db'
+import { useLiveQuery, eq } from "@tanstack/react-db";
 import {
   postsCollection,
   profilesCollection,
@@ -10,22 +10,26 @@ import {
   fundsCollection,
   followsCollection,
   postCommentsCollection,
-} from './collections'
+} from "./collections";
 
 export function usePostsWithAuthors(missionaryId?: string) {
   return useLiveQuery((q: any) => {
-    let query = q.from({ post: postsCollection.value })
+    let query = q.from({ post: postsCollection.value });
 
     if (missionaryId) {
-      query = query.where(({ post }: any) => eq(post.missionary_id, missionaryId))
+      query = query.where(({ post }: any) =>
+        eq(post.missionary_id, missionaryId),
+      );
     }
 
     return query
-      .join({ missionary: missionariesCollection.value }, ({ post, missionary }: any) =>
-        eq(post.missionary_id, missionary.id)
+      .join(
+        { missionary: missionariesCollection.value },
+        ({ post, missionary }: any) => eq(post.missionary_id, missionary.id),
       )
-      .join({ profile: profilesCollection.value }, ({ missionary, profile }: any) =>
-        eq(missionary.profile_id, profile.id)
+      .join(
+        { profile: profilesCollection.value },
+        ({ missionary, profile }: any) => eq(missionary.profile_id, profile.id),
       )
       .select(({ post, profile }: any) => ({
         id: post.id,
@@ -40,8 +44,8 @@ export function usePostsWithAuthors(missionaryId?: string) {
         updated_at: post.updated_at,
         author: profile,
       }))
-      .orderBy(({ post }: any) => post.created_at, 'desc')
-  })
+      .orderBy(({ post }: any) => post.created_at, "desc");
+  });
 }
 
 export function usePostsForFollowedMissionaries(donorId: string) {
@@ -49,14 +53,16 @@ export function usePostsForFollowedMissionaries(donorId: string) {
     return q
       .from({ post: postsCollection.value })
       .join({ follow: followsCollection.value }, ({ post, follow }: any) =>
-        eq(post.missionary_id, follow.missionary_id)
+        eq(post.missionary_id, follow.missionary_id),
       )
       .where(({ follow }: any) => eq(follow.donor_id, donorId))
-      .join({ missionary: missionariesCollection.value }, ({ post, missionary }: any) =>
-        eq(post.missionary_id, missionary.id)
+      .join(
+        { missionary: missionariesCollection.value },
+        ({ post, missionary }: any) => eq(post.missionary_id, missionary.id),
       )
-      .join({ profile: profilesCollection.value }, ({ missionary, profile }: any) =>
-        eq(missionary.profile_id, profile.id)
+      .join(
+        { profile: profilesCollection.value },
+        ({ missionary, profile }: any) => eq(missionary.profile_id, profile.id),
       )
       .select(({ post, profile }: any) => ({
         id: post.id,
@@ -71,8 +77,8 @@ export function usePostsForFollowedMissionaries(donorId: string) {
         updated_at: post.updated_at,
         author: profile,
       }))
-      .orderBy(({ post }: any) => post.created_at, 'desc')
-  })
+      .orderBy(({ post }: any) => post.created_at, "desc");
+  });
 }
 
 export function useDonorGivingHistory(donorId: string) {
@@ -80,11 +86,14 @@ export function useDonorGivingHistory(donorId: string) {
     return q
       .from({ donation: donationsCollection.value })
       .where(({ donation }: any) => eq(donation.donor_id, donorId))
-      .join({ missionary: missionariesCollection.value }, ({ donation, missionary }: any) =>
-        eq(donation.missionary_id, missionary.id)
+      .join(
+        { missionary: missionariesCollection.value },
+        ({ donation, missionary }: any) =>
+          eq(donation.missionary_id, missionary.id),
       )
-      .join({ profile: profilesCollection.value }, ({ missionary, profile }: any) =>
-        eq(missionary.profile_id, profile.id)
+      .join(
+        { profile: profilesCollection.value },
+        ({ missionary, profile }: any) => eq(missionary.profile_id, profile.id),
       )
       .select(({ donation, profile }: any) => ({
         id: donation.id,
@@ -105,8 +114,8 @@ export function useDonorGivingHistory(donorId: string) {
         missionary: profile,
         fund: null,
       }))
-      .orderBy(({ donation }: any) => donation.created_at, 'desc')
-  })
+      .orderBy(({ donation }: any) => donation.created_at, "desc");
+  });
 }
 
 export function useMissionarySupporters(missionaryId: string) {
@@ -115,10 +124,10 @@ export function useMissionarySupporters(missionaryId: string) {
       .from({ donation: donationsCollection.value })
       .where(({ donation }: any) => eq(donation.missionary_id, missionaryId))
       .join({ donor: donorsCollection.value }, ({ donation, donor }: any) =>
-        eq(donation.donor_id, donor.id)
+        eq(donation.donor_id, donor.id),
       )
       .join({ profile: profilesCollection.value }, ({ donor, profile }: any) =>
-        eq(donor.profile_id, profile.id)
+        eq(donor.profile_id, profile.id),
       )
       .select(({ profile }: any) => ({
         id: profile.id,
@@ -134,8 +143,8 @@ export function useMissionarySupporters(missionaryId: string) {
         updated_at: profile.updated_at,
         totalGiven: 0,
         donationCount: 0,
-      }))
-  })
+      }));
+  });
 }
 
 export function useCommentsWithAuthors(postId: string) {
@@ -143,8 +152,9 @@ export function useCommentsWithAuthors(postId: string) {
     return q
       .from({ comment: postCommentsCollection.value })
       .where(({ comment }: any) => eq(comment.post_id, postId))
-      .join({ profile: profilesCollection.value }, ({ comment, profile }: any) =>
-        eq(comment.user_id, profile.user_id)
+      .join(
+        { profile: profilesCollection.value },
+        ({ comment, profile }: any) => eq(comment.user_id, profile.user_id),
       )
       .select(({ comment, profile }: any) => ({
         id: comment.id,
@@ -155,18 +165,20 @@ export function useCommentsWithAuthors(postId: string) {
         updated_at: comment.updated_at,
         author: profile,
       }))
-      .orderBy(({ comment }: any) => comment.created_at, 'asc')
-  })
+      .orderBy(({ comment }: any) => comment.created_at, "asc");
+  });
 }
 
 export function useFundsWithProgress(missionaryId?: string) {
   return useLiveQuery((q: any) => {
     let query = q
       .from({ fund: fundsCollection.value })
-      .where(({ fund }: any) => eq(fund.is_active, true))
+      .where(({ fund }: any) => eq(fund.is_active, true));
 
     if (missionaryId) {
-      query = query.where(({ fund }: any) => eq(fund.missionary_id ?? '', missionaryId))
+      query = query.where(({ fund }: any) =>
+        eq(fund.missionary_id ?? "", missionaryId),
+      );
     }
 
     return query.select(({ fund }: any) => ({
@@ -184,16 +196,16 @@ export function useFundsWithProgress(missionaryId?: string) {
       created_at: fund.created_at,
       updated_at: fund.updated_at,
       missionary: null,
-    }))
-  })
+    }));
+  });
 }
 
 export function useMissionaryDashboard(missionaryId: string) {
   return useLiveQuery((q: any) => {
     return q
       .from({ donation: donationsCollection.value })
-      .where(({ donation }: any) => eq(donation.missionary_id, missionaryId))
-  })
+      .where(({ donation }: any) => eq(donation.missionary_id, missionaryId));
+  });
 }
 
 export function useMissionaryStats(missionaryId: string) {
@@ -201,6 +213,6 @@ export function useMissionaryStats(missionaryId: string) {
     return q
       .from({ donation: donationsCollection.value })
       .where(({ donation }: any) => eq(donation.missionary_id, missionaryId))
-      .select(({ donation }: any) => donation)
-  })
+      .select(({ donation }: any) => donation);
+  });
 }

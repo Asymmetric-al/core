@@ -1,3 +1,3 @@
-'use client'
+"use client";
 
-export { MCProvider, useMC, useRole } from '@/lib/mission-control/context'
+export { MCProvider, useMC, useRole } from "@/lib/mission-control/context";

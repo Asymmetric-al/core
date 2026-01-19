@@ -1,198 +1,323 @@
-import type { Task, StaffMember, LinkedEntity } from './types'
+import type { Task, StaffMember, LinkedEntity } from "./types";
 
 export const MOCK_STAFF: StaffMember[] = [
-  { id: 'staff-1', name: 'Sarah Johnson', email: 'sarah@givehope.org', avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100', role: 'Development Director' },
-  { id: 'staff-2', name: 'Michael Chen', email: 'michael@givehope.org', avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100', role: 'Donor Relations' },
-  { id: 'staff-3', name: 'Emily Rodriguez', email: 'emily@givehope.org', avatar_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100', role: 'Admin' },
-  { id: 'staff-4', name: 'David Kim', email: 'david@givehope.org', avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100', role: 'Finance' },
-]
+  {
+    id: "staff-1",
+    name: "Sarah Johnson",
+    email: "sarah@givehope.org",
+    avatar_url:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100",
+    role: "Development Director",
+  },
+  {
+    id: "staff-2",
+    name: "Michael Chen",
+    email: "michael@givehope.org",
+    avatar_url:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100",
+    role: "Donor Relations",
+  },
+  {
+    id: "staff-3",
+    name: "Emily Rodriguez",
+    email: "emily@givehope.org",
+    avatar_url:
+      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100",
+    role: "Admin",
+  },
+  {
+    id: "staff-4",
+    name: "David Kim",
+    email: "david@givehope.org",
+    avatar_url:
+      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100",
+    role: "Finance",
+  },
+];
 
 export const MOCK_LINKED_ENTITIES: LinkedEntity[] = [
-  { id: 'donor-1', type: 'donor', name: 'Alice Johnson', email: 'alice@techfoundations.org', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100' },
-  { id: 'donor-2', type: 'donor', name: 'Bob Smith', email: 'bob@globalventures.com', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100' },
-  { id: 'donor-3', type: 'donor', name: 'Clara Wilson', email: 'clara@wilsontrust.org', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100' },
-  { id: 'missionary-1', type: 'missionary', name: 'John Martinez', email: 'john.m@givehope.org', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100' },
-  { id: 'missionary-2', type: 'missionary', name: 'Grace Lee', email: 'grace.l@givehope.org', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100' },
-  { id: 'contact-1', type: 'contact', name: 'Frank Miller', email: 'frank@millerfoundation.org', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100' },
-]
+  {
+    id: "donor-1",
+    type: "donor",
+    name: "Alice Johnson",
+    email: "alice@techfoundations.org",
+    avatar:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100",
+  },
+  {
+    id: "donor-2",
+    type: "donor",
+    name: "Bob Smith",
+    email: "bob@globalventures.com",
+    avatar:
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100",
+  },
+  {
+    id: "donor-3",
+    type: "donor",
+    name: "Clara Wilson",
+    email: "clara@wilsontrust.org",
+    avatar:
+      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100",
+  },
+  {
+    id: "missionary-1",
+    type: "missionary",
+    name: "John Martinez",
+    email: "john.m@givehope.org",
+    avatar:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100",
+  },
+  {
+    id: "missionary-2",
+    type: "missionary",
+    name: "Grace Lee",
+    email: "grace.l@givehope.org",
+    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100",
+  },
+  {
+    id: "contact-1",
+    type: "contact",
+    name: "Frank Miller",
+    email: "frank@millerfoundation.org",
+    avatar:
+      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100",
+  },
+];
 
-const now = new Date()
-const today = now.toISOString().split('T')[0]
-const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+const now = new Date();
+const today = now.toISOString().split("T")[0];
+const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000)
+  .toISOString()
+  .split("T")[0];
+const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+  .toISOString()
+  .split("T")[0];
+const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+  .toISOString()
+  .split("T")[0];
+const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000)
+  .toISOString()
+  .split("T")[0];
 
 export const MOCK_TASKS: Task[] = [
   {
-    id: 'task-1',
-    tenant_id: 'tenant-1',
-    title: 'Follow up with Alice Johnson about annual giving pledge',
-    description: 'Alice mentioned she wants to increase her giving this year. Schedule a call to discuss her philanthropic goals and how we can partner with her vision.',
-    priority: 'urgent',
-    status: 'todo',
-    type: 'call',
+    id: "task-1",
+    tenant_id: "tenant-1",
+    title: "Follow up with Alice Johnson about annual giving pledge",
+    description:
+      "Alice mentioned she wants to increase her giving this year. Schedule a call to discuss her philanthropic goals and how we can partner with her vision.",
+    priority: "urgent",
+    status: "todo",
+    type: "call",
     due_date: today,
-    due_time: '14:00',
-    created_by: 'staff-1',
-    assigned_to: 'staff-1',
-    assigned_to_name: 'Sarah Johnson',
-    assigned_to_avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100',
+    due_time: "14:00",
+    created_by: "staff-1",
+    assigned_to: "staff-1",
+    assigned_to_name: "Sarah Johnson",
+    assigned_to_avatar:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100",
     linked_entity: MOCK_LINKED_ENTITIES[0],
     reminders: [
-      { id: 'rem-1', task_id: 'task-1', remind_at: `${today}T13:00:00Z`, type: 'notification', sent: false }
+      {
+        id: "rem-1",
+        task_id: "task-1",
+        remind_at: `${today}T13:00:00Z`,
+        type: "notification",
+        sent: false,
+      },
     ],
     comments: [
-      { id: 'com-1', task_id: 'task-1', user_id: 'staff-2', user_name: 'Michael Chen', content: 'I spoke with Alice last week - she seems very interested in our water project.', created_at: yesterday ?? '' }
+      {
+        id: "com-1",
+        task_id: "task-1",
+        user_id: "staff-2",
+        user_name: "Michael Chen",
+        content:
+          "I spoke with Alice last week - she seems very interested in our water project.",
+        created_at: yesterday ?? "",
+      },
     ],
-    tags: ['major-donor', 'stewardship'],
-    created_at: twoDaysAgo ?? '',
-    updated_at: yesterday ?? '',
+    tags: ["major-donor", "stewardship"],
+    created_at: twoDaysAgo ?? "",
+    updated_at: yesterday ?? "",
   },
   {
-    id: 'task-2',
-    tenant_id: 'tenant-1',
-    title: 'Send year-end tax receipts to all donors',
-    description: 'Generate and send 2024 tax receipts to all donors who gave $250 or more.',
-    priority: 'high',
-    status: 'in_progress',
-    type: 'email',
+    id: "task-2",
+    tenant_id: "tenant-1",
+    title: "Send year-end tax receipts to all donors",
+    description:
+      "Generate and send 2024 tax receipts to all donors who gave $250 or more.",
+    priority: "high",
+    status: "in_progress",
+    type: "email",
     due_date: tomorrow,
-    created_by: 'staff-3',
-    assigned_to: 'staff-3',
-    assigned_to_name: 'Emily Rodriguez',
-    assigned_to_avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100',
+    created_by: "staff-3",
+    assigned_to: "staff-3",
+    assigned_to_name: "Emily Rodriguez",
+    assigned_to_avatar:
+      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100",
     reminders: [],
     comments: [],
-    tags: ['annual', 'compliance', 'tax-receipt'],
-    created_at: twoDaysAgo ?? '',
-    updated_at: today ?? '',
+    tags: ["annual", "compliance", "tax-receipt"],
+    created_at: twoDaysAgo ?? "",
+    updated_at: today ?? "",
   },
   {
-    id: 'task-3',
-    tenant_id: 'tenant-1',
-    title: 'Schedule onboarding call with new missionary team',
-    description: 'The Martinez family is joining our Thailand team. Set up an initial onboarding call to discuss support raising strategy.',
-    priority: 'medium',
-    status: 'todo',
-    type: 'meeting',
+    id: "task-3",
+    tenant_id: "tenant-1",
+    title: "Schedule onboarding call with new missionary team",
+    description:
+      "The Martinez family is joining our Thailand team. Set up an initial onboarding call to discuss support raising strategy.",
+    priority: "medium",
+    status: "todo",
+    type: "meeting",
     due_date: nextWeek,
-    due_time: '10:00',
-    created_by: 'staff-2',
-    assigned_to: 'staff-2',
-    assigned_to_name: 'Michael Chen',
-    assigned_to_avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
+    due_time: "10:00",
+    created_by: "staff-2",
+    assigned_to: "staff-2",
+    assigned_to_name: "Michael Chen",
+    assigned_to_avatar:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100",
     linked_entity: MOCK_LINKED_ENTITIES[3],
     reminders: [
-      { id: 'rem-2', task_id: 'task-3', remind_at: `${tomorrow}T09:00:00Z`, type: 'email', sent: false }
+      {
+        id: "rem-2",
+        task_id: "task-3",
+        remind_at: `${tomorrow}T09:00:00Z`,
+        type: "email",
+        sent: false,
+      },
     ],
     comments: [],
-    tags: ['onboarding', 'new-member', 'support-raising'],
-    created_at: yesterday ?? '',
-    updated_at: yesterday ?? '',
+    tags: ["onboarding", "new-member", "support-raising"],
+    created_at: yesterday ?? "",
+    updated_at: yesterday ?? "",
   },
   {
-    id: 'task-4',
-    tenant_id: 'tenant-1',
-    title: 'Review Clara Wilson foundation grant proposal',
-    description: 'Clara submitted a revised proposal for the multi-year infrastructure grant. Need to review and provide feedback.',
-    priority: 'high',
-    status: 'todo',
-    type: 'review',
+    id: "task-4",
+    tenant_id: "tenant-1",
+    title: "Review Clara Wilson foundation grant proposal",
+    description:
+      "Clara submitted a revised proposal for the multi-year infrastructure grant. Need to review and provide feedback.",
+    priority: "high",
+    status: "todo",
+    type: "review",
     due_date: today,
-    created_by: 'staff-1',
-    assigned_to: 'staff-4',
-    assigned_to_name: 'David Kim',
-    assigned_to_avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100',
+    created_by: "staff-1",
+    assigned_to: "staff-4",
+    assigned_to_name: "David Kim",
+    assigned_to_avatar:
+      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100",
     linked_entity: MOCK_LINKED_ENTITIES[2],
     reminders: [],
     comments: [
-      { id: 'com-2', task_id: 'task-4', user_id: 'staff-1', user_name: 'Sarah Johnson', content: 'This is a significant grant - please prioritize the financial review section.', created_at: yesterday ?? '' }
+      {
+        id: "com-2",
+        task_id: "task-4",
+        user_id: "staff-1",
+        user_name: "Sarah Johnson",
+        content:
+          "This is a significant grant - please prioritize the financial review section.",
+        created_at: yesterday ?? "",
+      },
     ],
-    tags: ['grant', 'major-donor'],
-    created_at: twoDaysAgo ?? '',
-    updated_at: yesterday ?? '',
+    tags: ["grant", "major-donor"],
+    created_at: twoDaysAgo ?? "",
+    updated_at: yesterday ?? "",
   },
   {
-    id: 'task-5',
-    tenant_id: 'tenant-1',
-    title: 'Update organization compliance documentation',
-    description: 'Annual review of compliance docs required by end of Q1.',
-    priority: 'low',
-    status: 'todo',
-    type: 'todo',
+    id: "task-5",
+    tenant_id: "tenant-1",
+    title: "Update organization compliance documentation",
+    description: "Annual review of compliance docs required by end of Q1.",
+    priority: "low",
+    status: "todo",
+    type: "todo",
     due_date: nextWeek,
-    created_by: 'staff-3',
-    assigned_to: 'staff-3',
-    assigned_to_name: 'Emily Rodriguez',
-    assigned_to_avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100',
+    created_by: "staff-3",
+    assigned_to: "staff-3",
+    assigned_to_name: "Emily Rodriguez",
+    assigned_to_avatar:
+      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100",
     reminders: [],
     comments: [],
-    tags: ['compliance', 'annual'],
-    created_at: twoDaysAgo ?? '',
-    updated_at: twoDaysAgo ?? '',
+    tags: ["compliance", "annual"],
+    created_at: twoDaysAgo ?? "",
+    updated_at: twoDaysAgo ?? "",
   },
   {
-    id: 'task-6',
-    tenant_id: 'tenant-1',
-    title: 'Send thank you email to Bob Smith',
-    description: 'Bob made his first donation last week. Send a personalized thank you email.',
-    priority: 'medium',
-    status: 'completed',
-    type: 'email',
+    id: "task-6",
+    tenant_id: "tenant-1",
+    title: "Send thank you email to Bob Smith",
+    description:
+      "Bob made his first donation last week. Send a personalized thank you email.",
+    priority: "medium",
+    status: "completed",
+    type: "email",
     due_date: yesterday,
-    created_by: 'staff-2',
-    assigned_to: 'staff-2',
-    assigned_to_name: 'Michael Chen',
-    assigned_to_avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
+    created_by: "staff-2",
+    assigned_to: "staff-2",
+    assigned_to_name: "Michael Chen",
+    assigned_to_avatar:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100",
     linked_entity: MOCK_LINKED_ENTITIES[1],
     reminders: [],
     comments: [],
-    tags: ['stewardship'],
-    created_at: twoDaysAgo ?? '',
-    updated_at: yesterday ?? '',
-    completed_at: yesterday ?? '',
+    tags: ["stewardship"],
+    created_at: twoDaysAgo ?? "",
+    updated_at: yesterday ?? "",
+    completed_at: yesterday ?? "",
   },
   {
-    id: 'task-7',
-    tenant_id: 'tenant-1',
-    title: 'Prepare presentation for board meeting',
-    description: 'Q4 fundraising results and 2025 projections for the board.',
-    priority: 'urgent',
-    status: 'in_progress',
-    type: 'todo',
+    id: "task-7",
+    tenant_id: "tenant-1",
+    title: "Prepare presentation for board meeting",
+    description: "Q4 fundraising results and 2025 projections for the board.",
+    priority: "urgent",
+    status: "in_progress",
+    type: "todo",
     due_date: tomorrow,
-    due_time: '09:00',
-    created_by: 'staff-1',
-    assigned_to: 'staff-1',
-    assigned_to_name: 'Sarah Johnson',
-    assigned_to_avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100',
+    due_time: "09:00",
+    created_by: "staff-1",
+    assigned_to: "staff-1",
+    assigned_to_name: "Sarah Johnson",
+    assigned_to_avatar:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100",
     reminders: [
-      { id: 'rem-3', task_id: 'task-7', remind_at: `${today}T17:00:00Z`, type: 'both', sent: false }
+      {
+        id: "rem-3",
+        task_id: "task-7",
+        remind_at: `${today}T17:00:00Z`,
+        type: "both",
+        sent: false,
+      },
     ],
     comments: [],
-    tags: ['board', 'reporting'],
-    created_at: twoDaysAgo ?? '',
-    updated_at: today ?? '',
+    tags: ["board", "reporting"],
+    created_at: twoDaysAgo ?? "",
+    updated_at: today ?? "",
   },
   {
-    id: 'task-8',
-    tenant_id: 'tenant-1',
-    title: 'Follow up with Frank Miller about legacy giving',
-    description: 'Frank expressed interest in including GiveHope in his estate plans. Schedule a follow-up conversation.',
-    priority: 'high',
-    status: 'todo',
-    type: 'follow_up',
+    id: "task-8",
+    tenant_id: "tenant-1",
+    title: "Follow up with Frank Miller about legacy giving",
+    description:
+      "Frank expressed interest in including GiveHope in his estate plans. Schedule a follow-up conversation.",
+    priority: "high",
+    status: "todo",
+    type: "follow_up",
     due_date: nextWeek,
-    created_by: 'staff-1',
-    assigned_to: 'staff-1',
-    assigned_to_name: 'Sarah Johnson',
-    assigned_to_avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100',
+    created_by: "staff-1",
+    assigned_to: "staff-1",
+    assigned_to_name: "Sarah Johnson",
+    assigned_to_avatar:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100",
     linked_entity: MOCK_LINKED_ENTITIES[5],
     reminders: [],
     comments: [],
-    tags: ['planned-giving', 'major-donor'],
-    created_at: yesterday ?? '',
-    updated_at: yesterday ?? '',
+    tags: ["planned-giving", "major-donor"],
+    created_at: yesterday ?? "",
+    updated_at: yesterday ?? "",
   },
-]
+];

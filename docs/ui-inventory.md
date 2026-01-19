@@ -3,6 +3,7 @@
 This document tracks the implementation status of key UI surfaces and components across the application.
 
 ## Mission Control Dashboard (Admin)
+
 - [x] **Sidebars** — Status: done | Path: `src/features/mission-control/components/sidebar-nav.tsx`
 - [x] **Animated Icons** — Status: done | Path: `src/components/ui/icons/AppIcon.tsx`
 - [x] **App Shell** — Status: done | Path: `src/components/mission-control/app-shell/AppShell.tsx`
@@ -16,6 +17,7 @@ This document tracks the implementation status of key UI surfaces and components
 - [x] **Modals / Drawers** — Status: done | Path: `src/components/mission-control/patterns/DetailsDrawer.tsx`
 
 ## Missionary Dashboard
+
 - [x] **Dashboard Home** — Status: done | Path: `src/features/missionary/components/dashboard-home.tsx`
 - [x] **Metric Tiles** — Status: done | Path: `src/components/ui/chart-wrappers.tsx` (KpiTile)
 - [x] **Charts (Giving Breakdown)** — Status: done | Path: `src/components/ui/chart-wrappers.tsx` (ChartCard)
@@ -28,6 +30,7 @@ This document tracks the implementation status of key UI surfaces and components
 - [ ] **Modals** — Status: planned | Path: `src/features/missionary/components/task-dialog.tsx`
 
 ## Public Tenant Website
+
 - [ ] **Home Page** — Status: planned | Path: `src/app/(public)/`
 - [ ] **About Page** — Status: planned | Path: `src/app/(public)/about/`
 - [ ] **FAQ** — Status: planned | Path: `src/app/(public)/faq/`
@@ -38,7 +41,9 @@ This document tracks the implementation status of key UI surfaces and components
 ---
 
 ## Maintenance
+
 When a new component is implemented or moved:
+
 1. Update the **Status** to `done`.
 2. Provide the exact **Path** to the component file or directory.
 3. Ensure the component follows the `_intake` adaptation workflow if applicable.

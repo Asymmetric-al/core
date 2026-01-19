@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { cn } from '@/lib/utils'
+import * as React from "react";
+import { cn } from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -10,26 +10,26 @@ import {
   CardTitle,
   CardFooter,
   CardAction,
-} from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Badge } from '@/components/ui/badge'
-import { TrendingUp, TrendingDown, AlertCircle, Inbox } from 'lucide-react'
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { TrendingUp, TrendingDown, AlertCircle, Inbox } from "lucide-react";
 
 // --- ChartCard ---
 
 interface ChartCardProps extends React.ComponentProps<typeof Card> {
-  title: string
-  description?: string
-  actions?: React.ReactNode
-  footer?: React.ReactNode
-  isLoading?: boolean
-  isEmpty?: boolean
-  isError?: boolean
-  errorTitle?: string
-  errorMessage?: string
-  emptyMessage?: string
-  emptyCTA?: React.ReactNode
-  children: React.ReactNode
+  title: string;
+  description?: string;
+  actions?: React.ReactNode;
+  footer?: React.ReactNode;
+  isLoading?: boolean;
+  isEmpty?: boolean;
+  isError?: boolean;
+  errorTitle?: string;
+  errorMessage?: string;
+  emptyMessage?: string;
+  emptyCTA?: React.ReactNode;
+  children: React.ReactNode;
 }
 
 export function ChartCard({
@@ -40,17 +40,23 @@ export function ChartCard({
   isLoading,
   isEmpty,
   isError,
-  errorTitle = 'Failed to load chart',
-  errorMessage = 'There was an error loading the data.',
-  emptyMessage = 'No data available to display.',
+  errorTitle = "Failed to load chart",
+  errorMessage = "There was an error loading the data.",
+  emptyMessage = "No data available to display.",
   emptyCTA,
   children,
   className,
   ...props
 }: ChartCardProps) {
   return (
-    <Card className={cn('overflow-hidden', className)} {...props}>
-      <CardHeader className={actions ? 'has-data-[slot=card-action]:grid-cols-[1fr_auto]' : undefined}>
+    <Card className={cn("overflow-hidden", className)} {...props}>
+      <CardHeader
+        className={
+          actions
+            ? "has-data-[slot=card-action]:grid-cols-[1fr_auto]"
+            : undefined
+        }
+      >
         <div className="space-y-1">
           <CardTitle className="text-sm font-semibold tracking-tight text-foreground/70 uppercase">
             {title}
@@ -74,8 +80,12 @@ export function ChartCard({
             <div className="bg-destructive/10 p-3 rounded-full mb-3">
               <AlertCircle className="h-6 w-6 text-destructive" />
             </div>
-            <h3 className="text-sm font-semibold text-foreground mb-1">{errorTitle}</h3>
-            <p className="text-xs text-muted-foreground max-w-[200px]">{errorMessage}</p>
+            <h3 className="text-sm font-semibold text-foreground mb-1">
+              {errorTitle}
+            </h3>
+            <p className="text-xs text-muted-foreground max-w-[200px]">
+              {errorMessage}
+            </p>
           </div>
         ) : isEmpty ? (
           <div className="flex flex-col items-center justify-center py-10 text-center animate-in fade-in zoom-in-95 duration-300">
@@ -91,27 +101,31 @@ export function ChartCard({
           </div>
         )}
       </CardContent>
-      {footer && <CardFooter className="border-t bg-muted/5 py-3">{footer}</CardFooter>}
+      {footer && (
+        <CardFooter className="border-t bg-muted/5 py-3">{footer}</CardFooter>
+      )}
     </Card>
-  )
+  );
 }
 
 // --- ChartLegend ---
 
 interface LegendItem {
-  label: string
-  color: string
-  value?: string | number
+  label: string;
+  color: string;
+  value?: string | number;
 }
 
 interface ChartLegendProps {
-  items: LegendItem[]
-  className?: string
+  items: LegendItem[];
+  className?: string;
 }
 
 export function ChartLegend({ items, className }: ChartLegendProps) {
   return (
-    <div className={cn('flex flex-wrap items-center gap-x-6 gap-y-2', className)}>
+    <div
+      className={cn("flex flex-wrap items-center gap-x-6 gap-y-2", className)}
+    >
       {items.map((item, index) => (
         <div key={index} className="flex items-center gap-2 group">
           <div
@@ -129,13 +143,13 @@ export function ChartLegend({ items, className }: ChartLegendProps) {
         </div>
       ))}
     </div>
-  )
+  );
 }
 
 // --- ChartTooltip ---
 
 export function ChartTooltip({ active, payload, label }: any) {
-  if (!active || !payload?.length) return null
+  if (!active || !payload?.length) return null;
 
   return (
     <div className="bg-white border border-zinc-200 rounded-lg shadow-xl p-3 min-w-[120px] animate-in fade-in zoom-in-95 duration-200">
@@ -155,31 +169,33 @@ export function ChartTooltip({ active, payload, label }: any) {
               </span>
             </div>
             <span className="text-xs font-bold text-zinc-900 tabular-nums">
-              {typeof item.value === 'number' ? `$${item.value.toLocaleString()}` : item.value}
+              {typeof item.value === "number"
+                ? `$${item.value.toLocaleString()}`
+                : item.value}
             </span>
           </div>
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 // --- KpiTile ---
 
 interface KpiTileProps {
-  label: string
-  value: string | number
-  subtitle?: string
-  icon?: React.ElementType
+  label: string;
+  value: string | number;
+  subtitle?: string;
+  icon?: React.ElementType;
   delta?: {
-    value: string | number
-    trend: 'up' | 'down' | 'neutral'
-    label?: string
-  }
-  isLoading?: boolean
-  isError?: boolean
-  isEmpty?: boolean
-  className?: string
+    value: string | number;
+    trend: "up" | "down" | "neutral";
+    label?: string;
+  };
+  isLoading?: boolean;
+  isError?: boolean;
+  isEmpty?: boolean;
+  className?: string;
 }
 
 export function KpiTile({
@@ -195,7 +211,7 @@ export function KpiTile({
 }: KpiTileProps) {
   if (isLoading) {
     return (
-      <Card className={cn('p-6', className)}>
+      <Card className={cn("p-6", className)}>
         <div className="flex items-center justify-between mb-4">
           <Skeleton className="h-4 w-24" />
           <Skeleton className="h-8 w-8 rounded-lg" />
@@ -203,11 +219,16 @@ export function KpiTile({
         <Skeleton className="h-8 w-32 mb-2" />
         <Skeleton className="h-4 w-40" />
       </Card>
-    )
+    );
   }
 
   return (
-    <Card className={cn('relative overflow-hidden group hover:border-zinc-300 transition-colors', className)}>
+    <Card
+      className={cn(
+        "relative overflow-hidden group hover:border-zinc-300 transition-colors",
+        className,
+      )}
+    >
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
@@ -216,27 +237,34 @@ export function KpiTile({
             </p>
             <div className="flex items-baseline gap-2">
               <h3 className="text-2xl font-bold tracking-tight text-foreground">
-                {isEmpty ? '--' : value}
+                {isEmpty ? "--" : value}
               </h3>
               {delta && !isEmpty && (
-                <Badge 
-                  variant="secondary" 
+                <Badge
+                  variant="secondary"
                   className={cn(
                     "h-5 px-1.5 text-[10px] font-bold border-none",
-                    delta.trend === 'up' && "bg-emerald-50 text-emerald-700",
-                    delta.trend === 'down' && "bg-rose-50 text-rose-700",
-                    delta.trend === 'neutral' && "bg-zinc-100 text-zinc-600"
+                    delta.trend === "up" && "bg-emerald-50 text-emerald-700",
+                    delta.trend === "down" && "bg-rose-50 text-rose-700",
+                    delta.trend === "neutral" && "bg-zinc-100 text-zinc-600",
                   )}
                 >
-                  {delta.trend === 'up' && <TrendingUp className="mr-1 h-3 w-3" />}
-                  {delta.trend === 'down' && <TrendingDown className="mr-1 h-3 w-3" />}
+                  {delta.trend === "up" && (
+                    <TrendingUp className="mr-1 h-3 w-3" />
+                  )}
+                  {delta.trend === "down" && (
+                    <TrendingDown className="mr-1 h-3 w-3" />
+                  )}
                   {delta.value}
                 </Badge>
               )}
             </div>
             {(subtitle || (delta?.label && !isEmpty)) && (
               <p className="text-xs text-muted-foreground font-medium">
-                {subtitle} {delta?.label && <span className="opacity-70">{delta.label}</span>}
+                {subtitle}{" "}
+                {delta?.label && (
+                  <span className="opacity-70">{delta.label}</span>
+                )}
               </p>
             )}
           </div>
@@ -256,5 +284,5 @@ export function KpiTile({
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

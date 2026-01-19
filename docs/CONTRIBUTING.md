@@ -58,17 +58,17 @@ bunx turbo run lint typecheck  # Cached checks via Turborepo
 ```typescript
 // Good
 interface UserProps {
-  name: string
-  email: string
+  name: string;
+  email: string;
 }
 
 export function formatUser(user: UserProps): string {
-  return `${user.name} <${user.email}>`
+  return `${user.name} <${user.email}>`;
 }
 
 // Avoid
 export function formatUser(user: any) {
-  return `${user.name} <${user.email}>`
+  return `${user.name} <${user.email}>`;
 }
 ```
 
@@ -114,6 +114,7 @@ export function SubmitButton({ label, onClick, disabled }: ButtonProps) {
 ### Imports
 
 Order imports as follows:
+
 1. React/Next.js
 2. Third-party libraries
 3. Internal absolute imports (`@/...`)
@@ -122,22 +123,22 @@ Order imports as follows:
 
 ```typescript
 // 1. React/Next
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
+import { useState, useEffect } from "react";
+import Link from "next/link";
 
 // 2. Third-party
-import { format } from 'date-fns'
+import { format } from "date-fns";
 
 // 3. Internal absolute
-import { Button } from '@/components/ui/button'
-import { useAuth } from '@/hooks'
-import { cn } from '@/lib/utils'
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks";
+import { cn } from "@/lib/utils";
 
 // 4. Relative
-import { MetricCard } from './metric-card'
+import { MetricCard } from "./metric-card";
 
 // 5. Types
-import type { User } from '@/types'
+import type { User } from "@/types";
 ```
 
 ---
@@ -177,6 +178,7 @@ Build cache keys must reflect only env vars that impact build output.
 - **Excluded**: runtime-only or unrelated envs that do not affect build output.
 
 Avoid footguns:
+
 - Don’t include unrelated envs (causes unnecessary cache misses).
 - Don’t bake timestamps or release IDs unless you want cache invalidation.
 - Keep wildcards minimal and intentional.
@@ -185,12 +187,12 @@ Avoid footguns:
 
 Run the following after changes to confirm caching is correct:
 
-| Change | Command | Expected Result | Evidence |
-| --- | --- | --- | --- |
-| Change a source file | `bunx turbo run build` | Cache miss for `build` | Task re-executes |
-| Change a relevant env var | `bunx turbo run build` | Cache miss for `build` | Env invalidates hash |
-| Change an irrelevant env var | `bunx turbo run build` | Cache hit for `build` | Task skipped, cache hit shown |
-| Change config (`next.config.mjs`, `tsconfig.json`, `eslint.config.mjs`) | `bunx turbo run build` / `lint` / `typecheck` | Cache miss for affected task(s) | Cache miss shown in output |
+| Change                                                                  | Command                                       | Expected Result                 | Evidence                      |
+| ----------------------------------------------------------------------- | --------------------------------------------- | ------------------------------- | ----------------------------- |
+| Change a source file                                                    | `bunx turbo run build`                        | Cache miss for `build`          | Task re-executes              |
+| Change a relevant env var                                               | `bunx turbo run build`                        | Cache miss for `build`          | Env invalidates hash          |
+| Change an irrelevant env var                                            | `bunx turbo run build`                        | Cache hit for `build`           | Task skipped, cache hit shown |
+| Change config (`next.config.mjs`, `tsconfig.json`, `eslint.config.mjs`) | `bunx turbo run build` / `lint` / `typecheck` | Cache miss for affected task(s) | Cache miss shown in output    |
 
 ## File Organization
 
@@ -238,7 +240,7 @@ src/app/api/[resource]/
 // Use for: Static content, data fetching, SEO
 
 // Client Component (add directive)
-'use client'
+"use client";
 // Use for: Interactivity, hooks, browser APIs
 ```
 
@@ -259,14 +261,14 @@ src/app/api/[resource]/
 ```typescript
 // API routes: Return proper status codes
 if (!user) {
-  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
 
 // Client: Use error boundaries or try-catch
 try {
-  await submitForm(data)
+  await submitForm(data);
 } catch (error) {
-  toast.error('Failed to submit')
+  toast.error("Failed to submit");
 }
 ```
 
@@ -278,23 +280,21 @@ try {
 
 ```typescript
 // Always check for errors
-const { data, error } = await supabase.from('table').select('*')
-if (error) throw error
+const { data, error } = await supabase.from("table").select("*");
+if (error) throw error;
 
 // Use specific selects (not *)
-const { data } = await supabase
-  .from('users')
-  .select('id, name, email')  // Only needed fields
+const { data } = await supabase.from("users").select("id, name, email"); // Only needed fields
 ```
 
 ### TanStack DB Collections
 
 ```typescript
 // Use existing collections from @/lib/db
-import { postsCollection, profilesCollection } from '@/lib/db'
+import { postsCollection, profilesCollection } from "@/lib/db";
 
 // Use useLiveQuery for reactive data
-import { useLiveQuery } from '@tanstack/react-db'
+import { useLiveQuery } from "@tanstack/react-db";
 ```
 
 ---
@@ -304,7 +304,7 @@ import { useLiveQuery } from '@tanstack/react-db'
 Before submitting code, verify:
 
 - [ ] **Types pass**: `bun run typecheck` shows no errors
-- [ ] **Lint passes**: `bun run lint` shows no errors  
+- [ ] **Lint passes**: `bun run lint` shows no errors
 - [ ] **Mobile works**: Test on 375px viewport
 - [ ] **Desktop works**: Test on 1440px viewport
 - [ ] **No console errors**: Check browser dev tools
@@ -319,12 +319,12 @@ Before submitting code, verify:
 
 ```typescript
 // Dynamic params must be awaited
-export default async function Page({ 
-  params 
-}: { 
-  params: Promise<{ id: string }> 
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = await params  // Must await!
+  const { id } = await params; // Must await!
 }
 ```
 
@@ -341,12 +341,12 @@ function Input({ ref, ...props }) {
 
 ```typescript
 // Server: Always use createClient from server.ts
-import { createClient } from '@/lib/supabase/server'
-const supabase = await createClient()  // Async!
+import { createClient } from "@/lib/supabase/server";
+const supabase = await createClient(); // Async!
 
 // Client: Use client.ts version
-import { createClient } from '@/lib/supabase/client'
-const supabase = createClient()  // Sync
+import { createClient } from "@/lib/supabase/client";
+const supabase = createClient(); // Sync
 ```
 
 ---
@@ -362,19 +362,19 @@ const supabase = createClient()  // Sync
 
 ## Quick Reference
 
-| Task | Command |
-|------|---------|
-| Start dev server | `bun run dev` |
-| Type check | `bun run typecheck` |
-| Lint | `bun run lint` |
-| Build | `bun run build` |
-| E2E tests | `bun run test:e2e` |
+| Task             | Command             |
+| ---------------- | ------------------- |
+| Start dev server | `bun run dev`       |
+| Type check       | `bun run typecheck` |
+| Lint             | `bun run lint`      |
+| Build            | `bun run build`     |
+| E2E tests        | `bun run test:e2e`  |
 
-| Import | From |
-|--------|------|
+| Import        | From                          |
+| ------------- | ----------------------------- |
 | UI components | `@/components/ui/[component]` |
-| Hooks | `@/hooks` |
-| Utilities | `@/lib/utils` |
-| Types | `@/types` |
-| Features | `@/features/[feature]` |
-| Mock data | `@/lib/mock-data` |
+| Hooks         | `@/hooks`                     |
+| Utilities     | `@/lib/utils`                 |
+| Types         | `@/types`                     |
+| Features      | `@/features/[feature]`        |
+| Mock data     | `@/lib/mock-data`             |

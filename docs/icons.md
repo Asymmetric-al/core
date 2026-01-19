@@ -9,7 +9,7 @@ This document describes how to use icons in the codebase, ensuring proper tree-s
 For most use cases, import icons directly:
 
 ```tsx
-import { Check, ChevronDown, Loader2 } from '@/components/ui/icons'
+import { Check, ChevronDown, Loader2 } from "@/components/ui/icons";
 
 export function MyComponent() {
   return (
@@ -18,7 +18,7 @@ export function MyComponent() {
       <ChevronDown className="h-4 w-4 text-muted-foreground" />
       <Loader2 className="h-4 w-4 animate-spin" />
     </div>
-  )
+  );
 }
 ```
 
@@ -56,11 +56,11 @@ src/
 
 ## Import Paths
 
-| Use Case | Import From |
-|----------|-------------|
-| Static icons in any component | `@/components/ui/icons` |
-| Dynamic icons in `src/components/mission-control/` | `../icons` (relative) |
-| Dynamic icons in `src/features/mission-control/` | `../icons` (relative) |
+| Use Case                                           | Import From             |
+| -------------------------------------------------- | ----------------------- |
+| Static icons in any component                      | `@/components/ui/icons` |
+| Dynamic icons in `src/components/mission-control/` | `../icons` (relative)   |
+| Dynamic icons in `src/features/mission-control/`   | `../icons` (relative)   |
 
 ## Tree-Shaking Explained
 
@@ -70,7 +70,7 @@ Next.js has `lucide-react` in its `optimizePackageImports` list, so named import
 
 ```tsx
 // GOOD - Only Camera and Check are bundled
-import { Camera, Check } from '@/components/ui/icons'
+import { Camera, Check } from "@/components/ui/icons";
 ```
 
 ### Anti-Patterns to Avoid
@@ -92,13 +92,13 @@ Edit `src/components/ui/icons/index.tsx`:
 ```tsx
 import {
   // ... existing imports
-  NewIcon,  // Add here
-} from 'lucide-react'
+  NewIcon, // Add here
+} from "lucide-react";
 
 export {
   // ... existing exports
-  NewIcon,  // Add here
-}
+  NewIcon, // Add here
+};
 ```
 
 ### Step 2: Add to Dynamic Map (if needed for tiles/navigation)
@@ -106,23 +106,25 @@ export {
 If the icon will be used with string-based names in tile configs, add to both:
 
 **`src/components/mission-control/icons.tsx`:**
+
 ```tsx
-import { NewIcon } from '@/components/ui/icons'
+import { NewIcon } from "@/components/ui/icons";
 
 const TILE_ICON_MAP = {
   // ... existing icons
   NewIcon,
-}
+};
 ```
 
 **`src/features/mission-control/components/icons.tsx`:**
+
 ```tsx
-import { NewIcon } from '@/components/ui/icons'
+import { NewIcon } from "@/components/ui/icons";
 
 const TILE_ICON_MAP = {
   // ... existing icons
   NewIcon,
-}
+};
 ```
 
 ## Removing Icons
@@ -137,19 +139,19 @@ const TILE_ICON_MAP = {
 
 Some legacy or semantic names map to existing icons:
 
-| Alias | Actual Icon |
-|-------|-------------|
+| Alias           | Actual Icon     |
+| --------------- | --------------- |
 | `ClipboardPlus` | `ClipboardList` |
-| `DoorOpen` | `CalendarDays` |
-| `FileHeart` | `FileHeart` |
+| `DoorOpen`      | `CalendarDays`  |
+| `FileHeart`     | `FileHeart`     |
 
 Add aliases in the `TILE_ICON_MAP`:
 
 ```tsx
 const TILE_ICON_MAP = {
   ClipboardList,
-  ClipboardPlus: ClipboardList,  // Alias
-}
+  ClipboardPlus: ClipboardList, // Alias
+};
 ```
 
 ## TypeScript Support
@@ -157,22 +159,24 @@ const TILE_ICON_MAP = {
 Types are re-exported for use in component props:
 
 ```tsx
-import { type LucideIcon, type LucideProps } from '@/components/ui/icons'
+import { type LucideIcon, type LucideProps } from "@/components/ui/icons";
 
 interface Props {
-  icon: LucideIcon
-  iconProps?: Omit<LucideProps, 'ref'>
+  icon: LucideIcon;
+  iconProps?: Omit<LucideProps, "ref">;
 }
 ```
 
 ## Common Icon Patterns
 
 ### Loading State
+
 ```tsx
 <Loader2 className="h-4 w-4 animate-spin" />
 ```
 
 ### Button with Icon
+
 ```tsx
 <Button>
   <Plus className="mr-2 h-4 w-4" />
@@ -181,6 +185,7 @@ interface Props {
 ```
 
 ### Icon Button
+
 ```tsx
 <Button variant="ghost" size="icon">
   <Settings className="h-4 w-4" />
@@ -188,8 +193,15 @@ interface Props {
 ```
 
 ### Conditional Icon
+
 ```tsx
-{isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+{
+  isOpen ? (
+    <ChevronUp className="h-4 w-4" />
+  ) : (
+    <ChevronDown className="h-4 w-4" />
+  );
+}
 ```
 
 ## Available Icons

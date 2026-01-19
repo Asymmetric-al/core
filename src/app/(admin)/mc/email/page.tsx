@@ -1,17 +1,29 @@
-'use client'
+"use client";
 
-import React, { useRef, useState, useCallback, useMemo, useEffect } from 'react'
-import { UnlayerEditor, UnlayerEditorHandle } from '@/components/studio/UnlayerEditor'
-import { EmailStudioSetupStatus } from '@/components/studio/EmailStudioSetupStatus'
-import { getEmailStudioConfig, type EmailStudioFullConfig } from '@/config/email-studio'
-import type { UnlayerDesignJSON } from '@/types/email-studio'
-import { 
-  Mail, 
-  Save, 
-  Download, 
-  Smartphone, 
-  Monitor, 
-  ChevronRight, 
+import React, {
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+} from "react";
+import {
+  UnlayerEditor,
+  UnlayerEditorHandle,
+} from "@/components/studio/UnlayerEditor";
+import { EmailStudioSetupStatus } from "@/components/studio/EmailStudioSetupStatus";
+import {
+  getEmailStudioConfig,
+  type EmailStudioFullConfig,
+} from "@/config/email-studio";
+import type { UnlayerDesignJSON } from "@/types/email-studio";
+import {
+  Mail,
+  Save,
+  Download,
+  Smartphone,
+  Monitor,
+  ChevronRight,
   Settings,
   FileCode,
   FileText,
@@ -29,9 +41,9 @@ import {
   Minimize2,
   Sparkles,
   History,
-  Layers
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
+  Layers,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,7 +51,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuShortcut,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -47,228 +59,241 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { Kbd } from '@/components/ui/kbd'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { Separator } from '@/components/ui/separator'
-import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Kbd } from "@/components/ui/kbd";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
-type PreviewDevice = 'desktop' | 'mobile'
+type PreviewDevice = "desktop" | "mobile";
 
 interface EmailMetadata {
-  id: string | null
-  name: string
-  subject: string
-  preheader: string
+  id: string | null;
+  name: string;
+  subject: string;
+  preheader: string;
 }
 
 export default function EmailStudio() {
-  const editorRef = useRef<UnlayerEditorHandle>(null)
-  const [isEditorReady, setIsEditorReady] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-  const [previewDevice, setPreviewDevice] = useState<PreviewDevice>('desktop')
-  const [showSaveDialog, setShowSaveDialog] = useState(false)
-  const [showExportDialog, setShowExportDialog] = useState(false)
-  const [exportedHtml, setExportedHtml] = useState<string>('')
-  const [studioConfig, setStudioConfig] = useState<EmailStudioFullConfig | null>(null)
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  const [copiedHtml, setCopiedHtml] = useState(false)
+  const editorRef = useRef<UnlayerEditorHandle>(null);
+  const [isEditorReady, setIsEditorReady] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [previewDevice, setPreviewDevice] = useState<PreviewDevice>("desktop");
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [exportedHtml, setExportedHtml] = useState<string>("");
+  const [studioConfig, setStudioConfig] =
+    useState<EmailStudioFullConfig | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [copiedHtml, setCopiedHtml] = useState(false);
   const [metadata, setMetadata] = useState<EmailMetadata>({
     id: null,
-    name: 'Untitled Email',
-    subject: '',
-    preheader: ''
-  })
+    name: "Untitled Email",
+    subject: "",
+    preheader: "",
+  });
 
   const handleUndo = useCallback(() => {
-    editorRef.current?.undo()
-  }, [])
+    editorRef.current?.undo();
+  }, []);
 
   const handleRedo = useCallback(() => {
-    editorRef.current?.redo()
-  }, [])
+    editorRef.current?.redo();
+  }, []);
 
   const handleSaveClick = useCallback(() => {
-    if (!editorRef.current) return
-    setShowSaveDialog(true)
-  }, [])
+    if (!editorRef.current) return;
+    setShowSaveDialog(true);
+  }, []);
 
   const handleExportHtml = useCallback(async () => {
-    if (!editorRef.current) return
+    if (!editorRef.current) return;
     try {
       const data = await editorRef.current.exportHtml({
         minify: studioConfig?.export.minifyHtml ?? true,
-        cleanup: studioConfig?.export.cleanupCss ?? true
-      })
-      setExportedHtml(data.html)
-      setShowExportDialog(true)
+        cleanup: studioConfig?.export.cleanupCss ?? true,
+      });
+      setExportedHtml(data.html);
+      setShowExportDialog(true);
     } catch {
-      toast.error('Failed to export HTML')
+      toast.error("Failed to export HTML");
     }
-  }, [studioConfig])
+  }, [studioConfig]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
-        e.preventDefault()
+      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+        e.preventDefault();
         if (isEditorReady && !isSaving) {
-          handleSaveClick()
+          handleSaveClick();
         }
       }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
-        e.preventDefault()
-        handleUndo()
+      if ((e.metaKey || e.ctrlKey) && e.key === "z" && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
       }
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'z') {
-        e.preventDefault()
-        handleRedo()
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "z") {
+        e.preventDefault();
+        handleRedo();
       }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'e') {
-        e.preventDefault()
-        handleExportHtml()
+      if ((e.metaKey || e.ctrlKey) && e.key === "e") {
+        e.preventDefault();
+        handleExportHtml();
       }
-      if (e.key === 'Escape' && isFullscreen) {
-        setIsFullscreen(false)
+      if (e.key === "Escape" && isFullscreen) {
+        setIsFullscreen(false);
       }
-    }
+    };
 
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isEditorReady, isSaving, isFullscreen, handleSaveClick, handleUndo, handleRedo, handleExportHtml])
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    isEditorReady,
+    isSaving,
+    isFullscreen,
+    handleSaveClick,
+    handleUndo,
+    handleRedo,
+    handleExportHtml,
+  ]);
 
   const handleEditorReady = useCallback((config: EmailStudioFullConfig) => {
-    setIsEditorReady(true)
-    setStudioConfig(config)
-    
+    setIsEditorReady(true);
+    setStudioConfig(config);
+
     if (!config.account.isConfigured) {
-      toast.info('Email Studio is running in free mode', { 
-        description: 'Configure your Unlayer account for full features',
+      toast.info("Email Studio is running in free mode", {
+        description: "Configure your Unlayer account for full features",
         duration: 4000,
         action: {
-          label: 'Setup',
-          onClick: () => {}
-        }
-      })
+          label: "Setup",
+          onClick: () => {},
+        },
+      });
     }
-  }, [])
+  }, []);
 
   const handleDesignUpdate = useCallback(() => {
-    setHasUnsavedChanges(true)
-  }, [])
+    setHasUnsavedChanges(true);
+  }, []);
 
   const handleSave = useCallback(async () => {
-    setIsSaving(true)
+    setIsSaving(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       if (!metadata.id) {
-        setMetadata(prev => ({ ...prev, id: crypto.randomUUID() }))
+        setMetadata((prev) => ({ ...prev, id: crypto.randomUUID() }));
       }
-      
-      setHasUnsavedChanges(false)
-      toast.success('Template saved', { 
+
+      setHasUnsavedChanges(false);
+      toast.success("Template saved", {
         description: `"${metadata.name}" has been saved successfully`,
-        duration: 3000 
-      })
+        duration: 3000,
+      });
     } catch {
-      toast.error('Failed to save template', { 
-        description: 'Please try again',
-        duration: 3000 
-      })
+      toast.error("Failed to save template", {
+        description: "Please try again",
+        duration: 3000,
+      });
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }, [metadata.id, metadata.name])
+  }, [metadata.id, metadata.name]);
 
   const handleConfirmSave = useCallback(async () => {
-    if (!editorRef.current) return
-    
-    setShowSaveDialog(false)
-    setIsSaving(true)
-    
+    if (!editorRef.current) return;
+
+    setShowSaveDialog(false);
+    setIsSaving(true);
+
     try {
-      await editorRef.current.saveDesign()
-      setHasUnsavedChanges(false)
-      
+      await editorRef.current.saveDesign();
+      setHasUnsavedChanges(false);
+
       if (!metadata.id) {
-        setMetadata(prev => ({ ...prev, id: crypto.randomUUID() }))
+        setMetadata((prev) => ({ ...prev, id: crypto.randomUUID() }));
       }
-      
-      toast.success('Template saved', { 
+
+      toast.success("Template saved", {
         description: `"${metadata.name}" has been saved successfully`,
-        duration: 3000 
-      })
+        duration: 3000,
+      });
     } catch {
-      toast.error('Failed to save template')
+      toast.error("Failed to save template");
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }, [metadata.name, metadata.id])
+  }, [metadata.name, metadata.id]);
 
   const handleCopyHtml = useCallback(() => {
-    navigator.clipboard.writeText(exportedHtml)
-    setCopiedHtml(true)
-    toast.success('HTML copied to clipboard')
-    setTimeout(() => setCopiedHtml(false), 2000)
-  }, [exportedHtml])
+    navigator.clipboard.writeText(exportedHtml);
+    setCopiedHtml(true);
+    toast.success("HTML copied to clipboard");
+    setTimeout(() => setCopiedHtml(false), 2000);
+  }, [exportedHtml]);
 
   const handleDownloadHtml = useCallback(() => {
-    const blob = new Blob([exportedHtml], { type: 'text/html' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${metadata.name.toLowerCase().replace(/\s+/g, '-')}.html`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-    toast.success('HTML downloaded')
-  }, [exportedHtml, metadata.name])
+    const blob = new Blob([exportedHtml], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${metadata.name.toLowerCase().replace(/\s+/g, "-")}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("HTML downloaded");
+  }, [exportedHtml, metadata.name]);
 
   const handlePreview = useCallback((device: PreviewDevice) => {
-    if (!editorRef.current) return
-    setPreviewDevice(device)
-    editorRef.current.showPreview(device)
-  }, [])
+    if (!editorRef.current) return;
+    setPreviewDevice(device);
+    editorRef.current.showPreview(device);
+  }, []);
 
   const handleNewTemplate = useCallback(() => {
     setMetadata({
       id: null,
-      name: 'Untitled Email',
-      subject: '',
-      preheader: ''
-    })
+      name: "Untitled Email",
+      subject: "",
+      preheader: "",
+    });
     if (editorRef.current) {
       editorRef.current.loadDesign({
         counters: { u_column: 1, u_row: 1 },
         body: {
           rows: [],
           values: {
-            backgroundColor: '#ffffff',
-            contentWidth: '600px'
-          }
-        }
-      })
+            backgroundColor: "#ffffff",
+            contentWidth: "600px",
+          },
+        },
+      });
     }
-    setHasUnsavedChanges(false)
-    toast.info('New template created')
-  }, [])
+    setHasUnsavedChanges(false);
+    toast.info("New template created");
+  }, []);
 
-    return (
-      <div 
-        className={cn(
-          "flex flex-col bg-background transition-all duration-300",
-          isFullscreen 
-            ? "fixed inset-0 z-50 overflow-hidden" 
-            : "flex-1 min-h-0 overflow-hidden"
-        )}
-      >
+  return (
+    <div
+      className={cn(
+        "flex flex-col bg-background transition-all duration-300",
+        isFullscreen
+          ? "fixed inset-0 z-50 overflow-hidden"
+          : "flex-1 min-h-0 overflow-hidden",
+      )}
+    >
       <header className="h-12 md:h-14 bg-background border-b border-border flex items-center justify-between px-2 md:px-4 shrink-0 z-20">
         <div className="flex items-center gap-2 md:gap-3 min-w-0">
           <div className="flex items-center gap-2">
@@ -279,13 +304,13 @@ export default function EmailStudio() {
               Email Studio
             </span>
           </div>
-          
+
           <div className="hidden md:block">
             <EmailStudioSetupStatus variant="badge" />
           </div>
-          
+
           <Separator orientation="vertical" className="h-5 hidden md:block" />
-          
+
           <div className="hidden lg:flex items-center gap-1 text-xs text-muted-foreground min-w-0">
             <span className="shrink-0">Templates</span>
             <ChevronRight className="h-3 w-3 shrink-0" />
@@ -342,30 +367,42 @@ export default function EmailStudio() {
               </TooltipContent>
             </Tooltip>
           </div>
-          
+
           <div className="hidden md:block">
-            <ToggleGroup 
-              type="single" 
+            <ToggleGroup
+              type="single"
               value={previewDevice}
-              onValueChange={(value) => value && handlePreview(value as PreviewDevice)}
+              onValueChange={(value) =>
+                value && handlePreview(value as PreviewDevice)
+              }
               disabled={!isEditorReady}
               variant="outline"
               size="sm"
             >
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <ToggleGroupItem value="desktop" className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+                  <ToggleGroupItem
+                    value="desktop"
+                    className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                  >
                     <Monitor className="h-3.5 w-3.5" />
-                    <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">Desktop</span>
+                    <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
+                      Desktop
+                    </span>
                   </ToggleGroupItem>
                 </TooltipTrigger>
                 <TooltipContent side="bottom">Desktop preview</TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <ToggleGroupItem value="mobile" className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+                  <ToggleGroupItem
+                    value="mobile"
+                    className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                  >
                     <Smartphone className="h-3.5 w-3.5" />
-                    <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">Mobile</span>
+                    <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
+                      Mobile
+                    </span>
                   </ToggleGroupItem>
                 </TooltipTrigger>
                 <TooltipContent side="bottom">Mobile preview</TooltipContent>
@@ -379,14 +416,16 @@ export default function EmailStudio() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="h-8 gap-1.5"
                     disabled={!isEditorReady}
                   >
-                    <Download className="h-3.5 w-3.5" /> 
-                    <span className="hidden sm:inline text-xs font-medium">Export</span>
+                    <Download className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline text-xs font-medium">
+                      Export
+                    </span>
                   </Button>
                 </DropdownMenuTrigger>
               </TooltipTrigger>
@@ -398,33 +437,41 @@ export default function EmailStudio() {
                 Export as HTML
                 <DropdownMenuShortcut>⌘E</DropdownMenuShortcut>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => toast.info('Coming soon: Export as PDF')}>
+              <DropdownMenuItem
+                onClick={() => toast.info("Coming soon: Export as PDF")}
+              >
                 <FileText className="h-4 w-4 mr-2" />
                 Export as PDF
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => toast.info('Coming soon: Send test email')}>
+              <DropdownMenuItem
+                onClick={() => toast.info("Coming soon: Send test email")}
+              >
                 <Send className="h-4 w-4 mr-2" />
                 Send Test Email
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Button 
-            size="sm" 
-            onClick={handleSaveClick} 
+          <Button
+            size="sm"
+            onClick={handleSaveClick}
             disabled={!isEditorReady || isSaving}
             className="h-8 px-3 md:px-4 gap-1.5"
           >
             {isSaving ? (
               <>
                 <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                <span className="hidden sm:inline text-xs font-medium">Saving...</span>
+                <span className="hidden sm:inline text-xs font-medium">
+                  Saving...
+                </span>
               </>
             ) : (
               <>
-                <Save className="h-3.5 w-3.5" /> 
-                <span className="hidden sm:inline text-xs font-medium">Save</span>
+                <Save className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline text-xs font-medium">
+                  Save
+                </span>
               </>
             )}
           </Button>
@@ -440,24 +487,34 @@ export default function EmailStudio() {
                 <Plus className="h-4 w-4 mr-2" />
                 New Template
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => toast.info('Coming soon: Template settings')}>
+              <DropdownMenuItem
+                onClick={() => toast.info("Coming soon: Template settings")}
+              >
                 <Settings className="h-4 w-4 mr-2" />
                 Settings
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => toast.info('Coming soon: Load template')}>
+              <DropdownMenuItem
+                onClick={() => toast.info("Coming soon: Load template")}
+              >
                 <FolderOpen className="h-4 w-4 mr-2" />
                 Load Template
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => toast.info('Coming soon: Duplicate')}>
+              <DropdownMenuItem
+                onClick={() => toast.info("Coming soon: Duplicate")}
+              >
                 <Copy className="h-4 w-4 mr-2" />
                 Duplicate
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => toast.info('Coming soon: Version history')}>
+              <DropdownMenuItem
+                onClick={() => toast.info("Coming soon: Version history")}
+              >
                 <History className="h-4 w-4 mr-2" />
                 Version History
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => toast.info('Coming soon: Schedule send')}>
+              <DropdownMenuItem
+                onClick={() => toast.info("Coming soon: Schedule send")}
+              >
                 <Clock className="h-4 w-4 mr-2" />
                 Schedule Send
               </DropdownMenuItem>
@@ -468,7 +525,7 @@ export default function EmailStudio() {
                 ) : (
                   <Maximize2 className="h-4 w-4 mr-2" />
                 )}
-                {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+                {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
                 <DropdownMenuShortcut>Esc</DropdownMenuShortcut>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -481,27 +538,27 @@ export default function EmailStudio() {
         </div>
       </header>
 
-        <div className="flex-1 relative overflow-hidden bg-muted/30">
-          <UnlayerEditor
-            mode="email"
-            editorId="email-studio-editor"
-            onReady={handleEditorReady}
-            onDesignUpdate={handleDesignUpdate}
-            onSave={handleSave}
-            ref={editorRef}
-            className="absolute inset-0"
-            appearance={{
-              theme: 'modern_light',
-              panels: {
-                tools: {
-                  dock: 'right',
-                  collapsible: true,
-                  defaultUncollapsed: true
-                }
-              }
-            }}
-          />
-        </div>
+      <div className="flex-1 relative overflow-hidden bg-muted/30">
+        <UnlayerEditor
+          mode="email"
+          editorId="email-studio-editor"
+          onReady={handleEditorReady}
+          onDesignUpdate={handleDesignUpdate}
+          onSave={handleSave}
+          ref={editorRef}
+          className="absolute inset-0"
+          appearance={{
+            theme: "modern_light",
+            panels: {
+              tools: {
+                dock: "right",
+                collapsible: true,
+                defaultUncollapsed: true,
+              },
+            },
+          }}
+        />
+      </div>
 
       <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
         <DialogContent className="sm:max-w-[480px]">
@@ -513,7 +570,8 @@ export default function EmailStudio() {
               Save Email Template
             </DialogTitle>
             <DialogDescription>
-              Enter the details for your email template. These will be used when sending.
+              Enter the details for your email template. These will be used when
+              sending.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-5 py-4">
@@ -524,7 +582,9 @@ export default function EmailStudio() {
               <Input
                 id="name"
                 value={metadata.name}
-                onChange={(e) => setMetadata(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(e) =>
+                  setMetadata((prev) => ({ ...prev, name: e.target.value }))
+                }
                 placeholder="e.g., Monthly Newsletter"
                 className="h-10"
               />
@@ -536,7 +596,9 @@ export default function EmailStudio() {
               <Input
                 id="subject"
                 value={metadata.subject}
-                onChange={(e) => setMetadata(prev => ({ ...prev, subject: e.target.value }))}
+                onChange={(e) =>
+                  setMetadata((prev) => ({ ...prev, subject: e.target.value }))
+                }
                 placeholder="e.g., Your December Update from Give Hope"
                 className="h-10"
               />
@@ -551,12 +613,18 @@ export default function EmailStudio() {
               <Textarea
                 id="preheader"
                 value={metadata.preheader}
-                onChange={(e) => setMetadata(prev => ({ ...prev, preheader: e.target.value }))}
+                onChange={(e) =>
+                  setMetadata((prev) => ({
+                    ...prev,
+                    preheader: e.target.value,
+                  }))
+                }
                 placeholder="Preview text shown in email clients alongside the subject..."
                 className="h-20 resize-none text-sm"
               />
               <p className="text-[11px] text-muted-foreground">
-                This text appears as a preview in email clients. Keep it under 100 characters.
+                This text appears as a preview in email clients. Keep it under
+                100 characters.
               </p>
             </div>
           </div>
@@ -564,7 +632,10 @@ export default function EmailStudio() {
             <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleConfirmSave} disabled={!metadata.name.trim()}>
+            <Button
+              onClick={handleConfirmSave}
+              disabled={!metadata.name.trim()}
+            >
               <Save className="h-4 w-4 mr-2" />
               Save Template
             </Button>
@@ -605,7 +676,7 @@ export default function EmailStudio() {
                   ) : (
                     <Copy className="h-3.5 w-3.5 mr-1" />
                   )}
-                  {copiedHtml ? 'Copied!' : 'Copy'}
+                  {copiedHtml ? "Copied!" : "Copy"}
                 </Button>
               </div>
               <pre className="bg-slate-950 text-slate-100 p-4 rounded-xl text-xs overflow-auto max-h-[320px] font-mono leading-relaxed">
@@ -626,7 +697,10 @@ export default function EmailStudio() {
             </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setShowExportDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowExportDialog(false)}
+            >
               Close
             </Button>
             <Button variant="outline" onClick={handleCopyHtml}>
@@ -635,7 +709,7 @@ export default function EmailStudio() {
               ) : (
                 <Copy className="h-4 w-4 mr-2" />
               )}
-              {copiedHtml ? 'Copied!' : 'Copy HTML'}
+              {copiedHtml ? "Copied!" : "Copy HTML"}
             </Button>
             <Button onClick={handleDownloadHtml}>
               <Download className="h-4 w-4 mr-2" />
@@ -645,5 +719,5 @@ export default function EmailStudio() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
