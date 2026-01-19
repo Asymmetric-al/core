@@ -309,7 +309,7 @@ export function TaskDialog({
             `
             *,
             donor:donors!missionary_tasks_donor_id_fkey(id, name, email, avatar_url)
-          `
+          `,
           )
           .single();
 
@@ -324,7 +324,7 @@ export function TaskDialog({
             `
             *,
             donor:donors!missionary_tasks_donor_id_fkey(id, name, email, avatar_url)
-          `
+          `,
           )
           .single();
 
@@ -355,7 +355,7 @@ export function TaskDialog({
 
   const selectedDonor = donors.find((d) => d.id === form.watch("donor_id"));
   const selectedTaskType = TASK_TYPES.find(
-    (t) => t.value === form.watch("task_type")
+    (t) => t.value === form.watch("task_type"),
   );
 
   return (
@@ -425,7 +425,7 @@ export function TaskDialog({
                                     <div
                                       className={cn(
                                         "h-6 w-6 rounded-lg flex items-center justify-center",
-                                        selectedTaskType.color
+                                        selectedTaskType.color,
                                       )}
                                     >
                                       <selectedTaskType.icon className="h-3.5 w-3.5" />
@@ -447,7 +447,7 @@ export function TaskDialog({
                                   <div
                                     className={cn(
                                       "h-6 w-6 rounded-lg flex items-center justify-center",
-                                      type.color
+                                      type.color,
                                     )}
                                   >
                                     <type.icon className="h-3.5 w-3.5" />
@@ -523,7 +523,7 @@ export function TaskDialog({
                                 variant="outline"
                                 className={cn(
                                   "h-12 bg-zinc-50 border-transparent rounded-xl font-medium justify-start text-left hover:bg-zinc-100",
-                                  !field.value && "text-zinc-400"
+                                  !field.value && "text-zinc-400",
                                 )}
                               >
                                 <CalendarIcon className="mr-2 h-4 w-4" />
@@ -573,7 +573,7 @@ export function TaskDialog({
                                 variant="outline"
                                 className={cn(
                                   "h-12 bg-zinc-50 border-transparent rounded-xl font-medium justify-start text-left hover:bg-zinc-100",
-                                  !field.value && "text-zinc-400"
+                                  !field.value && "text-zinc-400",
                                 )}
                               >
                                 <Bell className="mr-2 h-4 w-4" />
@@ -663,7 +663,7 @@ export function TaskDialog({
                               aria-expanded={donorSearchOpen}
                               className={cn(
                                 "h-12 bg-zinc-50 border-transparent rounded-xl font-medium justify-between hover:bg-zinc-100",
-                                !field.value && "text-zinc-400"
+                                !field.value && "text-zinc-400",
                               )}
                             >
                               {selectedDonor ? (
@@ -733,7 +733,7 @@ export function TaskDialog({
                                       field.onChange(
                                         donor.id === field.value
                                           ? null
-                                          : donor.id
+                                          : donor.id,
                                       );
                                       setDonorSearchOpen(false);
                                     }}
@@ -768,7 +768,7 @@ export function TaskDialog({
                                         "h-4 w-4 shrink-0",
                                         field.value === donor.id
                                           ? "opacity-100"
-                                          : "opacity-0"
+                                          : "opacity-0",
                                       )}
                                     />
                                   </CommandItem>

@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import React, { useSyncExternalStore } from 'react'
-import { Skeleton } from '@/components/ui/skeleton'
+import React, { useSyncExternalStore } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function DashboardSkeleton() {
   return (
@@ -20,31 +20,35 @@ export function DashboardSkeleton() {
         <Skeleton className="h-28 sm:h-32 w-full rounded-xl sm:col-span-2 md:col-span-1" />
       </div>
     </div>
-  )
+  );
 }
 
 function getGreeting(): string {
-  const hour = new Date().getHours()
-  if (hour < 12) return 'Good morning'
-  if (hour < 18) return 'Good afternoon'
-  return 'Good evening'
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
 }
 
 function subscribe() {
-  return () => {}
+  return () => {};
 }
 
 function getServerSnapshot(): null {
-  return null
+  return null;
 }
 
 function getClientSnapshot(): string {
-  return getGreeting()
+  return getGreeting();
 }
 
 export function Greeting() {
-  const greeting = useSyncExternalStore(subscribe, getClientSnapshot, getServerSnapshot)
-  
-  if (!greeting) return null
-  return <>{greeting}</>
+  const greeting = useSyncExternalStore(
+    subscribe,
+    getClientSnapshot,
+    getServerSnapshot,
+  );
+
+  if (!greeting) return null;
+  return <>{greeting}</>;
 }

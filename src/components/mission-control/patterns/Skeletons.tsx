@@ -1,5 +1,5 @@
-import { Skeleton } from '@/components/ui/skeleton'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export function TileCardSkeleton() {
   return (
@@ -18,7 +18,7 @@ export function TileCardSkeleton() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export function TilesGridSkeleton() {
@@ -28,7 +28,7 @@ export function TilesGridSkeleton() {
         <TileCardSkeleton key={i} />
       ))}
     </div>
-  )
+  );
 }
 
 export function TableSkeleton({ rows = 5 }: { rows?: number }) {
@@ -53,7 +53,7 @@ export function TableSkeleton({ rows = 5 }: { rows?: number }) {
         </div>
       ))}
     </div>
-  )
+  );
 }
 
 export function PageHeaderSkeleton() {
@@ -68,7 +68,7 @@ export function PageHeaderSkeleton() {
         <Skeleton className="h-9 w-32" />
       </div>
     </div>
-  )
+  );
 }
 
 export function DashboardSkeleton() {
@@ -95,5 +95,5 @@ export function DashboardSkeleton() {
         <TilesGridSkeleton />
       </div>
     </div>
-  )
+  );
 }

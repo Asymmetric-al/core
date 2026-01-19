@@ -1,41 +1,41 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // cacheComponents: true,
-  
+
   experimental: {
-    optimizePackageImports: ['lucide-react', '@/components/ui/icons'],
+    optimizePackageImports: ["lucide-react", "@/components/ui/icons"],
   },
 
-  transpilePackages: ['lucide-react'],
+  transpilePackages: ["lucide-react"],
 
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'res.cloudinary.com',
+        protocol: "https",
+        hostname: "res.cloudinary.com",
       },
       {
-        protocol: 'https',
-        hostname: 'kzeybagjclwsxpkjshqa.supabase.co',
+        protocol: "https",
+        hostname: "kzeybagjclwsxpkjshqa.supabase.co",
       },
       {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
+        protocol: "https",
+        hostname: "images.unsplash.com",
       },
       {
-        protocol: 'https',
-        hostname: 'cdn.shadcnstudio.com',
+        protocol: "https",
+        hostname: "cdn.shadcnstudio.com",
       },
       {
-        protocol: 'https',
-        hostname: 'api.dicebear.com',
+        protocol: "https",
+        hostname: "api.dicebear.com",
       },
       {
-        protocol: 'https',
-        hostname: 'www.transparenttextures.com',
+        protocol: "https",
+        hostname: "www.transparenttextures.com",
       },
     ],
-    formats: ['image/avif', 'image/webp'],
+    formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60 * 60 * 24 * 30,
@@ -54,76 +54,77 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: '/(.*)',
+        source: "/(.*)",
         headers: [
           {
-            key: 'X-DNS-Prefetch-Control',
-            value: 'on',
+            key: "X-DNS-Prefetch-Control",
+            value: "on",
           },
           {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
+            key: "X-Content-Type-Options",
+            value: "nosniff",
           },
           {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin',
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
           },
           {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN',
+            key: "X-Frame-Options",
+            value: "SAMEORIGIN",
           },
           {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
+            key: "X-XSS-Protection",
+            value: "1; mode=block",
           },
-            {
-              key: 'Permissions-Policy',
-              value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
-            },
-        ],
-      },
-      {
-        source: '/:all*(svg|jpg|jpeg|png|gif|ico|webp|avif)',
-        headers: [
           {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            key: "Permissions-Policy",
+            value:
+              "camera=(), microphone=(), geolocation=(), interest-cohort=()",
           },
         ],
       },
       {
-        source: '/:all*(js|css)',
+        source: "/:all*(svg|jpg|jpeg|png|gif|ico|webp|avif)",
         headers: [
           {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
           },
         ],
       },
       {
-        source: '/:all*(woff|woff2|ttf|otf|eot)',
+        source: "/:all*(js|css)",
         headers: [
           {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
           },
         ],
       },
       {
-        source: '/sitemap.xml',
+        source: "/:all*(woff|woff2|ttf|otf|eot)",
         headers: [
           {
-            key: 'Cache-Control',
-            value: 'public, max-age=86400, stale-while-revalidate=43200',
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
           },
         ],
       },
       {
-        source: '/robots.txt',
+        source: "/sitemap.xml",
         headers: [
           {
-            key: 'Cache-Control',
-            value: 'public, max-age=86400, stale-while-revalidate=43200',
+            key: "Cache-Control",
+            value: "public, max-age=86400, stale-while-revalidate=43200",
+          },
+        ],
+      },
+      {
+        source: "/robots.txt",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400, stale-while-revalidate=43200",
           },
         ],
       },
@@ -133,23 +134,23 @@ const nextConfig = {
   async redirects() {
     return [
       {
-        source: '/home',
-        destination: '/',
+        source: "/home",
+        destination: "/",
         permanent: true,
       },
       {
-        source: '/missionaries',
-        destination: '/workers',
+        source: "/missionaries",
+        destination: "/workers",
         permanent: true,
       },
       {
-        source: '/donate',
-        destination: '/workers',
+        source: "/donate",
+        destination: "/workers",
         permanent: true,
       },
       {
-        source: '/give',
-        destination: '/workers',
+        source: "/give",
+        destination: "/workers",
         permanent: true,
       },
     ];

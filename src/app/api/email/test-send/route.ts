@@ -48,92 +48,91 @@
  * @module app/api/email/test-send
  */
 
-import { NextResponse } from 'next/server'
-import { sendTestEmail } from '@/lib/email/sendgrid'
+import { NextResponse } from "next/server";
+import { sendTestEmail } from "@/lib/email/sendgrid";
 
 interface TestSendRequest {
-  apiKey: string
-  toEmail: string
-  fromEmail: string
-  fromName: string
+  apiKey: string;
+  toEmail: string;
+  fromEmail: string;
+  fromName: string;
 }
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as TestSendRequest
+    const body = (await request.json()) as TestSendRequest;
 
     if (!body.apiKey) {
       return NextResponse.json(
-        { success: false, error: 'API key is required' },
-        { status: 400 }
-      )
+        { success: false, error: "API key is required" },
+        { status: 400 },
+      );
     }
 
     if (!body.toEmail) {
       return NextResponse.json(
-        { success: false, error: 'Recipient email is required' },
-        { status: 400 }
-      )
+        { success: false, error: "Recipient email is required" },
+        { status: 400 },
+      );
     }
 
     if (!body.fromEmail) {
       return NextResponse.json(
-        { success: false, error: 'From email is required' },
-        { status: 400 }
-      )
+        { success: false, error: "From email is required" },
+        { status: 400 },
+      );
     }
 
     if (!body.fromName) {
       return NextResponse.json(
-        { success: false, error: 'From name is required' },
-        { status: 400 }
-      )
+        { success: false, error: "From name is required" },
+        { status: 400 },
+      );
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(body.toEmail)) {
       return NextResponse.json(
-        { success: false, error: 'Invalid recipient email format' },
-        { status: 400 }
-      )
+        { success: false, error: "Invalid recipient email format" },
+        { status: 400 },
+      );
     }
 
     if (!emailRegex.test(body.fromEmail)) {
       return NextResponse.json(
-        { success: false, error: 'Invalid from email format' },
-        { status: 400 }
-      )
+        { success: false, error: "Invalid from email format" },
+        { status: 400 },
+      );
     }
 
     const result = await sendTestEmail(
       body.apiKey,
       body.toEmail,
       body.fromEmail,
-      body.fromName
-    )
+      body.fromName,
+    );
 
     if (!result.success) {
       return NextResponse.json(
         {
           success: false,
-          error: result.errors?.[0]?.message || 'Failed to send test email',
+          error: result.errors?.[0]?.message || "Failed to send test email",
           errors: result.errors,
         },
-        { status: 400 }
-      )
+        { status: 400 },
+      );
     }
 
     return NextResponse.json({
       success: true,
       messageId: result.messageId,
       message: `Test email sent successfully to ${body.toEmail}`,
-    })
-
+    });
   } catch (error) {
-    console.error('[API] Test send error:', error)
+    console.error("[API] Test send error:", error);
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    )
+      { success: false, error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

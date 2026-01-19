@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import { useMemo } from "react"
-import { ExternalLinkIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
-import type { LinkCellProps } from "./types"
+import { useMemo } from "react";
+import { ExternalLinkIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { LinkCellProps } from "./types";
 
 export function LinkCell<TData>({
   value,
@@ -15,36 +15,34 @@ export function LinkCell<TData>({
   showIcon = false,
 }: LinkCellProps<TData>) {
   const resolvedHref = useMemo(() => {
-    if (!value && !href) return null
+    if (!value && !href) return null;
     if (typeof href === "function") {
-      return href(value, row.original)
+      return href(value, row.original);
     }
-    return href ?? value
-  }, [value, href, row.original])
+    return href ?? value;
+  }, [value, href, row.original]);
 
-  const displayText = value ?? resolvedHref
+  const displayText = value ?? resolvedHref;
 
   if (!displayText) {
     return (
-      <span className={cn("block text-sm text-muted-foreground italic", className)}>
+      <span
+        className={cn("block text-sm text-muted-foreground italic", className)}
+      >
         —
       </span>
-    )
+    );
   }
 
   if (!resolvedHref) {
     return (
       <span
-        className={cn(
-          "block text-sm",
-          truncate && "truncate",
-          className
-        )}
+        className={cn("block text-sm", truncate && "truncate", className)}
         title={displayText}
       >
         {displayText}
       </span>
-    )
+    );
   }
 
   return (
@@ -55,7 +53,7 @@ export function LinkCell<TData>({
       className={cn(
         "inline-flex items-center gap-1 text-sm text-primary hover:underline underline-offset-2 transition-colors",
         truncate && "max-w-full",
-        className
+        className,
       )}
       title={displayText}
     >
@@ -64,5 +62,5 @@ export function LinkCell<TData>({
         <ExternalLinkIcon className="size-3 shrink-0 opacity-70" />
       )}
     </a>
-  )
+  );
 }

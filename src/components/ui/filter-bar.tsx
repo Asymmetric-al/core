@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { Search, X, SlidersHorizontal } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import * as React from "react";
+import { Search, X, SlidersHorizontal } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface FilterBarProps {
   search?: {
@@ -46,11 +46,9 @@ export function FilterBar({
               />
             </div>
           )}
-          
+
           {filters && (
-            <div className="flex flex-wrap items-center gap-2">
-              {filters}
-            </div>
+            <div className="flex flex-wrap items-center gap-2">{filters}</div>
           )}
         </div>
 
@@ -78,8 +76,8 @@ export function FilterBar({
               </button>
             </Badge>
           ))}
-          
-          {onReset && (activeFilters.length > 0 || (search?.value)) && (
+
+          {onReset && (activeFilters.length > 0 || search?.value) && (
             <Button
               variant="ghost"
               size="sm"

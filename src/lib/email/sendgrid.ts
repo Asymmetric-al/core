@@ -35,16 +35,21 @@
  * @see {@link https://docs.sendgrid.com/api-reference/mail-send/mail-send}
  */
 
-import sgMail from '@sendgrid/mail'
-import type { MailDataRequired } from '@sendgrid/mail'
-import { SENDGRID_API_BASE, SENDGRID_ERROR_CODES, HTTP_STATUS, RETRY_CONFIG } from './constants'
+import sgMail from "@sendgrid/mail";
+import type { MailDataRequired } from "@sendgrid/mail";
+import {
+  SENDGRID_API_BASE,
+  SENDGRID_ERROR_CODES,
+  HTTP_STATUS,
+  RETRY_CONFIG,
+} from "./constants";
 import type {
   SenderIdentity,
   DomainAuthentication,
   DeliverabilityWarning,
   EmailRecipient,
-  EmailSendResult
-} from '@/types/email'
+  EmailSendResult,
+} from "@/types/email";
 
 /**
  * Result of validating a SendGrid API key.
@@ -64,21 +69,21 @@ import type {
  */
 export interface SendGridValidationResult {
   /** Whether the API key is valid and has required permissions */
-  valid: boolean
+  valid: boolean;
   /** Human-readable error message if validation failed */
-  error?: string
+  error?: string;
   /** Machine-readable error code for programmatic handling */
-  errorCode?: string
+  errorCode?: string;
   /** List of permission scopes granted to this API key */
-  scopes?: string[]
+  scopes?: string[];
   /** Verified sender identities in the SendGrid account */
-  senderIdentities?: SenderIdentity[]
+  senderIdentities?: SenderIdentity[];
   /** Authenticated domains (DKIM/SPF) in the account */
-  domainAuthentication?: DomainAuthentication[]
+  domainAuthentication?: DomainAuthentication[];
   /** Calculated deliverability score (0-100) */
-  deliverabilityScore?: number
+  deliverabilityScore?: number;
   /** Warnings about potential deliverability issues */
-  warnings?: DeliverabilityWarning[]
+  warnings?: DeliverabilityWarning[];
 }
 
 /**
@@ -103,23 +108,23 @@ export interface SendGridValidationResult {
  */
 export interface SendEmailOptions {
   /** Recipient(s) - single object or array for multiple recipients */
-  to: EmailRecipient | EmailRecipient[]
+  to: EmailRecipient | EmailRecipient[];
   /** Sender email and display name (must be verified in SendGrid) */
-  from: { email: string; name: string }
+  from: { email: string; name: string };
   /** Optional reply-to address (different from sender) */
-  replyTo?: { email: string; name?: string }
+  replyTo?: { email: string; name?: string };
   /** Email subject line */
-  subject: string
+  subject: string;
   /** HTML email body (required) */
-  html: string
+  html: string;
   /** Plain text fallback (auto-generated from HTML if not provided) */
-  text?: string
+  text?: string;
   /** Track email opens via tracking pixel (default: true) */
-  trackOpens?: boolean
+  trackOpens?: boolean;
   /** Track link clicks via redirect URLs (default: true) */
-  trackClicks?: boolean
+  trackClicks?: boolean;
   /** Custom metadata attached to this send (appears in webhooks) */
-  customArgs?: Record<string, string>
+  customArgs?: Record<string, string>;
 }
 
 /**
@@ -135,42 +140,49 @@ export interface SendEmailOptions {
 async function fetchWithRetry(
   url: string,
   options: RequestInit,
-  retries = RETRY_CONFIG.maxRetries
+  retries = RETRY_CONFIG.maxRetries,
 ): Promise<Response> {
-  let lastError: Error | null = null
-  let delay: number = RETRY_CONFIG.baseDelayMs
+  let lastError: Error | null = null;
+  let delay: number = RETRY_CONFIG.baseDelayMs;
 
-    for (let attempt = 0; attempt <= retries; attempt++) {
-      try {
-        const response = await fetch(url, options)
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch(url, options);
 
-        if (!(RETRY_CONFIG.retryableStatuses as readonly number[]).includes(response.status)) {
-          return response
-        }
-
-        if (attempt === retries) {
-          return response
-        }
-
-        const retryAfter = response.headers.get('Retry-After')
-        if (retryAfter) {
-          delay = parseInt(retryAfter, 10) * 1000
-        }
-      } catch (error) {
-        lastError = error as Error
-        const errorCode = (error as NodeJS.ErrnoException).code
-        if (errorCode && !(RETRY_CONFIG.retryableErrors as readonly string[]).includes(errorCode)) {
-          throw error
-        }
+      if (
+        !(RETRY_CONFIG.retryableStatuses as readonly number[]).includes(
+          response.status,
+        )
+      ) {
+        return response;
       }
 
-      if (attempt < retries) {
-        await new Promise(resolve => setTimeout(resolve, delay))
-        delay = Math.min(delay * 2, RETRY_CONFIG.maxDelayMs)
+      if (attempt === retries) {
+        return response;
+      }
+
+      const retryAfter = response.headers.get("Retry-After");
+      if (retryAfter) {
+        delay = parseInt(retryAfter, 10) * 1000;
+      }
+    } catch (error) {
+      lastError = error as Error;
+      const errorCode = (error as NodeJS.ErrnoException).code;
+      if (
+        errorCode &&
+        !(RETRY_CONFIG.retryableErrors as readonly string[]).includes(errorCode)
+      ) {
+        throw error;
       }
     }
 
-  throw lastError || new Error('Max retries exceeded')
+    if (attempt < retries) {
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      delay = Math.min(delay * 2, RETRY_CONFIG.maxDelayMs);
+    }
+  }
+
+  throw lastError || new Error("Max retries exceeded");
 }
 
 /**
@@ -219,46 +231,49 @@ async function fetchWithRetry(
  * }
  * ```
  */
-export async function validateSendGridApiKey(apiKey: string): Promise<SendGridValidationResult> {
-  if (!apiKey || typeof apiKey !== 'string') {
+export async function validateSendGridApiKey(
+  apiKey: string,
+): Promise<SendGridValidationResult> {
+  if (!apiKey || typeof apiKey !== "string") {
     return {
       valid: false,
-      error: 'API key is required',
+      error: "API key is required",
       errorCode: SENDGRID_ERROR_CODES.INVALID_API_KEY,
-    }
+    };
   }
 
-  if (!apiKey.startsWith('SG.')) {
+  if (!apiKey.startsWith("SG.")) {
     return {
       valid: false,
       error: 'Invalid API key format. SendGrid API keys start with "SG."',
       errorCode: SENDGRID_ERROR_CODES.INVALID_API_KEY,
-    }
+    };
   }
 
   try {
     const scopesResponse = await fetchWithRetry(`${SENDGRID_API_BASE}/scopes`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
       },
-    })
+    });
 
     if (scopesResponse.status === HTTP_STATUS.UNAUTHORIZED) {
       return {
         valid: false,
-        error: 'Invalid API key',
+        error: "Invalid API key",
         errorCode: SENDGRID_ERROR_CODES.UNAUTHORIZED,
-      }
+      };
     }
 
     if (scopesResponse.status === HTTP_STATUS.FORBIDDEN) {
       return {
         valid: false,
-        error: 'API key does not have permission to access scopes. Please create a new key with at least "mail.send" permission.',
+        error:
+          'API key does not have permission to access scopes. Please create a new key with at least "mail.send" permission.',
         errorCode: SENDGRID_ERROR_CODES.FORBIDDEN,
-      }
+      };
     }
 
     if (!scopesResponse.ok) {
@@ -266,93 +281,107 @@ export async function validateSendGridApiKey(apiKey: string): Promise<SendGridVa
         valid: false,
         error: `SendGrid API error: ${scopesResponse.status}`,
         errorCode: SENDGRID_ERROR_CODES.SERVER_ERROR,
-      }
+      };
     }
 
-    const scopesData = await scopesResponse.json() as { scopes: string[] }
-    const scopes = scopesData.scopes || []
+    const scopesData = (await scopesResponse.json()) as { scopes: string[] };
+    const scopes = scopesData.scopes || [];
 
-    const hasMailSend = scopes.includes('mail.send')
+    const hasMailSend = scopes.includes("mail.send");
     if (!hasMailSend) {
       return {
         valid: false,
-        error: 'API key does not have "mail.send" permission. Please create a key with mail send access.',
+        error:
+          'API key does not have "mail.send" permission. Please create a key with mail send access.',
         errorCode: SENDGRID_ERROR_CODES.FORBIDDEN,
         scopes,
-      }
+      };
     }
 
-    const warnings: DeliverabilityWarning[] = []
-    let senderIdentities: SenderIdentity[] = []
-    let domainAuthentication: DomainAuthentication[] = []
+    const warnings: DeliverabilityWarning[] = [];
+    let senderIdentities: SenderIdentity[] = [];
+    let domainAuthentication: DomainAuthentication[] = [];
 
     try {
-      const sendersResponse = await fetchWithRetry(`${SENDGRID_API_BASE}/verified_senders`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
+      const sendersResponse = await fetchWithRetry(
+        `${SENDGRID_API_BASE}/verified_senders`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
         },
-      })
+      );
 
       if (sendersResponse.ok) {
-        const sendersData = await sendersResponse.json() as { results: SenderIdentity[] }
-        senderIdentities = sendersData.results || []
+        const sendersData = (await sendersResponse.json()) as {
+          results: SenderIdentity[];
+        };
+        senderIdentities = sendersData.results || [];
 
         if (senderIdentities.length === 0) {
           warnings.push({
-            code: 'NO_VERIFIED_SENDERS',
-            message: 'No verified sender identities found. You need to verify at least one sender email address.',
-            severity: 'error',
-            helpUrl: 'https://docs.sendgrid.com/ui/sending-email/sender-verification',
-          })
+            code: "NO_VERIFIED_SENDERS",
+            message:
+              "No verified sender identities found. You need to verify at least one sender email address.",
+            severity: "error",
+            helpUrl:
+              "https://docs.sendgrid.com/ui/sending-email/sender-verification",
+          });
         }
       }
-    } catch {
-    }
+    } catch {}
 
     try {
-      const domainsResponse = await fetchWithRetry(`${SENDGRID_API_BASE}/whitelabel/domains`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
+      const domainsResponse = await fetchWithRetry(
+        `${SENDGRID_API_BASE}/whitelabel/domains`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
         },
-      })
+      );
 
       if (domainsResponse.ok) {
-        const domainsData = await domainsResponse.json() as DomainAuthentication[]
-        domainAuthentication = domainsData || []
+        const domainsData =
+          (await domainsResponse.json()) as DomainAuthentication[];
+        domainAuthentication = domainsData || [];
 
-        const hasValidDomain = domainAuthentication.some(d => d.valid)
+        const hasValidDomain = domainAuthentication.some((d) => d.valid);
         if (!hasValidDomain && domainAuthentication.length > 0) {
           warnings.push({
-            code: 'DOMAIN_NOT_VERIFIED',
-            message: 'Domain authentication is not complete. Complete DNS setup for better deliverability.',
-            severity: 'warning',
-            helpUrl: 'https://docs.sendgrid.com/ui/account-and-settings/how-to-set-up-domain-authentication',
-          })
+            code: "DOMAIN_NOT_VERIFIED",
+            message:
+              "Domain authentication is not complete. Complete DNS setup for better deliverability.",
+            severity: "warning",
+            helpUrl:
+              "https://docs.sendgrid.com/ui/account-and-settings/how-to-set-up-domain-authentication",
+          });
         } else if (domainAuthentication.length === 0) {
           warnings.push({
-            code: 'NO_DOMAIN_AUTH',
-            message: 'No domain authentication configured. Consider setting up domain authentication for production sending.',
-            severity: 'info',
-            helpUrl: 'https://docs.sendgrid.com/ui/account-and-settings/how-to-set-up-domain-authentication',
-          })
+            code: "NO_DOMAIN_AUTH",
+            message:
+              "No domain authentication configured. Consider setting up domain authentication for production sending.",
+            severity: "info",
+            helpUrl:
+              "https://docs.sendgrid.com/ui/account-and-settings/how-to-set-up-domain-authentication",
+          });
         }
       }
-    } catch {
-    }
+    } catch {}
 
-    let deliverabilityScore = 50
+    let deliverabilityScore = 50;
 
     if (senderIdentities.length > 0) {
-      deliverabilityScore += 20
+      deliverabilityScore += 20;
     }
 
-    const hasVerifiedDomain = domainAuthentication.some(d => d.valid)
+    const hasVerifiedDomain = domainAuthentication.some((d) => d.valid);
     if (hasVerifiedDomain) {
-      deliverabilityScore += 30
+      deliverabilityScore += 30;
     }
 
     return {
@@ -362,14 +391,15 @@ export async function validateSendGridApiKey(apiKey: string): Promise<SendGridVa
       domainAuthentication,
       deliverabilityScore,
       warnings,
-    }
+    };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return {
       valid: false,
       error: `Failed to validate API key: ${errorMessage}`,
       errorCode: SENDGRID_ERROR_CODES.UNKNOWN,
-    }
+    };
   }
 }
 
@@ -413,17 +443,17 @@ export async function validateSendGridApiKey(apiKey: string): Promise<SendGridVa
  */
 export async function sendEmail(
   apiKey: string,
-  options: SendEmailOptions
+  options: SendEmailOptions,
 ): Promise<EmailSendResult> {
-  const correlationId = crypto.randomUUID()
+  const correlationId = crypto.randomUUID();
 
   try {
-    sgMail.setApiKey(apiKey)
+    sgMail.setApiKey(apiKey);
 
-    const recipients = Array.isArray(options.to) ? options.to : [options.to]
+    const recipients = Array.isArray(options.to) ? options.to : [options.to];
 
     const msg: MailDataRequired = {
-      to: recipients.map(r => ({ email: r.email, name: r.name })),
+      to: recipients.map((r) => ({ email: r.email, name: r.name })),
       from: options.from,
       replyTo: options.replyTo,
       subject: options.subject,
@@ -437,32 +467,39 @@ export async function sendEmail(
         correlation_id: correlationId,
         ...options.customArgs,
       },
-    }
+    };
 
-    const [response] = await sgMail.send(msg)
+    const [response] = await sgMail.send(msg);
 
     return {
       success: true,
-      messageId: response.headers['x-message-id'] as string,
+      messageId: response.headers["x-message-id"] as string,
       correlationId,
       recipientCount: recipients.length,
-    }
+    };
   } catch (error) {
-    const err = error as { response?: { body?: { errors?: Array<{ message: string; field?: string }> } }; message?: string }
+    const err = error as {
+      response?: {
+        body?: { errors?: Array<{ message: string; field?: string }> };
+      };
+      message?: string;
+    };
 
     return {
       success: false,
       correlationId,
       recipientCount: 0,
-      errors: err.response?.body?.errors?.map(e => ({
+      errors: err.response?.body?.errors?.map((e) => ({
         code: SENDGRID_ERROR_CODES.UNKNOWN,
         message: e.message,
         email: e.field,
-      })) || [{
-        code: SENDGRID_ERROR_CODES.UNKNOWN,
-        message: err.message || 'Failed to send email',
-      }],
-    }
+      })) || [
+        {
+          code: SENDGRID_ERROR_CODES.UNKNOWN,
+          message: err.message || "Failed to send email",
+        },
+      ],
+    };
   }
 }
 
@@ -502,12 +539,12 @@ export async function sendTestEmail(
   apiKey: string,
   toEmail: string,
   fromEmail: string,
-  fromName: string
+  fromName: string,
 ): Promise<EmailSendResult> {
   return sendEmail(apiKey, {
     to: { email: toEmail },
     from: { email: fromEmail, name: fromName },
-    subject: 'SendGrid Connection Test - Success!',
+    subject: "SendGrid Connection Test - Success!",
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
         <div style="text-align: center; margin-bottom: 30px;">
@@ -544,9 +581,9 @@ export async function sendTestEmail(
     trackOpens: false,
     trackClicks: false,
     customArgs: {
-      type: 'test_connection',
+      type: "test_connection",
     },
-  })
+  });
 }
 
 /**
@@ -557,11 +594,11 @@ export async function sendTestEmail(
  */
 function stripHtml(html: string): string {
   return html
-    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 /**
@@ -592,5 +629,5 @@ export function createSendGridClient(apiKey: string) {
     sendEmail: (options: SendEmailOptions) => sendEmail(apiKey, options),
     sendTestEmail: (toEmail: string, fromEmail: string, fromName: string) =>
       sendTestEmail(apiKey, toEmail, fromEmail, fromName),
-  }
+  };
 }

@@ -1,4 +1,5 @@
 # Motion (Framer Motion) — Skill
+
 **Name:** `motion`
 **Purpose:** Implement smooth, accessible animations with `motion/react` in React.
 Use this skill whenever adding animations, gestures, or layout transitions.
@@ -7,6 +8,7 @@ Use this skill whenever adding animations, gestures, or layout transitions.
 **Do not use when:** No animations are needed or the component is strictly server-rendered.
 
 ## Rules
+
 - **Client-only boundary:** Motion requires `'use client'`; keep client islands small.
 - **Start simple:** Begin with opacity/translate before adding spring physics.
 - **Use the right tool:** `AnimatePresence` for enter/exit, `layout` for layout, `whileHover`/`whileTap` for gestures.
@@ -14,6 +16,7 @@ Use this skill whenever adding animations, gestures, or layout transitions.
 - **Bundle discipline:** Use `LazyMotion` for larger motion surfaces.
 
 ## Workflow
+
 1. Identify the UX purpose (feedback, transition, focus).
 2. Add the smallest `'use client'` boundary.
 3. Implement enter/exit or layout transitions correctly.
@@ -23,24 +26,33 @@ Use this skill whenever adding animations, gestures, or layout transitions.
 ## Checklists
 
 ### Implementation checklist
+
 - [ ] `'use client'` only where needed
 - [ ] Reduced motion behavior defined
 - [ ] `AnimatePresence` wraps conditional UI
 - [ ] Layout transitions use `layout`
 
 ### Review checklist
+
 - [ ] Animations don’t re-run on every render
 - [ ] Motion code doesn’t expand the client tree unnecessarily
 
 ## Minimal examples
 
 ### Enter/exit
+
 ```tsx
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
 
-export function Toast({ open, children }: { open: boolean; children: React.ReactNode }) {
+export function Toast({
+  open,
+  children,
+}: {
+  open: boolean;
+  children: React.ReactNode;
+}) {
   return (
     <AnimatePresence>
       {open ? (
@@ -59,6 +71,7 @@ export function Toast({ open, children }: { open: boolean; children: React.React
 ```
 
 ### Layout animation
+
 ```tsx
 "use client";
 
@@ -75,6 +88,7 @@ export function Expander({ open }: { open: boolean }) {
 ```
 
 ### Reduced motion
+
 ```tsx
 "use client";
 
@@ -95,6 +109,7 @@ export function FadeIn({ children }: { children: React.ReactNode }) {
 ```
 
 ## Common mistakes / pitfalls
+
 - Unmounting without `AnimatePresence` (exit animations never run)
 - Animating layout without `layout`
 - Putting Motion in a huge client tree

@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
         {
           error: `Unsupported file type. Allowed: ${ALLOWED_TYPES.join(", ")}`,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
             MAX_FILE_SIZE / (1024 * 1024)
           }MB`,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     if (!metadata.width || !metadata.height) {
       return NextResponse.json(
         { error: "Invalid or corrupt image" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -128,14 +128,14 @@ export async function POST(request: NextRequest) {
     if (displayUpload.error) {
       return NextResponse.json(
         { error: `Display upload failed: ${displayUpload.error.message}` },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     if (thumbnailUpload.error) {
       return NextResponse.json(
         { error: `Thumbnail upload failed: ${thumbnailUpload.error.message}` },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -186,7 +186,7 @@ export async function POST(request: NextRequest) {
         error:
           error instanceof Error ? error.message : "Failed to process image",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

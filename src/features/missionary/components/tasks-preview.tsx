@@ -1,18 +1,18 @@
-import * as React from 'react'
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { CheckSquare, Plus, Clock } from 'lucide-react'
+import * as React from "react";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { CheckSquare, Plus, Clock } from "lucide-react";
 
 interface Task {
-  id: number
-  title: string
-  priority: string
-  dueDate: string
+  id: number;
+  title: string;
+  priority: string;
+  dueDate: string;
 }
 
 interface TasksPreviewProps {
-  tasks: Task[]
+  tasks: Task[];
 }
 
 export function TasksPreview({ tasks }: TasksPreviewProps) {
@@ -24,8 +24,12 @@ export function TasksPreview({ tasks }: TasksPreviewProps) {
             <CheckSquare className="h-4.5 w-4.5" />
           </div>
           <div>
-            <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 leading-none mb-1">Queue</CardTitle>
-            <p className="text-lg font-bold text-zinc-900 tracking-tighter">{tasks.length} Actions Needed</p>
+            <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 leading-none mb-1">
+              Queue
+            </CardTitle>
+            <p className="text-lg font-bold text-zinc-900 tracking-tighter">
+              {tasks.length} Actions Needed
+            </p>
           </div>
         </div>
         <Button
@@ -44,10 +48,12 @@ export function TasksPreview({ tasks }: TasksPreviewProps) {
               className="group flex cursor-pointer items-start gap-4 p-4 transition-all hover:bg-zinc-50/50"
             >
               <div
-                className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${task.priority === 'high' ? 'bg-rose-500' : 'bg-amber-500'}`}
+                className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${task.priority === "high" ? "bg-rose-500" : "bg-amber-500"}`}
               />
               <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-bold text-zinc-900 uppercase tracking-tight leading-snug">{task.title}</p>
+                <p className="text-[11px] font-bold text-zinc-900 uppercase tracking-tight leading-snug">
+                  {task.title}
+                </p>
                 <div className="mt-1 flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-zinc-400">
                   <Clock className="h-3 w-3" />
                   <span>Due {task.dueDate}</span>
@@ -63,10 +69,12 @@ export function TasksPreview({ tasks }: TasksPreviewProps) {
             className="h-8 w-full rounded-md border-zinc-200 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-900 hover:border-zinc-300 shadow-sm"
             asChild
           >
-            <Link href="/missionary-dashboard/tasks">Enterprise Task Manager</Link>
+            <Link href="/missionary-dashboard/tasks">
+              Enterprise Task Manager
+            </Link>
           </Button>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

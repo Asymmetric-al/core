@@ -1,21 +1,29 @@
-"use client"
+"use client";
 
-import { useCallback, useMemo } from "react"
-import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import type { FilterFieldDefinition, FilterOperator, FilterValue } from "./types"
+import { useCallback, useMemo } from "react";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import type {
+  FilterFieldDefinition,
+  FilterOperator,
+  FilterValue,
+} from "./types";
 
 interface FilterValueInputProps {
-  field: FilterFieldDefinition
-  operator: FilterOperator
-  value: FilterValue
-  onChange: (value: FilterValue) => void
-  className?: string
+  field: FilterFieldDefinition;
+  operator: FilterOperator;
+  value: FilterValue;
+  onChange: (value: FilterValue) => void;
+  className?: string;
 }
 
 export function FilterTextInput({
@@ -32,7 +40,7 @@ export function FilterTextInput({
       placeholder={field.placeholder ?? `Enter ${field.label.toLowerCase()}...`}
       className={cn("h-8 text-sm", className)}
     />
-  )
+  );
 }
 
 export function FilterNumberInput({
@@ -42,10 +50,13 @@ export function FilterNumberInput({
   onChange,
   className,
 }: FilterValueInputProps) {
-  const isBetween = operator === "between"
+  const isBetween = operator === "between";
 
   if (isBetween) {
-    const rangeValue = value as { min: number | null; max: number | null } | null
+    const rangeValue = value as {
+      min: number | null;
+      max: number | null;
+    } | null;
     return (
       <div className={cn("flex items-center gap-2", className)}>
         <Input
@@ -80,7 +91,7 @@ export function FilterNumberInput({
           className="h-8 text-sm w-24"
         />
       </div>
-    )
+    );
   }
 
   return (
@@ -94,7 +105,7 @@ export function FilterNumberInput({
       step={field.step}
       className={cn("h-8 text-sm", className)}
     />
-  )
+  );
 }
 
 export function FilterCurrencyInput({
@@ -104,12 +115,15 @@ export function FilterCurrencyInput({
   onChange,
   className,
 }: FilterValueInputProps) {
-  const isBetween = operator === "between"
-  const currency = field.currency ?? "USD"
-  const symbol = currency === "USD" ? "$" : currency
+  const isBetween = operator === "between";
+  const currency = field.currency ?? "USD";
+  const symbol = currency === "USD" ? "$" : currency;
 
   if (isBetween) {
-    const rangeValue = value as { min: number | null; max: number | null } | null
+    const rangeValue = value as {
+      min: number | null;
+      max: number | null;
+    } | null;
     return (
       <div className={cn("flex items-center gap-2", className)}>
         <div className="relative">
@@ -152,7 +166,7 @@ export function FilterCurrencyInput({
           />
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -163,14 +177,16 @@ export function FilterCurrencyInput({
       <Input
         type="number"
         value={(value as number) ?? ""}
-        onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
+        onChange={(e) =>
+          onChange(e.target.value ? Number(e.target.value) : null)
+        }
         placeholder="0.00"
         min={0}
         step={0.01}
         className="h-8 text-sm pl-6"
       />
     </div>
-  )
+  );
 }
 
 export function FilterDateInput({
@@ -180,10 +196,10 @@ export function FilterDateInput({
   onChange,
   className,
 }: FilterValueInputProps) {
-  const isBetween = operator === "between"
+  const isBetween = operator === "between";
 
   if (isBetween) {
-    const rangeValue = value as { from: Date | null; to: Date | null } | null
+    const rangeValue = value as { from: Date | null; to: Date | null } | null;
     return (
       <div className={cn("flex items-center gap-2", className)}>
         <DatePickerButton
@@ -208,7 +224,7 @@ export function FilterDateInput({
           placeholder="End date"
         />
       </div>
-    )
+    );
   }
 
   return (
@@ -218,14 +234,14 @@ export function FilterDateInput({
       placeholder={field.placeholder ?? "Select date..."}
       className={className}
     />
-  )
+  );
 }
 
 interface DatePickerButtonProps {
-  value: Date | null
-  onChange: (date: Date | null) => void
-  placeholder?: string
-  className?: string
+  value: Date | null;
+  onChange: (date: Date | null) => void;
+  placeholder?: string;
+  className?: string;
 }
 
 function DatePickerButton({
@@ -242,7 +258,7 @@ function DatePickerButton({
           className={cn(
             "h-8 w-[160px] justify-start px-2 text-left text-sm font-normal",
             !value && "text-muted-foreground",
-            className
+            className,
           )}
         >
           <CalendarIcon className="mr-2 size-3.5" />
@@ -258,5 +274,5 @@ function DatePickerButton({
         />
       </PopoverContent>
     </Popover>
-  )
+  );
 }

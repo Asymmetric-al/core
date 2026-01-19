@@ -1,15 +1,28 @@
-'use client'
+"use client";
 
-import { TilePage } from '@/features/mission-control/components/tiles/tile-page'
-import { getTileById } from '@/lib/mission-control/tiles'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
-import { PenTool, FileText, Send, CheckCircle, Search, Download } from 'lucide-react'
-import { Input } from '@/components/ui/input'
+import { TilePage } from "@/features/mission-control/components/tiles/tile-page";
+import { getTileById } from "@/lib/mission-control/tiles";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import {
+  PenTool,
+  FileText,
+  Send,
+  CheckCircle,
+  Search,
+  Download,
+} from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 export default function SignStudioPage() {
-  const tile = getTileById('sign')!
+  const tile = getTileById("sign")!;
 
   return (
     <TilePage tile={tile}>
@@ -38,7 +51,9 @@ export default function SignStudioPage() {
             <CardTitle className="text-2xl">24</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-muted-foreground">active packet templates</p>
+            <p className="text-xs text-muted-foreground">
+              active packet templates
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -52,7 +67,10 @@ export default function SignStudioPage() {
         </CardHeader>
         <CardContent>
           <div className="flex gap-2">
-            <Input placeholder="Search by signer name, email, or document ID..." className="max-w-md" />
+            <Input
+              placeholder="Search by signer name, email, or document ID..."
+              className="max-w-md"
+            />
             <Button>Search</Button>
           </div>
         </CardContent>
@@ -65,11 +83,15 @@ export default function SignStudioPage() {
               <FileText className="h-5 w-5" />
             </div>
             <CardTitle className="text-base">Packet Templates</CardTitle>
-            <CardDescription>Forms, uploads, and signature steps</CardDescription>
+            <CardDescription>
+              Forms, uploads, and signature steps
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Link href="/mc/sign/templates">
-              <Button variant="outline" size="sm" className="w-full">Manage Templates</Button>
+              <Button variant="outline" size="sm" className="w-full">
+                Manage Templates
+              </Button>
             </Link>
           </CardContent>
         </Card>
@@ -84,7 +106,9 @@ export default function SignStudioPage() {
           </CardHeader>
           <CardContent>
             <Link href="/mc/sign/active">
-              <Button variant="outline" size="sm" className="w-full">View Active</Button>
+              <Button variant="outline" size="sm" className="w-full">
+                View Active
+              </Button>
             </Link>
           </CardContent>
         </Card>
@@ -99,7 +123,9 @@ export default function SignStudioPage() {
           </CardHeader>
           <CardContent>
             <Link href="/mc/sign/completed">
-              <Button variant="outline" size="sm" className="w-full">View Completed</Button>
+              <Button variant="outline" size="sm" className="w-full">
+                View Completed
+              </Button>
             </Link>
           </CardContent>
         </Card>
@@ -114,7 +140,9 @@ export default function SignStudioPage() {
           </CardHeader>
           <CardContent>
             <Link href="/mc/sign/export">
-              <Button variant="outline" size="sm" className="w-full">Export Documents</Button>
+              <Button variant="outline" size="sm" className="w-full">
+                Export Documents
+              </Button>
             </Link>
           </CardContent>
         </Card>
@@ -126,12 +154,14 @@ export default function SignStudioPage() {
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
           <ul className="list-disc list-inside space-y-1 ml-2">
-            <li>Packet templates include forms, uploads, and signature steps</li>
+            <li>
+              Packet templates include forms, uploads, and signature steps
+            </li>
             <li>Initiators can be staff or Mobilize flows</li>
             <li>Completed docs attach to CRM records with full audit trails</li>
           </ul>
         </CardContent>
       </Card>
     </TilePage>
-  )
+  );
 }

@@ -4,6 +4,6 @@ export {
   exportTableToCSV,
   getExportableColumns,
   getExportRowCount,
-} from "./export"
+} from "./export";
 
-export type { ExportOptions, ExportColumn } from "./export"
+export type { ExportOptions, ExportColumn } from "./export";

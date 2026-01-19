@@ -1,63 +1,77 @@
-'use client'
-'use no memo'
+"use client";
+"use no memo";
 
-import { memo, useCallback, useMemo } from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { cn } from '@/lib/utils'
-import { useMC } from '@/lib/mission-control/context'
-import { getMainNavItems, getToolsNavItems, type NavItem } from '@/config/navigation'
-import { ChevronLeft, ChevronRight, LayoutDashboard } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { memo, useCallback, useMemo } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { useMC } from "@/lib/mission-control/context";
+import {
+  getMainNavItems,
+  getToolsNavItems,
+  type NavItem,
+} from "@/config/navigation";
+import { ChevronLeft, ChevronRight, LayoutDashboard } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
   TooltipProvider,
-} from '@/components/ui/tooltip'
-import { ScrollArea } from '@/components/ui/scroll-area'
+} from "@/components/ui/tooltip";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface NavLinkProps {
-  item: NavItem
-  isActive: boolean
-  collapsed: boolean
+  item: NavItem;
+  isActive: boolean;
+  collapsed: boolean;
 }
 
-const NavLink = memo(function NavLink({ item, isActive, collapsed }: NavLinkProps) {
+const NavLink = memo(function NavLink({
+  item,
+  isActive,
+  collapsed,
+}: NavLinkProps) {
   const linkContent = (
     <Link
       href={item.href}
       className={cn(
-        'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
+        "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
         isActive
-          ? 'bg-accent text-foreground font-semibold'
-          : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground',
-        collapsed && 'justify-center px-2'
+          ? "bg-accent text-foreground font-semibold"
+          : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+        collapsed && "justify-center px-2",
       )}
     >
       <item.icon
         className={cn(
-          'h-5 w-5 shrink-0 transition-colors',
-          isActive ? 'text-foreground' : 'text-muted-foreground/70 group-hover:text-foreground'
+          "h-5 w-5 shrink-0 transition-colors",
+          isActive
+            ? "text-foreground"
+            : "text-muted-foreground/70 group-hover:text-foreground",
         )}
       />
       {!collapsed && <span className="truncate">{item.title}</span>}
     </Link>
-  )
+  );
 
   if (collapsed) {
     return (
       <Tooltip>
         <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
-        <TooltipContent side="right" sideOffset={8} className="text-xs font-medium">
+        <TooltipContent
+          side="right"
+          sideOffset={8}
+          className="text-xs font-medium"
+        >
           {item.title}
         </TooltipContent>
       </Tooltip>
-    )
+    );
   }
 
-  return linkContent
-})
+  return linkContent;
+});
 
 const NavSection = memo(function NavSection({
   items,
@@ -65,12 +79,12 @@ const NavSection = memo(function NavSection({
   collapsed,
   checkActive,
 }: {
-  items: NavItem[]
-  label?: string
-  collapsed: boolean
-  checkActive: (href: string) => boolean
+  items: NavItem[];
+  label?: string;
+  collapsed: boolean;
+  checkActive: (href: string) => boolean;
 }) {
-  if (items.length === 0) return null
+  if (items.length === 0) return null;
 
   return (
     <>
@@ -81,18 +95,27 @@ const NavSection = memo(function NavSection({
       )}
       {label && collapsed && <div className="my-2 mx-2 h-px bg-border" />}
       {items.map((item) => (
-        <NavLink key={item.id} item={item} isActive={checkActive(item.href)} collapsed={collapsed} />
+        <NavLink
+          key={item.id}
+          item={item}
+          isActive={checkActive(item.href)}
+          collapsed={collapsed}
+        />
       ))}
     </>
-  )
-})
+  );
+});
 
-const SidebarHeader = memo(function SidebarHeader({ collapsed }: { collapsed: boolean }) {
+const SidebarHeader = memo(function SidebarHeader({
+  collapsed,
+}: {
+  collapsed: boolean;
+}) {
   return (
     <div
       className={cn(
-        'flex h-16 items-center',
-        collapsed ? 'justify-center px-2' : 'justify-between px-4'
+        "flex h-16 items-center",
+        collapsed ? "justify-center px-2" : "justify-between px-4",
       )}
     >
       {!collapsed ? (
@@ -100,7 +123,9 @@ const SidebarHeader = memo(function SidebarHeader({ collapsed }: { collapsed: bo
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm ring-1 ring-primary/5">
             <LayoutDashboard className="h-5 w-5" />
           </div>
-          <span className="text-base font-bold tracking-tight text-foreground">Mission Control</span>
+          <span className="text-base font-bold tracking-tight text-foreground">
+            Mission Control
+          </span>
         </Link>
       ) : (
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
@@ -108,15 +133,15 @@ const SidebarHeader = memo(function SidebarHeader({ collapsed }: { collapsed: bo
         </div>
       )}
     </div>
-  )
-})
+  );
+});
 
 const CollapseButton = memo(function CollapseButton({
   collapsed,
   onToggle,
 }: {
-  collapsed: boolean
-  onToggle: () => void
+  collapsed: boolean;
+  onToggle: () => void;
 }) {
   return (
     <div className="border-t border-border p-3">
@@ -124,8 +149,8 @@ const CollapseButton = memo(function CollapseButton({
         variant="ghost"
         size="sm"
         className={cn(
-          'w-full justify-center text-muted-foreground hover:bg-accent hover:text-accent-foreground rounded-xl h-9',
-          !collapsed && 'justify-start px-3'
+          "w-full justify-center text-muted-foreground hover:bg-accent hover:text-accent-foreground rounded-xl h-9",
+          !collapsed && "justify-start px-3",
         )}
         onClick={onToggle}
       >
@@ -139,45 +164,54 @@ const CollapseButton = memo(function CollapseButton({
         )}
       </Button>
     </div>
-  )
-})
+  );
+});
 
 export const SidebarNav = memo(function SidebarNav() {
-  const pathname = usePathname()
-  const { role, sidebarCollapsed, setSidebarCollapsed } = useMC()
+  const pathname = usePathname();
+  const { role, sidebarCollapsed, setSidebarCollapsed } = useMC();
 
-  const mainItems = useMemo(() => getMainNavItems(role), [role])
-  const toolsItems = useMemo(() => getToolsNavItems(role), [role])
+  const mainItems = useMemo(() => getMainNavItems(role), [role]);
+  const toolsItems = useMemo(() => getToolsNavItems(role), [role]);
 
   const checkActive = useCallback(
     (href: string) => {
-      if (href === '/mc') return pathname === '/mc' || pathname === '/mc/'
-      return pathname.startsWith(href)
+      if (href === "/mc") return pathname === "/mc" || pathname === "/mc/";
+      return pathname.startsWith(href);
     },
-    [pathname]
-  )
+    [pathname],
+  );
 
   const handleToggle = useCallback(() => {
-    setSidebarCollapsed(!sidebarCollapsed)
-  }, [sidebarCollapsed, setSidebarCollapsed])
+    setSidebarCollapsed(!sidebarCollapsed);
+  }, [sidebarCollapsed, setSidebarCollapsed]);
 
   return (
     <TooltipProvider delayDuration={0}>
       <aside
         className={cn(
-          'flex flex-col border-r border-border bg-card/80 backdrop-blur-xl transition-all duration-300 ease-in-out',
-          sidebarCollapsed ? 'w-[70px]' : 'w-[260px]'
+          "flex flex-col border-r border-border bg-card/80 backdrop-blur-xl transition-all duration-300 ease-in-out",
+          sidebarCollapsed ? "w-[70px]" : "w-[260px]",
         )}
       >
         <SidebarHeader collapsed={sidebarCollapsed} />
         <ScrollArea className="flex-1 px-3">
           <nav className="flex flex-col gap-1 py-4">
-            <NavSection items={mainItems} collapsed={sidebarCollapsed} checkActive={checkActive} />
-            <NavSection items={toolsItems} label="Tools" collapsed={sidebarCollapsed} checkActive={checkActive} />
+            <NavSection
+              items={mainItems}
+              collapsed={sidebarCollapsed}
+              checkActive={checkActive}
+            />
+            <NavSection
+              items={toolsItems}
+              label="Tools"
+              collapsed={sidebarCollapsed}
+              checkActive={checkActive}
+            />
           </nav>
         </ScrollArea>
         <CollapseButton collapsed={sidebarCollapsed} onToggle={handleToggle} />
       </aside>
     </TooltipProvider>
-  )
-})
+  );
+});

@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useState, useMemo, useCallback } from "react"
-import { Check, ChevronsUpDown, X } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { useState, useMemo, useCallback } from "react";
+import { Check, ChevronsUpDown, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -12,20 +12,24 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command"
+} from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
-import type { FilterFieldDefinition, FilterOperator, FilterValue } from "./types"
+} from "@/components/ui/popover";
+import type {
+  FilterFieldDefinition,
+  FilterOperator,
+  FilterValue,
+} from "./types";
 
 interface FilterSelectInputProps {
-  field: FilterFieldDefinition
-  operator: FilterOperator
-  value: FilterValue
-  onChange: (value: FilterValue) => void
-  className?: string
+  field: FilterFieldDefinition;
+  operator: FilterOperator;
+  value: FilterValue;
+  onChange: (value: FilterValue) => void;
+  className?: string;
 }
 
 export function FilterSelectInput({
@@ -34,13 +38,13 @@ export function FilterSelectInput({
   onChange,
   className,
 }: FilterSelectInputProps) {
-  const [open, setOpen] = useState(false)
-  
-  const options = useMemo(() => field.options ?? [], [field.options])
+  const [open, setOpen] = useState(false);
+
+  const options = useMemo(() => field.options ?? [], [field.options]);
 
   const selectedOption = useMemo(() => {
-    return options.find((opt) => opt.value === value)
-  }, [options, value])
+    return options.find((opt) => opt.value === value);
+  }, [options, value]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -52,7 +56,7 @@ export function FilterSelectInput({
           className={cn(
             "h-8 w-[180px] justify-between px-2 text-sm font-normal",
             !selectedOption && "text-muted-foreground",
-            className
+            className,
           )}
         >
           <span className="truncate">
@@ -64,7 +68,7 @@ export function FilterSelectInput({
                 {selectedOption.label}
               </span>
             ) : (
-              field.placeholder ?? "Select..."
+              (field.placeholder ?? "Select...")
             )}
           </span>
           <ChevronsUpDown className="ml-2 size-3.5 shrink-0 opacity-50" />
@@ -81,14 +85,14 @@ export function FilterSelectInput({
                   key={option.value}
                   value={option.value}
                   onSelect={() => {
-                    onChange(option.value === value ? "" : option.value)
-                    setOpen(false)
+                    onChange(option.value === value ? "" : option.value);
+                    setOpen(false);
                   }}
                 >
                   <Check
                     className={cn(
                       "mr-2 size-4",
-                      value === option.value ? "opacity-100" : "opacity-0"
+                      value === option.value ? "opacity-100" : "opacity-0",
                     )}
                   />
                   {option.icon && (
@@ -107,7 +111,7 @@ export function FilterSelectInput({
         </Command>
       </PopoverContent>
     </Popover>
-  )
+  );
 }
 
 export function FilterMultiSelectInput({
@@ -116,32 +120,32 @@ export function FilterMultiSelectInput({
   onChange,
   className,
 }: FilterSelectInputProps) {
-  const [open, setOpen] = useState(false)
-  
-  const options = useMemo(() => field.options ?? [], [field.options])
-  const selectedValues = useMemo(() => (value as string[]) ?? [], [value])
+  const [open, setOpen] = useState(false);
+
+  const options = useMemo(() => field.options ?? [], [field.options]);
+  const selectedValues = useMemo(() => (value as string[]) ?? [], [value]);
 
   const selectedOptions = useMemo(() => {
-    return options.filter((opt) => selectedValues.includes(opt.value))
-  }, [options, selectedValues])
+    return options.filter((opt) => selectedValues.includes(opt.value));
+  }, [options, selectedValues]);
 
   const toggleOption = useCallback(
     (optionValue: string) => {
       const newValues = selectedValues.includes(optionValue)
         ? selectedValues.filter((v) => v !== optionValue)
-        : [...selectedValues, optionValue]
-      onChange(newValues)
+        : [...selectedValues, optionValue];
+      onChange(newValues);
     },
-    [selectedValues, onChange]
-  )
+    [selectedValues, onChange],
+  );
 
   const removeValue = useCallback(
     (optionValue: string, e: React.MouseEvent) => {
-      e.stopPropagation()
-      onChange(selectedValues.filter((v) => v !== optionValue))
+      e.stopPropagation();
+      onChange(selectedValues.filter((v) => v !== optionValue));
     },
-    [selectedValues, onChange]
-  )
+    [selectedValues, onChange],
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -153,7 +157,7 @@ export function FilterMultiSelectInput({
           className={cn(
             "h-auto min-h-8 w-[240px] justify-between px-2 text-sm font-normal",
             !selectedOptions.length && "text-muted-foreground",
-            className
+            className,
           )}
         >
           {selectedOptions.length > 0 ? (
@@ -197,7 +201,7 @@ export function FilterMultiSelectInput({
             <CommandEmpty>No options found.</CommandEmpty>
             <CommandGroup>
               {options.map((option) => {
-                const isSelected = selectedValues.includes(option.value)
+                const isSelected = selectedValues.includes(option.value);
                 return (
                   <CommandItem
                     key={option.value}
@@ -209,7 +213,7 @@ export function FilterMultiSelectInput({
                         "mr-2 flex size-4 items-center justify-center rounded-sm border border-primary",
                         isSelected
                           ? "bg-primary text-primary-foreground"
-                          : "opacity-50"
+                          : "opacity-50",
                       )}
                     >
                       {isSelected && <Check className="size-3" />}
@@ -224,7 +228,7 @@ export function FilterMultiSelectInput({
                       </span>
                     )}
                   </CommandItem>
-                )
+                );
               })}
             </CommandGroup>
           </CommandList>
@@ -243,5 +247,5 @@ export function FilterMultiSelectInput({
         )}
       </PopoverContent>
     </Popover>
-  )
+  );
 }

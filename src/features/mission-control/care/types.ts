@@ -1,14 +1,14 @@
-export type CarePriority = 'Healthy' | 'Needs Attention' | 'At Risk' | 'Crisis';
+export type CarePriority = "Healthy" | "Needs Attention" | "At Risk" | "Crisis";
 
-export type ActivityType = 
-  | 'Video Call' 
-  | 'In-Person Visit' 
-  | 'Check-in' 
-  | 'Pastoral Note' 
-  | 'Care Plan Update' 
-  | 'Crisis Intervention'
-  | 'Birthday'
-  | 'Prayer Request';
+export type ActivityType =
+  | "Video Call"
+  | "In-Person Visit"
+  | "Check-in"
+  | "Pastoral Note"
+  | "Care Plan Update"
+  | "Crisis Intervention"
+  | "Birthday"
+  | "Prayer Request";
 
 export interface CarePersonnel {
   id: string;
@@ -21,7 +21,13 @@ export interface CarePersonnel {
   initials: string;
   avatarUrl?: string;
   role: string;
-  region: 'Africa' | 'SE Asia' | 'Europe' | 'Latin America' | 'Middle East' | 'North America';
+  region:
+    | "Africa"
+    | "SE Asia"
+    | "Europe"
+    | "Latin America"
+    | "Middle East"
+    | "North America";
   healthSignals: {
     emotional: number; // 0-100
     spiritual: number;
@@ -48,7 +54,7 @@ export interface CareThread {
   id: string;
   personnelId: string;
   title: string;
-  status: 'Open' | 'Resolved';
+  status: "Open" | "Resolved";
   lastActivity: string;
   entries: ActivityLogEntry[];
 }
@@ -58,7 +64,7 @@ export interface CarePlan {
   personnelId: string;
   title: string;
   objectives: string[];
-  status: 'Active' | 'Completed' | 'Archived';
+  status: "Active" | "Completed" | "Archived";
   startDate: string;
   endDate?: string;
   reviewDate?: string;

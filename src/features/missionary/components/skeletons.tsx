@@ -1,11 +1,14 @@
-import { Skeleton } from "@/components/ui/skeleton"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export function MetricsSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
       {[...Array(4)].map((_, i) => (
-        <Card key={i} className="border-zinc-200 bg-white shadow-sm rounded-3xl">
+        <Card
+          key={i}
+          className="border-zinc-200 bg-white shadow-sm rounded-3xl"
+        >
           <CardContent className="flex items-center gap-4 p-6">
             <Skeleton className="h-12 w-12 rounded-2xl bg-zinc-100" />
             <div className="min-w-0 flex-1 space-y-2">
@@ -17,7 +20,7 @@ export function MetricsSkeleton() {
         </Card>
       ))}
     </div>
-  )
+  );
 }
 
 export function ChartSkeleton() {
@@ -33,7 +36,7 @@ export function ChartSkeleton() {
         <Skeleton className="h-[350px] w-full rounded-2xl bg-zinc-50/50" />
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export function ActivityFeedSkeleton() {
@@ -63,5 +66,5 @@ export function ActivityFeedSkeleton() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

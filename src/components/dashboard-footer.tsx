@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { Fragment, useMemo } from 'react'
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Fragment, useMemo } from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -10,84 +10,84 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
-import { cn } from '@/lib/utils'
+} from "@/components/ui/breadcrumb";
+import { cn } from "@/lib/utils";
 
 interface BreadcrumbItemData {
-  label: string
-  href?: string
+  label: string;
+  href?: string;
 }
 
 interface DashboardFooterProps {
-  className?: string
-  brandName?: string
-  brandHref?: string
-  tagline?: string
-  breadcrumbs?: BreadcrumbItemData[]
-  showBreadcrumbs?: boolean
-  labelMap?: Record<string, string>
+  className?: string;
+  brandName?: string;
+  brandHref?: string;
+  tagline?: string;
+  breadcrumbs?: BreadcrumbItemData[];
+  showBreadcrumbs?: boolean;
+  labelMap?: Record<string, string>;
 }
 
 const defaultLabelMap: Record<string, string> = {
-  mc: 'Mission Control',
-}
+  mc: "Mission Control",
+};
 
-const CURRENT_YEAR = 2025
+const CURRENT_YEAR = 2025;
 
 function generateBreadcrumbsFromPath(
   pathname: string,
-  labelMap: Record<string, string> = {}
+  labelMap: Record<string, string> = {},
 ): BreadcrumbItemData[] {
-  const segments = pathname.split('/').filter(Boolean)
-  const breadcrumbs: BreadcrumbItemData[] = []
-  const mergedLabelMap = { ...defaultLabelMap, ...labelMap }
+  const segments = pathname.split("/").filter(Boolean);
+  const breadcrumbs: BreadcrumbItemData[] = [];
+  const mergedLabelMap = { ...defaultLabelMap, ...labelMap };
 
-  let currentPath = ''
+  let currentPath = "";
   for (let i = 0; i < segments.length; i++) {
-    const segment = segments[i]
-    if (!segment) continue
-    
-    currentPath += `/${segment}`
+    const segment = segments[i];
+    if (!segment) continue;
+
+    currentPath += `/${segment}`;
 
     const label =
       mergedLabelMap[segment.toLowerCase()] ||
       segment
-        .split('-')
+        .split("-")
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ')
+        .join(" ");
 
     breadcrumbs.push({
       label,
       href: i < segments.length - 1 ? currentPath : undefined,
-    })
+    });
   }
 
-  return breadcrumbs
+  return breadcrumbs;
 }
 
 export function DashboardFooter({
   className,
-  brandName = 'Asym',
-  brandHref = '/',
-  tagline = 'Ministry Support, Simplified',
+  brandName = "Asym",
+  brandHref = "/",
+  tagline = "Ministry Support, Simplified",
   breadcrumbs: customBreadcrumbs,
   showBreadcrumbs = true,
   labelMap,
 }: DashboardFooterProps) {
-  const pathname = usePathname()
+  const pathname = usePathname();
   const breadcrumbs =
-    customBreadcrumbs || generateBreadcrumbsFromPath(pathname, labelMap)
+    customBreadcrumbs || generateBreadcrumbsFromPath(pathname, labelMap);
 
   return (
     <footer
       className={cn(
-        'bg-card/80 backdrop-blur-sm sticky bottom-0 z-40 flex items-center justify-between border-t border-border/50 px-4 py-2.5 sm:px-6',
-        'max-md:flex-col max-md:gap-1.5 md:gap-4',
-        className
+        "bg-card/80 backdrop-blur-sm sticky bottom-0 z-40 flex items-center justify-between border-t border-border/50 px-4 py-2.5 sm:px-6",
+        "max-md:flex-col max-md:gap-1.5 md:gap-4",
+        className,
       )}
     >
       <p className="text-muted-foreground text-xs leading-relaxed">
-        © {CURRENT_YEAR}{' '}
+        © {CURRENT_YEAR}{" "}
         <Link
           href={brandHref}
           className="text-foreground/80 font-medium hover:text-primary transition-colors"
@@ -128,5 +128,5 @@ export function DashboardFooter({
         </Breadcrumb>
       )}
     </footer>
-  )
+  );
 }

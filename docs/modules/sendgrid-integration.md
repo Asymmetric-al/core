@@ -4,17 +4,17 @@ Multi-tenant email sending through SendGrid. Each tenant connects their own Send
 
 ## Current Implementation Status
 
-| Feature | Status | Location |
-|---------|--------|----------|
-| API Key Validation | ✅ Complete | `src/lib/email/sendgrid.ts` |
-| Email Sending | ✅ Complete | `src/lib/email/sendgrid.ts` |
-| Test Email | ✅ Complete | `src/lib/email/sendgrid.ts` |
-| Connect API | ✅ Complete | `src/app/api/email/connect/route.ts` |
-| Test Send API | ✅ Complete | `src/app/api/email/test-send/route.ts` |
-| Settings UI | ✅ Complete | `src/app/(admin)/mc/settings/integrations/sendgrid/page.tsx` |
-| API Key Storage | 🔜 Planned | Database encryption needed |
-| Event Webhooks | 🔜 Planned | Track opens/clicks/bounces |
-| Campaign Management | 🔜 Planned | Bulk email campaigns |
+| Feature             | Status      | Location                                                     |
+| ------------------- | ----------- | ------------------------------------------------------------ |
+| API Key Validation  | ✅ Complete | `src/lib/email/sendgrid.ts`                                  |
+| Email Sending       | ✅ Complete | `src/lib/email/sendgrid.ts`                                  |
+| Test Email          | ✅ Complete | `src/lib/email/sendgrid.ts`                                  |
+| Connect API         | ✅ Complete | `src/app/api/email/connect/route.ts`                         |
+| Test Send API       | ✅ Complete | `src/app/api/email/test-send/route.ts`                       |
+| Settings UI         | ✅ Complete | `src/app/(admin)/mc/settings/integrations/sendgrid/page.tsx` |
+| API Key Storage     | 🔜 Planned  | Database encryption needed                                   |
+| Event Webhooks      | 🔜 Planned  | Track opens/clicks/bounces                                   |
+| Campaign Management | 🔜 Planned  | Bulk email campaigns                                         |
 
 ---
 
@@ -41,12 +41,14 @@ Before connecting, tenants need:
 ### 3. Verifying a Sender
 
 **Option A: Single Sender Verification** (Quick)
+
 1. Go to [Sender Authentication](https://app.sendgrid.com/settings/sender_auth)
 2. Click **Verify a Single Sender**
 3. Fill in sender details
 4. Click verification link in email
 
 **Option B: Domain Authentication** (Recommended)
+
 1. Go to [Domain Authentication](https://app.sendgrid.com/settings/sender_auth/domains)
 2. Add your domain
 3. Add DNS records (CNAME) to your domain
@@ -173,6 +175,7 @@ Sends a test email.
 No environment variables are required for the current SendGrid integration. API keys are provided via the UI and validated server-side.
 
 Future enhancements (not implemented) may introduce:
+
 - `EMAIL_ENCRYPTION_KEY` for encrypted key storage
 - `SENDGRID_WEBHOOK_VERIFICATION_KEY` for webhook signature verification
 
@@ -188,7 +191,7 @@ RATE_LIMIT_CONFIG = {
   maxRequestsPerMinute: 500,
   maxRecipientsPerRequest: 1000,
   maxDailyEmails: 10000,
-}
+};
 
 // Retry behavior
 RETRY_CONFIG = {
@@ -196,7 +199,7 @@ RETRY_CONFIG = {
   baseDelayMs: 1000,
   maxDelayMs: 30000,
   retryableStatuses: [429, 500, 502, 503, 504],
-}
+};
 ```
 
 ---
@@ -205,35 +208,35 @@ RETRY_CONFIG = {
 
 ### Error Codes
 
-| Code | Meaning | Solution |
-|------|---------|----------|
-| `invalid_api_key` | Key format wrong | Must start with `SG.` |
-| `unauthorized` | Key invalid/revoked | Create new key in SendGrid |
-| `forbidden` | Key lacks permissions | Enable `mail.send` scope |
-| `rate_limited` | Too many requests | Wait and retry |
-| `sender_not_verified` | From email not verified | Verify sender in SendGrid |
-| `server_error` | SendGrid issue | Retry later |
+| Code                  | Meaning                 | Solution                   |
+| --------------------- | ----------------------- | -------------------------- |
+| `invalid_api_key`     | Key format wrong        | Must start with `SG.`      |
+| `unauthorized`        | Key invalid/revoked     | Create new key in SendGrid |
+| `forbidden`           | Key lacks permissions   | Enable `mail.send` scope   |
+| `rate_limited`        | Too many requests       | Wait and retry             |
+| `sender_not_verified` | From email not verified | Verify sender in SendGrid  |
+| `server_error`        | SendGrid issue          | Retry later                |
 
 ### Handling Errors
 
 ```typescript
-import { SENDGRID_ERROR_CODES } from '@/lib/email'
+import { SENDGRID_ERROR_CODES } from "@/lib/email";
 
-const result = await validateSendGridApiKey(apiKey)
+const result = await validateSendGridApiKey(apiKey);
 
 if (!result.valid) {
   switch (result.errorCode) {
     case SENDGRID_ERROR_CODES.INVALID_API_KEY:
       // Show format error
-      break
+      break;
     case SENDGRID_ERROR_CODES.UNAUTHORIZED:
       // Key is bad
-      break
+      break;
     case SENDGRID_ERROR_CODES.FORBIDDEN:
       // Missing permissions
-      break
+      break;
     default:
-      // Generic error
+    // Generic error
   }
 }
 ```
@@ -254,12 +257,12 @@ The `deliverabilityScore` (0-100) is calculated as:
 
 The validation returns warnings for:
 
-| Code | Severity | Meaning |
-|------|----------|---------|
-| `NO_VERIFIED_SENDERS` | error | No verified senders found |
-| `SENDER_NOT_VERIFIED` | error | Specified from email not verified |
-| `DOMAIN_NOT_VERIFIED` | warning | Domain auth incomplete |
-| `NO_DOMAIN_AUTH` | info | No domain authentication set up |
+| Code                  | Severity | Meaning                           |
+| --------------------- | -------- | --------------------------------- |
+| `NO_VERIFIED_SENDERS` | error    | No verified senders found         |
+| `SENDER_NOT_VERIFIED` | error    | Specified from email not verified |
+| `DOMAIN_NOT_VERIFIED` | warning  | Domain auth incomplete            |
+| `NO_DOMAIN_AUTH`      | info     | No domain authentication set up   |
 
 ---
 
@@ -270,6 +273,7 @@ The validation returns warnings for:
 **Cause**: The `fromEmail` is not verified in SendGrid.
 
 **Solutions**:
+
 1. Verify the exact email address via Single Sender Verification
 2. Or authenticate the domain the email belongs to
 
@@ -278,6 +282,7 @@ The validation returns warnings for:
 **Cause**: The API key lacks required scopes.
 
 **Solution**:
+
 1. Go to SendGrid → API Keys
 2. Edit the key or create a new one
 3. Enable "Mail Send" permission
@@ -291,6 +296,7 @@ The validation returns warnings for:
 ### Emails going to spam
 
 **Causes & Solutions**:
+
 1. **No domain authentication**: Set up DKIM/SPF
 2. **No DMARC**: Add DMARC DNS record
 3. **New domain/IP**: Warm up gradually

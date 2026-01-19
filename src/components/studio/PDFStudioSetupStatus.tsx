@@ -1,18 +1,18 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { useState, useMemo } from 'react'
-import { 
-  getPDFStudioSetupStatus, 
+import * as React from "react";
+import { useState, useMemo } from "react";
+import {
+  getPDFStudioSetupStatus,
   getUnlayerAccountConfig,
   PDF_STUDIO_SETUP_INSTRUCTIONS,
-  type UnlayerAccountConfig 
-} from '@/config/pdf-studio'
-import { 
-  AlertCircle, 
-  CheckCircle2, 
-  ExternalLink, 
-  ChevronDown, 
+  type UnlayerAccountConfig,
+} from "@/config/pdf-studio";
+import {
+  AlertCircle,
+  CheckCircle2,
+  ExternalLink,
+  ChevronDown,
   ChevronUp,
   Settings,
   Zap,
@@ -21,9 +21,9 @@ import {
   Copy,
   Check,
   Info,
-  FileText
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
+  FileText,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -31,64 +31,64 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
+} from "@/components/ui/dialog";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
+} from "@/components/ui/collapsible";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface PDFStudioSetupStatusProps {
-  variant?: 'badge' | 'banner' | 'inline'
-  showSetupButton?: boolean
-  className?: string
+  variant?: "badge" | "banner" | "inline";
+  showSetupButton?: boolean;
+  className?: string;
 }
 
-export function PDFStudioSetupStatus({ 
-  variant = 'badge',
+export function PDFStudioSetupStatus({
+  variant = "badge",
   showSetupButton = true,
-  className 
+  className,
 }: PDFStudioSetupStatusProps) {
-  const status = useMemo(() => getPDFStudioSetupStatus(), [])
-  const config = useMemo(() => getUnlayerAccountConfig(), [])
+  const status = useMemo(() => getPDFStudioSetupStatus(), []);
+  const config = useMemo(() => getUnlayerAccountConfig(), []);
 
   const statusConfig = {
     not_configured: {
-      color: 'bg-amber-50 text-amber-700 border-amber-200',
+      color: "bg-amber-50 text-amber-700 border-amber-200",
       icon: AlertCircle,
-      label: 'Free Mode'
+      label: "Free Mode",
     },
     free_tier: {
-      color: 'bg-amber-50 text-amber-700 border-amber-200',
+      color: "bg-amber-50 text-amber-700 border-amber-200",
       icon: AlertCircle,
-      label: 'Free Tier'
+      label: "Free Tier",
     },
     configured: {
-      color: 'bg-blue-50 text-blue-700 border-blue-200',
+      color: "bg-blue-50 text-blue-700 border-blue-200",
       icon: CheckCircle2,
-      label: 'Configured'
+      label: "Configured",
     },
     white_label: {
-      color: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      color: "bg-emerald-50 text-emerald-700 border-emerald-200",
       icon: Crown,
-      label: 'White Label'
-    }
-  }
+      label: "White Label",
+    },
+  };
 
-  const currentStatus = statusConfig[status.status]
-  const Icon = currentStatus.icon
+  const currentStatus = statusConfig[status.status];
+  const Icon = currentStatus.icon;
 
-  if (variant === 'badge') {
+  if (variant === "badge") {
     return (
       <Dialog>
         <DialogTrigger asChild>
-          <button 
+          <button
             className={cn(
-              'inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-colors hover:opacity-80',
+              "inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-colors hover:opacity-80",
               currentStatus.color,
-              className
+              className,
             )}
           >
             <Icon className="h-3 w-3" />
@@ -98,30 +98,28 @@ export function PDFStudioSetupStatus({
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>PDF Studio Configuration</DialogTitle>
-            <DialogDescription>
-              {status.message}
-            </DialogDescription>
+            <DialogDescription>{status.message}</DialogDescription>
           </DialogHeader>
           <PDFStudioSetupPanel config={config} status={status} />
         </DialogContent>
       </Dialog>
-    )
+    );
   }
 
-  if (variant === 'banner') {
+  if (variant === "banner") {
     return (
-      <div 
+      <div
         className={cn(
-          'flex items-center justify-between gap-4 px-4 py-2 rounded-lg border',
+          "flex items-center justify-between gap-4 px-4 py-2 rounded-lg border",
           currentStatus.color,
-          className
+          className,
         )}
       >
         <div className="flex items-center gap-2">
           <Icon className="h-4 w-4" />
           <span className="text-sm font-medium">{status.message}</span>
         </div>
-        {showSetupButton && status.status !== 'white_label' && (
+        {showSetupButton && status.status !== "white_label" && (
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="h-7">
@@ -141,32 +139,34 @@ export function PDFStudioSetupStatus({
           </Dialog>
         )}
       </div>
-    )
+    );
   }
 
   return (
-    <div className={cn('flex items-center gap-2', className)}>
+    <div className={cn("flex items-center gap-2", className)}>
       <Icon className="h-4 w-4" />
       <span className="text-sm">{currentStatus.label}</span>
     </div>
-  )
+  );
 }
 
 interface PDFStudioSetupPanelProps {
-  config: UnlayerAccountConfig
-  status: ReturnType<typeof getPDFStudioSetupStatus>
+  config: UnlayerAccountConfig;
+  status: ReturnType<typeof getPDFStudioSetupStatus>;
 }
 
 function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
-  const [isSetupOpen, setIsSetupOpen] = useState(status.status === 'not_configured')
-  const [isWhiteLabelOpen, setIsWhiteLabelOpen] = useState(false)
-  const [copiedStep, setCopiedStep] = useState<number | null>(null)
+  const [isSetupOpen, setIsSetupOpen] = useState(
+    status.status === "not_configured",
+  );
+  const [isWhiteLabelOpen, setIsWhiteLabelOpen] = useState(false);
+  const [copiedStep, setCopiedStep] = useState<number | null>(null);
 
   const handleCopy = (text: string, step: number) => {
-    navigator.clipboard.writeText(text)
-    setCopiedStep(step)
-    setTimeout(() => setCopiedStep(null), 2000)
-  }
+    navigator.clipboard.writeText(text);
+    setCopiedStep(step);
+    setTimeout(() => setCopiedStep(null), 2000);
+  };
 
   return (
     <div className="space-y-4">
@@ -184,7 +184,7 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
             Project ID
           </div>
           <div className="text-sm font-medium text-slate-900">
-            {config.projectId || 'Not set'}
+            {config.projectId || "Not set"}
           </div>
         </div>
       </div>
@@ -195,9 +195,9 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
         </div>
         <div className="flex flex-wrap gap-1.5">
           {status.features.map((feature) => (
-            <Badge 
-              key={feature} 
-              variant="outline" 
+            <Badge
+              key={feature}
+              variant="outline"
               className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px]"
             >
               <CheckCircle2 className="h-3 w-3 mr-1" />
@@ -208,9 +208,9 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
         {status.missingFeatures.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-2">
             {status.missingFeatures.map((feature) => (
-              <Badge 
-                key={feature} 
-                variant="outline" 
+              <Badge
+                key={feature}
+                variant="outline"
                 className="bg-slate-50 text-slate-500 border-slate-200 text-[10px]"
               >
                 <Zap className="h-3 w-3 mr-1 opacity-50" />
@@ -221,14 +221,16 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
         )}
       </div>
 
-      {status.status !== 'white_label' && (
+      {status.status !== "white_label" && (
         <>
           <Collapsible open={isSetupOpen} onOpenChange={setIsSetupOpen}>
             <CollapsibleTrigger asChild>
               <button className="flex items-center justify-between w-full p-3 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 transition-colors">
                 <div className="flex items-center gap-2">
                   <Settings className="h-4 w-4" />
-                  <span className="text-sm font-medium">Basic Setup Instructions</span>
+                  <span className="text-sm font-medium">
+                    Basic Setup Instructions
+                  </span>
                 </div>
                 {isSetupOpen ? (
                   <ChevronUp className="h-4 w-4" />
@@ -293,13 +295,18 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
             </CollapsibleContent>
           </Collapsible>
 
-          {status.status === 'configured' && (
-            <Collapsible open={isWhiteLabelOpen} onOpenChange={setIsWhiteLabelOpen}>
+          {status.status === "configured" && (
+            <Collapsible
+              open={isWhiteLabelOpen}
+              onOpenChange={setIsWhiteLabelOpen}
+            >
               <CollapsibleTrigger asChild>
                 <button className="flex items-center justify-between w-full p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors">
                   <div className="flex items-center gap-2">
                     <Crown className="h-4 w-4" />
-                    <span className="text-sm font-medium">Upgrade to White-Label</span>
+                    <span className="text-sm font-medium">
+                      Upgrade to White-Label
+                    </span>
                   </div>
                   {isWhiteLabelOpen ? (
                     <ChevronUp className="h-4 w-4" />
@@ -336,7 +343,9 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
                               variant="ghost"
                               size="sm"
                               className="h-7 w-7 p-0"
-                              onClick={() => handleCopy(step.code!, step.step + 10)}
+                              onClick={() =>
+                                handleCopy(step.code!, step.step + 10)
+                              }
                             >
                               {copiedStep === step.step + 10 ? (
                                 <Check className="h-3.5 w-3.5 text-emerald-600" />
@@ -377,9 +386,9 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
           </div>
           <div className="flex flex-wrap gap-1.5">
             {config.allowedDomains.map((domain) => (
-              <Badge 
-                key={domain} 
-                variant="outline" 
+              <Badge
+                key={domain}
+                variant="outline"
                 className="text-[10px] font-mono"
               >
                 {domain}
@@ -394,50 +403,54 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
       )}
 
       <div className="flex justify-end">
-        <Button
-          variant="outline"
-          size="sm"
-          asChild
-        >
-          <a
-            href={status.setupUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+        <Button variant="outline" size="sm" asChild>
+          <a href={status.setupUrl} target="_blank" rel="noopener noreferrer">
             Open Unlayer Dashboard
             <ExternalLink className="h-3.5 w-3.5 ml-1.5" />
           </a>
         </Button>
       </div>
     </div>
-  )
+  );
 }
 
 export function PDFStudioConfigBadge({ className }: { className?: string }) {
-  const config = useMemo(() => getUnlayerAccountConfig(), [])
-  
+  const config = useMemo(() => getUnlayerAccountConfig(), []);
+
   if (config.isWhiteLabel) {
     return (
-      <Badge variant="outline" className={cn('bg-emerald-50 text-emerald-700 border-emerald-200', className)}>
+      <Badge
+        variant="outline"
+        className={cn(
+          "bg-emerald-50 text-emerald-700 border-emerald-200",
+          className,
+        )}
+      >
         <Crown className="h-3 w-3 mr-1" />
         White Label
       </Badge>
-    )
+    );
   }
-  
+
   if (config.isConfigured) {
     return (
-      <Badge variant="outline" className={cn('bg-blue-50 text-blue-700 border-blue-200', className)}>
+      <Badge
+        variant="outline"
+        className={cn("bg-blue-50 text-blue-700 border-blue-200", className)}
+      >
         <CheckCircle2 className="h-3 w-3 mr-1" />
         Configured
       </Badge>
-    )
+    );
   }
-  
+
   return (
-    <Badge variant="outline" className={cn('bg-amber-50 text-amber-700 border-amber-200', className)}>
+    <Badge
+      variant="outline"
+      className={cn("bg-amber-50 text-amber-700 border-amber-200", className)}
+    >
       <AlertCircle className="h-3 w-3 mr-1" />
       Free Mode
     </Badge>
-  )
+  );
 }

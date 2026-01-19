@@ -1,115 +1,135 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { createClient } from '@/lib/supabase/client'
-import { Loader2, Sparkles } from 'lucide-react'
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { createClient } from "@/lib/supabase/client";
+import { Loader2, Sparkles } from "lucide-react";
 
 export default function RegisterPage() {
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [demoAvailability, setDemoAvailability] = useState({
     admin: false,
     missionary: false,
     donor: false,
-  })
-  const demoUnavailable = !demoAvailability.admin && !demoAvailability.missionary && !demoAvailability.donor
+  });
+  const demoUnavailable =
+    !demoAvailability.admin &&
+    !demoAvailability.missionary &&
+    !demoAvailability.donor;
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    role: ''
-  })
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    role: "",
+  });
 
   useEffect(() => {
-    let active = true
+    let active = true;
     async function loadDemoAvailability() {
       try {
-        const response = await fetch('/api/auth/demo-account')
+        const response = await fetch("/api/auth/demo-account");
         if (!response.ok) {
-          throw new Error('Demo status unavailable')
+          throw new Error("Demo status unavailable");
         }
-        const data = await response.json()
+        const data = await response.json();
         if (active && data?.availableRoles) {
           setDemoAvailability({
             admin: Boolean(data.availableRoles.admin),
             missionary: Boolean(data.availableRoles.missionary),
             donor: Boolean(data.availableRoles.donor),
-          })
+          });
         }
       } catch {
         if (active) {
-          setDemoAvailability({ admin: false, missionary: false, donor: false })
+          setDemoAvailability({
+            admin: false,
+            missionary: false,
+            donor: false,
+          });
         }
       }
     }
 
-    loadDemoAvailability()
+    loadDemoAvailability();
     return () => {
-      active = false
-    }
-  }, [])
+      active = false;
+    };
+  }, []);
 
-  async function handleDemoAccount(role: 'admin' | 'missionary' | 'donor') {
+  async function handleDemoAccount(role: "admin" | "missionary" | "donor") {
     if (!demoAvailability[role]) {
-      setError('Demo login unavailable')
-      return
+      setError("Demo login unavailable");
+      return;
     }
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch('/api/auth/demo-account', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role })
-      })
+      const response = await fetch("/api/auth/demo-account", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role }),
+      });
 
-      const data = await response.json().catch(() => ({}))
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok || data?.ok !== true) {
-        const message = data?.error
-          ?? (response.status === 401 || response.status === 403
-            ? 'Invalid demo credentials'
-            : 'Demo login unavailable')
-        setError(message)
-        return
+        const message =
+          data?.error ??
+          (response.status === 401 || response.status === 403
+            ? "Invalid demo credentials"
+            : "Demo login unavailable");
+        setError(message);
+        return;
       }
 
-      if (role === 'admin') {
-        router.push('/mc')
-      } else if (role === 'missionary') {
-        router.push('/missionary-dashboard')
+      if (role === "admin") {
+        router.push("/mc");
+      } else if (role === "missionary") {
+        router.push("/missionary-dashboard");
       } else {
-        router.push('/donor-dashboard')
+        router.push("/donor-dashboard");
       }
     } catch {
-      setError('Demo login unavailable')
+      setError("Demo login unavailable");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
 
     if (!formData.role) {
-      setError('Please select a role')
-      setLoading(false)
-      return
+      setError("Please select a role");
+      setLoading(false);
+      return;
     }
 
-    const supabase = createClient()
+    const supabase = createClient();
 
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: formData.email,
@@ -118,29 +138,29 @@ export default function RegisterPage() {
         data: {
           first_name: formData.firstName,
           last_name: formData.lastName,
-          role: formData.role
-        }
-      }
-    })
+          role: formData.role,
+        },
+      },
+    });
 
     if (authError) {
-      setError(authError.message)
-      setLoading(false)
-      return
+      setError(authError.message);
+      setLoading(false);
+      return;
     }
 
     if (authData.user) {
       // Profile is created automatically by database trigger
-      if (formData.role === 'admin' || formData.role === 'staff') {
-        router.push('/mc')
-      } else if (formData.role === 'missionary') {
-        router.push('/missionary-dashboard')
+      if (formData.role === "admin" || formData.role === "staff") {
+        router.push("/mc");
+      } else if (formData.role === "missionary") {
+        router.push("/missionary-dashboard");
       } else {
-        router.push('/donor-dashboard')
+        router.push("/donor-dashboard");
       }
     }
 
-    setLoading(false)
+    setLoading(false);
   }
 
   return (
@@ -160,50 +180,63 @@ export default function RegisterPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName">First Name</Label>
-                <Input 
-                  id="firstName" 
-                  placeholder="John" 
+                <Input
+                  id="firstName"
+                  placeholder="John"
                   value={formData.firstName}
-                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, firstName: e.target.value })
+                  }
                   required
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="lastName">Last Name</Label>
-                <Input 
-                  id="lastName" 
-                  placeholder="Doe" 
+                <Input
+                  id="lastName"
+                  placeholder="Doe"
                   value={formData.lastName}
-                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, lastName: e.target.value })
+                  }
                   required
                 />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="you@example.com" 
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 required
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input 
-                id="password" 
-                type="password" 
+              <Input
+                id="password"
+                type="password"
                 value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
                 required
                 minLength={6}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">I am a...</Label>
-              <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
+              <Select
+                value={formData.role}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, role: value })
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select your role" />
                 </SelectTrigger>
@@ -237,7 +270,7 @@ export default function RegisterPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleDemoAccount('admin')}
+                onClick={() => handleDemoAccount("admin")}
                 disabled={loading || !demoAvailability.admin}
                 className="text-xs"
               >
@@ -247,7 +280,7 @@ export default function RegisterPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleDemoAccount('missionary')}
+                onClick={() => handleDemoAccount("missionary")}
                 disabled={loading || !demoAvailability.missionary}
                 className="text-xs"
               >
@@ -257,7 +290,7 @@ export default function RegisterPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleDemoAccount('donor')}
+                onClick={() => handleDemoAccount("donor")}
                 disabled={loading || !demoAvailability.donor}
                 className="text-xs"
               >
@@ -281,5 +314,5 @@ export default function RegisterPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

@@ -1,10 +1,10 @@
-import * as React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Wallet } from 'lucide-react'
+import * as React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Wallet } from "lucide-react";
 
 interface BalanceCardProps {
-  currentBalance: number
+  currentBalance: number;
 }
 
 export function BalanceCard({ currentBalance }: BalanceCardProps) {
@@ -15,7 +15,9 @@ export function BalanceCard({ currentBalance }: BalanceCardProps) {
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-50 border border-zinc-100">
             <Wallet className="h-4.5 w-4.5 text-zinc-900" />
           </div>
-          <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Available Funds</CardTitle>
+          <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+            Available Funds
+          </CardTitle>
         </div>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col justify-between p-5 pt-2">
@@ -23,7 +25,9 @@ export function BalanceCard({ currentBalance }: BalanceCardProps) {
           <h3 className="text-4xl font-bold tracking-tighter text-zinc-900">
             ${currentBalance.toLocaleString()}
           </h3>
-          <p className="mt-1 text-[9px] font-bold text-zinc-300 uppercase tracking-widest">Network Live Status</p>
+          <p className="mt-1 text-[9px] font-bold text-zinc-300 uppercase tracking-widest">
+            Network Live Status
+          </p>
         </div>
         <div className="mt-6 grid grid-cols-2 gap-2">
           <Button
@@ -42,5 +46,5 @@ export function BalanceCard({ currentBalance }: BalanceCardProps) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

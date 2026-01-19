@@ -35,12 +35,12 @@ interface UseTasksReturn {
   createTask: (data: TaskFormData) => Promise<Task | null>;
   updateTask: (
     id: string,
-    data: Partial<TaskFormData | { sort_key: number }>
+    data: Partial<TaskFormData | { sort_key: number }>,
   ) => Promise<boolean>;
   moveTask: (
     taskId: string,
     newStatus: TaskStatus,
-    newIndex: number
+    newIndex: number,
   ) => Promise<boolean>;
   deleteTask: (id: string) => Promise<boolean>;
   completeTask: (id: string) => Promise<boolean>;
@@ -89,7 +89,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
           `
           *,
           donor:donors!missionary_tasks_donor_id_fkey(id, name, email, avatar_url)
-        `
+        `,
         )
         .eq("missionary_id", profile.id)
         .order("sort_key", { ascending: true })
@@ -150,7 +150,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
         },
         () => {
           fetchTasks();
-        }
+        },
       )
       .subscribe();
 
@@ -229,7 +229,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
       total: tasks.length,
       notStarted: tasks.filter((t) => t.status === "not_started").length,
       inProgress: tasks.filter(
-        (t) => t.status === "in_progress" || t.status === "waiting"
+        (t) => t.status === "in_progress" || t.status === "waiting",
       ).length,
       completed: tasks.filter((t) => t.status === "completed").length,
       overdue: tasks.filter((t) => {
@@ -244,7 +244,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
         return dueDate >= today && dueDate < tomorrow;
       }).length,
       highPriority: tasks.filter(
-        (t) => t.priority === "high" && t.status !== "completed"
+        (t) => t.priority === "high" && t.status !== "completed",
       ).length,
     };
   }, [tasks]);
@@ -285,7 +285,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
             `
           *,
           donor:donors!missionary_tasks_donor_id_fkey(id, name, email, avatar_url)
-        `
+        `,
           )
           .single();
 
@@ -298,7 +298,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
 
         if (mountedRef.current) {
           setTasks((prev) =>
-            [...prev, formattedTask].sort((a, b) => a.sort_key - b.sort_key)
+            [...prev, formattedTask].sort((a, b) => a.sort_key - b.sort_key),
           );
         }
         toast.success("Task created successfully");
@@ -311,13 +311,13 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
         return null;
       }
     },
-    [profile?.id, supabase, tasks]
+    [profile?.id, supabase, tasks],
   );
 
   const updateTask = useCallback(
     async (
       id: string,
-      data: Partial<TaskFormData | { sort_key: number }>
+      data: Partial<TaskFormData | { sort_key: number }>,
     ): Promise<boolean> => {
       try {
         const updateData: Record<string, unknown> = {
@@ -360,14 +360,14 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
         return false;
       }
     },
-    [supabase, fetchTasks]
+    [supabase, fetchTasks],
   );
 
   const moveTask = useCallback(
     async (
       taskId: string,
       newStatus: TaskStatus,
-      newIndex: number
+      newIndex: number,
     ): Promise<boolean> => {
       const oldTasks = [...tasks];
       const taskToMove = tasks.find((t) => t.id === taskId);
@@ -401,7 +401,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
         .map((t) =>
           t.id === taskId
             ? { ...t, status: newStatus, sort_key: newSortKey }
-            : t
+            : t,
         )
         .sort((a, b) => a.sort_key - b.sort_key);
 
@@ -426,7 +426,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
         return false;
       }
     },
-    [tasks, supabase]
+    [tasks, supabase],
   );
 
   const deleteTask = useCallback(
@@ -452,7 +452,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
         return false;
       }
     },
-    [supabase]
+    [supabase],
   );
 
   const completeTask = useCallback(
@@ -478,8 +478,8 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
                     status: "completed" as TaskStatus,
                     completed_at: new Date().toISOString(),
                   }
-                : t
-            )
+                : t,
+            ),
           );
         }
         toast.success("Task completed");
@@ -492,7 +492,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
         return false;
       }
     },
-    [supabase]
+    [supabase],
   );
 
   const reopenTask = useCallback(
@@ -518,8 +518,8 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
                     status: "not_started" as TaskStatus,
                     completed_at: null,
                   }
-                : t
-            )
+                : t,
+            ),
           );
         }
         toast.success("Task reopened");
@@ -532,7 +532,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
         return false;
       }
     },
-    [supabase]
+    [supabase],
   );
 
   return {

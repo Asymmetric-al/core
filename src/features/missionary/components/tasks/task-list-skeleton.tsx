@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { Skeleton } from '@/components/ui/skeleton'
+import * as React from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function TaskListSkeleton() {
   return (
@@ -29,5 +29,5 @@ export function TaskListSkeleton() {
         ))}
       </div>
     </div>
-  )
+  );
 }

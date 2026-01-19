@@ -88,7 +88,7 @@ export function ImageCropper({
         croppedAreaPixels as CropArea,
         rotation,
         { horizontal: false, vertical: false },
-        { outputFormat, quality }
+        { outputFormat, quality },
       );
 
       if (croppedImage) {

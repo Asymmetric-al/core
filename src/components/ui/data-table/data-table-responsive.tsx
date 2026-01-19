@@ -1,7 +1,7 @@
-"use client"
-"use no memo"
+"use client";
+"use no memo";
 
-import * as React from "react"
+import * as React from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -18,10 +18,10 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
-import { Inbox, LayoutGrid, LayoutList } from "lucide-react"
+} from "@tanstack/react-table";
+import { Inbox, LayoutGrid, LayoutList } from "lucide-react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -29,75 +29,78 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { DataTableToolbarResponsive } from "./data-table-toolbar-responsive"
-import { DataTablePagination } from "./data-table-pagination"
-import { DataTableFloatingBar } from "./data-table-floating-bar"
-import { DataTableSkeleton, DataTableLoadingOverlay } from "./data-table-skeleton"
-import { DataTableCardView } from "./data-table-card-view"
-import { useDataTableKeyboard, getKeyboardNavigationStyles } from "./hooks"
-import type { DataTableFilterField, DataTableConfig } from "./types"
-import type { AdvancedFilterState, FilterFieldDefinition } from "./filters"
-import { createEmptyFilterState, createAdvancedFilterFn } from "./filters"
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DataTableToolbarResponsive } from "./data-table-toolbar-responsive";
+import { DataTablePagination } from "./data-table-pagination";
+import { DataTableFloatingBar } from "./data-table-floating-bar";
+import {
+  DataTableSkeleton,
+  DataTableLoadingOverlay,
+} from "./data-table-skeleton";
+import { DataTableCardView } from "./data-table-card-view";
+import { useDataTableKeyboard, getKeyboardNavigationStyles } from "./hooks";
+import type { DataTableFilterField, DataTableConfig } from "./types";
+import type { AdvancedFilterState, FilterFieldDefinition } from "./filters";
+import { createEmptyFilterState, createAdvancedFilterFn } from "./filters";
 
-type ViewMode = "table" | "card"
+type ViewMode = "table" | "card";
 
 interface DataTableResponsiveProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
-  filterFields?: DataTableFilterField<TData>[]
-  advancedFilterFields?: FilterFieldDefinition[]
-  searchKey?: string
-  searchPlaceholder?: string
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+  filterFields?: DataTableFilterField<TData>[];
+  advancedFilterFields?: FilterFieldDefinition[];
+  searchKey?: string;
+  searchPlaceholder?: string;
   config?: DataTableConfig & {
-    enableViewToggle?: boolean
-    defaultViewMode?: ViewMode
-    mobileBreakpoint?: number
-  }
-  isLoading?: boolean
-  pageCount?: number
-  onPaginationChange?: (pagination: PaginationState) => void
-  onSortingChange?: (sorting: SortingState) => void
-  onFiltersChange?: (filters: ColumnFiltersState) => void
-  onRowSelectionChange?: (selection: RowSelectionState) => void
-  onAdvancedFilterChange?: (filter: AdvancedFilterState) => void
-  onRefresh?: () => void
-  onExport?: () => void
-  onRowClick?: (row: Row<TData>) => void
+    enableViewToggle?: boolean;
+    defaultViewMode?: ViewMode;
+    mobileBreakpoint?: number;
+  };
+  isLoading?: boolean;
+  pageCount?: number;
+  onPaginationChange?: (pagination: PaginationState) => void;
+  onSortingChange?: (sorting: SortingState) => void;
+  onFiltersChange?: (filters: ColumnFiltersState) => void;
+  onRowSelectionChange?: (selection: RowSelectionState) => void;
+  onAdvancedFilterChange?: (filter: AdvancedFilterState) => void;
+  onRefresh?: () => void;
+  onExport?: () => void;
+  onRowClick?: (row: Row<TData>) => void;
   floatingBarActions?: {
-    label: string
-    icon?: React.ComponentType<{ className?: string }>
-    onClick: (rows: TData[]) => void
-    variant?: "default" | "destructive"
-  }[]
+    label: string;
+    icon?: React.ComponentType<{ className?: string }>;
+    onClick: (rows: TData[]) => void;
+    variant?: "default" | "destructive";
+  }[];
   rowActions?: {
-    label: string
-    icon?: React.ComponentType<{ className?: string }>
-    onClick: (row: TData) => void
-    variant?: "default" | "destructive"
-  }[]
+    label: string;
+    icon?: React.ComponentType<{ className?: string }>;
+    onClick: (row: TData) => void;
+    variant?: "default" | "destructive";
+  }[];
   mobileCardConfig?: {
-    primaryField?: string
-    secondaryField?: string
-    tertiaryField?: string
-    badgeField?: string
-    avatarField?: string
-    renderCard?: (row: Row<TData>) => React.ReactNode
-  }
-  className?: string
-  tableClassName?: string
-  emptyState?: React.ReactNode
-  toolbar?: React.ReactNode
+    primaryField?: string;
+    secondaryField?: string;
+    tertiaryField?: string;
+    badgeField?: string;
+    avatarField?: string;
+    renderCard?: (row: Row<TData>) => React.ReactNode;
+  };
+  className?: string;
+  tableClassName?: string;
+  emptyState?: React.ReactNode;
+  toolbar?: React.ReactNode;
   initialState?: {
-    pagination?: PaginationState
-    sorting?: SortingState
-    columnFilters?: ColumnFiltersState
-    columnVisibility?: VisibilityState
-    rowSelection?: RowSelectionState
-    advancedFilter?: AdvancedFilterState
-  }
+    pagination?: PaginationState;
+    sorting?: SortingState;
+    columnFilters?: ColumnFiltersState;
+    columnVisibility?: VisibilityState;
+    rowSelection?: RowSelectionState;
+    advancedFilter?: AdvancedFilterState;
+  };
 }
 
 export function DataTableResponsive<TData, TValue>({
@@ -142,96 +145,99 @@ export function DataTableResponsive<TData, TValue>({
     manualPagination = false,
     manualSorting = false,
     manualFiltering = false,
-  } = config
+  } = config;
 
-  const [viewMode, setViewMode] = React.useState<ViewMode>(defaultViewMode)
-  const [isMobile, setIsMobile] = React.useState(false)
+  const [viewMode, setViewMode] = React.useState<ViewMode>(defaultViewMode);
+  const [isMobile, setIsMobile] = React.useState(false);
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>(
-    initialState.rowSelection ?? {}
-  )
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(
-    initialState.columnVisibility ?? {}
-  )
+    initialState.rowSelection ?? {},
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>(initialState.columnVisibility ?? {});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    initialState.columnFilters ?? []
-  )
+    initialState.columnFilters ?? [],
+  );
   const [sorting, setSorting] = React.useState<SortingState>(
-    initialState.sorting ?? []
-  )
+    initialState.sorting ?? [],
+  );
   const [pagination, setPagination] = React.useState<PaginationState>(
     initialState.pagination ?? {
       pageIndex: 0,
       pageSize: 10,
-    }
-  )
-  const [advancedFilter, setAdvancedFilter] = React.useState<AdvancedFilterState>(
-    initialState.advancedFilter ?? createEmptyFilterState()
-  )
+    },
+  );
+  const [advancedFilter, setAdvancedFilter] =
+    React.useState<AdvancedFilterState>(
+      initialState.advancedFilter ?? createEmptyFilterState(),
+    );
 
   React.useEffect(() => {
     const checkMobile = () => {
-      const mobile = window.innerWidth < mobileBreakpoint
-      setIsMobile(mobile)
+      const mobile = window.innerWidth < mobileBreakpoint;
+      setIsMobile(mobile);
       if (mobile && viewMode === "table") {
-        setViewMode("card")
+        setViewMode("card");
       }
-    }
+    };
 
-    checkMobile()
-    window.addEventListener("resize", checkMobile)
-    return () => window.removeEventListener("resize", checkMobile)
-  }, [mobileBreakpoint, viewMode])
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, [mobileBreakpoint, viewMode]);
 
-  const selectColumn = React.useMemo<ColumnDef<TData, unknown>>(() => ({
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className="translate-y-0.5"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="translate-y-0.5"
-        onClick={(e) => e.stopPropagation()}
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-    size: 48,
-  }), [])
+  const selectColumn = React.useMemo<ColumnDef<TData, unknown>>(
+    () => ({
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+          className="translate-y-0.5"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+          className="translate-y-0.5"
+          onClick={(e) => e.stopPropagation()}
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+      size: 48,
+    }),
+    [],
+  );
 
   const tableColumns = React.useMemo(() => {
     if (enableRowSelection) {
-      return [selectColumn, ...columns]
+      return [selectColumn, ...columns];
     }
-    return columns
-  }, [columns, enableRowSelection, selectColumn])
+    return columns;
+  }, [columns, enableRowSelection, selectColumn]);
 
   const advancedFilterFn = React.useMemo(() => {
     if (!enableAdvancedFilters || advancedFilter.conditions.length === 0) {
-      return undefined
+      return undefined;
     }
-    return createAdvancedFilterFn<TData>(advancedFilter)
-  }, [enableAdvancedFilters, advancedFilter])
+    return createAdvancedFilterFn<TData>(advancedFilter);
+  }, [enableAdvancedFilters, advancedFilter]);
 
   const filteredData = React.useMemo(() => {
-    if (!advancedFilterFn) return data
+    if (!advancedFilterFn) return data;
     return data.filter((row) =>
       advancedFilterFn(row, (r, columnId) => {
-        const original = r as Record<string, unknown>
-        return original[columnId]
-      })
-    )
-  }, [data, advancedFilterFn])
+        const original = r as Record<string, unknown>;
+        return original[columnId];
+      }),
+    );
+  }, [data, advancedFilterFn]);
 
   // eslint-disable-next-line react-hooks/incompatible-library -- "use no memo" directive applied
   const table = useReactTable({
@@ -252,59 +258,61 @@ export function DataTableResponsive<TData, TValue>({
     manualFiltering,
     onRowSelectionChange: (updater) => {
       const newSelection =
-        typeof updater === "function" ? updater(rowSelection) : updater
-      setRowSelection(newSelection)
-      onRowSelectionChange?.(newSelection)
+        typeof updater === "function" ? updater(rowSelection) : updater;
+      setRowSelection(newSelection);
+      onRowSelectionChange?.(newSelection);
     },
     onSortingChange: (updater) => {
       const newSorting =
-        typeof updater === "function" ? updater(sorting) : updater
-      setSorting(newSorting)
-      onSortingChange?.(newSorting)
+        typeof updater === "function" ? updater(sorting) : updater;
+      setSorting(newSorting);
+      onSortingChange?.(newSorting);
     },
     onColumnFiltersChange: (updater) => {
       const newFilters =
-        typeof updater === "function" ? updater(columnFilters) : updater
-      setColumnFilters(newFilters)
-      onFiltersChange?.(newFilters)
+        typeof updater === "function" ? updater(columnFilters) : updater;
+      setColumnFilters(newFilters);
+      onFiltersChange?.(newFilters);
     },
     onColumnVisibilityChange: setColumnVisibility,
     onPaginationChange: (updater) => {
       const newPagination =
-        typeof updater === "function" ? updater(pagination) : updater
-      setPagination(newPagination)
-      onPaginationChange?.(newPagination)
+        typeof updater === "function" ? updater(pagination) : updater;
+      setPagination(newPagination);
+      onPaginationChange?.(newPagination);
     },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: manualFiltering ? undefined : getFilteredRowModel(),
-    getPaginationRowModel: manualPagination ? undefined : getPaginationRowModel(),
+    getPaginationRowModel: manualPagination
+      ? undefined
+      : getPaginationRowModel(),
     getSortedRowModel: manualSorting ? undefined : getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
-  })
+  });
 
   const keyboard = useDataTableKeyboard(table, {
     enabled: enableKeyboardNavigation && viewMode === "table",
     onEnterRow: (row) => {
       if (onRowClick) {
-        onRowClick(row as Row<TData>)
+        onRowClick(row as Row<TData>);
       }
     },
     enableRowSelection,
-  })
+  });
 
-  const keyboardStyles = getKeyboardNavigationStyles()
+  const keyboardStyles = getKeyboardNavigationStyles();
 
   const handleAdvancedFilterChange = React.useCallback(
     (filter: AdvancedFilterState) => {
-      setAdvancedFilter(filter)
-      onAdvancedFilterChange?.(filter)
+      setAdvancedFilter(filter);
+      onAdvancedFilterChange?.(filter);
     },
-    [onAdvancedFilterChange]
-  )
+    [onAdvancedFilterChange],
+  );
 
   if (isLoading && data.length === 0) {
-    return <DataTableSkeleton columnCount={columns.length} />
+    return <DataTableSkeleton columnCount={columns.length} />;
   }
 
   const defaultEmptyState = (
@@ -314,18 +322,19 @@ export function DataTableResponsive<TData, TValue>({
       </div>
       <h3 className="text-lg font-semibold">No results found</h3>
       <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-        Try adjusting your search or filter criteria to find what you&apos;re looking for.
+        Try adjusting your search or filter criteria to find what you&apos;re
+        looking for.
       </p>
     </div>
-  )
+  );
 
-  const showTable = viewMode === "table" && !isMobile
-  const showCards = viewMode === "card" || isMobile
+  const showTable = viewMode === "table" && !isMobile;
+  const showCards = viewMode === "card" || isMobile;
 
   return (
     <div className={cn("w-full space-y-4", className)}>
-      {enableFilters && (
-        toolbar ?? (
+      {enableFilters &&
+        (toolbar ?? (
           <DataTableToolbarResponsive
             table={table}
             filterFields={filterFields}
@@ -362,8 +371,7 @@ export function DataTableResponsive<TData, TValue>({
               </div>
             )}
           </DataTableToolbarResponsive>
-        )
-      )}
+        ))}
 
       <div className="relative">
         <DataTableLoadingOverlay isLoading={isLoading} />
@@ -373,7 +381,7 @@ export function DataTableResponsive<TData, TValue>({
             ref={keyboard.containerRef as React.RefObject<HTMLDivElement>}
             className={cn(
               "rounded-2xl border border-border bg-card overflow-hidden shadow-sm",
-              tableClassName
+              tableClassName,
             )}
           >
             <div className="overflow-x-auto">
@@ -385,29 +393,34 @@ export function DataTableResponsive<TData, TValue>({
                       className="hover:bg-transparent border-border"
                     >
                       {headerGroup.headers.map((header) => {
-                        const meta = header.column.columnDef.meta
-                        const isSticky = meta?.sticky
+                        const meta = header.column.columnDef.meta;
+                        const isSticky = meta?.sticky;
                         return (
                           <TableHead
                             key={header.id}
                             className={cn(
                               "h-11 px-4 text-xs font-semibold text-muted-foreground whitespace-nowrap",
                               meta?.headerClassName,
-                              isSticky === "left" && "sticky left-0 z-10 bg-muted/30",
-                              isSticky === "right" && "sticky right-0 z-10 bg-muted/30"
+                              isSticky === "left" &&
+                                "sticky left-0 z-10 bg-muted/30",
+                              isSticky === "right" &&
+                                "sticky right-0 z-10 bg-muted/30",
                             )}
                             style={{
-                              width: header.getSize() !== 150 ? header.getSize() : undefined,
+                              width:
+                                header.getSize() !== 150
+                                  ? header.getSize()
+                                  : undefined,
                             }}
                           >
                             {header.isPlaceholder
                               ? null
                               : flexRender(
                                   header.column.columnDef.header,
-                                  header.getContext()
+                                  header.getContext(),
                                 )}
                           </TableHead>
-                        )
+                        );
                       })}
                     </TableRow>
                   ))}
@@ -415,7 +428,7 @@ export function DataTableResponsive<TData, TValue>({
                 <TableBody>
                   {table.getRowModel().rows?.length ? (
                     table.getRowModel().rows.map((row, rowIndex) => {
-                      const rowProps = keyboard.getRowProps(rowIndex)
+                      const rowProps = keyboard.getRowProps(rowIndex);
                       return (
                         <TableRow
                           key={row.id}
@@ -424,7 +437,8 @@ export function DataTableResponsive<TData, TValue>({
                             "hover:bg-muted/30 transition-colors border-border",
                             "data-[state=selected]:bg-muted/50",
                             onRowClick && "cursor-pointer",
-                            rowProps["data-focused"] && keyboardStyles.focusedRow
+                            rowProps["data-focused"] &&
+                              keyboardStyles.focusedRow,
                           )}
                           tabIndex={rowProps.tabIndex}
                           onKeyDown={rowProps.onKeyDown}
@@ -433,37 +447,40 @@ export function DataTableResponsive<TData, TValue>({
                           onClick={() => onRowClick?.(row)}
                         >
                           {row.getVisibleCells().map((cell, cellIndex) => {
-                            const meta = cell.column.columnDef.meta
-                            const isSticky = meta?.sticky
-                            const cellProps = keyboard.getCellProps(rowIndex, cellIndex)
+                            const meta = cell.column.columnDef.meta;
+                            const isSticky = meta?.sticky;
+                            const cellProps = keyboard.getCellProps(
+                              rowIndex,
+                              cellIndex,
+                            );
                             return (
                               <TableCell
                                 key={cell.id}
                                 className={cn(
                                   "py-3 px-4",
                                   meta?.cellClassName,
-                                  isSticky === "left" && "sticky left-0 z-10 bg-card",
-                                  isSticky === "right" && "sticky right-0 z-10 bg-card",
-                                  cellProps["data-cell-focused"] && keyboardStyles.focusedCell
+                                  isSticky === "left" &&
+                                    "sticky left-0 z-10 bg-card",
+                                  isSticky === "right" &&
+                                    "sticky right-0 z-10 bg-card",
+                                  cellProps["data-cell-focused"] &&
+                                    keyboardStyles.focusedCell,
                                 )}
                                 tabIndex={cellProps.tabIndex}
                               >
                                 {flexRender(
                                   cell.column.columnDef.cell,
-                                  cell.getContext()
+                                  cell.getContext(),
                                 )}
                               </TableCell>
-                            )
+                            );
                           })}
                         </TableRow>
-                      )
+                      );
                     })
                   ) : (
                     <TableRow>
-                      <TableCell
-                        colSpan={tableColumns.length}
-                        className="h-64"
-                      >
+                      <TableCell colSpan={tableColumns.length} className="h-64">
                         {emptyState ?? defaultEmptyState}
                       </TableCell>
                     </TableRow>
@@ -501,5 +518,5 @@ export function DataTableResponsive<TData, TValue>({
         <DataTableFloatingBar table={table} actions={floatingBarActions} />
       )}
     </div>
-  )
+  );
 }

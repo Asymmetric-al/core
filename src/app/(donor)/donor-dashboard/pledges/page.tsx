@@ -239,7 +239,9 @@ export default function DonorPledgesPage() {
     if (!movingPledge || !selectedTargetId) return;
 
     const updatedPledges = pledges.map((p) =>
-      p.id === movingPledge.id ? { ...p, paymentMethodId: selectedTargetId } : p
+      p.id === movingPledge.id
+        ? { ...p, paymentMethodId: selectedTargetId }
+        : p,
     );
     setPledges(updatedPledges);
     setMovingPledge(null);
@@ -315,7 +317,7 @@ export default function DonorPledgesPage() {
   const handleStopPledge = (id: string) => {
     if (
       confirm(
-        "Are you sure you want to cancel this pledge? This action cannot be undone."
+        "Are you sure you want to cancel this pledge? This action cannot be undone.",
       )
     ) {
       setPledges((prev) => prev.filter((p) => p.id !== id));
@@ -362,7 +364,7 @@ export default function DonorPledgesPage() {
                     "border overflow-hidden transition-all duration-300 relative group text-left rounded-xl",
                     isPaused
                       ? "bg-zinc-50 border-zinc-200"
-                      : "bg-white border-zinc-200 hover:border-zinc-300 hover:shadow-md"
+                      : "bg-white border-zinc-200 hover:border-zinc-300 hover:shadow-md",
                   )}
                 >
                   {/* Status Indicator Bar */}
@@ -382,7 +384,7 @@ export default function DonorPledgesPage() {
                               "h-14 w-14 border-2 shadow-sm",
                               isPaused
                                 ? "border-zinc-200 grayscale"
-                                : "border-white ring-1 ring-zinc-100"
+                                : "border-white ring-1 ring-zinc-100",
                             )}
                           >
                             <AvatarImage
@@ -400,7 +402,7 @@ export default function DonorPledgesPage() {
                                 "text-[9px] font-bold uppercase tracking-widest border-zinc-200",
                                 isPaused
                                   ? "bg-zinc-100 text-zinc-500"
-                                  : "bg-zinc-900 text-white border-zinc-900"
+                                  : "bg-zinc-900 text-white border-zinc-900",
                               )}
                             >
                               {pledge.recipientCategory}
@@ -408,7 +410,7 @@ export default function DonorPledgesPage() {
                             <h3
                               className={cn(
                                 "text-lg font-bold leading-tight uppercase tracking-tight",
-                                isPaused ? "text-zinc-500" : "text-zinc-900"
+                                isPaused ? "text-zinc-500" : "text-zinc-900",
                               )}
                             >
                               {pledge.recipientName}
@@ -465,7 +467,7 @@ export default function DonorPledgesPage() {
                           <div
                             className={cn(
                               "text-3xl font-bold tabular-nums tracking-tighter",
-                              isPaused ? "text-zinc-400" : "text-zinc-900"
+                              isPaused ? "text-zinc-400" : "text-zinc-900",
                             )}
                           >
                             {formatCurrency(pledge.amount)}
@@ -507,7 +509,7 @@ export default function DonorPledgesPage() {
                                 "p-1.5 rounded border shadow-sm",
                                 isPaused
                                   ? "bg-zinc-50 border-zinc-200 text-zinc-400"
-                                  : "bg-white border-zinc-200 text-zinc-700"
+                                  : "bg-white border-zinc-200 text-zinc-700",
                               )}
                             >
                               {method.type === "card" ? (
@@ -520,7 +522,7 @@ export default function DonorPledgesPage() {
                               <span
                                 className={cn(
                                   "text-[10px] font-bold uppercase tracking-tight",
-                                  isPaused ? "text-zinc-400" : "text-zinc-700"
+                                  isPaused ? "text-zinc-400" : "text-zinc-700",
                                 )}
                               >
                                 {method.brand} ••{method.last4}
@@ -553,7 +555,7 @@ export default function DonorPledgesPage() {
                                 Next:{" "}
                                 {format(
                                   new Date(pledge.nextChargeDate),
-                                  "MMM d, yyyy"
+                                  "MMM d, yyyy",
                                 )}
                               </span>
                             </>
@@ -684,13 +686,13 @@ export default function DonorPledgesPage() {
                           <p className="text-sm font-bold text-zinc-900 uppercase tracking-tight">
                             {
                               wallets.find(
-                                (w) => w.id === editingPledge?.paymentMethodId
+                                (w) => w.id === editingPledge?.paymentMethodId,
                               )?.brand
                             }{" "}
                             ••
                             {
                               wallets.find(
-                                (w) => w.id === editingPledge?.paymentMethodId
+                                (w) => w.id === editingPledge?.paymentMethodId,
                               )?.last4
                             }
                           </p>
@@ -792,7 +794,7 @@ export default function DonorPledgesPage() {
                             "cursor-pointer p-4 rounded-xl border text-center transition-all hover:shadow-md",
                             pauseDuration === m && !customResumeDate
                               ? "bg-amber-50 border-amber-500 text-amber-900 font-bold ring-1 ring-amber-500 shadow-inner"
-                              : "bg-white border-zinc-200 text-zinc-500 hover:border-zinc-300 font-bold uppercase tracking-widest text-[10px]"
+                              : "bg-white border-zinc-200 text-zinc-500 hover:border-zinc-300 font-bold uppercase tracking-widest text-[10px]",
                           )}
                         >
                           {m} Month{m !== "1" && "s"}
@@ -806,7 +808,7 @@ export default function DonorPledgesPage() {
                           "cursor-pointer p-4 rounded-xl border text-center transition-all hover:shadow-md flex flex-col justify-center",
                           customResumeDate
                             ? "bg-amber-50 border-amber-500 text-amber-900 font-bold ring-1 ring-amber-500 shadow-inner"
-                            : "bg-white border-zinc-200 text-zinc-500 hover:border-zinc-300 font-bold uppercase tracking-widest text-[10px]"
+                            : "bg-white border-zinc-200 text-zinc-500 hover:border-zinc-300 font-bold uppercase tracking-widest text-[10px]",
                         )}
                       >
                         <span>Specific Date</span>
@@ -839,9 +841,9 @@ export default function DonorPledgesPage() {
                           {format(
                             addMonths(
                               new Date(),
-                              parseInt(pauseDuration || "0")
+                              parseInt(pauseDuration || "0"),
                             ),
-                            "MMMM d, yyyy"
+                            "MMMM d, yyyy",
                           )}
                         </strong>
                         .
@@ -915,7 +917,7 @@ export default function DonorPledgesPage() {
                         "flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all",
                         selectedTargetId === wallet.id
                           ? "bg-zinc-50 border-zinc-900 ring-1 ring-zinc-900 shadow-sm"
-                          : "bg-white border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50"
+                          : "bg-white border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50",
                       )}
                     >
                       <div
@@ -923,7 +925,7 @@ export default function DonorPledgesPage() {
                           "w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors",
                           selectedTargetId === wallet.id
                             ? "border-zinc-900 bg-zinc-900"
-                            : "border-zinc-300 bg-white"
+                            : "border-zinc-300 bg-white",
                         )}
                       >
                         {selectedTargetId === wallet.id && (
@@ -969,7 +971,7 @@ export default function DonorPledgesPage() {
                       "flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2",
                       newMethodType === "card"
                         ? "bg-white text-zinc-900 shadow-md"
-                        : "text-zinc-400 hover:text-zinc-600"
+                        : "text-zinc-400 hover:text-zinc-600",
                     )}
                   >
                     <CreditCard className="h-3.5 w-3.5" /> Credit Card
@@ -980,7 +982,7 @@ export default function DonorPledgesPage() {
                       "flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2",
                       newMethodType === "bank"
                         ? "bg-white text-zinc-900 shadow-md"
-                        : "text-zinc-400 hover:text-zinc-600"
+                        : "text-zinc-400 hover:text-zinc-600",
                     )}
                   >
                     <Landmark className="h-3.5 w-3.5" /> Bank Account

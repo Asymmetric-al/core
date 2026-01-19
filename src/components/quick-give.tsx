@@ -1,44 +1,44 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { useRouter } from "next/navigation"
-import { AnimatePresence, motion } from "motion/react"
-import { ArrowRight, DollarSign } from "lucide-react"
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import { AnimatePresence, motion } from "motion/react";
+import { ArrowRight, DollarSign } from "lucide-react";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 type QuickGiveProps = {
-  workerId: string
-  className?: string
-  currencyLabel?: string
-  minAmount?: number
-  size?: "xs" | "sm" | "default" | "lg"
-}
+  workerId: string;
+  className?: string;
+  currencyLabel?: string;
+  minAmount?: number;
+  size?: "xs" | "sm" | "default" | "lg";
+};
 
-const MotionButton = motion.create(Button)
+const MotionButton = motion.create(Button);
 
 function clampCurrencyParts(raw: string) {
-  let clean = raw.replace(/[^\d.]/g, "")
-  const parts = clean.split(".")
-  if (parts.length > 2) clean = `${parts[0]}.${parts.slice(1).join("")}`
+  let clean = raw.replace(/[^\d.]/g, "");
+  const parts = clean.split(".");
+  if (parts.length > 2) clean = `${parts[0]}.${parts.slice(1).join("")}`;
 
-  const [iRaw, dRaw] = clean.split(".")
-  const i = (iRaw ?? "").slice(0, 6)
-  const d = (dRaw ?? "").slice(0, 2)
+  const [iRaw, dRaw] = clean.split(".");
+  const i = (iRaw ?? "").slice(0, 6);
+  const d = (dRaw ?? "").slice(0, 2);
 
-  return { i, d, hasDot: clean.includes(".") }
+  return { i, d, hasDot: clean.includes(".") };
 }
 
 function formatWithCommas(intPart: string) {
-  if (!intPart) return ""
-  return intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+  if (!intPart) return "";
+  return intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 function parseToNumber(intPart: string, decPart: string) {
-  const i = intPart ? Number(intPart) : 0
-  const d = decPart ? Number(`0.${decPart}`) : 0
-  return Number.isFinite(i + d) ? i + d : 0
+  const i = intPart ? Number(intPart) : 0;
+  const d = decPart ? Number(`0.${decPart}`) : 0;
+  return Number.isFinite(i + d) ? i + d : 0;
 }
 
 const sizeConfig = {
@@ -98,7 +98,7 @@ const sizeConfig = {
     paddingLeft: "pl-4",
     paddingRight: "pr-2",
   },
-}
+};
 
 export function QuickGive({
   workerId,
@@ -107,63 +107,66 @@ export function QuickGive({
   minAmount = 1,
   size = "default",
 }: QuickGiveProps) {
-  const router = useRouter()
-  const inputRef = React.useRef<HTMLInputElement>(null)
+  const router = useRouter();
+  const inputRef = React.useRef<HTMLInputElement>(null);
 
-  const [isFocused, setIsFocused] = React.useState(false)
-  const [intPart, setIntPart] = React.useState("")
-  const [decPart, setDecPart] = React.useState("")
-  const [hasDot, setHasDot] = React.useState(false)
+  const [isFocused, setIsFocused] = React.useState(false);
+  const [intPart, setIntPart] = React.useState("");
+  const [decPart, setDecPart] = React.useState("");
+  const [hasDot, setHasDot] = React.useState(false);
 
   const displayValue = React.useMemo(() => {
-    const i = formatWithCommas(intPart)
-    if (!i && !decPart && !hasDot) return ""
-    if (hasDot) return `${i || "0"}.${decPart}`
-    return i
-  }, [intPart, decPart, hasDot])
+    const i = formatWithCommas(intPart);
+    if (!i && !decPart && !hasDot) return "";
+    if (hasDot) return `${i || "0"}.${decPart}`;
+    return i;
+  }, [intPart, decPart, hasDot]);
 
-  const amount = React.useMemo(() => parseToNumber(intPart, decPart), [intPart, decPart])
-  const hasValue = amount >= minAmount
+  const amount = React.useMemo(
+    () => parseToNumber(intPart, decPart),
+    [intPart, decPart],
+  );
+  const hasValue = amount >= minAmount;
 
-  const config = sizeConfig[size]
+  const config = sizeConfig[size];
 
   function focusInput() {
-    inputRef.current?.focus()
+    inputRef.current?.focus();
   }
 
   function onChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const next = e.target.value
+    const next = e.target.value;
 
     if (next.trim() === "") {
-      setIntPart("")
-      setDecPart("")
-      setHasDot(false)
-      return
+      setIntPart("");
+      setDecPart("");
+      setHasDot(false);
+      return;
     }
 
-    const { i, d, hasDot: dot } = clampCurrencyParts(next)
-    setIntPart(i.replace(/^0+(?=\d)/, ""))
-    setDecPart(d)
-    setHasDot(dot)
+    const { i, d, hasDot: dot } = clampCurrencyParts(next);
+    setIntPart(i.replace(/^0+(?=\d)/, ""));
+    setDecPart(d);
+    setHasDot(dot);
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter") handleGive()
+    if (e.key === "Enter") handleGive();
   }
 
   function handleGive() {
     if (!hasValue) {
-      focusInput()
-      return
+      focusInput();
+      return;
     }
 
-    const safeAmount = Math.round(amount * 100) / 100
+    const safeAmount = Math.round(amount * 100) / 100;
     const qs = new URLSearchParams({
       workerId,
       amount: String(safeAmount),
-    })
+    });
 
-    router.push(`/checkout?${qs.toString()}`)
+    router.push(`/checkout?${qs.toString()}`);
   }
 
   return (
@@ -182,7 +185,7 @@ export function QuickGive({
           !hasValue && config.containerIdle,
           isFocused
             ? "border-foreground/80 shadow-[0_2px_12px_rgba(0,0,0,0.08)] ring-1 ring-foreground/10"
-            : "border-border/80 shadow-sm hover:border-muted-foreground/50 hover:shadow"
+            : "border-border/80 shadow-sm hover:border-muted-foreground/50 hover:shadow",
         )}
       >
         <div className={cn("flex items-center", config.gap)}>
@@ -190,7 +193,9 @@ export function QuickGive({
             className={cn(
               "flex-shrink-0 transition-colors duration-150",
               config.icon,
-              isFocused || displayValue ? "text-foreground" : "text-muted-foreground/40"
+              isFocused || displayValue
+                ? "text-foreground"
+                : "text-muted-foreground/40",
             )}
             strokeWidth={2.5}
           />
@@ -212,7 +217,7 @@ export function QuickGive({
               "font-semibold tracking-tight text-foreground font-sans text-left",
               "placeholder:text-muted-foreground/40 placeholder:font-normal",
               config.input,
-              config.inputWidth
+              config.inputWidth,
             )}
           />
         </div>
@@ -232,15 +237,15 @@ export function QuickGive({
               <MotionButton
                 type="button"
                 onClick={(e) => {
-                  e.stopPropagation()
-                  handleGive()
+                  e.stopPropagation();
+                  handleGive();
                 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 className={cn(
                   "rounded-full font-semibold shadow-sm whitespace-nowrap",
-                  config.button
+                  config.button,
                 )}
               >
                 Give
@@ -256,7 +261,7 @@ export function QuickGive({
               transition={{ duration: 0.15 }}
               className={cn(
                 "flex-shrink-0 select-none font-semibold text-muted-foreground/40 uppercase tracking-wide",
-                config.currencyLabel
+                config.currencyLabel,
               )}
             >
               {currencyLabel}
@@ -265,5 +270,5 @@ export function QuickGive({
         </AnimatePresence>
       </motion.div>
     </div>
-  )
+  );
 }

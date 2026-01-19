@@ -1,22 +1,31 @@
-"use client"
+"use client";
 
-import type { Column } from "@tanstack/react-table"
-import { ArrowDown, ArrowUp, ChevronsUpDown, EyeOff, Pin, PinOff } from "lucide-react"
+import type { Column } from "@tanstack/react-table";
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronsUpDown,
+  EyeOff,
+  Pin,
+  PinOff,
+} from "lucide-react";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 
-interface DataTableColumnHeaderProps<TData, TValue>
-  extends React.HTMLAttributes<HTMLDivElement> {
-  column: Column<TData, TValue>
-  title: string
+interface DataTableColumnHeaderProps<
+  TData,
+  TValue,
+> extends React.HTMLAttributes<HTMLDivElement> {
+  column: Column<TData, TValue>;
+  title: string;
 }
 
 export function DataTableColumnHeader<TData, TValue>({
@@ -25,7 +34,7 @@ export function DataTableColumnHeader<TData, TValue>({
   className,
 }: DataTableColumnHeaderProps<TData, TValue>) {
   if (!column.getCanSort() && !column.getCanHide()) {
-    return <div className={cn(className)}>{title}</div>
+    return <div className={cn(className)}>{title}</div>;
   }
 
   return (
@@ -50,7 +59,10 @@ export function DataTableColumnHeader<TData, TValue>({
             ) : column.getIsSorted() === "asc" ? (
               <ArrowUp className="size-3.5" aria-hidden="true" />
             ) : (
-              <ChevronsUpDown className="size-3.5 opacity-50" aria-hidden="true" />
+              <ChevronsUpDown
+                className="size-3.5 opacity-50"
+                aria-hidden="true"
+              />
             )}
           </Button>
         </DropdownMenuTrigger>
@@ -62,7 +74,10 @@ export function DataTableColumnHeader<TData, TValue>({
                 onClick={() => column.toggleSorting(false)}
                 className="gap-2 rounded-lg"
               >
-                <ArrowUp className="size-4 text-muted-foreground" aria-hidden="true" />
+                <ArrowUp
+                  className="size-4 text-muted-foreground"
+                  aria-hidden="true"
+                />
                 Ascending
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -70,12 +85,17 @@ export function DataTableColumnHeader<TData, TValue>({
                 onClick={() => column.toggleSorting(true)}
                 className="gap-2 rounded-lg"
               >
-                <ArrowDown className="size-4 text-muted-foreground" aria-hidden="true" />
+                <ArrowDown
+                  className="size-4 text-muted-foreground"
+                  aria-hidden="true"
+                />
                 Descending
               </DropdownMenuItem>
             </>
           )}
-          {column.getCanSort() && column.getCanHide() && <DropdownMenuSeparator />}
+          {column.getCanSort() && column.getCanHide() && (
+            <DropdownMenuSeparator />
+          )}
           {column.getCanPin() && (
             <>
               <DropdownMenuItem
@@ -83,7 +103,10 @@ export function DataTableColumnHeader<TData, TValue>({
                 onClick={() => column.pin("left")}
                 className="gap-2 rounded-lg"
               >
-                <Pin className="size-4 text-muted-foreground" aria-hidden="true" />
+                <Pin
+                  className="size-4 text-muted-foreground"
+                  aria-hidden="true"
+                />
                 Pin to left
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -91,7 +114,10 @@ export function DataTableColumnHeader<TData, TValue>({
                 onClick={() => column.pin(false)}
                 className="gap-2 rounded-lg"
               >
-                <PinOff className="size-4 text-muted-foreground" aria-hidden="true" />
+                <PinOff
+                  className="size-4 text-muted-foreground"
+                  aria-hidden="true"
+                />
                 Unpin
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -103,12 +129,15 @@ export function DataTableColumnHeader<TData, TValue>({
               onClick={() => column.toggleVisibility(false)}
               className="gap-2 rounded-lg"
             >
-              <EyeOff className="size-4 text-muted-foreground" aria-hidden="true" />
+              <EyeOff
+                className="size-4 text-muted-foreground"
+                aria-hidden="true"
+              />
               Hide column
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
-  )
+  );
 }

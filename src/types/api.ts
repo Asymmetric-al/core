@@ -9,58 +9,60 @@
  * Standard API error response
  */
 export interface ApiError {
-  error: string
-  message?: string
-  code?: string
-  details?: Record<string, unknown>
+  error: string;
+  message?: string;
+  code?: string;
+  details?: Record<string, unknown>;
 }
 
 /**
  * Standard API success response wrapper
  */
 export interface ApiResponse<T> {
-  data: T
-  meta?: ApiMeta
+  data: T;
+  meta?: ApiMeta;
 }
 
 /**
  * Pagination metadata
  */
 export interface ApiMeta {
-  page?: number
-  limit?: number
-  total?: number
-  totalPages?: number
-  hasMore?: boolean
+  page?: number;
+  limit?: number;
+  total?: number;
+  totalPages?: number;
+  hasMore?: boolean;
 }
 
 /**
  * Paginated response wrapper
  */
 export interface PaginatedResponse<T> {
-  data: T[]
-  meta: Required<Pick<ApiMeta, 'page' | 'limit' | 'total' | 'totalPages' | 'hasMore'>>
+  data: T[];
+  meta: Required<
+    Pick<ApiMeta, "page" | "limit" | "total" | "totalPages" | "hasMore">
+  >;
 }
 
 /**
  * Standard pagination query parameters
  */
 export interface PaginationParams {
-  page?: number
-  limit?: number
-  sortBy?: string
-  sortOrder?: 'asc' | 'desc'
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
 }
 
 /**
  * Standard filter parameters
  */
 export interface FilterParams {
-  search?: string
-  startDate?: string
-  endDate?: string
-  status?: string
-  [key: string]: string | number | boolean | undefined
+  search?: string;
+  startDate?: string;
+  endDate?: string;
+  status?: string;
+  [key: string]: string | number | boolean | undefined;
 }
 
 /**
@@ -72,30 +74,30 @@ export interface ListQueryParams extends PaginationParams, FilterParams {}
  * Mutation response with affected item
  */
 export interface MutationResponse<T> {
-  data: T
-  message?: string
+  data: T;
+  message?: string;
 }
 
 /**
  * Delete response
  */
 export interface DeleteResponse {
-  success: boolean
-  message?: string
+  success: boolean;
+  message?: string;
 }
 
 /**
  * Batch operation response
  */
 export interface BatchResponse<T> {
-  successful: T[]
+  successful: T[];
   failed: Array<{
-    item: T
-    error: string
-  }>
-  totalProcessed: number
-  successCount: number
-  failureCount: number
+    item: T;
+    error: string;
+  }>;
+  totalProcessed: number;
+  successCount: number;
+  failureCount: number;
 }
 
 /**
@@ -103,35 +105,35 @@ export interface BatchResponse<T> {
  */
 export interface AuthResponse {
   user: {
-    id: string
-    email: string
-    name?: string
-    role?: string
-  }
+    id: string;
+    email: string;
+    name?: string;
+    role?: string;
+  };
   session?: {
-    accessToken: string
-    refreshToken?: string
-    expiresAt: number
-  }
+    accessToken: string;
+    refreshToken?: string;
+    expiresAt: number;
+  };
 }
 
 /**
  * Upload response
  */
 export interface UploadResponse {
-  url: string
-  path: string
-  size: number
-  mimeType: string
+  url: string;
+  path: string;
+  size: number;
+  mimeType: string;
 }
 
 /**
  * Webhook payload base
  */
 export interface WebhookPayload<T = unknown> {
-  event: string
-  timestamp: string
-  data: T
+  event: string;
+  timestamp: string;
+  data: T;
 }
 
 /**
@@ -139,21 +141,21 @@ export interface WebhookPayload<T = unknown> {
  */
 export function isApiError(response: unknown): response is ApiError {
   return (
-    typeof response === 'object' &&
+    typeof response === "object" &&
     response !== null &&
-    'error' in response &&
-    typeof (response as ApiError).error === 'string'
-  )
+    "error" in response &&
+    typeof (response as ApiError).error === "string"
+  );
 }
 
 /**
  * Helper type for extracting data type from ApiResponse
  */
-export type ExtractApiData<T> = T extends ApiResponse<infer U> ? U : never
+export type ExtractApiData<T> = T extends ApiResponse<infer U> ? U : never;
 
 /**
  * Helper type for making all properties optional recursively
  */
 export type DeepPartial<T> = {
-  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P]
-}
+  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};

@@ -1,3 +1,3 @@
-'use client'
+"use client";
 
-export { QueryProvider, getQueryClient } from '@/lib/db/query-provider'
+export { QueryProvider, getQueryClient } from "@/lib/db/query-provider";

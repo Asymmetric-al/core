@@ -19,7 +19,7 @@ export type FilterOperator =
   | "on_or_before"
   | "on_or_after"
   | "is_true"
-  | "is_false"
+  | "is_false";
 
 export type FilterFieldType =
   | "text"
@@ -29,38 +29,38 @@ export type FilterFieldType =
   | "select"
   | "multi-select"
   | "boolean"
-  | "currency"
+  | "currency";
 
-export type FilterLogicOperator = "and" | "or"
+export type FilterLogicOperator = "and" | "or";
 
 export interface FilterOption {
-  value: string
-  label: string
-  icon?: React.ComponentType<{ className?: string }>
-  color?: string
-  count?: number
+  value: string;
+  label: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  color?: string;
+  count?: number;
 }
 
 export interface FilterFieldDefinition {
-  id: string
-  label: string
-  type: FilterFieldType
-  options?: FilterOption[]
-  placeholder?: string
-  operators?: FilterOperator[]
-  defaultOperator?: FilterOperator
-  currency?: string
-  locale?: string
-  min?: number
-  max?: number
-  step?: number
+  id: string;
+  label: string;
+  type: FilterFieldType;
+  options?: FilterOption[];
+  placeholder?: string;
+  operators?: FilterOperator[];
+  defaultOperator?: FilterOperator;
+  currency?: string;
+  locale?: string;
+  min?: number;
+  max?: number;
+  step?: number;
 }
 
 export interface FilterCondition {
-  id: string
-  field: string
-  operator: FilterOperator
-  value: FilterValue
+  id: string;
+  field: string;
+  operator: FilterOperator;
+  value: FilterValue;
 }
 
 export type FilterValue =
@@ -72,35 +72,35 @@ export type FilterValue =
   | number[]
   | { from: Date | null; to: Date | null }
   | { min: number | null; max: number | null }
-  | null
+  | null;
 
 export interface FilterGroup {
-  id: string
-  logic: FilterLogicOperator
-  conditions: FilterCondition[]
-  groups?: FilterGroup[]
+  id: string;
+  logic: FilterLogicOperator;
+  conditions: FilterCondition[];
+  groups?: FilterGroup[];
 }
 
 export interface AdvancedFilterState {
-  logic: FilterLogicOperator
-  conditions: FilterCondition[]
-  groups: FilterGroup[]
+  logic: FilterLogicOperator;
+  conditions: FilterCondition[];
+  groups: FilterGroup[];
 }
 
 export interface SavedFilter {
-  id: string
-  name: string
-  description?: string
-  filter: AdvancedFilterState
-  isDefault?: boolean
-  createdAt: Date
-  updatedAt: Date
+  id: string;
+  name: string;
+  description?: string;
+  filter: AdvancedFilterState;
+  isDefault?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface DateRangePreset {
-  id: string
-  label: string
-  getValue: () => { from: Date; to: Date }
+  id: string;
+  label: string;
+  getValue: () => { from: Date; to: Date };
 }
 
 export const OPERATOR_LABELS: Record<FilterOperator, string> = {
@@ -125,7 +125,7 @@ export const OPERATOR_LABELS: Record<FilterOperator, string> = {
   on_or_after: "is on or after",
   is_true: "is true",
   is_false: "is false",
-}
+};
 
 export const OPERATORS_BY_TYPE: Record<FilterFieldType, FilterOperator[]> = {
   text: [
@@ -185,74 +185,75 @@ export const OPERATORS_BY_TYPE: Record<FilterFieldType, FilterOperator[]> = {
   select: ["equals", "not_equals", "in", "not_in", "is_empty", "is_not_empty"],
   "multi-select": ["in", "not_in", "is_empty", "is_not_empty"],
   boolean: ["is_true", "is_false"],
-}
+};
 
 export const VALUE_LESS_OPERATORS: FilterOperator[] = [
   "is_empty",
   "is_not_empty",
   "is_true",
   "is_false",
-]
+];
 
 export function getDefaultOperator(type: FilterFieldType): FilterOperator {
   switch (type) {
     case "text":
-      return "contains"
+      return "contains";
     case "number":
     case "currency":
-      return "equals"
+      return "equals";
     case "date":
     case "datetime":
-      return "after"
+      return "after";
     case "select":
-      return "equals"
+      return "equals";
     case "multi-select":
-      return "in"
+      return "in";
     case "boolean":
-      return "is_true"
+      return "is_true";
     default:
-      return "equals"
+      return "equals";
   }
 }
 
 export function createFilterCondition(
   field: FilterFieldDefinition,
   operator?: FilterOperator,
-  value?: FilterValue
+  value?: FilterValue,
 ): FilterCondition {
   return {
     id: crypto.randomUUID(),
     field: field.id,
-    operator: operator ?? field.defaultOperator ?? getDefaultOperator(field.type),
+    operator:
+      operator ?? field.defaultOperator ?? getDefaultOperator(field.type),
     value: value ?? getDefaultValue(field.type, operator),
-  }
+  };
 }
 
 export function getDefaultValue(
   type: FilterFieldType,
-  operator?: FilterOperator
+  operator?: FilterOperator,
 ): FilterValue {
   if (operator && VALUE_LESS_OPERATORS.includes(operator)) {
-    return null
+    return null;
   }
 
   switch (type) {
     case "text":
-      return ""
+      return "";
     case "number":
     case "currency":
-      return null
+      return null;
     case "date":
     case "datetime":
-      return null
+      return null;
     case "select":
-      return ""
+      return "";
     case "multi-select":
-      return []
+      return [];
     case "boolean":
-      return true
+      return true;
     default:
-      return null
+      return null;
   }
 }
 
@@ -261,60 +262,60 @@ export function createEmptyFilterState(): AdvancedFilterState {
     logic: "and",
     conditions: [],
     groups: [],
-  }
+  };
 }
 
 export function createFilterGroup(
-  logic: FilterLogicOperator = "and"
+  logic: FilterLogicOperator = "and",
 ): FilterGroup {
   return {
     id: crypto.randomUUID(),
     logic,
     conditions: [],
     groups: [],
-  }
+  };
 }
 
 export function serializeFilter(filter: AdvancedFilterState): string {
   return JSON.stringify(filter, (key, value) => {
     if (value instanceof Date) {
-      return { __type: "Date", value: value.toISOString() }
+      return { __type: "Date", value: value.toISOString() };
     }
-    return value
-  })
+    return value;
+  });
 }
 
 export function deserializeFilter(str: string): AdvancedFilterState | null {
   try {
     return JSON.parse(str, (key, value) => {
       if (value && typeof value === "object" && value.__type === "Date") {
-        return new Date(value.value)
+        return new Date(value.value);
       }
-      return value
-    })
+      return value;
+    });
   } catch {
-    return null
+    return null;
   }
 }
 
 export function isFilterActive(filter: AdvancedFilterState): boolean {
-  return filter.conditions.length > 0 || filter.groups.length > 0
+  return filter.conditions.length > 0 || filter.groups.length > 0;
 }
 
 export function countActiveFilters(filter: AdvancedFilterState): number {
-  let count = filter.conditions.length
+  let count = filter.conditions.length;
   for (const group of filter.groups) {
-    count += countActiveFiltersInGroup(group)
+    count += countActiveFiltersInGroup(group);
   }
-  return count
+  return count;
 }
 
 function countActiveFiltersInGroup(group: FilterGroup): number {
-  let count = group.conditions.length
+  let count = group.conditions.length;
   if (group.groups) {
     for (const g of group.groups) {
-      count += countActiveFiltersInGroup(g)
+      count += countActiveFiltersInGroup(g);
     }
   }
-  return count
+  return count;
 }
