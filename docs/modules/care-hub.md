@@ -12,23 +12,30 @@ The Care Hub provides a 360-degree view of member health, tracking key milestone
 ## Key Features
 
 ### 1. Care Dashboard (Radar)
+
 The command center for member care. It features a "Care Radar" that surfaces personnel requiring immediate attention based on:
+
 - Days since last contact
 - Upcoming or missed milestones
 - Health status changes
 
 ### 2. Personnel Directory
+
 A comprehensive, searchable directory of all members.
+
 - **Search & Filter**: Real-time filtering by name, role, location, or status.
 - **Quick Actions**: Dropdown menus for rapid navigation to profiles, settings, or communication tools.
 
 ### 3. Member Profiles
+
 Deep-dive views into individual member history and current status.
+
 - **Milestones**: Tracking of significant dates (anniversaries, term starts/ends, birthdays).
 - **Communication History**: Log of interactions and care touches.
 - **Health Tracking**: Visual heatmaps and status indicators.
 
 ### 4. Automated Notifications
+
 Intelligent alerts for care teams, ensuring no member "falls through the cracks" during critical transitions or long periods without contact.
 
 ## Architecture
@@ -36,6 +43,7 @@ Intelligent alerts for care teams, ensuring no member "falls through the cracks"
 The Care Hub follows the standard feature-based architecture of the platform, with a strong emphasis on centralized utilities for consistency and reliability.
 
 ### Directory Structure
+
 ```
 src/features/mission-control/care/
 ├── components/           # UI components (Dashboard, List, Profile, etc.)
@@ -47,7 +55,9 @@ src/features/mission-control/care/
 ```
 
 ### Centralized Utilities (`utils.ts`)
+
 To ensure consistency across the dashboard, directory, and profile views, all date manipulation and health logic is centralized:
+
 - `parseLocalYMD(dateStr)`: Standardized parsing of YYYY-MM-DD strings to local dates, avoiding timezone offsets.
 - `formatDate(date, format)`: Unified date formatting using `date-fns`.
 - `getDaysSince(date)`: Calculation of elapsed time for contact tracking.
@@ -56,6 +66,7 @@ To ensure consistency across the dashboard, directory, and profile views, all da
 ## UI/UX Standards
 
 The Care Hub adheres to the **Maia Theme** (Zinc Light) with the following specific patterns:
+
 - **Info Density**: High-density data grids on desktop, optimized for staff productivity.
 - **Accessibility**: Full ARIA support for complex components like the Directory dropdown.
 - **Responsiveness**: Seamless transition from multi-column desktop layouts to single-column mobile views.
@@ -64,6 +75,7 @@ The Care Hub adheres to the **Maia Theme** (Zinc Light) with the following speci
 ## Integration
 
 The Care Hub integrates with:
+
 - **CRM**: Pulls core member data and contact information.
 - **Tasks**: Links care touches to actionable tasks.
 - **Automations**: Triggers workflows based on milestone changes.

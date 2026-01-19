@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import { memo, useCallback, useMemo } from 'react'
-import { LogOut, Settings, User, ChevronDown } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { memo, useCallback, useMemo } from "react";
+import { LogOut, Settings, User, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,27 +16,30 @@ import {
   DropdownMenuSubContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-} from '@/components/ui/dropdown-menu'
-import { useMC, useRole } from '@/lib/mission-control/context'
-import { ROLE_LABELS } from '@/lib/mission-control/roles'
-import type { Role } from '@/lib/mission-control/types'
+} from "@/components/ui/dropdown-menu";
+import { useMC, useRole } from "@/lib/mission-control/context";
+import { ROLE_LABELS } from "@/lib/mission-control/roles";
+import type { Role } from "@/lib/mission-control/types";
 
 export const ProfileMenu = memo(function ProfileMenu() {
-  const { user, isDevMode, signOut } = useMC()
-  const { role, setRole, roleLabel } = useRole()
+  const { user, isDevMode, signOut } = useMC();
+  const { role, setRole, roleLabel } = useRole();
 
   const initials = useMemo(
     () =>
       user?.name
-        ?.split(' ')
+        ?.split(" ")
         .map((n) => n[0])
-        .join('')
-        .toUpperCase() || 'U',
-    [user?.name]
-  )
+        .join("")
+        .toUpperCase() || "U",
+    [user?.name],
+  );
 
-  const handleRoleChange = useCallback((v: string) => setRole(v as Role), [setRole])
-  const handleSignOut = useCallback(() => signOut(), [signOut])
+  const handleRoleChange = useCallback(
+    (v: string) => setRole(v as Role),
+    [setRole],
+  );
+  const handleSignOut = useCallback(() => signOut(), [signOut]);
 
   return (
     <DropdownMenu>
@@ -54,7 +57,9 @@ export const ProfileMenu = memo(function ProfileMenu() {
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user?.name}</p>
-            <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+            <p className="text-xs leading-none text-muted-foreground">
+              {user?.email}
+            </p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -74,9 +79,16 @@ export const ProfileMenu = memo(function ProfileMenu() {
                 [Dev] Switch Role ({roleLabel})
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent>
-                <DropdownMenuRadioGroup value={role} onValueChange={handleRoleChange}>
+                <DropdownMenuRadioGroup
+                  value={role}
+                  onValueChange={handleRoleChange}
+                >
                   {(Object.keys(ROLE_LABELS) as Role[]).map((r) => (
-                    <DropdownMenuRadioItem key={r} value={r} className="text-sm">
+                    <DropdownMenuRadioItem
+                      key={r}
+                      value={r}
+                      className="text-sm"
+                    >
                       {ROLE_LABELS[r]}
                     </DropdownMenuRadioItem>
                   ))}
@@ -86,11 +98,14 @@ export const ProfileMenu = memo(function ProfileMenu() {
           </>
         )}
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="gap-2 text-destructive focus:text-destructive" onClick={handleSignOut}>
+        <DropdownMenuItem
+          className="gap-2 text-destructive focus:text-destructive"
+          onClick={handleSignOut}
+        >
           <LogOut className="h-4 w-4" />
           Sign out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
-})
+  );
+});

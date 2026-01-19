@@ -1,24 +1,24 @@
-'use client'
+"use client";
 
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
-import { AppSidebar } from '@/components/app-sidebar'
-import { AppHeader } from '@/components/app-header'
-import { DashboardFooter } from '@/components/dashboard-footer'
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
+import { AppHeader } from "@/components/app-header";
+import { DashboardFooter } from "@/components/dashboard-footer";
 
-type UserRole = 'donor' | 'missionary' | 'admin'
+type UserRole = "donor" | "missionary" | "admin";
 
 interface AppShellProps {
-  children: React.ReactNode
-  role?: UserRole
-  title?: string
-  tenantLogo?: string
-  tenantName?: string
-  showFooter?: boolean
+  children: React.ReactNode;
+  role?: UserRole;
+  title?: string;
+  tenantLogo?: string;
+  tenantName?: string;
+  showFooter?: boolean;
 }
 
 export function AppShell({
   children,
-  role = 'donor',
+  role = "donor",
   title,
   tenantLogo,
   tenantName,
@@ -35,5 +35,5 @@ export function AppShell({
         {showFooter && <DashboardFooter />}
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }

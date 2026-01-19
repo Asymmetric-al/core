@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useState, useRef, useLayoutEffect, useCallback } from "react"
-import { cn } from "@/lib/utils"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import type { TextCellProps } from "./types"
+import { useState, useRef, useLayoutEffect, useCallback } from "react";
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import type { TextCellProps } from "./types";
 
 function TextCellEditor<TData>({
   value,
@@ -17,39 +17,39 @@ function TextCellEditor<TData>({
   maxLength,
   multiline = false,
 }: Omit<TextCellProps<TData>, "isEditing"> & { isEditing: true }) {
-  const [localValue, setLocalValue] = useState(value ?? "")
-  const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null)
+  const [localValue, setLocalValue] = useState(value ?? "");
+  const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
   useLayoutEffect(() => {
-    inputRef.current?.focus()
-    inputRef.current?.select()
-  }, [])
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, []);
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setLocalValue(e.target.value)
+      setLocalValue(e.target.value);
     },
-    []
-  )
+    [],
+  );
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault()
-        onValueChange?.(localValue || null)
-        onEditComplete?.()
+        e.preventDefault();
+        onValueChange?.(localValue || null);
+        onEditComplete?.();
       } else if (e.key === "Escape") {
-        e.preventDefault()
-        onEditCancel?.()
+        e.preventDefault();
+        onEditCancel?.();
       }
     },
-    [localValue, onValueChange, onEditComplete, onEditCancel]
-  )
+    [localValue, onValueChange, onEditComplete, onEditCancel],
+  );
 
   const handleBlur = useCallback(() => {
-    onValueChange?.(localValue || null)
-    onEditComplete?.()
-  }, [localValue, onValueChange, onEditComplete])
+    onValueChange?.(localValue || null);
+    onEditComplete?.();
+  }, [localValue, onValueChange, onEditComplete]);
 
   const commonProps = {
     value: localValue,
@@ -60,10 +60,10 @@ function TextCellEditor<TData>({
     maxLength,
     className: cn(
       "h-8 min-h-0 px-2 py-1 text-sm border-primary/50 focus-visible:ring-1",
-      className
+      className,
     ),
     disabled,
-  }
+  };
 
   if (multiline) {
     return (
@@ -73,7 +73,7 @@ function TextCellEditor<TData>({
         rows={2}
         className={cn(commonProps.className, "resize-none")}
       />
-    )
+    );
   }
 
   return (
@@ -82,7 +82,7 @@ function TextCellEditor<TData>({
       type="text"
       {...commonProps}
     />
-  )
+  );
 }
 
 export function TextCell<TData>({
@@ -113,7 +113,7 @@ export function TextCell<TData>({
         row={undefined as never}
         cell={undefined as never}
       />
-    )
+    );
   }
 
   return (
@@ -121,11 +121,11 @@ export function TextCell<TData>({
       className={cn(
         "block truncate text-sm",
         !value && "text-muted-foreground italic",
-        className
+        className,
       )}
       title={value ?? undefined}
     >
       {value || placeholder}
     </span>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-import type { Metadata } from 'next'
-import type { ReactNode } from 'react'
-import { MCShell } from './mc-shell'
+import type { Metadata } from "next";
+import type { ReactNode } from "react";
+import { MCShell } from "./mc-shell";
 
 export const metadata: Metadata = {
   robots: {
@@ -11,8 +11,8 @@ export const metadata: Metadata = {
       follow: false,
     },
   },
-}
+};
 
 export default function MCLayout({ children }: { children: ReactNode }) {
-  return <MCShell>{children}</MCShell>
+  return <MCShell>{children}</MCShell>;
 }

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Footer } from '@/components/public/footer';
+import React from "react";
+import { Footer } from "@/components/public/footer";
 
 export default function WorkerDetailLayout({
   children,

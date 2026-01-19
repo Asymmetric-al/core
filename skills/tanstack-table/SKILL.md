@@ -1,4 +1,5 @@
 # TanStack Table v8 — Skill
+
 **Name:** `tanstack-table`
 **Purpose:** Build type-safe, performant tables with TanStack Table v8, including server-side state.
 Use this skill for pagination, sorting, filtering, and large datasets.
@@ -7,6 +8,7 @@ Use this skill for pagination, sorting, filtering, and large datasets.
 **Do not use when:** Tables are not built with TanStack Table.
 
 ## Rules
+
 - **Stabilize inputs:** Memoize `columns` and derived `data`.
 - **Choose client vs server mode:** Use manual server mode for large datasets.
 - **Query key = table state:** Include pagination, sorting, and filters.
@@ -14,6 +16,7 @@ Use this skill for pagination, sorting, filtering, and large datasets.
 - **Virtualize big tables:** Use TanStack Virtual for 1000+ rows.
 
 ## Workflow
+
 1. Declare the table state model (pagination, sorting, filters).
 2. Decide client vs server responsibility.
 3. Make the query key match table state.
@@ -23,12 +26,14 @@ Use this skill for pagination, sorting, filtering, and large datasets.
 ## Checklists
 
 ### Implementation checklist
+
 - [ ] `columns` is memoized
 - [ ] Table state is explicit and serializable
 - [ ] Server-side mode uses `manual*` flags
 - [ ] API contract includes `rowCount`
 
 ### Review checklist
+
 - [ ] Query keys include sorting/filter state
 - [ ] `pageCount`/`rowCount` is correct
 - [ ] Virtualization used when needed
@@ -36,6 +41,7 @@ Use this skill for pagination, sorting, filtering, and large datasets.
 ## Minimal example
 
 ### Server-side table with TanStack Query
+
 ```tsx
 import * as React from "react";
 import {
@@ -76,7 +82,7 @@ export function DataTable() {
       { accessorKey: "name", header: "Name" },
       { accessorKey: "createdAt", header: "Created" },
     ],
-    []
+    [],
   );
 
   const query = useQuery({
@@ -93,7 +99,9 @@ export function DataTable() {
     onPaginationChange: setPagination,
     manualSorting: true,
     manualPagination: true,
-    pageCount: query.data ? Math.ceil(query.data.rowCount / pagination.pageSize) : -1,
+    pageCount: query.data
+      ? Math.ceil(query.data.rowCount / pagination.pageSize)
+      : -1,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });
@@ -126,6 +134,7 @@ export function DataTable() {
 ```
 
 ## Common mistakes / pitfalls
+
 - Recreating `columns` on every render
 - Missing `pageCount` in server-side pagination
 - Query keys that omit sorting/filter state

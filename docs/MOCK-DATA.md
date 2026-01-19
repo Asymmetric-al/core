@@ -19,19 +19,19 @@ src/lib/mock-data/
 
 ### Data Collections
 
-| Collection | Description | Count |
-|------------|-------------|-------|
-| `MISSIONARIES` | Field worker profiles with contact info, support levels | 6 |
-| `DONORS` | Donor profiles with giving history, stages | 8 |
-| `STAFF` | Admin/staff member profiles | 3 |
-| `DONATIONS` | Individual donation transactions | 10 |
-| `PLEDGES` | Recurring giving commitments | 7 |
-| `PAYMENT_METHODS` | Stored payment methods (cards, bank accounts) | 7 |
-| `PROJECTS` | Ministry projects with funding goals | 6 |
-| `TASKS` | Action items and follow-ups | 13 |
-| `ACTIVITIES` | Activity log entries (calls, notes, meetings) | 8 |
-| `POSTS` | Social feed updates and prayer requests | 7 |
-| `ALERTS` | System notifications | 5 |
+| Collection        | Description                                             | Count |
+| ----------------- | ------------------------------------------------------- | ----- |
+| `MISSIONARIES`    | Field worker profiles with contact info, support levels | 6     |
+| `DONORS`          | Donor profiles with giving history, stages              | 8     |
+| `STAFF`           | Admin/staff member profiles                             | 3     |
+| `DONATIONS`       | Individual donation transactions                        | 10    |
+| `PLEDGES`         | Recurring giving commitments                            | 7     |
+| `PAYMENT_METHODS` | Stored payment methods (cards, bank accounts)           | 7     |
+| `PROJECTS`        | Ministry projects with funding goals                    | 6     |
+| `TASKS`           | Action items and follow-ups                             | 13    |
+| `ACTIVITIES`      | Activity log entries (calls, notes, meetings)           | 8     |
+| `POSTS`           | Social feed updates and prayer requests                 | 7     |
+| `ALERTS`          | System notifications                                    | 5     |
 
 ---
 
@@ -72,28 +72,30 @@ CREATE TABLE donations (
 Replace mock data with database queries. Example migration pattern:
 
 **Before (mock data):**
+
 ```typescript
 // src/app/(admin)/mc/crm/page.tsx
-import { DONORS, getDonorsByStage } from '@/lib/mock-data'
+import { DONORS, getDonorsByStage } from "@/lib/mock-data";
 
 export default function CRMPage() {
-  const activeDonors = getDonorsByStage('active')
+  const activeDonors = getDonorsByStage("active");
   // ...
 }
 ```
 
 **After (database):**
+
 ```typescript
 // src/app/(admin)/mc/crm/page.tsx
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from "@/lib/supabase/server";
 
 export default async function CRMPage() {
-  const supabase = await createClient()
+  const supabase = await createClient();
   const { data: activeDonors } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('role', 'donor')
-    .eq('stage', 'active')
+    .from("profiles")
+    .select("*")
+    .eq("role", "donor")
+    .eq("stage", "active");
   // ...
 }
 ```
@@ -102,13 +104,13 @@ export default async function CRMPage() {
 
 Files that import mock data:
 
-| File | Data Used |
-|------|-----------|
-| `src/app/(public)/workers/page.tsx` | `getFieldWorkers()` |
-| `src/app/(public)/workers/[id]/page.tsx` | `getFieldWorkerById()` |
-| `src/app/(donor)/donor-dashboard/*` | Donor transactions, pledges |
-| `src/features/mission-control/care/*` | Missionary profiles, activities |
-| `src/features/donor/components/*` | Worker feeds |
+| File                                     | Data Used                       |
+| ---------------------------------------- | ------------------------------- |
+| `src/app/(public)/workers/page.tsx`      | `getFieldWorkers()`             |
+| `src/app/(public)/workers/[id]/page.tsx` | `getFieldWorkerById()`          |
+| `src/app/(donor)/donor-dashboard/*`      | Donor transactions, pledges     |
+| `src/features/mission-control/care/*`    | Missionary profiles, activities |
+| `src/features/donor/components/*`        | Worker feeds                    |
 
 ### Step 4: Remove Mock Data (Optional)
 
@@ -127,21 +129,25 @@ Update any remaining imports to use database queries or remove unused code.
 When migrating from an existing system, import data in this order:
 
 ### 1. User Profiles
+
 - [ ] Staff/admin accounts
 - [ ] Missionary profiles (contact info, locations, ministry focus)
 - [ ] Donor profiles (contact info, company, job title)
 
 ### 2. Financial Data
+
 - [ ] Historical donations
 - [ ] Active pledges/recurring gifts
 - [ ] Payment methods (via Stripe migration)
 
 ### 3. Operational Data
+
 - [ ] Tasks and follow-ups
 - [ ] Activity history (calls, notes, meetings)
 - [ ] CRM notes and tags
 
 ### 4. Content
+
 - [ ] Feed posts and updates
 - [ ] Photos and media (upload to Supabase Storage)
 - [ ] Prayer requests

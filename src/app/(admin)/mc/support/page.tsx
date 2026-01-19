@@ -1,15 +1,29 @@
-'use client'
+"use client";
 
-import { TilePage } from '@/features/mission-control/components/tiles/tile-page'
-import { getTileById } from '@/lib/mission-control/tiles'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
-import { Inbox, Users, Tag, Zap, BookOpen, Clock, AlertCircle } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { TilePage } from "@/features/mission-control/components/tiles/tile-page";
+import { getTileById } from "@/lib/mission-control/tiles";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import {
+  Inbox,
+  Users,
+  Tag,
+  Zap,
+  BookOpen,
+  Clock,
+  AlertCircle,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export default function SupportHubPage() {
-  const tile = getTileById('support')!
+  const tile = getTileById("support")!;
 
   return (
     <TilePage tile={tile}>
@@ -59,9 +73,13 @@ export default function SupportHubPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-amber-700">2 tickets approaching first reply SLA. Review immediately.</p>
+          <p className="text-sm text-amber-700">
+            2 tickets approaching first reply SLA. Review immediately.
+          </p>
           <Link href="/mc/support/tickets?filter=sla-warning">
-            <Button variant="outline" size="sm" className="mt-2">View Urgent</Button>
+            <Button variant="outline" size="sm" className="mt-2">
+              View Urgent
+            </Button>
           </Link>
         </CardContent>
       </Card>
@@ -77,7 +95,9 @@ export default function SupportHubPage() {
           </CardHeader>
           <CardContent>
             <Link href="/mc/support/inbox">
-              <Button variant="outline" size="sm" className="w-full">Open Inbox</Button>
+              <Button variant="outline" size="sm" className="w-full">
+                Open Inbox
+              </Button>
             </Link>
           </CardContent>
         </Card>
@@ -92,7 +112,9 @@ export default function SupportHubPage() {
           </CardHeader>
           <CardContent>
             <Link href="/mc/support/contacts">
-              <Button variant="outline" size="sm" className="w-full">View Contacts</Button>
+              <Button variant="outline" size="sm" className="w-full">
+                View Contacts
+              </Button>
             </Link>
           </CardContent>
         </Card>
@@ -107,7 +129,9 @@ export default function SupportHubPage() {
           </CardHeader>
           <CardContent>
             <Link href="/mc/support/tags">
-              <Button variant="outline" size="sm" className="w-full">Manage Tags</Button>
+              <Button variant="outline" size="sm" className="w-full">
+                Manage Tags
+              </Button>
             </Link>
           </CardContent>
         </Card>
@@ -118,11 +142,15 @@ export default function SupportHubPage() {
               <Zap className="h-5 w-5" />
             </div>
             <CardTitle className="text-base">Macros</CardTitle>
-            <CardDescription>Saved replies with merge variables</CardDescription>
+            <CardDescription>
+              Saved replies with merge variables
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Link href="/mc/support/macros">
-              <Button variant="outline" size="sm" className="w-full">View Macros</Button>
+              <Button variant="outline" size="sm" className="w-full">
+                View Macros
+              </Button>
             </Link>
           </CardContent>
         </Card>
@@ -137,7 +165,9 @@ export default function SupportHubPage() {
           </CardHeader>
           <CardContent>
             <Link href="/mc/support/knowledge">
-              <Button variant="outline" size="sm" className="w-full">Browse Docs</Button>
+              <Button variant="outline" size="sm" className="w-full">
+                Browse Docs
+              </Button>
             </Link>
           </CardContent>
         </Card>
@@ -151,11 +181,17 @@ export default function SupportHubPage() {
           <ul className="list-disc list-inside space-y-1 ml-2">
             <li>Triage to queues: finance, tech, member care</li>
             <li>Set clear SLAs: first reply, next reply, resolution</li>
-            <li>Convert long, repeat questions into public docs and link them from Web Studio</li>
-            <li>Donation or account questions can open the gift drawer from Contributions in a side panel</li>
+            <li>
+              Convert long, repeat questions into public docs and link them from
+              Web Studio
+            </li>
+            <li>
+              Donation or account questions can open the gift drawer from
+              Contributions in a side panel
+            </li>
           </ul>
         </CardContent>
       </Card>
     </TilePage>
-  )
+  );
 }

@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
+import * as React from "react";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   ChartConfig,
   ChartContainer,
@@ -9,72 +9,81 @@ import {
   ChartTooltipContent,
   ChartLegend,
   ChartLegendContent,
-} from '@/components/ui/chart'
-import { Skeleton } from '@/components/ui/skeleton'
-import { useDonationMetrics } from '@/hooks'
+} from "@/components/ui/chart";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useDonationMetrics } from "@/hooks";
 
 const chartConfig = {
   recurring: {
-    label: 'Recurring',
-    color: 'oklch(0.45 0.10 250)',
+    label: "Recurring",
+    color: "oklch(0.45 0.10 250)",
   },
   oneTime: {
-    label: 'One-Time',
-    color: 'oklch(0.60 0.08 250)',
+    label: "One-Time",
+    color: "oklch(0.60 0.08 250)",
   },
   offline: {
-    label: 'Offline',
-    color: 'oklch(0.75 0.05 250)',
+    label: "Offline",
+    color: "oklch(0.75 0.05 250)",
   },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 
-const CORNER_RADIUS = 4
+const CORNER_RADIUS = 4;
 
 interface MonthlyData {
-  recurring: number
-  oneTime: number
-  offline: number
+  recurring: number;
+  oneTime: number;
+  offline: number;
 }
 
-function createRoundedBarShape(dataKey: 'recurring' | 'oneTime' | 'offline') {
+function createRoundedBarShape(dataKey: "recurring" | "oneTime" | "offline") {
   return function RoundedBar(props: unknown): React.ReactElement {
     const barProps = props as {
-      x?: number
-      y?: number
-      width?: number
-      height?: number
-      fill?: string
-      payload?: MonthlyData
+      x?: number;
+      y?: number;
+      width?: number;
+      height?: number;
+      fill?: string;
+      payload?: MonthlyData;
+    };
+
+    const { x, y, width, height, fill, payload } = barProps;
+
+    if (
+      x === undefined ||
+      y === undefined ||
+      !width ||
+      !height ||
+      height <= 0
+    ) {
+      return <></>;
     }
-    
-    const { x, y, width, height, fill, payload } = barProps
 
-    if (x === undefined || y === undefined || !width || !height || height <= 0) {
-      return <></>
-    }
+    const recurring = payload?.recurring ?? 0;
+    const oneTime = payload?.oneTime ?? 0;
+    const offline = payload?.offline ?? 0;
 
-    const recurring = payload?.recurring ?? 0
-    const oneTime = payload?.oneTime ?? 0
-    const offline = payload?.offline ?? 0
+    const isBottom =
+      dataKey === "recurring" ||
+      (dataKey === "oneTime" && recurring === 0) ||
+      (dataKey === "offline" && recurring === 0 && oneTime === 0);
 
-    const isBottom = dataKey === 'recurring' || 
-      (dataKey === 'oneTime' && recurring === 0) ||
-      (dataKey === 'offline' && recurring === 0 && oneTime === 0)
+    const isTop =
+      dataKey === "offline" ||
+      (dataKey === "oneTime" && offline === 0) ||
+      (dataKey === "recurring" && oneTime === 0 && offline === 0);
 
-    const isTop = dataKey === 'offline' ||
-      (dataKey === 'oneTime' && offline === 0) ||
-      (dataKey === 'recurring' && oneTime === 0 && offline === 0)
+    const topLeft = isTop ? CORNER_RADIUS : 0;
+    const topRight = isTop ? CORNER_RADIUS : 0;
+    const bottomRight = isBottom ? CORNER_RADIUS : 0;
+    const bottomLeft = isBottom ? CORNER_RADIUS : 0;
 
-    const topLeft = isTop ? CORNER_RADIUS : 0
-    const topRight = isTop ? CORNER_RADIUS : 0
-    const bottomRight = isBottom ? CORNER_RADIUS : 0
-    const bottomLeft = isBottom ? CORNER_RADIUS : 0
-
-    const safeRadius = (r: number, w: number, h: number) => Math.min(r, w / 2, h / 2)
-    const tl = safeRadius(topLeft, width, height)
-    const tr = safeRadius(topRight, width, height)
-    const br = safeRadius(bottomRight, width, height)
-    const bl = safeRadius(bottomLeft, width, height)
+    const safeRadius = (r: number, w: number, h: number) =>
+      Math.min(r, w / 2, h / 2);
+    const tl = safeRadius(topLeft, width, height);
+    const tr = safeRadius(topRight, width, height);
+    const br = safeRadius(bottomRight, width, height);
+    const bl = safeRadius(bottomLeft, width, height);
 
     const path = `
       M ${x + tl},${y}
@@ -87,17 +96,17 @@ function createRoundedBarShape(dataKey: 'recurring' | 'oneTime' | 'offline') {
       L ${x},${y + tl}
       Q ${x},${y} ${x + tl},${y}
       Z
-    `
+    `;
 
-    return <path d={path} fill={fill} />
-  }
+    return <path d={path} fill={fill} />;
+  };
 }
 
-const RecurringBarShape = createRoundedBarShape('recurring')
-const OneTimeBarShape = createRoundedBarShape('oneTime')
-const OfflineBarShape = createRoundedBarShape('offline')
+const RecurringBarShape = createRoundedBarShape("recurring");
+const OneTimeBarShape = createRoundedBarShape("oneTime");
+const OfflineBarShape = createRoundedBarShape("offline");
 
-const SKELETON_HEIGHTS = [45, 62, 38, 71, 55, 82, 48, 67, 41, 75, 58, 89, 52]
+const SKELETON_HEIGHTS = [45, 62, 38, 71, 55, 82, 48, 67, 41, 75, 58, 89, 52];
 
 function GivingBreakdownSkeleton() {
   return (
@@ -105,9 +114,9 @@ function GivingBreakdownSkeleton() {
       <div className="flex-1 flex items-end justify-around gap-1 px-4 pb-6">
         {SKELETON_HEIGHTS.map((height, i) => (
           <div key={i} className="flex-1 flex flex-col items-center gap-1">
-            <Skeleton 
-              className="w-full rounded-t-sm" 
-              style={{ height: `${height}%` }} 
+            <Skeleton
+              className="w-full rounded-t-sm"
+              style={{ height: `${height}%` }}
             />
           </div>
         ))}
@@ -118,11 +127,11 @@ function GivingBreakdownSkeleton() {
         <Skeleton className="h-3 w-16" />
       </div>
     </div>
-  )
+  );
 }
 
 interface GivingBreakdownChartProps {
-  missionaryId: string
+  missionaryId: string;
 }
 
 /**
@@ -132,11 +141,14 @@ interface GivingBreakdownChartProps {
  * - One-Time: Single online donations
  * - Offline: Checks, cash, and other offline gifts
  */
-export function GivingBreakdownChart({ missionaryId }: GivingBreakdownChartProps) {
-  const { monthlyBreakdown, isLoading, error } = useDonationMetrics(missionaryId)
+export function GivingBreakdownChart({
+  missionaryId,
+}: GivingBreakdownChartProps) {
+  const { monthlyBreakdown, isLoading, error } =
+    useDonationMetrics(missionaryId);
 
   if (isLoading) {
-    return <GivingBreakdownSkeleton />
+    return <GivingBreakdownSkeleton />;
   }
 
   if (error) {
@@ -144,21 +156,24 @@ export function GivingBreakdownChart({ missionaryId }: GivingBreakdownChartProps
       <div className="h-[200px] sm:h-[250px] md:h-[300px] w-full flex items-center justify-center text-sm text-zinc-400">
         Unable to load chart data
       </div>
-    )
+    );
   }
 
-  const hasData = monthlyBreakdown.some(m => m.total > 0)
+  const hasData = monthlyBreakdown.some((m) => m.total > 0);
 
   if (!hasData) {
     return (
       <div className="h-[200px] sm:h-[250px] md:h-[300px] w-full flex items-center justify-center text-sm text-zinc-400">
         No donation data available
       </div>
-    )
+    );
   }
 
   return (
-    <ChartContainer config={chartConfig} className="h-[200px] sm:h-[250px] md:h-[300px] w-full min-h-[180px]">
+    <ChartContainer
+      config={chartConfig}
+      className="h-[200px] sm:h-[250px] md:h-[300px] w-full min-h-[180px]"
+    >
       <BarChart
         data={monthlyBreakdown}
         margin={{
@@ -169,7 +184,12 @@ export function GivingBreakdownChart({ missionaryId }: GivingBreakdownChartProps
         }}
         barGap={2}
       >
-        <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="oklch(0.92 0.004 286.32)" opacity={0.3} />
+        <CartesianGrid
+          vertical={false}
+          strokeDasharray="3 3"
+          stroke="oklch(0.92 0.004 286.32)"
+          opacity={0.3}
+        />
         <XAxis
           dataKey="month"
           tickLine={false}
@@ -185,37 +205,41 @@ export function GivingBreakdownChart({ missionaryId }: GivingBreakdownChartProps
           axisLine={false}
           fontSize={9}
           fontWeight={700}
-          tickFormatter={(value) => value >= 1000 ? `$${(value/1000).toFixed(0)}k` : `$${value}`}
+          tickFormatter={(value) =>
+            value >= 1000 ? `$${(value / 1000).toFixed(0)}k` : `$${value}`
+          }
           width={35}
           tickMargin={4}
           stroke="oklch(0.55 0.01 286.32)"
         />
         <ChartTooltip
-          cursor={{ fill: 'oklch(0.96 0.004 286.32)', opacity: 0.4 }}
+          cursor={{ fill: "oklch(0.96 0.004 286.32)", opacity: 0.4 }}
           content={
-            <ChartTooltipContent 
-              indicator="dot" 
+            <ChartTooltipContent
+              indicator="dot"
               className="bg-white/95 backdrop-blur-xl border-zinc-200 shadow-2xl rounded-xl p-2.5 min-w-[160px] text-[10px] font-bold"
               formatter={(value, name) => {
                 const labels: Record<string, string> = {
-                  recurring: 'Recurring',
-                  oneTime: 'One-Time',
-                  offline: 'Offline',
-                }
+                  recurring: "Recurring",
+                  oneTime: "One-Time",
+                  offline: "Offline",
+                };
                 return (
                   <span className="flex items-center gap-2">
                     <span>{labels[name as string] || name}</span>
-                    <span className="font-black">${Number(value).toLocaleString()}</span>
+                    <span className="font-black">
+                      ${Number(value).toLocaleString()}
+                    </span>
                   </span>
-                )
+                );
               }}
             />
           }
         />
-        <ChartLegend 
-          content={<ChartLegendContent />} 
+        <ChartLegend
+          content={<ChartLegendContent />}
           className="pt-2 text-[10px] [&_.recharts-legend-item-text]:!text-zinc-600"
-          wrapperStyle={{ fontSize: '10px' }}
+          wrapperStyle={{ fontSize: "10px" }}
         />
         <Bar
           dataKey="recurring"
@@ -240,5 +264,5 @@ export function GivingBreakdownChart({ missionaryId }: GivingBreakdownChartProps
         />
       </BarChart>
     </ChartContainer>
-  )
+  );
 }

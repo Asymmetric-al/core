@@ -1,87 +1,112 @@
-'use client'
+"use client";
 
-import { useState, useMemo } from 'react'
-import { 
-  DollarSign, TrendingUp, Users, Receipt, 
-  Download, Plus, RefreshCcw, Filter, Trash2,
-  CircleCheck, Clock, XCircle, RotateCcw
-} from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { DataTable } from '@/components/ui/data-table'
-import type { DataTableFilterField } from '@/components/ui/data-table/types'
-import { formatCurrency, cn } from '@/lib/utils'
-import { columns } from './columns'
-import { 
-  mockContributions, 
-  contributionStatusOptions, 
+import { useState, useMemo } from "react";
+import {
+  DollarSign,
+  TrendingUp,
+  Users,
+  Receipt,
+  Download,
+  Plus,
+  RefreshCcw,
+  Filter,
+  Trash2,
+  CircleCheck,
+  Clock,
+  XCircle,
+  RotateCcw,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { DataTable } from "@/components/ui/data-table";
+import type { DataTableFilterField } from "@/components/ui/data-table/types";
+import { formatCurrency, cn } from "@/lib/utils";
+import { columns } from "./columns";
+import {
+  mockContributions,
+  contributionStatusOptions,
   contributionTypeOptions,
   paymentMethodOptions,
-  sourceOptions 
-} from './data'
-import type { Contribution } from './types'
+  sourceOptions,
+} from "./data";
+import type { Contribution } from "./types";
 
 const statusIcons = {
   Succeeded: CircleCheck,
   Pending: Clock,
   Failed: XCircle,
   Refunded: RotateCcw,
-}
+};
 
 export default function ContributionsPage() {
-  const [data] = useState<Contribution[]>(mockContributions)
-  const [isLoading] = useState(false)
+  const [data] = useState<Contribution[]>(mockContributions);
+  const [isLoading] = useState(false);
 
   const stats = useMemo(() => {
-    const totalAmount = data.reduce((sum, c) => 
-      c.status === 'Succeeded' ? sum + c.amount : sum, 0
-    )
-    const totalCount = data.filter(c => c.status === 'Succeeded').length
-    const pendingCount = data.filter(c => c.status === 'Pending').length
-    const pendingAmount = data.reduce((sum, c) => 
-      c.status === 'Pending' ? sum + c.amount : sum, 0
-    )
-    const avgAmount = totalCount > 0 ? totalAmount / totalCount : 0
-    const recurringCount = data.filter(c => c.type === 'Recurring').length
-    
-    return { totalAmount, totalCount, pendingCount, pendingAmount, avgAmount, recurringCount }
-  }, [data])
+    const totalAmount = data.reduce(
+      (sum, c) => (c.status === "Succeeded" ? sum + c.amount : sum),
+      0,
+    );
+    const totalCount = data.filter((c) => c.status === "Succeeded").length;
+    const pendingCount = data.filter((c) => c.status === "Pending").length;
+    const pendingAmount = data.reduce(
+      (sum, c) => (c.status === "Pending" ? sum + c.amount : sum),
+      0,
+    );
+    const avgAmount = totalCount > 0 ? totalAmount / totalCount : 0;
+    const recurringCount = data.filter((c) => c.type === "Recurring").length;
+
+    return {
+      totalAmount,
+      totalCount,
+      pendingCount,
+      pendingAmount,
+      avgAmount,
+      recurringCount,
+    };
+  }, [data]);
 
   const filterFields: DataTableFilterField<Contribution>[] = [
     {
-      id: 'status',
-      label: 'Status',
+      id: "status",
+      label: "Status",
       options: contributionStatusOptions,
     },
     {
-      id: 'type',
-      label: 'Type',
+      id: "type",
+      label: "Type",
       options: contributionTypeOptions,
     },
     {
-      id: 'paymentMethod',
-      label: 'Payment',
+      id: "paymentMethod",
+      label: "Payment",
       options: paymentMethodOptions,
     },
     {
-      id: 'source',
-      label: 'Source',
+      id: "source",
+      label: "Source",
       options: sourceOptions,
     },
-  ]
+  ];
 
   const handleBulkDelete = (rows: Contribution[]) => {
-    console.log('Delete rows:', rows.map(r => r.id))
-  }
+    console.log(
+      "Delete rows:",
+      rows.map((r) => r.id),
+    );
+  };
 
   const handleBulkReceipt = (rows: Contribution[]) => {
-    console.log('Send receipts to:', rows.map(r => r.id))
-  }
+    console.log(
+      "Send receipts to:",
+      rows.map((r) => r.id),
+    );
+  };
 
   const handleExport = () => {
-    console.log('Exporting contributions...')
-  }
+    console.log("Exporting contributions...");
+  };
 
   return (
     <div className="container-responsive section-gap animate-in fade-in duration-500">
@@ -96,17 +121,17 @@ export default function ContributionsPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="h-9 gap-2"
               onClick={handleExport}
             >
               <Download className="h-4 w-4" />
               <span className="hidden sm:inline">Export</span>
             </Button>
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               className="h-9 gap-2 bg-zinc-900 text-white hover:bg-zinc-800"
             >
               <Plus className="h-4 w-4" />
@@ -195,24 +220,28 @@ export default function ContributionsPage() {
 
         <div className="flex flex-wrap gap-2">
           {Object.entries(statusIcons).map(([status, Icon]) => {
-            const count = data.filter(c => c.status === status).length
-            if (count === 0) return null
+            const count = data.filter((c) => c.status === status).length;
+            if (count === 0) return null;
             return (
-              <Badge 
+              <Badge
                 key={status}
-                variant="outline" 
+                variant="outline"
                 className={cn(
                   "gap-1.5 py-1.5 px-3 font-medium cursor-pointer hover:bg-muted/50 transition-colors",
-                  status === 'Succeeded' && "border-emerald-200 text-emerald-700 dark:border-emerald-800 dark:text-emerald-400",
-                  status === 'Pending' && "border-amber-200 text-amber-700 dark:border-amber-800 dark:text-amber-400",
-                  status === 'Failed' && "border-red-200 text-red-700 dark:border-red-800 dark:text-red-400",
-                  status === 'Refunded' && "border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-400",
+                  status === "Succeeded" &&
+                    "border-emerald-200 text-emerald-700 dark:border-emerald-800 dark:text-emerald-400",
+                  status === "Pending" &&
+                    "border-amber-200 text-amber-700 dark:border-amber-800 dark:text-amber-400",
+                  status === "Failed" &&
+                    "border-red-200 text-red-700 dark:border-red-800 dark:text-red-400",
+                  status === "Refunded" &&
+                    "border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-400",
                 )}
               >
                 <Icon className="h-3.5 w-3.5" />
                 {status}: {count}
               </Badge>
-            )
+            );
           })}
         </div>
 
@@ -232,15 +261,15 @@ export default function ContributionsPage() {
           }}
           actionBarActions={[
             {
-              label: 'Send Receipts',
+              label: "Send Receipts",
               icon: Receipt,
               onClick: handleBulkReceipt,
             },
             {
-              label: 'Delete',
+              label: "Delete",
               icon: Trash2,
               onClick: handleBulkDelete,
-              variant: 'destructive',
+              variant: "destructive",
             },
           ]}
           emptyState={
@@ -250,7 +279,8 @@ export default function ContributionsPage() {
               </div>
               <h3 className="text-lg font-semibold">No contributions found</h3>
               <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-                Get started by recording your first contribution or importing from another source.
+                Get started by recording your first contribution or importing
+                from another source.
               </p>
               <Button className="mt-6" size="sm">
                 <Plus className="mr-2 h-4 w-4" />
@@ -261,5 +291,5 @@ export default function ContributionsPage() {
         />
       </div>
     </div>
-  )
+  );
 }

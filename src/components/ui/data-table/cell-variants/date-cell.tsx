@@ -1,13 +1,17 @@
-"use client"
+"use client";
 
-import { useState, useMemo, useCallback } from "react"
-import { CalendarIcon } from "lucide-react"
-import { format as formatDate, parse, isValid } from "date-fns"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import type { DateCellProps } from "./types"
+import { useState, useMemo, useCallback } from "react";
+import { CalendarIcon } from "lucide-react";
+import { format as formatDate, parse, isValid } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import type { DateCellProps } from "./types";
 
 export function DateCell<TData>({
   value,
@@ -22,41 +26,41 @@ export function DateCell<TData>({
   maxDate,
   placeholder = "Pick a date",
 }: DateCellProps<TData>) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
   const dateValue = useMemo(() => {
-    if (!value) return undefined
-    if (value instanceof Date) return value
+    if (!value) return undefined;
+    if (value instanceof Date) return value;
     if (typeof value === "string") {
-      const parsed = new Date(value)
-      return isValid(parsed) ? parsed : undefined
+      const parsed = new Date(value);
+      return isValid(parsed) ? parsed : undefined;
     }
-    return undefined
-  }, [value])
+    return undefined;
+  }, [value]);
 
-  const displayFormat = showTime ? "MMM d, yyyy h:mm a" : format
+  const displayFormat = showTime ? "MMM d, yyyy h:mm a" : format;
 
   const formattedValue = useMemo(() => {
-    if (!dateValue) return null
+    if (!dateValue) return null;
     try {
-      return formatDate(dateValue, displayFormat)
+      return formatDate(dateValue, displayFormat);
     } catch {
-      return null
+      return null;
     }
-  }, [dateValue, displayFormat])
+  }, [dateValue, displayFormat]);
 
   const handleSelect = useCallback(
     (date: Date | undefined) => {
       if (date) {
-        onValueChange?.(date)
+        onValueChange?.(date);
       } else {
-        onValueChange?.(null)
+        onValueChange?.(null);
       }
-      setOpen(false)
-      onEditComplete?.()
+      setOpen(false);
+      onEditComplete?.();
     },
-    [onValueChange, onEditComplete]
-  )
+    [onValueChange, onEditComplete],
+  );
 
   if (isEditing && !disabled) {
     return (
@@ -67,13 +71,11 @@ export function DateCell<TData>({
             className={cn(
               "h-8 w-full justify-start px-2 text-left text-sm font-normal",
               !dateValue && "text-muted-foreground",
-              className
+              className,
             )}
           >
             <CalendarIcon className="mr-2 size-3.5 shrink-0" />
-            <span className="truncate">
-              {formattedValue ?? placeholder}
-            </span>
+            <span className="truncate">{formattedValue ?? placeholder}</span>
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
@@ -82,23 +84,25 @@ export function DateCell<TData>({
             selected={dateValue}
             onSelect={handleSelect}
             disabled={(date) => {
-              if (minDate && date < minDate) return true
-              if (maxDate && date > maxDate) return true
-              return false
+              if (minDate && date < minDate) return true;
+              if (maxDate && date > maxDate) return true;
+              return false;
             }}
             initialFocus
           />
         </PopoverContent>
       </Popover>
-    )
+    );
   }
 
   if (!formattedValue) {
     return (
-      <span className={cn("block text-sm text-muted-foreground italic", className)}>
+      <span
+        className={cn("block text-sm text-muted-foreground italic", className)}
+      >
         —
       </span>
-    )
+    );
   }
 
   return (
@@ -108,5 +112,5 @@ export function DateCell<TData>({
     >
       {formattedValue}
     </span>
-  )
+  );
 }

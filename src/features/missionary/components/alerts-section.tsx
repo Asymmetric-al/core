@@ -1,18 +1,18 @@
-import * as React from 'react'
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { AlertCircle, ChevronRight } from 'lucide-react'
+import * as React from "react";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { AlertCircle, ChevronRight } from "lucide-react";
 
 interface Alert {
-  id: number
-  type: string
-  count: number
-  label: string
+  id: number;
+  type: string;
+  count: number;
+  label: string;
 }
 
 interface AlertsSectionProps {
-  alerts: Alert[]
+  alerts: Alert[];
 }
 
 export function AlertsSection({ alerts }: AlertsSectionProps) {
@@ -23,7 +23,9 @@ export function AlertsSection({ alerts }: AlertsSectionProps) {
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-rose-50 text-rose-600 border border-rose-100/50">
             <AlertCircle className="h-4.5 w-4.5" />
           </div>
-          <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Tactical Alerts</CardTitle>
+          <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+            Tactical Alerts
+          </CardTitle>
         </div>
       </CardHeader>
       <CardContent className="p-0">
@@ -37,14 +39,16 @@ export function AlertsSection({ alerts }: AlertsSectionProps) {
               <div className="flex items-center gap-3">
                 <div
                   className={`h-1.5 w-1.5 rounded-full ${
-                    alert.type === 'at-risk'
-                      ? 'bg-amber-500'
-                      : alert.type === 'new'
-                        ? 'bg-emerald-500'
-                        : 'bg-rose-500'
+                    alert.type === "at-risk"
+                      ? "bg-amber-500"
+                      : alert.type === "new"
+                        ? "bg-emerald-500"
+                        : "bg-rose-500"
                   }`}
                 />
-                <span className="text-[11px] font-bold text-zinc-900 uppercase tracking-tight">{alert.label}</span>
+                <span className="text-[11px] font-bold text-zinc-900 uppercase tracking-tight">
+                  {alert.label}
+                </span>
               </div>
               <div className="flex items-center gap-3">
                 <Badge className="bg-zinc-100 text-zinc-900 border-none font-bold text-[9px] h-4.5 px-1.5 rounded-md">
@@ -57,5 +61,5 @@ export function AlertsSection({ alerts }: AlertsSectionProps) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

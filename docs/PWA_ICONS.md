@@ -1,6 +1,7 @@
 # PWA Icons Setup
 
 ## Current Status
+
 The manifest.webmanifest has been temporarily fixed to use the existing `/icon.svg` file.
 
 ## Required Icons for Production PWA
@@ -8,6 +9,7 @@ The manifest.webmanifest has been temporarily fixed to use the existing `/icon.s
 To properly support Progressive Web App (PWA) functionality, you need the following icon files:
 
 ### Required Files
+
 - `icon-192.png` - 192x192px PNG icon
 - `icon-512.png` - 512x512px PNG icon
 - `icon-maskable-192.png` - 192x192px maskable icon (with safe zone)
@@ -17,12 +19,14 @@ To properly support Progressive Web App (PWA) functionality, you need the follow
 ### How to Generate Icons
 
 #### Option 1: Using Online Tools
+
 1. Visit https://realfavicongenerator.net/
 2. Upload your logo/icon
 3. Configure settings for PWA
 4. Download and extract to `/public` folder
 
 #### Option 2: Using ImageMagick (if installed)
+
 ```bash
 # Install ImageMagick first
 brew install imagemagick  # macOS
@@ -40,35 +44,33 @@ magick icon.svg -resize 410x410 -gravity center -extent 512x512 icon-maskable-51
 ```
 
 #### Option 3: Using Node.js Sharp (already in dependencies)
+
 Create a script `scripts/generate-icons.js`:
 
 ```javascript
-const sharp = require('sharp');
-const fs = require('fs');
+const sharp = require("sharp");
+const fs = require("fs");
 
 const sizes = [
-  { name: 'icon-192.png', size: 192 },
-  { name: 'icon-512.png', size: 512 },
-  { name: 'apple-touch-icon.png', size: 180 },
+  { name: "icon-192.png", size: 192 },
+  { name: "icon-512.png", size: 512 },
+  { name: "apple-touch-icon.png", size: 180 },
 ];
 
 const maskableSizes = [
-  { name: 'icon-maskable-192.png', size: 192, iconSize: 154 },
-  { name: 'icon-maskable-512.png', size: 512, iconSize: 410 },
+  { name: "icon-maskable-192.png", size: 192, iconSize: 154 },
+  { name: "icon-maskable-512.png", size: 512, iconSize: 410 },
 ];
 
 async function generateIcons() {
-  const svgBuffer = fs.readFileSync('public/icon.svg');
-  
+  const svgBuffer = fs.readFileSync("public/icon.svg");
+
   // Generate regular icons
   for (const { name, size } of sizes) {
-    await sharp(svgBuffer)
-      .resize(size, size)
-      .png()
-      .toFile(`public/${name}`);
+    await sharp(svgBuffer).resize(size, size).png().toFile(`public/${name}`);
     console.log(`✓ Generated ${name}`);
   }
-  
+
   // Generate maskable icons (with safe zone padding)
   for (const { name, size, iconSize } of maskableSizes) {
     await sharp(svgBuffer)
@@ -78,7 +80,7 @@ async function generateIcons() {
         bottom: (size - iconSize) / 2,
         left: (size - iconSize) / 2,
         right: (size - iconSize) / 2,
-        background: { r: 255, g: 255, b: 255, alpha: 1 }
+        background: { r: 255, g: 255, b: 255, alpha: 1 },
       })
       .png()
       .toFile(`public/${name}`);
@@ -92,6 +94,7 @@ generateIcons().catch(console.error);
 Run with: `node scripts/generate-icons.js`
 
 ### Maskable Icons
+
 Maskable icons need a "safe zone" - the important content should be in the center 80% of the image, with 10% padding on all sides. This ensures the icon looks good on all devices, even when masked to different shapes (circle, squircle, etc.).
 
 ### After Generating Icons
@@ -133,7 +136,7 @@ Maskable icons need a "safe zone" - the important content should be in the cente
 3. Test the PWA with Chrome DevTools > Application > Manifest
 
 ### Testing
+
 - Chrome DevTools > Application > Manifest
 - Lighthouse PWA audit
 - Test on actual mobile devices (iOS Safari, Android Chrome)
-

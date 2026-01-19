@@ -111,7 +111,11 @@ export const siteConfig = {
         title: "Platform",
         links: [
           { label: "Mission Control", href: "/mc", badge: "Admin" },
-          { label: "Missionary Dashboard", href: "/missionary-dashboard", badge: "Field" },
+          {
+            label: "Missionary Dashboard",
+            href: "/missionary-dashboard",
+            badge: "Field",
+          },
           { label: "Donor Portal", href: "/donor-dashboard", badge: "Partner" },
         ],
       },

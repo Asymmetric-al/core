@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { cn } from '@/lib/utils';
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
 interface PageShellProps {
   title: string;
@@ -29,17 +29,15 @@ export function PageShell({
   return (
     <div className={cn("space-y-12 max-w-7xl mx-auto pb-20", className)}>
       {/* Header */}
-      <div className={cn(
-        "flex flex-col md:flex-row items-start md:items-end justify-between gap-8 border-b border-zinc-100 pb-8 px-4 md:px-0",
-        headerClassName
-      )}>
+      <div
+        className={cn(
+          "flex flex-col md:flex-row items-start md:items-end justify-between gap-8 border-b border-zinc-100 pb-8 px-4 md:px-0",
+          headerClassName,
+        )}
+      >
         <div className="space-y-3">
-          {breadcrumbs && (
-            <div className="mb-4">
-              {breadcrumbs}
-            </div>
-          )}
-          
+          {breadcrumbs && <div className="mb-4">{breadcrumbs}</div>}
+
           {(badge || title) && (
             <div className="space-y-2">
               {badge && (
@@ -55,7 +53,7 @@ export function PageShell({
               </h1>
             </div>
           )}
-          
+
           {description && (
             <p className="text-zinc-400 text-sm font-bold uppercase tracking-widest leading-relaxed max-w-2xl">
               {description}
@@ -63,17 +61,11 @@ export function PageShell({
           )}
         </div>
 
-        {actions && (
-          <div className="flex flex-wrap gap-4">
-            {actions}
-          </div>
-        )}
+        {actions && <div className="flex flex-wrap gap-4">{actions}</div>}
       </div>
 
       {/* Content */}
-      <div className={cn("px-4 md:px-0", contentClassName)}>
-        {children}
-      </div>
+      <div className={cn("px-4 md:px-0", contentClassName)}>{children}</div>
     </div>
   );
 }

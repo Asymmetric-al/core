@@ -1,33 +1,43 @@
-'use client'
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { PageHeader } from '@/components/page-header'
-import { Mail, Palette, Layout, Send, Sparkles } from '@/components/ui/icons'
-import { motion } from 'motion/react'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/page-header";
+import { Mail, Palette, Layout, Send, Sparkles } from "@/components/ui/icons";
+import { motion } from "motion/react";
 
 const features = [
   {
     icon: Palette,
-    title: 'Drag & Drop Editor',
-    description: 'Create beautiful emails with an intuitive visual editor. No coding required.',
+    title: "Drag & Drop Editor",
+    description:
+      "Create beautiful emails with an intuitive visual editor. No coding required.",
   },
   {
     icon: Layout,
-    title: 'Pre-built Templates',
-    description: 'Start with professionally designed templates for newsletters, updates, and appeals.',
+    title: "Pre-built Templates",
+    description:
+      "Start with professionally designed templates for newsletters, updates, and appeals.",
   },
   {
     icon: Send,
-    title: 'Smart Scheduling',
-    description: 'Schedule emails to send at optimal times for maximum engagement.',
+    title: "Smart Scheduling",
+    description:
+      "Schedule emails to send at optimal times for maximum engagement.",
   },
   {
     icon: Sparkles,
-    title: 'AI-Powered Content',
-    description: 'Get AI suggestions to improve your email copy and subject lines.',
+    title: "AI-Powered Content",
+    description:
+      "Get AI suggestions to improve your email copy and subject lines.",
   },
-]
+];
 
 export default function EmailStudioPage() {
   return (
@@ -48,12 +58,12 @@ export default function EmailStudioPage() {
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.1, type: 'spring', stiffness: 300 }}
+              transition={{ delay: 0.1, type: "spring", stiffness: 300 }}
               className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center mb-6"
             >
               <Mail className="h-10 w-10 text-primary" />
             </motion.div>
-            
+
             <motion.h2
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -62,15 +72,15 @@ export default function EmailStudioPage() {
             >
               Coming Soon
             </motion.h2>
-            
+
             <motion.p
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               className="text-muted-foreground max-w-md mb-6"
             >
-              We&apos;re building a powerful email studio with drag-and-drop editing, 
-              beautiful templates, and smart analytics. Stay tuned!
+              We&apos;re building a powerful email studio with drag-and-drop
+              editing, beautiful templates, and smart analytics. Stay tuned!
             </motion.p>
 
             <motion.div
@@ -114,5 +124,5 @@ export default function EmailStudioPage() {
         </div>
       </div>
     </motion.div>
-  )
+  );
 }

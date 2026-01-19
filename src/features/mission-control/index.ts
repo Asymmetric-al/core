@@ -1,11 +1,11 @@
-export { MCProvider, useMC, useRole } from './context'
-export { AppShell } from './components/app-shell/app-shell'
-export { SidebarNav } from './components/app-shell/sidebar-nav'
-export { TopBar } from './components/app-shell/top-bar'
-export { GlobalSearch } from './components/app-shell/global-search'
-export { ProfileMenu } from './components/app-shell/profile-menu'
-export { NotificationsMenu } from './components/app-shell/notifications-menu'
-export { TenantSwitcher } from './components/app-shell/tenant-switcher'
-export { MobileSidebar } from './components/app-shell/mobile-sidebar'
-export { PageHeader } from './components/patterns/page-header'
-export { TilePage } from './components/tiles/tile-page'
+export { MCProvider, useMC, useRole } from "./context";
+export { AppShell } from "./components/app-shell/app-shell";
+export { SidebarNav } from "./components/app-shell/sidebar-nav";
+export { TopBar } from "./components/app-shell/top-bar";
+export { GlobalSearch } from "./components/app-shell/global-search";
+export { ProfileMenu } from "./components/app-shell/profile-menu";
+export { NotificationsMenu } from "./components/app-shell/notifications-menu";
+export { TenantSwitcher } from "./components/app-shell/tenant-switcher";
+export { MobileSidebar } from "./components/app-shell/mobile-sidebar";
+export { PageHeader } from "./components/patterns/page-header";
+export { TilePage } from "./components/tiles/tile-page";

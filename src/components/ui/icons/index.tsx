@@ -243,7 +243,7 @@ import {
   Zap,
   type LucideIcon,
   type LucideProps,
-} from 'lucide-react'
+} from "lucide-react";
 
 // Main registry - simple re-exports
 export {
@@ -491,7 +491,7 @@ export {
   Zap,
   type LucideIcon,
   type LucideProps,
-}
+};
 
 // Unified Aliases (modernizing common aliases)
 // Use specific names for clarity in the UI components
@@ -601,4 +601,4 @@ export {
   Coffee as CoffeeIcon,
   Map as MapIcon,
   BedDouble as BedDoubleIcon,
-}
+};

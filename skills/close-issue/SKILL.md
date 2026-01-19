@@ -1,4 +1,5 @@
 # Close Issue — Skill
+
 **Name:** `close-issue`
 **Purpose:** Finalize an `AL-###` issue by verifying acceptance criteria, running quality gates, and marking the PR ready for review.
 Use this when the user asks to close/finish/ship an issue or prepare a PR.
@@ -7,11 +8,13 @@ Use this when the user asks to close/finish/ship an issue or prepare a PR.
 **Do not use when:** Starting or implementing an issue (use `start-issue` or `ship-issue`).
 
 ## Rules
+
 - Quality gate must pass: `bun run format:check && bun run lint && bun run typecheck && bun run build`.
 - PR workflow: Draft -> Ready for Review -> Approved -> Merged.
 - Prefer GitHub MCP for PR/issue operations.
 
 ## Workflow
+
 1. **Pre-flight:** Verify feature branch and clean working tree.
    - Run: `git status`, `git branch --show-current`.
    - If on `main`/`develop`, stop and ask to switch.
@@ -32,11 +35,13 @@ Use this when the user asks to close/finish/ship an issue or prepare a PR.
 ## Checklists
 
 ### Pre-flight checklist
+
 - [ ] On a feature branch (not `main`/`develop`)
 - [ ] Issue keys identified
 - [ ] Acceptance criteria confirmed
 
 ### Final checklist
+
 - [ ] Relevant tests run (per `rules/testing.md`)
 - [ ] Quality gate passes
 - [ ] No unintended TODO/FIXME
@@ -46,16 +51,19 @@ Use this when the user asks to close/finish/ship an issue or prepare a PR.
 ## Minimal examples
 
 ### Quality gate
+
 ```bash
 bun run format:check && bun run lint && bun run typecheck && bun run build
 ```
 
 ### Find TODO/FIXME in changed files
+
 ```bash
 git diff --name-only origin/develop...HEAD | xargs -I{} grep -n "TODO\|FIXME" "{}" || true
 ```
 
 ## Common mistakes / pitfalls
+
 - Marking PR ready before checks pass
 - Ignoring TODO/FIXME in changed files
 - Closing issues without confirming acceptance criteria

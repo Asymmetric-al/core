@@ -1,31 +1,31 @@
-"use client"
+"use client";
 
-import { useMemo } from "react"
-import { cn } from "@/lib/utils"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import type { AvatarCellProps } from "./types"
+import { useMemo } from "react";
+import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import type { AvatarCellProps } from "./types";
 
 const sizeClasses = {
   sm: "size-6",
   md: "size-8",
   lg: "size-10",
-}
+};
 
 const textSizeClasses = {
   sm: "text-xs",
   md: "text-sm",
   lg: "text-base",
-}
+};
 
 function getInitials(name: string | undefined): string {
-  if (!name) return "?"
-  const parts = name.trim().split(/\s+/)
+  if (!name) return "?";
+  const parts = name.trim().split(/\s+/);
   if (parts.length === 1) {
-    return (parts[0]?.slice(0, 2) ?? "?").toUpperCase()
+    return (parts[0]?.slice(0, 2) ?? "?").toUpperCase();
   }
-  const first = parts[0]?.[0] ?? ""
-  const last = parts[parts.length - 1]?.[0] ?? ""
-  return (first + last).toUpperCase() || "?"
+  const first = parts[0]?.[0] ?? "";
+  const last = parts[parts.length - 1]?.[0] ?? "";
+  return (first + last).toUpperCase() || "?";
 }
 
 export function AvatarCell<TData>({
@@ -38,8 +38,8 @@ export function AvatarCell<TData>({
   subtitle,
 }: AvatarCellProps<TData>) {
   const initials = useMemo(() => {
-    return fallback || getInitials(name)
-  }, [fallback, name])
+    return fallback || getInitials(name);
+  }, [fallback, name]);
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
@@ -62,5 +62,5 @@ export function AvatarCell<TData>({
         </div>
       )}
     </div>
-  )
+  );
 }

@@ -1,47 +1,47 @@
-'use client'
+"use client";
 
-import { useState, useMemo, useCallback } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
-import { 
-  Plus, 
-  CheckSquare, 
-  Clock, 
-  AlertCircle, 
-  ListTodo, 
-  ListFilter, 
+import { useState, useMemo, useCallback } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import {
+  Plus,
+  CheckSquare,
+  Clock,
+  AlertCircle,
+  ListTodo,
+  ListFilter,
   CircleCheckBig,
-} from 'lucide-react'
+} from "lucide-react";
 
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Card, CardContent } from '@/components/ui/card'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
   DropdownMenuCheckboxItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-  DropdownMenuLabel
-} from '@/components/ui/dropdown-menu'
-import { PageShell } from '@/components/ui/page-shell'
-import { FilterBar } from '@/components/ui/filter-bar'
-import { DataTableWrapper } from '@/components/ui/data-table/data-table-wrapper'
-import { cn } from '@/lib/utils'
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
+import { PageShell } from "@/components/ui/page-shell";
+import { FilterBar } from "@/components/ui/filter-bar";
+import { DataTableWrapper } from "@/components/ui/data-table/data-table-wrapper";
+import { cn } from "@/lib/utils";
 
-import type { Task, TaskStatus } from './types'
-import { getPriorityConfig, getStatusConfig } from './types'
-import { MOCK_TASKS, MOCK_STAFF, MOCK_LINKED_ENTITIES } from './data'
-import { getTaskColumns } from './task-columns'
-import { TaskDrawer } from './task-drawer'
-import { TaskForm } from './task-form'
+import type { Task, TaskStatus } from "./types";
+import { getPriorityConfig, getStatusConfig } from "./types";
+import { MOCK_TASKS, MOCK_STAFF, MOCK_LINKED_ENTITIES } from "./data";
+import { getTaskColumns } from "./task-columns";
+import { TaskDrawer } from "./task-drawer";
+import { TaskForm } from "./task-form";
 
 const springTransition = {
-  type: 'spring' as const,
+  type: "spring" as const,
   stiffness: 400,
   damping: 30,
-}
+};
 
 function StatCard({
   label,
@@ -51,12 +51,12 @@ function StatCard({
   onClick,
   isActive,
 }: {
-  label: string
-  value: number
-  icon: React.ComponentType<{ className?: string }>
-  color: string
-  onClick?: () => void
-  isActive?: boolean
+  label: string;
+  value: number;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  onClick?: () => void;
+  isActive?: boolean;
 }) {
   return (
     <motion.button
@@ -65,9 +65,11 @@ function StatCard({
       transition={springTransition}
       onClick={onClick}
       className={cn(
-        'flex items-center gap-4 px-6 py-5 rounded-[2rem] border transition-all cursor-pointer text-left shadow-sm min-w-[200px] flex-1',
+        "flex items-center gap-4 px-6 py-5 rounded-[2rem] border transition-all cursor-pointer text-left shadow-sm min-w-[200px] flex-1",
         color,
-        isActive ? 'ring-2 ring-zinc-900 ring-offset-2 border-transparent' : 'border-zinc-100/60 bg-white'
+        isActive
+          ? "ring-2 ring-zinc-900 ring-offset-2 border-transparent"
+          : "border-zinc-100/60 bg-white",
       )}
     >
       <div className={cn("p-3 rounded-2xl bg-white/50 shadow-sm")}>
@@ -82,134 +84,152 @@ function StatCard({
         >
           {value}
         </motion.span>
-        <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60 mt-0.5">{label}</span>
+        <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60 mt-0.5">
+          {label}
+        </span>
       </div>
     </motion.button>
-  )
+  );
 }
 
 export function TasksPageContent() {
-  const [tasks, setTasks] = useState<Task[]>(MOCK_TASKS)
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
-  const [editingTask, setEditingTask] = useState<Task | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<'all' | 'my' | 'overdue'>('all')
-  const [showCompleted, setShowCompleted] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
+  const [tasks, setTasks] = useState<Task[]>(MOCK_TASKS);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"all" | "my" | "overdue">("all");
+  const [showCompleted, setShowCompleted] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const stats = useMemo(() => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    
-    const overdue = tasks.filter(t => 
-      t.status !== 'completed' && 
-      t.due_date && 
-      new Date(t.due_date) < today
-    ).length
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    const dueToday = tasks.filter(t => 
-      t.status !== 'completed' && 
-      t.due_date && 
-      new Date(t.due_date).toDateString() === today.toDateString()
-    ).length
+    const overdue = tasks.filter(
+      (t) =>
+        t.status !== "completed" && t.due_date && new Date(t.due_date) < today,
+    ).length;
 
-    const inProgress = tasks.filter(t => t.status === 'in_progress').length
-    const completed = tasks.filter(t => t.status === 'completed').length
+    const dueToday = tasks.filter(
+      (t) =>
+        t.status !== "completed" &&
+        t.due_date &&
+        new Date(t.due_date).toDateString() === today.toDateString(),
+    ).length;
 
-    return { overdue, dueToday, inProgress, completed }
-  }, [tasks])
+    const inProgress = tasks.filter((t) => t.status === "in_progress").length;
+    const completed = tasks.filter((t) => t.status === "completed").length;
+
+    return { overdue, dueToday, inProgress, completed };
+  }, [tasks]);
 
   const filteredTasks = useMemo(() => {
-    let filtered = tasks
+    let filtered = tasks;
 
     if (searchTerm) {
-      const search = searchTerm.toLowerCase()
-      filtered = filtered.filter(t => 
-        t.title.toLowerCase().includes(search) || 
-        t.description?.toLowerCase().includes(search) ||
-        t.assigned_to_name?.toLowerCase().includes(search) ||
-        t.linked_entity?.name.toLowerCase().includes(search)
-      )
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (t) =>
+          t.title.toLowerCase().includes(search) ||
+          t.description?.toLowerCase().includes(search) ||
+          t.assigned_to_name?.toLowerCase().includes(search) ||
+          t.linked_entity?.name.toLowerCase().includes(search),
+      );
     }
 
     if (!showCompleted) {
-      filtered = filtered.filter(t => t.status !== 'completed' && t.status !== 'cancelled')
+      filtered = filtered.filter(
+        (t) => t.status !== "completed" && t.status !== "cancelled",
+      );
     }
 
-    if (activeTab === 'my') {
-      filtered = filtered.filter(t => t.assigned_to === 'staff-1')
-    } else if (activeTab === 'overdue') {
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      filtered = filtered.filter(t => 
-        t.status !== 'completed' && 
-        t.due_date && 
-        new Date(t.due_date) < today
-      )
+    if (activeTab === "my") {
+      filtered = filtered.filter((t) => t.assigned_to === "staff-1");
+    } else if (activeTab === "overdue") {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      filtered = filtered.filter(
+        (t) =>
+          t.status !== "completed" &&
+          t.due_date &&
+          new Date(t.due_date) < today,
+      );
     }
 
-    return filtered
-  }, [tasks, activeTab, showCompleted, searchTerm])
+    return filtered;
+  }, [tasks, activeTab, showCompleted, searchTerm]);
 
   const handleToggleComplete = useCallback((task: Task) => {
-    setTasks(prev => prev.map(t => {
-      if (t.id === task.id) {
-        const newStatus: TaskStatus = t.status === 'completed' ? 'todo' : 'completed'
-        return {
-          ...t,
-          status: newStatus,
-          completed_at: newStatus === 'completed' ? new Date().toISOString() : undefined,
-          updated_at: new Date().toISOString(),
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (t.id === task.id) {
+          const newStatus: TaskStatus =
+            t.status === "completed" ? "todo" : "completed";
+          return {
+            ...t,
+            status: newStatus,
+            completed_at:
+              newStatus === "completed" ? new Date().toISOString() : undefined,
+            updated_at: new Date().toISOString(),
+          };
         }
-      }
-      return t
-    }))
-  }, [])
+        return t;
+      }),
+    );
+  }, []);
 
   const handleUpdateTask = useCallback((updatedTask: Task) => {
-    setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t))
-    setSelectedTask(updatedTask)
-  }, [])
+    setTasks((prev) =>
+      prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)),
+    );
+    setSelectedTask(updatedTask);
+  }, []);
 
   const handleDeleteTask = useCallback((taskId: string) => {
-    setTasks(prev => prev.filter(t => t.id !== taskId))
-    setSelectedTask(null)
-  }, [])
+    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    setSelectedTask(null);
+  }, []);
 
   const handleSaveTask = useCallback((taskData: Partial<Task>) => {
     if (taskData.id) {
-      setTasks(prev => prev.map(t => 
-        t.id === taskData.id 
-          ? { ...t, ...taskData, updated_at: new Date().toISOString() } 
-          : t
-      ))
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.id === taskData.id
+            ? { ...t, ...taskData, updated_at: new Date().toISOString() }
+            : t,
+        ),
+      );
     } else {
       const newTask: Task = {
-        ...taskData as Task,
+        ...(taskData as Task),
         id: `task-${Date.now()}`,
-        tenant_id: 'tenant-1',
-        created_by: 'staff-1',
+        tenant_id: "tenant-1",
+        created_by: "staff-1",
         reminders: taskData.reminders || [],
         comments: [],
         tags: taskData.tags || [],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      }
-      setTasks(prev => [newTask, ...prev])
+      };
+      setTasks((prev) => [newTask, ...prev]);
     }
-    setIsModalOpen(false)
-    setEditingTask(null)
-  }, [])
+    setIsModalOpen(false);
+    setEditingTask(null);
+  }, []);
 
-  const columns = useMemo(() => getTaskColumns({
-    onViewTask: setSelectedTask,
-    onEditTask: (task) => {
-      setEditingTask(task)
-      setIsModalOpen(true)
-    },
-    onDeleteTask: handleDeleteTask,
-    onToggleComplete: handleToggleComplete,
-  }), [handleDeleteTask, handleToggleComplete])
+  const columns = useMemo(
+    () =>
+      getTaskColumns({
+        onViewTask: setSelectedTask,
+        onEditTask: (task) => {
+          setEditingTask(task);
+          setIsModalOpen(true);
+        },
+        onDeleteTask: handleDeleteTask,
+        onToggleComplete: handleToggleComplete,
+      }),
+    [handleDeleteTask, handleToggleComplete],
+  );
 
   return (
     <PageShell
@@ -217,8 +237,11 @@ export function TasksPageContent() {
       description="Coordinate donor outreach and field operations."
       badge="Task Management"
       actions={
-        <Button 
-          onClick={() => { setEditingTask(null); setIsModalOpen(true) }} 
+        <Button
+          onClick={() => {
+            setEditingTask(null);
+            setIsModalOpen(true);
+          }}
           className="h-12 px-8 font-black bg-zinc-900 text-white hover:bg-zinc-800 shadow-xl shadow-zinc-200 uppercase tracking-[0.2em] text-[10px] rounded-2xl transition-all"
         >
           <Plus className="mr-2 size-4" />
@@ -233,8 +256,8 @@ export function TasksPageContent() {
             value={stats.overdue}
             icon={AlertCircle}
             color="text-rose-600 bg-rose-50/30"
-            isActive={activeTab === 'overdue'}
-            onClick={() => setActiveTab('overdue')}
+            isActive={activeTab === "overdue"}
+            onClick={() => setActiveTab("overdue")}
           />
           <StatCard
             label="Due Today"
@@ -264,12 +287,21 @@ export function TasksPageContent() {
           }}
           filters={
             <div className="flex items-center gap-3">
-              <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
+              <Tabs
+                value={activeTab}
+                onValueChange={(v) => setActiveTab(v as typeof activeTab)}
+              >
                 <TabsList className="bg-zinc-100/80 p-1 h-11 rounded-xl border border-zinc-200/50">
-                  <TabsTrigger value="all" className="text-[9px] font-black uppercase tracking-widest px-4 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                  <TabsTrigger
+                    value="all"
+                    className="text-[9px] font-black uppercase tracking-widest px-4 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                  >
                     All Missions
                   </TabsTrigger>
-                  <TabsTrigger value="my" className="text-[9px] font-black uppercase tracking-widest px-4 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                  <TabsTrigger
+                    value="my"
+                    className="text-[9px] font-black uppercase tracking-widest px-4 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                  >
                     My Work
                   </TabsTrigger>
                 </TabsList>
@@ -277,16 +309,22 @@ export function TasksPageContent() {
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="h-11 rounded-xl border-zinc-200 font-bold uppercase tracking-widest text-[10px] gap-2">
+                  <Button
+                    variant="outline"
+                    className="h-11 rounded-xl border-zinc-200 font-bold uppercase tracking-widest text-[10px] gap-2"
+                  >
                     <ListFilter className="size-4 text-zinc-400" />
                     Display
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 rounded-2xl border-zinc-100 p-2 shadow-xl">
+                <DropdownMenuContent
+                  align="end"
+                  className="w-56 rounded-2xl border-zinc-100 p-2 shadow-xl"
+                >
                   <DropdownMenuLabel className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400">
                     View Settings
                   </DropdownMenuLabel>
-                  <DropdownMenuCheckboxItem 
+                  <DropdownMenuCheckboxItem
                     checked={showCompleted}
                     onCheckedChange={setShowCompleted}
                     className="rounded-lg px-3 py-2 text-sm font-medium"
@@ -314,17 +352,18 @@ export function TasksPageContent() {
               }}
               emptyState={{
                 title: "No missions found",
-                description: "Try adjusting your search or filters to coordinate tasks.",
+                description:
+                  "Try adjusting your search or filters to coordinate tasks.",
                 icon: <CircleCheckBig className="size-10 text-zinc-200" />,
                 action: (
-                  <Button 
+                  <Button
                     onClick={() => setIsModalOpen(true)}
                     variant="outline"
                     className="mt-4 rounded-xl font-bold uppercase tracking-widest text-[10px]"
                   >
                     Create First Task
                   </Button>
-                )
+                ),
               }}
             />
           </div>
@@ -346,11 +385,11 @@ export function TasksPageContent() {
         staffMembers={MOCK_STAFF}
         linkedEntities={MOCK_LINKED_ENTITIES}
         onClose={() => {
-          setIsModalOpen(false)
-          setEditingTask(null)
+          setIsModalOpen(false);
+          setEditingTask(null);
         }}
         onSave={handleSaveTask}
       />
     </PageShell>
-  )
+  );
 }

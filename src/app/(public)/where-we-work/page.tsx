@@ -4,8 +4,8 @@ import dynamic from "next/dynamic";
 import { Footer } from "@/components/public/footer";
 
 const WhereWeWorkMap = dynamic(
-  () => import("./map-wrapper").then(mod => mod.WhereWeWorkMap),
-  { 
+  () => import("./map-wrapper").then((mod) => mod.WhereWeWorkMap),
+  {
     ssr: false,
     loading: () => (
       <div className="w-full h-[100dvh] bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center">
@@ -14,8 +14,8 @@ const WhereWeWorkMap = dynamic(
           <p className="text-sm font-medium text-zinc-500">Loading map...</p>
         </div>
       </div>
-    )
-  }
+    ),
+  },
 );
 
 export default function WhereWeWorkPage() {

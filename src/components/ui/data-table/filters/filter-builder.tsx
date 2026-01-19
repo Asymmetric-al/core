@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import { useCallback, useMemo } from "react"
-import { PlusIcon, FilterIcon, XIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { useCallback, useMemo } from "react";
+import { PlusIcon, FilterIcon, XIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/components/ui/popover";
 import {
   Sheet,
   SheetContent,
@@ -18,9 +18,9 @@ import {
   SheetTitle,
   SheetTrigger,
   SheetFooter,
-} from "@/components/ui/sheet"
-import { Separator } from "@/components/ui/separator"
-import { FilterRow } from "./filter-row"
+} from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
+import { FilterRow } from "./filter-row";
 import {
   type AdvancedFilterState,
   type FilterFieldDefinition,
@@ -33,15 +33,15 @@ import {
   countActiveFilters,
   getDefaultOperator,
   getDefaultValue,
-} from "./types"
+} from "./types";
 
 interface FilterBuilderProps {
-  fields: FilterFieldDefinition[]
-  value: AdvancedFilterState
-  onChange: (filter: AdvancedFilterState) => void
-  className?: string
-  variant?: "popover" | "sheet" | "inline"
-  align?: "start" | "center" | "end"
+  fields: FilterFieldDefinition[];
+  value: AdvancedFilterState;
+  onChange: (filter: AdvancedFilterState) => void;
+  className?: string;
+  variant?: "popover" | "sheet" | "inline";
+  align?: "start" | "center" | "end";
 }
 
 export function FilterBuilder({
@@ -52,31 +52,31 @@ export function FilterBuilder({
   variant = "popover",
   align = "start",
 }: FilterBuilderProps) {
-  const activeCount = countActiveFilters(value)
+  const activeCount = countActiveFilters(value);
 
   const content = (
-    <FilterBuilderContent
-      fields={fields}
-      value={value}
-      onChange={onChange}
-    />
-  )
+    <FilterBuilderContent fields={fields} value={value} onChange={onChange} />
+  );
 
   if (variant === "inline") {
-    return <div className={className}>{content}</div>
+    return <div className={className}>{content}</div>;
   }
 
   if (variant === "sheet") {
     return (
       <Sheet>
         <SheetTrigger asChild>
-          <FilterTriggerButton activeCount={activeCount} className={className} />
+          <FilterTriggerButton
+            activeCount={activeCount}
+            className={className}
+          />
         </SheetTrigger>
         <SheetContent side="right" className="w-full sm:max-w-lg">
           <SheetHeader>
             <SheetTitle>Advanced Filters</SheetTitle>
             <SheetDescription>
-              Add conditions to filter your data. Multiple conditions can be combined with AND/OR logic.
+              Add conditions to filter your data. Multiple conditions can be
+              combined with AND/OR logic.
             </SheetDescription>
           </SheetHeader>
           <div className="py-4 overflow-y-auto max-h-[calc(100vh-200px)]">
@@ -93,7 +93,7 @@ export function FilterBuilder({
           </SheetFooter>
         </SheetContent>
       </Sheet>
-    )
+    );
   }
 
   return (
@@ -123,15 +123,18 @@ export function FilterBuilder({
         </div>
       </PopoverContent>
     </Popover>
-  )
+  );
 }
 
 interface FilterTriggerButtonProps {
-  activeCount: number
-  className?: string
+  activeCount: number;
+  className?: string;
 }
 
-function FilterTriggerButton({ activeCount, className }: FilterTriggerButtonProps) {
+function FilterTriggerButton({
+  activeCount,
+  className,
+}: FilterTriggerButtonProps) {
   return (
     <Button
       variant="outline"
@@ -149,13 +152,13 @@ function FilterTriggerButton({ activeCount, className }: FilterTriggerButtonProp
         </Badge>
       )}
     </Button>
-  )
+  );
 }
 
 interface FilterBuilderContentProps {
-  fields: FilterFieldDefinition[]
-  value: AdvancedFilterState
-  onChange: (filter: AdvancedFilterState) => void
+  fields: FilterFieldDefinition[];
+  value: AdvancedFilterState;
+  onChange: (filter: AdvancedFilterState) => void;
 }
 
 function FilterBuilderContent({
@@ -164,86 +167,85 @@ function FilterBuilderContent({
   onChange,
 }: FilterBuilderContentProps) {
   const addCondition = useCallback(() => {
-    if (fields.length === 0) return
-    const firstField = fields[0]
-    if (!firstField) return
-    const newCondition = createFilterCondition(firstField)
+    if (fields.length === 0) return;
+    const firstField = fields[0];
+    if (!firstField) return;
+    const newCondition = createFilterCondition(firstField);
     onChange({
       ...value,
       conditions: [...value.conditions, newCondition],
-    })
-  }, [fields, value, onChange])
+    });
+  }, [fields, value, onChange]);
 
   const updateCondition = useCallback(
     (index: number, updates: Partial<FilterCondition>) => {
-      const newConditions = [...value.conditions]
-      const existing = newConditions[index]
-      if (!existing) return
-      newConditions[index] = { ...existing, ...updates }
-      onChange({ ...value, conditions: newConditions })
+      const newConditions = [...value.conditions];
+      const existing = newConditions[index];
+      if (!existing) return;
+      newConditions[index] = { ...existing, ...updates };
+      onChange({ ...value, conditions: newConditions });
     },
-    [value, onChange]
-  )
+    [value, onChange],
+  );
 
   const removeCondition = useCallback(
     (index: number) => {
       onChange({
         ...value,
         conditions: value.conditions.filter((_, i) => i !== index),
-      })
+      });
     },
-    [value, onChange]
-  )
+    [value, onChange],
+  );
 
   const handleFieldChange = useCallback(
     (index: number, fieldId: string) => {
-      const newField = fields.find((f) => f.id === fieldId)
-      if (!newField) return
-      
-      const operator = newField.defaultOperator ?? getDefaultOperator(newField.type)
+      const newField = fields.find((f) => f.id === fieldId);
+      if (!newField) return;
+
+      const operator =
+        newField.defaultOperator ?? getDefaultOperator(newField.type);
       updateCondition(index, {
         field: fieldId,
         operator,
         value: getDefaultValue(newField.type, operator),
-      })
+      });
     },
-    [fields, updateCondition]
-  )
+    [fields, updateCondition],
+  );
 
   const handleOperatorChange = useCallback(
     (index: number, operator: FilterOperator) => {
-      updateCondition(index, { operator })
+      updateCondition(index, { operator });
     },
-    [updateCondition]
-  )
+    [updateCondition],
+  );
 
   const handleValueChange = useCallback(
     (index: number, newValue: FilterValue) => {
-      updateCondition(index, { value: newValue })
+      updateCondition(index, { value: newValue });
     },
-    [updateCondition]
-  )
+    [updateCondition],
+  );
 
   const toggleLogic = useCallback(() => {
     onChange({
       ...value,
       logic: value.logic === "and" ? "or" : "and",
-    })
-  }, [value, onChange])
+    });
+  }, [value, onChange]);
 
   if (value.conditions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-6 text-center">
         <FilterIcon className="size-8 text-muted-foreground/50 mb-2" />
-        <p className="text-sm text-muted-foreground mb-3">
-          No filters applied
-        </p>
+        <p className="text-sm text-muted-foreground mb-3">No filters applied</p>
         <Button variant="outline" size="sm" onClick={addCondition}>
           <PlusIcon className="size-4 mr-1" />
           Add filter
         </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -285,14 +287,14 @@ function FilterBuilderContent({
         Add filter
       </Button>
     </div>
-  )
+  );
 }
 
 interface ActiveFiltersProps {
-  fields: FilterFieldDefinition[]
-  value: AdvancedFilterState
-  onChange: (filter: AdvancedFilterState) => void
-  className?: string
+  fields: FilterFieldDefinition[];
+  value: AdvancedFilterState;
+  onChange: (filter: AdvancedFilterState) => void;
+  className?: string;
 }
 
 export function ActiveFilters({
@@ -306,24 +308,24 @@ export function ActiveFilters({
       onChange({
         ...value,
         conditions: value.conditions.filter((c) => c.id !== conditionId),
-      })
+      });
     },
-    [value, onChange]
-  )
+    [value, onChange],
+  );
 
   const clearAll = useCallback(() => {
-    onChange(createEmptyFilterState())
-  }, [onChange])
+    onChange(createEmptyFilterState());
+  }, [onChange]);
 
   if (value.conditions.length === 0) {
-    return null
+    return null;
   }
 
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
       {value.conditions.map((condition, index) => {
-        const field = fields.find((f) => f.id === condition.field)
-        if (!field) return null
+        const field = fields.find((f) => f.id === condition.field);
+        if (!field) return null;
 
         return (
           <Badge
@@ -349,7 +351,7 @@ export function ActiveFilters({
               <XIcon className="size-3" />
             </button>
           </Badge>
-        )
+        );
       })}
       {value.conditions.length > 1 && (
         <Button
@@ -362,7 +364,7 @@ export function ActiveFilters({
         </Button>
       )}
     </div>
-  )
+  );
 }
 
 function getOperatorLabel(operator: FilterOperator): string {
@@ -388,52 +390,60 @@ function getOperatorLabel(operator: FilterOperator): string {
     on_or_after: "≥",
     is_true: "is true",
     is_false: "is false",
-  }
-  return labels[operator] ?? operator
+  };
+  return labels[operator] ?? operator;
 }
 
-function formatFilterValue(value: FilterValue, field: FilterFieldDefinition): string {
-  if (value === null || value === undefined) return ""
-  
+function formatFilterValue(
+  value: FilterValue,
+  field: FilterFieldDefinition,
+): string {
+  if (value === null || value === undefined) return "";
+
   if (Array.isArray(value)) {
-    if (value.length === 0) return "none"
+    if (value.length === 0) return "none";
     if (field.options) {
       const labels = value
         .map((v) => field.options?.find((o) => o.value === v)?.label ?? v)
-        .slice(0, 2)
+        .slice(0, 2);
       if (value.length > 2) {
-        return `${labels.join(", ")} +${value.length - 2}`
+        return `${labels.join(", ")} +${value.length - 2}`;
       }
-      return labels.join(", ")
+      return labels.join(", ");
     }
-    return value.slice(0, 2).join(", ") + (value.length > 2 ? ` +${value.length - 2}` : "")
+    return (
+      value.slice(0, 2).join(", ") +
+      (value.length > 2 ? ` +${value.length - 2}` : "")
+    );
   }
 
   if (typeof value === "object") {
     if ("from" in value && "to" in value) {
-      const from = value.from ? new Date(value.from).toLocaleDateString() : "..."
-      const to = value.to ? new Date(value.to).toLocaleDateString() : "..."
-      return `${from} - ${to}`
+      const from = value.from
+        ? new Date(value.from).toLocaleDateString()
+        : "...";
+      const to = value.to ? new Date(value.to).toLocaleDateString() : "...";
+      return `${from} - ${to}`;
     }
     if ("min" in value && "max" in value) {
-      const min = value.min !== null ? value.min : "..."
-      const max = value.max !== null ? value.max : "..."
-      return `${min} - ${max}`
+      const min = value.min !== null ? value.min : "...";
+      const max = value.max !== null ? value.max : "...";
+      return `${min} - ${max}`;
     }
   }
 
   if (value instanceof Date) {
-    return value.toLocaleDateString()
+    return value.toLocaleDateString();
   }
 
   if (typeof value === "boolean") {
-    return value ? "Yes" : "No"
+    return value ? "Yes" : "No";
   }
 
   if (field.type === "select" && field.options) {
-    const option = field.options.find((o) => o.value === value)
-    return option?.label ?? String(value)
+    const option = field.options.find((o) => o.value === value);
+    return option?.label ?? String(value);
   }
 
-  return String(value)
+  return String(value);
 }

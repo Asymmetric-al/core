@@ -1,23 +1,23 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import type { Table } from "@tanstack/react-table"
-import { X, Trash2, Download, RefreshCcw } from "lucide-react"
-import { AnimatePresence, motion } from "motion/react"
+import * as React from "react";
+import type { Table } from "@tanstack/react-table";
+import { X, Trash2, Download, RefreshCcw } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 interface DataTableActionBarProps<TData> {
-  table: Table<TData>
+  table: Table<TData>;
   actions?: {
-    label: string
-    icon?: React.ComponentType<{ className?: string }>
-    onClick: (rows: TData[]) => void
-    variant?: "default" | "destructive"
-  }[]
-  className?: string
+    label: string;
+    icon?: React.ComponentType<{ className?: string }>;
+    onClick: (rows: TData[]) => void;
+    variant?: "default" | "destructive";
+  }[];
+  className?: string;
 }
 
 export function DataTableActionBar<TData>({
@@ -25,17 +25,20 @@ export function DataTableActionBar<TData>({
   actions,
   className,
 }: DataTableActionBarProps<TData>) {
-  const selectedRows = table.getFilteredSelectedRowModel().rows
-  const selectedCount = selectedRows.length
+  const selectedRows = table.getFilteredSelectedRowModel().rows;
+  const selectedCount = selectedRows.length;
 
-  if (selectedCount === 0) return null
+  if (selectedCount === 0) return null;
 
   const defaultActions = [
     {
       label: "Export",
       icon: Download,
       onClick: () => {
-        console.log("Export selected rows:", selectedRows.map((r) => r.original))
+        console.log(
+          "Export selected rows:",
+          selectedRows.map((r) => r.original),
+        );
       },
       variant: "default" as const,
     },
@@ -43,13 +46,16 @@ export function DataTableActionBar<TData>({
       label: "Delete",
       icon: Trash2,
       onClick: () => {
-        console.log("Delete selected rows:", selectedRows.map((r) => r.original))
+        console.log(
+          "Delete selected rows:",
+          selectedRows.map((r) => r.original),
+        );
       },
       variant: "destructive" as const,
     },
-  ]
+  ];
 
-  const allActions = actions || defaultActions
+  const allActions = actions || defaultActions;
 
   return (
     <AnimatePresence>
@@ -62,14 +68,17 @@ export function DataTableActionBar<TData>({
           "flex items-center gap-3 px-4 py-3",
           "bg-primary text-primary-foreground",
           "rounded-2xl shadow-2xl",
-          className
+          className,
         )}
       >
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold">{selectedCount}</span>
           <span className="text-sm">selected</span>
         </div>
-        <Separator orientation="vertical" className="h-5 bg-primary-foreground/20" />
+        <Separator
+          orientation="vertical"
+          className="h-5 bg-primary-foreground/20"
+        />
         <div className="flex items-center gap-1">
           {allActions.map((action) => (
             <Button
@@ -81,7 +90,7 @@ export function DataTableActionBar<TData>({
               }
               className={cn(
                 "h-8 gap-2 rounded-xl text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground",
-                action.variant === "destructive" && "hover:bg-destructive/20"
+                action.variant === "destructive" && "hover:bg-destructive/20",
               )}
             >
               {action.icon && (
@@ -91,7 +100,10 @@ export function DataTableActionBar<TData>({
             </Button>
           ))}
         </div>
-        <Separator orientation="vertical" className="h-5 bg-primary-foreground/20" />
+        <Separator
+          orientation="vertical"
+          className="h-5 bg-primary-foreground/20"
+        />
         <Button
           variant="ghost"
           size="icon"
@@ -103,5 +115,5 @@ export function DataTableActionBar<TData>({
         </Button>
       </motion.div>
     </AnimatePresence>
-  )
+  );
 }

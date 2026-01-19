@@ -1,17 +1,24 @@
-"use client"
+"use client";
 
-import { useState, useCallback, useMemo, useSyncExternalStore } from "react"
-import { BookmarkIcon, MoreHorizontalIcon, PlusIcon, Trash2Icon, PencilIcon, CheckIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useState, useCallback, useMemo, useSyncExternalStore } from "react";
+import {
+  BookmarkIcon,
+  MoreHorizontalIcon,
+  PlusIcon,
+  Trash2Icon,
+  PencilIcon,
+  CheckIcon,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -20,26 +27,26 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import type { AdvancedFilterState, SavedFilter } from "./types"
-import { countActiveFilters, createEmptyFilterState } from "./types"
+} from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import type { AdvancedFilterState, SavedFilter } from "./types";
+import { countActiveFilters, createEmptyFilterState } from "./types";
 
 interface SavedFiltersProps {
-  savedFilters: SavedFilter[]
-  currentFilter: AdvancedFilterState
-  onApplyFilter: (filter: AdvancedFilterState) => void
-  onSaveFilter: (name: string, description?: string) => void
-  onDeleteFilter: (id: string) => void
-  onUpdateFilter: (id: string, name: string, description?: string) => void
-  onSetDefault: (id: string | null) => void
-  className?: string
+  savedFilters: SavedFilter[];
+  currentFilter: AdvancedFilterState;
+  onApplyFilter: (filter: AdvancedFilterState) => void;
+  onSaveFilter: (name: string, description?: string) => void;
+  onDeleteFilter: (id: string) => void;
+  onUpdateFilter: (id: string, name: string, description?: string) => void;
+  onSetDefault: (id: string | null) => void;
+  className?: string;
 }
 
 export function SavedFilters({
@@ -52,41 +59,45 @@ export function SavedFilters({
   onSetDefault,
   className,
 }: SavedFiltersProps) {
-  const [saveDialogOpen, setSaveDialogOpen] = useState(false)
-  const [editingFilter, setEditingFilter] = useState<SavedFilter | null>(null)
-  const [name, setName] = useState("")
-  const [description, setDescription] = useState("")
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [editingFilter, setEditingFilter] = useState<SavedFilter | null>(null);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
 
-  const activeCount = countActiveFilters(currentFilter)
-  const defaultFilter = savedFilters.find((f) => f.isDefault)
+  const activeCount = countActiveFilters(currentFilter);
+  const defaultFilter = savedFilters.find((f) => f.isDefault);
 
   const handleSave = useCallback(() => {
-    if (!name.trim()) return
-    onSaveFilter(name.trim(), description.trim() || undefined)
-    setName("")
-    setDescription("")
-    setSaveDialogOpen(false)
-  }, [name, description, onSaveFilter])
+    if (!name.trim()) return;
+    onSaveFilter(name.trim(), description.trim() || undefined);
+    setName("");
+    setDescription("");
+    setSaveDialogOpen(false);
+  }, [name, description, onSaveFilter]);
 
   const handleUpdate = useCallback(() => {
-    if (!editingFilter || !name.trim()) return
-    onUpdateFilter(editingFilter.id, name.trim(), description.trim() || undefined)
-    setEditingFilter(null)
-    setName("")
-    setDescription("")
-  }, [editingFilter, name, description, onUpdateFilter])
+    if (!editingFilter || !name.trim()) return;
+    onUpdateFilter(
+      editingFilter.id,
+      name.trim(),
+      description.trim() || undefined,
+    );
+    setEditingFilter(null);
+    setName("");
+    setDescription("");
+  }, [editingFilter, name, description, onUpdateFilter]);
 
   const handleStartEdit = useCallback((filter: SavedFilter) => {
-    setEditingFilter(filter)
-    setName(filter.name)
-    setDescription(filter.description ?? "")
-  }, [])
+    setEditingFilter(filter);
+    setName(filter.name);
+    setDescription(filter.description ?? "");
+  }, []);
 
   const handleCancelEdit = useCallback(() => {
-    setEditingFilter(null)
-    setName("")
-    setDescription("")
-  }, [])
+    setEditingFilter(null);
+    setName("");
+    setDescription("");
+  }, []);
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
@@ -136,7 +147,9 @@ export function SavedFilters({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="description">Description (optional)</Label>
+                      <Label htmlFor="description">
+                        Description (optional)
+                      </Label>
                       <Textarea
                         id="description"
                         value={description}
@@ -147,7 +160,10 @@ export function SavedFilters({
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>
+                    <Button
+                      variant="outline"
+                      onClick={() => setSaveDialogOpen(false)}
+                    >
                       Cancel
                     </Button>
                     <Button onClick={handleSave} disabled={!name.trim()}>
@@ -235,16 +251,22 @@ export function SavedFilters({
                             >
                               Apply
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleStartEdit(filter)}>
+                            <DropdownMenuItem
+                              onClick={() => handleStartEdit(filter)}
+                            >
                               <PencilIcon className="size-3 mr-2" />
                               Rename
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
-                                onSetDefault(filter.isDefault ? null : filter.id)
+                                onSetDefault(
+                                  filter.isDefault ? null : filter.id,
+                                )
                               }
                             >
-                              {filter.isDefault ? "Remove default" : "Set as default"}
+                              {filter.isDefault
+                                ? "Remove default"
+                                : "Set as default"}
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
@@ -280,62 +302,76 @@ export function SavedFilters({
         </PopoverContent>
       </Popover>
     </div>
-  )
+  );
 }
 
 interface UseSavedFiltersOptions {
-  storageKey: string
-  onApply?: (filter: AdvancedFilterState) => void
+  storageKey: string;
+  onApply?: (filter: AdvancedFilterState) => void;
 }
 
 function createLocalStorageSubscribe(key: string) {
   return (callback: () => void) => {
     const handler = (e: StorageEvent) => {
-      if (e.key === key) callback()
-    }
-    window.addEventListener("storage", handler)
-    return () => window.removeEventListener("storage", handler)
-  }
+      if (e.key === key) callback();
+    };
+    window.addEventListener("storage", handler);
+    return () => window.removeEventListener("storage", handler);
+  };
 }
 
 function getLocalStorageSnapshot(key: string): SavedFilter[] {
   try {
-    const stored = localStorage.getItem(key)
-    return stored ? JSON.parse(stored) : []
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : [];
   } catch {
-    return []
+    return [];
   }
 }
 
 function getServerSnapshot(): SavedFilter[] {
-  return []
+  return [];
 }
 
-export function useSavedFilters({ storageKey, onApply }: UseSavedFiltersOptions) {
-  const fullKey = `saved-filters-${storageKey}`
-  
+export function useSavedFilters({
+  storageKey,
+  onApply,
+}: UseSavedFiltersOptions) {
+  const fullKey = `saved-filters-${storageKey}`;
+
   const subscribe = useCallback(
     (callback: () => void) => createLocalStorageSubscribe(fullKey)(callback),
-    [fullKey]
-  )
-  
-  const getSnapshot = useCallback(() => getLocalStorageSnapshot(fullKey), [fullKey])
-  
-  const savedFilters = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
-  const [, forceUpdate] = useState(0)
+    [fullKey],
+  );
+
+  const getSnapshot = useCallback(
+    () => getLocalStorageSnapshot(fullKey),
+    [fullKey],
+  );
+
+  const savedFilters = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot,
+  );
+  const [, forceUpdate] = useState(0);
 
   const persistFilters = useCallback(
     (filters: SavedFilter[]) => {
       if (typeof window !== "undefined") {
-        localStorage.setItem(fullKey, JSON.stringify(filters))
-        forceUpdate(v => v + 1)
+        localStorage.setItem(fullKey, JSON.stringify(filters));
+        forceUpdate((v) => v + 1);
       }
     },
-    [fullKey]
-  )
+    [fullKey],
+  );
 
   const saveFilter = useCallback(
-    (currentFilter: AdvancedFilterState, name: string, description?: string) => {
+    (
+      currentFilter: AdvancedFilterState,
+      name: string,
+      description?: string,
+    ) => {
       const newFilter: SavedFilter = {
         id: crypto.randomUUID(),
         name,
@@ -344,31 +380,29 @@ export function useSavedFilters({ storageKey, onApply }: UseSavedFiltersOptions)
         isDefault: false,
         createdAt: new Date(),
         updatedAt: new Date(),
-      }
-      persistFilters([...savedFilters, newFilter])
+      };
+      persistFilters([...savedFilters, newFilter]);
     },
-    [savedFilters, persistFilters]
-  )
+    [savedFilters, persistFilters],
+  );
 
   const deleteFilter = useCallback(
     (id: string) => {
-      persistFilters(savedFilters.filter((f) => f.id !== id))
+      persistFilters(savedFilters.filter((f) => f.id !== id));
     },
-    [savedFilters, persistFilters]
-  )
+    [savedFilters, persistFilters],
+  );
 
   const updateFilter = useCallback(
     (id: string, name: string, description?: string) => {
       persistFilters(
         savedFilters.map((f) =>
-          f.id === id
-            ? { ...f, name, description, updatedAt: new Date() }
-            : f
-        )
-      )
+          f.id === id ? { ...f, name, description, updatedAt: new Date() } : f,
+        ),
+      );
     },
-    [savedFilters, persistFilters]
-  )
+    [savedFilters, persistFilters],
+  );
 
   const setDefault = useCallback(
     (id: string | null) => {
@@ -376,22 +410,22 @@ export function useSavedFilters({ storageKey, onApply }: UseSavedFiltersOptions)
         savedFilters.map((f) => ({
           ...f,
           isDefault: f.id === id,
-        }))
-      )
+        })),
+      );
     },
-    [savedFilters, persistFilters]
-  )
+    [savedFilters, persistFilters],
+  );
 
   const applyFilter = useCallback(
     (filter: AdvancedFilterState) => {
-      onApply?.(filter)
+      onApply?.(filter);
     },
-    [onApply]
-  )
+    [onApply],
+  );
 
   const defaultFilter = useMemo(() => {
-    return savedFilters.find((f) => f.isDefault)?.filter ?? null
-  }, [savedFilters])
+    return savedFilters.find((f) => f.isDefault)?.filter ?? null;
+  }, [savedFilters]);
 
   return {
     savedFilters,
@@ -401,5 +435,5 @@ export function useSavedFilters({ storageKey, onApply }: UseSavedFiltersOptions)
     setDefault,
     applyFilter,
     defaultFilter,
-  }
+  };
 }

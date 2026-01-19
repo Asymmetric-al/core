@@ -25,7 +25,7 @@ export function useEmailTemplates() {
       name: string,
       design: UnlayerDesignJSON,
       html?: string,
-      options?: Partial<EmailTemplate>
+      options?: Partial<EmailTemplate>,
     ): Promise<EmailTemplate> => {
       setIsLoading(true);
       try {
@@ -49,13 +49,13 @@ export function useEmailTemplates() {
         setIsLoading(false);
       }
     },
-    [templates, saveToStorage]
+    [templates, saveToStorage],
   );
 
   const updateTemplate = useCallback(
     async (
       id: string,
-      updates: Partial<EmailTemplate>
+      updates: Partial<EmailTemplate>,
     ): Promise<EmailTemplate | null> => {
       setIsLoading(true);
       try {
@@ -81,7 +81,7 @@ export function useEmailTemplates() {
         setIsLoading(false);
       }
     },
-    [templates, saveToStorage]
+    [templates, saveToStorage],
   );
 
   const deleteTemplate = useCallback(
@@ -96,14 +96,14 @@ export function useEmailTemplates() {
         setIsLoading(false);
       }
     },
-    [templates, saveToStorage]
+    [templates, saveToStorage],
   );
 
   const getTemplate = useCallback(
     (id: string): EmailTemplate | undefined => {
       return templates.find((t) => t.id === id);
     },
-    [templates]
+    [templates],
   );
 
   const duplicateTemplate = useCallback(
@@ -119,10 +119,10 @@ export function useEmailTemplates() {
           description: template.description,
           category: template.category,
           tags: template.tags,
-        }
+        },
       );
     },
-    [getTemplate, createTemplate]
+    [getTemplate, createTemplate],
   );
 
   return {
@@ -153,7 +153,7 @@ export function useEmailCampaigns() {
       name: string,
       subject: string,
       design: UnlayerDesignJSON,
-      options?: Partial<EmailCampaign>
+      options?: Partial<EmailCampaign>,
     ): Promise<EmailCampaign> => {
       setIsLoading(true);
       try {
@@ -177,13 +177,13 @@ export function useEmailCampaigns() {
         setIsLoading(false);
       }
     },
-    [campaigns, saveToStorage]
+    [campaigns, saveToStorage],
   );
 
   const updateCampaign = useCallback(
     async (
       id: string,
-      updates: Partial<EmailCampaign>
+      updates: Partial<EmailCampaign>,
     ): Promise<EmailCampaign | null> => {
       setIsLoading(true);
       try {
@@ -209,7 +209,7 @@ export function useEmailCampaigns() {
         setIsLoading(false);
       }
     },
-    [campaigns, saveToStorage]
+    [campaigns, saveToStorage],
   );
 
   const deleteCampaign = useCallback(
@@ -224,14 +224,14 @@ export function useEmailCampaigns() {
         setIsLoading(false);
       }
     },
-    [campaigns, saveToStorage]
+    [campaigns, saveToStorage],
   );
 
   const getCampaign = useCallback(
     (id: string): EmailCampaign | undefined => {
       return campaigns.find((c) => c.id === id);
     },
-    [campaigns]
+    [campaigns],
   );
 
   return {

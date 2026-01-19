@@ -1,25 +1,25 @@
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-import type { UserRole } from '@/types/database'
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
+import type { UserRole } from "@/types/database";
 
 export interface AuthContext {
-  userId: string | null
-  tenantId: string | null
-  role: UserRole | null
-  profileId: string | null
-  isAuthenticated: boolean
+  userId: string | null;
+  tenantId: string | null;
+  role: UserRole | null;
+  profileId: string | null;
+  isAuthenticated: boolean;
 }
 
 export interface AuthenticatedContext extends AuthContext {
-  userId: string
-  tenantId: string
-  role: UserRole
-  profileId: string
-  isAuthenticated: true
+  userId: string;
+  tenantId: string;
+  role: UserRole;
+  profileId: string;
+  isAuthenticated: true;
 }
 
 export async function getAuthContext(): Promise<AuthContext> {
-  const cookieStore = await cookies()
+  const cookieStore = await cookies();
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -27,21 +27,24 @@ export async function getAuthContext(): Promise<AuthContext> {
     {
       cookies: {
         getAll() {
-          return cookieStore.getAll()
+          return cookieStore.getAll();
         },
         setAll(cookiesToSet: { name: string; value: string; options?: any }[]) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            )
+              cookieStore.set(name, value, options),
+            );
           } catch {}
         },
       },
-    }
-  )
+    },
+  );
 
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
-  
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
   if (userError || !user) {
     return {
       userId: null,
@@ -49,14 +52,14 @@ export async function getAuthContext(): Promise<AuthContext> {
       role: null,
       profileId: null,
       isAuthenticated: false,
-    }
+    };
   }
 
   const { data: profile } = await supabase
-    .from('profiles')
-    .select('id, tenant_id, role')
-    .eq('user_id', user.id)
-    .single()
+    .from("profiles")
+    .select("id, tenant_id, role")
+    .eq("user_id", user.id)
+    .single();
 
   if (!profile) {
     return {
@@ -65,7 +68,7 @@ export async function getAuthContext(): Promise<AuthContext> {
       role: null,
       profileId: null,
       isAuthenticated: false,
-    }
+    };
   }
 
   return {
@@ -74,18 +77,30 @@ export async function getAuthContext(): Promise<AuthContext> {
     role: profile.role as UserRole,
     profileId: profile.id,
     isAuthenticated: true,
+  };
+}
+
+export function requireAuth(
+  context: AuthContext,
+): asserts context is AuthenticatedContext {
+  if (
+    !context.isAuthenticated ||
+    !context.userId ||
+    !context.tenantId ||
+    !context.role
+  ) {
+    throw new Error("Unauthorized");
   }
 }
 
-export function requireAuth(context: AuthContext): asserts context is AuthenticatedContext {
-  if (!context.isAuthenticated || !context.userId || !context.tenantId || !context.role) {
-    throw new Error('Unauthorized')
-  }
-}
-
-export function requireRole(context: AuthContext, allowedRoles: UserRole[]): asserts context is AuthenticatedContext {
-  requireAuth(context)
+export function requireRole(
+  context: AuthContext,
+  allowedRoles: UserRole[],
+): asserts context is AuthenticatedContext {
+  requireAuth(context);
   if (!allowedRoles.includes(context.role)) {
-    throw new Error(`Forbidden: requires one of ${allowedRoles.join(', ')} role`)
+    throw new Error(
+      `Forbidden: requires one of ${allowedRoles.join(", ")} role`,
+    );
   }
 }

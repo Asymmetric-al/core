@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { memo, type ReactNode } from 'react'
-import { SidebarNav } from './sidebar-nav'
-import { TopBar } from './top-bar'
+import { memo, type ReactNode } from "react";
+import { SidebarNav } from "./sidebar-nav";
+import { TopBar } from "./top-bar";
 
 interface AppShellProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export const AppShell = memo(function AppShell({ children }: AppShellProps) {
@@ -19,5 +19,5 @@ export const AppShell = memo(function AppShell({ children }: AppShellProps) {
         <main className="flex-1 overflow-auto bg-background">{children}</main>
       </div>
     </div>
-  )
-})
+  );
+});
