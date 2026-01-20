@@ -12,6 +12,7 @@ Use this when the user asks to close/finish/ship an issue or prepare a PR.
 - Quality gate must pass: `bun run format:check && bun run lint && bun run typecheck && bun run build`.
 - PR workflow: Draft -> Ready for Review -> Approved -> Merged.
 - Prefer GitHub MCP for PR/issue operations.
+- E2E is informational and must not be required for merge.
 
 ## Workflow
 
@@ -22,7 +23,7 @@ Use this when the user asks to close/finish/ship an issue or prepare a PR.
    - Run: `git log -20 --oneline`.
 3. **Verify acceptance criteria:** Use GitHub MCP to fetch issue body and checklist.
 4. **Scan TODO/FIXME:** Check changed files for TODO/FIXME.
-5. **Run relevant tests:** Use `rules/testing.md` to decide scope (e2e/a11y/perf) and run the applicable Playwright commands.
+5. **Run relevant tests:** Use `rules/testing.md` to decide scope (unit/e2e/a11y/perf) and run the applicable commands.
 6. **Run quality gate:** Fix failures and re-run until clean.
 7. **Commit/push:** Use `skills/commit/SKILL.md` and `git push`.
 8. **Request reviewers (CODEOWNERS):** Read `CODEOWNERS` and collect owner handles.
@@ -54,6 +55,13 @@ Use this when the user asks to close/finish/ship an issue or prepare a PR.
 
 ```bash
 bun run format:check && bun run lint && bun run typecheck && bun run build
+```
+
+### Relevant tests (example)
+
+```bash
+bun run test:unit
+bun run test:e2e
 ```
 
 ### Find TODO/FIXME in changed files

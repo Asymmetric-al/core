@@ -65,7 +65,7 @@ What and why.
 ## Acceptance Criteria
 
 - [ ] Specific, testable outcome
-- [ ] Tests pass (`bun run lint && bun run typecheck && bun run build`)
+- [ ] Tests pass (as applicable: `bun run test:unit`, `bun run test:e2e`, `bun run lint`, `bun run typecheck`, `bun run build`)
 ```
 
 ## Common mistakes / pitfalls
