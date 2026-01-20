@@ -46,26 +46,26 @@ This file is the deterministic entry point for all agent work in `core`.
 
 ```ts
 mcp__nia__search({
-  "query": "Where is auth handled?",
-  "repositories": ["Asymmetric-al/core"],
-  "search_mode": "repositories"
-})
+  query: "Where is auth handled?",
+  repositories: ["Asymmetric-al/core"],
+  search_mode: "repositories",
+});
 ```
 
 ```ts
 mcp__nia__nia_read({
-  "source_type": "repository",
-  "source_identifier": "Asymmetric-al/core:src/lib/supabase/server.ts"
-})
+  source_type: "repository",
+  source_identifier: "Asymmetric-al/core:src/lib/supabase/server.ts",
+});
 ```
 
 ```ts
 mcp__nia__nia_grep({
-  "source_type": "repository",
-  "repository": "Asymmetric-al/core",
-  "pattern": "createClient",
-  "path": "src"
-})
+  source_type: "repository",
+  repository: "Asymmetric-al/core",
+  pattern: "createClient",
+  path: "src",
+});
 ```
 
 Answer with citations/paths from the repo and avoid external sources unless justified.

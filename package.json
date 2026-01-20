@@ -8,6 +8,7 @@
     "build": "bun --bun next build",
     "start": "next start",
     "lint": "eslint --cache --cache-location .next/cache/eslint/",
+    "format": "prettier . --write",
     "format:check": "prettier . --check",
     "typecheck": "tsc --noEmit",
     "test": "bun run test:unit",
