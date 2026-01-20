@@ -12,6 +12,7 @@ Use this skill for one issue at a time.
 - Issue identifier must be `AL-###` and appear in the title.
 - Use GitHub MCP for issue search/create/update.
 - Do not add GitHub Projects steps unless asked.
+- If using Nia (MCP) for codebase context, scope queries to `Asymmetric-al/core` (see `AGENTS.md#nia-mcp-usage-always-repo-scoped`).
 
 ## Workflow
 

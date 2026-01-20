@@ -32,6 +32,7 @@ Use this before changing anything under `src/app`, `src/components`, or `src/fea
 
 - If you are using shadcn/studio MCP workflows (`/cui`, `/rui`, `/iui`, `/ftc`), follow `rules/shadcn-studio-mcp.md` exactly.
 - Do not apply shadcn/studio MCP rules for manual UI edits.
+- If you use Nia (MCP) to trace UI code, keep queries scoped to `Asymmetric-al/core` (see `AGENTS.md#nia-mcp-usage-always-repo-scoped`).
 
 ### State management
 

@@ -20,6 +20,14 @@ Stripe credentials are optional and only required when testing donation flows.
 
 Optional MCP tooling configuration for contributors is documented in `docs/mcp-config.example.toml`.
 
+### Nia (MCP) usage (repo-scoped)
+
+If you use Nia for repo search, follow the canonical policy in [AGENTS.md#nia-mcp-usage-always-repo-scoped](../AGENTS.md#nia-mcp-usage-always-repo-scoped). Short version:
+
+- Use your own Nia API key (never shared).
+- Add/subscribe the public `Asymmetric-al/core` indexed source in your Nia workspace and verify it appears in your resources list.
+- Always scope Nia tool calls to `Asymmetric-al/core`; if you must search outside, justify it and then run a scoped pass back inside this repo.
+
 ---
 
 ## Development Workflow
@@ -42,6 +50,21 @@ Optional MCP tooling configuration for contributors is documented in `docs/mcp-c
 # Always run these before committing
 bun run format:check
 bunx turbo run lint typecheck  # Cached checks via Turborepo
+```
+
+### PR Checks (Required)
+
+- **Required checks:** `CI / format`, `CI / lint`, `CI / typecheck`, `CI / build`, `CI / test-unit`.
+- **Informational only:** `CI / test-e2e (non-blocking)` must not be required for merge.
+
+Maintainers must configure branch protection (Settings → Branches → Require status checks to pass) to require only the checks above and to exclude E2E.
+
+### Local Verification (Before PR)
+
+```bash
+bun run format:check
+bunx turbo run lint typecheck build
+bun run test:unit
 ```
 
 ---

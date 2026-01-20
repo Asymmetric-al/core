@@ -13,6 +13,7 @@ Use this skill when asked to generate multiple actionable issues.
 - Title format: `AL-<issue_number>: <short title>`.
 - Labels: exactly one `complexity:*`, one `type:*`, one `status:*` (default `status:todo`).
 - Prefer GitHub MCP; do not assume `gh` is available.
+- If using Nia (MCP) for repo scanning, scope queries to `Asymmetric-al/core` (see `AGENTS.md#nia-mcp-usage-always-repo-scoped`).
 
 ### Label taxonomy (locked)
 

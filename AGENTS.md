@@ -9,15 +9,27 @@ This file is the deterministic entry point for all agent work in `core`.
 
 ## Tooling (Required)
 
-### Nia (default for repo context)
+### Nia (MCP) usage: always repo-scoped
 
-**Use when:**
+**Default for repo context. Use when:**
 
 - "where is...", "how does...", "what calls...", "find...", "trace..."
 - architecture, patterns, entry points, data flow
 - refactors/renames/multi-file edits
 - regressions across modules
 - verifying existing integrations
+
+**Repo scoping (required):**
+
+- Always include repo scope in Nia tool calls: `repository="Asymmetric-al/core"` or `repositories=["Asymmetric-al/core"]`.
+- If a tool lacks repo selection, use the most restrictive equivalent (path filters, file globs, repo-specific search endpoints) and state it explicitly.
+- Outside-repo searches are rare. If needed, include a short justification in the prompt and run a second scoped pass inside `Asymmetric-al/core` before making changes.
+
+**Shared index setup (contributors):**
+
+- Use your own Nia API key (never shared).
+- Add/subscribe the public `Asymmetric-al/core` indexed source in your Nia workspace.
+- Verify the repo appears in your Nia resources list; otherwise scoped queries will fail.
 
 **Actions:**
 
@@ -29,6 +41,34 @@ This file is the deterministic entry point for all agent work in `core`.
 
 - say so explicitly
 - fall back to `rg` + direct file reads (show commands or paths checked)
+
+**Examples (repo-scoped):**
+
+```ts
+mcp__nia__search({
+  "query": "Where is auth handled?",
+  "repositories": ["Asymmetric-al/core"],
+  "search_mode": "repositories"
+})
+```
+
+```ts
+mcp__nia__nia_read({
+  "source_type": "repository",
+  "source_identifier": "Asymmetric-al/core:src/lib/supabase/server.ts"
+})
+```
+
+```ts
+mcp__nia__nia_grep({
+  "source_type": "repository",
+  "repository": "Asymmetric-al/core",
+  "pattern": "createClient",
+  "path": "src"
+})
+```
+
+Answer with citations/paths from the repo and avoid external sources unless justified.
 
 ### Context7 (default for third-party APIs)
 
@@ -95,6 +135,7 @@ Load the skill(s) below when the trigger matches.
 - [ ] Identified domain(s) and opened the matching rulebook(s)
 - [ ] Applied required skills based on triggers
 - [ ] Used Nia or Context7 when required (or explicitly noted fallback)
+- [ ] Nia tool calls are repo-scoped to `Asymmetric-al/core`
 
 ### Response checklist
 
@@ -104,13 +145,14 @@ Load the skill(s) below when the trigger matches.
 
 ## Minimal examples
 
-- **"Where is auth handled?"** -> Use Nia to find auth entry points; then open `rules/backend.md`.
+- **"Where is auth handled?"** -> Use Nia scoped to `Asymmetric-al/core` to find auth entry points; then open `rules/backend.md`.
 - **"Add a new UI card component."** -> Open `rules/frontend.md` and `skills/react-component-dev/SKILL.md`.
 - **"Use /cui for a page."** -> Open `rules/shadcn-studio-mcp.md` and follow its workflow exactly.
 
 ## Common mistakes / pitfalls
 
 - Skipping Nia on multi-file or architecture questions
+- Running unscoped Nia searches outside `Asymmetric-al/core`
 - Using shadcn/studio tools without `rules/shadcn-studio-mcp.md`
 - Mixing rulebooks with conflicting instructions instead of reconciling them
 - Forgetting to update docs after behavior changes
