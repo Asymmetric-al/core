@@ -28,6 +28,7 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 - `bun run lint`
 - `bun run typecheck`
 - `bun run build`
+- `bun run test:unit`
 
 ### File hygiene
 
@@ -56,13 +57,13 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 ### PR checklist
 
 - [ ] Branch is not `main`
-- [ ] CI gates pass (`lint`, `typecheck`, `build`)
+- [ ] CI gates pass (`format:check`, `lint`, `typecheck`, `build`, `test:unit`)
 - [ ] Changes are minimal and scoped
 
 ## Minimal examples
 
 - Branch name: `feature/AL-123-add-metrics-card`
-- CI command: `bun run format:check && bun run lint && bun run typecheck && bun run build`
+- CI command: `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
 
 ## Common mistakes / pitfalls
 
