@@ -17,6 +17,7 @@ Use this skill when the user asks to implement/build/solve an issue.
 - Keep diffs minimal and scoped to acceptance criteria.
 - Do not edit `.md` files unless the user explicitly asks. If behavior changes, propose doc updates and get approval before editing.
 - Quality gate for handoff: `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`.
+- Formatting: fix with `bun run format`, verify with `bun run format:check`.
 
 ## Workflow
 
@@ -50,6 +51,7 @@ Use this skill when the user asks to implement/build/solve an issue.
 
 - [ ] Relevant tests run
 - [ ] Quality gate passed (or explicitly deferred)
+- [ ] Formatting fixed with `bun run format` and verified with `bun run format:check`
 - [ ] Doc update approval requested if behavior changed
 
 ## Minimal examples
@@ -62,6 +64,13 @@ Use this skill when the user asks to implement/build/solve an issue.
 - Update {path} to {behavior}
 - Add {test} for {scenario}
 - Verify with `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
+```
+
+### Formatting
+
+```bash
+bun run format
+bun run format:check
 ```
 
 ### Commit with issue reference

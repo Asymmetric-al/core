@@ -48,6 +48,7 @@ If you use Nia for repo search, follow the canonical policy in [AGENTS.md#nia-mc
 
 ```bash
 # Always run these before committing
+bun run format
 bun run format:check
 bunx turbo run lint typecheck  # Cached checks via Turborepo
 ```
@@ -62,6 +63,7 @@ Maintainers must configure branch protection (Settings → Branches → Require 
 ### Local Verification (Before PR)
 
 ```bash
+bun run format
 bun run format:check
 bunx turbo run lint typecheck build
 bun run test:unit
@@ -178,6 +180,9 @@ bunx turbo run dev
 
 # Cached checks
 bunx turbo run lint typecheck build
+
+# Format fix
+bun run format
 
 # Format check
 bun run format:check
