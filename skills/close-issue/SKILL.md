@@ -10,6 +10,7 @@ Use this when the user asks to close/finish/ship an issue or prepare a PR.
 ## Rules
 
 - Quality gate must pass: `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`.
+- Formatting: fix with `bun run format`, verify with `bun run format:check`.
 - PR workflow: Draft -> Ready for Review -> Approved -> Merged.
 - Prefer GitHub MCP for PR/issue operations.
 - If using Nia (MCP) for repo context, scope queries to `Asymmetric-al/core` (see `AGENTS.md#nia-mcp-usage-always-repo-scoped`).
@@ -46,6 +47,7 @@ Use this when the user asks to close/finish/ship an issue or prepare a PR.
 
 - [ ] Relevant tests run (per `rules/testing.md`)
 - [ ] Quality gate passes
+- [ ] Formatting fixed with `bun run format` and verified with `bun run format:check`
 - [ ] `CI / format` passes on the PR
 - [ ] No unintended TODO/FIXME
 - [ ] Reviewers requested from `CODEOWNERS`
@@ -57,6 +59,13 @@ Use this when the user asks to close/finish/ship an issue or prepare a PR.
 
 ```bash
 bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit
+```
+
+### Formatting
+
+```bash
+bun run format
+bun run format:check
 ```
 
 ### Relevant tests (example)
