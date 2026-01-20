@@ -24,8 +24,9 @@ Optional MCP tooling configuration for contributors is documented in `docs/mcp-c
 
 If you use Nia for repo search, follow the canonical policy in [AGENTS.md#nia-mcp-usage-always-repo-scoped](../AGENTS.md#nia-mcp-usage-always-repo-scoped). Short version:
 
-- Use your own Nia API key (never shared).
-- Add/subscribe the public `Asymmetric-al/core` indexed source in your Nia workspace and verify it appears in your resources list.
+- Contributors use their own Nia API key and subscribe to the public `Asymmetric-al/core` indexed source (never share keys).
+- Keep `docs/ai/working-set.md` updated and use `docs/ai/stack-registry.md` to select accurate stack tags.
+- Nia search calls must include the required preamble at the top of the `query` string.
 - Always scope Nia tool calls to `Asymmetric-al/core`; if you must search outside, justify it and then run a scoped pass back inside this repo.
 
 ---
