@@ -9,9 +9,10 @@ Use this when the user asks to close/finish/ship an issue or prepare a PR.
 
 ## Rules
 
-- Quality gate must pass: `bun run format:check && bun run lint && bun run typecheck && bun run build`.
+- Quality gate must pass: `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`.
 - PR workflow: Draft -> Ready for Review -> Approved -> Merged.
 - Prefer GitHub MCP for PR/issue operations.
+- If using Nia (MCP) for repo context, scope queries to `Asymmetric-al/core` (see `AGENTS.md#nia-mcp-usage-always-repo-scoped`).
 - E2E is informational and must not be required for merge.
 
 ## Workflow
@@ -45,6 +46,7 @@ Use this when the user asks to close/finish/ship an issue or prepare a PR.
 
 - [ ] Relevant tests run (per `rules/testing.md`)
 - [ ] Quality gate passes
+- [ ] `CI / format` passes on the PR
 - [ ] No unintended TODO/FIXME
 - [ ] Reviewers requested from `CODEOWNERS`
 - [ ] PR updated and ready for review
@@ -54,7 +56,7 @@ Use this when the user asks to close/finish/ship an issue or prepare a PR.
 ### Quality gate
 
 ```bash
-bun run format:check && bun run lint && bun run typecheck && bun run build
+bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit
 ```
 
 ### Relevant tests (example)

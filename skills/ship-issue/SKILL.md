@@ -12,7 +12,8 @@ Use this when the user asks to "ship" an issue.
 - Issues are `AL-###` and titles follow `AL-###: ...`.
 - Branches and PRs are based on `develop`.
 - Commits include `ref AL-###` when applicable.
-- Quality gate: `bun run format:check && bun run lint && bun run typecheck && bun run build`.
+- Quality gate: `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`.
+- If using Nia (MCP) for repo context during this workflow, scope queries to `Asymmetric-al/core` (see `AGENTS.md#nia-mcp-usage-always-repo-scoped`).
 
 ## Workflow
 
@@ -41,6 +42,7 @@ Use this when the user asks to "ship" an issue.
 - [ ] Draft PR created
 - [ ] Commits include `ref AL-###`
 - [ ] Quality gate passes
+- [ ] `CI / format` passes on the PR
 - [ ] PR marked ready for review
 
 ## Minimal examples
@@ -53,7 +55,7 @@ Use this when the user asks to "ship" an issue.
 ### Quality gate
 
 ```bash
-bun run format:check && bun run lint && bun run typecheck && bun run build
+bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit
 ```
 
 ## Common mistakes / pitfalls
