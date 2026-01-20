@@ -42,10 +42,9 @@
 # command = "pipx"
 # args = ["run", "--no-cache", "nia-mcp-server"]
 # startup_timeout_ms = 30000
-# Nia usage in this repo is always repo-scoped.
-# Use your own NIA_API_KEY (never shared).
-# Add/subscribe the public Asymmetric-al/core indexed source in your Nia workspace
-# and verify it appears in your resources list.
+# Nia usage in this repo is always repo-scoped and search calls must include the required preamble.
+# Contributors use their own NIA_API_KEY and subscribe to the public Asymmetric-al/core indexed source (never share keys).
+# Keep docs/ai/working-set.md updated and use docs/ai/stack-registry.md to build preambles.
 # See AGENTS.md#nia-mcp-usage-always-repo-scoped for policy + examples.
 
 # [mcp_servers.nia.env]
