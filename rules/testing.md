@@ -10,13 +10,19 @@ Use this when adding tests, modifying critical flows, or verifying changes.
 ## Rules
 
 - **E2E framework:** Playwright (configured in `playwright.config.ts`).
-- **Unit tests:** Not configured; do not add unless requested.
+- **Unit tests:** Vitest (configured for `tests/unit/**/*.test.ts(x)`).
 - **Accessibility:** `@axe-core/playwright`.
 - **Performance:** Playwright-based Web Vitals assertions.
 
+## Branch protection (required)
+
+- **Required PR checks:** `test-unit` (optionally `format`, `lint`, `typecheck`, `build`).
+- **Non-blocking informational checks:** `test-e2e` (non-blocking).
+- **Repo admins:** Configure GitHub Branch Protection to require only unit tests (and any other desired checks) and do **not** require the E2E check.
+
 ## Workflow
 
-1. Decide the test scope (e2e, a11y, perf, or specific user flow).
+1. Decide the test scope (unit, e2e, a11y, perf, or specific user flow).
 2. Add coverage to the appropriate Playwright specs if needed.
 3. Run the relevant Playwright command(s) before marking a PR ready.
 4. Fix failures before proceeding.
@@ -28,6 +34,7 @@ Use this when adding tests, modifying critical flows, or verifying changes.
 - [ ] New pages added to `tests/e2e/accessibility.spec.ts`
 - [ ] Performance thresholds are preserved
 - [ ] Critical user flows have Playwright coverage
+- [ ] Unit tests added for new logic/utils where applicable
 
 ### Review checklist
 
@@ -35,6 +42,7 @@ Use this when adding tests, modifying critical flows, or verifying changes.
 - [ ] Locators use `getByRole` or `getByText`
 - [ ] No XPath or brittle CSS selectors
 - [ ] Test commands captured in PR summary when closing issues
+- [ ] Unit tests avoid network calls and shared state
 
 ## Minimal examples
 
@@ -42,6 +50,12 @@ Use this when adding tests, modifying critical flows, or verifying changes.
 
 ```bash
 bun run test:e2e
+```
+
+### Run unit tests
+
+```bash
+bun run test:unit
 ```
 
 ### Run a11y checks
