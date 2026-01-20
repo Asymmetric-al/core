@@ -27,7 +27,7 @@ Use this skill when the user asks to implement/build/solve an issue.
 5. **Draft a plan:** Summarize changes and testing, then ask for approval before editing.
 6. **Implement iteratively:** Make small changes, update/add tests per acceptance criteria, and keep commits atomic.
    - Use `skills/commit/SKILL.md` for commit messages.
-7. **Verify:** Run relevant tests during implementation. Before handoff, run the quality gate or note why it is deferred.
+7. **Verify:** Run relevant tests during implementation (use `rules/testing.md` to choose unit/e2e/a11y/perf). Before handoff, run the quality gate or note why it is deferred.
 8. **Report status:** List changed paths, blast radius if multi-file, testing results, and verification steps. If behavior changed, propose doc updates and ask for approval. Suggest `/close-issue` when ready.
 
 ## Checklists
