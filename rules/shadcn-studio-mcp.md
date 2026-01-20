@@ -7,7 +7,7 @@ Use this only when running shadcn/studio MCP workflows.
 **Applies when:** Using shadcn/studio MCP workflows `/cui`, `/rui`, `/iui`, or `/ftc`.
 **Do not use when:** Editing UI manually without shadcn/studio MCP tools.
 
-**Note:** Nia (MCP) searches must remain repo-scoped to `Asymmetric-al/core` (see `AGENTS.md#nia-mcp-usage-always-repo-scoped`).
+**Note:** Nia (MCP) searches must remain repo-scoped to `Asymmetric-al/core` and include the required preamble from `docs/ai/working-set.md` + `docs/ai/stack-registry.md` (see `AGENTS.md#nia-mcp-usage-always-repo-scoped`).
 
 ## Workflow
 
