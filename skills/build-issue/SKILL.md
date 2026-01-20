@@ -11,19 +11,19 @@ Use this skill when the user asks to implement/build/solve an issue.
 
 - Issue keys must match `AL-###`.
 - Prefer GitHub MCP for issue/PR lookups and updates.
-- Use Nia for codebase search/trace (paths, entry points, patterns).
+- Use Nia for codebase search/trace (paths, entry points, patterns), always scoped to `Asymmetric-al/core` (see `AGENTS.md#nia-mcp-usage-always-repo-scoped`).
 - Use Context7 for third-party API usage.
 - Branch should already exist (use `skills/start-issue/SKILL.md` if not).
 - Keep diffs minimal and scoped to acceptance criteria.
 - Do not edit `.md` files unless the user explicitly asks. If behavior changes, propose doc updates and get approval before editing.
-- Quality gate for handoff: `bun run lint && bun run typecheck && bun run build`.
+- Quality gate for handoff: `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`.
 
 ## Workflow
 
 1. **Confirm issue key(s):** If missing, ask for `AL-###`. Validate format.
 2. **Fetch issue details (MCP):** Capture title, context, acceptance criteria, and testing notes.
 3. **Load rulebooks/skills:** Always apply `rules/general.md`. Add `rules/frontend.md`, `rules/backend.md`, or `rules/testing.md` as needed. Load any matching skills (e.g., Next.js App Router, cache components).
-4. **Discover code context (Nia):** Find affected paths, existing patterns, and related components. Cite exact files/functions.
+4. **Discover code context (Nia):** Find affected paths, existing patterns, and related components. Keep Nia queries scoped to `Asymmetric-al/core` and cite exact files/functions.
 5. **Draft a plan:** Summarize changes and testing, then ask for approval before editing.
 6. **Implement iteratively:** Make small changes, update/add tests per acceptance criteria, and keep commits atomic.
    - Use `skills/commit/SKILL.md` for commit messages.
@@ -61,7 +61,7 @@ Use this skill when the user asks to implement/build/solve an issue.
 
 - Update {path} to {behavior}
 - Add {test} for {scenario}
-- Verify with `bun run lint && bun run typecheck && bun run build`
+- Verify with `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
 ```
 
 ### Commit with issue reference
@@ -74,6 +74,7 @@ git commit -m "feat(feature): add XYZ" -m "ref AL-123"
 
 - Implementing without a valid `AL-###` key
 - Skipping Nia when tracing affected areas
+- Running unscoped Nia searches outside `Asymmetric-al/core`
 - Using third-party APIs without Context7
 - Editing docs without explicit user approval
 - Leaving tests or quality gate unaddressed

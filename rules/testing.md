@@ -16,9 +16,11 @@ Use this when adding tests, modifying critical flows, or verifying changes.
 
 ## Branch protection (required)
 
-- **Required PR checks:** `test-unit` (optionally `format`, `lint`, `typecheck`, `build`).
-- **Non-blocking informational checks:** `test-e2e` (non-blocking).
-- **Repo admins:** Configure GitHub Branch Protection to require only unit tests (and any other desired checks) and do **not** require the E2E check.
+- **Required PR checks:** `CI / format`, `CI / lint`, `CI / typecheck`, `CI / build`, `CI / test-unit`.
+- **Non-blocking informational checks:** `CI / test-e2e (non-blocking)` must **not** be required.
+- **Repo admins:** Settings → Branches → Branch protection rules → Require status checks to pass:
+  - Require the checks above.
+  - Do **not** require the E2E check.
 
 ## Workflow
 

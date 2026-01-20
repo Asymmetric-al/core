@@ -14,6 +14,7 @@ Use this skill when beginning implementation work tied to GitHub issues.
 - Branch format: `al-123-short-kebab-title` (first issue key is primary).
 - PR title format: `AL-123: <issue title>`.
 - PR body must include `fixes AL-###` for each issue.
+- If using Nia (MCP) for repo context, scope queries to `Asymmetric-al/core` (see `AGENTS.md#nia-mcp-usage-always-repo-scoped`).
 
 ## Workflow
 
