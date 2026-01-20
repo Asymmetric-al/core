@@ -29,6 +29,7 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 - `bun run typecheck`
 - `bun run build`
 - `bun run test:unit`
+- **Formatting:** Fix with `bun run format`, then verify with `bun run format:check`.
 
 ### File hygiene
 
@@ -58,6 +59,7 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 
 - [ ] Branch is not `main`
 - [ ] CI gates pass (`format:check`, `lint`, `typecheck`, `build`, `test:unit`)
+- [ ] Formatting fixed with `bun run format` and verified with `bun run format:check`
 - [ ] Changes are minimal and scoped
 
 ## Minimal examples

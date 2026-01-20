@@ -157,7 +157,7 @@ This project uses **bun** (v1.3+). Do not use npm/yarn/pnpm.
 
 Common commands:
 
-- `bun run format:check`, `bun run lint`, and `bun run typecheck`
+- `bun run format` (fix), `bun run format:check` (verify), `bun run lint`, and `bun run typecheck`
 - `bun run test:e2e`
 
 ### Turborepo (Task Orchestration + Cache)
@@ -166,7 +166,7 @@ Use Turbo for consistent task execution (and caching where applicable):
 
 - Local dev: `bunx turbo run dev`
 - Cached checks: `bunx turbo run lint typecheck build`
-- Format check: `bun run format:check`
+- Formatting: `bun run format` (fix) / `bun run format:check` (verify)
 
 Remote caching (Vercel Remote Cache) is enabled for internal PRs and `main` branch CI only. Fork PRs are not supported.
 
@@ -186,6 +186,7 @@ Remote caching (Vercel Remote Cache) is enabled for internal PRs and `main` bran
 
 ```bash
 # Full verification suite
+bun run format
 bun run format:check
 bunx turbo run typecheck lint build
 
