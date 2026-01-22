@@ -9,7 +9,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@asym/ui/components/shadcn/dialog";
@@ -47,7 +46,11 @@ import {
   CommandList,
 } from "@asym/ui/components/shadcn/command";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
 import { createBrowserClient } from "@asym/database/supabase";
 import { useAuth } from "@asym/lib/hooks";
 import { toast } from "sonner";
@@ -61,7 +64,6 @@ import {
   UserPlus,
   Heart,
   Users,
-  Clock,
   Bell,
   Flag,
   X,
@@ -71,7 +73,6 @@ import {
 } from "lucide-react";
 import type {
   Task,
-  TaskFormData,
   TaskType,
   TaskStatus,
   TaskPriority,

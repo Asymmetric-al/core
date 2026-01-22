@@ -6,7 +6,11 @@ import { Suspense } from "react";
 import { getFieldWorkerById, getFieldWorkers } from "@/lib/mock-data";
 import { createWorkerMetadata } from "@asym/lib/seo";
 import { WorkerJsonLd, BreadcrumbJsonLd } from "@asym/lib/seo";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -93,7 +97,6 @@ const PUBLIC_UPDATES = [
 
 function UpdateCard({
   update,
-  workerTitle,
 }: {
   update: (typeof PUBLIC_UPDATES)[0];
   workerTitle: string;

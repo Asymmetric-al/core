@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import {  XIcon } from "lucide-react";
+import { XIcon } from "lucide-react";
 import { cn } from "@asym/ui/lib/utils";
 import { Button } from "../../button";
 import {
@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../select";
-import type { SelectCellProps, SelectOption } from "./types";
+import type { SelectCellProps } from "./types";
 
 export function SelectCell<TData>({
   value,

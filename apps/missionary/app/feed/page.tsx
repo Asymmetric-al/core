@@ -72,7 +72,6 @@ import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { PageHeader } from "@asym/ui/components/page-header";
 import { TimeAgo, useLastSynced } from "@asym/lib/hooks";
-import { BrandAvatar, brandConfig } from "@asym/ui/components/brand-logo";
 
 const RichTextEditor = dynamic(
   () =>

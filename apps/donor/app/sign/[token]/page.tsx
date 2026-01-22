@@ -26,7 +26,7 @@ export default function SignStudioPublicSigningPage({
 }: {
   params: Promise<{ token: string }>;
 }) {
-  const { token } = use(params);
+  use(params);
   const [step, setStep] = useState<"review" | "signing" | "completed">(
     "review",
   );

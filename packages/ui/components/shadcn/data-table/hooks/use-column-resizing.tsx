@@ -49,12 +49,11 @@ function removeFromStorage(key: string) {
 }
 
 export function useColumnResizing<TData>(
-  table: Table<TData>,
+  _table: Table<TData>,
   options: ColumnResizingOptions = {},
 ): UseColumnResizingReturn {
   const {
     enabled = true,
-    defaultColumnSize = 150,
     minColumnSize = 50,
     maxColumnSize = 500,
     persistKey,

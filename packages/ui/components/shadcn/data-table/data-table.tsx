@@ -18,7 +18,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Search, Inbox } from "lucide-react";
+import { Inbox } from "lucide-react";
 
 import { cn } from "@asym/ui/lib/utils";
 import {

@@ -110,7 +110,6 @@ export function ImageUpload({
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [originalFile, setOriginalFile] = useState<File | null>(null);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -130,8 +129,6 @@ export function ImageUpload({
     }
 
     try {
-      setOriginalFile(file);
-
       const dataUrl = await loadImageAsDataUrl(file);
       const loadValidation = await validateImageLoads(dataUrl);
       if (!loadValidation.valid) {
@@ -278,7 +275,6 @@ export function ImageUpload({
       } finally {
         setIsUploading(false);
         setSelectedImage(null);
-        setOriginalFile(null);
         uploadInProgressRef.current = false;
       }
     },
@@ -288,7 +284,6 @@ export function ImageUpload({
   const handleCancel = useCallback(() => {
     setIsCropperOpen(false);
     setSelectedImage(null);
-    setOriginalFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }

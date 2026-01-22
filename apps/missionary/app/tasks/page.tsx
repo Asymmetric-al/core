@@ -5,7 +5,6 @@ import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { isToday, isPast } from "date-fns";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Tabs, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { PageShell } from "@asym/ui/components/shadcn/page-shell";
@@ -13,7 +12,6 @@ import { FilterBar } from "@asym/ui/components/shadcn/filter-bar";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -31,7 +29,6 @@ import {
 } from "@asym/ui/components/shadcn/alert-dialog";
 import {
   Plus,
-  
   CheckCircle2,
   Phone,
   Mail,

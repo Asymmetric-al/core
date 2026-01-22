@@ -1,18 +1,32 @@
 "use client";
 
 import * as React from "react";
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
-import { createBrowserClient } from "@asym/database/supabase";
+
 import { motion, AnimatePresence, LayoutGroup } from "motion/react";
-import { Card, CardContent, CardHeader, CardTitle } from "@asym/ui/components/shadcn/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@asym/ui/components/shadcn/card";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
 import { Label } from "@asym/ui/components/shadcn/label";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@asym/ui/components/shadcn/tabs";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@asym/ui/components/shadcn/tabs";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { PageHeader } from "@asym/ui/components/page-header";
 import {
@@ -40,7 +54,6 @@ import {
   Youtube,
   Link as LinkIcon,
   Check,
-  
   User,
   ExternalLink,
   Copy,
@@ -574,8 +587,8 @@ function DesktopPreviewFrame({ children }: { children: React.ReactNode }) {
 export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [isUploading] = useState(false);
+  const [isUploadingCover] = useState(false);
   const [previewMode, setPreviewMode] = useState<PreviewMode>("mobile");
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -584,9 +597,6 @@ export default function ProfilePage() {
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
     {},
   );
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const coverInputRef = useRef<HTMLInputElement>(null);
 
   const [profile, setProfile] = useState<ProfileData>(initialProfile);
   const [originalProfile, setOriginalProfile] =
@@ -700,142 +710,6 @@ export default function ProfilePage() {
     },
     [validationErrors],
   );
-
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file");
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image must be smaller than 5MB");
-      return;
-    }
-
-    setIsUploading(true);
-    const supabase = createBrowserClient();
-
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("profiles")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("profiles").getPublicUrl(filePath);
-
-      const oldAvatarUrl = profile.avatarUrl;
-      setProfile((prev) => ({ ...prev, avatarUrl: publicUrl }));
-
-      if (oldAvatarUrl) {
-        try {
-          const oldPath = oldAvatarUrl.split("/public/profiles/")[1];
-          if (oldPath) {
-            await supabase.storage.from("profiles").remove([oldPath]);
-          }
-        } catch (err) {
-          console.warn("Failed to delete old avatar:", err);
-        }
-      }
-
-      const res = await fetch("/api/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ avatarUrl: publicUrl }),
-      });
-
-      if (!res.ok) throw new Error("Failed to update profile");
-
-      setOriginalProfile((prev) => ({ ...prev, avatarUrl: publicUrl }));
-      toast.success("Profile picture updated");
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to upload image";
-      console.error("Upload error:", error);
-      toast.error(errorMessage);
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    }
-  };
-
-  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file");
-      return;
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("Image must be smaller than 10MB");
-      return;
-    }
-
-    setIsUploadingCover(true);
-    const supabase = createBrowserClient();
-
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      const fileExt = file.name.split(".").pop();
-      const fileName = `cover-${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `covers/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("profiles")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("profiles").getPublicUrl(filePath);
-
-      setProfile((prev) => ({ ...prev, coverUrl: publicUrl }));
-
-      const res = await fetch("/api/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ coverUrl: publicUrl }),
-      });
-
-      if (!res.ok) throw new Error("Failed to update profile");
-
-      setOriginalProfile((prev) => ({ ...prev, coverUrl: publicUrl }));
-      toast.success("Cover photo uploaded");
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to upload cover image";
-      console.error("Cover upload error:", error);
-      toast.error(errorMessage);
-    } finally {
-      setIsUploadingCover(false);
-      if (coverInputRef.current) {
-        coverInputRef.current.value = "";
-      }
-    }
-  };
 
   const handleSave = async () => {
     if (!validateProfile()) {

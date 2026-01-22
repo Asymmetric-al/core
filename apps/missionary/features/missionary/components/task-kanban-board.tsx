@@ -315,13 +315,7 @@ interface KanbanCardProps {
   onDelete: (task: Task) => void;
 }
 
-function KanbanCard({
-  task,
-  isOverlay,
-  onEdit,
-  onComplete,
-  onDelete,
-}: KanbanCardProps) {
+function KanbanCard({ task, isOverlay, onEdit, onComplete }: KanbanCardProps) {
   const {
     attributes,
     listeners,

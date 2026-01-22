@@ -296,7 +296,7 @@ function ImageButton({ editor }: { editor: Editor }) {
     const filePath = `editor/${fileName}`;
 
     try {
-      const { error: uploadError, data } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from("document-uploads")
         .upload(filePath, file);
 

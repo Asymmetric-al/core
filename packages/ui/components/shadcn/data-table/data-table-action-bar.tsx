@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import type { Table } from "@tanstack/react-table";
-import { X, Trash2, Download, RefreshCcw } from "lucide-react";
+import { X, Trash2, Download } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { cn } from "@asym/ui/lib/utils";

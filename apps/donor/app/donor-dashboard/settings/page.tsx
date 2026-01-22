@@ -22,8 +22,6 @@ import {
   Heart,
   Globe,
   AlertTriangle,
-  
-  
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -38,10 +36,13 @@ import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { Switch } from "@asym/ui/components/shadcn/switch";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
-import { Separator } from "@asym/ui/components/shadcn/separator";
-import { Badge } from "@asym/ui/components/shadcn/badge";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import { cn } from "@asym/ui/lib/utils";
 
 // --- Types ---
