@@ -4,9 +4,9 @@ import {
   requireAuth,
   requireRole,
   type AuthenticatedContext,
-} from "@/lib/auth/context";
+} from "@asym/auth/context";
 import { createAuditLogger } from "@/lib/audit/logger";
-import { getAdminClient } from "@/lib/supabase/admin";
+import { getAdminClient } from "@asym/database/supabase";
 
 export async function PATCH(
   request: NextRequest,

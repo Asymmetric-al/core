@@ -20,11 +20,11 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+} from "@asym/ui/components/shadcn/card";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn } from "@asym/lib/utils";
 
 export default function AdminPage() {
   return (

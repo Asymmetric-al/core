@@ -13,17 +13,17 @@ import {
 } from "lucide-react";
 
 import { Location, LocationStatus, LocationType } from "../hooks/use-locations";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { DataTableWrapper } from "@/components/ui/data-table/data-table-wrapper";
-import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { DataTableWrapper } from "@asym/ui/components/shadcn/data-table/data-table-wrapper";
+import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table/data-table-column-header";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { cn } from "@asym/lib/utils";
 
 interface LocationTableProps {
   data: Location[];

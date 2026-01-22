@@ -1,9 +1,9 @@
 "use client";
 
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset } from "@asym/ui/components/shadcn/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { AppHeader } from "@/components/app-header";
-import { DashboardFooter } from "@/components/dashboard-footer";
+import { DashboardFooter } from "@asym/ui/components/dashboard-footer";
 
 type UserRole = "donor" | "missionary" | "admin";
 

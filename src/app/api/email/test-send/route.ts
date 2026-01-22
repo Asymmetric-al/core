@@ -49,7 +49,7 @@
  */
 
 import { NextResponse } from "next/server";
-import { sendTestEmail } from "@/lib/email/sendgrid";
+import { sendTestEmail } from "@asym/email/sendgrid";
 
 interface TestSendRequest {
   apiKey: string;

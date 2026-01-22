@@ -2,9 +2,9 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { Check, ChevronsUpDown, X } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { cn } from "@asym/lib/utils";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Command,
   CommandEmpty,
@@ -12,12 +12,12 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
+} from "@asym/ui/components/shadcn/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from "@asym/ui/components/shadcn/popover";
 import type {
   FilterFieldDefinition,
   FilterOperator,

@@ -8,7 +8,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
+} from "@asym/ui/components/shadcn/command";
 import {
   Search,
   User,
@@ -21,9 +21,9 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { CarePersonnel } from "../types";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { cn } from "@asym/lib/utils";
 
 interface CareToolsProps {
   personnel: CarePersonnel[];

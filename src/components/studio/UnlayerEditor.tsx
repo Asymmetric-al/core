@@ -20,23 +20,23 @@ import type {
   UnlayerOptions,
   UnlayerMergeTags,
   UnlayerAppearance,
-} from "@/types/email-studio";
+} from "@asym/email/email-studio-types";
 import {
   getEmailStudioConfig,
   getUnlayerAccountConfig,
   DEFAULT_APPEARANCE,
   DEFAULT_MERGE_TAGS,
   type EmailStudioFullConfig,
-} from "@/config/email-studio";
+} from "@asym/config/email-studio";
 import {
   getPDFStudioConfig,
   DEFAULT_PDF_APPEARANCE,
   DEFAULT_PDF_MERGE_TAGS,
   type PDFStudioFullConfig,
-} from "@/config/pdf-studio";
-import { cn } from "@/lib/utils";
+} from "@asym/config/pdf-studio";
+import { cn } from "@asym/lib/utils";
 import { Mail, FileText, Loader2 } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
+import { Progress } from "@asym/ui/components/shadcn/progress";
 
 type StudioConfig = EmailStudioFullConfig | PDFStudioFullConfig;
 

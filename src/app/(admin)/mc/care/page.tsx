@@ -7,10 +7,10 @@ import {
 } from "@/features/mission-control/care/hooks/use-care";
 import { CareDashboard } from "@/features/mission-control/care/components/CareDashboard";
 import { CareTools } from "@/features/mission-control/care/components/CareTools";
-import { Button } from "@/components/ui/button";
+import { Button } from "@asym/ui/components/shadcn/button";
 import { Heart, BookOpen } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { cn } from "@asym/lib/utils";
 
 export default function MemberCareDashboardPage() {
   const { data: personnel, isLoading: loadingPersonnel } = useCarePersonnel();

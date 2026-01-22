@@ -10,11 +10,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Spinner } from "@/components/ui/spinner";
-import type { MediaItem } from "@/types/database";
+} from "@asym/ui/components/shadcn/dialog";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Textarea } from "@asym/ui/components/shadcn/textarea";
+import { Spinner } from "@asym/ui/components/shadcn/spinner";
+import type { MediaItem } from "@asym/database/types";
 
 interface NewPostDialogProps {
   open: boolean;

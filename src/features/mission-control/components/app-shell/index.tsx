@@ -26,9 +26,9 @@ import {
   Settings,
   CheckSquare,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
+import { Sheet, SheetContent, SheetTrigger } from "@asym/ui/components/shadcn/sheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,11 +36,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { Avatar, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
+import { cn } from "@asym/lib/utils";
 import Logo from "@/components/shadcn-studio/logo";
-import { DashboardFooter } from "@/components/dashboard-footer";
+import { DashboardFooter } from "@asym/ui/components/dashboard-footer";
 
 const navigation = [
   { name: "Overview", href: "/mc", icon: LayoutDashboard },

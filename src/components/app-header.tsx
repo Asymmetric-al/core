@@ -2,15 +2,15 @@
 
 import { Moon, Sun, Bell } from "lucide-react";
 import { useTheme } from "next-themes";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@asym/ui/components/shadcn/sidebar";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Separator } from "@asym/ui/components/shadcn/separator";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@asym/ui/components/shadcn/dropdown-menu";
 
 interface AppHeaderProps {
   title?: string;

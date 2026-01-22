@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMC } from "@/lib/mission-control/context";
 import { TILES } from "@/lib/mission-control/tiles";
 import { getIcon } from "../icons";
-import { Button } from "@/components/ui/button";
+import { Button } from "@asym/ui/components/shadcn/button";
 
 const ROLE_QUICK_ACTIONS: Record<
   string,

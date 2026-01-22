@@ -7,19 +7,19 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+} from "@asym/ui/components/shadcn/card";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Label } from "@asym/ui/components/shadcn/label";
+import { Switch } from "@asym/ui/components/shadcn/switch";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+} from "@asym/ui/components/shadcn/select";
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import {
   Settings,
   Bell,
@@ -32,8 +32,8 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
-import { siteConfig } from "@/config/site";
-import { cn } from "@/lib/utils";
+import { siteConfig } from "@asym/config/site";
+import { cn } from "@asym/lib/utils";
 
 export default function CareSettingsPage() {
   const [saving, setSaving] = React.useState(false);

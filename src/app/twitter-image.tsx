@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { siteConfig } from "@/config/site";
+import { siteConfig } from "@asym/config/site";
 
 export const runtime = "edge";
 export const alt = `${siteConfig.name} - ${siteConfig.tagline}`;

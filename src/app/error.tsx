@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { Button } from "@asym/ui/components/shadcn/button";
 import { AlertCircle, RefreshCw } from "lucide-react";
 
 export default function Error({

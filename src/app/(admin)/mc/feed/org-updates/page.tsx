@@ -26,19 +26,19 @@ import {
   Check,
 } from "lucide-react";
 import { motion, AnimatePresence, LayoutGroup } from "motion/react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Switch } from "@asym/ui/components/shadcn/switch";
+import { Label } from "@asym/ui/components/shadcn/label";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@asym/ui/components/shadcn/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
+} from "@asym/ui/components/shadcn/dropdown-menu";
 import {
   Sheet,
   SheetContent,
@@ -46,7 +46,7 @@ import {
   SheetTitle,
   SheetDescription,
   SheetFooter,
-} from "@/components/ui/sheet";
+} from "@asym/ui/components/shadcn/sheet";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,11 +56,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { cn } from "@/lib/utils";
+} from "@asym/ui/components/shadcn/alert-dialog";
+import { Separator } from "@asym/ui/components/shadcn/separator";
+import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
+import { RadioGroup, RadioGroupItem } from "@asym/ui/components/shadcn/radio-group";
+import { cn } from "@asym/lib/utils";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { PageHeader } from "@/components/page-header";
@@ -73,7 +73,7 @@ type PostStatus = "published" | "draft";
 
 const RichTextEditor = dynamic(
   () =>
-    import("@/components/ui/RichTextEditor").then((mod) => mod.RichTextEditor),
+    import("@asym/ui/components/shadcn/RichTextEditor").then((mod) => mod.RichTextEditor),
   {
     ssr: false,
     loading: () => (

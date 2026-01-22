@@ -2,7 +2,7 @@
 
 import { createCollection } from "@tanstack/db";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@asym/database/supabase";
 import { getQueryClient } from "./query-provider";
 import type {
   Profile,
@@ -13,7 +13,7 @@ import type {
   Fund,
   Follow,
   PostComment,
-} from "@/types/database";
+} from "@asym/database/types";
 
 type SupabaseClient = ReturnType<typeof createClient>;
 

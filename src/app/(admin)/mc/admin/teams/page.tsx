@@ -21,14 +21,14 @@ import {
 } from "lucide-react";
 import { DynamicIcon } from "@/components/mission-control/icons";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@asym/ui/components/shadcn/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,7 +36,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@asym/ui/components/shadcn/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -44,10 +44,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+} from "@asym/ui/components/shadcn/table";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
 import {
   Dialog,
   DialogContent,
@@ -56,7 +56,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@asym/ui/components/shadcn/dialog";
 import {
   Sheet,
   SheetContent,
@@ -66,19 +66,19 @@ import {
   SheetTrigger,
   SheetFooter,
   SheetClose,
-} from "@/components/ui/sheet";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
+} from "@asym/ui/components/shadcn/sheet";
+import { Label } from "@asym/ui/components/shadcn/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
+import { Switch } from "@asym/ui/components/shadcn/switch";
+import { Separator } from "@asym/ui/components/shadcn/separator";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { tiles } from "@/config/tiles";
+} from "@asym/ui/components/shadcn/select";
+import { tiles } from "@asym/config/tiles";
 
 const TEAMS = [
   {

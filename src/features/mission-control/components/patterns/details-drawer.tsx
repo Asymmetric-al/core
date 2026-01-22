@@ -3,9 +3,9 @@
 import type { ReactNode } from "react";
 import { X, ExternalLink } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
+import { cn } from "@asym/lib/utils";
 
 interface DetailsDrawerProps {
   open: boolean;

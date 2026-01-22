@@ -7,8 +7,8 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+} from "@asym/ui/components/shadcn/card";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -24,9 +24,9 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { Progress } from "@/components/ui/progress";
-import { formatCurrency, cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
+import { Progress } from "@asym/ui/components/shadcn/progress";
+import { formatCurrency, cn } from "@asym/lib/utils";
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import {
   ArrowUpRight,
   ArrowDownRight,

@@ -1,16 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@asym/lib/utils";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@asym/ui/components/shadcn/select";
 import type { DataGridCellType, DataGridColumnOption } from "./types";
 
 interface DataGridCellProps {

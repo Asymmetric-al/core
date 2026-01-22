@@ -3,7 +3,7 @@
 import { useState, useEffect, useEffectEvent, useMemo, memo } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   CommandDialog,
   CommandEmpty,
@@ -11,7 +11,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
+} from "@asym/ui/components/shadcn/command";
 import { TILES } from "@/lib/mission-control/tiles";
 import { getIcon } from "../icons";
 import { useMC } from "@/lib/mission-control/context";

@@ -3,14 +3,14 @@
 import type { Table } from "@tanstack/react-table";
 import { Loader2 } from "lucide-react";
 
-import { cn } from "@/lib/utils";
-import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@asym/lib/utils";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import {
   Table as UITable,
   TableBody,
   TableCell,
   TableRow,
-} from "@/components/ui/table";
+} from "@asym/ui/components/shadcn/table";
 
 interface DataTableSkeletonProps<TData> {
   table?: Table<TData>;

@@ -1,4 +1,4 @@
-import type { UnlayerAppearance, UnlayerMergeTags } from "@/types/email-studio";
+import type { UnlayerAppearance, UnlayerMergeTags } from "@asym/email/email-studio-types";
 
 export interface UnlayerAccountConfig {
   projectId: number | null;

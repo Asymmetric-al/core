@@ -1,9 +1,9 @@
 "use client";
 
 import { memo } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
+import { Card, CardContent } from "@asym/ui/components/shadcn/card";
+import { Avatar, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
+import { cn } from "@asym/lib/utils";
 import type { LucideIcon } from "lucide-react";
 
 export interface QuickActionCardProps {

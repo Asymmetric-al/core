@@ -105,26 +105,26 @@ import {
   CardTitle,
   CardDescription,
   CardFooter,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
-import { Textarea } from "@/components/ui/textarea";
+} from "@asym/ui/components/shadcn/card";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@asym/ui/components/shadcn/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
+import { Switch } from "@asym/ui/components/shadcn/switch";
+import { Label } from "@asym/ui/components/shadcn/label";
+import { Progress } from "@asym/ui/components/shadcn/progress";
+import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { RichTextEditor } from "@/components/ui/RichTextEditor";
-import { Separator } from "@/components/ui/separator";
+} from "@asym/ui/components/shadcn/select";
+import { RichTextEditor } from "@asym/ui/components/shadcn/RichTextEditor";
+import { Separator } from "@asym/ui/components/shadcn/separator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -133,7 +133,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
   DropdownMenuCheckboxItem,
-} from "@/components/ui/dropdown-menu";
+} from "@asym/ui/components/shadcn/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -142,7 +142,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@asym/ui/components/shadcn/dialog";
 import {
   Sheet,
   SheetContent,
@@ -150,7 +150,7 @@ import {
   SheetTitle,
   SheetDescription,
   SheetFooter,
-} from "@/components/ui/sheet";
+} from "@asym/ui/components/shadcn/sheet";
 import {
   Table,
   TableBody,
@@ -158,8 +158,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { formatCurrency, cn, getInitials } from "@/lib/utils";
+} from "@asym/ui/components/shadcn/table";
+import { formatCurrency, cn, getInitials } from "@asym/lib/utils";
 import Link from "next/link";
 import {
   AreaChart,

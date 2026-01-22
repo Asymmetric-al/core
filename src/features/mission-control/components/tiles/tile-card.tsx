@@ -10,8 +10,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+} from "@asym/ui/components/shadcn/card";
+import { Button } from "@asym/ui/components/shadcn/button";
 
 interface TileCardProps {
   tile: Tile;

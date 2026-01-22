@@ -18,26 +18,26 @@ import {
   ChevronDown,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 import {
   Sheet,
   SheetContent,
   SheetTitle,
   SheetDescription,
-} from "@/components/ui/sheet";
+} from "@asym/ui/components/shadcn/sheet";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@asym/ui/components/shadcn/textarea";
+import { Separator } from "@asym/ui/components/shadcn/separator";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { cn } from "@asym/lib/utils";
 
 import type {
   Task,

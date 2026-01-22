@@ -1,4 +1,4 @@
-import { siteConfig } from "@/config/site";
+import { siteConfig } from "@asym/config/site";
 
 const SITE_URL = siteConfig.url;
 

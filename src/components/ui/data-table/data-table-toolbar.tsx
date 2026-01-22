@@ -4,9 +4,9 @@ import * as React from "react";
 import type { Table } from "@tanstack/react-table";
 import { Search, X, SlidersHorizontal } from "lucide-react";
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { cn } from "@asym/lib/utils";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Input } from "@asym/ui/components/shadcn/input";
 import { DataTableViewOptions } from "./data-table-view-options";
 import { DataTableFacetedFilter } from "./data-table-faceted-filter";
 import type { DataTableFilterField } from "./types";

@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { motion } from "motion/react";
-import { cn } from "@/lib/utils";
+import { cn } from "@asym/lib/utils";
 import { LucideIcon, Sparkles } from "lucide-react";
 
 interface ImpactTileProps {

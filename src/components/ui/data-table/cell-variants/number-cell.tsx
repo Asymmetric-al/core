@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef, useLayoutEffect, useCallback, useMemo } from "react";
-import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
+import { cn } from "@asym/lib/utils";
+import { Input } from "@asym/ui/components/shadcn/input";
 import type { NumberCellProps } from "./types";
 
 function NumberCellEditor<TData>({

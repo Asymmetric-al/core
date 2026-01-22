@@ -1,9 +1,9 @@
 "use client";
 
 import { memo } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { TrendingUpIcon, TrendingDownIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@asym/lib/utils";
 import type { LucideIcon } from "lucide-react";
 
 export interface StatCardProps {

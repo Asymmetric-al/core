@@ -20,25 +20,25 @@ import {
   Check,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Label } from "@asym/ui/components/shadcn/label";
+import { Textarea } from "@asym/ui/components/shadcn/textarea";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import { Calendar } from "@asym/ui/components/shadcn/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from "@asym/ui/components/shadcn/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@asym/ui/components/shadcn/select";
 import {
   Dialog,
   DialogContent,
@@ -46,7 +46,7 @@ import {
   DialogTitle,
   DialogFooter,
   DialogDescription,
-} from "@/components/ui/dialog";
+} from "@asym/ui/components/shadcn/dialog";
 import {
   Command,
   CommandEmpty,
@@ -54,8 +54,8 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
-import { cn } from "@/lib/utils";
+} from "@asym/ui/components/shadcn/command";
+import { cn } from "@asym/lib/utils";
 
 import type {
   Task,

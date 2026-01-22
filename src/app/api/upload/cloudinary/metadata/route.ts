@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { saveAssetMetadata } from "@/lib/assets";
+import { createClient } from "@asym/database/supabase";
+import { saveAssetMetadata } from "@asym/lib/assets";
 
 export async function POST(request: NextRequest) {
   try {

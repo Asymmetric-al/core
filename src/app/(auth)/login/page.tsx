@@ -3,17 +3,17 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { createClient } from "@/lib/supabase/client";
+} from "@asym/ui/components/shadcn/card";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Label } from "@asym/ui/components/shadcn/label";
+import { createClient } from "@asym/database/supabase";
 import { Loader2 } from "lucide-react";
 
 export default function LoginPage() {

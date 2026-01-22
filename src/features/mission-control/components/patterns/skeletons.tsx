@@ -1,5 +1,5 @@
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
 
 export function TileCardSkeleton() {
   return (

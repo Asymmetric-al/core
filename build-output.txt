@@ -1,0 +1,38 @@
+$ turbo run build --filter=@asym/admin
+• turbo 2.7.5
+• Packages in scope: @asym/admin
+• Running build in 1 packages
+• Remote caching disabled
+@asym/admin:build: cache miss, executing 0dae8680bf9ce756
+@asym/admin:build: $ next build
+@asym/admin:build: ▲ Next.js 16.1.1 (Turbopack)
+@asym/admin:build: - Experiments (use with caution):
+@asym/admin:build:   · optimizePackageImports
+@asym/admin:build: 
+@asym/admin:build:   Creating an optimized production build ...
+@asym/admin:build: ✓ Compiled successfully in 19.3s
+@asym/admin:build:   Running TypeScript ...
+@asym/admin:build: Failed to compile.
+@asym/admin:build: 
+@asym/admin:build: ./app/api/admin/posts/route.ts:56:33
+@asym/admin:build: Type error: 'count' is declared but its value is never read.
+@asym/admin:build: 
+@asym/admin:build: [0m [90m 54 |[39m     }
+@asym/admin:build:  [90m 55 |[39m
+@asym/admin:build: [31m[1m>[22m[39m[90m 56 |[39m     [36mconst[39m { data[33m:[39m posts[33m,[39m error[33m,[39m count } [33m=[39m [36mawait[39m query[33m;[39m
+@asym/admin:build:  [90m    |[39m                                 [31m[1m^[22m[39m
+@asym/admin:build:  [90m 57 |[39m
+@asym/admin:build:  [90m 58 |[39m     [36mif[39m (error)
+@asym/admin:build:  [90m 59 |[39m       [36mreturn[39m [33mNextResponse[39m[33m.[39mjson({ error[33m:[39m error[33m.[39mmessage }[33m,[39m { status[33m:[39m [35m500[39m })[33m;[39m[0m
+@asym/admin:build: Next.js build worker exited with code: 1 and signal: null
+@asym/admin:build: error: script "build" exited with code 1
+@asym/admin:build: ERROR: command finished with error: command (/Volumes/Develop/Next/Asym(Next,Supabase)/core/apps/admin) /Users/apple/.bun/bin/bun run build exited (1)
+@asym/admin#build: command (/Volumes/Develop/Next/Asym(Next,Supabase)/core/apps/admin) /Users/apple/.bun/bin/bun run build exited (1)
+
+ Tasks:    0 successful, 1 total
+Cached:    0 cached, 1 total
+  Time:    49.544s 
+Failed:    @asym/admin#build
+
+ ERROR  run failed: command  exited (1)
+error: script "build:admin" exited with code 1

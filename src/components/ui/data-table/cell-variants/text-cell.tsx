@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef, useLayoutEffect, useCallback } from "react";
-import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@asym/lib/utils";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import type { TextCellProps } from "./types";
 
 function TextCellEditor<TData>({

@@ -6,7 +6,7 @@ import { TILES } from "@/lib/mission-control/tiles";
 import { TileCard } from "./tile-card";
 import { QuickActionsRow } from "./quick-actions-row";
 import { WorkflowsPanel } from "./workflows-panel";
-import { Button } from "@/components/ui/button";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Dialog,
   DialogContent,
@@ -14,9 +14,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@asym/ui/components/shadcn/dialog";
 import { getIcon } from "../icons";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@asym/ui/components/shadcn/badge";
 
 export function MissionControlHome() {
   const { role } = useMC();

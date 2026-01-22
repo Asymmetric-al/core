@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useCallback, useRef } from "react";
-import { initWebVitals, type Metric } from "@/lib/monitoring/web-vitals";
+import { initWebVitals, type Metric } from "@asym/lib/monitoring/web-vitals";
 
 interface WebVitalsReporterProps {
   analyticsEndpoint?: string;

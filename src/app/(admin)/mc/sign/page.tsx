@@ -8,8 +8,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+} from "@asym/ui/components/shadcn/card";
+import { Button } from "@asym/ui/components/shadcn/button";
 import Link from "next/link";
 import {
   PenTool,
@@ -19,7 +19,7 @@ import {
   Search,
   Download,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Input } from "@asym/ui/components/shadcn/input";
 
 export default function SignStudioPage() {
   const tile = getTileById("sign")!;

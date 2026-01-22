@@ -16,12 +16,12 @@ import {
   XCircle,
   RotateCcw,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { DataTable } from "@/components/ui/data-table";
-import type { DataTableFilterField } from "@/components/ui/data-table/types";
-import { formatCurrency, cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@asym/ui/components/shadcn/card";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { DataTable } from "@asym/ui/components/shadcn/data-table";
+import type { DataTableFilterField } from "@asym/ui/components/shadcn/data-table/types";
+import { formatCurrency, cn } from "@asym/lib/utils";
 import { columns } from "./columns";
 import {
   mockContributions,

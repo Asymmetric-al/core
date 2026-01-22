@@ -38,13 +38,13 @@ import {
   X,
 } from "lucide-react";
 import { motion, AnimatePresence, LayoutGroup } from "motion/react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Label } from "@asym/ui/components/shadcn/label";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@asym/ui/components/shadcn/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,7 +53,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
   DropdownMenuCheckboxItem,
-} from "@/components/ui/dropdown-menu";
+} from "@asym/ui/components/shadcn/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -61,7 +61,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog";
+} from "@asym/ui/components/shadcn/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -71,22 +71,22 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from "@asym/ui/components/shadcn/alert-dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@asym/ui/components/shadcn/select";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
+} from "@asym/ui/components/shadcn/tooltip";
+import { Separator } from "@asym/ui/components/shadcn/separator";
+import { cn } from "@asym/lib/utils";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { TimeAgo } from "@/hooks";

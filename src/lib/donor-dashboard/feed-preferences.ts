@@ -1,5 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
-import type { DonorFeedPreferences, OrgPostVisibility } from "@/types/database";
+import { createClient } from "@asym/database/supabase";
+import type { DonorFeedPreferences, OrgPostVisibility } from "@asym/database/types";
 
 export interface FeedPreferencesInput {
   showOrgPosts?: boolean;

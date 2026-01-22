@@ -7,7 +7,7 @@ import {
   getUnlayerAccountConfig,
   PDF_STUDIO_SETUP_INSTRUCTIONS,
   type UnlayerAccountConfig,
-} from "@/config/pdf-studio";
+} from "@asym/config/pdf-studio";
 import {
   AlertCircle,
   CheckCircle2,
@@ -23,7 +23,7 @@ import {
   Info,
   FileText,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Dialog,
   DialogContent,
@@ -31,14 +31,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@asym/ui/components/shadcn/dialog";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+} from "@asym/ui/components/shadcn/collapsible";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { cn } from "@asym/lib/utils";
 
 interface PDFStudioSetupStatusProps {
   variant?: "badge" | "banner" | "inline";

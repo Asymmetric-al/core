@@ -3,24 +3,24 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from "@asym/ui/components/shadcn/card";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Label } from "@asym/ui/components/shadcn/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { createClient } from "@/lib/supabase/client";
+} from "@asym/ui/components/shadcn/select";
+import { createClient } from "@asym/database/supabase";
 import { Loader2, Sparkles } from "lucide-react";
 
 export default function RegisterPage() {

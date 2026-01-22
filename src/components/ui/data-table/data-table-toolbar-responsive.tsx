@@ -13,10 +13,10 @@ import {
   Filter,
 } from "lucide-react";
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { cn } from "@asym/lib/utils";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import {
   Sheet,
   SheetContent,
@@ -25,7 +25,7 @@ import {
   SheetTitle,
   SheetTrigger,
   SheetFooter,
-} from "@/components/ui/sheet";
+} from "@asym/ui/components/shadcn/sheet";
 import {
   Drawer,
   DrawerContent,
@@ -34,7 +34,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
   DrawerFooter,
-} from "@/components/ui/drawer";
+} from "@asym/ui/components/shadcn/drawer";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -42,8 +42,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Separator } from "@/components/ui/separator";
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { Separator } from "@asym/ui/components/shadcn/separator";
 import { DataTableFacetedFilter } from "./data-table-faceted-filter";
 import type { DataTableFilterField } from "./types";
 import {

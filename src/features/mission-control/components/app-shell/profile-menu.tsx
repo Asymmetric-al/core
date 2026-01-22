@@ -2,8 +2,8 @@
 
 import { memo, useCallback, useMemo } from "react";
 import { LogOut, Settings, User, ChevronDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Avatar, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +16,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-} from "@/components/ui/dropdown-menu";
+} from "@asym/ui/components/shadcn/dropdown-menu";
 import { useMC, useRole } from "@/lib/mission-control/context";
 import { ROLE_LABELS } from "@/lib/mission-control/roles";
 import type { Role } from "@/lib/mission-control/types";

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@asym/lib/utils";
 import {
   Card,
   CardContent,
@@ -10,9 +10,9 @@ import {
   CardTitle,
   CardFooter,
   CardAction,
-} from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
+} from "@asym/ui/components/shadcn/card";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import { TrendingUp, TrendingDown, AlertCircle, Inbox } from "lucide-react";
 
 // --- ChartCard ---

@@ -21,7 +21,7 @@ import {
 } from "@tanstack/react-table";
 import { Inbox, LayoutGrid, LayoutList } from "lucide-react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@asym/lib/utils";
 import {
   Table,
   TableBody,
@@ -29,9 +29,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+} from "@asym/ui/components/shadcn/table";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
 import { DataTableToolbarResponsive } from "./data-table-toolbar-responsive";
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableFloatingBar } from "./data-table-floating-bar";

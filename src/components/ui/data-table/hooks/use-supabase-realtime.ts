@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@asym/database/supabase";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
 type RealtimeEvent = "INSERT" | "UPDATE" | "DELETE" | "*";

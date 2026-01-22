@@ -2,10 +2,10 @@
 
 import * as React from "react";
 import { Search, X, SlidersHorizontal } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { cn } from "@asym/lib/utils";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Badge } from "@asym/ui/components/shadcn/badge";
 
 interface FilterBarProps {
   search?: {

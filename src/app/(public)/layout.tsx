@@ -1,7 +1,7 @@
 import React from "react";
 import { Navbar } from "@/components/public/navbar";
 import { Footer } from "@/components/public/footer";
-import { OrganizationJsonLd, WebsiteJsonLd } from "@/lib/seo/json-ld";
+import { OrganizationJsonLd, WebsiteJsonLd } from "@asym/lib/seo/json-ld";
 
 export default function PublicLayout({
   children,

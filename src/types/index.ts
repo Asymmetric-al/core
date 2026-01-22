@@ -4,7 +4,7 @@
  * Central export for all TypeScript types used across the application.
  */
 
-export type { Role, NavItem } from "@/config/navigation";
+export type { Role, NavItem } from "@asym/config/navigation";
 export * from "./database";
 export * from "./api";
 

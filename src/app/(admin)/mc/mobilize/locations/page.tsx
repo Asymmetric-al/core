@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { PageShell } from "@/components/ui/page-shell";
-import { Button } from "@/components/ui/button";
+import { PageShell } from "@asym/ui/components/shadcn/page-shell";
+import { Button } from "@asym/ui/components/shadcn/button";
 import { Plus, MapPin, Table as TableIcon, Layers } from "lucide-react";
 import {
   useLocations,
@@ -16,9 +16,9 @@ import {
   MapMarker,
   MarkerContent,
   MapControls,
-} from "@/components/ui/map";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card } from "@/components/ui/card";
+} from "@asym/ui/components/shadcn/map";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
+import { Card } from "@asym/ui/components/shadcn/card";
 import { toast } from "sonner";
 
 export default function LocationsPage() {

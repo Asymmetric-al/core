@@ -1,14 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { RichTextEditor } from "@/components/ui/RichTextEditor";
+import { RichTextEditor } from "@asym/ui/components/shadcn/RichTextEditor";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@asym/ui/components/shadcn/card";
 
 export default function RichTextTestPage() {
   const [content, setContent] = React.useState(

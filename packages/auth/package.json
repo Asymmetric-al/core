@@ -1,0 +1,23 @@
+{
+  "name": "@asym/auth",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./context": "./context.ts",
+    "./use-auth": "./use-auth.ts"
+  },
+  "dependencies": {
+    "@asym/database": "workspace:*",
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.47.10",
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@asym/typescript-config": "workspace:*",
+    "@types/react": "^19.0.6",
+    "typescript": "^5.7.3"
+  }
+}
+

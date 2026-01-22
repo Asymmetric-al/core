@@ -22,14 +22,14 @@ import {
   ShieldCheckIcon,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Separator } from "@asym/ui/components/shadcn/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+} from "@asym/ui/components/shadcn/collapsible";
 import {
   Sidebar,
   SidebarContent,
@@ -46,7 +46,7 @@ import {
   SidebarMenuSubItem,
   SidebarProvider,
   SidebarTrigger,
-} from "@/components/ui/sidebar";
+} from "@asym/ui/components/shadcn/sidebar";
 
 import SearchDialog from "@/components/shadcn-studio/blocks/dialog-search";
 import LanguageDropdown from "@/components/shadcn-studio/blocks/dropdown-language";
@@ -57,7 +57,7 @@ import ProfileDropdown from "@/components/shadcn-studio/blocks/dropdown-profile"
 import { MCProvider, useMC } from "@/lib/mission-control/context";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { ClientOnly } from "@/features/mission-control/components/client-only";
-import { DashboardFooter } from "@/components/dashboard-footer";
+import { DashboardFooter } from "@asym/ui/components/dashboard-footer";
 
 type MenuSubItem = {
   label: string;

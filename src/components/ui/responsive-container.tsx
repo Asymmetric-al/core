@@ -1,5 +1,5 @@
-import { cn } from "@/lib/utils";
-import { RESPONSIVE_CLASSES } from "@/lib/responsive";
+import { cn } from "@asym/lib/utils";
+import { RESPONSIVE_CLASSES } from "@asym/lib/responsive";
 
 interface ResponsiveContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;

@@ -8,8 +8,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+} from "@asym/ui/components/shadcn/card";
+import { Button } from "@asym/ui/components/shadcn/button";
 import Link from "next/link";
 import {
   Inbox,
@@ -20,7 +20,7 @@ import {
   Clock,
   AlertCircle,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@asym/ui/components/shadcn/badge";
 
 export default function SupportHubPage() {
   const tile = getTileById("support")!;

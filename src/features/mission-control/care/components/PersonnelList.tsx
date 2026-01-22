@@ -12,13 +12,13 @@ import {
 } from "lucide-react";
 
 import { CarePersonnel } from "../types";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DataTableWrapper } from "@/components/ui/data-table/data-table-wrapper";
-import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
-import { type DataTableFilterField } from "@/components/ui/data-table/types";
-import { cn } from "@/lib/utils";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import { DataTableWrapper } from "@asym/ui/components/shadcn/data-table/data-table-wrapper";
+import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table/data-table-column-header";
+import { type DataTableFilterField } from "@asym/ui/components/shadcn/data-table/types";
+import { cn } from "@asym/lib/utils";
 
 interface PersonnelListProps {
   data: CarePersonnel[];

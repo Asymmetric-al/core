@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { updateSession } from "@/lib/supabase/proxy";
+import { updateSession } from "@asym/database/supabase/proxy";
 
 export async function proxy(request: NextRequest) {
   const url = request.nextUrl;
