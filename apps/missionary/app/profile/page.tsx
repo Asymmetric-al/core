@@ -4,7 +4,7 @@ import * as React from "react";
 import { useState, useRef, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
-import { createClient } from "@asym/database/supabase";
+import { createBrowserClient } from "@asym/database/supabase";
 import { motion, AnimatePresence, LayoutGroup } from "motion/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@asym/ui/components/shadcn/card";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/
 import { Label } from "@asym/ui/components/shadcn/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@asym/ui/components/shadcn/tabs";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
-import { PageHeader } from "@/components/page-header";
+import { PageHeader } from "@asym/ui/components/page-header";
 import {
   Tooltip,
   TooltipContent,
@@ -40,7 +40,7 @@ import {
   Youtube,
   Link as LinkIcon,
   Check,
-  X,
+  
   User,
   ExternalLink,
   Copy,
@@ -49,7 +49,7 @@ import {
   Info,
   RotateCcw,
 } from "lucide-react";
-import { cn } from "@asym/lib/utils";
+import { cn } from "@asym/ui/lib/utils";
 import { QuickGive } from "@/components/quick-give";
 
 const fadeInUp = {
@@ -716,7 +716,7 @@ export default function ProfilePage() {
     }
 
     setIsUploading(true);
-    const supabase = createClient();
+    const supabase = createBrowserClient();
 
     try {
       const {
@@ -790,7 +790,7 @@ export default function ProfilePage() {
     }
 
     setIsUploadingCover(true);
-    const supabase = createClient();
+    const supabase = createBrowserClient();
 
     try {
       const {

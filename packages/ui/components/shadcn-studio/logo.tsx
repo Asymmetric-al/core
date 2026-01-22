@@ -1,5 +1,5 @@
 import LogoSvg from "@/assets/svg/logo";
-import { cn } from "@asym/lib/utils";
+import { cn } from "@asym/ui/lib/utils";
 
 const Logo = ({ className }: { className?: string }) => {
   return (

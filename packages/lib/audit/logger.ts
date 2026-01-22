@@ -41,9 +41,9 @@ export interface AuditLogEntry {
 }
 
 export async function logAuditEvent(entry: AuditLogEntry): Promise<void> {
-  const { client: supabaseAdmin, error } = createAdminClient();
+  const supabaseAdmin = createAdminClient();
   if (!supabaseAdmin) {
-    console.warn("[audit] Skipping audit log:", error);
+    console.warn("[audit] Skipping audit log: Admin client unavailable");
     return;
   }
 

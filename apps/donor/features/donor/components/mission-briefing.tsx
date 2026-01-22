@@ -2,7 +2,6 @@
 
 import React from "react";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
-import { Badge } from "@asym/ui/components/shadcn/badge";
 import { MapPin, Activity, Info } from "lucide-react";
 import { motion } from "motion/react";
 

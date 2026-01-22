@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import type { ChartConfig } from "@asym/ui/components/shadcn/chart";
 import {
-  ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
@@ -11,7 +11,7 @@ import {
   ChartLegendContent,
 } from "@asym/ui/components/shadcn/chart";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
-import { useDonationMetrics } from "@/hooks";
+import { useDonationMetrics } from "@asym/lib/hooks";
 
 const chartConfig = {
   recurring: {

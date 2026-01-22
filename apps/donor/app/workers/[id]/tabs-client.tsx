@@ -2,7 +2,7 @@
 
 import React from "react";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
-import { cn } from "@asym/lib/utils";
+import { cn } from "@asym/ui/lib/utils";
 
 interface TabsClientProps {
   storyContent: React.ReactNode;

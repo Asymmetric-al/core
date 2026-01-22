@@ -10,6 +10,8 @@
       "client": "./cloudinary/client.ts",
       "server": "./cloudinary/server.ts"
     },
+    "./cloudinary-client": "./cloudinary-client.ts",
+    "./cloudinary-server": "./cloudinary-server.ts",
     "./image-utils": "./image-utils.ts",
     "./assets": "./assets.ts",
     "./monitoring": "./monitoring/index.ts",

@@ -34,15 +34,123 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    defa    defa    defa    defa    defa    def.t    defa    defa    defa    defa    defa    dee}    defa    defa    defa    defa    defa    def.t    defa  [    defa    defa    defa    defars    defa    defa    dena    defa    defa    defa    defa    defa    def.t   me    defa    defa    defa    defa    defa    def.t    defa  Vi    defa    defa    defa    defa    defa    def.t   1,    defa    defa    defa    defa    defa    def.t    def[
-    defa    defa    defa    defa    defa    decol    defa    defa     m    defa    defa    defa  me    defa    defa    ac    defa    defa    defa    defa    defa    dyo    defa    defa }:    defa    defRe  t.R    defa    defa  et    defa    defa    defa  s    defa    defa    in    defa    defa    defa    defa    defa    dri    defa    defa ab    defa    def.v  iab    defa    defa    defa    d      defa    defa    defa    defbu    defa    defa     d    defa    defa em    defa    defale  ste    defa    defa    defa    defa  ng    defa    defa    defa    defa    def      defa <NuqsAdapter>
-              <Suspense fallback={null}>
-                {children}
-              </Suspense>
-              <Toaster />
-            </NuqsAdapter>
+    default: `${siteConfig.name} | ${siteConfig.tagline}`,
+    template: `%s | ${siteConfig.name}`,
+  },
+  description: siteConfig.description,
+  keywords: [...siteConfig.keywords],
+  authors: [{ name: siteConfig.name, url: siteConfig.url }],
+  creator: siteConfig.name,
+  publisher: siteConfig.name,
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  openGraph: {
+    type: "website",
+    locale: siteConfig.locale,
+    url: siteConfig.url,
+    siteName: siteConfig.name,
+    title: `${siteConfig.name} | ${siteConfig.tagline}`,
+    description: siteConfig.description,
+    images: [
+      {
+        url: siteConfig.ogImage,
+        width: 1200,
+        height: 630,
+        alt: `${siteConfig.name} - ${siteConfig.tagline}`,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${siteConfig.name} | ${siteConfig.tagline}`,
+    description: siteConfig.description,
+    images: [siteConfig.ogImage],
+    creator: siteConfig.social.twitter,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  alternates: {
+    canonical: siteConfig.url,
+  },
+  verification: {
+    google: siteConfig.verification.google,
+  },
+  category: siteConfig.category,
+  other: {
+    "msvalidate.01": siteConfig.verification.bing || "",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#020617" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang={siteConfig.language} suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://images.unsplash.com" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+        <link
+          rel="preconnect"
+          href="https://kzeybagjclwsxpkjshqa.supabase.co"
+        />
+        <link
+          rel="dns-prefetch"
+          href="https://kzeybagjclwsxpkjshqa.supabase.co"
+        />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <meta name="theme-color" content="#ffffff" />
+      </head>
+      <body
+        className={`${inter.variable} ${geistMono.variable} ${syne.variable} font-sans antialiased`}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          forcedTheme="light"
+          enableSystem={false}
+          storageKey="donor-theme"
+          disableTransitionOnChange
+        >
+          <QueryProvider>
+            <Suspense fallback={null}>
+              <NuqsAdapter>{children}</NuqsAdapter>
+            </Suspense>
           </QueryProvider>
         </ThemeProvider>
+        <Toaster />
       </body>
     </html>
   );

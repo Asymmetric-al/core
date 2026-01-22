@@ -16,7 +16,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@asym/ui/components/shadcn/popover";
-import { cn } from "@asym/lib/utils";
+import { cn } from "@asym/ui/lib/utils";
 import { useMC } from "@/lib/mission-control/context";
 import type { Tenant } from "@/lib/mission-control/types";
 

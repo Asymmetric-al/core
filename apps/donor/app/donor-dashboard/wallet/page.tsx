@@ -25,7 +25,8 @@ import {
   User,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { cn, formatCurrency } from "@asym/lib/utils";
+import { cn } from "@asym/ui/lib/utils";
+import { formatCurrency } from "@asym/lib/utils";
 import { Card } from "@asym/ui/components/shadcn/card";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
@@ -39,7 +40,12 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@asym/ui/components/shadcn/dialog";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@asym/ui/components/shadcn/tabs";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@asym/ui/components/shadcn/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -76,14 +76,18 @@ function createAuthClient(request: NextRequest) {
       getAll() {
         return requestCookies;
       },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach((cookie) => {
-          pendingCookies.push({
-            name: cookie.name,
-            value: cookie.value,
-            options: cookie.options,
-          });
-        });
+      setAll(
+        cookiesToSet: Array<{ name: string; value: string; options?: any }>,
+      ) {
+        cookiesToSet.forEach(
+          (cookie: { name: string; value: string; options?: any }) => {
+            pendingCookies.push({
+              name: cookie.name,
+              value: cookie.value,
+              options: cookie.options,
+            });
+          },
+        );
       },
     },
   });

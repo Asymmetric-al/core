@@ -10,7 +10,7 @@ import {
   navigationMenuTriggerStyle,
 } from "@asym/ui/components/shadcn/navigation-menu";
 
-import { cn } from "@asym/lib/utils";
+import { cn } from "@asym/ui/lib/utils";
 
 export type NavigationItem = {
   title: string;

@@ -6,13 +6,13 @@ import Image, { type ImageLoader } from "next/image";
 import { Button } from "./button";
 import { ImageCropper } from "./image-cropper";
 import { toast } from "sonner";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserClient } from "@asym/database/supabase";
 import { Loader2, Upload, X } from "lucide-react";
 import { cn } from "@asym/ui/lib/utils";
 import {
   uploadToCloudinary,
   isCloudinaryEnabled,
-} from "@/lib/cloudinary-client";
+} from "@asym/lib/cloudinary-client";
 import {
   validateImageFile,
   loadImageAsDataUrl,
@@ -20,7 +20,7 @@ import {
   getErrorMessage,
   createDownscaledPreview,
   formatFileSize,
-} from "@/lib/image-utils";
+} from "@asym/lib/image-utils";
 
 const passthroughImageLoader: ImageLoader = ({ src }) => src;
 
@@ -75,7 +75,7 @@ async function uploadDirectToStorage(
   bucket: string,
   path: string,
   userId: string,
-  supabase: ReturnType<typeof createClient>,
+  supabase: ReturnType<typeof createBrowserClient>,
 ): Promise<string> {
   const fileName = `${userId}-${Date.now()}.webp`;
   const filePath = `${path}/${fileName}`;
@@ -207,7 +207,7 @@ export function ImageUpload({
 
       setIsCropperOpen(false);
       setIsUploading(true);
-      const supabase = createClient();
+      const supabase = createBrowserClient();
 
       try {
         const {

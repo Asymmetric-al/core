@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
-import { cn } from "@asym/lib/utils";
+import { cn } from "@asym/ui/lib/utils";
 import type { LucideIcon } from "lucide-react";
 import type { WorkerFeed } from "@/lib/mock-data";
 

@@ -2,8 +2,8 @@
 
 import React from "react";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
-import { cn } from "@asym/lib/utils";
-import { LucideIcon } from "lucide-react";
+import { cn } from "@asym/ui/lib/utils";
+import type { LucideIcon } from "lucide-react";
 
 interface ImpactTileProps {
   title: string;

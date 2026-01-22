@@ -1,18 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   getAuthContext,
-  requireAuth,
   requireRole,
   type AuthenticatedContext,
 } from "@asym/auth/context";
-import { createAuditLogger } from "@/lib/audit/logger";
-import { getAdminClient } from "@asym/database/supabase";
+import { createAuditLogger } from "@asym/lib/audit/logger";
+import { createAdminClient } from "@asym/database/supabase/admin";
 
 export async function GET(request: NextRequest) {
   try {
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
+    const supabaseAdmin = createAdminClient();
     if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
+      return NextResponse.json(
+        { error: "Admin client unavailable" },
+        { status: 503 },
+      );
     }
 
     const auth = await getAuthContext();
@@ -49,9 +51,12 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
+    const supabaseAdmin = createAdminClient();
     if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
+      return NextResponse.json(
+        { error: "Admin client unavailable" },
+        { status: 503 },
+      );
     }
 
     const auth = await getAuthContext();

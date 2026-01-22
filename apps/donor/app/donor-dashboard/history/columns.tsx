@@ -23,7 +23,8 @@ import {
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
-import { cn, formatCurrency } from "@asym/lib/utils";
+import { cn } from "@asym/ui/lib/utils";
+import { formatCurrency } from "@asym/lib/utils";
 import type { Transaction } from "./types";
 import { STATUS_COLORS } from "./types";
 

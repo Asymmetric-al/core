@@ -11,7 +11,7 @@ import {
   DialogFooter,
 } from "@asym/ui/components/shadcn/dialog";
 import { motion } from "motion/react";
-import { cn } from "@asym/lib/utils";
+import { cn } from "@asym/ui/lib/utils";
 import Link from "next/link";
 
 function useHydrationSafeDate() {

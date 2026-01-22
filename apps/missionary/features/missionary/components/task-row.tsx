@@ -31,7 +31,7 @@ import {
   Pencil,
   User,
 } from "lucide-react";
-import { cn } from "@asym/lib/utils";
+import { cn } from "@asym/ui/lib/utils";
 import type {
   Task,
   TaskType,

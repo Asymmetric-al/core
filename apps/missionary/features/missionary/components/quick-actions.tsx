@@ -1,7 +1,12 @@
 import * as React from "react";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@asym/ui/components/shadcn/card";
-import { LucideIcon } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@asym/ui/components/shadcn/card";
+import type { LucideIcon } from "lucide-react";
 
 interface Action {
   icon: LucideIcon;

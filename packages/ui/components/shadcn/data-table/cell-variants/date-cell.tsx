@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { CalendarIcon } from "lucide-react";
-import { format as formatDate, parse, isValid } from "date-fns";
+import { format as formatDate, isValid } from "date-fns";
 import { cn } from "@asym/ui/lib/utils";
 import { Button } from "../../button";
 import { Calendar } from "../../calendar";

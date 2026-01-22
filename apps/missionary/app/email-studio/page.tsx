@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { PageHeader } from "@/components/page-header";
+import { PageHeader } from "@asym/ui/components/page-header";
 import { Mail, Palette, Layout, Send, Sparkles } from "@asym/ui/components/shadcn/icons";
 import { motion } from "motion/react";
 
