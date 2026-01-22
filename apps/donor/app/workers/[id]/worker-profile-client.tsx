@@ -17,9 +17,18 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
 import { Progress } from "@asym/ui/components/shadcn/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@asym/ui/components/shadcn/tabs";
 import { motion } from "motion/react";
 import type { FieldWorker } from "@/lib/mock-data";
 
@@ -62,7 +71,6 @@ const PUBLIC_UPDATES = [
 
 const UpdateCard = ({
   update,
-  worker,
 }: {
   update: (typeof PUBLIC_UPDATES)[0];
   worker: FieldWorker;

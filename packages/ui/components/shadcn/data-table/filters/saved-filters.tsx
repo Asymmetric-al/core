@@ -28,11 +28,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../../dialog";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "../../popover";
+import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
 import { Textarea } from "../../textarea";
 import { Label } from "../../label";
 import type { AdvancedFilterState, SavedFilter } from "./types";
@@ -65,7 +61,7 @@ export function SavedFilters({
   const [description, setDescription] = useState("");
 
   const activeCount = countActiveFilters(currentFilter);
-  const defaultFilter = savedFilters.find((f) => f.isDefault);
+  savedFilters.find((f) => f.isDefault);
 
   const handleSave = useCallback(() => {
     if (!name.trim()) return;

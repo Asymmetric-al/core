@@ -27,7 +27,6 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@asym/ui/lib/utils";
 import { formatCurrency } from "@asym/lib/utils";
-import { Card } from "@asym/ui/components/shadcn/card";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
@@ -54,14 +53,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@asym/ui/components/shadcn/select";
-import { Switch } from "@asym/ui/components/shadcn/switch";
 
 // --- Types & Mock Data ---
 

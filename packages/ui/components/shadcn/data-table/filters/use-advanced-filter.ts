@@ -150,7 +150,7 @@ export function useAdvancedFilter({
   };
 }
 
-export function advancedFilterFn<TData>(
+export function advancedFilterFn(
   row: { getValue: (columnId: string) => unknown },
   columnId: string,
   filterValue: { operator: string; value: FilterValue },

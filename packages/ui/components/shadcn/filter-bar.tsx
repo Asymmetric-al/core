@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Search, X, SlidersHorizontal } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { cn } from "@asym/ui/lib/utils";
 import { Input } from "./input";
 import { Button } from "./button";

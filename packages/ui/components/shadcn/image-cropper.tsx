@@ -118,7 +118,7 @@ export function ImageCropper({
     }
   }, [isProcessing, onCancel]);
 
-  const handleImageError = useCallback(() => {
+  useCallback(() => {
     setImageError(true);
     toast.error("Failed to load image for cropping");
   }, []);

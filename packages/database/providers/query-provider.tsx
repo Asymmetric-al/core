@@ -5,7 +5,6 @@ import {
   QueryClientProvider,
   isServer,
 } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { type ReactNode } from "react";
 
 function makeQueryClient() {

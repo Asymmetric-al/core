@@ -2,18 +2,8 @@
 
 import React from "react";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Sparkles, MapPin, Activity, Info } from "lucide-react";
+import { MapPin, Activity, Info } from "lucide-react";
 import { motion } from "motion/react";
-
-interface BriefingItem {
-  id: string;
-  workerName: string;
-  location: string;
-  activity: string;
-  impact: string;
-  status: string;
-}
 
 export function MissionBriefing({
   feeds,

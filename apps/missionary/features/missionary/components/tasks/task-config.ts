@@ -1,13 +1,5 @@
 import * as React from "react";
-import {
-  Phone,
-  Mail,
-  CheckSquare,
-  UserPlus,
-  Heart,
-  Users,
-  Clock,
-} from "lucide-react";
+import { Phone, Mail, CheckSquare, UserPlus, Heart, Users } from "lucide-react";
 import { format, isToday, isPast, isTomorrow, isThisWeek } from "date-fns";
 import type {
   TaskType,

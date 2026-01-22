@@ -22,7 +22,7 @@ interface EditorProps {
 export function Editor({
   value,
   onChange,
-  placeholder,
+
   className,
   contentClassName,
   disabled,

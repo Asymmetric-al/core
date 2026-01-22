@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import type { Table } from "@tanstack/react-table";
-import { Search, X, SlidersHorizontal } from "lucide-react";
+import { Search, X } from "lucide-react";
 
 import { cn } from "@asym/ui/lib/utils";
 import { Button } from "../button";

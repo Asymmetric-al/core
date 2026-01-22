@@ -277,7 +277,7 @@ export function createFilterGroup(
 }
 
 export function serializeFilter(filter: AdvancedFilterState): string {
-  return JSON.stringify(filter, (key, value) => {
+  return JSON.stringify(filter, (_key, value) => {
     if (value instanceof Date) {
       return { __type: "Date", value: value.toISOString() };
     }
@@ -287,7 +287,7 @@ export function serializeFilter(filter: AdvancedFilterState): string {
 
 export function deserializeFilter(str: string): AdvancedFilterState | null {
   try {
-    return JSON.parse(str, (key, value) => {
+    return JSON.parse(str, (_key, value) => {
       if (value && typeof value === "object" && value.__type === "Date") {
         return new Date(value.value);
       }

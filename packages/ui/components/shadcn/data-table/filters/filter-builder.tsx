@@ -1,15 +1,11 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { PlusIcon, FilterIcon, XIcon } from "lucide-react";
 import { cn } from "@asym/ui/lib/utils";
 import { Button } from "../../button";
 import { Badge } from "../../badge";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "../../popover";
+import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
 import {
   Sheet,
   SheetContent,
@@ -25,7 +21,6 @@ import {
   type AdvancedFilterState,
   type FilterFieldDefinition,
   type FilterCondition,
-  type FilterLogicOperator,
   type FilterOperator,
   type FilterValue,
   createFilterCondition,
