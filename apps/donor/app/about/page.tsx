@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { pageMetadata } from "@asym/lib/seo/metadata";
-import { BreadcrumbJsonLd } from "@asym/lib/seo/json-ld";
+import { pageMetadata } from "@asym/lib/seo";
+import { BreadcrumbJsonLd } from "@asym/lib/seo";
 import {
   AboutHero,
   AboutBelief,

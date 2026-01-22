@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
-import { LucideIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 interface Metric {
   icon: LucideIcon;

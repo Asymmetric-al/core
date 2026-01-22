@@ -28,7 +28,6 @@ import {
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { QuickGiveInput } from "@/components/feature/QuickGiveInput";
 import { getFieldWorkers, type FieldWorker } from "@/lib/mock-data";
-import { cn } from "@asym/lib/utils";
 
 function WorkerCard({ worker }: { worker: FieldWorker }) {
   return (

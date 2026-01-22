@@ -12,7 +12,7 @@ import MenuDropdown from "@/components/shadcn-studio/blocks/menu-dropdown";
 import MenuNavigation from "@/components/shadcn-studio/blocks/menu-navigation";
 import type { NavigationSection } from "@/components/shadcn-studio/blocks/menu-navigation";
 
-import { cn } from "@asym/lib/utils";
+import { cn } from "@asym/ui/lib/utils";
 
 import Logo from "@/components/shadcn-studio/logo";
 

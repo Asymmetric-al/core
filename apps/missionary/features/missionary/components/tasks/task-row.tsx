@@ -13,7 +13,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@asym/lib/utils";
+import { cn } from "@asym/ui/lib/utils";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Checkbox } from "@asym/ui/components/shadcn/checkbox";

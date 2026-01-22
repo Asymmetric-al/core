@@ -5,10 +5,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 
-import {
-  usePublicLocations,
-  Location,
-} from "@/features/mission-control/locations/hooks/use-locations";
+import type { Location } from "@/features/mission-control/locations/hooks/use-locations";
+import { usePublicLocations } from "@/features/mission-control/locations/hooks/use-locations";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import {
@@ -26,7 +24,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@asym/ui/components/shadcn/dialog";
-import { cn } from "@asym/lib/utils";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Map,
   MapMarker,
@@ -728,7 +726,7 @@ function MobileDetailSheet({
 }
 
 export function WhereWeWorkMap() {
-  const { data: locations, isLoading } = usePublicLocations();
+  const { data: locations } = usePublicLocations();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [mapCenter, setMapCenter] = useState<[number, number] | undefined>(

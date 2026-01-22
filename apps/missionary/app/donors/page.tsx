@@ -12,7 +12,7 @@ import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
-import { PageHeader } from "@/components/page-header";
+import { PageHeader } from "@asym/ui/components/page-header";
 import {
   Select,
   SelectContent,
@@ -81,12 +81,12 @@ import {
   ListTodo,
 } from "lucide-react";
 import { format, formatDistanceToNow, differenceInMonths } from "date-fns";
-import { cn } from "@asym/lib/utils";
-import { useAuth } from "@/hooks";
-import { createClient } from "@asym/database/supabase";
+import { cn } from "@asym/ui/lib/utils";
+import { useAuth } from "@asym/lib/hooks";
+import { createBrowserClient } from "@asym/database/supabase";
 import { AddPartnerDialog } from "@/features/missionary/components/add-partner-dialog";
 import { TaskDialog } from "@/features/missionary/components/task-dialog";
-import { useTasks } from "@/hooks";
+import { useTasks } from "@asym/lib/hooks";
 import type { Task } from "@/lib/missionary/types";
 import { toast } from "sonner";
 import {
@@ -950,7 +950,7 @@ function DonorTasks({
 
 export default function DonorsPage() {
   const { profile, loading: authLoading } = useAuth();
-  const supabase = React.useMemo(() => createClient(), []);
+  const supabase = React.useMemo(() => createBrowserClient(), []);
   const [donors, setDonors] = React.useState<Donor[]>([]);
   const [selectedDonorId, setSelectedDonorId] = React.useState<string | null>(
     null,

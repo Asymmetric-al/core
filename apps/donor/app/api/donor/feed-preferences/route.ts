@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@asym/database/supabase";
+import { createClient } from "@asym/database/supabase/server";
 import {
   getDonorFeedPreferences,
   upsertDonorFeedPreferences,

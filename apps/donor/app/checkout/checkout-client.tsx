@@ -9,7 +9,6 @@ import {
   CreditCard,
   ArrowRight,
   Heart,
-  Sparkles,
   Loader2,
   CalendarDays,
   Landmark,
@@ -24,9 +23,14 @@ import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { Switch } from "@asym/ui/components/shadcn/switch";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
 import { Separator } from "@asym/ui/components/shadcn/separator";
-import { cn, formatCurrency } from "@asym/lib/utils";
+import { cn } from "@asym/ui/lib/utils";
+import { formatCurrency } from "@asym/lib/utils";
 import { useSearchParams } from "next/navigation";
 
 type Step = "config" | "details" | "payment" | "success";

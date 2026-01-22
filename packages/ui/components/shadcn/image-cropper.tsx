@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useState, useCallback, useRef, useEffect } from "react";
-import Cropper, { Area, Point } from "react-easy-crop";
+import Cropper, { type Area, type Point } from "react-easy-crop";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,7 @@ import {
 } from "./dialog";
 import { Button } from "./button";
 import { Slider } from "./slider";
-import { getCroppedImg, CropArea } from "@/lib/image-utils";
+import { getCroppedImg, type CropArea } from "@asym/lib/image-utils";
 import {
   RotateCw,
   ZoomIn,

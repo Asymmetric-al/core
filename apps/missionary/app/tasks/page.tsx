@@ -13,7 +13,7 @@ import { FilterBar } from "@asym/ui/components/shadcn/filter-bar";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
+  
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -31,7 +31,7 @@ import {
 } from "@asym/ui/components/shadcn/alert-dialog";
 import {
   Plus,
-  Clock,
+  
   CheckCircle2,
   Phone,
   Mail,
@@ -45,8 +45,8 @@ import {
   LayoutGrid,
   List,
 } from "lucide-react";
-import { cn } from "@asym/lib/utils";
-import { useTasks } from "@/hooks";
+import { cn } from "@asym/ui/lib/utils";
+import { useTasks } from "@asym/lib/hooks";
 import { TaskDialog } from "@/features/missionary/components/task-dialog";
 import { TaskRow } from "@/features/missionary/components/task-row";
 import { TaskKanbanBoard } from "@/features/missionary/components/task-kanban-board";

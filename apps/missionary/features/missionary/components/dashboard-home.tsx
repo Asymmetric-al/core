@@ -11,7 +11,7 @@ import {
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
-import { PageHeader } from "@/components/page-header";
+import { PageHeader } from "@asym/ui/components/page-header";
 import {
   ArrowUpRight,
   TrendingUp,
@@ -19,13 +19,12 @@ import {
   Circle,
   ArrowRight,
   Activity,
-  DollarSign,
-  Calendar,
+  
+  
 } from "lucide-react";
-import { cn } from "@asym/lib/utils";
 import { GivingBreakdownChart } from "./giving-breakdown-chart";
 import { MetricTiles } from "./metric-tiles";
-import { useAuth } from "@/hooks";
+import { useAuth } from "@asym/lib/hooks";
 
 const DEMO_MISSIONARY_ID = "b378164f-8a6a-42c8-883f-59815d01e48c";
 

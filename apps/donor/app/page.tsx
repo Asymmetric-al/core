@@ -1,6 +1,6 @@
 import { Navbar } from "@asym/ui/components/public/navbar";
 import { Footer } from "@asym/ui/components/public/footer";
-import { OrganizationJsonLd, WebsiteJsonLd } from "@asym/lib/seo/json-ld";
+import { OrganizationJsonLd, WebsiteJsonLd } from "@asym/lib/seo";
 
 export default function HomePage() {
   return (

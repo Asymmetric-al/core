@@ -22,8 +22,8 @@ import {
   Heart,
   Globe,
   AlertTriangle,
-  Upload,
-  X,
+  
+  
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -42,7 +42,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
-import { cn } from "@asym/lib/utils";
+import { cn } from "@asym/ui/lib/utils";
 
 // --- Types ---
 type TabId = "profile" | "notifications" | "security";

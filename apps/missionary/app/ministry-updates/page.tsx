@@ -58,11 +58,11 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@asym/ui/components/shadcn/dialog";
-import { cn } from "@asym/lib/utils";
+import { cn } from "@asym/ui/lib/utils";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
-import { PageHeader } from "@/components/page-header";
-import { TimeAgo, useLastSynced } from "@/hooks";
+import { PageHeader } from "@asym/ui/components/page-header";
+import { TimeAgo, useLastSynced } from "@asym/lib/hooks";
 
 const RichTextEditor = dynamic(
   () =>

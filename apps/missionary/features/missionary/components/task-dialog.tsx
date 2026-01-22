@@ -48,10 +48,10 @@ import {
 } from "@asym/ui/components/shadcn/command";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
-import { createClient } from "@asym/database/supabase";
-import { useAuth } from "@/hooks";
+import { createBrowserClient } from "@asym/database/supabase";
+import { useAuth } from "@asym/lib/hooks";
 import { toast } from "sonner";
-import { cn } from "@asym/lib/utils";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Loader2,
   CalendarIcon,
@@ -193,7 +193,7 @@ export function TaskDialog({
   onOpenChange: controlledOnOpenChange,
 }: TaskDialogProps) {
   const { profile } = useAuth();
-  const supabase = React.useMemo(() => createClient(), []);
+  const supabase = React.useMemo(() => createBrowserClient(), []);
 
   const [internalOpen, setInternalOpen] = React.useState(false);
   const isControlled = controlledOpen !== undefined;

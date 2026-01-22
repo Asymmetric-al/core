@@ -4,13 +4,16 @@ import {
   requireAuth,
   type AuthenticatedContext,
 } from "@asym/auth/context";
-import { getAdminClient } from "@asym/database/supabase";
+import { createAdminClient } from "@asym/database/supabase/admin";
 
 export async function GET(request: NextRequest) {
   try {
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
+    const supabaseAdmin = createAdminClient();
     if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
+      return NextResponse.json(
+        { error: "Admin client unavailable" },
+        { status: 503 },
+      );
     }
 
     const auth = await getAuthContext();

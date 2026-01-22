@@ -8,7 +8,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
+  
   DialogTitle,
   DialogTrigger,
 } from "@asym/ui/components/shadcn/dialog";
@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
-import { createClient } from "@asym/database/supabase";
+import { createBrowserClient } from "@asym/database/supabase";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -64,7 +64,7 @@ export function AddPartnerDialog({
   const open = isControlled ? controlledOpen : internalOpen;
   const onOpenChange = isControlled ? controlledOnOpenChange : setInternalOpen;
 
-  const supabase = React.useMemo(() => createClient(), []);
+  const supabase = React.useMemo(() => createBrowserClient(), []);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const form = useForm<PartnerFormValues>({

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { pageMetadata } from "@asym/lib/seo/metadata";
-import { FAQJsonLd, BreadcrumbJsonLd } from "@asym/lib/seo/json-ld";
+import { pageMetadata } from "@asym/lib/seo";
+import { FAQJsonLd, BreadcrumbJsonLd } from "@asym/lib/seo";
 import { FAQPageClient } from "./faq-client";
 
 export const metadata: Metadata = pageMetadata.faq;

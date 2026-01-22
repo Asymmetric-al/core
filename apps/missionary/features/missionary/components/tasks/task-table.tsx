@@ -9,7 +9,7 @@ import {
   Trash2,
   Calendar as CalendarIcon,
 } from "lucide-react";
-import { cn } from "@asym/lib/utils";
+import { cn } from "@asym/ui/lib/utils";
 import type { Task } from "@/lib/missionary/types";
 import { TASK_TYPE_CONFIG, PRIORITY_CONFIG } from "./task-config";
 import { Checkbox } from "@asym/ui/components/shadcn/checkbox";

@@ -14,19 +14,19 @@ import { Label } from "@asym/ui/components/shadcn/label";
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { PageHeader } from "@/components/page-header";
+import { PageHeader } from "@asym/ui/components/page-header";
 import {
-  Bell,
+  
   Mail,
-  Smartphone,
+  
   Gift,
   RefreshCcw,
   AlertTriangle,
   CreditCard,
   Users,
-  MessageCircle,
-  Heart,
-  Settings as SettingsIcon,
+  
+  
+  Settings,
   Save,
   ShieldCheck,
   Layout,
@@ -35,7 +35,6 @@ import {
   Sparkles,
   ExternalLink,
 } from "lucide-react";
-import { cn } from "@asym/lib/utils";
 import { siteConfig } from "@asym/config/site";
 
 interface NotificationSetting {

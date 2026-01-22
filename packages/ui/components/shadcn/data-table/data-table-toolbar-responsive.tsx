@@ -10,7 +10,6 @@ import {
   Download,
   RefreshCw,
   ChevronDown,
-  Filter,
 } from "lucide-react";
 
 import { cn } from "@asym/ui/lib/utils";

@@ -18,7 +18,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Button } from "@asym/ui/components/shadcn/button";
 import Link from "next/link";
-import { cn } from "@asym/lib/utils";
+import { cn } from "@asym/ui/lib/utils";
 
 type Category = "General" | "Financials" | "Donations" | "Partners" | "Account";
 
