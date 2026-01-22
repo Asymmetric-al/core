@@ -2,8 +2,8 @@
 
 import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/utils";
+import { Switch } from "@asym/ui/components/shadcn/switch";
+import { cn } from "@asym/lib/utils";
 
 interface ThemeToggleProps {
   collapsed?: boolean;

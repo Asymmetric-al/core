@@ -3,8 +3,8 @@
 import type { Table } from "@tanstack/react-table";
 import { Settings2 } from "lucide-react";
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { cn } from "@asym/lib/utils";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -12,7 +12,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@asym/ui/components/shadcn/dropdown-menu";
 
 interface DataTableViewOptionsProps<TData> {
   table: Table<TData>;

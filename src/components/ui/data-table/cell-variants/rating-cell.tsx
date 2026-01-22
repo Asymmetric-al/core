@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { StarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@asym/lib/utils";
 import type { RatingCellProps } from "./types";
 
 const sizeClasses = {

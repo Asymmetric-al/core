@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getFieldWorkers } from "@/lib/mock-data";
-import { siteConfig } from "@/config/site";
+import { siteConfig } from "@asym/config/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const workers = getFieldWorkers();

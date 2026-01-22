@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { formatCurrency } from "@/lib/utils";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { formatCurrency } from "@asym/lib/utils";
 import Link from "next/link";
 import {
   Heart,
@@ -16,7 +16,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@asym/ui/components/shadcn/card";
 
 import {
   ImpactTile,

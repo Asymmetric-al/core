@@ -1,4 +1,4 @@
-import { getAdminClient } from "@/lib/supabase/admin";
+import { getAdminClient } from "@asym/database/supabase";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";

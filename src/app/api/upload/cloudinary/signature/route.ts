@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@asym/database/supabase";
 import {
   generateCloudinarySignature,
   isCloudinaryEnabled,
-} from "@/lib/cloudinary-server";
+} from "@asym/lib/cloudinary";
 
 export async function POST(request: NextRequest) {
   try {

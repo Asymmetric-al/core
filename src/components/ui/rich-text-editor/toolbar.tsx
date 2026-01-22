@@ -14,24 +14,24 @@ import {
   Link as LinkIcon,
   Image as ImageIcon,
 } from "lucide-react";
-import { Toggle } from "@/components/ui/toggle";
-import { ToggleGroup } from "@/components/ui/toggle-group";
-import { Separator } from "@/components/ui/separator";
+import { Toggle } from "@asym/ui/components/shadcn/toggle";
+import { ToggleGroup } from "@asym/ui/components/shadcn/toggle-group";
+import { Separator } from "@asym/ui/components/shadcn/separator";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@asym/ui/components/shadcn/tooltip";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
+} from "@asym/ui/components/shadcn/popover";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { cn } from "@asym/lib/utils";
+import { createClient } from "@asym/database/supabase";
 import { toast } from "sonner";
 
 interface EditorToolbarProps {

@@ -14,18 +14,18 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn, formatCurrency } from "@/lib/utils";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
+import { Sheet, SheetContent } from "@asym/ui/components/shadcn/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
+import { cn, formatCurrency } from "@asym/lib/utils";
 import {
   DataTable,
   DataTableResponsive,
   type DataTableFilterField,
-} from "@/components/ui/data-table";
+} from "@asym/ui/components/shadcn/data-table";
 
 import type { Contact } from "./types";
 import { STAGES, STAGE_COLORS } from "./types";

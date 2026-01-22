@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { AlertCircle, Inbox, RefreshCcw } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { cn } from "@asym/lib/utils";
+import { Button } from "@asym/ui/components/shadcn/button";
 import { DataTable } from "./data-table";
 import { DataTableSkeleton } from "./data-table-skeleton";
 import {
@@ -12,7 +12,7 @@ import {
   EmptyTitle,
   EmptyDescription,
   EmptyMedia,
-} from "@/components/ui/empty";
+} from "@asym/ui/components/shadcn/empty";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { DataTableFilterField, DataTableConfig } from "./types";
 

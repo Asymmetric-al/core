@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowRight, DollarSign } from "lucide-react";
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { cn } from "@asym/lib/utils";
+import { Button } from "@asym/ui/components/shadcn/button";
 
 type QuickGiveProps = {
   workerId: string;

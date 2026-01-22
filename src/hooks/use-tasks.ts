@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@asym/database/supabase";
 import { useAuth } from "@/hooks";
 import type {
   Task,

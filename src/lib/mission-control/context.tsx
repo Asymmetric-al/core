@@ -9,7 +9,7 @@ import {
 } from "react";
 import type { Role, User, Tenant } from "./types";
 import { ROLE_LABELS } from "./roles";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@asym/database/supabase";
 
 interface MCContextValue {
   user: User | null;

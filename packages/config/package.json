@@ -1,0 +1,23 @@
+{
+  "name": "@asym/config",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./constants": "./constants.ts",
+    "./site": "./site.ts",
+    "./navigation": "./navigation.ts",
+    "./tiles": "./tiles.ts",
+    "./email-studio": "./email-studio.ts",
+    "./pdf-studio": "./pdf-studio.ts"
+  },
+  "dependencies": {
+    "lucide-react": "^0.468.0"
+  },
+  "devDependencies": {
+    "@asym/typescript-config": "workspace:*",
+    "typescript": "^5.7.3"
+  }
+}
+

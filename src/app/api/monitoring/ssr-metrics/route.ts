@@ -3,7 +3,7 @@ import {
   getSSRMetrics,
   getSlowRoutes,
   getAverageSSRTime,
-} from "@/lib/monitoring/ssr-timing";
+} from "@asym/lib/monitoring/ssr-timing";
 
 export async function GET() {
   try {

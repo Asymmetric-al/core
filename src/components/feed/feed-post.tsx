@@ -5,18 +5,18 @@ import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { Heart, MessageCircle, HandHeart, Flame } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "@/components/ui/carousel";
-import { cn } from "@/lib/utils";
-import type { PostWithAuthor } from "@/types/database";
+} from "@asym/ui/components/shadcn/carousel";
+import { cn } from "@asym/lib/utils";
+import type { PostWithAuthor } from "@asym/database/types";
 import { CommentsDialog } from "./comments-dialog";
 
 interface FeedPostProps {

@@ -3,10 +3,10 @@ import { Inter, Syne, Geist_Mono } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { QueryProvider } from "@/lib/db/query-provider";
-import { siteConfig } from "@/config/site";
+import { QueryProvider } from "@asym/database/providers";
+import { siteConfig } from "@asym/config/site";
 
 const inter = Inter({
   variable: "--font-inter",

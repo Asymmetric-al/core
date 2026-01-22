@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@asym/database/supabase";
 
 type MutationType = "insert" | "update" | "delete" | "upsert";
 

@@ -9,10 +9,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { getCroppedImg, CropArea } from "@/lib/image-utils";
+} from "@asym/ui/components/shadcn/dialog";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Slider } from "@asym/ui/components/shadcn/slider";
+import { getCroppedImg, CropArea } from "@asym/lib/image-utils";
 import {
   RotateCw,
   ZoomIn,

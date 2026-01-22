@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { cn } from "@/lib/utils";
-import { Progress } from "@/components/ui/progress";
+import { cn } from "@asym/lib/utils";
+import { Progress } from "@asym/ui/components/shadcn/progress";
 import type { ProgressCellProps } from "./types";
 
 const sizeClasses = {

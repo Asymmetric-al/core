@@ -50,11 +50,11 @@
  */
 
 import { NextResponse } from "next/server";
-import { validateSendGridApiKey } from "@/lib/email/sendgrid";
+import { validateSendGridApiKey } from "@asym/email/sendgrid";
 import type {
   ConnectSendGridRequest,
   ConnectSendGridResponse,
-} from "@/types/email";
+} from "@asym/email/types";
 
 export async function POST(request: Request) {
   try {

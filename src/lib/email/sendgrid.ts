@@ -7,7 +7,7 @@
  * ## Quick Start
  *
  * ```ts
- * import { validateSendGridApiKey, sendEmail, sendTestEmail } from '@/lib/email'
+ * import { validateSendGridApiKey, sendEmail, sendTestEmail } from '@asym/email'
  *
  * // Validate an API key
  * const result = await validateSendGridApiKey('SG.xxxxx')
@@ -49,7 +49,7 @@ import type {
   DeliverabilityWarning,
   EmailRecipient,
   EmailSendResult,
-} from "@/types/email";
+} from "@asym/email/types";
 
 /**
  * Result of validating a SendGrid API key.

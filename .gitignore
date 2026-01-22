@@ -1,5 +1,5 @@
 # dependencies
-/node_modules
+node_modules
 /.pnp
 .pnp.js
 
@@ -9,7 +9,7 @@
 /test-results/
 
 # next.js
-/.next/
+.next/
 /out/
 
 # production
@@ -41,3 +41,5 @@ next-env.d.ts
 
 # Local env
 .env.local
+
+/backups

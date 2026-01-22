@@ -3,14 +3,14 @@
 import { useState, useMemo, useCallback } from "react";
 import { CalendarIcon } from "lucide-react";
 import { format as formatDate, parse, isValid } from "date-fns";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@asym/lib/utils";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Calendar } from "@asym/ui/components/shadcn/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from "@asym/ui/components/shadcn/popover";
 import type { DateCellProps } from "./types";
 
 export function DateCell<TData>({

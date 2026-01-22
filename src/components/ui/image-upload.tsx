@@ -3,16 +3,16 @@
 import * as React from "react";
 import { useState, useRef, useCallback } from "react";
 import Image, { type ImageLoader } from "next/image";
-import { Button } from "@/components/ui/button";
+import { Button } from "@asym/ui/components/shadcn/button";
 import { ImageCropper } from "./image-cropper";
 import { toast } from "sonner";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@asym/database/supabase";
 import { Loader2, Upload, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@asym/lib/utils";
 import {
   uploadToCloudinary,
   isCloudinaryEnabled,
-} from "@/lib/cloudinary-client";
+} from "@asym/lib/cloudinary";
 import {
   validateImageFile,
   loadImageAsDataUrl,
@@ -20,7 +20,7 @@ import {
   getErrorMessage,
   createDownscaledPreview,
   formatFileSize,
-} from "@/lib/image-utils";
+} from "@asym/lib/image-utils";
 
 const passthroughImageLoader: ImageLoader = ({ src }) => src;
 

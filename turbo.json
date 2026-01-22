@@ -1,21 +1,43 @@
 {
   "$schema": "https://turborepo.org/schema.json",
+  "globalDependencies": ["**/.env.*local", "**/.env"],
+  "globalEnv": [
+    "NODE_ENV",
+    "VERCEL",
+    "VERCEL_ENV",
+    "VERCEL_URL",
+    "VERCEL_GIT_COMMIT_SHA"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
       "env": [
         "NODE_ENV",
         "NEXT_PUBLIC_*",
         "GOOGLE_SITE_VERIFICATION",
-        "BING_SITE_VERIFICATION"
+        "BING_SITE_VERIFICATION",
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        "SUPABASE_SERVICE_ROLE_KEY"
       ]
     },
     "lint": {
-      "outputs": [".next/cache/eslint/**"]
+      "dependsOn": ["^lint"],
+      "outputs": [".next/cache/eslint/**", ".eslintcache"]
     },
     "typecheck": {
-      "outputs": ["tsconfig.tsbuildinfo"]
+      "dependsOn": ["^typecheck"],
+      "outputs": ["tsconfig.tsbuildinfo", "*.tsbuildinfo"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"],
+      "cache": false
+    },
+    "test:unit": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"]
     },
     "dev": {
       "cache": false,
@@ -54,6 +76,9 @@
       "cache": false
     },
     "setup:verify": {
+      "cache": false
+    },
+    "clean": {
       "cache": false
     }
   }

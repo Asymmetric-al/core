@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@asym/ui/components/shadcn/card";
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Sparkles, MapPin, Activity } from "lucide-react";
 import { motion } from "motion/react";
 

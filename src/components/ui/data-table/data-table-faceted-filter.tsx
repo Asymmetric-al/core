@@ -4,9 +4,9 @@ import * as React from "react";
 import type { Column } from "@tanstack/react-table";
 import { Check, PlusCircle } from "lucide-react";
 
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { cn } from "@asym/lib/utils";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Command,
   CommandEmpty,
@@ -15,13 +15,13 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from "@/components/ui/command";
+} from "@asym/ui/components/shadcn/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
+} from "@asym/ui/components/shadcn/popover";
+import { Separator } from "@asym/ui/components/shadcn/separator";
 import type { DataTableFilterOption } from "./types";
 
 interface DataTableFacetedFilterProps<TData, TValue> {

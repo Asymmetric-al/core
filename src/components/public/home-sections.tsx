@@ -11,8 +11,8 @@ import {
   ShieldCheck,
   Zap,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { siteConfig } from "@/config/site";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { siteConfig } from "@asym/config/site";
 
 const HERO_IMAGE =
   "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=2070&auto=format&fit=crop";

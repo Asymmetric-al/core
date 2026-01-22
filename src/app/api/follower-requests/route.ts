@@ -4,8 +4,8 @@ import {
   requireAuth,
   requireRole,
   type AuthenticatedContext,
-} from "@/lib/auth/context";
-import { getAdminClient } from "@/lib/supabase/admin";
+} from "@asym/auth/context";
+import { getAdminClient } from "@asym/database/supabase";
 
 export async function GET(request: NextRequest) {
   try {

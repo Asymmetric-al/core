@@ -2,7 +2,7 @@
  * Shared Components
  *
  * Exports shared application components (not UI primitives).
- * For UI primitives, import from '@/components/ui'
+ * For UI primitives, import from '@asym/ui/components/shadcn'
  */
 
 export { AppShell } from "./app-shell";

@@ -20,9 +20,9 @@ import {
   Copy,
   RefreshCw,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Label } from "@asym/ui/components/shadcn/label";
 import {
   Card,
   CardContent,
@@ -30,10 +30,10 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
-} from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+} from "@asym/ui/components/shadcn/card";
+import { Alert, AlertDescription, AlertTitle } from "@asym/ui/components/shadcn/alert";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Separator } from "@asym/ui/components/shadcn/separator";
 import {
   Dialog,
   DialogContent,
@@ -41,16 +41,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Progress } from "@/components/ui/progress";
+} from "@asym/ui/components/shadcn/dialog";
+import { Progress } from "@asym/ui/components/shadcn/progress";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn } from "@asym/lib/utils";
 import type {
   ConnectSendGridResponse,
   DeliverabilityWarning,
   SenderIdentity,
   DomainAuthentication,
-} from "@/types/email";
+} from "@asym/email/types";
 
 type ConnectionStatus = "disconnected" | "connecting" | "connected" | "error";
 type TestEmailStatus = "idle" | "sending" | "success" | "error";

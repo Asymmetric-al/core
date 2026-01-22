@@ -4,24 +4,24 @@
 import { useState, useCallback, useMemo, memo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { cn } from "@asym/lib/utils";
 import { useMC } from "@/lib/mission-control/context";
 import {
   getMainNavItems,
   getToolsNavItems,
   type NavItem,
-} from "@/config/navigation";
+} from "@asym/config/navigation";
 import { Menu, LayoutDashboard } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
+} from "@asym/ui/components/shadcn/sheet";
+import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
+import { Separator } from "@asym/ui/components/shadcn/separator";
 
 interface NavLinkProps {
   item: NavItem;

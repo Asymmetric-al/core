@@ -8,7 +8,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@asym/ui/components/shadcn/card";
 import { ArrowRight } from "../icons";
 
 export function WorkflowsPanel() {

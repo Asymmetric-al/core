@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { scanAuditLogs, recordAnomaly } from "@/lib/monitoring/audit-scanner";
+import { scanAuditLogs, recordAnomaly } from "@asym/lib/monitoring/audit-scanner";
 
 export async function POST(request: NextRequest) {
   const authHeader = request.headers.get("authorization");

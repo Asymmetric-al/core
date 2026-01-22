@@ -5,18 +5,18 @@ import type { Row, Table } from "@tanstack/react-table";
 import Image from "next/image";
 import { MoreHorizontal, ChevronRight } from "lucide-react";
 
-import { cn } from "@/lib/utils";
-import { Card, CardContent } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
+import { cn } from "@asym/lib/utils";
+import { Card, CardContent } from "@asym/ui/components/shadcn/card";
+import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { Badge } from "@asym/ui/components/shadcn/badge";
 
 interface DataTableCardViewProps<TData> {
   rows: Row<TData>[];

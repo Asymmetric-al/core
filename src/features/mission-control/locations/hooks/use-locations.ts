@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@asym/database/supabase";
 import { toast } from "sonner";
 
 export type LocationType = "missionary" | "project" | "custom";

@@ -2,14 +2,14 @@
 
 import { useCallback, useMemo } from "react";
 import { PlusIcon, FilterIcon, XIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { cn } from "@asym/lib/utils";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from "@asym/ui/components/shadcn/popover";
 import {
   Sheet,
   SheetContent,
@@ -18,8 +18,8 @@ import {
   SheetTitle,
   SheetTrigger,
   SheetFooter,
-} from "@/components/ui/sheet";
-import { Separator } from "@/components/ui/separator";
+} from "@asym/ui/components/shadcn/sheet";
+import { Separator } from "@asym/ui/components/shadcn/separator";
 import { FilterRow } from "./filter-row";
 import {
   type AdvancedFilterState,

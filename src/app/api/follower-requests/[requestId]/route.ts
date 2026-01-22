@@ -3,8 +3,8 @@ import {
   getAuthContext,
   requireAuth,
   type AuthenticatedContext,
-} from "@/lib/auth/context";
-import { getAdminClient } from "@/lib/supabase/admin";
+} from "@asym/auth/context";
+import { getAdminClient } from "@asym/database/supabase";
 
 export async function PATCH(
   request: NextRequest,

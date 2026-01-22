@@ -5,8 +5,8 @@ import * as React from "react";
 import { motion, type HTMLMotionProps, type Transition } from "motion/react";
 import type { VariantProps } from "class-variance-authority";
 
-import { cn } from "@/lib/utils";
-import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@asym/lib/utils";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 
 interface Ripple {
   id: number;

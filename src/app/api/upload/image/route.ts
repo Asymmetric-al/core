@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
-import { getAdminClient } from "@/lib/supabase/admin";
+import { getAdminClient } from "@asym/database/supabase";
 
 export const runtime = "nodejs";
 export interface ImageVariant {

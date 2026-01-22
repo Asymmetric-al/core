@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { pageMetadata } from "@/lib/seo/metadata";
-import { DonateActionJsonLd } from "@/lib/seo/json-ld";
+import { pageMetadata } from "@asym/lib/seo/metadata";
+import { DonateActionJsonLd } from "@asym/lib/seo/json-ld";
 import {
   HomeHero,
   HomeMission,

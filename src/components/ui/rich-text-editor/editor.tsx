@@ -4,7 +4,7 @@ import * as React from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import { extensions } from "./extensions";
 import { EditorToolbar } from "./toolbar";
-import { cn } from "@/lib/utils";
+import { cn } from "@asym/lib/utils";
 
 interface EditorProps {
   value: string;

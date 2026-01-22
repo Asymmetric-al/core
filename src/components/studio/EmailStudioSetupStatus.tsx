@@ -7,7 +7,7 @@ import {
   getUnlayerAccountConfig,
   UNLAYER_SETUP_INSTRUCTIONS,
   type UnlayerAccountConfig,
-} from "@/config/email-studio";
+} from "@asym/config/email-studio";
 import {
   AlertCircle,
   CheckCircle2,
@@ -22,7 +22,7 @@ import {
   Check,
   Info,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Dialog,
   DialogContent,
@@ -30,14 +30,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@asym/ui/components/shadcn/dialog";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+} from "@asym/ui/components/shadcn/collapsible";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { cn } from "@asym/lib/utils";
 
 interface EmailStudioSetupStatusProps {
   variant?: "badge" | "banner" | "inline";

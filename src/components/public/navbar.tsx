@@ -3,8 +3,8 @@
 import React from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { siteConfig } from "@/config/site";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { siteConfig } from "@asym/config/site";
 
 const navLinks = siteConfig.nav.main;
 

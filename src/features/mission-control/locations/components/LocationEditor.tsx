@@ -11,7 +11,7 @@ import {
   SheetTitle,
   SheetDescription,
   SheetFooter,
-} from "@/components/ui/sheet";
+} from "@asym/ui/components/shadcn/sheet";
 import {
   Form,
   FormControl,
@@ -19,18 +19,18 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+} from "@asym/ui/components/shadcn/form";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
+} from "@asym/ui/components/shadcn/select";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Switch } from "@asym/ui/components/shadcn/switch";
 import {
   Location,
   useUpsertLocation,

@@ -19,10 +19,10 @@ import {
   Copy,
   RefreshCcw,
 } from "lucide-react";
-import { formatCurrency, cn, getInitials } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { formatCurrency, cn, getInitials } from "@asym/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,8 +30,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table/data-table-column-header";
 import type {
   Contribution,
   ContributionStatus,

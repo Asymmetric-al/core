@@ -20,7 +20,7 @@ import {
 } from "@tanstack/react-table";
 import { Search, Inbox } from "lucide-react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@asym/lib/utils";
 import {
   Table,
   TableBody,
@@ -28,8 +28,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
+} from "@asym/ui/components/shadcn/table";
+import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
 import { DataTableToolbar } from "./data-table-toolbar";
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableActionBar } from "./data-table-action-bar";

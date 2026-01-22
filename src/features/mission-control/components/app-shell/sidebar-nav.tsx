@@ -4,22 +4,22 @@
 import { memo, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { cn } from "@asym/lib/utils";
 import { useMC } from "@/lib/mission-control/context";
 import {
   getMainNavItems,
   getToolsNavItems,
   type NavItem,
-} from "@/config/navigation";
+} from "@asym/config/navigation";
 import { ChevronLeft, ChevronRight, LayoutDashboard } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
   TooltipProvider,
-} from "@/components/ui/tooltip";
-import { ScrollArea } from "@/components/ui/scroll-area";
+} from "@asym/ui/components/shadcn/tooltip";
+import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 
 interface NavLinkProps {
   item: NavItem;

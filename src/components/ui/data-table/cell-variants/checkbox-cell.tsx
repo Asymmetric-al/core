@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import { cn } from "@/lib/utils";
-import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@asym/lib/utils";
+import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
 import type { CheckboxCellProps } from "./types";
 
 export function CheckboxCell<TData>({

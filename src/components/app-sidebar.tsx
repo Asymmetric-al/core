@@ -26,10 +26,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-} from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
-import { AppIcon } from "@/components/ui/icons/AppIcon";
+} from "@asym/ui/components/shadcn/sidebar";
+import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import { cn } from "@asym/lib/utils";
+import { AppIcon } from "@asym/ui/components/shadcn/icons/AppIcon";
 
 type UserRole = "donor" | "missionary" | "admin";
 

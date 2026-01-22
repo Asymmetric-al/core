@@ -5,9 +5,9 @@ import type { Table } from "@tanstack/react-table";
 import { X, Trash2, Download, RefreshCcw } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { cn } from "@asym/lib/utils";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Separator } from "@asym/ui/components/shadcn/separator";
 
 interface DataTableActionBarProps<TData> {
   table: Table<TData>;

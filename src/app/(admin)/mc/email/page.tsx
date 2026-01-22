@@ -15,8 +15,8 @@ import { EmailStudioSetupStatus } from "@/components/studio/EmailStudioSetupStat
 import {
   getEmailStudioConfig,
   type EmailStudioFullConfig,
-} from "@/config/email-studio";
-import type { UnlayerDesignJSON } from "@/types/email-studio";
+} from "@asym/config/email-studio";
+import type { UnlayerDesignJSON } from "@asym/email/email-studio-types";
 import {
   Mail,
   Save,
@@ -43,7 +43,7 @@ import {
   History,
   Layers,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,7 +51,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuShortcut,
-} from "@/components/ui/dropdown-menu";
+} from "@asym/ui/components/shadcn/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -59,20 +59,20 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+} from "@asym/ui/components/shadcn/dialog";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Label } from "@asym/ui/components/shadcn/label";
+import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Kbd } from "@/components/ui/kbd";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Separator } from "@/components/ui/separator";
+} from "@asym/ui/components/shadcn/tooltip";
+import { Kbd } from "@asym/ui/components/shadcn/kbd";
+import { ToggleGroup, ToggleGroupItem } from "@asym/ui/components/shadcn/toggle-group";
+import { Separator } from "@asym/ui/components/shadcn/separator";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn } from "@asym/lib/utils";
 
 type PreviewDevice = "desktop" | "mobile";
 

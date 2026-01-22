@@ -12,11 +12,11 @@ import {
   CircleCheckBig,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import { Card, CardContent } from "@asym/ui/components/shadcn/card";
+import { Tabs, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,11 +24,11 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuLabel,
-} from "@/components/ui/dropdown-menu";
-import { PageShell } from "@/components/ui/page-shell";
-import { FilterBar } from "@/components/ui/filter-bar";
-import { DataTableWrapper } from "@/components/ui/data-table/data-table-wrapper";
-import { cn } from "@/lib/utils";
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { PageShell } from "@asym/ui/components/shadcn/page-shell";
+import { FilterBar } from "@asym/ui/components/shadcn/filter-bar";
+import { DataTableWrapper } from "@asym/ui/components/shadcn/data-table/data-table-wrapper";
+import { cn } from "@asym/lib/utils";
 
 import type { Task, TaskStatus } from "./types";
 import { getPriorityConfig, getStatusConfig } from "./types";

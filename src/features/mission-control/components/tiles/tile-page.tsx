@@ -4,8 +4,8 @@ import Link from "next/link";
 import type { Tile } from "@/lib/mission-control/types";
 import { PageHeader } from "../patterns/page-header";
 import { DynamicIcon } from "../icons";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@asym/ui/components/shadcn/card";
 
 interface TilePageProps {
   tile: Tile;

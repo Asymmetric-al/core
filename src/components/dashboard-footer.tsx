@@ -10,8 +10,8 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { cn } from "@/lib/utils";
+} from "@asym/ui/components/shadcn/breadcrumb";
+import { cn } from "@asym/lib/utils";
 
 interface BreadcrumbItemData {
   label: string;

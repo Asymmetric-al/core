@@ -7,9 +7,9 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+} from "@asym/ui/components/shadcn/card";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import {
   Heart,
   Users,
@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { CarePersonnel, ActivityLogEntry } from "../types";
 import { PersonnelList } from "./PersonnelList";
-import { cn } from "@/lib/utils";
+import { cn } from "@asym/lib/utils";
 
 interface CareDashboardProps {
   personnel: CarePersonnel[];

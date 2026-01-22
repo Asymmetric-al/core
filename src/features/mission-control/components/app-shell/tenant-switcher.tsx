@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo, memo } from "react";
 import { Building2, ChevronsUpDown, Check } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Command,
   CommandEmpty,
@@ -10,13 +10,13 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
+} from "@asym/ui/components/shadcn/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+} from "@asym/ui/components/shadcn/popover";
+import { cn } from "@asym/lib/utils";
 import { useMC } from "@/lib/mission-control/context";
 import type { Tenant } from "@/lib/mission-control/types";
 

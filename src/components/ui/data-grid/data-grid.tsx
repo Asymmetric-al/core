@@ -23,11 +23,11 @@ import {
   Redo,
 } from "lucide-react";
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@asym/lib/utils";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
+import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 import { DataGridCell } from "./data-grid-cell";
 import type {
   DataGridColumn,

@@ -16,18 +16,18 @@ import {
   Check,
 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { DataTableColumnHeader } from "@/components/ui/data-table";
-import { cn } from "@/lib/utils";
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
+import { cn } from "@asym/lib/utils";
 import type { Task, TaskType, TaskPriority, TaskStatus } from "./types";
 import { getPriorityConfig, getStatusConfig } from "./types";
 
