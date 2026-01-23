@@ -41,6 +41,3 @@ next-env.d.ts
 
 # Local env
 .env.local
-
-# Local MCP config (contains secrets)
-.cursor/mcp.toml

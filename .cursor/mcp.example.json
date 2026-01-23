@@ -1,0 +1,27 @@
+{
+    "mcpServers": {
+      "context7": {
+        "url": "https://mcp.context7.com/mcp",
+        "headers": {
+          "CONTEXT7_API_KEY": "TOKEN_HERE"
+        }
+      },
+      "GitHub": {
+        "command": "docker run -i --rm -e GITHUB_PERSONAL_ACCESS_TOKEN ghcr.io/github/github-mcp-server",
+        "env": {
+          "GITHUB_PERSONAL_ACCESS_TOKEN": "TOKEN_HERE"
+        },
+        "args": []
+      },
+        "nia": {
+          "url": "https://apigcp.trynia.ai/mcp",
+          "headers": {
+            "Authorization": "Bearer TOKEN_HERE"
+          }
+        },
+      "shadcn": {
+        "command": "npx",
+        "args": ["shadcn@latest", "mcp"]
+      }
+    }
+  }
