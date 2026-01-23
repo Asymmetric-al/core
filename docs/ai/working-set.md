@@ -3,56 +3,59 @@
 Agents MUST keep this file updated during a task. Use it to build the Nia query preamble.
 
 ## Current objective
-- Add an `issue-commit` skill and `/issue-commit` command, and update AL-### issue flow docs.
+- Draft and upgrade AL-001 (admin dashboard padding) to implementation-ready.
 
 ## Repo scope
 - repository: Asymmetric-al/core
 - in-scope paths (if known):
-  - AGENTS.md
-  - .cursor/commands/
-  - .cursor/rules/
-  - skills/
-  - contribution-workflow.md
-  - docs/ai/
+  - src/app/(admin)/mc/admin/page.tsx
+  - src/app/(admin)/mc/mc-shell.tsx
+  - src/app/(admin)/mc/contributions/page.tsx
+  - src/app/(admin)/mc/care/page.tsx
+  - src/app/globals.css
 
 ## Stack tags (pick from docs/ai/stack-registry.md)
-- Node.js
-- Bun
-- ESLint, Prettier
-- GitHub Actions
+- Next.js (App Router)
+- React
+- TypeScript
+- Tailwind CSS v4
 
 ## Known identifiers (exact strings)
 - files:
-  - skills/issue-commit/SKILL.md
-  - .cursor/commands/issue-commit.md
-  - contribution-workflow.md
+  - src/app/(admin)/mc/admin/page.tsx
+  - src/app/(admin)/mc/mc-shell.tsx
+  - src/app/(admin)/mc/contributions/page.tsx
+  - src/app/(admin)/mc/care/page.tsx
+  - src/app/globals.css
 - symbols:
-  - /issue-commit
-  - issue-commit
-  - ref AL-
-  - fixes AL-
+  - container-responsive
+  - py-responsive-section
+  - /mc/admin
+  - /mc/contributions
+  - /mc/care
 - routes:
-  - N/A
+  - /mc/admin
+  - /mc/contributions
+  - /mc/care
 - error strings:
   - N/A
 
 ## Expected behavior
-- Skill and command docs align with AL-### issue flow and commit conventions.
+- Admin dashboard homepage has consistent horizontal padding with other MC pages.
 
 ## Constraints
-- runtime: Node.js
-- tooling: Bun/Turbo
+- avoid double padding on MC pages
 - env/platform notes:
-  - Documentation-only updates; no code behavior changes.
+  - Issue drafting only; no code changes.
 
 ## Verification
-- N/A (docs/workflow only)
+- Manual check at 375px, 768px, 1024px for `/mc/admin` vs `/mc/contributions`.
 
 ## Nia query preamble (fill before calling Nia)
 Repo: Asymmetric-al/core
-Goal: Align issue-commit skill and command with AL-### workflow
-Area: skills/, .cursor/commands/, AGENTS.md, contribution-workflow.md
-Stack: Node.js, Bun, ESLint, Prettier, GitHub Actions
-Keywords: issue-commit, /issue-commit, ref AL-, fixes AL-, Conventional Commits
-Constraints: docs only; cite exact files + sections
-Evidence required: file paths + headings + brief explanation
+Goal: Find MC admin padding patterns for AL-001
+Area: src/app/(admin)/mc, src/app/globals.css
+Stack: Next.js (App Router), React, TypeScript, Tailwind CSS v4
+Keywords: /mc/admin, mc-shell, container-responsive, py-responsive-section, admin page
+Constraints: avoid double padding; cite exact files + components
+Evidence required: file paths + component names + brief explanation
