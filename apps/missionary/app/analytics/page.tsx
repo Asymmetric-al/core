@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { PageHeader } from "@asym/ui/components/page-header";
+import { PageHeader } from "@/components/page-header";
 import {
   Select,
   SelectContent,

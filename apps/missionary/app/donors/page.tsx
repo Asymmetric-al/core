@@ -6,13 +6,22 @@ import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@asym/ui/components/shadcn/tabs";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
-import { PageHeader } from "@asym/ui/components/page-header";
+import { PageHeader } from "@/components/page-header";
 import {
   Select,
   SelectContent,

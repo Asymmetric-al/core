@@ -31,7 +31,12 @@ import { Button } from "@asym/ui/components/shadcn/button";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Switch } from "@asym/ui/components/shadcn/switch";
 import { Label } from "@asym/ui/components/shadcn/label";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@asym/ui/components/shadcn/tabs";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@asym/ui/components/shadcn/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,13 +64,20 @@ import {
 } from "@asym/ui/components/shadcn/alert-dialog";
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
-import { RadioGroup, RadioGroupItem } from "@asym/ui/components/shadcn/radio-group";
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@asym/ui/components/shadcn/radio-group";
 import { cn } from "@asym/ui/lib/utils";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
-import { PageHeader } from "@asym/ui/components/page-header";
+import { PageHeader } from "@/components/page-header";
 import { TimeAgo, useLastSynced } from "@asym/lib/hooks";
-import { BrandAvatar, BrandLogo, brandConfig } from "@asym/ui/components/brand-logo";
+import {
+  BrandAvatar,
+  BrandLogo,
+  brandConfig,
+} from "@asym/ui/components/brand-logo";
 
 type OrgPostVisibility = "all_donors" | "followers_only";
 type Visibility = "public" | "partners" | "private";
@@ -73,7 +85,9 @@ type PostStatus = "published" | "draft";
 
 const RichTextEditor = dynamic(
   () =>
-    import("@asym/ui/components/shadcn/RichTextEditor").then((mod) => mod.RichTextEditor),
+    import("@asym/ui/components/shadcn/RichTextEditor").then(
+      (mod) => mod.RichTextEditor,
+    ),
   {
     ssr: false,
     loading: () => (

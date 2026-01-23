@@ -8,13 +8,13 @@ import { GithubIcon, MenuIcon, SearchIcon, TwitterIcon } from "lucide-react";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Separator } from "@asym/ui/components/shadcn/separator";
 
-import MenuDropdown from "@/components/shadcn-studio/blocks/menu-dropdown";
-import MenuNavigation from "@/components/shadcn-studio/blocks/menu-navigation";
-import type { NavigationSection } from "@/components/shadcn-studio/blocks/menu-navigation";
+import MenuDropdown from "../menu-dropdown";
+import MenuNavigation from "../menu-navigation";
+import type { NavigationSection } from "../menu-navigation";
 
 import { cn } from "@asym/ui/lib/utils";
 
-import Logo from "@/components/shadcn-studio/logo";
+import Logo from "../../logo";
 
 type HeaderProps = {
   navigationData: NavigationSection[];

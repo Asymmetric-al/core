@@ -5,8 +5,11 @@ import { useState, useCallback, useMemo, memo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@asym/ui/lib/utils";
-import { useMC } from "@/lib/mission-control/context";
-import { getMainNavItems, getToolsNavItems } from "@/lib/mission-control/nav";
+import { useMC } from "@asym/lib/mission-control/context";
+import {
+  getMainNavItems,
+  getToolsNavItems,
+} from "@asym/lib/mission-control/nav";
 import { DynamicIcon } from "../icons";
 import { Menu, LayoutDashboard } from "lucide-react";
 import { Button } from "@asym/ui/components/shadcn/button";

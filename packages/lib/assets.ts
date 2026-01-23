@@ -1,5 +1,5 @@
-import { createClient } from "@asym/database/supabase";
-import { CloudinaryUploadResponse } from "./cloudinary-client";
+import { createBrowserClient } from "@asym/database/supabase";
+import type { CloudinaryUploadResponse } from "./cloudinary-client";
 
 export interface SaveAssetOptions {
   userId?: string;
@@ -15,7 +15,7 @@ export async function saveAssetMetadata(
   cloudinaryData: CloudinaryUploadResponse,
   options: SaveAssetOptions = {},
 ) {
-  const supabase = await createClient();
+  const supabase = await createBrowserClient();
 
   const { data, error } = await supabase
     .from("assets")

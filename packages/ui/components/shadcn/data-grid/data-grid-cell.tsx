@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../select";
-import type { DataGridCellType, DataGridColumnOption } from "../types";
+import type { DataGridCellType, DataGridColumnOption } from "./types";
 
 interface DataGridCellProps {
   value: unknown;

@@ -40,11 +40,20 @@ import {
 import { motion, AnimatePresence, LayoutGroup } from "motion/react";
 import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Label } from "@asym/ui/components/shadcn/label";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@asym/ui/components/shadcn/tabs";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@asym/ui/components/shadcn/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -88,7 +97,7 @@ import {
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import { cn } from "@asym/ui/lib/utils";
 import { toast } from "sonner";
-import { PageHeader } from "@asym/ui/components/page-header";
+import { PageHeader } from "@/components/page-header";
 import { TimeAgo } from "@asym/lib/hooks";
 import { BrandAvatar, brandConfig } from "@asym/ui/components/brand-logo";
 

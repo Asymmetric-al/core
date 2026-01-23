@@ -1,5 +1,4 @@
 import { cn } from "@asym/ui/lib/utils";
-import { RESPONSIVE_CLASSES } from "@/lib/responsive";
 
 interface ResponsiveContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -173,7 +172,7 @@ export function MainContent({
   return (
     <main
       className={cn(
-        RESPONSIVE_CLASSES.containerFull,
+        "w-full px-4 sm:px-6 lg:px-10",
         "flex-1 py-4 sm:py-6 lg:py-10",
         className,
       )}

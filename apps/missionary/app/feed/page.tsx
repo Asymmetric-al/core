@@ -70,7 +70,7 @@ import {
 import { cn } from "@asym/ui/lib/utils";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
-import { PageHeader } from "@asym/ui/components/page-header";
+import { PageHeader } from "@/components/page-header";
 import { TimeAgo, useLastSynced } from "@asym/lib/hooks";
 
 const RichTextEditor = dynamic(

@@ -17,9 +17,9 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@asym/ui/components/shadcn/dropdown-menu";
-import { useMC, useRole } from "@/lib/mission-control/context";
-import { ROLE_LABELS } from "@/lib/mission-control/roles";
-import type { Role } from "@/lib/mission-control/types";
+import { useMC, useRole } from "@asym/lib/mission-control/context";
+import { ROLE_LABELS } from "@asym/lib/mission-control/roles";
+import type { Role } from "@asym/lib/mission-control/types";
 
 export const ProfileMenu = memo(function ProfileMenu() {
   const { user, isDevMode, signOut } = useMC();

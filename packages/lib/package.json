@@ -37,9 +37,15 @@
   },
   "dependencies": {
     "@asym/database": "workspace:*",
+    "@sentry/nextjs": "^10.32.1",
     "@stripe/stripe-js": "^5.3.0",
+    "@supabase/supabase-js": "^2.89.0",
     "clsx": "^2.1.1",
-    "tailwind-merge": "^3.4.0"
+    "next": "16.1.1",
+    "react": "19.2.3",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.4.0",
+    "web-vitals": "^4.2.4"
   },
   "devDependencies": {
     "@asym/typescript-config": "workspace:*",

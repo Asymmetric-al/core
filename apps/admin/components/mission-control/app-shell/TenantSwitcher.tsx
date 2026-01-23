@@ -17,8 +17,8 @@ import {
   PopoverTrigger,
 } from "@asym/ui/components/shadcn/popover";
 import { cn } from "@asym/ui/lib/utils";
-import { useMC } from "@/lib/mission-control/context";
-import type { Tenant } from "@/lib/mission-control/types";
+import { useMC } from "@asym/lib/mission-control/context";
+import type { Tenant } from "@asym/lib/mission-control/types";
 
 const STUB_TENANTS: Tenant[] = [
   {

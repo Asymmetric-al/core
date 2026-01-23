@@ -9,12 +9,9 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { QueryProvider } from "@asym/database/providers";
 import { siteConfig } from "@asym/config/site";
 
-dynamic(
-  () => import("@asym/ui/components/app-shell").then((mod) => mod.AppShell),
-  {
-    ssr: true,
-  },
-);
+dynamic(() => import("@/components/app-shell").then((mod) => mod.AppShell), {
+  ssr: true,
+});
 
 const inter = Inter({
   variable: "--font-inter",

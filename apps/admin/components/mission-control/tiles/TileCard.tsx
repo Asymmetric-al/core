@@ -2,7 +2,7 @@
 "use no memo";
 
 import Link from "next/link";
-import type { Tile } from "@/lib/mission-control/types";
+import type { Tile } from "@asym/lib/mission-control/types";
 import { DynamicIcon, ChevronRight } from "../icons";
 import {
   Card,

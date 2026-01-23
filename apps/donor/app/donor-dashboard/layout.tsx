@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Navbar } from "@asym/ui/components/public/navbar";
 import { Footer } from "@asym/ui/components/public/footer";
-import { DonorSubNav } from "@asym/ui/components/donor/DonorSubNav";
+import { DonorSubNav } from "@/components/donor/DonorSubNav";
 
 export const metadata: Metadata = {
   robots: {

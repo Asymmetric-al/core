@@ -3,33 +3,30 @@
 import { useState } from "react";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
-import { Heart, MessageCircle, HandHeart, Flame } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "@/components/ui/carousel";
-import { cn } from "@/lib/utils";
-import type { PostWithAuthor } from "@/types/database";
+} from "@asym/ui/components/shadcn/carousel";
+import { cn } from "@asym/ui/lib/utils";
+import type { PostWithAuthor } from "@asym/database/types";
 import { CommentsDialog } from "./comments-dialog";
 
 interface FeedPostProps {
   post: PostWithAuthor;
   onLike: (postId: string, liked: boolean) => void;
   onPrayer: (postId: string, prayed: boolean) => void;
-}
-
-interface Particle {
-  id: number;
-  emoji: string;
-  x: number;
-  y: number;
 }
 
 const FloatingEmoji = ({
@@ -206,14 +203,14 @@ export function FeedPost({ post, onLike, onPrayer }: FeedPostProps) {
   const handleLike = () => {
     const newLiked = !liked;
     setLiked(newLiked);
-    setLikeCount((prev) => (newLiked ? prev + 1 : prev - 1));
+    setLikeCount((prev: number) => (newLiked ? prev + 1 : prev - 1));
     onLike(post.id, newLiked);
   };
 
   const handlePrayer = () => {
     const newPrayed = !prayed;
     setPrayed(newPrayed);
-    setPrayerCount((prev) => (newPrayed ? prev + 1 : prev - 1));
+    setPrayerCount((prev: number) => (newPrayed ? prev + 1 : prev - 1));
     onPrayer(post.id, newPrayed);
   };
 
@@ -277,7 +274,7 @@ export function FeedPost({ post, onLike, onPrayer }: FeedPostProps) {
             ) : (
               <Carousel className="w-full">
                 <CarouselContent className="-ml-0">
-                  {post.media.map((item, index) => (
+                  {post.media.map((item: any, index: number) => (
                     <CarouselItem key={index} className="pl-0">
                       <div className="relative aspect-[4/3] w-full overflow-hidden">
                         {item.type === "video" ? (
