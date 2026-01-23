@@ -1,0 +1,65 @@
+# Env Var Audit
+
+## 1. Summary
+- Found 36 unique environment variables referenced across code, configs, and docs.
+- GitHub Actions explicitly sets 4 env vars in `.github/workflows/ci.yml`: `TURBO_TOKEN`, `TURBO_TEAM`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+- CI test-e2e runs use Playwright config that reads `CI`, `PLAYWRIGHT_BASE_URL`, and `PLAYWRIGHT_PORT`; the test-e2e job also injects `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+- `turbo.json` declares build env inputs for `NODE_ENV`, `NEXT_PUBLIC_*`, `GOOGLE_SITE_VERIFICATION`, and `BING_SITE_VERIFICATION`, which applies during the CI build step.
+- A `.env.local` file exists in the workspace but was not inspected to avoid reading local secrets; this audit is based on tracked files only.
+
+## 2. Environment Variable Inventory
+
+| Env Var | Referenced In (files) | Used in CI | Used in CI Tests | Scope (fork PR / trusted CI / local / optional) | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `ALLOW_DEMO_ACCOUNTS` | `.env.example:L14`<br>`src/app/api/auth/demo-account/route.ts:L104-L117`<br>`docs/DEVELOPER-GUIDE.md:L57` | No | No | optional | Safe to omit for fork PR CI: Yes (no CI references). |
+| `BING_SITE_VERIFICATION` | `.env.example:L55`<br>`src/config/site.ts:L55`<br>`turbo.json:L11`<br>`docs/DEVELOPER-GUIDE.md:L38` | Yes (build env hash) | No | optional | Safe to omit for fork PR CI: Yes (optional per docs). |
+| `CI` | `playwright.config.ts:L18-L20`<br>`docs/DEVELOPER-GUIDE.md:L30` | Yes | Yes | trusted CI (runtime-provided) | Safe to omit for fork PR CI: Yes (provided by CI runtime). |
+| `CLOUDINARY_API_SECRET` | `.env.example:L44`<br>`src/lib/cloudinary-server.ts:L17-L23`<br>`docs/DEVELOPER-GUIDE.md:L54` | No | No | optional | Safe to omit for fork PR CI: Yes (optional unless Cloudinary enabled). |
+| `CRON_SECRET` | `.env.example:L21`<br>`src/app/api/monitoring/audit-scan/route.ts:L6-L9`<br>`src/app/api/auth/cleanup-demo-users/route.ts:L8-L12`<br>`docs/DEVELOPER-GUIDE.md:L56` | No | No | optional | Safe to omit for fork PR CI: Yes (no CI references). |
+| `DEMO_ADMIN_EMAIL` | `.env.example:L7`<br>`src/app/api/auth/demo-account/route.ts:L55-L59`<br>`README.md:L222`<br>`docs/DEVELOPER-GUIDE.md:L58` | No | No | optional | Safe to omit for fork PR CI: Yes (demo-only). |
+| `DEMO_DONOR_EMAIL` | `.env.example:L9`<br>`src/app/api/auth/demo-account/route.ts:L55-L59`<br>`README.md:L222`<br>`docs/DEVELOPER-GUIDE.md:L60` | No | No | optional | Safe to omit for fork PR CI: Yes (demo-only). |
+| `DEMO_MISSIONARY_EMAIL` | `.env.example:L8`<br>`src/app/api/auth/demo-account/route.ts:L55-L59`<br>`README.md:L222`<br>`docs/DEVELOPER-GUIDE.md:L59` | No | No | optional | Safe to omit for fork PR CI: Yes (demo-only). |
+| `DEMO_PASSWORD` | `.env.example:L10`<br>`src/app/api/auth/demo-account/route.ts:L55-L68`<br>`README.md:L222`<br>`docs/DEVELOPER-GUIDE.md:L61` | No | No | optional | Safe to omit for fork PR CI: Yes (demo-only). |
+| `GOOGLE_SITE_VERIFICATION` | `.env.example:L54`<br>`src/config/site.ts:L54`<br>`turbo.json:L10`<br>`docs/DEVELOPER-GUIDE.md:L37` | Yes (build env hash) | No | optional | Safe to omit for fork PR CI: Yes (optional per docs). |
+| `NEXT_PUBLIC_BRAND_ACCENT_COLOR` | `.env.example:L36`<br>`src/config/pdf-studio.ts:L113-L114`<br>`src/config/email-studio.ts:L103-L104`<br>`docs/modules/pdf-studio.md:L137-L140`<br>`docs/modules/email-studio.md:L130-L133` | Yes (build env hash) | No | optional | Safe to omit for fork PR CI: Yes (optional per docs). |
+| `NEXT_PUBLIC_BRAND_LOGO_URL` | `.env.example:L34`<br>`src/config/pdf-studio.ts:L111-L113`<br>`src/config/email-studio.ts:L101-L103`<br>`docs/modules/email-studio.md:L135-L136`<br>`docs/DEVELOPER-GUIDE.md:L46` | Yes (build env hash) | No | optional | Safe to omit for fork PR CI: Yes (optional per docs). |
+| `NEXT_PUBLIC_BRAND_NAME` | `.env.example:L33`<br>`src/config/pdf-studio.ts:L110-L112`<br>`src/config/email-studio.ts:L99-L102`<br>`docs/modules/pdf-studio.md:L133-L135`<br>`docs/modules/email-studio.md:L126-L128` | Yes (build env hash) | No | optional | Safe to omit for fork PR CI: Yes (optional per docs). |
+| `NEXT_PUBLIC_BRAND_PRIMARY_COLOR` | `.env.example:L35`<br>`src/config/pdf-studio.ts:L112-L114`<br>`src/config/email-studio.ts:L102-L104`<br>`docs/modules/pdf-studio.md:L136-L138`<br>`docs/modules/email-studio.md:L129-L131` | Yes (build env hash) | No | optional | Safe to omit for fork PR CI: Yes (optional per docs). |
+| `NEXT_PUBLIC_CLOUDINARY_API_KEY` | `.env.example:L43`<br>`src/lib/cloudinary-server.ts:L17-L20`<br>`docs/DEVELOPER-GUIDE.md:L53` | Yes (build env hash) | No | optional | Safe to omit for fork PR CI: Yes (optional unless Cloudinary enabled). |
+| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | `.env.example:L42`<br>`src/lib/cloudinary-server.ts:L17-L19`<br>`docs/DEVELOPER-GUIDE.md:L52` | Yes (build env hash) | No | optional | Safe to omit for fork PR CI: Yes (optional unless Cloudinary enabled). |
+| `NEXT_PUBLIC_CLOUDINARY_ENABLED` | `.env.example:L41`<br>`src/lib/cloudinary-server.ts:L59-L60`<br>`src/lib/cloudinary-client.ts:L69-L70`<br>`docs/DEVELOPER-GUIDE.md:L51` | Yes (build env hash) | No | optional | Safe to omit for fork PR CI: Yes (optional per docs). |
+| `NEXT_PUBLIC_EMAIL_FOOTER_TEXT` | `.env.example:L37`<br>`src/config/email-studio.ts:L101-L105`<br>`src/config/pdf-studio.ts:L115-L117`<br>`docs/modules/email-studio.md:L138-L139` | Yes (build env hash) | No | optional | Safe to omit for fork PR CI: Yes (optional per docs). |
+| `NEXT_PUBLIC_MAIN_DOMAIN` | `.env.example:L18`<br>`src/lib/supabase/proxy.ts:L61-L64`<br>`docs/DEVELOPER-GUIDE.md:L39` | Yes (build env hash) | No | optional | Safe to omit for fork PR CI: Yes (optional per docs). |
+| `NEXT_PUBLIC_PDF_FOOTER_TEXT` | `.env.example:L38`<br>`src/config/pdf-studio.ts:L115-L117`<br>`docs/modules/pdf-studio.md:L142-L143`<br>`docs/DEVELOPER-GUIDE.md:L50` | Yes (build env hash) | No | optional | Safe to omit for fork PR CI: Yes (optional per docs). |
+| `NEXT_PUBLIC_SENTRY_DSN` | `.env.example:L47`<br>`src/lib/monitoring/sentry.ts:L4-L11`<br>`sentry.server.config.ts:L3-L6`<br>`sentry.client.config.ts:L3-L10`<br>`sentry.edge.config.ts:L3-L6` | Yes (build env hash) | No | optional | Safe to omit for fork PR CI: Yes (optional per docs). |
+| `NEXT_PUBLIC_SITE_URL` | `.env.example:L17`<br>`src/config/site.ts:L7`<br>`src/config/pdf-studio.ts:L81-L85`<br>`src/config/email-studio.ts:L71-L75`<br>`docs/DEVELOPER-GUIDE.md:L36` | Yes (build env hash) | No | optional | Safe to omit for fork PR CI: Yes (optional per docs). |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | `.env.example:L24`<br>`src/lib/stripe.ts:L5-L8`<br>`src/app/api/donate/route.ts:L203-L205`<br>`docs/MOCK-DATA.md:L202`<br>`docs/ARCHITECTURE.md:L398-L401` | Yes (build env hash) | No | optional | Safe to omit for fork PR CI: Unknown (not in CI config; optional per docs). |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `.env.example:L3`<br>`src/lib/supabase/client.ts:L3-L7`<br>`src/lib/supabase/server.ts:L7-L10`<br>`src/app/api/missionaries/[id]/metrics/route.ts:L63-L67`<br>`.github/workflows/ci.yml:L76-L79` | Yes (workflow + build env hash) | Yes | trusted CI + local (required) | Safe to omit for fork PR CI: Unknown (workflow uses secrets). |
+| `NEXT_PUBLIC_SUPABASE_URL` | `.env.example:L2`<br>`src/lib/supabase/client.ts:L3-L6`<br>`src/lib/supabase/server.ts:L7-L9`<br>`src/app/api/missionaries/[id]/metrics/route.ts:L63-L67`<br>`.github/workflows/ci.yml:L76-L79` | Yes (workflow + build env hash) | Yes | trusted CI + local (required) | Safe to omit for fork PR CI: Unknown (workflow uses secrets). |
+| `NEXT_PUBLIC_UNLAYER_ALLOWED_DOMAINS` | `.env.example:L30`<br>`src/config/pdf-studio.ts:L70-L78`<br>`src/config/email-studio.ts:L60-L68`<br>`docs/modules/pdf-studio.md:L152-L155`<br>`docs/modules/email-studio.md:L148-L151` | Yes (build env hash) | No | optional | Safe to omit for fork PR CI: Yes (optional per docs). |
+| `NEXT_PUBLIC_UNLAYER_PROJECT_ID` | `.env.example:L28`<br>`src/config/pdf-studio.ts:L92-L96`<br>`src/config/email-studio.ts:L82-L86`<br>`docs/modules/pdf-studio.md:L89-L92`<br>`docs/modules/email-studio.md:L90-L93` | Yes (build env hash) | No | optional | Safe to omit for fork PR CI: Yes (optional per docs). |
+| `NEXT_PUBLIC_UNLAYER_WHITE_LABEL` | `.env.example:L29`<br>`src/config/pdf-studio.ts:L101-L104`<br>`src/config/email-studio.ts:L90-L94`<br>`docs/modules/pdf-studio.md:L152-L154`<br>`docs/modules/email-studio.md:L104-L106` | Yes (build env hash) | No | optional | Safe to omit for fork PR CI: Yes (optional per docs). |
+| `NODE_ENV` | `turbo.json:L8-L11`<br>`src/lib/monitoring/sentry.ts:L11-L14`<br>`sentry.client.config.ts:L5-L10`<br>`src/app/global-error.tsx:L18-L18` | Yes (build env hash) | No | local (runtime-provided) | Safe to omit for fork PR CI: Yes (runtime-provided). |
+| `PLAYWRIGHT_BASE_URL` | `.env.example:L50`<br>`playwright.config.ts:L4-L10`<br>`docs/DEVELOPER-GUIDE.md:L62` | Yes (test-e2e config) | Yes | local (test tooling) | Safe to omit for fork PR CI: Yes (defaults in config). |
+| `PLAYWRIGHT_PORT` | `playwright.config.ts:L3-L4` | Yes (test-e2e config) | Yes | local (test tooling) | Safe to omit for fork PR CI: Yes (defaults in config). |
+| `STRIPE_SECRET_KEY` | `.env.example:L25`<br>`src/app/api/donate/route.ts:L55-L57`<br>`docs/MOCK-DATA.md:L202`<br>`docs/ARCHITECTURE.md:L398-L401` | No | No | optional | Safe to omit for fork PR CI: Unknown (not in CI config; optional per docs). |
+| `SUPABASE_SERVICE_ROLE_KEY` | `src/lib/supabase/admin.ts:L18-L31`<br>`docs/DEVELOPER-GUIDE.md:L30` | No | No | optional | Safe to omit for fork PR CI: Yes (admin endpoints disabled if unset). |
+| `TURBO_TEAM` | `.github/workflows/ci.yml:L16-L18`<br>`docs/CONTRIBUTING.md:L198-L200` | Yes | No | trusted CI | Safe to omit for fork PR CI: Unknown (workflow references). |
+| `TURBO_TOKEN` | `.github/workflows/ci.yml:L16-L18`<br>`docs/CONTRIBUTING.md:L198-L200` | Yes | No | trusted CI | Safe to omit for fork PR CI: Unknown (workflow references). |
+| `VERIFY_E2E_PROJECTS` | `.env.example:L51`<br>`scripts/verify-e2e.mjs:L13-L16`<br>`docs/DEVELOPER-GUIDE.md:L63` | No | No | local (test tooling) | Safe to omit for fork PR CI: Yes (not used in CI workflow). |
+
+## 3. CI-Specific Findings
+- Env vars referenced directly in `.github/workflows/ci.yml`: `TURBO_TOKEN`, `TURBO_TEAM`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (`.github/workflows/ci.yml:L16-L119`).
+- Env vars indirectly required by CI scripts/configs:
+  - Playwright config used by `test-e2e` reads `CI`, `PLAYWRIGHT_BASE_URL`, `PLAYWRIGHT_PORT` (`playwright.config.ts:L3-L20`).
+  - Turbo build env inputs include `NODE_ENV`, `NEXT_PUBLIC_*`, `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION` (`turbo.json:L7-L11`).
+- Potential fork PR CI blockers (explicit workflow dependencies):
+  - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are injected from GitHub secrets in build and test-e2e jobs (`.github/workflows/ci.yml:L70-L119`); absence of these secrets on fork PRs would leave these unset during those steps.
+  - `TURBO_TOKEN` and `TURBO_TEAM` are injected into all jobs via secrets/vars (`.github/workflows/ci.yml:L16-L119`).
+
+## 4. Risk Notes
+- Sensitive-looking env vars (names indicate secrets/keys): `STRIPE_SECRET_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `CLOUDINARY_API_SECRET`, `CRON_SECRET`, `TURBO_TOKEN` (secret), and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (client-safe key but still a key).
+- Env vars referenced in build/test steps that could affect CI if unset:
+  - Build: `NEXT_PUBLIC_*`, `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION`, `NODE_ENV` (hash inputs via `turbo.json:L7-L11`).
+  - E2E tests: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `CI`, `PLAYWRIGHT_BASE_URL`, `PLAYWRIGHT_PORT` (`.github/workflows/ci.yml:L110-L134`, `playwright.config.ts:L3-L20`).
+- No untracked or ignored env files were inspected; only tracked references were used for this audit.
