@@ -34,10 +34,12 @@ yarn-error.log*
 .env.test
 !.env.example
 
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
 
 # Local env
 .env.local
+
+# ai workflow
+docs/ai/working-set.md
