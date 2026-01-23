@@ -14,7 +14,7 @@ bun run dev
 ./scripts/verify
 ```
 
-**Required:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`  
+**Required:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 **Optional:** All other entries in `.env.example` (Stripe, demo accounts, Unlayer, etc.)
 
 ### Windows
@@ -159,6 +159,26 @@ Common commands:
 
 - `bun run format` (fix), `bun run format:check` (verify), `bun run lint`, and `bun run typecheck`
 - `bun run test:e2e`
+
+### Git Hooks Setup
+
+Pre-commit hooks auto-run ESLint + Prettier. If you get "command not found" errors:
+
+**macOS/Linux:**
+
+```bash
+mkdir -p ~/.config/husky && echo 'export PATH="/usr/local/bin:$PATH"' > ~/.config/husky/init.sh
+```
+
+**Windows:**
+
+```bash
+mkdir -p ~/.config/husky && echo 'export PATH="/c/Program Files/nodejs:$PATH"' > ~/.config/husky/init.sh
+```
+
+**Using nvm:** Replace with `export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"`
+
+One-time setup per machine.
 
 ### Turborepo (Task Orchestration + Cache)
 

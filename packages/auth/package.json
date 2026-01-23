@@ -8,6 +8,10 @@
     "./context": "./context.ts",
     "./use-auth": "./use-auth.ts"
   },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
   "dependencies": {
     "@asym/database": "workspace:*",
     "@supabase/ssr": "^0.8.0",
@@ -20,4 +24,3 @@
     "typescript": "^5.7.3"
   }
 }
-
