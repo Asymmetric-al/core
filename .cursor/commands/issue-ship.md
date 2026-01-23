@@ -1,11 +1,10 @@
-# Close Issue — Skill
+# /issue-ship
 
-**Name:** `close-issue`
-**Purpose:** Finalize an `AL-###` issue by verifying acceptance criteria, running quality gates, and marking the PR ready for review.
-Use this when the user asks to close/finish/ship an issue or prepare a PR.
+**Purpose:** Finalize an `AL-###` issue by verifying acceptance criteria, running quality gates, and marking the PR ready for review (issue lifecycle: ship).
+Use this command when the user asks to close/finish/ship an issue or prepare a PR.
 
-**Applies when:** Preparing a PR for review/merge or closing an issue.
-**Do not use when:** Starting or implementing an issue (use `start-issue` or `ship-issue`).
+**When to use:** Preparing a PR for review/merge or shipping an issue.
+**Do not use when:** Starting or implementing an issue (use `/issue-start` or `/issue-implement`).
 
 ## Rules
 
@@ -13,7 +12,7 @@ Use this when the user asks to close/finish/ship an issue or prepare a PR.
 - Formatting: fix with `bun run format`, verify with `bun run format:check`.
 - PR workflow: Draft -> Ready for Review -> Approved -> Merged.
 - Prefer GitHub MCP for PR/issue operations.
-- If using Nia (MCP) for repo context, scope queries to `Asymmetric-al/core` (see `AGENTS.md#nia-mcp-usage-always-repo-scoped`).
+- If using Nia (MCP) for repo context, scope queries to `Asymmetric-al/core` (see `.cursor/rules/AGENTS.md#nia-mcp-usage-always-repo-scoped`).
 - E2E is informational and must not be required for merge.
 
 ## Workflow
@@ -25,9 +24,9 @@ Use this when the user asks to close/finish/ship an issue or prepare a PR.
    - Run: `git log -20 --oneline`.
 3. **Verify acceptance criteria:** Use GitHub MCP to fetch issue body and checklist.
 4. **Scan TODO/FIXME:** Check changed files for TODO/FIXME.
-5. **Run relevant tests:** Use `rules/testing.md` to decide scope (unit/e2e/a11y/perf) and run the applicable commands.
+5. **Run relevant tests:** Use `.cursor/rules/testing.md` to decide scope (unit/e2e/a11y/perf) and run the applicable commands.
 6. **Run quality gate:** Fix failures and re-run until clean.
-7. **Commit/push:** Use `skills/issue-commit/SKILL.md` and `git push`.
+7. **Commit/push:** Use `/issue-commit` for the commit message, then push to the remote.
 8. **Request reviewers (CODEOWNERS):** Read `CODEOWNERS` and collect owner handles.
    - One handle per line; ignore blank lines and comments.
    - Ignore teams (lines starting with `@org/` or containing a slash).
@@ -45,7 +44,7 @@ Use this when the user asks to close/finish/ship an issue or prepare a PR.
 
 ### Final checklist
 
-- [ ] Relevant tests run (per `rules/testing.md`)
+- [ ] Relevant tests run (per `.cursor/rules/testing.md`)
 - [ ] Quality gate passes
 - [ ] Formatting fixed with `bun run format` and verified with `bun run format:check`
 - [ ] `CI / format` passes on the PR
@@ -78,7 +77,7 @@ bun run test:e2e
 ### Find TODO/FIXME in changed files
 
 ```bash
-git diff --name-only origin/develop...HEAD | xargs -I{} grep -n "TODO\|FIXME" "{}" || true
+git diff --name-only origin/develop...HEAD | xargs -I{} grep -n "TODO\\|FIXME" "{}" || true
 ```
 
 ## Common mistakes / pitfalls

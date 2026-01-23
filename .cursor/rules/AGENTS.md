@@ -133,37 +133,50 @@ Answer with citations/paths from the repo and avoid external sources unless just
 
 ---
 
+### MCP Servers (Cursor)
+
+**Config file:** `.cursor/mcp.toml` (restart Cursor after changes)
+
+**Enabled servers:**
+
+- **shadcn** — shadcn/studio MCP workflows. Env: `SHADCN_EMAIL`, `SHADCN_LICENSE_KEY`.
+- **github** — GitHub MCP via Copilot API. Env: `GITHUB_TOKEN`.
+- **nia** — repo search/trace. Env: `NIA_API_KEY`, `NIA_API_URL`.
+- **context7** — third-party API docs. Env: none.
+
+**Optional servers (commented):**
+
+- **postgres** — Postgres MCP. Env: `DATABASE_URI`.
+- **twenty** — Twenty CRM MCP. Env: `TWENTY_API_KEY`, `TWENTY_BASE_URL`.
+- **vercel** — Vercel MCP. Env: none.
+- **stripe** — Stripe MCP. Env: none.
+- **directus** — Directus MCP. Env: `DIRECTUS_URL`, `DIRECTUS_TOKEN`.
+- **playwright** — Playwright MCP. Env: none.
+
+---
+
 ## Routing Rules (Deterministic)
 
 Load rulebooks before editing files in their domain.
 
-- **General workflow / AL-### / CI gates / labels:** `rules/general.md`
-- **Frontend UI/components/styling/UX:** `rules/frontend.md`
-- **Backend/Supabase/auth/data access/migrations:** `rules/backend.md`
-- **Testing/Playwright/a11y/perf gates:** `rules/testing.md`
-- **shadcn/studio MCP workflows (/cui, /rui, /iui, /ftc):** `rules/shadcn-studio-mcp.md` (only when running those workflows)
+- **General workflow / AL-### / CI gates / labels:** `.cursor/rules/general.md`
+- **Frontend UI/components/styling/UX:** `.cursor/rules/frontend.md`
+- **Backend/Supabase/auth/data access/migrations:** `.cursor/rules/backend.md`
+- **Testing/Playwright/a11y/perf gates:** `.cursor/rules/testing.md`
+- **shadcn/studio MCP workflows (/cui, /rui, /iui, /ftc):** `.cursor/rules/shadcn-studio-mcp.md` (only when running those workflows)
 
 ---
 
-## Skill Routing (Deterministic)
+## Command Routing (Deterministic)
 
-Load the skill(s) below when the trigger matches.
+Use the commands below when the trigger matches.
 
-- **Next.js App Router structure, rendering, data fetching:** `skills/nextjs-app-router/SKILL.md`
-- **Cache Components / PPR / cacheTag & invalidation:** `skills/cache-components/SKILL.md`
-- **React component design/refactor:** `skills/react-component-dev/SKILL.md`
-- **shadcn/ui system usage:** `skills/moai-library-shadcn/SKILL.md`
-- **Motion animations (`motion/react`):** `skills/motion/SKILL.md`
-- **Recharts:** `skills/rechart/SKILL.md`
-- **TanStack Table v8:** `skills/tanstack-table/SKILL.md`
-- **GitHub issue/PR workflows (AL-###):**
-  - Write issue: `skills/write-issue/SKILL.md`
-  - Build issue: `skills/build-issue/SKILL.md`
-  - Start issue: `skills/start-issue/SKILL.md`
-  - Ship issue: `skills/ship-issue/SKILL.md`
-  - Close issue: `skills/close-issue/SKILL.md`
-  - Create issues batch: `skills/create-issues/SKILL.md`
-- **Commit message creation:** `skills/issue-commit/SKILL.md`
+- **Draft an existing issue:** `/issue-draft`
+- **Open a new issue:** `/issue-open`
+- **Start issue work (branch + draft PR):** `/issue-start`
+- **Implement an issue:** `/issue-implement`
+- **Commit staged changes:** `/issue-commit`
+- **Ship/ready a PR:** `/issue-ship`
 
 ---
 
@@ -180,7 +193,7 @@ Load the skill(s) below when the trigger matches.
 
 - Do not include secrets, tokens, or credentials in docs.
 - Do not allow conflicting instructions across rulebooks; reconcile and document the single source of truth.
-- Every rules/skill/workflow doc must include: triggers, workflow steps, and a checklist. Update the doc if any section is missing.
+- Every rules/command/workflow doc must include: triggers, workflow steps, and a checklist. Update the doc if any section is missing.
 
 ---
 
@@ -189,7 +202,7 @@ Load the skill(s) below when the trigger matches.
 ### Routing checklist
 
 - [ ] Identified domain(s) and opened the matching rulebook(s)
-- [ ] Applied required skills based on triggers
+- [ ] Applied required commands based on triggers
 - [ ] Used Nia or Context7 when required (or explicitly noted fallback)
 - [ ] Nia tool calls are repo-scoped to `Asymmetric-al/core`
 - [ ] Nia search calls include the “Nia query preamble” built from `docs/ai/working-set.md` + `docs/ai/stack-registry.md`
@@ -204,9 +217,9 @@ Load the skill(s) below when the trigger matches.
 
 ## Minimal examples
 
-- **"Where is auth handled?"** -> Update `docs/ai/working-set.md`; use Nia (scoped + preambled) to find auth entry points; then open `rules/backend.md`.
-- **"Add a new UI card component."** -> Open `rules/frontend.md` and `skills/react-component-dev/SKILL.md`. Use Nia to find existing patterns/components in this repo before writing new ones.
-- **"Use /cui for a page."** -> Open `rules/shadcn-studio-mcp.md` and follow its workflow exactly.
+- **"Where is auth handled?"** -> Update `docs/ai/working-set.md`; use Nia (scoped + preambled) to find auth entry points; then open `.cursor/rules/backend.md`.
+- **"Add a new UI card component."** -> Open `.cursor/rules/frontend.md`, follow existing component patterns, and use Nia to find related implementations before writing new ones.
+- **"Use /cui for a page."** -> Open `.cursor/rules/shadcn-studio-mcp.md` and follow its workflow exactly.
 
 ---
 
@@ -216,6 +229,6 @@ Load the skill(s) below when the trigger matches.
 - Running unscoped Nia searches outside `Asymmetric-al/core`
 - Calling Nia without first updating `docs/ai/working-set.md`
 - Using vague Nia queries without exact identifiers/keywords
-- Using shadcn/studio tools without `rules/shadcn-studio-mcp.md`
+- Using shadcn/studio tools without `.cursor/rules/shadcn-studio-mcp.md`
 - Mixing rulebooks with conflicting instructions instead of reconciling them
 - Forgetting to update docs after behavior changes

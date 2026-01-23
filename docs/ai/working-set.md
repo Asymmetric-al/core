@@ -3,69 +3,56 @@
 Agents MUST keep this file updated during a task. Use it to build the Nia query preamble.
 
 ## Current objective
-- Identify UI contrast issues and create a batch of AL-### GitHub issues with labels.
+- Add an `issue-commit` skill and `/issue-commit` command, and update AL-### issue flow docs.
 
 ## Repo scope
 - repository: Asymmetric-al/core
 - in-scope paths (if known):
   - AGENTS.md
-  - docs/
-  - rules/
-  - .github/
+  - .cursor/commands/
+  - .cursor/rules/
+  - skills/
+  - contribution-workflow.md
+  - docs/ai/
 
 ## Stack tags (pick from docs/ai/stack-registry.md)
-- Next.js
-- React
-- TypeScript
-- Tailwind CSS v4
-- shadcn/ui
-- MAIA theme
+- Node.js
+- Bun
+- ESLint, Prettier
+- GitHub Actions
 
 ## Known identifiers (exact strings)
 - files:
-  - src/app
-  - src/components
-  - src/features
+  - skills/issue-commit/SKILL.md
+  - .cursor/commands/issue-commit.md
+  - contribution-workflow.md
 - symbols:
-  - className
-  - cn(
+  - /issue-commit
+  - issue-commit
+  - ref AL-
+  - fixes AL-
 - routes:
   - N/A
 - error strings:
   - N/A
-- UI terms:
-  - contrast
-  - text-muted
-  - text-zinc
-  - text-neutral
-  - text-slate
-  - text-gray
-  - text-foreground
-  - bg-muted
-  - bg-zinc
-  - bg-neutral
-  - bg-slate
-  - bg-gray
-  - bg-background
-  - opacity-
 
 ## Expected behavior
-- Find contrast risks in UI components/pages and translate them into actionable issues with acceptance criteria.
+- Skill and command docs align with AL-### issue flow and commit conventions.
 
 ## Constraints
 - runtime: Node.js
 - tooling: Bun/Turbo
 - env/platform notes:
-  - No PRs, branches, commits, or tags; issues only.
+  - Documentation-only updates; no code behavior changes.
 
 ## Verification
-- N/A (issue discovery only)
+- N/A (docs/workflow only)
 
 ## Nia query preamble (fill before calling Nia)
 Repo: Asymmetric-al/core
-Goal: Locate UI contrast risks for issue drafting
-Area: src/app, src/components, src/features, styles
-Stack: Next.js, React, TypeScript, Tailwind CSS v4, shadcn/ui, MAIA theme
-Keywords: contrast, text-muted, text-foreground, bg-muted, bg-background, opacity-, className, cn(
-Constraints: issues only; cite exact files + classes
-Evidence required: file paths + class strings + brief explanation
+Goal: Align issue-commit skill and command with AL-### workflow
+Area: skills/, .cursor/commands/, AGENTS.md, contribution-workflow.md
+Stack: Node.js, Bun, ESLint, Prettier, GitHub Actions
+Keywords: issue-commit, /issue-commit, ref AL-, fixes AL-, Conventional Commits
+Constraints: docs only; cite exact files + sections
+Evidence required: file paths + headings + brief explanation
