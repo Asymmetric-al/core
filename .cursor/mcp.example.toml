@@ -1,18 +1,19 @@
 ########## MCP Servers ##########
 #
-# Cursor MCP configuration. Do not commit secrets.
-# Provide credentials via environment variables.
+# Example MCP configuration for this repo.
+# Copy to .cursor/mcp.toml and fill in real values locally.
+# Do not commit .cursor/mcp.toml once it contains secrets.
 
 [mcp_servers.shadcn]
 command = "npx"
 args = ["-y", "shadcn@latest", "mcp"]
-env = { EMAIL = "conrad@globalfellowship.org", LICENSE_KEY = "EA549A1B-A0C1-4AA6-AB6B-2A8AB9EE64C9" }
+env = { EMAIL = "you@example.com", LICENSE_KEY = "shadcn_license_key_here" }
 
 ###
 
 [mcp_servers.github]
 url = "https://api.githubcopilot.com/mcp"
-http_headers = { "Authorization" = "Bearer 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" }
+http_headers = { "Authorization" = "Bearer ghp_your_token_here" }
 
 ###
 
@@ -24,7 +25,7 @@ startup_timeout_ms = 30000
 ###
 
 [mcp_servers.nia.env]
-NIA_API_KEY = "nk_d5FhJ1UinKiimPgtkRANlxeB0W1OXFoU"
+NIA_API_KEY = "nk_your_key_here"
 NIA_API_URL = "https://apigcp.trynia.ai/"
 
 ###
@@ -38,14 +39,14 @@ args = ["-y", "@upstash/context7-mcp"]
 # [mcp_servers.postgres]
 # command = "docker"
 # args = ["run", "-i", "--rm", "-e", "DATABASE_URI", "crystaldba/postgres-mcp", "--access-mode=restricted"]
-# env = { DATABASE_URI = "${DATABASE_URI}" }
+# env = { DATABASE_URI = "postgresql://username:password@localhost:5432/dbname" }
 
 ###
 
 # [mcp_servers.twenty]
 # command = "npx"
 # args = ["-y", "twenty-mcp-server", "start", "--stdio"]
-# env = { TWENTY_API_KEY = "${TWENTY_API_KEY}", TWENTY_BASE_URL = "${TWENTY_BASE_URL}" }
+# env = { TWENTY_API_KEY = "twenty_api_key_here", TWENTY_BASE_URL = "https://your-twenty-instance.com" }
 
 ###
 
@@ -62,7 +63,7 @@ args = ["-y", "@upstash/context7-mcp"]
 # [mcp_servers.directus]
 # command = "npx"
 # args = ["@directus/content-mcp@latest"]
-# env = { DIRECTUS_URL = "${DIRECTUS_URL}", DIRECTUS_TOKEN = "${DIRECTUS_TOKEN}" }
+# env = { DIRECTUS_URL = "https://your-directus-instance.com", DIRECTUS_TOKEN = "directus_token_here" }
 
 ###
 

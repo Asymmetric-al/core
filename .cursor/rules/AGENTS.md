@@ -138,7 +138,7 @@ Answer with citations/paths from the repo and avoid external sources unless just
 
 ### MCP Servers (Cursor)
 
-**Config file:** `.cursor/mcp.toml` (restart Cursor after changes)
+**Config file:** `.cursor/mcp.toml` (copy from `.cursor/mcp.example.toml`; restart Cursor after changes)
 
 **Enabled servers:**
 
