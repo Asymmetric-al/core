@@ -24,6 +24,7 @@ This file is the deterministic entry point for all agent work in `core`.
 #### Repo scoping (required)
 
 - Always include repo scope in Nia tool calls: `repository="Asymmetric-al/core"` or `repositories=["Asymmetric-al/core"]`.
+- Always target the `develop` branch for this repo; include `Branch: develop` in the Nia preamble.
 - If a tool lacks repo selection, use the most restrictive equivalent (path filters, file globs, repo-specific search endpoints) and state it explicitly.
 - Outside-repo searches are rare. If needed, include a short justification in the prompt and run a second scoped pass inside `Asymmetric-al/core` before making changes.
 
@@ -51,6 +52,7 @@ Before every Nia search-like call, construct a short preamble using `docs/ai/wor
 
 ```
 Repo: Asymmetric-al/core
+Branch: develop
 Goal: <one sentence>
 Area: <dir/module/file guess>
 Stack: <3–8 tags from stack-registry.md>
@@ -81,6 +83,7 @@ Rules:
 mcp__nia__search({
   query: `
 Repo: Asymmetric-al/core
+Branch: develop
 Goal: Locate where auth is handled end-to-end
 Area: auth entry points + session plumbing
 Stack: Next.js, TypeScript, Supabase Auth
