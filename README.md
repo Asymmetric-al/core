@@ -17,6 +17,10 @@ bun run dev
 **Required:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`  
 **Optional:** All other entries in `.env.example` (Stripe, demo accounts, Unlayer, etc.)
 
+## Contributing
+
+Forks + PRs only. See `docs/CONTRIBUTING.md` for the required fork workflow and PR base branch (`develop`).
+
 ### Windows
 
 Windows PowerShell 5.1:

@@ -1,15 +1,15 @@
 # Create Issues — Skill
 
 **Name:** `create-issues`
-**Purpose:** Scan the repo and create a small batch of GitHub issues with consistent `AL-###` titles and labels.
-Use this skill when asked to generate multiple actionable issues.
+**Purpose:** Scan the repo and create **one** GitHub issue per run with consistent `AL-###` titles and labels.
+Use this skill when asked to discover issues and create them one at a time.
 
-**Applies when:** The user requests a batch of issues or repo-wide issue discovery.
-**Do not use when:** Only a single issue is needed (use `skills/write-issue/SKILL.md`).
+**Applies when:** The user requests issue discovery or repo-wide scanning.
+**Do not use when:** A specific `AL-###` issue already exists and needs drafting/updating (use `skills/write-issue/SKILL.md`).
 
 ## Rules
 
-- Create **5–12** issues per run.
+- Create **exactly 1** issue per run.
 - Title format: `AL-<issue_number>: <short title>`.
 - Labels: exactly one `complexity:*`, one `type:*`, one `status:*` (default `status:todo`).
 - Prefer GitHub MCP; do not assume `gh` is available.
@@ -26,17 +26,18 @@ Use this skill when asked to generate multiple actionable issues.
 1. Determine target repo (prefer `git remote get-url origin`).
 2. Ensure labels exist via GitHub MCP; create missing labels if approved.
 3. Perform a fast repo scan (docs, TODO/FIXME, stubs, CI hints).
-4. Draft 5–12 issues with context + acceptance criteria.
-5. Apply exactly three labels per issue.
-6. Create issues via GitHub MCP and rename with the `AL-###` prefix.
-7. If MCP is unavailable, stop and ask how to proceed.
+4. Draft 2–5 candidate issues with context + acceptance criteria.
+5. Ask the user to pick **one** issue to create.
+6. Apply exactly three labels to the chosen issue.
+7. Create the issue via GitHub MCP and rename with the `AL-###` prefix.
+8. If MCP is unavailable, stop and ask how to proceed.
 
 ## Checklists
 
 ### Drafting checklist
 
-- [ ] 5–12 issues max
-- [ ] Each issue has context + acceptance criteria
+- [ ] One issue only
+- [ ] The chosen issue has context + acceptance criteria
 - [ ] Titles are short and imperative
 
 ### Label checklist
@@ -57,7 +58,7 @@ Use this skill when asked to generate multiple actionable issues.
 
 ## Common mistakes / pitfalls
 
-- Creating more than 12 issues
+- Creating more than one issue per run
 - Applying multiple labels from the same category
 - Skipping acceptance criteria
 - Assuming `gh` is available instead of GitHub MCP

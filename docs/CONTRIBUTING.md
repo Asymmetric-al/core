@@ -31,11 +31,85 @@ If you use Nia for repo search, follow the canonical policy in [AGENTS.md#nia-mc
 
 ---
 
+## Contribution Model (Forks + PRs only)
+
+- Contributors are not added to the GitHub org/team for this repo.
+- All contributions must come from forks via pull requests (PRs) to the upstream repo.
+- PRs must target the `develop` branch (never `main`).
+- Maintainers review and merge PRs; direct pushes to protected branches are not allowed.
+
+## Fork + PR Workflow (Required)
+
+1. **Fork the repo (GitHub UI)**
+   - Open `Asymmetric-al/core` and click **Fork** → **Create fork**.
+2. **Clone your fork**
+
+```bash
+git clone https://github.com/<your-username>/core.git
+cd core
+```
+
+3. **Add the upstream remote**
+
+```bash
+git remote add upstream https://github.com/Asymmetric-al/core.git
+```
+
+4. **Create a feature branch from upstream `develop`**
+
+```bash
+git fetch upstream
+git checkout -b feature/AL-123-short-description upstream/develop
+```
+
+5. **Commit and push to your fork**
+
+```bash
+git add -A
+git commit -m "AL-123: <summary>"
+git push -u origin feature/AL-123-short-description
+```
+
+6. **Open a PR to upstream `develop` (GitHub UI)**
+   - From your fork, click **Compare & pull request** (or **New pull request**).
+   - Base repo: `Asymmetric-al/core` → base branch: `develop`.
+   - Head repo: `<your-username>/core` → compare branch: your feature branch.
+
+## Keep Your Fork in Sync
+
+```bash
+git fetch upstream
+git checkout develop
+git rebase upstream/develop
+git push origin develop
+```
+
+If you do not have a local `develop` branch yet:
+
+```bash
+git checkout -b develop upstream/develop
+git push -u origin develop
+```
+
+## When Changes Are Requested
+
+- Check out your feature branch.
+- Apply the requested changes locally.
+- Commit and push to your fork; the PR updates automatically.
+
+## Security & Maintainers
+
+- Only maintainers can merge to `main`.
+- PRs require review and required checks before merge.
+- Direct pushes to protected branches are not allowed.
+
+---
+
 ## Development Workflow
 
 ### Before You Code
 
-1. **Pull latest changes**: `git pull origin main`
+1. **Sync with upstream `develop`**: `git fetch upstream` → `git checkout develop` → `git rebase upstream/develop`
 2. **Create a feature branch**: `git checkout -b feature/your-feature-name`
 3. **Understand the area**: Read relevant code and check [ARCHITECTURE.md](./ARCHITECTURE.md)
 
@@ -198,212 +272,3 @@ Remote caching uses **Vercel Remote Cache** and is enabled for internal PRs and 
 - **CI env vars** (stored in GitHub secrets/vars, never committed):
   - `TURBO_TOKEN` (secret)
   - `TURBO_TEAM` (team slug; variable or secret)
-
-### Env Hashing Policy (Build)
-
-Build cache keys must reflect only env vars that impact build output.
-
-- **Included**: `NEXT_PUBLIC_*` plus any non-public envs that are used at build time (e.g., `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION`).
-- **Excluded**: runtime-only or unrelated envs that do not affect build output.
-
-Avoid footguns:
-
-- Don’t include unrelated envs (causes unnecessary cache misses).
-- Don’t bake timestamps or release IDs unless you want cache invalidation.
-- Keep wildcards minimal and intentional.
-
-### Cache Correctness Validation Matrix
-
-Run the following after changes to confirm caching is correct:
-
-| Change                                                                  | Command                                       | Expected Result                 | Evidence                      |
-| ----------------------------------------------------------------------- | --------------------------------------------- | ------------------------------- | ----------------------------- |
-| Change a source file                                                    | `bunx turbo run build`                        | Cache miss for `build`          | Task re-executes              |
-| Change a relevant env var                                               | `bunx turbo run build`                        | Cache miss for `build`          | Env invalidates hash          |
-| Change an irrelevant env var                                            | `bunx turbo run build`                        | Cache hit for `build`           | Task skipped, cache hit shown |
-| Change config (`next.config.mjs`, `tsconfig.json`, `eslint.config.mjs`) | `bunx turbo run build` / `lint` / `typecheck` | Cache miss for affected task(s) | Cache miss shown in output    |
-
-## File Organization
-
-### Creating New Components
-
-```
-src/components/[category]/
-├── new-component.tsx    # Component implementation
-└── index.ts             # Add export to barrel file
-```
-
-Always add new components to the relevant `index.ts` barrel export.
-
-### Creating New Features
-
-```
-src/features/[feature-name]/
-├── components/
-│   ├── index.ts         # Barrel export
-│   └── FeatureCard.tsx
-├── hooks/
-│   └── use-feature.ts
-├── types.ts             # Feature-specific types
-├── constants.ts         # Feature constants
-└── index.ts             # Public API
-```
-
-### Creating New API Routes
-
-```
-src/app/api/[resource]/
-├── route.ts             # GET, POST, etc.
-└── [id]/
-    └── route.ts         # GET, PATCH, DELETE by ID
-```
-
----
-
-## Component Patterns
-
-### Server vs Client Components
-
-```typescript
-// Default: Server Component (no directive needed)
-// Use for: Static content, data fetching, SEO
-
-// Client Component (add directive)
-"use client";
-// Use for: Interactivity, hooks, browser APIs
-```
-
-### Loading States
-
-```typescript
-// Use Suspense for async components
-<Suspense fallback={<Skeleton />}>
-  <AsyncComponent />
-</Suspense>
-
-// Use loading.tsx for route-level loading
-// src/app/(feature)/page/loading.tsx
-```
-
-### Error Handling
-
-```typescript
-// API routes: Return proper status codes
-if (!user) {
-  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-}
-
-// Client: Use error boundaries or try-catch
-try {
-  await submitForm(data);
-} catch (error) {
-  toast.error("Failed to submit");
-}
-```
-
----
-
-## Database Conventions
-
-### Supabase Queries
-
-```typescript
-// Always check for errors
-const { data, error } = await supabase.from("table").select("*");
-if (error) throw error;
-
-// Use specific selects (not *)
-const { data } = await supabase.from("users").select("id, name, email"); // Only needed fields
-```
-
-### TanStack DB Collections
-
-```typescript
-// Use existing collections from @/lib/db
-import { postsCollection, profilesCollection } from "@/lib/db";
-
-// Use useLiveQuery for reactive data
-import { useLiveQuery } from "@tanstack/react-db";
-```
-
----
-
-## Testing Checklist
-
-Before submitting code, verify:
-
-- [ ] **Types pass**: `bun run typecheck` shows no errors
-- [ ] **Lint passes**: `bun run lint` shows no errors
-- [ ] **Mobile works**: Test on 375px viewport
-- [ ] **Desktop works**: Test on 1440px viewport
-- [ ] **No console errors**: Check browser dev tools
-- [ ] **Loading states**: Skeleton/spinner shows while loading
-- [ ] **Error states**: Graceful handling of failures
-
----
-
-## Common Gotchas
-
-### Next.js 16.1
-
-```typescript
-// Dynamic params must be awaited
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params; // Must await!
-}
-```
-
-### React 19
-
-```typescript
-// ref is now a regular prop (no forwardRef needed)
-function Input({ ref, ...props }) {
-  return <input ref={ref} {...props} />
-}
-```
-
-### Supabase Auth
-
-```typescript
-// Server: Always use createClient from server.ts
-import { createClient } from "@/lib/supabase/server";
-const supabase = await createClient(); // Async!
-
-// Client: Use client.ts version
-import { createClient } from "@/lib/supabase/client";
-const supabase = createClient(); // Sync
-```
-
----
-
-## Getting Help
-
-1. **Check docs**: Start with [ARCHITECTURE.md](./ARCHITECTURE.md) and [technical-decisions.md](./technical-decisions.md)
-2. **Mock data**: See [MOCK-DATA.md](./MOCK-DATA.md) for demo data and migration guide
-3. **Search codebase**: Look for similar patterns in existing code
-4. **Ask questions**: Don't hesitate to ask if stuck
-
----
-
-## Quick Reference
-
-| Task             | Command             |
-| ---------------- | ------------------- |
-| Start dev server | `bun run dev`       |
-| Type check       | `bun run typecheck` |
-| Lint             | `bun run lint`      |
-| Build            | `bun run build`     |
-| E2E tests        | `bun run test:e2e`  |
-
-| Import        | From                          |
-| ------------- | ----------------------------- |
-| UI components | `@/components/ui/[component]` |
-| Hooks         | `@/hooks`                     |
-| Utilities     | `@/lib/utils`                 |
-| Types         | `@/types`                     |
-| Features      | `@/features/[feature]`        |
-| Mock data     | `@/lib/mock-data`             |

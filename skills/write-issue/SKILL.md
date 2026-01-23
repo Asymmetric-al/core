@@ -5,7 +5,7 @@
 Use this skill for one issue at a time.
 
 **Applies when:** Writing or improving a single `AL-###` issue.
-**Do not use when:** Creating a batch of issues (use `skills/create-issues/SKILL.md`).
+**Do not use when:** You need issue discovery via repo scanning (use `skills/create-issues/SKILL.md`).
 
 ## Rules
 

@@ -162,7 +162,7 @@ Load the skill(s) below when the trigger matches.
   - Start issue: `skills/start-issue/SKILL.md`
   - Ship issue: `skills/ship-issue/SKILL.md`
   - Close issue: `skills/close-issue/SKILL.md`
-  - Create issues batch: `skills/create-issues/SKILL.md`
+  - Issue discovery (one at a time): `skills/create-issues/SKILL.md`
 - **Commit message creation:** `skills/commit/SKILL.md`
 
 ---

@@ -3,7 +3,7 @@
 Agents MUST keep this file updated during a task. Use it to build the Nia query preamble.
 
 ## Current objective
-- Identify UI contrast issues and create a batch of AL-### GitHub issues with labels.
+- Update contribution docs to enforce fork + PR workflow targeting develop (not main).
 
 ## Repo scope
 - repository: Asymmetric-al/core
@@ -11,61 +11,60 @@ Agents MUST keep this file updated during a task. Use it to build the Nia query 
   - AGENTS.md
   - docs/
   - rules/
+  - skills/
   - .github/
 
 ## Stack tags (pick from docs/ai/stack-registry.md)
+- GitHub Actions
 - Next.js
-- React
-- TypeScript
-- Tailwind CSS v4
-- shadcn/ui
-- MAIA theme
 
 ## Known identifiers (exact strings)
 - files:
-  - src/app
-  - src/components
-  - src/features
+  - AGENTS.md
+  - rules/general.md
+  - CONTRIBUTING.md
+  - README.md
+  - MAINTAINERS.md
+  - .github/
 - symbols:
-  - className
-  - cn(
+  - N/A
 - routes:
   - N/A
 - error strings:
   - N/A
 - UI terms:
-  - contrast
-  - text-muted
-  - text-zinc
-  - text-neutral
-  - text-slate
-  - text-gray
-  - text-foreground
-  - bg-muted
-  - bg-zinc
-  - bg-neutral
-  - bg-slate
-  - bg-gray
-  - bg-background
-  - opacity-
+  - N/A
+- repo terms:
+  - fork
+  - upstream
+  - origin
+  - develop
+  - main
+  - default branch
+  - base branch
+  - pull request
+  - PR
+  - target branch
+  - merge into
+  - branch policy
 
 ## Expected behavior
-- Find contrast risks in UI components/pages and translate them into actionable issues with acceptance criteria.
+- Docs describe fork → branch → PR to upstream develop, with maintainer-only merges to main.
 
 ## Constraints
-- runtime: Node.js
-- tooling: Bun/Turbo
+- runtime: N/A
+- tooling: Nia + rg for fallback
 - env/platform notes:
-  - No PRs, branches, commits, or tags; issues only.
+  - Docs changes only; no code changes.
 
 ## Verification
-- N/A (issue discovery only)
+- N/A (documentation lookup)
 
 ## Nia query preamble (fill before calling Nia)
 Repo: Asymmetric-al/core
-Goal: Locate UI contrast risks for issue drafting
-Area: src/app, src/components, src/features, styles
-Stack: Next.js, React, TypeScript, Tailwind CSS v4, shadcn/ui, MAIA theme
-Keywords: contrast, text-muted, text-foreground, bg-muted, bg-background, opacity-, className, cn(
-Constraints: issues only; cite exact files + classes
-Evidence required: file paths + class strings + brief explanation
+Goal: Locate contribution docs and any wording that assumes direct pushes or PRs to main
+Area: CONTRIBUTING.md, README.md, docs/, rules/, skills/, .github/
+Stack: GitHub Actions, Next.js
+Keywords: fork, upstream, origin, develop, main, "main branch", "base branch", "pull request", "PR", "push", "direct push", "protected branch"
+Constraints: docs only; cite exact files + phrasing
+Evidence required: file paths + exact wording + brief explanation
