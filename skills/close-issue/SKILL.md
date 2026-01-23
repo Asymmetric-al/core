@@ -27,7 +27,7 @@ Use this when the user asks to close/finish/ship an issue or prepare a PR.
 4. **Scan TODO/FIXME:** Check changed files for TODO/FIXME.
 5. **Run relevant tests:** Use `rules/testing.md` to decide scope (unit/e2e/a11y/perf) and run the applicable commands.
 6. **Run quality gate:** Fix failures and re-run until clean.
-7. **Commit/push:** Use `skills/commit/SKILL.md` and `git push`.
+7. **Commit/push:** Use `skills/issue-commit/SKILL.md` and `git push`.
 8. **Request reviewers (CODEOWNERS):** Read `CODEOWNERS` and collect owner handles.
    - One handle per line; ignore blank lines and comments.
    - Ignore teams (lines starting with `@org/` or containing a slash).
