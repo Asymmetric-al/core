@@ -10,8 +10,8 @@ TanStack Table (v8.x) is not fully compatible with the React Compiler's automati
 
 Applied the `"use no memo"` directive to components using `useReactTable`:
 
-- `src/components/ui/data-table/data-table.tsx`
-- `src/components/ui/data-grid/data-grid.tsx`
+- `packages/ui/components/shadcn/data-table/data-table.tsx`
+- `packages/ui/components/shadcn/data-grid/data-grid.tsx`
 
 This directive tells the React Compiler to skip automatic memoization for these specific files, allowing TanStack Table to manage its own reactivity.
 
@@ -47,7 +47,7 @@ StarterKit.configure({
 
 ### Files Modified
 
-- `src/components/ui/rich-text-editor/extensions.ts`
+- `packages/ui/components/shadcn/rich-text-editor/extensions.ts`
 
 ### Date
 
@@ -73,12 +73,9 @@ const IconComponent = getIcon(item.icon);
 
 ### Files Modified
 
-- `src/components/mission-control/app-shell/MobileSidebar.tsx`
-- `src/components/mission-control/app-shell/SidebarNav.tsx`
-- `src/components/mission-control/tiles/TileCard.tsx`
-- `src/features/mission-control/components/app-shell/mobile-sidebar.tsx`
-- `src/features/mission-control/components/app-shell/sidebar-nav.tsx`
-- `src/features/mission-control/components/tiles/tile-card.tsx`
+- `apps/admin/features/mission-control/components/app-shell/mobile-sidebar.tsx`
+- `apps/admin/features/mission-control/components/app-shell/sidebar-nav.tsx`
+- `apps/admin/features/mission-control/components/tiles/tile-card.tsx`
 
 ### Date
 
@@ -111,8 +108,8 @@ function ClientOnly({ children, fallback }) {
 
 ### Files Modified
 
-- `src/features/mission-control/components/client-only.tsx`
-- `src/features/donor/components/DashboardUI.tsx`
+- `apps/admin/features/mission-control/components/client-only.tsx`
+- `apps/donor/features/donor/components/DashboardUI.tsx`
 
 ### Date
 

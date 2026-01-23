@@ -4,7 +4,7 @@ This guide explains the mock data system used for development/demo purposes and 
 
 ## Overview
 
-The application ships with realistic mock data in `src/lib/mock-data/` for demonstration and development. When deploying your own instance, you'll replace this mock data with real data from your database.
+The application ships with realistic mock data in `apps/[app-name]/lib/mock-data/` for demonstration and development. Each app has its own mock data. When deploying your own instance, you'll replace this mock data with real data from your database.
 
 ## Mock Data Structure
 
@@ -74,7 +74,7 @@ Replace mock data with database queries. Example migration pattern:
 **Before (mock data):**
 
 ```typescript
-// src/app/(admin)/mc/crm/page.tsx
+// apps/admin/app/(admin)/mc/crm/page.tsx
 import { DONORS, getDonorsByStage } from "@/lib/mock-data";
 
 export default function CRMPage() {
@@ -86,8 +86,8 @@ export default function CRMPage() {
 **After (database):**
 
 ```typescript
-// src/app/(admin)/mc/crm/page.tsx
-import { createClient } from "@/lib/supabase/server";
+// apps/admin/app/(admin)/mc/crm/page.tsx
+import { createClient } from "@asym/database/supabase/server";
 
 export default async function CRMPage() {
   const supabase = await createClient();
@@ -102,22 +102,24 @@ export default async function CRMPage() {
 
 ### Step 3: Update Import Locations
 
-Files that import mock data:
+Files that import mock data (examples from admin app):
 
-| File                                     | Data Used                       |
-| ---------------------------------------- | ------------------------------- |
-| `src/app/(public)/workers/page.tsx`      | `getFieldWorkers()`             |
-| `src/app/(public)/workers/[id]/page.tsx` | `getFieldWorkerById()`          |
-| `src/app/(donor)/donor-dashboard/*`      | Donor transactions, pledges     |
-| `src/features/mission-control/care/*`    | Missionary profiles, activities |
-| `src/features/donor/components/*`        | Worker feeds                    |
+| File                                            | Data Used                       |
+| ----------------------------------------------- | ------------------------------- |
+| `apps/donor/app/(public)/workers/page.tsx`      | `getFieldWorkers()`             |
+| `apps/donor/app/(public)/workers/[id]/page.tsx` | `getFieldWorkerById()`          |
+| `apps/donor/app/(donor)/donor-dashboard/*`      | Donor transactions, pledges     |
+| `apps/admin/features/mission-control/care/*`    | Missionary profiles, activities |
+| `apps/donor/features/donor/components/*`        | Worker feeds                    |
 
 ### Step 4: Remove Mock Data (Optional)
 
-Once fully migrated, you can delete the mock data directory:
+Once fully migrated, you can delete the mock data directory from each app:
 
 ```bash
-rm -rf src/lib/mock-data/
+rm -rf apps/admin/lib/mock-data/
+rm -rf apps/missionary/lib/mock-data/
+rm -rf apps/donor/lib/mock-data/
 ```
 
 Update any remaining imports to use database queries or remove unused code.
@@ -156,7 +158,7 @@ When migrating from an existing system, import data in this order:
 
 ## Type Reference
 
-Keep `src/lib/mock-data/types.ts` as a reference for your database schema. Key interfaces:
+Keep `apps/[app-name]/lib/mock-data/types.ts` as a reference for your database schema. Key interfaces:
 
 ```typescript
 // User types
@@ -183,10 +185,10 @@ For a fast deployment with your data:
 
 1. **Create database tables** matching the types in `types.ts`
 2. **Import core data**: profiles, donations, pledges
-3. **Update 3 key files**:
-   - `src/app/(public)/workers/page.tsx` - Replace `getFieldWorkers()`
-   - `src/app/(donor)/donor-dashboard/page.tsx` - Replace donor data
-   - `src/features/mission-control/care/constants.ts` - Replace `MOCK_PERSONNEL`
+3. **Update 3 key files** (per app):
+   - `apps/donor/app/(public)/workers/page.tsx` - Replace `getFieldWorkers()`
+   - `apps/donor/app/(donor)/donor-dashboard/page.tsx` - Replace donor data
+   - `apps/admin/features/mission-control/care/constants.ts` - Replace `MOCK_PERSONNEL`
 4. **Test** all dashboard routes
 
 The remaining mock data can be migrated incrementally as you use each feature.
@@ -207,6 +209,6 @@ See [Stripe Migration Guide](https://stripe.com/docs/account/data-migrations) fo
 
 ## Support
 
-- **Types reference**: `src/lib/mock-data/types.ts`
-- **Architecture**: `docs/ARCHITECTURE.md`
-- **Database patterns**: `docs/technical-decisions.md`
+- **Types reference**: `apps/[app-name]/lib/mock-data/types.ts`
+- **Architecture**: `docs/guides/architecture/overview.md`
+- **Database patterns**: `docs/guides/architecture/technical-decisions.md`

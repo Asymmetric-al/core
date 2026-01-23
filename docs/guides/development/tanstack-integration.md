@@ -21,8 +21,8 @@ This document describes how TanStack Query, TanStack Table, and TanStack DB are 
 The application uses a single unified `TanStackDBProvider` that provides both TanStack Query and TanStack DB functionality:
 
 ```tsx
-// src/app/layout.tsx
-import { TanStackDBProvider } from "@/lib/db";
+// apps/[app-name]/app/layout.tsx
+import { TanStackDBProvider } from "@asym/database/providers";
 
 export default function RootLayout({ children }) {
   return <TanStackDBProvider>{children}</TanStackDBProvider>;
@@ -32,12 +32,12 @@ export default function RootLayout({ children }) {
 ### File Structure
 
 ```
-src/lib/db/
-├── client-db.ts      # Collection definitions with Supabase integration
-├── collections.ts    # Re-exports for public API
-├── hooks.ts          # Custom hooks using useLiveQuery
-├── provider.tsx      # TanStackDBProvider component
-└── index.ts          # Main barrel export
+packages/database/
+├── collections/      # Collection definitions with Supabase integration
+├── hooks/            # Custom hooks using useLiveQuery
+├── providers/        # TanStackDBProvider component
+├── supabase/         # Supabase clients (server/client/admin)
+└── types/            # Database types
 ```
 
 ## TanStack DB Collections
@@ -151,12 +151,12 @@ export function usePostsWithAuthors(missionaryId?: string) {
 
 ## TanStack Table
 
-TanStack Table is used for data grids. The data table components are in `src/components/ui/data-table/`.
+TanStack Table is used for data grids. The data table components are in `packages/ui/components/shadcn/data-table/`.
 
 ### Basic Usage
 
 ```tsx
-import { DataTable } from "@/components/ui/data-table";
+import { DataTable } from "@asym/ui";
 import { columns } from "./columns";
 
 export function ContributionsTable({ data }) {

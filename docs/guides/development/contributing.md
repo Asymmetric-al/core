@@ -227,8 +227,18 @@ Run the following after changes to confirm caching is correct:
 
 ### Creating New Components
 
+**Shared components (in packages):**
+
 ```
-src/components/[category]/
+packages/ui/components/[category]/
+├── new-component.tsx    # Component implementation
+└── index.ts             # Add export to barrel file
+```
+
+**App-specific components:**
+
+```
+apps/[app-name]/components/[category]/
 ├── new-component.tsx    # Component implementation
 └── index.ts             # Add export to barrel file
 ```
@@ -237,8 +247,10 @@ Always add new components to the relevant `index.ts` barrel export.
 
 ### Creating New Features
 
+**App-specific features:**
+
 ```
-src/features/[feature-name]/
+apps/[app-name]/features/[feature-name]/
 ├── components/
 │   ├── index.ts         # Barrel export
 │   └── FeatureCard.tsx
@@ -251,8 +263,10 @@ src/features/[feature-name]/
 
 ### Creating New API Routes
 
+**In the appropriate app:**
+
 ```
-src/app/api/[resource]/
+apps/[app-name]/app/api/[resource]/
 ├── route.ts             # GET, POST, etc.
 └── [id]/
     └── route.ts         # GET, PATCH, DELETE by ID
@@ -282,7 +296,7 @@ src/app/api/[resource]/
 </Suspense>
 
 // Use loading.tsx for route-level loading
-// src/app/(feature)/page/loading.tsx
+// apps/[app-name]/app/(feature)/page/loading.tsx
 ```
 
 ### Error Handling
