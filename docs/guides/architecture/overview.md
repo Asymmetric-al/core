@@ -73,60 +73,126 @@ Data isolation is enforced via Supabase Row Level Security (RLS) using `tenant_i
 
 ## Directory Structure
 
+This is a **Turborepo monorepo** with three Next.js applications and six shared packages:
+
 ```
-src/
-├── app/                    # Next.js App Router pages and API routes
-│   ├── (admin)/           # Admin/MC routes (grouped)
-│   ├── (auth)/            # Authentication routes
-│   ├── (donor)/           # Donor portal routes
-│   ├── (missionary)/      # Missionary dashboard routes
-│   ├── (public)/          # Public-facing routes
-│   └── api/               # API route handlers
+core/
+├── apps/                       # Next.js applications
+│   ├── admin/                 # Mission Control (admin dashboard)
+│   │   ├── app/              # Next.js App Router
+│   │   │   ├── (admin)/mc/  # Admin routes
+│   │   │   ├── api/         # API routes
+│   │   │   └── auth/        # Auth callbacks
+│   │   ├── components/       # App-specific components
+│   │   ├── features/         # App-specific features
+│   │   ├── lib/              # App-specific utilities
+│   │   └── package.json
+│   │
+│   ├── missionary/           # Missionary dashboard
+│   │   ├── app/              # Next.js App Router
+│   │   │   ├── (missionary)/missionary-dashboard/
+│   │   │   ├── api/
+│   │   │   └── auth/
+│   │   ├── components/
+│   │   ├── features/
+│   │   ├── lib/
+│   │   └── package.json
+│   │
+│   └── donor/                # Donor portal
+│       ├── app/              # Next.js App Router
+│       │   ├── (donor)/donor-dashboard/
+│       │   ├── (public)/    # Public giving pages
+│       │   ├── api/
+│       │   └── auth/
+│       ├── components/
+│       ├── features/
+│       ├── lib/
+│       └── package.json
 │
-├── components/            # Shared UI components
-│   ├── ui/               # shadcn/ui primitives (Button, Card, etc.)
-│   ├── dashboard/        # Dashboard-specific components
-│   ├── feed/             # Social feed components
-│   └── [feature]/        # Feature-grouped components
+├── packages/                  # Shared packages
+│   ├── auth/                 # @asym/auth - Authentication
+│   │   ├── context.ts       # Auth context provider
+│   │   ├── use-auth.ts      # Auth hook
+│   │   └── package.json
+│   │
+│   ├── config/               # @asym/config - Configuration
+│   │   ├── constants.ts     # App constants
+│   │   ├── navigation.ts    # Navigation configs
+│   │   ├── site.ts          # Site metadata
+│   │   └── package.json
+│   │
+│   ├── database/             # @asym/database - Supabase & TanStack DB
+│   │   ├── supabase/        # Supabase clients (server/client/admin)
+│   │   ├── collections/     # TanStack DB collections
+│   │   ├── hooks/           # Database hooks
+│   │   ├── types/           # Database types
+│   │   └── package.json
+│   │
+│   ├── email/                # @asym/email - Email services
+│   │   ├── sendgrid.ts      # SendGrid integration
+│   │   ├── types.ts         # Email types
+│   │   └── package.json
+│   │
+│   ├── lib/                  # @asym/lib - Utilities
+│   │   ├── utils.ts         # Common utilities (cn, formatters)
+│   │   ├── hooks/           # Shared React hooks
+│   │   ├── responsive.ts    # Responsive utilities
+│   │   ├── stripe.ts        # Stripe utilities
+│   │   └── package.json
+│   │
+│   └── ui/                   # @asym/ui - UI components
+│       ├── components/      # Shared UI components
+│       │   ├── shadcn/     # shadcn/ui primitives
+│       │   ├── dashboard/  # Dashboard components
+│       │   └── feed/       # Social feed components
+│       ├── hooks/           # UI hooks
+│       ├── styles/          # Global styles
+│       └── package.json
 │
-├── features/             # Feature modules (self-contained)
-│   ├── donor/           # Donor-specific logic & components
-│   ├── missionary/      # Missionary-specific logic & components
-│   └── mission-control/ # Admin/MC feature module
+├── tooling/                  # Build tooling
+│   ├── eslint-config/       # Shared ESLint config
+│   └── typescript-config/   # Shared TypeScript config
 │
-├── hooks/               # Custom React hooks
-├── lib/                 # Utilities, clients, and business logic
-│   ├── supabase/       # Supabase client configurations
-│   ├── db/             # TanStack DB collections and hooks
-│   ├── auth/           # Authentication context
-│   ├── mock-data/      # Demo/development mock data (see MOCK-DATA.md)
-│   └── [domain]/       # Domain-specific utilities
-│
-├── providers/          # React context providers
-├── config/             # App configuration (navigation, constants)
-└── types/              # TypeScript type definitions
+├── turbo.json                # Turborepo configuration
+└── package.json              # Root package (delegates only)
 ```
 
 ### Key Conventions
 
-| Directory     | Convention                                                       |
-| ------------- | ---------------------------------------------------------------- |
-| `app/`        | Route handlers only - minimal logic                              |
-| `components/` | Reusable, presentational components                              |
-| `features/`   | Self-contained feature modules with components, hooks, and types |
-| `lib/`        | Pure utilities and business logic (no React)                     |
-| `hooks/`      | Shared React hooks                                               |
+| Directory            | Convention                               |
+| -------------------- | ---------------------------------------- |
+| `apps/*/app/`        | Route handlers only - minimal logic      |
+| `apps/*/components/` | App-specific components                  |
+| `apps/*/features/`   | App-specific feature modules             |
+| `packages/ui/`       | Shared, reusable UI components           |
+| `packages/lib/`      | Pure utilities and business logic        |
+| `packages/database/` | Database clients, collections, and hooks |
+| `packages/auth/`     | Authentication context and hooks         |
+| `packages/config/`   | Shared configuration and constants       |
 
 ---
 
 ## Module Organization
 
-### Feature Modules
+### Package Architecture
 
-Each feature module in `src/features/` follows this structure:
+The monorepo uses **internal packages** that are imported by apps:
+
+```typescript
+// Package imports (from any app)
+import { Button, Card } from "@asym/ui";
+import { cn, formatCurrency } from "@asym/lib";
+import { createClient } from "@asym/database/supabase/client";
+import { useAuth } from "@asym/auth";
+import { SITE_CONFIG } from "@asym/config";
+```
+
+### App-Specific Feature Modules
+
+Each app has its own `features/` directory for app-specific logic:
 
 ```
-features/[feature-name]/
+apps/admin/features/mission-control/
 ├── components/           # Feature-specific components
 │   ├── index.ts         # Barrel export
 │   └── [Component].tsx
@@ -138,10 +204,10 @@ features/[feature-name]/
 └── index.ts             # Public API barrel export
 ```
 
-**Example: Mission Control Module**
+**Example: Admin App Feature**
 
 ```typescript
-// src/features/mission-control/index.ts
+// apps/admin/features/mission-control/index.ts
 export { MCProvider, useMC, useRole } from "./context";
 export { AppShell } from "./components/app-shell/app-shell";
 export { PageHeader } from "./components/patterns/page-header";
@@ -150,20 +216,37 @@ export { PageHeader } from "./components/patterns/page-header";
 
 ### Import Guidelines
 
-Always import from barrel exports when available:
+**Package imports** (shared across apps):
 
 ```typescript
-// Good - import from feature barrel
+// UI components from @asym/ui
+import { Button, Card, Input } from "@asym/ui";
+
+// Utilities from @asym/lib
+import { cn, formatCurrency, useIsMobile } from "@asym/lib";
+
+// Database from @asym/database
+import { createClient } from "@asym/database/supabase/client";
+import { useLiveQuery } from "@asym/database/hooks";
+
+// Auth from @asym/auth
+import { useAuth } from "@asym/auth";
+
+// Config from @asym/config
+import { SITE_CONFIG, NAVIGATION } from "@asym/config";
+```
+
+**App-specific imports** (within an app):
+
+```typescript
+// Feature components (app-specific)
 import { AppShell, PageHeader } from "@/features/mission-control";
 
-// Good - import from hooks barrel
-import { useAuth, useDonationMetrics } from "@/hooks";
+// App-specific components
+import { DashboardLayout } from "@/components/layouts";
 
-// Good - import from lib barrel
-import { cn, createBrowserClient } from "@/lib";
-
-// Avoid - deep imports
-import { AppShell } from "@/features/mission-control/components/app-shell/app-shell";
+// App-specific utilities
+import { getMetrics } from "@/lib/metrics";
 ```
 
 ---
@@ -230,16 +313,16 @@ import { AppShell } from "@/features/mission-control/components/app-shell/app-sh
 ### 1. Supabase Client Usage
 
 ```typescript
-// Server Components / Route Handlers
-import { createClient } from "@/lib/supabase/server";
+// Server Components / Route Handlers (from @asym/database package)
+import { createClient } from "@asym/database/supabase/server";
 const supabase = await createClient();
 
-// Client Components
-import { createClient } from "@/lib/supabase/client";
+// Client Components (from @asym/database package)
+import { createClient } from "@asym/database/supabase/client";
 const supabase = createClient();
 
-// Admin Operations (server-side only)
-import { createAdminClient } from "@/lib/supabase/admin";
+// Admin Operations (server-side only, from @asym/database package)
+import { createAdminClient } from "@asym/database/supabase/admin";
 const supabase = createAdminClient();
 ```
 
@@ -249,7 +332,10 @@ Collections provide reactive data with optimistic updates:
 
 ```typescript
 import { useLiveQuery, eq } from "@tanstack/react-db";
-import { postsCollection, profilesCollection } from "@/lib/db";
+import {
+  postsCollection,
+  profilesCollection,
+} from "@asym/database/collections";
 
 function usePostsWithAuthors() {
   return useLiveQuery((q) =>
@@ -266,9 +352,9 @@ function usePostsWithAuthors() {
 ### 3. API Route Pattern
 
 ```typescript
-// src/app/api/[resource]/route.ts
+// apps/admin/app/api/[resource]/route.ts
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@asym/database/supabase/server";
 
 export async function GET(request: Request) {
   const supabase = await createClient();
@@ -332,10 +418,10 @@ function MyForm() {
 ### Component Structure
 
 ```typescript
-// 1. Imports (external, then internal)
+// 1. Imports (external, then internal packages, then app-specific)
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { Button } from '@asym/ui'
+import { cn } from '@asym/lib'
 
 // 2. Types/Interfaces
 interface MetricCardProps {
@@ -368,15 +454,15 @@ export function MetricCard({ title, value, trend, className }: MetricCardProps) 
 
 ### Responsive Design
 
-Use the established responsive utilities:
+Use the established responsive utilities from `@asym/lib`:
 
 ```typescript
 // Tailwind responsive classes
 <div className="px-4 sm:px-6 lg:px-10">  {/* Container padding */}
 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">  {/* Responsive grid */}
 
-// Hook for programmatic checks
-import { useIsMobile, useBreakpoint } from '@/hooks'
+// Hook for programmatic checks (from @asym/lib)
+import { useIsMobile, useBreakpoint } from '@asym/lib'
 const isMobile = useIsMobile()
 const breakpoint = useBreakpoint()  // 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
 ```
@@ -388,10 +474,21 @@ const breakpoint = useBreakpoint()  // 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
 ### Path Aliases
 
 ```typescript
-@/* → src/*
+// In apps (app-specific imports)
+@/* → apps/[app-name]/*
+
+// Package imports (shared across apps)
+@asym/ui → packages/ui/*
+@asym/lib → packages/lib/*
+@asym/database → packages/database/*
+@asym/auth → packages/auth/*
+@asym/config → packages/config/*
+@asym/email → packages/email/*
 ```
 
 ### Environment Variables
+
+Environment variables are **app-specific** and live in `apps/[app-name]/.env.local`:
 
 | Variable                             | Purpose                         |
 | ------------------------------------ | ------------------------------- |
@@ -403,10 +500,18 @@ const breakpoint = useBreakpoint()  // 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
 ### Common Commands
 
 ```bash
-bun run dev        # Start development server
-bun run lint       # Run ESLint
-bun run typecheck  # Run TypeScript compiler
-bun run build      # Production build
+# Turborepo commands (from root)
+turbo run dev        # Start all apps in dev mode
+turbo run build      # Build all apps and packages
+turbo run lint       # Lint all apps and packages
+turbo run typecheck  # Type-check all apps and packages
+
+# Individual app commands (from root)
+bun run dev --filter=admin        # Start admin app only
+bun run build --filter=missionary # Build missionary app only
+
+# Package commands (from root)
+bun run build --filter=@asym/ui   # Build UI package only
 ```
 
 ---

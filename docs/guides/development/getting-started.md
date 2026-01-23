@@ -72,92 +72,143 @@ This table mirrors `.env.example`. Internal-only vars (for example `NODE_ENV`, `
 
 ## Common Commands
 
-| Command                | Description                            |
-| ---------------------- | -------------------------------------- |
-| `bun run setup:verify` | Validate env vars + basic connectivity |
-| `bun run dev`          | Start dev server (Turbopack)           |
-| `bun run lint`         | Run ESLint                             |
-| `bun run typecheck`    | Run TypeScript type checker            |
-| `bun run build`        | Production build                       |
-| `bun run test:e2e`     | Run Playwright E2E tests               |
+| Command                               | Description                            |
+| ------------------------------------- | -------------------------------------- |
+| `./scripts/setup`                     | Initial setup (install deps)           |
+| `./scripts/verify`                    | Validate env vars + basic connectivity |
+| `turbo run dev`                       | Start all apps in dev mode             |
+| `turbo run dev --filter=admin`        | Start admin app only                   |
+| `turbo run lint`                      | Lint all apps and packages             |
+| `turbo run typecheck`                 | Type-check all apps and packages       |
+| `turbo run build`                     | Build all apps and packages            |
+| `turbo run build --filter=missionary` | Build missionary app only              |
+| `bun run test:e2e`                    | Run Playwright E2E tests               |
 
 ## Project Structure
 
+This is a **Turborepo monorepo** with three Next.js applications and six shared packages:
+
 ```
-src/
-├── app/                    # Next.js App Router pages
-│   ├── (admin)/mc/         # Mission Control (admin dashboard)
-│   ├── (missionary)/       # Missionary dashboard
-│   ├── (donor)/            # Donor portal
-│   ├── (public)/           # Public website
-│   ├── api/                # API routes
-│   └── auth/               # Auth callbacks
+core/
+├── apps/                       # Next.js applications
+│   ├── admin/                 # Mission Control (admin dashboard)
+│   │   ├── app/              # Next.js App Router
+│   │   │   ├── (admin)/mc/  # Admin routes
+│   │   │   ├── api/         # API routes
+│   │   │   └── auth/        # Auth callbacks
+│   │   ├── components/       # App-specific components
+│   │   ├── features/         # App-specific features
+│   │   ├── lib/              # App-specific utilities
+│   │   ├── .env.local        # App-specific environment variables
+│   │   └── package.json
+│   │
+│   ├── missionary/           # Missionary dashboard
+│   │   ├── app/              # Next.js App Router
+│   │   ├── components/
+│   │   ├── features/
+│   │   ├── lib/
+│   │   ├── .env.local
+│   │   └── package.json
+│   │
+│   └── donor/                # Donor portal
+│       ├── app/              # Next.js App Router
+│       ├── components/
+│       ├── features/
+│       ├── lib/
+│       ├── .env.local
+│       └── package.json
 │
-├── components/             # Shared UI components
-│   ├── ui/                 # shadcn/ui primitives (DO NOT EDIT)
-│   ├── feature/            # Feature-specific components
-│   ├── feed/               # Feed/post components
-│   └── public/             # Public website components
+├── packages/                  # Shared packages
+│   ├── ui/                   # @asym/ui - UI components
+│   │   ├── components/      # Shared UI components
+│   │   │   ├── shadcn/     # shadcn/ui primitives
+│   │   │   ├── dashboard/  # Dashboard components
+│   │   │   └── feed/       # Social feed components
+│   │   └── package.json
+│   │
+│   ├── lib/                  # @asym/lib - Utilities
+│   │   ├── utils.ts         # Common utilities (cn, formatters)
+│   │   ├── hooks/           # Shared React hooks
+│   │   └── package.json
+│   │
+│   ├── database/             # @asym/database - Supabase & TanStack DB
+│   │   ├── supabase/        # Supabase clients
+│   │   ├── collections/     # TanStack DB collections
+│   │   └── package.json
+│   │
+│   ├── auth/                 # @asym/auth - Authentication
+│   ├── config/               # @asym/config - Configuration
+│   └── email/                # @asym/email - Email services
 │
-├── features/               # Feature modules (domain logic)
-│   ├── mission-control/    # Admin dashboard feature
-│   ├── missionary/         # Missionary feature
-│   └── donor/              # Donor feature
+├── tooling/                  # Build tooling
+│   ├── eslint-config/       # Shared ESLint config
+│   └── typescript-config/   # Shared TypeScript config
 │
-├── hooks/                  # Custom React hooks
-├── lib/                    # Utility functions and clients
-│   ├── mock-data/          # Mock data for development
-│   ├── supabase/           # Supabase client (server/client)
-│   └── utils.ts            # Common utilities
-│
-├── providers/              # React context providers
-├── types/                  # TypeScript type definitions
-└── config/                 # App configuration
+├── turbo.json                # Turborepo configuration
+└── package.json              # Root package (delegates only)
 ```
 
 ## Key Patterns
 
-### 1. Feature Module Structure
+### 1. Package Architecture
 
-Each feature (mission-control, missionary, donor) follows this pattern:
+The monorepo uses **internal packages** that are imported by apps:
+
+```typescript
+// Package imports (from any app)
+import { Button, Card } from "@asym/ui";
+import { cn, formatCurrency, useIsMobile } from "@asym/lib";
+import { createClient } from "@asym/database/supabase/client";
+import { useAuth } from "@asym/auth";
+import { SITE_CONFIG } from "@asym/config";
+```
+
+### 2. App-Specific Feature Module Structure
+
+Each app has its own `features/` directory for app-specific logic:
 
 ```
-features/
-└── feature-name/
+apps/admin/features/
+└── mission-control/
     ├── index.ts              # Public API (barrel export)
     ├── components/           # Feature-specific components
     │   └── index.ts          # Component barrel export
     ├── hooks/                # Feature-specific hooks
-    └── care/                 # Sub-features (optional)
+    └── context.tsx           # Feature context (optional)
 ```
 
-### 2. Import Conventions
+### 3. Import Conventions
 
 ```typescript
-// UI primitives - from shadcn/ui
-import { Button, Card, Input } from "@/components/ui/button";
+// UI components from @asym/ui package
+import { Button, Card, Input } from "@asym/ui";
 
-// Shared components
-import { PageHeader, AppShell } from "@/components";
+// Utilities from @asym/lib package
+import { cn, formatCurrency, useIsMobile } from "@asym/lib";
 
-// Feature components
+// Database from @asym/database package
+import { createClient } from "@asym/database/supabase/client";
+import { useLiveQuery } from "@asym/database/hooks";
+
+// Auth from @asym/auth package
+import { useAuth } from "@asym/auth";
+
+// Config from @asym/config package
+import { SITE_CONFIG, NAVIGATION } from "@asym/config";
+
+// App-specific feature components (within an app)
 import { TilePage, SidebarNav } from "@/features/mission-control";
 
-// Hooks
-import { useAuth, useIsMobile } from "@/hooks";
-
-// Mock data (development only)
-import { MISSIONARIES, getDonorById } from "@/lib/mock-data";
-
-// Utils
-import { cn, formatCurrency } from "@/lib/utils";
+// App-specific components (within an app)
+import { DashboardLayout } from "@/components/layouts";
 ```
 
-### 3. Page Structure
+### 4. Page Structure
 
 ```typescript
-// src/app/(admin)/mc/my-page/page.tsx
+// apps/admin/app/(admin)/mc/my-page/page.tsx
 import { PageHeader, TilePage } from '@/features/mission-control'
+import { Card, CardContent, CardHeader, CardTitle } from '@asym/ui'
 
 export default function MyPage() {
   return (
@@ -171,9 +222,9 @@ export default function MyPage() {
 }
 ```
 
-### 4. Responsive Design
+### 5. Responsive Design
 
-Use the responsive utilities from `@/lib/responsive`:
+Use the responsive utilities from `@asym/lib`:
 
 ```typescript
 // CSS utility classes
@@ -181,8 +232,8 @@ Use the responsive utilities from `@/lib/responsive`:
 <div className="grid-responsive-3">     // 1 → 2 → 3 columns
 <h1 className="text-responsive-h1">     // Fluid typography
 
-// React hooks
-import { useIsMobile, useBreakpoint } from '@/hooks'
+// React hooks from @asym/lib
+import { useIsMobile, useBreakpoint } from '@asym/lib'
 
 function MyComponent() {
   const isMobile = useIsMobile()
@@ -190,24 +241,40 @@ function MyComponent() {
 }
 ```
 
-See `docs/RESPONSIVE.md` for full documentation.
+See `docs/guides/ui-design/responsive-design.md` for full documentation.
 
 ## Adding a New Page
 
-### Step 1: Create the page file
+### Step 1: Choose which app
+
+Decide which app the page belongs to:
+
+- **Admin app** (`apps/admin/`) - Mission Control features
+- **Missionary app** (`apps/missionary/`) - Missionary dashboard features
+- **Donor app** (`apps/donor/`) - Donor portal features
+
+### Step 2: Create the page file
 
 ```bash
-# For Mission Control
-mkdir -p src/app/\(admin\)/mc/my-page
-touch src/app/\(admin\)/mc/my-page/page.tsx
+# For Mission Control (admin app)
+mkdir -p apps/admin/app/\(admin\)/mc/my-page
+touch apps/admin/app/\(admin\)/mc/my-page/page.tsx
+
+# For Missionary Dashboard
+mkdir -p apps/missionary/app/\(missionary\)/missionary-dashboard/my-page
+touch apps/missionary/app/\(missionary\)/missionary-dashboard/my-page/page.tsx
+
+# For Donor Portal
+mkdir -p apps/donor/app/\(donor\)/donor-dashboard/my-page
+touch apps/donor/app/\(donor\)/donor-dashboard/my-page/page.tsx
 ```
 
-### Step 2: Add the basic structure
+### Step 3: Add the basic structure
 
 ```typescript
-// src/app/(admin)/mc/my-page/page.tsx
+// apps/admin/app/(admin)/mc/my-page/page.tsx
 import { TilePage } from '@/features/mission-control'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@asym/ui'
 
 export default function MyPage() {
   return (
@@ -230,17 +297,22 @@ export default function MyPage() {
 }
 ```
 
-### Step 3: Add navigation (if needed)
+### Step 4: Add navigation (if needed)
 
-Edit `src/features/mission-control/components/app-shell/sidebar-nav.tsx` to add the route.
+Edit the appropriate navigation file:
+
+- **Admin:** `apps/admin/features/mission-control/components/app-shell/sidebar-nav.tsx`
+- **Missionary:** `apps/missionary/features/missionary/components/app-shell/sidebar-nav.tsx`
+- **Donor:** `apps/donor/features/donor/components/app-shell/sidebar-nav.tsx`
 
 ## Adding a New Component
 
 ### Step 1: Create in the right location
 
-- **Shared across features**: `src/components/`
-- **Feature-specific**: `src/features/[feature]/components/`
-- **UI primitive**: Don't add here, use shadcn/ui
+- **Shared across all apps**: `packages/ui/components/`
+- **App-specific**: `apps/[app-name]/components/`
+- **Feature-specific**: `apps/[app-name]/features/[feature]/components/`
+- **UI primitive**: Don't add here, use shadcn/ui from `@asym/ui`
 
 ### Step 2: Follow the naming convention
 
@@ -248,18 +320,23 @@ Edit `src/features/mission-control/components/app-shell/sidebar-nav.tsx` to add 
 - Components: `PascalCase`
 - Hooks: `use-kebab-case.ts`
 
-### Step 3: Export from barrel
+### Step 3: Export from barrel (if in a package)
 
 ```typescript
-// src/components/index.ts (or feature index.ts)
+// packages/ui/components/index.ts
+export { MyNewComponent } from "./my-new-component";
+
+// Or for app-specific components
+// apps/admin/components/index.ts
 export { MyNewComponent } from "./my-new-component";
 ```
 
 ## Working with Mock Data
 
-All mock data lives in `src/lib/mock-data/`. For development:
+Mock data is managed per-app in `apps/[app-name]/lib/mock-data/`. For development:
 
 ```typescript
+// In an app (e.g., apps/admin/)
 import {
   MISSIONARIES, // Array of missionary records
   DONORS, // Array of donor records
@@ -270,14 +347,18 @@ import {
 } from "@/lib/mock-data";
 ```
 
-See `docs/MOCK-DATA.md` for migration to production Supabase.
+**Note:** Mock data is app-specific and not shared across apps via packages.
 
 ## Common Tasks
 
 ### Run tests before committing
 
 ```bash
-bun run typecheck && bun run lint
+# From root - runs for all apps and packages
+turbo run typecheck && turbo run lint
+
+# For a specific app
+turbo run typecheck --filter=admin && turbo run lint --filter=admin
 ```
 
 ### Check responsive behavior
@@ -289,13 +370,38 @@ bun run typecheck && bun run lint
 ### Debug API routes
 
 ```bash
-# Test with curl
+# Test with curl (adjust port if needed)
+# Admin app runs on :3000, missionary on :3001, donor on :3002
 curl http://localhost:3000/api/missionaries | jq
+```
+
+### Work on a specific app
+
+```bash
+# Start only the admin app
+turbo run dev --filter=admin
+
+# Build only the missionary app
+turbo run build --filter=missionary
+
+# Lint only the donor app
+turbo run lint --filter=donor
+```
+
+### Work on a specific package
+
+```bash
+# Build only the UI package
+turbo run build --filter=@asym/ui
+
+# Type-check only the database package
+turbo run typecheck --filter=@asym/database
 ```
 
 ## Getting Help
 
-1. Read `docs/ARCHITECTURE.md` for system overview
-2. Read `docs/CONTRIBUTING.md` for code standards
-3. Read `docs/RESPONSIVE.md` for responsive patterns
+1. Read `docs/guides/architecture/overview.md` for system overview
+2. Read `docs/guides/development/contributing.md` for code standards
+3. Read `docs/guides/ui-design/responsive-design.md` for responsive patterns
 4. Check existing similar code for patterns
+5. Review `turbo.json` for available tasks and dependencies
