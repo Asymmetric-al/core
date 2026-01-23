@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useMC } from "@/lib/mission-control/context";
-import { TILES } from "@/lib/mission-control/tiles";
+import { useMC } from "@asym/lib/mission-control/context";
+import { TILES } from "@asym/lib/mission-control/tiles";
 import { TileCard } from "./TileCard";
 import { QuickActionsRow } from "./QuickActionsRow";
 import { WorkflowsPanel } from "./WorkflowsPanel";

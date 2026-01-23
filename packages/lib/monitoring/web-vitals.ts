@@ -1,6 +1,6 @@
 "use client";
 
-import { onCLS, onINP, onLCP, onFCP, onTTFB, Metric } from "web-vitals";
+import { onCLS, onINP, onLCP, onFCP, onTTFB, type Metric } from "web-vitals";
 
 const LCP_THRESHOLD = 2500;
 const FCP_THRESHOLD = 1800;

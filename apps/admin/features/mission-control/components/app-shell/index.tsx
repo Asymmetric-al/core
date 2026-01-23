@@ -44,7 +44,7 @@ import {
 import { Avatar, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
 import { cn } from "@asym/ui/lib/utils";
 // import Logo from "@asym/ui/components/shadcn-studio/logo";
-// import { DashboardFooter } from "@asym/ui/components/dashboard-footer";
+// import { DashboardFooter } from "@/components/dashboard-footer";
 
 const navigation = [
   { name: "Overview", href: "/mc", icon: LayoutDashboard },

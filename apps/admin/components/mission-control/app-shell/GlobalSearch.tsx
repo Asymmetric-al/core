@@ -12,9 +12,9 @@ import {
   CommandItem,
   CommandList,
 } from "@asym/ui/components/shadcn/command";
-import { TILES } from "@/lib/mission-control/tiles";
+import { TILES } from "@asym/lib/mission-control/tiles";
 import { getIcon } from "../icons";
-import { useMC } from "@/lib/mission-control/context";
+import { useMC } from "@asym/lib/mission-control/context";
 
 export const GlobalSearch = memo(function GlobalSearch() {
   const [open, setOpen] = useState(false);

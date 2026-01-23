@@ -19,7 +19,7 @@ import {
   UserCog,
   Shield,
 } from "lucide-react";
-import { DynamicIcon } from "@asym/ui/components/mission-control/icons";
+import { DynamicIcon } from "@/components/mission-control/icons";
 
 import { Button } from "@asym/ui/components/shadcn/button";
 import {

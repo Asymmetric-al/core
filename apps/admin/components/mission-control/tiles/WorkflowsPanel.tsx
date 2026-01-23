@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { WORKFLOWS } from "@/lib/mission-control/tiles";
+import { WORKFLOWS } from "@asym/lib/mission-control/tiles";
 import {
   Card,
   CardContent,

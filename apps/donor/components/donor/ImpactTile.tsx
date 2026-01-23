@@ -2,9 +2,9 @@
 
 import React from "react";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
-import { motion } from "motion/react";
 import { cn } from "@asym/ui/lib/utils";
-import { LucideIcon, Sparkles } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 interface ImpactTileProps {
   title: string;

@@ -1,4 +1,4 @@
-import { getAdminClient } from "@asym/database/supabase";
+import { getAdminClient } from "@asym/database/supabase/admin";
 
 interface AnomalyResult {
   type: string;

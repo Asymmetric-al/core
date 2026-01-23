@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@asym/database/supabase";
+import { createBrowserClient } from "@asym/database/supabase";
 import type { User } from "@supabase/supabase-js";
 import type { Profile } from "@asym/database/types";
 
@@ -19,7 +19,7 @@ export function useAuth() {
   });
 
   useEffect(() => {
-    const supabase = createClient();
+    const supabase = createBrowserClient();
 
     async function getUser() {
       const {
@@ -43,7 +43,7 @@ export function useAuth() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         const { data: profile } = await supabase
           .from("profiles")
@@ -61,7 +61,7 @@ export function useAuth() {
   }, []);
 
   const signOut = async () => {
-    const supabase = createClient();
+    const supabase = createBrowserClient();
     await supabase.auth.signOut();
     window.location.href = "/login";
   };

@@ -12,7 +12,7 @@ import { Button } from "@asym/ui/components/shadcn/button";
 import { Switch } from "@asym/ui/components/shadcn/switch";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { PageHeader } from "@asym/ui/components/page-header";
+import { PageHeader } from "@/components/page-header";
 import {
   Mail,
   Gift,

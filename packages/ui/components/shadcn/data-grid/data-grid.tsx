@@ -28,18 +28,18 @@ import { Button } from "../button";
 import { Input } from "../input";
 import { Checkbox } from "../checkbox";
 import { ScrollArea } from "../scroll-area";
-import { DataGridCell } from "../data-grid-cell";
+import { DataGridCell } from "./data-grid-cell";
 import type {
   DataGridColumn,
   DataGridCellPosition,
   DataGridConfig,
   DataGridCallbacks,
-} from "../types";
+} from "./types";
 import {
   DEFAULT_ROW_HEIGHT,
   DEFAULT_HEADER_HEIGHT,
   DEFAULT_COLUMN_WIDTH,
-} from "../types";
+} from "./types";
 
 interface DataGridProps<TData extends Record<string, unknown>> {
   data: TData[];

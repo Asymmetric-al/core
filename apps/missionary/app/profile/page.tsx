@@ -28,7 +28,7 @@ import {
   TabsContent,
 } from "@asym/ui/components/shadcn/tabs";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
-import { PageHeader } from "@asym/ui/components/page-header";
+import { PageHeader } from "@/components/page-header";
 import {
   Tooltip,
   TooltipContent,
