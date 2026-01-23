@@ -60,6 +60,7 @@ Evidence required: file paths + symbol names + brief explanation
 ```
 
 Rules:
+
 - Put this preamble at the top of the `query` string for `mcp__nia__search`.
 - Do not shove the preamble into `pattern` for grep calls. Keep grep patterns tight and exact.
 - Always read the top matches before editing. Cite exact file paths and functions/components.
@@ -137,11 +138,11 @@ Answer with citations/paths from the repo and avoid external sources unless just
 
 Load rulebooks before editing files in their domain.
 
-- **General workflow / AL-### / CI gates / labels:** `rules/general.md`
-- **Frontend UI/components/styling/UX:** `rules/frontend.md`
-- **Backend/Supabase/auth/data access/migrations:** `rules/backend.md`
-- **Testing/Playwright/a11y/perf gates:** `rules/testing.md`
-- **shadcn/studio MCP workflows (/cui, /rui, /iui, /ftc):** `rules/shadcn-studio-mcp.md` (only when running those workflows)
+- **General workflow / AL-### / CI gates / labels:** `docs/ai/rules/general.md`
+- **Frontend UI/components/styling/UX:** `docs/ai/rules/frontend.md`
+- **Backend/Supabase/auth/data access/migrations:** `docs/ai/rules/backend.md`
+- **Testing/Playwright/a11y/perf gates:** `docs/ai/rules/testing.md`
+- **shadcn/studio MCP workflows (/cui, /rui, /iui, /ftc):** `docs/ai/rules/shadcn-studio-mcp.md` (only when running those workflows)
 
 ---
 
@@ -149,21 +150,21 @@ Load rulebooks before editing files in their domain.
 
 Load the skill(s) below when the trigger matches.
 
-- **Next.js App Router structure, rendering, data fetching:** `skills/nextjs-app-router/SKILL.md`
-- **Cache Components / PPR / cacheTag & invalidation:** `skills/cache-components/SKILL.md`
-- **React component design/refactor:** `skills/react-component-dev/SKILL.md`
-- **shadcn/ui system usage:** `skills/moai-library-shadcn/SKILL.md`
-- **Motion animations (`motion/react`):** `skills/motion/SKILL.md`
-- **Recharts:** `skills/rechart/SKILL.md`
-- **TanStack Table v8:** `skills/tanstack-table/SKILL.md`
+- **Next.js App Router structure, rendering, data fetching:** `docs/ai/skills/nextjs-app-router/SKILL.md`
+- **Cache Components / PPR / cacheTag & invalidation:** `docs/ai/skills/cache-components/SKILL.md`
+- **React component design/refactor:** `docs/ai/skills/react-component-dev/SKILL.md`
+- **shadcn/ui system usage:** `docs/ai/skills/moai-library-shadcn/SKILL.md`
+- **Motion animations (`motion/react`):** `docs/ai/skills/motion/SKILL.md`
+- **Recharts:** `docs/ai/skills/rechart/SKILL.md`
+- **TanStack Table v8:** `docs/ai/skills/tanstack-table/SKILL.md`
 - **GitHub issue/PR workflows (AL-###):**
-  - Write issue: `skills/write-issue/SKILL.md`
-  - Build issue: `skills/build-issue/SKILL.md`
-  - Start issue: `skills/start-issue/SKILL.md`
-  - Ship issue: `skills/ship-issue/SKILL.md`
-  - Close issue: `skills/close-issue/SKILL.md`
-  - Create issues batch: `skills/create-issues/SKILL.md`
-- **Commit message creation:** `skills/commit/SKILL.md`
+  - Write issue: `docs/ai/skills/write-issue/SKILL.md`
+  - Build issue: `docs/ai/skills/build-issue/SKILL.md`
+  - Start issue: `docs/ai/skills/start-issue/SKILL.md`
+  - Ship issue: `docs/ai/skills/ship-issue/SKILL.md`
+  - Close issue: `docs/ai/skills/close-issue/SKILL.md`
+  - Create issues batch: `docs/ai/skills/create-issues/SKILL.md`
+- **Commit message creation:** `docs/ai/skills/commit/SKILL.md`
 
 ---
 
@@ -204,9 +205,9 @@ Load the skill(s) below when the trigger matches.
 
 ## Minimal examples
 
-- **"Where is auth handled?"** -> Update `docs/ai/working-set.md`; use Nia (scoped + preambled) to find auth entry points; then open `rules/backend.md`.
-- **"Add a new UI card component."** -> Open `rules/frontend.md` and `skills/react-component-dev/SKILL.md`. Use Nia to find existing patterns/components in this repo before writing new ones.
-- **"Use /cui for a page."** -> Open `rules/shadcn-studio-mcp.md` and follow its workflow exactly.
+- **"Where is auth handled?"** -> Update `docs/ai/working-set.md`; use Nia (scoped + preambled) to find auth entry points; then open `docs/ai/rules/backend.md`.
+- **"Add a new UI card component."** -> Open `docs/ai/rules/frontend.md` and `docs/ai/skills/react-component-dev/SKILL.md`. Use Nia to find existing patterns/components in this repo before writing new ones.
+- **"Use /cui for a page."** -> Open `docs/ai/rules/shadcn-studio-mcp.md` and follow its workflow exactly.
 
 ---
 
@@ -216,6 +217,6 @@ Load the skill(s) below when the trigger matches.
 - Running unscoped Nia searches outside `Asymmetric-al/core`
 - Calling Nia without first updating `docs/ai/working-set.md`
 - Using vague Nia queries without exact identifiers/keywords
-- Using shadcn/studio tools without `rules/shadcn-studio-mcp.md`
+- Using shadcn/studio tools without `docs/ai/rules/shadcn-studio-mcp.md`
 - Mixing rulebooks with conflicting instructions instead of reconciling them
 - Forgetting to update docs after behavior changes
