@@ -10,6 +10,10 @@
     "./types": "./types.ts",
     "./email-studio-types": "./email-studio-types.ts"
   },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
   "dependencies": {
     "@sendgrid/mail": "^8.1.4"
   },

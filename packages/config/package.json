@@ -12,6 +12,10 @@
     "./email-studio": "./email-studio.ts",
     "./pdf-studio": "./pdf-studio.ts"
   },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
   "dependencies": {
     "lucide-react": "^0.468.0"
   },
@@ -20,4 +24,3 @@
     "typescript": "^5.7.3"
   }
 }
-

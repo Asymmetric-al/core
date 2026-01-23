@@ -9,6 +9,9 @@
     "VERCEL_GIT_COMMIT_SHA"
   ],
   "tasks": {
+    "transit": {
+      "dependsOn": ["^transit"]
+    },
     "build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"],
@@ -19,24 +22,26 @@
         "BING_SITE_VERIFICATION",
         "NEXT_PUBLIC_SUPABASE_URL",
         "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-        "SUPABASE_SERVICE_ROLE_KEY"
-      ]
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_*"
+      ],
+      "inputs": ["$TURBO_DEFAULT$", ".env", ".env.*"]
     },
     "lint": {
-      "dependsOn": ["^lint"],
+      "dependsOn": ["transit"],
       "outputs": [".next/cache/eslint/**", ".eslintcache"]
     },
     "typecheck": {
-      "dependsOn": ["^typecheck"],
+      "dependsOn": ["transit"],
       "outputs": ["tsconfig.tsbuildinfo", "*.tsbuildinfo"]
     },
     "test": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["transit"],
       "outputs": ["coverage/**"],
       "cache": false
     },
     "test:unit": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["transit"],
       "outputs": ["coverage/**"]
     },
     "dev": {
