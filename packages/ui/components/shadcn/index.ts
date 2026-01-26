@@ -4,10 +4,10 @@
  * This barrel file exports all shadcn/ui components for easy importing.
  *
  * Usage:
- *   import { Button, Card, Input } from '@/components/ui'
+ *   import { Button, Card, Input } from '@asym/ui/components/shadcn'
  *
  * Individual imports still work for tree-shaking:
- *   import { Button } from '@/components/ui/button'
+ *   import { Button } from '@asym/ui/components/shadcn/button'
  */
 
 export * from "./accordion";

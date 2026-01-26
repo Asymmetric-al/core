@@ -11,6 +11,8 @@
     "./components/shadcn/data-table/*": "./components/shadcn/data-table/*.tsx",
     "./components/shadcn/data-table/types": "./components/shadcn/data-table/types.ts",
     "./components/shadcn-studio/blocks/*": "./components/shadcn-studio/blocks/*.tsx",
+    "./components/shadcn-studio/logo": "./components/shadcn-studio/logo.tsx",
+    "./components/logo-svg": "./components/logo-svg.tsx",
     "./components/studio/UnlayerEditor": "./components/studio/UnlayerEditor.tsx",
     "./components/studio/EmailStudioSetupStatus": "./components/studio/EmailStudioSetupStatus.tsx",
     "./components/studio/PDFStudioSetupStatus": "./components/studio/PDFStudioSetupStatus.tsx",

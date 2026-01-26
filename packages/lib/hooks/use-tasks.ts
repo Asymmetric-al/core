@@ -1,17 +1,77 @@
-// @ts-nocheck
-// TODO: This file has app-level imports and should be moved to the missionary app
+// NOTE: This file has missionary-specific types
+// The types should be exported from @asym/lib or defined locally
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { createBrowserClient } from "@asym/database/supabase";
 import { useAuth } from "./use-auth";
-import type {
-  Task,
-  TaskFormData,
-  TaskFilters,
-  TaskStatus,
-} from "@/lib/missionary/types";
 import { toast } from "sonner";
+
+// Local type definitions (should match missionary app types)
+export type TaskStatus =
+  | "not_started"
+  | "in_progress"
+  | "waiting"
+  | "completed"
+  | "deferred";
+export type TaskPriority = "low" | "medium" | "high";
+export type TaskType =
+  | "follow_up"
+  | "thank_you"
+  | "prayer"
+  | "support"
+  | "communication"
+  | "administrative"
+  | "other";
+
+export interface Task {
+  id: string;
+  missionary_id: string;
+  title: string;
+  description?: string | null;
+  notes?: string | null;
+  task_type: TaskType;
+  status: TaskStatus;
+  priority: TaskPriority;
+  due_date?: string | null;
+  reminder_date?: string | null;
+  donor_id?: string | null;
+  donor?: {
+    id: string;
+    name: string;
+    email?: string;
+    avatar_url?: string | null;
+  } | null;
+  sort_key: number;
+  is_auto_generated: boolean;
+  created_at: string;
+  updated_at: string;
+  completed_at?: string | null;
+}
+
+export interface TaskFormData {
+  title: string;
+  description?: string;
+  notes?: string;
+  task_type: TaskType;
+  status: TaskStatus;
+  priority: TaskPriority;
+  due_date?: Date | null;
+  reminder_date?: Date | null;
+  donor_id?: string | null;
+}
+
+export interface TaskFilters {
+  status?: TaskStatus | "all";
+  priority?: TaskPriority | "all";
+  task_type?: TaskType | "all";
+  donor_id?: string | null;
+  search?: string;
+  due_date_range?: {
+    start?: Date;
+    end?: Date;
+  };
+}
 
 interface UseTasksOptions {
   donorId?: string | null;
