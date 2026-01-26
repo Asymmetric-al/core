@@ -1,0 +1,25 @@
+{
+  "name": "@asym/missionary",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./components/*": "./components/*.tsx",
+    "./hooks/*": "./hooks/*.ts",
+    "./types": "./types/index.ts"
+  },
+  "dependencies": {
+    "@asym/ui": "workspace:*",
+    "@asym/lib": "workspace:*",
+    "@asym/database": "workspace:*",
+    "lucide-react": "^0.554.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@asym/typescript-config": "workspace:*",
+    "@types/react": "^19.0.6",
+    "@types/react-dom": "^19.0.2",
+    "typescript": "^5.7.3"
+  }
+}

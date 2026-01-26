@@ -1,6 +1,11 @@
 import * as React from "react";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@asym/ui/components/shadcn/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@asym/ui/components/shadcn/card";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { AlertCircle, ChevronRight } from "lucide-react";
 

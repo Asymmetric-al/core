@@ -5,8 +5,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 
-import type { Location } from "@/features/mission-control/locations/hooks/use-locations";
-import { usePublicLocations } from "@/features/mission-control/locations/hooks/use-locations";
+import type { Location } from "@/lib/hooks/use-locations";
+import { usePublicLocations } from "@/lib/hooks/use-locations";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import {

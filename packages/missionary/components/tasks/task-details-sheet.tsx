@@ -20,7 +20,11 @@ import type { Task } from "@/lib/missionary/types";
 import { TASK_TYPE_CONFIG, PRIORITY_CONFIG } from "./task-config";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
 import {
   Sheet,
   SheetContent,

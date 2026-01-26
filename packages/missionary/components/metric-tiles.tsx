@@ -5,7 +5,10 @@ import { Area, AreaChart } from "recharts";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
-import { ChartContainer, type ChartConfig } from "@asym/ui/components/shadcn/chart";
+import {
+  ChartContainer,
+  type ChartConfig,
+} from "@asym/ui/components/shadcn/chart";
 import { cn } from "@asym/ui/lib/utils";
 import { useDonationMetrics, type ChartDataPoint } from "@asym/lib/hooks";
 
