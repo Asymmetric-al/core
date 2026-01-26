@@ -1,17 +1,8 @@
 "use client";
 
-import React from "react";
 import Image from "next/image";
 import { motion } from "motion/react";
-import {
-  Target,
-  Users,
-  Shield,
-  Heart,
-  
-  Globe,
-  Sparkles,
-} from "lucide-react";
+import { Target, Users, Shield, Heart, Globe, Sparkles } from "lucide-react";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { cn } from "@asym/ui/lib/utils";

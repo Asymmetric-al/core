@@ -5,7 +5,7 @@ SendGrid email integration for multi-tenant email sending.
 ## Usage
 
 ```typescript
-import { sendEmail, validateSendGridApiKey } from "@/lib/email";
+import { sendEmail, validateSendGridApiKey } from "@asym/email";
 
 // Validate key
 const { valid, warnings } = await validateSendGridApiKey("SG.xxx");
