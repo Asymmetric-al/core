@@ -5,6 +5,12 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* Tailwind v4 content sources - tells Tailwind where to scan for classes */
+@source "../**/*.{js,ts,jsx,tsx,mdx}";
+@source "../../apps/**/app/**/*.{js,ts,jsx,tsx,mdx}";
+@source "../../apps/**/components/**/*.{js,ts,jsx,tsx,mdx}";
+@source "../../apps/**/features/**/*.{js,ts,jsx,tsx,mdx}";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
