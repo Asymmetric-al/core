@@ -1,18 +1,27 @@
-import { OrganizationJsonLd, WebsiteJsonLd } from "@asym/lib/seo";
+import type { Metadata } from "next";
+import { pageMetadata } from "@asym/lib/seo";
+import { DonateActionJsonLd } from "@asym/lib/seo";
+import {
+  HomeHero,
+  HomeMission,
+  HomeStats,
+  HomeFeatured,
+  HomeCTA,
+  LiveTicker,
+} from "@asym/ui/components/public/home-sections";
+
+export const metadata: Metadata = pageMetadata.home;
 
 export default function HomePage() {
   return (
-    <>
-      <OrganizationJsonLd />
-      <WebsiteJsonLd />
-      <main id="main-content" className="flex-1" tabIndex={-1}>
-        <div className="container-responsive py-responsive-section">
-          <h1 className="text-responsive-h1">Welcome to Asymmetric.al</h1>
-          <p className="text-responsive-body mt-4">
-            Supporting missionaries around the world.
-          </p>
-        </div>
-      </main>
-    </>
+    <div className="flex flex-col min-h-screen bg-slate-50 selection:bg-zinc-900/10 selection:text-zinc-900">
+      <DonateActionJsonLd />
+      <HomeHero />
+      <LiveTicker />
+      <HomeMission />
+      <HomeStats />
+      <HomeFeatured />
+      <HomeCTA />
+    </div>
   );
 }
