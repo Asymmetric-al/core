@@ -26,7 +26,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuCheckboxItem,
 } from "@asym/ui/components/shadcn/dropdown-menu";
-import { QuickGiveInput } from "@/components/feature/QuickGiveInput";
+import { QuickGiveInput } from "@/features/giving/components/QuickGiveInput";
 import { getFieldWorkers, type FieldWorker } from "@/lib/mock-data";
 
 function WorkerCard({ worker }: { worker: FieldWorker }) {

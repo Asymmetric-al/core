@@ -63,7 +63,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { cn } from "@asym/ui/lib/utils";
-import { QuickGive } from "@/components/quick-give";
+import { QuickGive } from "@/features/giving/components/quick-give";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 12 },
