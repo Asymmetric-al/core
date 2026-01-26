@@ -1,5 +1,10 @@
 import * as React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@asym/ui/components/shadcn/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@asym/ui/components/shadcn/card";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Target, TrendingUp } from "lucide-react";
 

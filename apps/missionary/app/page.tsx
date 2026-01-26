@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { DashboardHome } from "@/features/missionary/components/dashboard-home";
+import { DashboardHome } from "@asym/missionary/components/dashboard-home";
 
 export default function MissionaryDashboardPage() {
   return (

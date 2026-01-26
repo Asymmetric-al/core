@@ -4,7 +4,7 @@ import React from "react";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { cn } from "@asym/ui/lib/utils";
 import type { LucideIcon } from "lucide-react";
-import { Sparkles } from "lucide-react";
+import type { WorkerFeed } from "@/lib/mock-data";
 
 interface ImpactTileProps {
   title: string;
@@ -13,7 +13,8 @@ interface ImpactTileProps {
   colorClass: string;
   bgClass: string;
   contextKeys?: string[];
-  feeds?: any[];
+  feeds?: WorkerFeed[];
+  className?: string;
 }
 
 export function ImpactTile({
@@ -24,47 +25,43 @@ export function ImpactTile({
   bgClass,
   contextKeys,
   feeds,
+  className,
 }: ImpactTileProps) {
-  const isAI = value === undefined;
+  const isCalculated = value === undefined;
 
-  const aiValue =
-    isAI && contextKeys && feeds
+  const displayValue =
+    isCalculated && contextKeys && feeds
       ? contextKeys.includes("miller")
         ? "50 Students"
         : "Breakthrough"
       : value;
 
   return (
-    <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow h-full bg-white overflow-hidden group">
-      <CardContent className="p-6">
-        <div className="flex justify-between items-start mb-4">
+    <Card
+      className={cn(
+        "border-zinc-100 shadow-sm hover:border-zinc-200 transition-all h-full bg-white overflow-hidden group rounded-xl",
+        className,
+      )}
+    >
+      <CardContent className="p-4 sm:p-5">
+        <div className="flex justify-between items-start mb-3 sm:mb-4">
           <div
             className={cn(
-              "p-2 rounded-2xl transition-transform group-hover:scale-110",
+              "p-1.5 sm:p-2 rounded-lg border shadow-sm transition-transform group-hover:scale-105",
               bgClass,
               colorClass,
+              "border-current/10",
             )}
           >
-            <Icon className="h-5 w-5" />
+            <Icon className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
           </div>
-          {isAI && (
-            <div className="flex items-center gap-1 text-[8px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">
-              <Sparkles className="h-2 w-2 text-amber-500" />
-              AI Derived
-            </div>
-          )}
         </div>
         <div>
-          <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">
+          <h4 className="text-[9px] sm:text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-0.5 sm:mb-1">
             {title}
           </h4>
-          <p
-            className={cn(
-              "text-2xl font-bold tracking-tight",
-              isAI ? "text-slate-900" : "text-slate-900",
-            )}
-          >
-            {aiValue || "---"}
+          <p className="text-2xl sm:text-3xl font-bold tracking-tighter text-zinc-900">
+            {displayValue || "---"}
           </p>
         </div>
       </CardContent>

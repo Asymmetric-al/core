@@ -14,7 +14,11 @@ import type { Task } from "@/lib/missionary/types";
 import { TASK_TYPE_CONFIG, PRIORITY_CONFIG } from "./task-config";
 import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
