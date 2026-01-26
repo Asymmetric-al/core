@@ -1,7 +1,6 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Footer } from "@asym/ui/components/public/footer";
 
 const WhereWeWorkMap = dynamic(
   () => import("./map-wrapper").then((mod) => mod.WhereWeWorkMap),
@@ -22,7 +21,6 @@ export default function WhereWeWorkPage() {
   return (
     <main className="w-full">
       <WhereWeWorkMap />
-      <Footer />
     </main>
   );
 }

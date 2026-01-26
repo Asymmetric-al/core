@@ -1,5 +1,3 @@
-import { Navbar } from "@asym/ui/components/public/navbar";
-import { Footer } from "@asym/ui/components/public/footer";
 import { OrganizationJsonLd, WebsiteJsonLd } from "@asym/lib/seo";
 
 export default function HomePage() {
@@ -7,7 +5,6 @@ export default function HomePage() {
     <>
       <OrganizationJsonLd />
       <WebsiteJsonLd />
-      <Navbar />
       <main id="main-content" className="flex-1" tabIndex={-1}>
         <div className="container-responsive py-responsive-section">
           <h1 className="text-responsive-h1">Welcome to Asymmetric.al</h1>
@@ -16,7 +13,6 @@ export default function HomePage() {
           </p>
         </div>
       </main>
-      <Footer />
     </>
   );
 }
