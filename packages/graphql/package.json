@@ -1,0 +1,31 @@
+{
+  "name": "@asym/graphql",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./index.ts",
+      "default": "./index.ts"
+    },
+    "./handler": {
+      "types": "./handler.ts",
+      "default": "./handler.ts"
+    }
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@asym/auth": "workspace:*",
+    "@asym/database": "workspace:*",
+    "@asym/lib": "workspace:*",
+    "graphql": "^16.12.0",
+    "graphql-yoga": "^5.18.0"
+  },
+  "devDependencies": {
+    "@asym/typescript-config": "workspace:*",
+    "typescript": "^5.7.3"
+  }
+}

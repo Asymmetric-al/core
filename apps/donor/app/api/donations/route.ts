@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     }
 
     const auth = await getAuthContext();
-    requireRole(auth, ["donor", "admin"]);
+    requireRole(auth, ["donor", "admin", "staff", "super_admin"]);
     const ctx = auth as AuthenticatedContext;
 
     const { searchParams } = new URL(request.url);
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     }
 
     const auth = await getAuthContext();
-    requireRole(auth, ["donor", "admin"]);
+    requireRole(auth, ["donor", "admin", "staff", "super_admin"]);
     const ctx = auth as AuthenticatedContext;
     const audit = createAuditLogger(ctx, request);
 

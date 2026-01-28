@@ -15,6 +15,7 @@
     "@asym/config": "workspace:*",
     "@asym/database": "workspace:*",
     "@asym/email": "workspace:*",
+    "@asym/graphql": "workspace:*",
     "@asym/lib": "workspace:*",
     "@asym/ui": "workspace:*",
     "@base-ui/react": "^1.0.0",
