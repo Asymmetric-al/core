@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { redirect } from "next/navigation";
 import { Inter, Syne, Geist_Mono } from "next/font/google";
 import { Suspense } from "react";
 import dynamic from "next/dynamic";
@@ -8,6 +9,7 @@ import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { QueryProvider } from "@asym/database/providers";
 import { siteConfig } from "@asym/config/site";
+import { getAuthContext } from "@asym/auth";
 
 dynamic(() => import("@/components/app-shell").then((mod) => mod.AppShell), {
   ssr: true,
@@ -63,11 +65,21 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const auth = await getAuthContext();
+
+  if (!auth.isAuthenticated) {
+    redirect("/login");
+  }
+
+  if (auth.role !== "missionary") {
+    redirect("/login");
+  }
+
   return (
     <html lang={siteConfig.language} suppressHydrationWarning>
       <head>

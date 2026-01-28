@@ -4,15 +4,11 @@ import React, { useState } from "react";
 import {
   CreditCard,
   MoreHorizontal,
-  
-  
   PauseCircle,
   PlayCircle,
   X,
-  
   DollarSign,
   Clock,
-  
   ShieldCheck,
   Wallet,
   ArrowRightLeft,
@@ -31,7 +27,11 @@ import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
 import {
   Select,
   SelectContent,
@@ -42,10 +42,8 @@ import {
 import {
   Dialog,
   DialogContent,
-  
   DialogTitle,
   DialogDescription,
-  
 } from "@asym/ui/components/shadcn/dialog";
 import {
   DropdownMenu,

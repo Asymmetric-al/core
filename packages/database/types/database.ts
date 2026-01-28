@@ -24,7 +24,12 @@
  * - No risk of cross-tenant data leaks from application bugs
  */
 
-export type UserRole = "donor" | "missionary" | "admin" | "super_admin";
+export type UserRole =
+  | "donor"
+  | "missionary"
+  | "admin"
+  | "staff"
+  | "super_admin";
 export type DonationStatus = "pending" | "completed" | "failed" | "refunded";
 export type GivingFrequency =
   | "weekly"

@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { redirect } from "next/navigation";
 import { Inter, Syne, Geist_Mono } from "next/font/google";
 import { Suspense } from "react";
 import "@asym/ui/styles/globals.css";
@@ -7,6 +8,7 @@ import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { QueryProvider } from "@asym/database/providers";
 import { siteConfig } from "@asym/config/site";
+import { getAuthContext } from "@asym/auth";
 import { MCShell } from "./mc-shell";
 
 const inter = Inter({
@@ -59,11 +61,25 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const auth = await getAuthContext();
+
+  if (!auth.isAuthenticated) {
+    redirect("/login");
+  }
+
+  if (
+    auth.role !== "admin" &&
+    auth.role !== "staff" &&
+    auth.role !== "super_admin"
+  ) {
+    redirect("/login");
+  }
+
   return (
     <html lang={siteConfig.language} suppressHydrationWarning>
       <head>
