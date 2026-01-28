@@ -21,7 +21,11 @@ import {
   CornerDownRight,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Badge } from "@asym/ui/components/shadcn/badge";
