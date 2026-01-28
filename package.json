@@ -51,6 +51,7 @@
     "@asym/config": "workspace:*",
     "@asym/database": "workspace:*",
     "@asym/email": "workspace:*",
+    "@asym/graphql": "workspace:*",
     "@asym/lib": "workspace:*",
     "@asym/ui": "workspace:*",
     "@google/genai": "^1.34.0",
