@@ -63,16 +63,25 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       },
     );
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
     const isPublicRoute = publicRoutes.some((route) =>
       matchesRoute(pathname, route),
     );
     const isAuthRoute = authRoutes.some((route) =>
       matchesRoute(pathname, route),
     );
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    let role: string | null = null;
+    if (user && isAuthRoute) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("user_id", user.id)
+        .single();
+      role = profile?.role ?? null;
+    }
 
     if (!user && !isPublicRoute && !isAuthRoute) {
       const url = request.nextUrl.clone();
@@ -83,7 +92,17 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
 
     if (user && isAuthRoute) {
       const url = request.nextUrl.clone();
-      url.pathname = redirectAuthenticatedTo;
+      if (role) {
+        if (role === "admin" || role === "staff") {
+          url.pathname = "/mc";
+        } else if (role === "missionary") {
+          url.pathname = "/missionary-dashboard";
+        } else {
+          url.pathname = "/donor-dashboard";
+        }
+      } else {
+        url.pathname = redirectAuthenticatedTo;
+      }
       return NextResponse.redirect(url);
     }
 
