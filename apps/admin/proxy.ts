@@ -1,6 +1,6 @@
 import { createAuthMiddleware } from "@asym/auth/middleware";
 
-export const middleware = createAuthMiddleware({
+export const proxy = createAuthMiddleware({
   publicRoutes: [
     "/",
     "/about",
@@ -17,7 +17,7 @@ export const middleware = createAuthMiddleware({
     "/robots.txt",
   ],
   loginPath: "/login",
-  redirectAuthenticatedTo: "/donor-dashboard",
+  redirectAuthenticatedTo: "/",
 });
 
 export const config = {

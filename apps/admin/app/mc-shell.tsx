@@ -84,7 +84,7 @@ const menuItems: MenuItem[] = [
   {
     icon: ChartPieIcon,
     label: "Dashboard",
-    href: "/mc",
+    href: "/",
   },
 ];
 
@@ -92,45 +92,45 @@ const modulesItems: MenuItem[] = [
   {
     icon: DollarSignIcon,
     label: "Contributions",
-    href: "/mc/contributions",
+    href: "/contributions",
   },
   {
     icon: UsersIcon,
     label: "CRM",
-    href: "/mc/crm",
+    href: "/crm",
   },
   {
     icon: HeartHandshakeIcon,
     label: "Member Care",
-    href: "/mc/care",
+    href: "/care",
   },
   {
     icon: CalendarIcon,
     label: "Events",
-    href: "/mc/events",
+    href: "/events",
   },
   {
     icon: FileTextIcon,
     label: "Reports",
-    href: "/mc/reports",
+    href: "/reports",
   },
   {
     icon: ActivityIcon,
     label: "Ministry Updates",
     items: [
-      { label: "Content Moderation", href: "/mc/feed" },
-      { label: "Org Updates", href: "/mc/feed/org-updates" },
+      { label: "Content Moderation", href: "/feed" },
+      { label: "Org Updates", href: "/feed/org-updates" },
     ],
   },
   {
     icon: SparklesIcon,
     label: "Tasks",
-    href: "/mc/tasks",
+    href: "/tasks",
   },
   {
     icon: LayoutGridIcon,
     label: "Mobilize",
-    href: "/mc/mobilize",
+    href: "/mobilize",
   },
 ];
 
@@ -138,27 +138,27 @@ const toolsItems: MenuItem[] = [
   {
     icon: MailIcon,
     label: "Email Studio",
-    href: "/mc/email",
+    href: "/email",
   },
   {
     icon: GlobeIcon,
     label: "Web Studio",
-    href: "/mc/web-studio",
+    href: "/web-studio",
   },
   {
     icon: PenToolIcon,
     label: "Sign",
-    href: "/mc/sign",
+    href: "/sign",
   },
   {
     icon: FileTextIcon,
     label: "PDF",
-    href: "/mc/pdf",
+    href: "/pdf",
   },
   {
     icon: SparklesIcon,
     label: "Automations",
-    href: "/mc/automations",
+    href: "/automations",
   },
 ];
 
@@ -166,12 +166,12 @@ const adminItems: MenuItem[] = [
   {
     icon: ShieldCheckIcon,
     label: "Admin",
-    href: "/mc/admin",
+    href: "/admin",
   },
   {
     icon: LifeBuoyIcon,
     label: "Support",
-    href: "/mc/support",
+    href: "/support",
   },
 ];
 
@@ -377,7 +377,7 @@ function ApplicationShell({ children }: { children: ReactNode }) {
                   className="gap-2 sm:gap-2.5 !bg-transparent"
                   asChild
                 >
-                  <a href="/mc">
+                  <a href="/">
                     <div className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-lg bg-zinc-900 text-white font-bold text-xs shadow-sm shrink-0">
                       G
                     </div>

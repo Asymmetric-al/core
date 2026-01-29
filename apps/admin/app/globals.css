@@ -1,0 +1,4 @@
+@import "@asym/ui/styles/globals.css";
+
+@source "../../**/*.{js,ts,jsx,tsx,mdx}";
+@source "../../../packages/**/**/*.{js,ts,jsx,tsx,mdx}";

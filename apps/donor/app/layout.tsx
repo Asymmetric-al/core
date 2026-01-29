@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Syne, Geist_Mono } from "next/font/google";
 import { Suspense } from "react";
-import "@asym/ui/styles/globals.css";
+import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { NuqsAdapter } from "nuqs/adapters/next/app";

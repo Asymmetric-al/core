@@ -10,6 +10,7 @@
 @source "../../apps/**/app/**/*.{js,ts,jsx,tsx,mdx}";
 @source "../../apps/**/components/**/*.{js,ts,jsx,tsx,mdx}";
 @source "../../apps/**/features/**/*.{js,ts,jsx,tsx,mdx}";
+@source "../../packages/**/**/*.{js,ts,jsx,tsx,mdx}";
 
 @custom-variant dark (&:is(.dark *));
 
