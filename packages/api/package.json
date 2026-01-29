@@ -1,0 +1,30 @@
+{
+  "name": "@asym/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./posts": "./src/posts/index.ts",
+    "./posts/post": "./src/posts/post.ts",
+    "./posts/comments": "./src/posts/comments.ts",
+    "./posts/like": "./src/posts/like.ts",
+    "./posts/fire": "./src/posts/fire.ts",
+    "./posts/prayer": "./src/posts/prayer.ts",
+    "./follower-requests": "./src/follower-requests/index.ts",
+    "./follower-requests/request": "./src/follower-requests/request.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@asym/auth": "workspace:*",
+    "@asym/database": "workspace:*",
+    "@asym/lib": "workspace:*",
+    "next": "16.1.1"
+  },
+  "devDependencies": {
+    "@asym/typescript-config": "workspace:*",
+    "typescript": "^5.7.3"
+  }
+}

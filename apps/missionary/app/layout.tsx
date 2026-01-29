@@ -1,17 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Syne, Geist_Mono } from "next/font/google";
 import { Suspense } from "react";
-import dynamic from "next/dynamic";
 import "./globals.css";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { QueryProvider } from "@asym/database/providers";
 import { siteConfig } from "@asym/config/site";
-
-dynamic(() => import("@/components/app-shell").then((mod) => mod.AppShell), {
-  ssr: true,
-});
+import { AppShell } from "@/components/app-shell";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -104,7 +100,9 @@ export default function RootLayout({
         >
           <QueryProvider>
             <Suspense fallback={null}>
-              <NuqsAdapter>{children}</NuqsAdapter>
+              <NuqsAdapter>
+                <AppShell role="missionary">{children}</AppShell>
+              </NuqsAdapter>
             </Suspense>
           </QueryProvider>
         </ThemeProvider>

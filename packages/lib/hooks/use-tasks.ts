@@ -14,15 +14,14 @@ export type TaskStatus =
   | "waiting"
   | "completed"
   | "deferred";
-export type TaskPriority = "low" | "medium" | "high";
+export type TaskPriority = "none" | "low" | "medium" | "high";
 export type TaskType =
+  | "call"
+  | "email"
+  | "to_do"
   | "follow_up"
   | "thank_you"
-  | "prayer"
-  | "support"
-  | "communication"
-  | "administrative"
-  | "other";
+  | "meeting";
 
 export interface Task {
   id: string;

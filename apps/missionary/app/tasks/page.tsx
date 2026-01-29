@@ -44,15 +44,15 @@ import {
 } from "lucide-react";
 import { cn } from "@asym/ui/lib/utils";
 import { useTasks } from "@asym/lib/hooks";
-import { TaskDialog } from "@/features/missionary/components/task-dialog";
-import { TaskRow } from "@/features/missionary/components/task-row";
-import { TaskKanbanBoard } from "@/features/missionary/components/task-kanban-board";
+import { TaskDialog } from "@asym/missionary/components/task-dialog";
+import { TaskRow } from "@asym/missionary/components/task-row";
+import { TaskKanbanBoard } from "@asym/missionary/components/task-kanban-board";
 import type {
   Task,
   TaskType,
   TaskStatus,
   TaskPriority,
-} from "@/lib/missionary/types";
+} from "@asym/lib/hooks/use-tasks";
 
 const springTransition = {
   type: "spring" as const,
@@ -640,7 +640,7 @@ export default function TasksPage() {
         </AnimatePresence>
 
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent className="rounded-[2rem] border-zinc-200">
+          <AlertDialogContent className="rounded-4xl border-zinc-200">
             <AlertDialogHeader>
               <AlertDialogTitle className="text-xl font-black tracking-tight text-zinc-900 uppercase">
                 Delete Task
