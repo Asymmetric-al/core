@@ -34,12 +34,12 @@ The "Give Hope" tenant name you may see in UI defaults is a demo/test frontend, 
 
 The platform consists of **four main sections**, each serving a distinct user type:
 
-| Section                  | Route Group                           | Purpose                                      | Users                 |
-| ------------------------ | ------------------------------------- | -------------------------------------------- | --------------------- |
-| **Mission Control**      | `(admin)/mc/*`                        | Organization admin dashboard                 | Staff, Finance, Admin |
-| **Missionary Dashboard** | `(missionary)/missionary-dashboard/*` | Personal donor engagement & support tracking | Missionaries          |
-| **Donor Portal**         | `(donor)/donor-dashboard/*`           | Giving management & impact feed              | Donors                |
-| **Public Website**       | `(public)/*`                          | Tenant-branded giving pages & checkout       | Public visitors       |
+| Section                  | Route Group                 | Purpose                                      | Users                 |
+| ------------------------ | --------------------------- | -------------------------------------------- | --------------------- |
+| **Mission Control**      | `(admin)/mc/*`              | Organization admin dashboard                 | Staff, Finance, Admin |
+| **Missionary Dashboard** | `app/*`                     | Personal donor engagement & support tracking | Missionaries          |
+| **Donor Portal**         | `(donor)/donor-dashboard/*` | Giving management & impact feed              | Donors                |
+| **Public Website**       | `(public)/*`                | Tenant-branded giving pages & checkout       | Public visitors       |
 
 #### 1. Mission Control (Admin Dashboard)
 
@@ -49,7 +49,7 @@ The platform consists of **four main sections**, each serving a distinct user ty
 
 #### 2. Missionary Dashboard
 
-- **Route**: `/missionary-dashboard/*`
+- **Route**: `/*`
 - **Purpose**: Personal workspace for missionaries to track support, engage donors, and share updates
 - **Key Features**: Donation analytics, donor management, social feed, tasks, profile
 
@@ -90,7 +90,7 @@ core/
 │   │
 │   ├── missionary/           # Missionary dashboard
 │   │   ├── app/              # Next.js App Router
-│   │   │   ├── (missionary)/missionary-dashboard/
+│   │   │   ├── app/
 │   │   │   ├── api/
 │   │   │   └── auth/
 │   │   ├── components/

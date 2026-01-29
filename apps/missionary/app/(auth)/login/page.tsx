@@ -72,7 +72,7 @@ export default function LoginPage() {
         throw new Error(message);
       }
 
-      router.push("/missionary-dashboard");
+      router.push("/");
       router.refresh();
     } catch (e: any) {
       setError(e.message || "Demo login unavailable");
@@ -104,8 +104,7 @@ export default function LoginPage() {
         .single();
       if (profile?.role === "admin" || profile?.role === "staff")
         router.push("/mc");
-      else if (profile?.role === "missionary")
-        router.push("/missionary-dashboard");
+      else if (profile?.role === "missionary") router.push("/");
       else router.push("/donor-dashboard");
     }
     setLoading(false);

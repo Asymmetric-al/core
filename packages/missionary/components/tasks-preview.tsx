@@ -74,9 +74,7 @@ export function TasksPreview({ tasks }: TasksPreviewProps) {
             className="h-8 w-full rounded-md border-zinc-200 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-900 hover:border-zinc-300 shadow-sm"
             asChild
           >
-            <Link href="/missionary-dashboard/tasks">
-              Enterprise Task Manager
-            </Link>
+            <Link href="/tasks">Enterprise Task Manager</Link>
           </Button>
         </div>
       </CardContent>

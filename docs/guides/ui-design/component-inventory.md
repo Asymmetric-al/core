@@ -26,7 +26,7 @@ This document tracks the implementation status of key UI surfaces and components
 - [ ] **Tables** — Status: planned | Path: `TBD`
 - [ ] **Filters** — Status: planned | Path: `TBD`
 - [ ] **Empty States** — Status: planned | Path: `TBD`
-- [ ] **Settings forms** — Status: planned | Path: `src/app/(missionary)/missionary-dashboard/settings/`
+- [ ] **Settings forms** — Status: planned | Path: `apps/missionary/app/settings/`
 - [ ] **Modals** — Status: planned | Path: `src/features/missionary/components/task-dialog.tsx`
 
 ## Public Tenant Website

@@ -46,9 +46,7 @@ export async function updateSession(request: NextRequest) {
   // 1. Normalize Aliases (Demo Paths)
   let targetPathname = pathname;
   if (pathname === "/my" || pathname.startsWith("/my/")) {
-    targetPathname = pathname.replace("/my", "/missionary-dashboard");
-    if (targetPathname === "/missionary-dashboard/")
-      targetPathname = "/missionary-dashboard";
+    targetPathname = pathname.replace("/my", "") || "/";
   } else if (pathname === "/admin" || pathname.startsWith("/admin/")) {
     targetPathname = pathname.replace("/admin", "/mc");
     if (targetPathname === "/mc/") targetPathname = "/mc";
@@ -64,9 +62,7 @@ export async function updateSession(request: NextRequest) {
   const subdomain = hostname.split(".")[0];
 
   if (subdomain === "my" && hostname !== mainDomain) {
-    if (!targetPathname.startsWith("/missionary-dashboard")) {
-      targetPathname = `/missionary-dashboard${targetPathname === "/" ? "" : targetPathname}`;
-    }
+    targetPathname = targetPathname === "" ? "/" : targetPathname;
   }
 
   // 3. Auth Protection
@@ -116,7 +112,7 @@ export async function updateSession(request: NextRequest) {
     if (profile?.role === "admin" || profile?.role === "staff") {
       url.pathname = "/mc";
     } else if (profile?.role === "missionary") {
-      url.pathname = "/missionary-dashboard";
+      url.pathname = "/";
     } else {
       url.pathname = "/donor-dashboard";
     }

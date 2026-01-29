@@ -47,7 +47,7 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
           className="h-8 px-3 rounded-md text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50"
           asChild
         >
-          <Link href="/missionary-dashboard/donors">
+          <Link href="/donors">
             Full Log <ArrowUpRight className="ml-1 h-3 w-3" />
           </Link>
         </Button>
