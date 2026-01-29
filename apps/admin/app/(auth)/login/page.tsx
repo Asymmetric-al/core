@@ -104,8 +104,7 @@ export default function LoginPage() {
         .single();
       if (profile?.role === "admin" || profile?.role === "staff")
         router.push("/mc");
-      else if (profile?.role === "missionary")
-        router.push("/missionary-dashboard");
+      else if (profile?.role === "missionary") router.push("/");
       else router.push("/donor-dashboard");
     }
     setLoading(false);

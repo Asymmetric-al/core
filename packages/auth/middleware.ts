@@ -96,7 +96,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
         if (role === "admin" || role === "staff") {
           url.pathname = "/mc";
         } else if (role === "missionary") {
-          url.pathname = "/missionary-dashboard";
+          url.pathname = "/";
         } else {
           url.pathname = "/donor-dashboard";
         }

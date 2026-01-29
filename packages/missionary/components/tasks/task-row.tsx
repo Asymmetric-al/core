@@ -168,9 +168,7 @@ export function TaskRow({
 
         <div className="flex items-center gap-3 flex-wrap">
           {task.donor && (
-            <Link
-              href={`/missionary-dashboard/donors?selected=${task.donor.id}`}
-            >
+            <Link href={`/donors?selected=${task.donor.id}`}>
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 className="flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-[oklch(0.985_0.002_265)] border border-[oklch(0.915_0.003_265)] hover:bg-white hover:border-[oklch(0.205_0.015_265)] transition-all cursor-pointer group/donor"

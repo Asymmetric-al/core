@@ -275,9 +275,7 @@ export function TaskRow({
 
         <div className="flex items-center gap-2 mt-3 flex-wrap">
           {task.donor && (
-            <Link
-              href={`/missionary-dashboard/donors?selected=${task.donor.id}`}
-            >
+            <Link href={`/donors?selected=${task.donor.id}`}>
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 className="flex items-center gap-2 px-2 py-1 rounded-full bg-zinc-100 border border-zinc-200 hover:border-zinc-300 transition-colors cursor-pointer"
@@ -365,9 +363,7 @@ export function TaskRow({
               asChild
               className="rounded-lg text-xs font-medium py-2 cursor-pointer"
             >
-              <Link
-                href={`/missionary-dashboard/donors?selected=${task.donor.id}`}
-              >
+              <Link href={`/donors?selected=${task.donor.id}`}>
                 <User className="mr-2 h-3.5 w-3.5 text-zinc-400" />
                 View Partner
               </Link>

@@ -72,7 +72,7 @@ export const siteConfig = {
     },
     dashboards: {
       admin: "/mc",
-      missionary: "/missionary-dashboard",
+      missionary: "/",
       donor: "/donor-dashboard",
     },
   },
@@ -113,7 +113,7 @@ export const siteConfig = {
           { label: "Mission Control", href: "/mc", badge: "Admin" },
           {
             label: "Missionary Dashboard",
-            href: "/missionary-dashboard",
+            href: "/",
             badge: "Field",
           },
           { label: "Donor Portal", href: "/donor-dashboard", badge: "Partner" },

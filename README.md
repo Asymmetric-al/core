@@ -106,7 +106,7 @@ In a live production environment, the platform uses dynamic routing based on hos
 For this demonstration and development environment, we have implemented aliases to allow easy access to all modules from a single domain:
 
 - **Mission Control (Admin)**: Accessible via [/admin](/admin) (mapped to `/mc`)
-- **Missionary Dashboard**: Accessible via [/my](/my) (mapped to `/missionary-dashboard`)
+- **Missionary Dashboard**: Accessible via [/my](/my) (mapped to `/`)
 - **Donor Portal**: Accessible via [/dashboard](/dashboard) (mapped to `/donor-dashboard`)
 
 ### Implementation Details
@@ -132,7 +132,7 @@ Empowering field missionaries with donor engagement tools, task management, and 
   - **Premium Style**: Features a high-end "Maia" aesthetic with animated micro-interactions. Clicking a reaction triggers a delightful burst of floating emoji particles (❤️, 🙏, 🔥) and visceral pulsing effects.
   - **Workflow**: Missionaries can save drafts, manage visibility (Public vs Partners Only), and handle follower requests with manual or automated approval levels.
   - **Media Management**: Integrated media toolbar allows for quick image uploads and carousel creation to make updates visually engaging.
-- Route: `/missionary-dashboard`
+- Route: `/`
 
 ### Donor Portal
 

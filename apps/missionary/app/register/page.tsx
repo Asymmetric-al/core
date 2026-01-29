@@ -107,7 +107,7 @@ export default function RegisterPage() {
       if (role === "admin") {
         router.push("/mc");
       } else if (role === "missionary") {
-        router.push("/missionary-dashboard");
+        router.push("/");
       } else {
         router.push("/donor-dashboard");
       }
@@ -154,7 +154,7 @@ export default function RegisterPage() {
       if (formData.role === "admin" || formData.role === "staff") {
         router.push("/mc");
       } else if (formData.role === "missionary") {
-        router.push("/missionary-dashboard");
+        router.push("/");
       } else {
         router.push("/donor-dashboard");
       }

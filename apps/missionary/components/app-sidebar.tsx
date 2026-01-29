@@ -59,21 +59,21 @@ const donorNavItems: NavItem[] = [
 ];
 
 const missionaryNavItems: NavItem[] = [
-  { title: "Dashboard", href: "/missionary-dashboard", icon: Home },
-  { title: "Donors", href: "/missionary-dashboard/donors", icon: Users },
+  { title: "Dashboard", href: "/", icon: Home },
+  { title: "Donors", href: "/donors", icon: Users },
   {
     title: "Ministry Updates",
-    href: "/missionary-dashboard/feed",
+    href: "/feed",
     icon: Newspaper,
   },
   {
     title: "Analytics",
-    href: "/missionary-dashboard/analytics",
+    href: "/analytics",
     icon: BarChart3,
   },
-  { title: "Tasks", href: "/missionary-dashboard/tasks", icon: CheckSquare },
-  { title: "Profile", href: "/missionary-dashboard/profile", icon: UserCircle },
-  { title: "Settings", href: "/missionary-dashboard/settings", icon: Settings },
+  { title: "Tasks", href: "/tasks", icon: CheckSquare },
+  { title: "Profile", href: "/profile", icon: UserCircle },
+  { title: "Settings", href: "/settings", icon: Settings },
 ];
 
 function getNavItems(role: UserRole): NavItem[] {

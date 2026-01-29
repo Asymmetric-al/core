@@ -261,8 +261,8 @@ mkdir -p apps/admin/app/\(admin\)/mc/my-page
 touch apps/admin/app/\(admin\)/mc/my-page/page.tsx
 
 # For Missionary Dashboard
-mkdir -p apps/missionary/app/\(missionary\)/missionary-dashboard/my-page
-touch apps/missionary/app/\(missionary\)/missionary-dashboard/my-page/page.tsx
+mkdir -p apps/missionary/app/my-page
+touch apps/missionary/app/my-page/page.tsx
 
 # For Donor Portal
 mkdir -p apps/donor/app/\(donor\)/donor-dashboard/my-page
