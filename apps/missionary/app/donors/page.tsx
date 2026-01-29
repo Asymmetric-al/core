@@ -93,10 +93,10 @@ import { format, formatDistanceToNow, differenceInMonths } from "date-fns";
 import { cn } from "@asym/ui/lib/utils";
 import { useAuth } from "@asym/lib/hooks";
 import { createBrowserClient } from "@asym/database/supabase";
-import { AddPartnerDialog } from "@/features/missionary/components/add-partner-dialog";
-import { TaskDialog } from "@/features/missionary/components/task-dialog";
+import { AddPartnerDialog } from "@asym/missionary/components/add-partner-dialog";
+import { TaskDialog } from "@asym/missionary/components/task-dialog";
 import { useTasks } from "@asym/lib/hooks";
-import type { Task } from "@/lib/missionary/types";
+import type { Task } from "@asym/lib/hooks/use-tasks";
 import { toast } from "sonner";
 import {
   Form,
@@ -2942,7 +2942,7 @@ export default function DonorsPage() {
                                       className={cn(
                                         "p-5 rounded-2xl border transition-all",
                                         recurring.status === "active"
-                                          ? "bg-gradient-to-br from-emerald-50/80 to-emerald-50/30 border-emerald-200"
+                                          ? "bg-linear-to-br from-emerald-50/80 to-emerald-50/30 border-emerald-200"
                                           : "bg-zinc-50 border-zinc-200",
                                       )}
                                     >

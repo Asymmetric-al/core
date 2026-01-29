@@ -416,7 +416,7 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete }: KanbanCardProps) {
             {task.donor && (
               <div className="flex items-center gap-2 max-w-[140px]">
                 <Avatar className="size-5 ring-2 ring-white">
-                  <AvatarImage src={task.donor.avatar_url} />
+                  <AvatarImage src={task.donor.avatar_url ?? undefined} />
                   <AvatarFallback className="text-[8px] font-black uppercase">
                     {task.donor.name[0]}
                   </AvatarFallback>

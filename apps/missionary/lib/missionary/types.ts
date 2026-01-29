@@ -117,7 +117,7 @@ export interface Task {
     id: string;
     name: string;
     email?: string;
-    avatar_url?: string;
+    avatar_url?: string | null;
   } | null;
   title: string;
   description?: string | null;

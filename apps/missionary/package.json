@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@asym/auth": "workspace:*",
+    "@asym/api": "workspace:*",
     "@asym/config": "workspace:*",
     "@asym/database": "workspace:*",
     "@asym/email": "workspace:*",
