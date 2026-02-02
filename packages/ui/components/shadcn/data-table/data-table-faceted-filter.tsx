@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import type { Column } from "@tanstack/react-table";
 import { Check, PlusCircle } from "lucide-react";
 
@@ -16,11 +15,7 @@ import {
   CommandList,
   CommandSeparator,
 } from "../command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "../popover";
+import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 import { Separator } from "../separator";
 import type { DataTableFilterOption } from "./types";
 

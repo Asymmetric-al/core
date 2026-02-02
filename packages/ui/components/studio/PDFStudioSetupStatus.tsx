@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { useState, useMemo } from "react";
 import {
   getPDFStudioSetupStatus,
@@ -21,7 +20,6 @@ import {
   Copy,
   Check,
   Info,
-  FileText,
 } from "lucide-react";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {

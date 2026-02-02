@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { useState, useCallback, useRef, useEffect } from "react";
 import Cropper, { type Area, type Point } from "react-easy-crop";
 import {

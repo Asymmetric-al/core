@@ -11,7 +11,6 @@ import {
   useReactTable,
   type ColumnDef,
   type SortingState,
-  type ColumnFiltersState,
 } from "@tanstack/react-table";
 import {
   Plus,
@@ -27,7 +26,6 @@ import { cn } from "@asym/ui/lib/utils";
 import { Button } from "../button";
 import { Input } from "../input";
 import { Checkbox } from "../checkbox";
-import { ScrollArea } from "../scroll-area";
 import { DataGridCell } from "./data-grid-cell";
 import type {
   DataGridColumn,
@@ -286,7 +284,7 @@ export function DataGrid<TData extends Record<string, unknown>>({
     if (enableSelection) {
       cols.push({
         id: "select",
-        header: ({ table }) => (
+        header: () => (
           <div className="flex items-center justify-center">
             <Checkbox
               checked={

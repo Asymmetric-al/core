@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   transpilePackages: [
+    "@asym/api",
     "@asym/ui",
     "@asym/database",
     "@asym/lib",
@@ -32,4 +33,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-
