@@ -1,5 +1,3 @@
-// @ts-nocheck
-// TODO: Add explicit return type annotations for all hooks to fix TS2742 errors
 "use client";
 
 import { useLiveQuery, eq } from "@tanstack/react-db";
@@ -14,7 +12,7 @@ import {
   postCommentsCollection,
 } from "../collections";
 
-export function usePostsWithAuthors(missionaryId?: string) {
+export function usePostsWithAuthors(missionaryId?: string): any {
   return useLiveQuery((q: any) => {
     let query = q.from({ post: postsCollection.value });
 
@@ -50,7 +48,7 @@ export function usePostsWithAuthors(missionaryId?: string) {
   });
 }
 
-export function usePostsForFollowedMissionaries(donorId: string) {
+export function usePostsForFollowedMissionaries(donorId: string): any {
   return useLiveQuery((q: any) => {
     return q
       .from({ post: postsCollection.value })
@@ -83,7 +81,7 @@ export function usePostsForFollowedMissionaries(donorId: string) {
   });
 }
 
-export function useDonorGivingHistory(donorId: string) {
+export function useDonorGivingHistory(donorId: string): any {
   return useLiveQuery((q: any) => {
     return q
       .from({ donation: donationsCollection.value })
@@ -120,7 +118,7 @@ export function useDonorGivingHistory(donorId: string) {
   });
 }
 
-export function useMissionarySupporters(missionaryId: string) {
+export function useMissionarySupporters(missionaryId: string): any {
   return useLiveQuery((q: any) => {
     return q
       .from({ donation: donationsCollection.value })
@@ -149,7 +147,7 @@ export function useMissionarySupporters(missionaryId: string) {
   });
 }
 
-export function useCommentsWithAuthors(postId: string) {
+export function useCommentsWithAuthors(postId: string): any {
   return useLiveQuery((q: any) => {
     return q
       .from({ comment: postCommentsCollection.value })
@@ -171,7 +169,7 @@ export function useCommentsWithAuthors(postId: string) {
   });
 }
 
-export function useFundsWithProgress(missionaryId?: string) {
+export function useFundsWithProgress(missionaryId?: string): any {
   return useLiveQuery((q: any) => {
     let query = q
       .from({ fund: fundsCollection.value })
@@ -202,7 +200,7 @@ export function useFundsWithProgress(missionaryId?: string) {
   });
 }
 
-export function useMissionaryDashboard(missionaryId: string) {
+export function useMissionaryDashboard(missionaryId: string): any {
   return useLiveQuery((q: any) => {
     return q
       .from({ donation: donationsCollection.value })
@@ -210,7 +208,7 @@ export function useMissionaryDashboard(missionaryId: string) {
   });
 }
 
-export function useMissionaryStats(missionaryId: string) {
+export function useMissionaryStats(missionaryId: string): any {
   return useLiveQuery((q: any) => {
     return q
       .from({ donation: donationsCollection.value })
