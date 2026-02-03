@@ -62,6 +62,7 @@ Evidence required: file paths + symbol names + brief explanation
 ```
 
 Rules:
+
 - Put this preamble at the top of the `query` string for `mcp__nia__search`.
 - Do not shove the preamble into `pattern` for grep calls. Keep grep patterns tight and exact.
 - Always read the top matches before editing. Cite exact file paths and functions/components.
