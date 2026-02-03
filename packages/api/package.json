@@ -1,0 +1,46 @@
+{
+  "name": "@asym/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./posts": "./src/posts/index.ts",
+    "./posts/post": "./src/posts/post.ts",
+    "./posts/comments": "./src/posts/comments.ts",
+    "./posts/like": "./src/posts/like.ts",
+    "./posts/fire": "./src/posts/fire.ts",
+    "./posts/prayer": "./src/posts/prayer.ts",
+    "./follower-requests": "./src/follower-requests/index.ts",
+    "./follower-requests/request": "./src/follower-requests/request.ts",
+    "./auth/demo-account": "./src/auth/demo-account.ts",
+    "./auth/cleanup-demo-users": "./src/auth/cleanup-demo-users.ts",
+    "./donate": "./src/donate/index.ts",
+    "./donations": "./src/donations/index.ts",
+    "./profile": "./src/profile/index.ts",
+    "./feed-preferences": "./src/feed-preferences/index.ts",
+    "./admin/org-settings": "./src/admin/org-settings.ts",
+    "./admin/users": "./src/admin/users.ts",
+    "./admin/posts": "./src/admin/posts/index.ts",
+    "./admin/posts/post": "./src/admin/posts/post.ts",
+    "./admin/comments": "./src/admin/comments/index.ts",
+    "./admin/comments/comment": "./src/admin/comments/comment.ts",
+    "./missionaries": "./src/missionaries/index.ts",
+    "./missionaries/metrics": "./src/missionaries/metrics.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@asym/auth": "workspace:*",
+    "@asym/database": "workspace:*",
+    "@asym/lib": "workspace:*",
+    "@supabase/ssr": "^0.5.2",
+    "next": "16.1.1",
+    "stripe": "^17.4.0"
+  },
+  "devDependencies": {
+    "@asym/typescript-config": "workspace:*",
+    "typescript": "^5.7.3"
+  }
+}

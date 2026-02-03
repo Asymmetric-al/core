@@ -3,59 +3,69 @@
 Agents MUST keep this file updated during a task. Use it to build the Nia query preamble.
 
 ## Current objective
-- Draft and upgrade AL-001 (admin dashboard padding) to implementation-ready.
+- Identify UI contrast issues and create a batch of AL-### GitHub issues with labels.
 
 ## Repo scope
 - repository: Asymmetric-al/core
 - in-scope paths (if known):
-  - src/app/(admin)/mc/admin/page.tsx
-  - src/app/(admin)/mc/mc-shell.tsx
-  - src/app/(admin)/mc/contributions/page.tsx
-  - src/app/(admin)/mc/care/page.tsx
-  - src/app/globals.css
+  - AGENTS.md
+  - docs/
+  - rules/
+  - .github/
 
 ## Stack tags (pick from docs/ai/stack-registry.md)
-- Next.js (App Router)
+- Next.js
 - React
 - TypeScript
 - Tailwind CSS v4
+- shadcn/ui
+- MAIA theme
 
 ## Known identifiers (exact strings)
 - files:
-  - src/app/(admin)/mc/admin/page.tsx
-  - src/app/(admin)/mc/mc-shell.tsx
-  - src/app/(admin)/mc/contributions/page.tsx
-  - src/app/(admin)/mc/care/page.tsx
-  - src/app/globals.css
+  - src/app
+  - src/components
+  - src/features
 - symbols:
-  - container-responsive
-  - py-responsive-section
-  - /mc/admin
-  - /mc/contributions
-  - /mc/care
+  - className
+  - cn(
 - routes:
-  - /mc/admin
-  - /mc/contributions
-  - /mc/care
+  - N/A
 - error strings:
   - N/A
+- UI terms:
+  - contrast
+  - text-muted
+  - text-zinc
+  - text-neutral
+  - text-slate
+  - text-gray
+  - text-foreground
+  - bg-muted
+  - bg-zinc
+  - bg-neutral
+  - bg-slate
+  - bg-gray
+  - bg-background
+  - opacity-
 
 ## Expected behavior
-- Admin dashboard homepage has consistent horizontal padding with other MC pages.
+- Find contrast risks in UI components/pages and translate them into actionable issues with acceptance criteria.
 
 ## Constraints
-- avoid double padding on MC pages
+- runtime: Node.js
+- tooling: Bun/Turbo
 - env/platform notes:
-  - Issue drafting only; no code changes.
+  - No PRs, branches, commits, or tags; issues only.
 
 ## Verification
-- Manual check at 375px, 768px, 1024px for `/mc/admin` vs `/mc/contributions`.
+- N/A (issue discovery only)
 
 ## Nia query preamble (fill before calling Nia)
 Repo: Asymmetric-al/core
-Goal: Find MC admin padding patterns for AL-001
-Area: src/app/(admin)/mc, src/app/globals.css
-Stack: Next.js (App Router), React, TypeScript, Tailwind CSS v4
-Keywords: /mc/admin, mc-shell, container-responsive, py-responsive-section, admin page
-Constraints: avoid double padding; cite exact files + components
-Evidence required: file paths + component names + brief explanation
+Goal: Locate UI contrast risks for issue drafting
+Area: src/app, src/components, src/features, styles
+Stack: Next.js, React, TypeScript, Tailwind CSS v4, shadcn/ui, MAIA theme
+Keywords: contrast, text-muted, text-foreground, bg-muted, bg-background, opacity-, className, cn(
+Constraints: issues only; cite exact files + classes
+Evidence required: file paths + class strings + brief explanation

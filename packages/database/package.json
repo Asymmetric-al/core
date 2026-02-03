@@ -1,0 +1,59 @@
+{
+  "name": "@asym/database",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./supabase": {
+      "types": "./supabase/index.ts",
+      "default": "./supabase/index.ts"
+    },
+    "./supabase/server": {
+      "types": "./supabase/server.ts",
+      "default": "./supabase/server.ts"
+    },
+    "./supabase/admin": {
+      "types": "./supabase/admin.ts",
+      "default": "./supabase/admin.ts"
+    },
+    "./supabase/proxy": {
+      "types": "./supabase/proxy.ts",
+      "default": "./supabase/proxy.ts"
+    },
+    "./collections": {
+      "types": "./collections/index.ts",
+      "default": "./collections/index.ts"
+    },
+    "./hooks": {
+      "types": "./hooks/index.ts",
+      "default": "./hooks/index.ts"
+    },
+    "./providers": {
+      "types": "./providers/index.ts",
+      "default": "./providers/index.ts"
+    },
+    "./types": {
+      "types": "./types/index.ts",
+      "default": "./types/index.ts"
+    }
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.47.10",
+    "@tanstack/db": "^0.5.16",
+    "@tanstack/react-db": "^0.1.60",
+    "@tanstack/query-db-collection": "^1.0.12",
+    "@tanstack/react-query": "^5.90.15",
+    "@tanstack/react-query-devtools": "^5.90.15",
+    "next": "16.1.1",
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@asym/typescript-config": "workspace:*",
+    "typescript": "^5.7.3"
+  }
+}
