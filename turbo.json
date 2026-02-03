@@ -1,21 +1,48 @@
 {
   "$schema": "https://turborepo.org/schema.json",
+  "globalDependencies": ["**/.env.*local", "**/.env"],
+  "globalEnv": [
+    "NODE_ENV",
+    "VERCEL",
+    "VERCEL_ENV",
+    "VERCEL_URL",
+    "VERCEL_GIT_COMMIT_SHA"
+  ],
   "tasks": {
+    "transit": {
+      "dependsOn": ["^transit"]
+    },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
       "env": [
         "NODE_ENV",
         "NEXT_PUBLIC_*",
         "GOOGLE_SITE_VERIFICATION",
-        "BING_SITE_VERIFICATION"
-      ]
+        "BING_SITE_VERIFICATION",
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_*"
+      ],
+      "inputs": ["$TURBO_DEFAULT$", ".env", ".env.*"]
     },
     "lint": {
-      "outputs": [".next/cache/eslint/**"]
+      "dependsOn": ["transit"],
+      "outputs": [".next/cache/eslint/**", ".eslintcache"]
     },
     "typecheck": {
-      "outputs": ["tsconfig.tsbuildinfo"]
+      "dependsOn": ["transit"],
+      "outputs": ["tsconfig.tsbuildinfo", "*.tsbuildinfo"]
+    },
+    "test": {
+      "dependsOn": ["transit"],
+      "outputs": ["coverage/**"],
+      "cache": false
+    },
+    "test:unit": {
+      "dependsOn": ["transit"],
+      "outputs": ["coverage/**"]
     },
     "dev": {
       "cache": false,
@@ -54,6 +81,9 @@
       "cache": false
     },
     "setup:verify": {
+      "cache": false
+    },
+    "clean": {
       "cache": false
     }
   }

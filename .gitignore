@@ -1,5 +1,5 @@
 # dependencies
-/node_modules
+node_modules
 /.pnp
 .pnp.js
 
@@ -9,7 +9,7 @@
 /test-results/
 
 # next.js
-/.next/
+.next/
 /out/
 
 # production
@@ -34,6 +34,7 @@ yarn-error.log*
 .env.test
 !.env.example
 
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
@@ -41,5 +42,4 @@ next-env.d.ts
 # Local env
 .env.local
 
-# ai workflow
-docs/ai/working-set.md
+/backups

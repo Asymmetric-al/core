@@ -14,7 +14,7 @@ bun run dev
 ./scripts/verify
 ```
 
-**Required:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`  
+**Required:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 **Optional:** All other entries in `.env.example` (Stripe, demo accounts, Unlayer, etc.)
 
 ### Windows
@@ -106,7 +106,7 @@ In a live production environment, the platform uses dynamic routing based on hos
 For this demonstration and development environment, we have implemented aliases to allow easy access to all modules from a single domain:
 
 - **Mission Control (Admin)**: Accessible via [/admin](/admin) (mapped to `/mc`)
-- **Missionary Dashboard**: Accessible via [/my](/my) (mapped to `/missionary-dashboard`)
+- **Missionary Dashboard**: Accessible via [/my](/my) (mapped to `/`)
 - **Donor Portal**: Accessible via [/dashboard](/dashboard) (mapped to `/donor-dashboard`)
 
 ### Implementation Details
@@ -132,7 +132,7 @@ Empowering field missionaries with donor engagement tools, task management, and 
   - **Premium Style**: Features a high-end "Maia" aesthetic with animated micro-interactions. Clicking a reaction triggers a delightful burst of floating emoji particles (❤️, 🙏, 🔥) and visceral pulsing effects.
   - **Workflow**: Missionaries can save drafts, manage visibility (Public vs Partners Only), and handle follower requests with manual or automated approval levels.
   - **Media Management**: Integrated media toolbar allows for quick image uploads and carousel creation to make updates visually engaging.
-- Route: `/missionary-dashboard`
+- Route: `/`
 
 ### Donor Portal
 
@@ -159,6 +159,26 @@ Common commands:
 
 - `bun run format` (fix), `bun run format:check` (verify), `bun run lint`, and `bun run typecheck`
 - `bun run test:e2e`
+
+### Git Hooks Setup
+
+Pre-commit hooks auto-run ESLint + Prettier. If you get "command not found" errors:
+
+**macOS/Linux:**
+
+```bash
+mkdir -p ~/.config/husky && echo 'export PATH="/usr/local/bin:$PATH"' > ~/.config/husky/init.sh
+```
+
+**Windows:**
+
+```bash
+mkdir -p ~/.config/husky && echo 'export PATH="/c/Program Files/nodejs:$PATH"' > ~/.config/husky/init.sh
+```
+
+**Using nvm:** Replace with `export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"`
+
+One-time setup per machine.
 
 ### Turborepo (Task Orchestration + Cache)
 
