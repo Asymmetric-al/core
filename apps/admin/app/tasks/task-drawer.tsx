@@ -20,7 +20,11 @@ import {
 
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 import {
   Sheet,

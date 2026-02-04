@@ -31,7 +31,11 @@ import {
   CardTitle,
   CardFooter,
 } from "@asym/ui/components/shadcn/card";
-import { Alert, AlertDescription, AlertTitle } from "@asym/ui/components/shadcn/alert";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@asym/ui/components/shadcn/alert";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import {

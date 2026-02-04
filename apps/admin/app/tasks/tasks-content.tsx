@@ -14,7 +14,11 @@ import {
 
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { Tabs, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
 import {

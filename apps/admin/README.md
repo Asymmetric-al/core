@@ -44,10 +44,10 @@ bun lint
 ## Dependencies
 
 This app depends on the following shared packages:
+
 - `@asym/ui` - UI components and theme
 - `@asym/database` - Database access layer
 - `@asym/lib` - Shared utilities
 - `@asym/config` - Configuration
 - `@asym/auth` - Authentication
 - `@asym/email` - Email integration
-

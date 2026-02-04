@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "description": "Shared TypeScript configurations for Asymmetric.al monorepo",
-  "files": ["base.json", "nextjs.json", "react.json"]
+  "files": [
+    "base.json",
+    "nextjs.json",
+    "react.json"
+  ]
 }
-

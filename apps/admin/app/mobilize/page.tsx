@@ -21,10 +21,24 @@ import {
 } from "@asym/ui/components/shadcn/sheet";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@asym/ui/components/shadcn/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@asym/ui/components/shadcn/card";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@asym/ui/components/shadcn/tabs";
 import { Progress } from "@asym/ui/components/shadcn/progress";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import {
   MoreHorizontal,

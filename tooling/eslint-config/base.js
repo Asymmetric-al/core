@@ -4,53 +4,52 @@
  */
 
 module.exports = {
-  extends: ['next/core-web-vitals', 'next/typescript'],
+  extends: ["next/core-web-vitals", "next/typescript"],
   rules: {
     // Enforce architecture boundaries
-    'no-restricted-imports': [
-      'error',
+    "no-restricted-imports": [
+      "error",
       {
         patterns: [
           {
-            group: ['../../apps/*', '../../../apps/*', '../../../../apps/*'],
+            group: ["../../apps/*", "../../../apps/*", "../../../../apps/*"],
             message:
-              '❌ Apps cannot import from other apps. Use @asym/* packages instead.',
+              "❌ Apps cannot import from other apps. Use @asym/* packages instead.",
           },
           {
-            group: ['**/apps/admin/**'],
+            group: ["**/apps/admin/**"],
             message:
-              '❌ Cannot import from apps/admin. Use @asym/* packages instead.',
+              "❌ Cannot import from apps/admin. Use @asym/* packages instead.",
           },
           {
-            group: ['**/apps/donor/**'],
+            group: ["**/apps/donor/**"],
             message:
-              '❌ Cannot import from apps/donor. Use @asym/* packages instead.',
+              "❌ Cannot import from apps/donor. Use @asym/* packages instead.",
           },
           {
-            group: ['**/apps/missionary/**'],
+            group: ["**/apps/missionary/**"],
             message:
-              '❌ Cannot import from apps/missionary. Use @asym/* packages instead.',
+              "❌ Cannot import from apps/missionary. Use @asym/* packages instead.",
           },
         ],
       },
     ],
     // Prevent unused variables
-    '@typescript-eslint/no-unused-vars': [
-      'warn',
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
       {
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_',
-        caughtErrorsIgnorePattern: '^_',
+        argsIgnorePattern: "^_",
+        varsIgnorePattern: "^_",
+        caughtErrorsIgnorePattern: "^_",
       },
     ],
     // Enforce consistent type imports
-    '@typescript-eslint/consistent-type-imports': [
-      'warn',
+    "@typescript-eslint/consistent-type-imports": [
+      "warn",
       {
-        prefer: 'type-imports',
-        fixStyle: 'inline-type-imports',
+        prefer: "type-imports",
+        fixStyle: "inline-type-imports",
       },
     ],
   },
-}
-
+};

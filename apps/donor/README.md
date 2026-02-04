@@ -5,6 +5,7 @@ Donor dashboard and public website for Asymmetric.al.
 ## Features
 
 ### Donor Dashboard
+
 - Personal dashboard with giving history
 - Pledge management
 - Wallet and payment methods
@@ -12,6 +13,7 @@ Donor dashboard and public website for Asymmetric.al.
 - Settings and preferences
 
 ### Public Website
+
 - Homepage with mission information
 - About page
 - Workers directory
@@ -51,10 +53,10 @@ bun lint
 ## Dependencies
 
 This app depends on the following shared packages:
+
 - `@asym/ui` - UI components and theme
 - `@asym/database` - Database access layer
 - `@asym/lib` - Shared utilities
 - `@asym/config` - Configuration
 - `@asym/auth` - Authentication
 - `@asym/email` - Email integration
-

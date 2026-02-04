@@ -17,6 +17,7 @@ packages/
 ## Package Naming Convention
 
 All packages use the `@asym/*` namespace:
+
 - `@asym/ui` - UI components
 - `@asym/database` - Database access
 - `@asym/auth` - Authentication
@@ -30,12 +31,12 @@ Apps import from packages using the `@asym/*` namespace:
 
 ```typescript
 // ✅ Correct
-import { Button } from '@asym/ui'
-import { createClient } from '@asym/database'
-import { useAuth } from '@asym/auth'
+import { Button } from "@asym/ui";
+import { createClient } from "@asym/database";
+import { useAuth } from "@asym/auth";
 
 // ❌ Wrong - never import from other apps
-import { Button } from '../../../apps/admin/components/button'
+import { Button } from "../../../apps/admin/components/button";
 ```
 
 ## Development
@@ -43,6 +44,7 @@ import { Button } from '../../../apps/admin/components/button'
 Each package has its own `package.json` and can be developed independently.
 
 To work on a package:
+
 ```bash
 cd packages/ui
 bun install
@@ -52,4 +54,3 @@ bun run build
 ## Next Steps
 
 Packages will be created in Phase 2 of the migration. See `docs/refactorturbo/2026-01-20-turborepo-migration-plan.md` for details.
-

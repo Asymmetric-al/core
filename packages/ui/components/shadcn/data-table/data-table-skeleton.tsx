@@ -5,12 +5,7 @@ import { Loader2 } from "lucide-react";
 
 import { cn } from "@asym/ui/lib/utils";
 import { Skeleton } from "../skeleton";
-import {
-  Table as UITable,
-  TableBody,
-  TableCell,
-  TableRow,
-} from "../table";
+import { Table as UITable, TableBody, TableCell, TableRow } from "../table";
 
 interface DataTableSkeletonProps<TData> {
   table?: Table<TData>;

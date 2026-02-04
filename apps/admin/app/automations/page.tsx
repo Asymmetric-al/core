@@ -27,7 +27,12 @@ import {
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@asym/ui/components/shadcn/tabs";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@asym/ui/components/shadcn/tabs";
 import { Progress } from "@asym/ui/components/shadcn/progress";
 import { cn } from "@asym/ui/lib/utils";
 

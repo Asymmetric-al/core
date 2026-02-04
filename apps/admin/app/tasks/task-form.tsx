@@ -25,7 +25,11 @@ import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
 import { Calendar } from "@asym/ui/components/shadcn/calendar";
 import {
   Popover,

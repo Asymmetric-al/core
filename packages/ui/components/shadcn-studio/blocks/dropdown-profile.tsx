@@ -12,7 +12,11 @@ import {
   LogOutIcon,
 } from "lucide-react";
 
-import { Avatar, AvatarImage, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
+import {
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
+} from "@asym/ui/components/shadcn/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,

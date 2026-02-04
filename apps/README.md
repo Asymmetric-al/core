@@ -14,6 +14,7 @@ apps/
 ## App Boundaries
 
 ### `apps/admin` - Mission Control
+
 - **Users**: Admin, Finance, Staff, Member Care, Mobilizers
 - **Routes**: `/mc/*`
 - **Purpose**: Organization management, CRM, contributions, reporting
@@ -21,6 +22,7 @@ apps/
 - **Cannot Import**: `apps/donor/*`, `apps/missionary/*`
 
 ### `apps/donor` - Public Site + Donor Portal
+
 - **Users**: Public visitors + Authenticated donors
 - **Routes**: `/` (public), `/dashboard/*` (authenticated)
 - **Purpose**: Public website, donation checkout, donor self-service
@@ -28,6 +30,7 @@ apps/
 - **Cannot Import**: `apps/admin/*`, `apps/missionary/*`
 
 ### `apps/missionary` - Missionary Dashboard
+
 - **Users**: Missionaries (field workers)
 - **Routes**: `/missionary/*`
 - **Purpose**: Donor engagement, task management, impact tracking
@@ -37,11 +40,13 @@ apps/
 ## Architecture Rules
 
 ### ✅ Allowed
+
 - Import from `@asym/*` packages
 - Import from own `components/`, `lib/`, `hooks/`
 - Share code via packages
 
 ### ❌ Forbidden
+
 - Import from other apps
 - Duplicate components (use `@asym/ui` instead)
 - Create own Supabase client (use `@asym/database`)
@@ -66,6 +71,7 @@ turbo dev
 ## Deployment
 
 Each app deploys independently to Vercel:
+
 - **Admin**: `admin.asymmetric.al`
 - **Donor**: `www.asymmetric.al` + `app.asymmetric.al`
 - **Missionary**: `missionary.asymmetric.al`
@@ -73,4 +79,3 @@ Each app deploys independently to Vercel:
 ## Next Steps
 
 Apps will be created in Phase 3 of the migration. See `docs/refactorturbo/2026-01-20-turborepo-migration-plan.md` for details.
-

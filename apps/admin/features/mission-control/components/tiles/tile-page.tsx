@@ -5,7 +5,12 @@ import type { Tile } from "@asym/lib/mission-control/types";
 import { PageHeader } from "../patterns/page-header";
 import { DynamicIcon } from "../icons";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@asym/ui/components/shadcn/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@asym/ui/components/shadcn/card";
 
 interface TilePageProps {
   tile: Tile;

@@ -6,7 +6,12 @@ import { PersonnelList } from "@/features/mission-control/care/components/Person
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Plus, Download, Filter } from "lucide-react";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
-import { Card, CardContent, CardHeader, CardTitle } from "@asym/ui/components/shadcn/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@asym/ui/components/shadcn/card";
 import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import { FilterBar } from "@asym/ui/components/shadcn/filter-bar";
 

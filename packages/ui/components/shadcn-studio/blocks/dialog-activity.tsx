@@ -8,7 +8,11 @@ import { ImageIcon } from "lucide-react";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Separator } from "@asym/ui/components/shadcn/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
 import {
   Sheet,
   SheetContent,

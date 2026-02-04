@@ -1,7 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { BREAKPOINTS, type Breakpoint, getBreakpoint } from "@asym/lib/responsive";
+import {
+  BREAKPOINTS,
+  type Breakpoint,
+  getBreakpoint,
+} from "@asym/lib/responsive";
 
 export function useIsMobile() {
   const [isMobile, setIsMobile] = React.useState<boolean | undefined>(

@@ -4,9 +4,10 @@
   "private": true,
   "description": "Shared ESLint configuration for Asymmetric.al monorepo",
   "main": "base.js",
-  "files": ["base.js"],
+  "files": [
+    "base.js"
+  ],
   "dependencies": {
     "eslint-config-next": "^16.1.0"
   }
 }
-

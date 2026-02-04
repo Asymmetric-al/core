@@ -17,11 +17,21 @@ import {
   Save,
   MapPin,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@asym/ui/components/shadcn/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@asym/ui/components/shadcn/card";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@asym/ui/components/shadcn/tabs";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@asym/ui/components/shadcn/tabs";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
