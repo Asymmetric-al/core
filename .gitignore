@@ -46,3 +46,6 @@ next-env.d.ts
 
 # agent use
 docs/ai/working-set.md
+.cursor/
+.env*
+!.env.example
