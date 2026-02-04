@@ -3,7 +3,7 @@
 Agents MUST keep this file updated during a task. Use it to build the Nia query preamble.
 
 ## Current objective
-- Apply missing dependency fixes from Vercel log for apps/admin and packages/ui, then validate admin build.
+- Sweep apps/admin (and other workspaces if possible) for import/dependency drift and add missing deps to workspace package.json files.
 
 ## Repo scope
 - repository: Asymmetric-al/core
@@ -36,14 +36,14 @@ Agents MUST keep this file updated during a task. Use it to build the Nia query 
   - "Can't resolve"
   - "Cannot find module"
 - package ids:
-  - "date-fns"
-  - "recharts"
+  - "clsx"
+  - "tailwind-merge"
+  - "zod"
   - "motion"
-  - "nuqs"
-  - "react-hook-form"
+  - "@tanstack/react-query"
 
 ## Expected behavior
-- Each workspace declares the missing packages; admin build runs without module-not-found errors.
+- Each workspace declares every external package it imports; admin build has no module-not-found errors.
 
 ## Constraints
 - runtime: Node.js
