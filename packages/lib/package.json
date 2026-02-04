@@ -41,6 +41,7 @@
     "@stripe/stripe-js": "^5.3.0",
     "@supabase/supabase-js": "^2.89.0",
     "clsx": "^2.1.1",
+    "lucide-react": "^0.554.0",
     "next": "16.1.1",
     "react": "19.2.3",
     "sonner": "^2.0.7",
