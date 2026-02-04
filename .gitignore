@@ -39,10 +39,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Local env
-.env.local
-
 /backups
 
 # agent use
 docs/ai/working-set.md
+.cursor/
+.env*
