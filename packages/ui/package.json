@@ -70,6 +70,8 @@
     "@radix-ui/react-toggle-group": "^1.1.11",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@radix-ui/react-visually-hidden": "^1.2.4",
+    "@tanstack/react-db": "^0.1.60",
+    "@tanstack/react-query": "^5.90.15",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.13.13",
     "@tiptap/extension-image": "^3.14.0",
