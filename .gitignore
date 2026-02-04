@@ -43,3 +43,6 @@ next-env.d.ts
 .env.local
 
 /backups
+
+# agent use
+docs/ai/working-set.md
