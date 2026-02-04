@@ -3,7 +3,7 @@
 Agents MUST keep this file updated during a task. Use it to build the Nia query preamble.
 
 ## Current objective
-- Audit workspace source imports vs declared dependencies and add missing deps (apps/admin + packages/ui priority) to fix module resolution in Vercel/Next builds.
+- Apply missing dependency fixes from Vercel log for apps/admin and packages/ui, then validate admin build.
 
 ## Repo scope
 - repository: Asymmetric-al/core
@@ -36,13 +36,14 @@ Agents MUST keep this file updated during a task. Use it to build the Nia query 
   - "Can't resolve"
   - "Cannot find module"
 - package ids:
-  - "@asym/ui"
-  - "@radix-ui/react-visually-hidden"
-  - "@tanstack/react-query"
-  - "@tanstack/react-db"
+  - "date-fns"
+  - "recharts"
+  - "motion"
+  - "nuqs"
+  - "react-hook-form"
 
 ## Expected behavior
-- Each workspace declares all external packages it imports; module resolution succeeds in CI/Vercel.
+- Each workspace declares the missing packages; admin build runs without module-not-found errors.
 
 ## Constraints
 - runtime: Node.js
