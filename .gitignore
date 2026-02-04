@@ -49,3 +49,10 @@ docs/ai/working-set.md
 .cursor/
 .env*
 !.env.example
+
+# Local secrets / env files
+.env*
+!.env.example
+
+# Cursor (local editor config)
+.cursor/
