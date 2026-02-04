@@ -1,5 +1,5 @@
 {
-  "extends": "@asym/typescript-config/react.json",
+  "extends": "../../tooling/typescript-config/react.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {

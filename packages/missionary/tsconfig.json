@@ -1,5 +1,5 @@
 {
-  "extends": "@asym/typescript-config/base.json",
+  "extends": "../../tooling/typescript-config/base.json",
   "compilerOptions": {
     "baseUrl": ".",
     "noUnusedLocals": false,
