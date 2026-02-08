@@ -241,6 +241,25 @@ Ask a maintainer for access to the shared dev Supabase project and request the p
 The demo login flow uses `/api/auth/demo-account` with the public anon client and pre-seeded demo users.
 Set `DEMO_ADMIN_EMAIL`, `DEMO_MISSIONARY_EMAIL`, `DEMO_DONOR_EMAIL`, and `DEMO_PASSWORD` in `.env.local` to enable the demo buttons.
 
+## License
+
+asymmetric.al is open source software licensed under the GNU Affero General Public License v3.0 only (AGPL-3.0-only).
+
+- Full license text: see the `LICENSE` file in this repository.
+- Source for the running service: the hosted app links to the exact tag or commit for the version you are using (Help > About, or `/help/about`).
+
+### What AGPL means for hosted use
+
+If you run a modified version of this software for users over a network, you must offer those users the Corresponding Source for the version that is running.
+
+### Trademarks
+
+The AGPL covers the source code in this repository. It does not grant permission to use our name, logo, or other trademarks. Treat all project marks as reserved unless we publish a separate trademark policy.
+
+### Third party software
+
+This project may include or integrate third party open source components. If we ship bundled third party code, we will include attributions and license notes in `THIRD_PARTY_NOTICES.md` or `NOTICE`.
+
 ---
 
 Built with ❤️ for the Kingdom.

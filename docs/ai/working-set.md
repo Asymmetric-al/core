@@ -3,7 +3,7 @@
 Agents MUST keep this file updated during a task. Use it to build the Nia query preamble.
 
 ## Current objective
-- Sweep apps/admin (and other workspaces if possible) for import/dependency drift and add missing deps to workspace package.json files.
+- Add/standardize repository licensing and contribution policy (AGPL-3.0-only + DCO 1.1), and ensure the running service can link users to the exact Corresponding Source (commit/tag) and license text.
 
 ## Repo scope
 - repository: Asymmetric-al/core
@@ -20,48 +20,48 @@ Agents MUST keep this file updated during a task. Use it to build the Nia query 
 - TypeScript
 - Bun
 - Turborepo
+- GitHub Actions
 
 ## Known identifiers (exact strings)
 - files:
-  - package.json
-  - bun.lock
+  - LICENSE
+  - CONTRIBUTING.md
+  - README.md
+  - THIRD_PARTY_NOTICES.md
+  - .github/workflows/ci.yml
 - symbols:
-  - dependencies
-  - devDependencies
-  - peerDependencies
+  - "AGPL-3.0-only"
+  - "Developer Certificate of Origin"
+  - "Signed-off-by"
 - routes:
   - N/A
 - error strings:
-  - "Module not found"
-  - "Can't resolve"
-  - "Cannot find module"
+  - N/A
 - package ids:
-  - "clsx"
-  - "tailwind-merge"
-  - "zod"
-  - "motion"
-  - "@tanstack/react-query"
+  - N/A
 
 ## Expected behavior
-- Each workspace declares every external package it imports; admin build has no module-not-found errors.
+- GitHub detects the repository license as AGPL-3.0.
+- Contributors have clear guidance (DCO signoff + AGPL for contributions).
+- Hosted deployments can provide users a link to the exact running source version (commit/tag) and the AGPL license text.
 
 ## Constraints
 - runtime: Node.js
 - tooling: Bun/Turborepo
 - env/platform notes:
-  - No app code refactors; only dependency declarations and bun.lock updates.
-  - Avoid adding deps to repo root unless the import is root-only.
+  - Keep diffs minimal and docs accurate (do not claim UI behavior that isn't implemented).
+  - Do not introduce secrets or credentials.
   - Rules source of truth: docs/ai/rules/* (treat .cursor/rules/* as legacy).
 
 ## Verification
-- bun install
-- bun run build:admin
+- git status
+- (optional) gh repo view Asymmetric-al/core --json licenseInfo
 
 ## Nia query preamble (fill before calling Nia)
 Repo: Asymmetric-al/core
-Goal: Audit workspace imports vs declared dependencies for module resolution failures
-Area: apps/, packages/, tooling/
-Stack: Next.js, React, TypeScript, Bun, Turborepo
-Keywords: package.json, dependencies, devDependencies, peerDependencies, "Module not found", "Can't resolve", "@radix-ui/react-visually-hidden", "@tanstack/react-query", "@tanstack/react-db"
-Constraints: dependency-only edits; no code refactors; cite exact files + imports
-Evidence required: file paths + missing package names + brief explanation
+Goal: Update license + contributing policy and (if needed) add an About/Source link for hosted deployments
+Area: repo root docs + app UI entry points
+Stack: Next.js, React, TypeScript, Bun, GitHub Actions
+Keywords: LICENSE, "AGPL-3.0-only", CONTRIBUTING.md, "Developer Certificate of Origin", "Signed-off-by", "Help", "About"
+Constraints: minimal, accurate diffs; no secrets; cite exact files + components
+Evidence required: file paths + UI entry points + brief explanation

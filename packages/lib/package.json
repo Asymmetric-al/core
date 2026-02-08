@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./build-info": "./build-info.ts",
     "./utils": "./utils.ts",
     "./stripe": "./stripe.ts",
     "./cloudinary": {

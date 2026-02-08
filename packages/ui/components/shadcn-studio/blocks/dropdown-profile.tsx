@@ -9,10 +9,15 @@ import {
   UsersIcon,
   SquarePenIcon,
   CirclePlusIcon,
+  InfoIcon,
   LogOutIcon,
 } from "lucide-react";
 
-import { Avatar, AvatarImage, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
+import {
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
+} from "@asym/ui/components/shadcn/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -128,6 +133,20 @@ const ProfileDropdown = ({
             <Link href="/mc/admin/teams">
               <CirclePlusIcon className="text-muted-foreground size-4" />
               <span>Add team account</span>
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuGroup>
+          <DropdownMenuItem
+            asChild
+            className="px-3 py-1.5 text-sm cursor-pointer"
+          >
+            <Link href="/help/about">
+              <InfoIcon className="text-muted-foreground size-4" />
+              <span>About</span>
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>

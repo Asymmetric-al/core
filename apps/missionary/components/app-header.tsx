@@ -1,6 +1,7 @@
 "use client";
 
-import { Moon, Sun, Bell } from "lucide-react";
+import Link from "next/link";
+import { Moon, Sun, Bell, LifeBuoy } from "lucide-react";
 import { useTheme } from "next-themes";
 import { SidebarTrigger } from "@asym/ui/components/shadcn/sidebar";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -40,6 +41,23 @@ export function AppHeader({ title }: AppHeaderProps) {
           <span className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-zinc-900 border border-white" />
           <span className="sr-only">Notifications</span>
         </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 touch-target"
+            >
+              <LifeBuoy className="h-4 w-4" />
+              <span className="sr-only">Help</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Link href="/help/about">About</Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
