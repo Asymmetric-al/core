@@ -188,8 +188,8 @@ CREATE TABLE IF NOT EXISTS public.campaigns (
     scheduled_for TIMESTAMPTZ,
     sent_at TIMESTAMPTZ,
     created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- 9. Donations
@@ -208,7 +208,7 @@ CREATE TABLE IF NOT EXISTS public.donations (
     recurring_interval TEXT,
     notes TEXT,
     stripe_payment_intent_id TEXT,
-    gift_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    gift_date DATE,
     campaign_id UUID REFERENCES public.campaigns(id) ON DELETE SET NULL,
     pledge_id UUID,
     processed_at TIMESTAMPTZ,
@@ -246,8 +246,8 @@ CREATE TABLE IF NOT EXISTS public.notification_queue (
     available_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     processed_at TIMESTAMPTZ,
     last_error TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- 12. Donor Feed Preferences
@@ -447,6 +447,10 @@ UPDATE public.donations
 SET gift_date = COALESCE(gift_date, created_at::date, CURRENT_DATE)
 WHERE gift_date IS NULL;
 
+ALTER TABLE public.donations
+    ALTER COLUMN gift_date SET NOT NULL,
+    ALTER COLUMN gift_date SET DEFAULT CURRENT_DATE;
+
 UPDATE public.donor_pledges dp
 SET tenant_id = d.tenant_id
 FROM public.donors d
@@ -461,7 +465,7 @@ WHERE next_charge_at IS NULL
 UPDATE public.donors d
 SET
     first_gift_date = x.first_gift_date,
-    last_gift_date = COALESCE(d.last_gift_date, x.last_gift_ts),
+    last_gift_date = x.last_gift_ts,
     gift_count = x.gift_count
 FROM (
     SELECT
@@ -479,6 +483,13 @@ UPDATE public.follows f
 SET
     approved_at = COALESCE(f.approved_at, f.created_at),
     is_donor = EXISTS (
+        SELECT 1
+        FROM public.donors d
+        WHERE d.id = f.donor_id
+          AND COALESCE(d.total_given, 0) > 0
+    )
+WHERE f.approved_at IS NULL
+   OR f.is_donor IS DISTINCT FROM EXISTS (
         SELECT 1
         FROM public.donors d
         WHERE d.id = f.donor_id

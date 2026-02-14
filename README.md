@@ -218,7 +218,7 @@ bun run verify:money-units
 ```
 
 `verify:money-units` samples these columns from Supabase/Postgres via the Supabase REST API:
-`donations.amount`, `donor_pledges.amount`, `campaigns.goal_amount`, `campaigns.current_amount`, `funds.target_amount`, and `funds.current_amount`.
+`donations.amount`, `donor_pledges.amount`, `funds.target_amount`, `funds.goal_amount`, and `funds.current_amount`.
 
 Interpretation:
 

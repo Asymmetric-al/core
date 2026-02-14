@@ -1,11 +1,14 @@
 -- Foundation 1 schema forward migration
+-- NOTE: We intentionally use uuid_generate_v4() for new table IDs in this
+-- migration so defaults stay aligned with supabase/schema.sql (canonical schema)
+-- and avoid schema drift/confusion between migration-applied and recreated DBs.
 
 -- =========================================================
 -- New tables
 -- =========================================================
 
 CREATE TABLE IF NOT EXISTS public.campaigns (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     description TEXT,
@@ -21,7 +24,7 @@ CREATE TABLE IF NOT EXISTS public.campaigns (
 );
 
 CREATE TABLE IF NOT EXISTS public.notification_queue (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
     campaign_id UUID REFERENCES public.campaigns(id) ON DELETE SET NULL,
     donor_id UUID REFERENCES public.donors(id) ON DELETE SET NULL,
@@ -41,7 +44,7 @@ CREATE TABLE IF NOT EXISTS public.notification_queue (
 );
 
 CREATE TABLE IF NOT EXISTS public.pledge_charge_attempts (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
     pledge_id UUID NOT NULL REFERENCES public.donor_pledges(id) ON DELETE CASCADE,
     donor_id UUID REFERENCES public.donors(id) ON DELETE SET NULL,
@@ -68,8 +71,21 @@ ALTER TABLE public.tenants
 ALTER TABLE public.donations
     ADD COLUMN IF NOT EXISTS gift_date DATE,
     ADD COLUMN IF NOT EXISTS campaign_id UUID REFERENCES public.campaigns(id) ON DELETE SET NULL,
-    ADD COLUMN IF NOT EXISTS pledge_id UUID REFERENCES public.donor_pledges(id) ON DELETE SET NULL,
+    ADD COLUMN IF NOT EXISTS pledge_id UUID,
     ADD COLUMN IF NOT EXISTS processed_at TIMESTAMPTZ;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'donations_pledge_id_fkey'
+  ) THEN
+    ALTER TABLE public.donations
+    ADD CONSTRAINT donations_pledge_id_fkey
+    FOREIGN KEY (pledge_id) REFERENCES public.donor_pledges(id) ON DELETE SET NULL;
+  END IF;
+END $$;
 
 UPDATE public.donations
 SET gift_date = COALESCE(gift_date, created_at::date, CURRENT_DATE)
@@ -109,7 +125,7 @@ ALTER TABLE public.donors
 UPDATE public.donors d
 SET
     first_gift_date = x.first_gift_date,
-    last_gift_date = COALESCE(d.last_gift_date, x.last_gift_ts),
+    last_gift_date = x.last_gift_ts,
     gift_count = x.gift_count
 FROM (
     SELECT
@@ -132,6 +148,13 @@ UPDATE public.follows f
 SET
     approved_at = COALESCE(f.approved_at, f.created_at),
     is_donor = EXISTS (
+        SELECT 1
+        FROM public.donors d
+        WHERE d.id = f.donor_id
+          AND COALESCE(d.total_given, 0) > 0
+    )
+WHERE f.approved_at IS NULL
+   OR f.is_donor IS DISTINCT FROM EXISTS (
         SELECT 1
         FROM public.donors d
         WHERE d.id = f.donor_id

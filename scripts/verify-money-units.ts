@@ -31,8 +31,10 @@ const SAMPLE_SIZE = Number.parseInt(
 const MONEY_COLUMNS: ColumnCheck[] = [
   { table: "donations", columns: ["amount"] },
   { table: "donor_pledges", columns: ["amount"] },
-  { table: "campaigns", columns: ["goal_amount", "current_amount"] },
-  { table: "funds", columns: ["target_amount", "current_amount"] },
+  {
+    table: "funds",
+    columns: ["target_amount", "goal_amount", "current_amount"],
+  },
 ];
 
 function loadEnvFile(fileName: string) {
