@@ -29,11 +29,22 @@ const SAMPLE_SIZE = Number.parseInt(
 );
 
 const MONEY_COLUMNS: ColumnCheck[] = [
-  { table: "donations", columns: ["amount"] },
-  { table: "donor_pledges", columns: ["amount"] },
+  { table: "donations", columns: ["amount", "refund_amount"] },
+  {
+    table: "donor_pledges",
+    columns: ["amount", "total_paid", "total_expected"],
+  },
   {
     table: "funds",
     columns: ["target_amount", "goal_amount", "current_amount"],
+  },
+  { table: "pledge_charge_attempts", columns: ["amount"] },
+  { table: "donors", columns: ["total_given", "last_gift_amount"] },
+  { table: "donor_activities", columns: ["amount"] },
+  { table: "campaigns", columns: ["goal_amount", "current_amount"] },
+  {
+    table: "missionaries",
+    columns: ["funding_goal", "current_funding"],
   },
 ];
 

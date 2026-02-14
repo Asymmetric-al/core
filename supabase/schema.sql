@@ -3,6 +3,7 @@
 
 -- Enable extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ==========================================
 -- TABLES
@@ -17,6 +18,7 @@ CREATE TABLE IF NOT EXISTS public.tenants (
     org_settings JSONB DEFAULT '{}'::jsonb,
     stripe_secret_key TEXT,
     stripe_publishable_key TEXT,
+    stripe_webhook_secret TEXT,
     billing_email TEXT,
     default_timezone TEXT NOT NULL DEFAULT 'UTC',
     locale TEXT NOT NULL DEFAULT 'en-US',
@@ -48,8 +50,8 @@ CREATE TABLE IF NOT EXISTS public.missionaries (
     profile_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
     bio TEXT,
     mission_field TEXT,
-    funding_goal NUMERIC DEFAULT 0,
-    current_funding NUMERIC DEFAULT 0,
+    funding_goal BIGINT DEFAULT 0,
+    current_funding BIGINT DEFAULT 0,
     tagline TEXT,
     location TEXT,
     phone TEXT,
@@ -76,10 +78,10 @@ CREATE TABLE IF NOT EXISTS public.donors (
     type TEXT DEFAULT 'individual',
     status TEXT DEFAULT 'active',
     giving_preferences JSONB DEFAULT '{}'::jsonb,
-    total_given NUMERIC DEFAULT 0,
+    total_given BIGINT DEFAULT 0 CHECK (total_given >= 0),
     first_gift_date DATE,
     last_gift_date TIMESTAMPTZ,
-    last_gift_amount NUMERIC,
+    last_gift_amount BIGINT DEFAULT 0 CHECK (last_gift_amount IS NULL OR last_gift_amount >= 0),
     gift_count INTEGER NOT NULL DEFAULT 0,
     frequency TEXT,
     joined_date DATE DEFAULT CURRENT_DATE,
@@ -96,6 +98,9 @@ CREATE TABLE IF NOT EXISTS public.donors (
     notes TEXT,
     do_not_contact BOOLEAN NOT NULL DEFAULT FALSE,
     do_not_email BOOLEAN NOT NULL DEFAULT FALSE,
+    receipt_email_frequency TEXT NOT NULL DEFAULT 'monthly',
+    default_update_frequency TEXT,
+    preferred_language TEXT NOT NULL DEFAULT 'en',
     has_active_pledge BOOLEAN DEFAULT FALSE,
     stripe_customer_id TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -108,9 +113,9 @@ CREATE TABLE IF NOT EXISTS public.funds (
     tenant_id UUID REFERENCES public.tenants(id),
     name TEXT NOT NULL,
     description TEXT,
-    target_amount NUMERIC DEFAULT 0,
-    goal_amount NUMERIC DEFAULT 0,
-    current_amount NUMERIC DEFAULT 0,
+    target_amount BIGINT NOT NULL DEFAULT 0 CHECK (target_amount >= 0),
+    goal_amount BIGINT NOT NULL DEFAULT 0 CHECK (goal_amount >= 0),
+    current_amount BIGINT NOT NULL DEFAULT 0 CHECK (current_amount >= 0),
     currency TEXT DEFAULT 'usd',
     missionary_id UUID REFERENCES public.missionaries(id),
     is_active BOOLEAN DEFAULT TRUE,
@@ -177,19 +182,30 @@ CREATE TABLE IF NOT EXISTS public.post_comments (
 
 -- 8. Campaigns
 CREATE TABLE IF NOT EXISTS public.campaigns (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
-    name TEXT NOT NULL,
-    description TEXT,
+    title TEXT NOT NULL,
+    story TEXT,
     channel TEXT NOT NULL DEFAULT 'email',
-    status TEXT NOT NULL DEFAULT 'draft',
+    status TEXT NOT NULL DEFAULT 'active',
     audience_filter JSONB NOT NULL DEFAULT '{}'::jsonb,
     metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    goal_amount BIGINT NOT NULL DEFAULT 0,
+    current_amount BIGINT NOT NULL DEFAULT 0 CHECK (current_amount >= 0),
+    share_url TEXT,
+    slug TEXT UNIQUE,
+    creator_donor_id UUID NOT NULL REFERENCES public.donors(id),
+    missionary_id UUID NOT NULL REFERENCES public.missionaries(id),
+    start_date TIMESTAMPTZ DEFAULT NOW(),
+    end_date TIMESTAMPTZ,
     scheduled_for TIMESTAMPTZ,
     sent_at TIMESTAMPTZ,
     created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT valid_goal CHECK (goal_amount >= 0),
+    CONSTRAINT valid_dates CHECK (end_date IS NULL OR end_date > start_date),
+    CONSTRAINT campaigns_share_url_unique UNIQUE (share_url)
 );
 
 -- 9. Donations
@@ -199,8 +215,8 @@ CREATE TABLE IF NOT EXISTS public.donations (
     donor_id UUID REFERENCES public.donors(id),
     missionary_id UUID REFERENCES public.missionaries(id),
     fund_id UUID REFERENCES public.funds(id),
-    amount NUMERIC NOT NULL,
-    currency TEXT DEFAULT 'usd',
+    amount BIGINT NOT NULL DEFAULT 0 CHECK (amount >= 0),
+    currency TEXT NOT NULL DEFAULT 'usd',
     status TEXT DEFAULT 'pending',
     donation_type TEXT DEFAULT 'one_time',
     payment_method TEXT,
@@ -208,10 +224,18 @@ CREATE TABLE IF NOT EXISTS public.donations (
     recurring_interval TEXT,
     notes TEXT,
     stripe_payment_intent_id TEXT,
-    gift_date DATE,
+    gift_date DATE NOT NULL DEFAULT CURRENT_DATE,
     campaign_id UUID REFERENCES public.campaigns(id) ON DELETE SET NULL,
     pledge_id UUID,
     processed_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    failed_at TIMESTAMPTZ,
+    error_code TEXT,
+    error_message TEXT,
+    stripe_charge_id TEXT,
+    refunded_at TIMESTAMPTZ,
+    refund_amount BIGINT NOT NULL DEFAULT 0 CHECK (refund_amount >= 0),
+    source TEXT DEFAULT 'direct',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -225,17 +249,21 @@ CREATE TABLE IF NOT EXISTS public.follows (
     status TEXT NOT NULL DEFAULT 'approved',
     is_donor BOOLEAN NOT NULL DEFAULT FALSE,
     approved_at TIMESTAMPTZ,
+    notification_frequency TEXT,
+    muted BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(donor_id, missionary_id)
 );
 
 -- 11. Notification Queue
 CREATE TABLE IF NOT EXISTS public.notification_queue (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
     campaign_id UUID REFERENCES public.campaigns(id) ON DELETE SET NULL,
     donor_id UUID REFERENCES public.donors(id) ON DELETE SET NULL,
+    recipient_donor_id UUID NOT NULL REFERENCES public.donors(id) ON DELETE CASCADE,
     profile_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    notification_type TEXT NOT NULL DEFAULT 'campaign_update',
     channel TEXT NOT NULL DEFAULT 'email',
     template_key TEXT,
     payload JSONB NOT NULL DEFAULT '{}'::jsonb,
@@ -275,7 +303,7 @@ CREATE TABLE IF NOT EXISTS public.donor_activities (
     title TEXT NOT NULL,
     description TEXT,
     date TIMESTAMPTZ,
-    amount NUMERIC,
+    amount BIGINT DEFAULT 0 CHECK (amount IS NULL OR amount >= 0),
     status TEXT,
     gift_type TEXT,
     note TEXT,
@@ -290,7 +318,7 @@ CREATE TABLE IF NOT EXISTS public.donor_pledges (
     donor_id UUID REFERENCES public.donors(id),
     missionary_id UUID REFERENCES public.missionaries(id) ON DELETE SET NULL,
     fund_id UUID REFERENCES public.funds(id) ON DELETE SET NULL,
-    amount NUMERIC DEFAULT 0,
+    amount BIGINT NOT NULL DEFAULT 0 CHECK (amount >= 0),
     currency TEXT NOT NULL DEFAULT 'usd',
     frequency TEXT,
     status TEXT DEFAULT 'active',
@@ -298,11 +326,18 @@ CREATE TABLE IF NOT EXISTS public.donor_pledges (
     end_date DATE,
     next_payment_date DATE,
     stripe_subscription_id TEXT,
+    billing_day_of_month INTEGER,
+    billing_timezone TEXT,
+    stripe_payment_method_id TEXT,
     retry_count INTEGER NOT NULL DEFAULT 0,
     last_charge_at TIMESTAMPTZ,
+    last_charge_attempt TIMESTAMPTZ,
+    failed_charge_count INTEGER NOT NULL DEFAULT 0,
+    pause_reason TEXT,
+    paused_at TIMESTAMPTZ,
     next_charge_at TIMESTAMPTZ,
-    total_paid NUMERIC DEFAULT 0,
-    total_expected NUMERIC DEFAULT 0,
+    total_paid BIGINT NOT NULL DEFAULT 0 CHECK (total_paid >= 0),
+    total_expected BIGINT NOT NULL DEFAULT 0 CHECK (total_expected >= 0),
     payments_completed INTEGER DEFAULT 0,
     payments_remaining INTEGER DEFAULT 0,
     payment_method TEXT,
@@ -325,19 +360,23 @@ END $$;
 
 -- 15. Pledge Charge Attempts
 CREATE TABLE IF NOT EXISTS public.pledge_charge_attempts (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
     pledge_id UUID NOT NULL REFERENCES public.donor_pledges(id) ON DELETE CASCADE,
     donor_id UUID REFERENCES public.donors(id) ON DELETE SET NULL,
     donation_id UUID REFERENCES public.donations(id) ON DELETE SET NULL,
     attempt_number INTEGER NOT NULL DEFAULT 1,
-    status TEXT NOT NULL DEFAULT 'pending',
-    amount NUMERIC NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'created',
+    amount BIGINT NOT NULL DEFAULT 0 CHECK (amount >= 0),
     currency TEXT NOT NULL DEFAULT 'usd',
+    scheduled_for_date DATE NOT NULL,
+    stripe_payment_intent_id TEXT,
     gateway_response JSONB NOT NULL DEFAULT '{}'::jsonb,
+    error_code TEXT,
     error_message TEXT,
     attempted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- 16. Follower Requests
@@ -447,9 +486,13 @@ UPDATE public.donations
 SET gift_date = COALESCE(gift_date, created_at::date, CURRENT_DATE)
 WHERE gift_date IS NULL;
 
-ALTER TABLE public.donations
-    ALTER COLUMN gift_date SET NOT NULL,
-    ALTER COLUMN gift_date SET DEFAULT CURRENT_DATE;
+UPDATE public.donations
+SET refund_amount = COALESCE(refund_amount, 0)
+WHERE refund_amount IS NULL;
+
+UPDATE public.donations
+SET source = COALESCE(source, donation_type, 'direct')
+WHERE source IS NULL;
 
 UPDATE public.donor_pledges dp
 SET tenant_id = d.tenant_id
@@ -461,6 +504,10 @@ UPDATE public.donor_pledges
 SET next_charge_at = next_payment_date::timestamptz
 WHERE next_charge_at IS NULL
   AND next_payment_date IS NOT NULL;
+
+UPDATE public.donor_pledges
+SET failed_charge_count = COALESCE(failed_charge_count, 0)
+WHERE failed_charge_count IS NULL;
 
 UPDATE public.donors d
 SET
@@ -479,6 +526,12 @@ FROM (
 ) x
 WHERE d.id = x.donor_id;
 
+UPDATE public.donors
+SET receipt_email_frequency = COALESCE(receipt_email_frequency, 'monthly'),
+    preferred_language = COALESCE(preferred_language, 'en')
+WHERE receipt_email_frequency IS NULL
+   OR preferred_language IS NULL;
+
 UPDATE public.follows f
 SET
     approved_at = COALESCE(f.approved_at, f.created_at),
@@ -496,12 +549,22 @@ WHERE f.approved_at IS NULL
           AND COALESCE(d.total_given, 0) > 0
     );
 
+UPDATE public.follows
+SET muted = COALESCE(muted, FALSE)
+WHERE muted IS NULL;
+
 -- ==========================================
 -- INDEXES
 -- ==========================================
 
 CREATE INDEX IF NOT EXISTS idx_donations_tenant_gift_date
     ON public.donations (tenant_id, gift_date DESC);
+
+CREATE INDEX IF NOT EXISTS idx_posts_missionary_created_at
+    ON public.posts (missionary_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_posts_visibility_status
+    ON public.posts (visibility, status);
 
 CREATE INDEX IF NOT EXISTS idx_donations_donor_gift_date
     ON public.donations (donor_id, gift_date DESC);
@@ -512,6 +575,19 @@ CREATE INDEX IF NOT EXISTS idx_donations_missionary_gift_date
 CREATE INDEX IF NOT EXISTS idx_donations_pledge_id
     ON public.donations (pledge_id);
 
+CREATE INDEX IF NOT EXISTS idx_donations_status_completed
+    ON public.donations (status)
+    WHERE status = 'completed';
+
+CREATE INDEX IF NOT EXISTS idx_donations_campaign_id
+    ON public.donations (campaign_id);
+
+CREATE INDEX IF NOT EXISTS idx_donations_tenant_year_gift
+    ON public.donations (tenant_id, DATE_TRUNC('year', gift_date::timestamp));
+
+CREATE INDEX IF NOT EXISTS idx_donations_donor_year_gift
+    ON public.donations (donor_id, DATE_TRUNC('year', gift_date::timestamp));
+
 CREATE INDEX IF NOT EXISTS idx_donors_tenant_status
     ON public.donors (tenant_id, status);
 
@@ -520,6 +596,10 @@ CREATE INDEX IF NOT EXISTS idx_donor_pledges_donor_status
 
 CREATE INDEX IF NOT EXISTS idx_donor_pledges_tenant_status_next_charge
     ON public.donor_pledges (tenant_id, status, next_charge_at);
+
+CREATE INDEX IF NOT EXISTS idx_donor_pledges_next_payment_active
+    ON public.donor_pledges (next_payment_date)
+    WHERE status = 'active';
 
 CREATE INDEX IF NOT EXISTS idx_follows_missionary_status
     ON public.follows (missionary_id, status);
@@ -533,6 +613,15 @@ CREATE INDEX IF NOT EXISTS idx_campaigns_tenant_status
 CREATE INDEX IF NOT EXISTS idx_campaigns_tenant_scheduled_for
     ON public.campaigns (tenant_id, scheduled_for);
 
+CREATE INDEX IF NOT EXISTS idx_campaigns_creator_donor_id
+    ON public.campaigns (creator_donor_id);
+
+CREATE INDEX IF NOT EXISTS idx_campaigns_missionary_id
+    ON public.campaigns (missionary_id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_campaigns_slug
+    ON public.campaigns (slug);
+
 CREATE INDEX IF NOT EXISTS idx_notification_queue_status_available_at
     ON public.notification_queue (status, available_at);
 
@@ -542,8 +631,14 @@ CREATE INDEX IF NOT EXISTS idx_notification_queue_tenant_status_scheduled
 CREATE INDEX IF NOT EXISTS idx_notification_queue_campaign_id
     ON public.notification_queue (campaign_id);
 
+CREATE INDEX IF NOT EXISTS idx_notification_queue_recipient_donor_id
+    ON public.notification_queue (recipient_donor_id);
+
+CREATE INDEX IF NOT EXISTS idx_notification_queue_tenant_type_status
+    ON public.notification_queue (tenant_id, notification_type, status);
+
 CREATE UNIQUE INDEX IF NOT EXISTS idx_notification_queue_tenant_channel_dedupe
-    ON public.notification_queue (tenant_id, channel, dedupe_key)
+    ON public.notification_queue (tenant_id, recipient_donor_id, notification_type, channel, dedupe_key)
     WHERE dedupe_key IS NOT NULL;
 
 CREATE INDEX IF NOT EXISTS idx_pledge_charge_attempts_pledge_attempted_at
@@ -552,8 +647,56 @@ CREATE INDEX IF NOT EXISTS idx_pledge_charge_attempts_pledge_attempted_at
 CREATE INDEX IF NOT EXISTS idx_pledge_charge_attempts_tenant_status_attempted_at
     ON public.pledge_charge_attempts (tenant_id, status, attempted_at DESC);
 
+CREATE INDEX IF NOT EXISTS idx_pledge_charge_attempts_tenant_scheduled_status
+    ON public.pledge_charge_attempts (tenant_id, scheduled_for_date, status);
+
 CREATE INDEX IF NOT EXISTS idx_pledge_charge_attempts_donation_id
     ON public.pledge_charge_attempts (donation_id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_pledge_charge_attempts_tenant_pledge_schedule_attempt
+    ON public.pledge_charge_attempts (tenant_id, pledge_id, scheduled_for_date, attempt_number);
+
+CREATE OR REPLACE FUNCTION public.assert_amount_columns_multiple_of_100()
+RETURNS VOID
+LANGUAGE plpgsql
+AS $function$
+DECLARE
+    invalid_count BIGINT;
+BEGIN
+    SELECT COUNT(*) INTO invalid_count
+    FROM (
+        SELECT amount AS v FROM public.donations WHERE amount IS NOT NULL AND amount::numeric % 1 <> 0
+        UNION ALL
+        SELECT amount AS v FROM public.donor_pledges WHERE amount IS NOT NULL AND amount::numeric % 1 <> 0
+        UNION ALL
+        SELECT total_paid AS v FROM public.donor_pledges WHERE total_paid IS NOT NULL AND total_paid::numeric % 1 <> 0
+        UNION ALL
+        SELECT total_expected AS v FROM public.donor_pledges WHERE total_expected IS NOT NULL AND total_expected::numeric % 1 <> 0
+        UNION ALL
+        SELECT target_amount AS v FROM public.funds WHERE target_amount IS NOT NULL AND target_amount::numeric % 1 <> 0
+        UNION ALL
+        SELECT goal_amount AS v FROM public.funds WHERE goal_amount IS NOT NULL AND goal_amount::numeric % 1 <> 0
+        UNION ALL
+        SELECT current_amount AS v FROM public.funds WHERE current_amount IS NOT NULL AND current_amount::numeric % 1 <> 0
+        UNION ALL
+        SELECT amount AS v FROM public.pledge_charge_attempts WHERE amount IS NOT NULL AND amount::numeric % 1 <> 0
+        UNION ALL
+        SELECT total_given AS v FROM public.donors WHERE total_given IS NOT NULL AND total_given::numeric % 1 <> 0
+        UNION ALL
+        SELECT last_gift_amount AS v FROM public.donors WHERE last_gift_amount IS NOT NULL AND last_gift_amount::numeric % 1 <> 0
+        UNION ALL
+        SELECT amount AS v FROM public.donor_activities WHERE amount IS NOT NULL AND amount::numeric % 1 <> 0
+        UNION ALL
+        SELECT funding_goal AS v FROM public.missionaries WHERE funding_goal IS NOT NULL AND funding_goal::numeric % 1 <> 0
+        UNION ALL
+        SELECT current_funding AS v FROM public.missionaries WHERE current_funding IS NOT NULL AND current_funding::numeric % 1 <> 0
+    ) violations;
+
+    IF invalid_count > 0 THEN
+        RAISE EXCEPTION 'Amount verification failed: % rows are not integer cent amounts', invalid_count;
+    END IF;
+END;
+$function$;
 
 -- ==========================================
 -- FUNCTIONS & TRIGGERS

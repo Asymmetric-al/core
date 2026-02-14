@@ -4,6 +4,13 @@ Agents MUST keep this file updated during a task. Use it to build the Nia query 
 
 ## Current objective
 - Implement Foundation 1 schema migrations: add new queue/campaign/pledge-attempt tables, alter donor/donation/follow/tenant/pledge schema, add indexes, and provide rollback SQL.
+- Align TypeScript database types with canonical schema nullability and column names (campaign fields).
+- Align canonical `supabase/schema.sql` money column types with Foundation 1 migration cent-based BIGINT conversions.
+- Align `campaigns.goal_amount` defaults/constraints across schema + migration to prevent fresh-DB insert failures.
+- Convert existing `campaigns.goal_amount` and `campaigns.current_amount` rows from dollar NUMERIC to cent-based BIGINT in the forward migration.
+- Align `DonorActivity.amount` TypeScript nullability with database constraints.
+- Align `donations.currency` nullability between canonical schema, migration, and TypeScript types.
+- Align `donor_pledges` money field nullability (`amount`, `total_paid`, `total_expected`) with TypeScript `MoneyCents`.
 
 ## Repo scope
 - repository: Asymmetric-al/core
@@ -23,10 +30,18 @@ Agents MUST keep this file updated during a task. Use it to build the Nia query 
 - symbols:
   - pledge_charge_attempts
   - campaigns
+  - creator_donor_id
+  - missionary_id
+  - title
+  - story
   - notification_queue
   - gift_date
   - donor_pledges
   - follows
+  - currency
+  - donor_pledges.amount
+  - donor_pledges.total_paid
+  - donor_pledges.total_expected
 - routes:
   - N/A
 - error strings:
