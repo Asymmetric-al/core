@@ -656,6 +656,9 @@ CREATE INDEX IF NOT EXISTS idx_pledge_charge_attempts_donation_id
 CREATE UNIQUE INDEX IF NOT EXISTS idx_pledge_charge_attempts_tenant_pledge_schedule_attempt
     ON public.pledge_charge_attempts (tenant_id, pledge_id, scheduled_for_date, attempt_number);
 
+-- Guardrail for conversion correctness:
+-- these columns were migrated from NUMERIC dollars to BIGINT cents, so
+-- existing values should be divisible by 100 (whole-dollar source values).
 CREATE OR REPLACE FUNCTION public.assert_amount_columns_multiple_of_100()
 RETURNS VOID
 LANGUAGE plpgsql
@@ -665,31 +668,31 @@ DECLARE
 BEGIN
     SELECT COUNT(*) INTO invalid_count
     FROM (
-        SELECT amount AS v FROM public.donations WHERE amount IS NOT NULL AND amount::numeric % 1 <> 0
+        SELECT amount AS v FROM public.donations WHERE amount IS NOT NULL AND mod(amount, 100) <> 0
         UNION ALL
-        SELECT amount AS v FROM public.donor_pledges WHERE amount IS NOT NULL AND amount::numeric % 1 <> 0
+        SELECT amount AS v FROM public.donor_pledges WHERE amount IS NOT NULL AND mod(amount, 100) <> 0
         UNION ALL
-        SELECT total_paid AS v FROM public.donor_pledges WHERE total_paid IS NOT NULL AND total_paid::numeric % 1 <> 0
+        SELECT total_paid AS v FROM public.donor_pledges WHERE total_paid IS NOT NULL AND mod(total_paid, 100) <> 0
         UNION ALL
-        SELECT total_expected AS v FROM public.donor_pledges WHERE total_expected IS NOT NULL AND total_expected::numeric % 1 <> 0
+        SELECT total_expected AS v FROM public.donor_pledges WHERE total_expected IS NOT NULL AND mod(total_expected, 100) <> 0
         UNION ALL
-        SELECT target_amount AS v FROM public.funds WHERE target_amount IS NOT NULL AND target_amount::numeric % 1 <> 0
+        SELECT target_amount AS v FROM public.funds WHERE target_amount IS NOT NULL AND mod(target_amount, 100) <> 0
         UNION ALL
-        SELECT goal_amount AS v FROM public.funds WHERE goal_amount IS NOT NULL AND goal_amount::numeric % 1 <> 0
+        SELECT goal_amount AS v FROM public.funds WHERE goal_amount IS NOT NULL AND mod(goal_amount, 100) <> 0
         UNION ALL
-        SELECT current_amount AS v FROM public.funds WHERE current_amount IS NOT NULL AND current_amount::numeric % 1 <> 0
+        SELECT current_amount AS v FROM public.funds WHERE current_amount IS NOT NULL AND mod(current_amount, 100) <> 0
         UNION ALL
-        SELECT amount AS v FROM public.pledge_charge_attempts WHERE amount IS NOT NULL AND amount::numeric % 1 <> 0
+        SELECT amount AS v FROM public.pledge_charge_attempts WHERE amount IS NOT NULL AND mod(amount, 100) <> 0
         UNION ALL
-        SELECT total_given AS v FROM public.donors WHERE total_given IS NOT NULL AND total_given::numeric % 1 <> 0
+        SELECT total_given AS v FROM public.donors WHERE total_given IS NOT NULL AND mod(total_given, 100) <> 0
         UNION ALL
-        SELECT last_gift_amount AS v FROM public.donors WHERE last_gift_amount IS NOT NULL AND last_gift_amount::numeric % 1 <> 0
+        SELECT last_gift_amount AS v FROM public.donors WHERE last_gift_amount IS NOT NULL AND mod(last_gift_amount, 100) <> 0
         UNION ALL
-        SELECT amount AS v FROM public.donor_activities WHERE amount IS NOT NULL AND amount::numeric % 1 <> 0
+        SELECT amount AS v FROM public.donor_activities WHERE amount IS NOT NULL AND mod(amount, 100) <> 0
         UNION ALL
-        SELECT funding_goal AS v FROM public.missionaries WHERE funding_goal IS NOT NULL AND funding_goal::numeric % 1 <> 0
+        SELECT funding_goal AS v FROM public.missionaries WHERE funding_goal IS NOT NULL AND mod(funding_goal, 100) <> 0
         UNION ALL
-        SELECT current_funding AS v FROM public.missionaries WHERE current_funding IS NOT NULL AND current_funding::numeric % 1 <> 0
+        SELECT current_funding AS v FROM public.missionaries WHERE current_funding IS NOT NULL AND mod(current_funding, 100) <> 0
     ) violations;
 
     IF invalid_count > 0 THEN

@@ -131,6 +131,7 @@ END
 $$;
 
 ALTER TABLE public.donations
+    DROP COLUMN IF EXISTS gift_date,
     DROP COLUMN IF EXISTS processed_at;
 
 ALTER TABLE public.tenants
