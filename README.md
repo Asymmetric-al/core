@@ -212,7 +212,25 @@ bunx turbo run typecheck lint build
 
 # Check for outdated packages
 bun outdated
+
+# Verify money columns appear to use cents
+bun run verify:money-units
 ```
+
+`verify:money-units` samples these columns from Supabase/Postgres via the Supabase REST API:
+`donations.amount`, `donor_pledges.amount`, `campaigns.goal_amount`, `campaigns.current_amount`, `funds.target_amount`, and `funds.current_amount`.
+
+Interpretation:
+
+- `YES`: values appear to be stored as integer cents.
+- `NO`: values appear to be dollars (or mixed units), not cents.
+- `INCONCLUSIVE`: sampled values are ambiguous; confirm with schema/migrations or known transactions.
+- `ERROR`: the table/query could not be read with the current key or schema.
+
+Notes:
+
+- Uses `SUPABASE_SERVICE_ROLE_KEY` when present; otherwise falls back to `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+- If any column reports `NO`, the script exits non-zero to make CI/local verification fail loudly.
 
 ## Key Conventions
 
