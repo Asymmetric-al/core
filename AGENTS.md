@@ -220,3 +220,44 @@ Load the skill(s) below when the trigger matches.
 - Using shadcn/studio tools without `docs/ai/rules/shadcn-studio-mcp.md`
 - Mixing rulebooks with conflicting instructions instead of reconciling them
 - Forgetting to update docs after behavior changes
+
+---
+
+## Demo Seed + Read-Only Runbook (2026-02-16)
+
+This repo now includes deterministic demo data seeding and an optional read-only public demo migration for Supabase.
+
+### Added/updated files
+
+- `supabase/seed.sql`
+  - Deterministic/idempotent full demo seed across public app tables.
+  - Exactly one profile identity (`public.profiles`).
+- `supabase/migrations/20260216153000_demo_readonly_rls.sql`
+  - Enables RLS on demo-visible tables.
+  - Public `SELECT` policy only (`anon`/`authenticated`), no write policies.
+  - Revokes write privileges and locks down internal/admin tables.
+- `scripts/seed-demo.sh`
+  - `local`, `hosted`, and `verify` modes.
+- `supabase/AGENTS.md`
+- `scripts/AGENTS.md`
+
+### Run commands
+
+- Local migrations + seed:
+  - `supabase db reset --local`
+  - or `bash ./scripts/seed-demo.sh local`
+- Hosted migrations:
+  - `supabase db push --db-url "$SUPABASE_DB_URL"`
+- Hosted seed:
+  - `bash ./scripts/seed-demo.sh hosted`
+- Verify seeded counts:
+  - `bash ./scripts/seed-demo.sh verify`
+
+### Sanity checks
+
+- Exactly one profile row:
+  - `SELECT COUNT(*) FROM public.profiles;`
+- No FK breakage:
+  - run a representative join check across donations/donors/missionaries/funds/campaigns.
+- Demo table counts:
+  - use `bash ./scripts/seed-demo.sh verify`.

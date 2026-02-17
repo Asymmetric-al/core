@@ -4,6 +4,44 @@ import fs from "fs";
 
 const TEST_IMAGE_PATH = path.join(__dirname, "fixtures", "test-image.png");
 
+test.beforeEach(async ({ page }) => {
+  // Most tests in this file hit authenticated routes. Make the auth state
+  // deterministic by calling the demo endpoint and installing its cookie.
+  const res = await page.request.post("/api/auth/demo-account", {
+    data: { role: "donor" },
+  });
+  if (!res.ok()) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`Demo auth failed (${res.status()}): ${body || "no body"}`);
+  }
+
+  const setCookieHeader = res.headers()["set-cookie"];
+  if (!setCookieHeader) {
+    throw new Error("Demo auth did not return Set-Cookie header");
+  }
+
+  const cookiePair = setCookieHeader.split(";")[0] || "";
+  const equalsIndex = cookiePair.indexOf("=");
+  if (equalsIndex <= 0) {
+    throw new Error("Failed to parse demo auth Set-Cookie header");
+  }
+
+  const name = cookiePair.slice(0, equalsIndex).trim();
+  const value = cookiePair.slice(equalsIndex + 1);
+  const url = new URL(res.url());
+
+  await page.context().addCookies([
+    {
+      name,
+      value,
+      url: url.origin,
+      httpOnly: true,
+      secure: url.protocol === "https:",
+      sameSite: "Lax",
+    },
+  ]);
+});
+
 test.describe("Image Upload and Crop Flow", () => {
   test.beforeAll(async () => {
     const fixturesDir = path.join(__dirname, "fixtures");
@@ -52,7 +90,7 @@ test.describe("Image Upload and Crop Flow", () => {
     const avatarBefore = await page
       .locator('img[alt="Uploaded"]')
       .first()
-      .getAttribute("src")
+      .getAttribute("src", { timeout: 1000 })
       .catch(() => null);
 
     const fileInput = page.locator('input[type="file"]').first();
@@ -70,7 +108,7 @@ test.describe("Image Upload and Crop Flow", () => {
       const avatarAfter = await page
         .locator('img[alt="Uploaded"]')
         .first()
-        .getAttribute("src")
+        .getAttribute("src", { timeout: 1000 })
         .catch(() => null);
       expect(avatarAfter).toBe(avatarBefore);
     }

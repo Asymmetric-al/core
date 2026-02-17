@@ -1110,7 +1110,7 @@ export default function DonorsPage() {
   }, [fetchDonors, authLoading, profile?.id]);
 
   const filteredDonors = React.useMemo(() => {
-    let result = donors.filter((donor) => {
+    const result = donors.filter((donor) => {
       const matchesSearch =
         (donor.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (donor.email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||

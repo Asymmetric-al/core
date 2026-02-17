@@ -259,6 +259,40 @@ Ask a maintainer for access to the shared dev Supabase project and request the p
 The demo login flow uses `/api/auth/demo-account` with the public anon client and pre-seeded demo users.
 Set `DEMO_ADMIN_EMAIL`, `DEMO_MISSIONARY_EMAIL`, `DEMO_DONOR_EMAIL`, and `DEMO_PASSWORD` in `.env.local` to enable the demo buttons.
 
+## Supabase Demo Seed
+
+Deterministic demo seed + optional read-only public policies live in:
+
+- `supabase/seed.sql`
+- `supabase/migrations/20260216153000_demo_readonly_rls.sql`
+- `scripts/seed-demo.sh`
+
+### Local
+
+```bash
+supabase db reset --local
+# or
+bun run seed:demo:local
+```
+
+### Hosted (explicit target)
+
+Required env vars:
+
+- `NEXT_PUBLIC_SUPABASE_URL=https://btewedpsxwsjczvmegby.supabase.co`
+- `SUPABASE_SERVICE_ROLE_KEY` (required safety gate)
+- `SUPABASE_DB_URL` (direct Postgres connection URL for SQL execution)
+
+Commands:
+
+```bash
+bun run db:migrate:hosted
+bun run seed:demo:hosted
+bun run seed:demo:verify
+```
+
+`seed:demo:verify` prints row counts and confirms the single-profile seed invariant.
+
 ## License
 
 asymmetric.al is open source software licensed under the GNU Affero General Public License v3.0 only (AGPL-3.0-only).

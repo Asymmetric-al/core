@@ -230,14 +230,18 @@ export default function RegisterPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="role">I am a...</Label>
+              <Label id="role-label">I am a...</Label>
               <Select
                 value={formData.role}
                 onValueChange={(value) =>
                   setFormData({ ...formData, role: value })
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger
+                  id="role"
+                  aria-labelledby="role-label"
+                  aria-label="Role"
+                >
                   <SelectValue placeholder="Select your role" />
                 </SelectTrigger>
                 <SelectContent>
@@ -307,7 +311,10 @@ export default function RegisterPage() {
 
           <p className="mt-4 text-center text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link href="/login" className="text-primary hover:underline">
+            <Link
+              href="/login"
+              className="text-primary underline underline-offset-4 hover:opacity-90"
+            >
               Sign In
             </Link>
           </p>

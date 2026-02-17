@@ -41,7 +41,7 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  let pathname = request.nextUrl.pathname;
+  const pathname = request.nextUrl.pathname;
 
   // 1. Normalize Aliases (Demo Paths)
   let targetPathname = pathname;
