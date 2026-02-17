@@ -1,6 +1,8 @@
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { createClient } from "@asym/database/supabase/server";
 import type { UserRole } from "@asym/database/types";
+import { DEMO_PROFILE_ID } from "./constants";
+
+export { DEMO_PROFILE_ID };
 
 export interface AuthContext {
   userId: string | null;
@@ -19,62 +21,24 @@ export interface AuthenticatedContext extends AuthContext {
 }
 
 export async function getAuthContext(): Promise<AuthContext> {
-  const cookieStore = await cookies();
+  const supabase = await createClient();
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet: { name: string; value: string; options?: any }[]) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            );
-          } catch {}
-        },
-      },
-    },
-  );
-
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError || !user) {
-    return {
-      userId: null,
-      tenantId: null,
-      role: null,
-      profileId: null,
-      isAuthenticated: false,
-    };
-  }
-
-  const { data: profile } = await supabase
+  const { data: profile, error } = await supabase
     .from("profiles")
     .select("id, tenant_id, role")
-    .eq("user_id", user.id)
+    .eq("id", DEMO_PROFILE_ID)
     .single();
 
-  if (!profile) {
-    return {
-      userId: user.id,
-      tenantId: null,
-      role: null,
-      profileId: null,
-      isAuthenticated: false,
-    };
+  if (error || !profile) {
+    throw new Error(
+      `Demo profile not found (id=${DEMO_PROFILE_ID}). Run seed. ${error?.message ?? ""}`.trim(),
+    );
   }
 
   return {
-    userId: user.id,
+    userId: profile.id,
     tenantId: profile.tenant_id,
-    role: profile.role as UserRole,
+    role: (profile.role ?? "donor") as UserRole,
     profileId: profile.id,
     isAuthenticated: true,
   };

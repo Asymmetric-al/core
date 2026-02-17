@@ -219,6 +219,54 @@ SELECT
   ('2026-02-10T09:00:00Z'::timestamptz - ((gs - 1) * interval '9 hours'))
 FROM missionary_seed;
 
+-- Demo identity as missionary so metrics API finds a row when UI uses profile id (11111111-...)
+INSERT INTO public.missionaries (
+  id,
+  tenant_id,
+  profile_id,
+  bio,
+  mission_field,
+  funding_goal,
+  current_funding,
+  tagline,
+  location,
+  phone,
+  cover_url,
+  social_links,
+  created_at,
+  updated_at
+)
+VALUES (
+  '11111111-1111-1111-1111-111111111111',
+  '00000000-0000-0000-0000-000000000001',
+  '11111111-1111-1111-1111-111111111111',
+  'Demo missionary profile for read-only dashboard metrics.',
+  'Demo Ministry',
+  600000,
+  156000,
+  'Demo Team',
+  'Chicago, IL',
+  '+1-555-0100',
+  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e',
+  '{"website":"https://demo.givehope.test"}'::jsonb,
+  '2025-11-01T09:00:00Z'::timestamptz,
+  '2026-02-16T09:00:00Z'::timestamptz
+)
+ON CONFLICT (id) DO UPDATE
+SET
+  tenant_id = EXCLUDED.tenant_id,
+  profile_id = EXCLUDED.profile_id,
+  bio = EXCLUDED.bio,
+  mission_field = EXCLUDED.mission_field,
+  funding_goal = EXCLUDED.funding_goal,
+  current_funding = EXCLUDED.current_funding,
+  tagline = EXCLUDED.tagline,
+  location = EXCLUDED.location,
+  phone = EXCLUDED.phone,
+  cover_url = EXCLUDED.cover_url,
+  social_links = EXCLUDED.social_links,
+  updated_at = EXCLUDED.updated_at;
+
 WITH donor_seed AS (
   SELECT
     gs,
@@ -722,6 +770,78 @@ SELECT
   (gift_date::timestamp + interval '8 hours')::timestamptz,
   (gift_date::timestamp + interval '11 hours')::timestamptz
 FROM donation_seed;
+
+-- Donations for demo missionary (id = profile id) so metrics API returns chart data
+WITH demo_donations AS (
+  SELECT
+    gs,
+    ('80000000-0000-0000-0000-' || lpad((28 + gs)::text, 12, '0'))::uuid AS id,
+    ((gs - 1) % 5) + 1 AS donor_idx,
+    ((gs - 1) % 4) + 1 AS fund_idx,
+    (date '2025-12-01' + ((gs - 1) * interval '12 days'))::date AS gift_date,
+    ((50 + (gs * 10)) * 100)::bigint AS amount_cents
+  FROM generate_series(1, 8) AS gs
+)
+INSERT INTO public.donations (
+  id,
+  tenant_id,
+  donor_id,
+  missionary_id,
+  fund_id,
+  amount,
+  currency,
+  status,
+  donation_type,
+  payment_method,
+  is_recurring,
+  recurring_interval,
+  notes,
+  stripe_payment_intent_id,
+  gift_date,
+  campaign_id,
+  pledge_id,
+  processed_at,
+  completed_at,
+  failed_at,
+  error_code,
+  error_message,
+  stripe_charge_id,
+  refunded_at,
+  refund_amount,
+  source,
+  created_at,
+  updated_at
+)
+SELECT
+  id,
+  '00000000-0000-0000-0000-000000000001',
+  ('30000000-0000-0000-0000-' || lpad(donor_idx::text, 12, '0'))::uuid,
+  '11111111-1111-1111-1111-111111111111',
+  ('40000000-0000-0000-0000-' || lpad(fund_idx::text, 12, '0'))::uuid,
+  amount_cents,
+  'usd',
+  'completed',
+  'one_time',
+  'card',
+  FALSE,
+  NULL,
+  NULL,
+  format('pi_demo_dm_%s', lpad(gs::text, 3, '0')),
+  gift_date,
+  NULL,
+  NULL,
+  (gift_date::timestamp + interval '9 hours')::timestamptz,
+  (gift_date::timestamp + interval '10 hours')::timestamptz,
+  NULL,
+  NULL,
+  NULL,
+  format('ch_demo_dm_%s', lpad(gs::text, 3, '0')),
+  NULL,
+  0,
+  'direct',
+  (gift_date::timestamp + interval '8 hours')::timestamptz,
+  (gift_date::timestamp + interval '11 hours')::timestamptz
+FROM demo_donations;
 
 -- ---------------------------------------------------------------------------
 -- 5) Relationship and activity surfaces

@@ -27,8 +27,10 @@ import {
 import { GivingBreakdownChart } from "./giving-breakdown-chart";
 import { MetricTiles } from "./metric-tiles";
 import { useAuth } from "@asym/lib/hooks";
+import { DEMO_PROFILE_ID } from "@asym/auth/constants";
 
-const DEMO_MISSIONARY_ID = "b378164f-8a6a-42c8-883f-59815d01e48c";
+/** Same as demo profile id so metrics API finds the seeded missionary row. */
+const DEMO_MISSIONARY_ID = DEMO_PROFILE_ID;
 
 const MOCK_TASKS = [
   {

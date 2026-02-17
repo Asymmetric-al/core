@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { Send } from "lucide-react";
 import {
@@ -19,6 +19,7 @@ import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Spinner } from "@asym/ui/components/shadcn/spinner";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
+import { useAuth } from "@asym/auth/use-auth";
 
 interface Comment {
   id: string;
@@ -38,13 +39,15 @@ interface CommentsDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+/** Read-only demo: server comments + client-only new comments (demo profile, reset on refresh). */
 export function CommentsDialog({
   postId,
   open,
   onOpenChange,
 }: CommentsDialogProps) {
   const [content, setContent] = useState("");
-  const queryClient = useQueryClient();
+  const [clientComments, setClientComments] = useState<Comment[]>([]);
+  const { profile } = useAuth();
 
   const { data, isLoading } = useQuery({
     queryKey: ["comments", postId],
@@ -57,31 +60,28 @@ export function CommentsDialog({
     staleTime: 30000,
   });
 
-  const addComment = useMutation({
-    mutationFn: async (content: string) => {
-      const res = await fetch(`/api/posts/${postId}/comments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content }),
-      });
-      if (!res.ok) throw new Error("Failed to add comment");
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["comments", postId] });
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
-      setContent("");
-    },
-  });
+  const serverComments: Comment[] = data?.comments ?? [];
+  const allComments = [...serverComments, ...clientComments];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (content.trim()) {
-      addComment.mutate(content.trim());
-    }
+    if (!content.trim()) return;
+    setClientComments((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        content: content.trim(),
+        created_at: new Date().toISOString(),
+        user: {
+          id: profile?.id ?? "",
+          first_name: profile?.first_name ?? "Jordan",
+          last_name: profile?.last_name ?? "Hale",
+          avatar_url: profile?.avatar_url ?? null,
+        },
+      },
+    ]);
+    setContent("");
   };
-
-  const comments: Comment[] = data?.comments ?? [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -95,13 +95,13 @@ export function CommentsDialog({
             <div className="flex justify-center py-8">
               <Spinner className="size-6" />
             </div>
-          ) : comments.length === 0 ? (
+          ) : allComments.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
               No comments yet. Be the first to comment!
             </p>
           ) : (
             <div className="space-y-4">
-              {comments.map((comment) => (
+              {allComments.map((comment) => (
                 <div key={comment.id} className="flex gap-3">
                   <Avatar className="size-8">
                     {comment.user.avatar_url && (
@@ -135,14 +135,13 @@ export function CommentsDialog({
           <Input
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Add a comment..."
-            disabled={addComment.isPending}
+            placeholder="Add a comment (demo only)..."
             aria-label="Comment text"
           />
           <Button
             type="submit"
             size="icon"
-            disabled={!content.trim() || addComment.isPending}
+            disabled={!content.trim()}
             aria-label="Send comment"
           >
             <Send className="size-4" />

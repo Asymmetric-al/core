@@ -14,7 +14,7 @@
     "dev:admin": "turbo run dev --filter=@asym/admin",
     "dev:missionary": "turbo run dev --filter=@asym/missionary-app",
     "dev:donor": "turbo run dev --filter=@asym/donor",
-    "dev:all": "turbo run dev --filter=@asym/admin --filter=@asym/missionary-app --filter=@asym/donor --parallel",
+    "dev:all": "bun run --env-file=.env.local turbo run dev --filter=@asym/admin --filter=@asym/missionary-app --filter=@asym/donor --parallel",
     "build": "turbo run build",
     "build:admin": "turbo run build --filter=@asym/admin",
     "build:missionary": "turbo run build --filter=@asym/missionary-app",

@@ -9,6 +9,7 @@
     "./types": "./types/index.ts"
   },
   "dependencies": {
+    "@asym/auth": "workspace:*",
     "@asym/ui": "workspace:*",
     "@asym/lib": "workspace:*",
     "@asym/database": "workspace:*",
