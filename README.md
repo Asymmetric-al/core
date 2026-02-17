@@ -212,7 +212,25 @@ bunx turbo run typecheck lint build
 
 # Check for outdated packages
 bun outdated
+
+# Verify money columns appear to use cents
+bun run verify:money-units
 ```
+
+`verify:money-units` samples these columns from Supabase/Postgres via the Supabase REST API:
+`donations.amount`, `donor_pledges.amount`, `funds.target_amount`, `funds.goal_amount`, and `funds.current_amount`.
+
+Interpretation:
+
+- `YES`: values appear to be stored as integer cents.
+- `NO`: values appear to be dollars (or mixed units), not cents.
+- `INCONCLUSIVE`: sampled values are ambiguous; confirm with schema/migrations or known transactions.
+- `ERROR`: the table/query could not be read with the current key or schema.
+
+Notes:
+
+- Uses `SUPABASE_SERVICE_ROLE_KEY` when present; otherwise falls back to `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+- If any column reports `NO`, the script exits non-zero to make CI/local verification fail loudly.
 
 ## Key Conventions
 
@@ -240,6 +258,40 @@ Ask a maintainer for access to the shared dev Supabase project and request the p
 
 The demo login flow uses `/api/auth/demo-account` with the public anon client and pre-seeded demo users.
 Set `DEMO_ADMIN_EMAIL`, `DEMO_MISSIONARY_EMAIL`, `DEMO_DONOR_EMAIL`, and `DEMO_PASSWORD` in `.env.local` to enable the demo buttons.
+
+## Supabase Demo Seed
+
+Deterministic demo seed + optional read-only public policies live in:
+
+- `supabase/seed.sql`
+- `supabase/migrations/20260216153000_demo_readonly_rls.sql`
+- `scripts/seed-demo.sh`
+
+### Local
+
+```bash
+supabase db reset --local
+# or
+bun run seed:demo:local
+```
+
+### Hosted (explicit target)
+
+Required env vars:
+
+- `NEXT_PUBLIC_SUPABASE_URL=https://btewedpsxwsjczvmegby.supabase.co`
+- `SUPABASE_SERVICE_ROLE_KEY` (required safety gate)
+- `SUPABASE_DB_URL` (direct Postgres connection URL for SQL execution)
+
+Commands:
+
+```bash
+bun run db:migrate:hosted
+bun run seed:demo:hosted
+bun run seed:demo:verify
+```
+
+`seed:demo:verify` prints row counts and confirms the single-profile seed invariant.
 
 ## License
 

@@ -71,7 +71,7 @@ import { cn } from "@asym/ui/lib/utils";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { PageHeader } from "@/components/page-header";
-import { TimeAgo, useLastSynced } from "@asym/lib/hooks";
+import { TimeAgo, useLastSynced, useAuth } from "@asym/lib/hooks";
 
 const RichTextEditor = dynamic(
   () =>
@@ -784,6 +784,8 @@ function PostCard({
   onEdit,
   onDelete,
   onReaction,
+  onAddComment,
+  onDeleteComment,
   expandedComments,
   setExpandedComments,
   index,
@@ -792,6 +794,8 @@ function PostCard({
   onEdit: () => void;
   onDelete: () => void;
   onReaction: (type: "heart" | "fire" | "prayer") => void;
+  onAddComment: (text: string, parentId?: string) => void;
+  onDeleteComment: (commentId: string, parentId?: string) => void;
   expandedComments: string | null;
   setExpandedComments: (id: string | null) => void;
   index: number;
@@ -1020,10 +1024,8 @@ function PostCard({
                 <CommentSection
                   comments={post.comments || []}
                   canManageComments={true}
-                  onAddComment={() => {
-                    toast.success("Comment published");
-                  }}
-                  onDeleteComment={() => {}}
+                  onAddComment={onAddComment}
+                  onDeleteComment={onDeleteComment}
                 />
               </motion.div>
             )}
@@ -1642,14 +1644,60 @@ export default function WorkerFeed() {
     toast.success(approved ? "Follower accepted" : "Request removed");
   };
 
-  const handleReaction = async (
+  const { profile } = useAuth();
+
+  /** Read-only demo: comments are client-only (demo profile as author, reset on refresh). */
+  const handleAddComment = useCallback(
+    (postId: string, text: string, _parentId?: string) => {
+      const authorName = profile
+        ? `${profile.first_name} ${profile.last_name}`
+        : "Jordan Hale";
+      const newComment = {
+        id: crypto.randomUUID(),
+        content: text,
+        created_at: new Date().toISOString(),
+        author: { full_name: authorName },
+        avatar: profile?.avatar_url ?? undefined,
+        replies: [],
+      };
+      const updatePosts = (prev: Post[]) =>
+        prev.map((p) =>
+          p.id === postId
+            ? { ...p, comments: [...(p.comments || []), newComment] }
+            : p,
+        );
+      setPosts(updatePosts);
+      setDrafts(updatePosts);
+      toast.success("Comment added (demo only)");
+    },
+    [profile],
+  );
+
+  /** Read-only demo: delete comment from local state only. */
+  const handleDeleteComment = useCallback(
+    (postId: string, commentId: string, _parentId?: string) => {
+      const removeComment = (comments: any[]) =>
+        comments.filter((c: any) => c.id !== commentId);
+      const updatePosts = (prev: Post[]) =>
+        prev.map((p) =>
+          p.id === postId
+            ? { ...p, comments: removeComment(p.comments || []) }
+            : p,
+        );
+      setPosts(updatePosts);
+      setDrafts(updatePosts);
+    },
+    [],
+  );
+
+  /** Read-only demo: reactions are client-only (reset on refresh). */
+  const handleReaction = (
     postId: string,
     type: "heart" | "fire" | "prayer",
   ) => {
     const post = [...posts, ...drafts].find((p) => p.id === postId);
     if (!post) return;
 
-    const endpointMap = { heart: "like", fire: "fire", prayer: "prayer" };
     const statusKeyMap = {
       heart: "user_liked",
       fire: "user_fired",
@@ -1661,12 +1709,9 @@ export default function WorkerFeed() {
       prayer: "prayers_count",
     };
 
-    const endpoint = endpointMap[type];
     const statusKey = statusKeyMap[type] as keyof Post;
     const countKey = countKeyMap[type] as keyof Post;
-
     const isActive = post[statusKey];
-    const method = isActive ? "DELETE" : "POST";
 
     const updatePosts = (prev: Post[]) =>
       prev.map((p) => {
@@ -1685,15 +1730,6 @@ export default function WorkerFeed() {
 
     setPosts(updatePosts);
     setDrafts(updatePosts);
-
-    try {
-      const res = await fetch(`/api/posts/${postId}/${endpoint}`, { method });
-      if (!res.ok) throw new Error("Failed to update reaction");
-    } catch (err) {
-      fetchPosts("published");
-      fetchPosts("draft");
-      toast.error("Failed to update reaction");
-    }
   };
 
   return (
@@ -2095,6 +2131,12 @@ export default function WorkerFeed() {
                             onDelete={() => handleDeletePost(post.id)}
                             onReaction={(type: "heart" | "fire" | "prayer") =>
                               handleReaction(post.id, type)
+                            }
+                            onAddComment={(text, parentId) =>
+                              handleAddComment(post.id, text, parentId)
+                            }
+                            onDeleteComment={(commentId, parentId) =>
+                              handleDeleteComment(post.id, commentId, parentId)
                             }
                             expandedComments={expandedComments}
                             setExpandedComments={setExpandedComments}

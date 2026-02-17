@@ -176,7 +176,7 @@ export function Footer() {
 
           {footerSections.map((section) => (
             <div key={section.title}>
-              <h4 className="font-bold text-xs uppercase tracking-[0.2em] mb-4 sm:mb-6 lg:mb-8 text-white/40">
+              <h4 className="font-bold text-xs uppercase tracking-[0.2em] mb-4 sm:mb-6 lg:mb-8 text-white/60">
                 {section.title}
               </h4>
               <ul className="space-y-3 sm:space-y-4 text-sm font-medium text-slate-300">
@@ -200,7 +200,7 @@ export function Footer() {
           ))}
 
           <div>
-            <h4 className="font-bold text-xs uppercase tracking-[0.2em] mb-4 sm:mb-6 lg:mb-8 text-white/40">
+            <h4 className="font-bold text-xs uppercase tracking-[0.2em] mb-4 sm:mb-6 lg:mb-8 text-white/60">
               Connect
             </h4>
             <div className="flex gap-3 sm:gap-4 mb-6 sm:mb-8">
@@ -215,7 +215,7 @@ export function Footer() {
                 </a>
               ))}
             </div>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-400">
               © 2025 GiveHope. <br className="sm:hidden" />
               Registered 501(c)(3) nonprofit.
             </p>
@@ -227,13 +227,13 @@ export function Footer() {
             href="https://asymmetric.al/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-300 transition-colors touch-target"
+            className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors touch-target"
           >
             Made with{" "}
             <HeartIcon className="h-3 w-3 text-rose-500 fill-current" /> by
             Asymmetric.al
           </a>
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-8 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-8 text-[10px] font-bold uppercase tracking-widest text-slate-400">
             {legalLinks.map((link) => (
               <Link
                 key={link.label}

@@ -114,7 +114,7 @@ const HeroSection = () => {
               className="flex flex-wrap justify-center gap-4"
             >
               <Button size="lg" className="rounded-lg text-base" asChild>
-                <Link href="/register">Get Started</Link>
+                <Link href="/">Get Started</Link>
               </Button>
               <Button
                 size="lg"

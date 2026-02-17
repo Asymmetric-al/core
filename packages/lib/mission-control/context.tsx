@@ -10,6 +10,7 @@ import {
 import type { Role, User, Tenant } from "./types";
 import { ROLE_LABELS } from "./roles";
 import { createBrowserClient } from "@asym/database/supabase";
+import { DEMO_PROFILE_ID } from "@asym/auth/constants";
 
 interface MCContextValue {
   user: User | null;
@@ -57,88 +58,44 @@ export function MCProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const supabase = createBrowserClient();
 
-    async function loadUser() {
-      const {
-        data: { user: authUser },
-      } = await supabase.auth.getUser();
+    async function loadViewerProfile() {
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("*, tenants(*)")
+        .eq("id", DEMO_PROFILE_ID)
+        .single();
 
-      if (authUser) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("*, tenants(*)")
-          .eq("user_id", authUser.id)
-          .single();
+      if (error || !profile) {
+        setLoading(false);
+        return;
+      }
 
-        if (profile) {
-          const mcRole = mapProfileRoleToMCRole(profile.role);
-          setRole(mcRole);
-          setUser({
-            id: authUser.id,
-            email: profile.email,
-            name: `${profile.first_name} ${profile.last_name}`,
-            role: mcRole,
-            tenantId: profile.tenant_id,
-            avatarUrl: profile.avatar_url,
-          });
+      const mcRole = mapProfileRoleToMCRole(profile.role);
+      setRole(mcRole);
+      setUser({
+        id: profile.id,
+        email: profile.email,
+        name: `${profile.first_name} ${profile.last_name}`,
+        role: mcRole,
+        tenantId: profile.tenant_id,
+        avatarUrl: profile.avatar_url,
+      });
 
-          if (profile.tenants) {
-            setTenant({
-              id: profile.tenants.id,
-              name: profile.tenants.name,
-              slug: profile.tenants.slug,
-            });
-          }
-        }
+      if (profile.tenants) {
+        setTenant({
+          id: profile.tenants.id,
+          name: profile.tenants.name,
+          slug: profile.tenants.slug,
+        });
       }
       setLoading(false);
     }
 
-    loadUser();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("*, tenants(*)")
-          .eq("user_id", session.user.id)
-          .single();
-
-        if (profile) {
-          const mcRole = mapProfileRoleToMCRole(profile.role);
-          setRole(mcRole);
-          setUser({
-            id: session.user.id,
-            email: profile.email,
-            name: `${profile.first_name} ${profile.last_name}`,
-            role: mcRole,
-            tenantId: profile.tenant_id,
-            avatarUrl: profile.avatar_url,
-          });
-
-          if (profile.tenants) {
-            setTenant({
-              id: profile.tenants.id,
-              name: profile.tenants.name,
-              slug: profile.tenants.slug,
-            });
-          }
-        }
-      } else {
-        setUser(null);
-        setRole("admin");
-      }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    loadViewerProfile();
   }, []);
 
   const signOut = async () => {
-    const supabase = createBrowserClient();
-    await supabase.auth.signOut();
-    window.location.href = "/login";
+    // No-op: read-only demo has no session to sign out
   };
 
   return (

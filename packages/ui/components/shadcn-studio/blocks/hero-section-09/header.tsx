@@ -82,7 +82,7 @@ const Header = ({ navigationData, className }: HeaderProps) => {
           </div>
 
           <Button className="lg:ml-4" asChild>
-            <Link href="/login">Sign In</Link>
+            <Link href="/">Sign In</Link>
           </Button>
 
           <MenuDropdown

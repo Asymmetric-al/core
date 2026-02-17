@@ -1,23 +1,18 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@asym/database/supabase/server";
+import { getAuthContext } from "@asym/auth/context";
 
 const DEFAULT_TENANT_ID = "00000000-0000-0000-0000-000000000001";
 
 export async function GET() {
   try {
+    const auth = await getAuthContext();
     const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
 
     const { data: donor } = await supabase
       .from("donors")
       .select("id")
-      .eq("email", user.email)
+      .eq("profile_id", auth.profileId)
       .single();
 
     if (!donor) {
@@ -53,74 +48,7 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { data: donor } = await supabase
-      .from("donors")
-      .select("id")
-      .eq("email", user.email)
-      .single();
-
-    if (!donor) {
-      return NextResponse.json({ error: "Donor not found" }, { status: 404 });
-    }
-
-    const body = await request.json();
-    const {
-      showOrgPosts,
-      showMissionaryPosts,
-      followOrg,
-      emailOrgPosts,
-      emailMissionaryPosts,
-    } = body;
-
-    const { data: updated, error } = await supabase
-      .from("donor_feed_preferences")
-      .upsert(
-        {
-          donor_id: donor.id,
-          tenant_id: DEFAULT_TENANT_ID,
-          show_org_posts: showOrgPosts,
-          show_missionary_posts: showMissionaryPosts,
-          follow_org: followOrg,
-          email_org_posts: emailOrgPosts,
-          email_missionary_posts: emailMissionaryPosts,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "donor_id,tenant_id" },
-      )
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error updating feed preferences:", error);
-      return NextResponse.json(
-        { error: "Failed to update preferences" },
-        { status: 500 },
-      );
-    }
-
-    return NextResponse.json({
-      showOrgPosts: updated.show_org_posts,
-      showMissionaryPosts: updated.show_missionary_posts,
-      followOrg: updated.follow_org,
-      emailOrgPosts: updated.email_org_posts,
-      emailMissionaryPosts: updated.email_missionary_posts,
-    });
-  } catch (error) {
-    console.error("Error updating feed preferences:", error);
-    return NextResponse.json(
-      { error: "Failed to update preferences" },
-      { status: 500 },
-    );
-  }
+/** Read-only demo: feed preference updates disabled. */
+export async function POST(_request: Request) {
+  return NextResponse.json({ error: "Read-only demo" }, { status: 403 });
 }

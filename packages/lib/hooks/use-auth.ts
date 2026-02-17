@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { createBrowserClient } from "@asym/database/supabase";
-import type { User } from "@supabase/supabase-js";
 import type { Profile } from "@asym/database/types";
+import { DEMO_PROFILE_ID } from "@asym/auth/constants";
 
 interface AuthState {
-  user: User | null;
+  user: { id: string } | null;
   profile: Profile | null;
   loading: boolean;
 }
@@ -21,49 +21,29 @@ export function useAuth() {
   useEffect(() => {
     const supabase = createBrowserClient();
 
-    async function getUser() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+    async function loadViewerProfile() {
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", DEMO_PROFILE_ID)
+        .single();
 
-      if (user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("user_id", user.id)
-          .single();
-
-        setState({ user, profile, loading: false });
-      } else {
+      if (error || !profile) {
         setState({ user: null, profile: null, loading: false });
+        return;
       }
+      setState({
+        user: { id: profile.id },
+        profile,
+        loading: false,
+      });
     }
 
-    getUser();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("user_id", session.user.id)
-          .single();
-
-        setState({ user: session.user, profile, loading: false });
-      } else {
-        setState({ user: null, profile: null, loading: false });
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    loadViewerProfile();
   }, []);
 
   const signOut = async () => {
-    const supabase = createBrowserClient();
-    await supabase.auth.signOut();
-    window.location.href = "/login";
+    // No-op: read-only demo has no session to sign out
   };
 
   return { ...state, signOut };

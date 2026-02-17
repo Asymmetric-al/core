@@ -1,6 +1,7 @@
 "use client";
 
 import type { ComponentType, ReactNode } from "react";
+import Link from "next/link";
 import {
   ActivityIcon,
   BellIcon,
@@ -377,7 +378,7 @@ function ApplicationShell({ children }: { children: ReactNode }) {
                   className="gap-2 sm:gap-2.5 !bg-transparent"
                   asChild
                 >
-                  <a href="/">
+                  <Link href="/">
                     <div className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-lg bg-zinc-900 text-white font-bold text-xs shadow-sm shrink-0">
                       G
                     </div>
@@ -389,7 +390,7 @@ function ApplicationShell({ children }: { children: ReactNode }) {
                         MISSION CONTROL
                       </span>
                     </div>
-                  </a>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

@@ -1,19 +1,6 @@
-import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
-
-type PendingCookie = {
-  name: string;
-  value: string;
-  options?: {
-    domain?: string;
-    expires?: Date;
-    httpOnly?: boolean;
-    maxAge?: number;
-    path?: string;
-    sameSite?: "lax" | "strict" | "none" | boolean;
-    secure?: boolean;
-  };
-};
+import { getAuthContext } from "@asym/auth/context";
+import { createClient } from "@asym/database/supabase/server";
 
 const ALLOWED_ROLES = new Set(["admin", "missionary", "super_admin"]);
 const PERMISSION_ERROR_CODES = new Set([
@@ -23,31 +10,6 @@ const PERMISSION_ERROR_CODES = new Set([
   "PGRST401",
   "PGRST403",
 ]);
-
-function normalizeCookieOptions(options?: PendingCookie["options"]) {
-  if (!options) return undefined;
-  const { sameSite, ...rest } = options;
-  if (typeof sameSite === "boolean") {
-    return rest;
-  }
-  return sameSite ? { ...rest, sameSite } : rest;
-}
-
-function parseCookieHeader(cookieHeader: string | null) {
-  if (!cookieHeader) return [];
-  return cookieHeader
-    .split(";")
-    .map((part) => part.trim())
-    .filter(Boolean)
-    .map((pair) => {
-      const idx = pair.indexOf("=");
-      if (idx === -1) return { name: pair, value: "" };
-      return {
-        name: pair.slice(0, idx),
-        value: decodeURIComponent(pair.slice(idx + 1)),
-      };
-    });
-}
 
 function isPermissionError(error: { code?: string; message?: string } | null) {
   if (!error) return false;
@@ -60,115 +22,23 @@ function isPermissionError(error: { code?: string; message?: string } | null) {
   );
 }
 
-function createAuthClient(request: NextRequest) {
-  const pendingCookies: PendingCookie[] = [];
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return { supabase: null, pendingCookies };
-  }
-
-  const requestCookies = parseCookieHeader(request.headers.get("cookie"));
-
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      getAll() {
-        return requestCookies;
-      },
-      setAll(
-        cookiesToSet: Array<{ name: string; value: string; options?: unknown }>,
-      ) {
-        cookiesToSet.forEach(
-          (cookie: { name: string; value: string; options?: unknown }) => {
-            pendingCookies.push({
-              name: cookie.name,
-              value: cookie.value,
-              options: cookie.options as PendingCookie["options"],
-            });
-          },
-        );
-      },
-    },
-  });
-
-  return { supabase, pendingCookies };
-}
-
-function jsonWithCookies(
-  payload: Record<string, unknown>,
-  init: { status?: number } | undefined,
-  pendingCookies: PendingCookie[],
-) {
-  const response = NextResponse.json(payload, init);
-  pendingCookies.forEach((cookie) => {
-    response.cookies.set(
-      cookie.name,
-      cookie.value,
-      normalizeCookieOptions(cookie.options),
-    );
-  });
-  return response;
-}
-
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { supabase, pendingCookies } = createAuthClient(request);
-    if (!supabase) {
-      return NextResponse.json(
-        { error: "Supabase client unavailable." },
-        { status: 503 },
-      );
+    const auth = await getAuthContext();
+    if (!auth.tenantId || !auth.role || !ALLOWED_ROLES.has(auth.role)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    const supabase = await createClient();
     const { id: missionaryId } = await params;
 
     if (!missionaryId) {
-      return jsonWithCookies(
+      return NextResponse.json(
         { error: "Missing missionary ID" },
         { status: 400 },
-        pendingCookies,
-      );
-    }
-
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-    if (userError || !user) {
-      return jsonWithCookies(
-        { error: "Unauthorized" },
-        { status: 401 },
-        pendingCookies,
-      );
-    }
-
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("id, tenant_id, role")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (profileError) {
-      return jsonWithCookies(
-        { error: "Unable to load profile." },
-        { status: 500 },
-        pendingCookies,
-      );
-    }
-
-    if (
-      !profile?.tenant_id ||
-      !profile?.role ||
-      !ALLOWED_ROLES.has(profile.role)
-    ) {
-      return jsonWithCookies(
-        { error: "Forbidden" },
-        { status: 403 },
-        pendingCookies,
       );
     }
 
@@ -180,27 +50,19 @@ export async function GET(
 
     if (missionaryError) {
       const status = isPermissionError(missionaryError) ? 403 : 500;
-      return jsonWithCookies(
+      return NextResponse.json(
         { error: status === 403 ? "Forbidden" : "Internal server error" },
         { status },
-        pendingCookies,
       );
     }
 
+    // Read-only demo: return empty data when missionary or tenant missing (no 404)
     if (!missionary) {
-      return jsonWithCookies(
-        { error: "Missionary not found" },
-        { status: 404 },
-        pendingCookies,
-      );
+      return NextResponse.json({ donations: [] });
     }
 
-    if (missionary.tenant_id && missionary.tenant_id !== profile.tenant_id) {
-      return jsonWithCookies(
-        { error: "Missionary not found" },
-        { status: 404 },
-        pendingCookies,
-      );
+    if (missionary.tenant_id && missionary.tenant_id !== auth.tenantId) {
+      return NextResponse.json({ donations: [] });
     }
 
     const thirteenMonthsAgo = new Date();
@@ -215,25 +77,16 @@ export async function GET(
 
     if (error) {
       if (isPermissionError(error)) {
-        return jsonWithCookies(
-          { donations: [], limited: true },
-          { status: 200 },
-          pendingCookies,
-        );
+        return NextResponse.json({ donations: [], limited: true });
       }
       console.error("Supabase error:", error);
-      return jsonWithCookies(
+      return NextResponse.json(
         { error: "Internal server error" },
         { status: 500 },
-        pendingCookies,
       );
     }
 
-    return jsonWithCookies(
-      { donations: data || [] },
-      undefined,
-      pendingCookies,
-    );
+    return NextResponse.json({ donations: data || [] });
   } catch (e) {
     console.error("API error:", e);
     return NextResponse.json(

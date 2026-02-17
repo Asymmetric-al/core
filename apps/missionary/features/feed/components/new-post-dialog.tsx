@@ -2,8 +2,8 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ImagePlus, X } from "lucide-react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,6 @@ import {
 } from "@asym/ui/components/shadcn/dialog";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
-import { Spinner } from "@asym/ui/components/shadcn/spinner";
 import type { MediaItem } from "@asym/database/types";
 
 interface NewPostDialogProps {
@@ -21,28 +20,12 @@ interface NewPostDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+/** Read-only demo: new posts are not persisted. */
 export function NewPostDialog({ open, onOpenChange }: NewPostDialogProps) {
   const [content, setContent] = useState("");
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const queryClient = useQueryClient();
-
-  const createPost = useMutation({
-    mutationFn: async (data: { content: string; media: MediaItem[] }) => {
-      const res = await fetch("/api/posts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) throw new Error("Failed to create post");
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
-      handleClose();
-    },
-  });
 
   const handleClose = () => {
     setContent("");
@@ -79,7 +62,8 @@ export function NewPostDialog({ open, onOpenChange }: NewPostDialogProps) {
 
   const handleSubmit = () => {
     if (!content.trim()) return;
-    createPost.mutate({ content: content.trim(), media });
+    toast.info("Read-only demo: posts are not saved");
+    handleClose();
   };
 
   return (
@@ -158,11 +142,7 @@ export function NewPostDialog({ open, onOpenChange }: NewPostDialogProps) {
           <Button variant="outline" onClick={handleClose}>
             Cancel
           </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={!content.trim() || createPost.isPending}
-          >
-            {createPost.isPending && <Spinner className="mr-2 size-4" />}
+          <Button onClick={handleSubmit} disabled={!content.trim()}>
             Post
           </Button>
         </DialogFooter>

@@ -205,7 +205,7 @@ export function HomeMission() {
                 className="text-5xl sm:text-6xl md:text-8xl font-bold tracking-tighter text-slate-950 leading-[0.85] font-syne"
               >
                 Precision <br />
-                <span className="text-slate-300">Philanthropy.</span>
+                <span className="text-slate-700">Philanthropy.</span>
               </h2>
             </header>
 
@@ -306,7 +306,7 @@ export function HomeMission() {
                   <cite className="text-[9px] font-black uppercase tracking-wider text-slate-900 not-italic">
                     Dr. Elias H.
                   </cite>
-                  <p className="text-[8px] text-slate-400">Field Lead</p>
+                  <p className="text-[9px] text-slate-600">Field Lead</p>
                 </div>
               </footer>
             </div>
@@ -380,7 +380,7 @@ export function HomeStats() {
                 42k
               </p>
               <h3 className="text-xl font-black font-syne mb-2">Sustainers</h3>
-              <p className="text-slate-600/60 text-sm font-medium leading-relaxed">
+              <p className="text-slate-600 text-sm font-medium leading-relaxed">
                 A global coalition of monthly partners providing the bedrock for
                 long-term field stability.
               </p>
@@ -401,7 +401,11 @@ export function HomeStats() {
 
           <article className="md:col-span-8 group bg-slate-900 border border-white/5 p-8 md:p-10 rounded-2xl hover:bg-slate-800 transition-all duration-500 flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12">
             <div className="space-y-4">
-              <div className="flex gap-1.5" aria-label="5 out of 5 stars">
+              <div
+                className="flex gap-1.5"
+                role="img"
+                aria-label="5 out of 5 stars"
+              >
                 {[...Array(5)].map((_, i) => (
                   <Heart
                     key={i}
@@ -440,7 +444,7 @@ export function HomeFeatured() {
       <div className="container mx-auto px-6">
         <header className="flex flex-col md:flex-row justify-between items-end mb-16 md:mb-24 gap-8 md:gap-12">
           <div className="space-y-6">
-            <span className="text-sm font-black text-slate-400 uppercase tracking-[0.4em]">
+            <span className="text-sm font-black text-slate-700 uppercase tracking-[0.4em]">
               Active Deployments
             </span>
             <h2
@@ -492,6 +496,7 @@ export function HomeFeatured() {
                     <div
                       className="h-1 w-full bg-white/20 rounded-full overflow-hidden"
                       role="progressbar"
+                      aria-label={`${item.title} deployed`}
                       aria-valuenow={parseInt(item.raised)}
                       aria-valuemin={0}
                       aria-valuemax={100}
