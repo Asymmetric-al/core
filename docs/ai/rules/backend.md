@@ -27,12 +27,18 @@ Use this before changing server actions, route handlers, database access, or mig
 - Assume RLS is active.
 - Do not manually manage tokens.
 - Never use the service role key in client-side code.
+- For auth/session/middleware tasks, load `docs/ai/skills/nextjs-supabase-auth/SKILL.md`.
 
 ### Data mutations
 
 - Prefer Server Actions for mutations.
 - Use TanStack Query `useMutation` for optimistic UI, paired with server actions or API routes.
 - Validate inputs with Zod before writing.
+
+### Skill routing
+
+- For Supabase Auth + Next.js App Router implementation, apply `docs/ai/skills/nextjs-supabase-auth/SKILL.md`.
+- For query/index/schema/RLS performance work, apply `docs/ai/skills/supabase-postgres-best-practices/SKILL.md`.
 
 ### Environment variables
 

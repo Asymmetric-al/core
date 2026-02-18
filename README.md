@@ -162,6 +162,15 @@ This repository includes comprehensive AI agent guidance under `docs/ai/`:
 
 **Important:** `docs/ai/` is the canonical source. The `rules/` and `skills/` directories at the repository root contain deprecation shims only.
 
+For Cursor-ready runtime skill loading, sync canonical skills into runtime folders after skill updates:
+
+```bash
+bun run skills:sync
+```
+
+- Canonical source: `docs/ai/skills/*`
+- Runtime mirrors: `.agents/skills/*` and `.cursor/skills/*`
+
 ### Package Manager
 
 This project uses **bun** (v1.3+). Do not use npm/yarn/pnpm.

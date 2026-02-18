@@ -179,6 +179,8 @@ A repo-local sub-agent named **`skills-steward`** maintains Skills hygiene and a
 - /motion — Motion animations (motion/react) — path: `docs/ai/skills/motion/SKILL.md` — (see SKILL.md)
 - /rechart — Recharts usage patterns — path: `docs/ai/skills/rechart/SKILL.md` — (see SKILL.md)
 - /tanstack-table — TanStack Table v8 patterns — path: `docs/ai/skills/tanstack-table/SKILL.md` — (see SKILL.md)
+- /supabase-postgres-best-practices — Supabase Postgres query/schema/RLS performance guidance — path: `docs/ai/skills/supabase-postgres-best-practices/SKILL.md` — (see SKILL.md)
+- /nextjs-supabase-auth — Next.js App Router + Supabase Auth integration patterns — path: `docs/ai/skills/nextjs-supabase-auth/SKILL.md` — (see SKILL.md)
 <!-- END: SKILLS_REGISTRY (managed by skills-steward) -->
 
 ### Skills Index (machine) — steward managed
@@ -194,8 +196,15 @@ A repo-local sub-agent named **`skills-steward`** maintains Skills hygiene and a
 |motion:{SKILL.md,references/_,scripts/_,assets/_}
 |rechart:{SKILL.md,references/_,scripts/_,assets/_}
 |tanstack-table:{SKILL.md,references/_,scripts/_,assets/_}
+|supabase-postgres-best-practices:{SKILL.md,references/_,scripts/_,assets/_}
+|nextjs-supabase-auth:{SKILL.md,references/_,scripts/_,assets/_}
 
 <!-- END: SKILLS_INDEX (managed by skills-steward) -->
+
+### Skill Routing (Deterministic)
+
+- **Auth/login/session/middleware/protected routes:** `docs/ai/skills/nextjs-supabase-auth/SKILL.md`
+- **Postgres query/schema/index/RLS optimization:** `docs/ai/skills/supabase-postgres-best-practices/SKILL.md`
 
 ---
 

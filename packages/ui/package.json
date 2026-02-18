@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    ".": "./index.ts",
     "./components/shadcn": "./components/shadcn/index.ts",
     "./components/shadcn/*": "./components/shadcn/*.tsx",
     "./components/shadcn/icons": "./components/shadcn/icons/index.tsx",
