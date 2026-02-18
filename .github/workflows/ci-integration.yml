@@ -1,0 +1,51 @@
+name: CI Integration
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: asymmetrical_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+      - name: Set DATABASE_URL
+        run: echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/asymmetrical_test" >> $GITHUB_ENV
+      - name: Apply migrations
+        run: |
+          for f in $(ls -1 supabase/migrations/*.sql | sort); do
+            psql "$DATABASE_URL" -f "$f" -v ON_ERROR_STOP=1
+          done
+      - name: Apply demo seed
+        run: psql "$DATABASE_URL" -f supabase/seed.sql -v ON_ERROR_STOP=1
+      - name: Verify seed counts
+        run: |
+          profile_count=$(psql "$DATABASE_URL" -t -A -c "SELECT COUNT(*) FROM public.profiles;" | tr -d '[:space:]')
+          if [ "$profile_count" != "1" ]; then
+            echo "Expected public.profiles count to be 1 after seeding, got: $profile_count"
+            exit 1
+          fi
+          echo "Verified public.profiles seeded row count: $profile_count"
