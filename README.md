@@ -175,17 +175,15 @@ This repository uses Bun workspaces + Turborepo with this contract:
 ```text
 apps/*      -> deployable applications (admin, donor, missionary)
 packages/*  -> shared runtime libraries used by apps
-packages/env -> placeholder workspace reserved for env schemas/configuration (T6)
+packages/env -> shared environment schema/config package (@asym/env)
 tooling/*   -> shared tooling/config packages (eslint, tsconfig, etc.)
 ```
-
-Note: `packages/env` is present as a placeholder workspace to satisfy the workspace contract; real per-app environment schemas will be implemented in T6.
 
 Use these placement rules:
 
 - Put code in `apps/*` when it is app-specific routing/UI/behavior.
 - Put code in `packages/*` when it is shared across two or more apps.
-- Keep `packages/env` reserved for environment schemas/configuration; it is a placeholder workspace until T6 implementation lands.
+- Use `packages/env` for shared environment schemas/configuration.
 - Put code in `tooling/*` only for build/lint/type/tooling configuration packages.
 
 Workspace conventions:

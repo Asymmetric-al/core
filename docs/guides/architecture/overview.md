@@ -73,7 +73,7 @@ Data isolation is enforced via Supabase Row Level Security (RLS) using `tenant_i
 
 ## Directory Structure
 
-This is a **Turborepo monorepo** with three Next.js applications and six shared packages:
+This is a **Turborepo monorepo** with three Next.js applications and seven shared packages:
 
 ```
 core/
@@ -133,6 +133,10 @@ core/
 │   │   ├── types.ts         # Email types
 │   │   └── package.json
 │   │
+│   ├── env/                  # @asym/env - Environment schema
+│   │   ├── src/schema.ts    # createEnv + zod validation contract
+│   │   └── package.json
+│   │
 │   ├── lib/                  # @asym/lib - Utilities
 │   │   ├── utils.ts         # Common utilities (cn, formatters)
 │   │   ├── hooks/           # Shared React hooks
@@ -169,6 +173,7 @@ core/
 | `packages/database/` | Database clients, collections, and hooks |
 | `packages/auth/`     | Authentication context and hooks         |
 | `packages/config/`   | Shared configuration and constants       |
+| `packages/env/`      | Shared environment schema and validation |
 
 ---
 
@@ -185,6 +190,7 @@ import { cn, formatCurrency } from "@asym/lib";
 import { createClient } from "@asym/database/supabase/client";
 import { useAuth } from "@asym/auth";
 import { SITE_CONFIG } from "@asym/config";
+import { env } from "@asym/env";
 ```
 
 ### App-Specific Feature Modules
@@ -234,6 +240,9 @@ import { useAuth } from "@asym/auth";
 
 // Config from @asym/config
 import { SITE_CONFIG, NAVIGATION } from "@asym/config";
+
+// Environment from @asym/env
+import { env } from "@asym/env";
 ```
 
 **App-specific imports** (within an app):
@@ -484,11 +493,12 @@ const breakpoint = useBreakpoint()  // 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
 @asym/auth → packages/auth/*
 @asym/config → packages/config/*
 @asym/email → packages/email/*
+@asym/env → packages/env/*
 ```
 
 ### Environment Variables
 
-Environment variables are **app-specific** and live in `apps/[app-name]/.env.local`:
+Environment variables are defined in `packages/env` and supplied per app via `apps/[app-name]/.env.local`:
 
 | Variable                             | Purpose                         |
 | ------------------------------------ | ------------------------------- |

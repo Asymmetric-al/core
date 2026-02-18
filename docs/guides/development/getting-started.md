@@ -87,7 +87,7 @@ This table mirrors `.env.example`. Internal-only vars (for example `NODE_ENV`, `
 
 ## Project Structure
 
-This is a **Turborepo monorepo** with three Next.js applications and six shared packages:
+This is a **Turborepo monorepo** with three Next.js applications and seven shared packages:
 
 ```
 core/
@@ -137,6 +137,10 @@ core/
 │   │   ├── collections/     # TanStack DB collections
 │   │   └── package.json
 │   │
+│   ├── env/                  # @asym/env - Environment schema
+│   │   ├── src/schema.ts    # createEnv + zod validation contract
+│   │   └── package.json
+│   │
 │   ├── auth/                 # @asym/auth - Authentication
 │   ├── config/               # @asym/config - Configuration
 │   └── email/                # @asym/email - Email services
@@ -162,6 +166,7 @@ import { cn, formatCurrency, useIsMobile } from "@asym/lib";
 import { createClient } from "@asym/database/supabase/client";
 import { useAuth } from "@asym/auth";
 import { SITE_CONFIG } from "@asym/config";
+import { env } from "@asym/env";
 ```
 
 ### 2. App-Specific Feature Module Structure
@@ -196,6 +201,9 @@ import { useAuth } from "@asym/auth";
 
 // Config from @asym/config package
 import { SITE_CONFIG, NAVIGATION } from "@asym/config";
+
+// Environment from @asym/env package
+import { env } from "@asym/env";
 
 // App-specific feature components (within an app)
 import { TilePage, SidebarNav } from "@/features/mission-control";
