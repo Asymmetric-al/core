@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { cp, mkdir, readdir } from "node:fs/promises";
+import { cp, mkdir, readdir, realpath } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -17,16 +17,6 @@ const targetRoots = [
 const skillsToSync = [
   "supabase-postgres-best-practices",
   "nextjs-supabase-auth",
-];
-
-const agentToCursorMirrorSkills = [
-  "github-actions-templates",
-  "prompt-engineering-patterns",
-  "typescript-advanced-types",
-  "lint-and-validate",
-  "vitest",
-  "playwright-skill",
-  "webapp-testing",
 ];
 
 async function overlayDirectory(sourceDir, targetDir) {
@@ -57,22 +47,79 @@ async function mirrorAgentSkillToCursor(skillName) {
   const targetDir = path.join(repoRoot, ".cursor", "skills", skillName);
 
   try {
+    // If the source directory already resolves to the cursor path (junction/symlink),
+    // skip to avoid copying a directory onto itself.
+    const [sourceResolved, targetResolved] = await Promise.all([
+      realpath(sourceDir),
+      realpath(targetDir),
+    ]);
+    if (sourceResolved === targetResolved) {
+      console.log(
+        `skipped ${skillName}: source already mapped to cursor skill path`,
+      );
+      return;
+    }
+  } catch {
+    // Ignore realpath failures here; overlayDirectory will report actionable errors.
+  }
+
+  try {
     await overlayDirectory(sourceDir, targetDir);
     console.log(
       `mirrored ${skillName} -> ${path.relative(repoRoot, targetDir)}`,
     );
   } catch (error) {
-    console.warn(`skipped ${skillName}: source missing or unreadable`);
+    const errorCode =
+      typeof error === "object" && error !== null && "code" in error
+        ? String(error.code)
+        : "";
+
+    if (errorCode === "EINVAL") {
+      console.log(
+        `skipped ${skillName}: source already mapped to cursor skill path`,
+      );
+      return;
+    }
+
+    if (errorCode === "ENOENT") {
+      console.warn(`skipped ${skillName}: source missing`);
+      return;
+    }
+
+    console.warn(`skipped ${skillName}: source unreadable`);
     if (error instanceof Error) {
       console.warn(error.message);
     }
   }
 }
 
+async function listAgentSkillsForMirror() {
+  const agentSkillsRoot = path.join(repoRoot, ".agents", "skills");
+  const entries = await readdir(agentSkillsRoot, { withFileTypes: true });
+  const skillNames = [];
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
+
+    // Mirror only valid skills (directory containing SKILL.md).
+    const skillDir = path.join(agentSkillsRoot, entry.name);
+    const skillFiles = await readdir(skillDir);
+    if (skillFiles.includes("SKILL.md")) {
+      skillNames.push(entry.name);
+    }
+  }
+
+  return skillNames.sort();
+}
+
 async function main() {
   for (const skillName of skillsToSync) {
     await syncCanonicalSkill(skillName);
   }
+
+  const agentToCursorMirrorSkills = await listAgentSkillsForMirror();
 
   for (const skillName of agentToCursorMirrorSkills) {
     await mirrorAgentSkillToCursor(skillName);

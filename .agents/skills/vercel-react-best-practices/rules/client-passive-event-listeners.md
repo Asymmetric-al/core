@@ -32,13 +32,14 @@ useEffect(() => {
 useEffect(() => {
   const handleTouch = (e: TouchEvent) => console.log(e.touches[0].clientX)
   const handleWheel = (e: WheelEvent) => console.log(e.deltaY)
+  const passiveOptions = { passive: true } as const
   
-  document.addEventListener('touchstart', handleTouch, { passive: true })
-  document.addEventListener('wheel', handleWheel, { passive: true })
+  document.addEventListener('touchstart', handleTouch, passiveOptions)
+  document.addEventListener('wheel', handleWheel, passiveOptions)
   
   return () => {
-    document.removeEventListener('touchstart', handleTouch)
-    document.removeEventListener('wheel', handleWheel)
+    document.removeEventListener('touchstart', handleTouch, passiveOptions)
+    document.removeEventListener('wheel', handleWheel, passiveOptions)
   }
 }, [])
 ```
