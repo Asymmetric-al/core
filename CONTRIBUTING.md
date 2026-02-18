@@ -13,6 +13,7 @@ Thanks for contributing to asymmetric.al. We welcome pull requests, bug reports,
 
 - **Base branch:** `develop` (open PRs against `develop`; `main` is protected).
 - **Package manager:** `bun` (see `package.json#packageManager`).
+- **Conventions:** `docs/conventions.md` (folder structure, code style, and pre-commit checklist).
 - **Setup (macOS/Linux):** `bun run setup` (creates/validates `.env.local`, installs deps, runs verification).
 - **Local PR-readiness gate (matches blocking CI):**
   - `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
