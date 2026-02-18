@@ -30,6 +30,7 @@ import {
   TooltipTrigger,
 } from "@asym/ui/components/shadcn/tooltip";
 import { cn } from "@asym/ui/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 import {
   Camera,
   Upload,
@@ -585,7 +586,6 @@ function DesktopPreviewFrame({ children }: { children: React.ReactNode }) {
 }
 
 export default function ProfilePage() {
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading] = useState(false);
   const [isUploadingCover] = useState(false);
@@ -606,51 +606,77 @@ export default function ProfilePage() {
     (profile.firstName?.[0] || "") + (profile.lastName?.[0] || "");
   const bioWordCount = countWords(profile.bio);
 
-  useEffect(() => {
-    async function fetchProfile() {
+  const profileQuery = useQuery({
+    queryKey: ["profile"],
+    queryFn: async () => {
+      const res = await fetch("/api/profile");
+      let data: unknown = null;
       try {
-        setFetchError(null);
-        const res = await fetch("/api/profile");
-        if (!res.ok) {
-          const data = await res.json();
-          throw new Error(data.error || "Failed to load profile");
-        }
-        const data = await res.json();
-        if (data.profile) {
-          const p = data.profile;
-          const m = p.missionary || {};
-          const social = m.social_links || {};
-          const profileData: ProfileData = {
-            firstName: p.first_name || "",
-            lastName: p.last_name || "",
-            email: p.email || "",
-            phone: m.phone || "",
-            location: m.location || "",
-            ministryFocus: m.tagline || "",
-            bio: m.bio || "",
-            facebook: social.facebook || "",
-            instagram: social.instagram || "",
-            twitter: social.twitter || "",
-            youtube: social.youtube || "",
-            website: social.website || "",
-            avatarUrl: p.avatar_url || "",
-            coverUrl: m.cover_url || "",
-          };
-          setProfile(profileData);
-          setOriginalProfile(profileData);
-        }
-      } catch (error) {
-        console.error("Failed to fetch profile:", error);
-        const message =
-          error instanceof Error ? error.message : "Failed to load profile";
-        setFetchError(message);
-        toast.error(message);
-      } finally {
-        setIsLoading(false);
+        data = await res.json();
+      } catch {
+        // Leave as null; we'll surface a generic error.
       }
-    }
-    fetchProfile();
-  }, []);
+
+      if (!res.ok) {
+        const message =
+          typeof data === "object" && data && "error" in data
+            ? String((data as { error?: unknown }).error || "")
+            : "";
+        throw new Error(message || "Failed to load profile");
+      }
+
+      return typeof data === "object" && data && "profile" in data
+        ? (data as { profile?: unknown }).profile
+        : null;
+    },
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const hasInitializedProfile = React.useRef(false);
+
+  useEffect(() => {
+    if (hasInitializedProfile.current) return;
+    if (!profileQuery.data) return;
+
+    setFetchError(null);
+
+    const p = profileQuery.data as any;
+    const m = p.missionary || {};
+    const social = m.social_links || {};
+    const profileData: ProfileData = {
+      firstName: p.first_name || "",
+      lastName: p.last_name || "",
+      email: p.email || "",
+      phone: m.phone || "",
+      location: m.location || "",
+      ministryFocus: m.tagline || "",
+      bio: m.bio || "",
+      facebook: social.facebook || "",
+      instagram: social.instagram || "",
+      twitter: social.twitter || "",
+      youtube: social.youtube || "",
+      website: social.website || "",
+      avatarUrl: p.avatar_url || "",
+      coverUrl: m.cover_url || "",
+    };
+
+    setProfile(profileData);
+    setOriginalProfile(profileData);
+    hasInitializedProfile.current = true;
+  }, [profileQuery.data]);
+
+  useEffect(() => {
+    if (!profileQuery.error) return;
+    const message =
+      profileQuery.error instanceof Error
+        ? profileQuery.error.message
+        : "Failed to load profile";
+    setFetchError(message);
+    toast.error(message);
+  }, [profileQuery.error]);
+
+  const isLoading = profileQuery.isPending && !hasInitializedProfile.current;
 
   useEffect(() => {
     const changed = JSON.stringify(profile) !== JSON.stringify(originalProfile);

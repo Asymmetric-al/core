@@ -67,8 +67,8 @@ export const siteConfig = {
       checkout: "/checkout",
     },
     auth: {
-      login: "/login",
-      register: "/register",
+      login: "/",
+      register: "/",
     },
     dashboards: {
       admin: "/mc",

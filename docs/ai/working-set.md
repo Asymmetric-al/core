@@ -1,4 +1,4 @@
-# Working Set (AI)
+# Working Set
 
 Agents MUST keep this file updated during a task. Use it to build the Nia query preamble.
 

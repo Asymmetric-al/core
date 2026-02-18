@@ -1,6 +1,14 @@
 "use client";
 
-import React from "react";
+import { DEMO_PROFILE_ID } from "@asym/auth/constants";
+import { useAuth } from "@asym/lib/hooks";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -8,14 +16,6 @@ import {
   CardTitle,
   CardDescription,
 } from "@asym/ui/components/shadcn/card";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
-import { PageHeader } from "@/components/page-header";
 import {
   ArrowUpRight,
   TrendingUp,
@@ -24,11 +24,15 @@ import {
   ArrowRight,
   Activity,
 } from "lucide-react";
+import React from "react";
+
 import { GivingBreakdownChart } from "./giving-breakdown-chart";
 import { MetricTiles } from "./metric-tiles";
-import { useAuth } from "@asym/lib/hooks";
 
-const DEMO_MISSIONARY_ID = "b378164f-8a6a-42c8-883f-59815d01e48c";
+import { PageHeader } from "@/components/page-header";
+
+/** Same as demo profile id so metrics API finds the seeded missionary row. */
+const DEMO_MISSIONARY_ID = DEMO_PROFILE_ID;
 
 const MOCK_TASKS = [
   {

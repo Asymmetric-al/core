@@ -49,57 +49,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function PATCH(request: NextRequest) {
-  try {
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
-    }
-
-    const auth = await getAuthContext();
-    requireRole(auth, ["admin"]);
-    const ctx = auth as AuthenticatedContext;
-
-    const body = await request.json();
-    const { userId, role } = body;
-
-    if (!userId || !role || !["donor", "missionary", "admin"].includes(role)) {
-      return NextResponse.json(
-        { error: "Invalid request data" },
-        { status: 400 },
-      );
-    }
-
-    const { data: targetProfile } = await supabaseAdmin
-      .from("profiles")
-      .select("id, role")
-      .eq("id", userId)
-      .eq("tenant_id", ctx.tenantId)
-      .single();
-
-    if (!targetProfile) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    const { data, error } = await supabaseAdmin
-      .from("profiles")
-      .update({ role, updated_at: new Date().toISOString() })
-      .eq("id", userId)
-      .eq("tenant_id", ctx.tenantId)
-      .select()
-      .single();
-
-    if (error)
-      return NextResponse.json({ error: error.message }, { status: 500 });
-
-    return NextResponse.json({ user: data });
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "Internal error";
-    const status = message.includes("Unauthorized")
-      ? 401
-      : message.includes("Forbidden")
-        ? 403
-        : 500;
-    return NextResponse.json({ error: message }, { status });
-  }
+/** Read-only demo: user updates disabled. */
+export async function PATCH(_request: NextRequest) {
+  return NextResponse.json({ error: "Read-only demo" }, { status: 403 });
 }

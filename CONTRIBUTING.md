@@ -9,6 +9,15 @@ Thanks for contributing to asymmetric.al. We welcome pull requests, bug reports,
 - Add tests when you change behavior.
 - Keep security issues private. Please do not open a public issue for security reports. Contact the maintainers instead.
 
+## Development workflow (short)
+
+- **Base branch:** `develop` (open PRs against `develop`; `main` is protected).
+- **Package manager:** `bun` (see `package.json#packageManager`).
+- **Setup (macOS/Linux):** `bun run setup` (creates/validates `.env.local`, installs deps, runs verification).
+- **Local PR-readiness gate (matches blocking CI):**
+  - `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
+- **Optional:** `bun run test:e2e` (non-blocking in CI; run when changes impact user flows).
+
 ## License for contributions
 
 By contributing, you agree that we will release your contributions under the same license as this project: AGPL-3.0-only.

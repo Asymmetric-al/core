@@ -4,7 +4,6 @@ import {
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
-import { createAuditLogger } from "@asym/lib/audit/logger";
 import { type NextRequest, NextResponse } from "next/server";
 
 export async function GET() {
@@ -34,26 +33,13 @@ export async function GET() {
     let profileData = { ...profile };
 
     if (ctx.role === "missionary") {
-      let { data: missionary, error: missionaryError } = await supabaseAdmin
+      const { data: missionary } = await supabaseAdmin
         .from("missionaries")
         .select("*")
         .eq("profile_id", ctx.profileId)
         .single();
 
-      if (missionaryError && missionaryError.code === "PGRST116") {
-        const { data: newMissionary, error: createError } = await supabaseAdmin
-          .from("missionaries")
-          .insert({ profile_id: ctx.profileId })
-          .select()
-          .single();
-
-        if (!createError && newMissionary) {
-          missionary = newMissionary;
-          missionaryError = null;
-        }
-      }
-
-      if (!missionaryError && missionary) {
+      if (missionary) {
         profileData = { ...profileData, missionary };
       }
     }
@@ -68,87 +54,7 @@ export async function GET() {
   }
 }
 
-export async function PATCH(request: NextRequest) {
-  try {
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
-    }
-
-    const auth = await getAuthContext();
-    requireAuth(auth);
-    const ctx = auth as AuthenticatedContext;
-    const audit = createAuditLogger(ctx, request);
-
-    const body = await request.json();
-    const {
-      firstName,
-      lastName,
-      avatarUrl,
-      bio,
-      tagline,
-      location,
-      phone,
-      coverUrl,
-      socialLinks,
-    } = body;
-
-    const profileUpdates: Record<string, unknown> = {
-      updated_at: new Date().toISOString(),
-    };
-    if (firstName) profileUpdates.first_name = firstName;
-    if (lastName) profileUpdates.last_name = lastName;
-    if (avatarUrl !== undefined) profileUpdates.avatar_url = avatarUrl;
-
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from("profiles")
-      .update(profileUpdates)
-      .eq("id", ctx.profileId)
-      .eq("tenant_id", ctx.tenantId)
-      .select()
-      .single();
-
-    if (profileError)
-      return NextResponse.json(
-        { error: profileError.message },
-        { status: 500 },
-      );
-
-    let profileData = { ...profile };
-
-    if (ctx.role === "missionary") {
-      const missionaryUpdates: Record<string, unknown> = {
-        updated_at: new Date().toISOString(),
-      };
-      if (bio !== undefined) missionaryUpdates.bio = bio;
-      if (tagline !== undefined) missionaryUpdates.tagline = tagline;
-      if (location !== undefined) missionaryUpdates.location = location;
-      if (phone !== undefined) missionaryUpdates.phone = phone;
-      if (coverUrl !== undefined) missionaryUpdates.cover_url = coverUrl;
-      if (socialLinks !== undefined)
-        missionaryUpdates.social_links = socialLinks;
-
-      if (Object.keys(missionaryUpdates).length > 1) {
-        const { data: missionary, error: missionaryError } = await supabaseAdmin
-          .from("missionaries")
-          .update(missionaryUpdates)
-          .eq("profile_id", ctx.profileId)
-          .select()
-          .single();
-
-        if (!missionaryError && missionary) {
-          profileData = { ...profileData, missionary };
-        }
-      }
-    }
-
-    await audit.log("profile_updated", "profile", ctx.profileId, body);
-    return NextResponse.json({ profile: profileData });
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "Internal error";
-    return NextResponse.json(
-      { error: message },
-      { status: message.includes("Unauthorized") ? 401 : 500 },
-    );
-  }
+/** Read-only demo: profile updates disabled. */
+export async function PATCH(_request: NextRequest) {
+  return NextResponse.json({ error: "Read-only demo" }, { status: 403 });
 }

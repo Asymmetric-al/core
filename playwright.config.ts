@@ -1,14 +1,59 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const port = Number(process.env.PLAYWRIGHT_PORT || 3005);
-const baseURL = process.env.PLAYWRIGHT_BASE_URL || `http://127.0.0.1:${port}`;
+const DEFAULT_PORT = 3005;
 
-const webServer = process.env.PLAYWRIGHT_BASE_URL
+function getLocalBaseUrlAndPort(): { baseURL: string; port: number } {
+  const envBase = process.env.PLAYWRIGHT_BASE_URL;
+  const envPort = Number(process.env.PLAYWRIGHT_PORT || DEFAULT_PORT);
+
+  if (!envBase) {
+    return { baseURL: `http://127.0.0.1:${envPort}`, port: envPort };
+  }
+
+  // If the user points to a local URL (common in `.env.local`), still start/reuse
+  // the dev server. If they point to a remote URL, don't start a local server.
+  try {
+    const url = new URL(envBase);
+    const isLocalHost =
+      url.hostname === "localhost" || url.hostname === "127.0.0.1";
+    const portFromUrl = url.port
+      ? Number(url.port)
+      : url.protocol === "https:"
+        ? 443
+        : 80;
+
+    return {
+      // Prefer IPv4 loopback to avoid "localhost" resolving to ::1 and failing
+      // when the server binds only on 127.0.0.1.
+      baseURL: isLocalHost ? `http://127.0.0.1:${portFromUrl}` : envBase,
+      port: portFromUrl,
+    };
+  } catch {
+    // If it's not a valid URL string, fall back to port-based local URL.
+    return { baseURL: `http://127.0.0.1:${envPort}`, port: envPort };
+  }
+}
+
+const { baseURL, port } = getLocalBaseUrlAndPort();
+
+const isRemoteBaseUrl = (() => {
+  const envBase = process.env.PLAYWRIGHT_BASE_URL;
+  if (!envBase) return false;
+  try {
+    const url = new URL(envBase);
+    return url.hostname !== "localhost" && url.hostname !== "127.0.0.1";
+  } catch {
+    return false;
+  }
+})();
+
+const webServer = isRemoteBaseUrl
   ? undefined
   : {
-      command: `bun --bun next dev -p ${port}`,
+      command: `bun --bun next dev apps/donor -p ${port}`,
       url: baseURL,
-      reuseExistingServer: false,
+      // Always reuse if already running; otherwise start it.
+      reuseExistingServer: true,
       timeout: 120000,
     };
 

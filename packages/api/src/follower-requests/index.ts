@@ -119,93 +119,9 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
-    }
-
-    const auth = await getAuthContext();
-    requireAuth(auth);
-
-    const body = await request.json();
-    const { donor_id, missionary_id } = body;
-
-    if (!donor_id || !missionary_id) {
-      return NextResponse.json(
-        { error: "donor_id and missionary_id are required" },
-        { status: 400 },
-      );
-    }
-
-    const { data: donor } = await supabaseAdmin
-      .from("donors")
-      .select("id, name")
-      .eq("id", donor_id)
-      .single();
-
-    if (!donor) {
-      return NextResponse.json({ error: "Donor not found" }, { status: 404 });
-    }
-
-    const { data: existingRequest } = await supabaseAdmin
-      .from("follower_requests")
-      .select("id, status")
-      .eq("donor_id", donor_id)
-      .eq("missionary_id", missionary_id)
-      .single();
-
-    if (existingRequest) {
-      if (existingRequest.status === "approved") {
-        return NextResponse.json(
-          { error: "Already following" },
-          { status: 400 },
-        );
-      }
-      if (existingRequest.status === "pending") {
-        return NextResponse.json(
-          { error: "Request already pending" },
-          { status: 400 },
-        );
-      }
-      const { data: updatedRequest, error: updateError } = await supabaseAdmin
-        .from("follower_requests")
-        .update({ status: "pending", updated_at: new Date().toISOString() })
-        .eq("id", existingRequest.id)
-        .select()
-        .single();
-
-      if (updateError) {
-        return NextResponse.json(
-          { error: updateError.message },
-          { status: 500 },
-        );
-      }
-
-      return NextResponse.json({ request: updatedRequest }, { status: 200 });
-    }
-
-    const { data: newRequest, error } = await supabaseAdmin
-      .from("follower_requests")
-      .insert({
-        donor_id,
-        missionary_id,
-        status: "pending",
-        access_level: "view",
-      })
-      .select()
-      .single();
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json({ request: newRequest }, { status: 201 });
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "Internal error";
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
+/** Read-only demo: follower request creation disabled. */
+export async function POST(_request: NextRequest) {
+  return NextResponse.json({ error: "Read-only demo" }, { status: 403 });
 }
 
 function getInitials(name: string): string {
