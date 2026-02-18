@@ -40,3 +40,16 @@ All other variables from `.env.example` are modeled in `packages/env/src/schema.
 ```bash
 SKIP_ENV_VALIDATION=1 bun test
 ```
+
+## Where `process.env` is Allowed vs Disallowed
+
+| Location                                | `process.env` allowed? | Reason                                         |
+| --------------------------------------- | ---------------------- | ---------------------------------------------- |
+| `packages/env/src/schema.ts`            | ✅ Yes (required)      | This is the only place that reads raw env vars |
+| `scripts/*.mjs`, `scripts/*.ts`         | ✅ Yes                 | Tooling scripts run outside Next.js runtime    |
+| `playwright.config.ts`                  | ✅ Yes                 | Test runner config, not app runtime            |
+| `apps/*/app/**`                         | ❌ No                  | Use `import { env } from "@asym/env"` instead  |
+| `packages/*/src/**` (runtime)           | ❌ No                  | Use `import { env } from "@asym/env"` instead  |
+| `packages/*/src/**` (build-time config) | ⚠️ Gradual             | Migrate opportunistically; document exceptions |
+
+The goal is that all runtime code uses `env.*` for type-safe, validated access. Direct `process.env` usage in runtime code is a Phase 1 migration target.

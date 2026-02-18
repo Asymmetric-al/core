@@ -102,3 +102,61 @@ import { format } from "date-fns";
 - [ ] `bun run build`
 - [ ] `bun run test:unit`
 - [ ] Update docs when behavior or contributor workflow changes.
+
+# Next.js App Router Conventions
+
+## Route File Rules
+
+`page.tsx` and `layout.tsx` are **composition-only** — no business logic, data transformations, or database queries.
+
+- **Allowed**: importing components, calling functions from `lib/`, passing props, defining metadata.
+- **Not allowed**: inline fetch logic, database queries, complex conditional logic, business rules.
+
+## Directory Conventions
+
+```
+apps/<app-name>/
+├── app/
+│   ├── (auth)/
+│   ├── (dashboard)/
+│   │   └── <feature>/
+│   │       ├── page.tsx        # Composition only — no business logic
+│   │       └── _components/    # Route-scoped components (private to this segment)
+│   ├── api/
+│   └── layout.tsx              # Root layout — composition only
+├── lib/
+│   ├── actions/
+│   │   └── <domain>.actions.ts
+│   └── queries/
+│       └── <domain>.queries.ts
+└── __tests__/
+    └── lib/
+        └── actions/
+            └── <domain>.actions.test.ts
+```
+
+## Naming Conventions
+
+| Item                    | Convention                                | Example                                            |
+| ----------------------- | ----------------------------------------- | -------------------------------------------------- |
+| Server Actions          | `lib/actions/<domain>.actions.ts`         | `missionary.actions.ts`                            |
+| Data queries            | `lib/queries/<domain>.queries.ts`         | `donation.queries.ts`                              |
+| Route-scoped components | `_components/` prefix (non-routable)      | `_components/missionary-table.tsx`                 |
+| Tests                   | Mirror source path with `.test.ts` suffix | `__tests__/lib/actions/missionary.actions.test.ts` |
+
+## `packages/*` vs App-Specific Code
+
+- Put code in `packages/*` when used by **two or more apps** (or expected to be).
+- Put code in `apps/*` when specific to one app's routing, UI, or behavior.
+- Do **NOT** duplicate shared logic across apps — extract to `packages/lib` or `packages/ui`.
+- Do **NOT** put app-specific code in `packages/*`.
+
+# PR Review Checklist (App Router)
+
+- [ ] `page.tsx` and `layout.tsx` files contain no business logic or database queries
+- [ ] Route-scoped components are in `_components/` (not in shared `packages/ui`)
+- [ ] Server Actions are in `lib/actions/<domain>.actions.ts`
+- [ ] Data-fetching functions are in `lib/queries/<domain>.queries.ts`
+- [ ] Tests mirror source structure in `__tests__/`
+- [ ] Shared code used by 2+ apps is in `packages/*`, not duplicated
+- [ ] No app-specific code added to `packages/*`

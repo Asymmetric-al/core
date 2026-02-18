@@ -1,3 +1,4 @@
+import "@asym/env";
 import { siteConfig } from "@asym/config/site";
 import { QueryProvider } from "@asym/database/providers";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";

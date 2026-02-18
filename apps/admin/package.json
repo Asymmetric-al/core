@@ -15,6 +15,7 @@
     "@asym/auth": "workspace:*",
     "@asym/config": "workspace:*",
     "@asym/database": "workspace:*",
+    "@asym/env": "workspace:*",
     "@asym/email": "workspace:*",
     "@asym/lib": "workspace:*",
     "@asym/missionary": "workspace:*",
