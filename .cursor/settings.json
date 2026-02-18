@@ -1,0 +1,19 @@
+{
+  "plugins": {
+    "linear": {
+      "enabled": true
+    },
+    "supabase": {
+      "enabled": true
+    },
+    "stripe": {
+      "enabled": true
+    },
+    "sentry": {
+      "enabled": true
+    },
+    "superpowers": {
+      "enabled": true
+    }
+  }
+}

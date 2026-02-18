@@ -85,12 +85,15 @@ class ErrorResponse(BaseModel):
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request, exc):
+    detail = exc.detail
+    detail_dict = detail if isinstance(detail, dict) else None
+
     return JSONResponse(
         status_code=exc.status_code,
         content=ErrorResponse(
             error=exc.__class__.__name__,
-            message=exc.detail if isinstance(exc.detail, str) else exc.detail.get("message", "Error"),
-            details=exc.detail.get("details") if isinstance(exc.detail, dict) else None
+            message=detail if isinstance(detail, str) else (detail_dict.get("message", "Error") if detail_dict else "Error"),
+            details=detail_dict.get("details") if detail_dict else None
         ).model_dump()
     )
 
