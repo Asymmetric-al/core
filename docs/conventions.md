@@ -1,95 +1,104 @@
-# Conventions
+# Folder Structure Conventions
 
-Canonical conventions for folder structure, code style, examples, and pre-commit checks.
+| Folder      | Purpose                                                     | Examples                                                   |
+| ----------- | ----------------------------------------------------------- | ---------------------------------------------------------- |
+| `apps/`     | Deployable Next.js apps and app-specific routes/UI.         | `apps/admin/app/tasks/page.tsx`                            |
+| `packages/` | Shared TypeScript libraries consumed by apps.               | `packages/ui/components/button.tsx`                        |
+| `docs/`     | Contributor and architecture documentation.                 | `docs/conventions.md`                                      |
+| `scripts/`  | Automation and local verification helpers.                  | `scripts/seed-demo.sh`                                     |
+| `supabase/` | SQL migrations, schema, and seed data.                      | `supabase/migrations/20260216153000_demo_readonly_rls.sql` |
+| `tests/`    | End-to-end and integration test suites.                     | `tests/e2e/auth.spec.ts`                                   |
+| `tooling/`  | Lint/build/typecheck configuration packages.                | `tooling/eslint-config/library.mjs`                        |
+| `public/`   | Static assets served by Next.js apps.                       | `public/favicon.ico`                                       |
+| `src/`      | App/package source code when a project uses a `src` layout. | `apps/web/src/lib/utils.ts`                                |
 
-## Folder Structure Conventions
+# Code Style Conventions
 
-| Area            | Path           | Convention                                                   | Example                                                    |
-| --------------- | -------------- | ------------------------------------------------------------ | ---------------------------------------------------------- |
-| Apps            | `apps/*`       | Deployable app code only (routes, app-specific UI/behavior). | `apps/admin/app/tasks/page.tsx`                            |
-| Shared packages | `packages/*`   | Runtime code shared by 2+ apps.                              | `packages/ui/components/button.tsx`                        |
-| Env workspace   | `packages/env` | Env schema/configuration workspace.                          | `packages/env/index.ts`                                    |
-| Tooling         | `tooling/*`    | Build/lint/type/tool configuration only.                     | `tooling/eslint-config/library.mjs`                        |
-| Database        | `supabase/*`   | SQL migrations, schema, and deterministic seed artifacts.    | `supabase/migrations/20260216153000_demo_readonly_rls.sql` |
-| Docs            | `docs/*`       | User/developer docs and architecture/process guidance.       | `docs/guides/development/getting-started.md`               |
-| Scripts         | `scripts/*`    | Automation, setup, and verification scripts.                 | `scripts/seed-demo.sh`                                     |
-| Tests           | `tests/*`      | Cross-app E2E and integration tests.                         | `tests/e2e/auth.spec.ts`                                   |
+## Naming
 
-## Code Style Conventions
+| Item                                 | Convention         | Example                                  |
+| ------------------------------------ | ------------------ | ---------------------------------------- |
+| Variables and functions              | `camelCase`        | `const totalDonations = 0;`              |
+| Types, interfaces, enums, components | `PascalCase`       | `type DonationRecord = { id: string; };` |
+| Constants                            | `UPPER_SNAKE_CASE` | `const MAX_RETRY_ATTEMPTS = 3;`          |
+| Hooks                                | `useX` naming      | `useMissionaryFilters`                   |
+| TS/TSX filenames                     | `kebab-case`       | `missionary-card.tsx`                    |
+| Workspace package names              | `@asym/<name>`     | `@asym/ui`                               |
 
-### Naming Table
+## Formatting
 
-| Artifact                      | Convention          | Example                                             |
-| ----------------------------- | ------------------- | --------------------------------------------------- |
-| Workspace package name        | `@asym/<name>`      | `@asym/ui`                                          |
-| Internal workspace dependency | `workspace:*`       | `"@asym/ui": "workspace:*"`                         |
-| TS/TSX file                   | `kebab-case`        | `task-row.tsx`                                      |
-| React component symbol        | `PascalCase`        | `export function TaskRow()`                         |
-| Hook symbol/file              | `useX` / `use-x.ts` | `useMissionaryFilters`, `use-missionary-filters.ts` |
-| Constants                     | `UPPER_SNAKE_CASE`  | `MAX_RETRY_ATTEMPTS`                                |
-| Env vars                      | `UPPER_SNAKE_CASE`  | `NEXT_PUBLIC_SUPABASE_URL`                          |
+| Rule                  | Convention                                        | Example                                  |
+| --------------------- | ------------------------------------------------- | ---------------------------------------- |
+| Indentation           | 2 spaces                                          | `if (ready) {\n  run();\n}`              |
+| Semicolons            | Required                                          | `const isReady = true;`                  |
+| TypeScript strictness | Prefer precise types; avoid `any` in runtime code | `function parse(input: unknown): Parsed` |
+| Exports               | Prefer named exports                              | `export function MissionCard() {}`       |
 
-### Code Rules Table
+## Imports
 
-| Topic                 | Rule                                                                          | Example                                  |
-| --------------------- | ----------------------------------------------------------------------------- | ---------------------------------------- |
-| TypeScript strictness | Keep strict typing; avoid `any` in app/runtime code.                          | `function parse(input: unknown): Parsed` |
-| Exports               | Prefer named exports over default exports.                                    | `export function MissionCard()`          |
-| Import order          | React/Next -> third-party -> internal absolute -> relative -> `type` imports. | See import example below                 |
-| Next.js routing       | App Router routes in `app/`; route handlers use `route.ts`.                   | `app/api/donations/route.ts`             |
-| RSC boundary          | Default to Server Components; add `"use client"` only when needed.            | Interactive forms/charts                 |
-| Async params          | Await dynamic `params` and `searchParams` where applicable.                   | `const { id } = await params`            |
-| Styling               | Mobile-first Tailwind with existing design tokens.                            | `p-4 sm:p-6 border-border`               |
-| Data access           | Check Supabase errors and select only required columns.                       | `.select("id, name")`                    |
+| Rule              | Convention                                                               | Example                                            |
+| ----------------- | ------------------------------------------------------------------------ | -------------------------------------------------- |
+| Internal imports  | Prefer absolute paths/aliases over deep relative paths                   | `import { Button } from "@/components/ui/button";` |
+| Order             | React/Next, third-party, internal absolute, relative, then `import type` | See examples below                                 |
+| Type-only imports | Use `import type`                                                        | `import type { Task } from "@/types/task";`        |
 
-## Examples
+# Examples
 
-### Folder placement
+Good file/symbol naming:
 
-```text
-apps/admin/components/reports/report-table.tsx      # app-specific
-packages/ui/components/table.tsx                    # shared
-tooling/eslint-config/library.mjs                   # tooling only
+```ts
+export type MissionarySummary = {
+  id: string;
+  totalDonations: number;
+};
+
+export function formatMissionaryName(fullName: string) {
+  return fullName.trim();
+}
 ```
 
-### Import order
+Bad file/symbol naming:
 
-```typescript
-import { Suspense } from "react";
+```ts
+export type missionary_summary = {
+  id: string;
+  total_donations: number;
+};
+
+export function Format_Missionary_Name(full_name: string) {
+  return full_name.trim();
+}
+```
+
+Good import layout:
+
+```ts
 import Link from "next/link";
 
 import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 import { TaskRow } from "./task-row";
 
 import type { Task } from "@/types/task";
 ```
 
-### Async route params
+Bad import layout:
 
-```typescript
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  return <div>{id}</div>;
-}
+```ts
+import { TaskRow } from "./task-row";
+import type { Task } from "@/types/task";
+import { Button } from "../../../components/ui/button";
+import Link from "next/link";
+import { format } from "date-fns";
 ```
 
-## Pre-Commit Checklist
+# Pre-Commit Checklist
 
-- [ ] Files are in the correct workspace/domain (`apps/*`, `packages/*`, `tooling/*`, `docs/*`, `supabase/*`).
-- [ ] New package names use `@asym/*`; internal dependencies use `workspace:*`.
-- [ ] File and symbol naming follows conventions (`kebab-case` files, `PascalCase` components, `useX` hooks).
-- [ ] Import order is consistent and type imports are separated.
-- [ ] Next.js dynamic `params` and `searchParams` are awaited where applicable.
-- [ ] RSC-first approach is preserved; `"use client"` is added only when required.
-- [ ] Styling uses existing tokens/utilities and remains mobile-first.
-- [ ] Behavior changes include appropriate tests and pass quality gates:
-      `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
-- [ ] Related docs are updated when behavior or conventions change.
+- [ ] `bun run format:check`
+- [ ] `bun run lint`
+- [ ] `bun run typecheck`
+- [ ] `bun run build`
+- [ ] `bun run test:unit`
+- [ ] Update docs when behavior or contributor workflow changes.
