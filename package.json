@@ -7,6 +7,7 @@
   "workspaces": [
     "apps/*",
     "packages/*",
+    "packages/env",
     "tooling/*"
   ],
   "scripts": {
@@ -38,7 +39,10 @@
     "test:perf": "playwright test tests/e2e/performance.spec.ts",
     "verify:e2e": "bun scripts/verify-e2e.mjs",
     "verify:e2e:loop": "bun scripts/verify-e2e-loop.mjs",
+    "verify:t1": "bun run verify:workspace-contract",
     "verify:money-units": "bun scripts/verify-money-units.ts",
+    "verify:supabase-money": "bun run setup:verify && bun run verify:money-units",
+    "verify:workspace-contract": "node scripts/verify-workspace-contract.mjs",
     "verify": "./scripts/verify",
     "lighthouse": "lhci autorun",
     "generate:icons": "node scripts/generate-icons.js",
@@ -79,6 +83,7 @@
     "canvas": "^3.2.1",
     "eslint": "^9",
     "eslint-config-next": "^16.1.0",
+    "glob": "^13.0.4",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "prettier": "^3.6.2",

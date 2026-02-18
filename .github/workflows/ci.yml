@@ -5,11 +5,33 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      run_supabase_money_qa:
+        description: "Run separate Supabase schema/money-unit QA gate"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 jobs:
+  verify-workspace-contract:
+    name: verify-workspace-contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.4"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Verify workspace contract
+        run: bun run verify:workspace-contract
+
   format:
     name: format
     runs-on: ubuntu-latest
@@ -143,3 +165,24 @@ jobs:
             test-results/
           if-no-files-found: ignore
           retention-days: 7
+
+  qa-supabase-money:
+    name: qa-supabase-money (manual)
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_supabase_money_qa == true }}
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.4"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run Supabase schema + money-unit QA gate
+        run: bun run verify:supabase-money

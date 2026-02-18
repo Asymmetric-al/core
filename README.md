@@ -155,6 +155,89 @@ This project uses **bun** (v1.3+). Do not use npm/yarn/pnpm.
 
 - **Startup Command**: `bun run dev`
 
+### Monorepo Workspace Contract
+
+This repository uses Bun workspaces + Turborepo with this contract:
+
+```text
+apps/*      -> deployable applications (admin, donor, missionary)
+packages/*  -> shared runtime libraries used by apps
+packages/env -> environment schemas/configuration workspace (contracted)
+tooling/*   -> shared tooling/config packages (eslint, tsconfig, etc.)
+```
+
+Use these placement rules:
+
+- Put code in `apps/*` when it is app-specific routing/UI/behavior.
+- Put code in `packages/*` when it is shared across two or more apps.
+- Put environment schemas/configuration in `packages/env`; it is part of the workspace contract.
+- Put code in `tooling/*` only for build/lint/type/tooling configuration packages.
+
+Workspace conventions:
+
+- Every workspace package name must use `@asym/<name>`.
+- Internal workspace dependencies must use `workspace:*` (not `file:` links).
+- Root workspace globs in `package.json` are canonical: `apps/*`, `packages/*`, `packages/env`, `tooling/*`.
+
+Guardrail command:
+
+```bash
+bun run verify:workspace-contract
+```
+
+This command validates workspace globs, package names, and internal dependency protocol.
+
+### How to add a new app
+
+1. Create a new folder under `apps/<app-name>/`.
+2. Add `apps/<app-name>/package.json` with a scoped name (`@asym/<app-name>`).
+3. Add any internal dependencies as `workspace:*`.
+4. Add the app scripts (`dev`, `build`, `lint`, `typecheck`) so Turbo can orchestrate it.
+5. Run `bun run verify:workspace-contract`.
+
+Minimal app `package.json` example:
+
+```json
+{
+  "name": "@asym/my-new-app",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@asym/ui": "workspace:*"
+  }
+}
+```
+
+### How to add a new package
+
+1. Create a new folder under `packages/<package-name>/`.
+2. Add `packages/<package-name>/package.json` with `name: "@asym/<package-name>"`.
+3. Export from the package entrypoint and keep cross-package imports via package names.
+4. Use `workspace:*` for internal dependencies.
+5. Run `bun run verify:workspace-contract`.
+
+Minimal package `package.json` example:
+
+```json
+{
+  "name": "@asym/my-new-package",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@asym/config": "workspace:*"
+  }
+}
+```
+
 Common commands:
 
 - `bun run format` (fix), `bun run format:check` (verify), `bun run lint`, and `bun run typecheck`
@@ -210,11 +293,21 @@ bun run format
 bun run format:check
 bunx turbo run typecheck lint build
 
+# T1 merge gate (workspace contract only)
+bun run verify:t1
+
 # Check for outdated packages
 bun outdated
+```
 
-# Verify money columns appear to use cents
-bun run verify:money-units
+### Supabase schema + money-unit QA (separate from T1)
+
+The Supabase schema/migration + money-unit verifier changes are intentionally high-risk and should be QA-gated separately from T1.
+Treat these as a dedicated branch/ticket track before merge:
+
+```bash
+# Optional DB+money QA gate (not part of the T1 contract gate)
+bun run verify:supabase-money
 ```
 
 `verify:money-units` samples these columns from Supabase/Postgres via the Supabase REST API:
@@ -231,6 +324,7 @@ Notes:
 
 - Uses `SUPABASE_SERVICE_ROLE_KEY` when present; otherwise falls back to `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 - If any column reports `NO`, the script exits non-zero to make CI/local verification fail loudly.
+- Files under this separate QA track include `supabase/migrations/20260214090000_foundation_1_schema.sql`, `supabase/schema.sql`, and `scripts/verify-money-units.ts`.
 
 ## Key Conventions
 
