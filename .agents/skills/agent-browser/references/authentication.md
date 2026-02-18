@@ -145,7 +145,7 @@ agent-browser open https://app.example.com/dashboard
 For sessions with expiring tokens:
 
 ```bash
-#!/bin/bash
+#!/usr/bin/env bash
 # Wrapper that handles token refresh
 
 STATE_FILE="./auth-state.json"

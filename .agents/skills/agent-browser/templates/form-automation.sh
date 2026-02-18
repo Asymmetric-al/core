@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Template: Form Automation Workflow
 # Purpose: Fill and submit web forms with validation
 # Usage: ./form-automation.sh <form-url>
@@ -14,6 +14,7 @@
 set -euo pipefail
 
 FORM_URL="${1:?Usage: $0 <form-url>}"
+TMP_DIR="${TMPDIR:-${TMP:-${TEMP:-/tmp}}}"
 
 echo "Form automation: $FORM_URL"
 
@@ -54,8 +55,9 @@ agent-browser get url
 agent-browser snapshot -i
 
 # Optional: Capture evidence
-agent-browser screenshot /tmp/form-result.png
-echo "Screenshot saved: /tmp/form-result.png"
+SCREENSHOT_PATH="$TMP_DIR/form-result.png"
+agent-browser screenshot "$SCREENSHOT_PATH"
+echo "Screenshot saved: $SCREENSHOT_PATH"
 
 # Cleanup
 agent-browser close

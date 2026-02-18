@@ -76,10 +76,11 @@ agent-browser open https://app.example.com/dashboard
 ### Authenticated Session Reuse
 
 ```bash
-#!/bin/bash
+#!/usr/bin/env bash
 # Save login state once, reuse many times
 
-STATE_FILE="/tmp/auth-state.json"
+TMP_DIR="${TMPDIR:-${TMP:-${TEMP:-/tmp}}}"
+STATE_FILE="$TMP_DIR/auth-state.json"
 
 # Check if we have saved state
 if [[ -f "$STATE_FILE" ]]; then
@@ -102,7 +103,7 @@ fi
 ### Concurrent Scraping
 
 ```bash
-#!/bin/bash
+#!/usr/bin/env bash
 # Scrape multiple sites concurrently
 
 # Start all sessions
@@ -126,12 +127,13 @@ agent-browser --session site3 close
 
 ```bash
 # Test different user experiences
+TMP_DIR="${TMPDIR:-${TMP:-${TEMP:-/tmp}}}"
 agent-browser --session variant-a open "https://app.com?variant=a"
 agent-browser --session variant-b open "https://app.com?variant=b"
 
 # Compare
-agent-browser --session variant-a screenshot /tmp/variant-a.png
-agent-browser --session variant-b screenshot /tmp/variant-b.png
+agent-browser --session variant-a screenshot "$TMP_DIR/variant-a.png"
+agent-browser --session variant-b screenshot "$TMP_DIR/variant-b.png"
 ```
 
 ## Default Session
@@ -183,7 +185,8 @@ agent-browser --session scrape close
 echo "*.auth-state.json" >> .gitignore
 
 # Delete after use
-rm /tmp/auth-state.json
+TMP_DIR="${TMPDIR:-${TMP:-${TEMP:-/tmp}}}"
+rm "$TMP_DIR/auth-state.json"
 ```
 
 ### 4. Timeout Long Sessions

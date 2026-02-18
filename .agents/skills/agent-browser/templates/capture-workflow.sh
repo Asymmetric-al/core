@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Template: Content Capture Workflow
 # Purpose: Extract content from web pages (text, screenshots, PDF)
 # Usage: ./capture-workflow.sh <url> [output-dir]

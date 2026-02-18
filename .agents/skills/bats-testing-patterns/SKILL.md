@@ -44,6 +44,11 @@ cd bats-core
 # From npm (Node.js)
 npm install --global bats
 
+# Windows (run tests in a POSIX shell)
+npm install --global bats
+# Use Git Bash, MSYS2, or WSL to run examples in this skill.
+# PowerShell/CMD are not drop-in compatible with these shell snippets.
+
 # Verify installation
 bats --version
 ```
@@ -193,7 +198,13 @@ line3" ]
 @test "File has correct permissions" {
     touch "$TMPDIR/test.txt"
     chmod 644 "$TMPDIR/test.txt"
-    [ "$(stat -f %OLp "$TMPDIR/test.txt")" = "644" ]
+    if mode=$(stat -c %a "$TMPDIR/test.txt" 2>/dev/null); then
+        [ "$mode" = "644" ]
+    elif mode=$(stat -f %OLp "$TMPDIR/test.txt" 2>/dev/null); then
+        [ "$mode" = "644" ]
+    else
+        skip "No compatible stat format for permission checks on this platform"
+    fi
 }
 
 @test "File size is correct" {
@@ -201,6 +212,8 @@ line3" ]
     [ "$(wc -c < "$TMPDIR/test.txt")" -eq 5 ]
 }
 ```
+
+Permission assertions can be platform-sensitive on Windows-native filesystems. For strict permission-bit checks (`chmod`, `stat`), run tests in WSL or conditionally `skip` when mode bits are not reliably enforced.
 
 ## Setup and Teardown Patterns
 
@@ -328,7 +341,7 @@ create_stub() {
     local code="${3:-0}"
 
     cat > "$STUBS_DIR/$cmd" <<EOF
-#!/bin/bash
+#!/usr/bin/env bash
 echo "$output"
 exit $code
 EOF
@@ -402,8 +415,10 @@ generate_fixture() {
     local lines="$1"
     local file="$2"
 
-    for i in $(seq 1 "$lines"); do
+    i=1
+    while [ "$i" -le "$lines" ]; do
         echo "Line $i content" >> "$file"
+        i=$((i + 1))
     done
 }
 
@@ -435,7 +450,16 @@ generate_fixture() {
 
 @test "Function fails with permission denied" {
     touch "$TMPDIR/readonly.txt"
-    chmod 000 "$TMPDIR/readonly.txt"
+    chmod 000 "$TMPDIR/readonly.txt" || skip "chmod 000 unsupported on this platform"
+
+    if mode=$(stat -c %a "$TMPDIR/readonly.txt" 2>/dev/null); then
+        [ "$mode" = "000" ] || skip "Permission bits are not enforced on this filesystem"
+    elif mode=$(stat -f %OLp "$TMPDIR/readonly.txt" 2>/dev/null); then
+        [ "$mode" = "000" ] || skip "Permission bits are not enforced on this filesystem"
+    else
+        skip "No compatible stat format for permission checks on this platform"
+    fi
+
     run my_function "$TMPDIR/readonly.txt"
     [ "$status" -ne 0 ]
     chmod 644 "$TMPDIR/readonly.txt"  # Cleanup

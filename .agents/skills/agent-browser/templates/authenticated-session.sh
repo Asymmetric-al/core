@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Template: Authenticated Session Workflow
 # Purpose: Login once, save state, reuse for subsequent runs
 # Usage: ./authenticated-session.sh <login-url> [state-file]
@@ -21,6 +21,7 @@ set -euo pipefail
 
 LOGIN_URL="${1:?Usage: $0 <login-url> [state-file]}"
 STATE_FILE="${2:-./auth-state.json}"
+TMP_DIR="${TMPDIR:-${TMP:-${TEMP:-/tmp}}}"
 
 echo "Authentication workflow: $LOGIN_URL"
 
@@ -91,7 +92,7 @@ agent-browser close
 # FINAL_URL=$(agent-browser get url)
 # if [[ "$FINAL_URL" == *"login"* ]] || [[ "$FINAL_URL" == *"signin"* ]]; then
 #     echo "Login failed - still on login page"
-#     agent-browser screenshot /tmp/login-failed.png
+#     agent-browser screenshot "$TMP_DIR/login-failed.png"
 #     agent-browser close
 #     exit 1
 # fi

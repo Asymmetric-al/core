@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Next.js 16 - Version Checker
 # Verifies that all dependencies are compatible with Next.js 16

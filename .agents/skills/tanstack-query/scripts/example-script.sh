@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # [TODO: Script Name]
 # [TODO: Brief description of what this script does]

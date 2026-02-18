@@ -47,7 +47,7 @@ agent-browser record restart ./take2.webm
 ### Debugging Failed Automation
 
 ```bash
-#!/bin/bash
+#!/usr/bin/env bash
 # Record automation for debugging
 
 agent-browser record start ./debug-$(date +%Y%m%d-%H%M%S).webm
@@ -67,7 +67,7 @@ agent-browser record stop
 ### Documentation Generation
 
 ```bash
-#!/bin/bash
+#!/usr/bin/env bash
 # Record workflow for documentation
 
 agent-browser record start ./docs/how-to-login.webm
@@ -92,7 +92,7 @@ agent-browser record stop
 ### CI/CD Test Evidence
 
 ```bash
-#!/bin/bash
+#!/usr/bin/env bash
 # Record E2E test runs for CI artifacts
 
 TEST_NAME="${1:-e2e-test}"
@@ -132,7 +132,7 @@ agent-browser record start ./recordings/checkout-test-run-42.webm
 ### 3. Handle Recording in Error Cases
 
 ```bash
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 cleanup() {
