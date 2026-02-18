@@ -8,12 +8,12 @@ The "Give Hope" tenant you may see in the UI is a demo/test frontend and not the
 Follow the canonical Quickstart in `README.md`:
 
 ```bash
-./scripts/setup
+bun run setup
 # set these required values in .env.local:
 # NEXT_PUBLIC_SUPABASE_URL
 # NEXT_PUBLIC_SUPABASE_ANON_KEY
 bun run dev
-./scripts/verify
+bun run verify
 ```
 
 Stripe credentials are optional and only required when testing donation flows.
@@ -22,7 +22,7 @@ Optional MCP tooling configuration for contributors is documented in `docs/mcp-c
 
 ### Nia (MCP) usage (repo-scoped)
 
-If you use Nia for repo search, follow the canonical policy in [AGENTS.md#nia-mcp-usage-always-repo-scoped](../AGENTS.md#nia-mcp-usage-always-repo-scoped). Short version:
+If you use Nia for repo search, follow the canonical policy in [`AGENTS.md#nia-mcp-usage-always-repo-scoped`](../../../AGENTS.md#nia-mcp-usage-always-repo-scoped). Short version:
 
 - Contributors use their own Nia API key and subscribe to the public `Asymmetric-al/core` indexed source (never share keys).
 - Keep `docs/ai/working-set.md` updated and use `docs/ai/stack-registry.md` to select accurate stack tags.
@@ -35,9 +35,9 @@ If you use Nia for repo search, follow the canonical policy in [AGENTS.md#nia-mc
 
 ### Before You Code
 
-1. **Pull latest changes**: `git pull origin main`
-2. **Create a feature branch**: `git checkout -b feature/your-feature-name`
-3. **Understand the area**: Read relevant code and check [ARCHITECTURE.md](./ARCHITECTURE.md)
+1. **Pull latest changes**: `git checkout develop && git pull origin develop`
+2. **Create a feature branch**: `git checkout -b al-123-short-title` (include the `AL-###` key)
+3. **Understand the area**: Read relevant code and check `docs/guides/architecture/overview.md`
 
 ### While Coding
 
@@ -48,10 +48,14 @@ If you use Nia for repo search, follow the canonical policy in [AGENTS.md#nia-mc
 ### Before Committing
 
 ```bash
-# Always run these before committing
+# Fix formatting (only when needed)
 bun run format
-bun run format:check
-bunx turbo run lint typecheck  # Cached checks via Turborepo
+
+# PR-readiness (matches blocking CI)
+bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit
+
+# Optional (non-blocking in CI, but recommended for flow changes)
+bun run test:e2e
 ```
 
 ### PR Checks (Required)
@@ -64,10 +68,11 @@ Maintainers must configure branch protection (Settings → Branches → Require 
 ### Local Verification (Before PR)
 
 ```bash
-bun run format
-bun run format:check
-bunx turbo run lint typecheck build
-bun run test:unit
+# PR-readiness (matches blocking CI)
+bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit
+
+# Optional (non-blocking in CI, but recommended for flow changes)
+bun run test:e2e
 ```
 
 ---
@@ -193,7 +198,7 @@ Lint caching does not require restored outputs; restoring the ESLint cache is op
 
 ### Remote Cache (Internal Only)
 
-Remote caching uses **Vercel Remote Cache** and is enabled for internal PRs and `main` branch CI. Fork PRs are not supported.
+Remote caching uses **Vercel Remote Cache** and is enabled for internal PRs and protected branch CI. Fork PRs are not supported.
 
 - **CI env vars** (stored in GitHub secrets/vars, never committed):
   - `TURBO_TOKEN` (secret)

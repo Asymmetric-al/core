@@ -77,7 +77,7 @@ if [[ $missing -ne 0 ]]; then
   log "Edit .env.local and set:"
   log "  - NEXT_PUBLIC_SUPABASE_URL"
   log "  - NEXT_PUBLIC_SUPABASE_ANON_KEY"
-  log "Then re-run ./scripts/setup"
+  log "Then re-run: bun run setup"
   exit 1
 fi
 

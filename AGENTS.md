@@ -146,25 +146,56 @@ Load rulebooks before editing files in their domain.
 
 ---
 
-## Skill Routing (Deterministic)
+## Skills (Deterministic)
 
-Load the skill(s) below when the trigger matches.
+**Skills are repo-local workflow docs** that live under `docs/ai/skills/**/SKILL.md`.
 
-- **Next.js App Router structure, rendering, data fetching:** `docs/ai/skills/nextjs-app-router/SKILL.md`
-- **Cache Components / PPR / cacheTag & invalidation:** `docs/ai/skills/cache-components/SKILL.md`
-- **React component design/refactor:** `docs/ai/skills/react-component-dev/SKILL.md`
-- **shadcn/ui system usage:** `docs/ai/skills/moai-library-shadcn/SKILL.md`
-- **Motion animations (`motion/react`):** `docs/ai/skills/motion/SKILL.md`
-- **Recharts:** `docs/ai/skills/rechart/SKILL.md`
-- **TanStack Table v8:** `docs/ai/skills/tanstack-table/SKILL.md`
-- **GitHub issue/PR workflows (AL-###):**
-  - Write issue: `docs/ai/skills/write-issue/SKILL.md`
-  - Build issue: `docs/ai/skills/build-issue/SKILL.md`
-  - Start issue: `docs/ai/skills/start-issue/SKILL.md`
-  - Ship issue: `docs/ai/skills/ship-issue/SKILL.md`
-  - Close issue: `docs/ai/skills/close-issue/SKILL.md`
-  - Create issues batch: `docs/ai/skills/create-issues/SKILL.md`
-- **Commit message creation:** `docs/ai/skills/commit/SKILL.md`
+- Load the relevant Skill(s) when the task trigger matches.
+- Skills must remain **procedural**: triggers → steps → checklist.
+- Every Skill should include a **last-updated timestamp** in its frontmatter (`metadata.last_updated`). See: `docs/agent/skills-bench.md`.
+
+### Skills Stewardship (Required)
+
+A repo-local sub-agent named **`skills-steward`** maintains Skills hygiene and a living backlog.
+
+- Working document: `docs/agent/skills-bench.md`
+- Skill root: `docs/ai/skills/`
+- The steward:
+  - inventories Skills, flags stale Skills (>28 days since `metadata.last_updated`)
+  - proposes new Skill candidates (awaiting user-provided sources)
+  - proposes removals/merges for duplicate/obsolete Skills
+  - updates only the marked blocks below (registry + index)
+- The steward **does not** browse the web to find sources for new Skills; the user supplies URLs/snippets when ready.
+
+### Skill Registry (human) — steward managed
+
+<!-- BEGIN: SKILLS_REGISTRY (managed by skills-steward) -->
+
+- /nextjs-app-router — Next.js App Router structure, rendering, data fetching — path: `docs/ai/skills/nextjs-app-router/SKILL.md` — (see SKILL.md)
+- /cache-components — Cache Components / PPR / cacheTag & invalidation — path: `docs/ai/skills/cache-components/SKILL.md` — (see SKILL.md)
+- /react-component-dev — React component design/refactor — path: `docs/ai/skills/react-component-dev/SKILL.md` — (see SKILL.md)
+- /vercel-react-best-practices — React/Next.js performance best-practice checklist (Vercel) — path: `docs/ai/skills/vercel-react-best-practices/SKILL.md` — (see SKILL.md)
+- /moai-library-shadcn — shadcn/ui system usage — path: `docs/ai/skills/moai-library-shadcn/SKILL.md` - (see SKILL.md)
+- /motion — Motion animations (motion/react) — path: `docs/ai/skills/motion/SKILL.md` — (see SKILL.md)
+- /rechart — Recharts usage patterns — path: `docs/ai/skills/rechart/SKILL.md` — (see SKILL.md)
+- /tanstack-table — TanStack Table v8 patterns — path: `docs/ai/skills/tanstack-table/SKILL.md` — (see SKILL.md)
+<!-- END: SKILLS_REGISTRY (managed by skills-steward) -->
+
+### Skills Index (machine) — steward managed
+
+<!-- BEGIN: SKILLS_INDEX (managed by skills-steward) -->
+
+[Skills Index]|root:docs/ai/skills
+|nextjs-app-router:{SKILL.md,references/_,scripts/_,assets/_}
+|cache-components:{SKILL.md,references/_,scripts/_,assets/_}
+|react-component-dev:{SKILL.md,references/_,scripts/_,assets/_}
+|vercel-react-best-practices:{SKILL.md,references/_,scripts/_,assets/_}
+|moai-library-shadcn:{SKILL.md,references/_,scripts/_,assets/_}
+|motion:{SKILL.md,references/_,scripts/_,assets/_}
+|rechart:{SKILL.md,references/_,scripts/_,assets/_}
+|tanstack-table:{SKILL.md,references/_,scripts/_,assets/_}
+
+<!-- END: SKILLS_INDEX (managed by skills-steward) -->
 
 ---
 
@@ -195,6 +226,13 @@ Load the skill(s) below when the trigger matches.
 - [ ] Nia tool calls are repo-scoped to `Asymmetric-al/core`
 - [ ] Nia search calls include the “Nia query preamble” built from `docs/ai/working-set.md` + `docs/ai/stack-registry.md`
 
+### Skills hygiene checklist
+
+- [ ] Skill triggers/steps/checklist exist and match current repo behavior
+- [ ] Skill frontmatter includes `metadata.last_updated` (ISO date)
+- [ ] Skill is not stale (>28 days) or has been flagged in `docs/agent/skills-bench.md`
+- [ ] If a Skill was updated, `metadata.last_updated` was set to today and the change was logged in `docs/agent/skills-bench.md`
+
 ### Response checklist
 
 - [ ] File paths are explicit
@@ -206,7 +244,7 @@ Load the skill(s) below when the trigger matches.
 ## Minimal examples
 
 - **"Where is auth handled?"** -> Update `docs/ai/working-set.md`; use Nia (scoped + preambled) to find auth entry points; then open `docs/ai/rules/backend.md`.
-- **"Add a new UI card component."** -> Open `docs/ai/rules/frontend.md` and `docs/ai/skills/react-component-dev/SKILL.md`. Use Nia to find existing patterns/components in this repo before writing new ones.
+- **"Add a new UI card component."** -> Open `docs/ai/rules/frontend.md` and apply `/react-component-dev`. Use Nia to find existing patterns/components in this repo before writing new ones.
 - **"Use /cui for a page."** -> Open `docs/ai/rules/shadcn-studio-mcp.md` and follow its workflow exactly.
 
 ---
@@ -220,6 +258,7 @@ Load the skill(s) below when the trigger matches.
 - Using shadcn/studio tools without `docs/ai/rules/shadcn-studio-mcp.md`
 - Mixing rulebooks with conflicting instructions instead of reconciling them
 - Forgetting to update docs after behavior changes
+- Letting Skills go stale without flagging/updating in `docs/agent/skills-bench.md`
 
 ---
 

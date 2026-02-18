@@ -1,17 +1,17 @@
 # Asymmetric.al - Kingdom Impact Platform
 
-A high-performance, enterprise-grade Next.js 16.1 application for mission-focused organizations. Built for effortless impact with a sophisticated Zinc color and Shadcn/UI Maia theme.
+A high-performance Next.js 16.1 (App Router) Turborepo monorepo for mission-focused organizations, with three apps (`apps/admin`, `apps/donor`, `apps/missionary`) and shared workspace packages (`packages/*`).
 
 ## Quickstart
 
 ```bash
-./scripts/setup
+bun run setup
 # first run creates .env.local with placeholders
-# fill these required values, then re-run ./scripts/setup:
+# fill these required values, then re-run `bun run setup`:
 # NEXT_PUBLIC_SUPABASE_URL
 # NEXT_PUBLIC_SUPABASE_ANON_KEY
 bun run dev
-./scripts/verify
+bun run verify
 ```
 
 **Required:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
@@ -51,10 +51,10 @@ Invoke-ScriptAnalyzer -Path .\scripts\setup.ps1, .\scripts\lib\*.ps1
 
 ## Architecture & Tech Stack
 
-- **Framework**: Next.js 16.1Densitynsitynsity (App Router, Turbopack) - _Optimized for Performance_
+- **Framework**: Next.js 16.1 (App Router, Turbopack) - _Optimized for Performance_
 - **UI System**: Tailwind CSS 4 + shadcn/ui (Maia Theme) + Radix UI + Base UI
 - **Theme**: Light Zinc Aesthetic (Zinc/Zinc), Shadcn/UI Maia Theme
-- **Database**: Supabase (PostgreSQL) + Prisma
+- **Database**: Supabase (PostgreSQL)
 - **Authentication**: Supabase Auth (Unified across platforms)
 - **Payments**: Stripe (Advanced integration)
 - **State Management**: React 19 + TanStack Query v5
@@ -111,9 +111,9 @@ For this demonstration and development environment, we have implemented aliases 
 
 ### Implementation Details
 
-- **Routing**: All routing logic, including demo aliases and production subdomains, is centralized in `src/proxy.ts` (Next.js 16 convention).
-- **Proxy/Middleware**: The `src/proxy.ts` file uses the `updateSession` utility from `src/lib/supabase/proxy.ts` to manage authentication, session updates, and internal rewrites.
-- **Conceptualization**: This architecture demonstrates how host-based routing isolates tenant context in production while providing path-based aliases for the demo environment.
+- **Apps**: Route ownership is split across Next.js apps in `apps/*` (see each app's `app/` directory).
+- **Shared auth middleware**: Lives in `packages/auth/middleware.ts` (apps opt in to using it).
+- **Conceptualization**: Production routing may use host-based rules; local dev generally runs the apps directly on their dev ports.
 
 ## Project Modules
 
@@ -158,7 +158,8 @@ This project uses **bun** (v1.3+). Do not use npm/yarn/pnpm.
 Common commands:
 
 - `bun run format` (fix), `bun run format:check` (verify), `bun run lint`, and `bun run typecheck`
-- `bun run test:e2e`
+- `bun run build`, `bun run test:unit`, `bun run test:e2e`
+- PR-readiness (matches blocking CI): `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
 
 ### Git Hooks Setup
 
@@ -188,7 +189,7 @@ Use Turbo for consistent task execution (and caching where applicable):
 - Cached checks: `bunx turbo run lint typecheck build`
 - Formatting: `bun run format` (fix) / `bun run format:check` (verify)
 
-Remote caching (Vercel Remote Cache) is enabled for internal PRs and `main` branch CI only. Fork PRs are not supported.
+Remote caching (Vercel Remote Cache) is enabled for internal PRs and protected branch CI (fork PRs do not have access to the required secrets/vars).
 
 ### Key Dependencies
 
@@ -205,10 +206,14 @@ Remote caching (Vercel Remote Cache) is enabled for internal PRs and `main` bran
 ### Verification Steps
 
 ```bash
-# Full verification suite
+# Fix formatting (only when needed)
 bun run format
-bun run format:check
-bunx turbo run typecheck lint build
+
+# PR-readiness (matches blocking CI)
+bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit
+
+# Optional (non-blocking in CI, but recommended for flow changes)
+bun run test:e2e
 
 # Check for outdated packages
 bun outdated

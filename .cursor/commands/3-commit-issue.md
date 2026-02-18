@@ -1,6 +1,6 @@
-# Issue Commit — Skill
+# 3-commit-issue
 
-**Name:** `issue-commit`
+**Name:** `3-commit-issue`
 **Purpose:** Create a Conventional Commit message for staged changes and run `git commit` within the AL-### issue flow.
 Use this skill when you are ready to commit work tied to an `AL-###` issue.
 
@@ -12,7 +12,7 @@ Use this skill when you are ready to commit work tied to an `AL-###` issue.
 - **Commit convention:** Conventional Commits (types below), matching repo standards.
 - **Format:** `type(scope): subject` (scope optional).
 - **Constraints:** Header max 100 characters, subject is imperative and does not end with a period, no emojis.
-- **Issue references:** Include `ref AL-###` in the body only when applicable.
+- **Issue references:** Include `ref AL-###` in the boduy.
 
 ## Rules
 
@@ -22,14 +22,14 @@ Use this skill when you are ready to commit work tied to an `AL-###` issue.
 - Subject: imperative, not empty, no trailing period, no emojis.
 - Type must be lowercase.
 - Body lines should be 100 characters or less.
-- Issue refs: include `ref AL-###` in the body only when applicable.
+- Issue refs: include `ref AL-###` in the body.
 
 ## Workflow
 
 1. **Check git status:** Confirm there are staged changes.
 2. **Review staged diff:** Understand what changed and the affected areas.
 3. **Detect issue context:**
-   - Check branch name for `AL-###` or `al-###` and normalize to `AL-###`.
+   - Check branch name for `AL-###` or `al-###` and normalize to `AL-###` (use the Linear key as the canonical identifier).
    - Check recent commits for `ref AL-###`.
    - Check draft PR body for `fixes AL-###` (if available).
 4. **Determine commit type:** Choose based on the nature of the changes.
@@ -54,7 +54,7 @@ Use this skill when you are ready to commit work tied to an `AL-###` issue.
 - [ ] Type is lowercase and valid
 - [ ] Subject is imperative and has no trailing period
 - [ ] No emojis
-- [ ] `ref AL-###` included only when applicable
+- [ ] `ref AL-###` included
 
 ## Minimal examples
 
@@ -68,6 +68,7 @@ git commit -m "fix(auth): handle empty session"
 
 ```bash
 git commit -m "feat(billing): add invoice export" -m "Explain why the export is needed" -m "ref AL-123"
+# Add additional `-m "ref AL-###"` lines when multiple Linear issues apply
 ```
 
 ## Common mistakes / pitfalls

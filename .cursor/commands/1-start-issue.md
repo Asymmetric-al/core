@@ -1,11 +1,11 @@
-# Start Issue — Skill
+# 1-start-issue
 
-**Name:** `start-issue`
+**Name:** `1-start-issue`
 **Purpose:** Create a feature branch and a draft PR for one or more `AL-###` issues.
-Use this skill when beginning implementation work tied to GitHub issues.
+Use this skill when beginning implementation work tied to Linear issues.
 
 **Applies when:** Starting work on one or more `AL-###` issues.
-**Do not use when:** The user only wants to write issues (use `skills/write-issue/SKILL.md`).
+**Do not use when:** The user only wants to write a Linear issue (use your Linear issue-writing command).
 
 ## Rules
 
@@ -15,6 +15,7 @@ Use this skill when beginning implementation work tied to GitHub issues.
 - PR title format: `AL-123: <issue title>`.
 - PR body must include `fixes AL-###` for each issue.
 - If using Nia (MCP) for repo context, scope queries to `Asymmetric-al/core` (see `AGENTS.md#nia-mcp-usage-always-repo-scoped`).
+- When reporting evidence, cite exact file paths (in backticks) and specific symbols (functions/components). When quoting code, use Cursor code citations (`startLine:endLine:filepath`).
 
 ## Workflow
 
@@ -22,12 +23,13 @@ Use this skill when beginning implementation work tied to GitHub issues.
    - Run: `git status`, `git checkout develop`, `git pull origin develop`.
    - If working tree is dirty, stop and ask to commit/stash first.
 2. **Validate issue keys:** Each key must match `^AL-\d+$`.
-3. **Fetch issue details:** Use GitHub MCP to find each issue and capture title/body.
+3. **Fetch issue details:** Use Linear MCP to find each issue and capture title/body.
    - If multiple matches, list candidates and ask the user to choose.
 4. **Create branch:** Derive from the primary issue title.
    - If branch exists locally/remotely, stop and ask whether to use it.
 5. **Push branch:** `git push -u origin <branch>`.
-6. **Create draft PR:** Prefer GitHub MCP; fall back to `gh` only if confirmed.
+6. **Create draft PR (GitHub):** Prefer `gh` (GitHub CLI), fallback to GitHub MCP.
+   - Ensure the PR is linked back to the Linear issue(s), and the PR body includes the required `fixes AL-###` lines.
 7. **Report next steps:** Share branch name and PR URL.
 
 ## Checklists
@@ -58,7 +60,7 @@ fixes AL-123
 fixes AL-124
 ```
 
-### Draft PR (gh)
+### Draft PR (GitHub, via `gh`)
 
 ```bash
 gh pr create --draft --base develop --title "AL-123: ISSUE_TITLE" --body "PASTE_PR_BODY_HERE"
