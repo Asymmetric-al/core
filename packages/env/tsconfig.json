@@ -1,13 +1,5 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
-  "compilerOptions": {
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "strict": true,
-    "noEmit": true,
-    "skipLibCheck": true
-  },
-  "include": ["./**/*.ts"],
+  "extends": "@asym/typescript-config/library-transitional.json",
+  "include": ["**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }
