@@ -1,7 +1,42 @@
 # @asym/env
 
-This workspace is a placeholder to satisfy the root workspace contract entry `packages/env`.
+Shared environment schema package for Asymmetric.al. This package defines the typed `createEnv` contract for variables listed in `.env.example` and exports a validated `env` object for workspace consumers.
 
-Real per-app environment schemas/configuration will be implemented in T6.
+## Import Example
 
-This placeholder exists so the root `package.json` workspace entry remains valid until T6 lands.
+```ts
+import { env } from "@asym/env";
+
+const url = env.NEXT_PUBLIC_SUPABASE_URL;
+```
+
+## Required Vars
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+All other variables from `.env.example` are modeled in `packages/env/src/schema.ts` as optional unless otherwise noted by feature-specific docs.
+
+## Migration Policy
+
+| Change                    | Required updates                                                                      | Notes                                                      |
+| ------------------------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Add env var               | Update `.env.example`, add schema entry, add `runtimeEnv` mapping, update README/docs | Choose `server` vs `client` based on `NEXT_PUBLIC_` prefix |
+| Change validation         | Update `packages/env/src/schema.ts` and docs                                          | Keep changes backwards-compatible when possible            |
+| Remove env var            | Remove from `.env.example`, schema, and `runtimeEnv`; document migration              | Coordinate app/package cleanup before removal              |
+| Make optional -> required | Update schema + required list + contributor docs                                      | Treat as breaking for local setup/CI expectations          |
+| Make required -> optional | Update schema + required list + docs                                                  | Confirm fallback behavior in consuming code                |
+
+## Add a New Env Var
+
+1. Add the variable to `.env.example` with a safe placeholder/default.
+2. Add the variable to `server` or `client` in `packages/env/src/schema.ts`.
+3. Add the variable to `runtimeEnv` in `packages/env/src/schema.ts`.
+4. Update this README and any feature docs that depend on it.
+5. Run `bun run --filter @asym/env typecheck` and `bun run --filter @asym/env lint`.
+
+## Skip Validation In Tests
+
+```bash
+SKIP_ENV_VALIDATION=1 bun test
+```

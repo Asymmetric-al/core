@@ -1,0 +1,91 @@
+import { createEnv } from "@t3-oss/env-nextjs";
+import { z } from "zod";
+
+const optionalBoolean = z
+  .enum(["true", "false"])
+  .optional()
+  .transform((value) => value === "true");
+
+export const env = createEnv({
+  server: {
+    SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
+    SUPABASE_DB_URL: z.string().optional(),
+    DEMO_ADMIN_EMAIL: z.string().optional(),
+    DEMO_MISSIONARY_EMAIL: z.string().optional(),
+    DEMO_DONOR_EMAIL: z.string().optional(),
+    DEMO_PASSWORD: z.string().optional(),
+    ALLOW_DEMO_ACCOUNTS: optionalBoolean,
+    CRON_SECRET: z.string().optional(),
+    STRIPE_SECRET_KEY: z.string().optional(),
+    CLOUDINARY_API_SECRET: z.string().optional(),
+    PLAYWRIGHT_BASE_URL: z.string().optional(),
+    VERIFY_E2E_PROJECTS: z.string().optional(),
+    GOOGLE_SITE_VERIFICATION: z.string().optional(),
+    BING_SITE_VERIFICATION: z.string().optional(),
+  },
+  client: {
+    NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
+    NEXT_PUBLIC_SITE_URL: z.string().optional(),
+    NEXT_PUBLIC_MAIN_DOMAIN: z.string().optional(),
+    NEXT_PUBLIC_APP_VERSION: z.string().optional(),
+    NEXT_PUBLIC_BUILD_DATE: z.string().optional(),
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
+    NEXT_PUBLIC_UNLAYER_PROJECT_ID: z.string().optional(),
+    NEXT_PUBLIC_UNLAYER_WHITE_LABEL: optionalBoolean,
+    NEXT_PUBLIC_UNLAYER_ALLOWED_DOMAINS: z.string().optional(),
+    NEXT_PUBLIC_BRAND_NAME: z.string().optional(),
+    NEXT_PUBLIC_BRAND_LOGO_URL: z.string().optional(),
+    NEXT_PUBLIC_BRAND_PRIMARY_COLOR: z.string().optional(),
+    NEXT_PUBLIC_BRAND_ACCENT_COLOR: z.string().optional(),
+    NEXT_PUBLIC_EMAIL_FOOTER_TEXT: z.string().optional(),
+    NEXT_PUBLIC_PDF_FOOTER_TEXT: z.string().optional(),
+    NEXT_PUBLIC_CLOUDINARY_ENABLED: optionalBoolean,
+    NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: z.string().optional(),
+    NEXT_PUBLIC_CLOUDINARY_API_KEY: z.string().optional(),
+    NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
+  },
+  runtimeEnv: {
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    SUPABASE_DB_URL: process.env.SUPABASE_DB_URL,
+    DEMO_ADMIN_EMAIL: process.env.DEMO_ADMIN_EMAIL,
+    DEMO_MISSIONARY_EMAIL: process.env.DEMO_MISSIONARY_EMAIL,
+    DEMO_DONOR_EMAIL: process.env.DEMO_DONOR_EMAIL,
+    DEMO_PASSWORD: process.env.DEMO_PASSWORD,
+    ALLOW_DEMO_ACCOUNTS: process.env.ALLOW_DEMO_ACCOUNTS,
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+    NEXT_PUBLIC_MAIN_DOMAIN: process.env.NEXT_PUBLIC_MAIN_DOMAIN,
+    NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION,
+    NEXT_PUBLIC_BUILD_DATE: process.env.NEXT_PUBLIC_BUILD_DATE,
+    CRON_SECRET: process.env.CRON_SECRET,
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
+      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
+    NEXT_PUBLIC_UNLAYER_PROJECT_ID: process.env.NEXT_PUBLIC_UNLAYER_PROJECT_ID,
+    NEXT_PUBLIC_UNLAYER_WHITE_LABEL:
+      process.env.NEXT_PUBLIC_UNLAYER_WHITE_LABEL,
+    NEXT_PUBLIC_UNLAYER_ALLOWED_DOMAINS:
+      process.env.NEXT_PUBLIC_UNLAYER_ALLOWED_DOMAINS,
+    NEXT_PUBLIC_BRAND_NAME: process.env.NEXT_PUBLIC_BRAND_NAME,
+    NEXT_PUBLIC_BRAND_LOGO_URL: process.env.NEXT_PUBLIC_BRAND_LOGO_URL,
+    NEXT_PUBLIC_BRAND_PRIMARY_COLOR:
+      process.env.NEXT_PUBLIC_BRAND_PRIMARY_COLOR,
+    NEXT_PUBLIC_BRAND_ACCENT_COLOR: process.env.NEXT_PUBLIC_BRAND_ACCENT_COLOR,
+    NEXT_PUBLIC_EMAIL_FOOTER_TEXT: process.env.NEXT_PUBLIC_EMAIL_FOOTER_TEXT,
+    NEXT_PUBLIC_PDF_FOOTER_TEXT: process.env.NEXT_PUBLIC_PDF_FOOTER_TEXT,
+    NEXT_PUBLIC_CLOUDINARY_ENABLED: process.env.NEXT_PUBLIC_CLOUDINARY_ENABLED,
+    NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME:
+      process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+    NEXT_PUBLIC_CLOUDINARY_API_KEY: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
+    CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
+    NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
+    PLAYWRIGHT_BASE_URL: process.env.PLAYWRIGHT_BASE_URL,
+    VERIFY_E2E_PROJECTS: process.env.VERIFY_E2E_PROJECTS,
+    GOOGLE_SITE_VERIFICATION: process.env.GOOGLE_SITE_VERIFICATION,
+    BING_SITE_VERIFICATION: process.env.BING_SITE_VERIFICATION,
+  },
+  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
+  emptyStringAsUndefined: true,
+});
