@@ -1,8 +1,9 @@
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+
 import {
   PageHeaderSkeleton,
   TableSkeleton,
 } from "@/features/mission-control/components/patterns/skeletons";
-import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 
 export default function Loading() {
   return (

@@ -1,7 +1,19 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Card } from "@asym/ui/components/shadcn/card";
+import { DataTableWrapper } from "@asym/ui/components/shadcn/data-table/data-table-wrapper";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { FilterBar } from "@asym/ui/components/shadcn/filter-bar";
+import { PageShell } from "@asym/ui/components/shadcn/page-shell";
+import { Tabs, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Plus,
   CheckSquare,
@@ -11,31 +23,15 @@ import {
   ListFilter,
   CircleCheckBig,
 } from "lucide-react";
+import { motion } from "motion/react";
+import { useState, useMemo, useCallback } from "react";
 
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
-import { Card, CardContent } from "@asym/ui/components/shadcn/card";
-import { Tabs, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuCheckboxItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-} from "@asym/ui/components/shadcn/dropdown-menu";
-import { PageShell } from "@asym/ui/components/shadcn/page-shell";
-import { FilterBar } from "@asym/ui/components/shadcn/filter-bar";
-import { DataTableWrapper } from "@asym/ui/components/shadcn/data-table/data-table-wrapper";
-import { cn } from "@asym/ui/lib/utils";
-
-import type { Task, TaskStatus } from "./types";
-import { getPriorityConfig, getStatusConfig } from "./types";
 import { MOCK_TASKS, MOCK_STAFF, MOCK_LINKED_ENTITIES } from "./data";
 import { getTaskColumns } from "./task-columns";
 import { TaskDrawer } from "./task-drawer";
 import { TaskForm } from "./task-form";
+
+import type { Task, TaskStatus } from "./types";
 
 const springTransition = {
   type: "spring" as const,

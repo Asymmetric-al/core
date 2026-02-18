@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
 import {
   getAuthContext,
   requireRole,
   type AuthenticatedContext,
 } from "@asym/auth/context";
-import { createAuditLogger } from "@asym/lib/audit/logger";
 import { getAdminClient } from "@asym/database/supabase/admin";
+import { createAuditLogger } from "@asym/lib/audit/logger";
+import { type NextRequest, NextResponse } from "next/server";
 
 export async function PATCH(
   request: NextRequest,
@@ -52,7 +52,9 @@ export async function PATCH(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const updateData: any = { updated_at: new RegExp("now()") };
+    const updateData: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
+    };
     if (content !== undefined) updateData.content = content.trim();
     if (media !== undefined) updateData.media = media;
     if (status !== undefined) updateData.status = status;

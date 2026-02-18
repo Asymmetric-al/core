@@ -1,8 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
+
 import { cn } from "@asym/ui/lib/utils";
+
 import { Checkbox } from "../../checkbox";
+
 import type { CheckboxCellProps } from "./types";
 
 export function CheckboxCell<TData>({

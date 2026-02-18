@@ -1,10 +1,41 @@
-import { NextRequest, NextResponse } from "next/server";
 import {
   getAuthContext,
   requireAuth,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
+import { type NextRequest, NextResponse } from "next/server";
+
+interface FollowerRequestRow {
+  id: string;
+  donor_id: string;
+  status: string;
+  access_level: string | null;
+  created_at: string;
+  donor:
+    | {
+        name?: string | null;
+        avatar_url?: string | null;
+        total_given?: number | null;
+      }[]
+    | {
+        name?: string | null;
+        avatar_url?: string | null;
+        total_given?: number | null;
+      }
+    | null;
+}
+
+function resolveDonor(donor: FollowerRequestRow["donor"]): {
+  name?: string | null;
+  avatar_url?: string | null;
+  total_given?: number | null;
+} | null {
+  if (Array.isArray(donor)) {
+    return donor[0] ?? null;
+  }
+  return donor ?? null;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -60,17 +91,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const formattedRequests = (requests || []).map((req: any) => ({
-      id: req.id,
-      donor_id: req.donor_id,
-      name: req.donor?.name || "Unknown Donor",
-      avatar_url: req.donor?.avatar_url,
-      is_donor: (req.donor?.total_given || 0) > 0,
-      access_level: req.access_level,
-      status: req.status,
-      created_at: req.created_at,
-      initials: getInitials(req.donor?.name || "Unknown"),
-    }));
+    const requestRows = (requests || []) as FollowerRequestRow[];
+    const formattedRequests = requestRows.map((req) => {
+      const donor = resolveDonor(req.donor);
+      const donorName = donor?.name || "Unknown Donor";
+
+      return {
+        id: req.id,
+        donor_id: req.donor_id,
+        name: donorName,
+        avatar_url: donor?.avatar_url,
+        is_donor: (donor?.total_given || 0) > 0,
+        access_level: req.access_level,
+        status: req.status,
+        created_at: req.created_at,
+        initials: getInitials(donorName),
+      };
+    });
 
     return NextResponse.json({ requests: formattedRequests });
   } catch (e) {

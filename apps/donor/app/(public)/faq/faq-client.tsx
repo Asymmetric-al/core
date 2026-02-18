@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Plus,
   Minus,
@@ -15,10 +17,10 @@ import {
   Sparkles,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { Input } from "@asym/ui/components/shadcn/input";
-import { Button } from "@asym/ui/components/shadcn/button";
 import Link from "next/link";
-import { cn } from "@asym/ui/lib/utils";
+import React, { useState, useMemo } from "react";
+
+import type { LucideIcon } from "lucide-react";
 
 type Category = "General" | "Financials" | "Donations" | "Partners" | "Account";
 
@@ -123,7 +125,7 @@ const CategoryButton = ({
   active: boolean;
   onClick: () => void;
   label: string;
-  icon: any;
+  icon: LucideIcon;
 }) => (
   <button
     onClick={onClick}

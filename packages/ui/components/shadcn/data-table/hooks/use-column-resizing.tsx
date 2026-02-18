@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState, useEffect } from "react";
+
 import type { ColumnSizingState, Table, Header } from "@tanstack/react-table";
 
 export interface ColumnResizingOptions {

@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { createBrowserClient } from "@asym/database/supabase";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
@@ -13,8 +11,10 @@ import {
 } from "@asym/ui/components/shadcn/card";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
-import { createBrowserClient } from "@asym/database/supabase";
 import { Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -74,8 +74,9 @@ export default function LoginPage() {
 
       router.push("/donor-dashboard");
       router.refresh();
-    } catch (e: any) {
-      setError(e.message || "Demo login unavailable");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Demo login unavailable";
+      setError(message);
     } finally {
       setLoading(false);
     }

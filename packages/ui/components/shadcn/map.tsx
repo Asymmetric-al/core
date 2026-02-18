@@ -91,30 +91,50 @@ export function Map({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<maplibregl.Map | null>(null);
   const hasInitializedRef = useRef(false);
+  const onLoadRef = useRef(onLoad);
+  const onClickRef = useRef(onClick);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapInstance, setMapInstance] = useState<maplibregl.Map | null>(null);
   const { resolvedTheme } = useTheme();
 
   const lightStyle = styles?.light ?? STYLES.light;
   const darkStyle = styles?.dark ?? STYLES.dark;
+  const initialMapConfigRef = useRef<{
+    styleUrl: string;
+    center: [number, number];
+    zoom: number;
+  } | null>(null);
+
+  if (!initialMapConfigRef.current) {
+    const currentTheme = resolvedTheme === "dark" ? "dark" : "light";
+    initialMapConfigRef.current = {
+      styleUrl: currentTheme === "dark" ? darkStyle : lightStyle,
+      center: initialViewState
+        ? [initialViewState.longitude, initialViewState.latitude]
+        : (center ?? [0, 20]),
+      zoom: initialViewState?.zoom ?? zoom ?? 2,
+    };
+  }
+
+  useEffect(() => {
+    onLoadRef.current = onLoad;
+  }, [onLoad]);
+
+  useEffect(() => {
+    onClickRef.current = onClick;
+  }, [onClick]);
 
   useEffect(() => {
     if (hasInitializedRef.current || !containerRef.current) return;
-
-    const currentTheme = resolvedTheme === "dark" ? "dark" : "light";
-    const styleUrl = currentTheme === "dark" ? darkStyle : lightStyle;
-
-    const mapCenter: [number, number] = initialViewState
-      ? [initialViewState.longitude, initialViewState.latitude]
-      : (center ?? [0, 20]);
-    const mapZoom = initialViewState?.zoom ?? zoom ?? 2;
+    const initialConfig = initialMapConfigRef.current;
+    if (!initialConfig) return;
 
     try {
       const map = new maplibregl.Map({
         container: containerRef.current,
-        style: styleUrl,
-        center: mapCenter,
-        zoom: mapZoom,
+        style: initialConfig.styleUrl,
+        center: initialConfig.center,
+        zoom: initialConfig.zoom,
         attributionControl: false,
       });
 
@@ -125,7 +145,7 @@ export function Map({
         if (!mapInstanceRef.current) return;
         setMapInstance(mapInstanceRef.current);
         setMapLoaded(true);
-        onLoad?.(map);
+        onLoadRef.current?.(map);
       };
 
       if (map.loaded()) {
@@ -139,9 +159,7 @@ export function Map({
         setMapLoaded(true);
       });
 
-      if (onClick) {
-        map.on("click", onClick);
-      }
+      map.on("click", (e) => onClickRef.current?.(e));
     } catch (error) {
       console.error("Failed to initialize map:", error);
       setMapLoaded(true);
@@ -156,7 +174,6 @@ export function Map({
       setMapLoaded(false);
       setMapInstance(null);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -253,7 +270,6 @@ export function MapMarker({
       .setLngLat([longitude, latitude])
       .addTo(map);
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMarker(m);
     setElement(el);
 
@@ -315,7 +331,7 @@ export function MarkerPopup({
     if (!marker) return;
 
     const el = document.createElement("div");
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+
     setContainer(el);
 
     const popup = new maplibregl.Popup({
@@ -531,9 +547,12 @@ export function MapControls({
   const handleFullscreen = useCallback(() => {
     const el = map?.getContainer();
     if (!el) return;
-    document.fullscreenElement
-      ? document.exitFullscreen()
-      : el.requestFullscreen();
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+      return;
+    }
+
+    el.requestFullscreen();
   }, [map]);
 
   if (!isLoaded) return null;

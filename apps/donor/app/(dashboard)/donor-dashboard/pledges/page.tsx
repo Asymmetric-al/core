@@ -1,6 +1,40 @@
 "use client";
 
-import React, { useState } from "react";
+import { formatCurrency } from "@asym/lib/utils";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Card, CardContent } from "@asym/ui/components/shadcn/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@asym/ui/components/shadcn/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Label } from "@asym/ui/components/shadcn/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@asym/ui/components/shadcn/select";
+import { Separator } from "@asym/ui/components/shadcn/separator";
+import { Switch } from "@asym/ui/components/shadcn/switch";
+import { cn } from "@asym/ui/lib/utils";
+import { format, addMonths } from "date-fns";
 import {
   CreditCard,
   MoreHorizontal,
@@ -21,45 +55,12 @@ import {
   Check,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { format, addMonths } from "date-fns";
-import { Card, CardContent } from "@asym/ui/components/shadcn/card";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Input } from "@asym/ui/components/shadcn/input";
-import { Label } from "@asym/ui/components/shadcn/label";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@asym/ui/components/shadcn/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from "@asym/ui/components/shadcn/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@asym/ui/components/shadcn/dropdown-menu";
-import { Separator } from "@asym/ui/components/shadcn/separator";
-import { Switch } from "@asym/ui/components/shadcn/switch";
-import { cn } from "@asym/ui/lib/utils";
-import { formatCurrency } from "@asym/lib/utils";
+import React, { useState } from "react";
 
 // --- Types & Mock Data ---
 
 type PledgeStatus = "Active" | "Paused" | "Processing" | "Failed";
+type PledgeFrequency = "Monthly" | "Quarterly" | "Annually";
 
 interface PaymentMethod {
   id: string;
@@ -75,7 +76,7 @@ interface Pledge {
   recipientCategory: string;
   recipientAvatar: string;
   amount: number;
-  frequency: "Monthly" | "Quarterly" | "Annually";
+  frequency: PledgeFrequency;
   nextChargeDate: string; // ISO Date
   status: PledgeStatus;
   paymentMethodId: string;
@@ -146,6 +147,9 @@ const MOCK_PLEDGES: Pledge[] = [
   },
 ];
 
+const isPledgeFrequency = (value: string): value is PledgeFrequency =>
+  value === "Monthly" || value === "Quarterly" || value === "Annually";
+
 // --- Components ---
 
 export default function DonorPledgesPage() {
@@ -156,8 +160,8 @@ export default function DonorPledgesPage() {
   const [editingPledge, setEditingPledge] = useState<Pledge | null>(null);
   const [editForm, setEditForm] = useState<{
     amount: number;
-    frequency: string;
-  }>({ amount: 0, frequency: "" });
+    frequency: PledgeFrequency;
+  }>({ amount: 0, frequency: "Monthly" });
 
   // --- Move/Swap State ---
   const [movingPledge, setMovingPledge] = useState<Pledge | null>(null);
@@ -224,7 +228,7 @@ export default function DonorPledgesPage() {
         return {
           ...p,
           amount: editForm.amount,
-          frequency: editForm.frequency as any,
+          frequency: editForm.frequency,
         };
       }
       return p;
@@ -636,7 +640,12 @@ export default function DonorPledgesPage() {
                       <Select
                         value={editForm.frequency}
                         onValueChange={(v) =>
-                          setEditForm({ ...editForm, frequency: v })
+                          setEditForm((prev) => ({
+                            ...prev,
+                            frequency: isPledgeFrequency(v)
+                              ? v
+                              : prev.frequency,
+                          }))
                         }
                       >
                         <SelectTrigger className="bg-white shadow-sm h-11 border-zinc-200 rounded-lg text-xs font-bold uppercase">

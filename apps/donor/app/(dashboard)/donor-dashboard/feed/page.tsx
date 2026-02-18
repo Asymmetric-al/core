@@ -1,7 +1,22 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import Image from "next/image";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Heart,
   MessageCircle,
@@ -21,23 +36,8 @@ import {
   CornerDownRight,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Input } from "@asym/ui/components/shadcn/input";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-} from "@asym/ui/components/shadcn/dropdown-menu";
-import { cn } from "@asym/ui/lib/utils";
+import Image from "next/image";
+import React, { useState, useMemo } from "react";
 
 // --- Types ---
 type ContentType = "Update" | "Prayer" | "Story" | "Video";
@@ -366,7 +366,7 @@ const PostActions = ({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             {typeof navigator !== "undefined" &&
-              typeof (navigator as any).share === "function" && (
+              typeof navigator.share === "function" && (
                 <DropdownMenuItem onClick={handleNativeShare}>
                   <Share2 className="mr-2 h-4 w-4" /> Share via...
                 </DropdownMenuItem>

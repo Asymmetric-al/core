@@ -163,7 +163,7 @@ class CreateUserRequest:
 
 @dataclass
 class CreateUserResponse:
-    user: User
+    user: Optional[User]
     success: bool
     error: Optional[str] = None
 
@@ -257,8 +257,9 @@ class PostgresUserRepository(IUserRepository):
         )
 
 # adapters/controllers/user_controller.py
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from use_cases.create_user import CreateUserUseCase, CreateUserRequest
+from adapters.repositories.user_repository import PostgresUserRepository
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -266,6 +267,11 @@ router = APIRouter()
 class CreateUserDTO(BaseModel):
     email: str
     name: str
+
+def get_create_user_use_case(request: Request) -> CreateUserUseCase:
+    """FastAPI dependency provider for CreateUserUseCase."""
+    repository = PostgresUserRepository(request.app.state.db_pool)
+    return CreateUserUseCase(user_repository=repository)
 
 @router.post("/users")
 async def create_user(
@@ -286,6 +292,8 @@ async def create_user(
 
 ```python
 # Core domain (hexagon center)
+import asyncio
+
 class OrderService:
     """Domain service - no infrastructure dependencies."""
 
@@ -350,10 +358,12 @@ class StripePaymentAdapter(PaymentGatewayPort):
 
     async def charge(self, amount: Money, customer: str) -> PaymentResult:
         try:
-            charge = self.stripe.Charge.create(
+            # Stripe Python client call is synchronous; run it off the event loop.
+            charge = await asyncio.to_thread(
+                self.stripe.Charge.create,
                 amount=amount.cents,
                 currency=amount.currency,
-                customer=customer
+                customer=customer,
             )
             return PaymentResult(success=True, transaction_id=charge.id)
         except stripe.error.CardError as e:
@@ -412,7 +422,13 @@ class Order:
 
     def total(self) -> Money:
         """Calculated property."""
-        return sum(item.subtotal() for item in self.items)
+        if not self.items:
+            raise ValueError("Cannot calculate total for empty order")
+
+        total = self.items[0].subtotal()
+        for item in self.items[1:]:
+            total = total.add(item.subtotal())
+        return total
 
     def submit(self):
         """State transition with business rules."""

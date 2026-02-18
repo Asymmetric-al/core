@@ -1,5 +1,21 @@
 "use client";
 
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { cn } from "@asym/ui/lib/utils";
 import { type ColumnDef } from "@tanstack/react-table";
 import {
   MoreHorizontal,
@@ -9,27 +25,15 @@ import {
   MessageSquare,
   CheckSquare,
   FileText,
-  Clock,
   Calendar,
   Bell,
   AlertCircle,
   Check,
 } from "lucide-react";
 
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@asym/ui/components/shadcn/dropdown-menu";
-import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
-import { cn } from "@asym/ui/lib/utils";
-import type { Task, TaskType, TaskPriority, TaskStatus } from "./types";
 import { getPriorityConfig, getStatusConfig } from "./types";
+
+import type { Task, TaskType, TaskPriority, TaskStatus } from "./types";
 
 const TYPE_ICONS: Record<
   TaskType,

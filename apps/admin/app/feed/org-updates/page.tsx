@@ -1,8 +1,54 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from "react";
-import Image from "next/image";
-import Link from "next/link";
+import { TimeAgo, useLastSynced } from "@asym/lib/hooks";
+import {
+  BrandAvatar,
+  BrandLogo,
+  brandConfig,
+} from "@asym/ui/components/brand-logo";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@asym/ui/components/shadcn/alert-dialog";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { Label } from "@asym/ui/components/shadcn/label";
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@asym/ui/components/shadcn/radio-group";
+import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
+import { Separator } from "@asym/ui/components/shadcn/separator";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@asym/ui/components/shadcn/sheet";
+import { Switch } from "@asym/ui/components/shadcn/switch";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@asym/ui/components/shadcn/tabs";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Send,
   Globe,
@@ -22,62 +68,16 @@ import {
   ExternalLink,
   Save,
   Bell,
-  UserPlus,
   Check,
 } from "lucide-react";
 import { motion, AnimatePresence, LayoutGroup } from "motion/react";
-import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Switch } from "@asym/ui/components/shadcn/switch";
-import { Label } from "@asym/ui/components/shadcn/label";
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from "@asym/ui/components/shadcn/tabs";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@asym/ui/components/shadcn/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
-} from "@asym/ui/components/shadcn/sheet";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@asym/ui/components/shadcn/alert-dialog";
-import { Separator } from "@asym/ui/components/shadcn/separator";
-import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
-import {
-  RadioGroup,
-  RadioGroupItem,
-} from "@asym/ui/components/shadcn/radio-group";
-import { cn } from "@asym/ui/lib/utils";
-import { toast } from "sonner";
 import dynamic from "next/dynamic";
+import Image from "next/image";
+import Link from "next/link";
+import React, { useCallback, useState } from "react";
+import { toast } from "sonner";
+
 import { PageHeader } from "@/components/page-header";
-import { TimeAgo, useLastSynced } from "@asym/lib/hooks";
-import {
-  BrandAvatar,
-  BrandLogo,
-  brandConfig,
-} from "@asym/ui/components/brand-logo";
 
 type OrgPostVisibility = "all_donors" | "followers_only";
 type Visibility = "public" | "partners" | "private";
@@ -1028,7 +1028,7 @@ export default function OrgUpdatesPage() {
   const [posts, setPosts] = useState<OrgPost[]>(MOCK_ORG_POSTS);
   const [drafts, setDrafts] = useState<OrgPost[]>(MOCK_DRAFTS);
   const [activeTab, setActiveTab] = useState<PostStatus>("published");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, _setIsLoading] = useState(false);
   const [editingPost, setEditingPost] = useState<OrgPost | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState<string | null>(null);

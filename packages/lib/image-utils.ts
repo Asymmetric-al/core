@@ -32,8 +32,12 @@ export interface ImageValidationResult {
 
 export function validateImageFile(file: File): ImageValidationResult {
   const extension = "." + file.name.split(".").pop()?.toLowerCase();
-  const isValidExtension = ALLOWED_EXTENSIONS.includes(extension as any);
-  const isValidMime = ALLOWED_IMAGE_TYPES.includes(file.type as any);
+  const isValidExtension = (ALLOWED_EXTENSIONS as readonly string[]).includes(
+    extension,
+  );
+  const isValidMime = (ALLOWED_IMAGE_TYPES as readonly string[]).includes(
+    file.type,
+  );
 
   if (!isValidMime && !isValidExtension) {
     return {

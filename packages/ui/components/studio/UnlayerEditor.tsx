@@ -1,26 +1,6 @@
 "use client";
 
 import {
-  useRef,
-  useCallback,
-  useState,
-  forwardRef,
-  useImperativeHandle,
-  useMemo,
-  useEffect,
-  useId,
-  useSyncExternalStore,
-} from "react";
-import dynamic from "next/dynamic";
-import type { EditorRef, EmailEditorProps, Editor } from "react-email-editor";
-import type {
-  UnlayerDesignJSON,
-  UnlayerExportHTML,
-  UnlayerOptions,
-  UnlayerMergeTags,
-  UnlayerAppearance,
-} from "@asym/email/email-studio-types";
-import {
   getEmailStudioConfig,
   getUnlayerAccountConfig,
   DEFAULT_APPEARANCE,
@@ -33,9 +13,31 @@ import {
   DEFAULT_PDF_MERGE_TAGS,
   type PDFStudioFullConfig,
 } from "@asym/config/pdf-studio";
-import { cn } from "@asym/ui/lib/utils";
 import { Mail, FileText, Loader2 } from "lucide-react";
+import dynamic from "next/dynamic";
+import {
+  useRef,
+  useCallback,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+  useMemo,
+  useEffect,
+  useId,
+  useSyncExternalStore,
+} from "react";
+
 import { Progress } from "@asym/ui/components/shadcn/progress";
+import { cn } from "@asym/ui/lib/utils";
+
+import type {
+  UnlayerDesignJSON,
+  UnlayerExportHTML,
+  UnlayerOptions,
+  UnlayerMergeTags,
+  UnlayerAppearance,
+} from "@asym/email/email-studio-types";
+import type { EditorRef, EmailEditorProps, Editor } from "react-email-editor";
 
 type StudioConfig = EmailStudioFullConfig | PDFStudioFullConfig;
 

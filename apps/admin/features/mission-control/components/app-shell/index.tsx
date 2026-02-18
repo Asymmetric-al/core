@@ -1,8 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Avatar, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@asym/ui/components/shadcn/sheet";
+import { cn } from "@asym/ui/lib/utils";
 import {
   LayoutDashboard,
   Users,
@@ -26,23 +40,9 @@ import {
   Settings,
   CheckSquare,
 } from "lucide-react";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@asym/ui/components/shadcn/sheet";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@asym/ui/components/shadcn/dropdown-menu";
-import { Avatar, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
-import { cn } from "@asym/ui/lib/utils";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 // import Logo from "@asym/ui/components/shadcn-studio/logo";
 // import { DashboardFooter } from "@/components/dashboard-footer";
 
@@ -70,7 +70,11 @@ interface AppShellProps {
   breadcrumbs?: { label: string; href?: string }[];
 }
 
-export function AppShell({ children, title, breadcrumbs }: AppShellProps) {
+export function AppShell({
+  children,
+  title: _title,
+  breadcrumbs,
+}: AppShellProps) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 

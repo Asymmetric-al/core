@@ -1,5 +1,3 @@
-import { createSchema, createYoga } from "graphql-yoga";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   getAuthContext,
   requireAuth,
@@ -7,8 +5,11 @@ import {
   type AuthContext,
   type AuthenticatedContext,
 } from "@asym/auth/context";
-import { createAuditLogger } from "@asym/lib/audit/logger";
 import { getAdminClient } from "@asym/database/supabase/admin";
+import { createAuditLogger } from "@asym/lib/audit/logger";
+import { createSchema, createYoga } from "graphql-yoga";
+
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 interface GraphQLContext {
   auth: AuthContext;

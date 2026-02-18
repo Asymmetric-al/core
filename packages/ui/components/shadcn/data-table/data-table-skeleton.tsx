@@ -1,16 +1,13 @@
 "use client";
 
-import type { Table } from "@tanstack/react-table";
 import { Loader2 } from "lucide-react";
 
 import { cn } from "@asym/ui/lib/utils";
+
 import { Skeleton } from "../skeleton";
-import {
-  Table as UITable,
-  TableBody,
-  TableCell,
-  TableRow,
-} from "../table";
+import { Table as UITable, TableBody, TableCell, TableRow } from "../table";
+
+import type { Table } from "@tanstack/react-table";
 
 interface DataTableSkeletonProps<TData> {
   table?: Table<TData>;

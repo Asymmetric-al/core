@@ -1,7 +1,6 @@
 "use client";
 "use no memo";
 
-import * as React from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -20,8 +19,12 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Inbox, LayoutGrid, LayoutList } from "lucide-react";
+import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
+
+import { Button } from "../button";
+import { Checkbox } from "../checkbox";
 import {
   Table,
   TableBody,
@@ -30,20 +33,19 @@ import {
   TableHeader,
   TableRow,
 } from "../table";
-import { Button } from "../button";
-import { Checkbox } from "../checkbox";
-import { DataTableToolbarResponsive } from "./data-table-toolbar-responsive";
-import { DataTablePagination } from "./data-table-pagination";
+import { DataTableCardView } from "./data-table-card-view";
 import { DataTableFloatingBar } from "./data-table-floating-bar";
+import { DataTablePagination } from "./data-table-pagination";
 import {
   DataTableSkeleton,
   DataTableLoadingOverlay,
 } from "./data-table-skeleton";
-import { DataTableCardView } from "./data-table-card-view";
-import { useDataTableKeyboard, getKeyboardNavigationStyles } from "./hooks";
-import type { DataTableFilterField, DataTableConfig } from "./types";
-import type { AdvancedFilterState, FilterFieldDefinition } from "./filters";
+import { DataTableToolbarResponsive } from "./data-table-toolbar-responsive";
 import { createEmptyFilterState, createAdvancedFilterFn } from "./filters";
+import { useDataTableKeyboard, getKeyboardNavigationStyles } from "./hooks";
+
+import type { AdvancedFilterState, FilterFieldDefinition } from "./filters";
+import type { DataTableFilterField, DataTableConfig } from "./types";
 
 type ViewMode = "table" | "card";
 
@@ -239,7 +241,6 @@ export function DataTableResponsive<TData, TValue>({
     );
   }, [data, advancedFilterFn]);
 
-  // eslint-disable-next-line react-hooks/incompatible-library -- "use no memo" directive applied
   const table = useReactTable({
     data: filteredData,
     columns: tableColumns,

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -8,7 +9,20 @@ import {
   CardTitle,
   CardDescription,
 } from "@asym/ui/components/shadcn/card";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { cn } from "@asym/ui/lib/utils";
+import {
+  TrendingUp,
+  DollarSign,
+  Repeat,
+  Activity,
+  Loader2,
+  FileText,
+  Library,
+  X,
+  ClipboardList,
+} from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import React, { useState } from "react";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -19,34 +33,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
-  PieChart,
-  Pie,
-  Cell,
 } from "recharts";
-import { Progress } from "@asym/ui/components/shadcn/progress";
-import { formatCurrency } from "@asym/lib/utils";
-import { cn } from "@asym/ui/lib/utils";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import {
-  ArrowUpRight,
-  ArrowDownRight,
-  TrendingUp,
-  DollarSign,
-  Users,
-  Repeat,
-  Target,
-  Activity,
-  Loader2,
-  FileText,
-  FileDown,
-  Plus,
-  Search,
-  Library,
-  X,
-  ClipboardList,
-} from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
 
 // --- Mock Data ---
 
@@ -65,7 +52,7 @@ const DONATION_DATA = [
   { month: "Dec", amount: 840000 },
 ];
 
-const DONOR_TYPE_DATA = [
+const _DONOR_TYPE_DATA = [
   { name: "Recurring", value: 45 },
   { name: "One-Time", value: 55 },
 ];
@@ -79,7 +66,7 @@ const ENGAGEMENT_DATA = [
   { month: "Nov", new: 300, retained: 1750, lapsed: 50 },
 ];
 
-const COLORS = ["#0f172a", "#3b82f6"];
+const _COLORS = ["#0f172a", "#3b82f6"];
 
 export default function MissionControlReports() {
   const [isGenerating, setIsGenerating] = useState(false);

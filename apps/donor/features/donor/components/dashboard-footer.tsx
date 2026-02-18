@@ -1,8 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Fragment } from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -12,6 +9,9 @@ import {
   BreadcrumbSeparator,
 } from "@asym/ui/components/shadcn/breadcrumb";
 import { cn } from "@asym/ui/lib/utils";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Fragment } from "react";
 
 interface BreadcrumbItemData {
   label: string;

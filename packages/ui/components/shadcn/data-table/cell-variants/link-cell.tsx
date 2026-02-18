@@ -1,8 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
 import { ExternalLinkIcon } from "lucide-react";
+import { useMemo } from "react";
+
 import { cn } from "@asym/ui/lib/utils";
+
 import type { LinkCellProps } from "./types";
 
 export function LinkCell<TData>({

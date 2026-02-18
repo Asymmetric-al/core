@@ -1,9 +1,9 @@
 "use client";
 
-import type { Column } from "@tanstack/react-table";
 import { Check, PlusCircle } from "lucide-react";
 
 import { cn } from "@asym/ui/lib/utils";
+
 import { Badge } from "../badge";
 import { Button } from "../button";
 import {
@@ -17,7 +17,9 @@ import {
 } from "../command";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 import { Separator } from "../separator";
+
 import type { DataTableFilterOption } from "./types";
+import type { Column } from "@tanstack/react-table";
 
 interface DataTableFacetedFilterProps<TData, TValue> {
   column?: Column<TData, TValue>;

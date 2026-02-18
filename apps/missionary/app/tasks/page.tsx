@@ -1,22 +1,9 @@
 "use client";
 
-import * as React from "react";
-import { useState, useMemo, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { isToday, isPast } from "date-fns";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Tabs, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
-import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
-import { PageShell } from "@asym/ui/components/shadcn/page-shell";
-import { FilterBar } from "@asym/ui/components/shadcn/filter-bar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
-} from "@asym/ui/components/shadcn/dropdown-menu";
+import { useTasks } from "@asym/lib/hooks";
+import { TaskDialog } from "@asym/missionary/components/task-dialog";
+import { TaskKanbanBoard } from "@asym/missionary/components/task-kanban-board";
+import { TaskRow } from "@asym/missionary/components/task-row";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,6 +14,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@asym/ui/components/shadcn/alert-dialog";
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { FilterBar } from "@asym/ui/components/shadcn/filter-bar";
+import { PageShell } from "@asym/ui/components/shadcn/page-shell";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
+import { cn } from "@asym/ui/lib/utils";
+import { isToday, isPast } from "date-fns";
 import {
   Plus,
   CheckCircle2,
@@ -42,11 +44,10 @@ import {
   LayoutGrid,
   List,
 } from "lucide-react";
-import { cn } from "@asym/ui/lib/utils";
-import { useTasks } from "@asym/lib/hooks";
-import { TaskDialog } from "@asym/missionary/components/task-dialog";
-import { TaskRow } from "@asym/missionary/components/task-row";
-import { TaskKanbanBoard } from "@asym/missionary/components/task-kanban-board";
+import { motion, AnimatePresence } from "motion/react";
+import { useState, useMemo, useEffect } from "react";
+import * as React from "react";
+
 import type {
   Task,
   TaskType,
@@ -234,7 +235,6 @@ export default function TasksPage() {
   );
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

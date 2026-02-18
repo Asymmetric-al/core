@@ -1,20 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-
 import { GithubIcon, MenuIcon, SearchIcon, TwitterIcon } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Separator } from "@asym/ui/components/shadcn/separator";
-
-import MenuDropdown from "../menu-dropdown";
-import MenuNavigation from "../menu-navigation";
-import type { NavigationSection } from "../menu-navigation";
-
 import { cn } from "@asym/ui/lib/utils";
 
 import Logo from "../../logo";
+import MenuDropdown from "../menu-dropdown";
+import MenuNavigation from "../menu-navigation";
+
+import type { NavigationSection } from "../menu-navigation";
 
 type HeaderProps = {
   navigationData: NavigationSection[];

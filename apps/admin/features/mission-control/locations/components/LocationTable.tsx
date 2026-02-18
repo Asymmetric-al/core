@@ -1,6 +1,16 @@
 "use client";
 
-import React from "react";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table/data-table-column-header";
+import { DataTableWrapper } from "@asym/ui/components/shadcn/data-table/data-table-wrapper";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { cn } from "@asym/ui/lib/utils";
 import { type ColumnDef } from "@tanstack/react-table";
 import {
   MoreHorizontal,
@@ -11,23 +21,9 @@ import {
   Trash2,
   Edit2,
 } from "lucide-react";
+import React from "react";
 
-import type {
-  Location,
-  LocationStatus,
-  LocationType,
-} from "../hooks/use-locations";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { DataTableWrapper } from "@asym/ui/components/shadcn/data-table/data-table-wrapper";
-import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table/data-table-column-header";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@asym/ui/components/shadcn/dropdown-menu";
-import { cn } from "@asym/ui/lib/utils";
+import type { Location } from "../hooks/use-locations";
 
 interface LocationTableProps {
   data: Location[];

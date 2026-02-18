@@ -1,8 +1,18 @@
 "use client";
 
-import React, { useState, useMemo, Suspense } from "react";
-import Link from "next/link";
-import { motion, AnimatePresence } from "motion/react";
+import { formatCurrency } from "@asym/lib/utils";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Label } from "@asym/ui/components/shadcn/label";
+import { Separator } from "@asym/ui/components/shadcn/separator";
+import { Switch } from "@asym/ui/components/shadcn/switch";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Check,
   Lock,
@@ -17,21 +27,12 @@ import {
   Activity,
   Shield,
 } from "lucide-react";
-import { getFieldWorkerById } from "@/lib/mock-data";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Input } from "@asym/ui/components/shadcn/input";
-import { Label } from "@asym/ui/components/shadcn/label";
-import { Switch } from "@asym/ui/components/shadcn/switch";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
-import { Separator } from "@asym/ui/components/shadcn/separator";
-import { cn } from "@asym/ui/lib/utils";
-import { formatCurrency } from "@asym/lib/utils";
+import { motion, AnimatePresence } from "motion/react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import React, { useState, useMemo, Suspense } from "react";
+
+import { getFieldWorkerById } from "@/lib/mock-data";
 
 type Step = "config" | "details" | "payment" | "success";
 type Frequency = "one-time" | "monthly";

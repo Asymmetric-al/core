@@ -1,15 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import { Avatar, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
-} from "@asym/ui/components/shadcn/dropdown-menu";
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@asym/ui/components/shadcn/card";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Progress } from "@asym/ui/components/shadcn/progress";
 import {
   Sheet,
   SheetContent,
@@ -17,15 +18,17 @@ import {
   SheetTitle,
   SheetDescription,
   SheetFooter,
-  SheetClose,
 } from "@asym/ui/components/shadcn/sheet";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Input } from "@asym/ui/components/shadcn/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@asym/ui/components/shadcn/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
-import { Progress } from "@asym/ui/components/shadcn/progress";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
-import { Badge } from "@asym/ui/components/shadcn/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@asym/ui/components/shadcn/table";
+import { Tabs, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
+import { cn } from "@asym/ui/lib/utils";
 import {
   MoreHorizontal,
   Search,
@@ -39,19 +42,10 @@ import {
   Mail,
   Phone,
   Calendar,
-  FileText,
-  CheckCircle2,
-  Circle,
 } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@asym/ui/components/shadcn/table";
-import { cn } from "@asym/ui/lib/utils";
+import React, { useState } from "react";
+
+import type { LucideIcon } from "lucide-react";
 
 // --- Types ---
 
@@ -154,7 +148,7 @@ const StatCard = ({
 }: {
   title: string;
   value: number;
-  icon: any;
+  icon: LucideIcon;
   color: string;
 }) => (
   <Card className="border-slate-200 shadow-sm rounded-xl">

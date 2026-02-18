@@ -1,10 +1,10 @@
 {
-  "extends": "@asym/typescript-config/base.json",
+  "extends": "@asym/typescript-config/library.json",
   "compilerOptions": {
     "baseUrl": ".",
     "noUnusedLocals": false,
     "noUnusedParameters": false
   },
   "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "dist"]
 }

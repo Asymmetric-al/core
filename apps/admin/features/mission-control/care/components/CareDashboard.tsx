@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -8,31 +9,30 @@ import {
   CardTitle,
   CardDescription,
 } from "@asym/ui/components/shadcn/card";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Badge } from "@asym/ui/components/shadcn/badge";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Heart,
   Users,
-  ClipboardList,
   AlertTriangle,
   ArrowUpRight,
   Clock,
-  MapPin,
-  Search,
-  Activity,
   ShieldCheck,
-  Zap,
 } from "lucide-react";
-import type { CarePersonnel, ActivityLogEntry } from "../types";
+import React from "react";
+
 import { PersonnelList } from "./PersonnelList";
-import { cn } from "@asym/ui/lib/utils";
+
+import type { CarePersonnel, ActivityLogEntry } from "../types";
 
 interface CareDashboardProps {
   personnel: CarePersonnel[];
   activities: ActivityLogEntry[];
 }
 
-export function CareDashboard({ personnel, activities }: CareDashboardProps) {
+export function CareDashboard({
+  personnel,
+  activities: _activities,
+}: CareDashboardProps) {
   const atRiskCount = personnel.filter(
     (p) => p.status === "At Risk" || p.status === "Crisis",
   ).length;

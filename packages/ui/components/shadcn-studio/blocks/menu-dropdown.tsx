@@ -1,7 +1,5 @@
 "use client";
 
-import type { ReactNode } from "react";
-
 import { ChevronRightIcon, CircleSmallIcon } from "lucide-react";
 
 import {
@@ -16,6 +14,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
+
+import type { ReactNode } from "react";
 
 export type NavigationItem = {
   title: string;

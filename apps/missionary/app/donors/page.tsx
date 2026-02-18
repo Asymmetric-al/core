@@ -1,34 +1,26 @@
 "use client";
 
-import * as React from "react";
-import { motion, AnimatePresence, LayoutGroup } from "motion/react";
-import { Card, CardContent } from "@asym/ui/components/shadcn/card";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Input } from "@asym/ui/components/shadcn/input";
-import { Badge } from "@asym/ui/components/shadcn/badge";
+import { createBrowserClient } from "@asym/database/supabase";
+import { useAuth, useTasks } from "@asym/lib/hooks";
+import { AddPartnerDialog } from "@asym/missionary/components/add-partner-dialog";
+import { TaskDialog } from "@asym/missionary/components/task-dialog";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@asym/ui/components/shadcn/tabs";
-import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
-import { Textarea } from "@asym/ui/components/shadcn/textarea";
-import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
-import { PageHeader } from "@/components/page-header";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@asym/ui/components/shadcn/select";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@asym/ui/components/shadcn/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,13 +31,33 @@ import {
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@asym/ui/components/shadcn/dialog";
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@asym/ui/components/shadcn/form";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@asym/ui/components/shadcn/select";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@asym/ui/components/shadcn/tabs";
+import { Textarea } from "@asym/ui/components/shadcn/textarea";
+import { cn } from "@asym/ui/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format, formatDistanceToNow, differenceInMonths } from "date-fns";
 import {
   Search,
   Filter,
@@ -89,26 +101,15 @@ import {
   Repeat,
   ListTodo,
 } from "lucide-react";
-import { format, formatDistanceToNow, differenceInMonths } from "date-fns";
-import { cn } from "@asym/ui/lib/utils";
-import { useAuth } from "@asym/lib/hooks";
-import { createBrowserClient } from "@asym/database/supabase";
-import { AddPartnerDialog } from "@asym/missionary/components/add-partner-dialog";
-import { TaskDialog } from "@asym/missionary/components/task-dialog";
-import { useTasks } from "@asym/lib/hooks";
-import type { Task } from "@asym/lib/hooks/use-tasks";
-import { toast } from "sonner";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@asym/ui/components/shadcn/form";
+import { motion, AnimatePresence, LayoutGroup } from "motion/react";
+import * as React from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import * as z from "zod";
+
+import type { Task } from "@asym/lib/hooks/use-tasks";
+
+import { PageHeader } from "@/components/page-header";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 10 },
@@ -959,7 +960,10 @@ function DonorTasks({
 
 export default function DonorsPage() {
   const { profile, loading: authLoading } = useAuth();
-  const supabase = React.useMemo(() => createBrowserClient(), []);
+  const supabase = React.useMemo(
+    () => (typeof window === "undefined" ? null : createBrowserClient()),
+    [],
+  );
   const [donors, setDonors] = React.useState<Donor[]>([]);
   const [selectedDonorId, setSelectedDonorId] = React.useState<string | null>(
     null,
@@ -1014,7 +1018,7 @@ export default function DonorsPage() {
   });
 
   const fetchDonors = React.useCallback(async () => {
-    if (!profile?.id) {
+    if (!profile?.id || !supabase) {
       setLoading(false);
       return;
     }
@@ -1110,7 +1114,7 @@ export default function DonorsPage() {
   }, [fetchDonors, authLoading, profile?.id]);
 
   const filteredDonors = React.useMemo(() => {
-    let result = donors.filter((donor) => {
+    const result = donors.filter((donor) => {
       const matchesSearch =
         (donor.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (donor.email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -1186,7 +1190,7 @@ export default function DonorsPage() {
   }, []);
 
   const handleAddNote = React.useCallback(async () => {
-    if (!selectedDonor || !noteInput.trim()) return;
+    if (!selectedDonor || !noteInput.trim() || !supabase) return;
 
     setIsSavingNote(true);
     try {
@@ -1222,7 +1226,7 @@ export default function DonorsPage() {
   }, [selectedDonor, noteInput, activityType, supabase, fetchDonors]);
 
   const handleSaveTags = React.useCallback(async () => {
-    if (!selectedDonor) return;
+    if (!selectedDonor || !supabase) return;
 
     setIsSavingTags(true);
     try {
@@ -1285,7 +1289,7 @@ export default function DonorsPage() {
 
   const handleSaveEdit = React.useCallback(
     async (values: EditDonorFormValues) => {
-      if (!selectedDonor) return;
+      if (!selectedDonor || !supabase) return;
 
       setIsSavingEdit(true);
       try {

@@ -1,8 +1,5 @@
 "use client";
 
-import type { ReactNode } from "react";
-import Link from "next/link";
-
 import {
   UserIcon,
   SettingsIcon,
@@ -12,6 +9,7 @@ import {
   InfoIcon,
   LogOutIcon,
 } from "lucide-react";
+import Link from "next/link";
 
 import {
   Avatar,
@@ -27,6 +25,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
+
+import type { ReactNode } from "react";
 
 type Props = {
   trigger: ReactNode;

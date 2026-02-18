@@ -1,7 +1,14 @@
 "use client";
 
-import React, { useState, useMemo, useEffect, useCallback } from "react";
-import Image from "next/image";
+import { TimeAgo, useLastSynced } from "@asym/lib/hooks";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
 import {
   Carousel,
   CarouselContent,
@@ -9,6 +16,22 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@asym/ui/components/shadcn/carousel";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+} from "@asym/ui/components/shadcn/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@asym/ui/components/shadcn/dropdown-menu";
 import {
   Send,
   MoreHorizontal,
@@ -33,45 +56,25 @@ import {
   ExternalLink,
   Image as ImageIcon,
 } from "@asym/ui/components/shadcn/icons";
-import { motion, AnimatePresence, LayoutGroup } from "motion/react";
-import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
-import { Button } from "@asym/ui/components/shadcn/button";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Switch } from "@asym/ui/components/shadcn/switch";
 import { Label } from "@asym/ui/components/shadcn/label";
+import { Switch } from "@asym/ui/components/shadcn/switch";
 import {
   Tabs,
   TabsList,
   TabsTrigger,
   TabsContent,
 } from "@asym/ui/components/shadcn/tabs";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@asym/ui/components/shadcn/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogTrigger,
-} from "@asym/ui/components/shadcn/dialog";
 import { cn } from "@asym/ui/lib/utils";
-import { toast } from "sonner";
+import { motion, AnimatePresence, LayoutGroup } from "motion/react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
+import { toast } from "sonner";
+
+import type { MediaItem } from "@asym/database/types";
+
 import { PageHeader } from "@/components/page-header";
-import { TimeAgo, useLastSynced } from "@asym/lib/hooks";
 
 const RichTextEditor = dynamic(
   () =>
@@ -136,8 +139,8 @@ interface Post {
   likes_count?: number;
   prayers_count?: number;
   fires_count?: number;
-  comments?: any[];
-  media?: any[];
+  comments?: FeedComment[];
+  media?: MediaItem[];
   isPinned?: boolean;
   visibility: Visibility;
   status: PostStatus;
@@ -150,6 +153,21 @@ interface Post {
     last_name: string;
     avatar_url: string;
   };
+}
+
+interface FeedCommentAuthor {
+  full_name?: string;
+  avatar_url?: string | null;
+}
+
+interface FeedComment {
+  id: string;
+  content: string;
+  created_at: string;
+  avatar?: string | null;
+  author?: FeedCommentAuthor;
+  isWorker?: boolean;
+  replies?: FeedComment[];
 }
 
 const MotionCard = motion.create(Card);
@@ -519,7 +537,7 @@ function CommentSection({
   onDeleteComment,
   canManageComments,
 }: {
-  comments: any[];
+  comments: FeedComment[];
   onAddComment: (text: string, parentId?: string) => void;
   onDeleteComment: (commentId: string, parentId?: string) => void;
   canManageComments: boolean;
@@ -638,7 +656,7 @@ function CommentSection({
                   animate={{ opacity: 1, height: "auto" }}
                   className="ml-8 sm:ml-10 mt-4 space-y-4 pl-4 border-l-2 border-border"
                 >
-                  {comment.replies.map((reply: any, replyIndex: number) => (
+                  {comment.replies.map((reply, replyIndex: number) => (
                     <motion.div
                       key={reply.id}
                       initial={{ opacity: 0, x: -10 }}
@@ -802,6 +820,7 @@ function PostCard({
   const authorAvatar =
     post.author?.avatar_url ||
     "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80";
+  const singleMedia = post.media?.at(0);
 
   return (
     <motion.div
@@ -924,10 +943,10 @@ function PostCard({
                 transition={{ delay: 0.15 }}
                 className="rounded-xl sm:rounded-2xl overflow-hidden border border-border shadow-md group-hover:shadow-lg transition-all duration-500"
               >
-                {post.media.length === 1 ? (
+                {post.media.length === 1 && singleMedia ? (
                   <div className="relative w-full h-auto min-h-[200px] max-h-[400px] sm:max-h-[600px]">
                     <Image
-                      src={post.media[0].url}
+                      src={singleMedia.url}
                       alt="Update"
                       fill
                       className="object-cover"
@@ -937,7 +956,7 @@ function PostCard({
                 ) : (
                   <Carousel className="w-full">
                     <CarouselContent>
-                      {post.media.map((item: any, idx: number) => (
+                      {post.media.map((item, idx: number) => (
                         <CarouselItem key={idx}>
                           <div className="relative w-full h-auto min-h-[200px] max-h-[400px] sm:max-h-[600px]">
                             <Image
@@ -1475,7 +1494,7 @@ export default function MinistryUpdatesPage() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [expandedComments, setExpandedComments] = useState<string | null>(null);
   const [postPrivacy, setPostPrivacy] = useState<Visibility>("public");
-  const [selectedMedia, setSelectedMedia] = useState<any[]>([]);
+  const [selectedMedia, setSelectedMedia] = useState<MediaItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [securityLevel, setSecurityLevel] = useState<SecurityLevel>("medium");
   const [followerRequests, setFollowerRequests] = useState<FollowerRequest[]>(
@@ -1499,6 +1518,11 @@ export default function MinistryUpdatesPage() {
     ];
     const randomImage =
       demoImages[Math.floor(Math.random() * demoImages.length)];
+    if (!randomImage) {
+      setIsUploading(false);
+      toast.error("Failed to upload image");
+      return;
+    }
     setSelectedMedia((prev) => [...prev, { url: randomImage, type: "image" }]);
     setIsUploading(false);
     toast.success("Image uploaded successfully!");
@@ -1593,7 +1617,7 @@ export default function MinistryUpdatesPage() {
         setEditingPostId(null);
         setPostType("Update");
         setSelectedMedia([]);
-      } catch (err) {
+      } catch (_err) {
         toast.error("Failed to save");
       } finally {
         setIsSaving(false);
@@ -1653,7 +1677,7 @@ export default function MinistryUpdatesPage() {
       setPosts((prev) => prev.filter((p) => p.id !== postId));
       setDrafts((prev) => prev.filter((p) => p.id !== postId));
       toast.success("Post deleted");
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to delete");
     }
   };
@@ -1710,7 +1734,7 @@ export default function MinistryUpdatesPage() {
     try {
       const res = await fetch(`/api/posts/${postId}/${endpoint}`, { method });
       if (!res.ok) throw new Error("Failed to update reaction");
-    } catch (err) {
+    } catch (_err) {
       fetchPosts("published");
       fetchPosts("draft");
       toast.error("Failed to update reaction");

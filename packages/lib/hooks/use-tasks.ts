@@ -2,10 +2,11 @@
 // The types should be exported from @asym/lib or defined locally
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { createBrowserClient } from "@asym/database/supabase";
-import { useAuth } from "./use-auth";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { toast } from "sonner";
+
+import { useAuth } from "./use-auth";
 
 // Local type definitions (should match missionary app types)
 export type TaskStatus =

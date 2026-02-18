@@ -12,7 +12,7 @@ export interface CloudinaryUploadResponse {
   url: string;
   secure_url: string;
   folder?: string;
-  context?: any;
+  context?: unknown;
 }
 
 /**

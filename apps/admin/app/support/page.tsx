@@ -1,7 +1,7 @@
 "use client";
 
-import { TilePage } from "@/features/mission-control/components/tiles/tile-page";
 import { getTileById } from "@asym/lib/mission-control/tiles";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -9,18 +9,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Inbox, Users, Tag, Zap, BookOpen, Clock } from "lucide-react";
 import Link from "next/link";
-import {
-  Inbox,
-  Users,
-  Tag,
-  Zap,
-  BookOpen,
-  Clock,
-  AlertCircle,
-} from "lucide-react";
-import { Badge } from "@asym/ui/components/shadcn/badge";
+
+import { TilePage } from "@/features/mission-control/components/tiles/tile-page";
 
 export default function SupportHubPage() {
   const tile = getTileById("support")!;

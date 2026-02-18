@@ -68,8 +68,6 @@ export function useTimeAgo(
 
   useEffect(() => {
     if (!isClient) return;
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- Required for hydration-safe time calculation
     update();
 
     if (updateInterval && updateInterval > 0) {
@@ -108,7 +106,6 @@ export function useLastSynced(): string {
 
   useEffect(() => {
     if (!isClient) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- Required for hydration-safe time display
     setLastSynced(
       new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     );

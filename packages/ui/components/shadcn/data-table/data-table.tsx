@@ -1,7 +1,6 @@
 "use client";
 "use no memo";
 
-import * as React from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -19,8 +18,11 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Inbox } from "lucide-react";
+import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
+
+import { Checkbox } from "../checkbox";
 import {
   Table,
   TableBody,
@@ -29,14 +31,14 @@ import {
   TableHeader,
   TableRow,
 } from "../table";
-import { Checkbox } from "../checkbox";
-import { DataTableToolbar } from "./data-table-toolbar";
-import { DataTablePagination } from "./data-table-pagination";
 import { DataTableActionBar } from "./data-table-action-bar";
+import { DataTablePagination } from "./data-table-pagination";
 import {
   DataTableSkeleton,
   DataTableLoadingOverlay,
 } from "./data-table-skeleton";
+import { DataTableToolbar } from "./data-table-toolbar";
+
 import type { DataTableFilterField, DataTableConfig } from "./types";
 
 interface DataTableProps<TData, TValue> {
@@ -156,7 +158,6 @@ export function DataTable<TData, TValue>({
     return columns;
   }, [columns, enableRowSelection, selectColumn]);
 
-  // eslint-disable-next-line react-hooks/incompatible-library -- "use no memo" directive applied, warning acknowledged
   const table = useReactTable({
     data,
     columns: tableColumns,

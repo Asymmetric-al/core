@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
 import { StarIcon } from "lucide-react";
+import { useState, useCallback } from "react";
+
 import { cn } from "@asym/ui/lib/utils";
+
 import type { RatingCellProps } from "./types";
 
 const sizeClasses = {

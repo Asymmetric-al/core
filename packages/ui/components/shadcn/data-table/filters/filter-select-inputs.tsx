@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
 import { Check, ChevronsUpDown, X } from "lucide-react";
+import { useState, useMemo, useCallback } from "react";
+
 import { cn } from "@asym/ui/lib/utils";
+
 import { Badge } from "../../badge";
 import { Button } from "../../button";
 import {
@@ -13,11 +15,8 @@ import {
   CommandItem,
   CommandList,
 } from "../../command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "../../popover";
+import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
+
 import type {
   FilterFieldDefinition,
   FilterOperator,

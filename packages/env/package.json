@@ -1,0 +1,13 @@
+{
+  "name": "@asym/env",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "exports": {
+    ".": "./index.ts"
+  }
+}

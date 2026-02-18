@@ -4,8 +4,9 @@ import {
   SidebarProvider,
   SidebarInset,
 } from "@asym/ui/components/shadcn/sidebar";
-import { AppSidebar } from "./app-sidebar";
+
 import { AppHeader } from "./app-header";
+import { AppSidebar } from "./app-sidebar";
 import { DashboardFooter } from "./dashboard-footer";
 
 type UserRole = "donor" | "missionary" | "admin";

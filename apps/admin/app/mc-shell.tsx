@@ -1,6 +1,40 @@
 "use client";
 
-import type { ComponentType, ReactNode } from "react";
+import { MCProvider, useMC } from "@asym/lib/mission-control/context";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@asym/ui/components/shadcn/collapsible";
+import { Separator } from "@asym/ui/components/shadcn/separator";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuBadge,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@asym/ui/components/shadcn/sidebar";
+import ActivityDialog from "@asym/ui/components/shadcn-studio/blocks/dialog-activity";
+import SearchDialog from "@asym/ui/components/shadcn-studio/blocks/dialog-search";
+import LanguageDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-language";
+import NotificationDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-notification";
+import ProfileDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-profile";
 import {
   ActivityIcon,
   BellIcon,
@@ -21,46 +55,12 @@ import {
   LifeBuoyIcon,
   ShieldCheckIcon,
 } from "lucide-react";
+import Link from "next/link";
 
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Separator } from "@asym/ui/components/shadcn/separator";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@asym/ui/components/shadcn/collapsible";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuBadge,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@asym/ui/components/shadcn/sidebar";
+import type { ComponentType, ReactNode } from "react";
 
-import SearchDialog from "@asym/ui/components/shadcn-studio/blocks/dialog-search";
-import LanguageDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-language";
-import ActivityDialog from "@asym/ui/components/shadcn-studio/blocks/dialog-activity";
-import NotificationDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-notification";
-import ProfileDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-profile";
-
-import { MCProvider, useMC } from "@asym/lib/mission-control/context";
-import { ThemeProvider } from "@/lib/theme-provider";
 import { ClientOnly } from "@/features/mission-control/components/client-only";
+import { ThemeProvider } from "@/lib/theme-provider";
 
 type MenuSubItem = {
   label: string;
@@ -377,7 +377,7 @@ function ApplicationShell({ children }: { children: ReactNode }) {
                   className="gap-2 sm:gap-2.5 !bg-transparent"
                   asChild
                 >
-                  <a href="/">
+                  <Link href="/">
                     <div className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-lg bg-zinc-900 text-white font-bold text-xs shadow-sm shrink-0">
                       G
                     </div>
@@ -389,7 +389,7 @@ function ApplicationShell({ children }: { children: ReactNode }) {
                         MISSION CONTROL
                       </span>
                     </div>
-                  </a>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

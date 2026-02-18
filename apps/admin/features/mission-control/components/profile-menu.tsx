@@ -1,9 +1,7 @@
 "use client";
 
-import { memo, useCallback, useMemo } from "react";
-import { LogOut, Settings, User, ChevronDown } from "lucide-react";
-import { Button } from "@asym/ui/components/shadcn/button";
 import { Avatar, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,7 +15,11 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@asym/ui/components/shadcn/dropdown-menu";
+import { LogOut, Settings, User, ChevronDown } from "lucide-react";
+import { memo, useCallback, useMemo } from "react";
+
 import { useMC, useRole } from "../context";
+
 import type { Role } from "@asym/config/navigation";
 
 const ROLE_LABELS: Record<Role, string> = {

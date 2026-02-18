@@ -1,6 +1,8 @@
-import type { Metadata } from "next";
 import { pageMetadata } from "@asym/lib/seo";
+
 import { CheckoutPageClient } from "./checkout-client";
+
+import type { Metadata } from "next";
 
 export const metadata: Metadata = pageMetadata.checkout;
 

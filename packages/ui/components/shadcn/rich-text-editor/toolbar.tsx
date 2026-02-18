@@ -1,7 +1,7 @@
 "use client";
 
-import * as React from "react";
-import { Editor } from "@tiptap/react";
+import { createBrowserClient } from "@asym/database/supabase";
+import { type Editor } from "@tiptap/react";
 import {
   Bold,
   Italic,
@@ -14,21 +14,23 @@ import {
   Link as LinkIcon,
   Image as ImageIcon,
 } from "lucide-react";
+import * as React from "react";
+import { toast } from "sonner";
+
+import { cn } from "@asym/ui/lib/utils";
+
+import { Button } from "../button";
+import { Input } from "../input";
+import { Popover, PopoverContent, PopoverTrigger } from "../popover";
+import { Separator } from "../separator";
 import { Toggle } from "../toggle";
 import { ToggleGroup } from "../toggle-group";
-import { Separator } from "../separator";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "../tooltip";
-import { Popover, PopoverContent, PopoverTrigger } from "../popover";
-import { Button } from "../button";
-import { Input } from "../input";
-import { cn } from "@asym/ui/lib/utils";
-import { createBrowserClient } from "@asym/database/supabase";
-import { toast } from "sonner";
 
 interface EditorToolbarProps {
   editor: Editor | null;
@@ -308,9 +310,11 @@ function ImageButton({ editor }: { editor: Editor }) {
 
       editor.chain().focus().setImage({ src: publicUrl }).run();
       toast.success("Image uploaded successfully");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Failed to upload image";
       console.error("Error uploading image:", error);
-      toast.error("Failed to upload image");
+      toast.error(message);
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";

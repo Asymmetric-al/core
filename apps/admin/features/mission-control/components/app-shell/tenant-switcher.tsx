@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, memo } from "react";
-import { Building2, ChevronsUpDown, Check } from "lucide-react";
+import { useMC } from "@asym/lib/mission-control/context";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Command,
@@ -17,7 +16,9 @@ import {
   PopoverTrigger,
 } from "@asym/ui/components/shadcn/popover";
 import { cn } from "@asym/ui/lib/utils";
-import { useMC } from "@asym/lib/mission-control/context";
+import { Building2, ChevronsUpDown, Check } from "lucide-react";
+import { useState, useCallback, useMemo, memo } from "react";
+
 import type { Tenant } from "@asym/lib/mission-control/types";
 
 const STUB_TENANTS: Tenant[] = [

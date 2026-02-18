@@ -1,65 +1,23 @@
-# shadcn/studio MCP — Workflow
+# shadcn Studio MCP Rulebook - DEPRECATED
 
-**Name:** `shadcn-studio-mcp`
-**Purpose:** Enforce the exact step-by-step workflow required by the shadcn/studio MCP server.
-Use this only when running shadcn/studio MCP workflows.
+**This file has been moved to the canonical location.**
 
-**Applies when:** Using shadcn/studio MCP workflows `/cui`, `/rui`, `/iui`, or `/ftc`.
-**Do not use when:** Editing UI manually without shadcn/studio MCP tools.
+**New location:** `docs/ai/rules/shadcn-studio-mcp.md`
 
-**Note:** Nia (MCP) searches must remain repo-scoped to `Asymmetric-al/core` and include the required preamble from `docs/ai/working-set.md` + `docs/ai/stack-registry.md` (see `AGENTS.md#nia-mcp-usage-always-repo-scoped`).
+**Action required:** Update any references to point to `docs/ai/rules/shadcn-studio-mcp.md`
 
-## Workflow
+---
 
-1. Identify which workflow applies: `/cui`, `/rui`, `/iui`, or `/ftc`.
-2. Follow the MCP workflow steps exactly, in order.
-3. Do not add extra tool calls or skip steps.
-4. Do not stop mid-workflow for user confirmation.
+## Why this change?
 
-### Workflow-specific rules
+The AI documentation system now uses `docs/ai/` as the single source of truth to prevent duplicate rulebooks from silently diverging. All rulebooks are now maintained under `docs/ai/rules/*`.
 
-- **/cui (Create UI):**
-  - Collect all blocks first.
-  - Install last.
-  - After install, automatically customize content.
-- **/rui (Refine UI):**
-  - Follow the refine sequence and update existing components only.
-- **/iui (Inspiration UI):**
-  - Follow the inspiration sequence exactly.
-- **/ftc (Figma to code):**
-  - Follow the figma-to-code sequence exactly.
+## Migration path
 
-### Recovery protocol (if you deviate)
+1. Update any bookmarks or references to use `docs/ai/rules/shadcn-studio-mcp.md`
+2. AGENTS.md already routes to the correct location
+3. This deprecation shim will be removed in a future cleanup
 
-1. Stop immediately.
-2. Identify the step you should be on.
-3. Resume from that exact step.
-4. Do not explain the deviation; continue to completion.
+---
 
-## Checklists
-
-### Before starting
-
-- [ ] Confirm the workflow type (`/cui`, `/rui`, `/iui`, `/ftc`)
-- [ ] Commit to following the MCP step order exactly
-
-### Completion checklist
-
-- [ ] All steps executed in order
-- [ ] No extra tool calls
-- [ ] Workflow completed without pauses for confirmation
-
-## Minimal examples
-
-- `/cui Create a hero section for the landing page`
-- `/rui Refine the pricing card layout`
-- `/iui Provide inspiration for a dashboard layout`
-- `/ftc Convert the provided Figma frame`
-
-## Common mistakes / pitfalls
-
-- Skipping or reordering steps
-- Installing before finishing block collection in `/cui`
-- Asking "should I continue?" mid-workflow
-- Adding extra tool calls outside the workflow
-- Stopping before the workflow is complete
+**Canonical location:** [docs/ai/rules/shadcn-studio-mcp.md](../docs/ai/rules/shadcn-studio-mcp.md)

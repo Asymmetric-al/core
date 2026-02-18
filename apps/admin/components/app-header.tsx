@@ -1,16 +1,16 @@
 "use client";
 
-import { Moon, Sun, Bell } from "lucide-react";
-import { useTheme } from "next-themes";
-import { SidebarTrigger } from "@asym/ui/components/shadcn/sidebar";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { Separator } from "@asym/ui/components/shadcn/separator";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
+import { Separator } from "@asym/ui/components/shadcn/separator";
+import { SidebarTrigger } from "@asym/ui/components/shadcn/sidebar";
+import { Moon, Sun, Bell } from "lucide-react";
+import { useTheme } from "next-themes";
 
 interface AppHeaderProps {
   title?: string;

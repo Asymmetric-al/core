@@ -1,12 +1,13 @@
 "use client";
 
+import { Separator } from "@asym/ui/components/shadcn/separator";
 import { memo } from "react";
+
 import { GlobalSearch } from "./app-shell/global-search";
+import { MobileSidebar } from "./mobile-sidebar";
 import { NotificationsMenu } from "./notifications-menu";
 import { ProfileMenu } from "./profile-menu";
 import { TenantSwitcher } from "./tenant-switcher";
-import { MobileSidebar } from "./mobile-sidebar";
-import { Separator } from "@asym/ui/components/shadcn/separator";
 
 export const TopBar = memo(function TopBar() {
   return (

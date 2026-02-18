@@ -1,11 +1,13 @@
 "use client";
 
-import * as React from "react";
 import { Search, X } from "lucide-react";
+import * as React from "react";
+
 import { cn } from "@asym/ui/lib/utils";
-import { Input } from "./input";
-import { Button } from "./button";
+
 import { Badge } from "./badge";
+import { Button } from "./button";
+import { Input } from "./input";
 
 interface FilterBarProps {
   search?: {

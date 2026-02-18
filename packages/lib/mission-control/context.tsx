@@ -1,5 +1,6 @@
 "use client";
 
+import { createBrowserClient } from "@asym/database/supabase";
 import {
   createContext,
   useContext,
@@ -7,9 +8,10 @@ import {
   useEffect,
   type ReactNode,
 } from "react";
-import type { Role, User, Tenant } from "./types";
+
 import { ROLE_LABELS } from "./roles";
-import { createBrowserClient } from "@asym/database/supabase";
+
+import type { Role, User, Tenant } from "./types";
 
 interface MCContextValue {
   user: User | null;

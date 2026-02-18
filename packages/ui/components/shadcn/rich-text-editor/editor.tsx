@@ -1,10 +1,12 @@
 "use client";
 
-import * as React from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
+import * as React from "react";
+
+import { cn } from "@asym/ui/lib/utils";
+
 import { extensions } from "./extensions";
 import { EditorToolbar } from "./toolbar";
-import { cn } from "@asym/ui/lib/utils";
 
 interface EditorProps {
   value: string;

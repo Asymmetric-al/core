@@ -38,7 +38,7 @@ Use this skill for pagination, sorting, filtering, and large datasets.
 - [ ] `pageCount`/`rowCount` is correct
 - [ ] Virtualization used when needed
 
-## Minimal example
+## Minimal examples
 
 ### Server-side table with TanStack Query
 

@@ -1,6 +1,8 @@
 "use client";
 
-import React from "react";
+import { siteConfig } from "@asym/config/site";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -8,10 +10,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@asym/ui/components/shadcn/card";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
-import { Switch } from "@asym/ui/components/shadcn/switch";
 import {
   Select,
   SelectContent,
@@ -19,9 +18,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
-import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Switch } from "@asym/ui/components/shadcn/switch";
+import { cn } from "@asym/ui/lib/utils";
 import {
-  Settings,
   Bell,
   Globe,
   Link as LinkIcon,
@@ -31,9 +30,8 @@ import {
   Check,
   ExternalLink,
 } from "lucide-react";
+import React from "react";
 import { toast } from "sonner";
-import { siteConfig } from "@asym/config/site";
-import { cn } from "@asym/ui/lib/utils";
 
 export default function CareSettingsPage() {
   const [saving, setSaving] = React.useState(false);

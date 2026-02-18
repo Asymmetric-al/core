@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useMemo } from "react";
 import {
   getPDFStudioSetupStatus,
   getUnlayerAccountConfig,
@@ -21,7 +20,15 @@ import {
   Check,
   Info,
 } from "lucide-react";
+import { useState, useMemo } from "react";
+
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@asym/ui/components/shadcn/collapsible";
 import {
   Dialog,
   DialogContent,
@@ -30,12 +37,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@asym/ui/components/shadcn/dialog";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@asym/ui/components/shadcn/collapsible";
-import { Badge } from "@asym/ui/components/shadcn/badge";
 import { cn } from "@asym/ui/lib/utils";
 
 interface PDFStudioSetupStatusProps {

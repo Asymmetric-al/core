@@ -1,20 +1,40 @@
 "use client";
 
-import React, {
-  useRef,
-  useState,
-  useCallback,
-  useMemo,
-  useEffect,
-} from "react";
-import { UnlayerEditor } from "@asym/ui/components/studio/UnlayerEditor";
-import type { UnlayerEditorHandle } from "@asym/ui/components/studio/UnlayerEditor";
-import { EmailStudioSetupStatus } from "@asym/ui/components/studio/EmailStudioSetupStatus";
+import { type EmailStudioFullConfig } from "@asym/config/email-studio";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
-  getEmailStudioConfig,
-  type EmailStudioFullConfig,
-} from "@asym/config/email-studio";
-import type { UnlayerDesignJSON } from "@asym/email/email-studio-types";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@asym/ui/components/shadcn/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuShortcut,
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Kbd } from "@asym/ui/components/shadcn/kbd";
+import { Label } from "@asym/ui/components/shadcn/label";
+import { Separator } from "@asym/ui/components/shadcn/separator";
+import { Textarea } from "@asym/ui/components/shadcn/textarea";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@asym/ui/components/shadcn/toggle-group";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@asym/ui/components/shadcn/tooltip";
+import { EmailStudioSetupStatus } from "@asym/ui/components/studio/EmailStudioSetupStatus";
+import { UnlayerEditor } from "@asym/ui/components/studio/UnlayerEditor";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Mail,
   Save,
@@ -41,39 +61,10 @@ import {
   History,
   Layers,
 } from "lucide-react";
-import { Button } from "@asym/ui/components/shadcn/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuShortcut,
-} from "@asym/ui/components/shadcn/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@asym/ui/components/shadcn/dialog";
-import { Input } from "@asym/ui/components/shadcn/input";
-import { Label } from "@asym/ui/components/shadcn/label";
-import { Textarea } from "@asym/ui/components/shadcn/textarea";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@asym/ui/components/shadcn/tooltip";
-import { Kbd } from "@asym/ui/components/shadcn/kbd";
-import {
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@asym/ui/components/shadcn/toggle-group";
-import { Separator } from "@asym/ui/components/shadcn/separator";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
-import { cn } from "@asym/ui/lib/utils";
+
+import type { UnlayerEditorHandle } from "@asym/ui/components/studio/UnlayerEditor";
 
 type PreviewDevice = "desktop" | "mobile";
 

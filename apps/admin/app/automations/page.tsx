@@ -1,22 +1,7 @@
 "use client";
 
-import React from "react";
-import {
-  Zap,
-  Link2,
-  AlertTriangle,
-  History,
-  Play,
-  RefreshCw,
-  Clock,
-  CheckCircle,
-  Plus,
-  Search,
-  MoreHorizontal,
-  ChevronRight,
-  ArrowUpRight,
-  Settings,
-} from "lucide-react";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -24,12 +9,22 @@ import {
   CardTitle,
   CardDescription,
 } from "@asym/ui/components/shadcn/card";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@asym/ui/components/shadcn/tabs";
-import { Progress } from "@asym/ui/components/shadcn/progress";
 import { cn } from "@asym/ui/lib/utils";
+import {
+  Zap,
+  Link2,
+  AlertTriangle,
+  History,
+  Play,
+  CheckCircle,
+  Plus,
+  Search,
+  MoreHorizontal,
+  ArrowUpRight,
+  Settings,
+} from "lucide-react";
+import React from "react";
 
 export default function AutomationsPage() {
   return (

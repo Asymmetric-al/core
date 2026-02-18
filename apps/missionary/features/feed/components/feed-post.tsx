@@ -1,17 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
-import { formatDistanceToNow } from "date-fns";
-import { MessageCircle } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
-import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
 import { Button } from "@asym/ui/components/shadcn/button";
+import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
 import {
   Carousel,
   CarouselContent,
@@ -20,8 +15,15 @@ import {
   CarouselPrevious,
 } from "@asym/ui/components/shadcn/carousel";
 import { cn } from "@asym/ui/lib/utils";
-import type { PostWithAuthor } from "@asym/database/types";
+import { formatDistanceToNow } from "date-fns";
+import { MessageCircle } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import Image from "next/image";
+import { useState } from "react";
+
 import { CommentsDialog } from "./comments-dialog";
+
+import type { PostWithAuthor } from "@asym/database/types";
 
 interface FeedPostProps {
   post: PostWithAuthor;
@@ -274,7 +276,7 @@ export function FeedPost({ post, onLike, onPrayer }: FeedPostProps) {
             ) : (
               <Carousel className="w-full">
                 <CarouselContent className="-ml-0">
-                  {post.media.map((item: any, index: number) => (
+                  {post.media.map((item, index: number) => (
                     <CarouselItem key={index} className="pl-0">
                       <div className="relative aspect-[4/3] w-full overflow-hidden">
                         {item.type === "video" ? (

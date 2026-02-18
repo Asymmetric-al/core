@@ -1,21 +1,10 @@
 "use client";
 
-import { useCallback } from "react";
 import { PlusIcon, FilterIcon, XIcon } from "lucide-react";
+import { useCallback } from "react";
+
 import { cn } from "@asym/ui/lib/utils";
-import { Button } from "../../button";
-import { Badge } from "../../badge";
-import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-  SheetFooter,
-} from "../../sheet";
-import { Separator } from "../../separator";
+
 import { FilterRow } from "./filter-row";
 import {
   type AdvancedFilterState,
@@ -29,6 +18,19 @@ import {
   getDefaultOperator,
   getDefaultValue,
 } from "./types";
+import { Badge } from "../../badge";
+import { Button } from "../../button";
+import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
+import { Separator } from "../../separator";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetFooter,
+} from "../../sheet";
 
 interface FilterBuilderProps {
   fields: FilterFieldDefinition[];

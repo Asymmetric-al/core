@@ -1,6 +1,45 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Calendar } from "@asym/ui/components/shadcn/calendar";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@asym/ui/components/shadcn/command";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@asym/ui/components/shadcn/dialog";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Label } from "@asym/ui/components/shadcn/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@asym/ui/components/shadcn/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@asym/ui/components/shadcn/select";
+import { Textarea } from "@asym/ui/components/shadcn/textarea";
+import { cn } from "@asym/ui/lib/utils";
 import { format } from "date-fns";
 import {
   X,
@@ -19,43 +58,10 @@ import {
   User,
   Check,
 } from "lucide-react";
+import { useState, useEffect } from "react";
 
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Input } from "@asym/ui/components/shadcn/input";
-import { Label } from "@asym/ui/components/shadcn/label";
-import { Textarea } from "@asym/ui/components/shadcn/textarea";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
-import { Calendar } from "@asym/ui/components/shadcn/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@asym/ui/components/shadcn/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@asym/ui/components/shadcn/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from "@asym/ui/components/shadcn/dialog";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@asym/ui/components/shadcn/command";
-import { cn } from "@asym/ui/lib/utils";
+import { DEFAULT_TASK_TAGS, TAG_CATEGORIES, getTagConfig } from "./tags";
+import { TASK_TYPES, TASK_PRIORITIES } from "./types";
 
 import type {
   Task,
@@ -65,8 +71,6 @@ import type {
   LinkedEntity,
   TaskReminder,
 } from "./types";
-import { TASK_TYPES, TASK_PRIORITIES } from "./types";
-import { DEFAULT_TASK_TAGS, TAG_CATEGORIES, getTagConfig } from "./tags";
 
 const TYPE_ICONS: Record<
   TaskType,
@@ -112,7 +116,6 @@ export function TaskForm({
   const [searchValue, setSearchValue] = useState("");
   const [showEntitySearch, setShowEntitySearch] = useState(false);
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (task) {
       setTitle(task.title);
@@ -138,8 +141,6 @@ export function TaskForm({
       setTags([]);
     }
   }, [task, open]);
-  /* eslint-enable react-hooks/set-state-in-effect */
-
   const handleSave = () => {
     const staff = staffMembers.find((s) => s.id === assignedTo);
 

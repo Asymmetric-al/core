@@ -3,70 +3,72 @@
 Agents MUST keep this file updated during a task. Use it to build the Nia query preamble.
 
 ## Current objective
-- Implement Phase 0 Ticket T1 (Monorepo Workspace Contract): audit current workspace layout and add documentation + automated guardrails.
-- Document where code belongs (`apps/*`, `packages/*`, `tooling/*`) and naming/dependency conventions for all workspaces.
-- Add a lightweight verification script that fails when workspace naming or internal dependency protocol drifts.
-- Keep T1 merge gate scoped to workspace-contract changes; gate Supabase schema + money-unit checks as a separate QA track.
+- Implement verification review comments for ESLint monorepo coverage.
+- Ensure every `packages/*` workspace participates in the unified ESLint flat-config strategy.
+- Prevent type-aware lint failures in placeholder packages by adding missing `tsconfig.json` coverage.
 
 ## Repo scope
 - repository: Asymmetric-al/core
-- in-scope paths (if known):
-  - README.md
+- in-scope paths:
   - package.json
-  - turbo.json
-  - scripts/
-
-## Stack tags (pick from docs/ai/stack-registry.md)
-- Bun
-- Node.js
-- Turborepo
-- TypeScript
-
-## Known identifiers (exact strings)
-- files:
-  - README.md
-  - package.json
-  - turbo.json
-- symbols:
-  - workspaces
-  - apps/*
+  - scripts/verify-eslint-config.mjs
+  - tooling/eslint-config/base.mjs
+  - tooling/eslint-config/library.mjs
+  - tooling/eslint-config/README.md
   - packages/*
-  - tooling/*
-  - @asym/
-  - workspace:*
-  - verify:workspace-contract
-- routes:
-  - N/A
-- error strings:
-  - N/A
-- package ids:
-  - N/A
+  - docs/ai/working-set.md
+
+## Stack tags
+- TypeScript
+- Node.js
+- Bun
+- Turborepo
+- ESLint
+
+## Known identifiers
+- files:
+  - package.json
+  - scripts/verify-eslint-config.mjs
+  - tooling/eslint-config/base.mjs
+  - tooling/eslint-config/library.mjs
+  - packages/env/package.json
+  - packages/env/tsconfig.json
+- symbols:
+  - libraryConfig
+  - baseConfig
+  - eslint.config.mjs
+  - verify:eslint
+  - turbo run lint
+  - Parsing error: project not found
 
 ## Expected behavior
-- README clearly documents the monorepo workspace contract and onboarding steps for adding new apps/packages.
-- All workspace package names remain in `@asym/*` format.
-- Internal workspace dependencies remain `workspace:*` (no `file:` links for internal packages).
-- Guardrail script can be run locally/CI to enforce contract drift detection.
+- Every package workspace has an `eslint.config.mjs` that re-exports `libraryConfig`.
+- Package lint tasks cover package workspaces under `turbo run lint`.
+- Verification script fails when package-level ESLint configs are missing.
+- `packages/env` has a minimal `tsconfig.json` so type-aware ESLint can resolve project config.
 
 ## Constraints
-- runtime: Bun/Node
-- tooling: Turborepo + workspace package.json validation
-- env/platform notes:
-  - Keep diffs minimal and focused on contract hardening.
-  - Do not introduce secrets or credentials.
-  - Rules source of truth: docs/ai/rules/* (treat .cursor/rules/* as legacy).
+- Keep diffs minimal and scoped to lint/config verification behavior.
+- Avoid introducing placeholder-specific exceptions unless explicitly temporary and documented.
+- Do not add secrets or credentials.
 
 ## Verification
-- `bun run verify:workspace-contract`
-- `bun run verify:t1`
-- `bun run verify:supabase-money` (separate QA track; not required for T1 merge)
+- `bun run verify:eslint`
+- `bun run lint -- --filter=@asym/env --filter=@asym/missionary`
 - `git status`
 
-## Nia query preamble (fill before calling Nia)
-Repo: Asymmetric-al/core
-Goal: Implement Ticket T1 monorepo workspace contract hardening
-Area: root package.json + README + scripts
-Stack: Bun, Node.js, Turborepo, TypeScript
-Keywords: workspaces, apps/*, packages/*, tooling/*, @asym/, workspace:*, README, verify
-Constraints: minimal docs + guardrail diffs; no secrets; cite exact files + script behavior
-Evidence required: file paths + validated conventions + brief explanation
+## Verification status
+- `bun run verify:eslint` now passes with strict disable-comment format enforcement (no baseline bypass).
+- `bun run lint` passes in `packages/env`.
+- `bun run lint` now passes in `packages/missionary` via documented temporary strict-rule relaxation while keeping `libraryConfig` as the base.
+- `bun run lint` at repo root passes (warnings only), confirming the rollout is non-breaking.
+- CI now contains an explicit `verify-eslint-config` job running `bun run verify:eslint`.
+- `verify:eslint` now blocks package-level rule disables unless the config includes a tracking `TODO(...)` marker.
+- `packages/auth`, `packages/graphql`, and `packages/lib` were cleaned to zero warnings under current rules via safe autofix + explicit `any` type removal.
+- `packages/env/package.json` now includes `lint` and `typecheck` scripts so `bun run verify:eslint` passes for all workspaces.
+- Shared base ignore patterns now include nested build outputs (for example `**/.next/**`) to prevent generated artifacts from being linted during direct app-path runs.
+- App-by-app lint stabilization pass completed:
+  - `apps/donor`: warning count reduced to 10 (all `no-explicit-any`).
+  - `apps/missionary`: warning count reduced to 14 (all `no-explicit-any`).
+  - `apps/admin`: now at 0 warnings after file-by-file cleanup (import ordering, unused symbols, and explicit typing replacements).
+- `bun run lint`, `bun run verify:eslint`, and `bunx lint-staged --allow-empty` all pass with no lint errors.

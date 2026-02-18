@@ -1,6 +1,4 @@
-import type { Metadata } from "next";
-import { pageMetadata } from "@asym/lib/seo";
-import { DonateActionJsonLd } from "@asym/lib/seo";
+import { pageMetadata, DonateActionJsonLd } from "@asym/lib/seo";
 import {
   HomeHero,
   HomeMission,
@@ -9,6 +7,8 @@ import {
   HomeCTA,
   LiveTicker,
 } from "@asym/ui/components/public/home-sections";
+
+import type { Metadata } from "next";
 
 export const metadata: Metadata = pageMetadata.home;
 

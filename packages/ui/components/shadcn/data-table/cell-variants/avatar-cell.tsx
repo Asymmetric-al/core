@@ -1,8 +1,11 @@
 "use client";
 
 import { useMemo } from "react";
+
 import { cn } from "@asym/ui/lib/utils";
+
 import { Avatar, AvatarFallback, AvatarImage } from "../../avatar";
+
 import type { AvatarCellProps } from "./types";
 
 const sizeClasses = {

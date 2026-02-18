@@ -1,9 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import type { Tile } from "@asym/lib/mission-control/types";
-import { PageHeader } from "../patterns/PageHeader";
-import { getIcon } from "../icons";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
@@ -11,6 +7,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
+import Link from "next/link";
+
+import { getIcon } from "../icons";
+import { PageHeader } from "../patterns/PageHeader";
+
+import type { Tile } from "@asym/lib/mission-control/types";
 
 interface TilePageProps {
   tile: Tile;

@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { cn } from "@asym/ui/lib/utils";
 import {
   LayoutDashboard,
@@ -11,6 +9,8 @@ import {
   Wallet,
   Settings,
 } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const navItems = [
   { label: "Overview", href: "/donor-dashboard", icon: LayoutDashboard },

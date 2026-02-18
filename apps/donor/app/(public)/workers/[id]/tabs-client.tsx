@@ -1,8 +1,8 @@
 "use client";
 
-import React from "react";
-import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { cn } from "@asym/ui/lib/utils";
+import * as TabsPrimitive from "@radix-ui/react-tabs";
+import React from "react";
 
 interface TabsClientProps {
   storyContent: React.ReactNode;

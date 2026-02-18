@@ -1,8 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
-import Image, { type ImageLoader } from "next/image";
 import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-import { X, ChevronLeft, ChevronRight, ChevronDown, Check } from "lucide-react";
 import {
   format,
   isSameDay,
@@ -12,6 +8,10 @@ import {
   getDay,
   getDaysInMonth,
 } from "date-fns";
+import { X, ChevronLeft, ChevronRight, ChevronDown, Check } from "lucide-react";
+import Image, { type ImageLoader } from "next/image";
+import React, { useState, useEffect, useRef } from "react";
+import { twMerge } from "tailwind-merge";
 
 const passthroughImageLoader: ImageLoader = ({ src }) => src;
 

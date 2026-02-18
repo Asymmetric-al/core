@@ -1,6 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
+import { Separator } from "@asym/ui/components/shadcn/separator";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetDescription,
+} from "@asym/ui/components/shadcn/sheet";
+import { Textarea } from "@asym/ui/components/shadcn/textarea";
+import { cn } from "@asym/ui/lib/utils";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import {
   User,
   Calendar,
@@ -17,27 +40,15 @@ import {
   AlertCircle,
   ChevronDown,
 } from "lucide-react";
+import { useState } from "react";
 
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
-import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
+import { getTagConfig } from "./tags";
 import {
-  Sheet,
-  SheetContent,
-  SheetTitle,
-  SheetDescription,
-} from "@asym/ui/components/shadcn/sheet";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { Textarea } from "@asym/ui/components/shadcn/textarea";
-import { Separator } from "@asym/ui/components/shadcn/separator";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@asym/ui/components/shadcn/dropdown-menu";
-import { cn } from "@asym/ui/lib/utils";
+  getPriorityConfig,
+  getStatusConfig,
+  TASK_PRIORITIES,
+  TASK_STATUSES,
+} from "./types";
 
 import type {
   Task,
@@ -47,13 +58,6 @@ import type {
   StaffMember,
   LinkedEntity,
 } from "./types";
-import {
-  getPriorityConfig,
-  getStatusConfig,
-  TASK_PRIORITIES,
-  TASK_STATUSES,
-} from "./types";
-import { getTagConfig } from "./tags";
 
 const TYPE_ICONS: Record<
   TaskType,

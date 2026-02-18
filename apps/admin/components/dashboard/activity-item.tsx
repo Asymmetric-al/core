@@ -1,10 +1,10 @@
 "use client";
 
-import { memo } from "react";
 import { Avatar, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { ChevronRightIcon } from "lucide-react";
 import { cn } from "@asym/ui/lib/utils";
+import { ChevronRightIcon } from "lucide-react";
+import { memo } from "react";
 
 export interface ActivityItemProps {
   initials: string;

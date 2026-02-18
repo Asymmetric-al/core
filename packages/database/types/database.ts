@@ -52,8 +52,10 @@ export interface Profile {
   role: UserRole;
   first_name: string;
   last_name: string;
+  display_name: string | null;
   email: string;
   avatar_url: string | null;
+  phone: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -403,6 +405,7 @@ export interface PostComment {
   user_id: string;
   content: string;
   created_at: string;
+  updated_at: string;
 }
 
 export interface PostWithAuthor extends Post {

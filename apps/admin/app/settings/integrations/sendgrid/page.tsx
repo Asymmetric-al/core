@@ -1,6 +1,33 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@asym/ui/components/shadcn/alert";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@asym/ui/components/shadcn/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@asym/ui/components/shadcn/dialog";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Label } from "@asym/ui/components/shadcn/label";
+import { Progress } from "@asym/ui/components/shadcn/progress";
+import { Separator } from "@asym/ui/components/shadcn/separator";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Mail,
   Key,
@@ -17,34 +44,11 @@ import {
   Loader2,
   ArrowRight,
   ChevronRight,
-  Copy,
   RefreshCw,
 } from "lucide-react";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Input } from "@asym/ui/components/shadcn/input";
-import { Label } from "@asym/ui/components/shadcn/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@asym/ui/components/shadcn/card";
-import { Alert, AlertDescription, AlertTitle } from "@asym/ui/components/shadcn/alert";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Separator } from "@asym/ui/components/shadcn/separator";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@asym/ui/components/shadcn/dialog";
-import { Progress } from "@asym/ui/components/shadcn/progress";
+import React, { useState, useCallback } from "react";
 import { toast } from "sonner";
-import { cn } from "@asym/ui/lib/utils";
+
 import type {
   ConnectSendGridResponse,
   DeliverabilityWarning,
@@ -135,7 +139,7 @@ export default function SendGridSettingsPage() {
       toast.success("SendGrid connected!", {
         description: "Your API key has been validated successfully",
       });
-    } catch (error) {
+    } catch {
       setConnection((prev) => ({
         ...prev,
         status: "error",

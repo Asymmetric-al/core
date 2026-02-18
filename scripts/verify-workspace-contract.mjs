@@ -56,6 +56,15 @@ for (const requiredGlob of requiredGlobs.filter((g) => g.includes("*"))) {
   }
 }
 
+for (const requiredPath of requiredGlobs.filter((g) => !g.includes("*"))) {
+  const pkgPath = `${requiredPath}/package.json`;
+  try {
+    await fs.access(pkgPath);
+  } catch {
+    violations.push(`workspace '${requiredPath}' is missing package.json; expected '${pkgPath}' to exist`);
+  }
+}
+
 for (const g of globs) {
   const pkgPaths = globSync(`${g}/package.json`);
   for (const pkgPath of pkgPaths) {

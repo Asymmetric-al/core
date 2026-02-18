@@ -1,8 +1,11 @@
 "use client";
 
 import { useMemo } from "react";
+
 import { cn } from "@asym/ui/lib/utils";
+
 import { Badge } from "../../badge";
+
 import type { BadgeCellProps, BadgeOption, BadgeVariant } from "./types";
 
 const variantStyles: Record<BadgeVariant, string> = {

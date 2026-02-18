@@ -1,14 +1,7 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { motion, AnimatePresence } from "motion/react";
-
-import type { Location } from "@/lib/hooks/use-locations";
-import { usePublicLocations } from "@/lib/hooks/use-locations";
-import { Button } from "@asym/ui/components/shadcn/button";
 import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Command,
   CommandEmpty,
@@ -24,7 +17,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@asym/ui/components/shadcn/dialog";
-import { cn } from "@asym/ui/lib/utils";
 import {
   Map,
   MapMarker,
@@ -33,6 +25,15 @@ import {
   MapStyleToggle,
   MapLegend,
 } from "@asym/ui/components/shadcn/map";
+import { cn } from "@asym/ui/lib/utils";
+import { motion, AnimatePresence } from "motion/react";
+import Image from "next/image";
+import Link from "next/link";
+import { useState, useMemo, useCallback, useEffect } from "react";
+
+import type { Location } from "@/lib/hooks/use-locations";
+
+import { usePublicLocations } from "@/lib/hooks/use-locations";
 
 function SearchIcon({ className }: { className?: string }) {
   return (

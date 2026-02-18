@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useSyncExternalStore } from "react";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import React, { useSyncExternalStore } from "react";
 
 export function DashboardSkeleton() {
   return (

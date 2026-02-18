@@ -8,7 +8,6 @@ import {
   UsersIcon,
   TrendingUpIcon,
 } from "lucide-react";
-
 import { Bar, BarChart, Label, Pie, PieChart } from "recharts";
 
 import { Avatar, AvatarFallback } from "@asym/ui/components/shadcn/avatar";

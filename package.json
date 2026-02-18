@@ -42,12 +42,13 @@
     "verify:t1": "bun run verify:workspace-contract",
     "verify:money-units": "bun scripts/verify-money-units.ts",
     "verify:supabase-money": "bun run setup:verify && bun run verify:money-units",
+    "verify:eslint": "node scripts/verify-eslint-config.mjs",
     "verify:workspace-contract": "node scripts/verify-workspace-contract.mjs",
-    "verify": "./scripts/verify",
+    "verify": "node scripts/verify/index.mjs",
     "lighthouse": "lhci autorun",
     "generate:icons": "node scripts/generate-icons.js",
     "setup": "./scripts/setup",
-    "setup:verify": "bash ./scripts/setup-verify.sh",
+    "setup:verify": "node scripts/setup-verify.mjs",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "clean:cache": "rm -rf .turbo node_modules/.cache",
     "prepare": "husky"
@@ -73,6 +74,7 @@
     "sharp": "^0.34.5"
   },
   "devDependencies": {
+    "@asym/eslint-config": "workspace:*",
     "@axe-core/playwright": "^4.10.1",
     "@lhci/cli": "^0.15.0",
     "@playwright/test": "^1.49.0",
@@ -80,9 +82,14 @@
     "@types/node": "^20",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "@typescript-eslint/eslint-plugin": "^8.46.0",
+    "@typescript-eslint/parser": "^8.46.0",
     "canvas": "^3.2.1",
     "eslint": "^9",
     "eslint-config-next": "^16.1.0",
+    "eslint-plugin-import-x": "^4.16.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-unused-imports": "^4.3.0",
     "glob": "^13.0.4",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
@@ -94,15 +101,14 @@
     "vitest": "^2.1.5"
   },
   "lint-staged": {
-    "*.{ts,tsx}": [
+    "{apps,packages,tooling}/**/*.{ts,tsx,js,jsx,mjs,cjs}": [
       "eslint --fix",
       "prettier --write"
     ],
-    "*.{js,jsx,mjs,cjs}": [
-      "eslint --fix",
+    "{apps,packages,tooling,docs,.github}/**/*.{json,md,yml,yaml}": [
       "prettier --write"
     ],
-    "*.{json,md,yml,yaml}": [
+    "./{README.md,package.json,turbo.json,tsconfig.json}": [
       "prettier --write"
     ]
   }

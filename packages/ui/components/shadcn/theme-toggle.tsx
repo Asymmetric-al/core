@@ -1,9 +1,11 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
-import { Switch } from "./switch";
+import { useTheme } from "next-themes";
+
 import { cn } from "@asym/ui/lib/utils";
+
+import { Switch } from "./switch";
 
 interface ThemeToggleProps {
   collapsed?: boolean;

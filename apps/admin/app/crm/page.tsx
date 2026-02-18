@@ -1,26 +1,17 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import {
-  Plus,
-  List,
-  Columns,
-  X,
-  User,
-  MessageSquare,
-  Paperclip,
-  History,
-  FileText,
-  MoreHorizontal,
-} from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Badge } from "@asym/ui/components/shadcn/badge";
+import { formatCurrency } from "@asym/lib/utils";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  DataTableResponsive,
+  type DataTableFilterField,
+} from "@asym/ui/components/shadcn/data-table";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 import { Sheet, SheetContent } from "@asym/ui/components/shadcn/sheet";
 import {
@@ -29,18 +20,26 @@ import {
   TabsList,
   TabsTrigger,
 } from "@asym/ui/components/shadcn/tabs";
-import { formatCurrency } from "@asym/lib/utils";
 import { cn } from "@asym/ui/lib/utils";
 import {
-  DataTable,
-  DataTableResponsive,
-  type DataTableFilterField,
-} from "@asym/ui/components/shadcn/data-table";
+  Plus,
+  List,
+  Columns,
+  X,
+  User,
+  Paperclip,
+  History,
+  FileText,
+  MoreHorizontal,
+} from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import React, { useState, useMemo } from "react";
+
+import { getColumns } from "./columns";
+import { MOCK_CONTACTS } from "./data";
+import { STAGES, STAGE_COLORS } from "./types";
 
 import type { Contact } from "./types";
-import { STAGES, STAGE_COLORS } from "./types";
-import { MOCK_CONTACTS } from "./data";
-import { getColumns } from "./columns";
 
 const filterFields: DataTableFilterField<Contact>[] = [
   {

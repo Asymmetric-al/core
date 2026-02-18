@@ -1,8 +1,6 @@
 "use client";
 "use no memo";
 
-import * as React from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   flexRender,
   getCoreRowModel,
@@ -12,6 +10,7 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   Plus,
   Trash2,
@@ -21,22 +20,25 @@ import {
   Undo,
   Redo,
 } from "lucide-react";
+import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
+
 import { Button } from "../button";
-import { Input } from "../input";
 import { Checkbox } from "../checkbox";
+import { Input } from "../input";
 import { DataGridCell } from "./data-grid-cell";
+import {
+  DEFAULT_ROW_HEIGHT,
+  DEFAULT_HEADER_HEIGHT,
+  DEFAULT_COLUMN_WIDTH,
+} from "./types";
+
 import type {
   DataGridColumn,
   DataGridCellPosition,
   DataGridConfig,
   DataGridCallbacks,
-} from "./types";
-import {
-  DEFAULT_ROW_HEIGHT,
-  DEFAULT_HEADER_HEIGHT,
-  DEFAULT_COLUMN_WIDTH,
 } from "./types";
 
 interface DataGridProps<TData extends Record<string, unknown>> {
@@ -376,7 +378,6 @@ export function DataGrid<TData extends Record<string, unknown>>({
     handleCellChange,
   ]);
 
-  // eslint-disable-next-line react-hooks/incompatible-library -- "use no memo" directive applied, warning acknowledged
   const table = useReactTable({
     data: gridData,
     columns: tableColumns,

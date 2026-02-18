@@ -1,19 +1,16 @@
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
-import { Suspense } from "react";
-import { getFieldWorkerById, getFieldWorkers } from "@/lib/mock-data";
-import { createWorkerMetadata } from "@asym/lib/seo";
-import { WorkerJsonLd, BreadcrumbJsonLd } from "@asym/lib/seo";
+import {
+  createWorkerMetadata,
+  WorkerJsonLd,
+  BreadcrumbJsonLd,
+} from "@asym/lib/seo";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { Button } from "@asym/ui/components/shadcn/button";
+import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import {
   MapPin,
   ArrowLeft,
@@ -23,8 +20,17 @@ import {
   MessageCircle,
   Share2,
 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Suspense } from "react";
+
 import { GivingWidget } from "./giving-widget";
 import { TabsClient } from "./tabs-client";
+
+import type { Metadata } from "next";
+
+import { getFieldWorkerById, getFieldWorkers } from "@/lib/mock-data";
 
 interface PageProps {
   params: Promise<{ id: string }>;

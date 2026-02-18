@@ -35,14 +35,15 @@
  * @see {@link https://docs.sendgrid.com/api-reference/mail-send/mail-send}
  */
 
-import sgMail from "@sendgrid/mail";
-import type { MailDataRequired } from "@sendgrid/mail";
+import sgMail, { type MailDataRequired } from "@sendgrid/mail";
+
 import {
   SENDGRID_API_BASE,
   SENDGRID_ERROR_CODES,
   HTTP_STATUS,
   RETRY_CONFIG,
 } from "./constants";
+
 import type {
   SenderIdentity,
   DomainAuthentication,
@@ -125,6 +126,16 @@ export interface SendEmailOptions {
   trackClicks?: boolean;
   /** Custom metadata attached to this send (appears in webhooks) */
   customArgs?: Record<string, string>;
+}
+
+export interface SendGridClient {
+  validateKey: () => Promise<SendGridValidationResult>;
+  sendEmail: (options: SendEmailOptions) => Promise<EmailSendResult>;
+  sendTestEmail: (
+    toEmail: string,
+    fromEmail: string,
+    fromName: string,
+  ) => Promise<EmailSendResult>;
 }
 
 /**
@@ -279,13 +290,13 @@ export async function validateSendGridApiKey(
     if (!scopesResponse.ok) {
       return {
         valid: false,
-        error: `SendGrid API error: ${scopesResponse.status}`,
+        error: `SendGrid API error: ${String(scopesResponse.status)}`,
         errorCode: SENDGRID_ERROR_CODES.SERVER_ERROR,
       };
     }
 
     const scopesData = (await scopesResponse.json()) as { scopes: string[] };
-    const scopes = scopesData.scopes || [];
+    const scopes = scopesData.scopes;
 
     const hasMailSend = scopes.includes("mail.send");
     if (!hasMailSend) {
@@ -318,7 +329,7 @@ export async function validateSendGridApiKey(
         const sendersData = (await sendersResponse.json()) as {
           results: SenderIdentity[];
         };
-        senderIdentities = sendersData.results || [];
+        senderIdentities = sendersData.results;
 
         if (senderIdentities.length === 0) {
           warnings.push({
@@ -348,7 +359,7 @@ export async function validateSendGridApiKey(
       if (domainsResponse.ok) {
         const domainsData =
           (await domainsResponse.json()) as DomainAuthentication[];
-        domainAuthentication = domainsData || [];
+        domainAuthentication = domainsData;
 
         const hasValidDomain = domainAuthentication.some((d) => d.valid);
         if (!hasValidDomain && domainAuthentication.length > 0) {
@@ -470,10 +481,14 @@ export async function sendEmail(
     };
 
     const [response] = await sgMail.send(msg);
+    const messageId = getHeaderValue(
+      (response as { headers?: unknown }).headers,
+      "x-message-id",
+    );
 
     return {
       success: true,
-      messageId: response.headers["x-message-id"] as string,
+      messageId,
       correlationId,
       recipientCount: recipients.length,
     };
@@ -623,11 +638,28 @@ function stripHtml(html: string): string {
  * await client.sendTestEmail('test@example.com', 'from@example.com', 'Name')
  * ```
  */
-export function createSendGridClient(apiKey: string) {
+export function createSendGridClient(apiKey: string): SendGridClient {
   return {
-    validateKey: () => validateSendGridApiKey(apiKey),
-    sendEmail: (options: SendEmailOptions) => sendEmail(apiKey, options),
-    sendTestEmail: (toEmail: string, fromEmail: string, fromName: string) =>
+    validateKey: (): Promise<SendGridValidationResult> =>
+      validateSendGridApiKey(apiKey),
+    sendEmail: (options: SendEmailOptions): Promise<EmailSendResult> =>
+      sendEmail(apiKey, options),
+    sendTestEmail: (
+      toEmail: string,
+      fromEmail: string,
+      fromName: string,
+    ): Promise<EmailSendResult> =>
       sendTestEmail(apiKey, toEmail, fromEmail, fromName),
   };
+}
+
+function getHeaderValue(rawHeaders: unknown, key: string): string | undefined {
+  if (!rawHeaders || typeof rawHeaders !== "object") {
+    return undefined;
+  }
+
+  const headerMap = rawHeaders as Record<string, unknown>;
+  const value = headerMap[key];
+
+  return typeof value === "string" ? value : undefined;
 }

@@ -1,7 +1,5 @@
 "use client";
 
-import * as React from "react";
-
 import {
   AnimatePresence,
   motion,
@@ -11,6 +9,7 @@ import {
   type Transition,
   type Variant,
 } from "motion/react";
+import * as React from "react";
 
 type MotionComponent = keyof typeof motion;
 
@@ -38,13 +37,16 @@ interface MotionPresetProps {
       }
     | boolean;
   motionProps?: Omit<
-    HTMLMotionProps<any>,
+    HTMLMotionProps<"div">,
     "children" | "className" | "ref" | "transition"
   >;
-  ref?: React.Ref<any>;
+  ref?: React.Ref<HTMLDivElement | null>;
 }
 
-const motionComponents = motion as any;
+const motionComponents = motion as unknown as Record<
+  MotionComponent,
+  React.ComponentType<HTMLMotionProps<"div">>
+>;
 
 function MotionPreset({
   ref,
@@ -62,9 +64,12 @@ function MotionPreset({
   zoom = false,
   motionProps = {},
 }: MotionPresetProps) {
-  const localRef = React.useRef<any>(null);
+  const localRef = React.useRef<HTMLDivElement | null>(null);
 
-  React.useImperativeHandle(ref, () => localRef.current);
+  React.useImperativeHandle<HTMLDivElement | null, HTMLDivElement | null>(
+    ref,
+    () => localRef.current,
+  );
 
   const inViewResult = useInView(localRef, {
     once: inViewOnce,

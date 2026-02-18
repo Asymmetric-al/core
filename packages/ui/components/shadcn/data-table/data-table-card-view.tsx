@@ -1,14 +1,15 @@
 "use client";
 
-import * as React from "react";
-import type { Row, Table } from "@tanstack/react-table";
-import Image from "next/image";
 import { MoreHorizontal, ChevronRight } from "lucide-react";
+import Image from "next/image";
+import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
+
+import { Badge } from "../badge";
+import { Button } from "../button";
 import { Card, CardContent } from "../card";
 import { Checkbox } from "../checkbox";
-import { Button } from "../button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +17,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../dropdown-menu";
-import { Badge } from "../badge";
+
+import type { Row, Table } from "@tanstack/react-table";
 
 interface DataTableCardViewProps<TData> {
   rows: Row<TData>[];

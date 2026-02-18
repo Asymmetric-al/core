@@ -1,9 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import type { ReactNode } from "react";
-import Image from "next/image";
-
 import {
   UsersIcon,
   ShoppingCartIcon,
@@ -13,9 +9,15 @@ import {
   Undo2Icon,
   MoreVerticalIcon,
 } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
 
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
 import {
   CommandDialog,
   CommandEmpty,
@@ -25,6 +27,8 @@ import {
   CommandList,
   CommandSeparator,
 } from "@asym/ui/components/shadcn/command";
+
+import type { ReactNode } from "react";
 
 type Props = {
   trigger: ReactNode;

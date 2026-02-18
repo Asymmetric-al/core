@@ -1,11 +1,12 @@
 import { createBrowserClient } from "@asym/database/supabase";
+
 import type { CloudinaryUploadResponse } from "./cloudinary-client";
 
 export interface SaveAssetOptions {
   userId?: string;
   tenantId?: string;
   purpose?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**

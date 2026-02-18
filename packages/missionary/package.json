@@ -8,6 +8,9 @@
     "./hooks/*": "./hooks/*.ts",
     "./types": "./types/index.ts"
   },
+  "scripts": {
+    "lint": "eslint ."
+  },
   "dependencies": {
     "@asym/ui": "workspace:*",
     "@asym/lib": "workspace:*",

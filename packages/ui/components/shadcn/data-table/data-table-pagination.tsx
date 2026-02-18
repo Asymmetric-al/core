@@ -1,6 +1,5 @@
 "use client";
 
-import type { Table } from "@tanstack/react-table";
 import {
   ChevronLeft,
   ChevronRight,
@@ -9,6 +8,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@asym/ui/lib/utils";
+
 import { Button } from "../button";
 import {
   Select,
@@ -18,6 +18,8 @@ import {
   SelectValue,
 } from "../select";
 import { DEFAULT_PAGE_SIZES } from "./types";
+
+import type { Table } from "@tanstack/react-table";
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>;

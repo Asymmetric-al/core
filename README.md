@@ -11,7 +11,7 @@ A high-performance, enterprise-grade Next.js 16.1 application for mission-focuse
 # NEXT_PUBLIC_SUPABASE_URL
 # NEXT_PUBLIC_SUPABASE_ANON_KEY
 bun run dev
-./scripts/verify
+bun run verify
 ```
 
 **Required:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
@@ -149,6 +149,19 @@ A seamless experience for kingdom partners to manage their giving and follow mis
 
 This project is optimized for both local development and the **Example Cloud (example.com)** environment.
 
+### AI Agent Guidance System
+
+This repository includes comprehensive AI agent guidance under `docs/ai/`:
+
+- **Entry point:** `AGENTS.md` - routing rules for all AI agent work
+- **Stack registry:** `docs/ai/stack-registry.md` - canonical tech stack list
+- **Working set:** `docs/ai/working-set.md` - living task context (keep updated)
+- **Monorepo architecture:** `docs/ai/monorepo-architecture.md` - workspace structure
+- **Rulebooks:** `docs/ai/rules/*` - domain-specific guidelines (frontend, backend, testing, etc.)
+- **Skills:** `docs/ai/skills/*` - reusable workflow patterns
+
+**Important:** `docs/ai/` is the canonical source. The `rules/` and `skills/` directories at the repository root contain deprecation shims only.
+
 ### Package Manager
 
 This project uses **bun** (v1.3+). Do not use npm/yarn/pnpm.
@@ -162,15 +175,17 @@ This repository uses Bun workspaces + Turborepo with this contract:
 ```text
 apps/*      -> deployable applications (admin, donor, missionary)
 packages/*  -> shared runtime libraries used by apps
-packages/env -> environment schemas/configuration workspace (contracted)
+packages/env -> placeholder workspace reserved for env schemas/configuration (T6)
 tooling/*   -> shared tooling/config packages (eslint, tsconfig, etc.)
 ```
+
+Note: `packages/env` is present as a placeholder workspace to satisfy the workspace contract; real per-app environment schemas will be implemented in T6.
 
 Use these placement rules:
 
 - Put code in `apps/*` when it is app-specific routing/UI/behavior.
 - Put code in `packages/*` when it is shared across two or more apps.
-- Put environment schemas/configuration in `packages/env`; it is part of the workspace contract.
+- Keep `packages/env` reserved for environment schemas/configuration; it is a placeholder workspace until T6 implementation lands.
 - Put code in `tooling/*` only for build/lint/type/tooling configuration packages.
 
 Workspace conventions:
@@ -186,6 +201,32 @@ bun run verify:workspace-contract
 ```
 
 This command validates workspace globs, package names, and internal dependency protocol.
+
+Verify command behavior:
+
+- `bun run verify` runs cross-platform verification with workspace contract checks.
+- `VERIFY_HTTP=1 bun run verify` additionally checks `/`, `/login`, and `/register` on `http://localhost:3000`.
+- `VERIFY_SUPABASE=1 bun run verify` additionally runs Supabase verification.
+
+### Linting
+
+Linting uses a unified ESLint flat config strategy:
+
+- `apps/*` consume `@asym/eslint-config/nextjs.mjs`
+- `packages/*` should consume `@asym/eslint-config/library.mjs`
+- root `eslint.config.mjs` is a fallback/orchestrator config
+
+Canonical lint entrypoint:
+
+```bash
+bun run lint
+```
+
+Architecture boundaries are enforced with `no-restricted-imports` so apps do not import from other apps directly.
+Shared code should be moved into `@asym/*` packages.
+
+For full config details, migration notes, and the pragmatic exception policy, see:
+`tooling/eslint-config/README.md`.
 
 ### How to add a new app
 

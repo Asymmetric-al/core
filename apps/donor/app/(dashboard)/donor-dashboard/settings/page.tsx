@@ -1,7 +1,26 @@
 "use client";
 
-import React, { useState } from "react";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "@asym/ui/components/shadcn/card";
 import { ImageUpload } from "@asym/ui/components/shadcn/image-upload";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Label } from "@asym/ui/components/shadcn/label";
+import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
+import { Switch } from "@asym/ui/components/shadcn/switch";
+import { cn } from "@asym/ui/lib/utils";
 import {
   User,
   Bell,
@@ -24,26 +43,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardFooter,
-} from "@asym/ui/components/shadcn/card";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Input } from "@asym/ui/components/shadcn/input";
-import { Label } from "@asym/ui/components/shadcn/label";
-import { Switch } from "@asym/ui/components/shadcn/switch";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
-import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { cn } from "@asym/ui/lib/utils";
+import React, { useState } from "react";
 
 // --- Types ---
 type TabId = "profile" | "notifications" | "security";
@@ -369,11 +369,37 @@ const ProfileTab = () => {
   );
 };
 
+interface NotificationPreferences {
+  receipts: boolean;
+  monthlyStatement: boolean;
+  fieldUpdates: boolean;
+  videoStories: boolean;
+  newsletters: boolean;
+  emergencyAppeals: boolean;
+  smsAlerts: boolean;
+}
+
+type NotificationPreferenceKey = keyof NotificationPreferences;
+
+interface NotificationCategoryItem {
+  key: NotificationPreferenceKey;
+  label: string;
+  desc: string;
+  recommended?: boolean;
+}
+
+interface NotificationCategory {
+  title: string;
+  icon: React.ElementType;
+  color: string;
+  items: NotificationCategoryItem[];
+}
+
 const NotificationsTab = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const [preferences, setPreferences] = useState({
+  const [preferences, setPreferences] = useState<NotificationPreferences>({
     receipts: true,
     monthlyStatement: true,
     fieldUpdates: true,
@@ -383,7 +409,7 @@ const NotificationsTab = () => {
     smsAlerts: false,
   });
 
-  const handleToggle = (key: keyof typeof preferences) => {
+  const handleToggle = (key: NotificationPreferenceKey) => {
     setPreferences((prev) => ({ ...prev, [key]: !prev[key] }));
     if (success) setSuccess(false);
   };
@@ -397,7 +423,7 @@ const NotificationsTab = () => {
     }, 1200);
   };
 
-  const categories = [
+  const categories: NotificationCategory[] = [
     {
       title: "Billing & Receipts",
       icon: Receipt,
@@ -487,7 +513,7 @@ const NotificationsTab = () => {
                 </div>
 
                 <div className="flex-1 space-y-6">
-                  {category.items.map((item: any) => (
+                  {category.items.map((item) => (
                     <div
                       key={item.key}
                       className="flex items-start justify-between gap-4"
@@ -515,8 +541,8 @@ const NotificationsTab = () => {
                       </div>
                       <Switch
                         id={item.key}
-                        checked={(preferences as any)[item.key]}
-                        onCheckedChange={() => handleToggle(item.key as any)}
+                        checked={preferences[item.key]}
+                        onCheckedChange={() => handleToggle(item.key)}
                         className="data-[state=checked]:bg-zinc-900 mt-1"
                       />
                     </div>

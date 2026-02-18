@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
 import {
   getAuthContext,
   requireRole,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
+import { type NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   _request: NextRequest,

@@ -1,7 +1,5 @@
 "use client";
 
-import * as React from "react";
-import type { Table } from "@tanstack/react-table";
 import {
   Search,
   X,
@@ -11,11 +9,12 @@ import {
   RefreshCw,
   ChevronDown,
 } from "lucide-react";
+import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
-import { Button } from "../button";
+
 import { Badge } from "../badge";
-import { Input } from "../input";
+import { Button } from "../button";
 import {
   Drawer,
   DrawerContent,
@@ -33,9 +32,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../dropdown-menu";
+import { Input } from "../input";
 import { Separator } from "../separator";
 import { DataTableFacetedFilter } from "./data-table-faceted-filter";
-import type { DataTableFilterField } from "./types";
 import {
   FilterBuilder,
   ActiveFilters,
@@ -43,6 +42,9 @@ import {
   type AdvancedFilterState,
   type FilterFieldDefinition,
 } from "./filters";
+
+import type { DataTableFilterField } from "./types";
+import type { Table } from "@tanstack/react-table";
 
 interface DataTableToolbarResponsiveProps<TData> {
   table: Table<TData>;

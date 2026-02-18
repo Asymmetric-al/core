@@ -1,7 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
-import Image from "next/image";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Label } from "@asym/ui/components/shadcn/label";
+import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
+import { Tabs, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
+import { Textarea } from "@asym/ui/components/shadcn/textarea";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Eye,
   Globe,
@@ -17,15 +23,8 @@ import {
   Save,
   MapPin,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@asym/ui/components/shadcn/card";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Input } from "@asym/ui/components/shadcn/input";
-import { Label } from "@asym/ui/components/shadcn/label";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@asym/ui/components/shadcn/tabs";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Textarea } from "@asym/ui/components/shadcn/textarea";
-import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
-import { cn } from "@asym/ui/lib/utils";
+import Image from "next/image";
+import React, { useState } from "react";
 
 // --- Types ---
 
@@ -37,6 +36,26 @@ interface ProjectPage {
   goal: string;
   description: string;
 }
+
+type WebStudioView = "content" | "projects" | "updates";
+type PreviewMode = "mobile" | "desktop";
+
+interface BasicInfo {
+  displayName: string;
+  location: string;
+  bio: string;
+}
+
+interface PreviewContentProps {
+  mode: PreviewMode;
+  coverImage: string;
+  profileImage: string;
+  basicInfo: BasicInfo;
+  projects: ProjectPage[];
+}
+
+const isWebStudioView = (value: string): value is WebStudioView =>
+  value === "content" || value === "projects" || value === "updates";
 
 // --- Constants ---
 
@@ -68,7 +87,7 @@ const PreviewContent = ({
   profileImage,
   basicInfo,
   projects,
-}: any) => {
+}: PreviewContentProps) => {
   return (
     <div className="bg-white min-h-full font-sans text-slate-900 pb-10 text-left">
       {/* Cover */}
@@ -173,8 +192,8 @@ const PreviewContent = ({
             )}
           >
             {projects
-              .filter((p: any) => p.status === "Public")
-              .map((p: any) => (
+              .filter((p) => p.status === "Public")
+              .map((p) => (
                 <div
                   key={p.id}
                   className="rounded-xl bg-white shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow"
@@ -212,12 +231,8 @@ const PreviewContent = ({
 };
 
 export default function WebStudio() {
-  const [view, setView] = useState<"content" | "projects" | "updates">(
-    "content",
-  );
-  const [previewMode, setPreviewMode] = useState<"mobile" | "desktop">(
-    "mobile",
-  );
+  const [view, setView] = useState<WebStudioView>("content");
+  const [previewMode, setPreviewMode] = useState<PreviewMode>("mobile");
   const [isSaving, setIsSaving] = useState(false);
 
   // Content State
@@ -227,7 +242,7 @@ export default function WebStudio() {
     bio: "<p>We are serving the Northern Thailand community, bringing hope through education and clean water initiatives.</p>",
   });
 
-  const [projects, setProjects] = useState<ProjectPage[]>(INITIAL_PROJECTS);
+  const [projects, _setProjects] = useState<ProjectPage[]>(INITIAL_PROJECTS);
   const [profileImage] = useState(
     "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop",
   );
@@ -255,7 +270,11 @@ export default function WebStudio() {
           <div className="h-6 w-px bg-slate-200 mx-1" />
           <Tabs
             value={view}
-            onValueChange={(v) => setView(v as any)}
+            onValueChange={(v) => {
+              if (isWebStudioView(v)) {
+                setView(v);
+              }
+            }}
             className="h-10"
           >
             <TabsList className="bg-transparent h-full p-0 gap-4 border-none">

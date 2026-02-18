@@ -1,8 +1,9 @@
 "use client";
 
-import * as React from "react";
 import { type LucideIcon } from "lucide-react";
 import { motion } from "motion/react";
+import * as React from "react";
+
 import { cn } from "@asym/ui/lib/utils";
 
 export interface AppIconProps extends React.ComponentPropsWithoutRef<"svg"> {

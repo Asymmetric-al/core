@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useEffectEvent, useMemo, memo } from "react";
-import { useRouter } from "next/navigation";
-import { Search } from "lucide-react";
+import { useMC } from "@asym/lib/mission-control/context";
+import { TILES } from "@asym/lib/mission-control/tiles";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   CommandDialog,
@@ -12,9 +11,11 @@ import {
   CommandItem,
   CommandList,
 } from "@asym/ui/components/shadcn/command";
-import { TILES } from "@asym/lib/mission-control/tiles";
+import { Search } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState, useEffect, useEffectEvent, useMemo, memo } from "react";
+
 import { getIcon } from "../icons";
-import { useMC } from "@asym/lib/mission-control/context";
 
 export const GlobalSearch = memo(function GlobalSearch() {
   const [open, setOpen] = useState(false);

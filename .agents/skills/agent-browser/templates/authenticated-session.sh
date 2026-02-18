@@ -29,7 +29,7 @@ echo "Authentication workflow: $LOGIN_URL"
 # ================================================================
 if [[ -f "$STATE_FILE" ]]; then
     echo "Loading saved state from $STATE_FILE..."
-    if agent-browser --state "$STATE_FILE" open "$LOGIN_URL" 2>/dev/null; then
+    if agent-browser state load "$STATE_FILE" 2>/dev/null && agent-browser open "$LOGIN_URL" 2>/dev/null; then
         agent-browser wait --load networkidle
 
         CURRENT_URL=$(agent-browser get url)
@@ -38,12 +38,13 @@ if [[ -f "$STATE_FILE" ]]; then
             agent-browser snapshot -i
             exit 0
         fi
-        echo "Session expired, performing fresh login..."
+        echo "Session expired, continuing to discovery/login setup..."
         agent-browser close 2>/dev/null || true
+        echo "Keeping existing state file after expired session: $STATE_FILE"
     else
-        echo "Failed to load state, re-authenticating..."
+        echo "Failed to load state, continuing to discovery/login setup..."
+        echo "Keeping existing state file after load failure: $STATE_FILE"
     fi
-    rm -f "$STATE_FILE"
 fi
 
 # ================================================================
@@ -66,7 +67,9 @@ echo "  3. Set: export APP_USERNAME='...' APP_PASSWORD='...'"
 echo "  4. Delete this DISCOVERY MODE section"
 echo ""
 agent-browser close
-exit 0
+
+# Continue to LOGIN FLOW below when you uncomment/customize it.
+# Keep this section while iterating, or delete it once refs are known.
 
 # ================================================================
 # LOGIN FLOW: Uncomment and customize after discovery

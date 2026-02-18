@@ -1,7 +1,11 @@
 "use client";
 
+import { TrendingUp, TrendingDown, AlertCircle, Inbox } from "lucide-react";
 import * as React from "react";
+
 import { cn } from "@asym/ui/lib/utils";
+
+import { Badge } from "./badge";
 import {
   Card,
   CardContent,
@@ -12,8 +16,6 @@ import {
   CardAction,
 } from "./card";
 import { Skeleton } from "./skeleton";
-import { Badge } from "./badge";
-import { TrendingUp, TrendingDown, AlertCircle, Inbox } from "lucide-react";
 
 // --- ChartCard ---
 
@@ -121,6 +123,19 @@ interface ChartLegendProps {
   className?: string;
 }
 
+interface ChartTooltipItem {
+  color?: string;
+  fill?: string;
+  name?: string;
+  value?: string | number | null;
+}
+
+interface ChartTooltipProps {
+  active?: boolean;
+  payload?: ChartTooltipItem[];
+  label?: string | number;
+}
+
 export function ChartLegend({ items, className }: ChartLegendProps) {
   return (
     <div
@@ -148,7 +163,7 @@ export function ChartLegend({ items, className }: ChartLegendProps) {
 
 // --- ChartTooltip ---
 
-export function ChartTooltip({ active, payload, label }: any) {
+export function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
 
   return (
@@ -157,7 +172,7 @@ export function ChartTooltip({ active, payload, label }: any) {
         {label}
       </p>
       <div className="space-y-1.5">
-        {payload.map((item: any, index: number) => (
+        {payload.map((item, index) => (
           <div key={index} className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-1.5">
               <div

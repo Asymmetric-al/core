@@ -1,6 +1,67 @@
 "use client";
 
-import React, { useState } from "react";
+import { tiles } from "@asym/config/tiles";
+import { Avatar, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@asym/ui/components/shadcn/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@asym/ui/components/shadcn/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Label } from "@asym/ui/components/shadcn/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@asym/ui/components/shadcn/select";
+import { Separator } from "@asym/ui/components/shadcn/separator";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetFooter,
+  SheetClose,
+} from "@asym/ui/components/shadcn/sheet";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@asym/ui/components/shadcn/table";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@asym/ui/components/shadcn/tabs";
 import {
   Plus,
   Search,
@@ -19,73 +80,24 @@ import {
   UserCog,
   Shield,
 } from "lucide-react";
+import React, { useState } from "react";
+
 import { DynamicIcon } from "@/features/mission-control/shell/components/icons";
 
-import { Button } from "@asym/ui/components/shadcn/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@asym/ui/components/shadcn/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@asym/ui/components/shadcn/dropdown-menu";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@asym/ui/components/shadcn/table";
-import { Input } from "@asym/ui/components/shadcn/input";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Avatar, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@asym/ui/components/shadcn/dialog";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-  SheetFooter,
-  SheetClose,
-} from "@asym/ui/components/shadcn/sheet";
-import { Label } from "@asym/ui/components/shadcn/label";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@asym/ui/components/shadcn/tabs";
+type PermissionLevel = "Admin" | "Manage" | "View";
 
-import { Separator } from "@asym/ui/components/shadcn/separator";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@asym/ui/components/shadcn/select";
-import { tiles } from "@asym/config/tiles";
+type Team = {
+  id: string;
+  name: string;
+  description: string;
+  membersCount: number;
+  status: string;
+  avatar: string;
+  color: string;
+  permissions: Partial<Record<string, PermissionLevel>>;
+};
 
-const TEAMS = [
+const TEAMS: Team[] = [
   {
     id: "1",
     name: "Executive Leadership",
@@ -181,9 +193,7 @@ const MEMBERS = [
 ];
 
 export default function TeamsPage() {
-  const [selectedTeam, setSelectedTeam] = useState<(typeof TEAMS)[0] | null>(
-    null,
-  );
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
   const renderIcon = (iconName: string) => {
@@ -452,9 +462,8 @@ export default function TeamsPage() {
                                       <div className="grid gap-2">
                                         {tiles.map((tile) => {
                                           const currentLevel =
-                                            (selectedTeam.permissions as any)[
-                                              tile.id
-                                            ] || "None";
+                                            selectedTeam.permissions[tile.id] ??
+                                            "None";
                                           return (
                                             <div
                                               key={tile.id}

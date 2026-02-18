@@ -1,10 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
 import {
   getAuthContext,
   requireAuth,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
+import { type NextRequest, NextResponse } from "next/server";
+
+interface FollowerRequestWithDonor {
+  donor?: {
+    name?: string | null;
+  } | null;
+}
 
 export async function PATCH(
   request: NextRequest,
@@ -59,7 +65,7 @@ export async function PATCH(
       );
     }
 
-    const updateData: Record<string, any> = {
+    const updateData: Record<string, string> = {
       status,
       updated_at: new Date().toISOString(),
       resolved_at: new Date().toISOString(),
@@ -94,11 +100,15 @@ export async function PATCH(
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    const donorName =
+      (updatedRequest as FollowerRequestWithDonor | null)?.donor?.name ||
+      "Unknown Donor";
+
     return NextResponse.json({
       request: {
         ...updatedRequest,
-        name: (updatedRequest as any).donor?.name || "Unknown Donor",
-        initials: getInitials((updatedRequest as any).donor?.name || "Unknown"),
+        name: donorName,
+        initials: getInitials(donorName),
       },
     });
   } catch (e) {

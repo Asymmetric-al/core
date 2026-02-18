@@ -1,5 +1,5 @@
-import React from "react";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
+import React from "react";
 
 interface RichTextEditorProps {
   value: string;

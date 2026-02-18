@@ -126,6 +126,7 @@ import { NumericFormat } from "react-number-format";
 
 ```tsx
 import {
+  useEffect,
   useRef,
   useState,
   useCallback,
@@ -141,6 +142,17 @@ interface OTPInputProps {
 export function OTPInput({ length = 6, onComplete }: OTPInputProps) {
   const [values, setValues] = useState<string[]>(Array(length).fill(""));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Keep state aligned with dynamic length changes.
+  useEffect(() => {
+    setValues((prev) => {
+      if (prev.length === length) return prev;
+      const next = prev.slice(0, length);
+      while (next.length < length) next.push("");
+      return next;
+    });
+    inputRefs.current = inputRefs.current.slice(0, length);
+  }, [length]);
 
   const focusInput = useCallback(
     (index: number) => {
@@ -282,19 +294,28 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
+const MIN_WIZARD_STEP = 1;
+const MAX_WIZARD_STEP = 3;
+
+function clampStep(step: number) {
+  if (!Number.isFinite(step)) return MIN_WIZARD_STEP;
+  return Math.min(MAX_WIZARD_STEP, Math.max(MIN_WIZARD_STEP, step));
+}
+
 // Persist state to URL for refresh resilience
 // Uses lazy state init to read from URL on first render (SSR-safe)
 function useStepFromURL() {
   const [step, setStep] = useState(() => {
-    if (typeof window === "undefined") return 1;
+    if (typeof window === "undefined") return MIN_WIZARD_STEP;
     const params = new URLSearchParams(window.location.search);
-    return parseInt(params.get("step") ?? "1", 10);
+    return clampStep(parseInt(params.get("step") ?? String(MIN_WIZARD_STEP), 10));
   });
 
   const goToStep = useCallback((newStep: number) => {
-    setStep(newStep);
+    const clampedStep = clampStep(newStep);
+    setStep(clampedStep);
     const url = new URL(window.location.href);
-    url.searchParams.set("step", String(newStep));
+    url.searchParams.set("step", String(clampedStep));
     window.history.pushState({}, "", url);
   }, []);
 
@@ -320,7 +341,7 @@ interface WizardFormData {
   lastName: string;
   // Step 2
   email: string;
-  phone: string;
+  phone?: string;
   // Step 3
   address: string;
   city: string;
@@ -335,7 +356,10 @@ const stepSchemas = {
 export function WizardForm() {
   const { step, goToStep } = useStepFromURL();
   const headingRef = useStepFocus(step);
-  const totalSteps = 3;
+  const totalSteps = MAX_WIZARD_STEP;
+  const canUseStorage =
+    typeof window !== "undefined" &&
+    typeof window.localStorage !== "undefined";
 
   const form = useForm<WizardFormData>({
     resolver: zodResolver(stepSchemas[step as keyof typeof stepSchemas]),
@@ -344,18 +368,20 @@ export function WizardForm() {
 
   // Persist draft to localStorage
   useEffect(() => {
+    if (!canUseStorage) return;
     const saved = localStorage.getItem("wizard-draft");
     if (saved) {
       form.reset(JSON.parse(saved));
     }
-  }, []);
+  }, [canUseStorage, form]);
 
   useEffect(() => {
+    if (!canUseStorage) return;
     const subscription = form.watch((data) => {
       localStorage.setItem("wizard-draft", JSON.stringify(data));
     });
     return () => subscription.unsubscribe();
-  }, [form]);
+  }, [canUseStorage, form]);
 
   const handleNext = async () => {
     const isValid = await form.trigger();
@@ -367,6 +393,52 @@ export function WizardForm() {
   const handleBack = () => {
     if (step > 1) goToStep(step - 1);
   };
+
+  const onSubmit = (data: WizardFormData) => {
+    console.log("Wizard submit", data);
+    if (canUseStorage) {
+      localStorage.removeItem("wizard-draft");
+    }
+  };
+
+  const StepOne = () => (
+    <div className="grid gap-4">
+      <label>
+        First name
+        <input {...form.register("firstName")} />
+      </label>
+      <label>
+        Last name
+        <input {...form.register("lastName")} />
+      </label>
+    </div>
+  );
+
+  const StepTwo = () => (
+    <div className="grid gap-4">
+      <label>
+        Email
+        <input type="email" {...form.register("email")} />
+      </label>
+      <label>
+        Phone (optional)
+        <input type="tel" {...form.register("phone")} />
+      </label>
+    </div>
+  );
+
+  const StepThree = () => (
+    <div className="grid gap-4">
+      <label>
+        Address
+        <input {...form.register("address")} />
+      </label>
+      <label>
+        City
+        <input {...form.register("city")} />
+      </label>
+    </div>
+  );
 
   return (
     <FormProvider {...form}>
@@ -514,23 +586,56 @@ function useAsyncValidation<T>(
 // Validation runs in the onChange handler (not via effects) to avoid
 // race conditions and unnecessary re-renders.
 function UsernameField() {
-  const { register, setError, clearErrors } = useFormContext();
+  const {
+    register,
+    setError,
+    clearErrors,
+    formState: { errors },
+  } = useFormContext();
   const [isChecking, setIsChecking] = useState(false);
 
   const checkUsername = async (value: string): Promise<string | null> => {
     if (!value || value.length < 3) return null;
+    try {
+      const response = await fetch(
+        `/api/check-username?username=${encodeURIComponent(value)}`,
+      );
+      if (!response.ok) {
+        return "Unable to validate username right now";
+      }
 
-    const response = await fetch(
-      `/api/check-username?username=${encodeURIComponent(value)}`,
-    );
-    const { available } = await response.json();
-    return available ? null : "This username is already taken";
+      const { available } = (await response.json()) as { available?: boolean };
+      if (typeof available !== "boolean") {
+        return "Unable to validate username right now";
+      }
+
+      return available ? null : "This username is already taken";
+    } catch {
+      return "Unable to validate username right now";
+    }
   };
 
-  const { validate, isValidating } = useAsyncValidation(checkUsername);
+  const { validate, isValidating, error } = useAsyncValidation(checkUsername);
 
   // Derive combined checking state
   const showChecking = isChecking || isValidating;
+
+  // Clear the optimistic checking flag when async validation settles.
+  useEffect(() => {
+    if (!isValidating) {
+      setIsChecking(false);
+    }
+  }, [isValidating]);
+
+  // Reflect async availability result into RHF field error state.
+  useEffect(() => {
+    if (isValidating) return;
+    if (error) {
+      setError("username", { type: "validate", message: error });
+    } else {
+      clearErrors("username");
+    }
+  }, [error, isValidating, setError, clearErrors]);
 
   const { onChange: rhfOnChange, ...rest } = register("username", {
     onChange: (e) => {
@@ -539,6 +644,7 @@ function UsernameField() {
         setIsChecking(true);
         validate(value);
       } else {
+        setIsChecking(false);
         clearErrors("username");
       }
     },
@@ -554,6 +660,11 @@ function UsernameField() {
       <input onChange={rhfOnChange} {...rest} />
       {showChecking && (
         <span className="text-muted-foreground">Checking...</span>
+      )}
+      {errors.username?.message && (
+        <span className="text-destructive">
+          {String(errors.username.message)}
+        </span>
       )}
     </div>
   );
@@ -646,13 +757,22 @@ export function AccessibleFileUpload({
       if (!files?.length) return;
 
       const validFiles: File[] = [];
+      const oversizedFiles: string[] = [];
       Array.from(files).forEach((file) => {
         if (maxSize && file.size > maxSize) {
-          setError(`${file.name} exceeds maximum size`);
+          oversizedFiles.push(file.name);
           return;
         }
         validFiles.push(file);
       });
+
+      if (oversizedFiles.length) {
+        setError(
+          oversizedFiles.length === 1
+            ? `${oversizedFiles[0]} exceeds maximum size`
+            : `${oversizedFiles.length} files exceed maximum size: ${oversizedFiles.join(", ")}`,
+        );
+      }
 
       if (validFiles.length) {
         onUpload(validFiles);

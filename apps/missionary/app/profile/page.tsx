@@ -1,41 +1,35 @@
 "use client";
 
-import * as React from "react";
-import { useState, useCallback, useEffect } from "react";
-import Image from "next/image";
-import { toast } from "sonner";
-
-import { motion, AnimatePresence, LayoutGroup } from "motion/react";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { ImageUpload } from "@asym/ui/components/shadcn/image-upload";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { Textarea } from "@asym/ui/components/shadcn/textarea";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
 import { Label } from "@asym/ui/components/shadcn/label";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import {
   Tabs,
   TabsList,
   TabsTrigger,
   TabsContent,
 } from "@asym/ui/components/shadcn/tabs";
-import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
-import { PageHeader } from "@/components/page-header";
+import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@asym/ui/components/shadcn/tooltip";
-import { ImageUpload } from "@asym/ui/components/shadcn/image-upload";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Camera,
   Upload,
@@ -62,7 +56,13 @@ import {
   Info,
   RotateCcw,
 } from "lucide-react";
-import { cn } from "@asym/ui/lib/utils";
+import { motion, AnimatePresence, LayoutGroup } from "motion/react";
+import Image from "next/image";
+import * as React from "react";
+import { useState, useCallback, useEffect } from "react";
+import { toast } from "sonner";
+
+import { PageHeader } from "@/components/page-header";
 import { QuickGive } from "@/features/giving/components/quick-give";
 
 const fadeInUp = {

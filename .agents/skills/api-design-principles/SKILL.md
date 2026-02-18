@@ -279,6 +279,20 @@ type Order {
   user: User!
 }
 
+type UserProfile {
+  avatarUrl: String
+  bio: String
+  timezone: String
+}
+
+type OrderItem {
+  id: ID!
+  sku: String!
+  name: String!
+  quantity: Int!
+  unitPrice: Money!
+}
+
 # Pagination pattern (Relay-style)
 type OrderConnection {
   edges: [OrderEdge!]!

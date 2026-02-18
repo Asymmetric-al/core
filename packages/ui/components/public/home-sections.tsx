@@ -1,5 +1,4 @@
-import Link from "next/link";
-import Image from "next/image";
+import { siteConfig } from "@asym/config/site";
 import {
   ArrowRight,
   Activity,
@@ -10,8 +9,10 @@ import {
   ShieldCheck,
   Zap,
 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+
 import { Button } from "@asym/ui/components/shadcn/button";
-import { siteConfig } from "@asym/config/site";
 
 const HERO_IMAGE =
   "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=2070&auto=format&fit=crop";

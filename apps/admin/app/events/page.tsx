@@ -1,165 +1,24 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import {
-  Calendar as CalendarIcon,
-  MapPin,
-  Users,
-  DollarSign,
-  Plus,
-  Search,
-  Filter,
-  MoreHorizontal,
-  ChevronRight,
-  ChevronDown,
-  Clock,
-  CheckCircle2,
-  QrCode,
-  Printer,
-  X,
-  Layout,
-  FileText,
-  Settings,
-  ArrowLeft,
-  Mic2,
-  List,
-  Grid,
-  CreditCard,
-  ExternalLink,
-  Download,
-  BarChart3,
-  ScanLine,
-  TrendingUp,
-  Mail,
-  Save,
-  UserPlus,
-  Trash2,
-  Linkedin,
-  Twitter,
-  Globe,
-  Image as ImageIcon,
-  Upload,
-  AtSign,
-  Briefcase,
-  User,
-  Check,
-  GripVertical,
-  FileInput,
-  ListOrdered,
-  ToggleLeft,
-  Layers,
-  AlertCircle,
-  Eye,
-  Copy,
-  ArrowDown,
-  Type,
-  Plane,
-  Database,
-  Lock,
-  Shield,
-  RotateCcw,
-  Code,
-  Palette,
-  Terminal,
-  Megaphone,
-  Webhook,
-  Key,
-  MousePointerClick,
-  Ticket,
-  AlignLeft,
-  CheckSquare,
-  Radio,
-  CalendarDays,
-  Tag,
-  AlertTriangle,
-  ArrowUpRight,
-  Compass,
-  DoorOpen,
-  Presentation,
-  Utensils,
-  Accessibility,
-  CloudSun,
-  Timer,
-  BellRing,
-  Building,
-  Navigation,
-  Wifi,
-  Bed,
-  Car,
-  Smartphone,
-  Bus,
-  Coffee,
-  Map,
-  BedDouble,
-} from "lucide-react";
-import {
-  motion,
-  AnimatePresence,
-  Reorder,
-  useDragControls,
-} from "motion/react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardFooter,
-} from "@asym/ui/components/shadcn/card";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Input } from "@asym/ui/components/shadcn/input";
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from "@asym/ui/components/shadcn/tabs";
+import { formatCurrency, getInitials } from "@asym/lib/utils";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
-import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
-import { Switch } from "@asym/ui/components/shadcn/switch";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@asym/ui/components/shadcn/card";
+import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { Progress } from "@asym/ui/components/shadcn/progress";
-import { Textarea } from "@asym/ui/components/shadcn/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@asym/ui/components/shadcn/select";
-import { RichTextEditor } from "@asym/ui/components/shadcn/RichTextEditor";
 import { Separator } from "@asym/ui/components/shadcn/separator";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-  DropdownMenuCheckboxItem,
-} from "@asym/ui/components/shadcn/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogTrigger,
-} from "@asym/ui/components/shadcn/dialog";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
-} from "@asym/ui/components/shadcn/sheet";
 import {
   Table,
   TableBody,
@@ -168,9 +27,39 @@ import {
   TableHeader,
   TableRow,
 } from "@asym/ui/components/shadcn/table";
-import { formatCurrency, getInitials } from "@asym/lib/utils";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@asym/ui/components/shadcn/tabs";
 import { cn } from "@asym/ui/lib/utils";
-import Link from "next/link";
+import {
+  MapPin,
+  Users,
+  DollarSign,
+  Plus,
+  Search,
+  MoreHorizontal,
+  ChevronDown,
+  Printer,
+  FileText,
+  Settings,
+  Download,
+  ScanLine,
+  Mail,
+  UserPlus,
+  User,
+  Layers,
+  Eye,
+  CalendarDays,
+  Presentation,
+  Timer,
+  Building,
+  Wifi,
+  BedDouble,
+} from "lucide-react";
+import React, { useState } from "react";
 import {
   AreaChart,
   Area,
@@ -179,9 +68,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
 } from "recharts";
 
 // --- Types & Mock Data ---
@@ -375,7 +261,7 @@ interface FormField {
   subFields?: FormField[]; // For repeater groups
 }
 
-const DEFAULT_FORM_FIELDS: FormField[] = [
+const _DEFAULT_FORM_FIELDS: FormField[] = [
   {
     id: "f1",
     type: "text",
@@ -755,7 +641,7 @@ const getStatusColor = (status: SpeakerStatus) => {
   }
 };
 
-const formatTime = (time: string) => {
+const _formatTime = (time: string) => {
   const parts = time.split(":");
   const hours = parts[0] ?? "0";
   const minutes = parts[1] ?? "00";
@@ -765,7 +651,7 @@ const formatTime = (time: string) => {
   return `${h12}:${minutes} ${ampm}`;
 };
 
-const getDuration = (start: string, end: string) => {
+const _getDuration = (start: string, end: string) => {
   const startParts = start.split(":").map(Number);
   const endParts = end.split(":").map(Number);
   const sH = startParts[0] ?? 0;
@@ -779,10 +665,9 @@ const getDuration = (start: string, end: string) => {
 // --- Main Page ---
 
 export default function EventsPage() {
-  const [activeView, setActiveView] = useState<
-    "dashboard" | "config" | "speakers" | "attendees"
-  >("dashboard");
-  const [event, setEvent] = useState<ConferenceEvent>(INITIAL_EVENTS[0]!);
+  type EventsView = "dashboard" | "config" | "speakers" | "attendees";
+  const [activeView, setActiveView] = useState<EventsView>("dashboard");
+  const [event, _setEvent] = useState<ConferenceEvent>(INITIAL_EVENTS[0]!);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20 p-6">
@@ -822,7 +707,7 @@ export default function EventsPage() {
 
       <Tabs
         value={activeView}
-        onValueChange={setActiveView as any}
+        onValueChange={(value) => setActiveView(value as EventsView)}
         className="w-full"
       >
         <TabsList className="bg-slate-100/50 border border-slate-200 p-1 rounded-xl">

@@ -1,8 +1,10 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { ChevronRight } from "../icons";
 import Link from "next/link";
+
+import { ChevronRight } from "../icons";
+
+import type { ReactNode } from "react";
 
 interface BreadcrumbItem {
   label: string;

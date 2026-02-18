@@ -1,7 +1,8 @@
 "use client";
 
-import { cn } from "@asym/ui/lib/utils";
 import { brandConfig } from "@asym/config/site";
+
+import { cn } from "@asym/ui/lib/utils";
 
 interface BrandLogoProps {
   size?: "sm" | "md" | "lg";

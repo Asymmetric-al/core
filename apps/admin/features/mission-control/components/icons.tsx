@@ -1,7 +1,5 @@
-/* eslint-disable react-hooks/static-components */
 "use client";
 
-import React, { lazy, Suspense, useMemo } from "react";
 import {
   type LucideProps,
   Settings,
@@ -34,6 +32,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import dynamicIconImports from "lucide-react/dynamicIconImports";
+import React, { lazy, Suspense, useMemo } from "react";
 
 // Helper to convert PascalCase to kebab-case for lucide-react/dynamicIconImports
 function pascalToKebab(str: string): string {

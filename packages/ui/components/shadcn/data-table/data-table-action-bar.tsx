@@ -1,13 +1,15 @@
 "use client";
 
-import * as React from "react";
-import type { Table } from "@tanstack/react-table";
 import { X, Trash2, Download } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
+import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
+
 import { Button } from "../button";
 import { Separator } from "../separator";
+
+import type { Table } from "@tanstack/react-table";
 
 interface DataTableActionBarProps<TData> {
   table: Table<TData>;

@@ -1,13 +1,14 @@
 "use client";
 
-import type { ReactNode } from "react";
-
 import { SettingsIcon, XIcon, LinkIcon } from "lucide-react";
 
+import {
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
+} from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { Avatar, AvatarImage, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +17,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuItem,
 } from "@asym/ui/components/shadcn/dropdown-menu";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@asym/ui/components/shadcn/tabs";
+
+import type { ReactNode } from "react";
 
 type Props = {
   trigger: ReactNode;

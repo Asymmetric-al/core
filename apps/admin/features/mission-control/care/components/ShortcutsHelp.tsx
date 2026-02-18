@@ -1,6 +1,7 @@
+import { Keyboard, Command } from "lucide-react";
 import React from "react";
-import { Dialog, DialogHeader, DialogTitle, cn } from "./UI";
-import { Keyboard, Command, ArrowRight } from "lucide-react";
+
+import { Dialog, DialogHeader, DialogTitle } from "./UI";
 
 interface ShortcutsHelpProps {
   open: boolean;

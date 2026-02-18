@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
 import { siteConfig } from "@asym/config/site";
+
+import type { Metadata } from "next";
 
 const SITE_URL = siteConfig.url;
 

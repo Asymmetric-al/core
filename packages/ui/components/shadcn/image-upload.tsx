@@ -1,14 +1,6 @@
 "use client";
 
-import * as React from "react";
-import { useState, useRef, useCallback } from "react";
-import Image, { type ImageLoader } from "next/image";
-import { Button } from "./button";
-import { ImageCropper } from "./image-cropper";
-import { toast } from "sonner";
 import { createBrowserClient } from "@asym/database/supabase";
-import { Loader2, Upload, X } from "lucide-react";
-import { cn } from "@asym/ui/lib/utils";
 import {
   uploadToCloudinary,
   isCloudinaryEnabled,
@@ -21,6 +13,16 @@ import {
   createDownscaledPreview,
   formatFileSize,
 } from "@asym/lib/image-utils";
+import { Loader2, Upload, X } from "lucide-react";
+import Image, { type ImageLoader } from "next/image";
+import * as React from "react";
+import { useState, useRef, useCallback } from "react";
+import { toast } from "sonner";
+
+import { cn } from "@asym/ui/lib/utils";
+
+import { Button } from "./button";
+import { ImageCropper } from "./image-cropper";
 
 const passthroughImageLoader: ImageLoader = ({ src }) => src;
 
@@ -146,7 +148,7 @@ export function ImageUpload({
           `Large file (${formatFileSize(file.size)}) will be optimized on upload`,
         );
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to read the image file");
     }
   }, []);
@@ -269,9 +271,11 @@ export function ImageUpload({
 
         onChange(publicUrl);
         toast.success("Image uploaded successfully");
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const message =
+          error instanceof Error ? error.message : "Failed to upload image";
         console.error("Upload error:", error);
-        toast.error(error.message || "Failed to upload image");
+        toast.error(message);
       } finally {
         setIsUploading(false);
         setSelectedImage(null);

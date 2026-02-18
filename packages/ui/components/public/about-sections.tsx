@@ -1,18 +1,19 @@
 "use client";
 
-import Image from "next/image";
-import { motion } from "motion/react";
 import { Target, Users, Shield, Heart, Globe, Sparkles } from "lucide-react";
-import { Card, CardContent } from "@asym/ui/components/shadcn/card";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { cn } from "@asym/ui/lib/utils";
+import { motion } from "motion/react";
+import Image from "next/image";
 import Link from "next/link";
+
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Card, CardContent } from "@asym/ui/components/shadcn/card";
+import { cn } from "@asym/ui/lib/utils";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 40 },
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true },
-  transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as any },
+  transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as const },
 };
 
 export function AboutHero() {

@@ -1,17 +1,18 @@
 "use client";
 
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { ChevronLeft, MoreVertical, Edit } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import React from "react";
+
+import { PersonnelProfile } from "@/features/mission-control/care/components/PersonnelProfile";
+import { TimezoneScheduler } from "@/features/mission-control/care/components/TimezoneScheduler";
 import {
   useCareProfile,
   useCareActivity,
 } from "@/features/mission-control/care/hooks/use-care";
-import { PersonnelProfile } from "@/features/mission-control/care/components/PersonnelProfile";
-import { TimezoneScheduler } from "@/features/mission-control/care/components/TimezoneScheduler";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { ChevronLeft, MoreVertical, Edit } from "lucide-react";
-import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
-import Link from "next/link";
-import { useParams } from "next/navigation";
 
 export default function CareProfilePage() {
   const { id } = useParams();

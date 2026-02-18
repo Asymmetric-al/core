@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
+
 import { Button } from "@asym/ui/components/shadcn/button";
-import { Menu, X } from "lucide-react";
 import { cn } from "@asym/ui/lib/utils";
 
 interface NavLink {

@@ -1,11 +1,11 @@
 "use client";
 
-import * as React from "react";
-import type { Table } from "@tanstack/react-table";
 import { X, Trash2, Download, MoreHorizontal, Check } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
+import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
+
 import { Button } from "../button";
 import {
   DropdownMenu,
@@ -14,6 +14,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../dropdown-menu";
+
+import type { Table } from "@tanstack/react-table";
 
 interface FloatingActionBarAction<TData> {
   label: string;

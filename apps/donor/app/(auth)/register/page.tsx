@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { createBrowserClient } from "@asym/database/supabase";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
@@ -20,8 +18,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
-import { createBrowserClient } from "@asym/database/supabase";
 import { Loader2, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function RegisterPage() {
   const router = useRouter();

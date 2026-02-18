@@ -1,7 +1,5 @@
 "use client";
 
-import { memo, useMemo } from "react";
-import { Bell } from "lucide-react";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   DropdownMenu,
@@ -11,6 +9,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
+import { Bell } from "lucide-react";
+import { memo, useMemo } from "react";
 
 interface Notification {
   id: string;

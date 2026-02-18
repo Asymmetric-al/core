@@ -1,17 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { useForm, useWatch } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
-} from "@asym/ui/components/shadcn/sheet";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Form,
   FormControl,
@@ -21,7 +10,6 @@ import {
   FormMessage,
 } from "@asym/ui/components/shadcn/form";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import {
   Select,
   SelectContent,
@@ -29,11 +17,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
-import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@asym/ui/components/shadcn/sheet";
 import { Switch } from "@asym/ui/components/shadcn/switch";
-import { useUpsertLocation, useLinkedEntities } from "../hooks/use-locations";
-import type { Location } from "../hooks/use-locations";
+import { Textarea } from "@asym/ui/components/shadcn/textarea";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Trash2 } from "lucide-react";
+import React, { useEffect } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { z } from "zod";
+
+import { useUpsertLocation, useLinkedEntities } from "../hooks/use-locations";
+
+import type { Location } from "../hooks/use-locations";
 
 const locationSchema = z.object({
   id: z.string().optional(),

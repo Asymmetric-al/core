@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { createBrowserClient } from "@asym/database/supabase";
-import type { User } from "@supabase/supabase-js";
+import { useState, useEffect } from "react";
+
 import type { Profile } from "@asym/database/types";
+import type { User } from "@supabase/supabase-js";
 
 interface AuthState {
   user: User | null;

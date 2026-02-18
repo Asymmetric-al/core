@@ -1,12 +1,15 @@
-import type { Metadata, Viewport } from "next";
-import { Inter, Syne, Geist_Mono } from "next/font/google";
-import { Suspense } from "react";
-import "./globals.css";
-import { ThemeProvider } from "@/components/providers/theme-provider";
-import { Toaster } from "@asym/ui/components/shadcn/sonner";
-import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { QueryProvider } from "@asym/database/providers";
 import { siteConfig } from "@asym/config/site";
+import { QueryProvider } from "@asym/database/providers";
+import { Toaster } from "@asym/ui/components/shadcn/sonner";
+import { Inter, Geist_Mono, Syne } from "next/font/google";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { Suspense } from "react";
+
+import type { Metadata, Viewport } from "next";
+
+import { ThemeProvider } from "@/components/providers/theme-provider";
+
+import "./globals.css";
 
 const inter = Inter({
   variable: "--font-inter",

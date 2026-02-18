@@ -1,16 +1,16 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
 import { SquarePlusIcon } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 import { Button } from "@asym/ui/components/shadcn/button";
+import { MotionPreset } from "@asym/ui/components/shadcn/motion-preset";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@asym/ui/components/shadcn/tooltip";
-import { MotionPreset } from "@asym/ui/components/shadcn/motion-preset";
 
 const HeroSection = () => {
   return (

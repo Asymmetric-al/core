@@ -1,7 +1,33 @@
 "use client";
 
-import React, { useState } from "react";
-import Image from "next/image";
+import { formatCurrency } from "@asym/lib/utils";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@asym/ui/components/shadcn/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Label } from "@asym/ui/components/shadcn/label";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@asym/ui/components/shadcn/tabs";
+import { cn } from "@asym/ui/lib/utils";
 import {
   CreditCard,
   Plus,
@@ -25,34 +51,8 @@ import {
   User,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { cn } from "@asym/ui/lib/utils";
-import { formatCurrency } from "@asym/lib/utils";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Input } from "@asym/ui/components/shadcn/input";
-import { Label } from "@asym/ui/components/shadcn/label";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@asym/ui/components/shadcn/dialog";
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from "@asym/ui/components/shadcn/tabs";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@asym/ui/components/shadcn/dropdown-menu";
+import Image from "next/image";
+import React, { useState } from "react";
 
 // --- Types & Mock Data ---
 
@@ -86,6 +86,27 @@ interface Pledge {
   paymentMethodId: string;
   avatar?: string;
 }
+
+type WalletTab = "card" | "bank";
+
+interface PaymentMethodFormData {
+  number: string;
+  expiry: string;
+  cvc: string;
+  name: string;
+  routing: string;
+  account: string;
+  address: Address;
+}
+
+interface MethodFormProps {
+  formData: PaymentMethodFormData;
+  setFormData: React.Dispatch<React.SetStateAction<PaymentMethodFormData>>;
+  isEditing: boolean;
+}
+
+const isWalletTab = (value: string): value is WalletTab =>
+  value === "card" || value === "bank";
 
 const MOCK_ADDRESS: Address = {
   street: "123 Mission Way",
@@ -393,7 +414,7 @@ const AddressForm = ({
 
 // --- Sub-Form Components ---
 
-const CardForm = ({ formData, setFormData, isEditing }: any) => (
+const CardForm = ({ formData, setFormData, isEditing }: MethodFormProps) => (
   <>
     <div className="space-y-2 text-left">
       <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
@@ -473,7 +494,7 @@ const CardForm = ({ formData, setFormData, isEditing }: any) => (
   </>
 );
 
-const BankForm = ({ formData, setFormData, isEditing }: any) => (
+const BankForm = ({ formData, setFormData, isEditing }: MethodFormProps) => (
   <>
     <div className="bg-emerald-50 text-emerald-800 text-xs p-4 rounded-xl flex items-start gap-3 border border-emerald-100 shadow-sm text-left uppercase font-bold tracking-tight">
       <Sparkles className="h-5 w-5 shrink-0 mt-0.5 text-emerald-600 fill-emerald-200" />
@@ -589,9 +610,9 @@ export default function DonorWalletPage() {
   const [editingMethod, setEditingMethod] = useState<PaymentMethod | null>(
     null,
   );
-  const [activeTab, setActiveTab] = useState<"card" | "bank">("card");
+  const [activeTab, setActiveTab] = useState<WalletTab>("card");
 
-  const initialFormState = {
+  const initialFormState: PaymentMethodFormData = {
     number: "",
     expiry: "",
     cvc: "",
@@ -1014,7 +1035,11 @@ export default function DonorWalletPage() {
             {!editingMethod ? (
               <Tabs
                 value={activeTab}
-                onValueChange={(v) => setActiveTab(v as any)}
+                onValueChange={(v) => {
+                  if (isWalletTab(v)) {
+                    setActiveTab(v);
+                  }
+                }}
                 className="w-full"
               >
                 <TabsList className="grid w-full grid-cols-2 mb-8 bg-white p-1 rounded-xl shadow-sm border border-zinc-200 h-12">

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import {
   BadgePercentIcon,
   ChartNoAxesCombinedIcon,
@@ -9,7 +8,7 @@ import {
   ShoppingBagIcon,
   TrendingUpIcon,
 } from "lucide-react";
-
+import Image from "next/image";
 import { Bar, BarChart, Label, Pie, PieChart } from "recharts";
 
 import { Avatar, AvatarFallback } from "@asym/ui/components/shadcn/avatar";

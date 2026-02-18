@@ -1,7 +1,5 @@
-/* eslint-disable react-hooks/incompatible-library -- TanStack Table API is intentionally non-memoizable */
 "use client";
 
-import * as React from "react";
 import { useLiveQuery } from "@tanstack/react-db";
 import {
   type ColumnFiltersState,
@@ -19,11 +17,14 @@ import {
   type ColumnDef,
   type TableOptions,
 } from "@tanstack/react-table";
+import * as React from "react";
+
+import { createEmptyFilterState, createAdvancedFilterFn } from "../filters";
+
 import type {
   AdvancedFilterState,
   FilterFieldDefinition,
 } from "../filters/types";
-import { createEmptyFilterState, createAdvancedFilterFn } from "../filters";
 
 type LiveQueryBuilder<TData> = (q: {
   from: (arg: Record<string, unknown>) => {

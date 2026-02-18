@@ -1,27 +1,58 @@
 "use client";
 
-import React, {
-  useRef,
-  useState,
-  useCallback,
-  useMemo,
-  useEffect,
-} from "react";
-import { UnlayerEditor } from "@asym/ui/components/studio/UnlayerEditor";
-import type { UnlayerEditorHandle } from "@asym/ui/components/studio/UnlayerEditor";
-import { PDFStudioSetupStatus } from "@asym/ui/components/studio/PDFStudioSetupStatus";
-import {
-  getPDFStudioConfig,
-  type PDFStudioFullConfig,
-} from "@asym/config/pdf-studio";
 import { type EmailStudioFullConfig } from "@asym/config/email-studio";
-import type { UnlayerDesignJSON } from "@asym/email/email-studio-types";
-import type { PDFTemplateCategory } from "@/lib/pdf-studio";
+import { type PDFStudioFullConfig } from "@asym/config/pdf-studio";
 import {
-  PDF_TEMPLATE_CATEGORIES,
-  PAGE_SIZES,
-  ORIENTATIONS,
-} from "@/lib/pdf-studio";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@asym/ui/components/shadcn/alert-dialog";
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@asym/ui/components/shadcn/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuShortcut,
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Kbd } from "@asym/ui/components/shadcn/kbd";
+import { Label } from "@asym/ui/components/shadcn/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@asym/ui/components/shadcn/select";
+import { Separator } from "@asym/ui/components/shadcn/separator";
+import { Textarea } from "@asym/ui/components/shadcn/textarea";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@asym/ui/components/shadcn/toggle-group";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@asym/ui/components/shadcn/tooltip";
+import { PDFStudioSetupStatus } from "@asym/ui/components/studio/PDFStudioSetupStatus";
+import { UnlayerEditor } from "@asym/ui/components/studio/UnlayerEditor";
+import { cn } from "@asym/ui/lib/utils";
 import {
   FileText,
   Save,
@@ -49,56 +80,18 @@ import {
   RotateCcw,
   AlertCircle,
 } from "lucide-react";
-import { Button } from "@asym/ui/components/shadcn/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuShortcut,
-} from "@asym/ui/components/shadcn/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@asym/ui/components/shadcn/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@asym/ui/components/shadcn/select";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@asym/ui/components/shadcn/alert-dialog";
-import { Input } from "@asym/ui/components/shadcn/input";
-import { Label } from "@asym/ui/components/shadcn/label";
-import { Textarea } from "@asym/ui/components/shadcn/textarea";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@asym/ui/components/shadcn/tooltip";
-import { Kbd } from "@asym/ui/components/shadcn/kbd";
-import {
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@asym/ui/components/shadcn/toggle-group";
-import { Separator } from "@asym/ui/components/shadcn/separator";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
-import { cn } from "@asym/ui/lib/utils";
+
+import type { PDFTemplateCategory } from "@/lib/pdf-studio";
+import type { UnlayerDesignJSON } from "@asym/email/email-studio-types";
+import type { UnlayerEditorHandle } from "@asym/ui/components/studio/UnlayerEditor";
+
+import {
+  PDF_TEMPLATE_CATEGORIES,
+  PAGE_SIZES,
+  ORIENTATIONS,
+} from "@/lib/pdf-studio";
 
 type PreviewDevice = "desktop" | "mobile";
 
@@ -138,9 +131,7 @@ export default function PDFStudio() {
   );
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [copiedHtml, setCopiedHtml] = useState(false);
-  const [currentDesign, setCurrentDesign] = useState<UnlayerDesignJSON | null>(
-    null,
-  );
+  const [, setCurrentDesign] = useState<UnlayerDesignJSON | null>(null);
   const [metadata, setMetadata] = useState<PDFMetadata>({
     id: null,
     name: "Untitled Document",
