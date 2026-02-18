@@ -1,0 +1,74 @@
+# @asym/ui — Shared UI Package
+
+Shared UI component library for the `@asym` monorepo. It wraps shadcn/ui and enforces the **Maia theme** with the **Zinc palette** (OKLCH color space). All design tokens live in one place.
+
+## Design Token System
+
+- Tailwind v4 is **CSS-first** - there is **no** `tailwind.config.ts` or `tailwind.config.js` in this repo.
+- Single source of truth: `packages/ui/styles/globals.css`
+- The `@theme inline` directive maps CSS custom properties to Tailwind utility classes (for example, `--color-primary` to `bg-primary` and `text-primary`).
+- Maia theme + Zinc palette are **mandatory** across all apps.
+
+## Token Reference
+
+| Category             | CSS Variables                                                                                                                                                                                                                                                  | Notes                                                              |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Color — semantic     | `--background`, `--foreground`, `--primary`, `--primary-foreground`, `--secondary`, `--secondary-foreground`, `--muted`, `--muted-foreground`, `--accent`, `--accent-foreground`, `--destructive`, `--destructive-foreground`, `--border`, `--input`, `--ring` | OKLCH, hue 265° (Zinc). Light + dark variants in `:root` / `.dark` |
+| Color — card/popover | `--card`, `--card-foreground`, `--popover`, `--popover-foreground`                                                                                                                                                                                             | Layered surface tokens                                             |
+| Color — sidebar      | `--sidebar`, `--sidebar-foreground`, `--sidebar-primary`, `--sidebar-primary-foreground`, `--sidebar-accent`, `--sidebar-accent-foreground`, `--sidebar-border`, `--sidebar-ring`                                                                              | Sidebar-specific surface tokens                                    |
+| Color — charts       | `--chart-1` ... `--chart-5`                                                                                                                                                                                                                                    | 5 distinct OKLCH hues for data viz                                 |
+| Border radius        | `--radius` (1rem base), `--radius-sm`, `--radius-md`, `--radius-lg`, `--radius-xl`, `--radius-2xl`                                                                                                                                                             | Soft/rounded Maia aesthetic                                        |
+| Fonts                | `--font-sans` (Inter), `--font-mono` (Geist Mono)                                                                                                                                                                                                              | Mapped via `@theme inline`                                         |
+| Spacing              | `--space-1` ... `--space-24`                                                                                                                                                                                                                                   | 0.25 rem steps                                                     |
+| Gaps                 | `--gap-xs`, `--gap-sm`, `--gap-md`, `--gap-lg`, `--gap-xl`, `--section-gap`, `--card-padding`                                                                                                                                                                  | Responsive - values change at md/lg breakpoints                    |
+| Container            | `--container-max-width` (1600px), `--container-padding`                                                                                                                                                                                                        | Responsive padding (1rem -> 1.5rem -> 2.5rem)                      |
+| Touch targets        | `--touch-target-min` (44px), `--touch-target-recommended` (48px), `--touch-spacing-min` (8px)                                                                                                                                                                  | Applied automatically on `pointer: coarse`                         |
+
+## How Apps Consume Tokens
+
+Apps import the shared stylesheet as the **first line** of their own `globals.css`:
+
+```css
+@import "@asym/ui/styles/globals.css";
+```
+
+After that import, apps may add `@source` directives for their own file trees. The canonical pattern is in `apps/admin/app/globals.css`, `apps/donor/app/globals.css`, and `apps/missionary/app/globals.css`.
+
+## Rules (MANDATORY)
+
+❌ Apps MUST NOT:
+
+- Create `tailwind.config.ts` or `tailwind.config.js`
+- Define color tokens, radius, font, or spacing scale in app CSS
+- Use any theme other than Maia
+- Use any base color palette other than Zinc
+- Override semantic tokens (for example, `--primary`, `--background`) in app CSS
+
+✅ Apps MAY:
+
+- Add `@source` directives for their own file trees
+- Add layout utilities in `@layer utilities` (for example, page-specific grid helpers)
+- Add app-specific non-theme CSS (animations, component overrides that don't touch tokens)
+
+✅ Apps MAY NOT:
+
+- Add theme primitives (colors, radii, fonts, spacing scale) - these belong in `packages/ui/styles/globals.css` only
+
+## How to Add a New Token
+
+1. Open `packages/ui/styles/globals.css`
+2. Add the CSS variable to `:root` (light value)
+3. If the token has a dark-mode variant, add it to `.dark` as well
+4. Add the corresponding mapping inside `@theme inline` so Tailwind generates a utility class
+5. Update the Token Reference table in this README
+
+## shadcn/ui Integration
+
+- shadcn/ui components consume tokens via CSS variables - no extra config needed.
+- To add a component, run from the **repo root**:
+
+```bash
+bunx --bun shadcn@latest add <component>
+```
+
+- Do **NOT** run `shadcn init` inside individual apps - the shared config in `packages/ui` is the single integration point.
