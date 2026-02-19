@@ -22,6 +22,8 @@ Use this when adding tests, modifying critical flows, or verifying changes.
   - Require the checks above.
   - Do **not** require the E2E check.
 
+See `docs/ci.md` for the full CI gate reference (what each check does, how to debug locally, and how to configure branch protection in GitHub).
+
 ## Workflow
 
 1. Decide the test scope (unit, e2e, a11y, perf, or specific user flow).
