@@ -11,5 +11,10 @@ export default defineConfig({
     include: ["tests/unit/**/*.test.ts", "tests/unit/**/*.test.tsx"],
     environment: "node",
     clearMocks: true,
+    coverage: {
+      provider: "custom",
+      customProviderModule: "./vitest.coverage-provider.mjs",
+      reportsDirectory: "coverage",
+    },
   },
 });

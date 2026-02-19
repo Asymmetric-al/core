@@ -107,4 +107,13 @@ jobs:
           key: turbo-${{ runner.os }}-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-
       - run: bun install --frozen-lockfile
-      - run: bun run test:unit
+      - name: Run unit tests
+        run: bun run test:unit
+      - name: Upload coverage artifact (best effort)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-coverage
+          path: coverage/
+          if-no-files-found: ignore
+          retention-days: 7

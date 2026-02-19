@@ -41,9 +41,10 @@ All fast-check jobs are **required** status checks. `test-e2e` is **informationa
 
 ### `test-unit` (needs: `build`)
 
-- _What it checks:_ Runs `bun run test:unit` (Vitest, targets `tests/unit/**/*.test.ts(x)`, `environment: "node"`).
+- _What it checks:_ Runs `bun run test:unit` (Vitest with coverage enabled, targets `tests/unit/**/*.test.ts(x)`, `environment: "node"`).
+- _Artifacts:_ Uploads generated `coverage/` as `unit-test-coverage` (`if-no-files-found: ignore`, retained for 7 days). Current staging output includes `coverage-summary.json`, `coverage-final.json`, `v8-raw-coverage.json`, and `coverage-warnings.log`.
 - _Why it exists:_ Validates pure logic, utilities, and shared package behaviour without a browser or network.
-- _Debug locally:_ Run `bun run test:unit`. For watch mode: `bunx vitest`.
+- _Debug locally:_ Run `bun run test:unit` to execute unit tests and generate coverage output in `coverage/`. For watch mode: `bunx vitest`.
 
 ---
 
