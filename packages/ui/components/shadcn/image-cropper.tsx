@@ -9,7 +9,7 @@ import {
   Loader2,
   AlertCircle,
 } from "lucide-react";
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useReducer, useCallback, useRef } from "react";
 import Cropper, { type Area, type Point } from "react-easy-crop";
 import { toast } from "sonner";
 
@@ -35,6 +35,57 @@ interface ImageCropperProps {
   quality?: number;
 }
 
+type CropperState = {
+  crop: Point;
+  zoom: number;
+  rotation: number;
+  croppedAreaPixels: Area | null;
+  isProcessing: boolean;
+  imageError: boolean;
+};
+
+type CropperAction =
+  | { type: "reset" }
+  | { type: "setCrop"; crop: Point }
+  | { type: "setZoom"; zoom: number }
+  | { type: "setRotation"; rotation: number }
+  | { type: "setCroppedAreaPixels"; croppedAreaPixels: Area | null }
+  | { type: "setIsProcessing"; isProcessing: boolean }
+  | { type: "setImageError"; imageError: boolean };
+
+const INITIAL_CROPPER_STATE: CropperState = {
+  crop: { x: 0, y: 0 },
+  zoom: 1,
+  rotation: 0,
+  croppedAreaPixels: null,
+  isProcessing: false,
+  imageError: false,
+};
+
+function cropperReducer(
+  state: CropperState,
+  action: CropperAction,
+): CropperState {
+  switch (action.type) {
+    case "reset":
+      return INITIAL_CROPPER_STATE;
+    case "setCrop":
+      return { ...state, crop: action.crop };
+    case "setZoom":
+      return { ...state, zoom: action.zoom };
+    case "setRotation":
+      return { ...state, rotation: action.rotation };
+    case "setCroppedAreaPixels":
+      return { ...state, croppedAreaPixels: action.croppedAreaPixels };
+    case "setIsProcessing":
+      return { ...state, isProcessing: action.isProcessing };
+    case "setImageError":
+      return { ...state, imageError: action.imageError };
+    default:
+      return state;
+  }
+}
+
 export function ImageCropper({
   image,
   aspect = 1,
@@ -46,47 +97,31 @@ export function ImageCropper({
   outputFormat = "image/webp",
   quality = 0.92,
 }: ImageCropperProps) {
-  const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [rotation, setRotation] = useState(0);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [imageError, setImageError] = useState(false);
+  const [state, dispatch] = useReducer(cropperReducer, INITIAL_CROPPER_STATE);
   const processingRef = useRef(false);
 
-  useEffect(() => {
-    if (open) {
-      setCrop({ x: 0, y: 0 });
-      setZoom(1);
-      setRotation(0);
-      setCroppedAreaPixels(null);
-      setImageError(false);
-      processingRef.current = false;
-    }
-  }, [open, image]);
-
   const onCropChange = useCallback((newCrop: Point) => {
-    setCrop(newCrop);
+    dispatch({ type: "setCrop", crop: newCrop });
   }, []);
 
   const onZoomChange = useCallback((newZoom: number) => {
-    setZoom(newZoom);
+    dispatch({ type: "setZoom", zoom: newZoom });
   }, []);
 
   const onCropAreaComplete = useCallback((_croppedArea: Area, pixels: Area) => {
-    setCroppedAreaPixels(pixels);
+    dispatch({ type: "setCroppedAreaPixels", croppedAreaPixels: pixels });
   }, []);
 
   const handleSave = useCallback(async () => {
-    if (!croppedAreaPixels || processingRef.current) return;
+    if (!state.croppedAreaPixels || processingRef.current) return;
     processingRef.current = true;
-    setIsProcessing(true);
+    dispatch({ type: "setIsProcessing", isProcessing: true });
 
     try {
       const croppedImage = await getCroppedImg(
         image,
-        croppedAreaPixels as CropArea,
-        rotation,
+        state.croppedAreaPixels as CropArea,
+        state.rotation,
         { horizontal: false, vertical: false },
         { outputFormat, quality },
       );
@@ -100,30 +135,31 @@ export function ImageCropper({
       console.error("Crop error:", e);
       toast.error("Failed to crop image. Please try again.");
     } finally {
-      setIsProcessing(false);
+      dispatch({ type: "setIsProcessing", isProcessing: false });
       processingRef.current = false;
     }
   }, [
-    croppedAreaPixels,
+    state.croppedAreaPixels,
     image,
-    rotation,
+    state.rotation,
     outputFormat,
     quality,
     onCropComplete,
   ]);
 
   const handleCancel = useCallback(() => {
-    if (!isProcessing) {
+    if (!state.isProcessing) {
+      dispatch({ type: "reset" });
+      processingRef.current = false;
       onCancel();
     }
-  }, [isProcessing, onCancel]);
+  }, [state.isProcessing, onCancel]);
 
-  useCallback(() => {
-    setImageError(true);
-    toast.error("Failed to load image for cropping");
+  const handleMediaLoaded = useCallback(() => {
+    dispatch({ type: "setImageError", imageError: false });
   }, []);
 
-  if (imageError) {
+  if (state.imageError) {
     return (
       <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleCancel()}>
         <DialogContent className="sm:max-w-[400px] p-6 bg-white border-zinc-200">
@@ -156,14 +192,14 @@ export function ImageCropper({
         <div className="relative flex-1 bg-zinc-900 min-h-[200px] sm:min-h-[300px]">
           <Cropper
             image={image}
-            crop={crop}
-            zoom={zoom}
-            rotation={rotation}
+            crop={state.crop}
+            zoom={state.zoom}
+            rotation={state.rotation}
             aspect={aspect}
             onCropChange={onCropChange}
             onCropComplete={onCropAreaComplete}
             onZoomChange={onZoomChange}
-            onMediaLoaded={() => setImageError(false)}
+            onMediaLoaded={handleMediaLoaded}
             classes={{
               containerClassName: "rounded-none",
               mediaClassName: "max-h-full",
@@ -176,11 +212,13 @@ export function ImageCropper({
             <div className="flex items-center gap-3 sm:gap-4">
               <ZoomOut className="h-4 w-4 text-zinc-400 flex-shrink-0" />
               <Slider
-                value={[zoom]}
+                value={[state.zoom]}
                 min={minZoom}
                 max={maxZoom}
                 step={0.1}
-                onValueChange={([val]) => val !== undefined && setZoom(val)}
+                onValueChange={([val]) =>
+                  val !== undefined && dispatch({ type: "setZoom", zoom: val })
+                }
                 className="flex-1"
               />
               <ZoomIn className="h-4 w-4 text-zinc-400 flex-shrink-0" />
@@ -189,15 +227,18 @@ export function ImageCropper({
             <div className="flex items-center gap-3 sm:gap-4">
               <RotateCw className="h-4 w-4 text-zinc-400 flex-shrink-0" />
               <Slider
-                value={[rotation]}
+                value={[state.rotation]}
                 min={0}
                 max={360}
                 step={1}
-                onValueChange={([val]) => val !== undefined && setRotation(val)}
+                onValueChange={([val]) =>
+                  val !== undefined &&
+                  dispatch({ type: "setRotation", rotation: val })
+                }
                 className="flex-1"
               />
               <span className="text-[10px] font-bold text-zinc-400 w-8 text-right">
-                {rotation}°
+                {state.rotation}°
               </span>
             </div>
           </div>
@@ -207,7 +248,7 @@ export function ImageCropper({
               type="button"
               variant="outline"
               onClick={handleCancel}
-              disabled={isProcessing}
+              disabled={state.isProcessing}
               className="h-9 sm:h-10 text-[10px] font-black uppercase tracking-widest border-zinc-200 rounded-lg flex-1 sm:flex-none"
             >
               Cancel
@@ -215,10 +256,10 @@ export function ImageCropper({
             <Button
               type="button"
               onClick={handleSave}
-              disabled={isProcessing || !croppedAreaPixels}
+              disabled={state.isProcessing || !state.croppedAreaPixels}
               className="h-9 sm:h-10 text-[10px] font-black uppercase tracking-widest bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg flex-1 sm:flex-none min-w-[100px] sm:min-w-[120px]"
             >
-              {isProcessing ? (
+              {state.isProcessing ? (
                 <>
                   <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
                   Processing

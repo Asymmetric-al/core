@@ -170,6 +170,16 @@ const MOCK_PLEDGES: Pledge[] = [
   },
 ];
 
+const INITIAL_FORM_STATE: PaymentMethodFormData = {
+  number: "",
+  expiry: "",
+  cvc: "",
+  name: "",
+  routing: "",
+  account: "",
+  address: { street: "", city: "", state: "", zip: "", country: "US" },
+};
+
 // --- Visual Components ---
 
 const VisualCard = ({
@@ -593,39 +603,690 @@ const BankForm = ({ formData, setFormData, isEditing }: MethodFormProps) => (
   </>
 );
 
+function ACHNudgeBanner({
+  onAddBank,
+  onDismiss,
+  visible,
+}: {
+  onAddBank: () => void;
+  onDismiss: () => void;
+  visible: boolean;
+}) {
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          initial={{ opacity: 0, height: 0, scale: 0.95 }}
+          animate={{ opacity: 1, height: "auto", scale: 1 }}
+          exit={{ opacity: 0, height: 0, scale: 0.95 }}
+          className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 rounded-2xl p-6 relative overflow-hidden shadow-sm group text-left"
+        >
+          <div className="absolute top-4 right-4 z-20">
+            <button
+              onClick={onDismiss}
+              className="p-1 rounded-full bg-white/50 hover:bg-white text-emerald-700 transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="flex gap-5 items-start relative z-10">
+            <div className="h-12 w-12 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-md shrink-0 border border-emerald-50 group-hover:scale-110 transition-transform duration-500">
+              <Landmark className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="font-bold text-emerald-950 text-lg uppercase tracking-tight">
+                Maximize your impact with ACH
+              </h3>
+              <p className="text-emerald-800/80 mt-2 max-w-2xl text-[10px] font-bold uppercase tracking-widest leading-relaxed">
+                Credit card processing fees cost nonprofits ~2.5% per donation.
+                Switching to a direct bank transfer (ACH) lowers this to nearly
+                zero, meaning{" "}
+                <strong className="text-emerald-950">
+                  more of your gift goes directly to the field.
+                </strong>
+              </p>
+              <Button
+                variant="link"
+                onClick={onAddBank}
+                className="p-0 h-auto text-emerald-700 font-black mt-3 text-[10px] uppercase tracking-widest hover:text-emerald-900 flex items-center gap-1 group/btn"
+              >
+                Add Bank Account{" "}
+                <ArrowRightLeft className="ml-1 h-3 w-3 group-hover/btn:translate-x-1 transition-transform" />
+              </Button>
+            </div>
+          </div>
+          <div className="absolute -bottom-12 -right-12 opacity-[0.08] pointer-events-none">
+            <Sparkles className="h-64 w-64 text-emerald-900" />
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function MethodCard({
+  attachedPledges,
+  index,
+  method,
+  onDeleteRequest,
+  onEdit,
+  onSetDefault,
+  onSwapClick,
+}: {
+  attachedPledges: Pledge[];
+  index: number;
+  method: PaymentMethod;
+  onDeleteRequest: (id: string) => void;
+  onEdit: (method: PaymentMethod) => void;
+  onSetDefault: (id: string) => void;
+  onSwapClick: (pledge: Pledge) => void;
+}) {
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.4, delay: index * 0.1 }}
+      className="group bg-white rounded-2xl border border-zinc-200 p-2 shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden text-left"
+    >
+      <div className="flex flex-col lg:flex-row gap-8 p-6 lg:p-8">
+        <div className="w-full lg:w-[340px] shrink-0 self-start">
+          <VisualCard method={method} pledgeCount={attachedPledges.length} />
+        </div>
+
+        <div className="flex-1 flex flex-col min-w-0">
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <div className="flex items-center gap-3 mb-1.5">
+                <h3 className="text-2xl font-bold text-zinc-900 capitalize tracking-tighter uppercase">
+                  {method.bankName || `${method.brand} ••${method.last4}`}
+                </h3>
+                {method.isDefault && (
+                  <Badge className="bg-zinc-900 text-white border-zinc-900 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest hover:bg-zinc-900 shadow-sm rounded-md">
+                    Default
+                  </Badge>
+                )}
+              </div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                {method.type === "bank"
+                  ? "Direct Debit (ACH)"
+                  : `Expires ${method.expiryMonth}/${method.expiryYear}`}
+              </p>
+            </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 text-zinc-300 hover:text-zinc-900 hover:bg-zinc-50 rounded-full"
+                >
+                  <MoreHorizontal className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 p-2 rounded-xl">
+                <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-2 py-1.5">
+                  Manage Method
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="my-1" />
+                {!method.isDefault && (
+                  <DropdownMenuItem
+                    onClick={() => onSetDefault(method.id)}
+                    className="rounded-lg cursor-pointer font-bold uppercase tracking-widest text-[10px]"
+                  >
+                    Set as Default
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem
+                  onClick={() => onEdit(method)}
+                  className="rounded-lg cursor-pointer font-bold uppercase tracking-widest text-[10px]"
+                >
+                  <Edit2 className="mr-2 h-3.5 w-3.5" /> Edit Details
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="my-1" />
+                <DropdownMenuItem
+                  onClick={() => onDeleteRequest(method.id)}
+                  className="text-rose-600 focus:text-rose-600 focus:bg-rose-50 rounded-lg cursor-pointer font-bold uppercase tracking-widest text-[10px] group"
+                >
+                  <Trash2 className="mr-2 h-3.5 w-3.5 group-hover:scale-110 transition-transform" />{" "}
+                  Remove
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          <div className="mb-6 flex gap-3 items-start">
+            <div className="p-1.5 bg-zinc-50 rounded-lg text-zinc-400 mt-0.5 border border-zinc-100 shadow-inner">
+              <MapPin className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black text-zinc-300 uppercase tracking-widest mb-0.5">
+                Billing Address
+              </p>
+              <p className="text-[11px] font-bold uppercase tracking-tight text-zinc-600 leading-snug">
+                {method.billingAddress.street}
+                <br />
+                {method.billingAddress.city}, {method.billingAddress.state}{" "}
+                {method.billingAddress.zip}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-auto pt-6 border-t border-zinc-50">
+            <p className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+              Connected Impact{" "}
+              <span className="bg-zinc-100 text-zinc-900 px-1.5 py-0.5 rounded text-[9px] min-w-[20px] text-center font-black">
+                {attachedPledges.length}
+              </span>
+            </p>
+
+            {attachedPledges.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {attachedPledges.map((pledge) => (
+                  <div
+                    key={pledge.id}
+                    className="flex items-center gap-4 p-3 rounded-xl bg-zinc-50/50 border border-zinc-100 hover:border-zinc-300 hover:bg-white transition-all group/pledge cursor-default shadow-sm hover:shadow-md"
+                  >
+                    {pledge.avatar ? (
+                      <Image
+                        src={pledge.avatar}
+                        alt=""
+                        width={40}
+                        height={40}
+                        className="h-10 w-10 rounded-lg object-cover bg-white ring-2 ring-white shadow-sm"
+                      />
+                    ) : (
+                      <div className="h-10 w-10 rounded-lg bg-white flex items-center justify-center text-zinc-300 text-[10px] font-black ring-2 ring-white shadow-sm uppercase">
+                        GH
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[11px] font-bold text-zinc-900 truncate uppercase tracking-tight">
+                        {pledge.name}
+                      </p>
+                      <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">
+                        {formatCurrency(pledge.amount)} / {pledge.frequency}
+                      </p>
+                    </div>
+                    <div className="opacity-0 group-hover/pledge:opacity-100 transition-opacity">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-zinc-300 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg"
+                        title="Move Support"
+                        onClick={() => onSwapClick(pledge)}
+                      >
+                        <ArrowRightLeft className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-zinc-400 italic bg-zinc-50/30 p-4 rounded-xl border border-dashed border-zinc-200">
+                <div className="p-2 bg-white rounded-lg shadow-sm border border-zinc-100">
+                  <Wallet className="h-3.5 w-3.5 text-zinc-300" />
+                </div>
+                No active support linked to this method.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function AddMethodDialog({
+  activeTab,
+  editingMethod,
+  formData,
+  isOpen,
+  onActiveTabChange,
+  onFormDataChange,
+  onOpenChange,
+  onSave,
+}: {
+  activeTab: WalletTab;
+  editingMethod: PaymentMethod | null;
+  formData: PaymentMethodFormData;
+  isOpen: boolean;
+  onActiveTabChange: (value: WalletTab) => void;
+  onFormDataChange: React.Dispatch<React.SetStateAction<PaymentMethodFormData>>;
+  onOpenChange: (open: boolean) => void;
+  onSave: () => void;
+}) {
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden gap-0 rounded-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="p-8 pb-4 bg-white border-b border-zinc-50 sticky top-0 z-10 text-left">
+          <DialogTitle className="text-2xl font-bold tracking-tighter uppercase">
+            {editingMethod
+              ? `Edit ${editingMethod.type === "card" ? "Credit Card" : "Bank Account"}`
+              : "Add Payment Method"}
+          </DialogTitle>
+          <DialogDescription className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-1">
+            {editingMethod
+              ? "Update details and billing address below."
+              : "Securely add a new card or bank account."}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="p-8 bg-zinc-50/50">
+          {!editingMethod ? (
+            <Tabs
+              value={activeTab}
+              onValueChange={(value) => {
+                if (isWalletTab(value)) {
+                  onActiveTabChange(value);
+                }
+              }}
+              className="w-full"
+            >
+              <TabsList className="grid w-full grid-cols-2 mb-8 bg-white p-1 rounded-xl shadow-sm border border-zinc-200 h-12">
+                <TabsTrigger
+                  value="card"
+                  className="rounded-lg font-black uppercase tracking-widest text-[10px] data-[state=active]:bg-zinc-900 data-[state=active]:text-white transition-all shadow-none"
+                >
+                  Credit Card
+                </TabsTrigger>
+                <TabsTrigger
+                  value="bank"
+                  className="rounded-lg font-black uppercase tracking-widest text-[10px] data-[state=active]:bg-zinc-900 data-[state=active]:text-white transition-all shadow-none"
+                >
+                  Bank Account
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent
+                value="card"
+                className="space-y-6 mt-0 focus-visible:outline-none"
+              >
+                <CardForm
+                  formData={formData}
+                  setFormData={onFormDataChange}
+                  isEditing={!!editingMethod}
+                />
+              </TabsContent>
+
+              <TabsContent
+                value="bank"
+                className="space-y-6 mt-0 animate-in fade-in slide-in-from-right-4 duration-300 focus-visible:outline-none"
+              >
+                <BankForm
+                  formData={formData}
+                  setFormData={onFormDataChange}
+                  isEditing={!!editingMethod}
+                />
+              </TabsContent>
+            </Tabs>
+          ) : (
+            <div className="space-y-6">
+              {activeTab === "card" ? (
+                <CardForm
+                  formData={formData}
+                  setFormData={onFormDataChange}
+                  isEditing={true}
+                />
+              ) : (
+                <BankForm
+                  formData={formData}
+                  setFormData={onFormDataChange}
+                  isEditing={true}
+                />
+              )}
+            </div>
+          )}
+        </div>
+
+        <DialogFooter className="p-6 bg-white border-t border-zinc-100 flex flex-col sm:flex-row gap-3 sticky bottom-0 z-10">
+          <Button
+            variant="ghost"
+            onClick={() => onOpenChange(false)}
+            className="h-12 font-bold uppercase tracking-widest text-[10px] px-6"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={onSave}
+            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-12 px-8 font-black uppercase tracking-widest text-[10px] rounded-xl transition-transform active:scale-95"
+          >
+            {editingMethod ? "Update Method" : "Save Payment Method"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function SwapPledgeDialog({
+  isOpen,
+  methods,
+  onConfirmMove,
+  onOpenAddMethod,
+  onOpenChange,
+  onSelectTargetMethod,
+  pledgeToSwap,
+  targetMethodId,
+}: {
+  isOpen: boolean;
+  methods: PaymentMethod[];
+  onConfirmMove: () => void;
+  onOpenAddMethod: () => void;
+  onOpenChange: (open: boolean) => void;
+  onSelectTargetMethod: (value: string) => void;
+  pledgeToSwap: Pledge | null;
+  targetMethodId: string;
+}) {
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[500px] border-none shadow-2xl rounded-3xl overflow-hidden p-0 gap-0">
+        <DialogHeader className="p-8 pb-6 bg-zinc-50 border-b border-zinc-100 text-center">
+          <div className="mx-auto w-12 h-12 bg-zinc-900 rounded-full flex items-center justify-center mb-4 border-4 border-zinc-100 shadow-sm">
+            <ArrowRightLeft className="h-5 w-5 text-white" />
+          </div>
+          <DialogTitle className="text-xl font-bold text-zinc-900 uppercase tracking-tighter">
+            Move Support
+          </DialogTitle>
+          <DialogDescription className="pt-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+            Select a new payment method for this active support.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="p-8 space-y-8 bg-white min-h-[300px] max-h-[60vh] overflow-y-auto text-left">
+          <div className="flex flex-col items-center gap-4">
+            <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm flex items-center gap-4 w-full">
+              {pledgeToSwap?.avatar ? (
+                <Image
+                  src={pledgeToSwap.avatar}
+                  alt=""
+                  width={48}
+                  height={48}
+                  className="h-12 w-12 rounded-lg object-cover ring-2 ring-white shadow-sm"
+                />
+              ) : (
+                <div className="h-12 w-12 rounded-lg bg-zinc-50 flex items-center justify-center text-zinc-300 font-black text-xs uppercase border border-zinc-100">
+                  GH
+                </div>
+              )}
+              <div className="flex-1">
+                <p className="font-bold text-zinc-900 uppercase tracking-tight">
+                  {pledgeToSwap?.name}
+                </p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <Badge
+                    variant="secondary"
+                    className="px-1.5 py-0 text-[9px] font-black uppercase tracking-widest bg-zinc-100 text-zinc-500 rounded-md border-transparent shadow-none"
+                  >
+                    {pledgeToSwap?.frequency}
+                  </Badge>
+                  <span className="text-sm font-bold text-zinc-900 tabular-nums">
+                    {formatCurrency(pledgeToSwap?.amount || 0)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-zinc-200">
+              <ArrowDown className="h-6 w-6 animate-bounce" />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <Label className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em] ml-1">
+              Move To
+            </Label>
+            {methods.filter((m) => m.id !== pledgeToSwap?.paymentMethodId)
+              .length > 0 ? (
+              <SelectionList
+                methods={methods.filter(
+                  (m) => m.id !== pledgeToSwap?.paymentMethodId,
+                )}
+                selectedId={targetMethodId}
+                onSelect={onSelectTargetMethod}
+              />
+            ) : (
+              <div className="p-6 bg-zinc-50 rounded-2xl border border-dashed border-zinc-200 text-center space-y-3">
+                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center mx-auto shadow-sm border border-zinc-100">
+                  <Wallet className="h-5 w-5 text-zinc-300" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-zinc-900 uppercase tracking-tight">
+                    No other payment methods
+                  </p>
+                  <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
+                    Add a new method to move this support.
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={onOpenAddMethod}
+                  className="font-black uppercase tracking-widest text-[9px] h-8 px-4 rounded-lg"
+                >
+                  + Add Method
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <DialogFooter className="p-6 bg-zinc-50 border-t border-zinc-100 flex justify-between">
+          <Button
+            variant="ghost"
+            onClick={() => onOpenChange(false)}
+            className="font-bold uppercase tracking-widest text-[10px] h-10 px-4"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={onConfirmMove}
+            disabled={!targetMethodId}
+            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-10 px-6 font-black uppercase tracking-widest text-[10px] rounded-xl transition-transform active:scale-95"
+          >
+            Confirm Move
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function BulkMoveDialog({
+  isOpen,
+  methodToDelete,
+  methods,
+  onConfirmMoveAndDelete,
+  onOpenChange,
+  onSelectTargetMethod,
+  pledges,
+  targetMethodId,
+}: {
+  isOpen: boolean;
+  methodToDelete: string | null;
+  methods: PaymentMethod[];
+  onConfirmMoveAndDelete: () => void;
+  onOpenChange: (open: boolean) => void;
+  onSelectTargetMethod: (value: string) => void;
+  pledges: Pledge[];
+  targetMethodId: string;
+}) {
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[500px] border-none shadow-2xl rounded-3xl overflow-hidden p-0 gap-0">
+        <DialogHeader className="p-8 pb-6 bg-rose-50 border-b border-rose-100 text-center">
+          <div className="w-14 h-14 bg-rose-100 rounded-full flex items-center justify-center mb-4 shadow-sm border border-rose-200 mx-auto">
+            <AlertCircle className="h-7 w-7 text-rose-600" />
+          </div>
+          <DialogTitle className="text-2xl font-bold text-rose-950 uppercase tracking-tighter">
+            Active Support Detected
+          </DialogTitle>
+          <DialogDescription className="pt-2 text-[11px] font-bold uppercase tracking-widest text-rose-800/60 leading-relaxed">
+            You are removing a payment method that funds{" "}
+            <strong>
+              {
+                pledges.filter((p) => p.paymentMethodId === methodToDelete)
+                  .length
+              }{" "}
+              active missions
+            </strong>
+            . Please select a new payment method to ensure uninterrupted
+            support.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="p-8 space-y-8 bg-white min-h-[300px] max-h-[60vh] overflow-y-auto text-left">
+          <div className="space-y-3">
+            <p className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em] ml-1">
+              Support to Transfer
+            </p>
+            <ul className="space-y-2">
+              {pledges
+                .filter((p) => p.paymentMethodId === methodToDelete)
+                .map((pledge) => (
+                  <li
+                    key={pledge.id}
+                    className="text-[11px] font-bold uppercase tracking-tight flex items-center justify-between bg-zinc-50 p-3 rounded-xl border border-zinc-100"
+                  >
+                    <div className="flex items-center gap-3">
+                      {pledge.avatar ? (
+                        <Image
+                          src={pledge.avatar}
+                          width={32}
+                          height={32}
+                          className="w-8 h-8 rounded-lg bg-white border border-zinc-200"
+                          alt=""
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-lg bg-white border border-zinc-200 flex items-center justify-center text-[9px] font-black uppercase text-zinc-300">
+                          GH
+                        </div>
+                      )}
+                      <span className="text-zinc-900">{pledge.name}</span>
+                    </div>
+                    <span className="font-mono font-bold text-zinc-400 text-[10px] tabular-nums">
+                      {formatCurrency(pledge.amount)}
+                    </span>
+                  </li>
+                ))}
+            </ul>
+          </div>
+
+          <div className="flex justify-center text-zinc-200">
+            <ArrowDown className="h-6 w-6 animate-bounce" />
+          </div>
+
+          <div className="space-y-4">
+            <Label className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em] ml-1">
+              Move All To
+            </Label>
+            {methods.filter((m) => m.id !== methodToDelete).length > 0 ? (
+              <SelectionList
+                methods={methods.filter((m) => m.id !== methodToDelete)}
+                selectedId={targetMethodId}
+                onSelect={onSelectTargetMethod}
+              />
+            ) : (
+              <div className="p-4 bg-rose-50 text-rose-800 rounded-xl border border-rose-100 text-[10px] font-bold uppercase tracking-widest flex gap-3 items-start">
+                <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-black">No Backup Method</p>
+                  <p className="mt-1 leading-relaxed">
+                    You must add another payment method before you can remove
+                    this one.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <DialogFooter className="p-6 bg-zinc-50 border-t border-zinc-100 flex justify-between">
+          <Button
+            variant="ghost"
+            onClick={() => onOpenChange(false)}
+            className="font-bold uppercase tracking-widest text-[10px] h-10 px-4"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={onConfirmMoveAndDelete}
+            disabled={!targetMethodId}
+            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-10 px-6 font-black uppercase tracking-widest text-[10px] rounded-xl transition-transform active:scale-95"
+          >
+            Transfer & Delete
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // --- Main Page Component ---
 
 export default function DonorWalletPage() {
   const [methods, setMethods] = useState<PaymentMethod[]>(MOCK_METHODS);
   const [pledges, setPledges] = useState<Pledge[]>(MOCK_PLEDGES);
+  const [walletUiState, setWalletUiState] = useState(() => ({
+    activeTab: "card" as WalletTab,
+    editingMethod: null as PaymentMethod | null,
+    formData: INITIAL_FORM_STATE,
+    isMethodModalOpen: false,
+    isMovePledgesOpen: false,
+    isSwapPledgeOpen: false,
+    methodToDelete: null as string | null,
+    pledgeToSwap: null as Pledge | null,
+    showACHNudge: true,
+    targetMethodId: "",
+  }));
+  const {
+    activeTab,
+    editingMethod,
+    formData,
+    isMethodModalOpen,
+    isMovePledgesOpen,
+    isSwapPledgeOpen,
+    methodToDelete,
+    pledgeToSwap,
+    showACHNudge,
+    targetMethodId,
+  } = walletUiState;
 
-  const [isMethodModalOpen, setIsMethodModalOpen] = useState(false);
-  const [isMovePledgesOpen, setIsMovePledgesOpen] = useState(false);
-  const [isSwapPledgeOpen, setIsSwapPledgeOpen] = useState(false);
-  const [showACHNudge, setShowACHNudge] = useState(true);
-
-  const [methodToDelete, setMethodToDelete] = useState<string | null>(null);
-  const [targetMethodId, setTargetMethodId] = useState<string>("");
-  const [pledgeToSwap, setPledgeToSwap] = useState<Pledge | null>(null);
-  const [editingMethod, setEditingMethod] = useState<PaymentMethod | null>(
-    null,
-  );
-  const [activeTab, setActiveTab] = useState<WalletTab>("card");
-
-  const initialFormState: PaymentMethodFormData = {
-    number: "",
-    expiry: "",
-    cvc: "",
-    name: "",
-    routing: "",
-    account: "",
-    address: { street: "", city: "", state: "", zip: "", country: "US" },
-  };
-  const [formData, setFormData] = useState(initialFormState);
+  const setActiveTab = (value: WalletTab) =>
+    setWalletUiState((prev) => ({ ...prev, activeTab: value }));
+  const setEditingMethod = (value: PaymentMethod | null) =>
+    setWalletUiState((prev) => ({ ...prev, editingMethod: value }));
+  const setFormData = (value: React.SetStateAction<PaymentMethodFormData>) =>
+    setWalletUiState((prev) => ({
+      ...prev,
+      formData:
+        typeof value === "function"
+          ? (
+              value as (
+                prevForm: PaymentMethodFormData,
+              ) => PaymentMethodFormData
+            )(prev.formData)
+          : value,
+    }));
+  const setIsMethodModalOpen = (value: boolean) =>
+    setWalletUiState((prev) => ({ ...prev, isMethodModalOpen: value }));
+  const setIsMovePledgesOpen = (value: boolean) =>
+    setWalletUiState((prev) => ({ ...prev, isMovePledgesOpen: value }));
+  const setIsSwapPledgeOpen = (value: boolean) =>
+    setWalletUiState((prev) => ({ ...prev, isSwapPledgeOpen: value }));
+  const setMethodToDelete = (value: string | null) =>
+    setWalletUiState((prev) => ({ ...prev, methodToDelete: value }));
+  const setPledgeToSwap = (value: Pledge | null) =>
+    setWalletUiState((prev) => ({ ...prev, pledgeToSwap: value }));
+  const setShowACHNudge = (value: boolean) =>
+    setWalletUiState((prev) => ({ ...prev, showACHNudge: value }));
+  const setTargetMethodId = (value: string) =>
+    setWalletUiState((prev) => ({ ...prev, targetMethodId: value }));
 
   const openAddModal = () => {
     setEditingMethod(null);
-    setFormData(initialFormState);
+    setFormData(INITIAL_FORM_STATE);
     setActiveTab("card");
     setIsMethodModalOpen(true);
   };
@@ -767,57 +1428,14 @@ export default function DonorWalletPage() {
         </Button>
       </div>
 
-      <AnimatePresence>
-        {showACHNudge && (
-          <motion.div
-            initial={{ opacity: 0, height: 0, scale: 0.95 }}
-            animate={{ opacity: 1, height: "auto", scale: 1 }}
-            exit={{ opacity: 0, height: 0, scale: 0.95 }}
-            className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 rounded-2xl p-6 relative overflow-hidden shadow-sm group text-left"
-          >
-            <div className="absolute top-4 right-4 z-20">
-              <button
-                onClick={() => setShowACHNudge(false)}
-                className="p-1 rounded-full bg-white/50 hover:bg-white text-emerald-700 transition-colors"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="flex gap-5 items-start relative z-10">
-              <div className="h-12 w-12 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-md shrink-0 border border-emerald-50 group-hover:scale-110 transition-transform duration-500">
-                <Landmark className="h-6 w-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-emerald-950 text-lg uppercase tracking-tight">
-                  Maximize your impact with ACH
-                </h3>
-                <p className="text-emerald-800/80 mt-2 max-w-2xl text-[10px] font-bold uppercase tracking-widest leading-relaxed">
-                  Credit card processing fees cost nonprofits ~2.5% per
-                  donation. Switching to a direct bank transfer (ACH) lowers
-                  this to nearly zero, meaning{" "}
-                  <strong className="text-emerald-950">
-                    more of your gift goes directly to the field.
-                  </strong>
-                </p>
-                <Button
-                  variant="link"
-                  onClick={() => {
-                    openAddModal();
-                    setActiveTab("bank");
-                  }}
-                  className="p-0 h-auto text-emerald-700 font-black mt-3 text-[10px] uppercase tracking-widest hover:text-emerald-900 flex items-center gap-1 group/btn"
-                >
-                  Add Bank Account{" "}
-                  <ArrowRightLeft className="ml-1 h-3 w-3 group-hover/btn:translate-x-1 transition-transform" />
-                </Button>
-              </div>
-            </div>
-            <div className="absolute -bottom-12 -right-12 opacity-[0.08] pointer-events-none">
-              <Sparkles className="h-64 w-64 text-emerald-900" />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <ACHNudgeBanner
+        visible={showACHNudge}
+        onDismiss={() => setShowACHNudge(false)}
+        onAddBank={() => {
+          openAddModal();
+          setActiveTab("bank");
+        }}
+      />
 
       <div className="space-y-8">
         {methods.length === 0 && (
@@ -847,498 +1465,56 @@ export default function DonorWalletPage() {
               (p) => p.paymentMethodId === method.id,
             );
             return (
-              <motion.div
-                layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.4, delay: idx * 0.1 }}
+              <MethodCard
                 key={method.id}
-                className="group bg-white rounded-2xl border border-zinc-200 p-2 shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden text-left"
-              >
-                <div className="flex flex-col lg:flex-row gap-8 p-6 lg:p-8">
-                  <div className="w-full lg:w-[340px] shrink-0 self-start">
-                    <VisualCard
-                      method={method}
-                      pledgeCount={attachedPledges.length}
-                    />
-                  </div>
-
-                  <div className="flex-1 flex flex-col min-w-0">
-                    <div className="flex items-start justify-between mb-6">
-                      <div>
-                        <div className="flex items-center gap-3 mb-1.5">
-                          <h3 className="text-2xl font-bold text-zinc-900 capitalize tracking-tighter uppercase">
-                            {method.bankName ||
-                              `${method.brand} ••${method.last4}`}
-                          </h3>
-                          {method.isDefault && (
-                            <Badge className="bg-zinc-900 text-white border-zinc-900 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest hover:bg-zinc-900 shadow-sm rounded-md">
-                              Default
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                          {method.type === "bank"
-                            ? "Direct Debit (ACH)"
-                            : `Expires ${method.expiryMonth}/${method.expiryYear}`}
-                        </p>
-                      </div>
-
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-10 w-10 text-zinc-300 hover:text-zinc-900 hover:bg-zinc-50 rounded-full"
-                          >
-                            <MoreHorizontal className="h-5 w-5" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                          align="end"
-                          className="w-56 p-2 rounded-xl"
-                        >
-                          <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-2 py-1.5">
-                            Manage Method
-                          </DropdownMenuLabel>
-                          <DropdownMenuSeparator className="my-1" />
-                          {!method.isDefault && (
-                            <DropdownMenuItem
-                              onClick={() => handleSetDefault(method.id)}
-                              className="rounded-lg cursor-pointer font-bold uppercase tracking-widest text-[10px]"
-                            >
-                              Set as Default
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem
-                            onClick={() => openEditModal(method)}
-                            className="rounded-lg cursor-pointer font-bold uppercase tracking-widest text-[10px]"
-                          >
-                            <Edit2 className="mr-2 h-3.5 w-3.5" /> Edit Details
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator className="my-1" />
-                          <DropdownMenuItem
-                            onClick={() => handleDeleteRequest(method.id)}
-                            className="text-rose-600 focus:text-rose-600 focus:bg-rose-50 rounded-lg cursor-pointer font-bold uppercase tracking-widest text-[10px] group"
-                          >
-                            <Trash2 className="mr-2 h-3.5 w-3.5 group-hover:scale-110 transition-transform" />{" "}
-                            Remove
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-
-                    <div className="mb-6 flex gap-3 items-start">
-                      <div className="p-1.5 bg-zinc-50 rounded-lg text-zinc-400 mt-0.5 border border-zinc-100 shadow-inner">
-                        <MapPin className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-black text-zinc-300 uppercase tracking-widest mb-0.5">
-                          Billing Address
-                        </p>
-                        <p className="text-[11px] font-bold uppercase tracking-tight text-zinc-600 leading-snug">
-                          {method.billingAddress.street}
-                          <br />
-                          {method.billingAddress.city},{" "}
-                          {method.billingAddress.state}{" "}
-                          {method.billingAddress.zip}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="mt-auto pt-6 border-t border-zinc-50">
-                      <p className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                        Connected Impact{" "}
-                        <span className="bg-zinc-100 text-zinc-900 px-1.5 py-0.5 rounded text-[9px] min-w-[20px] text-center font-black">
-                          {attachedPledges.length}
-                        </span>
-                      </p>
-
-                      {attachedPledges.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {attachedPledges.map((pledge) => (
-                            <div
-                              key={pledge.id}
-                              className="flex items-center gap-4 p-3 rounded-xl bg-zinc-50/50 border border-zinc-100 hover:border-zinc-300 hover:bg-white transition-all group/pledge cursor-default shadow-sm hover:shadow-md"
-                            >
-                              {pledge.avatar ? (
-                                <Image
-                                  src={pledge.avatar}
-                                  alt=""
-                                  width={40}
-                                  height={40}
-                                  className="h-10 w-10 rounded-lg object-cover bg-white ring-2 ring-white shadow-sm"
-                                />
-                              ) : (
-                                <div className="h-10 w-10 rounded-lg bg-white flex items-center justify-center text-zinc-300 text-[10px] font-black ring-2 ring-white shadow-sm uppercase">
-                                  GH
-                                </div>
-                              )}
-                              <div className="flex-1 min-w-0">
-                                <p className="text-[11px] font-bold text-zinc-900 truncate uppercase tracking-tight">
-                                  {pledge.name}
-                                </p>
-                                <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">
-                                  {formatCurrency(pledge.amount)} /{" "}
-                                  {pledge.frequency}
-                                </p>
-                              </div>
-                              <div className="opacity-0 group-hover/pledge:opacity-100 transition-opacity">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-zinc-300 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg"
-                                  title="Move Support"
-                                  onClick={() => handleSwapClick(pledge)}
-                                >
-                                  <ArrowRightLeft className="h-3.5 w-3.5" />
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-zinc-400 italic bg-zinc-50/30 p-4 rounded-xl border border-dashed border-zinc-200">
-                          <div className="p-2 bg-white rounded-lg shadow-sm border border-zinc-100">
-                            <Wallet className="h-3.5 w-3.5 text-zinc-300" />
-                          </div>
-                          No active support linked to this method.
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
+                attachedPledges={attachedPledges}
+                index={idx}
+                method={method}
+                onDeleteRequest={handleDeleteRequest}
+                onEdit={openEditModal}
+                onSetDefault={handleSetDefault}
+                onSwapClick={handleSwapClick}
+              />
             );
           })}
         </AnimatePresence>
       </div>
 
-      {/* --- ADD/EDIT METHOD MODAL --- */}
-      <Dialog open={isMethodModalOpen} onOpenChange={setIsMethodModalOpen}>
-        <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden gap-0 rounded-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader className="p-8 pb-4 bg-white border-b border-zinc-50 sticky top-0 z-10 text-left">
-            <DialogTitle className="text-2xl font-bold tracking-tighter uppercase">
-              {editingMethod
-                ? `Edit ${editingMethod.type === "card" ? "Credit Card" : "Bank Account"}`
-                : "Add Payment Method"}
-            </DialogTitle>
-            <DialogDescription className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-1">
-              {editingMethod
-                ? "Update details and billing address below."
-                : "Securely add a new card or bank account."}
-            </DialogDescription>
-          </DialogHeader>
+      <AddMethodDialog
+        activeTab={activeTab}
+        editingMethod={editingMethod}
+        formData={formData}
+        isOpen={isMethodModalOpen}
+        onActiveTabChange={setActiveTab}
+        onFormDataChange={setFormData}
+        onOpenChange={setIsMethodModalOpen}
+        onSave={handleSaveMethod}
+      />
 
-          <div className="p-8 bg-zinc-50/50">
-            {!editingMethod ? (
-              <Tabs
-                value={activeTab}
-                onValueChange={(v) => {
-                  if (isWalletTab(v)) {
-                    setActiveTab(v);
-                  }
-                }}
-                className="w-full"
-              >
-                <TabsList className="grid w-full grid-cols-2 mb-8 bg-white p-1 rounded-xl shadow-sm border border-zinc-200 h-12">
-                  <TabsTrigger
-                    value="card"
-                    className="rounded-lg font-black uppercase tracking-widest text-[10px] data-[state=active]:bg-zinc-900 data-[state=active]:text-white transition-all shadow-none"
-                  >
-                    Credit Card
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="bank"
-                    className="rounded-lg font-black uppercase tracking-widest text-[10px] data-[state=active]:bg-zinc-900 data-[state=active]:text-white transition-all shadow-none"
-                  >
-                    Bank Account
-                  </TabsTrigger>
-                </TabsList>
+      <SwapPledgeDialog
+        isOpen={isSwapPledgeOpen}
+        methods={methods}
+        onConfirmMove={executeSwapPledge}
+        onOpenAddMethod={() => {
+          setIsSwapPledgeOpen(false);
+          openAddModal();
+        }}
+        onOpenChange={setIsSwapPledgeOpen}
+        onSelectTargetMethod={setTargetMethodId}
+        pledgeToSwap={pledgeToSwap}
+        targetMethodId={targetMethodId}
+      />
 
-                <TabsContent
-                  value="card"
-                  className="space-y-6 mt-0 focus-visible:outline-none"
-                >
-                  <CardForm
-                    formData={formData}
-                    setFormData={setFormData}
-                    isEditing={!!editingMethod}
-                  />
-                </TabsContent>
-
-                <TabsContent
-                  value="bank"
-                  className="space-y-6 mt-0 animate-in fade-in slide-in-from-right-4 duration-300 focus-visible:outline-none"
-                >
-                  <BankForm
-                    formData={formData}
-                    setFormData={setFormData}
-                    isEditing={!!editingMethod}
-                  />
-                </TabsContent>
-              </Tabs>
-            ) : (
-              <div className="space-y-6">
-                {activeTab === "card" ? (
-                  <CardForm
-                    formData={formData}
-                    setFormData={setFormData}
-                    isEditing={true}
-                  />
-                ) : (
-                  <BankForm
-                    formData={formData}
-                    setFormData={setFormData}
-                    isEditing={true}
-                  />
-                )}
-              </div>
-            )}
-          </div>
-
-          <DialogFooter className="p-6 bg-white border-t border-zinc-100 flex flex-col sm:flex-row gap-3 sticky bottom-0 z-10">
-            <Button
-              variant="ghost"
-              onClick={() => setIsMethodModalOpen(false)}
-              className="h-12 font-bold uppercase tracking-widest text-[10px] px-6"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSaveMethod}
-              className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-12 px-8 font-black uppercase tracking-widest text-[10px] rounded-xl transition-transform active:scale-95"
-            >
-              {editingMethod ? "Update Method" : "Save Payment Method"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* --- SWAP PLEDGE MODAL --- */}
-      <Dialog open={isSwapPledgeOpen} onOpenChange={setIsSwapPledgeOpen}>
-        <DialogContent className="sm:max-w-[500px] border-none shadow-2xl rounded-3xl overflow-hidden p-0 gap-0">
-          <DialogHeader className="p-8 pb-6 bg-zinc-50 border-b border-zinc-100 text-center">
-            <div className="mx-auto w-12 h-12 bg-zinc-900 rounded-full flex items-center justify-center mb-4 border-4 border-zinc-100 shadow-sm">
-              <ArrowRightLeft className="h-5 w-5 text-white" />
-            </div>
-            <DialogTitle className="text-xl font-bold text-zinc-900 uppercase tracking-tighter">
-              Move Support
-            </DialogTitle>
-            <DialogDescription className="pt-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
-              Select a new payment method for this active support.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="p-8 space-y-8 bg-white min-h-[300px] max-h-[60vh] overflow-y-auto text-left">
-            <div className="flex flex-col items-center gap-4">
-              <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm flex items-center gap-4 w-full">
-                {pledgeToSwap?.avatar ? (
-                  <Image
-                    src={pledgeToSwap.avatar}
-                    alt=""
-                    width={48}
-                    height={48}
-                    className="h-12 w-12 rounded-lg object-cover ring-2 ring-white shadow-sm"
-                  />
-                ) : (
-                  <div className="h-12 w-12 rounded-lg bg-zinc-50 flex items-center justify-center text-zinc-300 font-black text-xs uppercase border border-zinc-100">
-                    GH
-                  </div>
-                )}
-                <div className="flex-1">
-                  <p className="font-bold text-zinc-900 uppercase tracking-tight">
-                    {pledgeToSwap?.name}
-                  </p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <Badge
-                      variant="secondary"
-                      className="px-1.5 py-0 text-[9px] font-black uppercase tracking-widest bg-zinc-100 text-zinc-500 rounded-md border-transparent shadow-none"
-                    >
-                      {pledgeToSwap?.frequency}
-                    </Badge>
-                    <span className="text-sm font-bold text-zinc-900 tabular-nums">
-                      {formatCurrency(pledgeToSwap?.amount || 0)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="text-zinc-200">
-                <ArrowDown className="h-6 w-6 animate-bounce" />
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <Label className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em] ml-1">
-                Move To
-              </Label>
-              {methods.filter((m) => m.id !== pledgeToSwap?.paymentMethodId)
-                .length > 0 ? (
-                <SelectionList
-                  methods={methods.filter(
-                    (m) => m.id !== pledgeToSwap?.paymentMethodId,
-                  )}
-                  selectedId={targetMethodId}
-                  onSelect={setTargetMethodId}
-                />
-              ) : (
-                <div className="p-6 bg-zinc-50 rounded-2xl border border-dashed border-zinc-200 text-center space-y-3">
-                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center mx-auto shadow-sm border border-zinc-100">
-                    <Wallet className="h-5 w-5 text-zinc-300" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-zinc-900 uppercase tracking-tight">
-                      No other payment methods
-                    </p>
-                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
-                      Add a new method to move this support.
-                    </p>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setIsSwapPledgeOpen(false);
-                      openAddModal();
-                    }}
-                    className="font-black uppercase tracking-widest text-[9px] h-8 px-4 rounded-lg"
-                  >
-                    + Add Method
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <DialogFooter className="p-6 bg-zinc-50 border-t border-zinc-100 flex justify-between">
-            <Button
-              variant="ghost"
-              onClick={() => setIsSwapPledgeOpen(false)}
-              className="font-bold uppercase tracking-widest text-[10px] h-10 px-4"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={executeSwapPledge}
-              disabled={!targetMethodId}
-              className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-10 px-6 font-black uppercase tracking-widest text-[10px] rounded-xl transition-transform active:scale-95"
-            >
-              Confirm Move
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* --- BULK MOVE MODAL --- */}
-      <Dialog open={isMovePledgesOpen} onOpenChange={setIsMovePledgesOpen}>
-        <DialogContent className="sm:max-w-[500px] border-none shadow-2xl rounded-3xl overflow-hidden p-0 gap-0">
-          <DialogHeader className="p-8 pb-6 bg-rose-50 border-b border-rose-100 text-center">
-            <div className="w-14 h-14 bg-rose-100 rounded-full flex items-center justify-center mb-4 shadow-sm border border-rose-200 mx-auto">
-              <AlertCircle className="h-7 w-7 text-rose-600" />
-            </div>
-            <DialogTitle className="text-2xl font-bold text-rose-950 uppercase tracking-tighter">
-              Active Support Detected
-            </DialogTitle>
-            <DialogDescription className="pt-2 text-[11px] font-bold uppercase tracking-widest text-rose-800/60 leading-relaxed">
-              You are removing a payment method that funds{" "}
-              <strong>
-                {
-                  pledges.filter((p) => p.paymentMethodId === methodToDelete)
-                    .length
-                }{" "}
-                active missions
-              </strong>
-              . Please select a new payment method to ensure uninterrupted
-              support.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="p-8 space-y-8 bg-white min-h-[300px] max-h-[60vh] overflow-y-auto text-left">
-            <div className="space-y-3">
-              <p className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em] ml-1">
-                Support to Transfer
-              </p>
-              <ul className="space-y-2">
-                {pledges
-                  .filter((p) => p.paymentMethodId === methodToDelete)
-                  .map((p) => (
-                    <li
-                      key={p.id}
-                      className="text-[11px] font-bold uppercase tracking-tight flex items-center justify-between bg-zinc-50 p-3 rounded-xl border border-zinc-100"
-                    >
-                      <div className="flex items-center gap-3">
-                        {p.avatar ? (
-                          <Image
-                            src={p.avatar}
-                            width={32}
-                            height={32}
-                            className="w-8 h-8 rounded-lg bg-white border border-zinc-200"
-                            alt=""
-                          />
-                        ) : (
-                          <div className="w-8 h-8 rounded-lg bg-white border border-zinc-200 flex items-center justify-center text-[9px] font-black uppercase text-zinc-300">
-                            GH
-                          </div>
-                        )}
-                        <span className="text-zinc-900">{p.name}</span>
-                      </div>
-                      <span className="font-mono font-bold text-zinc-400 text-[10px] tabular-nums">
-                        {formatCurrency(p.amount)}
-                      </span>
-                    </li>
-                  ))}
-              </ul>
-            </div>
-
-            <div className="flex justify-center text-zinc-200">
-              <ArrowDown className="h-6 w-6 animate-bounce" />
-            </div>
-
-            <div className="space-y-4">
-              <Label className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em] ml-1">
-                Move All To
-              </Label>
-              {methods.filter((m) => m.id !== methodToDelete).length > 0 ? (
-                <SelectionList
-                  methods={methods.filter((m) => m.id !== methodToDelete)}
-                  selectedId={targetMethodId}
-                  onSelect={setTargetMethodId}
-                />
-              ) : (
-                <div className="p-4 bg-rose-50 text-rose-800 rounded-xl border border-rose-100 text-[10px] font-bold uppercase tracking-widest flex gap-3 items-start">
-                  <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-black">No Backup Method</p>
-                    <p className="mt-1 leading-relaxed">
-                      You must add another payment method before you can remove
-                      this one.
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <DialogFooter className="p-6 bg-zinc-50 border-t border-zinc-100 flex justify-between">
-            <Button
-              variant="ghost"
-              onClick={() => setIsMovePledgesOpen(false)}
-              className="font-bold uppercase tracking-widest text-[10px] h-10 px-4"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={executeMoveAndDelete}
-              disabled={!targetMethodId}
-              className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-10 px-6 font-black uppercase tracking-widest text-[10px] rounded-xl transition-transform active:scale-95"
-            >
-              Transfer & Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <BulkMoveDialog
+        isOpen={isMovePledgesOpen}
+        methodToDelete={methodToDelete}
+        methods={methods}
+        onConfirmMoveAndDelete={executeMoveAndDelete}
+        onOpenChange={setIsMovePledgesOpen}
+        onSelectTargetMethod={setTargetMethodId}
+        pledges={pledges}
+        targetMethodId={targetMethodId}
+      />
     </div>
   );
 }

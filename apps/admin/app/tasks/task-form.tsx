@@ -51,6 +51,38 @@ type TaskFormAction =
   | { type: "add_tag"; tag: string }
   | { type: "remove_tag"; tag: string };
 
+function createReminderId(
+  reminder: Partial<TaskReminder>,
+  index: number,
+): string {
+  if (typeof reminder.id === "string" && reminder.id.trim().length > 0) {
+    return reminder.id;
+  }
+
+  const reminderTimestamp = reminder.remind_at ?? `index-${index}`;
+  const reminderType = reminder.type ?? "notification";
+  return `rem-${reminderType}-${reminderTimestamp}-${index}`;
+}
+
+function createNewReminderId(): string {
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.randomUUID === "function"
+  ) {
+    return `rem-${crypto.randomUUID()}`;
+  }
+  return `rem-new-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function normalizeReminders(
+  reminders: Partial<TaskReminder>[] | TaskReminder[] | undefined,
+): Partial<TaskReminder>[] {
+  return (reminders ?? []).map((reminder, index) => ({
+    ...reminder,
+    id: createReminderId(reminder, index),
+  }));
+}
+
 function createInitialFormState(task?: Task | null): TaskFormState {
   if (task) {
     return {
@@ -62,7 +94,7 @@ function createInitialFormState(task?: Task | null): TaskFormState {
       dueTime: task.due_time || "",
       assignedTo: task.assigned_to,
       linkedEntity: task.linked_entity,
-      reminders: task.reminders || [],
+      reminders: normalizeReminders(task.reminders),
       tags: task.tags || [],
       searchValue: "",
       showEntitySearch: false,
@@ -93,7 +125,16 @@ function taskFormReducer(
     case "patch":
       return { ...state, ...action.payload };
     case "add_reminder":
-      return { ...state, reminders: [...state.reminders, action.reminder] };
+      return {
+        ...state,
+        reminders: [
+          ...state.reminders,
+          {
+            ...action.reminder,
+            id: createReminderId(action.reminder, state.reminders.length),
+          },
+        ],
+      };
     case "remove_reminder":
       return {
         ...state,
@@ -183,7 +224,7 @@ function TaskFormInner({
     dispatchForm({
       type: "add_reminder",
       reminder: {
-        id: `rem-new-${Date.now()}`,
+        id: createNewReminderId(),
         remind_at: defaultReminder.toISOString(),
         type: "notification",
         sent: false,

@@ -141,8 +141,11 @@ export function ChartLegend({ items, className }: ChartLegendProps) {
     <div
       className={cn("flex flex-wrap items-center gap-x-6 gap-y-2", className)}
     >
-      {items.map((item, index) => (
-        <div key={index} className="flex items-center gap-2 group">
+      {items.map((item) => (
+        <div
+          key={`${item.label}-${item.color}-${item.value ?? "novalue"}`}
+          className="flex items-center gap-2 group"
+        >
           <div
             className="h-2 w-2 rounded-full shrink-0"
             style={{ backgroundColor: item.color }}
@@ -172,8 +175,11 @@ export function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
         {label}
       </p>
       <div className="space-y-1.5">
-        {payload.map((item, index) => (
-          <div key={index} className="flex items-center justify-between gap-4">
+        {payload.map((item) => (
+          <div
+            key={`${item.name ?? "item"}-${item.color ?? item.fill ?? "nofill"}`}
+            className="flex items-center justify-between gap-4"
+          >
             <div className="flex items-center gap-1.5">
               <div
                 className="h-1.5 w-1.5 rounded-full"

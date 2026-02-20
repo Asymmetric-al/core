@@ -278,8 +278,11 @@ function GivingWidgetSkeleton() {
         <div className="h-12 bg-slate-100 rounded-2xl" />
         <div className="h-14 bg-slate-200 rounded-xl" />
         <div className="grid grid-cols-4 gap-2">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-10 bg-slate-100 rounded-xl" />
+          {[1, 2, 3, 4].map((slot) => (
+            <div
+              key={`amount-slot-${slot}`}
+              className="h-10 bg-slate-100 rounded-xl"
+            />
           ))}
         </div>
         <div className="h-14 bg-slate-900 rounded-2xl" />

@@ -8,8 +8,7 @@ import {
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
 import { Download, FileText, CheckCircle, ShieldCheck } from "lucide-react";
-import React from "react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import React, { useEffect, useState } from "react";
 
 const data = [
   { name: "Program Services", value: 85, color: "#10b981" },
@@ -17,7 +16,57 @@ const data = [
   { name: "Administration", value: 5, color: "#94a3b8" },
 ];
 
+async function importRechartsModule() {
+  return import("recharts");
+}
+
+type RechartsImport = Awaited<ReturnType<typeof importRechartsModule>>;
+type RechartsModule = {
+  Cell: RechartsImport["Cell"];
+  Pie: RechartsImport["Pie"];
+  PieChart: RechartsImport["PieChart"];
+  ResponsiveContainer: RechartsImport["ResponsiveContainer"];
+  Tooltip: RechartsImport["Tooltip"];
+};
+
+function FinancialsChartFallback() {
+  return (
+    <div
+      className="h-[350px] w-full rounded-2xl bg-slate-50 animate-pulse"
+      aria-hidden="true"
+    />
+  );
+}
+
 export function FinancialsPageClient() {
+  const [rechartsModule, setRechartsModule] = useState<RechartsModule | null>(
+    null,
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    importRechartsModule()
+      .then((module) => {
+        if (isMounted) {
+          setRechartsModule({
+            Cell: module.Cell,
+            Pie: module.Pie,
+            PieChart: module.PieChart,
+            ResponsiveContainer: module.ResponsiveContainer,
+            Tooltip: module.Tooltip,
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to load Recharts for donor financials:", error);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <div className="bg-slate-50 min-h-screen pt-20">
       <section className="bg-white py-24 border-b border-slate-200">
@@ -46,35 +95,11 @@ export function FinancialsPageClient() {
             </CardHeader>
             <CardContent className="p-8">
               <div className="h-[350px] w-full relative">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={data}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={90}
-                      outerRadius={120}
-                      paddingAngle={4}
-                      dataKey="value"
-                      cornerRadius={6}
-                    >
-                      {data.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={entry.color}
-                          strokeWidth={0}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{
-                        borderRadius: "12px",
-                        border: "none",
-                        boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                {rechartsModule ? (
+                  <FinancialsPieChart rechartsModule={rechartsModule} />
+                ) : (
+                  <FinancialsChartFallback />
+                )}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                   <span className="text-6xl font-bold text-slate-900 tracking-tighter">
                     85%
@@ -225,5 +250,41 @@ export function FinancialsPageClient() {
         </div>
       </section>
     </div>
+  );
+}
+
+function FinancialsPieChart({
+  rechartsModule,
+}: {
+  rechartsModule: RechartsModule;
+}) {
+  const { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } = rechartsModule;
+
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <PieChart>
+        <Pie
+          data={data}
+          cx="50%"
+          cy="50%"
+          innerRadius={90}
+          outerRadius={120}
+          paddingAngle={4}
+          dataKey="value"
+          cornerRadius={6}
+        >
+          {data.map((entry) => (
+            <Cell key={entry.name} fill={entry.color} strokeWidth={0} />
+          ))}
+        </Pie>
+        <Tooltip
+          contentStyle={{
+            borderRadius: "12px",
+            border: "none",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+          }}
+        />
+      </PieChart>
+    </ResponsiveContainer>
   );
 }

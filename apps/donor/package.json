@@ -35,8 +35,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "^2.15.4",
-    "stripe": "^17.4.0",
-    "tailwindcss-animate": "^1.0.7"
+    "stripe": "^17.4.0"
   },
   "devDependencies": {
     "@asym/eslint-config": "workspace:*",

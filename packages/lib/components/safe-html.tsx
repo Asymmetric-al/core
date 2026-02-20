@@ -1,3 +1,4 @@
+import parse from "html-react-parser";
 import { useMemo, type HTMLAttributes } from "react";
 
 import { sanitizeRichTextHtml } from "../html/sanitize";
@@ -11,8 +12,7 @@ type SafeHtmlProps = Omit<
 
 export function SafeHtml({ html, ...divProps }: SafeHtmlProps) {
   const sanitizedHtml = useMemo(() => sanitizeRichTextHtml(html), [html]);
+  const parsedHtml = useMemo(() => parse(sanitizedHtml), [sanitizedHtml]);
 
-  return (
-    <div {...divProps} dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
-  );
+  return <div {...divProps}>{parsedHtml}</div>;
 }

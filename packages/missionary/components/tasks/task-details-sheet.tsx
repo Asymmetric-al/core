@@ -142,9 +142,9 @@ export function TaskDetailsSheet({
           <div className="p-4 sm:p-6 space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Status
-                </label>
+                </p>
                 <Badge
                   variant="outline"
                   className={cn(
@@ -164,9 +164,9 @@ export function TaskDetailsSheet({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Priority
-                </label>
+                </p>
                 <div className="flex items-center gap-2">
                   <div
                     className={cn(
@@ -187,9 +187,9 @@ export function TaskDetailsSheet({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Due Date
-                </label>
+                </p>
                 <div className="flex items-center gap-2 text-foreground">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">
@@ -201,9 +201,9 @@ export function TaskDetailsSheet({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Created
-                </label>
+                </p>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Clock className="h-4 w-4" />
                   <span className="text-sm">
@@ -216,9 +216,9 @@ export function TaskDetailsSheet({
             <Separator />
 
             <div className="space-y-3">
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 Related Partner
-              </label>
+              </p>
               {task.donor ? (
                 <div className="p-3 sm:p-4 rounded-xl bg-muted/50 border flex items-center justify-between group hover:bg-muted transition-colors">
                   <div className="flex items-center gap-3 min-w-0">
@@ -264,9 +264,9 @@ export function TaskDetailsSheet({
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4 text-muted-foreground" />
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Description
-                </label>
+                </p>
               </div>
               <div className="p-3 sm:p-4 rounded-xl bg-muted/50 border min-h-[80px] text-sm text-foreground leading-relaxed">
                 {task.description || (
@@ -281,9 +281,9 @@ export function TaskDetailsSheet({
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <StickyNote className="h-4 w-4 text-amber-500" />
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                     Internal Notes
-                  </label>
+                  </p>
                 </div>
                 <div className="p-3 sm:p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 text-sm leading-relaxed text-amber-900 dark:text-amber-200">
                   {task.notes}

@@ -120,6 +120,95 @@ type SecurityLevel = "high" | "medium" | "low";
 type AccessLevel = "view" | "comment";
 type PostStatus = "published" | "draft";
 
+type SecurityDialogState = {
+  level: SecurityLevel;
+  publicMirror: boolean;
+  autoApproval: boolean;
+};
+
+type SecurityOption = {
+  level: SecurityLevel;
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  features: string[];
+  color: string;
+  bgColor: string;
+  borderColor: string;
+  ringColor: string;
+};
+
+type WorkerFeedUiState = {
+  postType: string;
+  postContent: string;
+  activeTab: PostStatus;
+  isLoading: boolean;
+  isSaving: boolean;
+  editingPostId: string | null;
+  lastSaved: Date | null;
+  expandedComments: string | null;
+  postPrivacy: Visibility;
+  selectedMedia: MediaItem[];
+  isUploading: boolean;
+  securityLevel: SecurityLevel;
+  isLoadingRequests: boolean;
+};
+
+const buildSecurityDialogState = (
+  level: SecurityLevel,
+): SecurityDialogState => ({
+  level,
+  publicMirror: level === "low",
+  autoApproval: level !== "high",
+});
+
+const SECURITY_OPTIONS: SecurityOption[] = [
+  {
+    level: "high",
+    icon: ShieldAlert,
+    title: "High Security",
+    description:
+      "Manual approval required for all followers. Full control over who sees your updates.",
+    features: [
+      "Manual follower approval",
+      "Granular permissions",
+      "Activity logging",
+    ],
+    color: "text-rose-600",
+    bgColor: "bg-rose-50",
+    borderColor: "border-rose-200",
+    ringColor: "ring-rose-500/20",
+  },
+  {
+    level: "medium",
+    icon: ShieldHalf,
+    title: "Balanced",
+    description:
+      "Auto-approve donors while maintaining control over non-donor followers.",
+    features: [
+      "Auto-approve donors",
+      "Review non-donors",
+      "Partner visibility",
+    ],
+    color: "text-amber-600",
+    bgColor: "bg-amber-50",
+    borderColor: "border-amber-200",
+    ringColor: "ring-amber-500/20",
+  },
+  {
+    level: "low",
+    icon: Shield,
+    title: "Open Access",
+    description:
+      "Public feed visible on your giving page. Maximum reach for your updates.",
+    features: ["Public visibility", "Auto-sync to page", "Maximum engagement"],
+    color: "text-emerald-600",
+    bgColor: "bg-emerald-50",
+    borderColor: "border-emerald-200",
+    ringColor: "ring-emerald-500/20",
+  },
+];
+
 interface FollowerRequest {
   id: string;
   donor_id: string;
@@ -169,6 +258,60 @@ interface FeedComment {
   author?: FeedCommentAuthor;
   isWorker?: boolean;
   replies?: FeedComment[];
+}
+
+function createLocalCommentId() {
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.randomUUID === "function"
+  ) {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function appendCommentToThread(
+  comments: FeedComment[],
+  nextComment: FeedComment,
+  parentId?: string,
+): FeedComment[] {
+  if (!parentId) {
+    return [...comments, nextComment];
+  }
+
+  return comments.map((comment) =>
+    comment.id === parentId
+      ? { ...comment, replies: [...(comment.replies || []), nextComment] }
+      : comment,
+  );
+}
+
+function removeCommentFromThread(
+  comments: FeedComment[],
+  commentId: string,
+  parentId?: string,
+): FeedComment[] {
+  if (parentId) {
+    return comments.map((comment) =>
+      comment.id === parentId
+        ? {
+            ...comment,
+            replies: (comment.replies || []).filter(
+              (reply) => reply.id !== commentId,
+            ),
+          }
+        : comment,
+    );
+  }
+
+  return comments
+    .filter((comment) => comment.id !== commentId)
+    .map((comment) => ({
+      ...comment,
+      replies: (comment.replies || []).filter(
+        (reply) => reply.id !== commentId,
+      ),
+    }));
 }
 
 const MotionCard = motion.create(Card);
@@ -249,7 +392,7 @@ function FollowerRequestItem({
               <div className="flex items-center gap-1.5 mt-0.5">
                 {request.is_donor && (
                   <motion.div
-                    initial={{ scale: 0 }}
+                    initial={{ scale: 0.95, opacity: 0 }}
                     animate={{ scale: 1 }}
                     transition={springTransition}
                   >
@@ -341,7 +484,7 @@ function FollowerRequestItem({
                   className="flex items-center gap-1.5 h-full absolute inset-0 text-emerald-600"
                 >
                   <motion.div
-                    initial={{ scale: 0 }}
+                    initial={{ scale: 0.95, opacity: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ ...springTransition, delay: 0.1 }}
                     className="bg-emerald-100 rounded-full p-0.5"
@@ -364,7 +507,7 @@ function FollowerRequestItem({
                   className="flex items-center gap-1.5 h-full absolute inset-0 text-muted-foreground"
                 >
                   <motion.div
-                    initial={{ scale: 0 }}
+                    initial={{ scale: 0.95, opacity: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ ...springTransition, delay: 0.1 }}
                     className="bg-muted rounded-full p-0.5"
@@ -395,7 +538,7 @@ function FloatingEmoji({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0, y: 0, x: 0 }}
+      initial={{ opacity: 0, scale: 0.95, y: 0, x: 0 }}
       animate={{
         opacity: [0, 1, 1, 0],
         scale: [0, 1.8, 1.2, 0.8],
@@ -729,7 +872,6 @@ function CommentSection({
                   >
                     <div className="relative flex-1">
                       <Input
-                        autoFocus
                         value={replyText}
                         onChange={(e) => setReplyText(e.target.value)}
                         onKeyDown={(e) =>
@@ -803,6 +945,8 @@ function PostCard({
   onEdit,
   onDelete,
   onReaction,
+  onAddComment,
+  onDeleteComment,
   expandedComments,
   setExpandedComments,
   index,
@@ -811,6 +955,12 @@ function PostCard({
   onEdit: () => void;
   onDelete: () => void;
   onReaction: (type: "heart" | "fire" | "prayer") => void;
+  onAddComment: (postId: string, text: string, parentId?: string) => void;
+  onDeleteComment: (
+    postId: string,
+    commentId: string,
+    parentId?: string,
+  ) => void;
   expandedComments: string | null;
   setExpandedComments: (id: string | null) => void;
   index: number;
@@ -958,7 +1108,7 @@ function PostCard({
                   <Carousel className="w-full">
                     <CarouselContent>
                       {post.media.map((item, idx: number) => (
-                        <CarouselItem key={idx}>
+                        <CarouselItem key={`${item.type}-${item.url}`}>
                           <div className="relative w-full h-auto min-h-[200px] max-h-[400px] sm:max-h-[600px]">
                             <Image
                               src={item.url}
@@ -1040,10 +1190,12 @@ function PostCard({
                 <CommentSection
                   comments={post.comments || []}
                   canManageComments={true}
-                  onAddComment={() => {
-                    toast.success("Comment published");
-                  }}
-                  onDeleteComment={() => {}}
+                  onAddComment={(text, parentId) =>
+                    onAddComment(post.id, text, parentId)
+                  }
+                  onDeleteComment={(commentId, parentId) =>
+                    onDeleteComment(post.id, commentId, parentId)
+                  }
                 />
               </motion.div>
             )}
@@ -1147,16 +1299,15 @@ function SecurityAccessDialog({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [localLevel, setLocalLevel] = useState<SecurityLevel>(securityLevel);
-  const [publicMirror, setPublicMirror] = useState(securityLevel === "low");
-  const [autoApproval, setAutoApproval] = useState(securityLevel !== "high");
+  const [dialogState, setDialogState] = useState<SecurityDialogState>(() =>
+    buildSecurityDialogState("medium"),
+  );
+  const { level: localLevel, publicMirror, autoApproval } = dialogState;
 
   const handleOpenChange = useCallback(
     (open: boolean) => {
       if (open) {
-        setLocalLevel(securityLevel);
-        setPublicMirror(securityLevel === "low");
-        setAutoApproval(securityLevel !== "high");
+        setDialogState(buildSecurityDialogState(securityLevel));
       }
       setIsOpen(open);
     },
@@ -1164,29 +1315,31 @@ function SecurityAccessDialog({
   );
 
   const handleLevelChange = (level: SecurityLevel) => {
-    setLocalLevel(level);
-    setPublicMirror(level === "low");
-    setAutoApproval(level !== "high");
+    setDialogState(buildSecurityDialogState(level));
   };
 
   const handlePublicMirrorChange = (checked: boolean) => {
-    setPublicMirror(checked);
-    if (checked) {
-      setLocalLevel("low");
-      setAutoApproval(true);
-    } else if (localLevel === "low") {
-      setLocalLevel("medium");
-    }
+    setDialogState((previous) => {
+      if (checked) {
+        return { level: "low", publicMirror: true, autoApproval: true };
+      }
+      if (previous.level === "low") {
+        return { level: "medium", publicMirror: false, autoApproval: true };
+      }
+      return { ...previous, publicMirror: false };
+    });
   };
 
   const handleAutoApprovalChange = (checked: boolean) => {
-    setAutoApproval(checked);
-    if (!checked) {
-      setLocalLevel("high");
-      setPublicMirror(false);
-    } else if (localLevel === "high") {
-      setLocalLevel("medium");
-    }
+    setDialogState((previous) => {
+      if (!checked) {
+        return { level: "high", publicMirror: false, autoApproval: false };
+      }
+      if (previous.level === "high") {
+        return { level: "medium", publicMirror: false, autoApproval: true };
+      }
+      return { ...previous, autoApproval: true };
+    });
   };
 
   const handleSave = async () => {
@@ -1197,57 +1350,6 @@ function SecurityAccessDialog({
     setIsOpen(false);
     toast.success("Security settings saved");
   };
-
-  const securityOptions = [
-    {
-      level: "high" as SecurityLevel,
-      icon: ShieldAlert,
-      title: "High Security",
-      description:
-        "Manual approval required for all followers. Full control over who sees your updates.",
-      features: [
-        "Manual follower approval",
-        "Granular permissions",
-        "Activity logging",
-      ],
-      color: "text-rose-600",
-      bgColor: "bg-rose-50",
-      borderColor: "border-rose-200",
-      ringColor: "ring-rose-500/20",
-    },
-    {
-      level: "medium" as SecurityLevel,
-      icon: ShieldHalf,
-      title: "Balanced",
-      description:
-        "Auto-approve donors while maintaining control over non-donor followers.",
-      features: [
-        "Auto-approve donors",
-        "Review non-donors",
-        "Partner visibility",
-      ],
-      color: "text-amber-600",
-      bgColor: "bg-amber-50",
-      borderColor: "border-amber-200",
-      ringColor: "ring-amber-500/20",
-    },
-    {
-      level: "low" as SecurityLevel,
-      icon: Shield,
-      title: "Open Access",
-      description:
-        "Public feed visible on your giving page. Maximum reach for your updates.",
-      features: [
-        "Public visibility",
-        "Auto-sync to page",
-        "Maximum engagement",
-      ],
-      color: "text-emerald-600",
-      bgColor: "bg-emerald-50",
-      borderColor: "border-emerald-200",
-      ringColor: "ring-emerald-500/20",
-    },
-  ];
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -1287,7 +1389,7 @@ function SecurityAccessDialog({
               Security Level
             </Label>
             <div className="space-y-3">
-              {securityOptions.map(
+              {SECURITY_OPTIONS.map(
                 ({
                   level,
                   icon: Icon,
@@ -1337,7 +1439,7 @@ function SecurityAccessDialog({
                             </span>
                             {isSelected && (
                               <motion.div
-                                initial={{ scale: 0 }}
+                                initial={{ scale: 0.95, opacity: 0 }}
                                 animate={{ scale: 1 }}
                                 transition={springTransition}
                               >
@@ -1382,7 +1484,7 @@ function SecurityAccessDialog({
                         >
                           {isSelected && (
                             <motion.div
-                              initial={{ scale: 0 }}
+                              initial={{ scale: 0.95, opacity: 0 }}
                               animate={{ scale: 1 }}
                               transition={springTransition}
                             >
@@ -1483,25 +1585,801 @@ function SecurityAccessDialog({
   );
 }
 
-export default function WorkerFeed() {
-  const [postType, setPostType] = useState("Update");
-  const [postContent, setPostContent] = useState("");
+type PostComposerCardProps = {
+  postType: string;
+  postContent: string;
+  selectedMedia: MediaItem[];
+  lastSaved: Date | null;
+  editingPostId: string | null;
+  isUploading: boolean;
+  isSaving: boolean;
+  postPrivacy: Visibility;
+  setPostType: (value: React.SetStateAction<string>) => void;
+  setPostContent: (value: React.SetStateAction<string>) => void;
+  setSelectedMedia: (value: React.SetStateAction<MediaItem[]>) => void;
+  setEditingPostId: (value: React.SetStateAction<string | null>) => void;
+  setPostPrivacy: (value: React.SetStateAction<Visibility>) => void;
+  simulateUpload: () => Promise<void>;
+  handlePost: (status?: PostStatus) => Promise<void>;
+};
+
+type PostComposerActionsProps = {
+  selectedMedia: MediaItem[];
+  lastSaved: Date | null;
+  isUploading: boolean;
+  isSaving: boolean;
+  postPrivacy: Visibility;
+  postActionDisabled: boolean;
+  setSelectedMedia: (value: React.SetStateAction<MediaItem[]>) => void;
+  setPostPrivacy: (value: React.SetStateAction<Visibility>) => void;
+  simulateUpload: () => Promise<void>;
+  handlePost: (status?: PostStatus) => Promise<void>;
+};
+
+function PostComposerActions({
+  selectedMedia,
+  lastSaved,
+  isUploading,
+  isSaving,
+  postPrivacy,
+  postActionDisabled,
+  setSelectedMedia,
+  setPostPrivacy,
+  simulateUpload,
+  handlePost,
+}: PostComposerActionsProps) {
+  return (
+    <div className="flex flex-col gap-3 w-full">
+      <AnimatePresence>
+        {selectedMedia.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="flex gap-2 sm:gap-3 overflow-x-auto no-scrollbar pb-2"
+          >
+            {selectedMedia.map((item, idx) => (
+              <motion.div
+                key={`${item.type}-${item.url}`}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={springTransition}
+                className="relative group/img shrink-0"
+              >
+                <Image
+                  src={item.url}
+                  alt={`Attached media ${idx + 1}`}
+                  width={64}
+                  height={64}
+                  unoptimized
+                  className="h-14 w-14 sm:h-16 sm:w-16 object-cover rounded-lg border border-border shadow-sm"
+                />
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() =>
+                    setSelectedMedia((prev) => prev.filter((_, i) => i !== idx))
+                  }
+                  className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover/img:opacity-100 transition-opacity shadow-sm"
+                >
+                  <X className="h-3 w-3" />
+                </motion.button>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <div className="flex flex-wrap items-center gap-2 w-full">
+        <AnimatePresence>
+          {lastSaved && (
+            <motion.span
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0 }}
+              className="text-[9px] text-muted-foreground font-medium uppercase tracking-wider hidden md:inline-block"
+            >
+              Saved{" "}
+              {lastSaved.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </motion.span>
+          )}
+        </AnimatePresence>
+
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={isUploading}
+            onClick={simulateUpload}
+            className="h-8 text-muted-foreground gap-1.5 font-bold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-all"
+          >
+            {isUploading ? (
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{
+                  duration: 1,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+              >
+                <Loader2 className="h-3 w-3" />
+              </motion.div>
+            ) : (
+              <ImageIcon className="h-3 w-3" />
+            )}
+            <span className="hidden sm:inline">Media</span>
+          </Button>
+        </motion.div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 text-muted-foreground gap-1.5 font-bold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-all"
+              >
+                {postPrivacy === "public" ? (
+                  <Globe className="h-3 w-3" />
+                ) : postPrivacy === "partners" ? (
+                  <Users className="h-3 w-3" />
+                ) : (
+                  <Lock className="h-3 w-3" />
+                )}
+                <span className="hidden sm:inline capitalize">
+                  {postPrivacy === "partners" ? "Partners" : postPrivacy}
+                </span>
+                <ChevronDown className="h-2.5 w-2.5 opacity-40" />
+              </Button>
+            </motion.div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="start"
+            className="rounded-xl border-border shadow-lg p-1.5 min-w-[160px]"
+          >
+            <DropdownMenuItem
+              onClick={() => setPostPrivacy("public")}
+              className="font-bold text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
+            >
+              <Globe className="h-3.5 w-3.5 text-muted-foreground" />
+              Public
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setPostPrivacy("partners")}
+              className="font-bold text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
+            >
+              <Users className="h-3.5 w-3.5 text-muted-foreground" />
+              Partners Only
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setPostPrivacy("private")}
+              className="font-bold text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
+            >
+              <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+              Private
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <div className="flex-1" />
+
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Button
+            onClick={() => handlePost("draft")}
+            variant="maia-outline"
+            size="sm"
+            disabled={postActionDisabled}
+            className="h-8 px-2.5 sm:px-4 text-[9px] uppercase tracking-wider rounded-lg"
+          >
+            {isSaving ? (
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{
+                  duration: 1,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+              >
+                <Loader2 className="h-3 w-3" />
+              </motion.div>
+            ) : (
+              <Save className="h-3 w-3 sm:mr-1.5" />
+            )}
+            <span className="hidden sm:inline">Draft</span>
+          </Button>
+        </motion.div>
+
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Button
+            onClick={() => handlePost("published")}
+            variant="maia"
+            size="sm"
+            disabled={postActionDisabled}
+            className="h-8 px-3 sm:px-5 text-[9px] uppercase tracking-wider rounded-lg shadow-sm"
+          >
+            {isSaving ? (
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{
+                  duration: 1,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+              >
+                <Loader2 className="h-3 w-3" />
+              </motion.div>
+            ) : (
+              "Publish"
+            )}
+          </Button>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
+function PostComposerCard({
+  postType,
+  postContent,
+  selectedMedia,
+  lastSaved,
+  editingPostId,
+  isUploading,
+  isSaving,
+  postPrivacy,
+  setPostType,
+  setPostContent,
+  setSelectedMedia,
+  setEditingPostId,
+  setPostPrivacy,
+  simulateUpload,
+  handlePost,
+}: PostComposerCardProps) {
+  const isComposerEmpty =
+    !postContent || postContent === "<p></p>" || postContent === "<p><br></p>";
+  const postActionDisabled =
+    isSaving || isUploading || (isComposerEmpty && selectedMedia.length === 0);
+
+  return (
+    <MotionCard
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ ...smoothTransition, delay: 0.15 }}
+      className="overflow-hidden border border-border shadow-md rounded-2xl sm:rounded-3xl bg-card"
+    >
+      <div className="p-4 sm:p-6">
+        <div className="flex gap-2 sm:gap-3 flex-wrap items-center mb-4 sm:mb-6">
+          {["Update", "Prayer Request", "Story", "Newsletter"].map(
+            (type, index) => (
+              <motion.div
+                key={type}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 + index * 0.05 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Button
+                  variant={postType === type ? "maia" : "maia-outline"}
+                  onClick={() => setPostType(type)}
+                  className={cn(
+                    "px-3 sm:px-5 py-2 h-8 sm:h-9 text-[9px] sm:text-[10px] uppercase tracking-wider font-bold",
+                    postType === type && "shadow-md",
+                  )}
+                >
+                  {type}
+                </Button>
+              </motion.div>
+            ),
+          )}
+          <AnimatePresence>
+            {editingPostId && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setEditingPostId(null);
+                    setPostContent("");
+                  }}
+                  className="ml-auto text-destructive font-bold text-[10px] uppercase tracking-wider hover:bg-destructive/10 rounded-xl"
+                >
+                  Cancel Edit
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <div className="flex gap-3 sm:gap-4">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.25 }}
+            className="hidden sm:flex"
+          >
+            <Avatar className="h-9 w-9 sm:h-11 sm:w-11 border-2 border-border shadow-sm shrink-0">
+              <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80" />
+              <AvatarFallback className="font-bold text-sm">MF</AvatarFallback>
+            </Avatar>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="flex-1 min-w-0 rounded-xl sm:rounded-2xl border border-border overflow-hidden focus-within:ring-2 focus-within:ring-ring/20 focus-within:border-ring transition-all"
+          >
+            <RichTextEditor
+              value={postContent}
+              onChange={setPostContent}
+              placeholder={`What's happening? Share a ${postType.toLowerCase()}...`}
+              className=""
+              contentClassName="py-3 sm:py-4 px-3 sm:px-4 text-sm sm:text-base text-foreground placeholder:text-muted-foreground min-h-[100px] sm:min-h-[140px] leading-relaxed"
+              toolbarPosition="bottom"
+              proseInvert={false}
+              actions={
+                <PostComposerActions
+                  selectedMedia={selectedMedia}
+                  lastSaved={lastSaved}
+                  isUploading={isUploading}
+                  isSaving={isSaving}
+                  postPrivacy={postPrivacy}
+                  postActionDisabled={postActionDisabled}
+                  setSelectedMedia={setSelectedMedia}
+                  setPostPrivacy={setPostPrivacy}
+                  simulateUpload={simulateUpload}
+                  handlePost={handlePost}
+                />
+              }
+            />
+          </motion.div>
+        </div>
+      </div>
+    </MotionCard>
+  );
+}
+
+type FeedPostsTabsSectionProps = {
+  activeTab: PostStatus;
+  drafts: Post[];
+  posts: Post[];
+  isLoading: boolean;
+  expandedComments: string | null;
+  setActiveTab: (value: React.SetStateAction<PostStatus>) => void;
+  setExpandedComments: (value: React.SetStateAction<string | null>) => void;
+  handleEditDraft: (draft: Post) => void;
+  handleDeletePost: (postId: string) => Promise<void>;
+  handleReaction: (
+    postId: string,
+    type: "heart" | "fire" | "prayer",
+  ) => Promise<void>;
+  handleAddComment: (postId: string, text: string, parentId?: string) => void;
+  handleDeleteComment: (
+    postId: string,
+    commentId: string,
+    parentId?: string,
+  ) => void;
+};
+
+function FeedPostsTabsSection({
+  activeTab,
+  drafts,
+  posts,
+  isLoading,
+  expandedComments,
+  setActiveTab,
+  setExpandedComments,
+  handleEditDraft,
+  handleDeletePost,
+  handleReaction,
+  handleAddComment,
+  handleDeleteComment,
+}: FeedPostsTabsSectionProps) {
+  return (
+    <div className="space-y-6 sm:space-y-8 lg:space-y-10">
+      <Tabs
+        defaultValue="published"
+        value={activeTab}
+        onValueChange={(v) => setActiveTab(v as PostStatus)}
+        className="w-full"
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3 sm:gap-0"
+        >
+          <TabsList className="bg-muted/50 p-1 rounded-xl h-auto border border-border backdrop-blur-sm">
+            <TabsTrigger
+              value="published"
+              className="rounded-lg px-4 sm:px-6 py-2 font-bold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all"
+            >
+              Published
+            </TabsTrigger>
+            <TabsTrigger
+              value="draft"
+              className="rounded-lg px-4 sm:px-6 py-2 font-bold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all flex items-center gap-2"
+            >
+              Drafts
+              <AnimatePresence>
+                {drafts.length > 0 && (
+                  <motion.div
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0.95, opacity: 0 }}
+                    transition={springTransition}
+                  >
+                    <Badge className="bg-primary text-primary-foreground border-none h-4 px-1 text-[8px] font-bold">
+                      {drafts.length}
+                    </Badge>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </TabsTrigger>
+          </TabsList>
+
+          <LastSyncedDisplay />
+        </motion.div>
+
+        <TabsContent value="published" className="mt-0">
+          <LayoutGroup>
+            <motion.div layout className="space-y-6 sm:space-y-8 lg:space-y-10">
+              <AnimatePresence mode="popLayout">
+                {isLoading ? (
+                  <LoadingState />
+                ) : posts.length > 0 ? (
+                  posts.map((post, index) => (
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      index={index}
+                      onEdit={() => handleEditDraft(post)}
+                      onDelete={() => handleDeletePost(post.id)}
+                      onReaction={(type: "heart" | "fire" | "prayer") =>
+                        handleReaction(post.id, type)
+                      }
+                      onAddComment={handleAddComment}
+                      onDeleteComment={handleDeleteComment}
+                      expandedComments={expandedComments}
+                      setExpandedComments={setExpandedComments}
+                    />
+                  ))
+                ) : (
+                  <EmptyState
+                    icon={Globe}
+                    title="Your feed is empty"
+                    description="Start sharing your journey with your partners."
+                  />
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </LayoutGroup>
+        </TabsContent>
+
+        <TabsContent value="draft" className="mt-0">
+          <LayoutGroup>
+            <motion.div layout className="space-y-4 sm:space-y-6 lg:space-y-8">
+              <AnimatePresence mode="popLayout">
+                {drafts.length > 0 ? (
+                  drafts.map((draft, index) => (
+                    <motion.div
+                      key={draft.id}
+                      layout
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ ...smoothTransition, delay: index * 0.05 }}
+                      className="group"
+                    >
+                      <MotionCard
+                        whileHover={{ y: -2 }}
+                        transition={springTransition}
+                        className="overflow-hidden border border-border hover:border-muted-foreground/30 hover:shadow-lg transition-all duration-500 rounded-2xl sm:rounded-3xl bg-card p-4 sm:p-6 lg:p-8"
+                      >
+                        <div className="flex flex-col sm:flex-row items-start justify-between gap-4 sm:gap-6 lg:gap-8">
+                          <div className="flex-1 min-w-0 space-y-3 sm:space-y-4">
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                              <motion.div
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ delay: 0.1 }}
+                              >
+                                <Badge className="bg-muted text-muted-foreground border-none font-bold text-[8px] uppercase tracking-wider px-2 py-0.5 rounded-full">
+                                  Draft • {draft.post_type}
+                                </Badge>
+                              </motion.div>
+                              <span className="text-[10px] text-muted-foreground font-medium">
+                                Saved{" "}
+                                {new Date(
+                                  draft.created_at,
+                                ).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <SafeHtml
+                              className="prose prose-sm sm:prose-base max-w-none line-clamp-3 opacity-60 text-foreground"
+                              html={draft.content}
+                            />
+                          </div>
+                          <div className="flex flex-row sm:flex-col gap-2 shrink-0 w-full sm:w-auto">
+                            <motion.div
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              className="flex-1 sm:flex-none"
+                            >
+                              <Button
+                                variant="maia"
+                                size="sm"
+                                onClick={() => handleEditDraft(draft)}
+                                className="w-full h-9 sm:h-10 px-4 sm:px-6 text-[10px] uppercase tracking-wider rounded-xl"
+                              >
+                                <ExternalLink className="h-3.5 w-3.5 mr-2" />
+                                <span className="hidden sm:inline">
+                                  Edit & Publish
+                                </span>
+                                <span className="sm:hidden">Edit</span>
+                              </Button>
+                            </motion.div>
+                            <motion.div
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              className="flex-1 sm:flex-none"
+                            >
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeletePost(draft.id)}
+                                className="w-full h-9 sm:h-10 text-destructive hover:bg-destructive/10 font-bold text-[10px] uppercase tracking-wider rounded-xl"
+                              >
+                                <Trash2 className="h-3.5 w-3.5 mr-2" />
+                                Delete
+                              </Button>
+                            </motion.div>
+                          </div>
+                        </div>
+                      </MotionCard>
+                    </motion.div>
+                  ))
+                ) : (
+                  <EmptyState
+                    icon={Save}
+                    title="No drafts yet"
+                    description="Drafts allow you to perfect your updates before sharing."
+                  />
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </LayoutGroup>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+type FollowerRequestsCardProps = {
+  pendingRequests: FollowerRequest[];
+  isLoadingRequests: boolean;
+  handleResolveRequest: (id: string, approved: boolean) => void;
+};
+
+function FollowerRequestsCard({
+  pendingRequests,
+  isLoadingRequests,
+  handleResolveRequest,
+}: FollowerRequestsCardProps) {
+  return (
+    <MotionCard
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.25 }}
+      className="rounded-2xl sm:rounded-3xl border border-border shadow-sm overflow-hidden bg-card"
+    >
+      <div className="px-4 py-3 flex items-center justify-between">
+        <h3 className="font-bold text-[11px] uppercase tracking-wider text-foreground">
+          Follow Requests
+        </h3>
+        <AnimatePresence>
+          {pendingRequests.length > 0 && (
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={springTransition}
+            >
+              <Badge className="bg-primary text-primary-foreground border-none font-bold text-[10px] h-5 min-w-5 px-1.5 rounded-full flex items-center justify-center">
+                {pendingRequests.length}
+              </Badge>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <div className="border-t border-border">
+        {isLoadingRequests ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex items-center justify-center py-12"
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{
+                duration: 1.5,
+                repeat: Infinity,
+                ease: "linear",
+              }}
+            >
+              <Loader2 className="h-5 w-5 text-muted-foreground" />
+            </motion.div>
+          </motion.div>
+        ) : pendingRequests.length > 0 ? (
+          <motion.div
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+            className="divide-y divide-border/50"
+          >
+            <AnimatePresence mode="popLayout">
+              {pendingRequests.map((req, index) => (
+                <FollowerRequestItem
+                  key={req.id}
+                  request={req}
+                  onResolve={handleResolveRequest}
+                  index={index}
+                />
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={smoothTransition}
+            className="text-center py-10 px-4"
+          >
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              transition={springTransition}
+              className="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3 border border-emerald-100"
+            >
+              <Check className="h-5 w-5 text-emerald-500" />
+            </motion.div>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+              All caught up!
+            </p>
+          </motion.div>
+        )}
+      </div>
+    </MotionCard>
+  );
+}
+
+function useWorkerFeedPageView() {
+  const [uiState, setUiState] = useState<WorkerFeedUiState>({
+    postType: "Update",
+    postContent: "",
+    activeTab: "published",
+    isLoading: true,
+    isSaving: false,
+    editingPostId: null,
+    lastSaved: null,
+    expandedComments: null,
+    postPrivacy: "public",
+    selectedMedia: [],
+    isUploading: false,
+    securityLevel: "medium",
+    isLoadingRequests: true,
+  });
+  const {
+    postType,
+    postContent,
+    activeTab,
+    isLoading,
+    isSaving,
+    editingPostId,
+    lastSaved,
+    expandedComments,
+    postPrivacy,
+    selectedMedia,
+    isUploading,
+    securityLevel,
+    isLoadingRequests,
+  } = uiState;
+
+  const setUiField = useCallback(
+    <K extends keyof WorkerFeedUiState>(
+      key: K,
+      value: React.SetStateAction<WorkerFeedUiState[K]>,
+    ) => {
+      setUiState((prev) => ({
+        ...prev,
+        [key]:
+          typeof value === "function"
+            ? (
+                value as (
+                  prevValue: WorkerFeedUiState[K],
+                ) => WorkerFeedUiState[K]
+              )(prev[key])
+            : value,
+      }));
+    },
+    [],
+  );
+
+  const setPostType = useCallback(
+    (value: React.SetStateAction<string>) => setUiField("postType", value),
+    [setUiField],
+  );
+  const setPostContent = useCallback(
+    (value: React.SetStateAction<string>) => setUiField("postContent", value),
+    [setUiField],
+  );
+  const setActiveTab = useCallback(
+    (value: React.SetStateAction<PostStatus>) => setUiField("activeTab", value),
+    [setUiField],
+  );
+  const setIsLoading = useCallback(
+    (value: React.SetStateAction<boolean>) => setUiField("isLoading", value),
+    [setUiField],
+  );
+  const setIsSaving = useCallback(
+    (value: React.SetStateAction<boolean>) => setUiField("isSaving", value),
+    [setUiField],
+  );
+  const setEditingPostId = useCallback(
+    (value: React.SetStateAction<string | null>) =>
+      setUiField("editingPostId", value),
+    [setUiField],
+  );
+  const setLastSaved = useCallback(
+    (value: React.SetStateAction<Date | null>) =>
+      setUiField("lastSaved", value),
+    [setUiField],
+  );
+  const setExpandedComments = useCallback(
+    (value: React.SetStateAction<string | null>) =>
+      setUiField("expandedComments", value),
+    [setUiField],
+  );
+  const setPostPrivacy = useCallback(
+    (value: React.SetStateAction<Visibility>) =>
+      setUiField("postPrivacy", value),
+    [setUiField],
+  );
+  const setSelectedMedia = useCallback(
+    (value: React.SetStateAction<MediaItem[]>) =>
+      setUiField("selectedMedia", value),
+    [setUiField],
+  );
+  const setIsUploading = useCallback(
+    (value: React.SetStateAction<boolean>) => setUiField("isUploading", value),
+    [setUiField],
+  );
+  const setSecurityLevel = useCallback(
+    (value: React.SetStateAction<SecurityLevel>) =>
+      setUiField("securityLevel", value),
+    [setUiField],
+  );
+  const setIsLoadingRequests = useCallback(
+    (value: React.SetStateAction<boolean>) =>
+      setUiField("isLoadingRequests", value),
+    [setUiField],
+  );
+
   const [posts, setPosts] = useState<Post[]>([]);
   const [drafts, setDrafts] = useState<Post[]>([]);
-  const [activeTab, setActiveTab] = useState<PostStatus>("published");
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [editingPostId, setEditingPostId] = useState<string | null>(null);
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [expandedComments, setExpandedComments] = useState<string | null>(null);
-  const [postPrivacy, setPostPrivacy] = useState<Visibility>("public");
-  const [selectedMedia, setSelectedMedia] = useState<MediaItem[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const [securityLevel, setSecurityLevel] = useState<SecurityLevel>("medium");
   const [followerRequests, setFollowerRequests] = useState<FollowerRequest[]>(
     [],
   );
-  const [isLoadingRequests, setIsLoadingRequests] = useState(true);
 
   const pendingRequests = useMemo(
     () => followerRequests.filter((f) => f.status === "pending"),
@@ -1529,19 +2407,22 @@ export default function WorkerFeed() {
     toast.success("Image uploaded successfully!");
   };
 
-  const fetchPosts = useCallback(async (status: PostStatus = "published") => {
-    try {
-      const res = await fetch(`/api/posts?status=${status}`);
-      const data = await res.json();
-      if (status === "published") setPosts(data.posts || []);
-      else setDrafts(data.posts || []);
-    } catch (err) {
-      console.error("Failed to fetch posts:", err);
-      toast.error("Could not load feed");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const fetchPosts = useCallback(
+    async (status: PostStatus = "published") => {
+      try {
+        const res = await fetch(`/api/posts?status=${status}`);
+        const data = await res.json();
+        if (status === "published") setPosts(data.posts || []);
+        else setDrafts(data.posts || []);
+      } catch (err) {
+        console.error("Failed to fetch posts:", err);
+        toast.error("Could not load feed");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [setIsLoading],
+  );
 
   const fetchFollowerRequests = useCallback(async () => {
     try {
@@ -1554,13 +2435,91 @@ export default function WorkerFeed() {
     } finally {
       setIsLoadingRequests(false);
     }
-  }, []);
+  }, [setIsLoadingRequests]);
 
   useEffect(() => {
     fetchPosts("published");
     fetchPosts("draft");
     fetchFollowerRequests();
   }, [fetchPosts, fetchFollowerRequests]);
+
+  const handlePost = useCallback(
+    async (status: PostStatus = "published") => {
+      const plainText = postContent.replace(/<[^>]*>?/gm, "").trim();
+      if (!plainText && !postContent.includes("<img")) return;
+
+      setIsSaving(true);
+      try {
+        const method = editingPostId ? "PATCH" : "POST";
+        const url = editingPostId
+          ? `/api/posts/${editingPostId}`
+          : "/api/posts";
+
+        const res = await fetch(url, {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            content: postContent,
+            post_type: postType,
+            visibility: postPrivacy,
+            status,
+            media: selectedMedia,
+          }),
+        });
+
+        if (!res.ok) throw new Error("Failed to save post");
+
+        const { post } = await res.json();
+
+        if (status === "published") {
+          if (editingPostId && activeTab === "draft") {
+            setDrafts((prev) => prev.filter((d) => d.id !== editingPostId));
+            setPosts((prev) => [post, ...prev]);
+          } else {
+            setPosts((prev) =>
+              editingPostId
+                ? prev.map((p) => (p.id === editingPostId ? post : p))
+                : [post, ...prev],
+            );
+          }
+          toast.success(
+            editingPostId ? "Update updated!" : "Update published!",
+          );
+        } else {
+          setDrafts((prev) =>
+            editingPostId
+              ? prev.map((p) => (p.id === editingPostId ? post : p))
+              : [post, ...prev],
+          );
+          setLastSaved(new Date());
+          toast.success("Draft saved!");
+        }
+
+        setPostContent("");
+        setEditingPostId(null);
+        setPostType("Update");
+        setSelectedMedia([]);
+      } catch (_err) {
+        toast.error("Failed to save");
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [
+      activeTab,
+      editingPostId,
+      postContent,
+      postPrivacy,
+      postType,
+      selectedMedia,
+      setEditingPostId,
+      setIsSaving,
+      setLastSaved,
+      setPostContent,
+      setPostType,
+      setSelectedMedia,
+    ],
+  );
 
   useEffect(() => {
     if (
@@ -1577,66 +2536,7 @@ export default function WorkerFeed() {
     }, 30000);
 
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO(T10-eslint-rollout): preserve postContent-only debounce dependency behavior while extracting stable callback references
-  }, [postContent]);
-
-  const handlePost = async (status: PostStatus = "published") => {
-    const plainText = postContent.replace(/<[^>]*>?/gm, "").trim();
-    if (!plainText && !postContent.includes("<img")) return;
-
-    setIsSaving(true);
-    try {
-      const method = editingPostId ? "PATCH" : "POST";
-      const url = editingPostId ? `/api/posts/${editingPostId}` : "/api/posts";
-
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          content: postContent,
-          post_type: postType,
-          visibility: postPrivacy,
-          status,
-          media: selectedMedia,
-        }),
-      });
-
-      if (!res.ok) throw new Error("Failed to save post");
-
-      const { post } = await res.json();
-
-      if (status === "published") {
-        if (editingPostId && activeTab === "draft") {
-          setDrafts((prev) => prev.filter((d) => d.id !== editingPostId));
-          setPosts((prev) => [post, ...prev]);
-        } else {
-          setPosts((prev) =>
-            editingPostId
-              ? prev.map((p) => (p.id === editingPostId ? post : p))
-              : [post, ...prev],
-          );
-        }
-        toast.success(editingPostId ? "Update updated!" : "Update published!");
-      } else {
-        setDrafts((prev) =>
-          editingPostId
-            ? prev.map((p) => (p.id === editingPostId ? post : p))
-            : [post, ...prev],
-        );
-        setLastSaved(new Date());
-        toast.success("Draft saved!");
-      }
-
-      setPostContent("");
-      setEditingPostId(null);
-      setPostType("Update");
-      setSelectedMedia([]);
-    } catch (_err) {
-      toast.error("Failed to save");
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  }, [activeTab, editingPostId, handlePost, isSaving, postContent]);
 
   const handleEditDraft = (draft: Post) => {
     setPostContent(draft.content);
@@ -1666,6 +2566,64 @@ export default function WorkerFeed() {
     setFollowerRequests((prev) => prev.filter((f) => f.id !== id));
     toast.success(approved ? "Follower accepted" : "Request removed");
   };
+
+  const handleAddComment = useCallback(
+    (postId: string, text: string, parentId?: string) => {
+      const trimmedText = text.trim();
+      if (!trimmedText) return;
+
+      const nextComment: FeedComment = {
+        id: createLocalCommentId(),
+        content: trimmedText,
+        created_at: new Date().toISOString(),
+        author: { full_name: "You" },
+        isWorker: true,
+        replies: [],
+      };
+
+      const updatePostCollection = (collection: Post[]) =>
+        collection.map((post) =>
+          post.id === postId
+            ? {
+                ...post,
+                comments: appendCommentToThread(
+                  post.comments || [],
+                  nextComment,
+                  parentId,
+                ),
+              }
+            : post,
+        );
+
+      setPosts(updatePostCollection);
+      setDrafts(updatePostCollection);
+      toast.success("Comment published");
+    },
+    [],
+  );
+
+  const handleDeleteComment = useCallback(
+    (postId: string, commentId: string, parentId?: string) => {
+      const updatePostCollection = (collection: Post[]) =>
+        collection.map((post) =>
+          post.id === postId
+            ? {
+                ...post,
+                comments: removeCommentFromThread(
+                  post.comments || [],
+                  commentId,
+                  parentId,
+                ),
+              }
+            : post,
+        );
+
+      setPosts(updatePostCollection);
+      setDrafts(updatePostCollection);
+      toast.success("Comment deleted");
+    },
+    [],
+  );
 
   const handleReaction = async (
     postId: string,
@@ -1745,500 +2703,38 @@ export default function WorkerFeed() {
           transition={{ ...smoothTransition, delay: 0.1 }}
           className="lg:col-span-9 space-y-6 sm:space-y-8 lg:space-y-10"
         >
-          <MotionCard
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ ...smoothTransition, delay: 0.15 }}
-            className="overflow-hidden border border-border shadow-md rounded-2xl sm:rounded-3xl bg-card"
-          >
-            <div className="p-4 sm:p-6">
-              <div className="flex gap-2 sm:gap-3 flex-wrap items-center mb-4 sm:mb-6">
-                {["Update", "Prayer Request", "Story", "Newsletter"].map(
-                  (type, index) => (
-                    <motion.div
-                      key={type}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 + index * 0.05 }}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Button
-                        variant={postType === type ? "maia" : "maia-outline"}
-                        onClick={() => setPostType(type)}
-                        className={cn(
-                          "px-3 sm:px-5 py-2 h-8 sm:h-9 text-[9px] sm:text-[10px] uppercase tracking-wider font-bold",
-                          postType === type && "shadow-md",
-                        )}
-                      >
-                        {type}
-                      </Button>
-                    </motion.div>
-                  ),
-                )}
-                <AnimatePresence>
-                  {editingPostId && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setEditingPostId(null);
-                          setPostContent("");
-                        }}
-                        className="ml-auto text-destructive font-bold text-[10px] uppercase tracking-wider hover:bg-destructive/10 rounded-xl"
-                      >
-                        Cancel Edit
-                      </Button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+          <PostComposerCard
+            postType={postType}
+            postContent={postContent}
+            selectedMedia={selectedMedia}
+            lastSaved={lastSaved}
+            editingPostId={editingPostId}
+            isUploading={isUploading}
+            isSaving={isSaving}
+            postPrivacy={postPrivacy}
+            setPostType={setPostType}
+            setPostContent={setPostContent}
+            setSelectedMedia={setSelectedMedia}
+            setEditingPostId={setEditingPostId}
+            setPostPrivacy={setPostPrivacy}
+            simulateUpload={simulateUpload}
+            handlePost={handlePost}
+          />
 
-              <div className="flex gap-3 sm:gap-4">
-                <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.25 }}
-                  className="hidden sm:flex"
-                >
-                  <Avatar className="h-9 w-9 sm:h-11 sm:w-11 border-2 border-border shadow-sm shrink-0">
-                    <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80" />
-                    <AvatarFallback className="font-bold text-sm">
-                      MF
-                    </AvatarFallback>
-                  </Avatar>
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="flex-1 min-w-0 rounded-xl sm:rounded-2xl border border-border overflow-hidden focus-within:ring-2 focus-within:ring-ring/20 focus-within:border-ring transition-all"
-                >
-                  <RichTextEditor
-                    value={postContent}
-                    onChange={setPostContent}
-                    placeholder={`What's happening? Share a ${postType.toLowerCase()}...`}
-                    className=""
-                    contentClassName="py-3 sm:py-4 px-3 sm:px-4 text-sm sm:text-base text-foreground placeholder:text-muted-foreground min-h-[100px] sm:min-h-[140px] leading-relaxed"
-                    toolbarPosition="bottom"
-                    proseInvert={false}
-                    actions={
-                      <div className="flex flex-col gap-3 w-full">
-                        <AnimatePresence>
-                          {selectedMedia.length > 0 && (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
-                              exit={{ opacity: 0, height: 0 }}
-                              className="flex gap-2 sm:gap-3 overflow-x-auto no-scrollbar pb-2"
-                            >
-                              {selectedMedia.map((item, idx) => (
-                                <motion.div
-                                  key={idx}
-                                  initial={{ opacity: 0, scale: 0.8 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  exit={{ opacity: 0, scale: 0.8 }}
-                                  transition={springTransition}
-                                  className="relative group/img shrink-0"
-                                >
-                                  <Image
-                                    src={item.url}
-                                    alt={`Attached media ${idx + 1}`}
-                                    width={64}
-                                    height={64}
-                                    unoptimized
-                                    className="h-14 w-14 sm:h-16 sm:w-16 object-cover rounded-lg border border-border shadow-sm"
-                                  />
-                                  <motion.button
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
-                                    onClick={() =>
-                                      setSelectedMedia((prev) =>
-                                        prev.filter((_, i) => i !== idx),
-                                      )
-                                    }
-                                    className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover/img:opacity-100 transition-opacity shadow-sm"
-                                  >
-                                    <X className="h-3 w-3" />
-                                  </motion.button>
-                                </motion.div>
-                              ))}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                        <div className="flex flex-wrap items-center gap-2 w-full">
-                          <AnimatePresence>
-                            {lastSaved && (
-                              <motion.span
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0 }}
-                                className="text-[9px] text-muted-foreground font-medium uppercase tracking-wider hidden md:inline-block"
-                              >
-                                Saved{" "}
-                                {lastSaved.toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
-                              </motion.span>
-                            )}
-                          </AnimatePresence>
-
-                          <motion.div
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                          >
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              disabled={isUploading}
-                              onClick={simulateUpload}
-                              className="h-8 text-muted-foreground gap-1.5 font-bold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-all"
-                            >
-                              {isUploading ? (
-                                <motion.div
-                                  animate={{ rotate: 360 }}
-                                  transition={{
-                                    duration: 1,
-                                    repeat: Infinity,
-                                    ease: "linear",
-                                  }}
-                                >
-                                  <Loader2 className="h-3 w-3" />
-                                </motion.div>
-                              ) : (
-                                <ImageIcon className="h-3 w-3" />
-                              )}
-                              <span className="hidden sm:inline">Media</span>
-                            </Button>
-                          </motion.div>
-
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <motion.div
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                              >
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 text-muted-foreground gap-1.5 font-bold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-all"
-                                >
-                                  {postPrivacy === "public" ? (
-                                    <Globe className="h-3 w-3" />
-                                  ) : postPrivacy === "partners" ? (
-                                    <Users className="h-3 w-3" />
-                                  ) : (
-                                    <Lock className="h-3 w-3" />
-                                  )}
-                                  <span className="hidden sm:inline capitalize">
-                                    {postPrivacy === "partners"
-                                      ? "Partners"
-                                      : postPrivacy}
-                                  </span>
-                                  <ChevronDown className="h-2.5 w-2.5 opacity-40" />
-                                </Button>
-                              </motion.div>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                              align="start"
-                              className="rounded-xl border-border shadow-lg p-1.5 min-w-[160px]"
-                            >
-                              <DropdownMenuItem
-                                onClick={() => setPostPrivacy("public")}
-                                className="font-bold text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
-                              >
-                                <Globe className="h-3.5 w-3.5 text-muted-foreground" />
-                                Public
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => setPostPrivacy("partners")}
-                                className="font-bold text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
-                              >
-                                <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                                Partners Only
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => setPostPrivacy("private")}
-                                className="font-bold text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
-                              >
-                                <Lock className="h-3.5 w-3.5 text-muted-foreground" />
-                                Private
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-
-                          <div className="flex-1" />
-
-                          <motion.div
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                          >
-                            <Button
-                              onClick={() => handlePost("draft")}
-                              variant="maia-outline"
-                              size="sm"
-                              disabled={
-                                isSaving ||
-                                isUploading ||
-                                ((!postContent ||
-                                  postContent === "<p></p>" ||
-                                  postContent === "<p><br></p>") &&
-                                  selectedMedia.length === 0)
-                              }
-                              className="h-8 px-2.5 sm:px-4 text-[9px] uppercase tracking-wider rounded-lg"
-                            >
-                              {isSaving ? (
-                                <motion.div
-                                  animate={{ rotate: 360 }}
-                                  transition={{
-                                    duration: 1,
-                                    repeat: Infinity,
-                                    ease: "linear",
-                                  }}
-                                >
-                                  <Loader2 className="h-3 w-3" />
-                                </motion.div>
-                              ) : (
-                                <Save className="h-3 w-3 sm:mr-1.5" />
-                              )}
-                              <span className="hidden sm:inline">Draft</span>
-                            </Button>
-                          </motion.div>
-
-                          <motion.div
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                          >
-                            <Button
-                              onClick={() => handlePost("published")}
-                              variant="maia"
-                              size="sm"
-                              disabled={
-                                isSaving ||
-                                isUploading ||
-                                ((!postContent ||
-                                  postContent === "<p></p>" ||
-                                  postContent === "<p><br></p>") &&
-                                  selectedMedia.length === 0)
-                              }
-                              className="h-8 px-3 sm:px-5 text-[9px] uppercase tracking-wider rounded-lg shadow-sm"
-                            >
-                              {isSaving ? (
-                                <motion.div
-                                  animate={{ rotate: 360 }}
-                                  transition={{
-                                    duration: 1,
-                                    repeat: Infinity,
-                                    ease: "linear",
-                                  }}
-                                >
-                                  <Loader2 className="h-3 w-3" />
-                                </motion.div>
-                              ) : (
-                                "Publish"
-                              )}
-                            </Button>
-                          </motion.div>
-                        </div>
-                      </div>
-                    }
-                  />
-                </motion.div>
-              </div>
-            </div>
-          </MotionCard>
-
-          <div className="space-y-6 sm:space-y-8 lg:space-y-10">
-            <Tabs
-              defaultValue="published"
-              value={activeTab}
-              onValueChange={(v) => setActiveTab(v as PostStatus)}
-              className="w-full"
-            >
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.35 }}
-                className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3 sm:gap-0"
-              >
-                <TabsList className="bg-muted/50 p-1 rounded-xl h-auto border border-border backdrop-blur-sm">
-                  <TabsTrigger
-                    value="published"
-                    className="rounded-lg px-4 sm:px-6 py-2 font-bold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all"
-                  >
-                    Published
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="draft"
-                    className="rounded-lg px-4 sm:px-6 py-2 font-bold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all flex items-center gap-2"
-                  >
-                    Drafts
-                    <AnimatePresence>
-                      {drafts.length > 0 && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          exit={{ scale: 0 }}
-                          transition={springTransition}
-                        >
-                          <Badge className="bg-primary text-primary-foreground border-none h-4 px-1 text-[8px] font-bold">
-                            {drafts.length}
-                          </Badge>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </TabsTrigger>
-                </TabsList>
-
-                <LastSyncedDisplay />
-              </motion.div>
-
-              <TabsContent value="published" className="mt-0">
-                <LayoutGroup>
-                  <motion.div
-                    layout
-                    className="space-y-6 sm:space-y-8 lg:space-y-10"
-                  >
-                    <AnimatePresence mode="popLayout">
-                      {isLoading ? (
-                        <LoadingState />
-                      ) : posts.length > 0 ? (
-                        posts.map((post, index) => (
-                          <PostCard
-                            key={post.id}
-                            post={post}
-                            index={index}
-                            onEdit={() => handleEditDraft(post)}
-                            onDelete={() => handleDeletePost(post.id)}
-                            onReaction={(type: "heart" | "fire" | "prayer") =>
-                              handleReaction(post.id, type)
-                            }
-                            expandedComments={expandedComments}
-                            setExpandedComments={setExpandedComments}
-                          />
-                        ))
-                      ) : (
-                        <EmptyState
-                          icon={Globe}
-                          title="Your feed is empty"
-                          description="Start sharing your journey with your partners."
-                        />
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
-                </LayoutGroup>
-              </TabsContent>
-
-              <TabsContent value="draft" className="mt-0">
-                <LayoutGroup>
-                  <motion.div
-                    layout
-                    className="space-y-4 sm:space-y-6 lg:space-y-8"
-                  >
-                    <AnimatePresence mode="popLayout">
-                      {drafts.length > 0 ? (
-                        drafts.map((draft, index) => (
-                          <motion.div
-                            key={draft.id}
-                            layout
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            transition={{
-                              ...smoothTransition,
-                              delay: index * 0.05,
-                            }}
-                            className="group"
-                          >
-                            <MotionCard
-                              whileHover={{ y: -2 }}
-                              transition={springTransition}
-                              className="overflow-hidden border border-border hover:border-muted-foreground/30 hover:shadow-lg transition-all duration-500 rounded-2xl sm:rounded-3xl bg-card p-4 sm:p-6 lg:p-8"
-                            >
-                              <div className="flex flex-col sm:flex-row items-start justify-between gap-4 sm:gap-6 lg:gap-8">
-                                <div className="flex-1 min-w-0 space-y-3 sm:space-y-4">
-                                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                                    <motion.div
-                                      initial={{ scale: 0.9, opacity: 0 }}
-                                      animate={{ scale: 1, opacity: 1 }}
-                                      transition={{ delay: 0.1 }}
-                                    >
-                                      <Badge className="bg-muted text-muted-foreground border-none font-bold text-[8px] uppercase tracking-wider px-2 py-0.5 rounded-full">
-                                        Draft • {draft.post_type}
-                                      </Badge>
-                                    </motion.div>
-                                    <span className="text-[10px] text-muted-foreground font-medium">
-                                      Saved{" "}
-                                      {new Date(
-                                        draft.created_at,
-                                      ).toLocaleDateString()}
-                                    </span>
-                                  </div>
-                                  <SafeHtml
-                                    className="prose prose-sm sm:prose-base max-w-none line-clamp-3 opacity-60 text-foreground"
-                                    html={draft.content}
-                                  />
-                                </div>
-                                <div className="flex flex-row sm:flex-col gap-2 shrink-0 w-full sm:w-auto">
-                                  <motion.div
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    className="flex-1 sm:flex-none"
-                                  >
-                                    <Button
-                                      variant="maia"
-                                      size="sm"
-                                      onClick={() => handleEditDraft(draft)}
-                                      className="w-full h-9 sm:h-10 px-4 sm:px-6 text-[10px] uppercase tracking-wider rounded-xl"
-                                    >
-                                      <ExternalLink className="h-3.5 w-3.5 mr-2" />
-                                      <span className="hidden sm:inline">
-                                        Edit & Publish
-                                      </span>
-                                      <span className="sm:hidden">Edit</span>
-                                    </Button>
-                                  </motion.div>
-                                  <motion.div
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    className="flex-1 sm:flex-none"
-                                  >
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => handleDeletePost(draft.id)}
-                                      className="w-full h-9 sm:h-10 text-destructive hover:bg-destructive/10 font-bold text-[10px] uppercase tracking-wider rounded-xl"
-                                    >
-                                      <Trash2 className="h-3.5 w-3.5 mr-2" />
-                                      Delete
-                                    </Button>
-                                  </motion.div>
-                                </div>
-                              </div>
-                            </MotionCard>
-                          </motion.div>
-                        ))
-                      ) : (
-                        <EmptyState
-                          icon={Save}
-                          title="No drafts yet"
-                          description="Drafts allow you to perfect your updates before sharing."
-                        />
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
-                </LayoutGroup>
-              </TabsContent>
-            </Tabs>
-          </div>
+          <FeedPostsTabsSection
+            activeTab={activeTab}
+            drafts={drafts}
+            posts={posts}
+            isLoading={isLoading}
+            expandedComments={expandedComments}
+            setActiveTab={setActiveTab}
+            setExpandedComments={setExpandedComments}
+            handleEditDraft={handleEditDraft}
+            handleDeletePost={handleDeletePost}
+            handleReaction={handleReaction}
+            handleAddComment={handleAddComment}
+            handleDeleteComment={handleDeleteComment}
+          />
         </motion.div>
 
         <motion.div
@@ -2247,92 +2743,21 @@ export default function WorkerFeed() {
           transition={{ ...smoothTransition, delay: 0.2 }}
           className="lg:col-span-3 space-y-6 sm:space-y-8 lg:space-y-10"
         >
-          <MotionCard
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-            className="rounded-2xl sm:rounded-3xl border border-border shadow-sm overflow-hidden bg-card"
-          >
-            <div className="px-4 py-3 flex items-center justify-between">
-              <h3 className="font-bold text-[11px] uppercase tracking-wider text-foreground">
-                Follow Requests
-              </h3>
-              <AnimatePresence>
-                {pendingRequests.length > 0 && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    exit={{ scale: 0 }}
-                    transition={springTransition}
-                  >
-                    <Badge className="bg-primary text-primary-foreground border-none font-bold text-[10px] h-5 min-w-5 px-1.5 rounded-full flex items-center justify-center">
-                      {pendingRequests.length}
-                    </Badge>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            <div className="border-t border-border">
-              {isLoadingRequests ? (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex items-center justify-center py-12"
-                >
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{
-                      duration: 1.5,
-                      repeat: Infinity,
-                      ease: "linear",
-                    }}
-                  >
-                    <Loader2 className="h-5 w-5 text-muted-foreground" />
-                  </motion.div>
-                </motion.div>
-              ) : pendingRequests.length > 0 ? (
-                <motion.div
-                  variants={staggerContainer}
-                  initial="initial"
-                  animate="animate"
-                  className="divide-y divide-border/50"
-                >
-                  <AnimatePresence mode="popLayout">
-                    {pendingRequests.map((req, index) => (
-                      <FollowerRequestItem
-                        key={req.id}
-                        request={req}
-                        onResolve={handleResolveRequest}
-                        index={index}
-                      />
-                    ))}
-                  </AnimatePresence>
-                </motion.div>
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={smoothTransition}
-                  className="text-center py-10 px-4"
-                >
-                  <motion.div
-                    initial={{ scale: 0.8 }}
-                    animate={{ scale: 1 }}
-                    transition={springTransition}
-                    className="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3 border border-emerald-100"
-                  >
-                    <Check className="h-5 w-5 text-emerald-500" />
-                  </motion.div>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                    All caught up!
-                  </p>
-                </motion.div>
-              )}
-            </div>
-          </MotionCard>
+          <FollowerRequestsCard
+            pendingRequests={pendingRequests}
+            isLoadingRequests={isLoadingRequests}
+            handleResolveRequest={handleResolveRequest}
+          />
         </motion.div>
       </div>
     </motion.div>
   );
+}
+
+function WorkerFeedPageView() {
+  return useWorkerFeedPageView();
+}
+
+export default function WorkerFeed() {
+  return <WorkerFeedPageView />;
 }

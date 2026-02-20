@@ -49,6 +49,18 @@ const activities = [
   "Clean water well completed in Bekaa Valley",
 ];
 
+const tickerActivities = [
+  ...activities.map((text) => ({ key: `${text}-1`, text })),
+  ...activities.map((text) => ({ key: `${text}-2`, text })),
+];
+
+const heroStats = [
+  { label: "Deployed", val: "$26.4M", Icon: Activity },
+  { label: "Partners", val: "42.1k", Icon: Users },
+] as const;
+
+const ratingStars = ["star-1", "star-2", "star-3", "star-4", "star-5"] as const;
+
 export function LiveTicker() {
   return (
     <aside
@@ -56,16 +68,16 @@ export function LiveTicker() {
       className="bg-zinc-900/5 border-y border-zinc-200 py-3 overflow-hidden whitespace-nowrap relative"
     >
       <div className="flex animate-marquee gap-12 items-center" role="marquee">
-        {[...activities, ...activities].map((text, i) => (
+        {tickerActivities.map((activity) => (
           <div
-            key={i}
+            key={activity.key}
             className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-zinc-900"
           >
             <span
               className="h-1.5 w-1.5 rounded-full bg-zinc-900 shadow-[0_0_8px_rgba(0,0,0,0.2)]"
               aria-hidden="true"
             />
-            <span>{text}</span>
+            <span>{activity.text}</span>
           </div>
         ))}
       </div>
@@ -150,12 +162,9 @@ export function HomeHero() {
         className="absolute bottom-24 right-6 hidden xl:flex flex-col gap-4"
         aria-hidden="true"
       >
-        {[
-          { label: "Deployed", val: "$26.4M", Icon: Activity },
-          { label: "Partners", val: "42.1k", Icon: Users },
-        ].map((stat, i) => (
+        {heroStats.map((stat) => (
           <div
-            key={i}
+            key={stat.label}
             className="bg-white/5 backdrop-blur-2xl border border-white/10 p-4 rounded-2xl flex items-center gap-4 w-56"
           >
             <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center text-white">
@@ -407,9 +416,9 @@ export function HomeStats() {
                 role="img"
                 aria-label="5 out of 5 stars"
               >
-                {[...Array(5)].map((_, i) => (
+                {ratingStars.map((star) => (
                   <Heart
-                    key={i}
+                    key={star}
                     className="h-4 w-4 text-zinc-400 fill-current"
                     aria-hidden="true"
                   />
@@ -468,8 +477,12 @@ export function HomeFeatured() {
           className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12"
           role="list"
         >
-          {projects.map((item, i) => (
-            <article key={i} className="group cursor-pointer" role="listitem">
+          {projects.map((item) => (
+            <article
+              key={`${item.title}-${item.loc}`}
+              className="group cursor-pointer"
+              role="listitem"
+            >
               <Link href="/workers" className="block">
                 <div className="relative aspect-[3/4] rounded-3xl overflow-hidden mb-6 bg-slate-200 shadow-xl group-hover:shadow-zinc-500/10 transition-all duration-700">
                   <Image

@@ -1,3 +1,17 @@
+<!-- BEGIN:nextjs-agent-rules -->
+# Next.js: ALWAYS read docs before coding
+
+Before any Next.js work, find and read the relevant doc in `node_modules/next/dist/docs/`. Your training data is outdated. The docs are the source of truth.
+<!-- END:nextjs-agent-rules -->
+
+## Agent compatibility
+
+- `AGENTS.md` is the single source of truth for Cursor and OpenAI Codex in this repo.
+- `CLAUDE.md` must contain only `@AGENTS.md` so Claude Code imports the exact same rules.
+- Keep both generated marker regions intact:
+  - `<!-- BEGIN:nextjs-agent-rules --> ... <!-- END:nextjs-agent-rules -->`
+  - `<!-- NEXT-AGENTS-MD-START --> ... <!-- NEXT-AGENTS-MD-END -->`
+
 # Agent Router — Rules
 
 **Name:** `agents-router`  
@@ -37,7 +51,7 @@ This file is the deterministic entry point for all agent work in `core`.
 
 - `docs/ai/stack-registry.md`
   - Canonical list of languages/frameworks/SDKs used in this repo.
-  - Use it to choose accurate “Stack” tags + keywords for Nia queries.
+  - Use it to choose accurate "Stack" tags + keywords for Nia queries.
 - `docs/ai/working-set.md`
   - Living task context for the current work.
   - Keep it updated during the task.
@@ -146,66 +160,25 @@ Load rulebooks before editing files in their domain.
 
 ---
 
-## Skills (Deterministic)
+## Skill Routing (Deterministic)
 
-**Skills are repo-local workflow docs** that live under `docs/ai/skills/**/SKILL.md`.
+Load the skill(s) below when the trigger matches.
 
-- Load the relevant Skill(s) when the task trigger matches.
-- Skills must remain **procedural**: triggers → steps → checklist.
-- Every Skill should include a **last-updated timestamp** in its frontmatter (`metadata.last_updated`). See: `docs/agent/skills-bench.md`.
-- Load the Inngest skills from https://github.com/inngest/inngest-skills for building with Inngest's durable execution platform.
-
-### Skills Stewardship (Required)
-
-A repo-local sub-agent named **`skills-steward`** maintains Skills hygiene and a living backlog.
-
-- Working document: `docs/agent/skills-bench.md`
-- Skill root: `docs/ai/skills/`
-- The steward:
-  - inventories Skills, flags stale Skills (>28 days since `metadata.last_updated`)
-  - proposes new Skill candidates (awaiting user-provided sources)
-  - proposes removals/merges for duplicate/obsolete Skills
-  - updates only the marked blocks below (registry + index)
-- The steward **does not** browse the web to find sources for new Skills; the user supplies URLs/snippets when ready.
-
-### Skill Registry (human) — steward managed
-
-<!-- BEGIN: SKILLS_REGISTRY (managed by skills-steward) -->
-
-- /nextjs-app-router — Next.js App Router structure, rendering, data fetching — path: `docs/ai/skills/nextjs-app-router/SKILL.md` — (see SKILL.md)
-- /cache-components — Cache Components / PPR / cacheTag & invalidation — path: `docs/ai/skills/cache-components/SKILL.md` — (see SKILL.md)
-- /react-component-dev — React component design/refactor — path: `docs/ai/skills/react-component-dev/SKILL.md` — (see SKILL.md)
-- /vercel-react-best-practices — React/Next.js performance best-practice checklist (Vercel) — path: `docs/ai/skills/vercel-react-best-practices/SKILL.md` — (see SKILL.md)
-- /moai-library-shadcn — shadcn/ui system usage — path: `docs/ai/skills/moai-library-shadcn/SKILL.md` - (see SKILL.md)
-- /motion — Motion animations (motion/react) — path: `docs/ai/skills/motion/SKILL.md` — (see SKILL.md)
-- /rechart — Recharts usage patterns — path: `docs/ai/skills/rechart/SKILL.md` — (see SKILL.md)
-- /tanstack-table — TanStack Table v8 patterns — path: `docs/ai/skills/tanstack-table/SKILL.md` — (see SKILL.md)
-- /supabase-postgres-best-practices — Supabase Postgres query/schema/RLS performance guidance — path: `docs/ai/skills/supabase-postgres-best-practices/SKILL.md` — (see SKILL.md)
-- /nextjs-supabase-auth — Next.js App Router + Supabase Auth integration patterns — path: `docs/ai/skills/nextjs-supabase-auth/SKILL.md` — (see SKILL.md)
-<!-- END: SKILLS_REGISTRY (managed by skills-steward) -->
-
-### Skills Index (machine) — steward managed
-
-<!-- BEGIN: SKILLS_INDEX (managed by skills-steward) -->
-
-[Skills Index]|root:docs/ai/skills
-|nextjs-app-router:{SKILL.md,references/_,scripts/_,assets/_}
-|cache-components:{SKILL.md,references/_,scripts/_,assets/_}
-|react-component-dev:{SKILL.md,references/_,scripts/_,assets/_}
-|vercel-react-best-practices:{SKILL.md,references/_,scripts/_,assets/_}
-|moai-library-shadcn:{SKILL.md,references/_,scripts/_,assets/_}
-|motion:{SKILL.md,references/_,scripts/_,assets/_}
-|rechart:{SKILL.md,references/_,scripts/_,assets/_}
-|tanstack-table:{SKILL.md,references/_,scripts/_,assets/_}
-|supabase-postgres-best-practices:{SKILL.md,references/_,scripts/_,assets/_}
-|nextjs-supabase-auth:{SKILL.md,references/_,scripts/_,assets/_}
-
-<!-- END: SKILLS_INDEX (managed by skills-steward) -->
-
-### Skill Routing (Deterministic)
-
-- **Auth/login/session/middleware/protected routes:** `docs/ai/skills/nextjs-supabase-auth/SKILL.md`
-- **Postgres query/schema/index/RLS optimization:** `docs/ai/skills/supabase-postgres-best-practices/SKILL.md`
+- **Next.js App Router structure, rendering, data fetching:** `docs/ai/skills/nextjs-app-router/SKILL.md`
+- **Cache Components / PPR / cacheTag & invalidation:** `docs/ai/skills/cache-components/SKILL.md`
+- **React component design/refactor:** `docs/ai/skills/react-component-dev/SKILL.md`
+- **shadcn/ui system usage:** `docs/ai/skills/moai-library-shadcn/SKILL.md`
+- **Motion animations (`motion/react`):** `docs/ai/skills/motion/SKILL.md`
+- **Recharts:** `docs/ai/skills/rechart/SKILL.md`
+- **TanStack Table v8:** `docs/ai/skills/tanstack-table/SKILL.md`
+- **GitHub issue/PR workflows (AL-###):**
+  - Write issue: `docs/ai/skills/write-issue/SKILL.md`
+  - Build issue: `docs/ai/skills/build-issue/SKILL.md`
+  - Start issue: `docs/ai/skills/start-issue/SKILL.md`
+  - Ship issue: `docs/ai/skills/ship-issue/SKILL.md`
+  - Close issue: `docs/ai/skills/close-issue/SKILL.md`
+  - Create issues batch: `docs/ai/skills/create-issues/SKILL.md`
+- **Commit message creation:** `docs/ai/skills/commit/SKILL.md`
 
 ---
 
@@ -234,14 +207,7 @@ A repo-local sub-agent named **`skills-steward`** maintains Skills hygiene and a
 - [ ] Applied required skills based on triggers
 - [ ] Used Nia or Context7 when required (or explicitly noted fallback)
 - [ ] Nia tool calls are repo-scoped to `Asymmetric-al/core`
-- [ ] Nia search calls include the “Nia query preamble” built from `docs/ai/working-set.md` + `docs/ai/stack-registry.md`
-
-### Skills hygiene checklist
-
-- [ ] Skill triggers/steps/checklist exist and match current repo behavior
-- [ ] Skill frontmatter includes `metadata.last_updated` (ISO date)
-- [ ] Skill is not stale (>28 days) or has been flagged in `docs/agent/skills-bench.md`
-- [ ] If a Skill was updated, `metadata.last_updated` was set to today and the change was logged in `docs/agent/skills-bench.md`
+- [ ] Nia search calls include the "Nia query preamble" built from `docs/ai/working-set.md` + `docs/ai/stack-registry.md`
 
 ### Response checklist
 
@@ -254,7 +220,7 @@ A repo-local sub-agent named **`skills-steward`** maintains Skills hygiene and a
 ## Minimal examples
 
 - **"Where is auth handled?"** -> Update `docs/ai/working-set.md`; use Nia (scoped + preambled) to find auth entry points; then open `docs/ai/rules/backend.md`.
-- **"Add a new UI card component."** -> Open `docs/ai/rules/frontend.md` and apply `/react-component-dev`. Use Nia to find existing patterns/components in this repo before writing new ones.
+- **"Add a new UI card component."** -> Open `docs/ai/rules/frontend.md` and `docs/ai/skills/react-component-dev/SKILL.md`. Use Nia to find existing patterns/components in this repo before writing new ones.
 - **"Use /cui for a page."** -> Open `docs/ai/rules/shadcn-studio-mcp.md` and follow its workflow exactly.
 
 ---
@@ -268,45 +234,69 @@ A repo-local sub-agent named **`skills-steward`** maintains Skills hygiene and a
 - Using shadcn/studio tools without `docs/ai/rules/shadcn-studio-mcp.md`
 - Mixing rulebooks with conflicting instructions instead of reconciling them
 - Forgetting to update docs after behavior changes
-- Letting Skills go stale without flagging/updating in `docs/agent/skills-bench.md`
 
 ---
 
-## Demo Seed + Read-Only Runbook (2026-02-16)
+## Monorepo rules (Bun + Turbo)
 
-This repo now includes deterministic demo data seeding and an optional read-only public demo migration for Supabase.
+- Package manager/runtime: Bun (`bun`, `bunx`)
+- Task runner: Turborepo (`turbo`)
+- Next.js app paths:
+  - `apps/admin` (`@asym/admin`)
+  - `apps/donor` (`@asym/donor`)
+  - `apps/missionary` (`@asym/missionary-app`)
 
-### Added/updated files
+### Run dev for one app
 
-- `supabase/seed.sql`
-  - Deterministic/idempotent full demo seed across public app tables.
-  - Exactly one profile identity (`public.profiles`).
-- `supabase/migrations/20260216153000_demo_readonly_rls.sql`
-  - Enables RLS on demo-visible tables.
-  - Public `SELECT` policy only (`anon`/`authenticated`), no write policies.
-  - Revokes write privileges and locks down internal/admin tables.
-- `scripts/seed-demo.sh`
-  - `local`, `hosted`, and `verify` modes.
-- `supabase/AGENTS.md`
-- `scripts/AGENTS.md`
+- `bun run dev:admin`
+- `bun run dev:donor`
+- `bun run dev:missionary`
 
-### Run commands
+Equivalent direct Turbo commands:
 
-- Local migrations + seed:
-  - `supabase db reset --local`
-  - or `bash ./scripts/seed-demo.sh local`
-- Hosted migrations:
-  - `supabase db push --db-url "$SUPABASE_DB_URL"`
-- Hosted seed:
-  - `bash ./scripts/seed-demo.sh hosted`
-- Verify seeded counts:
-  - `bash ./scripts/seed-demo.sh verify`
+- `bunx turbo run dev --filter=@asym/admin`
+- `bunx turbo run dev --filter=@asym/donor`
+- `bunx turbo run dev --filter=@asym/missionary-app`
 
-### Sanity checks
+### Run checks
 
-- Exactly one profile row:
-  - `SELECT COUNT(*) FROM public.profiles;`
-- No FK breakage:
-  - run a representative join check across donations/donors/missionaries/funds/campaigns.
-- Demo table counts:
-  - use `bash ./scripts/seed-demo.sh verify`.
+Full repo checks:
+
+- `bun run check`
+- `bun run lint`
+- `bun run typecheck`
+- `bun run test:unit`
+
+Scoped checks while working on one app:
+
+- `bunx turbo run lint --filter=@asym/admin`
+- `bunx turbo run lint --filter=@asym/donor`
+- `bunx turbo run lint --filter=@asym/missionary-app`
+- `bunx turbo run typecheck --filter=@asym/admin`
+- `bunx turbo run typecheck --filter=@asym/donor`
+- `bunx turbo run typecheck --filter=@asym/missionary-app`
+
+Note: unit tests are currently run repo-wide with `bun run test:unit`.
+
+## Next.js docs source of truth
+
+1. Read docs from the nearest matching install for the app you are changing:
+   - `apps/<app>/node_modules/next/dist/docs/` (if present)
+   - then `node_modules/next/dist/docs/` at repo root
+2. This monorepo currently uses `next@16.1.1` across all Next.js apps.
+3. If `node_modules` docs are unavailable or unreadable:
+   - run `bunx @next/codemod@canary agents-md`
+   - confirm `.next-docs/` exists
+   - confirm `AGENTS.md` includes the codemod's compressed docs index
+   - use `.next-docs/` for Next.js docs lookup
+   - if the generated index text shows `npx @next/codemod agents-md --output AGENTS.md`, use the Bun equivalent in this repo: `bunx @next/codemod@canary agents-md --output AGENTS.md`
+
+`.next-docs/` is committed in this repo to support remote/sandbox agent runs where `node_modules` is not present at session start.
+
+## Vercel docs rules
+
+- Use `https://vercel.com/docs/llms-full.txt` for broad Vercel context.
+- Use the `.md` versions of Vercel docs pages for specific topics.
+- Before work on deploys, build output, domains, logs, edge, or functions, read the relevant Vercel docs first.
+
+<!-- NEXT-AGENTS-MD-START -->[Next.js Docs Index]|root: ./.next-docs|STOP. What you remember about Next.js is WRONG for this project. Always search docs and read before any task.|If docs missing, run this command first: npx @next/codemod agents-md --output AGENTS.md|01-app/01-getting-started:{01-installation.mdx,02-project-structure.mdx,03-layouts-and-pages.mdx,04-linking-and-navigating.mdx,05-server-and-client-components.mdx,06-cache-components.mdx,07-fetching-data.mdx,08-updating-data.mdx,09-caching-and-revalidating.mdx,10-error-handling.mdx,11-css.mdx,12-images.mdx,13-fonts.mdx,14-metadata-and-og-images.mdx,15-route-handlers.mdx,16-proxy.mdx,17-deploying.mdx,18-upgrading.mdx}|01-app/02-guides:{analytics.mdx,authentication.mdx,backend-for-frontend.mdx,caching.mdx,ci-build-caching.mdx,content-security-policy.mdx,css-in-js.mdx,custom-server.mdx,data-security.mdx,debugging.mdx,draft-mode.mdx,environment-variables.mdx,forms.mdx,incremental-static-regeneration.mdx,instrumentation.mdx,internationalization.mdx,json-ld.mdx,lazy-loading.mdx,local-development.mdx,mcp.mdx,mdx.mdx,memory-usage.mdx,multi-tenant.mdx,multi-zones.mdx,open-telemetry.mdx,package-bundling.mdx,prefetching.mdx,production-checklist.mdx,progressive-web-apps.mdx,redirecting.mdx,sass.mdx,scripts.mdx,self-hosting.mdx,single-page-applications.mdx,static-exports.mdx,tailwind-v3-css.mdx,third-party-libraries.mdx,videos.mdx}|01-app/02-guides/migrating:{app-router-migration.mdx,from-create-react-app.mdx,from-vite.mdx}|01-app/02-guides/testing:{cypress.mdx,jest.mdx,playwright.mdx,vitest.mdx}|01-app/02-guides/upgrading:{codemods.mdx,version-14.mdx,version-15.mdx,version-16.mdx}|01-app/03-api-reference:{07-edge.mdx,08-turbopack.mdx}|01-app/03-api-reference/01-directives:{use-cache-private.mdx,use-cache-remote.mdx,use-cache.mdx,use-client.mdx,use-server.mdx}|01-app/03-api-reference/02-components:{font.mdx,form.mdx,image.mdx,link.mdx,script.mdx}|01-app/03-api-reference/03-file-conventions/01-metadata:{app-icons.mdx,manifest.mdx,opengraph-image.mdx,robots.mdx,sitemap.mdx}|01-app/03-api-reference/03-file-conventions:{default.mdx,dynamic-routes.mdx,error.mdx,forbidden.mdx,instrumentation-client.mdx,instrumentation.mdx,intercepting-routes.mdx,layout.mdx,loading.mdx,mdx-components.mdx,not-found.mdx,page.mdx,parallel-routes.mdx,proxy.mdx,public-folder.mdx,route-groups.mdx,route-segment-config.mdx,route.mdx,src-folder.mdx,template.mdx,unauthorized.mdx}|01-app/03-api-reference/04-functions:{after.mdx,cacheLife.mdx,cacheTag.mdx,connection.mdx,cookies.mdx,draft-mode.mdx,fetch.mdx,forbidden.mdx,generate-image-metadata.mdx,generate-metadata.mdx,generate-sitemaps.mdx,generate-static-params.mdx,generate-viewport.mdx,headers.mdx,image-response.mdx,next-request.mdx,next-response.mdx,not-found.mdx,permanentRedirect.mdx,redirect.mdx,refresh.mdx,revalidatePath.mdx,revalidateTag.mdx,unauthorized.mdx,unstable_cache.mdx,unstable_noStore.mdx,unstable_rethrow.mdx,updateTag.mdx,use-link-status.mdx,use-params.mdx,use-pathname.mdx,use-report-web-vitals.mdx,use-router.mdx,use-search-params.mdx,use-selected-layout-segment.mdx,use-selected-layout-segments.mdx,userAgent.mdx}|01-app/03-api-reference/05-config/01-next-config-js:{adapterPath.mdx,allowedDevOrigins.mdx,appDir.mdx,assetPrefix.mdx,authInterrupts.mdx,basePath.mdx,browserDebugInfoInTerminal.mdx,cacheComponents.mdx,cacheHandlers.mdx,cacheLife.mdx,compress.mdx,crossOrigin.mdx,cssChunking.mdx,devIndicators.mdx,distDir.mdx,env.mdx,expireTime.mdx,exportPathMap.mdx,generateBuildId.mdx,generateEtags.mdx,headers.mdx,htmlLimitedBots.mdx,httpAgentOptions.mdx,images.mdx,incrementalCacheHandlerPath.mdx,inlineCss.mdx,isolatedDevBuild.mdx,logging.mdx,mdxRs.mdx,onDemandEntries.mdx,optimizePackageImports.mdx,output.mdx,pageExtensions.mdx,poweredByHeader.mdx,productionBrowserSourceMaps.mdx,proxyClientMaxBodySize.mdx,reactCompiler.mdx,reactMaxHeadersLength.mdx,reactStrictMode.mdx,redirects.mdx,rewrites.mdx,sassOptions.mdx,serverActions.mdx,serverComponentsHmrCache.mdx,serverExternalPackages.mdx,staleTimes.mdx,staticGeneration.mdx,taint.mdx,trailingSlash.mdx,transpilePackages.mdx,turbopack.mdx,turbopackFileSystemCache.mdx,typedRoutes.mdx,typescript.mdx,urlImports.mdx,useLightningcss.mdx,viewTransition.mdx,webVitalsAttribution.mdx,webpack.mdx}|01-app/03-api-reference/05-config:{02-typescript.mdx,03-eslint.mdx}|01-app/03-api-reference/06-cli:{create-next-app.mdx,next.mdx}|02-pages/01-getting-started:{01-installation.mdx,02-project-structure.mdx,04-images.mdx,05-fonts.mdx,06-css.mdx,11-deploying.mdx}|02-pages/02-guides:{analytics.mdx,authentication.mdx,babel.mdx,ci-build-caching.mdx,content-security-policy.mdx,css-in-js.mdx,custom-server.mdx,debugging.mdx,draft-mode.mdx,environment-variables.mdx,forms.mdx,incremental-static-regeneration.mdx,instrumentation.mdx,internationalization.mdx,lazy-loading.mdx,mdx.mdx,multi-zones.mdx,open-telemetry.mdx,package-bundling.mdx,post-css.mdx,preview-mode.mdx,production-checklist.mdx,redirecting.mdx,sass.mdx,scripts.mdx,self-hosting.mdx,static-exports.mdx,tailwind-v3-css.mdx,third-party-libraries.mdx}|02-pages/02-guides/migrating:{app-router-migration.mdx,from-create-react-app.mdx,from-vite.mdx}|02-pages/02-guides/testing:{cypress.mdx,jest.mdx,playwright.mdx,vitest.mdx}|02-pages/02-guides/upgrading:{codemods.mdx,version-10.mdx,version-11.mdx,version-12.mdx,version-13.mdx,version-14.mdx,version-9.mdx}|02-pages/03-building-your-application/01-routing:{01-pages-and-layouts.mdx,02-dynamic-routes.mdx,03-linking-and-navigating.mdx,05-custom-app.mdx,06-custom-document.mdx,07-api-routes.mdx,08-custom-error.mdx}|02-pages/03-building-your-application/02-rendering:{01-server-side-rendering.mdx,02-static-site-generation.mdx,04-automatic-static-optimization.mdx,05-client-side-rendering.mdx}|02-pages/03-building-your-application/03-data-fetching:{01-get-static-props.mdx,02-get-static-paths.mdx,03-forms-and-mutations.mdx,03-get-server-side-props.mdx,05-client-side.mdx}|02-pages/03-building-your-application/06-configuring:{12-error-handling.mdx}|02-pages/04-api-reference:{06-edge.mdx,08-turbopack.mdx}|02-pages/04-api-reference/01-components:{font.mdx,form.mdx,head.mdx,image-legacy.mdx,image.mdx,link.mdx,script.mdx}|02-pages/04-api-reference/02-file-conventions:{instrumentation.mdx,proxy.mdx,public-folder.mdx,src-folder.mdx}|02-pages/04-api-reference/03-functions:{get-initial-props.mdx,get-server-side-props.mdx,get-static-paths.mdx,get-static-props.mdx,next-request.mdx,next-response.mdx,use-report-web-vitals.mdx,use-router.mdx,userAgent.mdx}|02-pages/04-api-reference/04-config/01-next-config-js:{adapterPath.mdx,allowedDevOrigins.mdx,assetPrefix.mdx,basePath.mdx,bundlePagesRouterDependencies.mdx,compress.mdx,crossOrigin.mdx,devIndicators.mdx,distDir.mdx,env.mdx,exportPathMap.mdx,generateBuildId.mdx,generateEtags.mdx,headers.mdx,httpAgentOptions.mdx,images.mdx,isolatedDevBuild.mdx,onDemandEntries.mdx,optimizePackageImports.mdx,output.mdx,pageExtensions.mdx,poweredByHeader.mdx,productionBrowserSourceMaps.mdx,proxyClientMaxBodySize.mdx,reactStrictMode.mdx,redirects.mdx,rewrites.mdx,serverExternalPackages.mdx,trailingSlash.mdx,transpilePackages.mdx,turbopack.mdx,typescript.mdx,urlImports.mdx,useLightningcss.mdx,webVitalsAttribution.mdx,webpack.mdx}|02-pages/04-api-reference/04-config:{01-typescript.mdx,02-eslint.mdx}|02-pages/04-api-reference/05-cli:{create-next-app.mdx,next.mdx}|03-architecture:{accessibility.mdx,fast-refresh.mdx,nextjs-compiler.mdx,supported-browsers.mdx}|04-community:{01-contribution-guide.mdx,02-rspack.mdx}<!-- NEXT-AGENTS-MD-END -->

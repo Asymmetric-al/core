@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion } from "@asym/lib/motion";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   DropdownMenu,
@@ -8,7 +9,6 @@ import {
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { CheckCircle2, Trash2, X, ChevronDown } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
 import * as React from "react";
 
 import type { TaskStatus } from "../../types";

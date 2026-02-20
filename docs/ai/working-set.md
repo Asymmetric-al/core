@@ -28,6 +28,9 @@ Agents MUST keep this file updated during a task. Use it to build the Nia query 
 - Reduce `@asym/admin` PDF studio state-count warnings by grouping editor UI flags in `app/pdf/page.tsx` with a local reducer.
 - Reduce `@asym/admin` feed moderation and org-updates state-count warnings by grouping page-level UI controls with local reducers.
 - Reduce `@asym/admin` component-size warnings by splitting large page components into focused presentational sections without behavior changes.
+- Preserve intentional dynamic rendering for missionary `/tasks` and `/donors` route layouts while `cacheComponents` remains enabled globally, until build-time Supabase env coupling is removed.
+- Replace manual Recharts `useEffect + isMounted` lazy-loading with declarative dynamic boundaries in admin reports/events chart modules.
+- Ensure missionary new-post media preview object URLs are revoked on close/unmount to avoid leak windows.
 
 ## Repo scope
 - repository: Asymmetric-al/core
@@ -320,3 +323,40 @@ Agents MUST keep this file updated during a task. Use it to build the Nia query 
 - `apps/admin/app/admin/teams/page.tsx` was reduced to orchestration-only logic, with render-heavy header/table/sheet/users sections extracted into `apps/admin/app/admin/teams/teams-sections.tsx` (no behavior changes).
 - Turborepo safety gates for this pass passed cleanly: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run typecheck:admin`.
 - React Doctor rerun after this pass: `@asym/admin` **99/100** (warnings **10**, unchanged; remaining profile is dominated by large page components plus 2 `recharts` bundle warnings in chart modules).
+- `apps/admin/app/events/page.tsx` and `apps/admin/features/mission-control/care/components/PersonnelProfile.tsx` were split into focused presentational sections to reduce large-component footprint without behavior changes.
+- `apps/admin/app/feed/page.tsx`, `apps/admin/app/feed/org-updates/page.tsx`, `apps/admin/app/email/page.tsx`, and `apps/admin/app/pdf/page.tsx` were further decomposed into focused subcomponents; `app/pdf/page.tsx` also now uses `usePDFStudioController()` so `PDFStudio` stays orchestration-focused.
+- Turborepo safety gates for this pass passed cleanly: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run typecheck:admin`.
+- React Doctor rerun after this pass: `@asym/admin` **99/100** with warnings reduced from **10 -> 2**.
+- Remaining warnings are the two known `recharts` bundle-size advisories in `apps/admin/app/reports/reports-charts.tsx` and `apps/admin/app/events/registration-trends-chart.tsx`.
+- Replaced static `recharts` imports in `apps/admin/app/reports/reports-charts.tsx` and `apps/admin/app/events/registration-trends-chart.tsx` with typed runtime module loading (`import("recharts")`) plus lightweight chart fallbacks.
+- Turborepo safety gates for this pass passed cleanly: `bun run lint:admin`, `bun run typecheck:admin`.
+- React Doctor rerun after this pass: `@asym/admin` **100/100** with **0 warnings** in diff scan.
+- `packages/missionary` task components now route animation imports through `@asym/lib/motion`, and `task-details-sheet` now uses non-form text semantics (`p`) instead of unbound `label` tags.
+- Turborepo safety gates for this pass passed cleanly: `bun run verify:eslint`, `bun run verify:workspace-contract`.
+- React Doctor rerun after this pass: `@asym/missionary` **99/100** with warnings reduced from **12 -> 1**.
+- Monorepo React Doctor snapshot after latest pass: `@asym/admin` **100/100**, `@asym/donor` **95/100**, `@asym/missionary-app` **93/100**, `@asym/ui` **96/100**, `@asym/missionary` **99/100**.
+- `@asym/donor` quick-win pass landed across `history`, `financials`, `checkout`, `feed`, `settings`, `faq`, `workers/[id]`, and `dashboard-footer`: dynamic `recharts` module loading, stable key cleanup, `autoFocus` removal, and server-provided checkout query parsing.
+- Turborepo safety gates for this donor pass passed cleanly: `bun run verify:eslint`, `bun run verify:workspace-contract`, `bun run lint:donor`, `bun run typecheck:donor`.
+- React Doctor rerun after this donor pass: `@asym/donor` **99/100** with warnings reduced from **21 -> 10**.
+- Monorepo React Doctor snapshot after latest donor pass: `@asym/admin` **100/100**, `@asym/donor` **99/100**, `@asym/missionary-app` **93/100**, `@asym/ui` **96/100**, `@asym/missionary` **99/100**.
+- `apps/donor/app/(dashboard)/donor-dashboard/history/page.tsx` now consolidates page filter controls under a local reducer (`historyFiltersReducer`) to reduce page-level state sprawl while preserving behavior.
+- Validation after the history reducer pass passed cleanly: `bun run lint:donor`, `bun run typecheck:donor`, `bun run verify:eslint`, `bun run verify:workspace-contract`.
+- React Doctor rerun after the history reducer pass: `@asym/donor` remains **99/100** with warnings reduced from **10 -> 9**.
+- `apps/donor/app/(dashboard)/donor-dashboard/history/page.tsx` was decomposed into focused presentational sections (`HistoryPageHeader`, `HistoryStatsColumn`, `HistoryFiltersToolbar`, `HistoryTransactionsCard`) so `DonorHistoryPage` remains orchestration-focused.
+- `apps/donor/app/(public)/workers/[id]/worker-profile-client.tsx` was decomposed into focused sections (`WorkerProfileHeaderSection`, `WorkerStoryTabContent`, `WorkerUpdatesTabContent`) and `UpdateCard` props were simplified.
+- `apps/donor/app/(public)/where-we-work/map-wrapper.tsx` now groups marker/view/dialog state into structured objects and extracts overlay UI sections (`MapHeaderControls`, `SelectedLocationPill`, `MapScrollHint`) to reduce state-sprawl and component size pressure.
+- `apps/donor/app/(public)/checkout/checkout-client.tsx` now consolidates checkout flow state under a single typed `CheckoutState` container with explicit field setters, removing excessive local `useState` sprawl while preserving behavior.
+- Turborepo safety gates for the latest donor passes passed cleanly on each iteration: `bun run lint:donor`, `bun run typecheck:donor`.
+- React Doctor reruns during this sequence improved donor warnings **9 -> 8 -> 7 -> 6 -> 5** while keeping `@asym/donor` at **99/100**.
+- Current remaining donor warnings are concentrated in large/state-heavy pages: `apps/donor/app/(dashboard)/donor-dashboard/wallet/page.tsx`, `apps/donor/app/(dashboard)/donor-dashboard/pledges/page.tsx`, and component-size-only pressure in `apps/donor/app/(public)/checkout/checkout-client.tsx`.
+- `apps/donor/app/(dashboard)/donor-dashboard/wallet/page.tsx` now consolidates modal/swap/form UI controls under a structured local UI-state object with typed setter adapters, reducing local hook sprawl without changing behavior.
+- `apps/donor/app/(dashboard)/donor-dashboard/pledges/page.tsx` now consolidates edit/move/pause/new-method UI controls under a structured local UI-state object with typed setter adapters (including `SetStateAction` support for `editForm`), reducing local hook sprawl without changing behavior.
+- Turborepo safety gates for this donor pass passed cleanly: `bun run verify:eslint`, `bun run verify:workspace-contract`, `bun run lint:donor`, `bun run typecheck:donor`.
+- React Doctor rerun after wallet/pledges state consolidation: `@asym/donor` remains **99/100** with warnings reduced from **5 -> 3**.
+- Remaining donor warnings are now only component-size advisories in:
+  - `apps/donor/app/(dashboard)/donor-dashboard/wallet/page.tsx`
+  - `apps/donor/app/(dashboard)/donor-dashboard/pledges/page.tsx`
+  - `apps/donor/app/(public)/checkout/checkout-client.tsx`
+- `apps/admin/app/reports/reports-charts.tsx` now uses a declarative `next/dynamic` boundary for `recharts`, removing manual async `useEffect` loading and `isMounted` patterns.
+- `apps/missionary/features/feed/components/new-post-dialog.tsx` now tracks preview blob URLs and revokes them on media removal, dialog close, and component unmount to avoid object URL leaks.
+- Verification for this regression-hardening slice passed: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run lint:missionary`, `bun run typecheck:admin`, `bun run typecheck:missionary`, and `npx -y react-doctor@latest . --verbose --diff` (all scanned workspaces reported **100/100**).

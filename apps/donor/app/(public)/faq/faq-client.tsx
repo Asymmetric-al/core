@@ -206,7 +206,10 @@ const AccordionItem = ({
                 <p>
                   {item.answer.split("**").map((part, i) =>
                     i % 2 === 1 ? (
-                      <strong key={i} className="font-semibold text-slate-800">
+                      <strong
+                        key={`${item.question}-highlight-${part}`}
+                        className="font-semibold text-slate-800"
+                      >
                         {part}
                       </strong>
                     ) : (
@@ -336,7 +339,7 @@ export function FAQPageClient() {
             {filteredData.length > 0 ? (
               filteredData.map((item, idx) => (
                 <AccordionItem
-                  key={`${item.category}-${idx}`}
+                  key={`${item.category}-${item.question}`}
                   item={item}
                   isOpen={openIndex === idx}
                   onClick={() => setOpenIndex(openIndex === idx ? null : idx)}

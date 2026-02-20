@@ -958,7 +958,7 @@ function DonorTasks({
   );
 }
 
-export default function DonorsPage() {
+function useDonorsPageLayout() {
   const { profile, loading: authLoading } = useAuth();
   const supabase = React.useMemo(
     () => (typeof window === "undefined" ? null : createBrowserClient()),
@@ -1853,7 +1853,7 @@ export default function DonorsPage() {
                               </AvatarFallback>
                             </Avatar>
                             <motion.div
-                              initial={{ scale: 0 }}
+                              initial={{ scale: 0.95, opacity: 0 }}
                               animate={{ scale: 1 }}
                               transition={springTransition}
                               className={cn(
@@ -2724,7 +2724,7 @@ export default function DonorsPage() {
                                               selectedDonor.address,
                                             ).map((line, i) => (
                                               <p
-                                                key={i}
+                                                key={`${line}-${selectedDonor.id}`}
                                                 className={cn(
                                                   "text-sm",
                                                   i === 0
@@ -3920,4 +3920,12 @@ export default function DonorsPage() {
       </Dialog>
     </motion.div>
   );
+}
+
+function DonorsPageView() {
+  return useDonorsPageLayout();
+}
+
+export default function DonorsPage() {
+  return <DonorsPageView />;
 }

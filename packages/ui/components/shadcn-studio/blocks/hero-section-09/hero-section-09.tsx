@@ -26,7 +26,11 @@ const HeroSection = () => {
             >
               <p className="font-semibold uppercase">Compatible With:</p>
 
-              <a href="#">
+              <a
+                href="https://tailwindcss.com"
+                target="_blank"
+                rel="noreferrer"
+              >
                 <Image
                   src="https://cdn.shadcnstudio.com/ss-assets/brand-logo/tailwind-logo.png"
                   alt="TailwindCSS Logo"
@@ -36,7 +40,7 @@ const HeroSection = () => {
                   unoptimized
                 />
               </a>
-              <a href="#">
+              <a href="https://nextjs.org" target="_blank" rel="noreferrer">
                 <Image
                   src="https://cdn.shadcnstudio.com/ss-assets/brand-logo/nextjs-logo.png"
                   alt="Next.js logo"
@@ -46,7 +50,7 @@ const HeroSection = () => {
                   unoptimized
                 />
               </a>
-              <a href="#">
+              <a href="https://ui.shadcn.com" target="_blank" rel="noreferrer">
                 <Image
                   src="https://cdn.shadcnstudio.com/ss-assets/brand-logo/shadcn-logo.png"
                   alt="Shadcn logo"
@@ -59,7 +63,11 @@ const HeroSection = () => {
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <a href="#">
+                  <a
+                    href="https://github.com/asymmetric-al/core"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     <SquarePlusIcon />
                   </a>
                 </TooltipTrigger>

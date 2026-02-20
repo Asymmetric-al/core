@@ -495,9 +495,9 @@ const NotificationsTab = () => {
 
       <CardContent className="p-0">
         <div className="divide-y divide-zinc-100">
-          {categories.map((category, idx) => (
+          {categories.map((category) => (
             <div
-              key={idx}
+              key={category.title}
               className="p-6 md:p-8 hover:bg-zinc-50/30 transition-colors"
             >
               <div className="flex flex-col md:flex-row md:gap-12 gap-6">

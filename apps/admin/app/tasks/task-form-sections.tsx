@@ -502,7 +502,7 @@ function TaskRemindersSection({
         <div className="space-y-2">
           {reminders.map((reminder, index) => (
             <div
-              key={reminder.id || index}
+              key={reminder.id}
               className="flex items-center gap-2 p-3 rounded-xl border border-border bg-muted/30"
             >
               <Input

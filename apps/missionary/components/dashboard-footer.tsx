@@ -102,7 +102,7 @@ export function DashboardFooter({
         <Breadcrumb>
           <BreadcrumbList className="gap-1 sm:gap-1.5 text-xs">
             {breadcrumbs.map((item, index) => (
-              <Fragment key={index}>
+              <Fragment key={item.href ?? item.label}>
                 <BreadcrumbItem className="gap-1">
                   {item.href ? (
                     <BreadcrumbLink asChild>

@@ -549,7 +549,6 @@ const CommentsSection = ({
               <div className="ml-12 mt-3 pl-3">
                 <div className="relative group">
                   <Input
-                    autoFocus
                     placeholder={`Reply to ${comment.author}...`}
                     className="pr-10 bg-white border-zinc-200 h-9 text-xs shadow-sm pl-3 rounded-lg"
                     value={replyText}

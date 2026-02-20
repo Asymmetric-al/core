@@ -23,22 +23,51 @@ import {
   Download,
   Sparkles,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import * as React from "react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Area,
-  AreaChart,
-} from "recharts";
 
 import { PageHeader } from "@/components/page-header";
+
+type LooseChartProps = Record<string, unknown> & { children?: React.ReactNode };
+type RechartsComponentName =
+  | "BarChart"
+  | "Bar"
+  | "XAxis"
+  | "YAxis"
+  | "Tooltip"
+  | "ResponsiveContainer"
+  | "PieChart"
+  | "Pie"
+  | "Cell"
+  | "Area"
+  | "AreaChart";
+
+function loadRechartsComponent(name: RechartsComponentName) {
+  return dynamic<LooseChartProps>(
+    async () => {
+      try {
+        const mod = await import("recharts");
+        return mod[name] as React.ComponentType<LooseChartProps>;
+      } catch (error) {
+        console.error(`Failed to load recharts component: ${name}`, error);
+        throw error;
+      }
+    },
+    { ssr: false },
+  );
+}
+
+const BarChart = loadRechartsComponent("BarChart");
+const Bar = loadRechartsComponent("Bar");
+const XAxis = loadRechartsComponent("XAxis");
+const YAxis = loadRechartsComponent("YAxis");
+const RechartsTooltip = loadRechartsComponent("Tooltip");
+const ResponsiveContainer = loadRechartsComponent("ResponsiveContainer");
+const PieChart = loadRechartsComponent("PieChart");
+const Pie = loadRechartsComponent("Pie");
+const Cell = loadRechartsComponent("Cell");
+const Area = loadRechartsComponent("Area");
+const AreaChart = loadRechartsComponent("AreaChart");
 
 const monthlyData = [
   { month: "Jul", total: 3200, recurring: 2800, oneTime: 400 },
@@ -154,10 +183,10 @@ export default function AnalyticsPage() {
                   axisLine={false}
                   tickLine={false}
                   tick={{ fontSize: 9, fontWeight: 700, fill: "#a1a1aa" }}
-                  tickFormatter={(value) => `$${value}`}
+                  tickFormatter={(value: number) => `$${value}`}
                   width={35}
                 />
-                <Tooltip
+                <RechartsTooltip
                   cursor={{ fill: "#f4f4f5", radius: 4 }}
                   content={<ChartTooltip />}
                 />
@@ -204,11 +233,11 @@ export default function AnalyticsPage() {
                   dataKey="value"
                   strokeWidth={0}
                 >
-                  {donorSegments.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  {donorSegments.map((entry) => (
+                    <Cell key={entry.name} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip content={<ChartTooltip />} />
+                <RechartsTooltip content={<ChartTooltip />} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -243,10 +272,10 @@ export default function AnalyticsPage() {
                 axisLine={false}
                 tickLine={false}
                 tick={{ fontSize: 9, fontWeight: 700, fill: "#a1a1aa" }}
-                tickFormatter={(value) => `$${value}`}
+                tickFormatter={(value: number) => `$${value}`}
                 width={35}
               />
-              <Tooltip content={<ChartTooltip />} />
+              <RechartsTooltip content={<ChartTooltip />} />
               <Area
                 type="monotone"
                 dataKey="current"

@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion } from "@asym/lib/motion";
 import {
   Avatar,
   AvatarFallback,
@@ -24,7 +25,6 @@ import {
   Trash2,
   Calendar as CalendarIcon,
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
 import * as React from "react";
 
 import { TASK_TYPE_CONFIG, PRIORITY_CONFIG } from "./task-config";

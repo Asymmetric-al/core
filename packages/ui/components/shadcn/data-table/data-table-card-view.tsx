@@ -138,6 +138,21 @@ function DataTableCardItem<TData>({
     : "";
   const badgeValue = badgeField ? String(original[badgeField] ?? "") : "";
   const avatarValue = avatarField ? String(original[avatarField] ?? "") : "";
+  const isRowClickable = Boolean(onRowClick);
+
+  const handleCardKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!onRowClick) {
+      return;
+    }
+    if (event.target !== event.currentTarget) {
+      return;
+    }
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onRowClick(row);
+    }
+  };
 
   return (
     <Card
@@ -146,9 +161,12 @@ function DataTableCardItem<TData>({
         "hover:shadow-md hover:border-primary/20",
         "active:scale-[0.99]",
         isSelected && "border-primary bg-primary/5",
-        onRowClick && "cursor-pointer",
+        isRowClickable && "cursor-pointer",
       )}
       onClick={() => onRowClick?.(row)}
+      onKeyDown={handleCardKeyDown}
+      role={isRowClickable ? "button" : undefined}
+      tabIndex={isRowClickable ? 0 : undefined}
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">

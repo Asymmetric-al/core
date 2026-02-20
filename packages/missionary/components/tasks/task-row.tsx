@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "@asym/lib/motion";
 import {
   Avatar,
   AvatarFallback,
@@ -24,7 +25,6 @@ import {
   Clock,
   Sparkles,
 } from "lucide-react";
-import { motion } from "motion/react";
 import Link from "next/link";
 import * as React from "react";
 

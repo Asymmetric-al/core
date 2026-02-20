@@ -726,17 +726,171 @@ function MobileDetailSheet({
   );
 }
 
+function MapHeaderControls({
+  missionaryCount,
+  onOpenSearch,
+  projectCount,
+}: {
+  missionaryCount: number;
+  onOpenSearch: () => void;
+  projectCount: number;
+}) {
+  return (
+    <>
+      <div className="absolute top-4 left-4 z-30 flex items-center gap-3">
+        <Link href="/">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-10 rounded-xl bg-card/95 backdrop-blur-md border-border/50 shadow-lg hover:bg-card gap-2"
+          >
+            <ArrowLeftIcon className="size-4" />
+            <span className="font-medium hidden sm:inline">Back</span>
+          </Button>
+        </Link>
+      </div>
+
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
+        <motion.div
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="bg-card/95 backdrop-blur-xl border border-border/50 shadow-2xl rounded-2xl overflow-hidden"
+        >
+          <button
+            onClick={onOpenSearch}
+            className="flex items-center gap-3 px-4 py-3 hover:bg-accent/50 transition-colors w-full"
+          >
+            <SearchIcon className="size-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground font-medium">
+              Search locations...
+            </span>
+            <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground ml-auto">
+              <span className="text-xs">⌘</span>K
+            </kbd>
+          </button>
+        </motion.div>
+      </div>
+
+      <div className="absolute top-4 right-4 z-30 flex items-center gap-2">
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="hidden sm:flex items-center gap-2 bg-card/95 backdrop-blur-xl border border-border/50 shadow-lg rounded-xl px-3 py-2"
+        >
+          <div className="flex items-center gap-1.5">
+            <div className="size-2 rounded-full bg-emerald-500" />
+            <span className="text-xs font-semibold text-foreground">
+              {missionaryCount}
+            </span>
+          </div>
+          <div className="w-px h-4 bg-border" />
+          <div className="flex items-center gap-1.5">
+            <div className="size-2 rounded-full bg-violet-500" />
+            <span className="text-xs font-semibold text-foreground">
+              {projectCount}
+            </span>
+          </div>
+        </motion.div>
+      </div>
+    </>
+  );
+}
+
+function SelectedLocationPill({
+  onOpenDetails,
+  selectedLocation,
+  visible,
+}: {
+  onOpenDetails: () => void;
+  selectedLocation: Location | null;
+  visible: boolean;
+}) {
+  return (
+    <AnimatePresence>
+      {selectedLocation && visible && (
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 20, opacity: 0 }}
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30"
+        >
+          <button
+            onClick={onOpenDetails}
+            className="bg-card/95 backdrop-blur-xl shadow-2xl rounded-full pl-4 pr-2 py-2 flex items-center gap-3 border border-border/50 hover:bg-card transition-colors group"
+          >
+            <div
+              className={cn(
+                "size-2.5 rounded-full",
+                MARKER_COLORS[
+                  selectedLocation.type as keyof typeof MARKER_COLORS
+                ]?.bg || MARKER_COLORS.custom.bg,
+              )}
+            />
+            <span className="text-sm font-semibold text-foreground truncate max-w-[200px]">
+              {selectedLocation.title}
+            </span>
+            <div className="size-7 rounded-full bg-primary flex items-center justify-center group-hover:bg-primary/90 transition-colors">
+              <ChevronRightIcon className="size-4 text-primary-foreground" />
+            </div>
+          </button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function MapScrollHint() {
+  return (
+    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        className="flex items-center gap-2 text-[10px] text-muted-foreground/60 font-medium"
+      >
+        <span>Scroll down for more</span>
+        <motion.div
+          animate={{ y: [0, 4, 0] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+        >
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </motion.div>
+      </motion.div>
+    </div>
+  );
+}
+
 export function WhereWeWorkMap() {
   const { data: locations } = usePublicLocations();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const [mapCenter, setMapCenter] = useState<[number, number] | undefined>(
-    undefined,
-  );
-  const [mapZoom, setMapZoom] = useState<number | undefined>(undefined);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-  const [showMobileSheet, setShowMobileSheet] = useState(false);
+  const [selectionState, setSelectionState] = useState<{
+    hoveredId: string | null;
+    mapCenter: [number, number] | undefined;
+    mapZoom: number | undefined;
+    selectedId: string | null;
+  }>({
+    hoveredId: null,
+    mapCenter: undefined,
+    mapZoom: undefined,
+    selectedId: null,
+  });
+  const [uiState, setUiState] = useState({
+    detailDialogOpen: false,
+    searchOpen: false,
+    showMobileSheet: false,
+  });
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -750,7 +904,7 @@ export function WhereWeWorkMap() {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        setSearchOpen((open) => !open);
+        setUiState((prev) => ({ ...prev, searchOpen: !prev.searchOpen }));
       }
     };
     document.addEventListener("keydown", down);
@@ -758,9 +912,11 @@ export function WhereWeWorkMap() {
   }, []);
 
   const selectedLocation = useMemo(() => {
-    if (!selectedId || !locations) return null;
-    return locations.find((loc) => loc.id === selectedId) || null;
-  }, [selectedId, locations]);
+    if (!selectionState.selectedId || !locations) return null;
+    return (
+      locations.find((loc) => loc.id === selectionState.selectedId) || null
+    );
+  }, [selectionState.selectedId, locations]);
 
   const stats = useMemo(() => {
     if (!locations) return { total: 0, missionaries: 0, projects: 0 };
@@ -773,14 +929,25 @@ export function WhereWeWorkMap() {
 
   const handleSelectLocation = useCallback(
     (loc: Location) => {
-      setSelectedId(loc.id);
-      setMapCenter([loc.lng, loc.lat]);
-      setMapZoom(6);
+      setSelectionState((prev) => ({
+        ...prev,
+        mapCenter: [loc.lng, loc.lat],
+        mapZoom: 6,
+        selectedId: loc.id,
+      }));
 
       if (isMobile) {
-        setShowMobileSheet(true);
+        setUiState((prev) => ({
+          ...prev,
+          detailDialogOpen: false,
+          showMobileSheet: true,
+        }));
       } else {
-        setDetailDialogOpen(true);
+        setUiState((prev) => ({
+          ...prev,
+          detailDialogOpen: true,
+          showMobileSheet: false,
+        }));
       }
     },
     [isMobile],
@@ -788,22 +955,36 @@ export function WhereWeWorkMap() {
 
   const handleMarkerClick = useCallback(
     (loc: Location) => {
-      setSelectedId(loc.id);
-      setMapCenter([loc.lng, loc.lat]);
-      setMapZoom(6);
+      setSelectionState((prev) => ({
+        ...prev,
+        mapCenter: [loc.lng, loc.lat],
+        mapZoom: 6,
+        selectedId: loc.id,
+      }));
 
       if (isMobile) {
-        setShowMobileSheet(true);
+        setUiState((prev) => ({
+          ...prev,
+          detailDialogOpen: false,
+          showMobileSheet: true,
+        }));
       } else {
-        setDetailDialogOpen(true);
+        setUiState((prev) => ({
+          ...prev,
+          detailDialogOpen: true,
+          showMobileSheet: false,
+        }));
       }
     },
     [isMobile],
   );
 
   const handleCloseDetail = useCallback(() => {
-    setDetailDialogOpen(false);
-    setShowMobileSheet(false);
+    setUiState((prev) => ({
+      ...prev,
+      detailDialogOpen: false,
+      showMobileSheet: false,
+    }));
   }, []);
 
   const mapInitialViewState = useMemo(
@@ -815,8 +996,8 @@ export function WhereWeWorkMap() {
     <div className="relative w-full min-h-[100dvh] bg-background">
       <div className="relative w-full h-[100dvh] overflow-hidden">
         <Map
-          center={mapCenter}
-          zoom={mapZoom}
+          center={selectionState.mapCenter}
+          zoom={selectionState.mapZoom}
           initialViewState={mapInitialViewState}
           className="absolute inset-0 w-full h-full"
         >
@@ -853,153 +1034,58 @@ export function WhereWeWorkMap() {
             <MarkerDot
               key={loc.id}
               location={loc}
-              isSelected={selectedId === loc.id}
-              isHovered={hoveredId === loc.id}
+              isSelected={selectionState.selectedId === loc.id}
+              isHovered={selectionState.hoveredId === loc.id}
               onSelect={() => handleMarkerClick(loc)}
-              onHover={(hovered) => setHoveredId(hovered ? loc.id : null)}
+              onHover={(hovered) =>
+                setSelectionState((prev) => ({
+                  ...prev,
+                  hoveredId: hovered ? loc.id : null,
+                }))
+              }
             />
           ))}
         </Map>
-
-        <div className="absolute top-4 left-4 z-30 flex items-center gap-3">
-          <Link href="/">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-10 rounded-xl bg-card/95 backdrop-blur-md border-border/50 shadow-lg hover:bg-card gap-2"
-            >
-              <ArrowLeftIcon className="size-4" />
-              <span className="font-medium hidden sm:inline">Back</span>
-            </Button>
-          </Link>
-        </div>
-
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
-          <motion.div
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="bg-card/95 backdrop-blur-xl border border-border/50 shadow-2xl rounded-2xl overflow-hidden"
-          >
-            <button
-              onClick={() => setSearchOpen(true)}
-              className="flex items-center gap-3 px-4 py-3 hover:bg-accent/50 transition-colors w-full"
-            >
-              <SearchIcon className="size-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground font-medium">
-                Search locations...
-              </span>
-              <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground ml-auto">
-                <span className="text-xs">⌘</span>K
-              </kbd>
-            </button>
-          </motion.div>
-        </div>
-
-        <div className="absolute top-4 right-4 z-30 flex items-center gap-2">
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="hidden sm:flex items-center gap-2 bg-card/95 backdrop-blur-xl border border-border/50 shadow-lg rounded-xl px-3 py-2"
-          >
-            <div className="flex items-center gap-1.5">
-              <div className="size-2 rounded-full bg-emerald-500" />
-              <span className="text-xs font-semibold text-foreground">
-                {stats.missionaries}
-              </span>
-            </div>
-            <div className="w-px h-4 bg-border" />
-            <div className="flex items-center gap-1.5">
-              <div className="size-2 rounded-full bg-violet-500" />
-              <span className="text-xs font-semibold text-foreground">
-                {stats.projects}
-              </span>
-            </div>
-          </motion.div>
-        </div>
-
-        <AnimatePresence>
-          {selectedLocation && !detailDialogOpen && !showMobileSheet && (
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 20, opacity: 0 }}
-              className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30"
-            >
-              <button
-                onClick={() =>
-                  isMobile
-                    ? setShowMobileSheet(true)
-                    : setDetailDialogOpen(true)
-                }
-                className="bg-card/95 backdrop-blur-xl shadow-2xl rounded-full pl-4 pr-2 py-2 flex items-center gap-3 border border-border/50 hover:bg-card transition-colors group"
-              >
-                <div
-                  className={cn(
-                    "size-2.5 rounded-full",
-                    MARKER_COLORS[
-                      selectedLocation.type as keyof typeof MARKER_COLORS
-                    ]?.bg || MARKER_COLORS.custom.bg,
-                  )}
-                />
-                <span className="text-sm font-semibold text-foreground truncate max-w-[200px]">
-                  {selectedLocation.title}
-                </span>
-                <div className="size-7 rounded-full bg-primary flex items-center justify-center group-hover:bg-primary/90 transition-colors">
-                  <ChevronRightIcon className="size-4 text-primary-foreground" />
-                </div>
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="flex items-center gap-2 text-[10px] text-muted-foreground/60 font-medium"
-          >
-            <span>Scroll down for more</span>
-            <motion.div
-              animate={{ y: [0, 4, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            >
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-            </motion.div>
-          </motion.div>
-        </div>
+        <MapHeaderControls
+          missionaryCount={stats.missionaries}
+          onOpenSearch={() =>
+            setUiState((prev) => ({ ...prev, searchOpen: true }))
+          }
+          projectCount={stats.projects}
+        />
+        <SelectedLocationPill
+          selectedLocation={selectedLocation}
+          visible={!uiState.detailDialogOpen && !uiState.showMobileSheet}
+          onOpenDetails={() =>
+            isMobile
+              ? setUiState((prev) => ({ ...prev, showMobileSheet: true }))
+              : setUiState((prev) => ({ ...prev, detailDialogOpen: true }))
+          }
+        />
+        <MapScrollHint />
       </div>
 
       {locations && (
         <LocationSearchCommand
           locations={locations}
           onSelect={handleSelectLocation}
-          open={searchOpen}
-          onOpenChange={setSearchOpen}
+          open={uiState.searchOpen}
+          onOpenChange={(open) =>
+            setUiState((prev) => ({ ...prev, searchOpen: open }))
+          }
         />
       )}
 
       <DetailDialog
         location={selectedLocation}
-        open={detailDialogOpen}
-        onOpenChange={setDetailDialogOpen}
+        open={uiState.detailDialogOpen}
+        onOpenChange={(open) =>
+          setUiState((prev) => ({ ...prev, detailDialogOpen: open }))
+        }
       />
 
       <AnimatePresence>
-        {showMobileSheet && selectedLocation && (
+        {uiState.showMobileSheet && selectedLocation && (
           <MobileDetailSheet
             location={selectedLocation}
             onClose={handleCloseDetail}

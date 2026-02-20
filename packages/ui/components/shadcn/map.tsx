@@ -7,7 +7,6 @@ import {
   createContext,
   useContext,
   useEffect,
-  useMemo,
   useRef,
   useState,
   useCallback,
@@ -93,8 +92,10 @@ export function Map({
   const hasInitializedRef = useRef(false);
   const onLoadRef = useRef(onLoad);
   const onClickRef = useRef(onClick);
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const [mapInstance, setMapInstance] = useState<maplibregl.Map | null>(null);
+  const [mapState, setMapState] = useState<MapContextValue>({
+    map: null,
+    isLoaded: false,
+  });
   const { resolvedTheme } = useTheme();
 
   const lightStyle = styles?.light ?? STYLES.light;
@@ -104,6 +105,24 @@ export function Map({
     center: [number, number];
     zoom: number;
   } | null>(null);
+  const mapLoaded = mapState.isLoaded;
+
+  const markMapReady = useCallback(() => {
+    setMapState((previous) => {
+      const currentMap = mapInstanceRef.current;
+      if (previous.isLoaded && previous.map === currentMap) {
+        return previous;
+      }
+      return {
+        map: currentMap,
+        isLoaded: true,
+      };
+    });
+  }, []);
+
+  const resetMapState = useCallback(() => {
+    setMapState({ map: null, isLoaded: false });
+  }, []);
 
   if (!initialMapConfigRef.current) {
     const currentTheme = resolvedTheme === "dark" ? "dark" : "light";
@@ -143,8 +162,7 @@ export function Map({
 
       const onMapLoad = () => {
         if (!mapInstanceRef.current) return;
-        setMapInstance(mapInstanceRef.current);
-        setMapLoaded(true);
+        markMapReady();
         onLoadRef.current?.(map);
       };
 
@@ -156,13 +174,13 @@ export function Map({
 
       map.on("error", (e) => {
         console.error("MapLibre error:", e);
-        setMapLoaded(true);
+        markMapReady();
       });
 
       map.on("click", (e) => onClickRef.current?.(e));
     } catch (error) {
       console.error("Failed to initialize map:", error);
-      setMapLoaded(true);
+      markMapReady();
     }
 
     return () => {
@@ -171,10 +189,9 @@ export function Map({
         mapInstanceRef.current = null;
       }
       hasInitializedRef.current = false;
-      setMapLoaded(false);
-      setMapInstance(null);
+      resetMapState();
     };
-  }, []);
+  }, [markMapReady, resetMapState]);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -200,13 +217,8 @@ export function Map({
     }
   }, [center, zoom, mapLoaded]);
 
-  const contextValue = useMemo(
-    () => ({ map: mapInstance, isLoaded: mapLoaded }),
-    [mapInstance, mapLoaded],
-  );
-
   return (
-    <MapContext.Provider value={contextValue}>
+    <MapContext.Provider value={mapState}>
       <div
         ref={containerRef}
         className={cn(
@@ -250,8 +262,24 @@ export function MapMarker({
   draggable = false,
 }: MapMarkerProps) {
   const { map, isLoaded } = useMap();
-  const [marker, setMarker] = useState<maplibregl.Marker | null>(null);
-  const [element, setElement] = useState<HTMLDivElement | null>(null);
+  const [markerState, setMarkerState] = useState<MarkerContextValue>({
+    marker: null,
+    element: null,
+  });
+  const marker = markerState.marker;
+
+  const setMarkerContext = useCallback(
+    (
+      nextMarker: maplibregl.Marker | null,
+      nextElement: HTMLDivElement | null,
+    ) => {
+      setMarkerState({
+        marker: nextMarker,
+        element: nextElement,
+      });
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!isLoaded || !map) return;
@@ -270,22 +298,28 @@ export function MapMarker({
       .setLngLat([longitude, latitude])
       .addTo(map);
 
-    setMarker(m);
-    setElement(el);
+    setMarkerContext(m, el);
 
     return () => {
       m.remove();
-      setMarker(null);
-      setElement(null);
+      setMarkerContext(null, null);
     };
-  }, [map, isLoaded, longitude, latitude, draggable, onClick]);
+  }, [
+    map,
+    isLoaded,
+    longitude,
+    latitude,
+    draggable,
+    onClick,
+    setMarkerContext,
+  ]);
 
   useEffect(() => {
     marker?.setLngLat([longitude, latitude]);
   }, [marker, longitude, latitude]);
 
   return (
-    <MarkerContext.Provider value={{ marker, element }}>
+    <MarkerContext.Provider value={markerState}>
       {children}
     </MarkerContext.Provider>
   );

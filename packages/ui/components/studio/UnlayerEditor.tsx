@@ -22,7 +22,6 @@ import {
   forwardRef,
   useImperativeHandle,
   useMemo,
-  useEffect,
   useId,
   useSyncExternalStore,
 } from "react";
@@ -164,7 +163,6 @@ export const UnlayerEditor = forwardRef<
   const [loadingState, setLoadingState] = useState<
     "mounting" | "loading" | "ready"
   >("mounting");
-  const [loadingProgress, setLoadingProgress] = useState(0);
   const designLoadedRef = useRef(false);
   const isMounted = useSyncExternalStore(
     emptySubscribe,
@@ -226,22 +224,8 @@ export const UnlayerEditor = forwardRef<
     [mergeTags, studioConfig.mergeTags, defaultMergeTags],
   );
 
-  useEffect(() => {
-    if (loadingState === "mounting") {
-      const timer = setTimeout(() => {
-        setLoadingProgress(20);
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-    if (loadingState === "loading") {
-      const interval = setInterval(() => {
-        setLoadingProgress((prev) => Math.min(prev + 10, 90));
-      }, 200);
-      return () => clearInterval(interval);
-    }
-  }, [loadingState]);
-
-  const progress = loadingState === "ready" ? 100 : loadingProgress;
+  const progress =
+    loadingState === "ready" ? 100 : loadingState === "loading" ? 70 : 20;
 
   const LoadingIcon = isDocumentMode ? FileText : Mail;
   const loadingLabel = isDocumentMode ? "document" : "email";

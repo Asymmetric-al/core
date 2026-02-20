@@ -4,7 +4,8 @@ import { createBrowserClient } from "@asym/database/supabase";
 import {
   createContext,
   useContext,
-  useState,
+  useCallback,
+  useReducer,
   useEffect,
   type ReactNode,
 } from "react";
@@ -25,6 +26,28 @@ interface MCContextValue {
   signOut: () => Promise<void>;
 }
 
+type MCState = {
+  user: User | null;
+  tenant: Tenant | null;
+  role: Role;
+  sidebarCollapsed: boolean;
+  loading: boolean;
+};
+
+type ProfileWithTenant = {
+  role: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  tenant_id: string;
+  avatar_url: string | null;
+  tenants: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
+};
+
 const MCContext = createContext<MCContextValue | null>(null);
 
 const DEFAULT_TENANT: Tenant = {
@@ -32,6 +55,21 @@ const DEFAULT_TENANT: Tenant = {
   name: "asymmetric.al",
   slug: "asymmetric-al",
 };
+
+const INITIAL_MC_STATE: MCState = {
+  user: null,
+  tenant: DEFAULT_TENANT,
+  role: "admin",
+  sidebarCollapsed: false,
+  loading: true,
+};
+
+type MCAction =
+  | { type: "setRole"; role: Role }
+  | { type: "setSidebarCollapsed"; collapsed: boolean }
+  | { type: "setAuthenticated"; authUserId: string; profile: ProfileWithTenant }
+  | { type: "setSignedOut" }
+  | { type: "setLoadingComplete" };
 
 function mapProfileRoleToMCRole(profileRole: string): Role {
   const roleMap: Record<string, Role> = {
@@ -48,13 +86,86 @@ function mapProfileRoleToMCRole(profileRole: string): Role {
   return roleMap[profileRole] || "staff";
 }
 
+function toDisplayName(
+  firstName: string | null | undefined,
+  lastName: string | null | undefined,
+) {
+  return `${firstName ?? ""} ${lastName ?? ""}`.trim();
+}
+
+function mcReducer(state: MCState, action: MCAction): MCState {
+  switch (action.type) {
+    case "setRole":
+      return { ...state, role: action.role };
+    case "setSidebarCollapsed":
+      return { ...state, sidebarCollapsed: action.collapsed };
+    case "setAuthenticated": {
+      const mcRole = mapProfileRoleToMCRole(action.profile.role);
+      return {
+        ...state,
+        role: mcRole,
+        user: {
+          id: action.authUserId,
+          email: action.profile.email,
+          name: toDisplayName(
+            action.profile.first_name,
+            action.profile.last_name,
+          ),
+          role: mcRole,
+          tenantId: action.profile.tenant_id,
+          avatarUrl: action.profile.avatar_url ?? undefined,
+        },
+        tenant: action.profile.tenants
+          ? {
+              id: action.profile.tenants.id,
+              name: action.profile.tenants.name,
+              slug: action.profile.tenants.slug,
+            }
+          : state.tenant,
+        loading: false,
+      };
+    }
+    case "setSignedOut":
+      return {
+        ...state,
+        user: null,
+        role: "admin",
+        loading: false,
+      };
+    case "setLoadingComplete":
+      return { ...state, loading: false };
+    default:
+      return state;
+  }
+}
+
 export function MCProvider({ children }: { children: ReactNode }) {
-  const [role, setRole] = useState<Role>("admin");
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [tenant, setTenant] = useState<Tenant | null>(DEFAULT_TENANT);
-  const [loading, setLoading] = useState(true);
+  const [state, dispatch] = useReducer(mcReducer, INITIAL_MC_STATE);
+  const { user, tenant, role, sidebarCollapsed, loading } = state;
   const isDevMode = process.env.NODE_ENV === "development";
+
+  const setRole = useCallback((nextRole: Role) => {
+    dispatch({ type: "setRole", role: nextRole });
+  }, []);
+
+  const setSidebarCollapsed = useCallback((collapsed: boolean) => {
+    dispatch({ type: "setSidebarCollapsed", collapsed });
+  }, []);
+
+  const applyAuthenticatedState = useCallback(
+    (authUserId: string, profile: ProfileWithTenant) => {
+      dispatch({ type: "setAuthenticated", authUserId, profile });
+    },
+    [],
+  );
+
+  const applySignedOutState = useCallback(() => {
+    dispatch({ type: "setSignedOut" });
+  }, []);
+
+  const markLoadingComplete = useCallback(() => {
+    dispatch({ type: "setLoadingComplete" });
+  }, []);
 
   useEffect(() => {
     const supabase = createBrowserClient();
@@ -72,27 +183,12 @@ export function MCProvider({ children }: { children: ReactNode }) {
           .single();
 
         if (profile) {
-          const mcRole = mapProfileRoleToMCRole(profile.role);
-          setRole(mcRole);
-          setUser({
-            id: authUser.id,
-            email: profile.email,
-            name: `${profile.first_name} ${profile.last_name}`,
-            role: mcRole,
-            tenantId: profile.tenant_id,
-            avatarUrl: profile.avatar_url,
-          });
-
-          if (profile.tenants) {
-            setTenant({
-              id: profile.tenants.id,
-              name: profile.tenants.name,
-              slug: profile.tenants.slug,
-            });
-          }
+          applyAuthenticatedState(authUser.id, profile);
+          return;
         }
       }
-      setLoading(false);
+
+      applySignedOutState();
     }
 
     loadUser();
@@ -108,34 +204,19 @@ export function MCProvider({ children }: { children: ReactNode }) {
           .single();
 
         if (profile) {
-          const mcRole = mapProfileRoleToMCRole(profile.role);
-          setRole(mcRole);
-          setUser({
-            id: session.user.id,
-            email: profile.email,
-            name: `${profile.first_name} ${profile.last_name}`,
-            role: mcRole,
-            tenantId: profile.tenant_id,
-            avatarUrl: profile.avatar_url,
-          });
-
-          if (profile.tenants) {
-            setTenant({
-              id: profile.tenants.id,
-              name: profile.tenants.name,
-              slug: profile.tenants.slug,
-            });
-          }
+          applyAuthenticatedState(session.user.id, profile);
+          return;
         }
       } else {
-        setUser(null);
-        setRole("admin");
+        applySignedOutState();
+        return;
       }
-      setLoading(false);
+
+      markLoadingComplete();
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [applyAuthenticatedState, applySignedOutState, markLoadingComplete]);
 
   const signOut = async () => {
     const supabase = createBrowserClient();
