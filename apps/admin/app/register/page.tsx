@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  DEMO_AVAILABILITY_FALLBACK,
+  useDemoAvailability,
+} from "@asym/database/hooks";
 import { createBrowserClient } from "@asym/database/supabase";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
@@ -21,17 +25,15 @@ import {
 import { Loader2, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [demoAvailability, setDemoAvailability] = useState({
-    admin: false,
-    missionary: false,
-    donor: false,
-  });
+  const demoAvailabilityQuery = useDemoAvailability();
+  const demoAvailability =
+    demoAvailabilityQuery.data ?? DEMO_AVAILABILITY_FALLBACK;
   const demoUnavailable =
     !demoAvailability.admin &&
     !demoAvailability.missionary &&
@@ -43,39 +45,6 @@ export default function RegisterPage() {
     password: "",
     role: "",
   });
-
-  useEffect(() => {
-    let active = true;
-    async function loadDemoAvailability() {
-      try {
-        const response = await fetch("/api/auth/demo-account");
-        if (!response.ok) {
-          throw new Error("Demo status unavailable");
-        }
-        const data = await response.json();
-        if (active && data?.availableRoles) {
-          setDemoAvailability({
-            admin: Boolean(data.availableRoles.admin),
-            missionary: Boolean(data.availableRoles.missionary),
-            donor: Boolean(data.availableRoles.donor),
-          });
-        }
-      } catch {
-        if (active) {
-          setDemoAvailability({
-            admin: false,
-            missionary: false,
-            donor: false,
-          });
-        }
-      }
-    }
-
-    loadDemoAvailability();
-    return () => {
-      active = false;
-    };
-  }, []);
 
   async function handleDemoAccount(role: "admin" | "missionary" | "donor") {
     if (!demoAvailability[role]) {
@@ -298,7 +267,7 @@ export default function RegisterPage() {
                 Donor
               </Button>
             </div>
-            {demoUnavailable && (
+            {!demoAvailabilityQuery.isLoading && demoUnavailable && (
               <p className="mt-2 text-center text-xs text-muted-foreground">
                 Demo login unavailable.
               </p>

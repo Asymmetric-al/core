@@ -1,8 +1,5 @@
 "use client";
 
-import * as React from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { CheckCircle2, Trash2, X, ChevronDown } from "lucide-react";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   DropdownMenu,
@@ -10,7 +7,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
-import type { TaskStatus } from "@/lib/missionary/types";
+import { CheckCircle2, Trash2, X, ChevronDown } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import * as React from "react";
+
+import type { TaskStatus } from "../../types";
 
 interface TaskBulkActionsBarProps {
   selectedCount: number;

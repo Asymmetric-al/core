@@ -1,5 +1,6 @@
 "use client";
 
+import { motion, AnimatePresence } from "@asym/lib/motion";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
@@ -26,7 +27,6 @@ import {
   MapLegend,
 } from "@asym/ui/components/shadcn/map";
 import { cn } from "@asym/ui/lib/utils";
-import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useMemo, useCallback, useEffect } from "react";

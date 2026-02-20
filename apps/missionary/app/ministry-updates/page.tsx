@@ -1,6 +1,8 @@
 "use client";
 
+import { SafeHtml } from "@asym/lib/components/safe-html";
 import { TimeAgo, useLastSynced } from "@asym/lib/hooks";
+import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
 import {
   Avatar,
   AvatarFallback,
@@ -66,7 +68,6 @@ import {
   TabsContent,
 } from "@asym/ui/components/shadcn/tabs";
 import { cn } from "@asym/ui/lib/utils";
-import { motion, AnimatePresence, LayoutGroup } from "motion/react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import React, { useState, useMemo, useEffect, useCallback } from "react";
@@ -928,13 +929,13 @@ function PostCard({
             transition={{ delay: 0.1 }}
             className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-4 sm:space-y-6"
           >
-            <div
+            <SafeHtml
               className="prose prose-sm sm:prose-base max-w-none text-foreground/80 leading-relaxed
                         prose-headings:font-bold prose-headings:text-foreground prose-headings:tracking-tight
                         prose-strong:font-bold prose-strong:text-foreground
                         prose-a:text-primary prose-a:font-bold prose-a:no-underline hover:prose-a:underline
                         prose-blockquote:border-l-4 prose-blockquote:border-border prose-blockquote:italic prose-blockquote:text-muted-foreground"
-              dangerouslySetInnerHTML={{ __html: post.content }}
+              html={post.content}
             />
             {post.media && post.media.length > 0 && (
               <motion.div
@@ -2202,11 +2203,9 @@ export default function MinistryUpdatesPage() {
                                       ).toLocaleDateString()}
                                     </span>
                                   </div>
-                                  <div
+                                  <SafeHtml
                                     className="prose prose-sm sm:prose-base max-w-none line-clamp-3 opacity-60 text-foreground"
-                                    dangerouslySetInnerHTML={{
-                                      __html: draft.content,
-                                    }}
+                                    html={draft.content}
                                   />
                                 </div>
                                 <div className="flex flex-row sm:flex-col gap-2 shrink-0 w-full sm:w-auto">

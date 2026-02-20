@@ -80,7 +80,13 @@ import {
   RotateCcw,
   AlertCircle,
 } from "lucide-react";
-import React, { useRef, useState, useCallback, useEffect } from "react";
+import React, {
+  useRef,
+  useState,
+  useCallback,
+  useEffect,
+  useReducer,
+} from "react";
 import { toast } from "sonner";
 
 import type { PDFTemplateCategory } from "@/lib/pdf-studio";
@@ -104,6 +110,35 @@ interface PDFMetadata {
   orientation: "portrait" | "landscape";
 }
 
+interface PDFStudioUiState {
+  isEditorReady: boolean;
+  isSaving: boolean;
+  isExporting: boolean;
+  hasUnsavedChanges: boolean;
+  previewDevice: PreviewDevice;
+  showSaveDialog: boolean;
+  showExportDialog: boolean;
+  showDeleteDialog: boolean;
+  exportedHtml: string;
+  studioConfig: PDFStudioFullConfig | null;
+  isFullscreen: boolean;
+  copiedHtml: boolean;
+}
+
+type PDFStudioUiAction =
+  | { type: "editor_ready"; config: PDFStudioFullConfig }
+  | { type: "set_saving"; value: boolean }
+  | { type: "set_exporting"; value: boolean }
+  | { type: "set_unsaved_changes"; value: boolean }
+  | { type: "set_preview_device"; value: PreviewDevice }
+  | { type: "set_show_save_dialog"; value: boolean }
+  | { type: "open_export_dialog"; html: string }
+  | { type: "set_show_export_dialog"; value: boolean }
+  | { type: "set_show_delete_dialog"; value: boolean }
+  | { type: "set_fullscreen"; value: boolean }
+  | { type: "toggle_fullscreen" }
+  | { type: "set_copied_html"; value: boolean };
+
 const DEFAULT_DESIGN: UnlayerDesignJSON = {
   counters: { u_column: 1, u_row: 1 },
   body: {
@@ -115,31 +150,94 @@ const DEFAULT_DESIGN: UnlayerDesignJSON = {
   },
 };
 
+const DEFAULT_PDF_METADATA: PDFMetadata = {
+  id: null,
+  name: "Untitled Document",
+  description: "",
+  category: "custom",
+  pageSize: "Letter",
+  orientation: "portrait",
+};
+
+const INITIAL_PDF_STUDIO_UI_STATE: PDFStudioUiState = {
+  isEditorReady: false,
+  isSaving: false,
+  isExporting: false,
+  hasUnsavedChanges: false,
+  previewDevice: "desktop",
+  showSaveDialog: false,
+  showExportDialog: false,
+  showDeleteDialog: false,
+  exportedHtml: "",
+  studioConfig: null,
+  isFullscreen: false,
+  copiedHtml: false,
+};
+
+function pdfStudioUiReducer(
+  state: PDFStudioUiState,
+  action: PDFStudioUiAction,
+): PDFStudioUiState {
+  switch (action.type) {
+    case "editor_ready":
+      return {
+        ...state,
+        isEditorReady: true,
+        studioConfig: action.config,
+      };
+    case "set_saving":
+      return { ...state, isSaving: action.value };
+    case "set_exporting":
+      return { ...state, isExporting: action.value };
+    case "set_unsaved_changes":
+      return { ...state, hasUnsavedChanges: action.value };
+    case "set_preview_device":
+      return { ...state, previewDevice: action.value };
+    case "set_show_save_dialog":
+      return { ...state, showSaveDialog: action.value };
+    case "open_export_dialog":
+      return {
+        ...state,
+        exportedHtml: action.html,
+        showExportDialog: true,
+      };
+    case "set_show_export_dialog":
+      return { ...state, showExportDialog: action.value };
+    case "set_show_delete_dialog":
+      return { ...state, showDeleteDialog: action.value };
+    case "set_fullscreen":
+      return { ...state, isFullscreen: action.value };
+    case "toggle_fullscreen":
+      return { ...state, isFullscreen: !state.isFullscreen };
+    case "set_copied_html":
+      return { ...state, copiedHtml: action.value };
+    default:
+      return state;
+  }
+}
+
 export default function PDFStudio() {
   const editorRef = useRef<UnlayerEditorHandle>(null);
-  const [isEditorReady, setIsEditorReady] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [previewDevice, setPreviewDevice] = useState<PreviewDevice>("desktop");
-  const [showSaveDialog, setShowSaveDialog] = useState(false);
-  const [showExportDialog, setShowExportDialog] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [exportedHtml, setExportedHtml] = useState<string>("");
-  const [studioConfig, setStudioConfig] = useState<PDFStudioFullConfig | null>(
-    null,
+  const [ui, dispatchUi] = useReducer(
+    pdfStudioUiReducer,
+    INITIAL_PDF_STUDIO_UI_STATE,
   );
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [copiedHtml, setCopiedHtml] = useState(false);
-  const [, setCurrentDesign] = useState<UnlayerDesignJSON | null>(null);
-  const [metadata, setMetadata] = useState<PDFMetadata>({
-    id: null,
-    name: "Untitled Document",
-    description: "",
-    category: "custom",
-    pageSize: "Letter",
-    orientation: "portrait",
-  });
+  const currentDesignRef = useRef<UnlayerDesignJSON | null>(null);
+  const [metadata, setMetadata] = useState<PDFMetadata>(DEFAULT_PDF_METADATA);
+  const {
+    isEditorReady,
+    isSaving,
+    isExporting,
+    hasUnsavedChanges,
+    previewDevice,
+    showSaveDialog,
+    showExportDialog,
+    showDeleteDialog,
+    exportedHtml,
+    studioConfig,
+    isFullscreen,
+    copiedHtml,
+  } = ui;
 
   const handleUndo = useCallback(() => {
     editorRef.current?.undo();
@@ -151,7 +249,7 @@ export default function PDFStudio() {
 
   const handleSaveClick = useCallback(() => {
     if (!editorRef.current) return;
-    setShowSaveDialog(true);
+    dispatchUi({ type: "set_show_save_dialog", value: true });
   }, []);
 
   const handleExportHtml = useCallback(async () => {
@@ -161,8 +259,7 @@ export default function PDFStudio() {
         minify: false,
         cleanup: studioConfig?.export.cleanupCss ?? true,
       });
-      setExportedHtml(data.html);
-      setShowExportDialog(true);
+      dispatchUi({ type: "open_export_dialog", html: data.html });
     } catch {
       toast.error("Failed to export HTML");
     }
@@ -170,7 +267,7 @@ export default function PDFStudio() {
 
   const handleExportPDF = useCallback(async () => {
     if (!editorRef.current) return;
-    setIsExporting(true);
+    dispatchUi({ type: "set_exporting", value: true });
     try {
       const pdfResult = await editorRef.current.exportPdf();
 
@@ -193,7 +290,7 @@ export default function PDFStudio() {
           "PDF export requires an Unlayer project ID. Configure your Unlayer account for PDF export.",
       });
     } finally {
-      setIsExporting(false);
+      dispatchUi({ type: "set_exporting", value: false });
     }
   }, []);
 
@@ -222,7 +319,7 @@ export default function PDFStudio() {
         handleExportPDF();
       }
       if (e.key === "Escape" && isFullscreen) {
-        setIsFullscreen(false);
+        dispatchUi({ type: "set_fullscreen", value: false });
       }
     };
 
@@ -241,8 +338,10 @@ export default function PDFStudio() {
 
   const handleEditorReady = useCallback(
     (config: PDFStudioFullConfig | EmailStudioFullConfig) => {
-      setIsEditorReady(true);
-      setStudioConfig(config as PDFStudioFullConfig);
+      dispatchUi({
+        type: "editor_ready",
+        config: config as PDFStudioFullConfig,
+      });
 
       if (!config.account.isConfigured) {
         toast.info("PDF Studio is running in free mode", {
@@ -259,15 +358,15 @@ export default function PDFStudio() {
   );
 
   const handleDesignUpdate = useCallback((design: UnlayerDesignJSON) => {
-    setCurrentDesign(design);
-    setHasUnsavedChanges(true);
+    currentDesignRef.current = design;
+    dispatchUi({ type: "set_unsaved_changes", value: true });
   }, []);
 
   const handleConfirmSave = useCallback(async () => {
     if (!editorRef.current) return;
 
-    setShowSaveDialog(false);
-    setIsSaving(true);
+    dispatchUi({ type: "set_show_save_dialog", value: false });
+    dispatchUi({ type: "set_saving", value: true });
 
     try {
       const exportData = await editorRef.current.exportHtml({
@@ -306,7 +405,7 @@ export default function PDFStudio() {
       const { template } = await response.json();
 
       setMetadata((prev) => ({ ...prev, id: template.id }));
-      setHasUnsavedChanges(false);
+      dispatchUi({ type: "set_unsaved_changes", value: false });
 
       toast.success("Template saved", {
         description: `"${metadata.name}" has been saved successfully`,
@@ -317,14 +416,14 @@ export default function PDFStudio() {
         error instanceof Error ? error.message : "Failed to save template";
       toast.error("Save failed", { description: message });
     } finally {
-      setIsSaving(false);
+      dispatchUi({ type: "set_saving", value: false });
     }
   }, [metadata]);
 
   const handleDelete = useCallback(async () => {
     if (!metadata.id) return;
 
-    setShowDeleteDialog(false);
+    dispatchUi({ type: "set_show_delete_dialog", value: false });
 
     try {
       const response = await fetch(`/api/pdf-templates/${metadata.id}`, {
@@ -337,19 +436,12 @@ export default function PDFStudio() {
       }
 
       toast.success("Template deleted");
-      setMetadata({
-        id: null,
-        name: "Untitled Document",
-        description: "",
-        category: "custom",
-        pageSize: "Letter",
-        orientation: "portrait",
-      });
-      setCurrentDesign(null);
+      setMetadata(DEFAULT_PDF_METADATA);
+      currentDesignRef.current = null;
       if (editorRef.current) {
         editorRef.current.loadDesign(DEFAULT_DESIGN);
       }
-      setHasUnsavedChanges(false);
+      dispatchUi({ type: "set_unsaved_changes", value: false });
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to delete template";
@@ -359,9 +451,12 @@ export default function PDFStudio() {
 
   const handleCopyHtml = useCallback(() => {
     navigator.clipboard.writeText(exportedHtml);
-    setCopiedHtml(true);
+    dispatchUi({ type: "set_copied_html", value: true });
     toast.success("HTML copied to clipboard");
-    setTimeout(() => setCopiedHtml(false), 2000);
+    setTimeout(
+      () => dispatchUi({ type: "set_copied_html", value: false }),
+      2000,
+    );
   }, [exportedHtml]);
 
   const handleDownloadHtml = useCallback(() => {
@@ -379,24 +474,17 @@ export default function PDFStudio() {
 
   const handlePreview = useCallback((device: PreviewDevice) => {
     if (!editorRef.current) return;
-    setPreviewDevice(device);
+    dispatchUi({ type: "set_preview_device", value: device });
     editorRef.current.showPreview(device);
   }, []);
 
   const handleNewTemplate = useCallback(() => {
-    setMetadata({
-      id: null,
-      name: "Untitled Document",
-      description: "",
-      category: "custom",
-      pageSize: "Letter",
-      orientation: "portrait",
-    });
-    setCurrentDesign(null);
+    setMetadata(DEFAULT_PDF_METADATA);
+    currentDesignRef.current = null;
     if (editorRef.current) {
       editorRef.current.loadDesign(DEFAULT_DESIGN);
     }
-    setHasUnsavedChanges(false);
+    dispatchUi({ type: "set_unsaved_changes", value: false });
     toast.info("New document created");
   }, []);
 
@@ -635,7 +723,9 @@ export default function PDFStudio() {
                 Reset Template
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setIsFullscreen(!isFullscreen)}>
+              <DropdownMenuItem
+                onClick={() => dispatchUi({ type: "toggle_fullscreen" })}
+              >
                 {isFullscreen ? (
                   <Minimize2 className="h-4 w-4 mr-2" />
                 ) : (
@@ -648,7 +738,9 @@ export default function PDFStudio() {
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive"
                 disabled={!metadata.id}
-                onClick={() => setShowDeleteDialog(true)}
+                onClick={() =>
+                  dispatchUi({ type: "set_show_delete_dialog", value: true })
+                }
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete Template
@@ -679,7 +771,12 @@ export default function PDFStudio() {
         />
       </div>
 
-      <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+      <Dialog
+        open={showSaveDialog}
+        onOpenChange={(open) =>
+          dispatchUi({ type: "set_show_save_dialog", value: open })
+        }
+      >
         <DialogContent className="sm:max-w-[520px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -803,7 +900,12 @@ export default function PDFStudio() {
             </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() =>
+                dispatchUi({ type: "set_show_save_dialog", value: false })
+              }
+            >
               Cancel
             </Button>
             <Button
@@ -826,7 +928,12 @@ export default function PDFStudio() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
+      <Dialog
+        open={showExportDialog}
+        onOpenChange={(open) =>
+          dispatchUi({ type: "set_show_export_dialog", value: open })
+        }
+      >
         <DialogContent className="sm:max-w-[680px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -883,7 +990,9 @@ export default function PDFStudio() {
           <DialogFooter className="gap-2 sm:gap-0">
             <Button
               variant="outline"
-              onClick={() => setShowExportDialog(false)}
+              onClick={() =>
+                dispatchUi({ type: "set_show_export_dialog", value: false })
+              }
             >
               Close
             </Button>
@@ -903,7 +1012,12 @@ export default function PDFStudio() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+      <AlertDialog
+        open={showDeleteDialog}
+        onOpenChange={(open) =>
+          dispatchUi({ type: "set_show_delete_dialog", value: open })
+        }
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">

@@ -1,17 +1,13 @@
 "use client";
 
-import * as React from "react";
-import { motion } from "motion/react";
-import { format, isPast, isToday, isTomorrow, isThisWeek } from "date-fns";
-import Link from "next/link";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +15,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
+import { cn } from "@asym/ui/lib/utils";
+import { format, isPast, isToday, isTomorrow, isThisWeek } from "date-fns";
 import {
   Clock,
   CheckCircle2,
@@ -35,13 +33,11 @@ import {
   Pencil,
   User,
 } from "lucide-react";
-import { cn } from "@asym/ui/lib/utils";
-import type {
-  Task,
-  TaskType,
-  TaskStatus,
-  TaskPriority,
-} from "@/lib/missionary/types";
+import { motion } from "motion/react";
+import Link from "next/link";
+import * as React from "react";
+
+import type { Task, TaskType, TaskStatus, TaskPriority } from "../types";
 
 const springTransition = {
   type: "spring" as const,
@@ -194,9 +190,9 @@ export function TaskRow({
   onDelete: () => void;
   index: number;
 }) {
-  const typeConfig = TASK_TYPE_CONFIG[task.task_type];
-  const priorityConfig = PRIORITY_CONFIG[task.priority];
-  const statusConfig = STATUS_CONFIG[task.status];
+  const typeConfig = TASK_TYPE_CONFIG[task.task_type] ?? TASK_TYPE_CONFIG.to_do;
+  const priorityConfig = PRIORITY_CONFIG[task.priority] ?? PRIORITY_CONFIG.none;
+  const statusConfig = STATUS_CONFIG[task.status] ?? STATUS_CONFIG.not_started;
   const dueDateStatus = getDueDateStatus(task.due_date);
   const isCompleted = task.status === "completed";
   const Icon = typeConfig.icon;
@@ -285,7 +281,7 @@ export function TaskRow({
                   <AvatarFallback className="text-[8px] font-bold bg-zinc-200 text-zinc-600">
                     {task.donor.name
                       .split(" ")
-                      .map((n) => n[0])
+                      .map((n: string) => n[0])
                       .join("")
                       .slice(0, 2)}
                   </AvatarFallback>

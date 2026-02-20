@@ -59,16 +59,8 @@ import {
   Wifi,
   BedDouble,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import React, { useState } from "react";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
 
 // --- Types & Mock Data ---
 
@@ -662,6 +654,28 @@ const _getDuration = (start: string, end: string) => {
   return totalMinutes + "m";
 };
 
+const RegistrationTrendsChart = dynamic(
+  () =>
+    import("./registration-trends-chart").then(
+      (mod) => mod.RegistrationTrendsChart,
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <Card className="col-span-4 overflow-hidden">
+        <CardHeader className="border-b border-slate-100 bg-slate-50/30">
+          <CardTitle className="text-base font-bold">
+            Registration Trends
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="h-[300px] animate-pulse rounded-xl bg-slate-100" />
+        </CardContent>
+      </Card>
+    ),
+  },
+);
+
 // --- Main Page ---
 
 export default function EventsPage() {
@@ -807,77 +821,7 @@ export default function EventsPage() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-7">
-            <Card className="col-span-4 overflow-hidden">
-              <CardHeader className="border-b border-slate-100 bg-slate-50/30">
-                <CardTitle className="text-base font-bold">
-                  Registration Trends
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                      data={[
-                        { date: "Aug 1", count: 120 },
-                        { date: "Aug 8", count: 180 },
-                        { date: "Aug 15", count: 240 },
-                        { date: "Aug 22", count: 310 },
-                        { date: "Aug 29", count: 380 },
-                        { date: "Sep 5", count: 450 },
-                      ]}
-                    >
-                      <defs>
-                        <linearGradient
-                          id="colorCount"
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1"
-                        >
-                          <stop
-                            offset="5%"
-                            stopColor="#3b82f6"
-                            stopOpacity={0.3}
-                          />
-                          <stop
-                            offset="95%"
-                            stopColor="#3b82f6"
-                            stopOpacity={0}
-                          />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        vertical={false}
-                        stroke="#f1f5f9"
-                      />
-                      <XAxis
-                        dataKey="date"
-                        stroke="#94a3b8"
-                        fontSize={11}
-                        tickLine={false}
-                        axisLine={false}
-                      />
-                      <YAxis
-                        stroke="#94a3b8"
-                        fontSize={11}
-                        tickLine={false}
-                        axisLine={false}
-                      />
-                      <Tooltip />
-                      <Area
-                        type="monotone"
-                        dataKey="count"
-                        stroke="#3b82f6"
-                        fillOpacity={1}
-                        fill="url(#colorCount)"
-                        strokeWidth={2}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
+            <RegistrationTrendsChart />
 
             <Card className="col-span-3 overflow-hidden">
               <CardHeader className="border-b border-slate-100 bg-slate-50/30">

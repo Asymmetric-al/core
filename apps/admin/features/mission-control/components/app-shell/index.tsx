@@ -199,8 +199,11 @@ export function AppShell({
               >
                 Mission Control
               </Link>
-              {breadcrumbs?.map((crumb, i) => (
-                <div key={i} className="flex items-center gap-2">
+              {breadcrumbs?.map((crumb) => (
+                <div
+                  key={`${crumb.href ?? "current"}-${crumb.label}`}
+                  className="flex items-center gap-2"
+                >
                   <span className="text-zinc-200">/</span>
                   {crumb.href ? (
                     <Link

@@ -29,7 +29,7 @@ import { Switch } from "@asym/ui/components/shadcn/switch";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Trash2 } from "lucide-react";
-import React, { useEffect } from "react";
+import React from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
@@ -50,6 +50,21 @@ const locationSchema = z.object({
 
 type LocationFormValues = z.infer<typeof locationSchema>;
 
+function toLocationFormValues(
+  location: Partial<Location> | null,
+): LocationFormValues {
+  return {
+    id: location?.id,
+    title: location?.title ?? "",
+    summary: location?.summary ?? "",
+    type: location?.type ?? "custom",
+    linked_id: location?.linked_id ?? null,
+    status: location?.status ?? "draft",
+    lat: location?.lat ?? 0,
+    lng: location?.lng ?? 0,
+  };
+}
+
 interface LocationEditorProps {
   location: Partial<Location> | null;
   isOpen: boolean;
@@ -68,31 +83,8 @@ export function LocationEditor({
 
   const form = useForm<LocationFormValues>({
     resolver: zodResolver(locationSchema),
-    defaultValues: {
-      title: "",
-      summary: "",
-      type: "custom",
-      linked_id: null,
-      status: "draft",
-      lat: 0,
-      lng: 0,
-    },
+    defaultValues: toLocationFormValues(location),
   });
-
-  useEffect(() => {
-    if (location) {
-      form.reset({
-        id: location.id,
-        title: location.title || "",
-        summary: location.summary || "",
-        type: location.type || "custom",
-        linked_id: location.linked_id || null,
-        status: location.status || "draft",
-        lat: location.lat || 0,
-        lng: location.lng || 0,
-      });
-    }
-  }, [location, form]);
 
   const onSubmit = (values: LocationFormValues) => {
     upsertLocation(values, {

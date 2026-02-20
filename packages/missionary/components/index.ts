@@ -15,7 +15,10 @@ export { TaskRow } from "./task-row";
 export { TasksPreview } from "./tasks-preview";
 
 // Skeletons
-export { DashboardSkeleton, MetricCardSkeleton } from "./skeletons";
+export {
+  MetricsSkeleton as DashboardSkeleton,
+  MetricsSkeleton as MetricCardSkeleton,
+} from "./skeletons";
 
 // Task Components
 export * from "./tasks";

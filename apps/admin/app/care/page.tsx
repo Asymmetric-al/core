@@ -30,9 +30,11 @@ export default function MemberCareDashboardPage() {
           </div>
         </div>
         <div className="grid-responsive-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-32 w-full rounded-2xl" />
-          ))}
+          {["skeleton-1", "skeleton-2", "skeleton-3", "skeleton-4"].map(
+            (skeletonId) => (
+              <Skeleton key={skeletonId} className="h-32 w-full rounded-2xl" />
+            ),
+          )}
         </div>
         <div className="grid-12">
           <Skeleton className="lg:col-span-8 h-[600px] w-full rounded-2xl" />

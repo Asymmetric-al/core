@@ -27,7 +27,7 @@ const Header = ({ navigationData, className }: HeaderProps) => {
       setIsScrolled(window.scrollY > 0);
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
 
     return () => {
@@ -62,20 +62,29 @@ const Header = ({ navigationData, className }: HeaderProps) => {
           />
 
           <div className="flex items-center max-sm:hidden">
-            <Button variant="ghost" size="icon" asChild>
-              <a href="#">
-                <SearchIcon className="size-5" />
-              </a>
+            <Button
+              variant="ghost"
+              size="icon"
+              type="button"
+              aria-label="Search"
+            >
+              <SearchIcon className="size-5" />
             </Button>
-            <Button variant="ghost" size="icon" asChild>
-              <a href="#">
-                <GithubIcon className="size-5" />
-              </a>
+            <Button
+              variant="ghost"
+              size="icon"
+              type="button"
+              aria-label="GitHub"
+            >
+              <GithubIcon className="size-5" />
             </Button>
-            <Button variant="ghost" size="icon" asChild>
-              <a href="#">
-                <TwitterIcon className="size-5" />
-              </a>
+            <Button
+              variant="ghost"
+              size="icon"
+              type="button"
+              aria-label="Twitter"
+            >
+              <TwitterIcon className="size-5" />
             </Button>
           </div>
 

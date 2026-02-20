@@ -1,6 +1,21 @@
 "use client";
 
-import * as React from "react";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
+import { Separator } from "@asym/ui/components/shadcn/separator";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@asym/ui/components/shadcn/sheet";
+import { cn } from "@asym/ui/lib/utils";
 import { format } from "date-fns";
 import {
   X,
@@ -15,24 +30,11 @@ import {
   Edit2,
   ExternalLink,
 } from "lucide-react";
-import { cn } from "@asym/ui/lib/utils";
-import type { Task } from "@/lib/missionary/types";
+import * as React from "react";
+
 import { TASK_TYPE_CONFIG, PRIORITY_CONFIG } from "./task-config";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@asym/ui/components/shadcn/sheet";
-import { Separator } from "@asym/ui/components/shadcn/separator";
-import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
+
+import type { Task } from "../../types";
 
 interface TaskDetailsSheetProps {
   task: Task | null;

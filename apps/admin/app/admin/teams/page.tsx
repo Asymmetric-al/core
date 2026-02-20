@@ -192,13 +192,17 @@ const MEMBERS = [
   },
 ];
 
+const TileIcon = React.memo(function TileIcon({
+  iconName,
+}: {
+  iconName: string;
+}) {
+  return <DynamicIcon name={iconName} className="h-4 w-4" />;
+});
+
 export default function TeamsPage() {
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-
-  const renderIcon = (iconName: string) => {
-    return <DynamicIcon name={iconName} className="h-4 w-4" />;
-  };
 
   const getPermissionColor = (level: string) => {
     switch (level) {
@@ -353,12 +357,12 @@ export default function TeamsPage() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <div className="flex -space-x-2 mr-2">
-                          {[1, 2, 3].map((i) => (
+                          {["A", "B", "C"].map((initial) => (
                             <div
-                              key={i}
+                              key={initial}
                               className="size-6 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 shadow-sm"
                             >
-                              {String.fromCharCode(64 + i)}
+                              {initial}
                             </div>
                           ))}
                         </div>
@@ -471,7 +475,9 @@ export default function TeamsPage() {
                                             >
                                               <div className="flex items-center gap-4">
                                                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-50 text-slate-500 border border-slate-100 group-hover:bg-slate-900 group-hover:text-white transition-colors">
-                                                  {renderIcon(tile.icon)}
+                                                  <TileIcon
+                                                    iconName={tile.icon}
+                                                  />
                                                 </div>
                                                 <div className="flex flex-col">
                                                   <span className="font-bold text-slate-900">

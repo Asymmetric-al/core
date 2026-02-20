@@ -184,15 +184,13 @@ export const UnlayerEditor = forwardRef<
 
   const accountConfig = useMemo(() => getUnlayerAccountConfig(), []);
 
-  const defaultAppearance = useMemo(
-    () => (isDocumentMode ? DEFAULT_PDF_APPEARANCE : DEFAULT_APPEARANCE),
-    [isDocumentMode],
-  );
+  const defaultAppearance = isDocumentMode
+    ? DEFAULT_PDF_APPEARANCE
+    : DEFAULT_APPEARANCE;
 
-  const defaultMergeTags = useMemo(
-    () => (isDocumentMode ? DEFAULT_PDF_MERGE_TAGS : DEFAULT_MERGE_TAGS),
-    [isDocumentMode],
-  );
+  const defaultMergeTags = isDocumentMode
+    ? DEFAULT_PDF_MERGE_TAGS
+    : DEFAULT_MERGE_TAGS;
 
   const resolvedProjectId = useMemo(() => {
     if (projectIdProp && projectIdProp > 0) return projectIdProp;

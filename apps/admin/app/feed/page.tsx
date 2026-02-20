@@ -1,6 +1,8 @@
 "use client";
 
+import { SafeHtml } from "@asym/lib/components/safe-html";
 import { TimeAgo } from "@asym/lib/hooks";
+import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
 import { BrandAvatar, brandConfig } from "@asym/ui/components/brand-logo";
 import {
   AlertDialog,
@@ -94,10 +96,9 @@ import {
   PenSquare,
   X,
 } from "lucide-react";
-import { motion, AnimatePresence, LayoutGroup } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useReducer } from "react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/page-header";
@@ -117,6 +118,63 @@ const MotionCard = motion.create(Card);
 type PostStatus = "published" | "flagged" | "hidden" | "pending_review";
 type Visibility = "public" | "partners" | "private";
 type ModerationAction = "approve" | "hide" | "flag" | "delete" | "edit";
+type ModerationTab = "moderation" | "all";
+type VisibilityFilter = "all" | Visibility;
+type PostTypeFilter =
+  | "all"
+  | "update"
+  | "prayer request"
+  | "story"
+  | "announcement";
+type SortOption = "newest" | "oldest" | "engagement";
+
+interface ContentModerationUiState {
+  activeTab: ModerationTab;
+  searchQuery: string;
+  filterVisibility: VisibilityFilter;
+  filterType: PostTypeFilter;
+  sortBy: SortOption;
+  isRefreshing: boolean;
+}
+
+type ContentModerationUiAction =
+  | { type: "set_active_tab"; value: ModerationTab }
+  | { type: "set_search_query"; value: string }
+  | { type: "set_filter_visibility"; value: VisibilityFilter }
+  | { type: "set_filter_type"; value: PostTypeFilter }
+  | { type: "set_sort_by"; value: SortOption }
+  | { type: "set_is_refreshing"; value: boolean };
+
+const INITIAL_CONTENT_MODERATION_UI_STATE: ContentModerationUiState = {
+  activeTab: "moderation",
+  searchQuery: "",
+  filterVisibility: "all",
+  filterType: "all",
+  sortBy: "newest",
+  isRefreshing: false,
+};
+
+function contentModerationUiReducer(
+  state: ContentModerationUiState,
+  action: ContentModerationUiAction,
+): ContentModerationUiState {
+  switch (action.type) {
+    case "set_active_tab":
+      return { ...state, activeTab: action.value };
+    case "set_search_query":
+      return { ...state, searchQuery: action.value };
+    case "set_filter_visibility":
+      return { ...state, filterVisibility: action.value };
+    case "set_filter_type":
+      return { ...state, filterType: action.value };
+    case "set_sort_by":
+      return { ...state, sortBy: action.value };
+    case "set_is_refreshing":
+      return { ...state, isRefreshing: action.value };
+    default:
+      return state;
+  }
+}
 
 interface Post {
   id: string;
@@ -528,8 +586,8 @@ function ModerationQueue({
                               </Badge>
                               {post.isFlagged && (
                                 <motion.div
-                                  initial={{ scale: 0 }}
-                                  animate={{ scale: 1 }}
+                                  initial={{ scale: 0.95, opacity: 0 }}
+                                  animate={{ scale: 1, opacity: 1 }}
                                   transition={springTransition}
                                 >
                                   <Badge
@@ -705,9 +763,9 @@ function ModerationQueue({
                           )}
                         </AnimatePresence>
 
-                        <div
+                        <SafeHtml
                           className="prose prose-sm max-w-none text-sm text-foreground/80 line-clamp-2"
-                          dangerouslySetInnerHTML={{ __html: post.content }}
+                          html={post.content}
                         />
 
                         {post.media && post.media.length > 0 && (
@@ -717,9 +775,9 @@ function ModerationQueue({
                             transition={{ delay: 0.1 }}
                             className="flex gap-2"
                           >
-                            {post.media.slice(0, 3).map((item, idx) => (
+                            {post.media.slice(0, 3).map((item) => (
                               <motion.div
-                                key={idx}
+                                key={`${post.id}-${item.type}-${item.url}`}
                                 whileHover={{ scale: 1.05 }}
                                 className="relative h-14 w-14 sm:h-16 sm:w-16 rounded-xl overflow-hidden border shadow-sm"
                               >
@@ -838,16 +896,16 @@ function ModerationQueue({
                 </div>
               </div>
 
-              <div
+              <SafeHtml
                 className="prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: selectedPost.content }}
+                html={selectedPost.content}
               />
 
               {selectedPost.media && selectedPost.media.length > 0 && (
                 <div className="grid grid-cols-2 gap-2">
-                  {selectedPost.media.map((item, idx) => (
+                  {selectedPost.media.map((item) => (
                     <div
-                      key={idx}
+                      key={`${selectedPost.id}-${item.type}-${item.url}`}
                       className="relative aspect-video rounded-xl overflow-hidden"
                     >
                       <Image
@@ -1185,9 +1243,9 @@ function AllPostsFeed({
                         </DropdownMenu>
                       </div>
 
-                      <div
+                      <SafeHtml
                         className="prose prose-sm max-w-none text-sm text-foreground/80 line-clamp-3"
-                        dangerouslySetInnerHTML={{ __html: post.content }}
+                        html={post.content}
                       />
 
                       {post.media && post.media.length > 0 && (
@@ -1197,9 +1255,9 @@ function AllPostsFeed({
                           transition={{ delay: 0.1 }}
                           className="flex gap-2"
                         >
-                          {post.media.slice(0, 4).map((item, idx) => (
+                          {post.media.slice(0, 4).map((item) => (
                             <motion.div
-                              key={idx}
+                              key={`${post.id}-${item.type}-${item.url}`}
                               whileHover={{ scale: 1.05 }}
                               className="relative h-16 w-16 sm:h-20 sm:w-20 rounded-xl overflow-hidden border shadow-sm"
                             >
@@ -1405,7 +1463,7 @@ function RecentActivityPanel() {
     <div className="space-y-2">
       {activities.map((item, idx) => (
         <motion.div
-          key={idx}
+          key={`${item.action}-${item.time}`}
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ ...smoothTransition, delay: idx * 0.08 }}
@@ -1438,18 +1496,24 @@ function RecentActivityPanel() {
 }
 
 export default function ContentModerationPage() {
-  const [activeTab, setActiveTab] = useState("moderation");
   const [posts, setPosts] = useState<Post[]>(MOCK_POSTS);
   const [flaggedComments, setFlaggedComments] = useState<Comment[]>(
     MOCK_FLAGGED_COMMENTS,
   );
-  const [stats] = useState<ModerationStats>(MOCK_STATS);
-  const [isLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterVisibility, setFilterVisibility] = useState("all");
-  const [filterType, setFilterType] = useState("all");
-  const [sortBy, setSortBy] = useState("newest");
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [ui, dispatchUi] = useReducer(
+    contentModerationUiReducer,
+    INITIAL_CONTENT_MODERATION_UI_STATE,
+  );
+  const {
+    activeTab,
+    searchQuery,
+    filterVisibility,
+    filterType,
+    sortBy,
+    isRefreshing,
+  } = ui;
+  const stats: ModerationStats = MOCK_STATS;
+  const isLoading = false;
 
   const flaggedPosts = useMemo(
     () => posts.filter((p) => p.isFlagged || p.status === "pending_review"),
@@ -1457,9 +1521,9 @@ export default function ContentModerationPage() {
   );
 
   const handleRefresh = async () => {
-    setIsRefreshing(true);
+    dispatchUi({ type: "set_is_refreshing", value: true });
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsRefreshing(false);
+    dispatchUi({ type: "set_is_refreshing", value: false });
     toast.success("Feed refreshed");
   };
 
@@ -1605,7 +1669,14 @@ export default function ContentModerationPage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 sm:gap-8">
         <div className="xl:col-span-8 space-y-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <Tabs
+            value={activeTab}
+            onValueChange={(value) => {
+              if (value === "moderation" || value === "all") {
+                dispatchUi({ type: "set_active_tab", value });
+              }
+            }}
+          >
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1622,9 +1693,9 @@ export default function ContentModerationPage() {
                   <AnimatePresence>
                     {flaggedPosts.length > 0 && (
                       <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        exit={{ scale: 0 }}
+                        initial={{ scale: 0.95, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.95, opacity: 0 }}
                         transition={springTransition}
                       >
                         <Badge className="ml-2 h-4 sm:h-5 px-1.5 sm:px-2 text-[8px] sm:text-[9px] bg-amber-500 text-white rounded-full font-semibold border-0">
@@ -1656,15 +1727,22 @@ export default function ContentModerationPage() {
                       <Input
                         placeholder="Search posts..."
                         value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onChange={(e) =>
+                          dispatchUi({
+                            type: "set_search_query",
+                            value: e.target.value,
+                          })
+                        }
                         className="pl-9 h-9 sm:h-10 w-full sm:w-56 lg:w-64 rounded-xl"
                       />
                       {searchQuery && (
                         <motion.button
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          exit={{ scale: 0 }}
-                          onClick={() => setSearchQuery("")}
+                          initial={{ scale: 0.95, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={{ scale: 0.95, opacity: 0 }}
+                          onClick={() =>
+                            dispatchUi({ type: "set_search_query", value: "" })
+                          }
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                         >
                           <X className="h-3.5 w-3.5" />
@@ -1696,14 +1774,24 @@ export default function ContentModerationPage() {
                         </DropdownMenuLabel>
                         <DropdownMenuCheckboxItem
                           checked={filterVisibility === "all"}
-                          onCheckedChange={() => setFilterVisibility("all")}
+                          onCheckedChange={() =>
+                            dispatchUi({
+                              type: "set_filter_visibility",
+                              value: "all",
+                            })
+                          }
                           className="rounded-lg"
                         >
                           All
                         </DropdownMenuCheckboxItem>
                         <DropdownMenuCheckboxItem
                           checked={filterVisibility === "public"}
-                          onCheckedChange={() => setFilterVisibility("public")}
+                          onCheckedChange={() =>
+                            dispatchUi({
+                              type: "set_filter_visibility",
+                              value: "public",
+                            })
+                          }
                           className="rounded-lg"
                         >
                           Public
@@ -1711,7 +1799,10 @@ export default function ContentModerationPage() {
                         <DropdownMenuCheckboxItem
                           checked={filterVisibility === "partners"}
                           onCheckedChange={() =>
-                            setFilterVisibility("partners")
+                            dispatchUi({
+                              type: "set_filter_visibility",
+                              value: "partners",
+                            })
                           }
                           className="rounded-lg"
                         >
@@ -1719,7 +1810,12 @@ export default function ContentModerationPage() {
                         </DropdownMenuCheckboxItem>
                         <DropdownMenuCheckboxItem
                           checked={filterVisibility === "private"}
-                          onCheckedChange={() => setFilterVisibility("private")}
+                          onCheckedChange={() =>
+                            dispatchUi({
+                              type: "set_filter_visibility",
+                              value: "private",
+                            })
+                          }
                           className="rounded-lg"
                         >
                           Private
@@ -1730,14 +1826,24 @@ export default function ContentModerationPage() {
                         </DropdownMenuLabel>
                         <DropdownMenuCheckboxItem
                           checked={filterType === "all"}
-                          onCheckedChange={() => setFilterType("all")}
+                          onCheckedChange={() =>
+                            dispatchUi({
+                              type: "set_filter_type",
+                              value: "all",
+                            })
+                          }
                           className="rounded-lg"
                         >
                           All Types
                         </DropdownMenuCheckboxItem>
                         <DropdownMenuCheckboxItem
                           checked={filterType === "update"}
-                          onCheckedChange={() => setFilterType("update")}
+                          onCheckedChange={() =>
+                            dispatchUi({
+                              type: "set_filter_type",
+                              value: "update",
+                            })
+                          }
                           className="rounded-lg"
                         >
                           Updates
@@ -1745,7 +1851,10 @@ export default function ContentModerationPage() {
                         <DropdownMenuCheckboxItem
                           checked={filterType === "prayer request"}
                           onCheckedChange={() =>
-                            setFilterType("prayer request")
+                            dispatchUi({
+                              type: "set_filter_type",
+                              value: "prayer request",
+                            })
                           }
                           className="rounded-lg"
                         >
@@ -1753,21 +1862,39 @@ export default function ContentModerationPage() {
                         </DropdownMenuCheckboxItem>
                         <DropdownMenuCheckboxItem
                           checked={filterType === "story"}
-                          onCheckedChange={() => setFilterType("story")}
+                          onCheckedChange={() =>
+                            dispatchUi({
+                              type: "set_filter_type",
+                              value: "story",
+                            })
+                          }
                           className="rounded-lg"
                         >
                           Stories
                         </DropdownMenuCheckboxItem>
                         <DropdownMenuCheckboxItem
                           checked={filterType === "announcement"}
-                          onCheckedChange={() => setFilterType("announcement")}
+                          onCheckedChange={() =>
+                            dispatchUi({
+                              type: "set_filter_type",
+                              value: "announcement",
+                            })
+                          }
                           className="rounded-lg"
                         >
                           Announcements
                         </DropdownMenuCheckboxItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    <Select value={sortBy} onValueChange={setSortBy}>
+                    <Select
+                      value={sortBy}
+                      onValueChange={(value) =>
+                        dispatchUi({
+                          type: "set_sort_by",
+                          value: value as SortOption,
+                        })
+                      }
+                    >
                       <SelectTrigger className="h-9 sm:h-10 w-28 sm:w-36 rounded-xl">
                         <ArrowUpDown className="h-4 w-4 mr-2" />
                         <SelectValue />

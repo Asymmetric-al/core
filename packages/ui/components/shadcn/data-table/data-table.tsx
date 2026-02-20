@@ -73,13 +73,19 @@ interface DataTableProps<TData, TValue> {
   };
 }
 
+const EMPTY_FILTER_FIELDS: DataTableFilterField<unknown>[] = [];
+const EMPTY_DATA_TABLE_CONFIG: DataTableConfig = {};
+const EMPTY_DATA_TABLE_INITIAL_STATE: NonNullable<
+  DataTableProps<unknown, unknown>["initialState"]
+> = {};
+
 export function DataTable<TData, TValue>({
   columns,
   data,
-  filterFields = [],
+  filterFields = EMPTY_FILTER_FIELDS as DataTableFilterField<TData>[],
   searchKey,
   searchPlaceholder,
-  config = {},
+  config = EMPTY_DATA_TABLE_CONFIG,
   isLoading = false,
   pageCount,
   onPaginationChange,
@@ -91,7 +97,9 @@ export function DataTable<TData, TValue>({
   tableClassName,
   emptyState,
   toolbar,
-  initialState = {},
+  initialState = EMPTY_DATA_TABLE_INITIAL_STATE as NonNullable<
+    DataTableProps<TData, TValue>["initialState"]
+  >,
 }: DataTableProps<TData, TValue>) {
   const {
     enableRowSelection = true,

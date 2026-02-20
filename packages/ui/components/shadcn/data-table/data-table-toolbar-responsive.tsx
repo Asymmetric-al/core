@@ -64,10 +64,13 @@ interface DataTableToolbarResponsiveProps<TData> {
   children?: React.ReactNode;
 }
 
+const EMPTY_FILTER_FIELDS: DataTableFilterField<unknown>[] = [];
+const EMPTY_ADVANCED_FILTER_FIELDS: FilterFieldDefinition[] = [];
+
 export function DataTableToolbarResponsive<TData>({
   table,
-  filterFields = [],
-  advancedFilterFields = [],
+  filterFields = EMPTY_FILTER_FIELDS as DataTableFilterField<TData>[],
+  advancedFilterFields = EMPTY_ADVANCED_FILTER_FIELDS,
   advancedFilter,
   onAdvancedFilterChange,
   searchKey,
@@ -83,6 +86,7 @@ export function DataTableToolbarResponsive<TData>({
 }: DataTableToolbarResponsiveProps<TData>) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
   const [searchOpen, setSearchOpen] = React.useState(false);
+  const mobileSearchInputRef = React.useRef<HTMLInputElement>(null);
   const isFiltered = table.getState().columnFilters.length > 0;
   const [localFilter, setLocalFilter] = React.useState<AdvancedFilterState>(
     advancedFilter ?? createEmptyFilterState(),
@@ -119,6 +123,11 @@ export function DataTableToolbarResponsive<TData>({
         typeof column.accessorFn !== "undefined" && column.getCanHide(),
     );
 
+  React.useEffect(() => {
+    if (!searchOpen) return;
+    mobileSearchInputRef.current?.focus();
+  }, [searchOpen]);
+
   return (
     <div className={cn("flex flex-col gap-3", className)}>
       <div className="flex items-center gap-2">
@@ -151,7 +160,7 @@ export function DataTableToolbarResponsive<TData>({
               variant="outline"
               size="icon"
               className="sm:hidden size-9 rounded-xl"
-              onClick={() => setSearchOpen(!searchOpen)}
+              onClick={() => setSearchOpen((prev) => !prev)}
             >
               <Search className="size-4" />
             </Button>
@@ -281,6 +290,7 @@ export function DataTableToolbarResponsive<TData>({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
+              ref={mobileSearchInputRef}
               placeholder={searchPlaceholder}
               value={
                 (table.getColumn(searchKey)?.getFilterValue() as string) ?? ""
@@ -289,7 +299,6 @@ export function DataTableToolbarResponsive<TData>({
                 table.getColumn(searchKey)?.setFilterValue(event.target.value)
               }
               className="h-10 pl-9 rounded-xl bg-background"
-              autoFocus
             />
             {(table.getColumn(searchKey)?.getFilterValue() as string) && (
               <Button

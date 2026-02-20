@@ -1,5 +1,6 @@
 "use client";
 
+import { motion, AnimatePresence } from "@asym/lib/motion";
 import { formatCurrency } from "@asym/lib/utils";
 import {
   Avatar,
@@ -27,7 +28,6 @@ import {
   Activity,
   Shield,
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import React, { useState, useMemo, Suspense } from "react";

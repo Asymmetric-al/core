@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  DEMO_AVAILABILITY_FALLBACK,
+  useDemoAvailability,
+  type DemoRole,
+} from "@asym/database/hooks";
 import { createBrowserClient } from "@asym/database/supabase";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
@@ -14,40 +19,18 @@ import { Label } from "@asym/ui/components/shadcn/label";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({ email: "", password: "" });
-  const demoRole = "missionary";
-  const [demoAvailable, setDemoAvailable] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    async function loadDemoAvailability() {
-      try {
-        const response = await fetch("/api/auth/demo-account");
-        if (!response.ok) {
-          throw new Error("Demo status unavailable");
-        }
-        const data = await response.json();
-        if (active && data?.availableRoles) {
-          setDemoAvailable(Boolean(data.availableRoles[demoRole]));
-        }
-      } catch {
-        if (active) {
-          setDemoAvailable(false);
-        }
-      }
-    }
-
-    loadDemoAvailability();
-    return () => {
-      active = false;
-    };
-  }, []);
+  const demoRole: DemoRole = "missionary";
+  const demoAvailabilityQuery = useDemoAvailability();
+  const demoAvailability =
+    demoAvailabilityQuery.data ?? DEMO_AVAILABILITY_FALLBACK;
+  const demoAvailable = demoAvailability[demoRole];
 
   async function handleDemoLogin() {
     if (!demoAvailable) {
@@ -174,13 +157,15 @@ export default function LoginPage() {
             <Button
               variant="outline"
               onClick={handleDemoLogin}
-              disabled={loading || !demoAvailable}
+              disabled={
+                loading || demoAvailabilityQuery.isLoading || !demoAvailable
+              }
               className="w-full"
             >
               Demo Access
             </Button>
           </div>
-          {!demoAvailable && (
+          {!demoAvailabilityQuery.isLoading && !demoAvailable && (
             <p className="mt-3 text-center text-xs text-muted-foreground">
               Demo login unavailable.
             </p>

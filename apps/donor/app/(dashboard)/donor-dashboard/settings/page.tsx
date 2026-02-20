@@ -1,5 +1,6 @@
 "use client";
 
+import { motion, AnimatePresence } from "@asym/lib/motion";
 import {
   Avatar,
   AvatarFallback,
@@ -42,7 +43,6 @@ import {
   Globe,
   AlertTriangle,
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
 import React, { useState } from "react";
 
 // --- Types ---

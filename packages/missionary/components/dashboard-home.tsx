@@ -28,8 +28,7 @@ import React from "react";
 
 import { GivingBreakdownChart } from "./giving-breakdown-chart";
 import { MetricTiles } from "./metric-tiles";
-
-import { PageHeader } from "@/components/page-header";
+import { PageHeader } from "./page-header";
 
 /** Same as demo profile id so metrics API finds the seeded missionary row. */
 const DEMO_MISSIONARY_ID = DEMO_PROFILE_ID;

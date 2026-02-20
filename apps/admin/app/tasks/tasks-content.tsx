@@ -1,101 +1,88 @@
 "use client";
 
 import { Button } from "@asym/ui/components/shadcn/button";
-import { Card } from "@asym/ui/components/shadcn/card";
-import { DataTableWrapper } from "@asym/ui/components/shadcn/data-table/data-table-wrapper";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuCheckboxItem,
-  DropdownMenuTrigger,
-  DropdownMenuLabel,
-} from "@asym/ui/components/shadcn/dropdown-menu";
-import { FilterBar } from "@asym/ui/components/shadcn/filter-bar";
 import { PageShell } from "@asym/ui/components/shadcn/page-shell";
-import { Tabs, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
-import { cn } from "@asym/ui/lib/utils";
-import {
-  Plus,
-  CheckSquare,
-  Clock,
-  AlertCircle,
-  ListTodo,
-  ListFilter,
-  CircleCheckBig,
-} from "lucide-react";
-import { motion } from "motion/react";
-import { useState, useMemo, useCallback } from "react";
+import { Plus } from "lucide-react";
+import { useState, useMemo, useCallback, useReducer } from "react";
 
 import { MOCK_TASKS, MOCK_STAFF, MOCK_LINKED_ENTITIES } from "./data";
 import { getTaskColumns } from "./task-columns";
 import { TaskDrawer } from "./task-drawer";
 import { TaskForm } from "./task-form";
+import {
+  TasksFilterSection,
+  TasksStatsCardsSection,
+  TasksTableSection,
+  type TasksViewTab,
+} from "./tasks-content-sections";
 
 import type { Task, TaskStatus } from "./types";
 
-const springTransition = {
-  type: "spring" as const,
-  stiffness: 400,
-  damping: 30,
+interface TasksUiState {
+  selectedTask: Task | null;
+  editingTask: Task | null;
+  isModalOpen: boolean;
+  activeTab: TasksViewTab;
+  showCompleted: boolean;
+  searchTerm: string;
+}
+
+type TasksUiAction =
+  | { type: "set-selected-task"; task: Task | null }
+  | { type: "open-create-modal" }
+  | { type: "open-edit-modal"; task: Task }
+  | { type: "close-modal" }
+  | { type: "set-active-tab"; tab: TasksViewTab }
+  | { type: "set-show-completed"; value: boolean }
+  | { type: "set-search-term"; value: string };
+
+const INITIAL_TASKS_UI_STATE: TasksUiState = {
+  selectedTask: null,
+  editingTask: null,
+  isModalOpen: false,
+  activeTab: "all",
+  showCompleted: false,
+  searchTerm: "",
 };
 
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  color,
-  onClick,
-  isActive,
-}: {
-  label: string;
-  value: number;
-  icon: React.ComponentType<{ className?: string }>;
-  color: string;
-  onClick?: () => void;
-  isActive?: boolean;
-}) {
-  return (
-    <motion.button
-      whileHover={{ scale: 1.02, y: -2 }}
-      whileTap={{ scale: 0.98 }}
-      transition={springTransition}
-      onClick={onClick}
-      className={cn(
-        "flex items-center gap-4 px-6 py-5 rounded-[2rem] border transition-all cursor-pointer text-left shadow-sm min-w-[200px] flex-1",
-        color,
-        isActive
-          ? "ring-2 ring-zinc-900 ring-offset-2 border-transparent"
-          : "border-zinc-100/60 bg-white",
-      )}
-    >
-      <div className={cn("p-3 rounded-2xl bg-white/50 shadow-sm")}>
-        <Icon className="size-5" />
-      </div>
-      <div className="flex flex-col">
-        <motion.span
-          key={value}
-          initial={{ scale: 1.2, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="text-3xl font-black tabular-nums tracking-tighter"
-        >
-          {value}
-        </motion.span>
-        <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60 mt-0.5">
-          {label}
-        </span>
-      </div>
-    </motion.button>
-  );
+function tasksUiReducer(
+  state: TasksUiState,
+  action: TasksUiAction,
+): TasksUiState {
+  switch (action.type) {
+    case "set-selected-task":
+      return { ...state, selectedTask: action.task };
+    case "open-create-modal":
+      return { ...state, editingTask: null, isModalOpen: true };
+    case "open-edit-modal":
+      return { ...state, editingTask: action.task, isModalOpen: true };
+    case "close-modal":
+      return { ...state, isModalOpen: false, editingTask: null };
+    case "set-active-tab":
+      return { ...state, activeTab: action.tab };
+    case "set-show-completed":
+      return { ...state, showCompleted: action.value };
+    case "set-search-term":
+      return { ...state, searchTerm: action.value };
+    default:
+      return state;
+  }
 }
 
 export function TasksPageContent() {
   const [tasks, setTasks] = useState<Task[]>(MOCK_TASKS);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"all" | "my" | "overdue">("all");
-  const [showCompleted, setShowCompleted] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [uiState, dispatchUi] = useReducer(
+    tasksUiReducer,
+    INITIAL_TASKS_UI_STATE,
+  );
+  const {
+    selectedTask,
+    editingTask,
+    isModalOpen,
+    activeTab,
+    showCompleted,
+    searchTerm,
+  } = uiState;
 
   const stats = useMemo(() => {
     const today = new Date();
@@ -178,12 +165,12 @@ export function TasksPageContent() {
     setTasks((prev) =>
       prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)),
     );
-    setSelectedTask(updatedTask);
+    dispatchUi({ type: "set-selected-task", task: updatedTask });
   }, []);
 
   const handleDeleteTask = useCallback((taskId: string) => {
     setTasks((prev) => prev.filter((t) => t.id !== taskId));
-    setSelectedTask(null);
+    dispatchUi({ type: "set-selected-task", task: null });
   }, []);
 
   const handleSaveTask = useCallback((taskData: Partial<Task>) => {
@@ -209,22 +196,31 @@ export function TasksPageContent() {
       };
       setTasks((prev) => [newTask, ...prev]);
     }
-    setIsModalOpen(false);
-    setEditingTask(null);
+    dispatchUi({ type: "close-modal" });
+  }, []);
+
+  const handleViewTask = useCallback((task: Task) => {
+    dispatchUi({ type: "set-selected-task", task });
+  }, []);
+
+  const handleOpenEditTask = useCallback((task: Task) => {
+    dispatchUi({ type: "open-edit-modal", task });
   }, []);
 
   const columns = useMemo(
     () =>
       getTaskColumns({
-        onViewTask: setSelectedTask,
-        onEditTask: (task) => {
-          setEditingTask(task);
-          setIsModalOpen(true);
-        },
+        onViewTask: handleViewTask,
+        onEditTask: handleOpenEditTask,
         onDeleteTask: handleDeleteTask,
         onToggleComplete: handleToggleComplete,
       }),
-    [handleDeleteTask, handleToggleComplete],
+    [
+      handleDeleteTask,
+      handleOpenEditTask,
+      handleToggleComplete,
+      handleViewTask,
+    ],
   );
 
   return (
@@ -234,10 +230,7 @@ export function TasksPageContent() {
       badge="Task Management"
       actions={
         <Button
-          onClick={() => {
-            setEditingTask(null);
-            setIsModalOpen(true);
-          }}
+          onClick={() => dispatchUi({ type: "open-create-modal" })}
           className="h-12 px-8 font-black bg-zinc-900 text-white hover:bg-zinc-800 shadow-xl shadow-zinc-200 uppercase tracking-[0.2em] text-[10px] rounded-2xl transition-all"
         >
           <Plus className="mr-2 size-4" />
@@ -246,131 +239,42 @@ export function TasksPageContent() {
       }
     >
       <div className="space-y-12">
-        <div className="flex flex-wrap gap-6">
-          <StatCard
-            label="Critical"
-            value={stats.overdue}
-            icon={AlertCircle}
-            color="text-rose-600 bg-rose-50/30"
-            isActive={activeTab === "overdue"}
-            onClick={() => setActiveTab("overdue")}
-          />
-          <StatCard
-            label="Due Today"
-            value={stats.dueToday}
-            icon={Clock}
-            color="text-amber-600 bg-amber-50/30"
-          />
-          <StatCard
-            label="In Progress"
-            value={stats.inProgress}
-            icon={ListTodo}
-            color="text-blue-600 bg-blue-50/30"
-          />
-          <StatCard
-            label="Completed"
-            value={stats.completed}
-            icon={CheckSquare}
-            color="text-emerald-600 bg-emerald-50/30"
-          />
-        </div>
-
-        <FilterBar
-          search={{
-            value: searchTerm,
-            onChange: setSearchTerm,
-            placeholder: "Search mission tasks...",
-          }}
-          filters={
-            <div className="flex items-center gap-3">
-              <Tabs
-                value={activeTab}
-                onValueChange={(v) => setActiveTab(v as typeof activeTab)}
-              >
-                <TabsList className="bg-zinc-100/80 p-1 h-11 rounded-xl border border-zinc-200/50">
-                  <TabsTrigger
-                    value="all"
-                    className="text-[9px] font-black uppercase tracking-widest px-4 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
-                  >
-                    All Missions
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="my"
-                    className="text-[9px] font-black uppercase tracking-widest px-4 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
-                  >
-                    My Work
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="h-11 rounded-xl border-zinc-200 font-bold uppercase tracking-widest text-[10px] gap-2"
-                  >
-                    <ListFilter className="size-4 text-zinc-400" />
-                    Display
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="w-56 rounded-2xl border-zinc-100 p-2 shadow-xl"
-                >
-                  <DropdownMenuLabel className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                    View Settings
-                  </DropdownMenuLabel>
-                  <DropdownMenuCheckboxItem
-                    checked={showCompleted}
-                    onCheckedChange={setShowCompleted}
-                    className="rounded-lg px-3 py-2 text-sm font-medium"
-                  >
-                    Include Completed
-                  </DropdownMenuCheckboxItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+        <TasksStatsCardsSection
+          activeTab={activeTab}
+          stats={stats}
+          onOverdueClick={() =>
+            dispatchUi({ type: "set-active-tab", tab: "overdue" })
           }
         />
 
-        <Card className="rounded-[2.5rem] border-zinc-100/80 shadow-sm overflow-hidden bg-white">
-          <div className="p-1">
-            <DataTableWrapper
-              columns={columns}
-              data={filteredTasks}
-              searchKey="title"
-              config={{
-                enableRowSelection: true,
-                enableColumnVisibility: true,
-                enablePagination: true,
-                enableFilters: true,
-                enableSorting: true,
-              }}
-              emptyState={{
-                title: "No missions found",
-                description:
-                  "Try adjusting your search or filters to coordinate tasks.",
-                icon: <CircleCheckBig className="size-10 text-zinc-200" />,
-                action: (
-                  <Button
-                    onClick={() => setIsModalOpen(true)}
-                    variant="outline"
-                    className="mt-4 rounded-xl font-bold uppercase tracking-widest text-[10px]"
-                  >
-                    Create First Task
-                  </Button>
-                ),
-              }}
-            />
-          </div>
-        </Card>
+        <TasksFilterSection
+          activeTab={activeTab}
+          searchTerm={searchTerm}
+          showCompleted={showCompleted}
+          onSearchChange={(value) =>
+            dispatchUi({ type: "set-search-term", value })
+          }
+          onTabChange={(tab) => dispatchUi({ type: "set-active-tab", tab })}
+          onShowCompletedChange={(value) =>
+            dispatchUi({
+              type: "set-show-completed",
+              value,
+            })
+          }
+        />
+
+        <TasksTableSection
+          columns={columns}
+          data={filteredTasks}
+          onCreateTask={() => dispatchUi({ type: "open-create-modal" })}
+        />
       </div>
 
       <TaskDrawer
         task={selectedTask}
         staffMembers={MOCK_STAFF}
         linkedEntities={MOCK_LINKED_ENTITIES}
-        onClose={() => setSelectedTask(null)}
+        onClose={() => dispatchUi({ type: "set-selected-task", task: null })}
         onUpdate={handleUpdateTask}
         onDelete={handleDeleteTask}
       />
@@ -380,10 +284,7 @@ export function TasksPageContent() {
         task={editingTask}
         staffMembers={MOCK_STAFF}
         linkedEntities={MOCK_LINKED_ENTITIES}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingTask(null);
-        }}
+        onClose={() => dispatchUi({ type: "close-modal" })}
         onSave={handleSaveTask}
       />
     </PageShell>

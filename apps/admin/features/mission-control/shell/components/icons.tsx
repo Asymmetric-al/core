@@ -70,6 +70,17 @@ interface DynamicIconProps extends Omit<LucideProps, "ref" | "name"> {
   fallback?: React.ReactNode;
 }
 
+type DynamicImportName = keyof typeof dynamicIconImports;
+const LAZY_ICON_MAP = new Map<
+  DynamicImportName,
+  React.LazyExoticComponent<React.ComponentType<LucideProps>>
+>(
+  (Object.keys(dynamicIconImports) as DynamicImportName[]).map((iconName) => [
+    iconName,
+    lazy(dynamicIconImports[iconName]),
+  ]),
+);
+
 export function DynamicIcon({ name, fallback, ...props }: DynamicIconProps) {
   const kebabName = useMemo(() => {
     if (typeof name === "function") return null;
@@ -84,11 +95,9 @@ export function DynamicIcon({ name, fallback, ...props }: DynamicIconProps) {
       return converted as keyof typeof dynamicIconImports;
     return null;
   }, [name]);
-
-  const LucideIcon = useMemo(() => {
-    if (!kebabName) return null;
-    return lazy(dynamicIconImports[kebabName]);
-  }, [kebabName]);
+  const lazyIconComponent = kebabName
+    ? (LAZY_ICON_MAP.get(kebabName) ?? null)
+    : null;
 
   // If name is already an icon component, render it directly
   if (typeof name === "function") {
@@ -96,9 +105,11 @@ export function DynamicIcon({ name, fallback, ...props }: DynamicIconProps) {
     return <IconComponent {...props} />;
   }
 
-  if (!LucideIcon) {
+  if (!lazyIconComponent) {
     return <Settings {...props} />;
   }
+
+  const lazyIconElement = React.createElement(lazyIconComponent, props);
 
   return (
     <Suspense
@@ -108,7 +119,7 @@ export function DynamicIcon({ name, fallback, ...props }: DynamicIconProps) {
         )
       }
     >
-      <LucideIcon {...props} />
+      {lazyIconElement}
     </Suspense>
   );
 }

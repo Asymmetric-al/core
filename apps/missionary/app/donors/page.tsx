@@ -2,6 +2,7 @@
 
 import { createBrowserClient } from "@asym/database/supabase";
 import { useAuth, useTasks } from "@asym/lib/hooks";
+import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
 import { AddPartnerDialog } from "@asym/missionary/components/add-partner-dialog";
 import { TaskDialog } from "@asym/missionary/components/task-dialog";
 import {
@@ -101,7 +102,6 @@ import {
   Repeat,
   ListTodo,
 } from "lucide-react";
-import { motion, AnimatePresence, LayoutGroup } from "motion/react";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";

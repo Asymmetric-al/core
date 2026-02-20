@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "@asym/lib/motion";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
@@ -15,7 +16,6 @@ import {
   Send,
   Sparkles,
 } from "@asym/ui/components/shadcn/icons";
-import { motion } from "motion/react";
 
 import { PageHeader } from "@/components/page-header";
 

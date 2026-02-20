@@ -1,6 +1,7 @@
 "use client";
 
 import { useTasks } from "@asym/lib/hooks";
+import { motion, AnimatePresence } from "@asym/lib/motion";
 import { TaskDialog } from "@asym/missionary/components/task-dialog";
 import { TaskKanbanBoard } from "@asym/missionary/components/task-kanban-board";
 import { TaskRow } from "@asym/missionary/components/task-row";
@@ -44,8 +45,7 @@ import {
   LayoutGrid,
   List,
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import * as React from "react";
 
 import type {
@@ -206,7 +206,6 @@ type ViewFilter = "all" | "active" | "completed" | "overdue" | "today";
 type ViewMode = "list" | "board";
 
 export default function TasksPage() {
-  const [mounted, setMounted] = React.useState(false);
   const {
     loading,
     error,
@@ -233,10 +232,6 @@ export default function TasksPage() {
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | "all">(
     "all",
   );
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const displayedTasks = useMemo(() => {
     let result = [...filteredTasks];
@@ -363,8 +358,6 @@ export default function TasksPage() {
     }
     return chips;
   }, [typeFilter, priorityFilter]);
-
-  if (!mounted) return null;
 
   return (
     <PageShell

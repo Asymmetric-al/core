@@ -153,6 +153,7 @@ Load rulebooks before editing files in their domain.
 - Load the relevant Skill(s) when the task trigger matches.
 - Skills must remain **procedural**: triggers → steps → checklist.
 - Every Skill should include a **last-updated timestamp** in its frontmatter (`metadata.last_updated`). See: `docs/agent/skills-bench.md`.
+- Load the Inngest skills from https://github.com/inngest/inngest-skills for building with Inngest's durable execution platform.
 
 ### Skills Stewardship (Required)
 

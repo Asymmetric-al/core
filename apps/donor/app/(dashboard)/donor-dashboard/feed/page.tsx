@@ -1,5 +1,7 @@
 "use client";
 
+import { SafeHtml } from "@asym/lib/components/safe-html";
+import { motion, AnimatePresence } from "@asym/lib/motion";
 import {
   Avatar,
   AvatarFallback,
@@ -35,7 +37,6 @@ import {
   BookmarkCheck,
   CornerDownRight,
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
 import React, { useState, useMemo } from "react";
 
@@ -714,9 +715,9 @@ const PostCard: React.FC<{
           </div>
         )}
 
-        <div
+        <SafeHtml
           className="prose prose-zinc prose-sm sm:prose-base max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-p:leading-relaxed prose-p:text-zinc-600 prose-p:font-medium prose-blockquote:border-l-4 prose-blockquote:border-zinc-900 prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:font-bold prose-blockquote:text-zinc-800 prose-a:text-zinc-900 prose-a:underline hover:prose-a:opacity-70 prose-img:rounded-xl uppercase tracking-tight"
-          dangerouslySetInnerHTML={{ __html: post.content }}
+          html={post.content}
         />
       </div>
 

@@ -1,6 +1,7 @@
 import "@asym/env";
 import { siteConfig } from "@asym/config/site";
 import { QueryProvider } from "@asym/database/providers";
+import { MotionProvider } from "@asym/lib/motion";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { Inter, Geist_Mono, Syne } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
@@ -102,11 +103,13 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <QueryProvider>
-            <Suspense fallback={null}>
-              <NuqsAdapter>
-                <AppShell role="missionary">{children}</AppShell>
-              </NuqsAdapter>
-            </Suspense>
+            <MotionProvider>
+              <Suspense fallback={null}>
+                <NuqsAdapter>
+                  <AppShell role="missionary">{children}</AppShell>
+                </NuqsAdapter>
+              </Suspense>
+            </MotionProvider>
           </QueryProvider>
         </ThemeProvider>
         <Toaster />

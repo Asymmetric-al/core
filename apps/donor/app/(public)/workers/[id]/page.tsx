@@ -1,3 +1,4 @@
+import { SafeHtml } from "@asym/lib/components/safe-html";
 import {
   createWorkerMetadata,
   WorkerJsonLd,
@@ -141,9 +142,9 @@ function UpdateCard({
               </h4>
             )}
 
-            <div
+            <SafeHtml
               className="prose prose-slate prose-sm max-w-none text-slate-600 mb-4 leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: update.content }}
+              html={update.content}
             />
 
             {update.image && (

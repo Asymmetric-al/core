@@ -2,7 +2,9 @@
 
 import {
   AnimatePresence,
-  motion,
+  LazyMotion,
+  domAnimation,
+  m,
   useInView,
   type HTMLMotionProps,
   type UseInViewOptions,
@@ -11,7 +13,7 @@ import {
 } from "motion/react";
 import * as React from "react";
 
-type MotionComponent = keyof typeof motion;
+type MotionComponent = keyof typeof m;
 
 interface MotionPresetProps {
   children?: React.ReactNode;
@@ -43,10 +45,11 @@ interface MotionPresetProps {
   ref?: React.Ref<HTMLDivElement | null>;
 }
 
-const motionComponents = motion as unknown as Record<
+const motionComponents = m as unknown as Record<
   MotionComponent,
   React.ComponentType<HTMLMotionProps<"div">>
 >;
+const EMPTY_MOTION_PROPS: MotionPresetProps["motionProps"] = {};
 
 function MotionPreset({
   ref,
@@ -62,7 +65,7 @@ function MotionPreset({
   slide = false,
   fade = false,
   zoom = false,
-  motionProps = {},
+  motionProps = EMPTY_MOTION_PROPS,
 }: MotionPresetProps) {
   const localRef = React.useRef<HTMLDivElement | null>(null);
 
@@ -106,29 +109,31 @@ function MotionPreset({
     visibleVariant.scale = zoom === true ? 1 : (zoom.scale ?? 1);
   }
 
-  const MotionComponent = motionComponents[component] || motion.div;
+  const MotionComponent = motionComponents[component] || m.div;
 
   return (
-    <AnimatePresence>
-      <MotionComponent
-        ref={localRef}
-        initial="hidden"
-        animate={isInView ? "visible" : "hidden"}
-        exit="hidden"
-        variants={{
-          hidden: hiddenVariant,
-          visible: visibleVariant,
-        }}
-        transition={{
-          ...transition,
-          delay: (transition?.delay ?? 0) + delay,
-        }}
-        className={className}
-        {...motionProps}
-      >
-        {children}
-      </MotionComponent>
-    </AnimatePresence>
+    <LazyMotion features={domAnimation}>
+      <AnimatePresence>
+        <MotionComponent
+          ref={localRef}
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          exit="hidden"
+          variants={{
+            hidden: hiddenVariant,
+            visible: visibleVariant,
+          }}
+          transition={{
+            ...transition,
+            delay: (transition?.delay ?? 0) + delay,
+          }}
+          className={className}
+          {...motionProps}
+        >
+          {children}
+        </MotionComponent>
+      </AnimatePresence>
+    </LazyMotion>
   );
 }
 

@@ -79,7 +79,7 @@ function WorkerCard({ worker }: { worker: FieldWorker }) {
             </Link>
           </h2>
 
-          <div className="relative z-30" onClick={(e) => e.stopPropagation()}>
+          <div className="relative z-30">
             <QuickGiveInput workerId={worker.id} />
           </div>
         </div>

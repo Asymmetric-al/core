@@ -61,7 +61,13 @@ import {
   History,
   Layers,
 } from "lucide-react";
-import React, { useRef, useState, useCallback, useEffect } from "react";
+import React, {
+  useRef,
+  useState,
+  useCallback,
+  useEffect,
+  useReducer,
+} from "react";
 import { toast } from "sonner";
 
 import type { UnlayerEditorHandle } from "@asym/ui/components/studio/UnlayerEditor";
@@ -75,25 +81,106 @@ interface EmailMetadata {
   preheader: string;
 }
 
+interface EmailStudioUiState {
+  isEditorReady: boolean;
+  isSaving: boolean;
+  hasUnsavedChanges: boolean;
+  previewDevice: PreviewDevice;
+  showSaveDialog: boolean;
+  showExportDialog: boolean;
+  exportedHtml: string;
+  studioConfig: EmailStudioFullConfig | null;
+  isFullscreen: boolean;
+  copiedHtml: boolean;
+}
+
+type EmailStudioUiAction =
+  | { type: "editor_ready"; config: EmailStudioFullConfig }
+  | { type: "set_saving"; value: boolean }
+  | { type: "set_unsaved_changes"; value: boolean }
+  | { type: "set_preview_device"; value: PreviewDevice }
+  | { type: "set_show_save_dialog"; value: boolean }
+  | { type: "open_export_dialog"; html: string }
+  | { type: "set_show_export_dialog"; value: boolean }
+  | { type: "set_fullscreen"; value: boolean }
+  | { type: "toggle_fullscreen" }
+  | { type: "set_copied_html"; value: boolean };
+
+const INITIAL_EMAIL_STUDIO_UI_STATE: EmailStudioUiState = {
+  isEditorReady: false,
+  isSaving: false,
+  hasUnsavedChanges: false,
+  previewDevice: "desktop",
+  showSaveDialog: false,
+  showExportDialog: false,
+  exportedHtml: "",
+  studioConfig: null,
+  isFullscreen: false,
+  copiedHtml: false,
+};
+
+function emailStudioUiReducer(
+  state: EmailStudioUiState,
+  action: EmailStudioUiAction,
+): EmailStudioUiState {
+  switch (action.type) {
+    case "editor_ready":
+      return {
+        ...state,
+        isEditorReady: true,
+        studioConfig: action.config,
+      };
+    case "set_saving":
+      return { ...state, isSaving: action.value };
+    case "set_unsaved_changes":
+      return { ...state, hasUnsavedChanges: action.value };
+    case "set_preview_device":
+      return { ...state, previewDevice: action.value };
+    case "set_show_save_dialog":
+      return { ...state, showSaveDialog: action.value };
+    case "open_export_dialog":
+      return {
+        ...state,
+        exportedHtml: action.html,
+        showExportDialog: true,
+      };
+    case "set_show_export_dialog":
+      return { ...state, showExportDialog: action.value };
+    case "set_fullscreen":
+      return { ...state, isFullscreen: action.value };
+    case "toggle_fullscreen":
+      return { ...state, isFullscreen: !state.isFullscreen };
+    case "set_copied_html":
+      return { ...state, copiedHtml: action.value };
+    default:
+      return state;
+  }
+}
+
 export default function EmailStudio() {
   const editorRef = useRef<UnlayerEditorHandle>(null);
-  const [isEditorReady, setIsEditorReady] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [previewDevice, setPreviewDevice] = useState<PreviewDevice>("desktop");
-  const [showSaveDialog, setShowSaveDialog] = useState(false);
-  const [showExportDialog, setShowExportDialog] = useState(false);
-  const [exportedHtml, setExportedHtml] = useState<string>("");
-  const [studioConfig, setStudioConfig] =
-    useState<EmailStudioFullConfig | null>(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [copiedHtml, setCopiedHtml] = useState(false);
+  const [ui, dispatchUi] = useReducer(
+    emailStudioUiReducer,
+    INITIAL_EMAIL_STUDIO_UI_STATE,
+  );
   const [metadata, setMetadata] = useState<EmailMetadata>({
     id: null,
     name: "Untitled Email",
     subject: "",
     preheader: "",
   });
+  const {
+    isEditorReady,
+    isSaving,
+    hasUnsavedChanges,
+    previewDevice,
+    showSaveDialog,
+    showExportDialog,
+    exportedHtml,
+    studioConfig,
+    isFullscreen,
+    copiedHtml,
+  } = ui;
 
   const handleUndo = useCallback(() => {
     editorRef.current?.undo();
@@ -105,7 +192,7 @@ export default function EmailStudio() {
 
   const handleSaveClick = useCallback(() => {
     if (!editorRef.current) return;
-    setShowSaveDialog(true);
+    dispatchUi({ type: "set_show_save_dialog", value: true });
   }, []);
 
   const handleExportHtml = useCallback(async () => {
@@ -115,8 +202,7 @@ export default function EmailStudio() {
         minify: studioConfig?.export.minifyHtml ?? true,
         cleanup: studioConfig?.export.cleanupCss ?? true,
       });
-      setExportedHtml(data.html);
-      setShowExportDialog(true);
+      dispatchUi({ type: "open_export_dialog", html: data.html });
     } catch {
       toast.error("Failed to export HTML");
     }
@@ -143,7 +229,7 @@ export default function EmailStudio() {
         handleExportHtml();
       }
       if (e.key === "Escape" && isFullscreen) {
-        setIsFullscreen(false);
+        dispatchUi({ type: "set_fullscreen", value: false });
       }
     };
 
@@ -160,8 +246,7 @@ export default function EmailStudio() {
   ]);
 
   const handleEditorReady = useCallback((config: EmailStudioFullConfig) => {
-    setIsEditorReady(true);
-    setStudioConfig(config);
+    dispatchUi({ type: "editor_ready", config });
 
     if (!config.account.isConfigured) {
       toast.info("Email Studio is running in free mode", {
@@ -176,11 +261,11 @@ export default function EmailStudio() {
   }, []);
 
   const handleDesignUpdate = useCallback(() => {
-    setHasUnsavedChanges(true);
+    dispatchUi({ type: "set_unsaved_changes", value: true });
   }, []);
 
   const handleSave = useCallback(async () => {
-    setIsSaving(true);
+    dispatchUi({ type: "set_saving", value: true });
     try {
       await new Promise((resolve) => setTimeout(resolve, 500));
 
@@ -188,7 +273,7 @@ export default function EmailStudio() {
         setMetadata((prev) => ({ ...prev, id: crypto.randomUUID() }));
       }
 
-      setHasUnsavedChanges(false);
+      dispatchUi({ type: "set_unsaved_changes", value: false });
       toast.success("Template saved", {
         description: `"${metadata.name}" has been saved successfully`,
         duration: 3000,
@@ -199,19 +284,19 @@ export default function EmailStudio() {
         duration: 3000,
       });
     } finally {
-      setIsSaving(false);
+      dispatchUi({ type: "set_saving", value: false });
     }
   }, [metadata.id, metadata.name]);
 
   const handleConfirmSave = useCallback(async () => {
     if (!editorRef.current) return;
 
-    setShowSaveDialog(false);
-    setIsSaving(true);
+    dispatchUi({ type: "set_show_save_dialog", value: false });
+    dispatchUi({ type: "set_saving", value: true });
 
     try {
       await editorRef.current.saveDesign();
-      setHasUnsavedChanges(false);
+      dispatchUi({ type: "set_unsaved_changes", value: false });
 
       if (!metadata.id) {
         setMetadata((prev) => ({ ...prev, id: crypto.randomUUID() }));
@@ -224,15 +309,18 @@ export default function EmailStudio() {
     } catch {
       toast.error("Failed to save template");
     } finally {
-      setIsSaving(false);
+      dispatchUi({ type: "set_saving", value: false });
     }
   }, [metadata.name, metadata.id]);
 
   const handleCopyHtml = useCallback(() => {
     navigator.clipboard.writeText(exportedHtml);
-    setCopiedHtml(true);
+    dispatchUi({ type: "set_copied_html", value: true });
     toast.success("HTML copied to clipboard");
-    setTimeout(() => setCopiedHtml(false), 2000);
+    setTimeout(
+      () => dispatchUi({ type: "set_copied_html", value: false }),
+      2000,
+    );
   }, [exportedHtml]);
 
   const handleDownloadHtml = useCallback(() => {
@@ -250,7 +338,7 @@ export default function EmailStudio() {
 
   const handlePreview = useCallback((device: PreviewDevice) => {
     if (!editorRef.current) return;
-    setPreviewDevice(device);
+    dispatchUi({ type: "set_preview_device", value: device });
     editorRef.current.showPreview(device);
   }, []);
 
@@ -273,7 +361,7 @@ export default function EmailStudio() {
         },
       });
     }
-    setHasUnsavedChanges(false);
+    dispatchUi({ type: "set_unsaved_changes", value: false });
     toast.info("New template created");
   }, []);
 
@@ -511,7 +599,9 @@ export default function EmailStudio() {
                 Schedule Send
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setIsFullscreen(!isFullscreen)}>
+              <DropdownMenuItem
+                onClick={() => dispatchUi({ type: "toggle_fullscreen" })}
+              >
                 {isFullscreen ? (
                   <Minimize2 className="h-4 w-4 mr-2" />
                 ) : (
@@ -552,7 +642,12 @@ export default function EmailStudio() {
         />
       </div>
 
-      <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+      <Dialog
+        open={showSaveDialog}
+        onOpenChange={(open) =>
+          dispatchUi({ type: "set_show_save_dialog", value: open })
+        }
+      >
         <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -621,7 +716,12 @@ export default function EmailStudio() {
             </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() =>
+                dispatchUi({ type: "set_show_save_dialog", value: false })
+              }
+            >
               Cancel
             </Button>
             <Button
@@ -635,7 +735,12 @@ export default function EmailStudio() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
+      <Dialog
+        open={showExportDialog}
+        onOpenChange={(open) =>
+          dispatchUi({ type: "set_show_export_dialog", value: open })
+        }
+      >
         <DialogContent className="sm:max-w-[680px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -691,7 +796,9 @@ export default function EmailStudio() {
           <DialogFooter className="gap-2 sm:gap-0">
             <Button
               variant="outline"
-              onClick={() => setShowExportDialog(false)}
+              onClick={() =>
+                dispatchUi({ type: "set_show_export_dialog", value: false })
+              }
             >
               Close
             </Button>

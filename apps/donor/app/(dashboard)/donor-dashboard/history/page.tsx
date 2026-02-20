@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "@asym/lib/motion";
 import { formatCurrency } from "@asym/lib/utils";
 import {
   Avatar,
@@ -41,7 +42,6 @@ import {
   Clock,
   Search,
 } from "lucide-react";
-import { motion } from "motion/react";
 import React, { useState, useMemo } from "react";
 import {
   ResponsiveContainer,

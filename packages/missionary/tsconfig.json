@@ -1,9 +1,12 @@
 {
-  "extends": "@asym/typescript-config/library.json",
+  "extends": "@asym/typescript-config/library-transitional.json",
   "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": ".",
     "baseUrl": ".",
-    "noUnusedLocals": false,
-    "noUnusedParameters": false
+    "paths": {
+      "@/*": ["./*"]
+    }
   },
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules", "dist"]

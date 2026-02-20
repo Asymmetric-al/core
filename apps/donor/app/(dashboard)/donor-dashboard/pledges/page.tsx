@@ -1,5 +1,6 @@
 "use client";
 
+import { motion, AnimatePresence } from "@asym/lib/motion";
 import { formatCurrency } from "@asym/lib/utils";
 import {
   Avatar,
@@ -54,7 +55,6 @@ import {
   MapPin,
   Check,
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
 import React, { useState } from "react";
 
 // --- Types & Mock Data ---
@@ -680,8 +680,9 @@ export default function DonorPledgesPage() {
                     <Label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">
                       Payment Method
                     </Label>
-                    <div
-                      className="bg-white border border-zinc-200 p-3 rounded-xl flex items-center justify-between cursor-pointer hover:border-zinc-300 hover:shadow-sm transition-all group"
+                    <button
+                      type="button"
+                      className="w-full bg-white border border-zinc-200 p-3 rounded-xl flex items-center justify-between cursor-pointer hover:border-zinc-300 hover:shadow-sm transition-all group text-left"
                       onClick={() =>
                         editingPledge && handleOpenMove(editingPledge)
                       }
@@ -710,7 +711,7 @@ export default function DonorPledgesPage() {
                         </div>
                       </div>
                       <ArrowRightLeft className="h-4 w-4 text-zinc-300 group-hover:text-zinc-900 transition-colors" />
-                    </div>
+                    </button>
                   </div>
 
                   {/* Status Control */}
@@ -792,8 +793,9 @@ export default function DonorPledgesPage() {
                     </Label>
                     <div className="grid grid-cols-2 gap-3">
                       {["1", "3", "6"].map((m) => (
-                        <div
+                        <button
                           key={m}
+                          type="button"
                           onClick={() => {
                             setPauseDuration(m);
                             setCustomResumeDate("");
@@ -806,9 +808,10 @@ export default function DonorPledgesPage() {
                           )}
                         >
                           {m} Month{m !== "1" && "s"}
-                        </div>
+                        </button>
                       ))}
-                      <div
+                      <button
+                        type="button"
                         onClick={() => {
                           setPauseDuration("");
                         }}
@@ -825,7 +828,7 @@ export default function DonorPledgesPage() {
                             {customResumeDate}
                           </span>
                         )}
-                      </div>
+                      </button>
                     </div>
 
                     {pauseDuration === "" && (
@@ -918,11 +921,12 @@ export default function DonorPledgesPage() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   {wallets.map((wallet) => (
-                    <div
+                    <button
                       key={wallet.id}
+                      type="button"
                       onClick={() => setSelectedTargetId(wallet.id)}
                       className={cn(
-                        "flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all",
+                        "w-full flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all text-left",
                         selectedTargetId === wallet.id
                           ? "bg-zinc-50 border-zinc-900 ring-1 ring-zinc-900 shadow-sm"
                           : "bg-white border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50",
@@ -957,7 +961,7 @@ export default function DonorPledgesPage() {
                           Expires 12/26
                         </p>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
 

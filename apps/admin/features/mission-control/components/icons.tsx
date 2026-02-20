@@ -44,6 +44,17 @@ interface DynamicIconProps extends Omit<LucideProps, "ref"> {
   fallback?: React.ReactNode;
 }
 
+type DynamicImportName = keyof typeof dynamicIconImports;
+const LAZY_ICON_MAP = new Map<
+  DynamicImportName,
+  React.LazyExoticComponent<React.ComponentType<LucideProps>>
+>(
+  (Object.keys(dynamicIconImports) as DynamicImportName[]).map((iconName) => [
+    iconName,
+    lazy(dynamicIconImports[iconName]),
+  ]),
+);
+
 export function DynamicIcon({ name, fallback, ...props }: DynamicIconProps) {
   const kebabName = useMemo(() => {
     // If it's already kebab-case or a valid key in dynamicIconImports, use it
@@ -55,15 +66,15 @@ export function DynamicIcon({ name, fallback, ...props }: DynamicIconProps) {
       return converted as keyof typeof dynamicIconImports;
     return null;
   }, [name]);
+  const lazyIconComponent = kebabName
+    ? (LAZY_ICON_MAP.get(kebabName) ?? null)
+    : null;
 
-  const LucideIcon = useMemo(() => {
-    if (!kebabName) return null;
-    return lazy(dynamicIconImports[kebabName]);
-  }, [kebabName]);
-
-  if (!LucideIcon) {
+  if (!lazyIconComponent) {
     return <Settings {...props} />;
   }
+
+  const lazyIconElement = React.createElement(lazyIconComponent, props);
 
   return (
     <Suspense
@@ -73,7 +84,7 @@ export function DynamicIcon({ name, fallback, ...props }: DynamicIconProps) {
         )
       }
     >
-      <LucideIcon {...props} />
+      {lazyIconElement}
     </Suspense>
   );
 }

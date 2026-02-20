@@ -1,9 +1,9 @@
 "use client";
 
+import { AnimatePresence, motion } from "@asym/lib/motion";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { cn } from "@asym/ui/lib/utils";
 import { ArrowRight, DollarSign } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 

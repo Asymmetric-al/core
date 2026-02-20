@@ -1,7 +1,7 @@
 "use client";
 
 import { StarIcon } from "lucide-react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 
 import { cn } from "@asym/ui/lib/utils";
 
@@ -25,6 +25,14 @@ export function RatingCell<TData>({
   allowHalf = false,
 }: RatingCellProps<TData>) {
   const [hoverValue, setHoverValue] = useState<number | null>(null);
+  const stars = useMemo(
+    () =>
+      Array.from({ length: max }, (_, index) => ({
+        id: `star-${index + 1}`,
+        index,
+      })),
+    [max],
+  );
 
   const displayValue = hoverValue ?? value ?? 0;
 
@@ -41,7 +49,7 @@ export function RatingCell<TData>({
   const handleMouseEnter = useCallback(
     (index: number) => {
       if (disabled || !isEditing) return;
-      setHoverValue(index + 1);
+      setHoverValue(() => index + 1);
     },
     [disabled, isEditing],
   );
@@ -59,19 +67,19 @@ export function RatingCell<TData>({
       )}
       onMouseLeave={handleMouseLeave}
     >
-      {Array.from({ length: max }, (_, i) => {
-        const filled = i < displayValue;
+      {stars.map((star) => {
+        const filled = star.index < displayValue;
         const halfFilled =
           allowHalf &&
-          i === Math.floor(displayValue) &&
+          star.index === Math.floor(displayValue) &&
           displayValue % 1 >= 0.5;
 
         return (
           <button
-            key={i}
+            key={star.id}
             type="button"
-            onClick={() => handleClick(i)}
-            onMouseEnter={() => handleMouseEnter(i)}
+            onClick={() => handleClick(star.index)}
+            onMouseEnter={() => handleMouseEnter(star.index)}
             disabled={disabled || !isEditing}
             className={cn(
               "p-0 relative",

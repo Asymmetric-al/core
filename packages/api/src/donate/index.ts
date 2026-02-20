@@ -9,6 +9,9 @@ import { createAuditLogger } from "@asym/lib/audit/logger";
 import { type NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
+import { donateGetQuerySchema, donatePostSchema } from "../schemas/donate";
+import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
+
 function getStripeClient(secretKey: string): Stripe {
   return new Stripe(secretKey, { apiVersion: "2025-02-24.acacia" });
 }
@@ -25,22 +28,9 @@ export async function POST(request: NextRequest) {
     const ctx = auth as AuthenticatedContext;
     const audit = createAuditLogger(ctx, request);
 
-    const body = await request.json();
-    const { amount, currency = "usd", missionary_id, fund_id } = body;
-
-    if (!amount || amount <= 0) {
-      return NextResponse.json(
-        { error: "Amount must be greater than 0" },
-        { status: 400 },
-      );
-    }
-
-    if (!missionary_id && !fund_id) {
-      return NextResponse.json(
-        { error: "Either missionary_id or fund_id is required" },
-        { status: 400 },
-      );
-    }
+    const { amount, currency, missionary_id, fund_id } = donatePostSchema.parse(
+      await ensureJsonBody(request),
+    );
 
     const { data: tenant, error: tenantError } = await supabaseAdmin
       .from("tenants")
@@ -206,13 +196,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (e) {
     console.error("Donation error:", e);
-    const message = e instanceof Error ? e.message : "Internal error";
-    const status = message.includes("Unauthorized")
-      ? 401
-      : message.includes("Forbidden")
-        ? 403
-        : 500;
-    return NextResponse.json({ error: message }, { status });
+    return toErrorResponse(e);
   }
 }
 
@@ -228,8 +212,11 @@ export async function GET(request: NextRequest) {
     const ctx = auth as AuthenticatedContext;
 
     const { searchParams } = new URL(request.url);
-    const missionaryId = searchParams.get("missionary_id");
-    const fundId = searchParams.get("fund_id");
+    const { missionary_id: missionaryId, fund_id: fundId } =
+      donateGetQuerySchema.parse({
+        missionary_id: searchParams.get("missionary_id"),
+        fund_id: searchParams.get("fund_id"),
+      });
 
     const { data: donor } = await supabaseAdmin
       .from("donors")
@@ -307,10 +294,6 @@ export async function GET(request: NextRequest) {
       donor: donor || null,
     });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Internal error";
-    return NextResponse.json(
-      { error: message },
-      { status: message.includes("Unauthorized") ? 401 : 500 },
-    );
+    return toErrorResponse(e);
   }
 }

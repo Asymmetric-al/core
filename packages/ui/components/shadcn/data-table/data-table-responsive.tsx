@@ -9,6 +9,7 @@ import {
   type RowSelectionState,
   type PaginationState,
   type Row,
+  type Table as TanStackTable,
   flexRender,
   getCoreRowModel,
   getFacetedRowModel,
@@ -45,6 +46,7 @@ import { createEmptyFilterState, createAdvancedFilterFn } from "./filters";
 import { useDataTableKeyboard, getKeyboardNavigationStyles } from "./hooks";
 
 import type { AdvancedFilterState, FilterFieldDefinition } from "./filters";
+import type { UseDataTableKeyboardReturn } from "./hooks";
 import type { DataTableFilterField, DataTableConfig } from "./types";
 
 type ViewMode = "table" | "card";
@@ -105,14 +107,253 @@ interface DataTableResponsiveProps<TData, TValue> {
   };
 }
 
+const EMPTY_FILTER_FIELDS: DataTableFilterField<unknown>[] = [];
+const EMPTY_ADVANCED_FILTER_FIELDS: FilterFieldDefinition[] = [];
+const EMPTY_DATA_TABLE_CONFIG: DataTableConfig = {};
+const EMPTY_DATA_TABLE_INITIAL_STATE: NonNullable<
+  DataTableResponsiveProps<unknown, unknown>["initialState"]
+> = {};
+
+function DataTableViewModeToggle({
+  viewMode,
+  onViewModeChange,
+}: {
+  viewMode: ViewMode;
+  onViewModeChange: (mode: ViewMode) => void;
+}) {
+  return (
+    <div className="flex items-center border rounded-xl p-0.5">
+      <Button
+        variant={viewMode === "table" ? "secondary" : "ghost"}
+        size="icon"
+        className="size-8 rounded-lg"
+        onClick={() => onViewModeChange("table")}
+      >
+        <LayoutList className="size-4" />
+      </Button>
+      <Button
+        variant={viewMode === "card" ? "secondary" : "ghost"}
+        size="icon"
+        className="size-8 rounded-lg"
+        onClick={() => onViewModeChange("card")}
+      >
+        <LayoutGrid className="size-4" />
+      </Button>
+    </div>
+  );
+}
+
+function DataTableResponsiveToolbar<TData>({
+  enableFilters,
+  toolbar,
+  table,
+  filterFields,
+  advancedFilterFields,
+  advancedFilter,
+  onAdvancedFilterChange,
+  searchKey,
+  searchPlaceholder,
+  enableColumnVisibility,
+  enableAdvancedFilters,
+  enableExport,
+  onExport,
+  onRefresh,
+  isLoading,
+  enableViewToggle,
+  isMobile,
+  viewMode,
+  onViewModeChange,
+}: {
+  enableFilters: boolean;
+  toolbar?: React.ReactNode;
+  table: TanStackTable<TData>;
+  filterFields: DataTableFilterField<TData>[];
+  advancedFilterFields: FilterFieldDefinition[];
+  advancedFilter: AdvancedFilterState;
+  onAdvancedFilterChange: (filter: AdvancedFilterState) => void;
+  searchKey?: string;
+  searchPlaceholder?: string;
+  enableColumnVisibility: boolean;
+  enableAdvancedFilters: boolean;
+  enableExport: boolean;
+  onExport?: () => void;
+  onRefresh?: () => void;
+  isLoading: boolean;
+  enableViewToggle: boolean;
+  isMobile: boolean;
+  viewMode: ViewMode;
+  onViewModeChange: (mode: ViewMode) => void;
+}) {
+  if (!enableFilters) return null;
+
+  return (
+    toolbar ?? (
+      <DataTableToolbarResponsive
+        table={table}
+        filterFields={filterFields}
+        advancedFilterFields={advancedFilterFields}
+        advancedFilter={advancedFilter}
+        onAdvancedFilterChange={onAdvancedFilterChange}
+        searchKey={searchKey}
+        searchPlaceholder={searchPlaceholder}
+        enableColumnVisibility={enableColumnVisibility && !isMobile}
+        enableAdvancedFilter={enableAdvancedFilters}
+        enableExport={enableExport}
+        onExport={onExport}
+        onRefresh={onRefresh}
+        isLoading={isLoading}
+      >
+        {enableViewToggle && !isMobile && (
+          <DataTableViewModeToggle
+            viewMode={viewMode}
+            onViewModeChange={onViewModeChange}
+          />
+        )}
+      </DataTableToolbarResponsive>
+    )
+  );
+}
+
+function DataTableResponsiveTableView<TData>({
+  table,
+  tableColumnsLength,
+  keyboard,
+  keyboardStyles,
+  onRowClick,
+  tableClassName,
+  emptyState,
+  defaultEmptyState,
+}: {
+  table: TanStackTable<TData>;
+  tableColumnsLength: number;
+  keyboard: UseDataTableKeyboardReturn;
+  keyboardStyles: ReturnType<typeof getKeyboardNavigationStyles>;
+  onRowClick?: (row: Row<TData>) => void;
+  tableClassName?: string;
+  emptyState?: React.ReactNode;
+  defaultEmptyState: React.ReactNode;
+}) {
+  return (
+    <div
+      ref={keyboard.containerRef as React.RefObject<HTMLDivElement>}
+      className={cn(
+        "rounded-2xl border border-border bg-card overflow-hidden shadow-sm",
+        tableClassName,
+      )}
+    >
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader className="bg-muted/30">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow
+                key={headerGroup.id}
+                className="hover:bg-transparent border-border"
+              >
+                {headerGroup.headers.map((header) => {
+                  const meta = header.column.columnDef.meta;
+                  const isSticky = meta?.sticky;
+                  return (
+                    <TableHead
+                      key={header.id}
+                      className={cn(
+                        "h-11 px-4 text-xs font-semibold text-muted-foreground whitespace-nowrap",
+                        meta?.headerClassName,
+                        isSticky === "left" && "sticky left-0 z-10 bg-muted/30",
+                        isSticky === "right" &&
+                          "sticky right-0 z-10 bg-muted/30",
+                      )}
+                      style={{
+                        width:
+                          header.getSize() !== 150
+                            ? header.getSize()
+                            : undefined,
+                      }}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row, rowIndex) => {
+                const rowProps = keyboard.getRowProps(rowIndex);
+                return (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className={cn(
+                      "hover:bg-muted/30 transition-colors border-border",
+                      "data-[state=selected]:bg-muted/50",
+                      onRowClick && "cursor-pointer",
+                      rowProps["data-focused"] && keyboardStyles.focusedRow,
+                    )}
+                    tabIndex={rowProps.tabIndex}
+                    onKeyDown={rowProps.onKeyDown}
+                    onFocus={rowProps.onFocus}
+                    onBlur={rowProps.onBlur}
+                    onClick={() => onRowClick?.(row)}
+                  >
+                    {row.getVisibleCells().map((cell, cellIndex) => {
+                      const meta = cell.column.columnDef.meta;
+                      const isSticky = meta?.sticky;
+                      const cellProps = keyboard.getCellProps(
+                        rowIndex,
+                        cellIndex,
+                      );
+                      return (
+                        <TableCell
+                          key={cell.id}
+                          className={cn(
+                            "py-3 px-4",
+                            meta?.cellClassName,
+                            isSticky === "left" && "sticky left-0 z-10 bg-card",
+                            isSticky === "right" &&
+                              "sticky right-0 z-10 bg-card",
+                            cellProps["data-cell-focused"] &&
+                              keyboardStyles.focusedCell,
+                          )}
+                          tabIndex={cellProps.tabIndex}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                );
+              })
+            ) : (
+              <TableRow>
+                <TableCell colSpan={tableColumnsLength} className="h-64">
+                  {emptyState ?? defaultEmptyState}
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
+
 export function DataTableResponsive<TData, TValue>({
   columns,
   data,
-  filterFields = [],
-  advancedFilterFields = [],
+  filterFields = EMPTY_FILTER_FIELDS as DataTableFilterField<TData>[],
+  advancedFilterFields = EMPTY_ADVANCED_FILTER_FIELDS,
   searchKey,
   searchPlaceholder,
-  config = {},
+  config = EMPTY_DATA_TABLE_CONFIG,
   isLoading = false,
   pageCount,
   onPaginationChange,
@@ -130,7 +371,9 @@ export function DataTableResponsive<TData, TValue>({
   tableClassName,
   emptyState,
   toolbar,
-  initialState = {},
+  initialState = EMPTY_DATA_TABLE_INITIAL_STATE as NonNullable<
+    DataTableResponsiveProps<TData, TValue>["initialState"]
+  >,
 }: DataTableResponsiveProps<TData, TValue>) {
   const {
     enableRowSelection = true,
@@ -334,162 +577,42 @@ export function DataTableResponsive<TData, TValue>({
 
   return (
     <div className={cn("w-full space-y-4", className)}>
-      {enableFilters &&
-        (toolbar ?? (
-          <DataTableToolbarResponsive
-            table={table}
-            filterFields={filterFields}
-            advancedFilterFields={advancedFilterFields}
-            advancedFilter={advancedFilter}
-            onAdvancedFilterChange={handleAdvancedFilterChange}
-            searchKey={searchKey}
-            searchPlaceholder={searchPlaceholder}
-            enableColumnVisibility={enableColumnVisibility && !isMobile}
-            enableAdvancedFilter={enableAdvancedFilters}
-            enableExport={enableExport}
-            onExport={onExport}
-            onRefresh={onRefresh}
-            isLoading={isLoading}
-          >
-            {enableViewToggle && !isMobile && (
-              <div className="flex items-center border rounded-xl p-0.5">
-                <Button
-                  variant={viewMode === "table" ? "secondary" : "ghost"}
-                  size="icon"
-                  className="size-8 rounded-lg"
-                  onClick={() => setViewMode("table")}
-                >
-                  <LayoutList className="size-4" />
-                </Button>
-                <Button
-                  variant={viewMode === "card" ? "secondary" : "ghost"}
-                  size="icon"
-                  className="size-8 rounded-lg"
-                  onClick={() => setViewMode("card")}
-                >
-                  <LayoutGrid className="size-4" />
-                </Button>
-              </div>
-            )}
-          </DataTableToolbarResponsive>
-        ))}
+      <DataTableResponsiveToolbar
+        enableFilters={enableFilters}
+        toolbar={toolbar}
+        table={table}
+        filterFields={filterFields}
+        advancedFilterFields={advancedFilterFields}
+        advancedFilter={advancedFilter}
+        onAdvancedFilterChange={handleAdvancedFilterChange}
+        searchKey={searchKey}
+        searchPlaceholder={searchPlaceholder}
+        enableColumnVisibility={enableColumnVisibility}
+        enableAdvancedFilters={enableAdvancedFilters}
+        enableExport={enableExport}
+        onExport={onExport}
+        onRefresh={onRefresh}
+        isLoading={isLoading}
+        enableViewToggle={enableViewToggle}
+        isMobile={isMobile}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+      />
 
       <div className="relative">
         <DataTableLoadingOverlay isLoading={isLoading} />
 
         {showTable && (
-          <div
-            ref={keyboard.containerRef as React.RefObject<HTMLDivElement>}
-            className={cn(
-              "rounded-2xl border border-border bg-card overflow-hidden shadow-sm",
-              tableClassName,
-            )}
-          >
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader className="bg-muted/30">
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow
-                      key={headerGroup.id}
-                      className="hover:bg-transparent border-border"
-                    >
-                      {headerGroup.headers.map((header) => {
-                        const meta = header.column.columnDef.meta;
-                        const isSticky = meta?.sticky;
-                        return (
-                          <TableHead
-                            key={header.id}
-                            className={cn(
-                              "h-11 px-4 text-xs font-semibold text-muted-foreground whitespace-nowrap",
-                              meta?.headerClassName,
-                              isSticky === "left" &&
-                                "sticky left-0 z-10 bg-muted/30",
-                              isSticky === "right" &&
-                                "sticky right-0 z-10 bg-muted/30",
-                            )}
-                            style={{
-                              width:
-                                header.getSize() !== 150
-                                  ? header.getSize()
-                                  : undefined,
-                            }}
-                          >
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext(),
-                                )}
-                          </TableHead>
-                        );
-                      })}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map((row, rowIndex) => {
-                      const rowProps = keyboard.getRowProps(rowIndex);
-                      return (
-                        <TableRow
-                          key={row.id}
-                          data-state={row.getIsSelected() && "selected"}
-                          className={cn(
-                            "hover:bg-muted/30 transition-colors border-border",
-                            "data-[state=selected]:bg-muted/50",
-                            onRowClick && "cursor-pointer",
-                            rowProps["data-focused"] &&
-                              keyboardStyles.focusedRow,
-                          )}
-                          tabIndex={rowProps.tabIndex}
-                          onKeyDown={rowProps.onKeyDown}
-                          onFocus={rowProps.onFocus}
-                          onBlur={rowProps.onBlur}
-                          onClick={() => onRowClick?.(row)}
-                        >
-                          {row.getVisibleCells().map((cell, cellIndex) => {
-                            const meta = cell.column.columnDef.meta;
-                            const isSticky = meta?.sticky;
-                            const cellProps = keyboard.getCellProps(
-                              rowIndex,
-                              cellIndex,
-                            );
-                            return (
-                              <TableCell
-                                key={cell.id}
-                                className={cn(
-                                  "py-3 px-4",
-                                  meta?.cellClassName,
-                                  isSticky === "left" &&
-                                    "sticky left-0 z-10 bg-card",
-                                  isSticky === "right" &&
-                                    "sticky right-0 z-10 bg-card",
-                                  cellProps["data-cell-focused"] &&
-                                    keyboardStyles.focusedCell,
-                                )}
-                                tabIndex={cellProps.tabIndex}
-                              >
-                                {flexRender(
-                                  cell.column.columnDef.cell,
-                                  cell.getContext(),
-                                )}
-                              </TableCell>
-                            );
-                          })}
-                        </TableRow>
-                      );
-                    })
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={tableColumns.length} className="h-64">
-                        {emptyState ?? defaultEmptyState}
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
+          <DataTableResponsiveTableView
+            table={table}
+            tableColumnsLength={tableColumns.length}
+            keyboard={keyboard}
+            keyboardStyles={keyboardStyles}
+            onRowClick={onRowClick}
+            tableClassName={tableClassName}
+            emptyState={emptyState}
+            defaultEmptyState={defaultEmptyState}
+          />
         )}
 
         {showCards && (

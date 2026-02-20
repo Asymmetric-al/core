@@ -92,6 +92,14 @@ export function DataGridCell({
         <div
           className={cn(cellClassName, "cursor-pointer")}
           onClick={onStartEdit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onStartEdit();
+            }
+          }}
+          role="button"
+          tabIndex={0}
         >
           {selectedOption?.label ?? String(value ?? "")}
         </div>
@@ -132,6 +140,14 @@ export function DataGridCell({
         className={cn(cellClassName, "cursor-cell truncate")}
         onDoubleClick={onStartEdit}
         onClick={isSelected ? onStartEdit : undefined}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onStartEdit();
+          }
+        }}
+        role="button"
+        tabIndex={0}
       >
         {cellType === "number" && typeof value === "number"
           ? value.toLocaleString()

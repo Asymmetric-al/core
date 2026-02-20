@@ -44,6 +44,130 @@ export interface ImageUploadChildProps {
   openFilePicker: () => void;
 }
 
+type ImageUploadChildrenRenderer = (
+  props: ImageUploadChildProps,
+) => React.ReactNode;
+
+function resolveImageUploadChildren(
+  children: React.ReactNode,
+  props: ImageUploadChildProps,
+): React.ReactNode {
+  if (!children) return null;
+
+  if (typeof children === "function") {
+    return (children as ImageUploadChildrenRenderer)(props);
+  }
+
+  return children;
+}
+
+function ImageUploadCustomTrigger({
+  children,
+  isInteractive,
+  isDragging,
+  disabled,
+  isUploading,
+  openFilePicker,
+}: {
+  children: React.ReactNode;
+  isInteractive: boolean;
+  isDragging: boolean;
+  disabled: boolean;
+  isUploading: boolean;
+  openFilePicker: () => void;
+}) {
+  return (
+    <div
+      onClick={isInteractive ? openFilePicker : undefined}
+      onKeyDown={(e) => {
+        if (!isInteractive) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openFilePicker();
+        }
+      }}
+      role="button"
+      tabIndex={isInteractive ? 0 : -1}
+      aria-disabled={!isInteractive}
+      className={cn(
+        "cursor-pointer",
+        isDragging && "ring-2 ring-zinc-400 ring-offset-2 rounded-lg",
+        (disabled || isUploading) && "cursor-not-allowed opacity-50",
+      )}
+    >
+      {resolveImageUploadChildren(children, { isUploading, openFilePicker })}
+    </div>
+  );
+}
+
+function ImageUploadDefaultContent({
+  value,
+  onRemove,
+  isUploading,
+  disabled,
+  isDragging,
+  openFilePicker,
+}: {
+  value?: string;
+  onRemove?: () => void;
+  isUploading: boolean;
+  disabled: boolean;
+  isDragging: boolean;
+  openFilePicker: () => void;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-4">
+      {value ? (
+        <div className="relative group">
+          <Image
+            src={value}
+            alt="Uploaded"
+            width={96}
+            height={96}
+            loader={passthroughImageLoader}
+            unoptimized
+            className="h-24 w-24 rounded-full object-cover border-2 border-zinc-200"
+          />
+          {onRemove && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove();
+              }}
+              className="absolute -top-1 -right-1 bg-rose-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          )}
+        </div>
+      ) : (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={openFilePicker}
+          disabled={isUploading || disabled}
+          className={cn(
+            "h-24 w-24 rounded-full border-dashed flex flex-col items-center justify-center gap-2",
+            isDragging && "border-zinc-400 bg-zinc-50",
+          )}
+        >
+          {isUploading ? (
+            <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
+          ) : (
+            <>
+              <Upload className="h-6 w-6 text-zinc-400" />
+              <span className="text-[10px] uppercase font-bold tracking-widest text-zinc-400">
+                Upload
+              </span>
+            </>
+          )}
+        </Button>
+      )}
+    </div>
+  );
+}
+
 async function uploadWithBackendProcessing(
   blob: Blob,
   bucket: string,
@@ -293,20 +417,8 @@ export function ImageUpload({
     }
   }, []);
 
-  const renderChildren = () => {
-    if (!children) return null;
-
-    if (typeof children === "function") {
-      return (children as (props: ImageUploadChildProps) => React.ReactNode)({
-        isUploading,
-        openFilePicker,
-      });
-    }
-
-    return children;
-  };
-
   const acceptTypes = "image/jpeg,image/png,image/webp,image/gif";
+  const isInteractive = !(disabled || isUploading);
 
   return (
     <div
@@ -325,66 +437,24 @@ export function ImageUpload({
       />
 
       {children ? (
-        <div
-          onClick={openFilePicker}
-          className={cn(
-            "cursor-pointer",
-            isDragging && "ring-2 ring-zinc-400 ring-offset-2 rounded-lg",
-            (disabled || isUploading) && "cursor-not-allowed opacity-50",
-          )}
+        <ImageUploadCustomTrigger
+          isInteractive={isInteractive}
+          isDragging={isDragging}
+          disabled={disabled}
+          isUploading={isUploading}
+          openFilePicker={openFilePicker}
         >
-          {renderChildren()}
-        </div>
+          {children}
+        </ImageUploadCustomTrigger>
       ) : (
-        <div className="flex flex-col items-center gap-4">
-          {value ? (
-            <div className="relative group">
-              <Image
-                src={value}
-                alt="Uploaded"
-                width={96}
-                height={96}
-                loader={passthroughImageLoader}
-                unoptimized
-                className="h-24 w-24 rounded-full object-cover border-2 border-zinc-200"
-              />
-              {onRemove && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemove();
-                  }}
-                  className="absolute -top-1 -right-1 bg-rose-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              )}
-            </div>
-          ) : (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={openFilePicker}
-              disabled={isUploading || disabled}
-              className={cn(
-                "h-24 w-24 rounded-full border-dashed flex flex-col items-center justify-center gap-2",
-                isDragging && "border-zinc-400 bg-zinc-50",
-              )}
-            >
-              {isUploading ? (
-                <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
-              ) : (
-                <>
-                  <Upload className="h-6 w-6 text-zinc-400" />
-                  <span className="text-[10px] uppercase font-bold tracking-widest text-zinc-400">
-                    Upload
-                  </span>
-                </>
-              )}
-            </Button>
-          )}
-        </div>
+        <ImageUploadDefaultContent
+          value={value}
+          onRemove={onRemove}
+          isUploading={isUploading}
+          disabled={disabled}
+          isDragging={isDragging}
+          openFilePicker={openFilePicker}
+        />
       )}
 
       {selectedImage && (

@@ -15,15 +15,22 @@ const SOURCE_EXTENSIONS = new Set([
 ]);
 const IGNORE_DIRECTORIES = new Set([
   ".git",
+  ".nia-sync",
+  ".nia_sync_local",
   ".next",
+  ".tmp",
   ".turbo",
   "build",
   "coverage",
   "dist",
   "node_modules",
   "out",
+  "tmp",
+  "tmp-bun",
+  "tmp-npm-cache",
 ]);
-const DISABLE_FORMAT = /eslint-disable(?:-next-line|-line)?\s+[^\n]+--\s*(TODO\([^)]+\)|[A-Z]+-\d+)/;
+const DISABLE_FORMAT =
+  /eslint-disable(?:-next-line|-line)?\s+[^\n]+--\s*(TODO\([^)]+\)|[A-Z]+-\d+)/;
 
 const errors = [];
 
@@ -41,7 +48,20 @@ async function pathExists(targetPath) {
 }
 
 async function walkFiles(dirPath, fileList = []) {
-  const entries = await fs.readdir(dirPath, { withFileTypes: true });
+  let entries;
+  try {
+    entries = await fs.readdir(dirPath, { withFileTypes: true });
+  } catch (error) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      ["EACCES", "EPERM", "ENOENT"].includes(error.code)
+    ) {
+      return fileList;
+    }
+    throw error;
+  }
 
   for (const entry of entries) {
     if (entry.isDirectory()) {
@@ -148,7 +168,9 @@ async function verifyLegacyEslintrcFiles() {
   );
 
   for (const legacyFile of legacyFiles) {
-    errors.push(`Legacy ESLint config is not allowed: ${toRelative(legacyFile)}`);
+    errors.push(
+      `Legacy ESLint config is not allowed: ${toRelative(legacyFile)}`,
+    );
   }
 }
 
@@ -181,7 +203,12 @@ async function verifyDisableCommentFormat() {
 }
 
 async function verifyArchitectureRules() {
-  const baseConfigPath = path.join(ROOT, "tooling", "eslint-config", "base.mjs");
+  const baseConfigPath = path.join(
+    ROOT,
+    "tooling",
+    "eslint-config",
+    "base.mjs",
+  );
   const baseConfigContent = await fs.readFile(baseConfigPath, "utf8");
 
   const requiredMarkers = [

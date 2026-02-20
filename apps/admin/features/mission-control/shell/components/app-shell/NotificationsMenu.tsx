@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { Bell } from "lucide-react";
-import { memo, useMemo } from "react";
+import { memo } from "react";
 
 interface Notification {
   id: string;
@@ -61,7 +61,7 @@ const NotificationItem = memo(function NotificationItem({
 });
 
 export const NotificationsMenu = memo(function NotificationsMenu() {
-  const notifications = useMemo(() => STUB_NOTIFICATIONS, []);
+  const notifications = STUB_NOTIFICATIONS;
 
   return (
     <DropdownMenu>

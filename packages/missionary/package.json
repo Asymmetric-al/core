@@ -9,7 +9,8 @@
     "./types": "./types/index.ts"
   },
   "scripts": {
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@asym/auth": "workspace:*",

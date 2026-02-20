@@ -1,5 +1,7 @@
 "use client";
 
+import { SafeHtml } from "@asym/lib/components/safe-html";
+import { motion } from "@asym/lib/motion";
 import { formatCurrency } from "@asym/lib/utils";
 import {
   Avatar,
@@ -26,7 +28,6 @@ import {
   ShieldCheck,
   Rss,
 } from "lucide-react";
-import { motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
@@ -103,9 +104,9 @@ const UpdateCard = ({
             </h4>
           )}
 
-          <div
+          <SafeHtml
             className="prose prose-slate prose-sm max-w-none text-slate-600 mb-4 leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: update.content }}
+            html={update.content}
           />
 
           {update.image && (
@@ -397,9 +398,6 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                           ? "border-blue-600 ring-4 ring-blue-50/50"
                           : "border-slate-200 hover:border-slate-300",
                       )}
-                      onClick={() =>
-                        document.getElementById("custom-amount-input")?.focus()
-                      }
                     >
                       <span
                         className={cn(

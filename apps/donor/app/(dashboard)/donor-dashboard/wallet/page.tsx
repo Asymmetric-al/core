@@ -1,5 +1,6 @@
 "use client";
 
+import { motion, AnimatePresence } from "@asym/lib/motion";
 import { formatCurrency } from "@asym/lib/utils";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -50,7 +51,6 @@ import {
   Building2,
   User,
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
 import React, { useState } from "react";
 

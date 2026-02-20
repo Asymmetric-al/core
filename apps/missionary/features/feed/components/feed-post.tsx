@@ -1,5 +1,7 @@
 "use client";
 
+import { SafeHtml } from "@asym/lib/components/safe-html";
+import { motion, AnimatePresence } from "@asym/lib/motion";
 import {
   Avatar,
   AvatarFallback,
@@ -17,7 +19,6 @@ import {
 import { cn } from "@asym/ui/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { MessageCircle } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -351,9 +352,9 @@ export function FeedPost({ post, onLike, onPrayer }: FeedPostProps) {
           </div>
 
           <div className="space-y-2">
-            <div
+            <SafeHtml
               className="prose prose-sm dark:prose-invert max-w-none text-foreground/90 leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: post.content }}
+              html={post.content}
             />
           </div>
 

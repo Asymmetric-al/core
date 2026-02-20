@@ -249,16 +249,32 @@ export default function AdminPage() {
           <CardContent>
             <div className="rounded-xl bg-blue-50/50 border border-blue-100 p-4 space-y-3">
               {[
-                "Rotate API keys and service tokens quarterly.",
-                "Enforce MFA for all user accounts with MC access.",
-                "Review audit logs weekly for unusual access patterns.",
-                "Maintain separate staging environments for testing.",
-              ].map((tip, i) => (
-                <div key={i} className="flex items-start gap-3">
+                {
+                  id: "rotate-api-keys",
+                  order: 1,
+                  text: "Rotate API keys and service tokens quarterly.",
+                },
+                {
+                  id: "enforce-mfa",
+                  order: 2,
+                  text: "Enforce MFA for all user accounts with MC access.",
+                },
+                {
+                  id: "review-audit-logs",
+                  order: 3,
+                  text: "Review audit logs weekly for unusual access patterns.",
+                },
+                {
+                  id: "separate-staging",
+                  order: 4,
+                  text: "Maintain separate staging environments for testing.",
+                },
+              ].map((tip) => (
+                <div key={tip.id} className="flex items-start gap-3">
                   <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600 shadow-sm">
-                    <span className="text-[10px] font-bold">{i + 1}</span>
+                    <span className="text-[10px] font-bold">{tip.order}</span>
                   </div>
-                  <span className="text-sm text-slate-600">{tip}</span>
+                  <span className="text-sm text-slate-600">{tip.text}</span>
                 </div>
               ))}
             </div>

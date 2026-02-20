@@ -6,6 +6,9 @@ import {
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { postsQuerySchema } from "../schemas/posts";
+import { toErrorResponse } from "../shared/http-errors";
+
 export async function GET(request: NextRequest) {
   try {
     const { client: supabaseAdmin, error: adminError } = getAdminClient();
@@ -18,10 +21,12 @@ export async function GET(request: NextRequest) {
     const ctx = auth as AuthenticatedContext;
 
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const offset = parseInt(searchParams.get("offset") || "0");
-    const status = searchParams.get("status") || "published";
-    const missionaryId = searchParams.get("missionaryId");
+    const { limit, offset, status, missionaryId } = postsQuerySchema.parse({
+      limit: searchParams.get("limit") ?? "10",
+      offset: searchParams.get("offset") ?? "0",
+      status: searchParams.get("status") ?? "published",
+      missionaryId: searchParams.get("missionaryId"),
+    });
 
     let query = supabaseAdmin
       .from("posts")
@@ -85,11 +90,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ posts: postsWithStatus });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Internal error";
-    return NextResponse.json(
-      { error: message },
-      { status: message.includes("Unauthorized") ? 401 : 500 },
-    );
+    return toErrorResponse(e);
   }
 }
 

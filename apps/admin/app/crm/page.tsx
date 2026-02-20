@@ -1,5 +1,6 @@
 "use client";
 
+import { motion, AnimatePresence } from "@asym/lib/motion";
 import { formatCurrency } from "@asym/lib/utils";
 import {
   Avatar,
@@ -32,7 +33,6 @@ import {
   FileText,
   MoreHorizontal,
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
 import React, { useState, useMemo } from "react";
 
 import { getColumns } from "./columns";
@@ -284,25 +284,25 @@ function DetailDrawer({
               >
                 <div className="space-y-6">
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
                       Email
-                    </label>
+                    </p>
                     <p className="text-sm font-bold text-foreground truncate hover:text-primary cursor-pointer">
                       {contact.email}
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
                       Phone
-                    </label>
+                    </p>
                     <p className="text-sm font-bold text-foreground">
                       {contact.phone}
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
                       City
-                    </label>
+                    </p>
                     <p className="text-sm font-bold text-foreground">
                       {contact.city}
                     </p>
@@ -310,17 +310,17 @@ function DetailDrawer({
                 </div>
                 <div className="space-y-6">
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
                       Owner
-                    </label>
+                    </p>
                     <p className="text-sm font-bold text-foreground">
                       {contact.owner}
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
                       Tags
-                    </label>
+                    </p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {contact.tags.map((t) => (
                         <Badge
@@ -375,10 +375,11 @@ function KanbanView({
             {contacts
               .filter((c) => c.stage === stage)
               .map((c) => (
-                <div
+                <button
                   key={c.id}
+                  type="button"
                   onClick={() => onSelectContact(c)}
-                  className="bg-card p-3 rounded-lg border border-border shadow-sm hover:shadow-md transition-all cursor-pointer space-y-3"
+                  className="w-full bg-card p-3 rounded-lg border border-border shadow-sm hover:shadow-md transition-all cursor-pointer space-y-3 text-left"
                 >
                   <div className="flex justify-between items-start">
                     <span className="font-bold text-foreground text-xs truncate leading-none">
@@ -405,7 +406,7 @@ function KanbanView({
                       </AvatarFallback>
                     </Avatar>
                   </div>
-                </div>
+                </button>
               ))}
           </div>
         </div>
@@ -501,9 +502,10 @@ export default function MissionControlCRM() {
                 renderCard: (row) => {
                   const contact = row.original;
                   return (
-                    <div
+                    <button
+                      type="button"
                       onClick={() => setSelectedContact(contact)}
-                      className="p-4 cursor-pointer space-y-3"
+                      className="w-full p-4 cursor-pointer space-y-3 text-left"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -540,7 +542,7 @@ export default function MissionControlCRM() {
                           {formatCurrency(contact.value)}
                         </span>
                       </div>
-                    </div>
+                    </button>
                   );
                 },
               }}

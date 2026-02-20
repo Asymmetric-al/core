@@ -3,58 +3,314 @@
 Agents MUST keep this file updated during a task. Use it to build the Nia query preamble.
 
 ## Current objective
-- Implement review follow-up for unit test coverage generation in CI.
-- Ensure `bun run test:unit` generates coverage output for the existing `coverage/` artifact upload.
-- Keep coverage generation stable without introducing dependency install regressions in this environment.
-- Harden staging coverage behavior to reduce future break risk while preserving current CI flow.
-- Update CI docs to reflect current coverage output files.
+- Execute safety-gated modernization pass from React Doctor + architecture audit.
+- Fix missionary tasks hydration mismatch and stabilize task dialog reset/fetch behavior.
+- Resolve combobox accessibility errors (`aria-controls`) in shared controls and mission-control tenant switchers.
+- Add compatibility-first API boundary hardening in `packages/api` (typed validation + normalized error mapping).
+- Introduce shared HTML sanitization for `dangerouslySetInnerHTML` call sites in high-traffic feed/worker pages.
+- Apply low-risk Turborepo cleanup by delegating root `start` through `turbo run`.
+- Close remaining `@asym/admin` lint blockers with React-safe patterns (no setState-in-effect and no render-time component creation).
+- Implement the `@asym/ui` React Doctor modernization plan across a11y, bundle splitting, state hygiene, render/perf polish, and composition refactors.
+- Replace auth-page demo-availability `fetch`-in-`useEffect` with shared React Query hook usage across admin/donor/missionary auth routes.
+- Eliminate remaining app-level `dangerouslySetInnerHTML` callsites by routing rich content through a shared sanitized renderer component.
+- Apply bundle-focused motion migration by routing app motion imports through a shared `@asym/lib/motion` adapter backed by `LazyMotion`.
+- Resolve remaining low-risk clickable non-interactive accessibility findings in admin/donor via semantic button targets and removal of redundant click wrappers.
+- Resolve admin `task-drawer` label semantics and remove trivial `useMemo` wrappers in mission-control tenant/notifications switchers.
+- Apply rendering-safe animation and image-size optimizations in admin feed/web-studio to clear React Doctor rendering and next/image warnings.
+- Remove remaining admin state/effect anti-pattern warnings in map/calendar primitives while preserving behavior.
+- Reduce remaining `@asym/admin` array-key warnings with stable keys and remove inline render helper patterns in teams/admin shell views.
+- Dynamically split heavy `recharts` sections in admin `reports` and `events` routes to lower initial client bundle cost.
+- Reduce `@asym/admin` state-count warnings by grouping related SendGrid UI state into a local reducer.
+- Reduce `@asym/admin` compose-form state warnings by grouping `org-updates` editor state into a reducer.
+- Reduce `@asym/admin` task-page state warnings by grouping `tasks-content` UI state into a local reducer.
+- Reduce `@asym/admin` remaining low-risk state-count warnings in `web-studio` and `email` surfaces using const hoists and local reducer grouping.
+- Reduce `@asym/admin` task form state-count warnings by grouping form/editor state in `tasks/task-form.tsx` with a local reducer.
+- Reduce `@asym/admin` PDF studio state-count warnings by grouping editor UI flags in `app/pdf/page.tsx` with a local reducer.
+- Reduce `@asym/admin` feed moderation and org-updates state-count warnings by grouping page-level UI controls with local reducers.
+- Reduce `@asym/admin` component-size warnings by splitting large page components into focused presentational sections without behavior changes.
 
 ## Repo scope
 - repository: Asymmetric-al/core
 - in-scope paths:
-  - .github/workflows/ci.yml
+  - packages/missionary/package.json
+  - packages/missionary/tsconfig.json
+  - packages/missionary/components/index.ts
+  - packages/missionary/components/tasks/index.ts
+  - packages/missionary/components/dashboard-home.tsx
+  - packages/missionary/components/page-header.tsx
+  - packages/missionary/types/index.ts
+  - packages/ui/index.ts
+  - scripts/verify-eslint-config.mjs
+  - apps/missionary/lib/missionary/types.ts
+  - apps/missionary/app/tasks/page.tsx
+  - apps/missionary/app/profile/page.tsx
+  - packages/missionary/tsconfig.json
+  - packages/missionary/components/task-dialog.tsx
+  - packages/api/src/donate/index.ts
+  - packages/api/src/posts/index.ts
+  - packages/api/src/shared/http-errors.ts
+  - packages/api/src/schemas/donate.ts
+  - packages/api/src/schemas/posts.ts
+  - packages/lib/html/sanitize.ts
+  - packages/lib/package.json
+  - packages/ui/components/shadcn/data-table/filters/filter-select-inputs.tsx
+  - apps/admin/features/mission-control/components/tenant-switcher.tsx
+  - apps/admin/features/mission-control/components/app-shell/tenant-switcher.tsx
+  - apps/admin/features/mission-control/components/app-shell/notifications-menu.tsx
+  - apps/admin/features/mission-control/components/notifications-menu.tsx
+  - apps/admin/features/mission-control/shell/components/app-shell/TenantSwitcher.tsx
+  - apps/admin/features/mission-control/shell/components/app-shell/NotificationsMenu.tsx
+  - apps/admin/app/tasks/task-drawer.tsx
+  - apps/admin/app/tasks/task-drawer-sections.tsx
+  - apps/admin/app/tasks/task-form.tsx
+  - apps/admin/app/tasks/task-form-sections.tsx
+  - apps/admin/features/mission-control/components/icons.tsx
+  - apps/admin/features/mission-control/shell/components/icons.tsx
+  - apps/missionary/features/feed/components/feed-post.tsx
+  - apps/missionary/app/feed/page.tsx
+  - apps/missionary/app/ministry-updates/page.tsx
+  - apps/donor/app/(public)/workers/[id]/worker-profile-client.tsx
+  - apps/donor/app/(public)/workers/[id]/page.tsx
   - package.json
-  - vitest.config.ts
-  - vitest.coverage-provider.mjs
-  - docs/ci.md
+  - packages/missionary/components/task-row.tsx
+  - packages/missionary/components/task-kanban-board.tsx
+  - packages/missionary/components/tasks/task-config.ts
+  - packages/missionary/components/tasks/task-bulk-actions-bar.tsx
+  - packages/missionary/components/tasks/task-row.tsx
+  - packages/missionary/components/tasks/task-details-sheet.tsx
+  - packages/missionary/components/tasks/task-table.tsx
+  - packages/ui/components/shadcn/data-grid/data-grid.tsx
+  - packages/ui/components/shadcn/data-grid/data-grid-cell.tsx
+  - packages/ui/components/shadcn/image-upload.tsx
+  - packages/ui/components/shadcn/data-table/data-table-responsive.tsx
+  - packages/ui/components/shadcn/data-table/data-table-card-view.tsx
+  - packages/ui/components/shadcn/data-table/data-table.tsx
+  - packages/ui/components/shadcn/data-table/data-table-toolbar.tsx
+  - packages/ui/components/shadcn/data-table/data-table-toolbar-responsive.tsx
+  - packages/ui/components/shadcn/filter-bar.tsx
+  - packages/ui/components/shadcn/ripple-button.tsx
+  - packages/ui/components/shadcn/motion-preset.tsx
+  - packages/ui/components/shadcn/icons/AppIcon.tsx
+  - packages/ui/components/shadcn/data-table/data-table-action-bar.tsx
+  - packages/ui/components/shadcn/data-table/data-table-floating-bar.tsx
+  - packages/ui/components/public/about-sections.tsx
+  - packages/ui/components/shadcn-studio/blocks/chart-sales-metrics.tsx
+  - packages/ui/components/shadcn-studio/blocks/chart-missionary-metrics.tsx
+  - packages/ui/components/shadcn-studio/blocks/dialog-search.tsx
+  - packages/ui/components/shadcn/pagination.tsx
+  - packages/ui/components/shadcn/data-table/filters/saved-filters.tsx
+  - packages/ui/components/shadcn/data-table/hooks/use-column-resizing.tsx
+  - packages/ui/components/shadcn-studio/blocks/hero-section-09/header.tsx
+  - packages/database/hooks/demo-account.ts
+  - packages/database/hooks/index.ts
+  - apps/admin/app/register/page.tsx
+  - apps/admin/app/(auth)/login/page.tsx
+  - apps/donor/app/(auth)/register/page.tsx
+  - apps/donor/app/(auth)/login/page.tsx
+  - apps/missionary/app/register/page.tsx
+  - apps/missionary/app/(auth)/login/page.tsx
+  - packages/lib/components/safe-html.tsx
+  - packages/lib/package.json
+  - apps/admin/app/reports/page.tsx
+  - apps/admin/app/reports/reports-charts.tsx
+  - apps/admin/app/events/page.tsx
+  - apps/admin/app/events/registration-trends-chart.tsx
+  - apps/admin/app/feed/org-updates/page.tsx
+  - apps/admin/app/tasks/tasks-content.tsx
+  - apps/admin/app/email/page.tsx
+  - apps/admin/app/web-studio/page.tsx
+  - apps/admin/app/web-studio/web-studio-sections.tsx
+  - apps/admin/app/feed/page.tsx
+  - apps/admin/app/feed/org-updates/page.tsx
+  - apps/donor/app/(public)/workers/[id]/page.tsx
+  - apps/donor/app/(public)/workers/[id]/worker-profile-client.tsx
+  - apps/donor/app/(dashboard)/donor-dashboard/feed/page.tsx
+  - apps/missionary/app/feed/page.tsx
+  - apps/missionary/app/ministry-updates/page.tsx
+  - apps/missionary/features/feed/components/feed-post.tsx
+  - packages/lib/motion.tsx
+  - apps/admin/app/layout.tsx
+  - apps/donor/app/layout.tsx
+  - apps/missionary/app/layout.tsx
+  - apps/admin/app/crm/page.tsx
+  - apps/admin/app/care/settings/page.tsx
+  - apps/admin/components/dashboard/activity-item.tsx
+  - apps/admin/features/mission-control/care/components/UI.tsx
+  - apps/admin/features/mission-control/locations/components/LocationEditor.tsx
+  - apps/admin/app/mobilize/page.tsx
+  - apps/admin/app/mobilize/mobilize-sections.tsx
+  - apps/admin/app/mobilize/locations/page.tsx
+  - apps/admin/app/tasks/tasks-content.tsx
+  - apps/donor/app/(dashboard)/donor-dashboard/history/page.tsx
+  - apps/donor/app/(dashboard)/donor-dashboard/pledges/page.tsx
+  - apps/donor/app/(dashboard)/donor-dashboard/settings/page.tsx
+  - apps/donor/app/(dashboard)/donor-dashboard/wallet/page.tsx
+  - apps/donor/app/(public)/checkout/checkout-client.tsx
+  - apps/donor/app/(public)/faq/faq-client.tsx
+  - apps/donor/app/(public)/workers/[id]/giving-widget.tsx
+  - apps/donor/app/(public)/workers/workers-client.tsx
+  - apps/donor/app/(public)/sign/[token]/page.tsx
+  - apps/donor/app/(public)/where-we-work/map-wrapper.tsx
+  - apps/donor/features/donor/components/MissionBriefing.tsx
+  - apps/donor/features/giving/components/QuickGiveInput.tsx
+  - apps/missionary/app/donors/page.tsx
+  - apps/missionary/app/email-studio/page.tsx
+  - apps/missionary/features/giving/components/quick-give.tsx
+  - apps/admin/app/care/page.tsx
+  - apps/admin/features/mission-control/care/components/ShortcutsHelp.tsx
+  - apps/admin/components/dashboard-footer.tsx
+  - apps/admin/app/admin/page.tsx
+  - apps/admin/app/admin/teams/page.tsx
+  - apps/admin/app/settings/integrations/sendgrid/page.tsx
+  - apps/admin/app/settings/integrations/sendgrid/sendgrid-sections.tsx
+  - apps/admin/features/mission-control/components/patterns/page-header.tsx
+  - apps/admin/features/mission-control/shell/components/patterns/PageHeader.tsx
+  - apps/admin/features/mission-control/components/app-shell/index.tsx
   - docs/ai/working-set.md
 
 ## Stack tags
-- Markdown
-- GitHub Actions
+- JSON
+- TypeScript
 - Bun
-- Vitest
+- Turborepo
+- GitHub Actions
+- Markdown
 - CI/CD
 
 ## Known identifiers
 - files:
-  - .github/workflows/ci.yml
-  - docs/ci.md
+  - packages/missionary/package.json
   - package.json
-  - vitest.config.ts
+  - scripts/verify-workspace-contract.mjs
+  - scripts/verify-eslint-config.mjs
+  - apps/missionary/lib/missionary/types.ts
+  - apps/missionary/app/tasks/page.tsx
+  - apps/missionary/app/profile/page.tsx
 - strings:
-  - test-unit
-  - bun run test:unit
-  - actions/upload-artifact@v4
-  - unit-test-coverage
-  - coverage/
-  - if-no-files-found: ignore
+  - "typecheck": "tsc --noEmit"
+  - bun run typecheck
+  - bun run verify:workspace-contract
+  - apps/*/package.json
+  - packages/*/package.json
 
 ## Expected behavior
-- `test-unit` runs on every PR/push in `ci.yml` and remains a required check (`CI / test-unit`).
-- Unit tests are executed via `bun run test:unit` with Vitest coverage enabled.
-- CI uploads `coverage/` as an informational artifact without failing when files are absent.
+- All `apps/*` and `packages/*` workspaces define `typecheck` as `tsc --noEmit`.
+- Root `bun run typecheck` can include every workspace under turbo orchestration.
+- Root `bun run verify:workspace-contract` continues passing after script alignment.
 
 ## Constraints
 - Keep application/runtime behavior unchanged.
-- Keep CI gate ordering intact (`format -> lint -> typecheck -> build -> test-unit`).
+- Keep changes minimal and scoped to the CI-prep ticket.
 - Do not include secrets or credentials.
 
 ## Verification
-`rg "test:unit|coverage|customProviderModule|coverage-summary|coverage-final|coverage-warnings|v8-raw-coverage|unit-test-coverage|if-no-files-found" -n package.json vitest.config.ts vitest.coverage-provider.mjs .github/workflows/ci.yml docs/ci.md`
+`rg "\"typecheck\"\\s*:\\s*\"tsc --noEmit\"" -n apps packages -g package.json`
+`bun run verify:workspace-contract`
+`bun run typecheck`
+`bun run verify:eslint`
 `bun run test:unit`
 
 ## Verification status
-- `rg "test:unit|coverage|customProviderModule|coverage-summary|coverage-final|coverage-warnings|v8-raw-coverage|unit-test-coverage|if-no-files-found" ...` passed for updated files.
-- `bun run test:unit` blocked in this sandbox (`spawn EPERM` from Vitest/esbuild startup).
-- `bun run format:check -- ...` is noisy in this environment due an unreadable `.tmp` entry; changed files themselves are formatted.
+- `@asym/missionary` identified as the only workspace missing a `typecheck` script before patch.
+- `rg "\"typecheck\"...` confirms all `apps/*` + `packages/*` now define `tsc --noEmit`.
+- `bun run verify:workspace-contract` passed.
+- `bun run typecheck` passed after fixing unrelated pre-existing `packages/ui/index.ts` extension imports.
+- `bun run verify:eslint` now passes after hardening `scripts/verify-eslint-config.mjs` to skip unreadable temp directories.
+- `bunx eslint` passes on all touched files.
+- `apps/missionary/lib/missionary/types.ts` now re-exports from `@asym/missionary/types` to keep a single source of truth.
+- `apps/missionary/app/tasks/page.tsx` now uses `useSyncExternalStore` for client detection instead of `setState` in `useEffect`.
+- `apps/missionary/app/profile/page.tsx` now parses API response `unknown` safely into `ProfileData` (no `any` cast in initialization effect).
+- `packages/missionary/tsconfig.json` now inherits strict settings from shared config without redundant local overrides.
+- `packages/missionary` task components now import shared task types via package-relative paths (`../types` or `../../types`) to avoid alias leakage into consumer app typecheck contexts.
+- Strict-safe fallbacks were added in key task components where indexed config lookups could be `undefined` under `noUncheckedIndexedAccess`.
+- `bunx prettier --check` passed for all touched missionary component files after formatting.
+- `bun run lint --filter=@asym/missionary` passed.
+- `bun run lint --filter=@asym/missionary-app` passed.
+- `bun run typecheck` passed after portability and strictness fixes.
+- `apps/admin/app/tasks/task-form.tsx` now uses keyed initialization (`TaskFormInner`) instead of synchronous `setState` in `useEffect`, removing `react-hooks/set-state-in-effect` risk.
+- `apps/admin/features/mission-control/components/icons.tsx` and `apps/admin/features/mission-control/shell/components/icons.tsx` now keep lazy icon rendering without render-time component creation patterns that violate `react-hooks/static-components`.
+- `bun run lint` now passes monorepo-wide (warnings only, no errors).
+- `bun run typecheck` now passes monorepo-wide after admin icon typing cleanup.
+- `bunx turbo run lint --force --filter=@asym/admin --filter=@asym/missionary-app --filter=@asym/donor` passed with no warnings emitted.
+- `bun run test:unit` is blocked in this sandbox (`spawn EPERM` when Vitest/Vite tries to start esbuild).
+- `@asym/ui` modernization slices were implemented end-to-end with safety gates (`lint`, `typecheck`, React Doctor after each slice).
+- Final `@asym/ui` verification passed with React Doctor score improvement from **85 -> 96** and warning footprint reduced from **81 -> 19**.
+- Added shared demo availability query helper in `@asym/database/hooks` and migrated admin/donor/missionary login/register pages off manual `fetch` in `useEffect`.
+- Verification passed for touched scopes: `bun run lint:admin`, `bun run lint:donor`, `bun run lint:missionary`, `bun run lint --filter=@asym/database`, `bun run typecheck:admin`, `bun run typecheck:donor`, `bun run typecheck:missionary`, `bun run typecheck --filter=@asym/database`.
+- React Doctor rerun completed for `@asym/admin`, `@asym/donor`, `@asym/missionary-app`; `fetch`-in-`useEffect` warnings are cleared from auth pages in these workspaces.
+- Added `@asym/lib/components/safe-html` and migrated flagged admin/donor/missionary rich-text render paths to it, removing direct app-level `dangerouslySetInnerHTML` usage at those callsites.
+- Verification passed for this batch: `bun run lint:admin`, `bun run lint:donor`, `bun run lint:missionary`, `bun run lint --filter=@asym/lib`, `bun run typecheck:admin`, `bun run typecheck:donor`, `bun run typecheck:missionary`, `bun run typecheck --filter=@asym/lib`.
+- React Doctor rerun after safe-html migration: `@asym/admin` **90/100** (warnings **89**, down from 96), `@asym/donor` **93/100** (warnings **49**, down from 52), `@asym/missionary-app` **93/100** (warnings **66**, down from 71).
+- Added `@asym/lib/motion` (`motion = m` + `MotionProvider` with `LazyMotion`) and wrapped admin/donor/missionary app layouts with `MotionProvider`; migrated app-level `motion/react` imports to `@asym/lib/motion`.
+- Added `motion` dependency to `@asym/lib` via package manager to support the shared motion adapter.
+- Verification passed for motion batch: `bun run lint:admin`, `bun run lint:donor`, `bun run lint:missionary`, `bun run lint --filter=@asym/lib`, `bun run typecheck:admin`, `bun run typecheck:donor`, `bun run typecheck:missionary`, `bun run typecheck --filter=@asym/lib`.
+- React Doctor rerun after motion batch: `@asym/admin` **90/100** (warnings **84**, down from 89), `@asym/donor` **93/100** (warnings **37**, down from 49), `@asym/missionary-app` **93/100** (warnings **58**, down from 66).
+- Accessibility click-target pass completed for admin/donor warning hotspots by converting clickable `div` cards to semantic `button`s (or removing redundant `onClick` wrappers where focus behavior is unchanged).
+- Turborepo safety gates passed after this batch: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run lint:donor`, `bun run typecheck:admin`, `bun run typecheck:donor`.
+- React Doctor diff rerun after this pass: `@asym/admin` **92/100** (warnings **69** across changed files), `@asym/donor` **95/100** (warnings **21** across changed files).
+- Admin `task-drawer` section heading labels were converted to non-form text semantics (`p`) to satisfy label-association a11y constraints without behavior changes.
+- Trivial `useMemo` wrappers were removed from mission-control tenant switchers and notifications menus by using static module constants directly.
+- Turborepo safety gates for this pass passed cleanly: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run typecheck:admin`.
+- React Doctor rerun after this pass: `@asym/admin` **93/100** (warnings **58**, down from 69 in the previous pass).
+- `apps/admin/app/web-studio/page.tsx` now provides explicit `sizes` for both `next/image` `fill` images in preview content.
+- `apps/admin/app/feed/page.tsx` and `apps/admin/app/feed/org-updates/page.tsx` now replace `scale: 0` entry/exit animations with `scale: 0.95` + opacity transitions.
+- Turborepo safety gates for this pass passed cleanly: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run typecheck:admin`.
+- React Doctor rerun after this pass: `@asym/admin` **95/100** (warnings **49**, down from 58 in the previous pass).
+- `apps/admin/features/mission-control/locations/components/LocationEditor.tsx` no longer uses `useEffect` to reset form state; form defaults now derive from props at mount.
+- `apps/admin/app/mobilize/locations/page.tsx` now keys `LocationEditor` by selected location + editor state so form instances reset safely without side-effect syncing.
+- `apps/admin/features/mission-control/care/components/UI.tsx` calendar now derives `viewDate` from `defaultMonth` + offset state instead of initializing state directly from prop.
+- Turborepo safety gates for this pass passed cleanly: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run typecheck:admin`.
+- React Doctor rerun after this pass: `@asym/admin` **96/100** (warnings **47**, down from 49 in the previous pass).
+- Stable-key cleanup landed across admin shell/page primitives plus teams icon rendering: index-based keys replaced with data-backed keys and teams now uses memoized `TileIcon` instead of inline `renderIcon` helper.
+- Turborepo safety gates for this pass passed cleanly: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run typecheck:admin`.
+- React Doctor rerun after this pass: `@asym/admin` **97/100** (warnings **34**, down from 47 in the previous pass).
+- Remaining feed/org-updates index-key hotspots were replaced with stable media/activity keys to prevent list reconciliation drift on reorder/filter.
+- Turborepo safety gates for this pass passed cleanly: `bun run lint:admin`, `bun run typecheck:admin`.
+- React Doctor rerun after this pass: `@asym/admin` **98/100** (warnings **28**, down from 34 in the previous pass).
+- `apps/admin/app/reports/page.tsx` and `apps/admin/app/events/page.tsx` now dynamically load local chart modules (`reports-charts.tsx`, `registration-trends-chart.tsx`) so `recharts` code is split out of the main route bundles.
+- Turborepo safety gates for this pass passed cleanly: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run typecheck:admin`.
+- React Doctor rerun after this pass: `@asym/admin` **99/100** (warnings **26**, down from 28 in the previous pass).
+- `apps/admin/app/settings/integrations/sendgrid/page.tsx` now uses a reducer for related UI/test-dialog fields, reducing local `useState` sprawl while preserving existing behavior.
+- Turborepo safety gates for this pass passed cleanly: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run typecheck:admin`.
+- React Doctor rerun after this pass: `@asym/admin` **99/100** (warnings **25**, down from 26 in the previous pass).
+- `apps/admin/app/feed/org-updates/page.tsx` `ComposeCard` now uses a reducer for editor state (`content/type/visibility/publish/upload/media`) instead of many independent `useState` hooks.
+- Turborepo safety gates for this pass passed cleanly: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run typecheck:admin`.
+- React Doctor rerun after this pass: `@asym/admin` **99/100** (warnings **24**, down from 25 in the previous pass).
+- `apps/admin/app/tasks/tasks-content.tsx` now uses a reducer for page UI state (`selected/editing task`, modal, tab, search, completed filter) while keeping task data updates unchanged.
+- Turborepo safety gates for this pass passed cleanly: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run typecheck:admin`.
+- React Doctor rerun after this pass: `@asym/admin` **99/100** (warnings **23**, down from 24 in the previous pass).
+- `apps/admin/app/web-studio/page.tsx` now hoists static image/project preview data out of `useState`, preserving behavior while reducing avoidable local state.
+- `apps/admin/app/email/page.tsx` now groups editor UI flags (`saving/dialog/export/fullscreen/preview/config`) into a single local reducer while keeping template metadata state unchanged.
+- Turborepo safety gates for this pass passed cleanly: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run typecheck:admin`.
+- React Doctor rerun after this pass: `@asym/admin` **99/100** (warnings **21**, down from 23 in the previous pass).
+- `apps/admin/app/tasks/task-form.tsx` now groups task form fields + linked-record/tag/reminder UI state under one reducer (`taskFormReducer`) instead of many independent `useState` hooks.
+- Turborepo safety gates for this pass passed cleanly: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run typecheck:admin`.
+- React Doctor rerun after this pass: `@asym/admin` **99/100** (warnings **20**, down from 21 in the previous pass).
+- `apps/admin/app/pdf/page.tsx` now groups PDF studio UI flags (`saving/exporting/dialogs/fullscreen/preview/config`) into a single reducer (`pdfStudioUiReducer`) and moves transient design tracking from state to ref.
+- Turborepo safety gates for this pass passed cleanly: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run typecheck:admin`.
+- React Doctor rerun after this pass: `@asym/admin` **99/100** (warnings **19**, down from 20 in the previous pass).
+- `apps/admin/app/feed/page.tsx` now uses a local reducer for moderation-page UI controls (`activeTab/search/filter/sort/refreshing`) and hoists static `stats`/`isLoading` out of `useState`.
+- `apps/admin/app/feed/org-updates/page.tsx` now uses a local reducer for page UI controls (`activeTab/editing/delete dialog/settings`) while keeping posts/drafts data state unchanged.
+- Turborepo safety gates for this pass passed cleanly: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run typecheck:admin`.
+- React Doctor rerun after this pass: `@asym/admin` **99/100** (warnings **17**, down from 19 in the previous pass).
+- `apps/admin/app/automations/page.tsx` was split into focused presentational sections (`AutomationsHeader`, `AutomationStatsRow`, `RecentFlowsCard`, `IntegrationHealthCard`, `AutomationBestPracticesCard`) while preserving existing UI behavior.
+- Turborepo safety gates for this pass passed cleanly: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run typecheck:admin`.
+- React Doctor rerun after this pass: `@asym/admin` **99/100** (warnings **16**, down from 17 in the previous pass).
+- `apps/admin/app/care/settings/page.tsx` was split into focused presentational cards and hoisted static settings arrays to module constants without behavior changes.
+- Turborepo safety gates for this pass passed cleanly: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run typecheck:admin`.
+- React Doctor rerun after this pass: `@asym/admin` **99/100** (warnings **15**, down from 16 in the previous pass).
+- `apps/admin/app/tasks/task-drawer.tsx` was reduced to orchestration-only logic, with render-heavy sections extracted into focused components in `apps/admin/app/tasks/task-drawer-sections.tsx` (no behavior changes).
+- Turborepo safety gates for this pass passed cleanly: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run typecheck:admin`.
+- React Doctor rerun after this pass: `@asym/admin` **99/100** (warnings **14**, down from 15 in the previous pass).
+- `apps/admin/app/settings/integrations/sendgrid/page.tsx` was reduced to data/side-effect orchestration, with render-heavy connected/disconnected/dialog UI extracted into `apps/admin/app/settings/integrations/sendgrid/sendgrid-sections.tsx` (no behavior changes).
+- Turborepo safety gates for this pass passed cleanly: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run typecheck:admin`.
+- React Doctor rerun after this pass: `@asym/admin` **99/100** (warnings **13**, down from 14 in the previous pass).
+- `apps/admin/app/tasks/task-form.tsx` was reduced to reducer/data orchestration, with render-heavy dialog sections extracted into `apps/admin/app/tasks/task-form-sections.tsx` (no behavior changes).
+- Turborepo safety gates for this pass passed cleanly: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run typecheck:admin`.
+- React Doctor rerun after this pass: `@asym/admin` **99/100** (warnings **12**, down from 13 in the previous pass).
+- `apps/admin/app/web-studio/page.tsx` was reduced to orchestration-only logic, with render-heavy header/editor/preview sections extracted into `apps/admin/app/web-studio/web-studio-sections.tsx` (no behavior changes).
+- Turborepo safety gates for this pass passed cleanly: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run typecheck:admin`.
+- React Doctor rerun after this pass: `@asym/admin` **99/100** (warnings **11**, down from 12 in the previous pass).
+- `apps/admin/app/mobilize/page.tsx` was reduced to orchestration-only logic, with render-heavy layout/table/sheets extracted into `apps/admin/app/mobilize/mobilize-sections.tsx` (no behavior changes).
+- Turborepo safety gates for this pass passed cleanly: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run typecheck:admin`.
+- React Doctor rerun after this pass: `@asym/admin` **99/100** (warnings **10**, down from 11 in the previous pass).

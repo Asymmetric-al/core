@@ -1,5 +1,6 @@
 "use client";
 
+import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
 import {
   Avatar,
   AvatarFallback,
@@ -57,7 +58,6 @@ import {
   Info,
   RotateCcw,
 } from "lucide-react";
-import { motion, AnimatePresence, LayoutGroup } from "motion/react";
 import Image from "next/image";
 import * as React from "react";
 import { useState, useCallback, useEffect } from "react";
@@ -149,6 +149,41 @@ const initialProfile: ProfileData = {
   avatarUrl: "",
   coverUrl: "",
 };
+
+type JsonObject = Record<string, unknown>;
+
+function asObject(value: unknown): JsonObject | null {
+  return typeof value === "object" && value !== null
+    ? (value as JsonObject)
+    : null;
+}
+
+function asString(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
+function mapApiProfileToProfileData(apiProfile: unknown): ProfileData {
+  const profile = asObject(apiProfile);
+  const missionary = asObject(profile?.missionary);
+  const socialLinks = asObject(missionary?.social_links);
+
+  return {
+    firstName: asString(profile?.first_name),
+    lastName: asString(profile?.last_name),
+    email: asString(profile?.email),
+    phone: asString(missionary?.phone),
+    location: asString(missionary?.location),
+    ministryFocus: asString(missionary?.tagline),
+    bio: asString(missionary?.bio),
+    facebook: asString(socialLinks?.facebook),
+    instagram: asString(socialLinks?.instagram),
+    twitter: asString(socialLinks?.twitter),
+    youtube: asString(socialLinks?.youtube),
+    website: asString(socialLinks?.website),
+    avatarUrl: asString(profile?.avatar_url),
+    coverUrl: asString(missionary?.cover_url),
+  };
+}
 
 function countWords(text: string): number {
   return text
@@ -606,7 +641,7 @@ export default function ProfilePage() {
     (profile.firstName?.[0] || "") + (profile.lastName?.[0] || "");
   const bioWordCount = countWords(profile.bio);
 
-  const profileQuery = useQuery({
+  const profileQuery = useQuery<ProfileData | null>({
     queryKey: ["profile"],
     queryFn: async () => {
       const res = await fetch("/api/profile");
@@ -617,16 +652,15 @@ export default function ProfilePage() {
         // Leave as null; we'll surface a generic error.
       }
 
+      const payload = asObject(data);
+
       if (!res.ok) {
-        const message =
-          typeof data === "object" && data && "error" in data
-            ? String((data as { error?: unknown }).error || "")
-            : "";
+        const message = asString(payload?.error);
         throw new Error(message || "Failed to load profile");
       }
 
-      return typeof data === "object" && data && "profile" in data
-        ? (data as { profile?: unknown }).profile
+      return payload && "profile" in payload
+        ? mapApiProfileToProfileData(payload.profile)
         : null;
     },
     retry: false,
@@ -640,29 +674,8 @@ export default function ProfilePage() {
     if (!profileQuery.data) return;
 
     setFetchError(null);
-
-    const p = profileQuery.data as any;
-    const m = p.missionary || {};
-    const social = m.social_links || {};
-    const profileData: ProfileData = {
-      firstName: p.first_name || "",
-      lastName: p.last_name || "",
-      email: p.email || "",
-      phone: m.phone || "",
-      location: m.location || "",
-      ministryFocus: m.tagline || "",
-      bio: m.bio || "",
-      facebook: social.facebook || "",
-      instagram: social.instagram || "",
-      twitter: social.twitter || "",
-      youtube: social.youtube || "",
-      website: social.website || "",
-      avatarUrl: p.avatar_url || "",
-      coverUrl: m.cover_url || "",
-    };
-
-    setProfile(profileData);
-    setOriginalProfile(profileData);
+    setProfile(profileQuery.data);
+    setOriginalProfile(profileQuery.data);
     hasInitializedProfile.current = true;
   }, [profileQuery.data]);
 

@@ -99,9 +99,6 @@ export function GivingWidget({
                 ? "border-slate-900 ring-4 ring-slate-900/5"
                 : "border-slate-200 hover:border-slate-300",
             )}
-            onClick={() =>
-              document.getElementById("custom-amount-input")?.focus()
-            }
           >
             <span
               className={cn(

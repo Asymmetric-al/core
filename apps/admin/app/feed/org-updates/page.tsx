@@ -1,6 +1,8 @@
 "use client";
 
+import { SafeHtml } from "@asym/lib/components/safe-html";
 import { TimeAgo, useLastSynced } from "@asym/lib/hooks";
+import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
 import {
   BrandAvatar,
   BrandLogo,
@@ -70,11 +72,10 @@ import {
   Bell,
   Check,
 } from "lucide-react";
-import { motion, AnimatePresence, LayoutGroup } from "motion/react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useReducer, useState } from "react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/page-header";
@@ -486,9 +487,9 @@ function PostCard({
             transition={{ delay: 0.1 }}
             className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-4"
           >
-            <div
+            <SafeHtml
               className="prose prose-sm sm:prose-base max-w-none text-foreground/80 leading-relaxed prose-headings:font-bold prose-headings:text-foreground prose-headings:tracking-tight prose-strong:font-bold prose-strong:text-foreground prose-a:text-primary prose-a:font-bold prose-a:no-underline hover:prose-a:underline"
-              dangerouslySetInnerHTML={{ __html: post.content }}
+              html={post.content}
             />
             {post.media && post.media.length > 0 && (
               <motion.div
@@ -497,9 +498,9 @@ function PostCard({
                 transition={{ delay: 0.15 }}
                 className="flex gap-2 flex-wrap"
               >
-                {post.media.slice(0, 4).map((item, idx) => (
+                {post.media.slice(0, 4).map((item) => (
                   <div
-                    key={idx}
+                    key={`${post.id}-${item.type}-${item.url}`}
                     className="relative h-24 w-24 sm:h-32 sm:w-32 rounded-xl overflow-hidden border shadow-sm"
                   >
                     <Image
@@ -577,9 +578,9 @@ function DraftCard({
                 Saved <TimeAgo date={draft.created_at} />
               </span>
             </div>
-            <div
+            <SafeHtml
               className="prose prose-sm max-w-none line-clamp-2 opacity-60 text-foreground"
-              dangerouslySetInnerHTML={{ __html: draft.content }}
+              html={draft.content}
             />
           </div>
           <div className="flex flex-row sm:flex-col gap-2 shrink-0 w-full sm:w-auto">
@@ -627,24 +628,117 @@ function ComposeCard({
   editingPost: OrgPost | null;
   onCancelEdit: () => void;
 }) {
-  const [postContent, setPostContent] = useState(editingPost?.content || "");
-  const [postType, setPostType] = useState(
-    editingPost?.post_type || "Announcement",
+  type ComposeMediaItem = { url: string; type: string };
+
+  interface ComposeCardState {
+    postContent: string;
+    postType: string;
+    visibility: Visibility;
+    isPublishing: boolean;
+    selectedMedia: ComposeMediaItem[];
+    isUploading: boolean;
+  }
+
+  type ComposeCardAction =
+    | { type: "set-content"; value: string }
+    | { type: "set-post-type"; value: string }
+    | { type: "set-visibility"; value: Visibility }
+    | { type: "set-publishing"; value: boolean }
+    | { type: "set-uploading"; value: boolean }
+    | { type: "add-media"; item: ComposeMediaItem }
+    | { type: "remove-media"; item: ComposeMediaItem }
+    | { type: "reset-editor" };
+
+  const dedupeMedia = (media: ComposeMediaItem[] | undefined) =>
+    media?.filter(
+      (mediaItem, mediaIndex, allMedia) =>
+        allMedia.findIndex(
+          (candidate) =>
+            candidate.url === mediaItem.url &&
+            candidate.type === mediaItem.type,
+        ) === mediaIndex,
+    ) || [];
+
+  const buildInitialComposeState = (
+    sourcePost: OrgPost | null,
+  ): ComposeCardState => ({
+    postContent: sourcePost?.content || "",
+    postType: sourcePost?.post_type || "Announcement",
+    visibility: sourcePost?.visibility || "public",
+    isPublishing: false,
+    selectedMedia: dedupeMedia(sourcePost?.media),
+    isUploading: false,
+  });
+
+  const composeCardReducer = (
+    state: ComposeCardState,
+    action: ComposeCardAction,
+  ): ComposeCardState => {
+    switch (action.type) {
+      case "set-content":
+        return { ...state, postContent: action.value };
+      case "set-post-type":
+        return { ...state, postType: action.value };
+      case "set-visibility":
+        return { ...state, visibility: action.value };
+      case "set-publishing":
+        return { ...state, isPublishing: action.value };
+      case "set-uploading":
+        return { ...state, isUploading: action.value };
+      case "add-media":
+        if (
+          state.selectedMedia.some(
+            (mediaItem) =>
+              mediaItem.url === action.item.url &&
+              mediaItem.type === action.item.type,
+          )
+        ) {
+          return state;
+        }
+        return {
+          ...state,
+          selectedMedia: [...state.selectedMedia, action.item],
+        };
+      case "remove-media":
+        return {
+          ...state,
+          selectedMedia: state.selectedMedia.filter(
+            (mediaItem) =>
+              mediaItem.url !== action.item.url ||
+              mediaItem.type !== action.item.type,
+          ),
+        };
+      case "reset-editor":
+        return {
+          ...state,
+          postContent: "",
+          selectedMedia: [],
+          isPublishing: false,
+        };
+      default:
+        return state;
+    }
+  };
+
+  const [composeState, dispatchCompose] = useReducer(
+    composeCardReducer,
+    editingPost,
+    buildInitialComposeState,
   );
-  const [visibility, setVisibility] = useState<Visibility>(
-    editingPost?.visibility || "public",
-  );
-  const [isPublishing, setIsPublishing] = useState(false);
-  const [selectedMedia, setSelectedMedia] = useState<
-    { url: string; type: string }[]
-  >(editingPost?.media || []);
-  const [isUploading, setIsUploading] = useState(false);
+  const {
+    postContent,
+    postType,
+    visibility,
+    isPublishing,
+    selectedMedia,
+    isUploading,
+  } = composeState;
 
   const handlePublish = async () => {
     const plainText = postContent.replace(/<[^>]*>?/gm, "").trim();
     if (!plainText && !postContent.includes("<img")) return;
 
-    setIsPublishing(true);
+    dispatchCompose({ type: "set-publishing", value: true });
     await new Promise((resolve) => setTimeout(resolve, 800));
 
     onSave({
@@ -658,16 +752,14 @@ function ComposeCard({
     toast.success(
       editingPost ? "Update saved!" : "Organization update published!",
     );
-    setPostContent("");
-    setSelectedMedia([]);
-    setIsPublishing(false);
+    dispatchCompose({ type: "reset-editor" });
   };
 
   const handleSaveDraft = async () => {
     const plainText = postContent.replace(/<[^>]*>?/gm, "").trim();
     if (!plainText && !postContent.includes("<img")) return;
 
-    setIsPublishing(true);
+    dispatchCompose({ type: "set-publishing", value: true });
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     onSave({
@@ -679,13 +771,11 @@ function ComposeCard({
     });
 
     toast.success("Draft saved!");
-    setPostContent("");
-    setSelectedMedia([]);
-    setIsPublishing(false);
+    dispatchCompose({ type: "reset-editor" });
   };
 
   const handleAddMedia = async () => {
-    setIsUploading(true);
+    dispatchCompose({ type: "set-uploading", value: true });
     await new Promise((resolve) => setTimeout(resolve, 1000));
     const demoImages = [
       "https://images.unsplash.com/photo-1509099836639-18ba1795216d?w=800&q=80",
@@ -694,8 +784,11 @@ function ComposeCard({
     const randomImage =
       demoImages[Math.floor(Math.random() * demoImages.length)] ??
       demoImages[0]!;
-    setSelectedMedia((prev) => [...prev, { url: randomImage, type: "image" }]);
-    setIsUploading(false);
+    dispatchCompose({
+      type: "add-media",
+      item: { url: randomImage, type: "image" },
+    });
+    dispatchCompose({ type: "set-uploading", value: false });
     toast.success("Image added");
   };
 
@@ -728,7 +821,9 @@ function ComposeCard({
               >
                 <Button
                   variant={postType === type ? "default" : "outline"}
-                  onClick={() => setPostType(type)}
+                  onClick={() =>
+                    dispatchCompose({ type: "set-post-type", value: type })
+                  }
                   className={cn(
                     "px-3 sm:px-5 py-2 h-8 sm:h-9 text-[9px] sm:text-[10px] uppercase tracking-wider font-semibold rounded-xl",
                     postType === type && "shadow-md",
@@ -778,7 +873,9 @@ function ComposeCard({
           >
             <RichTextEditor
               value={postContent}
-              onChange={setPostContent}
+              onChange={(value) =>
+                dispatchCompose({ type: "set-content", value })
+              }
               placeholder={`Write your ${postType.toLowerCase()}...`}
               className=""
               contentClassName="py-3 sm:py-4 px-3 sm:px-4 text-sm sm:text-base text-foreground placeholder:text-muted-foreground min-h-[100px] sm:min-h-[140px] leading-relaxed"
@@ -794,9 +891,9 @@ function ComposeCard({
                         exit={{ opacity: 0, height: 0 }}
                         className="flex gap-2 sm:gap-3 overflow-x-auto no-scrollbar pb-2"
                       >
-                        {selectedMedia.map((item, idx) => (
+                        {selectedMedia.map((item) => (
                           <motion.div
-                            key={idx}
+                            key={`${item.type}-${item.url}`}
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.8 }}
@@ -805,7 +902,7 @@ function ComposeCard({
                           >
                             <Image
                               src={item.url}
-                              alt={`Attached media ${idx + 1}`}
+                              alt="Attached media"
                               width={64}
                               height={64}
                               unoptimized
@@ -815,9 +912,10 @@ function ComposeCard({
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
                               onClick={() =>
-                                setSelectedMedia((prev) =>
-                                  prev.filter((_, i) => i !== idx),
-                                )
+                                dispatchCompose({
+                                  type: "remove-media",
+                                  item,
+                                })
                               }
                               className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover/img:opacity-100 transition-opacity shadow-sm"
                             >
@@ -881,21 +979,36 @@ function ComposeCard({
                         className="rounded-xl border shadow-lg p-1.5 min-w-[160px]"
                       >
                         <DropdownMenuItem
-                          onClick={() => setVisibility("public")}
+                          onClick={() =>
+                            dispatchCompose({
+                              type: "set-visibility",
+                              value: "public",
+                            })
+                          }
                           className="font-medium text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
                         >
                           <Globe className="h-3.5 w-3.5 text-muted-foreground" />{" "}
                           Public
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => setVisibility("partners")}
+                          onClick={() =>
+                            dispatchCompose({
+                              type: "set-visibility",
+                              value: "partners",
+                            })
+                          }
                           className="font-medium text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
                         >
                           <Users className="h-3.5 w-3.5 text-muted-foreground" />{" "}
                           Partners Only
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => setVisibility("private")}
+                          onClick={() =>
+                            dispatchCompose({
+                              type: "set-visibility",
+                              value: "private",
+                            })
+                          }
                           className="font-medium text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
                         >
                           <Lock className="h-3.5 w-3.5 text-muted-foreground" />{" "}
@@ -1024,15 +1137,72 @@ function EmptyState({
   );
 }
 
+interface OrgUpdatesUiState {
+  activeTab: PostStatus;
+  editingPost: OrgPost | null;
+  deleteDialogOpen: boolean;
+  postToDelete: string | null;
+  settingsOpen: boolean;
+}
+
+type OrgUpdatesUiAction =
+  | { type: "set_active_tab"; value: PostStatus }
+  | { type: "set_editing_post"; value: OrgPost | null }
+  | { type: "open_delete_dialog"; postId: string }
+  | { type: "close_delete_dialog" }
+  | { type: "set_settings_open"; value: boolean };
+
+const INITIAL_ORG_UPDATES_UI_STATE: OrgUpdatesUiState = {
+  activeTab: "published",
+  editingPost: null,
+  deleteDialogOpen: false,
+  postToDelete: null,
+  settingsOpen: false,
+};
+
+function orgUpdatesUiReducer(
+  state: OrgUpdatesUiState,
+  action: OrgUpdatesUiAction,
+): OrgUpdatesUiState {
+  switch (action.type) {
+    case "set_active_tab":
+      return { ...state, activeTab: action.value };
+    case "set_editing_post":
+      return { ...state, editingPost: action.value };
+    case "open_delete_dialog":
+      return {
+        ...state,
+        postToDelete: action.postId,
+        deleteDialogOpen: true,
+      };
+    case "close_delete_dialog":
+      return {
+        ...state,
+        deleteDialogOpen: false,
+        postToDelete: null,
+      };
+    case "set_settings_open":
+      return { ...state, settingsOpen: action.value };
+    default:
+      return state;
+  }
+}
+
 export default function OrgUpdatesPage() {
   const [posts, setPosts] = useState<OrgPost[]>(MOCK_ORG_POSTS);
   const [drafts, setDrafts] = useState<OrgPost[]>(MOCK_DRAFTS);
-  const [activeTab, setActiveTab] = useState<PostStatus>("published");
-  const [isLoading, _setIsLoading] = useState(false);
-  const [editingPost, setEditingPost] = useState<OrgPost | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [postToDelete, setPostToDelete] = useState<string | null>(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [ui, dispatchUi] = useReducer(
+    orgUpdatesUiReducer,
+    INITIAL_ORG_UPDATES_UI_STATE,
+  );
+  const {
+    activeTab,
+    editingPost,
+    deleteDialogOpen,
+    postToDelete,
+    settingsOpen,
+  } = ui;
+  const isLoading = false;
   const lastSynced = useLastSynced();
 
   const handleSavePost = useCallback(
@@ -1077,20 +1247,19 @@ export default function OrgUpdatesPage() {
           setPosts((prev) => [newPost, ...prev]);
         }
       }
-      setEditingPost(null);
+      dispatchUi({ type: "set_editing_post", value: null });
     },
     [editingPost],
   );
 
   const handleEdit = (post: OrgPost) => {
-    setEditingPost(post);
+    dispatchUi({ type: "set_editing_post", value: post });
     window.scrollTo({ top: 0, behavior: "smooth" });
     toast.info("Editing post...");
   };
 
   const handleDelete = (postId: string) => {
-    setPostToDelete(postId);
-    setDeleteDialogOpen(true);
+    dispatchUi({ type: "open_delete_dialog", postId });
   };
 
   const confirmDelete = () => {
@@ -1099,8 +1268,7 @@ export default function OrgUpdatesPage() {
       setDrafts((prev) => prev.filter((p) => p.id !== postToDelete));
       toast.success("Post deleted");
     }
-    setDeleteDialogOpen(false);
-    setPostToDelete(null);
+    dispatchUi({ type: "close_delete_dialog" });
   };
 
   const handleTogglePin = (postId: string) => {
@@ -1135,7 +1303,7 @@ export default function OrgUpdatesPage() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => setSettingsOpen(true)}
+          onClick={() => dispatchUi({ type: "set_settings_open", value: true })}
           className="h-9 gap-2 rounded-xl font-medium"
         >
           <Settings className="h-4 w-4" />
@@ -1147,13 +1315,17 @@ export default function OrgUpdatesPage() {
         <ComposeCard
           onSave={handleSavePost}
           editingPost={editingPost}
-          onCancelEdit={() => setEditingPost(null)}
+          onCancelEdit={() =>
+            dispatchUi({ type: "set_editing_post", value: null })
+          }
         />
 
         <Tabs
           defaultValue="published"
           value={activeTab}
-          onValueChange={(v) => setActiveTab(v as PostStatus)}
+          onValueChange={(v) =>
+            dispatchUi({ type: "set_active_tab", value: v as PostStatus })
+          }
           className="w-full"
         >
           <motion.div
@@ -1177,9 +1349,9 @@ export default function OrgUpdatesPage() {
                 <AnimatePresence>
                   {drafts.length > 0 && (
                     <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      exit={{ scale: 0 }}
+                      initial={{ scale: 0.95, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.95, opacity: 0 }}
                       transition={springTransition}
                     >
                       <Badge className="bg-primary text-primary-foreground border-none h-4 px-1 text-[8px] font-semibold">
@@ -1259,9 +1431,21 @@ export default function OrgUpdatesPage() {
         </Tabs>
       </div>
 
-      <FeedSettingsSheet open={settingsOpen} onOpenChange={setSettingsOpen} />
+      <FeedSettingsSheet
+        open={settingsOpen}
+        onOpenChange={(open) =>
+          dispatchUi({ type: "set_settings_open", value: open })
+        }
+      />
 
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            dispatchUi({ type: "close_delete_dialog" });
+          }
+        }}
+      >
         <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Update?</AlertDialogTitle>

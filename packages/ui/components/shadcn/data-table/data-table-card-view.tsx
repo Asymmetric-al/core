@@ -65,9 +65,7 @@ export function DataTableCardView<TData>({
       {rows.map((row) => {
         if (renderCard) {
           return (
-            <div key={row.id} className="relative">
-              {renderCard(row)}
-            </div>
+            <DataTableCustomCard key={row.id} row={row} render={renderCard} />
           );
         }
 
@@ -88,6 +86,16 @@ export function DataTableCardView<TData>({
       })}
     </div>
   );
+}
+
+function DataTableCustomCard<TData>({
+  row,
+  render,
+}: {
+  row: Row<TData>;
+  render: (row: Row<TData>) => React.ReactNode;
+}) {
+  return <div className="relative">{render(row)}</div>;
 }
 
 interface DataTableCardItemProps<TData> {
@@ -145,11 +153,12 @@ function DataTableCardItem<TData>({
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           {enableRowSelection && (
-            <div className="pt-0.5" onClick={(e) => e.stopPropagation()}>
+            <div className="pt-0.5">
               <Checkbox
                 checked={isSelected}
                 onCheckedChange={(checked) => row.toggleSelected(!!checked)}
                 aria-label="Select row"
+                onClick={(e) => e.stopPropagation()}
               />
             </div>
           )}
@@ -161,6 +170,7 @@ function DataTableCardItem<TData>({
                   src={avatarValue}
                   alt=""
                   fill
+                  sizes="40px"
                   className="object-cover"
                   unoptimized
                 />

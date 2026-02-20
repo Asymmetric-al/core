@@ -1,10 +1,22 @@
 "use client";
 
-import * as React from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { format } from "date-fns";
+import { createBrowserClient } from "@asym/database/supabase";
+import { useAuth } from "@asym/lib/hooks";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Calendar } from "@asym/ui/components/shadcn/calendar";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@asym/ui/components/shadcn/command";
 import {
   Dialog,
   DialogContent,
@@ -15,21 +27,19 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from "@asym/ui/components/shadcn/form";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Textarea } from "@asym/ui/components/shadcn/textarea";
-import { Calendar } from "@asym/ui/components/shadcn/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@asym/ui/components/shadcn/popover";
+import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 import {
   Select,
   SelectContent,
@@ -37,24 +47,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@asym/ui/components/shadcn/command";
-import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
-import { createBrowserClient } from "@asym/database/supabase";
-import { useAuth } from "@asym/lib/hooks";
-import { toast } from "sonner";
+import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { cn } from "@asym/ui/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
 import {
   Loader2,
   CalendarIcon,
@@ -71,12 +67,12 @@ import {
   ChevronsUpDown,
   User,
 } from "lucide-react";
-import type {
-  Task,
-  TaskType,
-  TaskStatus,
-  TaskPriority,
-} from "@/lib/missionary/types";
+import * as React from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+
+import type { Task, TaskType, TaskStatus, TaskPriority } from "../types";
 
 const taskSchema = z.object({
   title: z.string().min(2, "Title must be at least 2 characters"),
@@ -205,22 +201,41 @@ export function TaskDialog({
   const [donors, setDonors] = React.useState<SimpleDonor[]>([]);
   const [loadingDonors, setLoadingDonors] = React.useState(false);
   const [donorSearchOpen, setDonorSearchOpen] = React.useState(false);
+  const donorListboxId = React.useId();
 
   const isEditing = !!task;
 
+  const buildFormDefaults = React.useCallback((): TaskFormValues => {
+    if (task) {
+      return {
+        title: task.title || "",
+        description: task.description || "",
+        notes: task.notes || "",
+        task_type: task.task_type || "to_do",
+        status: task.status || "not_started",
+        priority: task.priority || "none",
+        due_date: task.due_date ? new Date(task.due_date) : null,
+        reminder_date: task.reminder_date ? new Date(task.reminder_date) : null,
+        donor_id: task.donor_id || defaultDonorId || null,
+      };
+    }
+
+    return {
+      title: "",
+      description: "",
+      notes: "",
+      task_type: "to_do",
+      status: initialStatus || "not_started",
+      priority: "none",
+      due_date: null,
+      reminder_date: null,
+      donor_id: defaultDonorId || null,
+    };
+  }, [task, defaultDonorId, initialStatus]);
+
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
-    defaultValues: {
-      title: task?.title || "",
-      description: task?.description || "",
-      notes: task?.notes || "",
-      task_type: task?.task_type || "to_do",
-      status: task?.status || initialStatus || "not_started",
-      priority: task?.priority || "none",
-      due_date: task?.due_date ? new Date(task.due_date) : null,
-      reminder_date: task?.reminder_date ? new Date(task.reminder_date) : null,
-      donor_id: task?.donor_id || defaultDonorId || null,
-    },
+    defaultValues: buildFormDefaults(),
   });
 
   const fetchDonors = React.useCallback(async () => {
@@ -243,38 +258,15 @@ export function TaskDialog({
   }, [profile?.id, supabase]);
 
   React.useEffect(() => {
-    if (open && profile?.id) {
+    if (open && profile?.id && donors.length === 0 && !loadingDonors) {
       fetchDonors();
     }
-  }, [open, profile?.id, fetchDonors]);
+  }, [open, profile?.id, donors.length, loadingDonors, fetchDonors]);
 
   React.useEffect(() => {
-    if (task) {
-      form.reset({
-        title: task.title || "",
-        description: task.description || "",
-        notes: task.notes || "",
-        task_type: task.task_type || "to_do",
-        status: task.status || "not_started",
-        priority: task.priority || "none",
-        due_date: task.due_date ? new Date(task.due_date) : null,
-        reminder_date: task.reminder_date ? new Date(task.reminder_date) : null,
-        donor_id: task.donor_id || defaultDonorId || null,
-      });
-    } else {
-      form.reset({
-        title: "",
-        description: "",
-        notes: "",
-        task_type: "to_do",
-        status: initialStatus || "not_started",
-        priority: "none",
-        due_date: null,
-        reminder_date: null,
-        donor_id: defaultDonorId || null,
-      });
-    }
-  }, [task, defaultDonorId, initialStatus, form]);
+    if (!open) return;
+    form.reset(buildFormDefaults());
+  }, [open, form, buildFormDefaults]);
 
   async function onSubmit(values: TaskFormValues) {
     if (!profile?.id) {
@@ -662,6 +654,7 @@ export function TaskDialog({
                               variant="outline"
                               role="combobox"
                               aria-expanded={donorSearchOpen}
+                              aria-controls={donorListboxId}
                               className={cn(
                                 "h-12 bg-zinc-50 border-transparent rounded-xl font-medium justify-between hover:bg-zinc-100",
                                 !field.value && "text-zinc-400",
@@ -715,7 +708,7 @@ export function TaskDialog({
                               placeholder="Search partners..."
                               className="h-11"
                             />
-                            <CommandList>
+                            <CommandList id={donorListboxId}>
                               <CommandEmpty>
                                 {loadingDonors ? (
                                   <div className="flex items-center justify-center py-6">

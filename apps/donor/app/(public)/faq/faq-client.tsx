@@ -1,5 +1,6 @@
 "use client";
 
+import { motion, AnimatePresence } from "@asym/lib/motion";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { cn } from "@asym/ui/lib/utils";
@@ -16,7 +17,6 @@ import {
   MessageCircle,
   Sparkles,
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
 import React, { useState, useMemo } from "react";
 

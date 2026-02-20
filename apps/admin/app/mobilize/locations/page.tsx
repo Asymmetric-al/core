@@ -65,6 +65,8 @@ export default function LocationsPage() {
     }
   };
 
+  const editorKey = `${selectedLocation?.id ?? "new"}-${selectedLocation?.lat ?? ""}-${selectedLocation?.lng ?? ""}-${isEditorOpen ? "open" : "closed"}`;
+
   const actions = (
     <Button
       onClick={() => setIsAdding(!isAdding)}
@@ -164,6 +166,7 @@ export default function LocationsPage() {
       </Tabs>
 
       <LocationEditor
+        key={editorKey}
         location={selectedLocation}
         isOpen={isEditorOpen}
         onOpenChange={setIsEditorOpen}

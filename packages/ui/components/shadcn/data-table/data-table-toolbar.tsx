@@ -23,9 +23,11 @@ interface DataTableToolbarProps<TData> {
   children?: React.ReactNode;
 }
 
+const EMPTY_FILTER_FIELDS: DataTableFilterField<unknown>[] = [];
+
 export function DataTableToolbar<TData>({
   table,
-  filterFields = [],
+  filterFields = EMPTY_FILTER_FIELDS as DataTableFilterField<TData>[],
   searchKey,
   searchPlaceholder = "Search...",
   enableColumnVisibility = true,
