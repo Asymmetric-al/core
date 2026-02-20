@@ -117,6 +117,7 @@ Agents MUST keep this file updated during a task. Use it to build the Nia query 
   - apps/admin/app/events/registration-trends-chart.tsx
   - apps/admin/app/feed/org-updates/page.tsx
   - apps/admin/app/tasks/tasks-content.tsx
+  - apps/admin/app/tasks/tasks-content-sections.tsx
   - apps/admin/app/email/page.tsx
   - apps/admin/app/web-studio/page.tsx
   - apps/admin/app/web-studio/web-studio-sections.tsx
@@ -161,6 +162,7 @@ Agents MUST keep this file updated during a task. Use it to build the Nia query 
   - apps/admin/components/dashboard-footer.tsx
   - apps/admin/app/admin/page.tsx
   - apps/admin/app/admin/teams/page.tsx
+  - apps/admin/app/admin/teams/teams-sections.tsx
   - apps/admin/app/settings/integrations/sendgrid/page.tsx
   - apps/admin/app/settings/integrations/sendgrid/sendgrid-sections.tsx
   - apps/admin/features/mission-control/components/patterns/page-header.tsx
@@ -314,3 +316,7 @@ Agents MUST keep this file updated during a task. Use it to build the Nia query 
 - `apps/admin/app/mobilize/page.tsx` was reduced to orchestration-only logic, with render-heavy layout/table/sheets extracted into `apps/admin/app/mobilize/mobilize-sections.tsx` (no behavior changes).
 - Turborepo safety gates for this pass passed cleanly: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run typecheck:admin`.
 - React Doctor rerun after this pass: `@asym/admin` **99/100** (warnings **10**, down from 11 in the previous pass).
+- `apps/admin/app/tasks/tasks-content.tsx` was reduced to orchestration/data logic, with render-heavy stats/filter/table UI extracted into `apps/admin/app/tasks/tasks-content-sections.tsx` (no behavior changes).
+- `apps/admin/app/admin/teams/page.tsx` was reduced to orchestration-only logic, with render-heavy header/table/sheet/users sections extracted into `apps/admin/app/admin/teams/teams-sections.tsx` (no behavior changes).
+- Turborepo safety gates for this pass passed cleanly: `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run lint:admin`, `bun run typecheck:admin`.
+- React Doctor rerun after this pass: `@asym/admin` **99/100** (warnings **10**, unchanged; remaining profile is dominated by large page components plus 2 `recharts` bundle warnings in chart modules).
