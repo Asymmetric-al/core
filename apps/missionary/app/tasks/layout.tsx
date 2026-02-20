@@ -1,11 +1,16 @@
 /**
- * Intentionally keep this segment dynamic while cacheComponents is enabled globally.
- * Remove this override only after /tasks can render without build-time Supabase env access.
+ * Keep this segment request-bound while cacheComponents is enabled globally.
+ * `dynamic = "force-dynamic"` is not supported with cacheComponents in Next.js 16.
  */
-export const dynamic = "force-dynamic";
+import { connection } from "next/server";
 
 import type { ReactNode } from "react";
 
-export default function TasksLayout({ children }: { children: ReactNode }) {
+export default async function TasksLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  await connection();
   return children;
 }

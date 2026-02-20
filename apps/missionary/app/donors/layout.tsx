@@ -1,11 +1,16 @@
+import { connection } from "next/server";
+
 import type { ReactNode } from "react";
 
 /**
- * Intentionally keep this segment dynamic while cacheComponents is enabled globally.
- * Remove this override only after /donors can render without build-time Supabase env access.
+ * Keep this segment request-bound while cacheComponents is enabled globally.
+ * `dynamic = "force-dynamic"` is not supported with cacheComponents in Next.js 16.
  */
-export const dynamic = "force-dynamic";
-
-export default function DonorsLayout({ children }: { children: ReactNode }) {
+export default async function DonorsLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  await connection();
   return children;
 }
