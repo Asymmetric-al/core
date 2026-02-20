@@ -6,15 +6,32 @@ import {
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import dynamic from "next/dynamic";
+
+import type { ComponentType } from "react";
+import type * as Recharts from "recharts";
+
+function dynamicRechartsComponent(
+  exportName: keyof typeof Recharts,
+): ComponentType<Record<string, unknown>> {
+  return dynamic(
+    async () => {
+      const recharts = await import("recharts");
+      return recharts[exportName] as unknown as ComponentType<
+        Record<string, unknown>
+      >;
+    },
+    { ssr: false },
+  );
+}
+
+const Area = dynamicRechartsComponent("Area");
+const AreaChart = dynamicRechartsComponent("AreaChart");
+const CartesianGrid = dynamicRechartsComponent("CartesianGrid");
+const ResponsiveContainer = dynamicRechartsComponent("ResponsiveContainer");
+const Tooltip = dynamicRechartsComponent("Tooltip");
+const XAxis = dynamicRechartsComponent("XAxis");
+const YAxis = dynamicRechartsComponent("YAxis");
 
 const REGISTRATION_TRENDS = [
   { date: "Aug 1", count: 120 },
