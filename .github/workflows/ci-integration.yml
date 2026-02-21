@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [develop, main]
   push:
-    branches: [main]
+    branches: [develop, main]
 
 permissions:
   contents: read
@@ -100,7 +100,7 @@ jobs:
 
   test-e2e:
     needs: smoke
-    continue-on-error: true
+    continue-on-error: ${{ (github.event_name == 'pull_request' && github.base_ref == 'develop') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -167,3 +167,46 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  integration-gate:
+    if: always()
+    needs: [migrate, smoke]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if integration prerequisites failed
+        run: |
+          echo "migrate: ${{ needs.migrate.result }}"
+          echo "smoke: ${{ needs.smoke.result }}"
+
+          failed=0
+          for result in \
+            "${{ needs.migrate.result }}" \
+            "${{ needs.smoke.result }}"
+          do
+            if [ "$result" != "success" ]; then
+              failed=1
+            fi
+          done
+
+          if [ "$failed" -ne 0 ]; then
+            echo "Integration gate failed."
+            exit 1
+          fi
+
+  e2e-gate:
+    if: >
+      always() && (
+        (github.event_name == 'pull_request' && github.base_ref == 'main') ||
+        (github.event_name == 'push' && github.ref == 'refs/heads/main')
+      )
+    needs: [test-e2e]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if E2E failed on main
+        run: |
+          echo "test-e2e: ${{ needs['test-e2e'].result }}"
+
+          if [ "${{ needs['test-e2e'].result }}" != "success" ]; then
+            echo "E2E gate failed."
+            exit 1
+          fi
