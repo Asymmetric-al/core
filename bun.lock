@@ -21,7 +21,7 @@
         "graphql": "16.12.0",
         "graphql-yoga": "5.17.1",
         "require-in-the-middle": "^8.0.1",
-        "shadcn": "^3.8.5",
+        "shadcn": "^3.6.1",
         "sharp": "^0.34.5",
       },
       "devDependencies": {
