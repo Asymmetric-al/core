@@ -60,7 +60,9 @@ if (VERIFY_HTTP) {
   const serverCode = await requestCode("/");
   if (!serverCode) {
     fail("server up");
-    console.error(`Dev server not running at ${BASE_URL}. Start it with: bun run dev`);
+    console.error(
+      `Dev server not running at ${BASE_URL}. Start it with: bun run dev`,
+    );
     process.exit(1);
   }
 
@@ -79,13 +81,21 @@ if (VERIFY_HTTP) {
 }
 
 log("Running workspace contract verification...");
-if (!runBunScript("verify:workspace-contract", "PASS workspace contract verify", "workspace contract verify")) {
+if (
+  !runBunScript(
+    "verify:workspace-contract",
+    "PASS workspace contract verify",
+    "workspace contract verify",
+  )
+) {
   process.exit(1);
 }
 
 if (process.env.VERIFY_SUPABASE === "1") {
   log("Running Supabase verification...");
-  if (!runBunScript("setup:verify", "PASS supabase verify", "supabase verify")) {
+  if (
+    !runBunScript("setup:verify", "PASS supabase verify", "supabase verify")
+  ) {
     process.exit(1);
   }
 } else {

@@ -18,6 +18,9 @@
 - **This step must produce “Nia index hints”:**
   - The Cursor output must include a short section naming what topics/domains the project touches (auth, payments, nextjs routes, db, etc.)
   - The agent must recommend which Nia index tags (from `core/.cursor/nia/index-registry.md`) should be attached in `/3-commit-project`.
+- Test-gate context for downstream merges:
+  - PRs created by this command sequence target `epic` and are validated by `ci-gate`.
+  - Promotion to `develop`/`main` is additionally validated by `integration-gate`, and `main` also requires `e2e-gate`.
 
 ---
 
@@ -67,6 +70,7 @@
 > Paste everything below into Cursor Agent. Replace the placeholders.
 
 ######
+
 ## Role and mission. Read this first and follow it for the entire task.
 
 You are an expert software architect, software planner, and project manager.
@@ -74,12 +78,14 @@ You are an expert software architect, software planner, and project manager.
 You must turn what I provide into a **full, complete, implementation ready project plan** with enough detail that an AI coding agent can execute it autonomously with **no questions and no missing context**.
 
 To do that, you must actively pull all relevant context from:
+
 - the Asymmetric.al repo (inspect it directly in Cursor), and
 - the NIA MCP indexed sources (docs, stack details, prior decisions, patterns)
 
 Then you must build that context into the final plan so the plan stands alone.
 
 Non negotiable rules:
+
 - Use evidence from the repo and indexed sources. Do not guess or invent components.
 - Keep everything in scope of the Asymmetric.al repo. Do not require changes in other repos or unindexed systems.
 - Protect existing behavior. Assume production impact. Prefer small PRs, staged rollout options, and rollback paths.
@@ -92,20 +98,25 @@ Non negotiable rules:
 {PASTE_ANY_EXTRA_CONTEXT}
 
 ## Linear project overview (verbatim)
+
 {PASTE_LINEAR_PROJECT_OVERVIEW}
 
 ## My current project plan (if any)
+
 {PASTE_MY_PROJECT_PLAN}
 
 ## Additional required output: Nia index hints
+
 At the very end of your output, include a section titled:
 
 ### Nia index hints
 
 In that section:
+
 - List the top “domains” this project touches (auth, API routes, DB, billing, CI, etc.).
 - Then recommend which **index tags** from `core/.cursor/nia/index-registry.md` should be attached in Nia for `/3-commit-project`.
 - If you can’t map to tags confidently, list the exact repo evidence you used and what you would search in the registry.
+
 ######
 
 ---
@@ -113,6 +124,7 @@ In that section:
 ## Checklists
 
 ### Output checklist
+
 - [ ] Every issue has the required structure (Title → Intent → …)
 - [ ] Repo-fit checks include file paths/patterns
 - [ ] Assumptions are labeled + have validation steps

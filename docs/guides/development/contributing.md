@@ -60,10 +60,13 @@ bun run test:e2e
 
 ### PR Checks (Required)
 
-- **Required checks:** `CI / format`, `CI / lint`, `CI / typecheck`, `CI / build`, `CI / test-unit`.
-- **Informational only:** `CI / test-e2e (non-blocking)` must not be required for merge.
+This repo uses gate jobs as required checks. Gate jobs summarize multiple underlying jobs.
 
-Maintainers must configure branch protection (Settings → Branches → Require status checks to pass) to require only the checks above and to exclude E2E.
+- **`epic` required:** `ci-gate`
+- **`develop` required:** `ci-gate`, `integration-gate`
+- **`main` required:** `ci-gate`, `integration-gate`, `e2e-gate`
+
+For ownership and full review policy, see `docs/guides/development/code-review-and-ownership.md`.
 
 ### Local Verification (Before PR)
 

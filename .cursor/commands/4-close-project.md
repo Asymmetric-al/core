@@ -14,10 +14,14 @@
 - Treat Traycer as **human-initiated** in Cursor:
   - You open Traycer and paste `traycer.handoff.md`.
   - The agent cannot “start the Traycer UI” on its own.
-- Canonical PR-readiness gate (blocking CI in `.github/workflows/ci.yml`) must pass:
+- Canonical local PR-readiness checks (for `epic` PRs) must pass:
   - `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
+- Branch-aware CI gate requirements:
+  - `epic`: `ci-gate` (format/lint/typecheck/build/test-unit)
+  - `develop`: `ci-gate` + `integration-gate` (`migrate` + `smoke`)
+  - `main`: `ci-gate` + `integration-gate` + `e2e-gate`
 - Formatting: fix with `bun run format`, verify with `bun run format:check`.
-- E2E (`bun run test:e2e`) is informational (non-blocking) but should be run when user flows are impacted.
+- E2E (`bun run test:e2e`) should be run when user flows are impacted; it is enforced by `e2e-gate` for `main`.
 - Every major milestone must be posted back to Linear (plan accepted, Traycer executed, gates green, PR ready).
 
 ---
@@ -60,7 +64,7 @@
    - `bun run typecheck`
    - `bun run build`
    - `bun run test:unit`
-   - If flows impacted: `bun run test:e2e` (informational)
+   - If flows impacted: `bun run test:e2e` (recommended; required for `main` gate in CI)
 
 7. **Commit + push:**
    - Stage changes intentionally.
@@ -98,20 +102,23 @@
 ## Checklists
 
 ### Pre-flight checklist
+
 - [ ] On feature branch
 - [ ] Synced with `epic`
 - [ ] `traycer.handoff.md` exists
 - [ ] PR targets `epic`
 
 ### Quality gate checklist
+
 - [ ] format:check pass
 - [ ] lint pass
 - [ ] typecheck pass
 - [ ] build pass
 - [ ] unit tests pass
-- [ ] e2e run if relevant (optional)
+- [ ] e2e run if relevant (recommended; required on `main` via `e2e-gate`)
 
 ### Linear update checklist
+
 - [ ] Traycer plan posted
 - [ ] Traycer runlog posted
 - [ ] CI/gates status posted
