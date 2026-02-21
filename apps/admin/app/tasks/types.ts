@@ -106,30 +106,35 @@ export const TASK_STATUSES: {
   value: TaskStatus;
   label: string;
   color: string;
+  iconColor: string;
 }[] = [
   {
     value: "todo",
     label: "To Do",
     color:
       "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-950/50 dark:text-slate-400",
+    iconColor: "bg-slate-50 dark:bg-slate-950/50",
   },
   {
     value: "in_progress",
     label: "In Progress",
     color:
       "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400",
+    iconColor: "bg-blue-50 dark:bg-blue-950/50",
   },
   {
     value: "completed",
     label: "Completed",
     color:
       "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400",
+    iconColor: "bg-emerald-50 dark:bg-emerald-950/50",
   },
   {
     value: "cancelled",
     label: "Cancelled",
     color:
       "bg-zinc-50 text-zinc-500 border-zinc-200 dark:bg-zinc-950/50 dark:text-zinc-500",
+    iconColor: "bg-zinc-50 dark:bg-zinc-950/50",
   },
 ];
 
