@@ -10,7 +10,9 @@ type DemoAuthState = { available: true } | { available: false; reason: string };
 
 let demoAuthState: DemoAuthState | null = null;
 
-async function getDemoAuthState(request: APIRequestContext): Promise<DemoAuthState> {
+async function getDemoAuthState(
+  request: APIRequestContext,
+): Promise<DemoAuthState> {
   if (demoAuthState) return demoAuthState;
 
   const availabilityRes = await request.get("/api/auth/demo-account");
