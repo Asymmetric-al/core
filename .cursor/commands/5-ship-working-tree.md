@@ -234,21 +234,131 @@ Run the repo gate set:
 bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit
 ```
 
-If `format:check` fails:
+#### If `format:check` fails
+
+1. Collect a **failure inventory** (for scope classification):
+
+```bash
+git diff --name-only --staged > /tmp/autoship_staged_files.txt
+bun run format:check
+```
+
+2. Attempt a **safe formatting remediation**:
 
 ```bash
 bun run format
 bun run format:check
 ```
 
-If any gate fails:
+3. Classify the result:
 
-- Stop and show the first error summary + suggested likely fix category.
-- Ask user:
-  - **Abort** and keep branch/patch intact, or
-  - **Proceed anyway** (still create PR, but keep it Draft and label as failing)
+- **Case A — fixed and diff is reasonable** (mostly within your staged/expected files):
+  - Continue to lint/typecheck/build/unit.
+- **Case B — fixed but touched many pre-existing/unrelated files** (repo-wide drift):
+  - The command must stop and ask which path to take (see “Gate stop decision” below).
+- **Case C — still failing**:
+  - Treat as a gate failure; stop and offer troubleshooting.
 
-Default should be: **abort unless user chooses proceed**.
+#### Gate stop decision (required)
+
+If any gate fails (including `format:check`), the command must print a concise summary and offer **three** options:
+
+1. **Abort now**  
+   Keep branch + changes intact. No PR is created.
+
+2. **Proceed anyway**  
+   Create a **Draft PR** with the current changes and watch CI. Expect red checks.
+
+3. **Troubleshoot & fix now (recommended)**  
+   The command enters **Troubleshooting Mode** for the failing category, attempts minimal fixes, re-runs the relevant gate(s), and only continues if they pass.
+
+Default should be: **stop and wait for the user to choose 1/2/3**.
+
+---
+
+### 7A) Troubleshooting Mode: formatting drift (repo-wide)
+
+This mode exists specifically for the case you reported: `format:check` fails because **many pre-existing files** are not formatted, even if you didn’t touch them.
+
+The command must offer two remediation strategies:
+
+#### Strategy 1 — Fix formatting in the current branch (fastest, noisier PR)
+
+- Warn that this may create a large diff and make review harder.
+- If user chooses this:
+  1. Run `bun run format` (already done above, repeat only if needed).
+  2. Show `git diff --stat` and top changed paths.
+  3. Stage and commit formatting changes in a **separate commit**:
+
+```bash
+git add -A
+git commit -m "chore: format baseline" -m "ref autoship"
+```
+
+4. Re-run the full gate chain. If it passes, continue to PR creation.
+
+#### Strategy 2 — Split formatting into a dedicated PR (best practice)
+
+Recommended when formatting drift is repo-wide. Keeps your feature PR focused.
+
+If user chooses this:
+
+1. Create a **format baseline branch** off the chosen PR base:
+
+```bash
+git stash push -u -m "autoship: before format baseline split"
+git switch <base>
+git pull --ff-only origin <base>
+git switch -c chore-format-baseline-YYYYMMDD
+git stash pop
+```
+
+> If you stashed feature work, immediately stash it again after switching branches to avoid mixing. The goal is: **baseline PR contains only formatting**.
+
+2. Ensure the branch contains **only formatting** changes:
+
+- Reset any non-format changes (if present) and keep only the formatter output.
+
+3. Run:
+
+```bash
+bun run format
+bun run format:check
+bun run lint
+bun run typecheck
+bun run build
+bun run test:unit
+```
+
+4. Commit + push:
+
+```bash
+git add -A
+git commit -m "chore: format baseline" -m "ref autoship"
+git push -u origin chore-format-baseline-YYYYMMDD
+```
+
+5. Create a **Draft PR** for the baseline:
+
+```bash
+gh pr create --base <base> --head chore-format-baseline-YYYYMMDD --title "chore: format baseline" --body "Repo-wide formatting drift fix." --draft
+```
+
+6. Request CODEOWNERS reviewers (same process as Step 11) and watch checks.
+
+7. After the baseline PR is merged:
+
+- Return to your feature branch and rebase onto updated base:
+
+```bash
+git switch <new-branch>
+git fetch origin --prune
+git rebase origin/<base>
+```
+
+- Then re-run the gate chain and continue with normal PR creation.
+
+> If you have permission and prefer automation, optionally enable auto-merge on the baseline PR once checks pass. Otherwise, prompt the user to merge it manually.
 
 ---
 
@@ -407,9 +517,88 @@ Stop after a reasonable number of attempts and ask the user before continuing if
 
 ---
 
-## Outputs (what the command must report)
+## Post-Ship: Local cleanup (required prompt)
 
-At the end (success or failure), report:
+After the PR is created and checks have reached a terminal state (pass/fail), the command must prompt the user to put the local repo into a clean, predictable state.
+
+### Step PS1) Confirm local working tree is clean
+
+Run and display:
+
+```bash
+git status --porcelain=v1
+```
+
+- If the working tree is **not** clean, the command must stop and ask the user whether to:
+  - stash (`git stash push -u -m "autoship: post-ship cleanup"`) or
+  - keep working without cleanup.
+
+### Step PS2) Present the 3 cleanup options
+
+The command must present **exactly these options** and wait for the user’s choice:
+
+1. **Keep working on this PR branch locally** (stay on the feature branch)
+2. **Switch back to base branch (`<base>`) and keep the feature branch** (recommended default)
+3. **Switch back to base branch (`<base>`) and delete the local feature branch** (only if you’re done)
+
+Default suggestion: **Option 2**.
+
+### Step PS3) Implement the chosen option
+
+#### Option 1 — Keep working on the PR branch
+
+- Do nothing other than printing a reminder:
+  - “You’re staying on `<new-branch>`. If you make changes, commit/push to update the same PR.”
+
+#### Option 2 — Switch to base, keep feature branch (recommended)
+
+```bash
+git fetch origin --prune
+git switch <base>
+git pull --ff-only origin <base>
+```
+
+- Print how to return to the PR branch:
+
+```bash
+git switch <new-branch>
+```
+
+#### Option 3 — Switch to base, delete local feature branch
+
+Preconditions (must all be true):
+
+- working tree clean (PS1)
+- the feature branch exists locally
+- branch has been pushed (command already did `git push -u`)
+
+Then run:
+
+```bash
+git fetch origin --prune
+git switch <base>
+git pull --ff-only origin <base>
+git branch -d <new-branch>
+```
+
+If `git branch -d` refuses (not merged into local base), the command must stop and offer a force-delete opt-in:
+
+- Keep branch (recommended)
+- Force delete:
+
+```bash
+git branch -D <new-branch>
+```
+
+### Step PS4) Remote branch cleanup (never automatic)
+
+The command must **not** delete the remote branch automatically. It may optionally print:
+
+- “After the PR is merged, delete the remote branch (either in GitHub UI or via `git push origin --delete <new-branch>`), then prune locally.”
+
+If the user explicitly asks to clean up the remote branch **and** the PR is confirmed merged, then it may proceed.
+
+\1- Local cleanup choice executed (Option 1/2/3) and resulting current branch
 
 - Base branch used (PR base)
 - Feature branch name (head)
