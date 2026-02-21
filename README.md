@@ -290,11 +290,17 @@ Common commands:
 
 - `bun run format` (fix), `bun run format:check` (verify), `bun run lint`, and `bun run typecheck`
 - `bun run build`, `bun run test:unit`, `bun run test:e2e`
+- `bun run ci:preflight` (local equivalent of blocking GitHub CI checks)
 - PR-readiness (matches blocking CI): `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
 
 ### Git Hooks Setup
 
-Pre-commit hooks auto-run ESLint + Prettier. If you get "command not found" errors:
+Git hooks now enforce two checkpoints:
+
+- `pre-commit`: staged-file lint + format (`lint-staged`)
+- `pre-push`: CI parity gate (`bun run ci:preflight`)
+
+If you get "command not found" errors:
 
 **macOS/Linux:**
 

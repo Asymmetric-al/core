@@ -1,18 +1,18 @@
 # Working Set
 
-- Date: 2026-02-16
+- Date: 2026-02-21
 - Repo: Asymmetric-al/core
-- Goal: Prepare deterministic Supabase demo seed data for a new hosted project with exactly one profile identity, full relational coverage across app tables, and optional public read-only demo RLS migration.
-- Primary area: `supabase/seed.sql`, `supabase/migrations/*`, `scripts/*`, `AGENTS.md`
+- Goal: Complete T1 env migration by hardening `@asym/env` and removing runtime shared-package `process.env` access.
+- Primary area: `packages/env/*`, `packages/{database,lib,config,auth,api}/**`, `turbo.json`, `.env.example`
 - Constraints:
   - No hardcoded secrets.
-  - Seed must be idempotent + relationally valid.
-  - Keep demo data realistic and varied.
-  - Preserve Supabase migration-first workflow.
+  - Preserve behavior while replacing raw runtime env reads.
+  - Keep local/preview workflows stable while enforcing staging/production requirements.
+  - Use Vercel environment semantics (`VERCEL_ENV` + `VERCEL_TARGET_ENV`).
 - Evidence sources used:
-  - `supabase/schema.sql`
-  - `supabase/migrations/20250101000000_init_schema.sql`
-  - `supabase/migrations/20260214090000_foundation_1_schema.sql`
-  - table usage search in `apps/*` and `packages/*`
+  - `packages/env/src/schema.ts`
+  - `packages/{database,lib,config,auth,api}/**` env usage scans
+  - `spec:a88ffe76-7dbb-427a-8895-674abc96ed66` (Decision 3)
+  - Vercel system env docs via Nia (`VERCEL_ENV`, `VERCEL_TARGET_ENV`)
 - Tooling note:
-  - Nia MCP may be intermittently unavailable (tool registration can drop); fallback is repo-scoped `rg` + direct file reads.
+  - Nia MCP used for Vercel docs confirmation; repo scans done with `rg` + file reads.

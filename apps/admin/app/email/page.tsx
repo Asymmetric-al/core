@@ -1,4 +1,5 @@
 "use client";
+"use no memo";
 
 import { type EmailStudioFullConfig } from "@asym/config/email-studio";
 import { Button } from "@asym/ui/components/shadcn/button";

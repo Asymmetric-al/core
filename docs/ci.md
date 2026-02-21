@@ -11,6 +11,36 @@ Two workflow files run on every PR to `develop` and `main`, and on every push to
 
 All fast-check jobs are **required** status checks. `test-e2e` is **informational only** (non-blocking).
 
+## Local CI parity (pre-push)
+
+Use the local preflight command to mirror blocking GitHub checks before pushing:
+
+```bash
+bun run ci:preflight
+```
+
+`ci:preflight` runs the same gate order as `.github/workflows/ci.yml`:
+
+1. `format:check`
+2. `lint`
+3. `verify:workspace-contract`
+4. `verify:eslint`
+5. `typecheck`
+6. `build` (with CI-compatible env defaults for local parity)
+7. `test:unit`
+
+This command is wired into `.husky/pre-push` so pushes fail fast when a blocking CI gate would fail in GitHub.
+
+### Tooling warning audit (periodic)
+
+Run this maintenance check to detect known test-runner deprecation warnings (for example, Vite CJS Node API deprecations) before they become CI noise:
+
+```bash
+bun run test:unit:warnings
+```
+
+This check runs unit tests and fails if blocked warning patterns are present in test output.
+
 ---
 
 ## Fast-checks workflow (`ci.yml`)
