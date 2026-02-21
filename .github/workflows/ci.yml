@@ -29,7 +29,6 @@ jobs:
       - run: bun run format:check
 
   lint:
-    needs: format
     runs-on: ubuntu-latest
     env:
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
@@ -50,7 +49,6 @@ jobs:
       - run: bun run verify:eslint
 
   typecheck:
-    needs: lint
     runs-on: ubuntu-latest
     env:
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
@@ -69,7 +67,6 @@ jobs:
       - run: bun run typecheck
 
   build:
-    needs: typecheck
     runs-on: ubuntu-latest
     env:
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
@@ -91,7 +88,6 @@ jobs:
       - run: bun run build
 
   test-unit:
-    needs: build
     runs-on: ubuntu-latest
     env:
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
@@ -117,3 +113,154 @@ jobs:
           path: coverage/
           if-no-files-found: ignore
           retention-days: 7
+
+  ci-gate:
+    if: always()
+    needs: [format, lint, typecheck, build, test-unit]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any prerequisite check failed
+        run: |
+          echo "format: ${{ needs.format.result }}"
+          echo "lint: ${{ needs.lint.result }}"
+          echo "typecheck: ${{ needs.typecheck.result }}"
+          echo "build: ${{ needs.build.result }}"
+          echo "test-unit: ${{ needs['test-unit'].result }}"
+
+          failed=0
+          for result in \
+            "${{ needs.format.result }}" \
+            "${{ needs.lint.result }}" \
+            "${{ needs.typecheck.result }}" \
+            "${{ needs.build.result }}" \
+            "${{ needs['test-unit'].result }}"
+          do
+            if [ "$result" != "success" ]; then
+              failed=1
+            fi
+          done
+
+          if [ "$failed" -ne 0 ]; then
+            echo "At least one CI check failed."
+            exit 1
+          fi
+
+  deploy-vercel-donor:
+    name: Deploy donor to Vercel
+    needs: [ci-gate]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/epic')
+    runs-on: ubuntu-latest
+    env:
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_DONOR }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      APP_DIR: apps/donor
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.4"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: bun install --frozen-lockfile
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      - name: Select deploy environment
+        id: target
+        run: |
+          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            echo "environment=production" >> "$GITHUB_OUTPUT"
+            echo "prod_flag=--prod" >> "$GITHUB_OUTPUT"
+          else
+            echo "environment=preview" >> "$GITHUB_OUTPUT"
+            echo "prod_flag=" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Pull Vercel project settings
+        run: vercel --cwd="${{ env.APP_DIR }}" pull --yes --environment=${{ steps.target.outputs.environment }} --token=${{ env.VERCEL_TOKEN }}
+      - name: Build Vercel artifacts
+        run: vercel --cwd="${{ env.APP_DIR }}" build --token=${{ env.VERCEL_TOKEN }}
+      - name: Deploy to Vercel
+        run: vercel --cwd="${{ env.APP_DIR }}" deploy --prebuilt ${{ steps.target.outputs.prod_flag }} --token=${{ env.VERCEL_TOKEN }}
+
+  deploy-vercel-admin:
+    name: Deploy admin to Vercel
+    needs: [ci-gate]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/epic')
+    runs-on: ubuntu-latest
+    env:
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_ADMIN }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      APP_DIR: apps/admin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.4"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: bun install --frozen-lockfile
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      - name: Select deploy environment
+        id: target
+        run: |
+          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            echo "environment=production" >> "$GITHUB_OUTPUT"
+            echo "prod_flag=--prod" >> "$GITHUB_OUTPUT"
+          else
+            echo "environment=preview" >> "$GITHUB_OUTPUT"
+            echo "prod_flag=" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Pull Vercel project settings
+        run: vercel --cwd="${{ env.APP_DIR }}" pull --yes --environment=${{ steps.target.outputs.environment }} --token=${{ env.VERCEL_TOKEN }}
+      - name: Build Vercel artifacts
+        run: vercel --cwd="${{ env.APP_DIR }}" build --token=${{ env.VERCEL_TOKEN }}
+      - name: Deploy to Vercel
+        run: vercel --cwd="${{ env.APP_DIR }}" deploy --prebuilt ${{ steps.target.outputs.prod_flag }} --token=${{ env.VERCEL_TOKEN }}
+
+  deploy-vercel-missionary:
+    name: Deploy missionary to Vercel
+    needs: [ci-gate]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/epic')
+    runs-on: ubuntu-latest
+    env:
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_MISSIONARY }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      APP_DIR: apps/missionary
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.4"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: bun install --frozen-lockfile
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      - name: Select deploy environment
+        id: target
+        run: |
+          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            echo "environment=production" >> "$GITHUB_OUTPUT"
+            echo "prod_flag=--prod" >> "$GITHUB_OUTPUT"
+          else
+            echo "environment=preview" >> "$GITHUB_OUTPUT"
+            echo "prod_flag=" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Pull Vercel project settings
+        run: vercel --cwd="${{ env.APP_DIR }}" pull --yes --environment=${{ steps.target.outputs.environment }} --token=${{ env.VERCEL_TOKEN }}
+      - name: Build Vercel artifacts
+        run: vercel --cwd="${{ env.APP_DIR }}" build --token=${{ env.VERCEL_TOKEN }}
+      - name: Deploy to Vercel
+        run: vercel --cwd="${{ env.APP_DIR }}" deploy --prebuilt ${{ steps.target.outputs.prod_flag }} --token=${{ env.VERCEL_TOKEN }}

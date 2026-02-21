@@ -292,6 +292,8 @@ function GivingWidgetSkeleton() {
 }
 
 export default async function WorkerProfilePage({ params }: PageProps) {
+  "use cache";
+
   const { id } = await params;
   const worker = getFieldWorkerById(id);
 
