@@ -105,8 +105,12 @@ for (const name of required) {
 
 if (hasFailure) process.exit(1);
 
-const supabaseUrl = stripCrLf((process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/+$/, ""));
-const supabaseAnonKey = stripCrLf(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "");
+const supabaseUrl = stripCrLf(
+  (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/+$/, ""),
+);
+const supabaseAnonKey = stripCrLf(
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+);
 
 if (isPlaceholder(supabaseUrl)) {
   fail(
@@ -121,7 +125,9 @@ if (isPlaceholder(supabaseAnonKey)) {
 }
 
 if (!looksLikeUrl(supabaseUrl)) {
-  fail(`NEXT_PUBLIC_SUPABASE_URL must start with http:// or https:// (got: ${supabaseUrl})`);
+  fail(
+    `NEXT_PUBLIC_SUPABASE_URL must start with http:// or https:// (got: ${supabaseUrl})`,
+  );
 }
 
 if (supabaseAnonKey.startsWith("sb_secret_")) {
@@ -148,9 +154,13 @@ log(`Checking Supabase host reachability (${supabaseUrl})...`);
 const hostCode = await fetchStatus(supabaseUrl);
 if (![200, 301, 302, 401, 403, 404].includes(hostCode)) {
   if (hostCode === 0) {
-    fail("Supabase URL check failed (no response). Verify network connectivity and NEXT_PUBLIC_SUPABASE_URL.");
+    fail(
+      "Supabase URL check failed (no response). Verify network connectivity and NEXT_PUBLIC_SUPABASE_URL.",
+    );
   } else {
-    fail(`Supabase URL check failed with HTTP ${hostCode}. Verify NEXT_PUBLIC_SUPABASE_URL.`);
+    fail(
+      `Supabase URL check failed with HTTP ${hostCode}. Verify NEXT_PUBLIC_SUPABASE_URL.`,
+    );
   }
 }
 
@@ -169,9 +179,13 @@ if (![200, 404].includes(restCode)) {
       `Anon key was rejected (HTTP ${restCode}). Ensure NEXT_PUBLIC_SUPABASE_ANON_KEY is the anon public key for this project URL (Project Settings -> API).`,
     );
   } else if (restCode === 0) {
-    fail("Supabase REST check failed (no response). Verify network connectivity, URL, and key.");
+    fail(
+      "Supabase REST check failed (no response). Verify network connectivity, URL, and key.",
+    );
   } else {
-    fail(`Supabase REST check failed with HTTP ${restCode}. Verify network, URL, and key.`);
+    fail(
+      `Supabase REST check failed with HTTP ${restCode}. Verify network, URL, and key.`,
+    );
   }
 }
 

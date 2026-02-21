@@ -61,7 +61,9 @@ for (const requiredPath of requiredGlobs.filter((g) => !g.includes("*"))) {
   try {
     await fs.access(pkgPath);
   } catch {
-    violations.push(`workspace '${requiredPath}' is missing package.json; expected '${pkgPath}' to exist`);
+    violations.push(
+      `workspace '${requiredPath}' is missing package.json; expected '${pkgPath}' to exist`,
+    );
   }
 }
 

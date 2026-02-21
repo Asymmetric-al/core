@@ -24,6 +24,10 @@
 - Nia index selection requires a repo-local registry file:
   - Canonical path: `core/.cursor/nia/index-registry.md`
   - This is the authoritative map from “project concerns” → “Nia data_sources to attach”.
+- Branch-aware required test gates (merge policy):
+  - `epic`: `ci-gate`
+  - `develop`: `ci-gate` + `integration-gate`
+  - `main`: `ci-gate` + `integration-gate` + `e2e-gate`
 
 ---
 
@@ -73,12 +77,14 @@
 ## Checklists
 
 ### Pre-flight checklist
+
 - [ ] On `epic` and up-to-date
 - [ ] Working tree clean
 - [ ] `AL-###` keys validated
 - [ ] Nia index registry exists (repo-global)
 
 ### PR checklist
+
 - [ ] PR targets `epic`
 - [ ] PR title is `AL-123: ...`
 - [ ] PR body includes `fixes AL-###` lines
@@ -98,19 +104,22 @@
 This file maps project concerns to Nia sources/indexes so agents can select `data_sources` deterministically.
 
 ## How to update
+
 - Populate from Nia workspace resources (Nia UI or MCP `manage_resource(action="list")`).
 - Do NOT invent sources. If unsure, leave blank and add a TODO.
 
 ## Registry
 
-| Tag | Source Name (human) | Source ID / Identifier (machine) | Type | What it contains | When to attach | Notes |
-|---|---|---|---|---|---|---|
-| repo:asymmetric | Asymmetric.al repo | <FILL_ME> | repository | Core codebase | Always | |
-| docs:stack | Stack / architecture docs | <FILL_ME> | documentation | Tech plan / decisions | When changing architecture | |
-| docs:testing | Testing & CI docs | <FILL_ME> | documentation | CI + test conventions | When adding tests / CI | |
-| ... | ... | ... | ... | ... | ... | ... |
+| Tag             | Source Name (human)       | Source ID / Identifier (machine) | Type          | What it contains      | When to attach             | Notes |
+| --------------- | ------------------------- | -------------------------------- | ------------- | --------------------- | -------------------------- | ----- |
+| repo:asymmetric | Asymmetric.al repo        | <FILL_ME>                        | repository    | Core codebase         | Always                     |       |
+| docs:stack      | Stack / architecture docs | <FILL_ME>                        | documentation | Tech plan / decisions | When changing architecture |       |
+| docs:testing    | Testing & CI docs         | <FILL_ME>                        | documentation | CI + test conventions | When adding tests / CI     |       |
+| ...             | ...                       | ...                              | ...           | ...                   | ...                        | ...   |
 
 ## Selection rules (for agents)
+
 1. Always attach `repo:asymmetric` (or the closest equivalent in this registry).
 2. Attach only 3–7 additional sources unless the project clearly requires more.
 3. Every attached source must have a one-line justification in the dossier.
+```

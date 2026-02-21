@@ -25,7 +25,10 @@ async function overlayDirectory(sourceDir, targetDir) {
   for (const entry of sourceEntries) {
     const sourceEntryPath = path.join(sourceDir, entry.name);
     const targetEntryPath = path.join(targetDir, entry.name);
-    await cp(sourceEntryPath, targetEntryPath, { recursive: true, force: true });
+    await cp(sourceEntryPath, targetEntryPath, {
+      recursive: true,
+      force: true,
+    });
   }
 }
 

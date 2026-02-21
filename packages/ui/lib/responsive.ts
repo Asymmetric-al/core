@@ -25,4 +25,3 @@ export function getBreakpoint(width: number): Breakpoint | "xs" {
   if (width >= BREAKPOINTS.sm) return "sm";
   return "xs";
 }
-

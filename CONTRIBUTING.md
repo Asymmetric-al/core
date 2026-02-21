@@ -19,6 +19,12 @@ Thanks for contributing to asymmetric.al. We welcome pull requests, bug reports,
   - `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
 - **Optional:** `bun run test:e2e` (non-blocking in CI; run when changes impact user flows).
 
+## Code review and ownership
+
+- **Default code owner:** `@II-ricky-bobby-II`
+- **Owner mapping file:** `/.github/CODEOWNERS` (mirrored in `/CODEOWNERS`)
+- **Review/gate policy:** `docs/guides/development/code-review-and-ownership.md`
+
 ## License for contributions
 
 By contributing, you agree that we will release your contributions under the same license as this project: AGPL-3.0-only.
