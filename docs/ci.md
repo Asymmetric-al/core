@@ -64,9 +64,9 @@ All fast-check jobs are **required** status checks. `test-e2e` is **informationa
 
 ### `test-e2e` (needs: `smoke`, `continue-on-error: true`)
 
-- _What it does:_ Re-applies migrations and seed against a fresh Postgres container, starts `apps/donor` on port 3005, then runs `bunx playwright test --project=chromium` against `tests/e2e/`. Uploads `playwright-report/` as an artifact on failure (retained 7 days).
+- _What it does:_ Re-applies migrations and seed against a fresh Postgres container, starts `apps/donor` on port 3005, then runs `bun run test:e2e --project=chromium` against critical E2E specs (perf-tagged specs are excluded from default E2E). Uploads `playwright-report/` as an artifact on failure (retained 7 days).
 - _Why it's non-blocking:_ The E2E suite is still growing. Failures are surfaced as informational signals without blocking merges. See branch protection section below.
-- _Debug locally:_ Run `bun run test:e2e` (all projects) or `bunx playwright test --project=chromium` (Chromium only). Use `bun run test:e2e:ui` for interactive debugging.
+- _Debug locally:_ Run `bun run test:e2e` (critical suites), `bun run test:perf` (perf-only suites), or `bun run test:e2e --project=chromium` (Chromium only). Use `bun run test:e2e:ui` for interactive debugging.
 
 ---
 

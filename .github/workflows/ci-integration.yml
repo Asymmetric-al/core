@@ -80,7 +80,7 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Start donor app
-        run: bun --bun next dev apps/donor -p 3005 &
+        run: bun run --cwd apps/donor dev -- --port 3005 --hostname 127.0.0.1 &
       - name: Wait for health endpoint
         run: |
           for i in $(seq 1 60); do
@@ -142,7 +142,7 @@ jobs:
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
       - name: Start donor app
-        run: bun --bun next dev apps/donor -p 3005 &
+        run: bun run --cwd apps/donor dev -- --port 3005 --hostname 127.0.0.1 &
       - name: Wait for health endpoint
         run: |
           for i in $(seq 1 60); do
@@ -159,7 +159,7 @@ jobs:
         env:
           CI: "1"
           PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
-        run: bunx playwright test --project=chromium
+        run: bun run test:e2e --project=chromium
       - name: Upload artifact on failure
         if: failure()
         uses: actions/upload-artifact@v4

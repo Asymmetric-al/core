@@ -50,7 +50,7 @@ const isRemoteBaseUrl = (() => {
 const webServer = isRemoteBaseUrl
   ? undefined
   : {
-      command: `bun --bun next dev apps/donor -p ${port}`,
+      command: `node -e "try{require('fs').rmSync('apps/donor/.next/dev/lock',{force:true})}catch{}" && bun run --cwd apps/donor dev -- --port ${port} --hostname 127.0.0.1`,
       url: baseURL,
       // Always reuse if already running; otherwise start it.
       reuseExistingServer: true,

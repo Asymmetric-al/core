@@ -59,7 +59,7 @@ async function measureWebVitals(page: Page) {
   });
 }
 
-test.describe("Performance Budgets", () => {
+test.describe("@perf Performance Budgets", () => {
   test("Homepage LCP should be under 2.5s", async ({ page }) => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
@@ -104,7 +104,7 @@ test.describe("Performance Budgets", () => {
   });
 });
 
-test.describe("SSR Integrity", () => {
+test.describe("@perf SSR Integrity", () => {
   test("Homepage renders valid HTML", async ({ page }) => {
     const response = await page.goto("/");
 
@@ -135,7 +135,7 @@ test.describe("SSR Integrity", () => {
   });
 });
 
-test.describe("Edge Caching", () => {
+test.describe("@perf Edge Caching", () => {
   test("Static assets should have cache headers", async ({ page }) => {
     const staticAssetRequests: { url: string; cacheControl: string | null }[] =
       [];

@@ -13,6 +13,7 @@
     "./pdf-studio": "./pdf-studio.ts"
   },
   "scripts": {
+    "build": "tsc --noEmit",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
