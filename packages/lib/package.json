@@ -36,6 +36,7 @@
     "./mission-control/types": "./mission-control/types.ts"
   },
   "scripts": {
+    "build": "tsc --noEmit",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },

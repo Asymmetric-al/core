@@ -319,8 +319,12 @@ Use Turbo for consistent task execution (and caching where applicable):
 - Local dev: `bunx turbo run dev`
 - Cached checks: `bunx turbo run lint typecheck build`
 - Formatting: `bun run format` (fix) / `bun run format:check` (verify)
+- Internal package `build` tasks are source-first validation (`tsc --noEmit`) so packages participate in the Turbo graph without forcing a `dist`-first workflow.
 
 Remote caching (Vercel Remote Cache) is enabled for internal PRs and protected branch CI (fork PRs do not have access to the required secrets/vars).
+
+For a deterministic local build workflow (strict env vs CI-equivalent stub env), see `docs/guides/development/build-runbook.md`.
+For lockfile/workspace-root warnings in Next builds, see the runbook section `Multiple lockfile warnings during Next.js build`.
 
 ### Key Dependencies
 
