@@ -8,7 +8,12 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["tests/unit/**/*.test.ts", "tests/unit/**/*.test.tsx"],
+    include: [
+      "tests/unit/**/*.test.ts",
+      "tests/unit/**/*.test.tsx",
+      "packages/api/tests/unit/**/*.test.ts",
+      "packages/api/tests/unit/**/*.test.tsx",
+    ],
     environment: "node",
     clearMocks: true,
     coverage: {

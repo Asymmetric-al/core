@@ -8,6 +8,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { postsQuerySchema } from "../schemas/posts";
 import { toErrorResponse } from "../shared/http-errors";
+import { withOperation } from "../shared/with-operation";
 
 export async function GET(request: NextRequest) {
   try {
@@ -95,6 +96,7 @@ export async function GET(request: NextRequest) {
 }
 
 /** Read-only demo: post creation disabled. */
-export async function POST(_request: NextRequest) {
-  return NextResponse.json({ error: "Read-only demo" }, { status: 403 });
-}
+export const POST = withOperation(
+  async () => NextResponse.json({ error: "Read-only demo" }, { status: 403 }),
+  { roles: ["missionary", "admin", "staff", "super_admin"] },
+);

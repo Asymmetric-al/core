@@ -1,33 +1,22 @@
 import {
   getAuthContext,
   requireAuth,
-  requireRole,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
-import { createAuditLogger } from "@asym/lib/audit/logger";
 import { type NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
 import { donateGetQuerySchema, donatePostSchema } from "../schemas/donate";
 import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
+import { withOperation } from "../shared/with-operation";
 
 function getStripeClient(secretKey: string): Stripe {
   return new Stripe(secretKey, { apiVersion: "2025-02-24.acacia" });
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
-    }
-
-    const auth = await getAuthContext();
-    requireRole(auth, ["donor", "admin", "staff", "super_admin"]);
-    const ctx = auth as AuthenticatedContext;
-    const audit = createAuditLogger(ctx, request);
-
+export const POST = withOperation(
+  async ({ supabaseAdmin, auth: ctx, audit, request }) => {
     const { amount, currency, missionary_id, fund_id } = donatePostSchema.parse(
       await ensureJsonBody(request),
     );
@@ -194,11 +183,9 @@ export async function POST(request: NextRequest) {
         tenant.stripe_publishable_key ||
         process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     });
-  } catch (e) {
-    console.error("Donation error:", e);
-    return toErrorResponse(e);
-  }
-}
+  },
+  { roles: ["donor", "admin", "staff", "super_admin"] },
+);
 
 export async function GET(request: NextRequest) {
   try {
