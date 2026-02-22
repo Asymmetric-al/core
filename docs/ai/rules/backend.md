@@ -22,6 +22,13 @@ Use this before changing server actions, route handlers, database access, or mig
 - **Server-side:** Use the server client with cookie-based auth.
 - **Client-side:** Use the singleton browser client to avoid auth desync.
 
+### Data Access Boundary
+
+- All business DB logic lives in `packages/api/src/*`; route handlers in `apps/*/app/api/` are thin re-exports only.
+- Full rule, approved exceptions, and examples live in `docs/guides/architecture/data-access-boundary.md`.
+- Primary enforcement is ESLint `no-restricted-imports` rules (ticket 2.2.2).
+- CI enforcement is `scripts/verify/data-boundary-check.sh`.
+
 ### Security & auth
 
 - Assume RLS is active.
@@ -64,6 +71,7 @@ Use this before changing server actions, route handlers, database access, or mig
 
 - [ ] Server code uses `@/lib/supabase/server`
 - [ ] Client code uses `@/lib/supabase/client`
+- [ ] Route handlers in apps/\*/app/api/ contain no direct Supabase imports
 - [ ] Inputs validated with Zod
 - [ ] RLS assumptions maintained
 - [ ] No service role key in client code

@@ -46,6 +46,7 @@
     "verify:t1": "bun run verify:workspace-contract",
     "verify:supabase-money": "bun run setup:verify && bun run verify:money-units",
     "verify:eslint": "node scripts/verify-eslint-config.mjs",
+    "verify:data-boundary": "bash scripts/verify/data-boundary-check.sh",
     "verify:workspace-contract": "node scripts/verify-workspace-contract.mjs",
     "skills:sync": "node scripts/sync-agent-skills.mjs",
     "db:migrate:local": "supabase db reset --local --no-seed",
