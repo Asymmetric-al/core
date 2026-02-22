@@ -85,7 +85,11 @@ const eslintConfig = defineConfig([
           patterns: [
             ...crossAppImportRestrictions,
             {
-              group: ["@asym/database/supabase/*"],
+              group: [
+                "@asym/database/supabase",
+                "@asym/database/supabase/*",
+                "@asym/database/supabase/**",
+              ],
               message:
                 "Route handlers must not import Supabase clients directly; re-export handlers from @asym/api instead.",
             },
@@ -95,6 +99,21 @@ const eslintConfig = defineConfig([
               name: "@asym/database/supabase",
               message:
                 "Route handlers must not import @asym/database/supabase directly; re-export handlers from @asym/api instead.",
+            },
+            {
+              name: "@asym/database/supabase/client",
+              message:
+                "Route handlers must not import @asym/database/supabase/client directly; re-export handlers from @asym/api instead.",
+            },
+            {
+              name: "@asym/database/supabase/server",
+              message:
+                "Route handlers must not import @asym/database/supabase/server directly; re-export handlers from @asym/api instead.",
+            },
+            {
+              name: "@asym/database/supabase/admin",
+              message:
+                "Route handlers must not import @asym/database/supabase/admin directly; re-export handlers from @asym/api instead.",
             },
             {
               name: "@supabase/ssr",
