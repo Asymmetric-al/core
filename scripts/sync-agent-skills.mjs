@@ -14,11 +14,6 @@ const targetRoots = [
   path.join(repoRoot, ".cursor", "skills"),
 ];
 
-const skillsToSync = [
-  "supabase-postgres-best-practices",
-  "nextjs-supabase-auth",
-];
-
 async function overlayDirectory(sourceDir, targetDir) {
   await mkdir(targetDir, { recursive: true });
   const sourceEntries = await readdir(sourceDir, { withFileTypes: true });
@@ -30,6 +25,26 @@ async function overlayDirectory(sourceDir, targetDir) {
       force: true,
     });
   }
+}
+
+async function listCanonicalSkillsForSync() {
+  const entries = await readdir(sourceRoot, { withFileTypes: true });
+  const skillNames = [];
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
+
+    // Sync only valid skills (directory containing SKILL.md).
+    const skillDir = path.join(sourceRoot, entry.name);
+    const skillFiles = await readdir(skillDir);
+    if (skillFiles.includes("SKILL.md")) {
+      skillNames.push(entry.name);
+    }
+  }
+
+  return skillNames.sort();
 }
 
 async function syncCanonicalSkill(skillName) {
@@ -118,7 +133,9 @@ async function listAgentSkillsForMirror() {
 }
 
 async function main() {
-  for (const skillName of skillsToSync) {
+  const canonicalSkills = await listCanonicalSkillsForSync();
+
+  for (const skillName of canonicalSkills) {
     await syncCanonicalSkill(skillName);
   }
 

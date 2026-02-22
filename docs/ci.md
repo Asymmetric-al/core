@@ -2,7 +2,7 @@
 
 ## Overview
 
-Two workflow files run on every PR to `develop` and `main`, and on every push to `main`:
+Two workflow files run on every PR to `develop`, `main`, and `epic`, and on every push to `main`, `develop`, and `epic`:
 
 | Workflow    | File                                   | Jobs                                            | Target time               |
 | ----------- | -------------------------------------- | ----------------------------------------------- | ------------------------- |
@@ -17,9 +17,9 @@ All fast-check jobs are **required** status checks. `test-e2e` is **informationa
 
 ### `format`
 
-- _What it checks:_ Runs `bun run format:check` (Prettier). Fails if any file is not formatted.
-- _Why it exists:_ Prevents formatting drift that causes noisy diffs and merge conflicts.
-- _Debug locally:_ Run `bun run format:check` to see violations; run `bun run format` to auto-fix, then re-check.
+- _What it checks:_ Runs `bun run format:check` (Prettier) and `bun run skills:verify` (skills mirror drift gate). Fails if formatting or mirror sync is out of policy.
+- _Why it exists:_ Prevents formatting drift and skill-source/mirror drift that cause noisy diffs and review confusion.
+- _Debug locally:_ Run `bun run format:check`; if needed run `bun run format`. Then run `bun run skills:verify` (or `bun run skills:sync` to update mirrors) and re-check.
 
 ### `lint` (needs: `format`)
 

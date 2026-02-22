@@ -105,3 +105,17 @@ export function MyComponent() {
 - Using the server client in client components
 - Using service role keys in the browser
 - Skipping Zod validation before writes
+
+### Route segment config policy (required)
+
+- With `cacheComponents: true` enabled in this repo, App Router route segment config exports are disabled.
+- In `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}`, do **not** export any of:
+  - `runtime`
+  - `dynamic`
+  - `dynamicParams`
+  - `revalidate`
+  - `fetchCache`
+  - `preferredRegion`
+  - `maxDuration`
+- Keep runtime/data behavior in handler/component logic and request-level cache controls instead.
+- See `docs/guides/architecture/runtime-map.md` for repo-specific rationale and API route inventory.

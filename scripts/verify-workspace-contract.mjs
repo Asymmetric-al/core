@@ -78,6 +78,34 @@ for (const g of globs) {
   }
 }
 
+const disallowedRouteSegmentConfigKeys = [
+  "runtime",
+  "dynamic",
+  "dynamicParams",
+  "revalidate",
+  "fetchCache",
+  "preferredRegion",
+  "maxDuration",
+];
+const appSegmentConfigFilePaths = [
+  ...new Set(
+    globSync("apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}"),
+  ),
+];
+
+for (const filePath of appSegmentConfigFilePaths) {
+  const content = await fs.readFile(filePath, "utf8");
+
+  for (const key of disallowedRouteSegmentConfigKeys) {
+    const exportPattern = new RegExp(`\\bexport\\s+const\\s+${key}\\s*=`);
+    if (exportPattern.test(content)) {
+      violations.push(
+        `${filePath}: disallowed route segment config export "${key}" while cacheComponents is enabled`,
+      );
+    }
+  }
+}
+
 if (violations.length) {
   console.error(violations.join("\n"));
   process.exit(1);

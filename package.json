@@ -48,6 +48,7 @@
     "verify:eslint": "node scripts/verify-eslint-config.mjs",
     "verify:workspace-contract": "node scripts/verify-workspace-contract.mjs",
     "skills:sync": "node scripts/sync-agent-skills.mjs",
+    "skills:verify": "node scripts/verify-skills-sync.mjs",
     "db:migrate:local": "supabase db reset --local --no-seed",
     "db:migrate:hosted": "supabase db push --db-url \"$SUPABASE_DB_URL\"",
     "seed:demo:local": "bash ./scripts/seed-demo.sh local",
