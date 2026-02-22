@@ -3,6 +3,29 @@ import reactHooksPlugin from "eslint-plugin-react-hooks";
 
 import { baseConfig } from "@asym/eslint-config/base.mjs";
 
+const sourceCodeFiles = "**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}";
+
+const crossAppImportRestrictions = [
+  {
+    group: ["../../apps/*", "../../../apps/*", "../../../../apps/*"],
+    message:
+      "Apps cannot import from other apps. Use @asym/* packages instead.",
+  },
+  {
+    group: ["**/apps/admin/**"],
+    message: "Cannot import from apps/admin. Use @asym/* packages instead.",
+  },
+  {
+    group: ["**/apps/donor/**"],
+    message: "Cannot import from apps/donor. Use @asym/* packages instead.",
+  },
+  {
+    group: ["**/apps/missionary/**"],
+    message:
+      "Cannot import from apps/missionary. Use @asym/* packages instead.",
+  },
+];
+
 const eslintConfig = defineConfig([
   // Root fallback/orchestrator config.
   // Individual apps/packages should define local eslint.config.mjs files.
@@ -13,10 +36,79 @@ const eslintConfig = defineConfig([
     },
   },
   {
-    files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
+    files: [sourceCodeFiles],
     rules: {
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "error",
+    },
+  },
+  {
+    files: [
+      "apps/*/components/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}",
+      "apps/*/features/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}",
+      "packages/ui/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}",
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            ...crossAppImportRestrictions,
+            {
+              group: ["@supabase/*"],
+              message:
+                "Client-side surfaces must consume Supabase via @asym/database wrappers, not @supabase/* directly.",
+            },
+          ],
+          paths: [
+            {
+              name: "@asym/database/supabase/admin",
+              message:
+                "Client-side code cannot import the admin Supabase client.",
+            },
+            {
+              name: "@asym/database/supabase/server",
+              message:
+                "Client-side code cannot import the server Supabase client.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["apps/*/app/api/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            ...crossAppImportRestrictions,
+            {
+              group: ["@asym/database/supabase/*"],
+              message:
+                "Route handlers must not import Supabase clients directly; re-export handlers from @asym/api instead.",
+            },
+          ],
+          paths: [
+            {
+              name: "@asym/database/supabase",
+              message:
+                "Route handlers must not import @asym/database/supabase directly; re-export handlers from @asym/api instead.",
+            },
+            {
+              name: "@supabase/ssr",
+              message:
+                "Route handlers must not import @supabase/ssr directly; use @asym/api boundaries.",
+            },
+            {
+              name: "@supabase/supabase-js",
+              message:
+                "Route handlers must not import @supabase/supabase-js directly; use @asym/api boundaries.",
+            },
+          ],
+        },
+      ],
     },
   },
   {

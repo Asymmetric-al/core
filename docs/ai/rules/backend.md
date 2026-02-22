@@ -21,6 +21,8 @@ Use this before changing server actions, route handlers, database access, or mig
 
 - **Server-side:** Use the server client with cookie-based auth.
 - **Client-side:** Use the singleton browser client to avoid auth desync.
+- **Client privilege matrix:** Follow `docs/guides/architecture/db-client-usage-matrix.md` for allowed/forbidden DB client imports by code location.
+- **Route handlers:** `apps/*/app/api/**` route handlers should not import `@asym/database/supabase` (or subpaths) directly; use `@asym/api/*` handler boundaries.
 
 ### Security & auth
 
