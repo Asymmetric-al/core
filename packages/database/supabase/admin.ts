@@ -2,6 +2,8 @@ import { createClient } from "@supabase/supabase-js";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+export type AdminSupabaseClient = SupabaseClient;
+
 type AdminClientResult =
   | { client: SupabaseClient; error: null }
   | { client: null; error: string };
