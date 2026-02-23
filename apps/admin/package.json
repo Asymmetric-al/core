@@ -8,7 +8,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "cms:migrate": "payload migrate",
+    "cms:migrate:create": "payload migrate:create",
+    "cms:migrate:status": "payload migrate:status",
+    "cms:importmap": "payload generate:importmap"
   },
   "dependencies": {
     "@asym/api": "workspace:*",

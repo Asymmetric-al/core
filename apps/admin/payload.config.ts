@@ -1,0 +1,40 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { postgresAdapter } from "@payloadcms/db-postgres";
+import { lexicalEditor } from "@payloadcms/richtext-lexical";
+import { buildConfig } from "payload";
+import sharp from "sharp";
+
+import { CmsUsers } from "./src/cms/collections/cms-users";
+
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
+
+const defaultLocalDatabaseUrl =
+  "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
+
+export default buildConfig({
+  admin: {
+    user: CmsUsers.slug,
+    importMap: {
+      baseDir: path.resolve(dirname),
+    },
+  },
+  collections: [CmsUsers],
+  db: postgresAdapter({
+    schemaName: "cms",
+    pool: {
+      connectionString:
+        process.env.PAYLOAD_DATABASE_URI ??
+        process.env.SUPABASE_DB_URL ??
+        defaultLocalDatabaseUrl,
+    },
+  }),
+  editor: lexicalEditor(),
+  secret: process.env.PAYLOAD_SECRET ?? "payload-local-dev-secret",
+  typescript: {
+    outputFile: path.resolve(dirname, "payload-types.ts"),
+  },
+  sharp,
+});

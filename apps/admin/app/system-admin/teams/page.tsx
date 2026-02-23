@@ -9,7 +9,7 @@ import {
   TeamsTableCard,
   SystemUsersCard,
   type Team,
-} from "./teams-sections";
+} from "../../admin/teams/teams-sections";
 
 export default function TeamsPage() {
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
