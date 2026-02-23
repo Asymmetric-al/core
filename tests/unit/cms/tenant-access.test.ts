@@ -1,0 +1,97 @@
+import { beforeAll, describe, expect, it } from "vitest";
+
+let tenantScopedCreateAccess: (tenantField?: string) => (args: unknown) => unknown;
+let tenantScopedDeleteAccess: (tenantField?: string) => (args: unknown) => unknown;
+let tenantScopedReadAccess: (tenantField?: string) => (args: unknown) => unknown;
+let tenantScopedUpdateAccess: (tenantField?: string) => (args: unknown) => unknown;
+
+beforeAll(async () => {
+  const module = await import("../../../apps/admin/src/cms/access/tenant-access");
+
+  tenantScopedCreateAccess = module.tenantScopedCreateAccess;
+  tenantScopedDeleteAccess = module.tenantScopedDeleteAccess;
+  tenantScopedReadAccess = module.tenantScopedReadAccess;
+  tenantScopedUpdateAccess = module.tenantScopedUpdateAccess;
+});
+
+describe("tenant-access", () => {
+  it("denies reads for unauthenticated requests", async () => {
+    const result = await tenantScopedReadAccess("tenant")({
+      req: { user: null },
+    } as never);
+
+    expect(result).toBe(false);
+  });
+
+  it("allows super-admin reads across tenants", async () => {
+    const result = await tenantScopedReadAccess("tenant")({
+      req: {
+        user: {
+          id: "cms_user_1",
+          role: "super_admin",
+          tenantId: null,
+        },
+      },
+    } as never);
+
+    expect(result).toBe(true);
+  });
+
+  it("scopes staff reads to their tenant", async () => {
+    const result = await tenantScopedReadAccess("tenant")({
+      req: {
+        user: {
+          id: "cms_user_1",
+          role: "staff",
+          tenantId: "tenant_1",
+        },
+      },
+    } as never);
+
+    expect(result).toEqual({
+      tenant: {
+        equals: "tenant_1",
+      },
+    });
+  });
+
+  it("denies create when tenant does not match context", async () => {
+    const result = await tenantScopedCreateAccess("tenant")({
+      data: {
+        tenant: "tenant_2",
+      },
+      req: {
+        user: {
+          id: "cms_user_1",
+          role: "staff",
+          tenantId: "tenant_1",
+        },
+      },
+    } as never);
+
+    expect(result).toBe(false);
+  });
+
+  it("scopes update and delete to tenant filters", async () => {
+    const args = {
+      req: {
+        user: {
+          id: "cms_user_1",
+          role: "admin",
+          tenantId: "tenant_1",
+        },
+      },
+    } as never;
+
+    expect(tenantScopedUpdateAccess("tenant")(args)).toEqual({
+      tenant: {
+        equals: "tenant_1",
+      },
+    });
+    expect(tenantScopedDeleteAccess("tenant")(args)).toEqual({
+      tenant: {
+        equals: "tenant_1",
+      },
+    });
+  });
+});

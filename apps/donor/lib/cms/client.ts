@@ -33,20 +33,24 @@ async function fetchCmsJSON<T>(
   const cmsURL = getCmsBaseUrl();
   const tenantHost = await getForwardedHost(hostOverride);
 
-  const response = await fetch(`${cmsURL}${path}`, {
-    headers: {
-      "x-forwarded-host": tenantHost,
-    },
-    next: {
-      revalidate: 60,
-    },
-  });
+  try {
+    const response = await fetch(`${cmsURL}${path}`, {
+      headers: {
+        "x-forwarded-host": tenantHost,
+      },
+      next: {
+        revalidate: 60,
+      },
+    });
 
-  if (!response.ok) {
+    if (!response.ok) {
+      return null;
+    }
+
+    return (await response.json()) as T;
+  } catch {
     return null;
   }
-
-  return (await response.json()) as T;
 }
 
 export async function fetchPublishedCmsPage(

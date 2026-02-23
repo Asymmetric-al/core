@@ -1,10 +1,13 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const DEFAULT_PORT = 3005;
+const DEFAULT_DONOR_PORT = 3005;
+const DEFAULT_ADMIN_PORT = 3030;
 
-function getLocalBaseUrlAndPort(): { baseURL: string; port: number } {
+function getLocalBaseUrlAndPort(
+  defaultPort: number,
+): { baseURL: string; port: number } {
   const envBase = process.env.PLAYWRIGHT_BASE_URL;
-  const envPort = Number(process.env.PLAYWRIGHT_PORT || DEFAULT_PORT);
+  const envPort = Number(process.env.PLAYWRIGHT_PORT || defaultPort);
 
   if (!envBase) {
     return { baseURL: `http://127.0.0.1:${envPort}`, port: envPort };
@@ -34,7 +37,10 @@ function getLocalBaseUrlAndPort(): { baseURL: string; port: number } {
   }
 }
 
-const { baseURL, port } = getLocalBaseUrlAndPort();
+const { baseURL, port } = getLocalBaseUrlAndPort(DEFAULT_DONOR_PORT);
+const adminPort = Number(process.env.PLAYWRIGHT_ADMIN_PORT || DEFAULT_ADMIN_PORT);
+const adminBaseURL =
+  process.env.PLAYWRIGHT_ADMIN_BASE_URL || `http://127.0.0.1:${adminPort}`;
 
 const isRemoteBaseUrl = (() => {
   const envBase = process.env.PLAYWRIGHT_BASE_URL;
@@ -49,13 +55,20 @@ const isRemoteBaseUrl = (() => {
 
 const webServer = isRemoteBaseUrl
   ? undefined
-  : {
-      command: `node -e "try{require('fs').rmSync('apps/donor/.next/dev/lock',{force:true})}catch{}" && bun run --cwd apps/donor dev -- --port ${port} --hostname 127.0.0.1`,
-      url: baseURL,
-      // Always reuse if already running; otherwise start it.
-      reuseExistingServer: true,
-      timeout: 120000,
-    };
+  : [
+      {
+        command: `node -e "try{require('fs').rmSync('apps/donor/.next/dev/lock',{force:true})}catch{}" && SKIP_ENV_VALIDATION=1 NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key bun run --cwd apps/donor dev -- --port ${port} --hostname 127.0.0.1`,
+        url: baseURL,
+        reuseExistingServer: true,
+        timeout: 120000,
+      },
+      {
+        command: `node -e "try{require('fs').rmSync('apps/admin/.next/dev/lock',{force:true})}catch{}" && SKIP_ENV_VALIDATION=1 NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key PAYLOAD_SECRET=playwright-secret PAYLOAD_DATABASE_URI=postgresql://postgres:postgres@127.0.0.1:54322/postgres bun run --cwd apps/admin dev -- --port ${adminPort} --hostname 127.0.0.1`,
+        url: `${adminBaseURL}/login`,
+        reuseExistingServer: true,
+        timeout: 120000,
+      },
+    ];
 
 export default defineConfig({
   testDir: "./tests/e2e",
