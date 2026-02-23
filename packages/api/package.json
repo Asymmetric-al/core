@@ -37,7 +37,7 @@
     "@asym/database": "workspace:*",
     "@asym/lib": "workspace:*",
     "@supabase/ssr": "^0.5.2",
-    "next": "16.1.1",
+    "next": "^16.2.0-canary.58",
     "stripe": "^17.4.0",
     "zod": "^4.3.6"
   },

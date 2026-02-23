@@ -95,7 +95,7 @@
     "@typescript-eslint/parser": "^8.46.0",
     "canvas": "^3.2.1",
     "eslint": "^9",
-    "eslint-config-next": "^16.1.0",
+    "eslint-config-next": "^16.2.0-canary.58",
     "eslint-plugin-import-x": "^4.16.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-unused-imports": "^4.3.0",
