@@ -52,8 +52,8 @@ All fast-check jobs are **required** status checks. `test-e2e` is **informationa
 
 ### `migrate`
 
-- _What it does:_ Spins up a fresh `postgres:15-alpine` container, applies every file in `supabase/migrations/*.sql` in lexicographic order (using `psql` with `ON_ERROR_STOP=1`), then applies `supabase/seed.sql`. Verifies that `public.profiles` has exactly 1 row after seeding.
-- _Why it matters:_ Catches migration ordering conflicts, FK violations, and seed incompatibilities before they reach a hosted Supabase project.
+- _What it does:_ Spins up a fresh `postgres:15-alpine` container, applies every file in `supabase/migrations/*.sql` in lexicographic order (using `psql` with `ON_ERROR_STOP=1`), then runs Payload migrations via `bun run cms:migrate` and verifies status with `bun run cms:migrate:status`, then applies `supabase/seed.sql`. Verifies that `public.profiles` has exactly 1 row after seeding.
+- _Why it matters:_ Catches migration ordering conflicts across both SQL + Payload migration systems, plus FK/seed incompatibilities, before they reach a hosted Supabase project.
 - _Debug locally:_ Run `supabase db reset --local` (applies migrations + seed against the local Supabase stack). Or run `bash ./scripts/seed-demo.sh local`.
 
 ### `smoke` (needs: `migrate`)
@@ -64,7 +64,7 @@ All fast-check jobs are **required** status checks. `test-e2e` is **informationa
 
 ### `test-e2e` (needs: `smoke`, `continue-on-error: true`)
 
-- _What it does:_ Re-applies migrations and seed against a fresh Postgres container, starts `apps/donor` on port 3005, then runs `bun run test:e2e --project=chromium` against critical E2E specs (perf-tagged specs are excluded from default E2E). Uploads `playwright-report/` as an artifact on failure (retained 7 days).
+- _What it does:_ Re-applies SQL migrations against a fresh Postgres container, runs Payload migrations + status checks, then applies seed data, starts `apps/donor` on port 3005, and runs `bun run test:e2e --project=chromium` against critical E2E specs (perf-tagged specs are excluded from default E2E). Uploads `playwright-report/` as an artifact on failure (retained 7 days).
 - _Why it's non-blocking:_ The E2E suite is still growing. Failures are surfaced as informational signals without blocking merges. See branch protection section below.
 - _Debug locally:_ Run `bun run test:e2e` (critical suites), `bun run test:perf` (perf-only suites), or `bun run test:e2e --project=chromium` (Chromium only). Use `bun run test:e2e:ui` for interactive debugging.
 
