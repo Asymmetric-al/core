@@ -1,12 +1,36 @@
+import { superAdminOnlyAccess } from "../access/staff-access";
+import {
+  tenantScopedReadAccess,
+  tenantScopedUpdateAccess,
+} from "../access/tenant-access";
+import { createSupabaseAuthStrategy } from "../auth/supabase-strategy";
+import { CMS_USERS_SLUG } from "../constants";
+
 import type { CollectionConfig } from "payload";
 
 export const CmsUsers: CollectionConfig = {
-  slug: "cms-users",
+  slug: CMS_USERS_SLUG,
   admin: {
     useAsTitle: "email",
   },
-  auth: true,
+  access: {
+    read: tenantScopedReadAccess("tenantId"),
+    create: superAdminOnlyAccess,
+    update: tenantScopedUpdateAccess("tenantId"),
+    delete: superAdminOnlyAccess,
+  },
+  auth: {
+    disableLocalStrategy: true,
+    strategies: [createSupabaseAuthStrategy()],
+  },
   fields: [
+    {
+      name: "email",
+      type: "email",
+      index: true,
+      required: true,
+      unique: true,
+    },
     {
       name: "supabaseUserId",
       type: "text",

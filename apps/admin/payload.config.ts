@@ -7,6 +7,12 @@ import { buildConfig } from "payload";
 import sharp from "sharp";
 
 import { CmsUsers } from "./src/cms/collections/cms-users";
+import { Media } from "./src/cms/collections/media";
+import { MinistryUpdates } from "./src/cms/collections/ministry-updates";
+import { MissionaryProfiles } from "./src/cms/collections/missionary-profiles";
+import { Navigation } from "./src/cms/collections/navigation";
+import { Pages } from "./src/cms/collections/pages";
+import { Tenants } from "./src/cms/collections/tenants";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -21,7 +27,15 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [CmsUsers],
+  collections: [
+    CmsUsers,
+    Tenants,
+    Pages,
+    Navigation,
+    MissionaryProfiles,
+    MinistryUpdates,
+    Media,
+  ],
   db: postgresAdapter({
     schemaName: "cms",
     pool: {
