@@ -1,18 +1,29 @@
 # Working Set
 
-- Date: 2026-02-16
+- Date: 2026-02-23
 - Repo: Asymmetric-al/core
-- Goal: Prepare deterministic Supabase demo seed data for a new hosted project with exactly one profile identity, full relational coverage across app tables, and optional public read-only demo RLS migration.
-- Primary area: `supabase/seed.sql`, `supabase/migrations/*`, `scripts/*`, `AGENTS.md`
+- Goal: Integrate Payload CMS as a tenant-safe Site Studio within `apps/admin`, including dedicated `cms` schema and upgrade governance.
+- Primary area:
+  - `apps/admin/*` (Payload runtime, routes, Site Studio UX)
+  - `packages/auth/*` (middleware protection)
+  - `supabase/migrations/*` (schema setup)
+  - `tests/*` + `playwright.config.ts` (tenant and publish flow verification)
+  - `docs/vendor/*` + runbooks
 - Constraints:
-  - No hardcoded secrets.
-  - Seed must be idempotent + relationally valid.
-  - Keep demo data realistic and varied.
-  - Preserve Supabase migration-first workflow.
+  - Keep Supabase as source of truth for identity and tenant permissions.
+  - Enforce no cross-tenant reads/writes for non-super-admin users.
+  - Ensure Payload data is isolated in Postgres `cms` schema.
+  - Maintain long-lived upstream upgrade path (subtree mirror + patch policy).
+  - Preserve existing admin shell UX and align Site Studio styling with MAIA/Zinc tokens.
 - Evidence sources used:
-  - `supabase/schema.sql`
-  - `supabase/migrations/20250101000000_init_schema.sql`
-  - `supabase/migrations/20260214090000_foundation_1_schema.sql`
-  - table usage search in `apps/*` and `packages/*`
+  - `apps/admin/app/layout.tsx`
+  - `apps/admin/app/mc-shell.tsx`
+  - `apps/admin/app/web-studio/page.tsx`
+  - `apps/admin/app/admin/page.tsx`
+  - `packages/auth/middleware.ts`
+  - `packages/auth/context.ts`
+  - `packages/database/supabase/*`
+  - `playwright.config.ts`
+  - `supabase/schema.sql` + existing migrations
 - Tooling note:
-  - Nia MCP may be intermittently unavailable (tool registration can drop); fallback is repo-scoped `rg` + direct file reads.
+  - Nia MCP is unavailable in this execution environment; using repo-scoped `rg` + direct file reads as fallback.
