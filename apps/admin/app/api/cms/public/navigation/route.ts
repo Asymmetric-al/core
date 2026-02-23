@@ -1,0 +1,36 @@
+import { NextResponse, type NextRequest } from "next/server";
+
+import { getPayloadClient } from "@/src/cms/get-payload";
+import { resolveTenantFromRequest } from "@/src/cms/public/resolve-tenant";
+
+export const dynamic = "force-dynamic";
+
+export async function GET(request: NextRequest) {
+  const payload = await getPayloadClient();
+  const tenant = await resolveTenantFromRequest(request);
+
+  if (!tenant) {
+    return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+  }
+
+  const navigationQuery = await payload.find({
+    collection: "navigation",
+    limit: 1,
+    overrideAccess: true,
+    pagination: false,
+    sort: "-updatedAt",
+    where: {
+      tenant: {
+        equals: tenant.id,
+      },
+    },
+  });
+
+  return NextResponse.json({
+    navigation: navigationQuery.docs[0] ?? null,
+    tenant: {
+      id: tenant.id,
+      slug: tenant.slug ?? null,
+    },
+  });
+}
