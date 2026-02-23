@@ -1,0 +1,25 @@
+:root {
+  --theme-elevation-0: #fafafa;
+  --theme-elevation-50: #f4f4f5;
+  --theme-elevation-100: #e4e4e7;
+  --theme-elevation-200: #d4d4d8;
+  --theme-elevation-400: #71717a;
+  --theme-elevation-800: #27272a;
+  --theme-text: #18181b;
+  --theme-success-500: #16a34a;
+  --theme-warning-500: #ca8a04;
+  --theme-error-500: #dc2626;
+  --theme-bg: #fafafa;
+  --theme-input-bg: #ffffff;
+  --theme-border-color: #e4e4e7;
+}
+
+.payload-admin-wrapper {
+  min-height: 100vh;
+  background: #fafafa;
+  color: #18181b;
+}
+
+.payload-admin-wrapper * {
+  font-family: var(--font-inter), "Inter", system-ui, -apple-system, sans-serif;
+}

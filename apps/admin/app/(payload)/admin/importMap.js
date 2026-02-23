@@ -22,6 +22,10 @@ import { StrikethroughFeatureClient as StrikethroughFeatureClient_e70f5e05f09f93
 import { UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from "@payloadcms/richtext-lexical/client";
 import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from "@payloadcms/richtext-lexical/client";
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from "@payloadcms/richtext-lexical/client";
+import { Header as Header_f8a8df1408c7374206a6393fbb1e2413 } from "../../../src/cms-ui/root/Header.tsx";
+import { Icon as Icon_3e1d8f39fad9bddd5123caa2cad407ff } from "../../../src/cms-ui/brand/Icon.tsx";
+import { Logo as Logo_37789914a9261410f4d39d03c1022d2c } from "../../../src/cms-ui/brand/Logo.tsx";
+import { Nav as Nav_9db371ba9624687ac38a56dac5ca6a99 } from "../../../src/cms-ui/root/Nav.tsx";
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from "@payloadcms/next/rsc";
 
 /** @type {Record<string, unknown>} */
@@ -72,6 +76,10 @@ export const importMap = {
     BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient":
     ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  "/src/cms-ui/root/Header.tsx#Header": Header_f8a8df1408c7374206a6393fbb1e2413,
+  "/src/cms-ui/brand/Icon.tsx#Icon": Icon_3e1d8f39fad9bddd5123caa2cad407ff,
+  "/src/cms-ui/brand/Logo.tsx#Logo": Logo_37789914a9261410f4d39d03c1022d2c,
+  "/src/cms-ui/root/Nav.tsx#Nav": Nav_9db371ba9624687ac38a56dac5ca6a99,
   "@payloadcms/next/rsc#CollectionCards":
     CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1,
 };

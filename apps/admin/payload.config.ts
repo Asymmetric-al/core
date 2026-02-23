@@ -22,6 +22,14 @@ const defaultLocalDatabaseUrl =
 
 export default buildConfig({
   admin: {
+    components: {
+      beforeNav: ["/src/cms-ui/root/Nav.tsx#Nav"],
+      graphics: {
+        Icon: "/src/cms-ui/brand/Icon.tsx#Icon",
+        Logo: "/src/cms-ui/brand/Logo.tsx#Logo",
+      },
+      header: ["/src/cms-ui/root/Header.tsx#Header"],
+    },
     user: CmsUsers.slug,
     importMap: {
       baseDir: path.resolve(dirname),
