@@ -3,9 +3,10 @@ import { defineConfig, devices } from "@playwright/test";
 const DEFAULT_DONOR_PORT = 3005;
 const DEFAULT_ADMIN_PORT = 3030;
 
-function getLocalBaseUrlAndPort(
-  defaultPort: number,
-): { baseURL: string; port: number } {
+function getLocalBaseUrlAndPort(defaultPort: number): {
+  baseURL: string;
+  port: number;
+} {
   const envBase = process.env.PLAYWRIGHT_BASE_URL;
   const envPort = Number(process.env.PLAYWRIGHT_PORT || defaultPort);
 
@@ -38,7 +39,9 @@ function getLocalBaseUrlAndPort(
 }
 
 const { baseURL, port } = getLocalBaseUrlAndPort(DEFAULT_DONOR_PORT);
-const adminPort = Number(process.env.PLAYWRIGHT_ADMIN_PORT || DEFAULT_ADMIN_PORT);
+const adminPort = Number(
+  process.env.PLAYWRIGHT_ADMIN_PORT || DEFAULT_ADMIN_PORT,
+);
 const adminBaseURL =
   process.env.PLAYWRIGHT_ADMIN_BASE_URL || `http://127.0.0.1:${adminPort}`;
 

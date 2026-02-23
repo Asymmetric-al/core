@@ -1,12 +1,21 @@
 import { beforeAll, describe, expect, it } from "vitest";
 
-let tenantScopedCreateAccess: (tenantField?: string) => (args: unknown) => unknown;
-let tenantScopedDeleteAccess: (tenantField?: string) => (args: unknown) => unknown;
-let tenantScopedReadAccess: (tenantField?: string) => (args: unknown) => unknown;
-let tenantScopedUpdateAccess: (tenantField?: string) => (args: unknown) => unknown;
+let tenantScopedCreateAccess: (
+  tenantField?: string,
+) => (args: unknown) => unknown;
+let tenantScopedDeleteAccess: (
+  tenantField?: string,
+) => (args: unknown) => unknown;
+let tenantScopedReadAccess: (
+  tenantField?: string,
+) => (args: unknown) => unknown;
+let tenantScopedUpdateAccess: (
+  tenantField?: string,
+) => (args: unknown) => unknown;
 
 beforeAll(async () => {
-  const module = await import("../../../apps/admin/src/cms/access/tenant-access");
+  const module =
+    await import("../../../apps/admin/src/cms/access/tenant-access");
 
   tenantScopedCreateAccess = module.tenantScopedCreateAccess;
   tenantScopedDeleteAccess = module.tenantScopedDeleteAccess;

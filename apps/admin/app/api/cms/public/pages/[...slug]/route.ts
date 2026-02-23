@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, connection, type NextRequest } from "next/server";
 
 import { getPayloadClient } from "@/src/cms/get-payload";
 import { resolveTenantFromRequest } from "@/src/cms/public/resolve-tenant";
@@ -9,9 +9,9 @@ type RouteContext = {
   }>;
 };
 
-export const dynamic = "force-dynamic";
-
 export async function GET(request: NextRequest, context: RouteContext) {
+  await connection();
+
   const payload = await getPayloadClient();
   const tenant = await resolveTenantFromRequest(request);
 

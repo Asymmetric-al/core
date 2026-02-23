@@ -8,8 +8,6 @@ type PageProps = {
   }>;
 };
 
-export const revalidate = 60;
-
 export default async function CmsPublicPage({ params }: PageProps) {
   const { cmsSlug } = await params;
   const page = await fetchPublishedCmsPage(cmsSlug);

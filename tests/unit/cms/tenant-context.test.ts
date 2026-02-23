@@ -1,8 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 
-let getTenantContext: (
-  req: unknown,
-) => {
+let getTenantContext: (req: unknown) => {
   isAuthenticated: boolean;
   role: string | null;
   tenantId: string | null;
@@ -12,9 +10,8 @@ let isStaffRole: (context: unknown) => boolean;
 let isSuperAdmin: (context: unknown) => boolean;
 
 beforeAll(async () => {
-  const module = await import(
-    "../../../apps/admin/src/cms/access/tenant-context"
-  );
+  const module =
+    await import("../../../apps/admin/src/cms/access/tenant-context");
 
   getTenantContext = module.getTenantContext;
   isStaffRole = module.isStaffRole;
