@@ -25,7 +25,11 @@
     "./admin/comments": "./src/admin/comments/index.ts",
     "./admin/comments/comment": "./src/admin/comments/comment.ts",
     "./missionaries": "./src/missionaries/index.ts",
-    "./missionaries/metrics": "./src/missionaries/metrics.ts"
+    "./missionaries/metrics": "./src/missionaries/metrics.ts",
+    "./reads/dashboard-stats": "./src/reads/dashboard-stats.ts",
+    "./reads/missionary-metrics": "./src/reads/missionary-metrics.ts",
+    "./reads/donor-history": "./src/reads/donor-history.ts",
+    "./reads/tenant-contributions": "./src/reads/tenant-contributions.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
