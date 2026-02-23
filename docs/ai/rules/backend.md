@@ -21,6 +21,8 @@ Use this before changing server actions, route handlers, database access, or mig
 
 - **Server-side:** Use the server client with cookie-based auth.
 - **Client-side:** Use the singleton browser client to avoid auth desync.
+- For allowed/forbidden import boundaries by code area, see
+  [`docs/guides/architecture/db-client-usage-matrix.md`](../../guides/architecture/db-client-usage-matrix.md).
 
 ### Security & auth
 
