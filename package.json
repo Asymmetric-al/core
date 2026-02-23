@@ -47,7 +47,7 @@
     "verify": "./scripts/verify",
     "lighthouse": "lhci autorun",
     "generate:icons": "node scripts/generate-icons.js",
-    "setup": "./scripts/setup",
+    "setup": "bash ./scripts/setup/index.sh",
     "setup:verify": "bash ./scripts/setup-verify.sh",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "clean:cache": "rm -rf .turbo node_modules/.cache",
