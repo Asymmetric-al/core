@@ -100,19 +100,19 @@ await transporter.sendMail({
 });
 ```
 
-**SendGrid:**
+**Resend:**
 
 ```tsx
 import { render } from "@react-email/components";
-import sgMail from "@sendgrid/mail";
+import { Resend } from "resend";
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const html = await render(
   <WelcomeEmail name="John" verificationUrl="https://example.com/verify" />,
 );
 
-await sgMail.send({
+await resend.emails.send({
   to: "user@example.com",
   from: "noreply@example.com",
   subject: "Welcome",

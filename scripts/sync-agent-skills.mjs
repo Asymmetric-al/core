@@ -15,6 +15,7 @@ const targetRoots = [
 ];
 
 const skillsToSync = [
+  "components-build",
   "supabase-postgres-best-practices",
   "nextjs-supabase-auth",
 ];

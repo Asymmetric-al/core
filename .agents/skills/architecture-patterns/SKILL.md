@@ -93,7 +93,7 @@ app/
 │   │   └── user_controller.py
 │   └── gateways/
 │       ├── stripe_payment_gateway.py
-│       └── sendgrid_email_gateway.py
+│       └── resend_email_gateway.py
 └── infrastructure/   # Framework & external concerns
     ├── database.py
     ├── config.py

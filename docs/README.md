@@ -29,7 +29,7 @@ Organized documentation for developers working on this project:
 - **[PDF Studio](./guides/features/pdf-studio.md)** - Document/PDF editor for receipts and statements
 - **[Care Hub](./guides/features/care-hub.md)** - Member care and personnel management
 - **[Teams & Permissions](./guides/features/teams-and-permissions.md)** - Access control and team management
-- **[SendGrid Integration](./guides/features/sendgrid-integration.md)** - Email delivery service integration
+- **[Resend Integration](./guides/features/resend-integration.md)** - Email delivery service integration
 
 #### **UI & Design**
 
@@ -80,7 +80,7 @@ Configuration and rules for AI coding assistants:
 ### For Feature Setup
 
 1. **Email/PDF Studio:** See **[Email Studio](./guides/features/email-studio.md)** or **[PDF Studio](./guides/features/pdf-studio.md)**
-2. **SendGrid:** See **[SendGrid Integration](./guides/features/sendgrid-integration.md)**
+2. **Resend:** See **[Resend Integration](./guides/features/resend-integration.md)**
 3. **Teams:** See **[Teams & Permissions](./guides/features/teams-and-permissions.md)**
 
 ---

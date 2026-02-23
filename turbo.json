@@ -30,7 +30,10 @@
         "NEXT_PUBLIC_SUPABASE_URL",
         "NEXT_PUBLIC_SUPABASE_ANON_KEY",
         "SUPABASE_SERVICE_ROLE_KEY",
-        "SUPABASE_*"
+        "SUPABASE_*",
+        "RESEND_API_KEY",
+        "RESEND_WEBHOOK_SECRET",
+        "RESEND_ENCRYPTION_KEY"
       ],
       "inputs": ["$TURBO_DEFAULT$", ".env", ".env.*"]
     },
