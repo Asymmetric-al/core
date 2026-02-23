@@ -1,6 +1,6 @@
 # Asymmetric.al - Kingdom Impact Platform
 
-A high-performance Next.js 16.1 (App Router) Turborepo monorepo for mission-focused organizations, with three apps (`apps/admin`, `apps/donor`, `apps/missionary`) and shared workspace packages (`packages/*`).
+A high-performance Next.js 16.2 canary (App Router) Turborepo monorepo for mission-focused organizations, with three apps (`apps/admin`, `apps/donor`, `apps/missionary`) and shared workspace packages (`packages/*`).
 
 ## Quickstart
 
@@ -51,7 +51,7 @@ Invoke-ScriptAnalyzer -Path .\scripts\setup.ps1, .\scripts\lib\*.ps1
 
 ## Architecture & Tech Stack
 
-- **Framework**: Next.js 16.1 (App Router, Turbopack) - _Optimized for Performance_
+- **Framework**: Next.js 16.2 canary (App Router, Turbopack) - _Optimized for Performance_
 - **UI System**: Tailwind CSS 4 + shadcn/ui (Maia Theme) + Radix UI + Base UI
 - **Theme**: Light Zinc Aesthetic (Zinc/Zinc), Shadcn/UI Maia Theme
 - **Database**: Supabase (PostgreSQL)
@@ -59,6 +59,23 @@ Invoke-ScriptAnalyzer -Path .\scripts\setup.ps1, .\scripts\lib\*.ps1
 - **Payments**: Stripe (Advanced integration)
 - **State Management**: React 19 + TanStack Query v5
 - **Animations**: Motion + Tailwind Motion
+
+## Site Studio (Payload CMS)
+
+Mission Control now includes an embedded Site Studio powered by Payload:
+
+- Admin UI route: `apps/admin` -> `/admin`
+- Tenant-aware public content endpoints: `/api/cms/public/*`
+- Donor app fallback rendering for CMS-authored public pages
+- CMS storage schema: Postgres `cms`
+
+Common commands:
+
+```bash
+bun run cms:migrate
+bun run cms:migrate:status
+bun run cms:importmap
+```
 
 ## UX/UI Standards (Shadcn/UI December 2025)
 

@@ -285,7 +285,7 @@ Note: unit tests are currently run repo-wide with `bun run test:unit`.
 1. Read docs from the nearest matching install for the app you are changing:
    - `apps/<app>/node_modules/next/dist/docs/` (if present)
    - then `node_modules/next/dist/docs/` at repo root
-2. This monorepo currently uses `next@16.1.1` across all Next.js apps.
+2. This monorepo currently uses `next@16.2.0-canary.58` across all Next.js apps.
 3. If `node_modules` docs are unavailable or unreadable:
    - run `bunx @next/codemod@canary agents-md`
    - confirm `.next-docs/` exists

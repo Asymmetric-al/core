@@ -48,6 +48,27 @@ git subtree pull --prefix=vendor/payload-upstream payload-upstream v3.78.0 --squ
    - relevant CMS unit/e2e suites
 4. Validate CMS admin boot + public publish path manually.
 
+## Import map regeneration
+
+When admin component overrides change, regenerate Payload import mappings:
+
+```bash
+bun run cms:importmap
+```
+
+The import map file is generated at:
+
+- `apps/admin/app/(payload)/admin/importMap.js`
+
+## CI migration order
+
+`ci-integration.yml` enforces this order on fresh Postgres:
+
+1. Supabase SQL migrations (`supabase/migrations/*.sql`)
+2. Payload migrations (`bun run cms:migrate`)
+3. Payload migration status check (`bun run cms:migrate:status`)
+4. Seed application data (`supabase/seed.sql`)
+
 ## Local patch policy (Bun patch)
 
 Avoid editing `node_modules` directly. If a temporary upstream patch is required:

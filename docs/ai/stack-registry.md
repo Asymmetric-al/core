@@ -11,6 +11,8 @@ Agents MUST use this to build better Nia query preambles and to pick the right d
 - Node.js (runtime target)
 - Bun (preferred package manager/runtime)
 - PostgreSQL (Supabase Postgres)
+- Payload CMS
+- @payloadcms/db-postgres
 
 Nia keywords:
 
@@ -20,6 +22,8 @@ Nia keywords:
 - Node.js
 - Bun, bun.lock
 - Postgres, SQL, Supabase
+- payload, collections, globals
+- payload migrate, importMap
 
 ## Monorepo and Tooling
 
@@ -144,8 +148,6 @@ Nia keywords:
 These items appear in roadmap/docs/UI copy but are not present in code dependencies today.
 Use these tags only when a task explicitly targets integration work.
 
-- Payload CMS
-- @payloadcms/db-postgres (Drizzle-based)
 - Drizzle ORM
 - Twenty CRM (system of record)
 - Svix (external webhooks)
@@ -156,7 +158,6 @@ Use these tags only when a task explicitly targets integration work.
 
 Nia keywords:
 
-- payload, collections, globals
 - drizzle, migrations
 - twenty, crm
 - svix, webhook delivery

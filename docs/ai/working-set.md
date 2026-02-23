@@ -2,7 +2,7 @@
 
 - Date: 2026-02-23
 - Repo: Asymmetric-al/core
-- Goal: Integrate Payload CMS as a tenant-safe Site Studio within `apps/admin`, including dedicated `cms` schema and upgrade governance.
+- Goal: Integrate Payload CMS as a tenant-safe Site Studio within `apps/admin`, including dedicated `cms` schema, public rendering flow, and CI/test coverage.
 - Primary area:
   - `apps/admin/*` (Payload runtime, routes, Site Studio UX)
   - `packages/auth/*` (middleware protection)
@@ -25,5 +25,11 @@
   - `packages/database/supabase/*`
   - `playwright.config.ts`
   - `supabase/schema.sql` + existing migrations
+  - `apps/admin/payload.config.ts`
+  - `apps/admin/src/cms/*`
+  - `apps/admin/app/api/cms/public/*`
+  - `apps/donor/lib/cms/client.ts`
+  - `tests/unit/cms/*`
+  - `tests/e2e/cms-*.spec.ts`
 - Tooling note:
   - Nia MCP is unavailable in this execution environment; using repo-scoped `rg` + direct file reads as fallback.

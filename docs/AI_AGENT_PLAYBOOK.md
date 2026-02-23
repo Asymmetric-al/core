@@ -22,7 +22,7 @@ Use turbo filters when working on one app:
 ## Where Next.js docs live
 
 - Primary source: nearest matching `node_modules/next/dist/docs/` for the app being changed.
-- Current state: all app workspaces use `next@16.1.1`.
+- Current state: all app workspaces use `next@16.2.0-canary.58`.
 - If multiple Next.js versions are introduced later, use the docs path that matches the app's installed version.
 
 ## Fallback docs generation (`.next-docs`)
