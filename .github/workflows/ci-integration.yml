@@ -135,8 +135,12 @@ jobs:
       PAYLOAD_DATABASE_URI: postgresql://postgres:postgres@localhost:5432/asymmetrical_test
       PAYLOAD_SECRET: ci-payload-secret
       SKIP_ENV_VALIDATION: "1"
-      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: example-anon-key
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      DEMO_PASSWORD: ${{ secrets.DEMO_PASSWORD }}
+      DEMO_ADMIN_EMAIL: ${{ secrets.DEMO_ADMIN_EMAIL }}
+      DEMO_MISSIONARY_EMAIL: ${{ secrets.DEMO_MISSIONARY_EMAIL }}
+      DEMO_DONOR_EMAIL: ${{ secrets.DEMO_DONOR_EMAIL }}
     steps:
       - uses: actions/checkout@v4
       - name: Install PostgreSQL client
@@ -175,6 +179,10 @@ jobs:
             fi
             sleep 1
           done
+      - name: Demo auth preflight
+        env:
+          PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
+        run: bun run test:e2e:auth-preflight
       - name: Run Playwright E2E
         env:
           CI: "1"

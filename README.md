@@ -306,7 +306,7 @@ Minimal package `package.json` example:
 Common commands:
 
 - `bun run format` (fix), `bun run format:check` (verify), `bun run lint`, and `bun run typecheck`
-- `bun run build`, `bun run test:unit`, `bun run test:e2e`
+- `bun run build`, `bun run test:unit`, `bun run test:e2e`, `bun run test:e2e:smoke`
 - PR-readiness (matches blocking CI): `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
 - Full local quality gate (CI parity + CMS critical suite): `bun run gate:ci`
 
@@ -369,6 +369,7 @@ bun run format:check && bun run lint && bun run typecheck && bun run build && bu
 bun run gate:ci
 
 # Optional (non-blocking in CI, but recommended for flow changes)
+bun run test:e2e:auth-preflight
 bun run test:e2e
 
 # T1 merge gate (workspace contract only)

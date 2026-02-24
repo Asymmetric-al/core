@@ -1,6 +1,6 @@
 # Working Set
 
-- Date: 2026-02-23
+- Date: 2026-02-24
 - Repo: Asymmetric-al/core
 - Goal: Integrate Payload CMS as a tenant-safe Site Studio within `apps/admin`, including dedicated `cms` schema, public rendering flow, and CI/test coverage.
 - Current execution focus:
@@ -9,6 +9,7 @@
   - Harden auth strategy behavior and document concrete API endpoint contracts for downstream agent work.
   - Add stricter quality/testing gates (local + CI) including Husky pre-push checks.
   - Audit Turborepo and Next.js workflow usage for compliance and clean up non-best-practice patterns.
+  - Convert demo-auth E2E from skip-on-missing to deterministic fail-fast preflight for higher-signal feedback.
 - Primary area:
   - `apps/admin/*` (Payload runtime, routes, Site Studio UX)
   - `packages/auth/*` (middleware protection)
@@ -37,5 +38,7 @@
   - `apps/donor/lib/cms/client.ts`
   - `tests/unit/cms/*`
   - `tests/e2e/cms-*.spec.ts`
+  - `tests/e2e/upload-crop.spec.ts`
+  - `tests/e2e/demo-auth-preflight.spec.ts`
 - Tooling note:
   - Nia MCP is unavailable in this execution environment; using repo-scoped `rg` + direct file reads as fallback.

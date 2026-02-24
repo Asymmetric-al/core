@@ -15,6 +15,10 @@ This file documents every secret and variable required by `.github/workflows/ci.
 | `TURBO_TEAM`                         | **Variable** (not Secret) | All jobs in `ci.yml`        | Vercel team slug for remote cache scoping                                        |
 | `NEXT_PUBLIC_SUPABASE_URL`           | Secret                    | `build` job, `test-e2e` job | Supabase project URL — stub value is fine for `build`; real value needed for E2E |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY`      | Secret                    | `build` job, `test-e2e` job | Supabase anon key — stub for `build`; real for E2E                               |
+| `DEMO_PASSWORD`                      | Secret                    | `test-e2e` job              | Password for deterministic demo account sign-in preflight and authenticated E2E  |
+| `DEMO_ADMIN_EMAIL`                   | Secret                    | `test-e2e` job              | Admin demo email used by `/api/auth/demo-account`                                |
+| `DEMO_MISSIONARY_EMAIL`              | Secret                    | `test-e2e` job              | Missionary demo email used by `/api/auth/demo-account`                           |
+| `DEMO_DONOR_EMAIL`                   | Secret                    | `test-e2e` job              | Donor demo email used by `/api/auth/demo-account`                                |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Secret                    | `test-e2e` job              | Stripe test-mode publishable key (donation E2E flow)                             |
 | `STRIPE_SECRET_KEY`                  | Secret                    | `test-e2e` job              | Stripe test-mode secret key (donation E2E flow)                                  |
 
@@ -22,6 +26,7 @@ This file documents every secret and variable required by `.github/workflows/ci.
 
 - `TURBO_TEAM` must be added under **Variables**, not Secrets. It is referenced in the workflow as `${{ vars.TURBO_TEAM }}`.
 - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are used with `SKIP_ENV_VALIDATION=1` in the `build` job, so stub values (e.g. `https://example.supabase.co` / `example-anon-key`) are sufficient for build-time validation. Real values are required for the `test-e2e` job.
+- `DEMO_*` secrets are required for deterministic E2E auth preflight. If missing/invalid, E2E intentionally fails fast instead of skipping authenticated suites.
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` and `STRIPE_SECRET_KEY` are only needed once the E2E donation test is fully implemented. The `test-e2e` job is non-blocking (`continue-on-error: true`), so missing Stripe keys will not block merges.
 
 ## How to add a secret

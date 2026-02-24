@@ -47,7 +47,9 @@ test.beforeEach(async ({ page }, testInfo) => {
 
   const authState = await getDemoAuthState(page.request);
   if (!authState.available) {
-    test.skip(true, authState.reason);
+    throw new Error(
+      `[E2E preflight] ${authState.reason} Configure DEMO_DONOR_EMAIL and DEMO_PASSWORD so upload/crop tests can run deterministically.`,
+    );
   }
 
   // Most tests in this file hit authenticated routes. Make the auth state
@@ -57,9 +59,8 @@ test.beforeEach(async ({ page }, testInfo) => {
   });
   if (!res.ok()) {
     const body = await res.text().catch(() => "");
-    test.skip(
-      true,
-      `Demo auth unavailable (${res.status()}): ${body || "no body"}`,
+    throw new Error(
+      `[E2E preflight] Demo donor sign-in failed (${res.status()}): ${body || "no body"}`,
     );
   }
 

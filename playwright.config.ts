@@ -44,6 +44,10 @@ const adminPort = Number(
 );
 const adminBaseURL =
   process.env.PLAYWRIGHT_ADMIN_BASE_URL || `http://127.0.0.1:${adminPort}`;
+const supabaseURL =
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://example.supabase.co";
+const supabaseAnonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "example-anon-key";
 
 const isRemoteBaseUrl = (() => {
   const envBase = process.env.PLAYWRIGHT_BASE_URL;
@@ -60,13 +64,37 @@ const webServer = isRemoteBaseUrl
   ? undefined
   : [
       {
-        command: `node -e "try{require('fs').rmSync('apps/donor/.next/dev/lock',{force:true})}catch{}" && SKIP_ENV_VALIDATION=1 NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key bun run --cwd apps/donor dev:playwright -- --port ${port} --hostname 127.0.0.1`,
+        command: `node -e "try{require('fs').rmSync('apps/donor/.next/dev/lock',{force:true})}catch{}" && bun run --cwd apps/donor dev:playwright -- --port ${port} --hostname 127.0.0.1`,
+        env: {
+          ...process.env,
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnonKey,
+          NEXT_PUBLIC_SUPABASE_URL: supabaseURL,
+          SKIP_ENV_VALIDATION: "1",
+          DEMO_ADMIN_EMAIL: process.env.DEMO_ADMIN_EMAIL || "",
+          DEMO_DONOR_EMAIL: process.env.DEMO_DONOR_EMAIL || "",
+          DEMO_MISSIONARY_EMAIL: process.env.DEMO_MISSIONARY_EMAIL || "",
+          DEMO_PASSWORD: process.env.DEMO_PASSWORD || "",
+        },
         url: baseURL,
         reuseExistingServer: true,
         timeout: 120000,
       },
       {
-        command: `node -e "try{require('fs').rmSync('apps/admin/.next/dev/lock',{force:true})}catch{}" && SKIP_ENV_VALIDATION=1 NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key PAYLOAD_SECRET=playwright-secret PAYLOAD_DATABASE_URI=postgresql://postgres:postgres@127.0.0.1:54322/postgres bun run --cwd apps/admin dev:playwright -- --port ${adminPort} --hostname 127.0.0.1`,
+        command: `node -e "try{require('fs').rmSync('apps/admin/.next/dev/lock',{force:true})}catch{}" && bun run --cwd apps/admin dev:playwright -- --port ${adminPort} --hostname 127.0.0.1`,
+        env: {
+          ...process.env,
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnonKey,
+          NEXT_PUBLIC_SUPABASE_URL: supabaseURL,
+          PAYLOAD_DATABASE_URI:
+            process.env.PAYLOAD_DATABASE_URI ||
+            "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+          PAYLOAD_SECRET: process.env.PAYLOAD_SECRET || "playwright-secret",
+          SKIP_ENV_VALIDATION: "1",
+          DEMO_ADMIN_EMAIL: process.env.DEMO_ADMIN_EMAIL || "",
+          DEMO_DONOR_EMAIL: process.env.DEMO_DONOR_EMAIL || "",
+          DEMO_MISSIONARY_EMAIL: process.env.DEMO_MISSIONARY_EMAIL || "",
+          DEMO_PASSWORD: process.env.DEMO_PASSWORD || "",
+        },
         url: `${adminBaseURL}/login`,
         reuseExistingServer: true,
         timeout: 120000,

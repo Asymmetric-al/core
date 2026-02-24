@@ -58,6 +58,7 @@ bun run format:check && bun run lint && bun run typecheck && bun run build && bu
 bun run gate:ci
 
 # Optional (non-blocking in CI, but recommended for flow changes)
+bun run test:e2e:auth-preflight
 bun run test:e2e
 ```
 
@@ -81,6 +82,7 @@ bun run format:check && bun run lint && bun run typecheck && bun run build && bu
 bun run gate:ci
 
 # Optional (non-blocking in CI, but recommended for flow changes)
+bun run test:e2e:auth-preflight
 bun run test:e2e
 ```
 
@@ -419,13 +421,14 @@ const supabase = createClient(); // Sync
 
 ## Quick Reference
 
-| Task             | Command             |
-| ---------------- | ------------------- |
-| Start dev server | `bun run dev`       |
-| Type check       | `bun run typecheck` |
-| Lint             | `bun run lint`      |
-| Build            | `bun run build`     |
-| E2E tests        | `bun run test:e2e`  |
+| Task               | Command                           |
+| ------------------ | --------------------------------- |
+| Start dev server   | `bun run dev`                     |
+| Type check         | `bun run typecheck`               |
+| Lint               | `bun run lint`                    |
+| Build              | `bun run build`                   |
+| E2E tests          | `bun run test:e2e`                |
+| E2E auth preflight | `bun run test:e2e:auth-preflight` |
 
 | Import        | From                          |
 | ------------- | ----------------------------- |
