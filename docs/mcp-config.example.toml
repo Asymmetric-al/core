@@ -18,6 +18,12 @@
 
 ###
 
+# [mcp_servers.tanstack]
+# command = "npx"
+# args = ["@tanstack/cli", "mcp"]
+
+###
+
 # [mcp_servers.postgres]
 # command = "docker"
 # args = ["run", "-i", "--rm", "-e", "DATABASE_URI", "crystaldba/postgres-mcp", "--access-mode=restricted"]
