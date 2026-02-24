@@ -20,18 +20,22 @@ async function ensureRequestTimeExecution() {
 export async function GET(request: NextRequest, context: RouteContext) {
   await ensureRequestTimeExecution();
 
-  const payload = await getPayloadClient();
-  const tenant = await resolveTenantFromRequest(request, payload);
-
-  if (!tenant) {
-    return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
-  }
-
-  const { slug } = await context.params;
-  const slugSegments = Array.isArray(slug) ? slug : [];
-  const pageSlug = slugSegments.filter(Boolean).join("/") || "home";
-
   try {
+    const payload = await getPayloadClient();
+    const tenant = await resolveTenantFromRequest(request, payload);
+
+    if (!tenant) {
+      return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+    }
+
+    const { slug } = await context.params;
+    const slugSegments = Array.isArray(slug) ? slug : [];
+    const pageSlug =
+      slugSegments
+        .map((segment) => segment.trim())
+        .filter(Boolean)
+        .join("/") || "home";
+
     const pageQuery = await payload.find({
       collection: "pages",
       limit: 1,

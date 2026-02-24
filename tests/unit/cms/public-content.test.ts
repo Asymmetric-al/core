@@ -9,7 +9,10 @@ vi.mock("../../../apps/admin/src/cms/get-payload", () => ({
 }));
 
 let lexicalToPlainText: (value: unknown) => string;
-let resolveTenantFromRequest: (request: unknown) => Promise<unknown>;
+let resolveTenantFromRequest: (
+  request: unknown,
+  payloadOverride?: unknown,
+) => Promise<unknown>;
 
 beforeAll(async () => {
   const [donorModule, adminModule] = await Promise.all([
@@ -82,6 +85,23 @@ describe("public cms tenant resolution", () => {
     );
 
     expect(tenant).toMatchObject({ id: "tenant_2", slug: "alpha" });
+    expect(find).toHaveBeenCalledTimes(2);
+  });
+
+  it("uses provided payload client override when available", async () => {
+    const find = vi
+      .fn()
+      .mockResolvedValueOnce({ docs: [] })
+      .mockResolvedValueOnce({ docs: [{ id: "tenant_3", slug: "beta" }] });
+    const payloadOverride = { find };
+
+    const tenant = await resolveTenantFromRequest(
+      createRequest("/api/cms/public/pages/home", "beta.example.org"),
+      payloadOverride as never,
+    );
+
+    expect(tenant).toMatchObject({ id: "tenant_3", slug: "beta" });
+    expect(getPayloadClientMock).not.toHaveBeenCalled();
     expect(find).toHaveBeenCalledTimes(2);
   });
 });
