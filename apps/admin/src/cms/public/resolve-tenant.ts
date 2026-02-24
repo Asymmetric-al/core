@@ -1,12 +1,15 @@
 import { getPayloadClient } from "../get-payload";
 
 import type { NextRequest } from "next/server";
+import type { Payload } from "payload";
 
 type TenantDoc = {
   id: string;
   slug?: string | null;
   primaryDomain?: string | null;
 };
+
+type TenantResolverPayloadClient = Pick<Payload, "find">;
 
 function normalizeHost(host: string | null) {
   if (!host) {
@@ -18,8 +21,9 @@ function normalizeHost(host: string | null) {
 
 export async function resolveTenantFromRequest(
   request: NextRequest,
+  payloadOverride?: TenantResolverPayloadClient,
 ): Promise<TenantDoc | null> {
-  const payload = await getPayloadClient();
+  const payload = payloadOverride ?? (await getPayloadClient());
   const explicitTenant = request.nextUrl.searchParams.get("tenant");
   const host = normalizeHost(
     request.headers.get("x-forwarded-host") ?? request.headers.get("host"),
