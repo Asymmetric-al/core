@@ -12,7 +12,7 @@
     "cms:migrate": "payload migrate",
     "cms:migrate:create": "payload migrate:create",
     "cms:migrate:status": "payload migrate:status",
-    "cms:importmap": "payload generate:importmap"
+    "cms:importmap": "payload generate:importmap && node ../../scripts/dev/postprocess-payload-importmap.mjs"
   },
   "dependencies": {
     "@asym/api": "workspace:*",
