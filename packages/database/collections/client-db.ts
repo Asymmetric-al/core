@@ -1,7 +1,8 @@
 "use client";
 
-import { createCollection } from "@tanstack/db";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
+import { createCollection } from "@tanstack/react-db";
+import { z } from "zod";
 
 import { getQueryClient } from "../providers/query-provider";
 import { createClient } from "../supabase/client";
@@ -19,6 +20,21 @@ import type {
 
 type SupabaseClient = ReturnType<typeof createClient>;
 
+interface TableQueryOptions {
+  orderBy?: {
+    column: string;
+    ascending: boolean;
+  };
+}
+
+interface ReadOnlyCollectionConfig<TItem extends object> {
+  id: string;
+  queryKey: readonly string[];
+  tableName: string;
+  getKey: (item: TItem) => string;
+  queryOptions?: TableQueryOptions;
+}
+
 let supabaseClient: SupabaseClient | null = null;
 
 function getSupabase(): SupabaseClient {
@@ -28,73 +44,130 @@ function getSupabase(): SupabaseClient {
   return supabaseClient;
 }
 
-function createProfilesCollection() {
-  return createCollection<Profile>(
+async function fetchTableRows<TItem extends object>(
+  tableName: string,
+  queryOptions?: TableQueryOptions,
+): Promise<TItem[]> {
+  let query = getSupabase().from(tableName).select("*");
+  if (queryOptions?.orderBy) {
+    query = query.order(queryOptions.orderBy.column, {
+      ascending: queryOptions.orderBy.ascending,
+    });
+  }
+  const { data, error } = await query;
+  if (error) {
+    throw error;
+  }
+  return (data ?? []) as TItem[];
+}
+
+function createReadOnlyCollection<TItem extends object>({
+  id,
+  queryKey,
+  tableName,
+  getKey,
+  queryOptions,
+}: ReadOnlyCollectionConfig<TItem>) {
+  return createCollection(
     queryCollectionOptions({
-      queryKey: ["profiles"],
+      id,
+      queryKey: [...queryKey],
       queryClient: getQueryClient(),
-      getKey: (item) => item.id,
-      queryFn: async () => {
-        const { data, error } = await getSupabase()
-          .from("profiles")
-          .select("*");
-        if (error) throw error;
-        return data ?? [];
-      },
+      getKey,
+      queryFn: () => fetchTableRows<TItem>(tableName, queryOptions),
     }),
   );
+}
+
+const mediaItemSchema = z.object({
+  url: z.string().min(1),
+  type: z.enum(["image", "video"]),
+  width: z.number().int().positive().optional(),
+  height: z.number().int().positive().optional(),
+});
+
+const postSchema = z.object({
+  id: z.string().min(1),
+  tenant_id: z.string().min(1),
+  missionary_id: z.string().min(1),
+  content: z.string(),
+  media: z.array(mediaItemSchema),
+  like_count: z.number().int(),
+  prayer_count: z.number().int(),
+  comment_count: z.number().int(),
+  created_at: z.string().min(1),
+  updated_at: z.string().min(1),
+});
+
+const postCommentSchema = z.object({
+  id: z.string().min(1),
+  post_id: z.string().min(1),
+  user_id: z.string().min(1),
+  content: z.string(),
+  created_at: z.string().min(1),
+  updated_at: z.string().min(1),
+});
+
+const followSchema = z.object({
+  id: z.string().min(1),
+  tenant_id: z.string().nullable(),
+  donor_id: z.string().nullable(),
+  missionary_id: z.string().nullable(),
+  status: z.string().min(1),
+  is_donor: z.boolean(),
+  approved_at: z.string().nullable(),
+  notification_frequency: z.string().nullable(),
+  muted: z.boolean(),
+  created_at: z.string().min(1),
+});
+
+function createProfilesCollection() {
+  return createReadOnlyCollection<Profile>({
+    id: "profiles",
+    queryKey: ["profiles"],
+    tableName: "profiles",
+    getKey: (item) => item.id,
+  });
 }
 
 function createMissionariesCollection() {
-  return createCollection<Missionary>(
-    queryCollectionOptions({
-      queryKey: ["missionaries"],
-      queryClient: getQueryClient(),
-      getKey: (item) => item.id,
-      queryFn: async () => {
-        const { data, error } = await getSupabase()
-          .from("missionaries")
-          .select("*");
-        if (error) throw error;
-        return data ?? [];
-      },
-    }),
-  );
+  return createReadOnlyCollection<Missionary>({
+    id: "missionaries",
+    queryKey: ["missionaries"],
+    tableName: "missionaries",
+    getKey: (item) => item.id,
+  });
 }
 
 function createDonorsCollection() {
-  return createCollection<Donor>(
-    queryCollectionOptions({
-      queryKey: ["donors"],
-      queryClient: getQueryClient(),
-      getKey: (item) => item.id,
-      queryFn: async () => {
-        const { data, error } = await getSupabase().from("donors").select("*");
-        if (error) throw error;
-        return data ?? [];
-      },
-    }),
-  );
+  return createReadOnlyCollection<Donor>({
+    id: "donors",
+    queryKey: ["donors"],
+    tableName: "donors",
+    getKey: (item) => item.id,
+  });
 }
 
 function createPostsCollection() {
-  return createCollection<Post>(
+  return createCollection(
     queryCollectionOptions({
+      id: "posts",
       queryKey: ["posts"],
       queryClient: getQueryClient(),
+      schema: postSchema,
       getKey: (item) => item.id,
-      queryFn: async () => {
-        const { data, error } = await getSupabase()
-          .from("posts")
-          .select("*")
-          .order("created_at", { ascending: false });
-        if (error) throw error;
-        return data ?? [];
-      },
+      queryFn: () =>
+        fetchTableRows<Post>("posts", {
+          orderBy: { column: "created_at", ascending: false },
+        }),
       onInsert: async ({ transaction }) => {
-        const items = transaction.mutations.map((m) => m.modified);
+        const items = transaction.mutations.map(
+          (mutation) => mutation.modified,
+        );
         const { error } = await getSupabase().from("posts").insert(items);
-        if (error) throw error;
+        if (error) {
+          throw error;
+        }
       },
       onUpdate: async ({ transaction }) => {
         await Promise.all(
@@ -103,230 +176,135 @@ function createPostsCollection() {
               .from("posts")
               .update(mutation.modified)
               .eq("id", mutation.key as string);
-            if (error) throw error;
+            if (error) {
+              throw error;
+            }
           }),
         );
       },
       onDelete: async ({ transaction }) => {
-        const ids = transaction.mutations.map((m) => m.key as string);
+        const ids = transaction.mutations.map(
+          (mutation) => mutation.key as string,
+        );
         const { error } = await getSupabase()
           .from("posts")
           .delete()
           .in("id", ids);
-        if (error) throw error;
+        if (error) {
+          throw error;
+        }
       },
     }),
   );
 }
 
 function createPostCommentsCollection() {
-  return createCollection<PostComment>(
+  return createCollection(
     queryCollectionOptions({
+      id: "post_comments",
       queryKey: ["post_comments"],
       queryClient: getQueryClient(),
+      schema: postCommentSchema,
       getKey: (item) => item.id,
-      queryFn: async () => {
-        const { data, error } = await getSupabase()
-          .from("post_comments")
-          .select("*")
-          .order("created_at", { ascending: true });
-        if (error) throw error;
-        return data ?? [];
-      },
+      queryFn: () =>
+        fetchTableRows<PostComment>("post_comments", {
+          orderBy: { column: "created_at", ascending: true },
+        }),
       onInsert: async ({ transaction }) => {
-        const items = transaction.mutations.map((m) => m.modified);
+        const items = transaction.mutations.map(
+          (mutation) => mutation.modified,
+        );
         const { error } = await getSupabase()
           .from("post_comments")
           .insert(items);
-        if (error) throw error;
+        if (error) {
+          throw error;
+        }
       },
     }),
   );
 }
 
 function createDonationsCollection() {
-  return createCollection<Donation>(
-    queryCollectionOptions({
-      queryKey: ["donations"],
-      queryClient: getQueryClient(),
-      getKey: (item) => item.id,
-      queryFn: async () => {
-        const { data, error } = await getSupabase()
-          .from("donations")
-          .select("*")
-          .order("created_at", { ascending: false });
-        if (error) throw error;
-        return data ?? [];
-      },
-    }),
-  );
+  return createReadOnlyCollection<Donation>({
+    id: "donations",
+    queryKey: ["donations"],
+    tableName: "donations",
+    getKey: (item) => item.id,
+    queryOptions: {
+      orderBy: { column: "created_at", ascending: false },
+    },
+  });
 }
 
 function createFundsCollection() {
-  return createCollection<Fund>(
-    queryCollectionOptions({
-      queryKey: ["funds"],
-      queryClient: getQueryClient(),
-      getKey: (item) => item.id,
-      queryFn: async () => {
-        const { data, error } = await getSupabase().from("funds").select("*");
-        if (error) throw error;
-        return data ?? [];
-      },
-    }),
-  );
+  return createReadOnlyCollection<Fund>({
+    id: "funds",
+    queryKey: ["funds"],
+    tableName: "funds",
+    getKey: (item) => item.id,
+  });
 }
 
 function createFollowsCollection() {
-  return createCollection<Follow>(
+  return createCollection(
     queryCollectionOptions({
+      id: "follows",
       queryKey: ["follows"],
       queryClient: getQueryClient(),
+      schema: followSchema,
       getKey: (item) => item.id,
-      queryFn: async () => {
-        const { data, error } = await getSupabase().from("follows").select("*");
-        if (error) throw error;
-        return data ?? [];
-      },
+      queryFn: () => fetchTableRows<Follow>("follows"),
       onInsert: async ({ transaction }) => {
-        const items = transaction.mutations.map((m) => m.modified);
+        const items = transaction.mutations.map(
+          (mutation) => mutation.modified,
+        );
         const { error } = await getSupabase().from("follows").insert(items);
-        if (error) throw error;
+        if (error) {
+          throw error;
+        }
       },
       onDelete: async ({ transaction }) => {
-        const ids = transaction.mutations.map((m) => m.key as string);
+        const ids = transaction.mutations.map(
+          (mutation) => mutation.key as string,
+        );
         const { error } = await getSupabase()
           .from("follows")
           .delete()
           .in("id", ids);
-        if (error) throw error;
+        if (error) {
+          throw error;
+        }
       },
     }),
   );
 }
 
-let _profilesCollection:
-  | ReturnType<typeof createProfilesCollection>
-  | undefined;
-let _missionariesCollection:
-  | ReturnType<typeof createMissionariesCollection>
-  | undefined;
-let _donorsCollection: ReturnType<typeof createDonorsCollection> | undefined;
-let _postsCollection: ReturnType<typeof createPostsCollection> | undefined;
-let _postCommentsCollection:
-  | ReturnType<typeof createPostCommentsCollection>
-  | undefined;
-let _donationsCollection:
-  | ReturnType<typeof createDonationsCollection>
-  | undefined;
-let _fundsCollection: ReturnType<typeof createFundsCollection> | undefined;
-let _followsCollection: ReturnType<typeof createFollowsCollection> | undefined;
-
-function getOrCreateCollection<T>(
-  existing: T | undefined,
-  create: () => T,
-  set: (value: T) => void,
-): T {
-  if (existing !== undefined) {
-    return existing;
-  }
-  const created = create();
-  set(created);
-  return created;
+function defineLazyCollection<T>(create: () => T) {
+  let collection: T | undefined;
+  return {
+    get value(): T {
+      if (collection === undefined) {
+        collection = create();
+      }
+      return collection;
+    },
+  };
 }
 
-export const profilesCollection = {
-  get value() {
-    return getOrCreateCollection(
-      _profilesCollection,
-      createProfilesCollection,
-      (value) => {
-        _profilesCollection = value;
-      },
-    );
-  },
-};
-
-export const missionariesCollection = {
-  get value() {
-    return getOrCreateCollection(
-      _missionariesCollection,
-      createMissionariesCollection,
-      (value) => {
-        _missionariesCollection = value;
-      },
-    );
-  },
-};
-
-export const donorsCollection = {
-  get value() {
-    return getOrCreateCollection(
-      _donorsCollection,
-      createDonorsCollection,
-      (value) => {
-        _donorsCollection = value;
-      },
-    );
-  },
-};
-
-export const postsCollection = {
-  get value() {
-    return getOrCreateCollection(
-      _postsCollection,
-      createPostsCollection,
-      (value) => {
-        _postsCollection = value;
-      },
-    );
-  },
-};
-
-export const postCommentsCollection = {
-  get value() {
-    return getOrCreateCollection(
-      _postCommentsCollection,
-      createPostCommentsCollection,
-      (value) => {
-        _postCommentsCollection = value;
-      },
-    );
-  },
-};
-
-export const donationsCollection = {
-  get value() {
-    return getOrCreateCollection(
-      _donationsCollection,
-      createDonationsCollection,
-      (value) => {
-        _donationsCollection = value;
-      },
-    );
-  },
-};
-
-export const fundsCollection = {
-  get value() {
-    return getOrCreateCollection(
-      _fundsCollection,
-      createFundsCollection,
-      (value) => {
-        _fundsCollection = value;
-      },
-    );
-  },
-};
-
-export const followsCollection = {
-  get value() {
-    return getOrCreateCollection(
-      _followsCollection,
-      createFollowsCollection,
-      (value) => {
-        _followsCollection = value;
-      },
-    );
-  },
-};
+export const profilesCollection = defineLazyCollection(
+  createProfilesCollection,
+);
+export const missionariesCollection = defineLazyCollection(
+  createMissionariesCollection,
+);
+export const donorsCollection = defineLazyCollection(createDonorsCollection);
+export const postsCollection = defineLazyCollection(createPostsCollection);
+export const postCommentsCollection = defineLazyCollection(
+  createPostCommentsCollection,
+);
+export const donationsCollection = defineLazyCollection(
+  createDonationsCollection,
+);
+export const fundsCollection = defineLazyCollection(createFundsCollection);
+export const followsCollection = defineLazyCollection(createFollowsCollection);

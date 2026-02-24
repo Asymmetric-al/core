@@ -1,18 +1,21 @@
 # Working Set
 
-- Date: 2026-02-16
+- Date: 2026-02-23
 - Repo: Asymmetric-al/core
-- Goal: Prepare deterministic Supabase demo seed data for a new hosted project with exactly one profile identity, full relational coverage across app tables, and optional public read-only demo RLS migration.
-- Primary area: `supabase/seed.sql`, `supabase/migrations/*`, `scripts/*`, `AGENTS.md`
+- Goal: Harden TanStack Query/Table/DB + Zod implementation against `epic` with modern patterns, cache-components readiness, and cleaner architecture boundaries.
+- Primary area: `packages/database/*`, `packages/ui/components/shadcn/data-table/*`, `packages/api/src/*`, `docs/guides/development/tanstack-integration.md`, `tooling/eslint-config/*`
 - Constraints:
-  - No hardcoded secrets.
-  - Seed must be idempotent + relationally valid.
-  - Keep demo data realistic and varied.
-  - Preserve Supabase migration-first workflow.
+  - Keep diffs surgical and backwards-compatible for public exports.
+  - Preserve Turborepo task conventions and workspace script behavior.
+  - Follow Next.js 16 Cache Components rules (`use cache`, `cacheTag`, `revalidateTag`).
+  - Avoid introducing request-runtime APIs inside cached scopes.
+  - No secrets in code/docs.
 - Evidence sources used:
-  - `supabase/schema.sql`
-  - `supabase/migrations/20250101000000_init_schema.sql`
-  - `supabase/migrations/20260214090000_foundation_1_schema.sql`
-  - table usage search in `apps/*` and `packages/*`
+  - Local branch delta vs `epic` (`git diff epic...HEAD`)
+  - `packages/database/providers/*`, `packages/database/collections/client-db.ts`
+  - `packages/ui/components/shadcn/data-table/*`
+  - `packages/api/src/shared/http-errors.ts` and route handlers
+  - `.next-docs` cache-components and `use cache` docs
+  - Nia indexed sources: `tanstack/query`, `tanstack/table`, `tanstack/db`, Zod tracer research
 - Tooling note:
-  - Nia MCP may be intermittently unavailable (tool registration can drop); fallback is repo-scoped `rg` + direct file reads.
+  - Nia index for `Asymmetric-al/core` can lag branch state; local file reads are source of truth for current implementation details.

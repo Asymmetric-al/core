@@ -74,6 +74,10 @@ export interface DataTableConfig {
   manualPagination?: boolean;
   manualSorting?: boolean;
   manualFiltering?: boolean;
+  enableVirtualization?: boolean;
+  virtualRowHeight?: number;
+  virtualOverscan?: number;
+  virtualContainerHeight?: number;
   columnResizingPersistKey?: string;
 }
 

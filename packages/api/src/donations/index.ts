@@ -7,6 +7,8 @@ import { getAdminClient } from "@asym/database/supabase/admin";
 import { createAuditLogger } from "@asym/lib/audit/logger";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { toErrorResponse } from "../shared/http-errors";
+
 function getSupabaseAdmin() {
   const { client, error } = getAdminClient();
   if (!client) return { supabaseAdmin: null, error };
@@ -45,13 +47,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: queryError.message }, { status: 500 });
     return NextResponse.json({ donations: data });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Internal error";
-    const status = message.includes("Unauthorized")
-      ? 401
-      : message.includes("Forbidden")
-        ? 403
-        : 500;
-    return NextResponse.json({ error: message }, { status });
+    return toErrorResponse(e);
   }
 }
 
@@ -118,12 +114,6 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json({ donation }, { status: 201 });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Internal error";
-    const status = message.includes("Unauthorized")
-      ? 401
-      : message.includes("Forbidden")
-        ? 403
-        : 500;
-    return NextResponse.json({ error: message }, { status });
+    return toErrorResponse(e);
   }
 }

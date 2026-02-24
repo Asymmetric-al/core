@@ -6,6 +6,8 @@ import {
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { toErrorResponse } from "../shared/http-errors";
+
 export async function GET(request: NextRequest) {
   try {
     const { client: supabaseAdmin, error: adminError } = getAdminClient();
@@ -39,13 +41,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ users: data });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Internal error";
-    const status = message.includes("Unauthorized")
-      ? 401
-      : message.includes("Forbidden")
-        ? 403
-        : 500;
-    return NextResponse.json({ error: message }, { status });
+    return toErrorResponse(e);
   }
 }
 

@@ -5,7 +5,16 @@ import {
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { createAuditLogger } from "@asym/lib/audit/logger";
+import { revalidateTag } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
+
+import { CACHE_TAGS } from "../shared/cache-tags";
+
+function revalidatePostTags(postId: string, tenantId: string) {
+  revalidateTag(CACHE_TAGS.posts, "max");
+  revalidateTag(CACHE_TAGS.tenantPosts(tenantId), "max");
+  revalidateTag(CACHE_TAGS.post(postId), "max");
+}
 
 export async function PATCH(
   request: NextRequest,
@@ -77,6 +86,7 @@ export async function PATCH(
       return NextResponse.json({ error: error.message }, { status: 500 });
 
     await audit.logPost(postId, "post_updated");
+    revalidatePostTags(postId, ctx.tenantId);
     return NextResponse.json({ post });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Internal error";
@@ -136,6 +146,7 @@ export async function DELETE(
     }
 
     await audit.logPost(postId, "post_deleted");
+    revalidatePostTags(postId, ctx.tenantId);
     return NextResponse.json({ success: true });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Internal error";

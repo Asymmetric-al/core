@@ -1,5 +1,8 @@
 import { createClient } from "@asym/database/supabase/server";
+import { revalidateTag } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
+
+import { CACHE_TAGS } from "../shared/cache-tags";
 
 export async function POST(
   _request: NextRequest,
@@ -27,6 +30,8 @@ export async function POST(
   }
 
   await supabase.rpc("increment_post_like_count", { post_id: postId });
+  revalidateTag(CACHE_TAGS.posts, "max");
+  revalidateTag(CACHE_TAGS.post(postId), "max");
 
   return NextResponse.json({ success: true });
 }
@@ -56,6 +61,8 @@ export async function DELETE(
   }
 
   await supabase.rpc("decrement_post_like_count", { post_id: postId });
+  revalidateTag(CACHE_TAGS.posts, "max");
+  revalidateTag(CACHE_TAGS.post(postId), "max");
 
   return NextResponse.json({ success: true });
 }

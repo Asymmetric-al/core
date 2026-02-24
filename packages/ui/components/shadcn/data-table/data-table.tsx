@@ -1,5 +1,4 @@
 "use client";
-"use no memo";
 
 import {
   type ColumnDef,
@@ -8,6 +7,7 @@ import {
   type VisibilityState,
   type RowSelectionState,
   type PaginationState,
+  type Row,
   flexRender,
   getCoreRowModel,
   getFacetedRowModel,
@@ -17,6 +17,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { Inbox } from "lucide-react";
 import * as React from "react";
 
@@ -50,6 +51,7 @@ interface DataTableProps<TData, TValue> {
   config?: DataTableConfig;
   isLoading?: boolean;
   pageCount?: number;
+  rowCount?: number;
   onPaginationChange?: (pagination: PaginationState) => void;
   onSortingChange?: (sorting: SortingState) => void;
   onFiltersChange?: (filters: ColumnFiltersState) => void;
@@ -88,6 +90,7 @@ export function DataTable<TData, TValue>({
   config = EMPTY_DATA_TABLE_CONFIG,
   isLoading = false,
   pageCount,
+  rowCount,
   onPaginationChange,
   onSortingChange,
   onFiltersChange,
@@ -110,6 +113,10 @@ export function DataTable<TData, TValue>({
     manualPagination = false,
     manualSorting = false,
     manualFiltering = false,
+    enableVirtualization = false,
+    virtualRowHeight = 56,
+    virtualOverscan = 8,
+    virtualContainerHeight = 640,
   } = config;
 
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>(
@@ -169,7 +176,8 @@ export function DataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns: tableColumns,
-    pageCount: pageCount ?? undefined,
+    rowCount: rowCount ?? undefined,
+    pageCount: rowCount === undefined ? (pageCount ?? undefined) : undefined,
     state: {
       sorting,
       columnVisibility,
@@ -217,6 +225,48 @@ export function DataTable<TData, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
+  const tableContainerRef = React.useRef<HTMLDivElement>(null);
+  const rows = table.getRowModel().rows;
+  const rowVirtualizer = useVirtualizer({
+    count: enableVirtualization ? rows.length : 0,
+    getScrollElement: () => tableContainerRef.current,
+    estimateSize: () => virtualRowHeight,
+    overscan: virtualOverscan,
+  });
+
+  const virtualRows = enableVirtualization
+    ? rowVirtualizer.getVirtualItems()
+    : [];
+  const virtualPaddingTop =
+    enableVirtualization && virtualRows.length > 0
+      ? (virtualRows[0]?.start ?? 0)
+      : 0;
+  const virtualPaddingBottom =
+    enableVirtualization && virtualRows.length > 0
+      ? rowVirtualizer.getTotalSize() -
+        (virtualRows[virtualRows.length - 1]?.end ?? 0)
+      : 0;
+
+  const renderRow = (row: Row<TData>) => (
+    <TableRow
+      key={row.id}
+      data-state={row.getIsSelected() && "selected"}
+      className="hover:bg-muted/30 transition-colors border-border data-[state=selected]:bg-muted/50"
+    >
+      {row.getVisibleCells().map((cell) => {
+        const meta = cell.column.columnDef.meta;
+        return (
+          <TableCell
+            key={cell.id}
+            className={cn("py-4 px-4", meta?.cellClassName)}
+          >
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </TableCell>
+        );
+      })}
+    </TableRow>
+  );
+
   if (isLoading && data.length === 0) {
     return <DataTableSkeleton columnCount={columns.length} />;
   }
@@ -255,74 +305,90 @@ export function DataTable<TData, TValue>({
             tableClassName,
           )}
         >
-          <Table>
-            <TableHeader className="bg-muted/30">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow
-                  key={headerGroup.id}
-                  className="hover:bg-transparent border-border"
-                >
-                  {headerGroup.headers.map((header) => {
-                    const meta = header.column.columnDef.meta;
-                    return (
-                      <TableHead
-                        key={header.id}
-                        className={cn(
-                          "h-12 px-4 text-xs font-semibold text-muted-foreground",
-                          meta?.headerClassName,
-                        )}
-                        style={{
-                          width:
-                            header.getSize() !== 150
-                              ? header.getSize()
-                              : undefined,
-                        }}
-                      >
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
+          <div
+            ref={enableVirtualization ? tableContainerRef : undefined}
+            className={cn(enableVirtualization && "overflow-y-auto")}
+            style={
+              enableVirtualization
+                ? { maxHeight: virtualContainerHeight }
+                : undefined
+            }
+          >
+            <Table>
+              <TableHeader className="bg-muted/30">
+                {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    className="hover:bg-muted/30 transition-colors border-border data-[state=selected]:bg-muted/50"
+                    key={headerGroup.id}
+                    className="hover:bg-transparent border-border"
                   >
-                    {row.getVisibleCells().map((cell) => {
-                      const meta = cell.column.columnDef.meta;
+                    {headerGroup.headers.map((header) => {
+                      const meta = header.column.columnDef.meta;
                       return (
-                        <TableCell
-                          key={cell.id}
-                          className={cn("py-4 px-4", meta?.cellClassName)}
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
+                        <TableHead
+                          key={header.id}
+                          className={cn(
+                            "h-12 px-4 text-xs font-semibold text-muted-foreground",
+                            meta?.headerClassName,
                           )}
-                        </TableCell>
+                          style={{
+                            width:
+                              header.getSize() !== 150
+                                ? header.getSize()
+                                : undefined,
+                          }}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                        </TableHead>
                       );
                     })}
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={tableColumns.length} className="h-64">
-                    {emptyState ?? defaultEmptyState}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {rows.length ? (
+                  enableVirtualization ? (
+                    <>
+                      {virtualPaddingTop > 0 && (
+                        <TableRow>
+                          <TableCell
+                            colSpan={tableColumns.length}
+                            className="p-0"
+                            style={{ height: virtualPaddingTop }}
+                          />
+                        </TableRow>
+                      )}
+                      {virtualRows.map((virtualRow) => {
+                        const row = rows[virtualRow.index];
+                        return renderRow(row as Row<TData>);
+                      })}
+                      {virtualPaddingBottom > 0 && (
+                        <TableRow>
+                          <TableCell
+                            colSpan={tableColumns.length}
+                            className="p-0"
+                            style={{ height: virtualPaddingBottom }}
+                          />
+                        </TableRow>
+                      )}
+                    </>
+                  ) : (
+                    rows.map((row) => renderRow(row as Row<TData>))
+                  )
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={tableColumns.length} className="h-64">
+                      {emptyState ?? defaultEmptyState}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
 

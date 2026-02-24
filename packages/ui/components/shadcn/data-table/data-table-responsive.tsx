@@ -1,5 +1,4 @@
 "use client";
-"use no memo";
 
 import {
   type ColumnDef,
@@ -19,6 +18,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { Inbox, LayoutGrid, LayoutList } from "lucide-react";
 import * as React from "react";
 
@@ -65,6 +65,7 @@ interface DataTableResponsiveProps<TData, TValue> {
   };
   isLoading?: boolean;
   pageCount?: number;
+  rowCount?: number;
   onPaginationChange?: (pagination: PaginationState) => void;
   onSortingChange?: (sorting: SortingState) => void;
   onFiltersChange?: (filters: ColumnFiltersState) => void;
@@ -223,6 +224,10 @@ function DataTableResponsiveTableView<TData>({
   tableClassName,
   emptyState,
   defaultEmptyState,
+  enableVirtualization,
+  virtualRowHeight,
+  virtualOverscan,
+  virtualContainerHeight,
 }: {
   table: TanStackTable<TData>;
   tableColumnsLength: number;
@@ -232,7 +237,75 @@ function DataTableResponsiveTableView<TData>({
   tableClassName?: string;
   emptyState?: React.ReactNode;
   defaultEmptyState: React.ReactNode;
+  enableVirtualization: boolean;
+  virtualRowHeight: number;
+  virtualOverscan: number;
+  virtualContainerHeight: number;
 }) {
+  const tableContainerRef = React.useRef<HTMLDivElement>(null);
+  const rows = table.getRowModel().rows;
+  const rowVirtualizer = useVirtualizer({
+    count: enableVirtualization ? rows.length : 0,
+    getScrollElement: () => tableContainerRef.current,
+    estimateSize: () => virtualRowHeight,
+    overscan: virtualOverscan,
+  });
+
+  const virtualRows = enableVirtualization
+    ? rowVirtualizer.getVirtualItems()
+    : [];
+  const virtualPaddingTop =
+    enableVirtualization && virtualRows.length > 0
+      ? (virtualRows[0]?.start ?? 0)
+      : 0;
+  const virtualPaddingBottom =
+    enableVirtualization && virtualRows.length > 0
+      ? rowVirtualizer.getTotalSize() -
+        (virtualRows[virtualRows.length - 1]?.end ?? 0)
+      : 0;
+
+  const renderDataRow = (row: Row<TData>, rowIndex: number) => {
+    const rowProps = keyboard.getRowProps(rowIndex);
+    return (
+      <TableRow
+        key={row.id}
+        data-state={row.getIsSelected() && "selected"}
+        className={cn(
+          "hover:bg-muted/30 transition-colors border-border",
+          "data-[state=selected]:bg-muted/50",
+          onRowClick && "cursor-pointer",
+          rowProps["data-focused"] && keyboardStyles.focusedRow,
+        )}
+        tabIndex={rowProps.tabIndex}
+        onKeyDown={rowProps.onKeyDown}
+        onFocus={rowProps.onFocus}
+        onBlur={rowProps.onBlur}
+        onClick={() => onRowClick?.(row)}
+      >
+        {row.getVisibleCells().map((cell, cellIndex) => {
+          const meta = cell.column.columnDef.meta;
+          const isSticky = meta?.sticky;
+          const cellProps = keyboard.getCellProps(rowIndex, cellIndex);
+          return (
+            <TableCell
+              key={cell.id}
+              className={cn(
+                "py-3 px-4",
+                meta?.cellClassName,
+                isSticky === "left" && "sticky left-0 z-10 bg-card",
+                isSticky === "right" && "sticky right-0 z-10 bg-card",
+                cellProps["data-cell-focused"] && keyboardStyles.focusedCell,
+              )}
+              tabIndex={cellProps.tabIndex}
+            >
+              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            </TableCell>
+          );
+        })}
+      </TableRow>
+    );
+  };
+
   return (
     <div
       ref={keyboard.containerRef as React.RefObject<HTMLDivElement>}
@@ -241,7 +314,18 @@ function DataTableResponsiveTableView<TData>({
         tableClassName,
       )}
     >
-      <div className="overflow-x-auto">
+      <div
+        ref={enableVirtualization ? tableContainerRef : undefined}
+        className={cn(
+          "overflow-x-auto",
+          enableVirtualization && "overflow-y-auto",
+        )}
+        style={
+          enableVirtualization
+            ? { maxHeight: virtualContainerHeight }
+            : undefined
+        }
+      >
         <Table>
           <TableHeader className="bg-muted/30">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -282,56 +366,37 @@ function DataTableResponsiveTableView<TData>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row, rowIndex) => {
-                const rowProps = keyboard.getRowProps(rowIndex);
-                return (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    className={cn(
-                      "hover:bg-muted/30 transition-colors border-border",
-                      "data-[state=selected]:bg-muted/50",
-                      onRowClick && "cursor-pointer",
-                      rowProps["data-focused"] && keyboardStyles.focusedRow,
-                    )}
-                    tabIndex={rowProps.tabIndex}
-                    onKeyDown={rowProps.onKeyDown}
-                    onFocus={rowProps.onFocus}
-                    onBlur={rowProps.onBlur}
-                    onClick={() => onRowClick?.(row)}
-                  >
-                    {row.getVisibleCells().map((cell, cellIndex) => {
-                      const meta = cell.column.columnDef.meta;
-                      const isSticky = meta?.sticky;
-                      const cellProps = keyboard.getCellProps(
-                        rowIndex,
-                        cellIndex,
-                      );
-                      return (
-                        <TableCell
-                          key={cell.id}
-                          className={cn(
-                            "py-3 px-4",
-                            meta?.cellClassName,
-                            isSticky === "left" && "sticky left-0 z-10 bg-card",
-                            isSticky === "right" &&
-                              "sticky right-0 z-10 bg-card",
-                            cellProps["data-cell-focused"] &&
-                              keyboardStyles.focusedCell,
-                          )}
-                          tabIndex={cellProps.tabIndex}
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                );
-              })
+            {rows.length ? (
+              enableVirtualization ? (
+                <>
+                  {virtualPaddingTop > 0 && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={tableColumnsLength}
+                        className="p-0"
+                        style={{ height: virtualPaddingTop }}
+                      />
+                    </TableRow>
+                  )}
+                  {virtualRows.map((virtualRow) => {
+                    const row = rows[virtualRow.index];
+                    return renderDataRow(row as Row<TData>, virtualRow.index);
+                  })}
+                  {virtualPaddingBottom > 0 && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={tableColumnsLength}
+                        className="p-0"
+                        style={{ height: virtualPaddingBottom }}
+                      />
+                    </TableRow>
+                  )}
+                </>
+              ) : (
+                rows.map((row, rowIndex) =>
+                  renderDataRow(row as Row<TData>, rowIndex),
+                )
+              )
             ) : (
               <TableRow>
                 <TableCell colSpan={tableColumnsLength} className="h-64">
@@ -356,6 +421,7 @@ export function DataTableResponsive<TData, TValue>({
   config = EMPTY_DATA_TABLE_CONFIG,
   isLoading = false,
   pageCount,
+  rowCount,
   onPaginationChange,
   onSortingChange,
   onFiltersChange,
@@ -390,6 +456,10 @@ export function DataTableResponsive<TData, TValue>({
     manualPagination = false,
     manualSorting = false,
     manualFiltering = false,
+    enableVirtualization = false,
+    virtualRowHeight = 56,
+    virtualOverscan = 8,
+    virtualContainerHeight = 640,
   } = config;
 
   const [viewMode, setViewMode] = React.useState<ViewMode>(defaultViewMode);
@@ -487,7 +557,8 @@ export function DataTableResponsive<TData, TValue>({
   const table = useReactTable({
     data: filteredData,
     columns: tableColumns,
-    pageCount: pageCount ?? undefined,
+    rowCount: rowCount ?? undefined,
+    pageCount: rowCount === undefined ? (pageCount ?? undefined) : undefined,
     state: {
       sorting,
       columnVisibility,
@@ -612,6 +683,10 @@ export function DataTableResponsive<TData, TValue>({
             tableClassName={tableClassName}
             emptyState={emptyState}
             defaultEmptyState={defaultEmptyState}
+            enableVirtualization={enableVirtualization}
+            virtualRowHeight={virtualRowHeight}
+            virtualOverscan={virtualOverscan}
+            virtualContainerHeight={virtualContainerHeight}
           />
         )}
 
