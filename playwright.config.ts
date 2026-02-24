@@ -60,13 +60,13 @@ const webServer = isRemoteBaseUrl
   ? undefined
   : [
       {
-        command: `node -e "try{require('fs').rmSync('apps/donor/.next/dev/lock',{force:true})}catch{}" && SKIP_ENV_VALIDATION=1 NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key bun run --cwd apps/donor dev -- --port ${port} --hostname 127.0.0.1`,
+        command: `node -e "try{require('fs').rmSync('apps/donor/.next/dev/lock',{force:true})}catch{}" && SKIP_ENV_VALIDATION=1 NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key bun run --cwd apps/donor dev:playwright -- --port ${port} --hostname 127.0.0.1`,
         url: baseURL,
         reuseExistingServer: true,
         timeout: 120000,
       },
       {
-        command: `node -e "try{require('fs').rmSync('apps/admin/.next/dev/lock',{force:true})}catch{}" && SKIP_ENV_VALIDATION=1 NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key PAYLOAD_SECRET=playwright-secret PAYLOAD_DATABASE_URI=postgresql://postgres:postgres@127.0.0.1:54322/postgres bun run --cwd apps/admin dev -- --port ${adminPort} --hostname 127.0.0.1`,
+        command: `node -e "try{require('fs').rmSync('apps/admin/.next/dev/lock',{force:true})}catch{}" && SKIP_ENV_VALIDATION=1 NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key PAYLOAD_SECRET=playwright-secret PAYLOAD_DATABASE_URI=postgresql://postgres:postgres@127.0.0.1:54322/postgres bun run --cwd apps/admin dev:playwright -- --port ${adminPort} --hostname 127.0.0.1`,
         url: `${adminBaseURL}/login`,
         reuseExistingServer: true,
         timeout: 120000,

@@ -22,7 +22,11 @@ jobs:
           bun-version: "1.3.4"
       - uses: actions/cache@v4
         with:
-          path: .turbo
+          path: |
+            .turbo
+            apps/admin/.next/cache
+            apps/donor/.next/cache
+            apps/missionary/.next/cache
           key: turbo-${{ runner.os }}-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-
       - run: bun install --frozen-lockfile
@@ -40,7 +44,11 @@ jobs:
           bun-version: "1.3.4"
       - uses: actions/cache@v4
         with:
-          path: .turbo
+          path: |
+            .turbo
+            apps/admin/.next/cache
+            apps/donor/.next/cache
+            apps/missionary/.next/cache
           key: turbo-${{ runner.os }}-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-
       - run: bun install --frozen-lockfile
@@ -60,7 +68,11 @@ jobs:
           bun-version: "1.3.4"
       - uses: actions/cache@v4
         with:
-          path: .turbo
+          path: |
+            .turbo
+            apps/admin/.next/cache
+            apps/donor/.next/cache
+            apps/missionary/.next/cache
           key: turbo-${{ runner.os }}-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-
       - run: bun install --frozen-lockfile
@@ -81,7 +93,11 @@ jobs:
           bun-version: "1.3.4"
       - uses: actions/cache@v4
         with:
-          path: .turbo
+          path: |
+            .turbo
+            apps/admin/.next/cache
+            apps/donor/.next/cache
+            apps/missionary/.next/cache
           key: turbo-${{ runner.os }}-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-
       - run: bun install --frozen-lockfile
@@ -99,7 +115,11 @@ jobs:
           bun-version: "1.3.4"
       - uses: actions/cache@v4
         with:
-          path: .turbo
+          path: |
+            .turbo
+            apps/admin/.next/cache
+            apps/donor/.next/cache
+            apps/missionary/.next/cache
           key: turbo-${{ runner.os }}-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-
       - run: bun install --frozen-lockfile
@@ -114,9 +134,32 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  test-unit-cms:
+    runs-on: ubuntu-latest
+    env:
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.4"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .turbo
+            apps/admin/.next/cache
+            apps/donor/.next/cache
+            apps/missionary/.next/cache
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: turbo-${{ runner.os }}-
+      - run: bun install --frozen-lockfile
+      - name: Run critical CMS unit test gate
+        run: bun run test:unit:cms
+
   ci-gate:
     if: always()
-    needs: [format, lint, typecheck, build, test-unit]
+    needs: [format, lint, typecheck, build, test-unit, test-unit-cms]
     runs-on: ubuntu-latest
     steps:
       - name: Fail if any prerequisite check failed
@@ -126,6 +169,7 @@ jobs:
           echo "typecheck: ${{ needs.typecheck.result }}"
           echo "build: ${{ needs.build.result }}"
           echo "test-unit: ${{ needs['test-unit'].result }}"
+          echo "test-unit-cms: ${{ needs['test-unit-cms'].result }}"
 
           failed=0
           for result in \
@@ -133,7 +177,8 @@ jobs:
             "${{ needs.lint.result }}" \
             "${{ needs.typecheck.result }}" \
             "${{ needs.build.result }}" \
-            "${{ needs['test-unit'].result }}"
+            "${{ needs['test-unit'].result }}" \
+            "${{ needs['test-unit-cms'].result }}"
           do
             if [ "$result" != "success" ]; then
               failed=1

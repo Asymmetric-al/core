@@ -54,6 +54,9 @@ bun run format
 # PR-readiness (matches blocking CI)
 bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit
 
+# Full local gate (includes ESLint/workspace contract and CMS critical tests)
+bun run gate:ci
+
 # Optional (non-blocking in CI, but recommended for flow changes)
 bun run test:e2e
 ```
@@ -73,6 +76,9 @@ For ownership and full review policy, see `docs/guides/development/code-review-a
 ```bash
 # PR-readiness (matches blocking CI)
 bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit
+
+# Full local gate (includes ESLint/workspace contract and CMS critical tests)
+bun run gate:ci
 
 # Optional (non-blocking in CI, but recommended for flow changes)
 bun run test:e2e

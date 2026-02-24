@@ -4,10 +4,10 @@
 
 Two workflow files run on every PR to `develop` and `main`, and on every push to `main`:
 
-| Workflow    | File                                   | Jobs                                            | Target time               |
-| ----------- | -------------------------------------- | ----------------------------------------------- | ------------------------- |
-| Fast checks | `.github/workflows/ci.yml`             | `format → lint → typecheck → build → test-unit` | < 3 min with remote cache |
-| Integration | `.github/workflows/ci-integration.yml` | `migrate → smoke → test-e2e`                    | ~5 min                    |
+| Workflow    | File                                   | Jobs                                                            | Target time               |
+| ----------- | -------------------------------------- | --------------------------------------------------------------- | ------------------------- |
+| Fast checks | `.github/workflows/ci.yml`             | `format → lint → typecheck → build → test-unit → test-unit-cms` | < 4 min with remote cache |
+| Integration | `.github/workflows/ci-integration.yml` | `migrate → smoke → test-e2e`                                    | ~5 min                    |
 
 All fast-check jobs are **required** status checks. `test-e2e` is **informational only** (non-blocking).
 
@@ -46,6 +46,12 @@ All fast-check jobs are **required** status checks. `test-e2e` is **informationa
 - _Why it exists:_ Validates pure logic, utilities, and shared package behaviour without a browser or network.
 - _Debug locally:_ Run `bun run test:unit` to execute unit tests and generate coverage output in `coverage/`. For watch mode: `bunx vitest`.
 
+### `test-unit-cms`
+
+- _What it checks:_ Runs `bun run test:unit:cms` (focused Vitest gate on `tests/unit/cms/**/*.test.ts`).
+- _Why it exists:_ Keeps tenant isolation + public CMS contract regressions visible as an explicit blocking check.
+- _Debug locally:_ Run `bun run test:unit:cms`.
+
 ---
 
 ## Integration workflow (`ci-integration.yml`)
@@ -79,6 +85,7 @@ All fast-check jobs are **required** status checks. `test-e2e` is **informationa
 - `CI / typecheck`
 - `CI / build`
 - `CI / test-unit`
+- `CI / test-unit-cms`
 
 **Informational only (not required):**
 
@@ -89,7 +96,7 @@ All fast-check jobs are **required** status checks. `test-e2e` is **informationa
 1. Go to _Settings → Branches → Branch protection rules_.
 2. Add a rule for `main` (and optionally `develop`).
 3. Enable **Require status checks to pass before merging**.
-4. Search for and add each of the five required checks listed above.
+4. Search for and add each of the six required checks listed above.
 5. Do **not** add `CI / test-e2e` as a required check.
 
 ---
@@ -97,5 +104,5 @@ All fast-check jobs are **required** status checks. `test-e2e` is **informationa
 ## Turborepo cache
 
 - **Remote cache (preferred):** All `ci.yml` jobs set `TURBO_TOKEN` (secret) and `TURBO_TEAM` (variable). When both are present, Turborepo uses Vercel's remote cache — unchanged tasks are skipped entirely. To verify: look for `"Remote cache hit"` in the CI job logs.
-- **Local fallback:** Each job also caches `.turbo/` via `actions/cache@v4` keyed on `turbo-${{ runner.os }}-${{ github.sha }}` with a restore prefix of `turbo-${{ runner.os }}-`. This ensures incremental builds even when the remote cache is unavailable.
+- **Local fallback:** Each job also caches `.turbo/` and app-level Next build cache directories (`apps/*/.next/cache`) via `actions/cache@v4`, keyed on `turbo-${{ runner.os }}-${{ github.sha }}` with a restore prefix of `turbo-${{ runner.os }}-`. This aligns with Next.js CI cache guidance and improves repeat build performance when remote cache is unavailable.
 - **See also:** `file:.github/SECRETS.md` for how to configure `TURBO_TOKEN` and `TURBO_TEAM`.

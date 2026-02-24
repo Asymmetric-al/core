@@ -308,10 +308,11 @@ Common commands:
 - `bun run format` (fix), `bun run format:check` (verify), `bun run lint`, and `bun run typecheck`
 - `bun run build`, `bun run test:unit`, `bun run test:e2e`
 - PR-readiness (matches blocking CI): `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
+- Full local quality gate (CI parity + CMS critical suite): `bun run gate:ci`
 
 ### Git Hooks Setup
 
-Pre-commit hooks auto-run ESLint + Prettier. If you get "command not found" errors:
+Pre-commit hooks auto-run ESLint + Prettier, and pre-push runs lint/typecheck + CMS critical tests (`bun run gate:prepush`). If you get "command not found" errors:
 
 **macOS/Linux:**
 
@@ -345,15 +346,15 @@ For lockfile/workspace-root warnings in Next builds, see the runbook section `Mu
 
 ### Key Dependencies
 
-| Package               | Version | Notes                                      |
-| --------------------- | ------- | ------------------------------------------ |
-| Next.js               | 16.1.1  | App Router + Turbopack                     |
-| React                 | 19.2.3  | Concurrent features                        |
-| TypeScript            | 5.9.3   | Strict mode                                |
-| motion                | 12.x    | Animation library (formerly framer-motion) |
-| @tanstack/react-query | 5.x     | Server state management                    |
-| @supabase/ssr         | 0.8.x   | Server-side Supabase client                |
-| @sentry/nextjs        | 10.x    | Error monitoring                           |
+| Package               | Version          | Notes                                      |
+| --------------------- | ---------------- | ------------------------------------------ |
+| Next.js               | 16.2.0-canary.58 | App Router + Turbopack                     |
+| React                 | 19.2.3           | Concurrent features                        |
+| TypeScript            | 5.9.3            | Strict mode                                |
+| motion                | 12.x             | Animation library (formerly framer-motion) |
+| @tanstack/react-query | 5.x              | Server state management                    |
+| @supabase/ssr         | 0.8.x            | Server-side Supabase client                |
+| @sentry/nextjs        | 10.x             | Error monitoring                           |
 
 ### Verification Steps
 
@@ -363,6 +364,9 @@ bun run format
 
 # PR-readiness (matches blocking CI)
 bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit
+
+# Full local quality gate (CI parity + CMS critical suite)
+bun run gate:ci
 
 # Optional (non-blocking in CI, but recommended for flow changes)
 bun run test:e2e
@@ -403,7 +407,7 @@ Notes:
 ## Key Conventions
 
 1. **RSC First**: Keep components as React Server Components unless interactivity is required.
-2. **Next.js 16.1 Compliance**: Always `await` dynamic `params` and `searchParams` in routes and layouts.
+2. **Next.js 16.2 Compliance**: Always `await` dynamic `params` and `searchParams` in routes and layouts.
 3. **Zinc and Shadcn/ui Maia Aesthetic**: Use `zinc-900` for primary actions and `zinc-500` for secondary text.
 4. **Responsive Integrity**: Test all UI changes on both 375px (Mobile) and 1440px (Desktop) viewports.
 

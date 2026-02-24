@@ -3,9 +3,8 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 let createSupabaseAuthStrategy: typeof import("../../../apps/admin/src/cms/auth/supabase-strategy").createSupabaseAuthStrategy;
 
 beforeAll(async () => {
-  const module = await import(
-    "../../../apps/admin/src/cms/auth/supabase-strategy"
-  );
+  const module =
+    await import("../../../apps/admin/src/cms/auth/supabase-strategy");
   createSupabaseAuthStrategy = module.createSupabaseAuthStrategy;
 });
 

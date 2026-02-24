@@ -17,16 +17,17 @@ vi.mock("../../../apps/admin/src/cms/public/resolve-tenant", () => ({
 
 let GET: (request: unknown, context: unknown) => Promise<Response>;
 
-function createRequest(url = "http://localhost:3030/api/cms/public/pages/home") {
+function createRequest(
+  url = "http://localhost:3030/api/cms/public/pages/home",
+) {
   return {
     nextUrl: new URL(url),
   } as never;
 }
 
 beforeAll(async () => {
-  const routeModule = await import(
-    "../../../apps/admin/app/api/cms/public/pages/[...slug]/route"
-  );
+  const routeModule =
+    await import("../../../apps/admin/app/api/cms/public/pages/[...slug]/route");
 
   GET = routeModule.GET;
 });

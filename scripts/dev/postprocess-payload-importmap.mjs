@@ -6,8 +6,10 @@ const importMapPath = path.resolve(
   "app/(payload)/admin/importMap.js",
 );
 
-const lintHeader = "/* eslint-disable import-x/no-duplicates, import-x/order */";
-const typedExport = "/** @type {Record<string, unknown>} */\nexport const importMap =";
+const lintHeader =
+  "/* eslint-disable import-x/no-duplicates, import-x/order -- TODO(AL-000): auto-generated Payload import map */";
+const typedExport =
+  "/** @type {Record<string, unknown>} */\nexport const importMap =";
 
 async function ensureImportMapExists() {
   await access(importMapPath);

@@ -7,6 +7,8 @@
   - Deep UI/UX audit and polish for Payload admin branding parity.
   - Remove hacky/generated-code friction (import map post-processing automation).
   - Harden auth strategy behavior and document concrete API endpoint contracts for downstream agent work.
+  - Add stricter quality/testing gates (local + CI) including Husky pre-push checks.
+  - Audit Turborepo and Next.js workflow usage for compliance and clean up non-best-practice patterns.
 - Primary area:
   - `apps/admin/*` (Payload runtime, routes, Site Studio UX)
   - `packages/auth/*` (middleware protection)
