@@ -487,6 +487,12 @@ export default function MissionControlCRM() {
                 enablePagination: true,
                 enableFilters: true,
                 enableSorting: true,
+                virtualization: {
+                  enabled: true,
+                  estimateSize: 56,
+                  overscan: 10,
+                  containerHeight: 720,
+                },
               }}
               initialState={{
                 columnVisibility: {

@@ -56,6 +56,14 @@ export interface DataTableRowAction<TData> {
   type: "update" | "delete";
 }
 
+export interface VirtualizationConfig {
+  enabled?: boolean;
+  estimateSize?: number;
+  overscan?: number;
+  containerHeight?: number | string;
+  getItemKey?: (index: number) => string | number;
+}
+
 export interface DataTableConfig {
   enableRowSelection?: boolean;
   enableMultiSort?: boolean;
@@ -74,10 +82,13 @@ export interface DataTableConfig {
   manualPagination?: boolean;
   manualSorting?: boolean;
   manualFiltering?: boolean;
+  virtualization?: VirtualizationConfig;
+
+  // Legacy virtualization fields kept for backward compatibility.
   enableVirtualization?: boolean;
   virtualRowHeight?: number;
   virtualOverscan?: number;
-  virtualContainerHeight?: number;
+  virtualContainerHeight?: number | string;
   columnResizingPersistKey?: string;
 }
 

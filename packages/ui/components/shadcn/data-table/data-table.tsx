@@ -17,7 +17,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import { Inbox } from "lucide-react";
 import * as React from "react";
 
@@ -39,6 +38,7 @@ import {
   DataTableLoadingOverlay,
 } from "./data-table-skeleton";
 import { DataTableToolbar } from "./data-table-toolbar";
+import { useDataTableVirtualization } from "./hooks";
 
 import type { DataTableFilterField, DataTableConfig } from "./types";
 
@@ -113,10 +113,6 @@ export function DataTable<TData, TValue>({
     manualPagination = false,
     manualSorting = false,
     manualFiltering = false,
-    enableVirtualization = false,
-    virtualRowHeight = 56,
-    virtualOverscan = 8,
-    virtualContainerHeight = 640,
   } = config;
 
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>(
@@ -227,25 +223,40 @@ export function DataTable<TData, TValue>({
 
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
   const rows = table.getRowModel().rows;
-  const rowVirtualizer = useVirtualizer({
-    count: enableVirtualization ? rows.length : 0,
-    getScrollElement: () => tableContainerRef.current,
-    estimateSize: () => virtualRowHeight,
-    overscan: virtualOverscan,
+  const getVirtualRowKey = React.useCallback(
+    (index: number) => rows[index]?.id ?? index,
+    [rows],
+  );
+  const virtualizationConfig = React.useMemo(
+    () => ({
+      ...config.virtualization,
+      getItemKey: config.virtualization?.getItemKey ?? getVirtualRowKey,
+    }),
+    [config.virtualization, getVirtualRowKey],
+  );
+  const {
+    config: resolvedVirtualization,
+    virtualItems: virtualRows,
+    paddingTop: virtualPaddingTop,
+    paddingBottom: virtualPaddingBottom,
+    isEnabled: isVirtualized,
+  } = useDataTableVirtualization({
+    count: rows.length,
+    scrollElementRef: tableContainerRef,
+    virtualization: virtualizationConfig,
+    legacy: {
+      enabled: config.enableVirtualization,
+      estimateSize: config.virtualRowHeight,
+      overscan: config.virtualOverscan,
+      containerHeight: config.virtualContainerHeight,
+    },
+    defaults: {
+      enabled: false,
+      estimateSize: 56,
+      overscan: 8,
+      containerHeight: 640,
+    },
   });
-
-  const virtualRows = enableVirtualization
-    ? rowVirtualizer.getVirtualItems()
-    : [];
-  const virtualPaddingTop =
-    enableVirtualization && virtualRows.length > 0
-      ? (virtualRows[0]?.start ?? 0)
-      : 0;
-  const virtualPaddingBottom =
-    enableVirtualization && virtualRows.length > 0
-      ? rowVirtualizer.getTotalSize() -
-        (virtualRows[virtualRows.length - 1]?.end ?? 0)
-      : 0;
 
   const renderRow = (row: Row<TData>) => (
     <TableRow
@@ -306,11 +317,11 @@ export function DataTable<TData, TValue>({
           )}
         >
           <div
-            ref={enableVirtualization ? tableContainerRef : undefined}
-            className={cn(enableVirtualization && "overflow-y-auto")}
+            ref={isVirtualized ? tableContainerRef : undefined}
+            className={cn(isVirtualized && "overflow-y-auto")}
             style={
-              enableVirtualization
-                ? { maxHeight: virtualContainerHeight }
+              isVirtualized
+                ? { maxHeight: resolvedVirtualization.containerHeight }
                 : undefined
             }
           >
@@ -351,7 +362,7 @@ export function DataTable<TData, TValue>({
               </TableHeader>
               <TableBody>
                 {rows.length ? (
-                  enableVirtualization ? (
+                  isVirtualized ? (
                     <>
                       {virtualPaddingTop > 0 && (
                         <TableRow>

@@ -18,7 +18,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import { Inbox, LayoutGrid, LayoutList } from "lucide-react";
 import * as React from "react";
 
@@ -43,7 +42,11 @@ import {
 } from "./data-table-skeleton";
 import { DataTableToolbarResponsive } from "./data-table-toolbar-responsive";
 import { createEmptyFilterState, createAdvancedFilterFn } from "./filters";
-import { useDataTableKeyboard, getKeyboardNavigationStyles } from "./hooks";
+import {
+  useDataTableKeyboard,
+  getKeyboardNavigationStyles,
+  useDataTableVirtualization,
+} from "./hooks";
 
 import type { AdvancedFilterState, FilterFieldDefinition } from "./filters";
 import type { UseDataTableKeyboardReturn } from "./hooks";
@@ -224,6 +227,7 @@ function DataTableResponsiveTableView<TData>({
   tableClassName,
   emptyState,
   defaultEmptyState,
+  virtualization,
   enableVirtualization,
   virtualRowHeight,
   virtualOverscan,
@@ -237,32 +241,48 @@ function DataTableResponsiveTableView<TData>({
   tableClassName?: string;
   emptyState?: React.ReactNode;
   defaultEmptyState: React.ReactNode;
+  virtualization?: DataTableConfig["virtualization"];
   enableVirtualization: boolean;
   virtualRowHeight: number;
   virtualOverscan: number;
-  virtualContainerHeight: number;
+  virtualContainerHeight: number | string;
 }) {
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
   const rows = table.getRowModel().rows;
-  const rowVirtualizer = useVirtualizer({
-    count: enableVirtualization ? rows.length : 0,
-    getScrollElement: () => tableContainerRef.current,
-    estimateSize: () => virtualRowHeight,
-    overscan: virtualOverscan,
+  const getVirtualRowKey = React.useCallback(
+    (index: number) => rows[index]?.id ?? index,
+    [rows],
+  );
+  const tableVirtualizationConfig = React.useMemo(
+    () => ({
+      ...virtualization,
+      getItemKey: virtualization?.getItemKey ?? getVirtualRowKey,
+    }),
+    [virtualization, getVirtualRowKey],
+  );
+  const {
+    config: resolvedVirtualization,
+    virtualItems: virtualRows,
+    paddingTop: virtualPaddingTop,
+    paddingBottom: virtualPaddingBottom,
+    isEnabled: isVirtualized,
+  } = useDataTableVirtualization({
+    count: rows.length,
+    scrollElementRef: tableContainerRef,
+    virtualization: tableVirtualizationConfig,
+    legacy: {
+      enabled: enableVirtualization,
+      estimateSize: virtualRowHeight,
+      overscan: virtualOverscan,
+      containerHeight: virtualContainerHeight,
+    },
+    defaults: {
+      enabled: false,
+      estimateSize: 56,
+      overscan: 8,
+      containerHeight: 640,
+    },
   });
-
-  const virtualRows = enableVirtualization
-    ? rowVirtualizer.getVirtualItems()
-    : [];
-  const virtualPaddingTop =
-    enableVirtualization && virtualRows.length > 0
-      ? (virtualRows[0]?.start ?? 0)
-      : 0;
-  const virtualPaddingBottom =
-    enableVirtualization && virtualRows.length > 0
-      ? rowVirtualizer.getTotalSize() -
-        (virtualRows[virtualRows.length - 1]?.end ?? 0)
-      : 0;
 
   const renderDataRow = (row: Row<TData>, rowIndex: number) => {
     const rowProps = keyboard.getRowProps(rowIndex);
@@ -315,14 +335,11 @@ function DataTableResponsiveTableView<TData>({
       )}
     >
       <div
-        ref={enableVirtualization ? tableContainerRef : undefined}
-        className={cn(
-          "overflow-x-auto",
-          enableVirtualization && "overflow-y-auto",
-        )}
+        ref={isVirtualized ? tableContainerRef : undefined}
+        className={cn("overflow-x-auto", isVirtualized && "overflow-y-auto")}
         style={
-          enableVirtualization
-            ? { maxHeight: virtualContainerHeight }
+          isVirtualized
+            ? { maxHeight: resolvedVirtualization.containerHeight }
             : undefined
         }
       >
@@ -367,7 +384,7 @@ function DataTableResponsiveTableView<TData>({
           </TableHeader>
           <TableBody>
             {rows.length ? (
-              enableVirtualization ? (
+              isVirtualized ? (
                 <>
                   {virtualPaddingTop > 0 && (
                     <TableRow>
@@ -683,6 +700,7 @@ export function DataTableResponsive<TData, TValue>({
             tableClassName={tableClassName}
             emptyState={emptyState}
             defaultEmptyState={defaultEmptyState}
+            virtualization={config.virtualization}
             enableVirtualization={enableVirtualization}
             virtualRowHeight={virtualRowHeight}
             virtualOverscan={virtualOverscan}
