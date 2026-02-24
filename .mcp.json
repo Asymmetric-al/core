@@ -3,6 +3,10 @@
     "next-devtools": {
       "command": "bunx",
       "args": ["-y", "next-devtools-mcp@latest"]
+    },
+    "tanstack": {
+      "command": "npx",
+      "args": ["@tanstack/cli", "mcp"]
     }
   }
 }
