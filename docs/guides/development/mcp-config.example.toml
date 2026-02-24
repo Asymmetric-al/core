@@ -19,7 +19,7 @@
 ###
 
 # [mcp_servers.tanstack]
-# command = "npx"
+# command = "bunx"
 # args = ["@tanstack/cli", "mcp"]
 
 ###

@@ -8,7 +8,7 @@
       ]
     },
     "tanstack": {
-      "command": "npx",
+      "command": "bunx",
       "args": [
         "@tanstack/cli",
         "mcp"
