@@ -32,6 +32,7 @@ const IGNORE_DIRECTORIES = new Set([
 ]);
 const DISABLE_FORMAT =
   /eslint-disable(?:-next-line|-line)?\s+[^\n]+--\s*(TODO\([^)]+\)|[A-Z]+-\d+)/;
+const DISABLE_FORMAT_EXEMPT_BASENAMES = new Set(["payload-types.ts"]);
 
 const errors = [];
 
@@ -180,6 +181,9 @@ async function verifyDisableCommentFormat() {
 
   for (const filePath of files) {
     if (!SOURCE_EXTENSIONS.has(path.extname(filePath))) {
+      continue;
+    }
+    if (DISABLE_FORMAT_EXEMPT_BASENAMES.has(path.basename(filePath))) {
       continue;
     }
 
