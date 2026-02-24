@@ -169,11 +169,27 @@ export function DataTable<TData, TValue>({
     return columns;
   }, [columns, enableRowSelection, selectColumn]);
 
+  const resolvedRowCount = rowCount ?? undefined;
+  const resolvedPageCount =
+    rowCount == null ? (pageCount ?? undefined) : undefined;
+
+  React.useEffect(() => {
+    if (
+      process.env.NODE_ENV !== "production" &&
+      rowCount != null &&
+      pageCount != null
+    ) {
+      console.warn(
+        "[asym/ui] DataTable received both rowCount and pageCount. pageCount is ignored when rowCount is provided.",
+      );
+    }
+  }, [pageCount, rowCount]);
+
   const table = useReactTable({
     data,
     columns: tableColumns,
-    rowCount: rowCount ?? undefined,
-    pageCount: rowCount === undefined ? (pageCount ?? undefined) : undefined,
+    rowCount: resolvedRowCount,
+    pageCount: resolvedPageCount,
     state: {
       sorting,
       columnVisibility,

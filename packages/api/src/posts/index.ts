@@ -19,6 +19,14 @@ interface FeedPostsQuery {
   missionaryId?: string | null;
 }
 
+function getAdminClientOrThrow() {
+  const { client: supabaseAdmin, error: adminError } = getAdminClient();
+  if (!supabaseAdmin) {
+    throw new Error(adminError ?? "Admin client unavailable");
+  }
+  return supabaseAdmin;
+}
+
 async function getCachedFeedPosts({
   tenantId,
   status,
@@ -32,10 +40,8 @@ async function getCachedFeedPosts({
   cacheTag(CACHE_TAGS.posts);
   cacheTag(CACHE_TAGS.tenantPosts(tenantId));
 
-  const { client: supabaseAdmin, error: adminError } = getAdminClient();
-  if (!supabaseAdmin) {
-    throw new Error(adminError ?? "Admin client unavailable");
-  }
+  // `use cache` stores query results; admin client remains a module-level singleton.
+  const supabaseAdmin = getAdminClientOrThrow();
 
   let query = supabaseAdmin
     .from("posts")

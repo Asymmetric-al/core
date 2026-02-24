@@ -8,10 +8,12 @@ import {
 import { type ReactNode } from "react";
 
 const NON_RETRIABLE_STATUS_CODES = new Set([401, 403]);
+// Supabase/PostgREST query errors expose database and PostgREST codes via `error.code`.
 const STATUS_BY_ERROR_CODE: Record<string, number> = {
   "42501": 403, // Postgres insufficient_privilege
   PGRST301: 401,
   PGRST302: 401,
+  PGRST303: 401,
 };
 
 function getErrorStatus(error: unknown): number | undefined {

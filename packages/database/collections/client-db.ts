@@ -1,22 +1,17 @@
 "use client";
 
+import {
+  createCollection,
+  type InferSchemaOutput,
+  type StandardSchema,
+} from "@tanstack/db";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
-import { createCollection } from "@tanstack/react-db";
 import { z } from "zod";
 
 import { getQueryClient } from "../providers/query-provider";
 import { createClient } from "../supabase/client";
 
-import type {
-  Profile,
-  Missionary,
-  Donor,
-  Post,
-  Donation,
-  Fund,
-  Follow,
-  PostComment,
-} from "../types/database";
+import type { Post, Follow, PostComment } from "../types/database";
 
 type SupabaseClient = ReturnType<typeof createClient>;
 
@@ -27,12 +22,16 @@ interface TableQueryOptions {
   };
 }
 
-interface ReadOnlyCollectionConfig<TItem extends object> {
+type SchemaOutput<TSchema extends StandardSchema<any>> =
+  InferSchemaOutput<TSchema>;
+
+interface ReadOnlyCollectionConfig<TSchema extends StandardSchema<any>> {
   id: string;
   queryKey: readonly string[];
   tableName: string;
-  getKey: (item: TItem) => string;
+  getKey: (item: SchemaOutput<TSchema>) => string;
   queryOptions?: TableQueryOptions;
+  schema: TSchema;
 }
 
 let supabaseClient: SupabaseClient | null = null;
@@ -61,18 +60,22 @@ async function fetchTableRows<TItem extends object>(
   return (data ?? []) as TItem[];
 }
 
-function createReadOnlyCollection<TItem extends object>({
+function createReadOnlyCollection<TSchema extends StandardSchema<any>>({
   id,
   queryKey,
   tableName,
   getKey,
   queryOptions,
-}: ReadOnlyCollectionConfig<TItem>) {
+  schema,
+}: ReadOnlyCollectionConfig<TSchema>) {
+  type TItem = SchemaOutput<TSchema>;
+
   return createCollection(
     queryCollectionOptions({
       id,
       queryKey: [...queryKey],
       queryClient: getQueryClient(),
+      schema,
       getKey,
       queryFn: () => fetchTableRows<TItem>(tableName, queryOptions),
     }),
@@ -121,29 +124,171 @@ const followSchema = z.object({
   created_at: z.string().min(1),
 });
 
+const userRoleSchema = z.enum([
+  "donor",
+  "missionary",
+  "admin",
+  "staff",
+  "super_admin",
+]);
+
+const donationStatusSchema = z.enum([
+  "pending",
+  "completed",
+  "failed",
+  "refunded",
+]);
+
+const profileSchema = z.object({
+  id: z.string().min(1),
+  tenant_id: z.string().min(1),
+  user_id: z.string().min(1),
+  role: userRoleSchema,
+  first_name: z.string(),
+  last_name: z.string(),
+  display_name: z.string().nullable(),
+  email: z.string(),
+  avatar_url: z.string().nullable(),
+  phone: z.string().nullable(),
+  created_at: z.string().min(1),
+  updated_at: z.string().min(1),
+});
+
+const missionarySchema = z.object({
+  id: z.string().min(1),
+  tenant_id: z.string().min(1),
+  profile_id: z.string().min(1),
+  bio: z.string().nullable(),
+  mission_field: z.string().nullable(),
+  funding_goal: z.number(),
+  current_funding: z.number(),
+  phone: z.string().nullable(),
+  location: z.string().nullable(),
+  tagline: z.string().nullable(),
+  social_links: z.record(z.string(), z.unknown()),
+  created_at: z.string().min(1),
+  updated_at: z.string().min(1),
+});
+
+const donorSchema = z.object({
+  id: z.string().min(1),
+  tenant_id: z.string().min(1),
+  profile_id: z.string().nullable(),
+  missionary_id: z.string().nullable(),
+  name: z.string().nullable(),
+  email: z.string().nullable(),
+  phone: z.string().nullable(),
+  mobile: z.string().nullable(),
+  work_phone: z.string().nullable(),
+  preferred_contact: z.string().nullable(),
+  avatar_url: z.string().nullable(),
+  location: z.string().nullable(),
+  type: z.string().nullable(),
+  status: z.string().nullable(),
+  giving_preferences: z.record(z.string(), z.unknown()),
+  total_given: z.number(),
+  first_gift_date: z.string().nullable(),
+  last_gift_date: z.string().nullable(),
+  last_gift_amount: z.number().nullable(),
+  gift_count: z.number().int(),
+  frequency: z.string().nullable(),
+  joined_date: z.string().nullable(),
+  tags: z.array(z.string()).nullable(),
+  score: z.number().nullable(),
+  address: z.record(z.string(), z.unknown()).nullable(),
+  work_address: z.record(z.string(), z.unknown()).nullable(),
+  website: z.string().nullable(),
+  organization: z.string().nullable(),
+  title: z.string().nullable(),
+  birthday: z.string().nullable(),
+  anniversary: z.string().nullable(),
+  spouse: z.string().nullable(),
+  notes: z.string().nullable(),
+  do_not_contact: z.boolean(),
+  do_not_email: z.boolean(),
+  receipt_email_frequency: z.string(),
+  default_update_frequency: z.string().nullable(),
+  preferred_language: z.string(),
+  has_active_pledge: z.boolean().nullable(),
+  stripe_customer_id: z.string().nullable(),
+  created_at: z.string().min(1),
+  updated_at: z.string().min(1),
+});
+
+const donationSchema = z.object({
+  id: z.string().min(1),
+  tenant_id: z.string().nullable(),
+  donor_id: z.string().nullable(),
+  missionary_id: z.string().nullable(),
+  fund_id: z.string().nullable(),
+  amount: z.number(),
+  currency: z.string(),
+  status: donationStatusSchema,
+  donation_type: z.string().nullable(),
+  payment_method: z.string().nullable(),
+  is_recurring: z.boolean().nullable(),
+  recurring_interval: z.string().nullable(),
+  notes: z.string().nullable(),
+  stripe_payment_intent_id: z.string().nullable(),
+  gift_date: z.string().min(1),
+  campaign_id: z.string().nullable(),
+  pledge_id: z.string().nullable(),
+  processed_at: z.string().nullable(),
+  completed_at: z.string().nullable(),
+  failed_at: z.string().nullable(),
+  error_code: z.string().nullable(),
+  error_message: z.string().nullable(),
+  stripe_charge_id: z.string().nullable(),
+  refunded_at: z.string().nullable(),
+  refund_amount: z.number(),
+  source: z.string().nullable(),
+  created_at: z.string().min(1),
+  updated_at: z.string().min(1),
+});
+
+const fundSchema = z.object({
+  id: z.string().min(1),
+  tenant_id: z.string().min(1),
+  name: z.string(),
+  description: z.string().nullable(),
+  target_amount: z.number(),
+  goal_amount: z.number(),
+  current_amount: z.number(),
+  currency: z.string().nullable(),
+  missionary_id: z.string().nullable(),
+  is_active: z.boolean(),
+  start_date: z.string().nullable(),
+  end_date: z.string().nullable(),
+  created_at: z.string().min(1),
+  updated_at: z.string().min(1),
+});
+
 function createProfilesCollection() {
-  return createReadOnlyCollection<Profile>({
+  return createReadOnlyCollection({
     id: "profiles",
     queryKey: ["profiles"],
     tableName: "profiles",
+    schema: profileSchema,
     getKey: (item) => item.id,
   });
 }
 
 function createMissionariesCollection() {
-  return createReadOnlyCollection<Missionary>({
+  return createReadOnlyCollection({
     id: "missionaries",
     queryKey: ["missionaries"],
     tableName: "missionaries",
+    schema: missionarySchema,
     getKey: (item) => item.id,
   });
 }
 
 function createDonorsCollection() {
-  return createReadOnlyCollection<Donor>({
+  return createReadOnlyCollection({
     id: "donors",
     queryKey: ["donors"],
     tableName: "donors",
+    schema: donorSchema,
     getKey: (item) => item.id,
   });
 }
@@ -226,10 +371,11 @@ function createPostCommentsCollection() {
 }
 
 function createDonationsCollection() {
-  return createReadOnlyCollection<Donation>({
+  return createReadOnlyCollection({
     id: "donations",
     queryKey: ["donations"],
     tableName: "donations",
+    schema: donationSchema,
     getKey: (item) => item.id,
     queryOptions: {
       orderBy: { column: "created_at", ascending: false },
@@ -238,10 +384,11 @@ function createDonationsCollection() {
 }
 
 function createFundsCollection() {
-  return createReadOnlyCollection<Fund>({
+  return createReadOnlyCollection({
     id: "funds",
     queryKey: ["funds"],
     tableName: "funds",
+    schema: fundSchema,
     getKey: (item) => item.id,
   });
 }

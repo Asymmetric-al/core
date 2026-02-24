@@ -29,17 +29,7 @@ export async function POST(
     return NextResponse.json({ error: fireError.message }, { status: 500 });
   }
 
-  const { data: postData } = await supabase
-    .from("posts")
-    .select("fires_count")
-    .eq("id", postId)
-    .single();
-  const currentCount = postData?.fires_count ?? 0;
-
-  await supabase
-    .from("posts")
-    .update({ fires_count: currentCount + 1 })
-    .eq("id", postId);
+  await supabase.rpc("increment_post_fire_count", { post_id: postId });
   revalidateTag(CACHE_TAGS.posts, "max");
   revalidateTag(CACHE_TAGS.post(postId), "max");
 
@@ -70,17 +60,7 @@ export async function DELETE(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const { data: postData } = await supabase
-    .from("posts")
-    .select("fires_count")
-    .eq("id", postId)
-    .single();
-  const currentCount = postData?.fires_count ?? 0;
-
-  await supabase
-    .from("posts")
-    .update({ fires_count: Math.max(0, currentCount - 1) })
-    .eq("id", postId);
+  await supabase.rpc("decrement_post_fire_count", { post_id: postId });
   revalidateTag(CACHE_TAGS.posts, "max");
   revalidateTag(CACHE_TAGS.post(postId), "max");
 

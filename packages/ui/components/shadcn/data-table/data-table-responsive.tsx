@@ -571,11 +571,27 @@ export function DataTableResponsive<TData, TValue>({
     );
   }, [data, advancedFilterFn]);
 
+  const resolvedRowCount = rowCount ?? undefined;
+  const resolvedPageCount =
+    rowCount == null ? (pageCount ?? undefined) : undefined;
+
+  React.useEffect(() => {
+    if (
+      process.env.NODE_ENV !== "production" &&
+      rowCount != null &&
+      pageCount != null
+    ) {
+      console.warn(
+        "[asym/ui] DataTableResponsive received both rowCount and pageCount. pageCount is ignored when rowCount is provided.",
+      );
+    }
+  }, [pageCount, rowCount]);
+
   const table = useReactTable({
     data: filteredData,
     columns: tableColumns,
-    rowCount: rowCount ?? undefined,
-    pageCount: rowCount === undefined ? (pageCount ?? undefined) : undefined,
+    rowCount: resolvedRowCount,
+    pageCount: resolvedPageCount,
     state: {
       sorting,
       columnVisibility,

@@ -118,7 +118,8 @@ export function useDataTableVirtualization({
   );
 
   const virtualizer = useVirtualizer({
-    count: config.enabled ? count : 0,
+    // Keep hook usage unconditional; rely on `enabled` to toggle observers/state.
+    count,
     enabled: config.enabled,
     getScrollElement: () => scrollElementRef.current,
     estimateSize: () => config.estimateSize,
