@@ -8,6 +8,18 @@ import type { AuthStrategy } from "payload";
 const STRATEGY_NAME = "supabase-session";
 const STAFF_ROLES: UserRole[] = ["staff", "admin", "super_admin"];
 
+type CmsUserSnapshot = {
+  id: number | string;
+  email?: string;
+  role?: UserRole;
+  supabaseUserId?: string;
+  tenantId?: string;
+};
+
+type SupabaseStrategyDependencies = {
+  createSupabaseClient?: typeof createServerClient;
+};
+
 function parseCookieHeader(cookieHeader: string | null) {
   if (!cookieHeader) {
     return [] as Array<{ name: string; value: string }>;
@@ -30,7 +42,12 @@ function parseCookieHeader(cookieHeader: string | null) {
     );
 }
 
-export function createSupabaseAuthStrategy(): AuthStrategy {
+export function createSupabaseAuthStrategy(
+  dependencies: SupabaseStrategyDependencies = {},
+): AuthStrategy {
+  const createSupabaseClient =
+    dependencies.createSupabaseClient ?? createServerClient;
+
   return {
     name: STRATEGY_NAME,
     authenticate: async ({ headers, payload }) => {
@@ -42,7 +59,7 @@ export function createSupabaseAuthStrategy(): AuthStrategy {
       }
 
       const requestCookies = parseCookieHeader(headers.get("cookie"));
-      const supabase = createServerClient(supabaseURL, supabaseAnonKey, {
+      const supabase = createSupabaseClient(supabaseURL, supabaseAnonKey, {
         cookies: {
           getAll() {
             return requestCookies;
@@ -99,14 +116,26 @@ export function createSupabaseAuthStrategy(): AuthStrategy {
         tenantId: profile.tenant_id,
       };
 
-      const existingUser = existingUsers.docs[0];
+      const existingUser = existingUsers.docs[0] as CmsUserSnapshot | undefined;
+      const userNeedsSync =
+        !existingUser ||
+        existingUser.email !== desiredData.email ||
+        existingUser.role !== desiredData.role ||
+        existingUser.supabaseUserId !== desiredData.supabaseUserId ||
+        existingUser.tenantId !== desiredData.tenantId;
+
       const syncedUser = existingUser
-        ? await payload.update({
-            id: existingUser.id,
-            collection: CMS_USERS_SLUG,
-            data: desiredData,
-            overrideAccess: true,
-          })
+        ? userNeedsSync
+          ? await payload.update({
+              id: existingUser.id,
+              collection: CMS_USERS_SLUG,
+              data: desiredData,
+              overrideAccess: true,
+            })
+          : {
+              ...existingUser,
+              ...desiredData,
+            }
         : await payload.create({
             collection: CMS_USERS_SLUG,
             data: desiredData,
