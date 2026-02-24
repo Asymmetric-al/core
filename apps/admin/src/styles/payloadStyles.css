@@ -1,23 +1,23 @@
 :root {
-  --theme-elevation-0: #fafafa;
-  --theme-elevation-50: #f4f4f5;
-  --theme-elevation-100: #e4e4e7;
-  --theme-elevation-200: #d4d4d8;
-  --theme-elevation-400: #71717a;
-  --theme-elevation-800: #27272a;
-  --theme-text: #18181b;
+  --theme-elevation-0: var(--background);
+  --theme-elevation-50: var(--muted);
+  --theme-elevation-100: var(--card);
+  --theme-elevation-200: var(--border);
+  --theme-elevation-400: var(--muted-foreground);
+  --theme-elevation-800: var(--foreground);
+  --theme-text: var(--foreground);
   --theme-success-500: #16a34a;
   --theme-warning-500: #ca8a04;
   --theme-error-500: #dc2626;
-  --theme-bg: #fafafa;
-  --theme-input-bg: #ffffff;
-  --theme-border-color: #e4e4e7;
+  --theme-bg: var(--background);
+  --theme-input-bg: var(--card);
+  --theme-border-color: var(--border);
 }
 
 .payload-admin-wrapper {
   min-height: 100vh;
-  background: #fafafa;
-  color: #18181b;
+  background: var(--background);
+  color: var(--foreground);
 }
 
 .payload-admin-wrapper * {
