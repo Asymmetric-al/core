@@ -56,7 +56,12 @@ When admin component overrides change, regenerate Payload import mappings:
 bun run cms:importmap
 ```
 
-The import map file is generated at:
+The command:
+
+1. runs `payload generate:importmap`
+2. post-processes the generated output to keep lint/type compatibility stable
+
+Generated file location:
 
 - `apps/admin/app/(payload)/admin/importMap.js`
 

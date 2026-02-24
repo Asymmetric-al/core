@@ -3,6 +3,10 @@
 - Date: 2026-02-23
 - Repo: Asymmetric-al/core
 - Goal: Integrate Payload CMS as a tenant-safe Site Studio within `apps/admin`, including dedicated `cms` schema, public rendering flow, and CI/test coverage.
+- Current execution focus:
+  - Deep UI/UX audit and polish for Payload admin branding parity.
+  - Remove hacky/generated-code friction (import map post-processing automation).
+  - Harden auth strategy behavior and document concrete API endpoint contracts for downstream agent work.
 - Primary area:
   - `apps/admin/*` (Payload runtime, routes, Site Studio UX)
   - `packages/auth/*` (middleware protection)

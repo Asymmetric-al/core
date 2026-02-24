@@ -45,6 +45,8 @@ bun run cms:migrate:status
 bun run cms:importmap
 ```
 
+`cms:importmap` now runs Payload generation plus post-processing to keep the generated file lint/type-safe automatically.
+
 4. Start both apps:
 
 ```bash
@@ -62,6 +64,32 @@ bun run dev:donor
   - `GET /api/cms/public/navigation?tenant=<tenant-slug>`
   - `GET /api/cms/public/updates?tenant=<tenant-slug>`
 - Open donor unknown route and confirm fallback behavior does not leak other tenants’ content.
+
+## API endpoint quick reference
+
+### Public endpoints (tenant-aware, no auth)
+
+- `GET /api/cms/public/pages/<slug>`
+  - Success: `{ tenant: { id, slug }, page }`
+  - Errors: `404 { error: "Tenant not found" }` or `404 { error: "Page not found" }`
+- `GET /api/cms/public/navigation`
+  - Success: `{ tenant: { id, slug }, navigation }`
+- `GET /api/cms/public/updates?limit=5`
+  - Success: `{ tenant: { id, slug }, updates: [] }`
+  - `limit` is clamped to `1..20`
+
+Tenant resolution priority:
+
+1. `?tenant=<slug>`
+2. `x-forwarded-host` or `host` exact domain match
+3. subdomain slug fallback
+
+### Staff endpoints (auth required)
+
+- `GET/POST/PATCH/PUT/DELETE /api/*` (Payload REST)
+- `POST /api/graphql` (Payload GraphQL)
+
+These are guarded by Mission Control auth middleware and require `staff`, `admin`, or `super_admin`.
 
 ## Rollback notes
 
