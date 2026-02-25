@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
 import { formatCurrency, getInitials } from "@asym/lib/utils";
 import { cn } from "@asym/ui/lib/utils";
+import { describe, expect, it } from "vitest";
 
 describe("lib/utils", () => {
   it("merges tailwind classes with precedence", () => {
