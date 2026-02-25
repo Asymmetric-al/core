@@ -136,8 +136,8 @@
     "vitest": "^2.1.5"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,json,jsonc,css}": [
-      "bash -lc 'bunx ultracite fix \"$@\" || true' --"
+    "*.{js,jsx,ts,tsx,css}": [
+      "bunx ultracite fix"
     ]
   }
 }

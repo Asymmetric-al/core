@@ -3,7 +3,7 @@
   "hooks": {
     "afterFileEdit": [
       {
-        "command": "bunx ultracite fix || true"
+        "command": "bunx ultracite fix"
       }
     ]
   }
