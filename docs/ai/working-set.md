@@ -1,15 +1,14 @@
 # Working Set
 
-- Date: 2026-02-24
+- Date: 2026-02-25
 - Repo: Asymmetric-al/core
 - Goal: Integrate Payload CMS as a tenant-safe Site Studio within `apps/admin`, including dedicated `cms` schema, public rendering flow, and CI/test coverage.
 - Current execution focus:
-  - Deep UI/UX audit and polish for Payload admin branding parity.
-  - Remove hacky/generated-code friction (import map post-processing automation).
-  - Harden auth strategy behavior and document concrete API endpoint contracts for downstream agent work.
-  - Add stricter quality/testing gates (local + CI) including Husky pre-push checks.
-  - Audit Turborepo and Next.js workflow usage for compliance and clean up non-best-practice patterns.
-  - Convert demo-auth E2E from skip-on-missing to deterministic fail-fast preflight for higher-signal feedback.
+  - Remediate exhaustive audit failures with deterministic, clean testing behavior.
+  - Add non-production E2E auth bypass mode to remove dependency on seeded demo fixtures.
+  - Stabilize Playwright reliability (`test:e2e`, `test:e2e:smoke`, `verify:e2e`) and performance checks.
+  - Eliminate formatter noise from generated media/test artifacts.
+  - Keep CI quality gates green with explicit, reproducible env requirements.
 - Primary area:
   - `apps/admin/*` (Payload runtime, routes, Site Studio UX)
   - `packages/auth/*` (middleware protection)

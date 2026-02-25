@@ -42,6 +42,11 @@ next-env.d.ts
 .next-docs
 .nia-sync
 .traycer
+playwright-report
+site-studio-review
+site-studio-videos
+site-studio-ux-review.md
+test-results
 vendor/payload-upstream
 ~
 

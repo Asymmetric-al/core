@@ -67,6 +67,7 @@ const webServer = isRemoteBaseUrl
         command: `node -e "try{require('fs').rmSync('apps/donor/.next/dev/lock',{force:true})}catch{}" && bun run --cwd apps/donor dev:playwright -- --port ${port} --hostname 127.0.0.1`,
         env: {
           ...process.env,
+          E2E_AUTH_BYPASS: process.env.E2E_AUTH_BYPASS || "1",
           NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnonKey,
           NEXT_PUBLIC_SUPABASE_URL: supabaseURL,
           SKIP_ENV_VALIDATION: "1",
@@ -83,6 +84,7 @@ const webServer = isRemoteBaseUrl
         command: `node -e "try{require('fs').rmSync('apps/admin/.next/dev/lock',{force:true})}catch{}" && bun run --cwd apps/admin dev:playwright -- --port ${adminPort} --hostname 127.0.0.1`,
         env: {
           ...process.env,
+          E2E_AUTH_BYPASS: process.env.E2E_AUTH_BYPASS || "1",
           NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnonKey,
           NEXT_PUBLIC_SUPABASE_URL: supabaseURL,
           PAYLOAD_DATABASE_URI:

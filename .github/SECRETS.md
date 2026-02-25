@@ -26,7 +26,7 @@ This file documents every secret and variable required by `.github/workflows/ci.
 
 - `TURBO_TEAM` must be added under **Variables**, not Secrets. It is referenced in the workflow as `${{ vars.TURBO_TEAM }}`.
 - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are used with `SKIP_ENV_VALIDATION=1` in the `build` job, so stub values (e.g. `https://example.supabase.co` / `example-anon-key`) are sufficient for build-time validation. Real values are required for the `test-e2e` job.
-- `DEMO_*` secrets are required for deterministic E2E auth preflight. If missing/invalid, E2E intentionally fails fast instead of skipping authenticated suites.
+- `DEMO_*` secrets are still supported, but CI now sets `E2E_AUTH_BYPASS=true` for deterministic non-production Playwright auth preflight. This keeps E2E stable even when seeded demo users are unavailable.
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` and `STRIPE_SECRET_KEY` are only needed once the E2E donation test is fully implemented. The `test-e2e` job is non-blocking (`continue-on-error: true`), so missing Stripe keys will not block merges.
 
 ## How to add a secret

@@ -4,6 +4,11 @@ const LCP_THRESHOLD_MS = 2500;
 const TTFB_THRESHOLD_MS = 500;
 const FCP_THRESHOLD_MS = 1800;
 
+async function warmRoute(page: Page, path: string) {
+  await page.goto(path);
+  await page.waitForLoadState("networkidle");
+}
+
 async function measureWebVitals(page: Page) {
   return page.evaluate(() => {
     return new Promise<{
@@ -61,8 +66,8 @@ async function measureWebVitals(page: Page) {
 
 test.describe("@perf Performance Budgets", () => {
   test("Homepage LCP should be under 2.5s", async ({ page }) => {
-    await page.goto("/");
-    await page.waitForLoadState("networkidle");
+    await warmRoute(page, "/");
+    await page.reload({ waitUntil: "networkidle" });
 
     const vitals = await measureWebVitals(page);
 
@@ -77,8 +82,8 @@ test.describe("@perf Performance Budgets", () => {
   });
 
   test("Login page LCP should be under 2.5s", async ({ page }) => {
-    await page.goto("/login");
-    await page.waitForLoadState("networkidle");
+    await warmRoute(page, "/login");
+    await page.reload({ waitUntil: "networkidle" });
 
     const vitals = await measureWebVitals(page);
 

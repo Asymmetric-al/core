@@ -122,11 +122,19 @@ const main = async () => {
   }
 
   const failures = collectFailuresFromReport(report);
+  if (exitCode !== 0 && failures.length === 0) {
+    failures.push({
+      test: "playwright-exit-code",
+      message: `Playwright exited with code ${exitCode} but no structured failures were found in the report.`,
+      file: reportPath,
+      line: 0,
+    });
+  }
   const traces = failures.map((failure) => failure.tracePath).filter(Boolean);
   const videos = failures.map((failure) => failure.videoPath).filter(Boolean);
 
   const summary = {
-    ok: failures.length === 0,
+    ok: exitCode === 0 && failures.length === 0,
     failed: failures,
     artifacts: {
       reportPath,

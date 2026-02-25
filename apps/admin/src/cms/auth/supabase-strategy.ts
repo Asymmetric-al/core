@@ -2,19 +2,12 @@ import { createServerClient } from "@supabase/ssr";
 
 import { CMS_USERS_SLUG } from "../constants";
 
-import type { UserRole } from "@asym/database/types";
+import type { CmsUser } from "../../../payload-types";
 import type { AuthStrategy } from "payload";
 
 const STRATEGY_NAME = "supabase-session";
-const STAFF_ROLES: UserRole[] = ["staff", "admin", "super_admin"];
-
-type CmsUserSnapshot = {
-  id: number | string;
-  email?: string;
-  role?: UserRole;
-  supabaseUserId?: string;
-  tenantId?: string;
-};
+const STAFF_ROLES = ["staff", "admin", "super_admin"] as const;
+type CmsStaffRole = (typeof STAFF_ROLES)[number];
 
 type SupabaseStrategyDependencies = {
   createSupabaseClient?: typeof createServerClient;
@@ -91,9 +84,15 @@ export function createSupabaseAuthStrategy(
         .eq("user_id", supabaseUser.id)
         .single();
 
-      const role = profile?.role as UserRole | null;
+      const tenantId =
+        typeof profile?.tenant_id === "string" ? profile.tenant_id : null;
+      const role =
+        typeof profile?.role === "string" &&
+        STAFF_ROLES.includes(profile.role as CmsStaffRole)
+          ? (profile.role as CmsStaffRole)
+          : null;
 
-      if (!profile?.tenant_id || !role || !STAFF_ROLES.includes(role)) {
+      if (!tenantId || !role) {
         return { user: null };
       }
 
@@ -113,10 +112,13 @@ export function createSupabaseAuthStrategy(
         email: supabaseUser.email ?? `${supabaseUser.id}@asym.local`,
         role,
         supabaseUserId: supabaseUser.id,
-        tenantId: profile.tenant_id,
-      };
+        tenantId,
+      } satisfies Pick<
+        CmsUser,
+        "email" | "role" | "supabaseUserId" | "tenantId"
+      >;
 
-      const existingUser = existingUsers.docs[0] as CmsUserSnapshot | undefined;
+      const existingUser = existingUsers.docs[0] as CmsUser | undefined;
       const userNeedsSync =
         !existingUser ||
         existingUser.email !== desiredData.email ||
@@ -124,7 +126,7 @@ export function createSupabaseAuthStrategy(
         existingUser.supabaseUserId !== desiredData.supabaseUserId ||
         existingUser.tenantId !== desiredData.tenantId;
 
-      const syncedUser = existingUser
+      const syncedUser: CmsUser = existingUser
         ? userNeedsSync
           ? await payload.update({
               id: existingUser.id,

@@ -41,6 +41,9 @@ next-env.d.ts
 **/payload-types.ts
 
 /backups
+site-studio-review/
+site-studio-videos/
+site-studio-ux-review.md
 
 # agent use
 docs/ai/working-set.md

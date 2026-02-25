@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createAuthMiddleware } from "../../../packages/auth/middleware";
 
+const originalE2EAuthBypass = process.env.E2E_AUTH_BYPASS;
+
 function createRequest(pathname: string) {
   const nextUrl = new URL(`https://example.org${pathname}`);
   (nextUrl as URL & { clone: () => URL }).clone = () =>
@@ -10,6 +12,7 @@ function createRequest(pathname: string) {
   return {
     nextUrl,
     cookies: {
+      get: vi.fn(() => undefined),
       getAll: vi.fn(() => []),
       set: vi.fn(),
     },
@@ -19,6 +22,7 @@ function createRequest(pathname: string) {
 describe("createAuthMiddleware", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.E2E_AUTH_BYPASS = originalE2EAuthBypass;
   });
 
   it("redirects unauthenticated page requests to login with next param", async () => {
@@ -89,6 +93,32 @@ describe("createAuthMiddleware", () => {
     });
 
     const response = await middleware(createRequest("/web-studio"));
+
+    expect(response.status).toBe(200);
+  });
+
+  it("accepts e2e auth bypass cookie when enabled", async () => {
+    process.env.E2E_AUTH_BYPASS = "true";
+
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/auth/callback"],
+      loginPath: "/login",
+      allowedRoles: ["staff", "admin", "super_admin"],
+    });
+
+    const request = createRequest("/web-studio");
+    const encoded = Buffer.from(
+      JSON.stringify({
+        userId: "e2e-admin-user",
+        role: "admin",
+        tenantId: null,
+      }),
+    ).toString("base64url");
+    request.cookies.get = vi.fn((name: string) =>
+      name === "asym_e2e_auth" ? { value: encoded } : undefined,
+    );
+
+    const response = await middleware(request);
 
     expect(response.status).toBe(200);
   });

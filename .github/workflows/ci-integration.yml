@@ -135,6 +135,7 @@ jobs:
       PAYLOAD_DATABASE_URI: postgresql://postgres:postgres@localhost:5432/asymmetrical_test
       PAYLOAD_SECRET: ci-payload-secret
       SKIP_ENV_VALIDATION: "1"
+      E2E_AUTH_BYPASS: "true"
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
       DEMO_PASSWORD: ${{ secrets.DEMO_PASSWORD }}

@@ -1,6 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+import {
+  E2E_AUTH_COOKIE_NAME,
+  isE2EAuthBypassEnabled,
+  parseE2EAuthCookieValue,
+} from "./e2e-auth";
+
 import type { UserRole } from "@asym/database/types";
 
 export interface AuthMiddlewareOptions {
@@ -80,62 +86,73 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       userId = session.userId;
       userRole = session.role;
     } else {
-      const supabaseURL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      const e2eSession = isE2EAuthBypassEnabled()
+        ? parseE2EAuthCookieValue(
+            request.cookies.get(E2E_AUTH_COOKIE_NAME)?.value,
+          )
+        : null;
 
-      if (!supabaseURL || !supabaseAnonKey) {
-        if (isProtectedRoute) {
-          if (apiRoute) {
-            return createApiAuthError(401, "Unauthorized");
+      if (e2eSession) {
+        userId = e2eSession.userId;
+        userRole = e2eSession.role;
+      } else {
+        const supabaseURL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+        if (!supabaseURL || !supabaseAnonKey) {
+          if (isProtectedRoute) {
+            if (apiRoute) {
+              return createApiAuthError(401, "Unauthorized");
+            }
+
+            return createAuthRedirect(request, loginPath);
           }
 
-          return createAuthRedirect(request, loginPath);
+          return response;
         }
 
-        return response;
-      }
-
-      const supabase = createServerClient(supabaseURL, supabaseAnonKey, {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll();
+        const supabase = createServerClient(supabaseURL, supabaseAnonKey, {
+          cookies: {
+            getAll() {
+              return request.cookies.getAll();
+            },
+            setAll(
+              cookiesToSet: Array<{
+                name: string;
+                value: string;
+                options?: Record<string, unknown>;
+              }>,
+            ) {
+              cookiesToSet.forEach(({ name, value }) =>
+                request.cookies.set(name, value),
+              );
+              response = NextResponse.next({ request });
+              cookiesToSet.forEach(({ name, value, options }) =>
+                response.cookies.set(
+                  name,
+                  value,
+                  options as Record<string, unknown>,
+                ),
+              );
+            },
           },
-          setAll(
-            cookiesToSet: Array<{
-              name: string;
-              value: string;
-              options?: Record<string, unknown>;
-            }>,
-          ) {
-            cookiesToSet.forEach(({ name, value }) =>
-              request.cookies.set(name, value),
-            );
-            response = NextResponse.next({ request });
-            cookiesToSet.forEach(({ name, value, options }) =>
-              response.cookies.set(
-                name,
-                value,
-                options as Record<string, unknown>,
-              ),
-            );
-          },
-        },
-      });
+        });
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-      userId = user?.id ?? null;
+        userId = user?.id ?? null;
 
-      if (userId && allowedRoles?.length) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("user_id", userId)
-          .single();
+        if (userId && allowedRoles?.length) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("user_id", userId)
+            .single();
 
-        userRole = (profile?.role as UserRole | null) ?? null;
+          userRole = (profile?.role as UserRole | null) ?? null;
+        }
       }
     }
 

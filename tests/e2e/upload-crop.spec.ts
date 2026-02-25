@@ -186,7 +186,10 @@ test.describe("Image Upload and Crop Flow", () => {
     await page.goto("/donor-dashboard/settings");
     await expect(page.getByText("Public Avatar")).toBeVisible();
 
-    const uploadButton = page.getByRole("button", { name: /upload new/i });
+    const uploadButton = page
+      .locator("button")
+      .filter({ hasText: /upload new/i })
+      .first();
     await expect(uploadButton).toBeEnabled();
 
     const removeButton = page.getByRole("button", { name: /remove/i });

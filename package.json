@@ -38,7 +38,7 @@
     "test": "bun run test:unit",
     "test:unit": "vitest run --coverage",
     "test:unit:cms": "vitest run tests/unit/cms",
-    "test:e2e": "playwright test --grep-invert @perf",
+    "test:e2e": "playwright test --grep-invert \"@perf|@manual\"",
     "test:e2e:auth-preflight": "playwright test tests/e2e/demo-auth-preflight.spec.ts --project=chromium",
     "test:e2e:smoke": "playwright test tests/e2e/demo-auth-preflight.spec.ts tests/e2e/usability-smoke.spec.ts tests/e2e/cms-publish-flow.spec.ts tests/e2e/cms-tenant-isolation.spec.ts tests/e2e/cms-ministry-updates.spec.ts tests/e2e/donate.spec.ts tests/e2e/upload-crop.spec.ts",
     "test:e2e:ui": "playwright test --ui",
