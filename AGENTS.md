@@ -173,6 +173,7 @@ Load the skill(s) below when the trigger matches.
 - **Motion animations (`motion/react`):** `docs/ai/skills/motion/SKILL.md`
 - **Recharts:** `docs/ai/skills/rechart/SKILL.md`
 - **TanStack Table v8:** `docs/ai/skills/tanstack-table/SKILL.md`
+- **Ultracite linting/formatting workflow:** `.agents/skills/ultracite/SKILL.md`
 - **GitHub issue/PR workflows (AL-###):**
   - Write issue: `docs/ai/skills/write-issue/SKILL.md`
   - Build issue: `docs/ai/skills/build-issue/SKILL.md`
