@@ -38,6 +38,13 @@
       "dependsOn": ["transit"],
       "outputs": []
     },
+    "check": {
+      "dependsOn": ["transit"],
+      "outputs": []
+    },
+    "fix": {
+      "cache": false
+    },
     "typecheck": {
       "dependsOn": ["transit"],
       "outputs": ["tsconfig.tsbuildinfo", "*.tsbuildinfo", "**/*.tsbuildinfo"]

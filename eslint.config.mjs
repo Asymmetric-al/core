@@ -1,27 +1,51 @@
 import { defineConfig } from "eslint/config";
-import reactHooksPlugin from "eslint-plugin-react-hooks";
+import core from "ultracite/eslint/core";
+import next from "ultracite/eslint/next";
+import react from "ultracite/eslint/react";
 
-import { baseConfig } from "@asym/eslint-config/base.mjs";
-
-const eslintConfig = defineConfig([
-  // Root fallback/orchestrator config.
-  // Individual apps/packages should define local eslint.config.mjs files.
-  ...baseConfig,
+export default defineConfig([
   {
-    plugins: {
-      "react-hooks": reactHooksPlugin,
+    ignores: [
+      "node_modules/**",
+      ".next/**",
+      "**/.next/**",
+      "dist/**",
+      "**/dist/**",
+      "build/**",
+      "**/build/**",
+      "out/**",
+      "**/out/**",
+      "coverage/**",
+      "**/coverage/**",
+      ".turbo/**",
+      "**/.turbo/**",
+      ".agent/**",
+      ".agents/**",
+      ".cursor/skills/**",
+      ".next-docs/**",
+      "skills/**",
+      "scripts/**",
+    ],
+  },
+  {
+    extends: [core, react],
+  },
+  {
+    files: ["**/*.{ts,tsx,mts,cts}"],
+    languageOptions: {
+      parserOptions: {
+        project: null,
+        projectService: true,
+      },
     },
   },
   {
-    files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
-    rules: {
-      "react-hooks/rules-of-hooks": "error",
-      "react-hooks/exhaustive-deps": "error",
+    files: ["apps/**/*.{js,jsx,ts,tsx,mjs,cjs,mts,cts}"],
+    extends: [next],
+    settings: {
+      next: {
+        rootDir: ["apps/*/"],
+      },
     },
-  },
-  {
-    ignores: ["out/**", "**/out/**", "next-env.d.ts"],
   },
 ]);
-
-export default eslintConfig;
