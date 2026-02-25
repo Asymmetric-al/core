@@ -9,6 +9,7 @@
   - Stabilize Playwright reliability (`test:e2e`, `test:e2e:smoke`, `verify:e2e`) and performance checks.
   - Eliminate formatter noise from generated media/test artifacts.
   - Keep CI quality gates green with explicit, reproducible env requirements.
+  - Align Payload Site Studio UI to shared Maia + Zinc token system, with motion-consistent admin chrome and no hardcoded color values.
 - Primary area:
   - `apps/admin/*` (Payload runtime, routes, Site Studio UX)
   - `packages/auth/*` (middleware protection)

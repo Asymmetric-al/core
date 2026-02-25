@@ -1,30 +1,436 @@
-:root {
+:root,
+html[data-theme="light"],
+html[data-theme="dark"] {
   --theme-elevation-0: var(--background);
-  --theme-elevation-50: var(--muted);
-  --theme-elevation-100: var(--card);
-  --theme-elevation-200: var(--border);
-  --theme-elevation-400: var(--muted-foreground);
-  --theme-elevation-800: var(--foreground);
-  --theme-text: var(--foreground);
-  --theme-success-500: #16a34a;
-  --theme-warning-500: #ca8a04;
-  --theme-error-500: #dc2626;
-  --theme-bg: var(--background);
+  --theme-elevation-50: color-mix(
+    in oklch,
+    var(--background) 98%,
+    var(--foreground) 2%
+  );
+  --theme-elevation-100: color-mix(
+    in oklch,
+    var(--background) 96%,
+    var(--foreground) 4%
+  );
+  --theme-elevation-150: color-mix(
+    in oklch,
+    var(--background) 93%,
+    var(--foreground) 7%
+  );
+  --theme-elevation-200: color-mix(
+    in oklch,
+    var(--background) 89%,
+    var(--foreground) 11%
+  );
+  --theme-elevation-250: color-mix(
+    in oklch,
+    var(--background) 84%,
+    var(--foreground) 16%
+  );
+  --theme-elevation-300: color-mix(
+    in oklch,
+    var(--background) 78%,
+    var(--foreground) 22%
+  );
+  --theme-elevation-350: color-mix(
+    in oklch,
+    var(--background) 72%,
+    var(--foreground) 28%
+  );
+  --theme-elevation-400: color-mix(
+    in oklch,
+    var(--background) 65%,
+    var(--foreground) 35%
+  );
+  --theme-elevation-450: color-mix(
+    in oklch,
+    var(--background) 58%,
+    var(--foreground) 42%
+  );
+  --theme-elevation-500: color-mix(
+    in oklch,
+    var(--background) 50%,
+    var(--foreground) 50%
+  );
+  --theme-elevation-550: color-mix(
+    in oklch,
+    var(--background) 42%,
+    var(--foreground) 58%
+  );
+  --theme-elevation-600: color-mix(
+    in oklch,
+    var(--background) 35%,
+    var(--foreground) 65%
+  );
+  --theme-elevation-650: color-mix(
+    in oklch,
+    var(--background) 28%,
+    var(--foreground) 72%
+  );
+  --theme-elevation-700: color-mix(
+    in oklch,
+    var(--background) 22%,
+    var(--foreground) 78%
+  );
+  --theme-elevation-750: color-mix(
+    in oklch,
+    var(--background) 16%,
+    var(--foreground) 84%
+  );
+  --theme-elevation-800: color-mix(
+    in oklch,
+    var(--background) 11%,
+    var(--foreground) 89%
+  );
+  --theme-elevation-850: color-mix(
+    in oklch,
+    var(--background) 7%,
+    var(--foreground) 93%
+  );
+  --theme-elevation-900: color-mix(
+    in oklch,
+    var(--background) 4%,
+    var(--foreground) 96%
+  );
+  --theme-elevation-950: color-mix(
+    in oklch,
+    var(--background) 2%,
+    var(--foreground) 98%
+  );
+  --theme-elevation-1000: color-mix(
+    in oklch,
+    var(--background) 1%,
+    var(--foreground) 99%
+  );
+
+  --payload-success: var(--chart-2);
+  --payload-warning: var(--chart-4);
+  --payload-error: var(--destructive);
+
+  --theme-success-50: color-mix(
+    in oklch,
+    var(--background) 92%,
+    var(--payload-success) 8%
+  );
+  --theme-success-100: color-mix(
+    in oklch,
+    var(--background) 84%,
+    var(--payload-success) 16%
+  );
+  --theme-success-150: color-mix(
+    in oklch,
+    var(--background) 76%,
+    var(--payload-success) 24%
+  );
+  --theme-success-200: color-mix(
+    in oklch,
+    var(--background) 68%,
+    var(--payload-success) 32%
+  );
+  --theme-success-250: color-mix(
+    in oklch,
+    var(--background) 60%,
+    var(--payload-success) 40%
+  );
+  --theme-success-300: color-mix(
+    in oklch,
+    var(--background) 52%,
+    var(--payload-success) 48%
+  );
+  --theme-success-350: color-mix(
+    in oklch,
+    var(--background) 44%,
+    var(--payload-success) 56%
+  );
+  --theme-success-400: color-mix(
+    in oklch,
+    var(--background) 36%,
+    var(--payload-success) 64%
+  );
+  --theme-success-450: color-mix(
+    in oklch,
+    var(--background) 28%,
+    var(--payload-success) 72%
+  );
+  --theme-success-500: var(--payload-success);
+  --theme-success-550: color-mix(
+    in oklch,
+    var(--payload-success) 72%,
+    var(--foreground) 28%
+  );
+  --theme-success-600: color-mix(
+    in oklch,
+    var(--payload-success) 64%,
+    var(--foreground) 36%
+  );
+  --theme-success-650: color-mix(
+    in oklch,
+    var(--payload-success) 56%,
+    var(--foreground) 44%
+  );
+  --theme-success-700: color-mix(
+    in oklch,
+    var(--payload-success) 48%,
+    var(--foreground) 52%
+  );
+  --theme-success-750: color-mix(
+    in oklch,
+    var(--payload-success) 40%,
+    var(--foreground) 60%
+  );
+  --theme-success-800: color-mix(
+    in oklch,
+    var(--payload-success) 32%,
+    var(--foreground) 68%
+  );
+  --theme-success-850: color-mix(
+    in oklch,
+    var(--payload-success) 24%,
+    var(--foreground) 76%
+  );
+  --theme-success-900: color-mix(
+    in oklch,
+    var(--payload-success) 16%,
+    var(--foreground) 84%
+  );
+  --theme-success-950: color-mix(
+    in oklch,
+    var(--payload-success) 8%,
+    var(--foreground) 92%
+  );
+
+  --theme-warning-50: color-mix(
+    in oklch,
+    var(--background) 92%,
+    var(--payload-warning) 8%
+  );
+  --theme-warning-100: color-mix(
+    in oklch,
+    var(--background) 84%,
+    var(--payload-warning) 16%
+  );
+  --theme-warning-150: color-mix(
+    in oklch,
+    var(--background) 76%,
+    var(--payload-warning) 24%
+  );
+  --theme-warning-200: color-mix(
+    in oklch,
+    var(--background) 68%,
+    var(--payload-warning) 32%
+  );
+  --theme-warning-250: color-mix(
+    in oklch,
+    var(--background) 60%,
+    var(--payload-warning) 40%
+  );
+  --theme-warning-300: color-mix(
+    in oklch,
+    var(--background) 52%,
+    var(--payload-warning) 48%
+  );
+  --theme-warning-350: color-mix(
+    in oklch,
+    var(--background) 44%,
+    var(--payload-warning) 56%
+  );
+  --theme-warning-400: color-mix(
+    in oklch,
+    var(--background) 36%,
+    var(--payload-warning) 64%
+  );
+  --theme-warning-450: color-mix(
+    in oklch,
+    var(--background) 28%,
+    var(--payload-warning) 72%
+  );
+  --theme-warning-500: var(--payload-warning);
+  --theme-warning-550: color-mix(
+    in oklch,
+    var(--payload-warning) 72%,
+    var(--foreground) 28%
+  );
+  --theme-warning-600: color-mix(
+    in oklch,
+    var(--payload-warning) 64%,
+    var(--foreground) 36%
+  );
+  --theme-warning-650: color-mix(
+    in oklch,
+    var(--payload-warning) 56%,
+    var(--foreground) 44%
+  );
+  --theme-warning-700: color-mix(
+    in oklch,
+    var(--payload-warning) 48%,
+    var(--foreground) 52%
+  );
+  --theme-warning-750: color-mix(
+    in oklch,
+    var(--payload-warning) 40%,
+    var(--foreground) 60%
+  );
+  --theme-warning-800: color-mix(
+    in oklch,
+    var(--payload-warning) 32%,
+    var(--foreground) 68%
+  );
+  --theme-warning-850: color-mix(
+    in oklch,
+    var(--payload-warning) 24%,
+    var(--foreground) 76%
+  );
+  --theme-warning-900: color-mix(
+    in oklch,
+    var(--payload-warning) 16%,
+    var(--foreground) 84%
+  );
+  --theme-warning-950: color-mix(
+    in oklch,
+    var(--payload-warning) 8%,
+    var(--foreground) 92%
+  );
+
+  --theme-error-50: color-mix(
+    in oklch,
+    var(--background) 92%,
+    var(--payload-error) 8%
+  );
+  --theme-error-100: color-mix(
+    in oklch,
+    var(--background) 84%,
+    var(--payload-error) 16%
+  );
+  --theme-error-150: color-mix(
+    in oklch,
+    var(--background) 76%,
+    var(--payload-error) 24%
+  );
+  --theme-error-200: color-mix(
+    in oklch,
+    var(--background) 68%,
+    var(--payload-error) 32%
+  );
+  --theme-error-250: color-mix(
+    in oklch,
+    var(--background) 60%,
+    var(--payload-error) 40%
+  );
+  --theme-error-300: color-mix(
+    in oklch,
+    var(--background) 52%,
+    var(--payload-error) 48%
+  );
+  --theme-error-350: color-mix(
+    in oklch,
+    var(--background) 44%,
+    var(--payload-error) 56%
+  );
+  --theme-error-400: color-mix(
+    in oklch,
+    var(--background) 36%,
+    var(--payload-error) 64%
+  );
+  --theme-error-450: color-mix(
+    in oklch,
+    var(--background) 28%,
+    var(--payload-error) 72%
+  );
+  --theme-error-500: var(--payload-error);
+  --theme-error-550: color-mix(
+    in oklch,
+    var(--payload-error) 72%,
+    var(--foreground) 28%
+  );
+  --theme-error-600: color-mix(
+    in oklch,
+    var(--payload-error) 64%,
+    var(--foreground) 36%
+  );
+  --theme-error-650: color-mix(
+    in oklch,
+    var(--payload-error) 56%,
+    var(--foreground) 44%
+  );
+  --theme-error-700: color-mix(
+    in oklch,
+    var(--payload-error) 48%,
+    var(--foreground) 52%
+  );
+  --theme-error-750: color-mix(
+    in oklch,
+    var(--payload-error) 40%,
+    var(--foreground) 60%
+  );
+  --theme-error-800: color-mix(
+    in oklch,
+    var(--payload-error) 32%,
+    var(--foreground) 68%
+  );
+  --theme-error-850: color-mix(
+    in oklch,
+    var(--payload-error) 24%,
+    var(--foreground) 76%
+  );
+  --theme-error-900: color-mix(
+    in oklch,
+    var(--payload-error) 16%,
+    var(--foreground) 84%
+  );
+  --theme-error-950: color-mix(
+    in oklch,
+    var(--payload-error) 8%,
+    var(--foreground) 92%
+  );
+
+  --theme-bg: var(--theme-elevation-0);
   --theme-input-bg: var(--card);
-  --theme-border-color: var(--border);
+  --theme-text: var(--theme-elevation-900);
+  --theme-overlay: color-mix(in oklch, var(--foreground) 35%, transparent 65%);
+  --theme-border-color: var(--theme-elevation-150);
+  --font-body: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --style-radius-s: calc(var(--radius) - 4px);
+  --style-radius-m: calc(var(--radius) - 2px);
+  --style-radius-l: var(--radius);
 }
 
 .payload-admin-wrapper {
   min-height: 100vh;
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--theme-bg);
+  color: var(--theme-text);
 }
 
+.payload-admin-wrapper,
 .payload-admin-wrapper * {
   font-family:
-    var(--font-inter),
+    var(--font-sans),
     "Inter",
     system-ui,
     -apple-system,
     sans-serif;
+}
+
+.payload-admin-wrapper button,
+.payload-admin-wrapper .btn,
+.payload-admin-wrapper input,
+.payload-admin-wrapper textarea,
+.payload-admin-wrapper select {
+  border-radius: calc(var(--radius) - 2px);
+}
+
+.payload-admin-wrapper a {
+  transition:
+    color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .payload-admin-wrapper *,
+  .payload-admin-wrapper *::before,
+  .payload-admin-wrapper *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

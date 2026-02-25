@@ -5,6 +5,7 @@ This guide explains how to run and validate the Site Studio integration that liv
 ## What is included
 
 - Payload admin UI mounted at `/admin` in Mission Control
+- Payload admin theming bridged to shared Maia + Zinc design tokens from `@asym/ui`
 - CMS tables in Postgres `cms` schema
 - Tenant-aware collection access controls
 - Public read endpoints under `/api/cms/public/*`
@@ -46,6 +47,17 @@ bun run cms:importmap
 ```
 
 `cms:importmap` now runs Payload generation plus post-processing to keep the generated file lint/type-safe automatically.
+
+## Design-system alignment checks (Maia + Zinc)
+
+- Shared shadcn config lives in `packages/ui/components.json` and is pinned to:
+  - `style: maia`
+  - `base: base`
+  - `baseColor: zinc`
+  - `theme: zinc`
+- Shared tokens come from `packages/ui/styles/globals.css` (Tailwind v4 `@theme inline` + `@source` monorepo scanning).
+- Payload visual token bridge lives in `apps/admin/src/styles/payloadStyles.css` and must only reference existing shared tokens/variables (no one-off hex values).
+- Payload UI override components (`apps/admin/src/cms-ui/*`) should use shared primitives from `@asym/ui/components/shadcn/*` and motion patterns from `@asym/lib/motion`.
 
 4. Start both apps:
 
