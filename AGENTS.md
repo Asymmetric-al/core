@@ -305,18 +305,19 @@ Note: unit tests are currently run repo-wide with `bun run test:unit`.
 
 ### Services overview
 
-| Service | Port | Start command |
-|---------|------|---------------|
-| Donor app | 3000 | `bun run dev:donor` |
-| Admin app | 3030 | `bun run dev:admin` |
-| Missionary app | 4000 | `bun run dev:missionary` |
-| Local Supabase | 54321 (API), 54322 (DB), 54323 (Studio) | `supabase start` |
+| Service        | Port                                    | Start command            |
+| -------------- | --------------------------------------- | ------------------------ |
+| Donor app      | 3000                                    | `bun run dev:donor`      |
+| Admin app      | 3030                                    | `bun run dev:admin`      |
+| Missionary app | 4000                                    | `bun run dev:missionary` |
+| Local Supabase | 54321 (API), 54322 (DB), 54323 (Studio) | `supabase start`         |
 
 ### Local Supabase startup
 
 Docker and Supabase CLI must be installed and running before starting local Supabase. After Docker is running (`sudo dockerd &`), run `supabase start` from the repo root.
 
 **Known issue**: Migration `20260214090000_foundation_1_schema.sql` uses `LOCK TABLE` outside a transaction block, which fails with the Supabase CLI. Workaround:
+
 1. Temporarily move `supabase/migrations/20260214090000_foundation_1_schema.sql`, `20260216153000_demo_readonly_rls.sql`, and `supabase/seed.sql` to `/tmp/`
 2. Run `supabase start` (applies only the init migration)
 3. Restore the moved files
@@ -326,6 +327,7 @@ Docker and Supabase CLI must be installed and running before starting local Supa
 ### Environment variables
 
 The `.env.local` file at the repo root must be symlinked into each app directory for Next.js to pick it up:
+
 ```
 ln -sf ../../.env.local apps/donor/.env.local
 ln -sf ../../.env.local apps/admin/.env.local
@@ -333,12 +335,14 @@ ln -sf ../../.env.local apps/missionary/.env.local
 ```
 
 Minimum required env vars for local dev (from `supabase status -o env`):
+
 - `NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key from supabase status>`
 
 ### Checks
 
 Standard commands documented in `AGENTS.md` monorepo rules section:
+
 - Lint: `bun run lint`
 - Typecheck: `bun run typecheck`
 - Unit tests: `bun run test:unit`
