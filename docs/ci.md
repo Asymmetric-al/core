@@ -6,7 +6,7 @@ Two workflow files run on every PR to `develop` and `main`, and on every push to
 
 | Workflow    | File                                   | Jobs                                            | Target time               |
 | ----------- | -------------------------------------- | ----------------------------------------------- | ------------------------- |
-| Fast checks | `.github/workflows/ci.yml`             | `format → lint → typecheck → build → test-unit` | < 3 min with remote cache |
+| Fast checks | `.github/workflows/ci.yml`             | `check → typecheck → build → test-unit`         | < 3 min with remote cache |
 | Integration | `.github/workflows/ci-integration.yml` | `migrate → smoke → test-e2e`                    | ~5 min                    |
 
 All fast-check jobs are **required** status checks. `test-e2e` is **informational only** (non-blocking).
@@ -15,19 +15,13 @@ All fast-check jobs are **required** status checks. `test-e2e` is **informationa
 
 ## Fast-checks workflow (`ci.yml`)
 
-### `format`
+### `check`
 
-- _What it checks:_ Runs `bun run format:check` (Prettier). Fails if any file is not formatted.
-- _Why it exists:_ Prevents formatting drift that causes noisy diffs and merge conflicts.
-- _Debug locally:_ Run `bun run format:check` to see violations; run `bun run format` to auto-fix, then re-check.
+- _What it checks:_ Runs `bun run check` (Ultracite Option A: ESLint + Prettier + Stylelint), then `bun run verify:workspace-contract`, then `bun run verify:eslint`.
+- _Why it exists:_ Keeps code quality enforcement in one non-mutating gate and avoids formatter/linter drift.
+- _Debug locally:_ Run each command individually: `bun run check`, `bun run verify:workspace-contract`, `bun run verify:eslint`.
 
-### `lint` (needs: `format`)
-
-- _What it checks:_ Runs `bun run lint` (Turborepo → ESLint flat config across all workspaces), then `bun run verify:workspace-contract` (workspace dependency contract), then `bun run verify:eslint` (ESLint config contract — no legacy `.eslintrc.*`, all packages have `eslint.config.mjs`, disable comments have tracking references).
-- _Why it exists:_ Enforces consistent code quality and prevents ESLint config drift.
-- _Debug locally:_ Run each command individually: `bun run lint`, `bun run verify:workspace-contract`, `bun run verify:eslint`.
-
-### `typecheck` (needs: `lint`)
+### `typecheck` (needs: `check`)
 
 - _What it checks:_ Runs `bun run typecheck` (Turborepo → `tsc --noEmit` across all apps and packages).
 - _Why it exists:_ Catches type errors that TypeScript strict mode would surface at compile time but not at runtime.
@@ -37,6 +31,7 @@ All fast-check jobs are **required** status checks. `test-e2e` is **informationa
 
 - _What it checks:_ Runs `bun run build` (Turborepo → `next build` for all apps). Uses `SKIP_ENV_VALIDATION=1` so `@asym/env` does not throw on missing real Supabase keys — stub values are injected from secrets.
 - _Why it exists:_ Catches bundle errors, missing imports, and Next.js build-time failures that type-checking alone cannot catch.
+- _Lint note (Next.js 16):_ `next build` no longer runs linting. Linting is enforced by the CI `check` job.
 - _Debug locally:_ Run `SKIP_ENV_VALIDATION=1 bun run build`. If you have real env values, omit `SKIP_ENV_VALIDATION`.
 
 ### `test-unit` (needs: `build`)
@@ -74,8 +69,7 @@ All fast-check jobs are **required** status checks. `test-e2e` is **informationa
 
 **Required checks (must pass to merge):**
 
-- `CI / format`
-- `CI / lint`
+- `CI / check`
 - `CI / typecheck`
 - `CI / build`
 - `CI / test-unit`

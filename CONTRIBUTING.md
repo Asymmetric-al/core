@@ -16,8 +16,35 @@ Thanks for contributing to asymmetric.al. We welcome pull requests, bug reports,
 - **Conventions:** `docs/conventions.md` (folder structure, code style, and pre-commit checklist).
 - **Setup (macOS/Linux):** `bun run setup` (creates/validates `.env.local`, installs deps, runs verification).
 - **Local PR-readiness gate (matches blocking CI):**
-  - `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
+  - `bun run check && bun run typecheck && bun run build && bun run test:unit`
 - **Optional:** `bun run test:e2e` (non-blocking in CI; run when changes impact user flows).
+
+## Ultracite + Cursor workflow
+
+- **Primary quality commands (root):**
+  - `bun run check` → non-mutating ESLint + Prettier + Stylelint checks via Ultracite
+  - `bun run fix` → auto-fixes via Ultracite
+- **Pre-commit behavior:** Husky runs `lint-staged`, which runs `bunx ultracite fix` on **staged files only**.
+- **Cursor project integration files:**
+  - `.cursor/rules/ultracite.mdc` (shared project standards for Cursor)
+  - `.cursor/hooks.json` (runs `bunx ultracite fix` after AI file edits)
+
+## Maintainers: enabling Ultracite Cloud
+
+Ultracite Cloud is maintainer-enabled infrastructure for automated PR fixes and scheduled cleanup PRs.
+
+1. Sign in to Ultracite Cloud with GitHub.
+2. Install the Ultracite GitHub App on the correct org/personal account.
+3. Enable this repository in the Ultracite dashboard.
+4. Review and approve the GitHub App permissions requested.
+5. Validate setup by creating a test PR and commenting `@ultracite review`.
+
+Cloud behavior:
+
+- On `@ultracite review`, Cloud checks out the PR branch in a sandbox, runs `ultracite fix`, commits fixes back to the PR branch, and comments a summary.
+- Cloud can also run a daily cleanup pass on the default branch and open a PR with automated fixes.
+- Cloud disables git hooks in its sandbox. Local Husky hooks still run for contributors.
+- For PRs from forks, Cloud may not be able to push fixes unless the PR allows maintainer edits.
 
 ## Code review and ownership
 

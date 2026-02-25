@@ -24,12 +24,11 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 
 ### CI gates (must pass before merge)
 
-- `bun run format:check`
-- `bun run lint`
+- `bun run check`
 - `bun run typecheck`
 - `bun run build`
 - `bun run test:unit`
-- **Formatting:** Fix with `bun run format`, then verify with `bun run format:check`.
+- **Fixes:** Use `bun run fix` for Ultracite auto-fixes.
 
 ### File hygiene
 
@@ -58,14 +57,14 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 ### PR checklist
 
 - [ ] Branch is not `main`
-- [ ] CI gates pass (`format:check`, `lint`, `typecheck`, `build`, `test:unit`)
-- [ ] Formatting fixed with `bun run format` and verified with `bun run format:check`
+- [ ] CI gates pass (`check`, `typecheck`, `build`, `test:unit`)
+- [ ] Ultracite fixes applied with `bun run fix` when needed
 - [ ] Changes are minimal and scoped
 
 ## Minimal examples
 
 - Branch name: `feature/AL-123-add-metrics-card`
-- CI command: `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
+- CI command: `bun run check && bun run typecheck && bun run build && bun run test:unit`
 
 ## Common mistakes / pitfalls
 

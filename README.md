@@ -215,18 +215,20 @@ Verify command behavior:
 - `VERIFY_HTTP=1 bun run verify` additionally checks `/`, `/login`, and `/register` on `http://localhost:3000`.
 - `VERIFY_SUPABASE=1 bun run verify` additionally runs Supabase verification.
 
-### Linting
+### Linting and formatting
 
-Linting uses a unified ESLint flat config strategy:
+Code quality is managed at the root with Ultracite Option A (ESLint + Prettier + Stylelint).
 
-- `apps/*` consume `@asym/eslint-config/nextjs.mjs`
-- `packages/*` should consume `@asym/eslint-config/library.mjs`
-- root `eslint.config.mjs` is a fallback/orchestrator config
-
-Canonical lint entrypoint:
+Canonical quality entrypoint:
 
 ```bash
-bun run lint
+bun run check
+```
+
+Auto-fix entrypoint:
+
+```bash
+bun run fix
 ```
 
 Architecture boundaries are enforced with `no-restricted-imports` so apps do not import from other apps directly.
@@ -288,13 +290,13 @@ Minimal package `package.json` example:
 
 Common commands:
 
-- `bun run format` (fix), `bun run format:check` (verify), `bun run lint`, and `bun run typecheck`
+- `bun run fix`, `bun run check`, and `bun run typecheck`
 - `bun run build`, `bun run test:unit`, `bun run test:e2e`
-- PR-readiness (matches blocking CI): `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
+- PR-readiness (matches blocking CI): `bun run check && bun run typecheck && bun run build && bun run test:unit`
 
 ### Git Hooks Setup
 
-Pre-commit hooks auto-run ESLint + Prettier. If you get "command not found" errors:
+Pre-commit hooks auto-run `bunx ultracite fix` on staged files via lint-staged. If you get "command not found" errors:
 
 **macOS/Linux:**
 
@@ -317,8 +319,8 @@ One-time setup per machine.
 Use Turbo for consistent task execution (and caching where applicable):
 
 - Local dev: `bunx turbo run dev`
-- Cached checks: `bunx turbo run lint typecheck build`
-- Formatting: `bun run format` (fix) / `bun run format:check` (verify)
+- Cached checks: `bunx turbo run check typecheck build`
+- Formatting and lint fixes: `bun run fix` (auto-fix) / `bun run check` (verify)
 - Internal package `build` tasks are source-first validation (`tsc --noEmit`) so packages participate in the Turbo graph without forcing a `dist`-first workflow.
 
 Remote caching (Vercel Remote Cache) is enabled for internal PRs and protected branch CI (fork PRs do not have access to the required secrets/vars).
@@ -341,11 +343,11 @@ For lockfile/workspace-root warnings in Next builds, see the runbook section `Mu
 ### Verification Steps
 
 ```bash
-# Fix formatting (only when needed)
-bun run format
+# Fix lint/format/style issues (only when needed)
+bun run fix
 
 # PR-readiness (matches blocking CI)
-bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit
+bun run check && bun run typecheck && bun run build && bun run test:unit
 
 # Optional (non-blocking in CI, but recommended for flow changes)
 bun run test:e2e

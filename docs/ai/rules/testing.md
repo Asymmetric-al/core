@@ -16,7 +16,7 @@ Use this when adding tests, modifying critical flows, or verifying changes.
 
 ## Branch protection (required)
 
-- **Required PR checks:** `CI / format`, `CI / lint`, `CI / typecheck`, `CI / build`, `CI / test-unit`.
+- **Required PR checks:** `CI / check`, `CI / typecheck`, `CI / build`, `CI / test-unit`.
 - **Non-blocking informational checks:** `CI / test-e2e (non-blocking)` must **not** be required.
 - **Repo admins:** Settings → Branches → Branch protection rules → Require status checks to pass:
   - Require the checks above.

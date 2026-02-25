@@ -1,18 +1,28 @@
 # Working Set
 
-- Date: 2026-02-16
+- Date: 2026-02-25
 - Repo: Asymmetric-al/core
-- Goal: Prepare deterministic Supabase demo seed data for a new hosted project with exactly one profile identity, full relational coverage across app tables, and optional public read-only demo RLS migration.
-- Primary area: `supabase/seed.sql`, `supabase/migrations/*`, `scripts/*`, `AGENTS.md`
+- Goal: Land Ultracite Option A (ESLint + Prettier + Stylelint) at monorepo root with Bun/Turbo/Husky/CI integration, plus Ultracite Cloud documentation and Ultracite agent skill onboarding.
+- Primary area:
+  - `package.json`
+  - `eslint.config.mjs`, `prettier.config.mjs`, `stylelint.config.mjs`, `.stylelintignore`
+  - `.husky/pre-commit`
+  - `turbo.json`
+  - `.github/workflows/ci.yml`
+  - `CONTRIBUTING.md`, `README.md`, `docs/ci.md`
+  - `.cursor/rules/ultracite.mdc`, `.cursor/hooks.json`
+  - `.agents/skills/ultracite/*`, `.cursor/skills/ultracite/*`
+  - `AGENTS.md`
 - Constraints:
-  - No hardcoded secrets.
-  - Seed must be idempotent + relationally valid.
-  - Keep demo data realistic and varied.
-  - Preserve Supabase migration-first workflow.
+  - No repo-wide reformat in initial rollout PR.
+  - Keep hooks staged-only and fast.
+  - Keep CI non-mutating (`check`, not `fix`).
+  - Keep changes Bun-first.
+  - Next.js is v16; do not rely on removed `next lint` / `next.config.eslint` behavior.
 - Evidence sources used:
-  - `supabase/schema.sql`
-  - `supabase/migrations/20250101000000_init_schema.sql`
-  - `supabase/migrations/20260214090000_foundation_1_schema.sql`
-  - table usage search in `apps/*` and `packages/*`
+  - `.next-docs/01-app/03-api-reference/05-config/03-eslint.mdx`
+  - `.next-docs/01-app/02-guides/upgrading/version-16.mdx`
+  - `package.json`, `turbo.json`, `.husky/pre-commit`, `.github/workflows/ci.yml`
+  - Ultracite CLI/runtime inspection (`bunx ultracite ...`)
 - Tooling note:
-  - Nia MCP may be intermittently unavailable (tool registration can drop); fallback is repo-scoped `rg` + direct file reads.
+  - Nia MCP tools are not available in this session; fallback is repo-scoped `rg` + direct file reads.
