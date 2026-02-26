@@ -12,6 +12,10 @@
       "types": "./supabase/server.ts",
       "default": "./supabase/server.ts"
     },
+    "./supabase/config": {
+      "types": "./supabase/config.ts",
+      "default": "./supabase/config.ts"
+    },
     "./supabase/admin": {
       "types": "./supabase/admin.ts",
       "default": "./supabase/admin.ts"
@@ -40,7 +44,8 @@
   "scripts": {
     "build": "tsc --noEmit",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "seed:demo-users": "bun scripts/seed-demo-users.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

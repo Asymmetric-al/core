@@ -410,6 +410,9 @@ Ask a maintainer for access to the shared dev Supabase project and request the p
 The demo login flow uses `/api/auth/demo-account` with the public anon client and pre-seeded demo users.
 Set `DEMO_ADMIN_EMAIL`, `DEMO_MISSIONARY_EMAIL`, `DEMO_DONOR_EMAIL`, and `DEMO_PASSWORD` in `.env.local` to enable the demo buttons.
 
+For full sign-in mode, demo-only mode, and middleware/layout integration details, see
+`docs/auth/sign-in.md`.
+
 ## Supabase Demo Seed
 
 Deterministic demo seed + optional read-only public policies live in:

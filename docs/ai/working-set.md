@@ -1,18 +1,25 @@
 # Working Set
 
-- Date: 2026-02-16
+- Date: 2026-02-26
 - Repo: Asymmetric-al/core
-- Goal: Prepare deterministic Supabase demo seed data for a new hosted project with exactly one profile identity, full relational coverage across app tables, and optional public read-only demo RLS migration.
-- Primary area: `supabase/seed.sql`, `supabase/migrations/*`, `scripts/*`, `AGENTS.md`
+- Goal: Ship a shared Supabase sign-in foundation across `admin`, `missionary`, and `donor` with demo-only + full-login modes, SSR cookie continuity, and role-safe redirects.
+- Primary area:
+  - `packages/auth/*`
+  - `packages/api/src/auth/*`
+  - `packages/ui/components/auth/*`
+  - `packages/database/supabase/*`
+  - `apps/{admin,missionary,donor}/app/(auth)/login/page.tsx`
+  - `apps/{admin,missionary,donor}/proxy.ts`
+  - `docs/auth/sign-in.md`
 - Constraints:
-  - No hardcoded secrets.
-  - Seed must be idempotent + relationally valid.
-  - Keep demo data realistic and varied.
-  - Preserve Supabase migration-first workflow.
+  - Demo credentials stay server-side.
+  - No Radix-based auth UI usage.
+  - Use modern Supabase SSR + Next.js proxy patterns.
+  - Preserve production safety (`ALLOW_DEMO_ACCOUNTS`).
 - Evidence sources used:
-  - `supabase/schema.sql`
-  - `supabase/migrations/20250101000000_init_schema.sql`
-  - `supabase/migrations/20260214090000_foundation_1_schema.sql`
-  - table usage search in `apps/*` and `packages/*`
+  - Existing app login pages and proxy files in all three apps
+  - `packages/api/src/auth/demo-account.ts`
+  - `packages/auth/middleware.ts` and `packages/auth/context.ts`
+  - Next.js docs from `.next-docs` (`proxy`, `authentication`)
 - Tooling note:
-  - Nia MCP may be intermittently unavailable (tool registration can drop); fallback is repo-scoped `rg` + direct file reads.
+  - Nia MCP unavailable in this runtime; fallback used repo-scoped file reads + `rg`.
