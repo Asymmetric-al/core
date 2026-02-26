@@ -8,7 +8,9 @@
     "./context": "./context.ts",
     "./use-auth": "./use-auth.ts",
     "./middleware": "./middleware.ts",
-    "./constants": "./constants.ts"
+    "./constants": "./constants.ts",
+    "./roles": "./roles.ts",
+    "./demo-login": "./demo-login.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

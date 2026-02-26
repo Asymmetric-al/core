@@ -14,6 +14,7 @@ export const DEMO_AVAILABILITY_FALLBACK: Readonly<DemoAvailability> =
   });
 
 interface DemoAccountStatusResponse {
+  roles?: Partial<Record<DemoRole, boolean>>;
   availableRoles?: Partial<Record<DemoRole, boolean>>;
 }
 
@@ -34,7 +35,7 @@ export async function fetchDemoAvailability(): Promise<DemoAvailability> {
   }
 
   const data = (await response.json()) as DemoAccountStatusResponse;
-  return toDemoAvailability(data.availableRoles);
+  return toDemoAvailability(data.roles ?? data.availableRoles);
 }
 
 export function useDemoAvailability() {
