@@ -1,22 +1,26 @@
 # Working Set
 
-- Date: 2026-02-22
+- Date: 2026-02-26
 - Repo: Asymmetric-al/core
-- Goal: Implement a hybrid Supabase CLI workflow (global-first + pinned fallback) and align setup/scripts/docs with secure contributor defaults.
-- Primary area: `scripts/supabase-cli.mjs`, `package.json`, `scripts/seed-demo.sh`, `scripts/setup/*`, `README.md`, `docs/ops/environments.md`, `docs/ai/rules/backend.md`
+- Goal: Ship a shared Supabase sign-in foundation across `admin`, `missionary`, and `donor` with demo-only + full-login modes, SSR cookie continuity, and role-safe redirects.
+- Primary area:
+  - `packages/auth/*`
+  - `packages/api/src/auth/*`
+  - `packages/ui/components/auth/*`
+  - `packages/database/supabase/*`
+  - `apps/{admin,missionary,donor}/app/(auth)/login/page.tsx`
+  - `apps/{admin,missionary,donor}/proxy.ts`
+  - `docs/auth/sign-in.md`
 - Constraints:
-  - No hardcoded secrets.
-  - Keep Supabase auth client boundaries unchanged (`@supabase/ssr` server/client separation).
-  - Preserve migration safety for hosted flows (`SUPABASE_DB_URL`, URL targeting checks).
-  - Keep contributor setup non-blocking while improving reproducibility.
+  - Demo credentials stay server-side.
+  - No Radix-based auth UI usage.
+  - Use modern Supabase SSR + Next.js proxy patterns.
+  - Preserve production safety (`ALLOW_DEMO_ACCOUNTS`).
 - Evidence sources used:
-  - `package.json`
-  - `scripts/seed-demo.sh`
-  - `scripts/setup/index.sh`
-  - `scripts/setup.ps1`
-  - `scripts/setup/index.ps1`
-  - `README.md`
-  - `docs/ops/environments.md`
-  - `docs/ai/rules/backend.md`
+  - Existing app login pages and proxy files in all three apps
+  - `packages/api/src/auth/demo-account.ts`
+  - `packages/auth/middleware.ts` and `packages/auth/context.ts`
+  - Next.js docs from `.next-docs` (`proxy`, `authentication`)
+  - `scripts/supabase-cli.mjs` and root script updates from `epic`
 - Tooling note:
-  - Repo uses Bun-first workflows; Supabase runner should work with/without globally installed `supabase` binary.
+  - Nia MCP unavailable in this runtime; fallback used repo-scoped file reads + `rg`.
