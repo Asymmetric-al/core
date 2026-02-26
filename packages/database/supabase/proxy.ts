@@ -1,45 +1,44 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
+import { getSupabasePublicConfig } from "./config";
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(
-          cookiesToSet: {
-            name: string;
-            value: string;
-            options?: Record<string, unknown>;
-          }[],
-        ) {
-          try {
-            cookiesToSet.forEach(({ name, value }) =>
-              request.cookies.set(name, value),
+export async function updateSession(request: NextRequest) {
+  const { url, key } = getSupabasePublicConfig();
+  if (!url || !key) {
+    return NextResponse.next({ request });
+  }
+
+  const supabaseResponse = NextResponse.next({ request });
+
+  const supabase = createServerClient(url, key, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(
+        cookiesToSet: {
+          name: string;
+          value: string;
+          options?: Record<string, unknown>;
+        }[],
+      ) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            request.cookies.set(name, value);
+            supabaseResponse.cookies.set(
+              name,
+              value,
+              options as Record<string, unknown>,
             );
-            supabaseResponse = NextResponse.next({ request });
-            cookiesToSet.forEach(({ name, value, options }) =>
-              supabaseResponse.cookies.set(
-                name,
-                value,
-                options as Record<string, unknown>,
-              ),
-            );
-          } catch {}
-        },
+          });
+        } catch {}
       },
     },
-  );
+  });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: claimsResult } = await supabase.auth.getClaims();
+  const userId = claimsResult?.claims?.sub ?? null;
 
   const pathname = request.nextUrl.pathname;
 
@@ -90,7 +89,7 @@ export async function updateSession(request: NextRequest) {
       targetPathname.startsWith("/api/"),
   );
 
-  if (!user && !isPublicRoute) {
+  if (!userId && !isPublicRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     // If it's a demo alias, we might want to remember where they were going
@@ -101,11 +100,14 @@ export async function updateSession(request: NextRequest) {
   }
 
   // 4. Redirect logged-in users away from login/register
-  if (user && (targetPathname === "/login" || targetPathname === "/register")) {
+  if (
+    userId &&
+    (targetPathname === "/login" || targetPathname === "/register")
+  ) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .single();
 
     const url = request.nextUrl.clone();
