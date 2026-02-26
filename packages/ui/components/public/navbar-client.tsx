@@ -5,8 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 
-import { Button } from "@asym/ui/components/shadcn/button";
-import { cn } from "@asym/ui/lib/utils";
+import { cn } from "../../lib/utils";
+import { Button } from "../shadcn/button";
 
 interface NavLink {
   label: string;
