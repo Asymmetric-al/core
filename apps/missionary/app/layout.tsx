@@ -1,9 +1,12 @@
 import "@asym/env";
 import { siteConfig } from "@asym/config/site";
 import { QueryProvider } from "@asym/database/providers";
+import { createClient } from "@asym/database/supabase/server";
 import { MotionProvider } from "@asym/lib/motion";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { Inter, Geist_Mono, Syne } from "next/font/google";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Suspense } from "react";
 
@@ -35,6 +38,57 @@ const geistMono = Geist_Mono({
   display: "swap",
   preload: false,
 });
+
+const MISSIONARY_ALLOWED_ROLES = new Set([
+  "missionary",
+  "admin",
+  "staff",
+  "super_admin",
+]);
+const MISSIONARY_PUBLIC_PATH_PREFIXES = [
+  "/login",
+  "/register",
+  "/auth/callback",
+  "/forgot-password",
+  "/no-access",
+  "/api/",
+] as const;
+
+function isPublicPath(pathname: string) {
+  return MISSIONARY_PUBLIC_PATH_PREFIXES.some((prefix) =>
+    prefix.endsWith("/")
+      ? pathname.startsWith(prefix)
+      : pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
+async function MissionaryRoleGate({ children }: { children: React.ReactNode }) {
+  const pathname = (await headers()).get("x-asym-pathname") ?? "/";
+  if (isPublicPath(pathname)) {
+    return <>{children}</>;
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect(`/login?next=${encodeURIComponent(pathname)}`);
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!profile?.role || !MISSIONARY_ALLOWED_ROLES.has(profile.role)) {
+    redirect("/no-access");
+  }
+
+  return <>{children}</>;
+}
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -106,7 +160,9 @@ export default function RootLayout({
             <MotionProvider>
               <Suspense fallback={null}>
                 <NuqsAdapter>
-                  <AppShell role="missionary">{children}</AppShell>
+                  <MissionaryRoleGate>
+                    <AppShell role="missionary">{children}</AppShell>
+                  </MissionaryRoleGate>
                 </NuqsAdapter>
               </Suspense>
             </MotionProvider>

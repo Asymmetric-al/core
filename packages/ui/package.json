@@ -11,6 +11,8 @@
     "./components/shadcn/data-table": "./components/shadcn/data-table/index.ts",
     "./components/shadcn/data-table/*": "./components/shadcn/data-table/*.tsx",
     "./components/shadcn/data-table/types": "./components/shadcn/data-table/types.ts",
+    "./components/auth": "./components/auth/index.ts",
+    "./components/auth/*": "./components/auth/*.tsx",
     "./components/shadcn-studio/blocks/*": "./components/shadcn-studio/blocks/*.tsx",
     "./components/shadcn-studio/logo": "./components/shadcn-studio/logo.tsx",
     "./components/logo-svg": "./components/logo-svg.tsx",
@@ -44,6 +46,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@asym/auth": "workspace:*",
+    "@asym/database": "workspace:*",
+    "@base-ui/react": "^1.2.0",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-aspect-ratio": "^1.1.8",
