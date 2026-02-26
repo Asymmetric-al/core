@@ -1,10 +1,13 @@
 import { getPayloadClient } from "../get-payload";
 
-import type { Tenant } from "../../../payload-types";
 import type { NextRequest } from "next/server";
 import type { Payload } from "payload";
 
-type TenantDoc = Pick<Tenant, "id" | "slug" | "primaryDomain">;
+type TenantDoc = {
+  id: number | string;
+  slug?: string | null;
+  primaryDomain?: string | null;
+};
 
 type TenantResolverPayloadClient = Pick<Payload, "find">;
 

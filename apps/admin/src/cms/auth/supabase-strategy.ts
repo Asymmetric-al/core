@@ -2,12 +2,24 @@ import { createServerClient } from "@supabase/ssr";
 
 import { CMS_USERS_SLUG } from "../constants";
 
-import type { CmsUser } from "../../../payload-types";
 import type { AuthStrategy } from "payload";
 
 const STRATEGY_NAME = "supabase-session";
 const STAFF_ROLES = ["staff", "admin", "super_admin"] as const;
 type CmsStaffRole = (typeof STAFF_ROLES)[number];
+type CmsUserDoc = {
+  id: number;
+  email: string;
+  role?: CmsStaffRole | null;
+  supabaseUserId?: string | null;
+  tenantId?: string | null;
+  updatedAt: string;
+  createdAt: string;
+};
+type CmsUserSyncData = Pick<
+  CmsUserDoc,
+  "email" | "role" | "supabaseUserId" | "tenantId"
+>;
 
 type SupabaseStrategyDependencies = {
   createSupabaseClient?: typeof createServerClient;
@@ -108,17 +120,14 @@ export function createSupabaseAuthStrategy(
         },
       });
 
-      const desiredData = {
+      const desiredData: CmsUserSyncData = {
         email: supabaseUser.email ?? `${supabaseUser.id}@asym.local`,
         role,
         supabaseUserId: supabaseUser.id,
         tenantId,
-      } satisfies Pick<
-        CmsUser,
-        "email" | "role" | "supabaseUserId" | "tenantId"
-      >;
+      };
 
-      const existingUser = existingUsers.docs[0] as CmsUser | undefined;
+      const existingUser = existingUsers.docs[0] as CmsUserDoc | undefined;
       const userNeedsSync =
         !existingUser ||
         existingUser.email !== desiredData.email ||
@@ -126,7 +135,7 @@ export function createSupabaseAuthStrategy(
         existingUser.supabaseUserId !== desiredData.supabaseUserId ||
         existingUser.tenantId !== desiredData.tenantId;
 
-      const syncedUser: CmsUser = existingUser
+      const syncedUser = existingUser
         ? userNeedsSync
           ? await payload.update({
               id: existingUser.id,
@@ -134,19 +143,17 @@ export function createSupabaseAuthStrategy(
               data: desiredData,
               overrideAccess: true,
             })
-          : {
-              ...existingUser,
-              ...desiredData,
-            }
+          : existingUser
         : await payload.create({
             collection: CMS_USERS_SLUG,
             data: desiredData,
             overrideAccess: true,
           });
+      const userRecord = syncedUser as CmsUserDoc;
 
       return {
         user: {
-          ...syncedUser,
+          ...userRecord,
           _strategy: `${CMS_USERS_SLUG}-${STRATEGY_NAME}`,
           collection: CMS_USERS_SLUG,
         },
