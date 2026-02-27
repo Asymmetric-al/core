@@ -359,7 +359,7 @@ function StatCard({
   icon: Icon,
   trend,
   trendLabel,
-  variant = "default",
+  variant: _variant = "default",
   index = 0,
 }: {
   label: string;

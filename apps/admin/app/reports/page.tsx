@@ -58,12 +58,6 @@ const ENGAGEMENT_DATA = [
 
 const _COLORS = ["#0f172a", "#3b82f6"];
 
-const springTransition = {
-  type: "spring" as const,
-  stiffness: 400,
-  damping: 30,
-};
-
 const ReportsCharts = dynamic(
   () => import("./reports-charts").then((mod) => mod.ReportsCharts),
   {
