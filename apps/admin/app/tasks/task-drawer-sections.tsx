@@ -17,8 +17,8 @@ import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import { SheetDescription, SheetTitle } from "@asym/ui/components/shadcn/sheet";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
+import { VisuallyHidden } from "@asym/ui/components/shadcn/visually-hidden";
 import { cn } from "@asym/ui/lib/utils";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import {
   AlertCircle,
   Bell,
@@ -51,6 +51,14 @@ const TIME_AND_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
   minute: "2-digit",
 });
 
+const COMPACT_SECTION_LABEL_CLASS =
+  "text-xs font-bold text-muted-foreground uppercase tracking-widest";
+const COMPACT_OUTLINE_BADGE_CLASS = "h-4 rounded-md border px-1.5 py-0 text-xs";
+const COMPACT_BADGE_CLASS = "h-4 rounded-md px-1.5 text-xs";
+const COMPACT_MUTED_TEXT_CLASS = "text-xs text-muted-foreground";
+const COMPACT_MUTED_META_TEXT_CLASS =
+  "text-xs text-muted-foreground font-medium";
+
 function formatDate(dateStr?: string): string {
   if (!dateStr) return "No date";
   return DATE_FORMATTER.format(new Date(dateStr));
@@ -69,6 +77,7 @@ interface TaskDrawerContentProps {
   task: Task;
   TypeIcon: ComponentType<{ className?: string }>;
   statusColor: string;
+  statusIconColor: string;
   statusLabel: string;
   priorityColor: string;
   priorityLabel: string;
@@ -86,13 +95,13 @@ interface TaskDrawerContentProps {
 interface TaskSheetHeaderProps {
   taskTitle: string;
   TypeIcon: ComponentType<{ className?: string }>;
-  statusColor: string;
+  statusIconColor: string;
 }
 
 function TaskSheetHeader({
   taskTitle,
   TypeIcon,
-  statusColor,
+  statusIconColor,
 }: TaskSheetHeaderProps) {
   return (
     <>
@@ -102,7 +111,7 @@ function TaskSheetHeader({
       </VisuallyHidden>
       <div className="h-14 bg-card border-b border-border flex items-center px-4 pr-14 shrink-0">
         <div className="flex items-center gap-3">
-          <div className={cn("p-2 rounded-xl", statusColor.split(" ")[0])}>
+          <div className={cn("rounded-xl p-2", statusIconColor)}>
             <TypeIcon className="size-4" />
           </div>
           <span className="text-sm font-bold text-foreground uppercase tracking-wider">
@@ -154,10 +163,7 @@ function TaskOverviewSection({
             >
               <Badge
                 variant="outline"
-                className={cn(
-                  "text-[9px] px-1.5 py-0 h-4 border rounded-md",
-                  statusColor,
-                )}
+                className={cn(COMPACT_OUTLINE_BADGE_CLASS, statusColor)}
               >
                 {statusLabel}
               </Badge>
@@ -174,7 +180,8 @@ function TaskOverviewSection({
                 <Badge
                   variant="outline"
                   className={cn(
-                    "text-[9px] px-1.5 py-0 h-4 border mr-2 rounded-md",
+                    COMPACT_OUTLINE_BADGE_CLASS,
+                    "mr-2",
                     status.color,
                   )}
                 >
@@ -194,10 +201,7 @@ function TaskOverviewSection({
             >
               <Badge
                 variant="outline"
-                className={cn(
-                  "text-[9px] px-1.5 py-0 h-4 border rounded-md",
-                  priorityColor,
-                )}
+                className={cn(COMPACT_OUTLINE_BADGE_CLASS, priorityColor)}
               >
                 {priorityLabel}
               </Badge>
@@ -214,7 +218,8 @@ function TaskOverviewSection({
                 <Badge
                   variant="outline"
                   className={cn(
-                    "text-[9px] px-1.5 py-0 h-4 border mr-2 rounded-md",
+                    COMPACT_OUTLINE_BADGE_CLASS,
+                    "mr-2",
                     priority.color,
                   )}
                 >
@@ -231,7 +236,7 @@ function TaskOverviewSection({
             <Badge
               key={tagId}
               className={cn(
-                "text-[9px] h-5 px-2 rounded-lg border-0",
+                "text-xs h-5 px-2 rounded-lg border-0",
                 tagConfig?.color || "bg-muted text-muted-foreground",
               )}
             >
@@ -266,13 +271,18 @@ function TaskDueAndAssigneeSection({
   return (
     <div className="grid grid-cols-2 gap-6">
       <div className="space-y-2">
-        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+        <p
+          className={cn(
+            COMPACT_SECTION_LABEL_CLASS,
+            "flex items-center gap-1.5",
+          )}
+        >
           <Calendar className="size-3" /> Due Date
         </p>
         <p
           className={cn(
             "text-sm font-medium",
-            isOverdue ? "text-red-600 dark:text-red-400" : "text-foreground",
+            isOverdue ? "text-destructive" : "text-foreground",
           )}
         >
           {isOverdue && <AlertCircle className="size-3 inline mr-1" />}
@@ -286,7 +296,12 @@ function TaskDueAndAssigneeSection({
       </div>
 
       <div className="space-y-2">
-        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+        <p
+          className={cn(
+            COMPACT_SECTION_LABEL_CLASS,
+            "flex items-center gap-1.5",
+          )}
+        >
           <User className="size-3" /> Assigned To
         </p>
         <DropdownMenu>
@@ -296,7 +311,7 @@ function TaskDueAndAssigneeSection({
                 <div className="flex items-center gap-2">
                   <Avatar className="size-6 border border-border">
                     <AvatarImage src={task.assigned_to_avatar} />
-                    <AvatarFallback className="text-[9px] bg-primary text-primary-foreground">
+                    <AvatarFallback className="text-xs bg-primary text-primary-foreground">
                       {task.assigned_to_name[0]}
                     </AvatarFallback>
                   </Avatar>
@@ -320,15 +335,13 @@ function TaskDueAndAssigneeSection({
               >
                 <Avatar className="size-6 mr-2 border border-border">
                   <AvatarImage src={staff.avatar_url} />
-                  <AvatarFallback className="text-[9px]">
+                  <AvatarFallback className="text-xs">
                     {staff.name[0]}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
                   <span className="text-sm font-medium">{staff.name}</span>
-                  <span className="text-[10px] text-muted-foreground">
-                    {staff.role}
-                  </span>
+                  <span className={COMPACT_MUTED_TEXT_CLASS}>{staff.role}</span>
                 </div>
               </DropdownMenuItem>
             ))}
@@ -348,7 +361,9 @@ function TaskLinkedRecordSection({
 }: TaskLinkedRecordSectionProps) {
   return (
     <div className="space-y-3">
-      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+      <p
+        className={cn(COMPACT_SECTION_LABEL_CLASS, "flex items-center gap-1.5")}
+      >
         <Link2 className="size-3" /> Linked Record
       </p>
       <div className="flex items-center gap-3 p-4 rounded-2xl border border-border bg-card shadow-sm">
@@ -363,12 +378,12 @@ function TaskLinkedRecordSection({
           <div className="flex items-center gap-2">
             <Badge
               variant="secondary"
-              className="text-[9px] h-4 px-1.5 capitalize rounded-md"
+              className={cn(COMPACT_BADGE_CLASS, "capitalize")}
             >
               {linkedEntity.type}
             </Badge>
             {linkedEntity.email && (
-              <span className="text-xs text-muted-foreground truncate">
+              <span className={cn(COMPACT_MUTED_TEXT_CLASS, "truncate")}>
                 {linkedEntity.email}
               </span>
             )}
@@ -386,7 +401,9 @@ interface TaskRemindersSectionProps {
 function TaskRemindersSection({ reminders }: TaskRemindersSectionProps) {
   return (
     <div className="space-y-3">
-      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+      <p
+        className={cn(COMPACT_SECTION_LABEL_CLASS, "flex items-center gap-1.5")}
+      >
         <Bell className="size-3" /> Reminders
       </p>
       <div className="space-y-2">
@@ -402,7 +419,7 @@ function TaskRemindersSection({ reminders }: TaskRemindersSectionProps) {
               </span>
               <Badge
                 variant="secondary"
-                className="text-[9px] h-4 px-1.5 capitalize rounded-md"
+                className={cn(COMPACT_BADGE_CLASS, "capitalize")}
               >
                 {reminder.type}
               </Badge>
@@ -410,7 +427,10 @@ function TaskRemindersSection({ reminders }: TaskRemindersSectionProps) {
             {reminder.sent && (
               <Badge
                 variant="outline"
-                className="text-[9px] h-4 px-1.5 text-emerald-600 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-800 rounded-md"
+                className={cn(
+                  COMPACT_BADGE_CLASS,
+                  "border-border bg-accent text-accent-foreground",
+                )}
               >
                 Sent
               </Badge>
@@ -437,13 +457,15 @@ function TaskCommentsSection({
 }: TaskCommentsSectionProps) {
   return (
     <div className="space-y-4">
-      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+      <p
+        className={cn(COMPACT_SECTION_LABEL_CLASS, "flex items-center gap-1.5")}
+      >
         <MessageSquare className="size-3" /> Activity & Comments
       </p>
 
       <div className="flex gap-3">
         <Avatar className="size-8 shrink-0 border border-border">
-          <AvatarFallback className="text-[10px] bg-primary text-primary-foreground">
+          <AvatarFallback className="text-xs bg-primary text-primary-foreground">
             Y
           </AvatarFallback>
         </Avatar>
@@ -452,7 +474,7 @@ function TaskCommentsSection({
             placeholder="Add a comment..."
             value={newComment}
             onChange={(event) => onCommentChange(event.target.value)}
-            className="min-h-[80px] resize-none rounded-xl text-sm"
+            className="min-h-20 resize-none rounded-xl text-sm"
           />
           <div className="flex justify-end">
             <Button
@@ -474,7 +496,7 @@ function TaskCommentsSection({
             <div key={comment.id} className="flex gap-3">
               <Avatar className="size-8 shrink-0 border border-border">
                 <AvatarImage src={comment.user_avatar} />
-                <AvatarFallback className="text-[10px] bg-muted">
+                <AvatarFallback className="text-xs bg-muted">
                   {comment.user_name[0]}
                 </AvatarFallback>
               </Avatar>
@@ -483,7 +505,7 @@ function TaskCommentsSection({
                   <span className="text-sm font-semibold">
                     {comment.user_name}
                   </span>
-                  <span className="text-[10px] text-muted-foreground font-medium">
+                  <span className={COMPACT_MUTED_META_TEXT_CLASS}>
                     {TIME_AND_DATE_FORMATTER.format(
                       new Date(comment.created_at),
                     )}
@@ -510,10 +532,10 @@ function TaskDrawerFooter({ task, onDelete }: TaskDrawerFooterProps) {
   return (
     <div className="p-4 border-t border-border bg-card shrink-0">
       <div className="flex items-center justify-between">
-        <div className="text-[10px] text-muted-foreground font-medium">
+        <div className={COMPACT_MUTED_META_TEXT_CLASS}>
           <span>Created {formatDate(task.created_at)}</span>
           {task.completed_at && (
-            <span className="ml-3 text-emerald-600 dark:text-emerald-400">
+            <span className="ml-3 text-primary">
               Completed {formatDate(task.completed_at)}
             </span>
           )}
@@ -536,6 +558,7 @@ export function TaskDrawerContent({
   task,
   TypeIcon,
   statusColor,
+  statusIconColor,
   statusLabel,
   priorityColor,
   priorityLabel,
@@ -554,7 +577,7 @@ export function TaskDrawerContent({
       <TaskSheetHeader
         taskTitle={task.title}
         TypeIcon={TypeIcon}
-        statusColor={statusColor}
+        statusIconColor={statusIconColor}
       />
 
       <ScrollArea className="flex-1">

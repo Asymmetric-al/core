@@ -1,6 +1,7 @@
 /**
  * Keep this segment request-bound while cacheComponents is enabled globally.
  * `dynamic = "force-dynamic"` is not supported with cacheComponents in Next.js 16.
+ * Revisit only after /tasks can render without build-time Supabase env access.
  */
 import { connection } from "next/server";
 

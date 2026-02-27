@@ -41,6 +41,43 @@ interface TaskDrawerProps {
   onDelete: (taskId: string) => void;
 }
 
+function parseDueDateToLocalDay(dueDate: string): Date | null {
+  const datePart = dueDate.split("T")[0] ?? dueDate;
+  const [yearText, monthText, dayText] = datePart.split("-");
+  const year = Number.parseInt(yearText ?? "", 10);
+  const month = Number.parseInt(monthText ?? "", 10);
+  const day = Number.parseInt(dayText ?? "", 10);
+
+  if (
+    Number.isFinite(year) &&
+    Number.isFinite(month) &&
+    Number.isFinite(day) &&
+    month >= 1 &&
+    month <= 12 &&
+    day >= 1 &&
+    day <= 31
+  ) {
+    return new Date(year, month - 1, day);
+  }
+
+  const parsed = new Date(dueDate);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+}
+
+function isTaskOverdue(
+  dueDate: string | undefined,
+  status: TaskStatus,
+): boolean {
+  if (!dueDate || status === "completed") return false;
+  const dueDay = parseDueDateToLocalDay(dueDate);
+  if (!dueDay) return false;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return dueDay.getTime() < today.getTime();
+}
+
 export function TaskDrawer({
   task,
   staffMembers,
@@ -103,10 +140,7 @@ export function TaskDrawer({
     setNewComment("");
   };
 
-  const isOverdue =
-    task.due_date &&
-    new Date(task.due_date) < new Date() &&
-    task.status !== "completed";
+  const isOverdue = isTaskOverdue(task.due_date, task.status);
 
   return (
     <Sheet open={!!task} onOpenChange={(open) => !open && onClose()}>
@@ -115,6 +149,7 @@ export function TaskDrawer({
           task={task}
           TypeIcon={TypeIcon}
           statusColor={statusConfig.color}
+          statusIconColor={statusConfig.iconColor}
           statusLabel={statusConfig.label}
           priorityColor={priorityConfig.color}
           priorityLabel={priorityConfig.label}
