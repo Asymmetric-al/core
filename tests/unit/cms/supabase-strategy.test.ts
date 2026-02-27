@@ -1,6 +1,12 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-let createSupabaseAuthStrategy: typeof import("../../../apps/admin/src/cms/auth/supabase-strategy").createSupabaseAuthStrategy;
+type SupabaseAuthStrategyFactory = (dependencies?: {
+  createSupabaseClient?: unknown;
+}) => {
+  authenticate: (...args: unknown[]) => Promise<{ user: unknown }>;
+};
+
+let createSupabaseAuthStrategy: SupabaseAuthStrategyFactory;
 
 beforeAll(async () => {
   const module =
@@ -11,11 +17,13 @@ beforeAll(async () => {
 function createSupabaseClientMock({
   role = "staff",
   tenantId = "tenant_1",
+  staffMembershipRole = null,
   userId = "supabase-user-1",
   email = "staff@example.org",
 }: {
   role?: string | null;
   tenantId?: string | null;
+  staffMembershipRole?: string | null;
   userId?: string;
   email?: string;
 }) {
@@ -38,16 +46,39 @@ function createSupabaseClientMock({
           }
         : null,
   });
-  const eq = vi.fn().mockReturnValue({ single });
-  const select = vi.fn().mockReturnValue({ eq });
-  const from = vi.fn().mockReturnValue({ select });
+  const profileEq = vi.fn().mockReturnThis();
+  const profileSelect = vi.fn().mockReturnValue({
+    eq: profileEq,
+    single,
+  });
+  const from = vi.fn().mockReturnValue({ select: profileSelect });
+
+  const membershipMaybeSingle = vi.fn().mockResolvedValue({
+    data:
+      typeof staffMembershipRole === "string"
+        ? { staff_role: staffMembershipRole }
+        : null,
+  });
+  const membershipEq = vi.fn().mockReturnThis();
+  const membershipLimit = vi.fn().mockReturnThis();
+  const membershipSelect = vi.fn().mockReturnValue({
+    eq: membershipEq,
+    limit: membershipLimit,
+    maybeSingle: membershipMaybeSingle,
+  });
+  const schema = vi.fn().mockReturnValue({
+    from: vi.fn().mockReturnValue({
+      select: membershipSelect,
+    }),
+  });
 
   const createServerClientMock = vi.fn().mockReturnValue({
     auth: { getUser },
     from,
+    schema,
   });
 
-  return { createServerClientMock, getUser, from };
+  return { createServerClientMock, getUser, from, schema };
 }
 
 describe("createSupabaseAuthStrategy", () => {
@@ -214,5 +245,38 @@ describe("createSupabaseAuthStrategy", () => {
 
     expect(result.user).toBeNull();
     expect(payload.find).not.toHaveBeenCalled();
+  });
+
+  it("accepts active staff membership even when profile role is donor", async () => {
+    const { createServerClientMock } = createSupabaseClientMock({
+      role: "donor",
+      staffMembershipRole: "finance",
+    });
+
+    const strategy = createSupabaseAuthStrategy({
+      createSupabaseClient: createServerClientMock as never,
+    });
+    const payload = {
+      create: vi.fn().mockResolvedValue({
+        email: "staff@example.org",
+        id: "cms_user_1",
+        role: "staff",
+        supabaseUserId: "supabase-user-1",
+        tenantId: "tenant_1",
+      }),
+      find: vi.fn().mockResolvedValue({ docs: [] }),
+      update: vi.fn(),
+    };
+
+    const result = await strategy.authenticate({
+      headers: new Headers({ cookie: "sb-access-token=test" }),
+      payload,
+    } as never);
+
+    expect(result.user).toMatchObject({
+      collection: "cms-users",
+      role: "staff",
+      tenantId: "tenant_1",
+    });
   });
 });

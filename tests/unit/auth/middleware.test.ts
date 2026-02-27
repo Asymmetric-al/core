@@ -97,6 +97,21 @@ describe("createAuthMiddleware", () => {
     expect(response.status).toBe(200);
   });
 
+  it("does not redirect authenticated users on auth routes when role is disallowed", async () => {
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/auth/callback"],
+      loginPath: "/login",
+      redirectAuthenticatedTo: "/donor-dashboard",
+      unauthorizedRedirectTo: "/",
+      allowedRoles: ["donor"],
+      resolveSession: async () => ({ userId: "user_123", role: "missionary" }),
+    });
+
+    const response = await middleware(createRequest("/login"));
+
+    expect(response.status).toBe(200);
+  });
+
   it("accepts e2e auth bypass cookie when enabled", async () => {
     process.env.E2E_AUTH_BYPASS = "true";
 

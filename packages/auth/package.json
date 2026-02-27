@@ -6,6 +6,7 @@
   "exports": {
     ".": "./index.ts",
     "./context": "./context.ts",
+    "./permissions": "./permissions.ts",
     "./use-auth": "./use-auth.ts",
     "./middleware": "./middleware.ts",
     "./constants": "./constants.ts"

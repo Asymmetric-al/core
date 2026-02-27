@@ -14,6 +14,7 @@ Organized documentation for developers working on this project:
 
 - **[Architecture Overview](./guides/architecture/overview.md)** - System architecture, monorepo structure, and design patterns
 - **[Technical Decisions](./guides/architecture/technical-decisions.md)** - Key technical decisions and their rationale
+- **[Membership Authorization Foundation](./guides/architecture/authz-memberships.md)** - Tenant memberships, permission boundaries, and RLS backup enforcement
 
 #### **Development**
 

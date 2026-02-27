@@ -6,6 +6,13 @@ import type { AuthStrategy } from "payload";
 
 const STRATEGY_NAME = "supabase-session";
 const STAFF_ROLES = ["staff", "admin", "super_admin"] as const;
+const STAFF_SUBROLES = new Set([
+  "finance",
+  "mobilizer",
+  "development",
+  "hr",
+  "member_care",
+]);
 type CmsStaffRole = (typeof STAFF_ROLES)[number];
 type CmsUserDoc = {
   id: number;
@@ -98,11 +105,31 @@ export function createSupabaseAuthStrategy(
 
       const tenantId =
         typeof profile?.tenant_id === "string" ? profile.tenant_id : null;
-      const role =
+      const legacyStaffRole =
         typeof profile?.role === "string" &&
         STAFF_ROLES.includes(profile.role as CmsStaffRole)
           ? (profile.role as CmsStaffRole)
           : null;
+
+      const { data: staffMembership } = tenantId
+        ? await supabase
+            .schema("authz")
+            .from("memberships")
+            .select("staff_role")
+            .eq("user_id", supabaseUser.id)
+            .eq("tenant_id", tenantId)
+            .eq("role", "staff")
+            .eq("is_active", true)
+            .limit(1)
+            .maybeSingle()
+        : { data: null };
+
+      const role =
+        legacyStaffRole ??
+        (typeof staffMembership?.staff_role === "string" &&
+        STAFF_SUBROLES.has(staffMembership.staff_role)
+          ? "staff"
+          : null);
 
       if (!tenantId || !role) {
         return { user: null };

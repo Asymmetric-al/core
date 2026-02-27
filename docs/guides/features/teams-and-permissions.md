@@ -46,6 +46,27 @@ The Teams page (`/mc/admin/teams`) uses a modern, high-fidelity interface:
 
 The system leverages **Shadcn/UI** components for a "Vega Style" aesthetic, utilizing high-contrast **Slate/Zinc** scales for a premium feel.
 
+## 🔐 Backend authorization foundation (2026-02)
+
+Permission checks are enforced in two layers:
+
+1. **BFF route/API layer (primary)** via auth middleware + server-side role checks.
+2. **Database RLS (backup)** for tenant-scoped platform tables.
+
+### Membership storage
+
+Tenant memberships now use row-per-role storage in `authz.memberships`:
+
+- `role`: `donor | missionary | staff`
+- `staff_role`: `finance | mobilizer | development | hr | member_care` (required for `staff`)
+
+This supports one login with multiple dashboard permissions by adding multiple membership rows for the same `user_id + tenant_id`.
+
+### MVP policy
+
+For MVP, **all staff sub-roles have full Mission Control dashboard access**.
+The sub-role map is explicit in code so each sub-role can be narrowed to specific capabilities in later phases without changing route call sites.
+
 ---
 
 Built with ❤️ for Mission Control.

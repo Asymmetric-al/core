@@ -1,44 +1,39 @@
 # Working Set
 
-- Date: 2026-02-25
+- Date: 2026-02-26
 - Repo: Asymmetric-al/core
-- Goal: Integrate Payload CMS as a tenant-safe Site Studio within `apps/admin`, including dedicated `cms` schema, public rendering flow, and CI/test coverage.
+- Goal: Establish the tenant membership and permission foundation with modern Supabase-backed authorization and RLS defense-in-depth.
 - Current execution focus:
-  - Remediate exhaustive audit failures with deterministic, clean testing behavior.
-  - Add non-production E2E auth bypass mode to remove dependency on seeded demo fixtures.
-  - Stabilize Playwright reliability (`test:e2e`, `test:e2e:smoke`, `verify:e2e`) and performance checks.
-  - Eliminate formatter noise from generated media/test artifacts.
-  - Keep CI quality gates green with explicit, reproducible env requirements.
-  - Align Payload Site Studio UI to shared Maia + Zinc token system, with motion-consistent admin chrome and no hardcoded color values.
+  - Add `authz.memberships` tenant membership model (row-per-role) with staff sub-role support.
+  - Support one-login multi-dashboard access through membership-aware role resolution in auth middleware and auth context.
+  - Enforce permission boundaries at route/BFF layer first, with tenant-scoped RLS backup policies.
+  - Keep staff sub-roles fully enabled for Mission Control in MVP, with explicit capability map for later narrowing.
+  - Backfill membership rows from existing profiles and update signup trigger logic to create baseline memberships.
+  - Preserve compatibility with existing `profiles.role` admin/super-admin flows while transitioning to memberships.
 - Primary area:
-  - `apps/admin/*` (Payload runtime, routes, Site Studio UX)
-  - `packages/auth/*` (middleware protection)
-  - `supabase/migrations/*` (schema setup)
-  - `tests/*` + `playwright.config.ts` (tenant and publish flow verification)
-  - `docs/vendor/*` + runbooks
+  - `supabase/migrations/*` + `supabase/seed.sql`
+  - `packages/auth/*` (context, middleware, permission helpers)
+  - `apps/*/proxy.ts` (dashboard gate enforcement)
+  - `packages/api/src/*` (staff boundary consistency)
+  - `docs/guides/architecture/*`
 - Constraints:
-  - Keep Supabase as source of truth for identity and tenant permissions.
-  - Enforce no cross-tenant reads/writes for non-super-admin users.
-  - Ensure Payload data is isolated in Postgres `cms` schema.
-  - Maintain long-lived upstream upgrade path (subtree mirror + patch policy).
-  - Preserve existing admin shell UX and align Site Studio styling with MAIA/Zinc tokens.
+  - Never rely on client-side role checks for authorization.
+  - Keep route-layer checks as primary enforcement and RLS as backup defense.
+  - Keep membership policies index-friendly (avoid heavy policy joins).
+  - Do not break existing admin/super-admin compatibility paths.
+  - MVP simplification: all staff sub-roles can access full admin dashboard.
 - Evidence sources used:
-  - `apps/admin/app/layout.tsx`
-  - `apps/admin/app/mc-shell.tsx`
-  - `apps/admin/app/web-studio/page.tsx`
-  - `apps/admin/app/admin/page.tsx`
+  - `apps/admin/proxy.ts`
+  - `apps/donor/proxy.ts`
+  - `apps/missionary/proxy.ts`
   - `packages/auth/middleware.ts`
   - `packages/auth/context.ts`
-  - `packages/database/supabase/*`
-  - `playwright.config.ts`
-  - `supabase/schema.sql` + existing migrations
-  - `apps/admin/payload.config.ts`
-  - `apps/admin/src/cms/*`
-  - `apps/admin/app/api/cms/public/*`
-  - `apps/donor/lib/cms/client.ts`
-  - `tests/unit/cms/*`
-  - `tests/e2e/cms-*.spec.ts`
-  - `tests/e2e/upload-crop.spec.ts`
-  - `tests/e2e/demo-auth-preflight.spec.ts`
+  - `packages/auth/permissions.ts`
+  - `packages/api/src/admin/*`
+  - `packages/api/src/missionaries/metrics.ts`
+  - `supabase/migrations/20250101000000_init_schema.sql`
+  - `supabase/migrations/20260214090000_foundation_1_schema.sql`
+  - `supabase/migrations/20260216153000_demo_readonly_rls.sql`
+  - `supabase/seed.sql`
 - Tooling note:
-  - Nia MCP is unavailable in this execution environment; using repo-scoped `rg` + direct file reads as fallback.
+  - Nia/Supabase MCP resources are unavailable in this execution environment; using repo-scoped `rg` + direct file reads and migration-safe SQL patterns as fallback.

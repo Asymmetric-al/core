@@ -6,8 +6,29 @@ import {
   isE2EAuthBypassEnabled,
   parseE2EAuthCookieValue,
 } from "./e2e-auth";
+import {
+  derivePrimaryRole,
+  hasAnyRole,
+  type AuthMembership,
+} from "./permissions";
 
 import type { UserRole } from "@asym/database/types";
+
+const MEMBERSHIP_ROLES = new Set(["donor", "missionary", "staff"]);
+const STAFF_SUBROLES = new Set([
+  "finance",
+  "mobilizer",
+  "development",
+  "hr",
+  "member_care",
+]);
+
+type MembershipRow = {
+  tenant_id: string | null;
+  role: string | null;
+  staff_role: string | null;
+  is_active: boolean | null;
+};
 
 export interface AuthMiddlewareOptions {
   publicRoutes?: string[];
@@ -51,6 +72,41 @@ function isApiRoute(pathname: string) {
   return pathname === "/api" || pathname.startsWith("/api/");
 }
 
+async function loadMembershipsForTenant(
+  supabase: ReturnType<typeof createServerClient>,
+  userId: string,
+  tenantId: string | null,
+): Promise<AuthMembership[]> {
+  if (!tenantId) {
+    return [];
+  }
+
+  const { data: rows } = await supabase
+    .schema("authz")
+    .from("memberships")
+    .select("tenant_id, role, staff_role, is_active")
+    .eq("user_id", userId)
+    .eq("tenant_id", tenantId)
+    .eq("is_active", true);
+
+  return ((rows ?? []) as MembershipRow[])
+    .filter(
+      (row): row is MembershipRow & { tenant_id: string; role: string } =>
+        typeof row.tenant_id === "string" &&
+        typeof row.role === "string" &&
+        MEMBERSHIP_ROLES.has(row.role),
+    )
+    .map((row) => ({
+      tenantId: row.tenant_id,
+      role: row.role as AuthMembership["role"],
+      staffRole:
+        typeof row.staff_role === "string" && STAFF_SUBROLES.has(row.staff_role)
+          ? (row.staff_role as NonNullable<AuthMembership["staffRole"]>)
+          : null,
+      isActive: row.is_active ?? true,
+    }));
+}
+
 export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
   const publicRoutes = options.publicRoutes ?? [];
   const loginPath = options.loginPath ?? "/login";
@@ -80,11 +136,19 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     let response = NextResponse.next({ request });
     let userId: string | null = null;
     let userRole: UserRole | null = null;
+    const roleSnapshot: {
+      profileRole: UserRole | null;
+      memberships: AuthMembership[];
+    } = {
+      profileRole: null,
+      memberships: [],
+    };
 
     if (resolveSession) {
       const session = await resolveSession(request);
       userId = session.userId;
       userRole = session.role;
+      roleSnapshot.profileRole = session.role;
     } else {
       const e2eSession = isE2EAuthBypassEnabled()
         ? parseE2EAuthCookieValue(
@@ -95,6 +159,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       if (e2eSession) {
         userId = e2eSession.userId;
         userRole = e2eSession.role;
+        roleSnapshot.profileRole = e2eSession.role;
       } else {
         const supabaseURL = process.env.NEXT_PUBLIC_SUPABASE_URL;
         const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -147,11 +212,20 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
         if (userId && allowedRoles?.length) {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("role")
+            .select("tenant_id, role")
             .eq("user_id", userId)
             .single();
 
-          userRole = (profile?.role as UserRole | null) ?? null;
+          roleSnapshot.profileRole =
+            typeof profile?.role === "string"
+              ? (profile.role as UserRole)
+              : null;
+          roleSnapshot.memberships = await loadMembershipsForTenant(
+            supabase,
+            userId,
+            typeof profile?.tenant_id === "string" ? profile.tenant_id : null,
+          );
+          userRole = derivePrimaryRole(roleSnapshot);
         }
       }
     }
@@ -169,6 +243,13 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     }
 
     if (isAuthRoute) {
+      if (
+        allowedRoles?.length &&
+        (!userRole || !hasAnyRole(roleSnapshot, allowedRoles))
+      ) {
+        return response;
+      }
+
       const url = request.nextUrl.clone();
       url.pathname = redirectAuthenticatedTo;
       url.search = "";
@@ -176,7 +257,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     }
 
     if (isProtectedRoute && allowedRoles?.length) {
-      if (!userRole || !allowedRoles.includes(userRole)) {
+      if (!userRole || !hasAnyRole(roleSnapshot, allowedRoles)) {
         if (apiRoute) {
           return createApiAuthError(403, "Forbidden");
         }

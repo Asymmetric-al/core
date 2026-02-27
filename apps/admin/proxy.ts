@@ -11,6 +11,7 @@ export const proxy = createAuthMiddleware({
   ],
   loginPath: "/login",
   redirectAuthenticatedTo: "/",
+  unauthorizedRedirectTo: "/login",
   allowedRoles: ["staff", "admin", "super_admin"],
 });
 
