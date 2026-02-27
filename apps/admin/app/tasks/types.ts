@@ -98,7 +98,7 @@ export const TASK_PRIORITIES: {
     value: "low",
     label: "Low",
     color:
-      "bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-950/50 dark:text-slate-400",
+      "bg-zinc-50 text-zinc-600 border-zinc-200 dark:bg-zinc-950/50 dark:text-zinc-400",
   },
 ];
 
@@ -112,8 +112,8 @@ export const TASK_STATUSES: {
     value: "todo",
     label: "To Do",
     color:
-      "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-950/50 dark:text-slate-400",
-    iconColor: "bg-slate-50 dark:bg-slate-950/50",
+      "bg-zinc-50 text-zinc-700 border-zinc-200 dark:bg-zinc-950/50 dark:text-zinc-400",
+    iconColor: "bg-zinc-50 dark:bg-zinc-950/50",
   },
   {
     value: "in_progress",
