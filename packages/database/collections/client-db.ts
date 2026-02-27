@@ -34,13 +34,10 @@ interface ReadOnlyCollectionConfig<TSchema extends StandardSchema<any>> {
   schema: TSchema;
 }
 
-let supabaseClient: SupabaseClient | null = null;
-
 function getSupabase(): SupabaseClient {
-  if (!supabaseClient) {
-    supabaseClient = createClient();
-  }
-  return supabaseClient;
+  // Delegate client lifecycle to the shared browser factory.
+  // @supabase/ssr keeps browser auth/session state in sync for the active client.
+  return createClient();
 }
 
 async function fetchTableRows<TItem extends object>(
@@ -97,6 +94,7 @@ const postSchema = z.object({
   media: z.array(mediaItemSchema),
   like_count: z.number().int(),
   prayer_count: z.number().int(),
+  fires_count: z.number().int(),
   comment_count: z.number().int(),
   created_at: z.string().min(1),
   updated_at: z.string().min(1),
@@ -134,6 +132,7 @@ const userRoleSchema = z.enum([
 
 const donationStatusSchema = z.enum([
   "pending",
+  "processing",
   "completed",
   "failed",
   "refunded",

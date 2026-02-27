@@ -22,6 +22,7 @@
     "./motion": "./motion.tsx",
     "./responsive": "./responsive.ts",
     "./audit/logger": "./audit/logger.ts",
+    "./posts/reaction-idempotency": "./posts/reaction-idempotency.ts",
     "./hooks": "./hooks/index.ts",
     "./hooks/use-mobile": "./hooks/use-mobile.ts",
     "./hooks/use-auth": "./hooks/use-auth.ts",

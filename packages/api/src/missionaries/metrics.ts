@@ -16,13 +16,22 @@ type PendingCookie = {
 };
 
 const ALLOWED_ROLES = new Set(["admin", "missionary", "super_admin"]);
+const PERMISSION_STATUS_CODES = new Set([401, 403]);
 const PERMISSION_ERROR_CODES = new Set([
   "42501",
   "PGRST301",
   "PGRST302",
-  "PGRST401",
-  "PGRST403",
+  "PGRST303",
 ]);
+
+type PermissionErrorLike = {
+  code?: string;
+  message?: string;
+  status?: number;
+  response?: {
+    status?: number;
+  };
+};
 
 function normalizeCookieOptions(options?: PendingCookie["options"]) {
   if (!options) return undefined;
@@ -49,8 +58,20 @@ function parseCookieHeader(cookieHeader: string | null) {
     });
 }
 
-function isPermissionError(error: { code?: string; message?: string } | null) {
+function isPermissionError(error: PermissionErrorLike | null) {
   if (!error) return false;
+  if (
+    typeof error.status === "number" &&
+    PERMISSION_STATUS_CODES.has(error.status)
+  ) {
+    return true;
+  }
+  if (
+    typeof error.response?.status === "number" &&
+    PERMISSION_STATUS_CODES.has(error.response.status)
+  ) {
+    return true;
+  }
   if (error.code && PERMISSION_ERROR_CODES.has(error.code)) return true;
   const message = error.message?.toLowerCase() ?? "";
   return (
@@ -115,15 +136,15 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  try {
-    const { supabase, pendingCookies } = createAuthClient(request);
-    if (!supabase) {
-      return NextResponse.json(
-        { error: "Supabase client unavailable." },
-        { status: 503 },
-      );
-    }
+  const { supabase, pendingCookies } = createAuthClient(request);
+  if (!supabase) {
+    return NextResponse.json(
+      { error: "Supabase client unavailable." },
+      { status: 503 },
+    );
+  }
 
+  try {
     const { id: missionaryId } = await params;
 
     if (!missionaryId) {
@@ -236,9 +257,10 @@ export async function GET(
     );
   } catch (e) {
     console.error("API error:", e);
-    return NextResponse.json(
+    return jsonWithCookies(
       { error: "Internal server error" },
       { status: 500 },
+      pendingCookies,
     );
   }
 }

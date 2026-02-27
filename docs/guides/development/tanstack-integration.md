@@ -4,16 +4,15 @@ This guide documents the project-standard integration for TanStack Query v5, Tab
 
 ## Version Matrix
 
-| Package                          | Version    | Primary workspace(s)               | Role                      |
-| -------------------------------- | ---------- | ---------------------------------- | ------------------------- |
-| `@tanstack/react-query`          | `^5.90.21` | `packages/database`, apps          | Query state and caching   |
-| `@tanstack/react-query-devtools` | `^5.91.3`  | `packages/database`                | Query debugging           |
-| `@tanstack/react-table`          | `^8.21.3`  | `packages/ui`, apps                | Headless table state      |
-| `@tanstack/react-db`             | `^0.1.72`  | `packages/database`, `packages/ui` | React DB bindings         |
-| `@tanstack/query-db-collection`  | `^1.0.25`  | `packages/database`                | Query-backed collections  |
-| `@tanstack/db`                   | `^0.5.28`  | `packages/database`                | DB runtime                |
-| `@tanstack/react-virtual`        | `^3.13.19` | `packages/ui`                      | Row/list virtualization   |
-| `zod`                            | `^4.3.6`   | apps + shared packages             | Runtime schema validation |
+| Package                         | Version    | Primary workspace(s)               | Role                      |
+| ------------------------------- | ---------- | ---------------------------------- | ------------------------- |
+| `@tanstack/react-query`         | `^5.90.21` | `packages/database`, apps          | Query state and caching   |
+| `@tanstack/react-table`         | `^8.21.3`  | `packages/ui`, apps                | Headless table state      |
+| `@tanstack/react-db`            | `^0.1.72`  | `packages/database`, `packages/ui` | React DB bindings         |
+| `@tanstack/query-db-collection` | `^1.0.25`  | `packages/database`                | Query-backed collections  |
+| `@tanstack/db`                  | `^0.5.28`  | `packages/database`                | DB runtime                |
+| `@tanstack/react-virtual`       | `^3.13.19` | `packages/ui`                      | Row/list virtualization   |
+| `zod`                           | `^4.3.6`   | apps + shared packages             | Runtime schema validation |
 
 ## Architecture Boundaries
 
@@ -51,7 +50,9 @@ export default function RootLayout({
 - Query key must include that state.
 - For server-mode tables, use `manualPagination`, `manualSorting`, and `manualFiltering`.
 - Prefer `placeholderData: keepPreviousData` in Query v5 for smoother transitions.
-- Keep `rowCount`/`pageCount` accurate from API responses.
+- Prefer `rowCount` for server pagination totals; TanStack Table derives `pageCount` from `rowCount` + page size.
+- Use `pageCount` only when `rowCount` is unavailable.
+- Shared `DataTable`/`DataTableResponsive` treat `rowCount` as authoritative. If both are passed, `pageCount` is ignored and a dev warning is logged.
 
 ```tsx
 const query = useQuery({
@@ -118,6 +119,14 @@ type VirtualizationConfig = {
 
 Use `virtualization` for new code. Legacy fields are still accepted for compatibility.
 
+### Toggle Semantics (TanStack Virtual v3)
+
+- `virtualization.enabled` maps directly to TanStack Virtual's `enabled` option.
+- Keep `count` as the real row/item length and toggle behavior with `enabled`; do not disable by forcing `count` to `0`.
+- `enabled: false` resets virtualizer state (observers, scroll offset, and measurement cache).
+- Keep the same `scrollElementRef` mounted regardless of `enabled`; avoid conditional ref attach/detach.
+- Treat virtualization mode as stable for one component mount. If toggled at runtime, expect scroll position reset.
+
 ### Table/Grid Usage
 
 `DataTable`, `DataTableResponsive`, and `DataGrid` all consume the shared resolver/hook.
@@ -164,6 +173,18 @@ const { virtualizer, virtualItems, totalSize, isEnabled } =
   - Mutations: call `revalidateTag`/`updateTag` and invalidate Query keys when needed.
 - Do not call request-bound APIs (`cookies`, `headers`, etc.) inside cached scopes.
 
+## Counter Mutation Consistency Pattern
+
+When a mutation writes a reaction row and updates an aggregate counter via RPC, treat it as a two-step flow that must remain logically atomic for end users:
+
+1. Write the relation row (`post_likes` / `post_prayers` / `post_fires`)
+2. Update aggregate counter RPC (`increment_*` / `decrement_*`)
+3. If step 2 fails, execute a compensating write:
+   - POST-style add flow: remove inserted relation row
+   - DELETE-style remove flow: restore deleted relation row
+
+This preserves count consistency without requiring route-level SQL transactions and keeps behavior aligned across REST and GraphQL mutation paths.
+
 ## Quality Checklist
 
 - [ ] Query keys include table/list state that impacts data.
@@ -172,4 +193,5 @@ const { virtualizer, virtualItems, totalSize, isEnabled } =
 - [ ] New virtualization uses `virtualization` object config.
 - [ ] `getItemKey` is stable and uses row/item IDs.
 - [ ] Mutations trigger correct cache invalidation path (Query + Next cache tags).
+- [ ] Counter RPC mutation flows include compensating writes on partial failure.
 - [ ] Lint/typecheck/unit tests pass on affected workspaces.

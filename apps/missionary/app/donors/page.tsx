@@ -1174,16 +1174,7 @@ function useDonorsPageLayout() {
     sortAsc,
   ]);
 
-  const donorListViewportRef = React.useRef<HTMLElement | null>(null);
-  const setDonorListViewportRoot = React.useCallback(
-    (node: HTMLDivElement | null) => {
-      donorListViewportRef.current =
-        node?.querySelector<HTMLElement>(
-          '[data-slot="scroll-area-viewport"]',
-        ) ?? null;
-    },
-    [],
-  );
+  const donorListViewportRef = React.useRef<HTMLDivElement | null>(null);
   const shouldVirtualizeDonorList = filteredDonors.length > 30;
   const getDonorVirtualItemKey = React.useCallback(
     (index: number) => filteredDonors[index]?.id ?? index,
@@ -1796,8 +1787,8 @@ function useDonorsPageLayout() {
               </AnimatePresence>
             </div>
 
-            <div ref={setDonorListViewportRoot} className="flex-1 min-h-0">
-              <ScrollArea className="h-full">
+            <div className="flex-1 min-h-0">
+              <ScrollArea className="h-full" viewportRef={donorListViewportRef}>
                 {error ? (
                   <ErrorState message={error} onRetry={fetchDonors} />
                 ) : isLoading ? (
@@ -1862,9 +1853,7 @@ function useDonorsPageLayout() {
                             transform: `translateY(${virtualItem.start}px)`,
                           }}
                         >
-                          <motion.div
-                            whileHover={{ scale: 1.01 }}
-                            whileTap={{ scale: 0.99 }}
+                          <div
                             onClick={() => setSelectedDonorId(donor.id)}
                             className={cn(
                               "group flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-colors border",
@@ -1894,10 +1883,7 @@ function useDonorsPageLayout() {
                                   {donor.initials}
                                 </AvatarFallback>
                               </Avatar>
-                              <motion.div
-                                initial={{ scale: 0.95, opacity: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={springTransition}
+                              <div
                                 className={cn(
                                   "absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2",
                                   selectedDonorId === donor.id
@@ -1921,12 +1907,7 @@ function useDonorsPageLayout() {
                                   {donor.name}
                                 </span>
                                 {donor.has_active_pledge && (
-                                  <motion.div
-                                    animate={{ scale: [1, 1.2, 1] }}
-                                    transition={{
-                                      duration: 2,
-                                      repeat: Infinity,
-                                    }}
+                                  <div
                                     className={cn(
                                       "h-2 w-2 rounded-full shrink-0 ml-1",
                                       selectedDonorId === donor.id
@@ -1960,12 +1941,7 @@ function useDonorsPageLayout() {
                                 </span>
                               </div>
                             </div>
-                            <motion.div
-                              animate={{
-                                x: selectedDonorId === donor.id ? 0 : -2,
-                              }}
-                              whileHover={{ x: 2 }}
-                            >
+                            <div>
                               <ChevronRight
                                 className={cn(
                                   "h-4 w-4 shrink-0",
@@ -1974,8 +1950,8 @@ function useDonorsPageLayout() {
                                     : "text-zinc-300",
                                 )}
                               />
-                            </motion.div>
-                          </motion.div>
+                            </div>
+                          </div>
                         </div>
                       );
                     })}

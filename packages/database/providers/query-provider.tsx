@@ -8,13 +8,27 @@ import {
 import { type ReactNode } from "react";
 
 const NON_RETRIABLE_STATUS_CODES = new Set([401, 403]);
-// Supabase/PostgREST query errors expose database and PostgREST codes via `error.code`.
+// `throwOnError()` from postgrest-js throws PostgrestError with `code` but no `status`.
+// Keep explicit code mapping for auth/perms classification in retry logic.
 const STATUS_BY_ERROR_CODE: Record<string, number> = {
   "42501": 403, // Postgres insufficient_privilege
-  PGRST301: 401,
-  PGRST302: 401,
-  PGRST303: 401,
 };
+const POSTGREST_AUTH_ERROR_CODES = new Set([
+  "PGRST301",
+  "PGRST302",
+  "PGRST303",
+]);
+
+function isHttpErrorStatus(status: number): boolean {
+  return Number.isInteger(status) && status >= 400 && status <= 599;
+}
+
+function getStatusForErrorCode(code: string): number | undefined {
+  if (POSTGREST_AUTH_ERROR_CODES.has(code)) {
+    return 401;
+  }
+  return STATUS_BY_ERROR_CODE[code];
+}
 
 function getErrorStatus(error: unknown): number | undefined {
   if (typeof error !== "object" || error === null) {
@@ -24,7 +38,7 @@ function getErrorStatus(error: unknown): number | undefined {
   if (
     "status" in error &&
     typeof error.status === "number" &&
-    Number.isInteger(error.status)
+    isHttpErrorStatus(error.status)
   ) {
     return error.status;
   }
@@ -35,16 +49,28 @@ function getErrorStatus(error: unknown): number | undefined {
     error.response !== null &&
     "status" in error.response &&
     typeof error.response.status === "number" &&
-    Number.isInteger(error.response.status)
+    isHttpErrorStatus(error.response.status)
   ) {
     return error.response.status;
   }
 
   if ("code" in error && typeof error.code === "string") {
-    return STATUS_BY_ERROR_CODE[error.code];
+    return getStatusForErrorCode(error.code);
   }
 
-  if ("cause" in error) {
+  if (
+    "error" in error &&
+    typeof error.error === "object" &&
+    error.error !== null &&
+    error.error !== error
+  ) {
+    const nestedErrorStatus = getErrorStatus(error.error);
+    if (nestedErrorStatus !== undefined) {
+      return nestedErrorStatus;
+    }
+  }
+
+  if ("cause" in error && error.cause !== error) {
     return getErrorStatus(error.cause);
   }
 

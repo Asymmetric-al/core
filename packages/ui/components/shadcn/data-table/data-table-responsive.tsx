@@ -67,7 +67,15 @@ interface DataTableResponsiveProps<TData, TValue> {
     mobileBreakpoint?: number;
   };
   isLoading?: boolean;
+  /**
+   * Total pages for manual server-side pagination when total rows are unknown.
+   * Ignored when `rowCount` is provided.
+   */
   pageCount?: number;
+  /**
+   * Authoritative total rows for manual server-side pagination.
+   * Takes precedence over `pageCount` and is used to derive page count.
+   */
   rowCount?: number;
   onPaginationChange?: (pagination: PaginationState) => void;
   onSortingChange?: (sorting: SortingState) => void;
@@ -335,7 +343,7 @@ function DataTableResponsiveTableView<TData>({
       )}
     >
       <div
-        ref={isVirtualized ? tableContainerRef : undefined}
+        ref={tableContainerRef}
         className={cn("overflow-x-auto", isVirtualized && "overflow-y-auto")}
         style={
           isVirtualized
@@ -582,7 +590,7 @@ export function DataTableResponsive<TData, TValue>({
       pageCount != null
     ) {
       console.warn(
-        "[asym/ui] DataTableResponsive received both rowCount and pageCount. pageCount is ignored when rowCount is provided.",
+        "[asym/ui] DataTableResponsive received both rowCount and pageCount. pageCount is ignored because rowCount is authoritative. Pass only one of these props.",
       );
     }
   }, [pageCount, rowCount]);

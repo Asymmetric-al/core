@@ -50,7 +50,15 @@ interface DataTableProps<TData, TValue> {
   searchPlaceholder?: string;
   config?: DataTableConfig;
   isLoading?: boolean;
+  /**
+   * Total pages for manual server-side pagination when total rows are unknown.
+   * Ignored when `rowCount` is provided.
+   */
   pageCount?: number;
+  /**
+   * Authoritative total rows for manual server-side pagination.
+   * Takes precedence over `pageCount` and is used to derive page count.
+   */
   rowCount?: number;
   onPaginationChange?: (pagination: PaginationState) => void;
   onSortingChange?: (sorting: SortingState) => void;
@@ -180,7 +188,7 @@ export function DataTable<TData, TValue>({
       pageCount != null
     ) {
       console.warn(
-        "[asym/ui] DataTable received both rowCount and pageCount. pageCount is ignored when rowCount is provided.",
+        "[asym/ui] DataTable received both rowCount and pageCount. pageCount is ignored because rowCount is authoritative. Pass only one of these props.",
       );
     }
   }, [pageCount, rowCount]);
@@ -333,7 +341,7 @@ export function DataTable<TData, TValue>({
           )}
         >
           <div
-            ref={isVirtualized ? tableContainerRef : undefined}
+            ref={tableContainerRef}
             className={cn(isVirtualized && "overflow-y-auto")}
             style={
               isVirtualized

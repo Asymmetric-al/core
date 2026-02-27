@@ -42,6 +42,38 @@ export const DEFAULT_VIRTUALIZATION_DEFAULTS: VirtualizationDefaults = {
   containerHeight: 640,
 };
 
+function getOverlappingVirtualizationOptions(
+  virtualization?: VirtualizationConfig,
+  legacy?: VirtualizationLegacyConfig,
+): string[] {
+  if (!virtualization || !legacy) {
+    return [];
+  }
+
+  const overlaps: string[] = [];
+
+  if (virtualization.enabled != null && legacy.enabled != null) {
+    overlaps.push("enabled");
+  }
+  if (virtualization.estimateSize != null && legacy.estimateSize != null) {
+    overlaps.push("estimateSize");
+  }
+  if (virtualization.overscan != null && legacy.overscan != null) {
+    overlaps.push("overscan");
+  }
+  if (
+    virtualization.containerHeight != null &&
+    legacy.containerHeight != null
+  ) {
+    overlaps.push("containerHeight");
+  }
+  if (virtualization.getItemKey != null && legacy.getItemKey != null) {
+    overlaps.push("getItemKey");
+  }
+
+  return overlaps;
+}
+
 export function resolveVirtualizationConfig(
   defaults: VirtualizationDefaults,
   virtualization?: VirtualizationConfig,
@@ -116,9 +148,35 @@ export function useDataTableVirtualization({
     () => resolveVirtualizationConfig(resolvedDefaults, virtualization, legacy),
     [resolvedDefaults, virtualization, legacy],
   );
+  const overlappingOptions = React.useMemo(
+    () => getOverlappingVirtualizationOptions(virtualization, legacy),
+    [legacy, virtualization],
+  );
+  const warnedOverlapKeyRef = React.useRef<string | null>(null);
+
+  React.useEffect(() => {
+    if (
+      process.env.NODE_ENV === "production" ||
+      overlappingOptions.length === 0
+    ) {
+      return;
+    }
+
+    const overlapKey = overlappingOptions.join(",");
+    if (warnedOverlapKeyRef.current === overlapKey) {
+      return;
+    }
+
+    warnedOverlapKeyRef.current = overlapKey;
+
+    console.warn(
+      `[asym/ui] useDataTableVirtualization received overlapping modern and legacy virtualization options (${overlapKey}). Values from virtualization.* take precedence over legacy fields.`,
+    );
+  }, [overlappingOptions]);
 
   const virtualizer = useVirtualizer({
-    // Keep hook usage unconditional; rely on `enabled` to toggle observers/state.
+    // TanStack Virtual v3 supports `enabled`; keep real item count and toggle
+    // observers/state through this flag instead of forcing `count` to 0.
     count,
     enabled: config.enabled,
     getScrollElement: () => scrollElementRef.current,

@@ -4,6 +4,10 @@ import {
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
+import {
+  fetchUserPostInteractions,
+  toUserPostInteractionSets,
+} from "@asym/database/supabase/post-interactions";
 import { cacheLife, cacheTag } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -37,7 +41,6 @@ async function getCachedFeedPosts({
   "use cache";
 
   cacheLife("minutes");
-  cacheTag(CACHE_TAGS.posts);
   cacheTag(CACHE_TAGS.tenantPosts(tenantId));
 
   // `use cache` stores query results; admin client remains a module-level singleton.
@@ -70,9 +73,12 @@ async function getCachedFeedPosts({
 
 export async function GET(request: NextRequest) {
   try {
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
+    const adminClientState = getAdminClient();
+    if (!adminClientState.client) {
+      return NextResponse.json(
+        { error: adminClientState.error },
+        { status: 503 },
+      );
     }
 
     const auth = await getAuthContext();
@@ -98,39 +104,20 @@ export async function GET(request: NextRequest) {
     const postIds = posts.map((post: { id: string }) => post.id);
     if (postIds.length === 0) return NextResponse.json({ posts: [] });
 
-    const { data: likes } = await supabaseAdmin
-      .from("post_likes")
-      .select("post_id")
-      .in("post_id", postIds)
-      .eq("user_id", ctx.userId);
-
-    const { data: prayers } = await supabaseAdmin
-      .from("post_prayers")
-      .select("post_id")
-      .in("post_id", postIds)
-      .eq("user_id", ctx.userId);
-
-    const { data: fires } = await supabaseAdmin
-      .from("post_fires")
-      .select("post_id")
-      .in("post_id", postIds)
-      .eq("user_id", ctx.userId);
-
-    const likedSet = new Set(
-      (likes || []).map((l: { post_id: string }) => l.post_id),
+    const interactionRows = await fetchUserPostInteractions(
+      adminClientState.client,
+      ctx.userId,
+      postIds,
     );
-    const prayedSet = new Set(
-      (prayers || []).map((p: { post_id: string }) => p.post_id),
-    );
-    const firedSet = new Set(
-      (fires || []).map((f: { post_id: string }) => f.post_id),
-    );
+
+    const { likedPostIds, prayedPostIds, firedPostIds } =
+      toUserPostInteractionSets(interactionRows);
 
     const postsWithStatus = posts.map((post: { id: string }) => ({
       ...post,
-      user_liked: likedSet.has(post.id),
-      user_prayed: prayedSet.has(post.id),
-      user_fired: firedSet.has(post.id),
+      user_liked: likedPostIds.has(post.id),
+      user_prayed: prayedPostIds.has(post.id),
+      user_fired: firedPostIds.has(post.id),
     }));
 
     return NextResponse.json({ posts: postsWithStatus });

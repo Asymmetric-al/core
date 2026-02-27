@@ -1,68 +1,84 @@
 import { createClient } from "@asym/database/supabase/server";
-import { revalidateTag } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
 
-import { CACHE_TAGS } from "../shared/cache-tags";
+import {
+  revalidatePostReactionTags,
+  resolveReactionRouteContext,
+} from "./reaction-route-utils";
+import { ApiHttpError, toErrorResponse } from "../shared/http-errors";
 
 export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ postId: string }> },
 ) {
-  const supabase = await createClient();
-  const { postId } = await params;
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const supabase = await createClient();
+    const { postId, userId, tenantId } = await resolveReactionRouteContext(
+      supabase,
+      params,
+    );
 
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+    const { data, error } = await supabase.rpc("atomic_like_post", {
+      p_post_id: postId,
+      p_user_id: userId,
+      p_tenant_id: tenantId,
+    });
 
-  const { error: likeError } = await supabase
-    .from("post_likes")
-    .insert({ post_id: postId, user_id: user.id });
-
-  if (likeError) {
-    if (likeError.code === "23505") {
-      return NextResponse.json({ error: "Already liked" }, { status: 409 });
+    if (error) {
+      if (error.code === "P0002") {
+        throw new ApiHttpError(404, "Post not found");
+      }
+      throw new ApiHttpError(500, "Failed to register like");
     }
-    return NextResponse.json({ error: likeError.message }, { status: 500 });
+
+    const result = (data ?? null) as { applied?: boolean } | null;
+    if (result?.applied) {
+      revalidatePostReactionTags({ postId, tenantId });
+    }
+
+    return NextResponse.json({
+      success: true,
+      applied: Boolean(result?.applied),
+    });
+  } catch (error) {
+    return toErrorResponse(error, "Failed to like post");
   }
-
-  await supabase.rpc("increment_post_like_count", { post_id: postId });
-  revalidateTag(CACHE_TAGS.posts, "max");
-  revalidateTag(CACHE_TAGS.post(postId), "max");
-
-  return NextResponse.json({ success: true });
 }
 
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ postId: string }> },
 ) {
-  const supabase = await createClient();
-  const { postId } = await params;
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const supabase = await createClient();
+    const { postId, userId, tenantId } = await resolveReactionRouteContext(
+      supabase,
+      params,
+    );
 
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { data, error } = await supabase.rpc("atomic_unlike_post", {
+      p_post_id: postId,
+      p_user_id: userId,
+      p_tenant_id: tenantId,
+    });
+
+    if (error) {
+      if (error.code === "P0002") {
+        throw new ApiHttpError(404, "Post not found");
+      }
+      throw new ApiHttpError(500, "Failed to remove like");
+    }
+
+    const result = (data ?? null) as { applied?: boolean } | null;
+    if (result?.applied) {
+      revalidatePostReactionTags({ postId, tenantId });
+    }
+
+    return NextResponse.json({
+      success: true,
+      applied: Boolean(result?.applied),
+    });
+  } catch (error) {
+    return toErrorResponse(error, "Failed to unlike post");
   }
-
-  const { error } = await supabase
-    .from("post_likes")
-    .delete()
-    .eq("post_id", postId)
-    .eq("user_id", user.id);
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  await supabase.rpc("decrement_post_like_count", { post_id: postId });
-  revalidateTag(CACHE_TAGS.posts, "max");
-  revalidateTag(CACHE_TAGS.post(postId), "max");
-
-  return NextResponse.json({ success: true });
 }

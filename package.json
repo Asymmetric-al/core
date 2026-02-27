@@ -56,6 +56,7 @@
     "verify": "node scripts/verify/index.mjs",
     "lighthouse": "lhci autorun",
     "generate:icons": "node scripts/generate-icons.js",
+    "shadcn:uikit:add": "bun scripts/shadcn/add-shadcnuikit.ts",
     "setup": "./scripts/setup",
     "setup:verify": "node scripts/setup-verify.mjs",
     "clean": "turbo run clean && rm -rf node_modules .turbo",

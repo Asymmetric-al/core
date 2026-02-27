@@ -718,10 +718,13 @@ function HistoryTransactionsCard({
       </div>
 
       <div
-        className={cn(
-          "flex-1 min-h-[400px]",
-          !isVirtualized && "overflow-y-auto",
-        )}
+        ref={scrollContainerRef}
+        className="flex-1 min-h-[400px] overflow-y-auto"
+        style={
+          isVirtualized
+            ? { maxHeight: resolvedVirtualization.containerHeight }
+            : undefined
+        }
       >
         {filteredTransactions.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-zinc-400">
@@ -737,39 +740,33 @@ function HistoryTransactionsCard({
           </div>
         ) : isVirtualized ? (
           <div
-            ref={scrollContainerRef}
-            className="flex-1 overflow-y-auto min-h-[400px]"
-            style={{ maxHeight: resolvedVirtualization.containerHeight }}
+            style={{
+              height: totalSize,
+              position: "relative",
+            }}
           >
-            <div
-              style={{
-                height: totalSize,
-                position: "relative",
-              }}
-            >
-              {virtualItems.map((virtualItem) => {
-                const tx = filteredTransactions[virtualItem.index];
-                if (!tx) return null;
+            {virtualItems.map((virtualItem) => {
+              const tx = filteredTransactions[virtualItem.index];
+              if (!tx) return null;
 
-                return (
+              return (
+                <div
+                  key={tx.id}
+                  className="absolute left-0 top-0 w-full"
+                  style={{
+                    transform: `translateY(${virtualItem.start}px)`,
+                  }}
+                >
                   <div
-                    key={tx.id}
-                    className="absolute left-0 top-0 w-full"
-                    style={{
-                      transform: `translateY(${virtualItem.start}px)`,
-                    }}
+                    data-index={virtualItem.index}
+                    ref={virtualizer.measureElement}
+                    className="group bg-white hover:bg-zinc-50/50 transition-colors p-4 md:p-0 md:h-16 md:grid md:grid-cols-12 md:gap-4 md:items-center relative border-b border-zinc-50"
                   >
-                    <div
-                      data-index={virtualItem.index}
-                      ref={virtualizer.measureElement}
-                      className="group bg-white hover:bg-zinc-50/50 transition-colors p-4 md:p-0 md:h-16 md:grid md:grid-cols-12 md:gap-4 md:items-center relative border-b border-zinc-50"
-                    >
-                      {renderTransactionContent(tx)}
-                    </div>
+                    {renderTransactionContent(tx)}
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <motion.div
@@ -831,10 +828,12 @@ export default function DonorHistoryPage() {
   }, []);
 
   const filteredTransactions = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
     return TRANSACTIONS.filter((t) => {
       const matchesSearch =
-        t.recipient.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.id.toLowerCase().includes(searchTerm.toLowerCase());
+        normalizedSearch.length === 0 ||
+        t.recipient.toLowerCase().includes(normalizedSearch) ||
+        t.id.toLowerCase().includes(normalizedSearch);
       const matchesYear =
         new Date(t.date).getFullYear().toString() === yearFilter;
       const matchesType = typeFilter === "All" || t.type === typeFilter;

@@ -57,6 +57,11 @@ export interface DataTableRowAction<TData> {
 }
 
 export interface VirtualizationConfig {
+  /**
+   * Toggles TanStack Virtual observers for this instance.
+   * Runtime changes reset virtualizer state (including scroll offset and
+   * measurements), so treat this as stable for a mounted component.
+   */
   enabled?: boolean;
   estimateSize?: number;
   overscan?: number;

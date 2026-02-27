@@ -47,6 +47,14 @@ The shared resolver keeps old props working:
 
 Use legacy fields only when touching old call sites gradually. New call sites should use `virtualization`.
 
+## Virtualizer Toggle Semantics (v3)
+
+- `virtualization.enabled` maps to TanStack Virtual's `enabled` option in `@tanstack/react-virtual@^3.13.19`.
+- Keep `count` equal to the real item length. Disable virtualization with `enabled: false` rather than forcing `count` to `0`.
+- `enabled: false` resets virtualizer state (observers, scroll offset, and measurement cache).
+- Keep the same scroll container ref mounted regardless of `enabled` state; avoid conditional ref attach/detach.
+- Treat virtualization mode as stable for the lifecycle of a mounted component. If runtime toggles are required, expect scroll position reset.
+
 ## Patterns by Surface
 
 ### 1) Data Table / Responsive Table
@@ -80,6 +88,7 @@ const getRowKey = React.useCallback(
 - Keep `estimateSize` realistic to reduce jump during first measurements.
 - Use `overscan` in moderate range (usually `6-12`).
 - Disable complex entrance animations when virtualized.
+- Avoid per-row infinite animations in virtualized branches; reserve richer motion for non-virtualized rendering paths.
 - Avoid creating new `columns` arrays and render callbacks on every render.
 
 ## Do / Don’t
