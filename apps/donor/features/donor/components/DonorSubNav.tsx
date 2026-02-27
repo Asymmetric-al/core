@@ -12,7 +12,7 @@ import {
   LogOut,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useTransition } from "react";
 
 const navItems = [
@@ -34,7 +34,6 @@ const navItems = [
 
 export function DonorSubNav() {
   const pathname = usePathname();
-  const router = useRouter();
   const [isSigningOut, startSigningOut] = useTransition();
 
   const handleSignOut = () => {
@@ -43,8 +42,7 @@ export function DonorSubNav() {
         const supabase = createBrowserClient();
         await fetch("/api/auth/signout", { method: "POST" }).catch(() => null);
         void supabase.auth.signOut();
-        router.replace("/login");
-        router.refresh();
+        window.location.href = "/login";
       })();
     });
   };
@@ -78,6 +76,7 @@ export function DonorSubNav() {
           })}
           <button
             type="button"
+            data-testid="auth-signout"
             onClick={handleSignOut}
             disabled={isSigningOut}
             className="ml-auto flex items-center gap-2 rounded-lg px-4 py-3 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap text-zinc-500 transition-all hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-60"

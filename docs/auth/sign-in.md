@@ -104,4 +104,6 @@ On mismatch, users are redirected to `/no-access`.
 
 - `next` redirect values are sanitized with `safeNextParam` to block open redirects.
 - Auth callback route (`/auth/callback`) is implemented for PKCE-ready code exchange.
-- TODO: standardize shared sign-out UX docs for all apps (`auth.signOut` + redirect `/login`).
+- Public self-registration is least-privilege: role assignment is enforced server-side to `donor`.
+- Privileged roles (`admin`, `staff`, etc.) must be assigned through trusted admin/invite workflows.
+- Sign-out is completed server-side through `/api/auth/signout` before client navigation to `/login`.

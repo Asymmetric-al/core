@@ -12,7 +12,6 @@ import { Separator } from "@asym/ui/components/shadcn/separator";
 import { SidebarTrigger } from "@asym/ui/components/shadcn/sidebar";
 import { Moon, Sun, Bell, LifeBuoy, LogOut } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useTransition } from "react";
 
@@ -22,7 +21,6 @@ interface AppHeaderProps {
 
 export function AppHeader({ title }: AppHeaderProps) {
   const { setTheme } = useTheme();
-  const router = useRouter();
   const [isSigningOut, startSigningOut] = useTransition();
 
   const handleSignOut = () => {
@@ -31,8 +29,7 @@ export function AppHeader({ title }: AppHeaderProps) {
         const supabase = createBrowserClient();
         await fetch("/api/auth/signout", { method: "POST" }).catch(() => null);
         void supabase.auth.signOut();
-        router.replace("/login");
-        router.refresh();
+        window.location.href = "/login";
       })();
     });
   };
@@ -102,6 +99,7 @@ export function AppHeader({ title }: AppHeaderProps) {
         <Button
           variant="ghost"
           size="sm"
+          data-testid="auth-signout"
           className="h-8 px-2 text-xs"
           onClick={handleSignOut}
           disabled={isSigningOut}

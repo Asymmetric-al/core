@@ -78,11 +78,6 @@ export function RegisterScreen({
                 data: {
                   first_name: firstName.trim(),
                   last_name: lastName.trim(),
-                  /**
-                   * Security note: self-service registration is donor-only.
-                   * Privileged roles must be assigned server-side.
-                   */
-                  role: "donor",
                 },
               },
             });
