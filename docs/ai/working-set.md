@@ -23,3 +23,14 @@
   - Next.js docs from `.next-docs` (`proxy`, `authentication`)
 - Tooling note:
   - Nia MCP unavailable in this runtime; fallback used repo-scoped file reads + `rg`.
+
+## Follow-up hardening execution notes (2026-02-27)
+
+- Completed remaining auth hardening phases:
+  - donor authenticated `/login` redirect behavior fixed (proxy auth-route redirect removed; page/client redirect path used).
+  - explicit sign-out made SSR-safe with shared `/api/auth/signout` route and cookie-clearing server sign-out.
+  - shared registration screen in `@asym/ui` used across apps with donor-only self-registration and admin/missionary invite-only UI.
+  - permanent auth E2E specs added for session guards, registration policy, and permissions.
+- Verified with:
+  - full lint/typecheck/unit (`bun run check`) pass
+  - Playwright auth suite runs across donor/admin/missionary (session guards + registration + permission matrix).
