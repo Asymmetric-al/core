@@ -274,7 +274,7 @@ export function ContributionDetailSheet({
 
             {/* ---- Metadata ---- */}
             <div className="pt-2 space-y-1">
-              <p className="font-mono text-[10px] text-muted-foreground tabular-nums font-bold">
+              <p className="text-[10px] text-muted-foreground font-bold">
                 Created{" "}
                 {new Date(contribution.createdAt).toLocaleDateString("en-US", {
                   month: "short",
@@ -285,7 +285,7 @@ export function ContributionDetailSheet({
                 })}
               </p>
               {contribution.updatedAt !== contribution.createdAt && (
-                <p className="font-mono text-[10px] text-muted-foreground tabular-nums font-bold">
+                <p className="text-[10px] text-muted-foreground font-bold">
                   Updated{" "}
                   {new Date(contribution.updatedAt).toLocaleDateString(
                     "en-US",

@@ -44,33 +44,14 @@ const statusDotColor: Record<string, string> = {
 /*  Stat card — bold font-black style matching reference               */
 /* ------------------------------------------------------------------ */
 
-function StatCard({
-  label,
-  value,
-  color,
-}: {
-  label: string;
-  value: string | number;
-  color: string;
-}) {
-  const isCurrency = typeof value === "string" && value.startsWith("$");
+function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div
-      className={cn(
-        "flex items-center gap-4 px-6 py-4 rounded-2xl border transition-all min-w-[140px] shadow-sm",
-        color,
-      )}
-    >
+    <div className="flex items-center gap-4 px-6 py-4 rounded-2xl border border-zinc-100 bg-white transition-all min-w-[140px] shadow-sm">
       <div className="flex flex-col">
-        <span
-          className={cn(
-            "text-3xl font-black tabular-nums tracking-tight",
-            isCurrency && "font-mono",
-          )}
-        >
+        <span className="text-3xl font-black tabular-nums tracking-tight text-zinc-900">
           {value}
         </span>
-        <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60 mt-0.5">
+        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mt-0.5">
           {label}
         </span>
       </div>
@@ -166,7 +147,6 @@ export default function ContributionsPage() {
     <PageShell
       title="Contributions"
       description="Track and manage all donations and contributions."
-      badge="Financial Overview"
       actions={
         <div className="flex items-center gap-3">
           <Button
@@ -192,23 +172,13 @@ export default function ContributionsPage() {
           <StatCard
             label="Received"
             value={formatCurrency(stats.totalAmount)}
-            color="bg-emerald-50 text-emerald-700 border-emerald-100"
           />
           <StatCard
             label="Pending"
             value={formatCurrency(stats.pendingAmount)}
-            color="bg-amber-50 text-amber-700 border-amber-100"
           />
-          <StatCard
-            label="Avg Gift"
-            value={formatCurrency(stats.avgAmount)}
-            color="bg-sky-50 text-sky-700 border-sky-100"
-          />
-          <StatCard
-            label="Recurring"
-            value={stats.recurringCount}
-            color="bg-violet-50 text-violet-700 border-violet-100"
-          />
+          <StatCard label="Avg Gift" value={formatCurrency(stats.avgAmount)} />
+          <StatCard label="Recurring" value={stats.recurringCount} />
         </div>
 
         {/* ============================================================ */}
@@ -296,7 +266,7 @@ export default function ContributionsPage() {
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-mono text-xs text-muted-foreground tabular-nums">
+                    <span className="text-xs text-muted-foreground">
                       {new Date(contribution.date).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",

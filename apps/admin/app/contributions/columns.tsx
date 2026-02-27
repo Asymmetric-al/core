@@ -168,7 +168,7 @@ export function getColumns({
       cell: ({ row }) => {
         const date = new Date(row.getValue("date") as string);
         return (
-          <span className="font-mono text-sm text-muted-foreground tabular-nums whitespace-nowrap">
+          <span className="text-sm text-muted-foreground whitespace-nowrap">
             {date.toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",
