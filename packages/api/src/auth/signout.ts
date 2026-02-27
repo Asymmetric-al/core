@@ -98,8 +98,9 @@ function isAllowedSignoutRequest(request: Request) {
     return refererHeader === requestOrigin;
   }
 
-  // Reject requests that do not provide any origin context.
-  return false;
+  // Some same-origin browser requests may omit origin/referer in strict contexts.
+  // If no origin context is available, continue and rely on same-site cookie policy.
+  return true;
 }
 
 function noStoreJson(body: unknown, init?: ResponseInit) {

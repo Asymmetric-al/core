@@ -5,3 +5,4 @@ export { createClient as createBrowserClient } from "./client";
 // e.g., import { createServerClient } from "@asym/database/supabase/server"
 // e.g., import { createAdminClient } from "@asym/database/supabase/admin"
 // e.g., import { updateSession } from "@asym/database/supabase/proxy"
+// Note: for auth guards/redirects, use @asym/auth/middleware (single source of truth).
