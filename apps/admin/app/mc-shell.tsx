@@ -43,7 +43,6 @@ import SearchDialog from "@asym/ui/components/shadcn-studio/blocks/dialog-search
 import LanguageDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-language";
 import NotificationDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-notification";
 import ProfileDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-profile";
-/* Animated icons — used where available */
 import {
   ChartPieIcon as ChartPieAnimated,
   DollarSignIcon as DollarSignAnimated,
@@ -61,7 +60,6 @@ import {
   ChevronRightIcon as ChevronRightAnimated,
   ChevronsUpDownIcon as ChevronsUpDownAnimated,
 } from "lucide-animated";
-/* Regular lucide icons — for those without animated versions */
 import {
   ActivityIcon,
   GlobeIcon,
@@ -83,11 +81,7 @@ import { ThemeProvider } from "@/lib/theme-provider";
 /*  Menu data                                                          */
 /* ------------------------------------------------------------------ */
 
-type MenuSubItem = {
-  label: string;
-  href: string;
-  badge?: string;
-};
+type MenuSubItem = { label: string; href: string; badge?: string };
 
 type MenuItem = {
   icon: ComponentType<{ className?: string }>;
@@ -144,44 +138,34 @@ function SidebarNavGroup({
   groupLabel?: string;
 }) {
   return (
-    <SidebarGroup className="px-3 py-1.5">
+    <SidebarGroup>
       {groupLabel && (
-        <SidebarGroupLabel className="text-[10px] font-bold uppercase tracking-[0.15em] text-sidebar-foreground/35 px-3 mb-1 h-7">
+        <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-[0.12em] text-sidebar-foreground/40">
           {groupLabel}
         </SidebarGroupLabel>
       )}
       <SidebarGroupContent>
-        <SidebarMenu className="gap-0.5">
+        <SidebarMenu>
           {data.map((item) =>
             item.items ? (
               <Collapsible className="group/collapsible" key={item.label}>
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>
-                    <SidebarMenuButton
-                      tooltip={item.label}
-                      className="group/menu h-10 px-3 rounded-lg text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent active:scale-[0.98] transition-all duration-150"
-                    >
-                      <item.icon className="size-[18px] transition-transform duration-200 group-hover/menu:scale-110" />
-                      <span className="text-[13px] font-semibold">
-                        {item.label}
-                      </span>
-                      <ChevronRightAnimated className="ml-auto size-4 text-sidebar-foreground/25 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                    <SidebarMenuButton tooltip={item.label}>
+                      <item.icon />
+                      <span>{item.label}</span>
+                      <ChevronRightAnimated className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
-                  <CollapsibleContent className="overflow-hidden data-[state=open]:animate-slide-down data-[state=closed]:animate-slide-up">
-                    <SidebarMenuSub className="ml-6 border-l border-sidebar-border/50 gap-0.5 py-1">
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
                       {item.items.map((subItem) => (
                         <SidebarMenuSubItem key={subItem.label}>
-                          <SidebarMenuSubButton
-                            className="h-9 px-3 rounded-lg text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent active:scale-[0.98] transition-all duration-150"
-                            asChild
-                          >
+                          <SidebarMenuSubButton asChild>
                             <a href={subItem.href}>
-                              <span className="text-[12px] font-medium">
-                                {subItem.label}
-                              </span>
+                              <span>{subItem.label}</span>
                               {subItem.badge && (
-                                <span className="bg-primary/10 text-primary flex h-4 min-w-4 items-center justify-center rounded-full text-[9px] font-bold">
+                                <span className="ml-auto bg-primary/10 text-primary flex h-5 min-w-5 items-center justify-center rounded-full text-[10px] font-semibold">
                                   {subItem.badge}
                                 </span>
                               )}
@@ -195,22 +179,14 @@ function SidebarNavGroup({
               </Collapsible>
             ) : (
               <SidebarMenuItem key={item.label}>
-                <SidebarMenuButton
-                  tooltip={item.label}
-                  asChild
-                  className="group/menu h-10 px-3 rounded-lg text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent active:scale-[0.98] transition-all duration-150"
-                >
+                <SidebarMenuButton tooltip={item.label} asChild>
                   <a href={item.href}>
-                    <item.icon className="size-[18px] transition-transform duration-200 group-hover/menu:scale-110" />
-                    <span className="text-[13px] font-semibold">
-                      {item.label}
-                    </span>
+                    <item.icon />
+                    <span>{item.label}</span>
                   </a>
                 </SidebarMenuButton>
                 {item.badge && (
-                  <SidebarMenuBadge className="bg-primary/10 text-primary rounded-full text-[9px] font-bold">
-                    {item.badge}
-                  </SidebarMenuBadge>
+                  <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>
                 )}
               </SidebarMenuItem>
             ),
@@ -229,76 +205,76 @@ function SidebarUserFooter() {
   const { user, signOut } = useMC();
 
   return (
-    <SidebarFooter className="p-3">
+    <SidebarFooter>
       <SidebarMenu>
         <SidebarMenuItem>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton
                 size="lg"
-                className="h-14 px-3 rounded-xl hover:bg-sidebar-accent active:scale-[0.98] transition-all duration-150 data-[state=open]:bg-sidebar-accent"
+                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               >
-                <Avatar className="size-9 rounded-lg border border-sidebar-border shadow-sm">
+                <Avatar className="size-8 rounded-lg">
                   <AvatarImage
                     src={
                       user?.avatarUrl ||
                       "https://cdn.shadcnstudio.com/ss-assets/avatar/avatar-1.png"
                     }
                   />
-                  <AvatarFallback className="rounded-lg text-[11px] font-bold bg-sidebar-accent text-sidebar-foreground">
+                  <AvatarFallback className="rounded-lg text-xs font-semibold">
                     {user?.name?.charAt(0) || "U"}
                   </AvatarFallback>
                 </Avatar>
-                <div className="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
-                  <span className="text-[13px] font-bold text-sidebar-foreground truncate">
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold">
                     {user?.name || "User Name"}
                   </span>
-                  <span className="text-[11px] text-sidebar-foreground/40 truncate">
+                  <span className="truncate text-xs text-sidebar-foreground/50">
                     {user?.email || "user@givehope.org"}
                   </span>
                 </div>
-                <ChevronsUpDownAnimated className="ml-auto size-4 text-sidebar-foreground/25 group-data-[collapsible=icon]:hidden" />
+                <ChevronsUpDownAnimated className="ml-auto" />
               </SidebarMenuButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-              className="w-60 rounded-xl p-1.5"
-              side="top"
-              align="start"
-              sideOffset={8}
+              className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+              side="bottom"
+              align="end"
+              sideOffset={4}
             >
-              <div className="flex items-center gap-3 p-3">
-                <Avatar className="size-10 rounded-lg border border-border shadow-sm">
+              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                <Avatar className="size-8 rounded-lg">
                   <AvatarImage
                     src={
                       user?.avatarUrl ||
                       "https://cdn.shadcnstudio.com/ss-assets/avatar/avatar-1.png"
                     }
                   />
-                  <AvatarFallback className="rounded-lg text-xs font-bold">
+                  <AvatarFallback className="rounded-lg text-xs font-semibold">
                     {user?.name?.charAt(0) || "U"}
                   </AvatarFallback>
                 </Avatar>
-                <div className="grid leading-tight">
-                  <span className="text-sm font-bold truncate">
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold">
                     {user?.name || "User Name"}
                   </span>
-                  <span className="text-xs text-muted-foreground truncate">
+                  <span className="truncate text-xs text-muted-foreground">
                     {user?.email || "user@givehope.org"}
                   </span>
                 </div>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="rounded-lg py-2.5 gap-3 cursor-pointer">
-                <SettingsAnimated className="size-4 text-muted-foreground" />
-                <span className="text-[13px] font-medium">Settings</span>
+              <DropdownMenuItem className="gap-2 cursor-pointer">
+                <SettingsAnimated className="size-4" />
+                Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={signOut}
-                className="rounded-lg py-2.5 gap-3 cursor-pointer text-destructive focus:text-destructive"
+                className="gap-2 cursor-pointer"
               >
                 <LogOutIcon className="size-4" />
-                <span className="text-[13px] font-medium">Sign Out</span>
+                Sign Out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -319,27 +295,27 @@ function AppHeader() {
     <header className="sticky top-0 z-50 w-full border-b border-sidebar-border bg-background/95 backdrop-blur-sm supports-[backdrop-filter]:bg-background/80">
       <div className="flex h-12 items-center justify-between px-4 lg:px-6">
         <div className="flex items-center gap-3">
-          <SidebarTrigger className="-ml-1 size-8 [&_svg]:!size-4 touch-target text-muted-foreground hover:text-foreground transition-colors" />
+          <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="h-4 hidden sm:block" />
           <SearchDialog
             trigger={
               <>
                 <Button
                   variant="ghost"
-                  className="hidden h-9 w-56 justify-start px-3 text-muted-foreground hover:bg-muted/50 sm:flex rounded-lg gap-2"
+                  className="hidden h-8 w-56 justify-start px-3 text-muted-foreground hover:bg-muted/50 sm:flex gap-2"
                 >
                   <SearchAnimated className="size-4" />
-                  <span className="text-[13px] font-medium text-muted-foreground/60">
+                  <span className="text-sm text-muted-foreground/60">
                     Search...
                   </span>
-                  <kbd className="pointer-events-none ml-auto hidden sm:inline-flex h-5 select-none items-center gap-1 rounded-md border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+                  <kbd className="pointer-events-none ml-auto hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
                     <span className="text-xs">⌘</span>K
                   </kbd>
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="size-8 sm:hidden touch-target"
+                  className="size-8 sm:hidden"
                 >
                   <SearchIcon className="size-4" />
                   <span className="sr-only">Search</span>
@@ -348,13 +324,13 @@ function AppHeader() {
             }
           />
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <LanguageDropdown
             trigger={
               <Button
                 variant="ghost"
                 size="icon"
-                className="size-8 hidden sm:inline-flex text-muted-foreground hover:text-foreground transition-colors rounded-lg"
+                className="size-8 hidden sm:inline-flex"
               >
                 <LanguagesIcon className="size-4" />
               </Button>
@@ -365,7 +341,7 @@ function AppHeader() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="size-8 hidden sm:inline-flex text-muted-foreground hover:text-foreground transition-colors rounded-lg"
+                className="size-8 hidden sm:inline-flex"
               >
                 <ActivityIcon className="size-4" />
               </Button>
@@ -373,11 +349,7 @@ function AppHeader() {
           />
           <NotificationDropdown
             trigger={
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative size-8 touch-target text-muted-foreground hover:text-foreground transition-colors rounded-lg"
-              >
+              <Button variant="ghost" size="icon" className="relative size-8">
                 <BellAnimated className="size-4" />
                 <span className="bg-rose-500 absolute top-1.5 right-1.5 size-1.5 rounded-full ring-2 ring-background" />
               </Button>
@@ -385,11 +357,7 @@ function AppHeader() {
           />
           <ProfileDropdown
             trigger={
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-8 rounded-lg touch-target"
-              >
+              <Button variant="ghost" size="icon" className="size-8">
                 <Avatar className="size-7 rounded-lg">
                   <AvatarImage
                     src={
@@ -397,7 +365,7 @@ function AppHeader() {
                       "https://cdn.shadcnstudio.com/ss-assets/avatar/avatar-1.png"
                     }
                   />
-                  <AvatarFallback className="text-[10px] rounded-lg font-bold">
+                  <AvatarFallback className="text-[10px] rounded-lg font-semibold">
                     {user?.name?.charAt(0) || "U"}
                   </AvatarFallback>
                 </Avatar>
@@ -420,25 +388,18 @@ function ApplicationShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen w-full bg-background">
       <SidebarProvider>
-        <Sidebar collapsible="icon" className="border-r border-sidebar-border">
-          {/* Branding header */}
-          <SidebarHeader className="h-14 border-b border-sidebar-border px-3 flex items-center">
+        <Sidebar collapsible="icon">
+          <SidebarHeader>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton
-                  size="lg"
-                  className="gap-3 !bg-transparent h-11 px-2 group/brand"
-                  asChild
-                >
+                <SidebarMenuButton size="lg" asChild>
                   <Link href="/">
-                    <div className="flex size-9 items-center justify-center rounded-xl bg-zinc-900 text-white font-black text-sm shadow-sm shrink-0 transition-transform duration-200 group-hover/brand:scale-105">
+                    <div className="flex size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground font-bold text-xs">
                       G
                     </div>
-                    <div className="flex flex-col items-start group-data-[collapsible=icon]:hidden min-w-0">
-                      <span className="text-[13px] font-black tracking-wider uppercase leading-none truncate text-sidebar-foreground">
-                        Give Hope
-                      </span>
-                      <span className="text-[9px] font-bold text-sidebar-foreground/35 tracking-[0.2em] uppercase leading-none mt-1 truncate">
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                      <span className="truncate font-bold">Give Hope</span>
+                      <span className="truncate text-xs text-sidebar-foreground/50">
                         Mission Control
                       </span>
                     </div>
@@ -448,15 +409,13 @@ function ApplicationShell({ children }: { children: ReactNode }) {
             </SidebarMenu>
           </SidebarHeader>
 
-          {/* Navigation */}
-          <SidebarContent className="scrollbar-none pt-3">
+          <SidebarContent>
             <SidebarNavGroup data={menuItems} />
             <SidebarNavGroup data={modulesItems} groupLabel="Modules" />
             <SidebarNavGroup data={toolsItems} groupLabel="Tools" />
             <SidebarNavGroup data={adminItems} groupLabel="System" />
           </SidebarContent>
 
-          {/* User footer */}
           <ClientOnly fallback={null}>
             <SidebarUserFooter />
           </ClientOnly>
@@ -464,9 +423,7 @@ function ApplicationShell({ children }: { children: ReactNode }) {
 
         <div className="flex flex-1 flex-col overflow-hidden">
           <ClientOnly
-            fallback={
-              <div className="h-12 border-b border-sidebar-border bg-background/95" />
-            }
+            fallback={<div className="h-12 border-b bg-background/95" />}
           >
             <AppHeader />
           </ClientOnly>
@@ -478,10 +435,6 @@ function ApplicationShell({ children }: { children: ReactNode }) {
     </div>
   );
 }
-
-/* ------------------------------------------------------------------ */
-/*  Root shell export                                                  */
-/* ------------------------------------------------------------------ */
 
 export function MCShell({ children }: { children: ReactNode }) {
   return (
