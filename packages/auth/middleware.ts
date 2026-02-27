@@ -35,6 +35,50 @@ function withPathHeader(request: NextRequest, pathname: string) {
   });
 }
 
+function resolveRequestOrigin(request: NextRequest) {
+  const originHeader = request.headers.get("origin");
+  if (originHeader) {
+    try {
+      return new URL(originHeader).origin;
+    } catch {
+      // Ignore malformed origin headers.
+    }
+  }
+
+  const refererHeader = request.headers.get("referer");
+  if (refererHeader) {
+    try {
+      return new URL(refererHeader).origin;
+    } catch {
+      // Ignore malformed referer headers.
+    }
+  }
+
+  const forwardedProto = request.headers.get("x-forwarded-proto");
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const host = forwardedHost ?? request.headers.get("host");
+
+  if (host) {
+    const protocol =
+      forwardedProto ?? request.nextUrl.protocol.replace(":", "");
+    return `${protocol}://${host}`;
+  }
+
+  return request.nextUrl.origin;
+}
+
+function buildRedirectUrl(
+  request: NextRequest,
+  path: string,
+  next?: string | null,
+) {
+  const url = new URL(path, resolveRequestOrigin(request));
+  if (next) {
+    url.searchParams.set("next", next);
+  }
+  return url;
+}
+
 /**
  * Shared auth proxy middleware for all app surfaces.
  *
@@ -49,7 +93,6 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
   const authRoutes = options.authRoutes ?? [...DEFAULT_AUTH_ROUTES];
   const protectedRoutePrefixes = options.protectedRoutePrefixes ?? ["/"];
   const loginPath = options.loginPath ?? "/login";
-  const redirectAuthenticatedTo = options.redirectAuthenticatedTo ?? "/";
   const allowApi = options.allowApi ?? true;
 
   return async function authMiddleware(request: NextRequest) {
@@ -107,27 +150,15 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       return supabaseResponse;
     }
 
-    if (isAuthRoute && userId) {
-      const requestedNext = safeNextParam(
-        request.nextUrl.searchParams.get("next"),
-      );
-      const destination = requestedNext ?? redirectAuthenticatedTo;
-      return NextResponse.redirect(new URL(destination, request.url));
-    }
-
     if (isAuthRoute) {
       return supabaseResponse;
     }
 
     if (isProtectedRoute(pathname, protectedRoutePrefixes) && !userId) {
-      const redirectUrl = new URL(loginPath, request.url);
       const next = safeNextParam(
         `${request.nextUrl.pathname}${request.nextUrl.search || ""}`,
       );
-      if (next) {
-        redirectUrl.searchParams.set("next", next);
-      }
-      return NextResponse.redirect(redirectUrl);
+      return NextResponse.redirect(buildRedirectUrl(request, loginPath, next));
     }
 
     return supabaseResponse;
