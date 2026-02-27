@@ -217,7 +217,7 @@ export default function MissionControlReports() {
                 delay: index * 0.05,
               }}
             >
-              <div className="flex items-center gap-4 px-6 py-4 rounded-2xl border border-zinc-100 bg-white shadow-sm transition-all min-w-[160px]">
+              <div className="flex items-center gap-4 px-6 py-5 rounded-2xl border border-zinc-100 bg-white shadow-sm transition-all min-w-[160px]">
                 <div className="flex flex-col">
                   <span className="text-3xl font-black tabular-nums tracking-tight text-zinc-900">
                     {kpi.value}
