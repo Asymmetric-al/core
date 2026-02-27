@@ -43,28 +43,34 @@ import SearchDialog from "@asym/ui/components/shadcn-studio/blocks/dialog-search
 import LanguageDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-language";
 import NotificationDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-notification";
 import ProfileDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-profile";
+/* Animated icons — used where available */
+import {
+  ChartPieIcon as ChartPieAnimated,
+  DollarSignIcon as DollarSignAnimated,
+  UsersIcon as UsersAnimated,
+  HeartHandshakeIcon as HeartHandshakeAnimated,
+  CalendarDaysIcon as CalendarAnimated,
+  FileTextIcon as FileTextAnimated,
+  ActivityIcon as ActivityAnimated,
+  SparklesIcon as SparklesAnimated,
+  PenToolIcon as PenToolAnimated,
+  ShieldCheckIcon as ShieldCheckAnimated,
+  SearchIcon as SearchAnimated,
+  BellIcon as BellAnimated,
+  SettingsIcon as SettingsAnimated,
+  ChevronRightIcon as ChevronRightAnimated,
+  ChevronsUpDownIcon as ChevronsUpDownAnimated,
+} from "lucide-animated";
+/* Regular lucide icons — for those without animated versions */
 import {
   ActivityIcon,
-  BellIcon,
-  ChartPieIcon,
-  ChevronRightIcon,
-  ChevronsUpDownIcon,
-  DollarSignIcon,
+  GlobeIcon,
   LanguagesIcon,
   LayoutGridIcon,
+  LifeBuoyIcon,
   LogOutIcon,
   MailIcon,
   SearchIcon,
-  SettingsIcon,
-  UsersIcon,
-  HeartHandshakeIcon,
-  CalendarIcon,
-  FileTextIcon,
-  GlobeIcon,
-  PenToolIcon,
-  SparklesIcon,
-  LifeBuoyIcon,
-  ShieldCheckIcon,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -92,37 +98,37 @@ type MenuItem = {
 );
 
 const menuItems: MenuItem[] = [
-  { icon: ChartPieIcon, label: "Dashboard", href: "/" },
+  { icon: ChartPieAnimated, label: "Dashboard", href: "/" },
 ];
 
 const modulesItems: MenuItem[] = [
-  { icon: DollarSignIcon, label: "Contributions", href: "/contributions" },
-  { icon: UsersIcon, label: "CRM", href: "/crm" },
-  { icon: HeartHandshakeIcon, label: "Member Care", href: "/care" },
-  { icon: CalendarIcon, label: "Events", href: "/events" },
-  { icon: FileTextIcon, label: "Reports", href: "/reports" },
+  { icon: DollarSignAnimated, label: "Contributions", href: "/contributions" },
+  { icon: UsersAnimated, label: "CRM", href: "/crm" },
+  { icon: HeartHandshakeAnimated, label: "Member Care", href: "/care" },
+  { icon: CalendarAnimated, label: "Events", href: "/events" },
+  { icon: FileTextAnimated, label: "Reports", href: "/reports" },
   {
-    icon: ActivityIcon,
+    icon: ActivityAnimated,
     label: "Ministry Updates",
     items: [
       { label: "Content Moderation", href: "/feed" },
       { label: "Org Updates", href: "/feed/org-updates" },
     ],
   },
-  { icon: SparklesIcon, label: "Tasks", href: "/tasks" },
+  { icon: SparklesAnimated, label: "Tasks", href: "/tasks" },
   { icon: LayoutGridIcon, label: "Mobilize", href: "/mobilize" },
 ];
 
 const toolsItems: MenuItem[] = [
   { icon: MailIcon, label: "Email Studio", href: "/email" },
   { icon: GlobeIcon, label: "Web Studio", href: "/web-studio" },
-  { icon: PenToolIcon, label: "Sign", href: "/sign" },
-  { icon: FileTextIcon, label: "PDF", href: "/pdf" },
-  { icon: SparklesIcon, label: "Automations", href: "/automations" },
+  { icon: PenToolAnimated, label: "Sign", href: "/sign" },
+  { icon: FileTextAnimated, label: "PDF", href: "/pdf" },
+  { icon: SparklesAnimated, label: "Automations", href: "/automations" },
 ];
 
 const adminItems: MenuItem[] = [
-  { icon: ShieldCheckIcon, label: "Admin", href: "/admin" },
+  { icon: ShieldCheckAnimated, label: "Admin", href: "/admin" },
   { icon: LifeBuoyIcon, label: "Support", href: "/support" },
 ];
 
@@ -138,9 +144,9 @@ function SidebarNavGroup({
   groupLabel?: string;
 }) {
   return (
-    <SidebarGroup className="px-2 py-1">
+    <SidebarGroup className="px-3 py-1.5">
       {groupLabel && (
-        <SidebarGroupLabel className="text-[9px] font-bold uppercase tracking-[0.15em] text-sidebar-foreground/40 px-3 mb-1 h-6">
+        <SidebarGroupLabel className="text-[10px] font-bold uppercase tracking-[0.15em] text-sidebar-foreground/35 px-3 mb-1 h-7">
           {groupLabel}
         </SidebarGroupLabel>
       )}
@@ -153,25 +159,25 @@ function SidebarNavGroup({
                   <CollapsibleTrigger asChild>
                     <SidebarMenuButton
                       tooltip={item.label}
-                      className="h-9 px-3 rounded-lg text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-all duration-150"
+                      className="group/menu h-10 px-3 rounded-lg text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent active:scale-[0.98] transition-all duration-150"
                     >
-                      <item.icon className="size-4" />
-                      <span className="text-[11px] font-semibold tracking-wide">
+                      <item.icon className="size-[18px] transition-transform duration-200 group-hover/menu:scale-110" />
+                      <span className="text-[13px] font-semibold">
                         {item.label}
                       </span>
-                      <ChevronRightIcon className="ml-auto size-3.5 text-sidebar-foreground/30 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                      <ChevronRightAnimated className="ml-auto size-4 text-sidebar-foreground/25 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
                   <CollapsibleContent className="overflow-hidden data-[state=open]:animate-slide-down data-[state=closed]:animate-slide-up">
-                    <SidebarMenuSub className="ml-[22px] border-l border-sidebar-border/60 gap-0.5 py-1">
+                    <SidebarMenuSub className="ml-6 border-l border-sidebar-border/50 gap-0.5 py-1">
                       {item.items.map((subItem) => (
                         <SidebarMenuSubItem key={subItem.label}>
                           <SidebarMenuSubButton
-                            className="h-8 px-3 rounded-lg text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-all duration-150"
+                            className="h-9 px-3 rounded-lg text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent active:scale-[0.98] transition-all duration-150"
                             asChild
                           >
                             <a href={subItem.href}>
-                              <span className="text-[11px] font-medium">
+                              <span className="text-[12px] font-medium">
                                 {subItem.label}
                               </span>
                               {subItem.badge && (
@@ -192,11 +198,11 @@ function SidebarNavGroup({
                 <SidebarMenuButton
                   tooltip={item.label}
                   asChild
-                  className="h-9 px-3 rounded-lg text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-all duration-150"
+                  className="group/menu h-10 px-3 rounded-lg text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent active:scale-[0.98] transition-all duration-150"
                 >
                   <a href={item.href}>
-                    <item.icon className="size-4" />
-                    <span className="text-[11px] font-semibold tracking-wide">
+                    <item.icon className="size-[18px] transition-transform duration-200 group-hover/menu:scale-110" />
+                    <span className="text-[13px] font-semibold">
                       {item.label}
                     </span>
                   </a>
@@ -223,45 +229,45 @@ function SidebarUserFooter() {
   const { user, signOut } = useMC();
 
   return (
-    <SidebarFooter className="p-2">
+    <SidebarFooter className="p-3">
       <SidebarMenu>
         <SidebarMenuItem>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton
                 size="lg"
-                className="h-12 px-2 rounded-xl hover:bg-sidebar-accent transition-all duration-150 data-[state=open]:bg-sidebar-accent"
+                className="h-14 px-3 rounded-xl hover:bg-sidebar-accent active:scale-[0.98] transition-all duration-150 data-[state=open]:bg-sidebar-accent"
               >
-                <Avatar className="size-8 rounded-lg border border-sidebar-border">
+                <Avatar className="size-9 rounded-lg border border-sidebar-border shadow-sm">
                   <AvatarImage
                     src={
                       user?.avatarUrl ||
                       "https://cdn.shadcnstudio.com/ss-assets/avatar/avatar-1.png"
                     }
                   />
-                  <AvatarFallback className="rounded-lg text-[10px] font-bold bg-sidebar-accent text-sidebar-foreground">
+                  <AvatarFallback className="rounded-lg text-[11px] font-bold bg-sidebar-accent text-sidebar-foreground">
                     {user?.name?.charAt(0) || "U"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
-                  <span className="text-[11px] font-bold text-sidebar-foreground truncate">
+                  <span className="text-[13px] font-bold text-sidebar-foreground truncate">
                     {user?.name || "User Name"}
                   </span>
-                  <span className="text-[10px] text-sidebar-foreground/50 truncate">
+                  <span className="text-[11px] text-sidebar-foreground/40 truncate">
                     {user?.email || "user@givehope.org"}
                   </span>
                 </div>
-                <ChevronsUpDownIcon className="ml-auto size-4 text-sidebar-foreground/30 group-data-[collapsible=icon]:hidden" />
+                <ChevronsUpDownAnimated className="ml-auto size-4 text-sidebar-foreground/25 group-data-[collapsible=icon]:hidden" />
               </SidebarMenuButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-              className="w-56 rounded-xl"
+              className="w-60 rounded-xl p-1.5"
               side="top"
               align="start"
               sideOffset={8}
             >
               <div className="flex items-center gap-3 p-3">
-                <Avatar className="size-9 rounded-lg border border-border">
+                <Avatar className="size-10 rounded-lg border border-border shadow-sm">
                   <AvatarImage
                     src={
                       user?.avatarUrl ||
@@ -282,17 +288,17 @@ function SidebarUserFooter() {
                 </div>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="rounded-lg py-2 gap-2.5 cursor-pointer">
-                <SettingsIcon className="size-4 text-muted-foreground" />
-                <span className="text-xs font-medium">Settings</span>
+              <DropdownMenuItem className="rounded-lg py-2.5 gap-3 cursor-pointer">
+                <SettingsAnimated className="size-4 text-muted-foreground" />
+                <span className="text-[13px] font-medium">Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={signOut}
-                className="rounded-lg py-2 gap-2.5 cursor-pointer text-destructive focus:text-destructive"
+                className="rounded-lg py-2.5 gap-3 cursor-pointer text-destructive focus:text-destructive"
               >
                 <LogOutIcon className="size-4" />
-                <span className="text-xs font-medium">Sign Out</span>
+                <span className="text-[13px] font-medium">Sign Out</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -320,10 +326,10 @@ function AppHeader() {
               <>
                 <Button
                   variant="ghost"
-                  className="hidden h-8 w-56 justify-start px-3 text-muted-foreground hover:bg-muted/50 sm:flex rounded-lg"
+                  className="hidden h-9 w-56 justify-start px-3 text-muted-foreground hover:bg-muted/50 sm:flex rounded-lg gap-2"
                 >
-                  <SearchIcon className="mr-2 size-3.5" />
-                  <span className="text-[11px] font-medium text-muted-foreground/70">
+                  <SearchAnimated className="size-4" />
+                  <span className="text-[13px] font-medium text-muted-foreground/60">
                     Search...
                   </span>
                   <kbd className="pointer-events-none ml-auto hidden sm:inline-flex h-5 select-none items-center gap-1 rounded-md border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
@@ -372,7 +378,7 @@ function AppHeader() {
                 size="icon"
                 className="relative size-8 touch-target text-muted-foreground hover:text-foreground transition-colors rounded-lg"
               >
-                <BellIcon className="size-4" />
+                <BellAnimated className="size-4" />
                 <span className="bg-rose-500 absolute top-1.5 right-1.5 size-1.5 rounded-full ring-2 ring-background" />
               </Button>
             }
@@ -416,23 +422,23 @@ function ApplicationShell({ children }: { children: ReactNode }) {
       <SidebarProvider>
         <Sidebar collapsible="icon" className="border-r border-sidebar-border">
           {/* Branding header */}
-          <SidebarHeader className="h-12 border-b border-sidebar-border px-2 flex items-center">
+          <SidebarHeader className="h-14 border-b border-sidebar-border px-3 flex items-center">
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
                   size="lg"
-                  className="gap-2.5 !bg-transparent h-10 px-2"
+                  className="gap-3 !bg-transparent h-11 px-2 group/brand"
                   asChild
                 >
                   <Link href="/">
-                    <div className="flex size-8 items-center justify-center rounded-lg bg-zinc-900 text-white font-black text-xs shadow-sm shrink-0">
+                    <div className="flex size-9 items-center justify-center rounded-xl bg-zinc-900 text-white font-black text-sm shadow-sm shrink-0 transition-transform duration-200 group-hover/brand:scale-105">
                       G
                     </div>
                     <div className="flex flex-col items-start group-data-[collapsible=icon]:hidden min-w-0">
-                      <span className="text-xs font-black tracking-widest uppercase leading-none truncate text-sidebar-foreground">
+                      <span className="text-[13px] font-black tracking-wider uppercase leading-none truncate text-sidebar-foreground">
                         Give Hope
                       </span>
-                      <span className="text-[8px] font-bold text-sidebar-foreground/40 tracking-[0.2em] uppercase leading-none mt-0.5 truncate">
+                      <span className="text-[9px] font-bold text-sidebar-foreground/35 tracking-[0.2em] uppercase leading-none mt-1 truncate">
                         Mission Control
                       </span>
                     </div>
@@ -443,7 +449,7 @@ function ApplicationShell({ children }: { children: ReactNode }) {
           </SidebarHeader>
 
           {/* Navigation */}
-          <SidebarContent className="scrollbar-none pt-2">
+          <SidebarContent className="scrollbar-none pt-3">
             <SidebarNavGroup data={menuItems} />
             <SidebarNavGroup data={modulesItems} groupLabel="Modules" />
             <SidebarNavGroup data={toolsItems} groupLabel="Tools" />
