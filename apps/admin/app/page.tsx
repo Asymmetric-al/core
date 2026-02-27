@@ -108,31 +108,49 @@ const DashboardChart = dynamic(
       YAxis,
       ResponsiveContainer,
       Tooltip,
-      Legend,
     } = await import("recharts");
+
+    /* Zinc palette — dark to light, beautiful gradation */
+    const ZINC_RECURRING = "#27272a"; /* zinc-800 */
+    const ZINC_ONETIME = "#71717a"; /* zinc-500 */
+    const ZINC_OFFLINE = "#d4d4d8"; /* zinc-300 */
 
     function Chart() {
       return (
-        <div className="h-[280px] w-full">
+        <div className="h-[340px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={MONTHLY_DATA}
-              margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
-              barGap={2}
+              margin={{ top: 8, right: 8, left: -8, bottom: 4 }}
+              barCategoryGap="18%"
             >
+              <defs>
+                <linearGradient id="barRecurring" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#3f3f46" stopOpacity={1} />
+                  <stop offset="100%" stopColor="#18181b" stopOpacity={1} />
+                </linearGradient>
+                <linearGradient id="barOneTime" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#a1a1aa" stopOpacity={1} />
+                  <stop offset="100%" stopColor="#71717a" stopOpacity={1} />
+                </linearGradient>
+              </defs>
               <CartesianGrid
                 vertical={false}
                 strokeDasharray="3 3"
-                stroke="#e4e4e7"
-                opacity={0.5}
+                stroke="#f4f4f5"
               />
               <XAxis
                 dataKey="month"
                 tickLine={false}
                 axisLine={false}
                 fontSize={10}
-                fontWeight={700}
+                fontWeight={800}
                 stroke="#a1a1aa"
+                dy={8}
+                style={{
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                }}
               />
               <YAxis
                 tickLine={false}
@@ -143,61 +161,88 @@ const DashboardChart = dynamic(
                 tickFormatter={(v: number) =>
                   v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v}`
                 }
-                width={40}
+                width={42}
               />
               <Tooltip
-                cursor={{ fill: "#f4f4f5", opacity: 0.5 }}
+                cursor={{ fill: "#fafafa", radius: 6 }}
                 contentStyle={{
-                  borderRadius: 12,
+                  borderRadius: 16,
                   border: "1px solid #e4e4e7",
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-                  fontSize: 11,
+                  boxShadow:
+                    "0 12px 32px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04)",
+                  padding: "12px 16px",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  lineHeight: 1.6,
+                }}
+                labelStyle={{
+                  fontSize: 10,
+                  fontWeight: 900,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.15em",
+                  color: "#a1a1aa",
+                  marginBottom: 6,
+                }}
+                formatter={(value: number, name: string) => {
+                  const labels: Record<string, string> = {
+                    recurring: "Recurring",
+                    oneTime: "One-Time",
+                    offline: "Offline",
+                  };
+                  return [`$${value.toLocaleString()}`, labels[name] ?? name];
+                }}
+                itemStyle={{
+                  padding: "2px 0",
+                  fontSize: 12,
                   fontWeight: 700,
                 }}
-                formatter={(value: number, name: string) => [
-                  `$${value.toLocaleString()}`,
-                  name === "recurring"
-                    ? "Recurring"
-                    : name === "oneTime"
-                      ? "One-Time"
-                      : "Offline",
-                ]}
-              />
-              <Legend
-                wrapperStyle={{ fontSize: 10, fontWeight: 700 }}
-                iconType="circle"
-                iconSize={8}
-                formatter={(value: string) =>
-                  value === "recurring"
-                    ? "Recurring"
-                    : value === "oneTime"
-                      ? "One-Time"
-                      : "Offline"
-                }
               />
               <Bar
                 dataKey="recurring"
-                stackId="a"
-                fill="#18181b"
-                maxBarSize={32}
-                radius={[0, 0, 0, 0]}
+                stackId="giving"
+                fill="url(#barRecurring)"
+                animationBegin={200}
+                animationDuration={800}
+                animationEasing="ease-out"
               />
               <Bar
                 dataKey="oneTime"
-                stackId="a"
-                fill="#3b82f6"
-                maxBarSize={32}
-                radius={[0, 0, 0, 0]}
+                stackId="giving"
+                fill="url(#barOneTime)"
+                animationBegin={400}
+                animationDuration={800}
+                animationEasing="ease-out"
               />
               <Bar
                 dataKey="offline"
-                stackId="a"
-                fill="#d4d4d8"
-                maxBarSize={32}
-                radius={[3, 3, 0, 0]}
+                stackId="giving"
+                fill={ZINC_OFFLINE}
+                radius={[4, 4, 0, 0]}
+                animationBegin={600}
+                animationDuration={800}
+                animationEasing="ease-out"
               />
             </BarChart>
           </ResponsiveContainer>
+
+          {/* Custom legend */}
+          <div className="flex items-center justify-center gap-6 pt-3">
+            {[
+              { label: "Recurring", color: ZINC_RECURRING },
+              { label: "One-Time", color: ZINC_ONETIME },
+              { label: "Offline", color: ZINC_OFFLINE },
+            ].map((item) => (
+              <div key={item.label} className="flex items-center gap-2">
+                <span
+                  className="size-2.5 rounded-full"
+                  style={{ backgroundColor: item.color }}
+                />
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                  {item.label}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       );
     }
@@ -207,12 +252,12 @@ const DashboardChart = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-[280px] w-full flex items-end justify-around gap-1 px-4 pb-8 animate-pulse">
+      <div className="h-[340px] w-full flex items-end justify-around gap-2 px-6 pb-12 animate-pulse">
         {Array.from({ length: 13 }).map((_, i) => (
           <div
             key={i}
-            className="flex-1 bg-zinc-100 rounded-t"
-            style={{ height: `${30 + Math.random() * 50}%` }}
+            className="flex-1 bg-zinc-100 rounded-t-md"
+            style={{ height: `${25 + Math.random() * 55}%` }}
           />
         ))}
       </div>
@@ -282,15 +327,27 @@ export default function DashboardPage() {
           transition={{ ...smooth, delay: 0.2 }}
         >
           <Card className="border-zinc-100 shadow-sm rounded-2xl overflow-hidden">
-            <CardHeader className="pb-2 border-b border-zinc-50">
-              <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
-                Giving Breakdown
-              </CardTitle>
-              <p className="text-xs text-zinc-400 font-medium">
-                Monthly support trends over the last 13 months.
-              </p>
+            <CardHeader className="pb-3">
+              <div className="flex items-end justify-between">
+                <div>
+                  <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
+                    Giving Breakdown
+                  </CardTitle>
+                  <p className="text-xs text-zinc-400 font-medium mt-1">
+                    Monthly support trends over the last 13 months.
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-black tabular-nums tracking-tight text-zinc-900">
+                    $48,900
+                  </p>
+                  <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
+                    Year to date
+                  </p>
+                </div>
+              </div>
             </CardHeader>
-            <CardContent className="pt-4 px-2 sm:px-4">
+            <CardContent className="pt-0 px-2 sm:px-4 pb-2">
               <DashboardChart />
             </CardContent>
           </Card>
