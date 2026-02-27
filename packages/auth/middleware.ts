@@ -79,6 +79,29 @@ function buildRedirectUrl(
   return url;
 }
 
+function logMissingSupabaseConfig(pathname: string) {
+  const missing: string[] = [];
+
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    missing.push("NEXT_PUBLIC_SUPABASE_URL");
+  }
+
+  if (
+    !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
+    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  ) {
+    missing.push(
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY|NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    );
+  }
+
+  const missingHint =
+    missing.length > 0 ? ` Missing: ${missing.join(", ")}.` : "";
+  console.error(
+    `[auth] Supabase auth config missing in proxy.${missingHint} Failing closed for protected path "${pathname}".`,
+  );
+}
+
 /**
  * Shared auth proxy middleware for all app surfaces.
  *
@@ -103,8 +126,25 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     }
 
     const { url, key } = getSupabasePublicConfig();
+    const isAuthRoute = authRoutes.some((route) =>
+      matchesRoutePrefix(pathname, route),
+    );
+    const isExplicitlyPublic =
+      isAuthRoute || isPublicRoute(pathname, publicRoutes);
+    const requiresAuthentication =
+      !isExplicitlyPublic && isProtectedRoute(pathname, protectedRoutePrefixes);
+
     if (!url || !key) {
-      // Fail-safe: if auth config is missing, avoid breaking all requests.
+      if (requiresAuthentication) {
+        logMissingSupabaseConfig(pathname);
+        const next = safeNextParam(
+          `${request.nextUrl.pathname}${request.nextUrl.search || ""}`,
+        );
+        const redirectUrl = buildRedirectUrl(request, loginPath, next);
+        redirectUrl.searchParams.set("error", "auth_misconfigured");
+        return NextResponse.redirect(redirectUrl);
+      }
+
       return withPathHeader(request, pathname);
     }
 
@@ -141,10 +181,6 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
 
     const { data: claimsResult } = await supabase.auth.getClaims();
     const userId = claimsResult?.claims?.sub ?? null;
-
-    const isAuthRoute = authRoutes.some((route) =>
-      matchesRoutePrefix(pathname, route),
-    );
 
     if (isPublicRoute(pathname, publicRoutes) && !isAuthRoute) {
       return supabaseResponse;
