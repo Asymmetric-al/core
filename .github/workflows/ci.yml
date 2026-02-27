@@ -136,7 +136,6 @@ jobs:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_DONOR }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      APP_DIR: apps/donor
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -159,11 +158,11 @@ jobs:
             echo "prod_flag=" >> "$GITHUB_OUTPUT"
           fi
       - name: Pull Vercel project settings
-        run: vercel --cwd="${{ env.APP_DIR }}" pull --yes --environment=${{ steps.target.outputs.environment }} --token=${{ env.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=${{ steps.target.outputs.environment }} --token=${{ env.VERCEL_TOKEN }}
       - name: Build Vercel artifacts
-        run: vercel --cwd="${{ env.APP_DIR }}" build --token=${{ env.VERCEL_TOKEN }}
+        run: vercel build --token=${{ env.VERCEL_TOKEN }}
       - name: Deploy to Vercel
-        run: vercel --cwd="${{ env.APP_DIR }}" deploy --prebuilt ${{ steps.target.outputs.prod_flag }} --token=${{ env.VERCEL_TOKEN }}
+        run: vercel deploy --prebuilt ${{ steps.target.outputs.prod_flag }} --token=${{ env.VERCEL_TOKEN }}
 
   deploy-vercel-admin:
     name: Deploy admin to Vercel
@@ -176,7 +175,6 @@ jobs:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_ADMIN }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      APP_DIR: apps/admin
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -199,11 +197,11 @@ jobs:
             echo "prod_flag=" >> "$GITHUB_OUTPUT"
           fi
       - name: Pull Vercel project settings
-        run: vercel --cwd="${{ env.APP_DIR }}" pull --yes --environment=${{ steps.target.outputs.environment }} --token=${{ env.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=${{ steps.target.outputs.environment }} --token=${{ env.VERCEL_TOKEN }}
       - name: Build Vercel artifacts
-        run: vercel --cwd="${{ env.APP_DIR }}" build --token=${{ env.VERCEL_TOKEN }}
+        run: vercel build --token=${{ env.VERCEL_TOKEN }}
       - name: Deploy to Vercel
-        run: vercel --cwd="${{ env.APP_DIR }}" deploy --prebuilt ${{ steps.target.outputs.prod_flag }} --token=${{ env.VERCEL_TOKEN }}
+        run: vercel deploy --prebuilt ${{ steps.target.outputs.prod_flag }} --token=${{ env.VERCEL_TOKEN }}
 
   deploy-vercel-missionary:
     name: Deploy missionary to Vercel
@@ -216,7 +214,6 @@ jobs:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_MISSIONARY }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      APP_DIR: apps/missionary
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -239,8 +236,8 @@ jobs:
             echo "prod_flag=" >> "$GITHUB_OUTPUT"
           fi
       - name: Pull Vercel project settings
-        run: vercel --cwd="${{ env.APP_DIR }}" pull --yes --environment=${{ steps.target.outputs.environment }} --token=${{ env.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=${{ steps.target.outputs.environment }} --token=${{ env.VERCEL_TOKEN }}
       - name: Build Vercel artifacts
-        run: vercel --cwd="${{ env.APP_DIR }}" build --token=${{ env.VERCEL_TOKEN }}
+        run: vercel build --token=${{ env.VERCEL_TOKEN }}
       - name: Deploy to Vercel
-        run: vercel --cwd="${{ env.APP_DIR }}" deploy --prebuilt ${{ steps.target.outputs.prod_flag }} --token=${{ env.VERCEL_TOKEN }}
+        run: vercel deploy --prebuilt ${{ steps.target.outputs.prod_flag }} --token=${{ env.VERCEL_TOKEN }}
