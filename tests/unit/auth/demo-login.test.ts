@@ -21,7 +21,9 @@ describe("auth/demo-login", () => {
   it("accepts safe relative paths and preserves query/hash", () => {
     expect(safeNextParam("/donor-dashboard")).toBe("/donor-dashboard");
     expect(safeNextParam("/mc?tab=users#top")).toBe("/mc?tab=users#top");
-    expect(safeNextParam("   /tasks?filter=open   ")).toBe("/tasks?filter=open");
+    expect(safeNextParam("   /tasks?filter=open   ")).toBe(
+      "/tasks?filter=open",
+    );
   });
 
   it("rejects unsafe or blocked next params", () => {

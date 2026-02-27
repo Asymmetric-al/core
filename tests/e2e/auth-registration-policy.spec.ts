@@ -1,8 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-const registrationEnabled = process.env.E2E_REGISTRATION_ENABLED === "true";
-
 test("registration policy UI", async ({ page }) => {
+  const registrationEnabled = process.env.E2E_REGISTRATION_ENABLED
+    ? process.env.E2E_REGISTRATION_ENABLED === "true"
+    : true;
+
   await page.goto("/register");
 
   if (registrationEnabled) {
@@ -10,7 +12,9 @@ test("registration policy UI", async ({ page }) => {
     await expect(page.getByLabel("Last Name")).toBeVisible();
     await expect(page.getByLabel("Email")).toBeVisible();
     await expect(page.getByLabel("Password")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Create Account" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Create Account" }),
+    ).toBeVisible();
 
     // Public registration must not expose privileged role selection.
     await expect(page.getByText("I am a...")).toHaveCount(0);
@@ -20,6 +24,8 @@ test("registration policy UI", async ({ page }) => {
   }
 
   await expect(
-    page.getByText("Self-service registration is not available for this portal."),
+    page.getByText(
+      "Self-service registration is not available for this portal.",
+    ),
   ).toBeVisible();
 });

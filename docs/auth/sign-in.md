@@ -2,6 +2,10 @@
 
 This repo uses a shared sign-in foundation across `admin`, `missionary`, and `donor` apps.
 
+For implementation status, current wiring, and backlog handoff notes, see:
+
+- `docs/auth/hardening-handoff.md`
+
 ## Modes
 
 ### 1) Demo-only mode

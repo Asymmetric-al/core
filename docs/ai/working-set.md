@@ -49,3 +49,19 @@
   - explicit `Cache-Control: no-store`
   - added unit coverage in `tests/unit/auth/signout-handler.test.ts`.
 - Stabilized auth e2e sign-out targeting with `data-testid=\"auth-signout\"` controls.
+
+## Docs/test handoff pass (2026-02-27)
+
+- Added developer handoff guide:
+  - `docs/auth/hardening-handoff.md`
+  - includes current wiring, completed work, and explicit backlog mapping for priorities 1–5.
+- Added migration artifact regression tests:
+  - `tests/unit/auth/role-hardening-migration.test.ts`
+  - guards role-check constraint and donor-enforced trigger behavior.
+- Updated auth-related e2e selectors/defaults for compatibility with current UI:
+  - `tests/e2e/accessibility.spec.ts`
+  - `tests/e2e/auth-registration-policy.spec.ts`
+- Validation rerun complete:
+  - `bun run test:e2e` passes (24 passed, 34 skipped)
+  - cross-dashboard auth smoke/matrix runs pass
+  - `bun run format:check`, `bun run check`, and `bun run build` pass.

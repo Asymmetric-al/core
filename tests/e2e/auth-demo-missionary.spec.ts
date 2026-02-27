@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 
-test("missionary demo login redirects and persists session", async ({ page }) => {
+test("missionary demo login redirects and persists session", async ({
+  page,
+}) => {
   const availability = await page.request.get("/api/auth/demo-account");
   test.skip(!availability.ok(), "Demo availability endpoint is unavailable.");
 
