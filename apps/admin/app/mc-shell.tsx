@@ -54,6 +54,7 @@ import {
   SparklesIcon,
   LifeBuoyIcon,
   ShieldCheckIcon,
+  LogOutIcon,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -263,6 +264,9 @@ function SidebarGroupedMenuItems({
 
 function AppHeader() {
   const { user, signOut } = useMC();
+  const handleSignOut = () => {
+    void signOut();
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -355,6 +359,15 @@ function AppHeader() {
             user={user}
             onSignOut={signOut}
           />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2 text-xs hidden md:inline-flex"
+            onClick={handleSignOut}
+          >
+            <LogOutIcon className="mr-1 size-3.5" />
+            Sign out
+          </Button>
         </div>
       </div>
     </header>

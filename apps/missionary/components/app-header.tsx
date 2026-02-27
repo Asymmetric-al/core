@@ -1,5 +1,6 @@
 "use client";
 
+import { createBrowserClient } from "@asym/database/supabase";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   DropdownMenu,
@@ -9,9 +10,11 @@ import {
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import { SidebarTrigger } from "@asym/ui/components/shadcn/sidebar";
-import { Moon, Sun, Bell, LifeBuoy } from "lucide-react";
+import { Moon, Sun, Bell, LifeBuoy, LogOut } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
+import { useTransition } from "react";
 
 interface AppHeaderProps {
   title?: string;
@@ -19,6 +22,20 @@ interface AppHeaderProps {
 
 export function AppHeader({ title }: AppHeaderProps) {
   const { setTheme } = useTheme();
+  const router = useRouter();
+  const [isSigningOut, startSigningOut] = useTransition();
+
+  const handleSignOut = () => {
+    startSigningOut(() => {
+      void (async () => {
+        const supabase = createBrowserClient();
+        await fetch("/api/auth/signout", { method: "POST" }).catch(() => null);
+        void supabase.auth.signOut();
+        router.replace("/login");
+        router.refresh();
+      })();
+    });
+  };
 
   return (
     <header className="sticky top-0 z-50 flex h-12 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-3 sm:px-4 lg:px-6">
@@ -82,6 +99,16 @@ export function AppHeader({ title }: AppHeaderProps) {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 px-2 text-xs"
+          onClick={handleSignOut}
+          disabled={isSigningOut}
+        >
+          <LogOut className="mr-1 h-3.5 w-3.5" />
+          {isSigningOut ? "Signing out…" : "Sign out"}
+        </Button>
       </div>
     </header>
   );

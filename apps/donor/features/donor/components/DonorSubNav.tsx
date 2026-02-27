@@ -1,5 +1,6 @@
 "use client";
 
+import { createBrowserClient } from "@asym/database/supabase";
 import { cn } from "@asym/ui/lib/utils";
 import {
   LayoutDashboard,
@@ -8,9 +9,11 @@ import {
   RefreshCw,
   Wallet,
   Settings,
+  LogOut,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useTransition } from "react";
 
 const navItems = [
   { label: "Overview", href: "/donor-dashboard", icon: LayoutDashboard },
@@ -31,6 +34,20 @@ const navItems = [
 
 export function DonorSubNav() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isSigningOut, startSigningOut] = useTransition();
+
+  const handleSignOut = () => {
+    startSigningOut(() => {
+      void (async () => {
+        const supabase = createBrowserClient();
+        await fetch("/api/auth/signout", { method: "POST" }).catch(() => null);
+        void supabase.auth.signOut();
+        router.replace("/login");
+        router.refresh();
+      })();
+    });
+  };
 
   return (
     <nav className="border-b border-zinc-200 bg-white sticky top-16 z-40">
@@ -59,6 +76,17 @@ export function DonorSubNav() {
               </Link>
             );
           })}
+          <button
+            type="button"
+            onClick={handleSignOut}
+            disabled={isSigningOut}
+            className="ml-auto flex items-center gap-2 rounded-lg px-4 py-3 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap text-zinc-500 transition-all hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-60"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">
+              {isSigningOut ? "Signing out…" : "Sign out"}
+            </span>
+          </button>
         </div>
       </div>
     </nav>

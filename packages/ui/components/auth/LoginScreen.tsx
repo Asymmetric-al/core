@@ -6,13 +6,14 @@ import {
   safeNextParam,
   type AppId,
 } from "@asym/auth/demo-login";
-import { routeForProfileRole, type AppRole } from "@asym/auth/roles";
 import { createBrowserClient } from "@asym/database/supabase";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
 import { DemoOnlyLoginCard } from "./DemoOnlyLoginCard";
 import { FullLoginCard } from "./FullLoginCard";
+
+import type { AppRole } from "@asym/auth/roles";
 
 interface DemoAvailabilityResponse {
   roles?: Partial<Record<AppRole, boolean>>;
@@ -60,6 +61,10 @@ export function LoginScreen({
   const demoRole = getDemoRoleForApp(appId);
   const defaultPostLoginPath = getDefaultPostLoginPathForApp(appId);
   const sanitizedNextPath = safeNextParam(nextPath);
+  const targetPath = React.useMemo(
+    () => sanitizedNextPath ?? defaultPostLoginPath,
+    [defaultPostLoginPath, sanitizedNextPath],
+  );
 
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -94,10 +99,23 @@ export function LoginScreen({
     };
   }, [demoOnly, demoRole]);
 
-  const targetPath = React.useMemo(
-    () => sanitizedNextPath ?? defaultPostLoginPath,
-    [defaultPostLoginPath, sanitizedNextPath],
-  );
+  React.useEffect(() => {
+    const supabase = createBrowserClient();
+    let active = true;
+
+    void (async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!active || !session) return;
+      router.replace(targetPath);
+      router.refresh();
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [router, targetPath]);
 
   const handleDemoLogin = React.useCallback(async () => {
     setError(null);
@@ -136,33 +154,16 @@ export function LoginScreen({
 
       try {
         const supabase = createBrowserClient();
-        const { data, error: signInError } =
-          await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
         if (signInError) {
           throw new Error(signInError.message);
         }
 
-        const userId = data.user?.id;
-        if (!userId) {
-          throw new Error("Unable to read authenticated user.");
-        }
-
-        const { data: profile, error: profileError } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("user_id", userId)
-          .maybeSingle();
-
-        if (profileError) {
-          throw new Error("Unable to resolve profile role.");
-        }
-
-        const roleHome = routeForProfileRole(profile?.role);
-        router.replace(sanitizedNextPath ?? roleHome ?? defaultPostLoginPath);
+        router.replace(targetPath);
         router.refresh();
       } catch (cause) {
         setError(toSafeUiError(cause, "Unable to sign in."));
@@ -170,15 +171,7 @@ export function LoginScreen({
         setIsSubmitting(false);
       }
     },
-    [
-      defaultPostLoginPath,
-      email,
-      password,
-      router,
-      sanitizedNextPath,
-      setError,
-      setIsSubmitting,
-    ],
+    [email, password, router, setError, setIsSubmitting, targetPath],
   );
 
   return (
