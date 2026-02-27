@@ -1,6 +1,11 @@
 "use client";
 
-import { formatCurrency } from "@asym/lib/utils";
+import { formatCurrency, getInitials } from "@asym/lib/utils";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
@@ -9,24 +14,25 @@ import {
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
-import { DataTable } from "@asym/ui/components/shadcn/data-table";
+import {
+  DataTableResponsive,
+  type DataTableFilterField,
+} from "@asym/ui/components/shadcn/data-table";
 import { cn } from "@asym/ui/lib/utils";
 import {
   DollarSign,
   TrendingUp,
   Users,
-  Receipt,
+  Clock,
   Download,
   Plus,
   Trash2,
-  CircleCheck,
-  Clock,
-  XCircle,
-  RotateCcw,
+  Receipt,
 } from "lucide-react";
 import { useState, useMemo } from "react";
 
-import { columns } from "./columns";
+import { getColumns } from "./columns";
+import { ContributionDetailSheet } from "./contribution-detail-sheet";
 import {
   mockContributions,
   contributionStatusOptions,
@@ -36,19 +42,30 @@ import {
 } from "./data";
 
 import type { Contribution } from "./types";
-import type { DataTableFilterField } from "@asym/ui/components/shadcn/data-table/types";
 
-const statusIcons = {
-  Succeeded: CircleCheck,
-  Pending: Clock,
-  Failed: XCircle,
-  Refunded: RotateCcw,
+/* ------------------------------------------------------------------ */
+/*  Status dot color — used in mobile card                             */
+/* ------------------------------------------------------------------ */
+
+const statusDotColor: Record<string, string> = {
+  Succeeded: "bg-emerald-500",
+  Pending: "bg-amber-500",
+  Failed: "bg-destructive",
+  Refunded: "bg-muted-foreground",
+  Disputed: "bg-orange-500",
 };
+
+/* ------------------------------------------------------------------ */
+/*  Page                                                                */
+/* ------------------------------------------------------------------ */
 
 export default function ContributionsPage() {
   const [data] = useState<Contribution[]>(mockContributions);
   const [isLoading] = useState(false);
+  const [selectedContribution, setSelectedContribution] =
+    useState<Contribution | null>(null);
 
+  /* ---- Computed stats ---- */
   const stats = useMemo(() => {
     const totalAmount = data.reduce(
       (sum, c) => (c.status === "Succeeded" ? sum + c.amount : sum),
@@ -73,6 +90,13 @@ export default function ContributionsPage() {
     };
   }, [data]);
 
+  /* ---- Column factory ---- */
+  const columns = useMemo(
+    () => getColumns({ onViewContribution: setSelectedContribution }),
+    [],
+  );
+
+  /* ---- Filter fields ---- */
   const filterFields: DataTableFilterField<Contribution>[] = [
     {
       id: "status",
@@ -96,6 +120,7 @@ export default function ContributionsPage() {
     },
   ];
 
+  /* ---- Handlers ---- */
   const handleBulkDelete = (rows: Contribution[]) => {
     console.log(
       "Delete rows:",
@@ -115,187 +140,238 @@ export default function ContributionsPage() {
   };
 
   return (
-    <div className="container-responsive section-gap animate-in fade-in duration-500">
-      <div className="flex flex-col gap-6 lg:gap-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-              Contributions
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Track and manage all donations and contributions
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 gap-2"
-              onClick={handleExport}
-            >
-              <Download className="h-4 w-4" />
-              <span className="hidden sm:inline">Export</span>
-            </Button>
-            <Button
-              size="sm"
-              className="h-9 gap-2 bg-zinc-900 text-white hover:bg-zinc-800"
-            >
-              <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Add Contribution</span>
-            </Button>
-          </div>
+    <div className="container-responsive section-gap animate-in fade-in duration-500 py-6">
+      {/* ================================================================ */}
+      {/*  Header row — title + subtitle left, actions right               */}
+      {/* ================================================================ */}
+      <div className="flex items-start justify-between gap-6">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-semibold tracking-tight">
+            Contributions
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Track and manage all donations and contributions.
+          </p>
         </div>
-
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-          <Card className="border-border/50 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
-                Total Received
-              </CardTitle>
-              <div className="h-8 w-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/50 flex items-center justify-center">
-                <DollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl sm:text-2xl font-bold text-foreground">
-                {formatCurrency(stats.totalAmount)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {stats.totalCount} successful contributions
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/50 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
-                Pending
-              </CardTitle>
-              <div className="h-8 w-8 rounded-lg bg-amber-100 dark:bg-amber-950/50 flex items-center justify-center">
-                <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl sm:text-2xl font-bold text-foreground">
-                {formatCurrency(stats.pendingAmount)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {stats.pendingCount} awaiting processing
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/50 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
-                Average Gift
-              </CardTitle>
-              <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center">
-                <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl sm:text-2xl font-bold text-foreground">
-                {formatCurrency(stats.avgAmount)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Per successful contribution
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/50 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
-                Recurring Donors
-              </CardTitle>
-              <div className="h-8 w-8 rounded-lg bg-purple-100 dark:bg-purple-950/50 flex items-center justify-center">
-                <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl sm:text-2xl font-bold text-foreground">
-                {stats.recurringCount}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Active recurring gifts
-              </p>
-            </CardContent>
-          </Card>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={handleExport}
+          >
+            <Download className="size-4" />
+            <span className="hidden sm:inline">Export</span>
+          </Button>
+          <Button size="sm" className="gap-2">
+            <Plus className="size-4" />
+            <span className="hidden sm:inline">Add Contribution</span>
+          </Button>
         </div>
-
-        <div className="flex flex-wrap gap-2">
-          {Object.entries(statusIcons).map(([status, Icon]) => {
-            const count = data.filter((c) => c.status === status).length;
-            if (count === 0) return null;
-            return (
-              <Badge
-                key={status}
-                variant="outline"
-                className={cn(
-                  "gap-1.5 py-1.5 px-3 font-medium cursor-pointer hover:bg-muted/50 transition-colors",
-                  status === "Succeeded" &&
-                    "border-emerald-200 text-emerald-700 dark:border-emerald-800 dark:text-emerald-400",
-                  status === "Pending" &&
-                    "border-amber-200 text-amber-700 dark:border-amber-800 dark:text-amber-400",
-                  status === "Failed" &&
-                    "border-red-200 text-red-700 dark:border-red-800 dark:text-red-400",
-                  status === "Refunded" &&
-                    "border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-400",
-                )}
-              >
-                <Icon className="h-3.5 w-3.5" />
-                {status}: {count}
-              </Badge>
-            );
-          })}
-        </div>
-
-        <DataTable
-          columns={columns}
-          data={data}
-          filterFields={filterFields}
-          searchKey="donor"
-          searchPlaceholder="Search by donor name or email..."
-          isLoading={isLoading}
-          config={{
-            enableRowSelection: true,
-            enableColumnVisibility: true,
-            enablePagination: true,
-            enableFilters: true,
-            enableSorting: true,
-          }}
-          actionBarActions={[
-            {
-              label: "Send Receipts",
-              icon: Receipt,
-              onClick: handleBulkReceipt,
-            },
-            {
-              label: "Delete",
-              icon: Trash2,
-              onClick: handleBulkDelete,
-              variant: "destructive",
-            },
-          ]}
-          emptyState={
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="rounded-2xl bg-muted/50 p-4 mb-4">
-                <DollarSign className="size-10 text-muted-foreground" />
-              </div>
-              <h3 className="text-lg font-semibold">No contributions found</h3>
-              <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-                Get started by recording your first contribution or importing
-                from another source.
-              </p>
-              <Button className="mt-6" size="sm">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Contribution
-              </Button>
-            </div>
-          }
-        />
       </div>
+
+      {/* ================================================================ */}
+      {/*  KPI metric tiles                                                */}
+      {/* ================================================================ */}
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        {/* Total Received */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
+              Total Received
+            </CardTitle>
+            <DollarSign className="size-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-semibold font-mono tabular-nums">
+              {formatCurrency(stats.totalAmount)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {stats.totalCount} successful contributions
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Pending */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
+              Pending
+            </CardTitle>
+            <Clock className="size-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-semibold font-mono tabular-nums">
+              {formatCurrency(stats.pendingAmount)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {stats.pendingCount} awaiting processing
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Average Gift */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
+              Average Gift
+            </CardTitle>
+            <TrendingUp className="size-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-semibold font-mono tabular-nums">
+              {formatCurrency(stats.avgAmount)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Per successful contribution
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Recurring Donors */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
+              Recurring Donors
+            </CardTitle>
+            <Users className="size-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-semibold tabular-nums">
+              {stats.recurringCount}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Active recurring gifts
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ================================================================ */}
+      {/*  Data table                                                      */}
+      {/* ================================================================ */}
+      <DataTableResponsive
+        columns={columns}
+        data={data}
+        filterFields={filterFields}
+        searchKey="donor"
+        searchPlaceholder="Search by donor name or email..."
+        isLoading={isLoading}
+        config={{
+          enableRowSelection: true,
+          enableColumnVisibility: true,
+          enablePagination: true,
+          enableFilters: true,
+          enableSorting: true,
+          enableViewToggle: true,
+          enableKeyboardNavigation: true,
+        }}
+        initialState={{
+          columnVisibility: {
+            transactionId: false,
+            source: false,
+          },
+        }}
+        onRowClick={(row) => setSelectedContribution(row.original)}
+        floatingBarActions={[
+          {
+            label: "Send Receipts",
+            icon: Receipt,
+            onClick: handleBulkReceipt,
+          },
+          {
+            label: "Delete",
+            icon: Trash2,
+            onClick: handleBulkDelete,
+            variant: "destructive",
+          },
+        ]}
+        mobileCardConfig={{
+          primaryField: "donor",
+          secondaryField: "fundName",
+          badgeField: "status",
+          renderCard: (row) => {
+            const contribution = row.original;
+            const donor = contribution.donor;
+            return (
+              <button
+                type="button"
+                onClick={() => setSelectedContribution(contribution)}
+                className="w-full p-4 cursor-pointer space-y-3 text-left"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10 border border-border">
+                      <AvatarImage src={donor.avatar} alt={donor.name} />
+                      <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium">
+                        {contribution.isAnonymous
+                          ? "?"
+                          : getInitials(donor.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="text-sm font-semibold text-foreground">
+                        {contribution.isAnonymous ? "Anonymous" : donor.name}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {contribution.fundName}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className={cn(
+                        "h-2 w-2 shrink-0 rounded-full",
+                        statusDotColor[contribution.status] ??
+                          "bg-muted-foreground",
+                      )}
+                    />
+                    <span className="text-xs font-medium text-foreground">
+                      {contribution.status}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-mono text-xs text-muted-foreground tabular-nums">
+                    {new Date(contribution.date).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </span>
+                  <span className="font-mono font-semibold tabular-nums">
+                    {formatCurrency(contribution.amount)}
+                  </span>
+                </div>
+              </button>
+            );
+          },
+        }}
+        emptyState={
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="rounded-2xl bg-muted/50 p-4 mb-4">
+              <DollarSign className="size-10 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold">No contributions found</h3>
+            <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+              Get started by recording your first contribution or importing from
+              another source.
+            </p>
+            <Button className="mt-6" size="sm">
+              <Plus className="mr-2 size-4" />
+              Add Contribution
+            </Button>
+          </div>
+        }
+      />
+
+      {/* ================================================================ */}
+      {/*  Detail sheet                                                    */}
+      {/* ================================================================ */}
+      <ContributionDetailSheet
+        contribution={selectedContribution}
+        onClose={() => setSelectedContribution(null)}
+      />
     </div>
   );
 }
