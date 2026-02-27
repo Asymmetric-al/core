@@ -12,14 +12,7 @@ import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import { Sheet, SheetContent } from "@asym/ui/components/shadcn/sheet";
 import { cn } from "@asym/ui/lib/utils";
-import {
-  Copy,
-  DollarSign,
-  Mail,
-  Receipt,
-  RefreshCcw,
-  X,
-} from "lucide-react";
+import { Copy, DollarSign, Mail, Receipt, RefreshCcw, X } from "lucide-react";
 import { toast } from "sonner";
 
 import type { Contribution, ContributionStatus } from "./types";
@@ -51,10 +44,12 @@ function DetailField({
 }) {
   return (
     <div className="space-y-1">
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+        {label}
+      </p>
       <p
         className={cn(
-          "text-sm font-medium text-foreground",
+          "text-sm font-bold text-foreground",
           mono && "font-mono tabular-nums",
         )}
       >
@@ -88,14 +83,11 @@ export function ContributionDetailSheet({
   };
 
   return (
-    <Sheet
-      open={!!contribution}
-      onOpenChange={(open) => !open && onClose()}
-    >
+    <Sheet open={!!contribution} onOpenChange={(open) => !open && onClose()}>
       <SheetContent className="w-full sm:max-w-lg p-0 gap-0 border-l border-border bg-background shadow-2xl overflow-hidden flex flex-col h-full text-left">
         {/* ---- Header ---- */}
         <div className="h-14 bg-card border-b border-border flex items-center justify-between px-4 shrink-0 z-10">
-          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+          <div className="flex items-center gap-2 text-sm font-bold text-foreground uppercase tracking-wider">
             <DollarSign className="size-4 text-muted-foreground" />
             <span>Contribution Details</span>
           </div>
@@ -112,34 +104,40 @@ export function ContributionDetailSheet({
         {/* ---- Content ---- */}
         <ScrollArea className="flex-1">
           <div className="p-6 space-y-8">
-            {/* ---- Donor + Amount ---- */}
+            {/* ---- Donor + Status ---- */}
             <div className="flex items-start gap-4">
-              <Avatar className="h-14 w-14 border-2 border-background shadow-sm">
+              <Avatar className="h-16 w-16 border-4 border-background shadow-sm">
                 <AvatarImage src={donor.avatar} alt={donor.name} />
-                <AvatarFallback className="bg-muted text-muted-foreground font-semibold text-lg">
+                <AvatarFallback className="bg-muted text-muted-foreground font-bold text-xl">
                   {isAnonymous ? "?" : getInitials(donor.name)}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1 space-y-1">
-                <h2 className="text-lg font-semibold text-foreground tracking-tight">
+              <div className="flex-1 space-y-1 pt-1">
+                <h2 className="text-2xl font-bold text-foreground tracking-tight">
                   {isAnonymous ? "Anonymous Donor" : donor.name}
                 </h2>
                 {!isAnonymous && donor.email && (
-                  <p className="text-sm text-muted-foreground">{donor.email}</p>
+                  <p className="text-sm text-muted-foreground font-medium">
+                    {donor.email}
+                  </p>
                 )}
-                <div className="flex items-center gap-2 pt-1">
-                  <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2 pt-2">
+                  <Badge
+                    variant="outline"
+                    className="h-5 text-[10px] font-bold uppercase tracking-wider border shadow-none"
+                  >
                     <span
                       className={cn(
-                        "h-2 w-2 shrink-0 rounded-full",
+                        "h-1.5 w-1.5 shrink-0 rounded-full mr-1.5",
                         statusDotColor[contribution.status],
                       )}
                     />
-                    <span className="text-xs font-medium text-foreground">
-                      {contribution.status}
-                    </span>
-                  </div>
-                  <Badge variant="secondary" className="text-xs font-medium">
+                    {contribution.status}
+                  </Badge>
+                  <Badge
+                    variant="secondary"
+                    className="h-5 text-[10px] font-bold uppercase tracking-wider border-none bg-muted text-muted-foreground"
+                  >
                     {contribution.type}
                   </Badge>
                 </div>
@@ -147,11 +145,11 @@ export function ContributionDetailSheet({
             </div>
 
             {/* ---- Amount display ---- */}
-            <div className="rounded-xl border border-border bg-card p-5">
-              <p className="text-xs font-medium text-muted-foreground mb-1">
+            <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1">
                 Amount
               </p>
-              <p className="text-3xl font-semibold font-mono tabular-nums text-foreground tracking-tight">
+              <p className="text-3xl font-black font-mono tabular-nums text-foreground tracking-tight">
                 {formatCurrency(contribution.amount)}
               </p>
             </div>
@@ -173,9 +171,7 @@ export function ContributionDetailSheet({
                 {contribution.paymentMethod}
               </DetailField>
 
-              <DetailField label="Source">
-                {contribution.source}
-              </DetailField>
+              <DetailField label="Source">{contribution.source}</DetailField>
 
               <DetailField label="Fund">
                 <span>{contribution.fundName}</span>
@@ -214,11 +210,11 @@ export function ContributionDetailSheet({
               <>
                 <Separator />
                 <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                     Notes
                   </p>
                   <div className="rounded-lg border border-border bg-muted/30 p-4">
-                    <p className="text-sm text-muted-foreground leading-relaxed">
+                    <p className="text-sm text-muted-foreground leading-relaxed font-medium">
                       {contribution.notes}
                     </p>
                   </div>
@@ -229,34 +225,46 @@ export function ContributionDetailSheet({
             <Separator />
 
             {/* ---- Actions ---- */}
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground mb-3">
+            <div className="space-y-3">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                 Actions
               </p>
               <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="gap-2"
+                  className="gap-2 rounded-xl font-bold uppercase tracking-widest text-[10px] h-9"
                   onClick={handleCopyTxn}
                 >
                   <Copy className="size-3.5" />
                   Copy Transaction ID
                 </Button>
                 {!isAnonymous && (
-                  <Button variant="outline" size="sm" className="gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 rounded-xl font-bold uppercase tracking-widest text-[10px] h-9"
+                  >
                     <Mail className="size-3.5" />
                     Email Donor
                   </Button>
                 )}
                 {!contribution.receiptSent && (
-                  <Button variant="outline" size="sm" className="gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 rounded-xl font-bold uppercase tracking-widest text-[10px] h-9"
+                  >
                     <Receipt className="size-3.5" />
                     Send Receipt
                   </Button>
                 )}
                 {contribution.status === "Failed" && (
-                  <Button variant="outline" size="sm" className="gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 rounded-xl font-bold uppercase tracking-widest text-[10px] h-9"
+                  >
                     <RefreshCcw className="size-3.5" />
                     Retry Payment
                   </Button>
@@ -266,7 +274,7 @@ export function ContributionDetailSheet({
 
             {/* ---- Metadata ---- */}
             <div className="pt-2 space-y-1">
-              <p className="font-mono text-xs text-muted-foreground tabular-nums">
+              <p className="font-mono text-[10px] text-muted-foreground tabular-nums font-bold">
                 Created{" "}
                 {new Date(contribution.createdAt).toLocaleDateString("en-US", {
                   month: "short",
@@ -277,7 +285,7 @@ export function ContributionDetailSheet({
                 })}
               </p>
               {contribution.updatedAt !== contribution.createdAt && (
-                <p className="font-mono text-xs text-muted-foreground tabular-nums">
+                <p className="font-mono text-[10px] text-muted-foreground tabular-nums font-bold">
                   Updated{" "}
                   {new Date(contribution.updatedAt).toLocaleDateString(
                     "en-US",
