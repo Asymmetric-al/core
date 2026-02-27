@@ -77,6 +77,27 @@ bun run dev:donor
   - `GET /api/cms/public/updates?tenant=<tenant-slug>`
 - Open donor unknown route and confirm fallback behavior does not leak other tenants’ content.
 
+## Cloud VM walkthrough capture
+
+If you want a one-command Site Studio walkthrough recording in a cloud VM:
+
+```bash
+bun run site-studio:walkthrough:cloud
+```
+
+Required env vars in the VM session:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `PAYLOAD_SECRET`
+- `PAYLOAD_DATABASE_URI`
+
+Output is written under `site-studio-review/<date>/cloud-agent/`:
+
+- `results/` raw Playwright artifacts
+- `merged/site-studio-full-walkthrough.mp4`
+- `screenshots/site-studio-frame-*.png`
+
 ## API endpoint quick reference
 
 ### Public endpoints (tenant-aware, no auth)

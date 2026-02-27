@@ -58,6 +58,7 @@
     "cms:migrate:create": "bun run --cwd apps/admin cms:migrate:create",
     "cms:migrate:status": "bun run --cwd apps/admin cms:migrate:status",
     "cms:importmap": "bun run --cwd apps/admin cms:importmap",
+    "site-studio:walkthrough:cloud": "bash ./scripts/dev/site-studio-cloud-walkthrough.sh",
     "db:migrate:local": "supabase db reset --local --no-seed",
     "db:migrate:hosted": "supabase db push --db-url \"$SUPABASE_DB_URL\"",
     "seed:demo:local": "bash ./scripts/seed-demo.sh local",
