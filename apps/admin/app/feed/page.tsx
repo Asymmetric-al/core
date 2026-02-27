@@ -41,6 +41,7 @@ import {
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
+import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import {
   Select,
   SelectContent,
@@ -100,8 +101,6 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useState, useMemo, useCallback, useReducer } from "react";
 import { toast } from "sonner";
-
-import { PageHeader } from "@/components/page-header";
 
 const smoothTransition = {
   duration: 0.25,
@@ -380,12 +379,7 @@ function StatCard({
       <MotionCard
         whileHover={{ y: -2, scale: 1.01 }}
         transition={springTransition}
-        className={cn(
-          "rounded-2xl border shadow-sm hover:shadow-md transition-all duration-300",
-          variant === "warning" && "border-amber-200/50",
-          variant === "danger" && "border-rose-200/50",
-          variant === "success" && "border-emerald-200/50",
-        )}
+        className="rounded-2xl border shadow-sm hover:shadow-md transition-all duration-300"
       >
         <CardContent className="p-4 sm:p-5">
           <div className="flex items-start justify-between">
@@ -423,13 +417,7 @@ function StatCard({
             <motion.div
               whileHover={{ scale: 1.1, rotate: 5 }}
               transition={springTransition}
-              className={cn(
-                "h-9 w-9 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center",
-                variant === "default" && "bg-muted text-muted-foreground",
-                variant === "warning" && "bg-amber-100 text-amber-600",
-                variant === "danger" && "bg-rose-100 text-rose-600",
-                variant === "success" && "bg-emerald-100 text-emerald-600",
-              )}
+              className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center bg-zinc-100 text-zinc-600"
             >
               <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
             </motion.div>
@@ -1575,49 +1563,6 @@ function RecentActivityPanel() {
   );
 }
 
-function ContentModerationPageHeaderSection({
-  isRefreshing,
-  onRefresh,
-}: {
-  isRefreshing: boolean;
-  onRefresh: () => void;
-}) {
-  return (
-    <PageHeader
-      title="Ministry Updates Moderation"
-      description="Review flagged content, moderate posts, and manage comments."
-    >
-      <Link href="/mc/feed/org-updates">
-        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-          <Button className="h-9 gap-2 rounded-xl font-semibold">
-            <PenSquare className="h-4 w-4" />
-            <span className="hidden sm:inline">Org Updates</span>
-          </Button>
-        </motion.div>
-      </Link>
-      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-        <Button variant="outline" size="sm" className="h-9 gap-2 rounded-xl">
-          <Download className="h-4 w-4" />
-          <span className="hidden sm:inline">Export</span>
-        </Button>
-      </motion.div>
-      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-9 w-9 rounded-xl"
-          onClick={onRefresh}
-          disabled={isRefreshing}
-        >
-          <RefreshCw
-            className={cn("h-4 w-4", isRefreshing && "animate-spin")}
-          />
-        </Button>
-      </motion.div>
-    </PageHeader>
-  );
-}
-
 function ContentModerationStatsSection({ stats }: { stats: ModerationStats }) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-4">
@@ -2166,37 +2111,73 @@ export default function ContentModerationPage() {
   );
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-      className="p-4 sm:p-6 pb-20 space-y-6 sm:space-y-8"
+    <PageShell
+      title="Ministry Updates"
+      description="Review flagged content, moderate posts, and manage comments."
+      actions={
+        <>
+          <Link href="/mc/feed/org-updates">
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button className="h-9 gap-2 rounded-xl font-semibold">
+                <PenSquare className="h-4 w-4" />
+                <span className="hidden sm:inline">Org Updates</span>
+              </Button>
+            </motion.div>
+          </Link>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 gap-2 rounded-xl"
+            >
+              <Download className="h-4 w-4" />
+              <span className="hidden sm:inline">Export</span>
+            </Button>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-9 w-9 rounded-xl"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+            >
+              <RefreshCw
+                className={cn("h-4 w-4", isRefreshing && "animate-spin")}
+              />
+            </Button>
+          </motion.div>
+        </>
+      }
     >
-      <ContentModerationPageHeaderSection
-        isRefreshing={isRefreshing}
-        onRefresh={handleRefresh}
-      />
-      <ContentModerationStatsSection stats={stats} />
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 sm:gap-8">
-        <div className="xl:col-span-8 space-y-6">
-          <ContentModerationTabsSection
-            activeTab={activeTab}
-            searchQuery={searchQuery}
-            filterVisibility={filterVisibility}
-            filterType={filterType}
-            sortBy={sortBy}
-            flaggedPosts={flaggedPosts}
-            posts={posts}
-            isLoading={isLoading}
-            dispatchUi={dispatchUi}
-            onPostAction={handlePostAction}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="space-y-6 sm:space-y-8"
+      >
+        <ContentModerationStatsSection stats={stats} />
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 sm:gap-8">
+          <div className="xl:col-span-8 space-y-6">
+            <ContentModerationTabsSection
+              activeTab={activeTab}
+              searchQuery={searchQuery}
+              filterVisibility={filterVisibility}
+              filterType={filterType}
+              sortBy={sortBy}
+              flaggedPosts={flaggedPosts}
+              posts={posts}
+              isLoading={isLoading}
+              dispatchUi={dispatchUi}
+              onPostAction={handlePostAction}
+            />
+          </div>
+          <ContentModerationSidebarSection
+            flaggedComments={flaggedComments}
+            onCommentAction={handleCommentAction}
           />
         </div>
-        <ContentModerationSidebarSection
-          flaggedComments={flaggedComments}
-          onCommentAction={handleCommentAction}
-        />
-      </div>
-    </motion.div>
+      </motion.div>
+    </PageShell>
   );
 }
