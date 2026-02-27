@@ -362,6 +362,7 @@ function AppHeader() {
           <Button
             variant="ghost"
             size="sm"
+            data-testid="auth-signout"
             className="h-8 px-2 text-xs hidden md:inline-flex"
             onClick={handleSignOut}
           >

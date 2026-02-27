@@ -37,7 +37,7 @@ test("session guard flow: login, persistence, /login redirect, sign out", async 
     .poll(() => new URL(page.url()).pathname, { timeout: 20000 })
     .toBe(expectedHomePath!);
 
-  const signOutButton = page.getByRole("button", { name: /sign out/i }).first();
+  const signOutButton = page.getByTestId("auth-signout").first();
   await expect(signOutButton).toBeVisible({ timeout: 10000 });
   await signOutButton.click();
 

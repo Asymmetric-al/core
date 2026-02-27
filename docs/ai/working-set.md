@@ -35,3 +35,18 @@
 - Verified with:
   - full lint/typecheck/unit (`bun run check`) pass
   - Playwright auth suite runs across donor/admin/missionary (session guards + registration + permission matrix).
+
+## Best-practice hardening follow-up (2026-02-27)
+
+- Removed client-supplied role from public registration payload in shared `RegisterScreen`.
+- Added DB role hardening migration:
+  - `supabase/migrations/20260227060000_auth_role_hardening.sql`
+  - enforces allowlisted `profiles.role` values
+  - sets `profiles.role` non-null + default donor
+  - updates `handle_new_user` to assign `donor` for self-registration.
+- Synced canonical schema and init migration to same role constraints and trigger behavior.
+- Hardened sign-out route:
+  - same-origin validation via `Origin`/`Referer`
+  - explicit `Cache-Control: no-store`
+  - added unit coverage in `tests/unit/auth/signout-handler.test.ts`.
+- Stabilized auth e2e sign-out targeting with `data-testid=\"auth-signout\"` controls.
