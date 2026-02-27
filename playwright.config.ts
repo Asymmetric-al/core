@@ -1,6 +1,25 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const DEFAULT_PORT = 3005;
+const DEFAULT_SUPABASE_URL = "https://example.supabase.co";
+const DEFAULT_SUPABASE_ANON_KEY = "example-anon-key";
+
+function withCiEquivalentEnvDefaults(
+  env: NodeJS.ProcessEnv,
+): NodeJS.ProcessEnv {
+  if (env.ASYM_USE_CI_ENV_DEFAULTS !== "1") {
+    return { ...env };
+  }
+
+  return {
+    ...env,
+    SKIP_ENV_VALIDATION: env.SKIP_ENV_VALIDATION || "1",
+    NEXT_PUBLIC_SUPABASE_URL:
+      env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY:
+      env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY,
+  };
+}
 
 function getLocalBaseUrlAndPort(): { baseURL: string; port: number } {
   const envBase = process.env.PLAYWRIGHT_BASE_URL;
@@ -51,6 +70,7 @@ const webServer = isRemoteBaseUrl
   ? undefined
   : {
       command: `node -e "try{require('fs').rmSync('apps/donor/.next/dev/lock',{force:true})}catch{}" && bun run --cwd apps/donor dev -- --port ${port} --hostname 127.0.0.1`,
+      env: withCiEquivalentEnvDefaults(process.env),
       url: baseURL,
       // Always reuse if already running; otherwise start it.
       reuseExistingServer: true,
