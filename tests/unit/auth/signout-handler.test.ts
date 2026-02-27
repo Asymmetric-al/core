@@ -19,14 +19,23 @@ afterEach(() => {
 });
 
 describe("api/auth/signout", () => {
-  it("rejects requests without origin context", async () => {
+  it("allows requests without origin context", async () => {
     const { POST } = await import("../../../packages/api/src/auth/signout");
+    global.fetch = vi.fn(async (input: RequestInfo | URL) => {
+      const url = typeof input === "string" ? input : input.toString();
+      if (url.includes("/auth/v1/logout")) {
+        return new Response("", { status: 204 });
+      }
+      throw new Error(`Unexpected fetch URL: ${url}`);
+    });
+
     const request = new Request("http://localhost/api/auth/signout", {
       method: "POST",
     });
 
     const response = await POST(request);
-    expect(response.status).toBe(403);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true });
     expect(response.headers.get("cache-control")).toBe("no-store");
   });
 

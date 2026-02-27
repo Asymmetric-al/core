@@ -65,3 +65,24 @@
   - `bun run test:e2e` passes (24 passed, 34 skipped)
   - cross-dashboard auth smoke/matrix runs pass
   - `bun run format:check`, `bun run check`, and `bun run build` pass.
+
+## Review follow-up pass (2026-02-27)
+
+- Addressed sign-out error handling review note:
+  - added shared client helper `packages/auth/client-signout.ts`
+  - callers now log server sign-out failures and show a user warning before continuing client cleanup.
+- Exposed helper as `@asym/auth/client-signout` and adopted in:
+  - `packages/auth/use-auth.ts`
+  - `packages/lib/hooks/use-auth.ts`
+  - `packages/lib/mission-control/context.tsx`
+  - donor and missionary sign-out UI components.
+- Removed duplicate auth source-of-truth risk in legacy DB proxy:
+  - simplified `packages/database/supabase/proxy.ts` to cookie refresh only
+  - documented auth-guard ownership in `@asym/auth/middleware`.
+- Refined sign-out origin policy for reliability:
+  - `packages/api/src/auth/signout.ts` now treats missing `Origin`/`Referer` as allowable fallback while still rejecting explicit cross-origin requests.
+  - updated tests in `tests/unit/auth/signout-handler.test.ts`.
+- Re-validated:
+  - scoped lint/typecheck for touched packages/apps
+  - `bun run test:unit`
+  - Playwright session guard spec for donor/admin/missionary.

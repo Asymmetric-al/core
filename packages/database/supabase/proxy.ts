@@ -3,6 +3,10 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { getSupabasePublicConfig } from "./config";
 
+/**
+ * @deprecated Auth protection/redirect logic lives in `@asym/auth/middleware`.
+ * This helper is retained only as a legacy cookie-refresh utility.
+ */
 export async function updateSession(request: NextRequest) {
   const { url, key } = getSupabasePublicConfig();
   if (!url || !key) {
@@ -37,96 +41,7 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  const { data: claimsResult } = await supabase.auth.getClaims();
-  const userId = claimsResult?.claims?.sub ?? null;
-
-  const pathname = request.nextUrl.pathname;
-
-  // 1. Normalize Aliases (Demo Paths)
-  let targetPathname = pathname;
-  if (pathname === "/my" || pathname.startsWith("/my/")) {
-    targetPathname = pathname.replace("/my", "") || "/";
-  } else if (pathname === "/admin" || pathname.startsWith("/admin/")) {
-    targetPathname = pathname.replace("/admin", "/mc");
-    if (targetPathname === "/mc/") targetPathname = "/mc";
-  } else if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
-    targetPathname = pathname.replace("/dashboard", "/donor-dashboard");
-    if (targetPathname === "/donor-dashboard/")
-      targetPathname = "/donor-dashboard";
-  }
-
-  // 2. Subdomain Routing Logic (Conceptual)
-  const hostname = request.headers.get("host") || "";
-  const mainDomain = process.env.NEXT_PUBLIC_MAIN_DOMAIN || "localhost:3000";
-  const subdomain = hostname.split(".")[0];
-
-  if (subdomain === "my" && hostname !== mainDomain) {
-    targetPathname = targetPathname === "" ? "/" : targetPathname;
-  }
-
-  // 3. Auth Protection
-  // Allow these routes without auth
-  const publicRoutes = [
-    "/",
-    "/login",
-    "/register",
-    "/auth/callback",
-    "/api/auth/demo-account",
-    "/about",
-    "/faq",
-    "/financials",
-    "/ways-to-give",
-    "/workers",
-    "/checkout",
-    "/sign",
-    "/sitemap.xml",
-    "/robots.txt",
-  ];
-  const isPublicRoute = publicRoutes.some(
-    (route) =>
-      targetPathname === route ||
-      targetPathname.startsWith(route + "/") ||
-      targetPathname.startsWith("/api/"),
-  );
-
-  if (!userId && !isPublicRoute) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    // If it's a demo alias, we might want to remember where they were going
-    if (targetPathname !== pathname) {
-      url.searchParams.set("next", pathname);
-    }
-    return NextResponse.redirect(url);
-  }
-
-  // 4. Redirect logged-in users away from login/register
-  if (
-    userId &&
-    (targetPathname === "/login" || targetPathname === "/register")
-  ) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("user_id", userId)
-      .single();
-
-    const url = request.nextUrl.clone();
-    if (profile?.role === "admin" || profile?.role === "staff") {
-      url.pathname = "/mc";
-    } else if (profile?.role === "missionary") {
-      url.pathname = "/";
-    } else {
-      url.pathname = "/donor-dashboard";
-    }
-    return NextResponse.redirect(url);
-  }
-
-  // 5. Apply Rewrite if target differs from current pathname
-  if (targetPathname !== pathname) {
-    const url = request.nextUrl.clone();
-    url.pathname = targetPathname;
-    return NextResponse.rewrite(url);
-  }
+  await supabase.auth.getClaims();
 
   return supabaseResponse;
 }
