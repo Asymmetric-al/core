@@ -3,7 +3,8 @@ import { expect, test } from "@playwright/test";
 const email = process.env.E2E_EMAIL;
 const password = process.env.E2E_PASSWORD;
 const expectedHomePath = process.env.E2E_EXPECTED_HOME_PATH;
-const expectedPostSignOutPath = process.env.E2E_EXPECTED_SIGNOUT_PATH || "/login";
+const expectedPostSignOutPath =
+  process.env.E2E_EXPECTED_SIGNOUT_PATH || "/login";
 
 test("session guard flow: login, persistence, /login redirect, sign out", async ({
   page,

@@ -38,7 +38,8 @@ describe("api/auth/demo-account", () => {
   });
 
   it("returns ok true and sets auth cookie on successful POST", async () => {
-    const { POST } = await import("../../../packages/api/src/auth/demo-account");
+    const { POST } =
+      await import("../../../packages/api/src/auth/demo-account");
     global.fetch = vi.fn(async (input: RequestInfo | URL) => {
       const url = typeof input === "string" ? input : input.toString();
       if (url.includes("/auth/v1/token")) {
@@ -82,7 +83,8 @@ describe("api/auth/demo-account", () => {
   });
 
   it("blocks demo login in production unless explicitly enabled", async () => {
-    const { POST } = await import("../../../packages/api/src/auth/demo-account");
+    const { POST } =
+      await import("../../../packages/api/src/auth/demo-account");
     process.env.NODE_ENV = "production";
     process.env.ALLOW_DEMO_ACCOUNTS = "false";
 
