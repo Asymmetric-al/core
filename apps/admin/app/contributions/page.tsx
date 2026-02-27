@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "@asym/lib/motion";
 import { formatCurrency, getInitials } from "@asym/lib/utils";
 import {
   Avatar,
@@ -29,6 +30,21 @@ import {
 import type { Contribution } from "./types";
 
 /* ------------------------------------------------------------------ */
+/*  Shared transitions                                                  */
+/* ------------------------------------------------------------------ */
+
+const smoothTransition = {
+  duration: 0.25,
+  ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
+};
+
+const springTransition = {
+  type: "spring" as const,
+  stiffness: 400,
+  damping: 30,
+};
+
+/* ------------------------------------------------------------------ */
 /*  Status dot color — used in mobile card                             */
 /* ------------------------------------------------------------------ */
 
@@ -41,21 +57,36 @@ const statusDotColor: Record<string, string> = {
 };
 
 /* ------------------------------------------------------------------ */
-/*  Stat card — bold font-black style matching reference               */
+/*  Stat card — with motion hover                                      */
 /* ------------------------------------------------------------------ */
 
-function StatCard({ label, value }: { label: string; value: string | number }) {
+function StatCard({
+  label,
+  value,
+  index = 0,
+}: {
+  label: string;
+  value: string | number;
+  index?: number;
+}) {
   return (
-    <div className="flex items-center gap-4 px-6 py-4 rounded-2xl border border-zinc-100 bg-white transition-all min-w-[140px] shadow-sm">
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ ...smoothTransition, delay: index * 0.06 }}
+      whileHover={{ y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      className="flex items-center gap-4 px-6 py-5 rounded-2xl border border-zinc-100 bg-white shadow-sm cursor-default min-w-[140px]"
+    >
       <div className="flex flex-col">
         <span className="text-3xl font-black tabular-nums tracking-tight text-zinc-900">
           {value}
         </span>
-        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mt-0.5">
+        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mt-1">
           {label}
         </span>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -166,140 +197,157 @@ export default function ContributionsPage() {
     >
       <div className="space-y-10">
         {/* ============================================================ */}
-        {/*  Stat cards                                                   */}
+        {/*  Stat cards — staggered entrance + hover lift                 */}
         {/* ============================================================ */}
         <div className="flex flex-wrap gap-4">
           <StatCard
             label="Received"
             value={formatCurrency(stats.totalAmount)}
+            index={0}
           />
           <StatCard
             label="Pending"
             value={formatCurrency(stats.pendingAmount)}
+            index={1}
           />
-          <StatCard label="Avg Gift" value={formatCurrency(stats.avgAmount)} />
-          <StatCard label="Recurring" value={stats.recurringCount} />
+          <StatCard
+            label="Avg Gift"
+            value={formatCurrency(stats.avgAmount)}
+            index={2}
+          />
+          <StatCard label="Recurring" value={stats.recurringCount} index={3} />
         </div>
 
         {/* ============================================================ */}
-        {/*  Data table                                                   */}
+        {/*  Data table — fade in                                        */}
         {/* ============================================================ */}
-        <DataTableResponsive
-          columns={columns}
-          data={data}
-          filterFields={filterFields}
-          searchKey="donor"
-          searchPlaceholder="Search by donor name or email..."
-          isLoading={isLoading}
-          config={{
-            enableRowSelection: true,
-            enableColumnVisibility: true,
-            enablePagination: true,
-            enableFilters: true,
-            enableSorting: true,
-            enableViewToggle: true,
-            enableKeyboardNavigation: true,
-          }}
-          initialState={{
-            columnVisibility: {
-              transactionId: false,
-              source: false,
-            },
-          }}
-          onRowClick={(row) => setSelectedContribution(row.original)}
-          floatingBarActions={[
-            {
-              label: "Send Receipts",
-              icon: Receipt,
-              onClick: handleBulkReceipt,
-            },
-            {
-              label: "Delete",
-              icon: Trash2,
-              onClick: handleBulkDelete,
-              variant: "destructive",
-            },
-          ]}
-          mobileCardConfig={{
-            primaryField: "donor",
-            secondaryField: "fundName",
-            badgeField: "status",
-            renderCard: (row) => {
-              const contribution = row.original;
-              const donor = contribution.donor;
-              return (
-                <button
-                  type="button"
-                  onClick={() => setSelectedContribution(contribution)}
-                  className="w-full p-4 cursor-pointer space-y-3 text-left"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10 border border-border">
-                        <AvatarImage src={donor.avatar} alt={donor.name} />
-                        <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium">
-                          {contribution.isAnonymous
-                            ? "?"
-                            : getInitials(donor.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="text-sm font-bold text-foreground">
-                          {contribution.isAnonymous ? "Anonymous" : donor.name}
-                        </div>
-                        <div className="text-xs text-muted-foreground font-medium">
-                          {contribution.fundName}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...smoothTransition, delay: 0.3 }}
+        >
+          <DataTableResponsive
+            columns={columns}
+            data={data}
+            filterFields={filterFields}
+            searchKey="donor"
+            searchPlaceholder="Search by donor name or email..."
+            isLoading={isLoading}
+            config={{
+              enableRowSelection: true,
+              enableColumnVisibility: true,
+              enablePagination: true,
+              enableFilters: true,
+              enableSorting: true,
+              enableViewToggle: true,
+              enableKeyboardNavigation: true,
+            }}
+            initialState={{
+              columnVisibility: {
+                transactionId: false,
+                source: false,
+              },
+            }}
+            onRowClick={(row) => setSelectedContribution(row.original)}
+            floatingBarActions={[
+              {
+                label: "Send Receipts",
+                icon: Receipt,
+                onClick: handleBulkReceipt,
+              },
+              {
+                label: "Delete",
+                icon: Trash2,
+                onClick: handleBulkDelete,
+                variant: "destructive",
+              },
+            ]}
+            mobileCardConfig={{
+              primaryField: "donor",
+              secondaryField: "fundName",
+              badgeField: "status",
+              renderCard: (row) => {
+                const contribution = row.original;
+                const donor = contribution.donor;
+                return (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedContribution(contribution)}
+                    className="w-full p-4 cursor-pointer space-y-3 text-left"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10 border border-border">
+                          <AvatarImage src={donor.avatar} alt={donor.name} />
+                          <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium">
+                            {contribution.isAnonymous
+                              ? "?"
+                              : getInitials(donor.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="text-sm font-bold text-foreground">
+                            {contribution.isAnonymous
+                              ? "Anonymous"
+                              : donor.name}
+                          </div>
+                          <div className="text-xs text-muted-foreground font-medium">
+                            {contribution.fundName}
+                          </div>
                         </div>
                       </div>
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={cn(
+                            "h-2 w-2 shrink-0 rounded-full",
+                            statusDotColor[contribution.status] ??
+                              "bg-muted-foreground",
+                          )}
+                        />
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-foreground">
+                          {contribution.status}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <span
-                        className={cn(
-                          "h-2 w-2 shrink-0 rounded-full",
-                          statusDotColor[contribution.status] ??
-                            "bg-muted-foreground",
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(contribution.date).toLocaleDateString(
+                          "en-US",
+                          {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          },
                         )}
-                      />
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-foreground">
-                        {contribution.status}
+                      </span>
+                      <span className="font-mono font-black tabular-nums tracking-tight">
+                        {formatCurrency(contribution.amount)}
                       </span>
                     </div>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(contribution.date).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </span>
-                    <span className="font-mono font-black tabular-nums tracking-tight">
-                      {formatCurrency(contribution.amount)}
-                    </span>
-                  </div>
-                </button>
-              );
-            },
-          }}
-          emptyState={
-            <div className="text-center py-32 bg-zinc-50/50 border-2 border-dashed border-zinc-200 rounded-[2.5rem]">
-              <div className="size-20 bg-white rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-zinc-100">
-                <DollarSign className="size-10 text-zinc-200" />
+                  </button>
+                );
+              },
+            }}
+            emptyState={
+              <div className="text-center py-32 bg-zinc-50/50 border-2 border-dashed border-zinc-200 rounded-[2.5rem]">
+                <div className="size-20 bg-white rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-zinc-100">
+                  <DollarSign className="size-10 text-zinc-200" />
+                </div>
+                <h3 className="text-2xl font-black text-zinc-900 tracking-tight">
+                  No contributions found
+                </h3>
+                <p className="text-sm text-zinc-500 mt-2 font-medium">
+                  Get started by recording your first contribution or importing
+                  from another source.
+                </p>
+                <Button className="mt-8 h-12 px-8 rounded-xl bg-zinc-900 text-white font-black uppercase tracking-widest text-[10px]">
+                  <Plus className="mr-2 size-4" />
+                  Add Contribution
+                </Button>
               </div>
-              <h3 className="text-2xl font-black text-zinc-900 tracking-tight">
-                No contributions found
-              </h3>
-              <p className="text-sm text-zinc-500 mt-2 font-medium">
-                Get started by recording your first contribution or importing
-                from another source.
-              </p>
-              <Button className="mt-8 h-12 px-8 rounded-xl bg-zinc-900 text-white font-black uppercase tracking-widest text-[10px]">
-                <Plus className="mr-2 size-4" />
-                Add Contribution
-              </Button>
-            </div>
-          }
-        />
+            }
+          />
+        </motion.div>
       </div>
 
       {/* ============================================================== */}
