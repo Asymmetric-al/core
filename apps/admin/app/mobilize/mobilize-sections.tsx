@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "@asym/lib/motion";
 import { Avatar, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -161,7 +162,7 @@ const StatCard = ({
   icon: LucideIcon;
   color: string;
 }) => (
-  <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-6">
+  <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm px-6 py-5">
     <div className="flex items-center justify-between">
       <div className="text-left">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
@@ -186,30 +187,74 @@ const StatCard = ({
 export function MobilizeStatsRow({ stats }: { stats: MobilizeStats }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <StatCard
-        title="New Applicants"
-        value={stats.applied}
-        icon={Users}
-        color="text-zinc-600"
-      />
-      <StatCard
-        title="In Vetting"
-        value={stats.vetting}
-        icon={UserCheck}
-        color="text-blue-600"
-      />
-      <StatCard
-        title="In Training"
-        value={stats.training}
-        icon={GraduationCap}
-        color="text-purple-600"
-      />
-      <StatCard
-        title="Ready / Deployed"
-        value={stats.ready}
-        icon={Plane}
-        color="text-emerald-600"
-      />
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          duration: 0.25,
+          ease: [0.25, 0.1, 0.25, 1],
+          delay: 0 * 0.06,
+        }}
+        whileHover={{ y: -2 }}
+      >
+        <StatCard
+          title="New Applicants"
+          value={stats.applied}
+          icon={Users}
+          color="text-zinc-600"
+        />
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          duration: 0.25,
+          ease: [0.25, 0.1, 0.25, 1],
+          delay: 1 * 0.06,
+        }}
+        whileHover={{ y: -2 }}
+      >
+        <StatCard
+          title="In Vetting"
+          value={stats.vetting}
+          icon={UserCheck}
+          color="text-blue-600"
+        />
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          duration: 0.25,
+          ease: [0.25, 0.1, 0.25, 1],
+          delay: 2 * 0.06,
+        }}
+        whileHover={{ y: -2 }}
+      >
+        <StatCard
+          title="In Training"
+          value={stats.training}
+          icon={GraduationCap}
+          color="text-purple-600"
+        />
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          duration: 0.25,
+          ease: [0.25, 0.1, 0.25, 1],
+          delay: 3 * 0.06,
+        }}
+        whileHover={{ y: -2 }}
+      >
+        <StatCard
+          title="Ready / Deployed"
+          value={stats.ready}
+          icon={Plane}
+          color="text-emerald-600"
+        />
+      </motion.div>
     </div>
   );
 }
