@@ -1,5 +1,8 @@
 import { createClient } from "@asym/database/supabase/server";
+import { revalidateTag } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
+
+import { CACHE_TAGS } from "../shared/cache-tags";
 
 export async function POST(
   _request: NextRequest,
@@ -37,6 +40,8 @@ export async function POST(
     .from("posts")
     .update({ fires_count: currentCount + 1 })
     .eq("id", postId);
+  revalidateTag(CACHE_TAGS.posts, "max");
+  revalidateTag(CACHE_TAGS.post(postId), "max");
 
   return NextResponse.json({ success: true });
 }
@@ -76,6 +81,8 @@ export async function DELETE(
     .from("posts")
     .update({ fires_count: Math.max(0, currentCount - 1) })
     .eq("id", postId);
+  revalidateTag(CACHE_TAGS.posts, "max");
+  revalidateTag(CACHE_TAGS.post(postId), "max");
 
   return NextResponse.json({ success: true });
 }

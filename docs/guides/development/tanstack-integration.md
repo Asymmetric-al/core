@@ -4,28 +4,34 @@ This document describes how TanStack Query, TanStack Table, and TanStack DB are 
 
 ## Package Versions
 
-| Package                          | Version  | Purpose                          |
-| -------------------------------- | -------- | -------------------------------- |
-| `@tanstack/react-query`          | ^5.90.15 | Server state management          |
-| `@tanstack/react-query-devtools` | ^5.90.15 | Development debugging            |
-| `@tanstack/react-table`          | ^8.21.3  | Headless table UI                |
-| `@tanstack/db`                   | ^0.5.16  | Client-side database collections |
-| `@tanstack/react-db`             | ^0.1.60  | React bindings for TanStack DB   |
-| `@tanstack/query-db-collection`  | ^1.0.12  | Query-based collections          |
-| `@tanstack/react-virtual`        | ^3.13.13 | Virtualized lists                |
+| Package                          | Version  | Purpose                                       |
+| -------------------------------- | -------- | --------------------------------------------- |
+| `@tanstack/react-query`          | ^5.90.21 | Server state management                       |
+| `@tanstack/react-query-devtools` | ^5.91.3  | Development debugging                         |
+| `@tanstack/react-table`          | ^8.21.3  | Headless table UI                             |
+| `@tanstack/react-db`             | ^0.1.72  | React collection bindings                     |
+| `@tanstack/query-db-collection`  | ^1.0.25  | Query-backed collection adapter               |
+| `@tanstack/db`                   | ^0.5.28  | Core TanStack DB runtime used by React DB     |
+| `@tanstack/react-virtual`        | ^3.13.19 | Opt-in virtualized row rendering for big sets |
+
+## Version Policy
+
+- **TanStack packages**: Keep all `@tanstack/*` packages on a unified, latest-compatible patch line across workspaces to avoid subtle type/runtime drift.
+- **Zod packages**: Standardize internal workspaces on `zod@^4.3.6` for consistent schema behavior and shared utility compatibility.
+- **Upgrade cadence**: Update versions intentionally in grouped PRs and validate with `lint`, `typecheck`, and unit tests before merge.
 
 ## Architecture
 
 ### Provider Setup
 
-The application uses a single unified `TanStackDBProvider` that provides both TanStack Query and TanStack DB functionality:
+Use `QueryProvider` as the single recommended provider for TanStack Query and TanStack DB functionality:
 
 ```tsx
 // apps/[app-name]/app/layout.tsx
-import { TanStackDBProvider } from "@asym/database/providers";
+import { QueryProvider } from "@asym/database/providers";
 
 export default function RootLayout({ children }) {
-  return <TanStackDBProvider>{children}</TanStackDBProvider>;
+  return <QueryProvider>{children}</QueryProvider>;
 }
 ```
 
@@ -35,7 +41,7 @@ export default function RootLayout({ children }) {
 packages/database/
 ├── collections/      # Collection definitions with Supabase integration
 ├── hooks/            # Custom hooks using useLiveQuery
-├── providers/        # TanStackDBProvider component
+├── providers/        # QueryProvider + compatibility alias
 ├── supabase/         # Supabase clients (server/client/admin)
 └── types/            # Database types
 ```
@@ -45,49 +51,64 @@ packages/database/
 Collections are defined using `queryCollectionOptions` from `@tanstack/query-db-collection`:
 
 ```typescript
-import { createCollection } from "@tanstack/db";
+import { createCollection } from "@tanstack/react-db";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
+import { z } from "zod";
 
-export const postsCollection = createCollection<Post>(
-  queryCollectionOptions({
-    queryKey: ["posts"],
-    queryClient: getQueryClient(),
-    getKey: (item) => item.id,
-    queryFn: async () => {
-      const supabase = getSupabase();
-      const { data, error } = await supabase
-        .from("posts")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
-    },
-    onInsert: async ({ transaction }) => {
-      const supabase = getSupabase();
-      const posts = transaction.mutations.map((m) => m.modified);
-      const { error } = await supabase.from("posts").insert(posts);
-      if (error) throw error;
-    },
-    onUpdate: async ({ transaction }) => {
-      const supabase = getSupabase();
-      await Promise.all(
-        transaction.mutations.map(async (mutation) => {
-          const { error } = await supabase
-            .from("posts")
-            .update(mutation.modified)
-            .eq("id", mutation.key as string);
-          if (error) throw error;
-        }),
-      );
-    },
-    onDelete: async ({ transaction }) => {
-      const supabase = getSupabase();
-      const ids = transaction.mutations.map((m) => m.key as string);
-      const { error } = await supabase.from("posts").delete().in("id", ids);
-      if (error) throw error;
-    },
-  }),
-);
+const postSchema = z.object({
+  id: z.string().min(1),
+  tenant_id: z.string().min(1),
+  missionary_id: z.string().min(1),
+  content: z.string(),
+  created_at: z.string().min(1),
+  updated_at: z.string().min(1),
+});
+
+function createPostsCollection() {
+  return createCollection<Post>(
+    queryCollectionOptions({
+      id: "posts",
+      queryKey: ["posts"],
+      queryClient: getQueryClient(),
+      schema: postSchema,
+      getKey: (item) => item.id,
+      queryFn: async () => {
+        const { data, error } = await getSupabase()
+          .from("posts")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        return data ?? [];
+      },
+      onInsert: async ({ transaction }) => {
+        const items = transaction.mutations.map((m) => m.modified);
+        const { error } = await getSupabase().from("posts").insert(items);
+        if (error) throw error;
+      },
+      onUpdate: async ({ transaction }) => {
+        await Promise.all(
+          transaction.mutations.map(async (mutation) => {
+            const { error } = await getSupabase()
+              .from("posts")
+              .update(mutation.modified)
+              .eq("id", mutation.key as string);
+            if (error) throw error;
+          }),
+        );
+      },
+      onDelete: async ({ transaction }) => {
+        const ids = transaction.mutations.map((m) => m.key as string);
+        const { error } = await getSupabase()
+          .from("posts")
+          .delete()
+          .in("id", ids);
+        if (error) throw error;
+      },
+    }),
+  );
+}
+
+const postsCollection = defineLazyCollection(createPostsCollection);
 ```
 
 ### Available Collections
@@ -114,17 +135,18 @@ import { useLiveQuery, eq } from "@tanstack/react-db";
 
 export function usePostsWithAuthors(missionaryId?: string) {
   return useLiveQuery((q) => {
-    let query = q.from({ post: postsCollection });
+    let query = q.from({ post: postsCollection.value });
 
     if (missionaryId) {
       query = query.where(({ post }) => eq(post.missionary_id, missionaryId));
     }
 
     return query
-      .join({ missionary: missionariesCollection }, ({ post, missionary }) =>
-        eq(post.missionary_id, missionary!.id),
+      .join(
+        { missionary: missionariesCollection.value },
+        ({ post, missionary }) => eq(post.missionary_id, missionary!.id),
       )
-      .join({ profile: profilesCollection }, ({ missionary, profile }) =>
+      .join({ profile: profilesCollection.value }, ({ missionary, profile }) =>
         eq(missionary!.profile_id, profile.id),
       )
       .select(({ post, profile }) => ({
@@ -179,16 +201,16 @@ export function ContributionsTable({ data }) {
 
 3. **Use transaction pattern for mutations**: Always use the `{ transaction }` destructured parameter in mutation handlers.
 
-4. **Batch operations**: Use `Promise.all` for multiple mutations to ensure atomicity.
+4. **Batch operations**: Use `Promise.all` to run independent network calls concurrently; use explicit DB transactions when atomicity is required.
 
 5. **Error handling**: Always check for errors from Supabase operations and throw to trigger rollback.
 
 ## Supabase Integration
 
-Collections use the Supabase client from `@/lib/supabase/client`:
+Collections use the Supabase client from `@asym/database/supabase/client`:
 
 ```typescript
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@asym/database/supabase/client";
 
 function getSupabase() {
   if (!supabaseClient) {
@@ -208,9 +230,13 @@ The shared QueryClient is configured with:
 new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60 * 1000, // 1 minute
-      gcTime: 5 * 60 * 1000, // 5 minutes
-      refetchOnWindowFocus: false,
+      staleTime: 60 * 1000, // Prevents refetch-on-hydration, 1-minute window
+      gcTime: 5 * 60 * 1000, // 5-minute garbage collection
+      refetchOnWindowFocus: false, // Explicit opt-out
+      retry: shouldRetryQuery, // Typed status/code classification, no message parsing
+    },
+    mutations: {
+      retry: false, // Mutations are not retried
     },
   },
 });

@@ -1,22 +1,25 @@
 "use client";
 
-import { QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { type ReactNode } from "react";
 
-import { getQueryClient } from "./query-provider";
+import { QueryProvider } from "./query-provider";
 
 interface TanStackDBProviderProps {
   children: ReactNode;
 }
 
-export function TanStackDBProvider({ children }: TanStackDBProviderProps) {
-  const queryClient = getQueryClient();
+let hasWarnedAboutTanStackDbProviderDeprecation = false;
 
-  return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
-  );
+export function TanStackDBProvider({ children }: TanStackDBProviderProps) {
+  if (
+    process.env.NODE_ENV !== "production" &&
+    !hasWarnedAboutTanStackDbProviderDeprecation
+  ) {
+    hasWarnedAboutTanStackDbProviderDeprecation = true;
+    console.warn(
+      "[asym/database] TanStackDBProvider is deprecated. Use QueryProvider from @asym/database/providers instead.",
+    );
+  }
+
+  return <QueryProvider>{children}</QueryProvider>;
 }

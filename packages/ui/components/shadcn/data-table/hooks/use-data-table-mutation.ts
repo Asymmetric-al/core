@@ -1,10 +1,17 @@
 "use client";
 
 import { createBrowserClient } from "@asym/database/supabase";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  type MutationFunctionContext,
+} from "@tanstack/react-query";
 import * as React from "react";
 
 type MutationType = "insert" | "update" | "delete" | "upsert";
+type OptimisticContext<TData> = {
+  previousData: TData[] | undefined;
+};
 
 interface OptimisticMutationConfig<TData, TVariables> {
   tableName: string;
@@ -12,15 +19,24 @@ interface OptimisticMutationConfig<TData, TVariables> {
   type: MutationType;
   getId: (data: TData | TVariables) => string;
   onMutate?: (variables: TVariables) => Promise<void> | void;
-  onSuccess?: (data: TData, variables: TVariables) => Promise<void> | void;
+  onSuccess?: (
+    data: TData,
+    variables: TVariables,
+    onMutateResult: OptimisticContext<TData> | undefined,
+    context: MutationFunctionContext,
+  ) => Promise<void> | void;
   onError?: (
     error: Error,
     variables: TVariables,
-    context: unknown,
+    onMutateResult: OptimisticContext<TData> | undefined,
+    context: MutationFunctionContext,
   ) => Promise<void> | void;
   onSettled?: (
     data: TData | undefined,
     error: Error | null,
+    variables: TVariables,
+    onMutateResult: OptimisticContext<TData> | undefined,
+    context: MutationFunctionContext,
   ) => Promise<void> | void;
   select?: string;
   matchColumn?: string;
@@ -61,7 +77,7 @@ export function useDataTableMutation<
     TData,
     Error,
     TVariables,
-    { previousData: TData[] | undefined }
+    OptimisticContext<TData>
   >({
     mutationFn: async (variables) => {
       let result;
@@ -155,18 +171,18 @@ export function useDataTableMutation<
 
       return { previousData };
     },
-    onError: async (error, variables, context) => {
-      if (context?.previousData) {
-        queryClient.setQueryData(queryKey, context.previousData);
+    onError: async (error, variables, onMutateResult, context) => {
+      if (onMutateResult?.previousData) {
+        queryClient.setQueryData(queryKey, onMutateResult.previousData);
       }
-      await onError?.(error, variables, context);
+      await onError?.(error, variables, onMutateResult, context);
     },
-    onSuccess: async (data, variables) => {
-      await onSuccess?.(data, variables);
+    onSuccess: async (data, variables, onMutateResult, context) => {
+      await onSuccess?.(data, variables, onMutateResult, context);
     },
-    onSettled: async (data, error) => {
+    onSettled: async (data, error, variables, onMutateResult, context) => {
       queryClient.invalidateQueries({ queryKey });
-      await onSettled?.(data, error);
+      await onSettled?.(data, error, variables, onMutateResult, context);
     },
   });
 
