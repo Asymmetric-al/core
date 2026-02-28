@@ -50,3 +50,10 @@ docs/ai/working-set.md
 .env*
 .cursor/settings.json
 .cursor/mcp.json
+.nia-sync/
+.traycer/
+.orchids/
+.tmp/
+.tmp-bun/
+.tmp-npm-cache/
+~/
