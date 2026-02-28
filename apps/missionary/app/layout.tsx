@@ -1,6 +1,7 @@
 import "@asym/env";
 import { siteConfig } from "@asym/config/site";
 import { QueryProvider } from "@asym/database/providers";
+import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { createClient } from "@asym/database/supabase/server";
 import { MotionProvider } from "@asym/lib/motion";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
@@ -38,6 +39,21 @@ const geistMono = Geist_Mono({
   display: "swap",
   preload: false,
 });
+
+function getSupabaseOrigin() {
+  const { url } = getSupabasePublicConfig();
+  if (!url) {
+    return null;
+  }
+
+  try {
+    return new URL(url).origin;
+  } catch {
+    return null;
+  }
+}
+
+const supabaseOrigin = getSupabaseOrigin();
 
 const MISSIONARY_ALLOWED_ROLES = new Set([
   "missionary",
@@ -125,14 +141,12 @@ export default function RootLayout({
   return (
     <html lang={siteConfig.language} suppressHydrationWarning>
       <head>
-        <link
-          rel="preconnect"
-          href="https://kzeybagjclwsxpkjshqa.supabase.co"
-        />
-        <link
-          rel="dns-prefetch"
-          href="https://kzeybagjclwsxpkjshqa.supabase.co"
-        />
+        {supabaseOrigin ? (
+          <>
+            <link rel="preconnect" href={supabaseOrigin} />
+            <link rel="dns-prefetch" href={supabaseOrigin} />
+          </>
+        ) : null}
         <link
           rel="preconnect"
           href="https://fonts.gstatic.com"
