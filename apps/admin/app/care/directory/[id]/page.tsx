@@ -38,7 +38,7 @@ export default function CareProfilePage() {
 
   if (!personnel) {
     return (
-      <div className="p-20 text-center text-slate-500 font-bold">
+      <div className="p-20 text-center text-zinc-500 font-bold">
         Personnel not found
       </div>
     );
@@ -49,25 +49,25 @@ export default function CareProfilePage() {
       <div className="flex items-center justify-between">
         <Link
           href="/mc/care/directory"
-          className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors group"
+          className="flex items-center gap-2 text-sm font-bold text-zinc-500 hover:text-zinc-900 transition-colors group"
         >
-          <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
+          <ChevronLeft className="h-4 w-4 transition-transform group-hover:-tranzinc-x-0.5" />
           Back to Directory
         </Link>
         <div className="flex gap-2">
           <Button
             variant="outline"
             size="sm"
-            className="h-8 font-bold border-slate-200"
+            className="h-8 font-bold border-zinc-200"
           >
-            <Edit className="mr-2 h-3.5 w-3.5 text-slate-400" /> Edit Profile
+            <Edit className="mr-2 h-3.5 w-3.5 text-zinc-400" /> Edit Profile
           </Button>
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8 border-slate-200"
+            className="h-8 w-8 border-zinc-200"
           >
-            <MoreVertical className="h-4 w-4 text-slate-400" />
+            <MoreVertical className="h-4 w-4 text-zinc-400" />
           </Button>
         </div>
       </div>
@@ -85,31 +85,31 @@ export default function CareProfilePage() {
             remoteName={personnel.name.split(" ")[0] ?? "Team Member"}
           />
 
-          <div className="p-6 rounded-xl border border-slate-200 bg-white shadow-sm space-y-4 text-left">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+          <div className="p-6 rounded-xl border border-zinc-200 bg-white shadow-sm space-y-4 text-left">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
               Quick Stats
             </h4>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <p className="text-[10px] font-bold text-slate-400 uppercase">
+                <p className="text-[10px] font-bold text-zinc-400 uppercase">
                   Last Contact
                 </p>
-                <p className="text-sm font-bold text-slate-900">2 days ago</p>
+                <p className="text-sm font-bold text-zinc-900">2 days ago</p>
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] font-bold text-slate-400 uppercase">
+                <p className="text-[10px] font-bold text-zinc-400 uppercase">
                   Frequency
                 </p>
-                <p className="text-sm font-bold text-slate-900">Every 14d</p>
+                <p className="text-sm font-bold text-zinc-900">Every 14d</p>
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] font-bold text-slate-400 uppercase">
+                <p className="text-[10px] font-bold text-zinc-400 uppercase">
                   Care Lead
                 </p>
-                <p className="text-sm font-bold text-slate-900">David Ross</p>
+                <p className="text-sm font-bold text-zinc-900">David Ross</p>
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] font-bold text-slate-400 uppercase">
+                <p className="text-[10px] font-bold text-zinc-400 uppercase">
                   Support %
                 </p>
                 <p className="text-sm font-bold text-emerald-600">92%</p>

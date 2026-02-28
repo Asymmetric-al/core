@@ -126,11 +126,11 @@ export function SendGridPageHeader({ isConnected }: SendGridPageHeaderProps) {
           <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25">
             <Mail className="h-6 w-6" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="text-2xl font-bold text-zinc-900">
             SendGrid Integration
           </h1>
         </div>
-        <p className="text-slate-600 max-w-xl">
+        <p className="text-zinc-600 max-w-xl">
           Connect your SendGrid account to send transactional emails,
           newsletters, and marketing campaigns through your own email
           infrastructure.
@@ -174,7 +174,7 @@ export function SendGridConnectedView({
               variant="outline"
               size="sm"
               onClick={onDisconnect}
-              className="text-slate-600"
+              className="text-zinc-600"
             >
               Disconnect
             </Button>
@@ -182,25 +182,23 @@ export function SendGridConnectedView({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-4 rounded-xl bg-white border border-slate-200 text-center">
-              <div className="text-2xl font-bold text-slate-900">
+            <div className="p-4 rounded-xl bg-white border border-zinc-200 text-center">
+              <div className="text-2xl font-bold text-zinc-900">
                 {connection.senderIdentities.length}
               </div>
-              <div className="text-xs text-slate-500 mt-1">
-                Verified Senders
-              </div>
+              <div className="text-xs text-zinc-500 mt-1">Verified Senders</div>
             </div>
-            <div className="p-4 rounded-xl bg-white border border-slate-200 text-center">
-              <div className="text-2xl font-bold text-slate-900">
+            <div className="p-4 rounded-xl bg-white border border-zinc-200 text-center">
+              <div className="text-2xl font-bold text-zinc-900">
                 {
                   connection.domainAuthentication.filter(
                     (domain) => domain.valid,
                   ).length
                 }
               </div>
-              <div className="text-xs text-slate-500 mt-1">Auth Domains</div>
+              <div className="text-xs text-zinc-500 mt-1">Auth Domains</div>
             </div>
-            <div className="p-4 rounded-xl bg-white border border-slate-200 text-center col-span-2">
+            <div className="p-4 rounded-xl bg-white border border-zinc-200 text-center col-span-2">
               <div
                 className={cn(
                   "text-2xl font-bold",
@@ -209,7 +207,7 @@ export function SendGridConnectedView({
               >
                 {connection.deliverabilityScore}%
               </div>
-              <div className="text-xs text-slate-500 mt-1">
+              <div className="text-xs text-zinc-500 mt-1">
                 Deliverability Score -{" "}
                 {getScoreLabel(connection.deliverabilityScore)}
               </div>
@@ -241,7 +239,7 @@ export function SendGridConnectedView({
 
       {connection.warnings.length > 0 && (
         <div className="space-y-3">
-          <h3 className="font-semibold text-slate-900 flex items-center gap-2">
+          <h3 className="font-semibold text-zinc-900 flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-amber-500" />
             Recommendations
           </h3>
@@ -294,13 +292,13 @@ export function SendGridConnectedView({
               {connection.senderIdentities.map((sender) => (
                 <div
                   key={sender.id}
-                  className="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-200"
+                  className="flex items-center justify-between p-3 rounded-lg bg-zinc-50 border border-zinc-200"
                 >
                   <div>
-                    <div className="font-medium text-slate-900">
+                    <div className="font-medium text-zinc-900">
                       {sender.from_name}
                     </div>
-                    <div className="text-sm text-slate-500">
+                    <div className="text-sm text-zinc-500">
                       {sender.from_email}
                     </div>
                   </div>
@@ -341,14 +339,14 @@ export function SendGridConnectedView({
               {connection.domainAuthentication.map((domain) => (
                 <div
                   key={domain.id}
-                  className="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-200"
+                  className="flex items-center justify-between p-3 rounded-lg bg-zinc-50 border border-zinc-200"
                 >
                   <div>
-                    <div className="font-medium text-slate-900">
+                    <div className="font-medium text-zinc-900">
                       {domain.domain}
                     </div>
                     {domain.subdomain && (
-                      <div className="text-sm text-slate-500">
+                      <div className="text-sm text-zinc-500">
                         Subdomain: {domain.subdomain}
                       </div>
                     )}
@@ -397,7 +395,7 @@ export function SendGridDisconnectedView({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Key className="h-5 w-5 text-slate-600" />
+            <Key className="h-5 w-5 text-zinc-600" />
             Connect SendGrid
           </CardTitle>
           <CardDescription>
@@ -457,13 +455,13 @@ export function SendGridDisconnectedView({
                   onClick={onToggleApiKeyVisibility}
                 >
                   {showApiKey ? (
-                    <EyeOff className="h-4 w-4 text-slate-400" />
+                    <EyeOff className="h-4 w-4 text-zinc-400" />
                   ) : (
-                    <Eye className="h-4 w-4 text-slate-400" />
+                    <Eye className="h-4 w-4 text-zinc-400" />
                   )}
                 </Button>
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-zinc-500">
                 Your API key is encrypted and never stored in plain text.
               </p>
             </div>
@@ -484,7 +482,7 @@ export function SendGridDisconnectedView({
                   }
                   placeholder="hello@yourorg.com"
                 />
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-zinc-500">
                   Must be a verified sender in SendGrid
                 </p>
               </div>
@@ -506,8 +504,7 @@ export function SendGridDisconnectedView({
 
             <div className="space-y-2">
               <Label htmlFor="replyTo" className="text-sm font-medium">
-                Reply-To Email{" "}
-                <span className="text-slate-400">(optional)</span>
+                Reply-To Email <span className="text-zinc-400">(optional)</span>
               </Label>
               <Input
                 id="replyTo"
@@ -529,7 +526,7 @@ export function SendGridDisconnectedView({
             </Alert>
           )}
         </CardContent>
-        <CardFooter className="flex justify-between border-t bg-slate-50/50 pt-6">
+        <CardFooter className="flex justify-between border-t bg-zinc-50/50 pt-6">
           <Button
             variant="outline"
             onClick={() =>
@@ -575,10 +572,10 @@ export function SendGridDisconnectedView({
                 <Key className="h-4 w-4" />
               </div>
               <div>
-                <div className="font-medium text-sm text-slate-900">
+                <div className="font-medium text-sm text-zinc-900">
                   Create API Key
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-zinc-500 mt-0.5">
                   With at least &ldquo;Mail Send&rdquo; permission
                 </p>
               </div>
@@ -588,10 +585,10 @@ export function SendGridDisconnectedView({
                 <Shield className="h-4 w-4" />
               </div>
               <div>
-                <div className="font-medium text-sm text-slate-900">
+                <div className="font-medium text-sm text-zinc-900">
                   Verify Sender
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-zinc-500 mt-0.5">
                   Verify your from email address
                 </p>
               </div>
@@ -601,10 +598,10 @@ export function SendGridDisconnectedView({
                 <Globe className="h-4 w-4" />
               </div>
               <div>
-                <div className="font-medium text-sm text-slate-900">
+                <div className="font-medium text-sm text-zinc-900">
                   Authenticate Domain
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-zinc-500 mt-0.5">
                   For best deliverability (recommended)
                 </p>
               </div>
@@ -654,13 +651,13 @@ export function SendGridTestDialog({
             />
           </div>
 
-          <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-sm">
-            <div className="grid grid-cols-2 gap-2 text-slate-600">
-              <span className="text-slate-500">From:</span>
+          <div className="p-3 rounded-lg bg-zinc-50 border border-zinc-200 text-sm">
+            <div className="grid grid-cols-2 gap-2 text-zinc-600">
+              <span className="text-zinc-500">From:</span>
               <span className="font-medium">
                 {fromName} &lt;{fromEmail}&gt;
               </span>
-              <span className="text-slate-500">Subject:</span>
+              <span className="text-zinc-500">Subject:</span>
               <span className="font-medium">SendGrid Test Email</span>
             </div>
           </div>
