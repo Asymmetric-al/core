@@ -2,6 +2,38 @@ import { defineConfig, devices } from "@playwright/test";
 
 const DEFAULT_DONOR_PORT = 3005;
 const DEFAULT_ADMIN_PORT = 3030;
+const DEFAULT_SUPABASE_URL = "https://example.supabase.co";
+const DEFAULT_SUPABASE_ANON_KEY = "example-anon-key";
+const DEFAULT_PAYLOAD_DATABASE_URI =
+  "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
+const DEFAULT_PAYLOAD_SECRET = "playwright-secret";
+
+function withCiEquivalentEnvDefaults(
+  env: NodeJS.ProcessEnv,
+): NodeJS.ProcessEnv {
+  if (env.ASYM_USE_CI_ENV_DEFAULTS !== "1") {
+    return { ...env };
+  }
+
+  return {
+    ...env,
+    SKIP_ENV_VALIDATION: env.SKIP_ENV_VALIDATION || "1",
+    NEXT_PUBLIC_SUPABASE_URL:
+      env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY:
+      env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY,
+  };
+}
+
+function withPlaywrightEnvDefaults(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  const nextEnv = withCiEquivalentEnvDefaults(env);
+
+  if (nextEnv.ASYM_USE_CI_ENV_DEFAULTS === "1" && !nextEnv.E2E_AUTH_BYPASS) {
+    nextEnv.E2E_AUTH_BYPASS = "1";
+  }
+
+  return nextEnv;
+}
 
 function getLocalBaseUrlAndPort(defaultPort: number): {
   baseURL: string;
@@ -44,10 +76,11 @@ const adminPort = Number(
 );
 const adminBaseURL =
   process.env.PLAYWRIGHT_ADMIN_BASE_URL || `http://127.0.0.1:${adminPort}`;
+const resolvedEnv = withPlaywrightEnvDefaults(process.env);
 const supabaseURL =
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://example.supabase.co";
+  resolvedEnv.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL;
 const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "example-anon-key";
+  resolvedEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
 
 const isRemoteBaseUrl = (() => {
   const envBase = process.env.PLAYWRIGHT_BASE_URL;
@@ -60,48 +93,72 @@ const isRemoteBaseUrl = (() => {
   }
 })();
 
+function shouldIncludeAdminServer() {
+  if (process.env.PLAYWRIGHT_INCLUDE_ADMIN === "0") return false;
+  if (process.env.PLAYWRIGHT_INCLUDE_ADMIN === "1") return true;
+
+  const cliArgs = process.argv.slice(2);
+  for (let index = 0; index < cliArgs.length; index += 1) {
+    const arg = cliArgs[index] || "";
+
+    if (arg === "--grep") {
+      const pattern = cliArgs[index + 1] || "";
+      if (pattern.includes("@cms")) return true;
+      continue;
+    }
+
+    if (
+      arg.includes("tests/e2e/cms-") ||
+      arg.includes("site-studio-video-tour.spec.ts")
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+const donorServer = {
+  command: `node -e "try{require('fs').rmSync('apps/donor/.next/dev/lock',{force:true})}catch{}" && bun run --cwd apps/donor dev:playwright -- --port ${port} --hostname 127.0.0.1`,
+  env: {
+    ...resolvedEnv,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnonKey,
+    NEXT_PUBLIC_SUPABASE_URL: supabaseURL,
+    DEMO_ADMIN_EMAIL: resolvedEnv.DEMO_ADMIN_EMAIL || "",
+    DEMO_DONOR_EMAIL: resolvedEnv.DEMO_DONOR_EMAIL || "",
+    DEMO_MISSIONARY_EMAIL: resolvedEnv.DEMO_MISSIONARY_EMAIL || "",
+    DEMO_PASSWORD: resolvedEnv.DEMO_PASSWORD || "",
+  },
+  url: baseURL,
+  reuseExistingServer: true,
+  timeout: 120000,
+} as const;
+
+const adminServer = {
+  command: `node -e "try{require('fs').rmSync('apps/admin/.next/dev/lock',{force:true})}catch{}" && bun run --cwd apps/admin dev:playwright -- --port ${adminPort} --hostname 127.0.0.1`,
+  env: {
+    ...resolvedEnv,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnonKey,
+    NEXT_PUBLIC_SUPABASE_URL: supabaseURL,
+    PAYLOAD_DATABASE_URI:
+      resolvedEnv.PAYLOAD_DATABASE_URI || DEFAULT_PAYLOAD_DATABASE_URI,
+    PAYLOAD_SECRET: resolvedEnv.PAYLOAD_SECRET || DEFAULT_PAYLOAD_SECRET,
+    DEMO_ADMIN_EMAIL: resolvedEnv.DEMO_ADMIN_EMAIL || "",
+    DEMO_DONOR_EMAIL: resolvedEnv.DEMO_DONOR_EMAIL || "",
+    DEMO_MISSIONARY_EMAIL: resolvedEnv.DEMO_MISSIONARY_EMAIL || "",
+    DEMO_PASSWORD: resolvedEnv.DEMO_PASSWORD || "",
+  },
+  url: `${adminBaseURL}/login`,
+  reuseExistingServer: true,
+  timeout: 120000,
+} as const;
+
+const includeAdminServer = shouldIncludeAdminServer();
 const webServer = isRemoteBaseUrl
   ? undefined
-  : [
-      {
-        command: `node -e "try{require('fs').rmSync('apps/donor/.next/dev/lock',{force:true})}catch{}" && bun run --cwd apps/donor dev:playwright -- --port ${port} --hostname 127.0.0.1`,
-        env: {
-          ...process.env,
-          E2E_AUTH_BYPASS: process.env.E2E_AUTH_BYPASS || "1",
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnonKey,
-          NEXT_PUBLIC_SUPABASE_URL: supabaseURL,
-          SKIP_ENV_VALIDATION: "1",
-          DEMO_ADMIN_EMAIL: process.env.DEMO_ADMIN_EMAIL || "",
-          DEMO_DONOR_EMAIL: process.env.DEMO_DONOR_EMAIL || "",
-          DEMO_MISSIONARY_EMAIL: process.env.DEMO_MISSIONARY_EMAIL || "",
-          DEMO_PASSWORD: process.env.DEMO_PASSWORD || "",
-        },
-        url: baseURL,
-        reuseExistingServer: true,
-        timeout: 120000,
-      },
-      {
-        command: `node -e "try{require('fs').rmSync('apps/admin/.next/dev/lock',{force:true})}catch{}" && bun run --cwd apps/admin dev:playwright -- --port ${adminPort} --hostname 127.0.0.1`,
-        env: {
-          ...process.env,
-          E2E_AUTH_BYPASS: process.env.E2E_AUTH_BYPASS || "1",
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnonKey,
-          NEXT_PUBLIC_SUPABASE_URL: supabaseURL,
-          PAYLOAD_DATABASE_URI:
-            process.env.PAYLOAD_DATABASE_URI ||
-            "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
-          PAYLOAD_SECRET: process.env.PAYLOAD_SECRET || "playwright-secret",
-          SKIP_ENV_VALIDATION: "1",
-          DEMO_ADMIN_EMAIL: process.env.DEMO_ADMIN_EMAIL || "",
-          DEMO_DONOR_EMAIL: process.env.DEMO_DONOR_EMAIL || "",
-          DEMO_MISSIONARY_EMAIL: process.env.DEMO_MISSIONARY_EMAIL || "",
-          DEMO_PASSWORD: process.env.DEMO_PASSWORD || "",
-        },
-        url: `${adminBaseURL}/login`,
-        reuseExistingServer: true,
-        timeout: 120000,
-      },
-    ];
+  : includeAdminServer
+    ? [donorServer, adminServer]
+    : donorServer;
 
 export default defineConfig({
   testDir: "./tests/e2e",

@@ -189,6 +189,12 @@ jobs:
           CI: "1"
           PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
         run: bun run test:e2e --project=chromium
+      - name: Run Playwright CMS E2E
+        env:
+          CI: "1"
+          PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
+          PLAYWRIGHT_INCLUDE_ADMIN: "1"
+        run: bun run test:e2e:cms --project=chromium
       - name: Upload artifact on failure
         if: failure()
         uses: actions/upload-artifact@v4

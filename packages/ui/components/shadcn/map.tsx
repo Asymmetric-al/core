@@ -6,10 +6,13 @@ import { useTheme } from "next-themes";
 import {
   createContext,
   useContext,
+  useLayoutEffect,
   useEffect,
+  useMemo,
   useRef,
   useState,
   useCallback,
+  type MutableRefObject,
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
@@ -100,11 +103,6 @@ export function Map({
 
   const lightStyle = styles?.light ?? STYLES.light;
   const darkStyle = styles?.dark ?? STYLES.dark;
-  const initialMapConfigRef = useRef<{
-    styleUrl: string;
-    center: [number, number];
-    zoom: number;
-  } | null>(null);
   const mapLoaded = mapState.isLoaded;
 
   const markMapReady = useCallback(() => {
@@ -124,17 +122,6 @@ export function Map({
     setMapState({ map: null, isLoaded: false });
   }, []);
 
-  if (!initialMapConfigRef.current) {
-    const currentTheme = resolvedTheme === "dark" ? "dark" : "light";
-    initialMapConfigRef.current = {
-      styleUrl: currentTheme === "dark" ? darkStyle : lightStyle,
-      center: initialViewState
-        ? [initialViewState.longitude, initialViewState.latitude]
-        : (center ?? [0, 20]),
-      zoom: initialViewState?.zoom ?? zoom ?? 2,
-    };
-  }
-
   useEffect(() => {
     onLoadRef.current = onLoad;
   }, [onLoad]);
@@ -145,15 +132,19 @@ export function Map({
 
   useEffect(() => {
     if (hasInitializedRef.current || !containerRef.current) return;
-    const initialConfig = initialMapConfigRef.current;
-    if (!initialConfig) return;
+    const currentTheme = resolvedTheme === "dark" ? "dark" : "light";
+    const initialStyle = currentTheme === "dark" ? darkStyle : lightStyle;
+    const initialCenter: [number, number] = initialViewState
+      ? [initialViewState.longitude, initialViewState.latitude]
+      : (center ?? [0, 20]);
+    const initialZoom = initialViewState?.zoom ?? zoom ?? 2;
 
     try {
       const map = new maplibregl.Map({
         container: containerRef.current,
-        style: initialConfig.styleUrl,
-        center: initialConfig.center,
-        zoom: initialConfig.zoom,
+        style: initialStyle,
+        center: initialCenter,
+        zoom: initialZoom,
         attributionControl: false,
       });
 
@@ -191,7 +182,16 @@ export function Map({
       hasInitializedRef.current = false;
       resetMapState();
     };
-  }, [markMapReady, resetMapState]);
+  }, [
+    center,
+    darkStyle,
+    initialViewState,
+    lightStyle,
+    markMapReady,
+    resetMapState,
+    resolvedTheme,
+    zoom,
+  ]);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -234,7 +234,7 @@ export function Map({
 }
 
 type MarkerContextValue = {
-  marker: maplibregl.Marker | null;
+  markerRef: MutableRefObject<maplibregl.Marker | null>;
   element: HTMLDivElement | null;
 };
 
@@ -262,64 +262,70 @@ export function MapMarker({
   draggable = false,
 }: MapMarkerProps) {
   const { map, isLoaded } = useMap();
-  const [markerState, setMarkerState] = useState<MarkerContextValue>({
-    marker: null,
-    element: null,
-  });
-  const marker = markerState.marker;
-
-  const setMarkerContext = useCallback(
-    (
-      nextMarker: maplibregl.Marker | null,
-      nextElement: HTMLDivElement | null,
-    ) => {
-      setMarkerState({
-        marker: nextMarker,
-        element: nextElement,
-      });
-    },
-    [],
-  );
-
-  useEffect(() => {
-    if (!isLoaded || !map) return;
-
-    const el = document.createElement("div");
-    el.className = "map-marker-container";
-    if (onClick) {
-      el.style.cursor = "pointer";
-      el.addEventListener("click", (e) => {
-        e.stopPropagation();
-        onClick();
-      });
+  const markerRef = useRef<maplibregl.Marker | null>(null);
+  const initialLngLatRef = useRef<[number, number]>([longitude, latitude]);
+  const onClickRef = useRef(onClick);
+  const markerElement = useMemo<HTMLDivElement | null>(() => {
+    if (typeof document === "undefined") {
+      return null;
     }
 
-    const m = new maplibregl.Marker({ element: el, draggable })
-      .setLngLat([longitude, latitude])
-      .addTo(map);
-
-    setMarkerContext(m, el);
-
-    return () => {
-      m.remove();
-      setMarkerContext(null, null);
-    };
-  }, [
-    map,
-    isLoaded,
-    longitude,
-    latitude,
-    draggable,
-    onClick,
-    setMarkerContext,
-  ]);
+    const element = document.createElement("div");
+    element.className = "map-marker-container";
+    return element;
+  }, []);
 
   useEffect(() => {
-    marker?.setLngLat([longitude, latitude]);
-  }, [marker, longitude, latitude]);
+    onClickRef.current = onClick;
+    if (markerElement) {
+      markerElement.style.cursor = onClick ? "pointer" : "";
+    }
+  }, [markerElement, onClick]);
+
+  useLayoutEffect(() => {
+    if (!isLoaded || !map || !markerElement) return;
+
+    const handleMarkerClick = (event: MouseEvent) => {
+      event.stopPropagation();
+      onClickRef.current?.();
+    };
+
+    markerElement.addEventListener("click", handleMarkerClick);
+
+    const marker = new maplibregl.Marker({
+      element: markerElement,
+      draggable,
+    })
+      .setLngLat(initialLngLatRef.current)
+      .addTo(map);
+
+    markerRef.current = marker;
+
+    return () => {
+      markerElement.removeEventListener("click", handleMarkerClick);
+      marker.remove();
+      if (markerRef.current === marker) {
+        markerRef.current = null;
+      }
+    };
+  }, [draggable, isLoaded, map, markerElement]);
+
+  useEffect(() => {
+    const marker = markerRef.current;
+    if (!marker) return;
+    marker.setLngLat([longitude, latitude]);
+  }, [longitude, latitude]);
+
+  const markerContext = useMemo<MarkerContextValue>(
+    () => ({
+      markerRef,
+      element: markerElement,
+    }),
+    [markerElement],
+  );
 
   return (
-    <MarkerContext.Provider value={markerState}>
+    <MarkerContext.Provider value={markerContext}>
       {children}
     </MarkerContext.Provider>
   );
@@ -358,15 +364,17 @@ export function MarkerPopup({
   className?: string;
   offset?: number;
 }) {
-  const { marker } = useMarkerContext();
-  const [container, setContainer] = useState<HTMLDivElement | null>(null);
+  const { markerRef } = useMarkerContext();
+  const container = useMemo<HTMLDivElement | null>(() => {
+    if (typeof document === "undefined") {
+      return null;
+    }
+    return document.createElement("div");
+  }, []);
 
   useEffect(() => {
-    if (!marker) return;
-
-    const el = document.createElement("div");
-
-    setContainer(el);
+    const marker = markerRef.current;
+    if (!marker || !container) return;
 
     const popup = new maplibregl.Popup({
       offset,
@@ -374,15 +382,14 @@ export function MarkerPopup({
       className: "custom-maplibre-popup",
     })
       .setMaxWidth("none")
-      .setDOMContent(el);
+      .setDOMContent(container);
 
     marker.setPopup(popup);
 
     return () => {
       popup.remove();
-      setContainer(null);
     };
-  }, [marker, offset]);
+  }, [container, markerRef, offset]);
 
   if (!container) return null;
   return createPortal(

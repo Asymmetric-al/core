@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test.describe("CMS tenant isolation", () => {
+test.describe("@cms CMS tenant isolation", () => {
   test("unknown tenant page paths do not leak cross-tenant content", async ({
     page,
   }) => {

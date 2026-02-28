@@ -49,3 +49,4 @@ site-studio-ux-review.md
 docs/ai/working-set.md
 .env*
 .cursor/settings.json
+.cursor/mcp.json

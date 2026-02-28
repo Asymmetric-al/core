@@ -1,8 +1,5 @@
 import { expect, test } from "@playwright/test";
 
-const adminBaseURL =
-  process.env.PLAYWRIGHT_ADMIN_BASE_URL || "http://127.0.0.1:3030";
-
 test.describe("Usability smoke audit", () => {
   test("public homepage exposes primary navigation and CTA actions", async ({
     page,
@@ -44,14 +41,6 @@ test.describe("Usability smoke audit", () => {
     await page.goto("/donor-dashboard");
     await expect(page).toHaveURL(/\/login/);
     await expect(page).toHaveURL(/next=%2Fdonor-dashboard/);
-  });
-
-  test("payload admin route redirects unauthenticated users to login", async ({
-    page,
-  }) => {
-    await page.goto(`${adminBaseURL}/admin`);
-    await expect(page).toHaveURL(/\/login/);
-    await expect(page).toHaveURL(/next=%2Fadmin/);
   });
 
   test("core public routes render without broken navigation states", async ({
