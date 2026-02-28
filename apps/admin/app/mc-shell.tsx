@@ -12,13 +12,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@asym/ui/components/shadcn/collapsible";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@asym/ui/components/shadcn/dropdown-menu";
 import { AppIcon } from "@asym/ui/components/shadcn/icons/AppIcon";
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import {
@@ -51,7 +44,6 @@ import {
   Bell,
   Calendar,
   ChevronRight,
-  ChevronsUpDown,
   DollarSign,
   FileText,
   Globe,
@@ -59,11 +51,9 @@ import {
   Languages,
   LayoutGrid,
   LifeBuoy,
-  LogOut,
   Mail,
   PenTool,
   Search,
-  Settings,
   Shield,
   Sparkles,
   Users,
@@ -253,80 +243,29 @@ function NavSection({
 /* ------------------------------------------------------------------ */
 
 function UserFooter() {
-  const { user, signOut } = useMC();
+  const { user } = useMC();
 
   return (
     <SidebarFooter className="px-3 py-3 border-t border-zinc-100">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            className="flex w-full items-center gap-2 rounded-md p-1 text-left hover:bg-zinc-50 transition-colors group-data-[collapsible=icon]:justify-center"
-          >
-            <Avatar className="size-7 rounded-md ring-1 ring-zinc-950/5">
-              <AvatarImage
-                src={
-                  user?.avatarUrl ||
-                  "https://cdn.shadcnstudio.com/ss-assets/avatar/avatar-1.png"
-                }
-              />
-              <AvatarFallback className="rounded-md bg-zinc-100 text-zinc-600 text-xs font-medium">
-                {user?.name?.charAt(0) || "U"}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex flex-1 flex-col min-w-0 group-data-[collapsible=icon]:hidden">
-              <span className="text-[13px] font-medium text-zinc-900 truncate leading-tight">
-                {user?.name || "User Name"}
-              </span>
-              <span className="text-[11px] text-zinc-500 truncate">
-                Missionary
-              </span>
-            </div>
-            <ChevronsUpDown className="size-3.5 text-zinc-400 group-data-[collapsible=icon]:hidden" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          className="w-56 rounded-lg"
-          side="top"
-          align="start"
-          sideOffset={8}
-        >
-          <div className="flex items-center gap-2 px-2 py-2">
-            <Avatar className="size-8 rounded-md ring-1 ring-zinc-950/5">
-              <AvatarImage
-                src={
-                  user?.avatarUrl ||
-                  "https://cdn.shadcnstudio.com/ss-assets/avatar/avatar-1.png"
-                }
-              />
-              <AvatarFallback className="rounded-md text-xs font-medium">
-                {user?.name?.charAt(0) || "U"}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col min-w-0">
-              <span className="text-sm font-medium truncate">
-                {user?.name || "User Name"}
-              </span>
-              <span className="text-xs text-zinc-500 truncate">
-                {user?.email || "user@givehope.org"}
-              </span>
-            </div>
-          </div>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem className="gap-2 cursor-pointer">
-            <Settings className="size-4 text-zinc-400" />
-            <span className="text-sm">Settings</span>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={signOut}
-            className="gap-2 cursor-pointer text-red-600 focus:text-red-600"
-          >
-            <LogOut className="size-4" />
-            <span className="text-sm">Sign out</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
+        <Avatar className="size-7 rounded-md ring-1 ring-zinc-950/5">
+          <AvatarImage
+            src={
+              user?.avatarUrl ||
+              "https://cdn.shadcnstudio.com/ss-assets/avatar/avatar-1.png"
+            }
+          />
+          <AvatarFallback className="rounded-md bg-zinc-100 text-zinc-600 text-xs font-medium">
+            {user?.name?.charAt(0) || "U"}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
+          <span className="text-[13px] font-medium text-zinc-900 truncate leading-tight">
+            {user?.name || "User Name"}
+          </span>
+          <span className="text-[11px] text-zinc-500 truncate">Missionary</span>
+        </div>
+      </div>
     </SidebarFooter>
   );
 }
