@@ -1,18 +1,22 @@
 # Working Set
 
-- Date: 2026-02-21
+- Date: 2026-02-22
 - Repo: Asymmetric-al/core
-- Goal: Complete T1 env migration by hardening `@asym/env` and removing runtime shared-package `process.env` access.
-- Primary area: `packages/env/*`, `packages/{database,lib,config,auth,api}/**`, `turbo.json`, `.env.example`
+- Goal: Implement a hybrid Supabase CLI workflow (global-first + pinned fallback) and align setup/scripts/docs with secure contributor defaults.
+- Primary area: `scripts/supabase-cli.mjs`, `package.json`, `scripts/seed-demo.sh`, `scripts/setup/*`, `README.md`, `docs/ops/environments.md`, `docs/ai/rules/backend.md`
 - Constraints:
   - No hardcoded secrets.
-  - Preserve behavior while replacing raw runtime env reads.
-  - Keep local/preview workflows stable while enforcing staging/production requirements.
-  - Use Vercel environment semantics (`VERCEL_ENV` + `VERCEL_TARGET_ENV`).
+  - Keep Supabase auth client boundaries unchanged (`@supabase/ssr` server/client separation).
+  - Preserve migration safety for hosted flows (`SUPABASE_DB_URL`, URL targeting checks).
+  - Keep contributor setup non-blocking while improving reproducibility.
 - Evidence sources used:
-  - `packages/env/src/schema.ts`
-  - `packages/{database,lib,config,auth,api}/**` env usage scans
-  - `spec:a88ffe76-7dbb-427a-8895-674abc96ed66` (Decision 3)
-  - Vercel system env docs via Nia (`VERCEL_ENV`, `VERCEL_TARGET_ENV`)
+  - `package.json`
+  - `scripts/seed-demo.sh`
+  - `scripts/setup/index.sh`
+  - `scripts/setup.ps1`
+  - `scripts/setup/index.ps1`
+  - `README.md`
+  - `docs/ops/environments.md`
+  - `docs/ai/rules/backend.md`
 - Tooling note:
-  - Nia MCP used for Vercel docs confirmation; repo scans done with `rg` + file reads.
+  - Repo uses Bun-first workflows; Supabase runner should work with/without globally installed `supabase` binary.

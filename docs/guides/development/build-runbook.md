@@ -11,11 +11,15 @@ This runbook defines the canonical build workflow for the Bun + Turborepo monore
 
 ## Canonical build entrypoints
 
-- Full monorepo build: `bun run build` (delegates to `turbo run build`)
+- Full monorepo build: `bun run build` (CI-equivalent env defaults)
+- Full monorepo build (strict): `bun run build:strict` (real env only)
 - App-scoped builds:
   - `bun run build:admin`
   - `bun run build:donor`
   - `bun run build:missionary`
+  - `bun run build:admin:strict`
+  - `bun run build:donor:strict`
+  - `bun run build:missionary:strict`
 
 Notes:
 
@@ -26,7 +30,23 @@ Notes:
 
 ## Environment profiles
 
-## 1) Local strict profile (recommended for normal dev)
+## 1) Default local profile (CI-equivalent)
+
+`bun run build` now injects CI-equivalent defaults when values are missing:
+
+- `SKIP_ENV_VALIDATION=1`
+- `NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key`
+
+Run:
+
+```bash
+bun run lint
+bun run typecheck
+bun run build
+```
+
+## 2) Strict local profile (real env)
 
 Use real values in `.env.local`:
 
@@ -38,32 +58,10 @@ Then run:
 ```bash
 bun run lint
 bun run typecheck
-bun run build
+bun run build:strict
 ```
 
-## 2) CI-equivalent local profile (deterministic build parity)
-
-Use this when you need to reproduce CI build behavior locally without real Supabase credentials.
-
-PowerShell:
-
-```powershell
-$env:SKIP_ENV_VALIDATION='1'
-$env:NEXT_PUBLIC_SUPABASE_URL='https://example.supabase.co'
-$env:NEXT_PUBLIC_SUPABASE_ANON_KEY='example-anon-key'
-bun run build
-```
-
-Bash:
-
-```bash
-SKIP_ENV_VALIDATION=1 \
-NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co \
-NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key \
-bun run build
-```
-
-This mirrors CI strategy in `.github/workflows/ci.yml` for the build job.
+This strict mode is useful when validating real credentials and env shape before release.
 
 ## Build matrix commands
 
@@ -71,9 +69,14 @@ Use these to isolate failures quickly:
 
 ```bash
 # Single app
-bunx turbo run build --filter=@asym/admin
-bunx turbo run build --filter=@asym/donor
-bunx turbo run build --filter=@asym/missionary-app
+bun run build:admin
+bun run build:donor
+bun run build:missionary
+
+# Single app (strict)
+bun run build:admin:strict
+bun run build:donor:strict
+bun run build:missionary:strict
 
 # Single shared package
 bunx turbo run build --filter=@asym/ui
@@ -87,6 +90,12 @@ bun run lint
 bun run typecheck
 bun run build
 bun run test:unit
+```
+
+Extended local validation sweep (includes Playwright + verify + husky prepare):
+
+```bash
+bun run validate:full
 ```
 
 ## Scoped troubleshooting flow
@@ -106,7 +115,7 @@ Symptom: build fails during env parsing with `NEXT_PUBLIC_SUPABASE_URL` or `NEXT
 Fix:
 
 - Provide real values in `.env.local`, or
-- use CI-equivalent profile with `SKIP_ENV_VALIDATION=1` and stub values.
+- use default commands (`bun run build`, `bun run test:e2e`) which inject CI-equivalent stub values.
 
 ### Route segment config incompatibility with Cache Components
 

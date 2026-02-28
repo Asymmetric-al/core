@@ -289,8 +289,8 @@ Minimal package `package.json` example:
 Common commands:
 
 - `bun run format` (fix), `bun run format:check` (verify), `bun run lint`, and `bun run typecheck`
-- `bun run build`, `bun run test:unit`, `bun run test:e2e`
-- `bun run ci:preflight` (local equivalent of blocking GitHub CI checks)
+- `bun run build` (CI-equivalent defaults), `bun run build:strict` (real env), `bun run test:unit`
+- `bun run test:e2e` (CI-equivalent defaults), `bun run test:e2e:strict` (real env), `bun run test:e2e:ui`
 - PR-readiness (matches blocking CI): `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
 
 ### Git Hooks Setup
@@ -356,6 +356,13 @@ bun run format:check && bun run lint && bun run typecheck && bun run build && bu
 # Optional (non-blocking in CI, but recommended for flow changes)
 bun run test:e2e
 
+# Full local validation sweep (includes husky prepare + build)
+bun run validate:full
+
+# Strict sanity checks with real env values in .env.local
+bun run build:strict
+bun run test:e2e:strict
+
 # T1 merge gate (workspace contract only)
 bun run verify:t1
 
@@ -416,6 +423,30 @@ Ask a maintainer for access to the shared dev Supabase project and request the p
 The demo login flow uses `/api/auth/demo-account` with the public anon client and pre-seeded demo users.
 Set `DEMO_ADMIN_EMAIL`, `DEMO_MISSIONARY_EMAIL`, `DEMO_DONOR_EMAIL`, and `DEMO_PASSWORD` in `.env.local` to enable the demo buttons.
 
+## Supabase CLI Workflow (Hybrid)
+
+Use the repo entrypoint for all local Supabase CLI commands:
+
+```bash
+bun run supabase -- <supabase-subcommand>
+```
+
+How it resolves:
+
+- Prefers a machine-global `supabase` CLI when available (fast path).
+- Falls back to a pinned CLI version via `npx` when global CLI is missing.
+
+Optional global install (recommended for speed):
+
+```bash
+# macOS / Linux (Homebrew)
+brew install supabase/tap/supabase
+
+# Windows (Scoop)
+scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+scoop install supabase
+```
+
 ## Supabase Demo Seed
 
 Deterministic demo seed + optional read-only public policies live in:
@@ -427,7 +458,7 @@ Deterministic demo seed + optional read-only public policies live in:
 ### Local
 
 ```bash
-supabase db reset --local
+bun run db:migrate:local
 # or
 bun run seed:demo:local
 ```
