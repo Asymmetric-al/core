@@ -6,6 +6,9 @@ vendor/payload-upstream/
 .tmp/
 .tmp-bun/
 .tmp-npm-cache/
+.agents/
+.cursor/skills/
+.next-docs/
 site-studio-review/
 site-studio-videos/
 ~/

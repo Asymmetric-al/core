@@ -43,7 +43,7 @@ This repo commits `.next-docs/` on purpose because remote/sandbox agent runs can
 ## Next.js DevTools MCP workflow
 
 1. Start the target app dev server first (use turbo filter for one app).
-2. Connect the `next-devtools` MCP server from root `.mcp.json`.
+2. Connect the `next-devtools` MCP server using a local (untracked) `.mcp.json` config.
 3. Use MCP for runtime errors, route state, and live app debugging while the server is running.
 
 ## Checks for safe, repeatable agent changes
