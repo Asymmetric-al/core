@@ -24,6 +24,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { GivingWidget } from "./giving-widget";
@@ -102,12 +103,7 @@ const PUBLIC_UPDATES = [
   },
 ];
 
-function UpdateCard({
-  update,
-}: {
-  update: (typeof PUBLIC_UPDATES)[0];
-  workerTitle: string;
-}) {
+function UpdateCard({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) {
   return (
     <article className="group relative pl-8 pb-12 last:pb-0">
       <div
@@ -247,11 +243,7 @@ function UpdatesContent({ workerTitle }: { workerTitle: string }) {
 
       <div className="space-y-2">
         {PUBLIC_UPDATES.map((update) => (
-          <UpdateCard
-            key={update.id}
-            update={update}
-            workerTitle={workerTitle}
-          />
+          <UpdateCard key={update.id} update={update} />
         ))}
       </div>
 
@@ -292,8 +284,7 @@ function GivingWidgetSkeleton() {
 }
 
 export default async function WorkerProfilePage({ params }: PageProps) {
-  "use cache";
-
+  await connection();
   const { id } = await params;
   const worker = getFieldWorkerById(id);
 

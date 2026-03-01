@@ -16,6 +16,8 @@ bun run dev
 bun run verify
 ```
 
+For deterministic build workflows (strict local vs CI-equivalent), see `docs/guides/development/build-runbook.md`.
+
 ## Supabase Cloud
 
 Most contributor development uses a hosted Supabase project (no local DB required). If you need a fully local DB for development/testing, this repo also supports the Supabase CLI (Docker) and deterministic demo seed (see `README.md` "Supabase Demo Seed").
@@ -59,7 +61,7 @@ This table mirrors `.env.example`. Internal-only vars (for example `NODE_ENV`, `
 | `DEMO_MISSIONARY_EMAIL`               | Optional                                       | Demo missionary email             | empty                                                     | Demo missionary login disabled.                  |
 | `DEMO_DONOR_EMAIL`                    | Optional                                       | Demo donor email                  | empty                                                     | Demo donor login disabled.                       |
 | `DEMO_PASSWORD`                       | Optional                                       | Demo account password (shared)    | empty                                                     | Demo login disabled.                             |
-| `PLAYWRIGHT_BASE_URL`                 | Optional                                       | Base URL for Playwright           | `http://localhost:3000`                                   | Uses default if unset.                           |
+| `PLAYWRIGHT_BASE_URL`                 | Optional                                       | Base URL for Playwright           | `http://127.0.0.1:3005`                                   | Uses default if unset.                           |
 | `VERIFY_E2E_PROJECTS`                 | Optional                                       | Run all Playwright projects       | `all`                                                     | Only Chromium project runs.                      |
 
 ## Troubleshooting
@@ -84,6 +86,10 @@ This table mirrors `.env.example`. Internal-only vars (for example `NODE_ENV`, `
 | `bun run typecheck`      | Type-check all apps and packages         |
 | `bun run build`          | Build all apps and packages              |
 | `bun run test:e2e`       | Run Playwright E2E tests                 |
+
+Build troubleshooting and CI-parity commands are documented in `docs/guides/development/build-runbook.md`.
+Internal package `build` tasks are source-first TypeScript validation (`tsc --noEmit`), while app builds compile through Next.js.
+If you see Next.js lockfile/workspace-root warnings, follow `Multiple lockfile warnings during Next.js build` in the runbook.
 
 ## Project Structure
 

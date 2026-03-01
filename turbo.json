@@ -14,7 +14,14 @@
     },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "dist/**",
+        "tsconfig.tsbuildinfo",
+        "*.tsbuildinfo",
+        "**/*.tsbuildinfo"
+      ],
       "env": [
         "NODE_ENV",
         "NEXT_PUBLIC_*",
@@ -33,7 +40,7 @@
     },
     "typecheck": {
       "dependsOn": ["transit"],
-      "outputs": ["tsconfig.tsbuildinfo", "*.tsbuildinfo"]
+      "outputs": ["tsconfig.tsbuildinfo", "*.tsbuildinfo", "**/*.tsbuildinfo"]
     },
     "test": {
       "dependsOn": ["transit"],
