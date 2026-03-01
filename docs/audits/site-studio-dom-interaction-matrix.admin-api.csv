@@ -1,0 +1,8 @@
+collection,create_endpoint,update_endpoint,publish_endpoint,publish_field,publish_value,payload_template_json
+pages,POST /api/pages,PATCH /api/pages/:id,PATCH /api/pages/:id,_status,published,"{""tenant"":""<tenantId>"",""title"":""About"",""slug"":""about"",""summary"":""..."",""content"":{""root"":{}},""_status"":""draft|published""}"
+navigation,POST /api/navigation,PATCH /api/navigation/:id,,,,"{""tenant"":""<tenantId>"",""label"":""Main Nav"",""items"":[{""label"":""Home"",""href"":""/"",""openInNewTab"":false}]}"
+missionary-profiles,POST /api/missionary-profiles,PATCH /api/missionary-profiles/:id,,,,"{""tenant"":""<tenantId>"",""fullName"":""Jane Doe"",""slug"":""jane-doe"",""tagline"":""..."",""bio"":""..."",""location"":""..."",""portrait"":""<mediaId>""}"
+ministry-updates,POST /api/ministry-updates,PATCH /api/ministry-updates/:id,PATCH /api/ministry-updates/:id,_status,published,"{""tenant"":""<tenantId>"",""missionary"":""<profileId>"",""title"":""Q1 Update"",""slug"":""q1-update"",""excerpt"":""..."",""content"":{""root"":{}},""publishedAt"":""2026-02-23T12:00:00.000Z"",""_status"":""draft|published""}"
+media,POST /api/media,PATCH /api/media/:id,,,,"{""multipart"":true,""fields"":{""file"":""<binary>"",""tenant"":""<tenantId>"",""alt"":""..."",""caption"":""...""}}"
+tenants,POST /api/tenants,PATCH /api/tenants/:id,,,,"{""name"":""Acme Missions"",""slug"":""acme"",""primaryDomain"":""acme.example.org"",""isActive"":true}"
+cms-users,POST /api/cms-users,PATCH /api/cms-users/:id,,,,"{""email"":""staff@org.org"",""supabaseUserId"":""uuid"",""tenantId"":""tenant_1"",""role"":""staff|admin|super_admin""}"

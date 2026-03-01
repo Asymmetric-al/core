@@ -1,0 +1,610 @@
+{
+  "version": "2026-02-23",
+  "scope": "apps/admin Payload collections and public CMS APIs",
+  "collections": [
+    {
+      "collection": "pages",
+      "adminListRoute": "/admin/collections/pages",
+      "createRoute": "/admin/collections/pages/create",
+      "editRoutePattern": "/admin/collections/pages/:id",
+      "coreInteractions": [
+        "rich text page authoring",
+        "autosave drafts",
+        "save and publish actions"
+      ],
+      "validationBehavior": [
+        "tenant required and indexed",
+        "title required",
+        "slug required and indexed",
+        "content required",
+        "tenant auto-injected for non-super-admin"
+      ],
+      "publishBehavior": {
+        "draftsEnabled": true,
+        "autosaveIntervalSeconds": 300,
+        "publishStateField": "_status",
+        "publishedValue": "published"
+      },
+      "apiWiring": {
+        "admin": ["POST /api/pages", "PATCH /api/pages/:id"],
+        "public": ["GET /api/cms/public/pages/[...slug]"]
+      }
+    },
+    {
+      "collection": "navigation",
+      "adminListRoute": "/admin/collections/navigation",
+      "createRoute": "/admin/collections/navigation/create",
+      "editRoutePattern": "/admin/collections/navigation/:id",
+      "coreInteractions": [
+        "array repeater item add/remove/reorder",
+        "tenant-scoped navigation editing"
+      ],
+      "validationBehavior": [
+        "tenant required",
+        "label required",
+        "items required",
+        "items[].label required",
+        "items[].href required",
+        "items[].openInNewTab default false"
+      ],
+      "publishBehavior": {
+        "draftsEnabled": false,
+        "notes": "save is immediately current"
+      },
+      "apiWiring": {
+        "admin": ["POST /api/navigation", "PATCH /api/navigation/:id"],
+        "public": ["GET /api/cms/public/navigation"]
+      }
+    },
+    {
+      "collection": "missionary-profiles",
+      "adminListRoute": "/admin/collections/missionary-profiles",
+      "createRoute": "/admin/collections/missionary-profiles/create",
+      "editRoutePattern": "/admin/collections/missionary-profiles/:id",
+      "coreInteractions": [
+        "profile content editing",
+        "optional portrait relationship selection"
+      ],
+      "validationBehavior": [
+        "tenant required",
+        "fullName required",
+        "slug required and indexed",
+        "portrait optional relationship to media"
+      ],
+      "publishBehavior": {
+        "draftsEnabled": false
+      },
+      "apiWiring": {
+        "admin": [
+          "POST /api/missionary-profiles",
+          "PATCH /api/missionary-profiles/:id"
+        ],
+        "public": []
+      }
+    },
+    {
+      "collection": "ministry-updates",
+      "adminListRoute": "/admin/collections/ministry-updates",
+      "createRoute": "/admin/collections/ministry-updates/create",
+      "editRoutePattern": "/admin/collections/ministry-updates/:id",
+      "coreInteractions": [
+        "rich text update authoring",
+        "relationship selection for missionary profile",
+        "optional publishedAt control"
+      ],
+      "validationBehavior": [
+        "tenant required and indexed",
+        "missionary required and indexed",
+        "title required",
+        "slug required and indexed",
+        "content required"
+      ],
+      "publishBehavior": {
+        "draftsEnabled": true,
+        "autosaveIntervalSeconds": 300,
+        "publishStateField": "_status",
+        "publishedValue": "published"
+      },
+      "apiWiring": {
+        "admin": [
+          "POST /api/ministry-updates",
+          "PATCH /api/ministry-updates/:id"
+        ],
+        "public": ["GET /api/cms/public/updates"]
+      }
+    },
+    {
+      "collection": "media",
+      "adminListRoute": "/admin/collections/media",
+      "createRoute": "/admin/collections/media/create",
+      "editRoutePattern": "/admin/collections/media/:id",
+      "coreInteractions": [
+        "file upload",
+        "metadata editing",
+        "generated image size outputs"
+      ],
+      "validationBehavior": [
+        "tenant required and indexed",
+        "alt required",
+        "caption optional"
+      ],
+      "publishBehavior": {
+        "draftsEnabled": false
+      },
+      "apiWiring": {
+        "admin": ["POST /api/media", "PATCH /api/media/:id"],
+        "public": []
+      }
+    },
+    {
+      "collection": "tenants",
+      "adminListRoute": "/admin/collections/tenants",
+      "createRoute": "/admin/collections/tenants/create",
+      "editRoutePattern": "/admin/collections/tenants/:id",
+      "coreInteractions": ["tenant metadata management"],
+      "validationBehavior": [
+        "name required",
+        "slug required and unique",
+        "isActive default true"
+      ],
+      "publishBehavior": {
+        "draftsEnabled": false
+      },
+      "apiWiring": {
+        "admin": ["POST /api/tenants", "PATCH /api/tenants/:id"],
+        "public": ["indirect via tenant resolver lookups"]
+      }
+    },
+    {
+      "collection": "cms-users",
+      "adminListRoute": "/admin/collections/cms-users",
+      "createRoute": "/admin/collections/cms-users/create",
+      "editRoutePattern": "/admin/collections/cms-users/:id",
+      "coreInteractions": [
+        "CMS user role assignment",
+        "Supabase identity linkage via supabaseUserId"
+      ],
+      "validationBehavior": [
+        "email required and unique",
+        "role select default staff",
+        "local auth disabled, Supabase strategy required"
+      ],
+      "publishBehavior": {
+        "draftsEnabled": false,
+        "notes": "auth collection"
+      },
+      "apiWiring": {
+        "admin": ["POST /api/cms-users", "PATCH /api/cms-users/:id"],
+        "public": []
+      }
+    }
+  ],
+  "fieldControls": [
+    {
+      "collection": "pages",
+      "field": "tenant",
+      "fieldType": "relationship",
+      "domControl": "relationship-picker",
+      "required": true,
+      "notes": "auto-stamped from tenant context"
+    },
+    {
+      "collection": "pages",
+      "field": "title",
+      "fieldType": "text",
+      "domControl": "text-input",
+      "required": true
+    },
+    {
+      "collection": "pages",
+      "field": "slug",
+      "fieldType": "text",
+      "domControl": "text-input",
+      "required": true
+    },
+    {
+      "collection": "pages",
+      "field": "summary",
+      "fieldType": "textarea",
+      "domControl": "textarea",
+      "required": false
+    },
+    {
+      "collection": "pages",
+      "field": "content",
+      "fieldType": "richText",
+      "domControl": "lexical-editor",
+      "required": true
+    },
+    {
+      "collection": "navigation",
+      "field": "tenant",
+      "fieldType": "relationship",
+      "domControl": "relationship-picker",
+      "required": true
+    },
+    {
+      "collection": "navigation",
+      "field": "label",
+      "fieldType": "text",
+      "domControl": "text-input",
+      "required": true
+    },
+    {
+      "collection": "navigation",
+      "field": "items",
+      "fieldType": "array",
+      "domControl": "array-repeater",
+      "required": true
+    },
+    {
+      "collection": "navigation",
+      "field": "items.label",
+      "fieldType": "text",
+      "domControl": "text-input",
+      "required": true
+    },
+    {
+      "collection": "navigation",
+      "field": "items.href",
+      "fieldType": "text",
+      "domControl": "text-input",
+      "required": true
+    },
+    {
+      "collection": "navigation",
+      "field": "items.openInNewTab",
+      "fieldType": "checkbox",
+      "domControl": "checkbox",
+      "required": false
+    },
+    {
+      "collection": "missionary-profiles",
+      "field": "tenant",
+      "fieldType": "relationship",
+      "domControl": "relationship-picker",
+      "required": true
+    },
+    {
+      "collection": "missionary-profiles",
+      "field": "fullName",
+      "fieldType": "text",
+      "domControl": "text-input",
+      "required": true
+    },
+    {
+      "collection": "missionary-profiles",
+      "field": "slug",
+      "fieldType": "text",
+      "domControl": "text-input",
+      "required": true
+    },
+    {
+      "collection": "missionary-profiles",
+      "field": "tagline",
+      "fieldType": "text",
+      "domControl": "text-input",
+      "required": false
+    },
+    {
+      "collection": "missionary-profiles",
+      "field": "bio",
+      "fieldType": "textarea",
+      "domControl": "textarea",
+      "required": false
+    },
+    {
+      "collection": "missionary-profiles",
+      "field": "location",
+      "fieldType": "text",
+      "domControl": "text-input",
+      "required": false
+    },
+    {
+      "collection": "missionary-profiles",
+      "field": "portrait",
+      "fieldType": "relationship",
+      "domControl": "relationship-picker",
+      "required": false
+    },
+    {
+      "collection": "ministry-updates",
+      "field": "tenant",
+      "fieldType": "relationship",
+      "domControl": "relationship-picker",
+      "required": true,
+      "notes": "auto-stamped from tenant context"
+    },
+    {
+      "collection": "ministry-updates",
+      "field": "missionary",
+      "fieldType": "relationship",
+      "domControl": "relationship-picker",
+      "required": true
+    },
+    {
+      "collection": "ministry-updates",
+      "field": "title",
+      "fieldType": "text",
+      "domControl": "text-input",
+      "required": true
+    },
+    {
+      "collection": "ministry-updates",
+      "field": "slug",
+      "fieldType": "text",
+      "domControl": "text-input",
+      "required": true
+    },
+    {
+      "collection": "ministry-updates",
+      "field": "excerpt",
+      "fieldType": "textarea",
+      "domControl": "textarea",
+      "required": false
+    },
+    {
+      "collection": "ministry-updates",
+      "field": "content",
+      "fieldType": "richText",
+      "domControl": "lexical-editor",
+      "required": true
+    },
+    {
+      "collection": "ministry-updates",
+      "field": "publishedAt",
+      "fieldType": "date",
+      "domControl": "datetime-picker",
+      "required": false
+    },
+    {
+      "collection": "media",
+      "field": "tenant",
+      "fieldType": "relationship",
+      "domControl": "relationship-picker",
+      "required": true
+    },
+    {
+      "collection": "media",
+      "field": "alt",
+      "fieldType": "text",
+      "domControl": "text-input",
+      "required": true
+    },
+    {
+      "collection": "media",
+      "field": "caption",
+      "fieldType": "text",
+      "domControl": "text-input",
+      "required": false
+    },
+    {
+      "collection": "tenants",
+      "field": "name",
+      "fieldType": "text",
+      "domControl": "text-input",
+      "required": true
+    },
+    {
+      "collection": "tenants",
+      "field": "slug",
+      "fieldType": "text",
+      "domControl": "text-input",
+      "required": true
+    },
+    {
+      "collection": "tenants",
+      "field": "primaryDomain",
+      "fieldType": "text",
+      "domControl": "text-input",
+      "required": false
+    },
+    {
+      "collection": "tenants",
+      "field": "isActive",
+      "fieldType": "checkbox",
+      "domControl": "checkbox",
+      "required": false
+    },
+    {
+      "collection": "cms-users",
+      "field": "email",
+      "fieldType": "email",
+      "domControl": "email-input",
+      "required": true
+    },
+    {
+      "collection": "cms-users",
+      "field": "supabaseUserId",
+      "fieldType": "text",
+      "domControl": "text-input",
+      "required": false
+    },
+    {
+      "collection": "cms-users",
+      "field": "tenantId",
+      "fieldType": "text",
+      "domControl": "text-input",
+      "required": false
+    },
+    {
+      "collection": "cms-users",
+      "field": "role",
+      "fieldType": "select",
+      "domControl": "select",
+      "required": false,
+      "enum": ["staff", "admin", "super_admin"]
+    }
+  ],
+  "adminApiContracts": [
+    {
+      "collection": "pages",
+      "createEndpoint": "POST /api/pages",
+      "updateEndpoint": "PATCH /api/pages/:id",
+      "publishEndpoint": "PATCH /api/pages/:id",
+      "publishField": "_status",
+      "publishValue": "published",
+      "payloadTemplate": {
+        "tenant": "<tenantId>",
+        "title": "About",
+        "slug": "about",
+        "summary": "...",
+        "content": { "root": {} },
+        "_status": "draft|published"
+      }
+    },
+    {
+      "collection": "navigation",
+      "createEndpoint": "POST /api/navigation",
+      "updateEndpoint": "PATCH /api/navigation/:id",
+      "publishEndpoint": null,
+      "payloadTemplate": {
+        "tenant": "<tenantId>",
+        "label": "Main Nav",
+        "items": [{ "label": "Home", "href": "/", "openInNewTab": false }]
+      }
+    },
+    {
+      "collection": "missionary-profiles",
+      "createEndpoint": "POST /api/missionary-profiles",
+      "updateEndpoint": "PATCH /api/missionary-profiles/:id",
+      "publishEndpoint": null,
+      "payloadTemplate": {
+        "tenant": "<tenantId>",
+        "fullName": "Jane Doe",
+        "slug": "jane-doe",
+        "tagline": "...",
+        "bio": "...",
+        "location": "...",
+        "portrait": "<mediaId>"
+      }
+    },
+    {
+      "collection": "ministry-updates",
+      "createEndpoint": "POST /api/ministry-updates",
+      "updateEndpoint": "PATCH /api/ministry-updates/:id",
+      "publishEndpoint": "PATCH /api/ministry-updates/:id",
+      "publishField": "_status",
+      "publishValue": "published",
+      "payloadTemplate": {
+        "tenant": "<tenantId>",
+        "missionary": "<profileId>",
+        "title": "Q1 Update",
+        "slug": "q1-update",
+        "excerpt": "...",
+        "content": { "root": {} },
+        "publishedAt": "2026-02-23T12:00:00.000Z",
+        "_status": "draft|published"
+      }
+    },
+    {
+      "collection": "media",
+      "createEndpoint": "POST /api/media",
+      "updateEndpoint": "PATCH /api/media/:id",
+      "publishEndpoint": null,
+      "payloadTemplate": {
+        "multipart": true,
+        "fields": {
+          "file": "<binary>",
+          "tenant": "<tenantId>",
+          "alt": "...",
+          "caption": "..."
+        }
+      }
+    },
+    {
+      "collection": "tenants",
+      "createEndpoint": "POST /api/tenants",
+      "updateEndpoint": "PATCH /api/tenants/:id",
+      "publishEndpoint": null,
+      "payloadTemplate": {
+        "name": "Acme Missions",
+        "slug": "acme",
+        "primaryDomain": "acme.example.org",
+        "isActive": true
+      }
+    },
+    {
+      "collection": "cms-users",
+      "createEndpoint": "POST /api/cms-users",
+      "updateEndpoint": "PATCH /api/cms-users/:id",
+      "publishEndpoint": null,
+      "payloadTemplate": {
+        "email": "staff@org.org",
+        "supabaseUserId": "uuid",
+        "tenantId": "tenant_1",
+        "role": "staff|admin|super_admin"
+      }
+    }
+  ],
+  "publicApiContracts": [
+    {
+      "endpoint": "GET /api/cms/public/pages/[...slug]",
+      "behavior": [
+        "resolve tenant by query param, then domain, then subdomain",
+        "normalize slug path segments",
+        "query pages by tenant + slug + _status=published",
+        "sort by -updatedAt and return first doc"
+      ],
+      "successPayloadTemplate": {
+        "tenant": { "id": "<tenantId>", "slug": "<slug>" },
+        "page": {}
+      },
+      "errorPayloads": [
+        { "status": 404, "body": { "error": "Tenant not found" } },
+        { "status": 404, "body": { "error": "Page not found" } },
+        {
+          "status": 500,
+          "body": { "error": "Failed to fetch page content" }
+        }
+      ]
+    },
+    {
+      "endpoint": "GET /api/cms/public/navigation",
+      "behavior": [
+        "resolve tenant",
+        "query navigation by tenant sorted by -updatedAt",
+        "return first doc or null"
+      ],
+      "successPayloadTemplate": {
+        "tenant": { "id": "<tenantId>", "slug": "<slug>" },
+        "navigation": {}
+      },
+      "errorPayloads": [
+        { "status": 404, "body": { "error": "Tenant not found" } },
+        {
+          "status": 500,
+          "body": { "error": "Failed to fetch navigation content" }
+        }
+      ]
+    },
+    {
+      "endpoint": "GET /api/cms/public/updates?limit=N",
+      "behavior": [
+        "resolve tenant",
+        "clamp limit between 1 and 20 with default 5",
+        "query ministry-updates by tenant + _status=published sorted by -publishedAt"
+      ],
+      "successPayloadTemplate": {
+        "tenant": { "id": "<tenantId>", "slug": "<slug>" },
+        "updates": []
+      },
+      "errorPayloads": [
+        { "status": 404, "body": { "error": "Tenant not found" } },
+        {
+          "status": 500,
+          "body": { "error": "Failed to fetch ministry updates" }
+        }
+      ]
+    }
+  ],
+  "verificationEvidence": {
+    "unit": "bun run test:unit:cms (8 files, 40 tests passed)",
+    "e2eCms": "bun run test:e2e:cms --project=chromium (4 passed)",
+    "eslint": "targeted route/test lint checks passed",
+    "typecheck": "bunx turbo run typecheck --filter=@asym/admin passed"
+  },
+  "limitations": [
+    "full authenticated browser authoring verification is environment-dependent on reachable Postgres"
+  ]
+}

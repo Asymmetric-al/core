@@ -1,0 +1,37 @@
+collection,field,field_type,dom_control,required,notes
+pages,tenant,relationship,relationship-picker,true,auto-stamped from tenant context
+pages,title,text,text-input,true,
+pages,slug,text,text-input,true,
+pages,summary,textarea,textarea,false,
+pages,content,richText,lexical-editor,true,
+navigation,tenant,relationship,relationship-picker,true,
+navigation,label,text,text-input,true,
+navigation,items,array,array-repeater,true,
+navigation,items.label,text,text-input,true,
+navigation,items.href,text,text-input,true,
+navigation,items.openInNewTab,checkbox,checkbox,false,default false
+missionary-profiles,tenant,relationship,relationship-picker,true,
+missionary-profiles,fullName,text,text-input,true,
+missionary-profiles,slug,text,text-input,true,
+missionary-profiles,tagline,text,text-input,false,
+missionary-profiles,bio,textarea,textarea,false,
+missionary-profiles,location,text,text-input,false,
+missionary-profiles,portrait,relationship,relationship-picker,false,relation to media
+ministry-updates,tenant,relationship,relationship-picker,true,auto-stamped from tenant context
+ministry-updates,missionary,relationship,relationship-picker,true,relation to missionary-profiles
+ministry-updates,title,text,text-input,true,
+ministry-updates,slug,text,text-input,true,
+ministry-updates,excerpt,textarea,textarea,false,
+ministry-updates,content,richText,lexical-editor,true,
+ministry-updates,publishedAt,date,datetime-picker,false,
+media,tenant,relationship,relationship-picker,true,
+media,alt,text,text-input,true,
+media,caption,text,text-input,false,
+tenants,name,text,text-input,true,
+tenants,slug,text,text-input,true,unique
+tenants,primaryDomain,text,text-input,false,
+tenants,isActive,checkbox,checkbox,false,default true
+cms-users,email,email,email-input,true,unique indexed
+cms-users,supabaseUserId,text,text-input,false,unique when present
+cms-users,tenantId,text,text-input,false,indexed
+cms-users,role,select,select,false,"enum=staff|admin|super_admin default=staff"

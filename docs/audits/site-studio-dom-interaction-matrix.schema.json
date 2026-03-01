@@ -1,0 +1,268 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://asymmetric.al/schemas/site-studio-dom-interaction-matrix.schema.json",
+  "title": "Site Studio DOM Interaction Matrix",
+  "description": "Machine-readable contract for Site Studio collection controls, validation, interactions, and API payload expectations.",
+  "type": "object",
+  "required": [
+    "version",
+    "scope",
+    "collections",
+    "fieldControls",
+    "adminApiContracts",
+    "publicApiContracts",
+    "verificationEvidence",
+    "limitations"
+  ],
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "scope": {
+      "type": "string"
+    },
+    "collections": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/collectionInteraction"
+      }
+    },
+    "fieldControls": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/fieldControl"
+      }
+    },
+    "adminApiContracts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/adminApiContract"
+      }
+    },
+    "publicApiContracts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/publicApiContract"
+      }
+    },
+    "verificationEvidence": {
+      "type": "object",
+      "required": ["unit", "e2eCms", "eslint", "typecheck"],
+      "properties": {
+        "unit": {
+          "type": "string"
+        },
+        "e2eCms": {
+          "type": "string"
+        },
+        "eslint": {
+          "type": "string"
+        },
+        "typecheck": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "publishBehavior": {
+      "type": "object",
+      "required": ["draftsEnabled"],
+      "properties": {
+        "draftsEnabled": {
+          "type": "boolean"
+        },
+        "autosaveIntervalSeconds": {
+          "type": "number"
+        },
+        "publishStateField": {
+          "type": "string"
+        },
+        "publishedValue": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "collectionInteraction": {
+      "type": "object",
+      "required": [
+        "collection",
+        "adminListRoute",
+        "createRoute",
+        "editRoutePattern",
+        "coreInteractions",
+        "validationBehavior",
+        "publishBehavior",
+        "apiWiring"
+      ],
+      "properties": {
+        "collection": {
+          "type": "string"
+        },
+        "adminListRoute": {
+          "type": "string"
+        },
+        "createRoute": {
+          "type": "string"
+        },
+        "editRoutePattern": {
+          "type": "string"
+        },
+        "coreInteractions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "validationBehavior": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "publishBehavior": {
+          "$ref": "#/$defs/publishBehavior"
+        },
+        "apiWiring": {
+          "type": "object",
+          "required": ["admin", "public"],
+          "properties": {
+            "admin": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "public": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "fieldControl": {
+      "type": "object",
+      "required": [
+        "collection",
+        "field",
+        "fieldType",
+        "domControl",
+        "required"
+      ],
+      "properties": {
+        "collection": {
+          "type": "string"
+        },
+        "field": {
+          "type": "string"
+        },
+        "fieldType": {
+          "type": "string"
+        },
+        "domControl": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "enum": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "adminApiContract": {
+      "type": "object",
+      "required": [
+        "collection",
+        "createEndpoint",
+        "updateEndpoint",
+        "publishEndpoint",
+        "payloadTemplate"
+      ],
+      "properties": {
+        "collection": {
+          "type": "string"
+        },
+        "createEndpoint": {
+          "type": "string"
+        },
+        "updateEndpoint": {
+          "type": "string"
+        },
+        "publishEndpoint": {
+          "type": ["string", "null"]
+        },
+        "publishField": {
+          "type": "string"
+        },
+        "publishValue": {
+          "type": "string"
+        },
+        "payloadTemplate": {}
+      },
+      "additionalProperties": false
+    },
+    "publicApiContract": {
+      "type": "object",
+      "required": [
+        "endpoint",
+        "behavior",
+        "successPayloadTemplate",
+        "errorPayloads"
+      ],
+      "properties": {
+        "endpoint": {
+          "type": "string"
+        },
+        "behavior": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "successPayloadTemplate": {},
+        "errorPayloads": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["status", "body"],
+            "properties": {
+              "status": {
+                "type": "number"
+              },
+              "body": {
+                "type": "object"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

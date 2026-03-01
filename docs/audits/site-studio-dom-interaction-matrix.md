@@ -119,3 +119,14 @@ This matrix is derived from the live collection configs and API handlers current
 ## 6) Practical limitation note
 
 In this cloud runtime, full authenticated in-browser authoring (create draft -> publish via real Payload admin UI against a live Postgres-backed CMS) still depends on a reachable Postgres service for Payload runtime. The contract-level and route-level wiring is validated above, and CMS smoke routes are green, but deep live authoring remains environment-dependent.
+
+---
+
+## 7) Machine-readable exports for agent ingestion
+
+- JSON data: `docs/audits/site-studio-dom-interaction-matrix.json`
+- JSON schema: `docs/audits/site-studio-dom-interaction-matrix.schema.json`
+- CSV (collections): `docs/audits/site-studio-dom-interaction-matrix.collections.csv`
+- CSV (field controls): `docs/audits/site-studio-dom-interaction-matrix.field-controls.csv`
+- CSV (admin API): `docs/audits/site-studio-dom-interaction-matrix.admin-api.csv`
+- CSV (public API): `docs/audits/site-studio-dom-interaction-matrix.public-api.csv`
