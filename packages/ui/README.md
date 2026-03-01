@@ -68,10 +68,17 @@ After that import, apps may add `@source` directives for their own file trees. T
 - To add a component, run from the **repo root**:
 
 ```bash
-bunx --bun shadcn@latest add <component>
+bunx --bun shadcn@latest add <component> --cwd packages/ui
 ```
 
 - Do **NOT** run `shadcn init` inside individual apps - the shared config in `packages/ui` is the single integration point.
+
+### `components.json` ownership
+
+- `packages/ui/components.json` is intentionally used for registry configuration in this repo.
+- Maia style and Zinc theme/base color are enforced by `packages/ui/styles/globals.css` tokens, not by app-local styling.
+- Preserve existing registry entries when adding/updating components.
+- Do not manually edit `components.json`; use shadcn CLI commands from the repo root with `--cwd packages/ui`.
 
 ## Dependency Version Policy
 
@@ -88,28 +95,28 @@ Caret ranges are a Phase 0 pragmatic choice while the team does not yet have vis
 
 - Current shadcn CLI version in use: `shadcn@3.6.2`.
 
-1. Run `bunx --bun shadcn@latest add <component>` from the repo root (not inside individual apps).
+1. Run `bunx --bun shadcn@latest add <component> --cwd packages/ui` from the repo root (not inside individual apps).
 2. Review the diff carefully. shadcn components are vendored source code, not npm packages.
 3. Run `bun run build` to verify no breakage.
 4. Run `bun run typecheck` to verify types.
 5. Commit with message: `chore(ui): update shadcn <component> to CLI vX.Y.Z`.
 
-`components.json` is the shadcn CLI config. Do not modify it manually.
+`components.json` is the shadcn CLI config and registry source in this repo. Do not modify it manually.
 
 ## Import Patterns
 
-- Preferred (new code):
-
-```ts
-import { Button, Card, Input } from "@asym/ui";
-```
-
-- Deep imports (still supported, not yet deprecated):
+- Current repo standard (apps):
 
 ```ts
 import { Button } from "@asym/ui/components/shadcn/button";
 ```
 
+- Optional barrel imports (use when file-local patterns already use them):
+
 ```ts
 import { Button } from "@asym/ui/components/shadcn";
+```
+
+```ts
+import { Button } from "@asym/ui";
 ```

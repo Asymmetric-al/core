@@ -28,6 +28,7 @@
     "./missionaries/metrics": "./src/missionaries/metrics.ts"
   },
   "scripts": {
+    "build": "tsc --noEmit",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },

@@ -11,6 +11,7 @@
     "./email-studio-types": "./email-studio-types.ts"
   },
   "scripts": {
+    "build": "tsc --noEmit",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },

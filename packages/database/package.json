@@ -38,6 +38,7 @@
     }
   },
   "scripts": {
+    "build": "tsc --noEmit",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
