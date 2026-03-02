@@ -1,4 +1,5 @@
 "use client";
+"use no memo";
 
 import { createBrowserClient } from "@asym/database/supabase";
 import { useAuth, useTasks } from "@asym/lib/hooks";

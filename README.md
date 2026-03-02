@@ -295,7 +295,12 @@ Common commands:
 
 ### Git Hooks Setup
 
-Pre-commit hooks auto-run ESLint + Prettier. If you get "command not found" errors:
+Git hooks now enforce two checkpoints:
+
+- `pre-commit`: staged-file lint + format (`lint-staged`)
+- `pre-push`: CI parity gate (`bun run ci:preflight`)
+
+If you get "command not found" errors:
 
 **macOS/Linux:**
 

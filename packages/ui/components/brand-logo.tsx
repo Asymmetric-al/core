@@ -1,6 +1,7 @@
 "use client";
+"use memo";
 
-import { brandConfig } from "@asym/config/site";
+import { brandConfig } from "@asym/config/site-client";
 
 import { cn } from "@asym/ui/lib/utils";
 
