@@ -1,0 +1,53 @@
+version: 1
+
+people:
+  - handle: "@loclv94"
+    name: "Loc"
+    level: 4
+    skills: [fullstack]
+    can_primary_for_difficulty: [medium, high]
+
+  - handle: "@musab03"
+    name: "Musab"
+    level: 3
+    skills: [fullstack]
+    can_primary_for_difficulty: [medium, high]
+
+  - handle: "@amritraj404"
+    name: "Amrit Rai"
+    level: 1
+    skills: [frontend]
+    can_primary_for_difficulty: [low]
+
+  - handle: "@htetaunglin-coder"
+    name: "Kelvin"
+    level: 2
+    skills: [fullstack]
+    can_primary_for_difficulty: [low, medium]
+
+review_policy:
+  request_individuals_only: true
+  always_request_codeowner: true
+  additional_reviewers: 1
+  allow_intern_primary_if_difficulty_at_most: low
+
+difficulty_heuristics:
+  low:
+    max_files_changed: 8
+    max_lines_changed: 300
+  medium:
+    max_files_changed: 25
+    max_lines_changed: 1500
+  high:
+    high_risk_paths:
+      - "packages/**"
+      - ".github/**"
+      - "**/migrations/**"
+      - "**/infra/**"
+
+greptile:
+  bot_login: "greptile-apps[bot]"
+  signal_phrases:
+    - "Issue Found"
+    - "Confidence Score"
+    - "Important Files Changed"

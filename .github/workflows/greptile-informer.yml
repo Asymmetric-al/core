@@ -1,0 +1,184 @@
+name: Greptile informer (review routing suggestion)
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write
+
+jobs:
+  inform:
+    # Only run when Greptile is the reviewer
+    if: github.actor == 'greptile-apps[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Post reviewer suggestion comment (no auto-assign)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ruby <<'RUBY'
+            require 'json'
+            require 'yaml'
+            require 'net/http'
+            require 'uri'
+
+            def api_get(repo, path, token)
+              uri = URI("https://api.github.com/repos/#{repo}#{path}")
+              req = Net::HTTP::Get.new(uri)
+              req['Authorization'] = "Bearer #{token}"
+              req['Accept'] = "application/vnd.github+json"
+              res = Net::HTTP.start(uri.host, uri.port, use_ssl: true) { |http| http.request(req) }
+              raise "GET #{path} failed: #{res.code} #{res.body}" unless res.code.to_i.between?(200,299)
+              JSON.parse(res.body)
+            end
+
+            def api_post(repo, path, token, body_hash)
+              uri = URI("https://api.github.com/repos/#{repo}#{path}")
+              req = Net::HTTP::Post.new(uri)
+              req['Authorization'] = "Bearer #{token}"
+              req['Accept'] = "application/vnd.github+json"
+              req['Content-Type'] = "application/json"
+              req.body = JSON.dump(body_hash)
+              res = Net::HTTP.start(uri.host, uri.port, use_ssl: true) { |http| http.request(req) }
+              raise "POST #{path} failed: #{res.code} #{res.body}" unless res.code.to_i.between?(200,299)
+              JSON.parse(res.body)
+            end
+
+            def fnmatch_any?(patterns, path)
+              patterns.any? { |pat| File.fnmatch?(pat, path, File::FNM_PATHNAME) }
+            end
+
+            token = ENV.fetch('GITHUB_TOKEN')
+            repo  = ENV.fetch('GITHUB_REPOSITORY') # "owner/repo"
+            event = JSON.parse(File.read(ENV.fetch('GITHUB_EVENT_PATH')))
+
+            pr_number  = event.dig('pull_request', 'number')
+            review_id  = event.dig('review', 'id')
+            review_url = event.dig('review', 'html_url')
+            review_body = (event.dig('review', 'body') || "").to_s
+
+            # Load reviewers.yml
+            cfg_path = ".github/reviewers.yml"
+            unless File.exist?(cfg_path)
+              puts "Missing #{cfg_path}; exiting."
+              exit 0
+            end
+            cfg = YAML.load_file(cfg_path)
+
+            # Fetch PR metadata
+            pr = api_get(repo, "/pulls/#{pr_number}", token)
+            pr_author = pr.dig('user', 'login').to_s
+            changed_files = pr['changed_files'].to_i
+            additions = pr['additions'].to_i
+            deletions = pr['deletions'].to_i
+            total_lines = additions + deletions
+
+            # Fetch PR file list (for high-risk matching + frontend heaviness)
+            files = []
+            page = 1
+            loop do
+              batch = api_get(repo, "/pulls/#{pr_number}/files?per_page=100&page=#{page}", token)
+              break if batch.empty?
+              files.concat(batch)
+              page += 1
+              break if page > 20 # safety cap
+            end
+            paths = files.map { |f| f['filename'] }.compact
+
+            # Determine difficulty
+            heur = cfg.fetch('difficulty_heuristics', {})
+            low_h  = heur.fetch('low', {})
+            med_h  = heur.fetch('medium', {})
+            high_h = heur.fetch('high', {})
+            high_risk = (high_h['high_risk_paths'] || [])
+
+            touches_high_risk = paths.any? { |p| fnmatch_any?(high_risk, p) }
+
+            difficulty =
+              if touches_high_risk
+                'high'
+              elsif changed_files <= low_h.fetch('max_files_changed', 8).to_i && total_lines <= low_h.fetch('max_lines_changed', 300).to_i
+                'low'
+              elsif changed_files <= med_h.fetch('max_files_changed', 25).to_i && total_lines <= med_h.fetch('max_lines_changed', 1500).to_i
+                'medium'
+              else
+                'high'
+              end
+
+            # Frontend-heavy heuristic (only used to prefer frontend on low difficulty)
+            fe_exts = %w[.tsx .jsx .css .scss .sass .less .mdx]
+            fe_count = paths.count { |p| fe_exts.any? { |ext| p.end_with?(ext) } }
+            frontend_heavy = paths.any? && (fe_count.to_f / paths.size) >= 0.6
+
+            # Exclude already-requested reviewers + author
+            already_requested = (pr['requested_reviewers'] || []).map { |u| "@#{u['login']}" }
+            excluded_handles = already_requested + ["@#{pr_author}"]
+
+            # Choose suggestion from reviewers.yml (NO auto-assign)
+            people = cfg.fetch('people', [])
+            candidates = people.select do |p|
+              diffs = (p['can_primary_for_difficulty'] || []).map(&:to_s)
+              diffs.include?(difficulty) && !excluded_handles.include?(p['handle'])
+            end
+
+            # If low difficulty and intern allowed up to low, keep level 1 eligible; otherwise level filtering is naturally handled by can_primary_for_difficulty
+            # Score: prefer higher level; for low+frontend-heavy, prefer frontend skill
+            best = candidates.max_by do |p|
+              score = p['level'].to_i * 10
+              if difficulty == 'low' && frontend_heavy && (p['skills'] || []).map(&:to_s).include?('frontend')
+                score += 20
+              end
+              score
+            end
+
+            # Extract Greptile signals (lightweight)
+            greptile_cfg = cfg.fetch('greptile', {})
+            phrases = (greptile_cfg['signal_phrases'] || [])
+            found_lines = phrases.map do |ph|
+              review_body.lines.find { |ln| ln.include?(ph) }
+            end.compact.map(&:strip).uniq
+
+            marker = "<!-- greptile-informer:review-id=#{review_id} -->"
+
+            # Idempotency: avoid posting twice for same review
+            comments = api_get(repo, "/issues/#{pr_number}/comments?per_page=100", token)
+            if comments.any? { |c| c['body'].to_s.include?(marker) }
+              puts "Already commented for review #{review_id}; exiting."
+              exit 0
+            end
+
+            suggestion_text =
+              if best
+                "#{best['handle']} (level #{best['level']}, #{(best['skills'] || []).join(', ')})"
+              else
+                "_No suggestion found_ (everyone eligible is already requested, or config doesn’t match this PR)."
+              end
+
+            risk_note = touches_high_risk ? "High-risk paths detected (#{high_risk.join(', ')})." : "No high-risk paths detected."
+
+            lines = []
+            lines << marker
+            lines << "🦜 **Greptile has reviewed this PR.**"
+            lines << ""
+            lines << "- Review: #{review_url}" if review_url
+            lines << "- Detected difficulty: **#{difficulty}** (files=#{changed_files}, lines=#{total_lines}). #{risk_note}"
+            if difficulty == 'low' && frontend_heavy
+              lines << "- Heuristic: frontend-heavy changes (#{fe_count}/#{paths.size} UI-ish files)."
+            end
+            if found_lines.any?
+              lines << "- Signals: " + found_lines.map { |l| "`#{l}`" }.join(" · ")
+            end
+            lines << ""
+            lines << "✅ **Suggested additional reviewer (info only):** #{suggestion_text}"
+            lines << ""
+            lines << "_Note: This workflow does **not** auto-request reviewers; it only posts a suggestion._"
+
+            api_post(repo, "/issues/#{pr_number}/comments", token, { body: lines.join("\n") })
+            puts "Posted suggestion comment."
+          RUBY
