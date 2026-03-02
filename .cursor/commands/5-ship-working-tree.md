@@ -1,7 +1,7 @@
 # 5-ship-working-tree
 
 **Name:** `5-ship-working-tree`  
-**Purpose:** Turn **local, uncommitted changes** into a clean feature branch + (draft) PR, request the correct CODEOWNERS reviewers, push to GitHub, and **watch CI checks** until pass/fail—then notify the user and offer troubleshooting on failures.
+**Purpose:** Turn **local, uncommitted changes** into a clean feature branch + (draft) PR, request the correct **CODEOWNERS reviewer(s) + 1 additional best-fit reviewer** (from `.github/reviewers.yml`), push to GitHub, and **watch CI checks** until pass/fail—then notify the user and offer troubleshooting on failures.
 
 **Applies when:** You have meaningful local changes (staged/unstaged/untracked) that you want shipped via PR.  
 **Do not use when:** You are mid-rebase/merge, you suspect secrets are present, or you need a multi-commit / multi-PR breakdown.
@@ -481,11 +481,16 @@ Optional but recommended:
 
 ---
 
-### 11) Resolve CODEOWNERS → request review in GitHub
+### 11) Resolve CODEOWNERS + reviewers.yml → request review in GitHub
 
 **Important:** CODEOWNERS does not always auto-request reviews unless repo settings/branch protection require it. Always explicitly request reviewers.
 
-Steps:
+**Goal:** Request exactly:
+
+- the relevant **CODEOWNER(s)** (prefer individuals), **and**
+- **1 additional reviewer** chosen from `.github/reviewers.yml` based on PR difficulty.
+
+#### 11.1) Resolve CODEOWNERS (source-of-truth)
 
 1. Locate CODEOWNERS file (first found wins):
    - `.github/CODEOWNERS`
@@ -494,30 +499,139 @@ Steps:
 2. Determine changed files:
    - `git diff --name-only origin/<base>...HEAD`
 3. Resolve owners:
-   - Apply CODEOWNERS pattern matching in order (last matching pattern wins, per GitHub behavior).
+   - Apply CODEOWNERS pattern matching in order (**last matching pattern wins**, per GitHub behavior).
    - Owners can be `@user` or `@org/team`.
-4. Build a reviewer set:
-   - Prefer owners for the most files changed.
-   - De-duplicate.
-   - If result is empty → fall back to:
-     - repo default owner, or
-     - prompt user for a reviewer.
 
-Then request reviews (run with `GITHUB_TOKEN` unset):
+Build a **codeowner reviewer set**:
+
+- De-duplicate.
+- If result is empty → fall back to:
+  - repo default owner, or
+  - prompt user for a reviewer.
+
+> If CODEOWNERS returns only teams (e.g. `@org/team`) but you prefer individuals, you may try to expand a team into members via the GitHub API (requires your token to have `read:org`). If expansion fails, request the team as-is.
+
+#### 11.2) Compute PR difficulty (low/medium/high) from `.github/reviewers.yml`
+
+Difficulty evaluation (defaults shown; prefer config if present):
+
+- If **any changed file** matches `difficulty_heuristics.high.high_risk_paths` → `high`.
+- Else:
+  - `files_changed` = count of changed files in `git diff --name-only origin/<base>...HEAD`
+  - `lines_changed` = (additions + deletions) from `git diff --numstat origin/<base>...HEAD`
+  - If within `low` thresholds → `low` (default: `<= 8 files` and `<= 300 lines`)
+  - Else if within `medium` thresholds → `medium` (default: `<= 25 files` and `<= 1500 lines`)
+  - Else → `high`
+
+#### 11.3) Pick the 1 additional reviewer from `.github/reviewers.yml`
+
+Candidates:
+
+- `people[]` where `difficulty` is included in `can_primary_for_difficulty`.
+
+Exclude:
+
+- PR author
+- any CODEOWNER(s) already requested
+- anyone already requested as a reviewer (if you have that info)
+
+**Selection priority (your preferences):**
+
+- **low:** pick the **lowest level** candidate first (prefer interns / junior reviewers).
+- **medium:** pick the candidate **closest to level 3** first (prefer `3`, then `2`, then `4`, then `1`).
+- **high:** pick the **highest level** candidate first (prefer seniors; e.g., pick level 4 over level 3).
+
+If no eligible candidate remains after exclusions → prompt user for a fallback additional reviewer.
+
+#### 11.4) Request reviews via GitHub (explicit)
+
+Run all `gh` commands with `GITHUB_TOKEN` unset if it exists:
 
 ```bash
-env -u GITHUB_TOKEN gh pr edit --add-reviewer "<owner1>" --add-reviewer "<owner2>"
+env -u GITHUB_TOKEN gh --version >/dev/null 2>&1 || true
+```
+
+Request CODEOWNERS first:
+
+```bash
+env -u GITHUB_TOKEN gh pr edit --add-reviewer "<codeowner1>" --add-reviewer "<codeowner2>"
+```
+
+Then request the 1 additional reviewer (if found):
+
+```bash
+env -u GITHUB_TOKEN gh pr edit --add-reviewer "<additional-reviewer>"
 ```
 
 **If GitHub rejects a review request because the only resolved owner is the PR author** (`HTTP 422: Review cannot be requested from pull request author.`):
 
-- The command must **not** treat this as success.
-- Prompt the user for a fallback reviewer/team handle (e.g., `@org/team` or `@username`) and request that instead.
+- Treat it as a failure.
+- Remove the author from the codeowner set, then retry.
+- If the set becomes empty, prompt the user for a fallback reviewer and request that instead.
 
 Also set PR assignee to the author:
 
 ```bash
-gh pr edit --add-assignee "@me"
+env -u GITHUB_TOKEN gh pr edit --add-assignee "@me"
+```
+
+#### 11.5) (Recommended helper) One-shot difficulty + reviewer picker
+
+If you want an automated picker that matches the policy above, you can run this after PR creation (replace `<base>`):
+
+```bash
+BASE="<base>" python3 - <<'PY'
+import os, fnmatch, subprocess, yaml
+
+base = os.environ["BASE"]
+cfg = yaml.safe_load(open(".github/reviewers.yml", "r", encoding="utf-8"))
+
+def sh(cmd: str) -> str:
+    return subprocess.check_output(cmd, shell=True, text=True).strip()
+
+paths = [p for p in sh(f"git diff --name-only origin/{base}...HEAD").splitlines() if p.strip()]
+files_changed = len(paths)
+
+adds = dels = 0
+for line in sh(f"git diff --numstat origin/{base}...HEAD").splitlines():
+    a, d, _ = line.split("	", 2)
+    if a.isdigit(): adds += int(a)
+    if d.isdigit(): dels += int(d)
+lines_changed = adds + dels
+
+high_risk = cfg.get("difficulty_heuristics", {}).get("high", {}).get("high_risk_paths", []) or []
+touches_high_risk = any(any(fnmatch.fnmatch(p, pat) for pat in high_risk) for p in paths)
+
+low = cfg.get("difficulty_heuristics", {}).get("low", {})
+med = cfg.get("difficulty_heuristics", {}).get("medium", {})
+
+if touches_high_risk:
+    difficulty = "high"
+elif files_changed <= int(low.get("max_files_changed", 8)) and lines_changed <= int(low.get("max_lines_changed", 300)):
+    difficulty = "low"
+elif files_changed <= int(med.get("max_files_changed", 25)) and lines_changed <= int(med.get("max_lines_changed", 1500)):
+    difficulty = "medium"
+else:
+    difficulty = "high"
+
+people = cfg.get("people", [])
+candidates = [p for p in people if difficulty in (p.get("can_primary_for_difficulty") or [])]
+
+def sort_key(p):
+    lvl = int(p.get("level", 0))
+    if difficulty == "low":
+        return (lvl,)          # lowest first
+    if difficulty == "high":
+        return (-lvl,)         # highest first
+    return (abs(lvl - 3), lvl) # medium: 3,2,4,1
+
+candidates.sort(key=sort_key)
+
+print("difficulty=", difficulty)
+print("files_changed=", files_changed, "lines_changed=", lines_changed)
+print("candidates=", [f"{c['handle']}(L{c['level']})" for c in candidates])
+print("pick=", candidates[0]["handle"] if candidates else "")
+PY
 ```
 
 ---
@@ -528,6 +642,16 @@ Watch checks:
 
 ```bash
 gh pr checks --watch
+```
+
+Greptile (async reviewer signal):
+
+- **Do not block/wait** for Greptile.
+- If Greptile is installed and you have a workflow like `.github/workflows/greptile-informer.yml`, GitHub will post a 🦜 comment later with key findings + a **suggested** additional reviewer (info only).
+- Optionally check once (no waiting loop):
+
+```bash
+gh pr view --comments | rg -n "greptile|🦜|Issue Found|Confidence Score|Important Files Changed" || true
 ```
 
 On **success**:
