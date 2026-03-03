@@ -18,7 +18,14 @@ run(process.execPath, ["scripts/sync-agent-skills.mjs"]);
 
 const diffResult = spawnSync(
   "git",
-  ["diff", "--exit-code", "--", ".agents/skills", ".cursor/skills"],
+  [
+    "diff",
+    "--exit-code",
+    "--ignore-cr-at-eol",
+    "--",
+    ".agents/skills",
+    ".cursor/skills",
+  ],
   { stdio: "inherit" },
 );
 
