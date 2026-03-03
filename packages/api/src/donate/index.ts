@@ -4,6 +4,7 @@ import {
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
+import { serverEnv } from "@asym/env";
 import { type NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
@@ -32,7 +33,7 @@ export const POST = withOperation(
     }
 
     const stripeSecretKey =
-      tenant.stripe_secret_key || process.env.STRIPE_SECRET_KEY;
+      tenant.stripe_secret_key || serverEnv.STRIPE_SECRET_KEY;
     if (!stripeSecretKey) {
       return NextResponse.json(
         { error: "Stripe not configured for this organization" },
@@ -181,7 +182,7 @@ export const POST = withOperation(
       donationId: donation.id,
       publishableKey:
         tenant.stripe_publishable_key ||
-        process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+        serverEnv.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     });
   },
   { roles: ["donor", "admin", "staff", "super_admin"] },
