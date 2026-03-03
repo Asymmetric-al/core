@@ -93,6 +93,11 @@ const eslintConfig = defineConfig([
               message:
                 "Route handlers must not import Supabase clients directly; re-export handlers from @asym/api instead.",
             },
+            {
+              group: ["@supabase/*"],
+              message:
+                "Route handlers must not import @supabase/* directly; use @asym/api boundaries.",
+            },
           ],
           paths: [
             {

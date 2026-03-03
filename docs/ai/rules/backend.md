@@ -64,8 +64,8 @@ Use this before changing server actions, route handlers, database access, or mig
 
 ### Implementation checklist
 
-- [ ] Server code uses `@/lib/supabase/server`
-- [ ] Client code uses `@/lib/supabase/client`
+- [ ] Server code uses `@asym/database/supabase/server`
+- [ ] Client code uses `@asym/database/supabase/client`
 - [ ] Inputs validated with Zod
 - [ ] RLS assumptions maintained
 - [ ] No service role key in client code
@@ -81,7 +81,7 @@ Use this before changing server actions, route handlers, database access, or mig
 ### Server-side client
 
 ```ts
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@asym/database/supabase/server";
 
 export async function myAction() {
   const supabase = await createClient();
@@ -94,7 +94,7 @@ export async function myAction() {
 ### Client-side client
 
 ```ts
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@asym/database/supabase/client";
 
 export function MyComponent() {
   const supabase = createClient();
