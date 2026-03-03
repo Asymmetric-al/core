@@ -15,7 +15,7 @@ Use this before changing server actions, route handlers, database access, or mig
 - Migrations/seed data:
   - `supabase/migrations/*.sql`
   - `supabase/seed.sql`
-- Supabase CLI is not used in contributor workflows; cloud schema/seed is managed outside this repo.
+- Supabase CLI is used through the repo runner: `bun run supabase -- <command>` (global CLI preferred when installed, pinned fallback otherwise).
 
 ### Supabase access (critical)
 
