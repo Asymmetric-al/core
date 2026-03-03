@@ -8,8 +8,18 @@ shopt -s globstar nullglob
 
 api_route_files=(apps/*/app/api/**/*.ts)
 
+# Exclude approved exceptions (see docs/guides/architecture/data-access-boundary.md)
+filtered=()
+for f in "${api_route_files[@]}"; do
+  if [[ "$f" == *"/api/health/route.ts" ]]; then
+    continue
+  fi
+  filtered+=("$f")
+done
+api_route_files=("${filtered[@]}")
+
 if [[ ${#api_route_files[@]} -eq 0 ]]; then
-  echo "No app API route TypeScript files found under apps/*/app/api/**/*.ts; data boundary check skipped."
+  echo "No app API route TypeScript files found under apps/*/app/api/**/*.ts (after exclusions); data boundary check skipped."
   exit 0
 fi
 

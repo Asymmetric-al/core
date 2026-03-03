@@ -16,6 +16,7 @@ The CI script currently scans `apps/*/app/api/**/*.ts`. This is why `apps/donor/
 | File                                    | Allowed import                   | Justification                                                                                  |
 | --------------------------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------- |
 | `apps/donor/app/auth/callback/route.ts` | `@asym/database/supabase/server` | Auth callback must exchange an auth code for a session before any API-layer delegation exists. |
+| `apps/*/app/api/health/route.ts`        | `@asym/database/supabase/server` | Health endpoints are minimal connectivity probes; no business logic to delegate to API layer.  |
 | Any GraphQL handler (if present)        | `@asym/database/supabase/server` | The GraphQL gateway is itself a data-layer boundary.                                           |
 | `packages/lib/audit/logger.ts`          | internal                         | Audit logger is infrastructure, not a route handler.                                           |
 
