@@ -5,8 +5,26 @@
     "NODE_ENV",
     "VERCEL",
     "VERCEL_ENV",
+    "VERCEL_TARGET_ENV",
     "VERCEL_URL",
-    "VERCEL_GIT_COMMIT_SHA"
+    "VERCEL_GIT_COMMIT_SHA",
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+    "STRIPE_SECRET_KEY",
+    "STRIPE_WEBHOOK_SECRET",
+    "NEXT_PUBLIC_SENTRY_DSN",
+    "SENTRY_DSN",
+    "NEXT_PUBLIC_CLOUDINARY_ENABLED",
+    "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME",
+    "NEXT_PUBLIC_CLOUDINARY_API_KEY",
+    "CLOUDINARY_API_SECRET",
+    "NEXT_PUBLIC_SITE_URL",
+    "NEXT_PUBLIC_APP_URL",
+    "NEXT_PUBLIC_MAIN_DOMAIN",
+    "ALLOW_DEMO_ACCOUNTS",
+    "CRON_SECRET"
   ],
   "tasks": {
     "transit": {
@@ -14,7 +32,14 @@
     },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "dist/**",
+        "tsconfig.tsbuildinfo",
+        "*.tsbuildinfo",
+        "**/*.tsbuildinfo"
+      ],
       "env": [
         "NODE_ENV",
         "NEXT_PUBLIC_*",
@@ -33,7 +58,7 @@
     },
     "typecheck": {
       "dependsOn": ["transit"],
-      "outputs": ["tsconfig.tsbuildinfo", "*.tsbuildinfo"]
+      "outputs": ["tsconfig.tsbuildinfo", "*.tsbuildinfo", "**/*.tsbuildinfo"]
     },
     "test": {
       "dependsOn": ["transit"],

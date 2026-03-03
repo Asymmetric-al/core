@@ -1,12 +1,31 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+
+async function gotoHealthyHomepage(page: Page) {
+  await page.goto("/");
+  await page.waitForLoadState("domcontentloaded");
+  await expect(page.locator("#__next_error__")).toHaveCount(0);
+  await expect(page.locator("#hero-heading")).toBeVisible();
+}
+
+async function gotoStableRoute(page: Page, path: string) {
+  await page.goto(path);
+  await page.waitForLoadState("domcontentloaded");
+
+  if ((await page.getByRole("heading", { name: "404" }).count()) > 0) {
+    await page.goto(path);
+    await page.waitForLoadState("domcontentloaded");
+  }
+
+  await expect(page.getByRole("heading", { name: "404" })).toHaveCount(0);
+  await expect(page.locator("#__next_error__")).toHaveCount(0);
+}
 
 test.describe("Accessibility Tests", () => {
   test("Homepage should have no critical accessibility violations", async ({
     page,
   }) => {
-    await page.goto("/");
-    await page.waitForLoadState("networkidle");
+    await gotoHealthyHomepage(page);
 
     const accessibilityScanResults = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
@@ -27,8 +46,11 @@ test.describe("Accessibility Tests", () => {
   });
 
   test("Login page should be accessible", async ({ page }) => {
-    await page.goto("/login");
+    await gotoStableRoute(page, "/login");
     await page.waitForLoadState("networkidle");
+    await expect(
+      page.locator('[data-slot="card-title"]', { hasText: "Sign In" }),
+    ).toBeVisible();
 
     const accessibilityScanResults = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa"])
@@ -42,8 +64,11 @@ test.describe("Accessibility Tests", () => {
   });
 
   test("Register page should be accessible", async ({ page }) => {
-    await page.goto("/register");
+    await gotoStableRoute(page, "/register");
     await page.waitForLoadState("networkidle");
+    await expect(
+      page.locator('[data-slot="card-title"]', { hasText: "Create Account" }),
+    ).toBeVisible();
 
     const accessibilityScanResults = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa"])
@@ -57,11 +82,11 @@ test.describe("Accessibility Tests", () => {
   });
 
   test("All forms should have proper labels", async ({ page }) => {
-    await page.goto("/login");
+    await gotoStableRoute(page, "/login");
     await page.waitForLoadState("networkidle");
+    await expect(page.locator("form")).toHaveCount(1);
 
     const accessibilityScanResults = await new AxeBuilder({ page })
-      .include("form")
       .withTags(["wcag2a"])
       .analyze();
 
@@ -73,8 +98,7 @@ test.describe("Accessibility Tests", () => {
   });
 
   test("Color contrast should meet WCAG AA standards", async ({ page }) => {
-    await page.goto("/");
-    await page.waitForLoadState("networkidle");
+    await gotoHealthyHomepage(page);
 
     const accessibilityScanResults = await new AxeBuilder({ page })
       .withTags(["wcag2aa"])

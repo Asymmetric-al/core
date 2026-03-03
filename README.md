@@ -289,12 +289,18 @@ Minimal package `package.json` example:
 Common commands:
 
 - `bun run format` (fix), `bun run format:check` (verify), `bun run lint`, and `bun run typecheck`
-- `bun run build`, `bun run test:unit`, `bun run test:e2e`
+- `bun run build` (CI-equivalent defaults), `bun run build:strict` (real env), `bun run test:unit`
+- `bun run test:e2e` (CI-equivalent defaults), `bun run test:e2e:strict` (real env), `bun run test:e2e:ui`
 - PR-readiness (matches blocking CI): `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
 
 ### Git Hooks Setup
 
-Pre-commit hooks auto-run ESLint + Prettier. If you get "command not found" errors:
+Git hooks now enforce two checkpoints:
+
+- `pre-commit`: staged-file lint + format (`lint-staged`)
+- `pre-push`: CI parity gate (`bun run ci:preflight`)
+
+If you get "command not found" errors:
 
 **macOS/Linux:**
 
@@ -319,8 +325,12 @@ Use Turbo for consistent task execution (and caching where applicable):
 - Local dev: `bunx turbo run dev`
 - Cached checks: `bunx turbo run lint typecheck build`
 - Formatting: `bun run format` (fix) / `bun run format:check` (verify)
+- Internal package `build` tasks are source-first validation (`tsc --noEmit`) so packages participate in the Turbo graph without forcing a `dist`-first workflow.
 
 Remote caching (Vercel Remote Cache) is enabled for internal PRs and protected branch CI (fork PRs do not have access to the required secrets/vars).
+
+For a deterministic local build workflow (strict env vs CI-equivalent stub env), see `docs/guides/development/build-runbook.md`.
+For lockfile/workspace-root warnings in Next builds, see the runbook section `Multiple lockfile warnings during Next.js build`.
 
 ### Key Dependencies
 
@@ -345,6 +355,13 @@ bun run format:check && bun run lint && bun run typecheck && bun run build && bu
 
 # Optional (non-blocking in CI, but recommended for flow changes)
 bun run test:e2e
+
+# Full local validation sweep (includes husky prepare + build)
+bun run validate:full
+
+# Strict sanity checks with real env values in .env.local
+bun run build:strict
+bun run test:e2e:strict
 
 # T1 merge gate (workspace contract only)
 bun run verify:t1
@@ -406,6 +423,30 @@ Ask a maintainer for access to the shared dev Supabase project and request the p
 The demo login flow uses `/api/auth/demo-account` with the public anon client and pre-seeded demo users.
 Set `DEMO_ADMIN_EMAIL`, `DEMO_MISSIONARY_EMAIL`, `DEMO_DONOR_EMAIL`, and `DEMO_PASSWORD` in `.env.local` to enable the demo buttons.
 
+## Supabase CLI Workflow (Hybrid)
+
+Use the repo entrypoint for all local Supabase CLI commands:
+
+```bash
+bun run supabase -- <supabase-subcommand>
+```
+
+How it resolves:
+
+- Prefers a machine-global `supabase` CLI when available (fast path).
+- Falls back to a pinned CLI version via `npx` when global CLI is missing.
+
+Optional global install (recommended for speed):
+
+```bash
+# macOS / Linux (Homebrew)
+brew install supabase/tap/supabase
+
+# Windows (Scoop)
+scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+scoop install supabase
+```
+
 ## Supabase Demo Seed
 
 Deterministic demo seed + optional read-only public policies live in:
@@ -417,7 +458,7 @@ Deterministic demo seed + optional read-only public policies live in:
 ### Local
 
 ```bash
-supabase db reset --local
+bun run db:migrate:local
 # or
 bun run seed:demo:local
 ```

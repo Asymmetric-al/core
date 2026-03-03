@@ -5,6 +5,7 @@ import {
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
+import { serverEnv } from "@asym/env";
 import { createAuditLogger } from "@asym/lib/audit/logger";
 import { type NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     const stripeSecretKey =
-      tenant.stripe_secret_key || process.env.STRIPE_SECRET_KEY;
+      tenant.stripe_secret_key || serverEnv.STRIPE_SECRET_KEY;
     if (!stripeSecretKey) {
       return NextResponse.json(
         { error: "Stripe not configured for this organization" },
@@ -192,7 +193,7 @@ export async function POST(request: NextRequest) {
       donationId: donation.id,
       publishableKey:
         tenant.stripe_publishable_key ||
-        process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+        serverEnv.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     });
   } catch (e) {
     console.error("Donation error:", e);

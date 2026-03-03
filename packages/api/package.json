@@ -28,12 +28,14 @@
     "./missionaries/metrics": "./src/missionaries/metrics.ts"
   },
   "scripts": {
+    "build": "tsc --noEmit",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@asym/auth": "workspace:*",
     "@asym/database": "workspace:*",
+    "@asym/env": "workspace:*",
     "@asym/lib": "workspace:*",
     "@supabase/ssr": "^0.5.2",
     "next": "16.1.1",
