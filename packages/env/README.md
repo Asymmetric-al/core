@@ -1,21 +1,38 @@
 # @asym/env
 
-Shared environment schema package for Asymmetric.al. This package defines the typed `createEnv` contract for variables listed in `.env.example` and exports a validated `env` object for workspace consumers.
+Shared environment schema package for Asymmetric.al. This package defines the typed `createEnv` contract for variables listed in `.env.example` and exports:
 
-## Import Example
+- `serverEnv`: validated server/runtime variables
+- `clientEnv`: validated `NEXT_PUBLIC_*` variables
+- `runtimeEnvFlags`: deployment context helpers (`NODE_ENV`, `VERCEL_ENV`, `VERCEL_TARGET_ENV`)
+- `env`: full backward-compatible export (same validated source object)
+
+## Import Examples
 
 ```ts
-import { env } from "@asym/env";
+import { serverEnv, clientEnv } from "@asym/env";
 
-const url = env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseUrl = clientEnv.NEXT_PUBLIC_SUPABASE_URL;
+const serviceRoleKey = serverEnv.SUPABASE_SERVICE_ROLE_KEY;
 ```
 
-## Required Vars
+## Requiredness Model
+
+Always required:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
-All other variables from `.env.example` are modeled in `packages/env/src/schema.ts` as optional unless otherwise noted by feature-specific docs.
+Conditionally required:
+
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `SENTRY_DSN`
+
+These become required for protected deployments (production or custom staging target) and remain optional in local/preview workflows.
+
+Cloudinary server/client keys are conditionally required only when Cloudinary is enabled in protected deployments.
 
 ## Migration Policy
 
@@ -35,21 +52,19 @@ All other variables from `.env.example` are modeled in `packages/env/src/schema.
 4. Update this README and any feature docs that depend on it.
 5. Run `bun run --filter @asym/env typecheck` and `bun run --filter @asym/env lint`.
 
-## Skip Validation In Tests
+## Skip Validation In CI or Tests
 
 ```bash
 SKIP_ENV_VALIDATION=1 bun test
 ```
 
-## Where `process.env` is Allowed vs Disallowed
+## Where `process.env` Is Allowed
 
-| Location                                | `process.env` allowed? | Reason                                         |
-| --------------------------------------- | ---------------------- | ---------------------------------------------- |
-| `packages/env/src/schema.ts`            | ✅ Yes (required)      | This is the only place that reads raw env vars |
-| `scripts/*.mjs`, `scripts/*.ts`         | ✅ Yes                 | Tooling scripts run outside Next.js runtime    |
-| `playwright.config.ts`                  | ✅ Yes                 | Test runner config, not app runtime            |
-| `apps/*/app/**`                         | ❌ No                  | Use `import { env } from "@asym/env"` instead  |
-| `packages/*/src/**` (runtime)           | ❌ No                  | Use `import { env } from "@asym/env"` instead  |
-| `packages/*/src/**` (build-time config) | ⚠️ Gradual             | Migrate opportunistically; document exceptions |
-
-The goal is that all runtime code uses `env.*` for type-safe, validated access. Direct `process.env` usage in runtime code is a Phase 1 migration target.
+| Location                          | `process.env` allowed? | Reason                                         |
+| --------------------------------- | ---------------------- | ---------------------------------------------- |
+| `packages/env/src/schema.ts`      | ✅ Yes (required)      | Single source of truth for raw env reads       |
+| `scripts/*.mjs`, `scripts/*.ts`   | ✅ Yes                 | Tooling scripts run outside Next.js runtime    |
+| `playwright.config.ts`            | ✅ Yes                 | Test runner config, not app runtime            |
+| `apps/*/app/**`                   | ❌ No                  | Use `clientEnv` / `serverEnv` from `@asym/env` |
+| `packages/*/**` runtime modules   | ❌ No                  | Use `clientEnv` / `serverEnv` from `@asym/env` |
+| `packages/*/**` build-time config | ⚠️ Gradual             | Migrate opportunistically; document exceptions |

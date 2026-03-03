@@ -1,3 +1,5 @@
+import { clientEnv } from "@asym/env";
+
 export interface CloudinaryUploadResponse {
   public_id: string;
   version: number;
@@ -66,5 +68,4 @@ export async function uploadToCloudinary(
   return uploadResponse.json();
 }
 
-export const isCloudinaryEnabled =
-  process.env.NEXT_PUBLIC_CLOUDINARY_ENABLED === "true";
+export const isCloudinaryEnabled = clientEnv.NEXT_PUBLIC_CLOUDINARY_ENABLED;
