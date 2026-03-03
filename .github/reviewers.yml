@@ -31,6 +31,23 @@ review_policy:
   additional_reviewers: 1
   allow_intern_primary_if_difficulty_at_most: low
 
+# Used by the GitHub Action (greptile-informer.yml) to map Greptile's 1–5 difficulty
+# into the low/medium/high buckets used above.
+greptile:
+  bot_login: "greptile-apps[bot]"
+  # The action will try these patterns against the Greptile review body.
+  # It accepts either "Difficulty: 4/5" or "Difficulty Score: 4/5" (case-insensitive).
+  difficulty_regexes:
+    - '(?i)\bdifficulty\b(?:\s*score)?\s*:\s*([1-5])\s*/\s*5'
+    - '(?i)\bcomplexity\b(?:\s*score)?\s*:\s*([1-5])\s*/\s*5'
+  # Map 1–5 to a routing bucket.
+  map_to_bucket:
+    "1": low
+    "2": low
+    "3": medium
+    "4": high
+    "5": high
+
 difficulty_heuristics:
   low:
     max_files_changed: 8
@@ -44,10 +61,3 @@ difficulty_heuristics:
       - ".github/**"
       - "**/migrations/**"
       - "**/infra/**"
-
-greptile:
-  bot_login: "greptile-apps[bot]"
-  signal_phrases:
-    - "Issue Found"
-    - "Confidence Score"
-    - "Important Files Changed"
