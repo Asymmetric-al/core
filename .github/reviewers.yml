@@ -37,6 +37,10 @@ greptile:
   bot_login: "greptile-apps[bot]"
   # The action will try these patterns against the Greptile review body.
   # It accepts either "Difficulty: 4/5" or "Difficulty Score: 4/5" (case-insensitive).
+  confidence_regexes:
+    - '(?i)\bconfidence\s*score\b\s*:\s*([1-5])\s*/\s*5'
+    - '(?i)\bconfidence\b\s*:\s*([1-5])\s*/\s*5'
+  # Back-compat: if Greptile ever emits Difficulty/Complexity instead, we still parse it.
   difficulty_regexes:
     - '(?i)\bdifficulty\b(?:\s*score)?\s*:\s*([1-5])\s*/\s*5'
     - '(?i)\bcomplexity\b(?:\s*score)?\s*:\s*([1-5])\s*/\s*5'

@@ -12,7 +12,7 @@ permissions:
 jobs:
   route:
     # Only run when Greptile submits the review, and avoid running on forked PRs for safety.
-    if: github.actor == 'greptile-apps[bot]' && github.event.pull_request.head.repo.fork == false
+    if: github.actor == 'greptile-apps[bot]' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
 
     steps:
@@ -71,7 +71,7 @@ jobs:
                   pass
             return None
 
-          def to_bucket(score_1_5: int):
+          def to_bucket_default(score_1_5: int):
             if score_1_5 <= 2:
               return "low"
             if score_1_5 == 3:
@@ -176,10 +176,16 @@ jobs:
             import yaml  # type: ignore
             cfg = yaml.safe_load(cfg_path.read_text(encoding="utf-8")) or {}
           except Exception:
-            raise RuntimeError("PyYAML not available on runner; add `pip install pyyaml` step or convert reviewers.yml to JSON.")
+            raise RuntimeError("PyYAML import failed on runner; check the 'Install Python deps' step.")
 
           greptile_cfg = cfg.get("greptile", {}) or {}
-          regexes = greptile_cfg.get("difficulty_regexes", []) or []
+          map_to_bucket = (greptile_cfg.get("map_to_bucket") or {})
+          # normalize keys to strings
+          map_to_bucket = {str(k): str(v) for k, v in map_to_bucket.items()}
+          confidence_regexes = greptile_cfg.get("confidence_regexes", []) or []
+          difficulty_regexes = greptile_cfg.get("difficulty_regexes", []) or []
+          # Greptile currently emits "Confidence Score: X/5" in review bodies.
+          regexes = list(confidence_regexes) + list(difficulty_regexes)
           score = parse_greptile_difficulty(greptile_body, regexes)
 
           # Fetch PR (authoritative)
@@ -193,10 +199,10 @@ jobs:
           files_changed = int(pr.get("changed_files") or len(paths))
           lines_changed = int(pr.get("additions", 0)) + int(pr.get("deletions", 0))
 
-          # If Greptile difficulty missing, compute heuristic score.
+          # If Greptile confidence score missing, compute heuristic score.
           heuristic, touches_high_risk = heuristic_score(files_changed, lines_changed, paths, cfg)
           final_score = score if score is not None else heuristic
-          bucket = to_bucket(final_score)
+          bucket = map_to_bucket.get(str(final_score), to_bucket_default(final_score))
 
           people = cfg.get("people", []) or []
 
@@ -219,9 +225,9 @@ jobs:
               marker,
               "🦜 **Reviewer routing (Greptile)**",
               "",
-              f"- Greptile difficulty: **{score}/5**" if score is not None else "- Greptile difficulty: _(not found in review body)_",
-              f"- Heuristic difficulty fallback: **{heuristic}/5**" + (" (high-risk paths touched)" if touches_high_risk else ""),
-              f"- Final difficulty used: **{final_score}/5** → **{bucket}**",
+              f"- Greptile confidence score: **{score}/5**" if score is not None else "- Greptile confidence score: _(not found in review body)_",
+              f"- Heuristic routing fallback: **{heuristic}/5**" + (" (high-risk paths touched)" if touches_high_risk else ""),
+              f"- Final routing score used: **{final_score}/5** → **{bucket}**",
               "",
               "⚠️ No eligible reviewer found in `.github/reviewers.yml` after exclusions (author/already requested).",
             ])
@@ -244,9 +250,9 @@ jobs:
             marker,
             "🦜 **Reviewer routing (Greptile)**",
             "",
-            f"- Greptile difficulty: **{score}/5**" if score is not None else "- Greptile difficulty: _(not found in review body)_",
-            f"- Heuristic difficulty fallback: **{heuristic}/5**" + (" (high-risk paths touched)" if touches_high_risk else ""),
-            f"- Final difficulty used: **{final_score}/5** → **{bucket}**",
+            f"- Greptile confidence score: **{score}/5**" if score is not None else "- Greptile confidence score: _(not found in review body)_",
+            f"- Heuristic routing fallback: **{heuristic}/5**" + (" (high-risk paths touched)" if touches_high_risk else ""),
+            f"- Final routing score used: **{final_score}/5** → **{bucket}**",
             f"- Selected reviewer: **@{reviewer_login}** (level {choice.get('level')}, skills: {', '.join(choice.get('skills') or [])})",
           ]
 
