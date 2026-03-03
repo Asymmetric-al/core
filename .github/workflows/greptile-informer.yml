@@ -11,8 +11,14 @@ permissions:
 
 jobs:
   route:
-    # Only run when Greptile submits the review, and avoid running on forked PRs for safety.
+    # Prevent duplicate processing for the same PR when webhooks/retries happen close together.
+    concurrency:
+      group: greptile-reviewer-routing-pr-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+
+    # Only run when Greptile submits the review, and only for PRs whose head repo is this repo (not a fork).
     if: github.actor == 'greptile-apps[bot]' && github.event.pull_request.head.repo.full_name == github.repository
+
     runs-on: ubuntu-latest
 
     steps:
@@ -23,34 +29,42 @@ jobs:
           python3 -m pip install --upgrade pip
           python3 -m pip install pyyaml
 
-      - name: Route 1 additional reviewer from reviewers.yml (no labels)
+      - name: Route 1 additional reviewer from reviewers.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python3 - <<'PY'
-          import json, os, re, fnmatch, urllib.request, urllib.error
+          import json
+          import os
+          import re
+          import fnmatch
+          import urllib.request
+          import urllib.error
+          import time
           from pathlib import Path
 
-          def gh_api(method, url, token, body=None):
+
+          def gh_api(method: str, url: str, token: str, body=None):
             req = urllib.request.Request(url, method=method)
             req.add_header("Authorization", f"Bearer {token}")
             req.add_header("Accept", "application/vnd.github+json")
+            data = None
             if body is not None:
               data = json.dumps(body).encode("utf-8")
               req.add_header("Content-Type", "application/json")
-            else:
-              data = None
             try:
               with urllib.request.urlopen(req, data=data) as r:
                 return json.loads(r.read().decode("utf-8"))
             except urllib.error.HTTPError as e:
               raise RuntimeError(f"{method} {url} failed: {e.code} {e.read().decode('utf-8', 'ignore')}") from e
 
-          def list_all_pages(token, base_url):
+
+          def list_all_pages(token: str, base_url: str):
             out = []
             page = 1
             while True:
-              data = gh_api("GET", f"{base_url}{'&' if '?' in base_url else '?'}per_page=100&page={page}", token)
+              sep = "&" if "?" in base_url else "?"
+              data = gh_api("GET", f"{base_url}{sep}per_page=100&page={page}", token)
               if not data:
                 break
               out.extend(data)
@@ -59,17 +73,20 @@ jobs:
                 break
             return out
 
-          def parse_greptile_difficulty(body: str, regexes):
+
+          def parse_score_1_to_5(text: str, regexes):
             for pat in regexes:
-              m = re.search(pat, body or "")
-              if m:
-                try:
-                  v = int(m.group(1))
-                  if 1 <= v <= 5:
-                    return v
-                except Exception:
-                  pass
+              m = re.search(pat, text or "")
+              if not m:
+                continue
+              try:
+                v = int(m.group(1))
+                if 1 <= v <= 5:
+                  return v
+              except Exception:
+                pass
             return None
+
 
           def to_bucket_default(score_1_5: int):
             if score_1_5 <= 2:
@@ -78,11 +95,12 @@ jobs:
               return "medium"
             return "high"
 
+
           def heuristic_score(files_changed, lines_changed, paths, cfg):
-            heur = cfg.get("difficulty_heuristics", {})
-            low = heur.get("low", {})
-            med = heur.get("medium", {})
-            high = heur.get("high", {})
+            heur = cfg.get("difficulty_heuristics", {}) or {}
+            low = heur.get("low", {}) or {}
+            med = heur.get("medium", {}) or {}
+            high = heur.get("high", {}) or {}
             high_risk = high.get("high_risk_paths", []) or []
 
             touches_high_risk = any(any(fnmatch.fnmatch(p, pat) for pat in high_risk) for p in paths)
@@ -92,7 +110,7 @@ jobs:
             med_files = int(med.get("max_files_changed", 25))
             med_lines = int(med.get("max_lines_changed", 1500))
 
-            # Map heuristics into a 1–5-ish score (used only when Greptile rating missing).
+            # Map heuristics into an approximate 1–5 score. Only used when Greptile score can't be parsed.
             if files_changed <= low_files and lines_changed <= low_lines:
               score = 2
             elif files_changed <= med_files and lines_changed <= med_lines:
@@ -103,19 +121,18 @@ jobs:
             if files_changed >= 80 or lines_changed >= 6000:
               score = 5
 
+            # If high-risk paths touched, ensure at least 4 (unless config remaps it differently).
             if touches_high_risk and score < 4:
               score = 4
 
             return score, touches_high_risk
 
-          def pick_reviewer(bucket, greptile_score, people, exclude_handles, paths):
-            # Filter to eligible by bucket, excluding author + already-requested.
+
+          def pick_reviewer(bucket, score, people, exclude_handles, paths):
             candidates = []
             for p in people:
               handle = str(p.get("handle", "")).strip()
-              if not handle:
-                continue
-              if handle in exclude_handles:
+              if not handle or handle in exclude_handles:
                 continue
               diffs = [str(x) for x in (p.get("can_primary_for_difficulty") or [])]
               if bucket not in diffs:
@@ -125,31 +142,24 @@ jobs:
             if not candidates:
               return None
 
-            # Optional frontend-heavy hint
-            fe_exts = (".tsx", ".jsx", ".css", ".scss", ".sass", ".less", ".mdx")
-            fe_count = sum(1 for p in paths if p.endswith(fe_exts))
-            frontend_heavy = bool(paths) and (fe_count / max(1, len(paths)) >= 0.6)
-
             def lvl(p): return int(p.get("level", 0))
 
             if bucket == "low":
-              # For Greptile=1, strongly prefer level 1 if available.
-              if greptile_score == 1:
+              # If score is the easiest, strongly prefer interns (level 1) when available.
+              if score == 1:
                 lvl1 = [p for p in candidates if lvl(p) == 1]
                 if lvl1:
                   candidates = lvl1
-              # Lowest level first
-              candidates.sort(key=lambda p: (lvl(p), 0 if ("frontend" in (p.get("skills") or []) and frontend_heavy) else 1))
+              candidates.sort(key=lambda p: (lvl(p),))
               return candidates[0]
 
             if bucket == "high":
-              # For Greptile=5, strongly prefer level 4 if available.
-              if greptile_score == 5:
+              # If score is max, strongly prefer top-tier (level 4) when available.
+              if score == 5:
                 lvl4 = [p for p in candidates if lvl(p) == 4]
                 if lvl4:
                   candidates = lvl4
-              # Highest level first
-              candidates.sort(key=lambda p: (-lvl(p), 0 if ("fullstack" in (p.get("skills") or []) ) else 1))
+              candidates.sort(key=lambda p: (-lvl(p),))
               return candidates[0]
 
             # medium: prefer 3, then 2, then 4, then 1
@@ -157,110 +167,173 @@ jobs:
             candidates.sort(key=lambda p: (order.get(lvl(p), 9), -lvl(p)))
             return candidates[0]
 
+
           token = os.environ["GITHUB_TOKEN"]
           repo = os.environ["GITHUB_REPOSITORY"]  # owner/repo
 
           event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text(encoding="utf-8"))
           pr_number = int(event["pull_request"]["number"])
           review_id = event["review"]["id"]
-          greptile_body = (event["review"].get("body") or "")
+          event_review_body = (event["review"].get("body") or "").strip()
 
           cfg_path = Path(".github/reviewers.yml")
           if not cfg_path.exists():
             print("Missing .github/reviewers.yml; exiting.")
             raise SystemExit(0)
 
-          # Minimal YAML parser (avoid external deps): very small, strict YAML only.
-          # Use a tiny fallback if PyYAML isn't available.
+          # YAML load with correct error reporting (import vs parse)
           try:
             import yaml  # type: ignore
+          except ImportError as exc:
+            raise RuntimeError("PyYAML import failed on runner; check the 'Install Python deps' step.") from exc
+
+          try:
             cfg = yaml.safe_load(cfg_path.read_text(encoding="utf-8")) or {}
-          except Exception:
-            raise RuntimeError("PyYAML import failed on runner; check the 'Install Python deps' step.")
+          except getattr(yaml, "YAMLError", Exception) as exc:
+            raise RuntimeError(f"Failed to parse .github/reviewers.yml (YAML syntax error?): {exc}") from exc
+          except Exception as exc:
+            raise RuntimeError(f"Failed to read/parse .github/reviewers.yml: {exc}") from exc
 
           greptile_cfg = cfg.get("greptile", {}) or {}
-          map_to_bucket = (greptile_cfg.get("map_to_bucket") or {})
-          # normalize keys to strings
-          map_to_bucket = {str(k): str(v) for k, v in map_to_bucket.items()}
+          map_to_bucket = {str(k): str(v) for k, v in (greptile_cfg.get("map_to_bucket") or {}).items()}
+
           confidence_regexes = greptile_cfg.get("confidence_regexes", []) or []
           difficulty_regexes = greptile_cfg.get("difficulty_regexes", []) or []
-          # Greptile currently emits "Confidence Score: X/5" in review bodies.
           regexes = list(confidence_regexes) + list(difficulty_regexes)
-          score = parse_greptile_difficulty(greptile_body, regexes)
 
-          # Fetch PR (authoritative)
+          def collect_greptile_text():
+            texts = []
+            if event_review_body:
+              texts.append(event_review_body)
+
+            # Greptile sometimes posts the real summary as an issue comment, or the review body can be empty.
+            try:
+              reviews = list_all_pages(token, f"https://api.github.com/repos/{repo}/pulls/{pr_number}/reviews")
+              for r in reversed(reviews):
+                u = (r.get("user") or {}).get("login")
+                if u in ("greptile-apps[bot]", "greptile-apps"):
+                  b = (r.get("body") or "").strip()
+                  if b:
+                    texts.append(b)
+                    break
+            except Exception:
+              pass
+
+            try:
+              comments = list_all_pages(token, f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments")
+              count = 0
+              for c in reversed(comments):
+                u = (c.get("user") or {}).get("login")
+                if u in ("greptile-apps[bot]", "greptile-apps"):
+                  b = (c.get("body") or "").strip()
+                  if b:
+                    texts.append(b)
+                    count += 1
+                    if count >= 3:
+                      break
+            except Exception:
+              pass
+
+            return "\n\n".join(texts).strip()
+
+          greptile_text = collect_greptile_text()
+          score = parse_score_1_to_5(greptile_text, regexes)
+          if score is None:
+            # Greptile sometimes posts the summary comment a few seconds after the review event.
+            # Poll briefly to avoid falling back to heuristics prematurely.
+            for _ in range(3):
+              time.sleep(10)
+              greptile_text = collect_greptile_text()
+              score = parse_score_1_to_5(greptile_text, regexes)
+              if score is not None:
+                break
+
+          # Fetch PR details (authoritative)
           pr = gh_api("GET", f"https://api.github.com/repos/{repo}/pulls/{pr_number}", token)
           author = pr["user"]["login"]
-          requested = [f"@{u['login']}" for u in (pr.get("requested_reviewers") or [])]
 
+          # requested_reviewers only includes pending requests; exclude users who already reviewed too.
+          requested = [f"@{u['login']}" for u in (pr.get("requested_reviewers") or [])]
+          past_reviewers = set()
+          try:
+            all_reviews = list_all_pages(token, f"https://api.github.com/repos/{repo}/pulls/{pr_number}/reviews")
+            for r in all_reviews:
+              u = (r.get("user") or {}).get("login")
+              if u and u not in ("greptile-apps[bot]", "greptile-apps"):
+                past_reviewers.add(f"@{u}")
+          except Exception:
+            pass
+
+          # File list for heuristics + risk paths
           files = list_all_pages(token, f"https://api.github.com/repos/{repo}/pulls/{pr_number}/files")
-          paths = [f.get("filename","") for f in files if f.get("filename")]
+          paths = [f.get("filename", "") for f in files if f.get("filename")]
 
           files_changed = int(pr.get("changed_files") or len(paths))
           lines_changed = int(pr.get("additions", 0)) + int(pr.get("deletions", 0))
 
-          # If Greptile confidence score missing, compute heuristic score.
           heuristic, touches_high_risk = heuristic_score(files_changed, lines_changed, paths, cfg)
           final_score = score if score is not None else heuristic
           bucket = map_to_bucket.get(str(final_score), to_bucket_default(final_score))
 
           people = cfg.get("people", []) or []
-
           exclude = set(requested)
+          exclude |= past_reviewers
           exclude.add(f"@{author}")
 
           choice = pick_reviewer(bucket, final_score, people, exclude, paths)
 
           marker = f"<!-- greptile-reviewer-routing:review-id={review_id} -->"
 
-          # Idempotency: if we've already commented for this review, exit
-          comments = list_all_pages(token, f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments")
-          if any(marker in (c.get("body") or "") for c in comments):
-            print("Already processed this Greptile review; exiting.")
+          # Idempotency: if we've already commented for this review_id, exit.
+          existing_comments = list_all_pages(token, f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments")
+          if any(marker in (c.get("body") or "") for c in existing_comments):
+            print("Already processed this Greptile event; exiting.")
             raise SystemExit(0)
 
-          # If no candidate, comment and exit
           if not choice:
             body = "\n".join([
               marker,
               "🦜 **Reviewer routing (Greptile)**",
               "",
-              f"- Greptile confidence score: **{score}/5**" if score is not None else "- Greptile confidence score: _(not found in review body)_",
+              f"- Greptile confidence score: **{score}/5**" if score is not None else "- Greptile confidence score: _(not found in Greptile text)_",
               f"- Heuristic routing fallback: **{heuristic}/5**" + (" (high-risk paths touched)" if touches_high_risk else ""),
               f"- Final routing score used: **{final_score}/5** → **{bucket}**",
               "",
-              "⚠️ No eligible reviewer found in `.github/reviewers.yml` after exclusions (author/already requested).",
+              "⚠️ No eligible reviewer found in `.github/reviewers.yml` after exclusions (author/already requested/past reviewers).",
             ])
             gh_api("POST", f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments", token, {"body": body})
             raise SystemExit(0)
 
           reviewer_login = str(choice["handle"]).lstrip("@")
 
-          # Request reviewer (if not already requested)
           assigned = False
+          err = None
           try:
-            gh_api("POST", f"https://api.github.com/repos/{repo}/pulls/{pr_number}/requested_reviewers", token, {"reviewers": [reviewer_login]})
+            gh_api(
+              "POST",
+              f"https://api.github.com/repos/{repo}/pulls/{pr_number}/requested_reviewers",
+              token,
+              {"reviewers": [reviewer_login]},
+            )
             assigned = True
           except Exception as e:
             err = str(e)
-          else:
-            err = None
 
-          summary_lines = [
+          summary = [
             marker,
             "🦜 **Reviewer routing (Greptile)**",
             "",
-            f"- Greptile confidence score: **{score}/5**" if score is not None else "- Greptile confidence score: _(not found in review body)_",
+            f"- Greptile confidence score: **{score}/5**" if score is not None else "- Greptile confidence score: _(not found in Greptile text)_",
             f"- Heuristic routing fallback: **{heuristic}/5**" + (" (high-risk paths touched)" if touches_high_risk else ""),
             f"- Final routing score used: **{final_score}/5** → **{bucket}**",
             f"- Selected reviewer: **@{reviewer_login}** (level {choice.get('level')}, skills: {', '.join(choice.get('skills') or [])})",
           ]
 
           if assigned:
-            summary_lines += ["", "✅ Requested this reviewer in GitHub (review request)."]
+            summary += ["", "✅ Requested this reviewer in GitHub (review request)."]
           else:
-            summary_lines += ["", f"⚠️ Could not request reviewer automatically. Error: `{err}`", "Please request manually in the PR UI."]
+            summary += ["", f"⚠️ Could not request reviewer automatically. Error: `{err}`", "Please request manually in the PR UI."]
 
-          gh_api("POST", f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments", token, {"body": "\n".join(summary_lines)})
+          gh_api("POST", f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments", token, {"body": "\n".join(summary)})
           print("Done.")
           PY
