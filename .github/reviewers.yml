@@ -22,7 +22,7 @@ people:
   - handle: "@htetaunglin-coder"
     name: "Kelvin"
     level: 2
-    skills: [fullstack]
+    skills: [frontend]
     can_primary_for_difficulty: [low, medium]
 
 review_policy:
