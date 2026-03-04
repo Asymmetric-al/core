@@ -150,6 +150,65 @@ Answer with citations/paths from the repo and avoid external sources unless just
 
 ---
 
+## Nia context policy for this repo
+
+### Goal
+Reduce wrong assumptions by grounding implementation decisions in up to date sources. Use Nia as the default way to fetch context for any external library, service, API, or spec.
+
+### When you must use Nia
+Use Nia before you write or change code when work depends on any of these:
+- React, Next.js, shadcn ui, Base UI, Tailwind, Turborepo, Bun, TypeScript, Node APIs
+- Any third party SDK, API, auth provider, payments, databases, cloud services
+- Any standards or specs
+
+### Source priority
+1. This repo content already indexed in Nia
+2. Official docs for the tool or framework
+3. The upstream GitHub repo source for the tool or framework
+4. Package source search if the repo or docs are not indexed yet
+
+### Default workflow
+1. Check what is already indexed
+   - Use manage_resource(action="list", query="react") and similar queries
+2. If missing, index the sources you need
+   - index(url="https://docs.example.com")
+   - index(url="https://github.com/owner/repo")
+3. Confirm indexing is ready
+   - manage_resource(action="status", resource_type="documentation", identifier="...")
+4. Pull exact details
+   - Use search for a natural language question
+   - Use nia_grep for exact strings or symbols
+   - Use nia_read to quote the exact lines you will rely on
+   - Use nia_explore when you need structure before reading
+5. If you need dependency wide context
+   - Use auto_subscribe_dependencies on the repo package.json contents
+6. Save findings that will matter later
+   - context(action="save", title="...", summary="...", content="...", agent_source="cursor", memory_type="procedural")
+
+### Required behavior for agents
+- Cite what you found. Include the source and the file path or doc path.
+- Prefer reading exact code or docs over memory.
+- If sources disagree, show both, then pick one and explain why.
+- If you cannot find evidence with Nia, say so and ask for a link or permission to index it.
+
+### Practical examples
+- Before using a Next.js feature, index docs plus the nextjs repo and confirm the current behavior in code.
+- Before using shadcn ui components, check the shadcn docs and the component source patterns.
+- Before adopting a Base UI primitive, read its repo source for the prop contracts and accessibility patterns.
+
+### Nia tool cheat sheet
+- index. Index repos, docs, papers, or local folders
+- manage_resource. List and check status
+- search. Semantic search across indexed sources
+- nia_grep. Regex search in repos or docs
+- nia_read. Read exact lines from repos or docs
+- nia_explore. Tree or ls for structure
+- auto_subscribe_dependencies. Index docs for dependencies from package.json
+- nia_package_search_hybrid. Search package source code without indexing
+- context. Save and reuse research across sessions
+
+---
+
 ## Routing Rules (Deterministic)
 
 Load rulebooks before editing files in their domain.
