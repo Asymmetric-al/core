@@ -24,6 +24,13 @@ Use this before changing server actions, route handlers, database access, or mig
 - **Client privilege matrix:** Follow `docs/guides/architecture/db-client-usage-matrix.md` for allowed/forbidden DB client imports by code location.
 - **Route handlers:** `apps/*/app/api/**` route handlers should not import `@asym/database/supabase` (or subpaths) directly; use `@asym/api/*` handler boundaries.
 
+### Data Access Boundary
+
+- All business DB logic lives in `packages/api/src/*`; route handlers in `apps/*/app/api/` are thin re-exports only.
+- Full rule, approved exceptions, and examples live in `docs/guides/architecture/data-access-boundary.md`.
+- Primary enforcement is ESLint `no-restricted-imports` rules (ticket 2.2.2).
+- CI enforcement is `scripts/verify/data-boundary-check.sh`.
+
 ### Security & auth
 
 - Assume RLS is active.
