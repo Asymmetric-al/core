@@ -21,6 +21,8 @@ Use this before changing server actions, route handlers, database access, or mig
 
 - **Server-side:** Use the server client with cookie-based auth.
 - **Client-side:** Use the singleton browser client to avoid auth desync.
+- **Client privilege matrix:** Follow `docs/guides/architecture/db-client-usage-matrix.md` for allowed/forbidden DB client imports by code location.
+- **Route handlers:** `apps/*/app/api/**` route handlers should not import `@asym/database/supabase` (or subpaths) directly; use `@asym/api/*` handler boundaries.
 
 ### Security & auth
 
@@ -62,8 +64,8 @@ Use this before changing server actions, route handlers, database access, or mig
 
 ### Implementation checklist
 
-- [ ] Server code uses `@/lib/supabase/server`
-- [ ] Client code uses `@/lib/supabase/client`
+- [ ] Server code uses `@asym/database/supabase/server`
+- [ ] Client code uses `@asym/database/supabase/client`
 - [ ] Inputs validated with Zod
 - [ ] RLS assumptions maintained
 - [ ] No service role key in client code
@@ -79,7 +81,7 @@ Use this before changing server actions, route handlers, database access, or mig
 ### Server-side client
 
 ```ts
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@asym/database/supabase/server";
 
 export async function myAction() {
   const supabase = await createClient();
@@ -92,7 +94,7 @@ export async function myAction() {
 ### Client-side client
 
 ```ts
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@asym/database/supabase/client";
 
 export function MyComponent() {
   const supabase = createClient();
