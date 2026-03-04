@@ -132,24 +132,6 @@ Answer with citations/paths from the repo and avoid external sources unless just
 
 ---
 
-### Context7 (default for third-party APIs)
-
-**Use when:**
-
-- any third-party library/framework/API surface is involved
-
-**Actions:**
-
-- resolve library ID
-- query docs for the exact API
-
-**If Context7 is unavailable:**
-
-- consult upstream docs
-- state assumptions explicitly
-
----
-
 ## Nia context policy for this repo
 
 ### Goal
