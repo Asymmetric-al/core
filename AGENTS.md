@@ -191,6 +191,53 @@ Use Nia before you write or change code when work depends on any of these:
 
 ---
 
+## Nia MCP usage rules for Cursor agents
+
+### Use Nia for external truth
+When implementing or modifying anything that depends on external behavior, do not trust general knowledge. Use Nia MCP tools to fetch the current docs and upstream code.
+
+### Always do this before coding
+1. List relevant indexed sources
+   - manage_resource(action="list", query="<library or service name>")
+2. If not present, index official docs and the upstream repo
+   - index(url="<official docs url>")
+   - index(url="https://github.com/<owner>/<repo>")
+3. Wait until indexing is complete
+   - manage_resource(action="status", resource_type="documentation", identifier="...")
+   - manage_resource(action="status", resource_type="repository", identifier="owner/repo")
+4. Answer using evidence
+   - search(query="How do I do X in <tool>?", repositories=["owner/repo"])
+   - nia_read(...) for exact lines you will rely on
+   - nia_grep(...) for exact symbols, config keys, or APIs
+
+### Dependency wide setup
+For new projects, migrations, or big feature work, run dependency indexing early:
+- Read package.json from this repo and call auto_subscribe_dependencies(manifest_content="...")
+
+### React and Next.js specific expectation
+For framework behavior, prefer the upstream repo when possible. Use docs for recommended patterns, and use repo source to confirm defaults, edge cases, and current APIs.
+
+### shadcn ui and component libraries
+Treat component libraries as source driven.
+- Use docs for usage patterns
+- Use repo source for prop contracts, variants, accessibility behavior, and composition patterns
+
+### Package source fallback
+If you do not want to index a whole repo, or you need quick confirmation, use:
+- nia_package_search_hybrid(registry="npm", package_name="<name>", query="...")
+
+### Save high value context
+If you discover a pattern we will reuse, save it:
+- context(action="save", title="...", summary="...", content="...", agent_source="cursor", memory_type="procedural")
+
+### Output standard
+When you propose code that depends on external facts, include:
+- The doc page or repo file you used
+- The relevant snippet or line range you relied on
+- A short note describing what you verified
+
+---
+
 ## Routing Rules (Deterministic)
 
 Load rulebooks before editing files in their domain.
@@ -248,7 +295,7 @@ Load the skill(s) below when the trigger matches.
 
 - [ ] Identified domain(s) and opened the matching rulebook(s)
 - [ ] Applied required skills based on triggers
-- [ ] Used Nia or Context7 when required (or explicitly noted fallback)
+- [ ] Used Nia when required (or explicitly noted why Nia evidence was unavailable)
 - [ ] Nia tool calls are repo-scoped to `Asymmetric-al/core`
 - [ ] Nia search calls include the "Nia query preamble" built from `docs/ai/working-set.md` + `docs/ai/stack-registry.md`
 
