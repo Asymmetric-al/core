@@ -23,21 +23,25 @@
   - No dedicated admin missionary detail route under `apps/admin/app/missionaries/[id]/page.tsx`; missionary read-model module is exported and ready for future wiring.
   - Existing read-model proposal referenced `funds.status = 'active'`; current schema uses `funds.is_active` and implementation follows schema.
 
-## 2026-02-16
+## 2026-02-22
 
-- Date: 2026-02-16
+- Date: 2026-02-22
 - Repo: Asymmetric-al/core
-- Goal: Prepare deterministic Supabase demo seed data for a new hosted project with exactly one profile identity, full relational coverage across app tables, and optional public read-only demo RLS migration.
-- Primary area: `supabase/seed.sql`, `supabase/migrations/*`, `scripts/*`, `AGENTS.md`
+- Goal: Implement a hybrid Supabase CLI workflow (global-first + pinned fallback) and align setup/scripts/docs with secure contributor defaults.
+- Primary area: `scripts/supabase-cli.mjs`, `package.json`, `scripts/seed-demo.sh`, `scripts/setup/*`, `README.md`, `docs/ops/environments.md`, `docs/ai/rules/backend.md`
 - Constraints:
   - No hardcoded secrets.
-  - Seed must be idempotent + relationally valid.
-  - Keep demo data realistic and varied.
-  - Preserve Supabase migration-first workflow.
+  - Keep Supabase auth client boundaries unchanged (`@supabase/ssr` server/client separation).
+  - Preserve migration safety for hosted flows (`SUPABASE_DB_URL`, URL targeting checks).
+  - Keep contributor setup non-blocking while improving reproducibility.
 - Evidence sources used:
-  - `supabase/schema.sql`
-  - `supabase/migrations/20250101000000_init_schema.sql`
-  - `supabase/migrations/20260214090000_foundation_1_schema.sql`
-  - table usage search in `apps/*` and `packages/*`
+  - `package.json`
+  - `scripts/seed-demo.sh`
+  - `scripts/setup/index.sh`
+  - `scripts/setup.ps1`
+  - `scripts/setup/index.ps1`
+  - `README.md`
+  - `docs/ops/environments.md`
+  - `docs/ai/rules/backend.md`
 - Tooling note:
-  - Nia MCP may be intermittently unavailable (tool registration can drop); fallback is repo-scoped `rg` + direct file reads.
+  - Repo uses Bun-first workflows; Supabase runner should work with/without globally installed `supabase` binary.

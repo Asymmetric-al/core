@@ -1,3 +1,4 @@
+import { serverEnv } from "@asym/env";
 import { createClient } from "@supabase/supabase-js";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -16,8 +17,8 @@ export function getAdminClient(): AdminClientResult {
       : { client: null, error: cachedError || "Admin client unavailable." };
   }
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = serverEnv.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = serverEnv.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url) {
     cachedClient = null;

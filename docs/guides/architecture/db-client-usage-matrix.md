@@ -1,34 +1,41 @@
 # DB Client Usage Matrix
 
-This matrix defines where each Supabase client is allowed or forbidden.
-Use it as the source of truth for import boundaries across apps and shared
-packages.
+This guide defines where each Supabase client is allowed in this monorepo and
+which imports are forbidden.
 
-## Client Types
+## Canonical import surfaces
 
 - Browser client: `@asym/database/supabase/client`
 - Server client: `@asym/database/supabase/server`
 - Admin client: `@asym/database/supabase/admin`
 
-## Allowed / Forbidden Matrix
+Direct imports from `@supabase/ssr` and `@supabase/supabase-js` are reserved for
+the database adapter layer in `packages/database/supabase/*`.
 
-| Area                                                                                                          | Browser client                            | Server client                  | Admin client                                       |
-| ------------------------------------------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------ | -------------------------------------------------- |
-| `apps/*/components/**`                                                                                        | Allowed (client-only, user-scoped access) | Forbidden                      | Forbidden                                          |
-| `apps/*/features/**`                                                                                          | Allowed (client-facing feature logic)     | Forbidden                      | Forbidden                                          |
-| `apps/*/app/api/**` route handlers                                                                            | Forbidden (direct import)                 | Forbidden (direct import)      | Forbidden (direct import)                          |
-| `packages/ui/**`                                                                                              | Forbidden                                 | Forbidden                      | Forbidden                                          |
-| Server-capable shared packages (`packages/api/**`, `packages/auth/**`, `packages/lib/**` server-only modules) | Forbidden                                 | Allowed in server-only modules | Allowed only for privileged server-side operations |
+## Allowed and Forbidden Matrix
 
-## Enforcement Notes
+| Code location                                      | Browser client       | Server client                                   | Admin client                               | Direct `@supabase/*` imports | Enforcement                                                                                      |
+| -------------------------------------------------- | -------------------- | ----------------------------------------------- | ------------------------------------------ | ---------------------------- | ------------------------------------------------------------------------------------------------ |
+| `apps/*/components/**`                             | Allowed              | Forbidden                                       | Forbidden                                  | Forbidden                    | ESLint `no-restricted-imports` in `eslint.config.mjs` (ticket `2.2.2`)                           |
+| `apps/*/features/**`                               | Allowed              | Forbidden                                       | Forbidden                                  | Forbidden                    | ESLint `no-restricted-imports` in `eslint.config.mjs` (ticket `2.2.2`)                           |
+| `packages/ui/**`                                   | Allowed              | Forbidden                                       | Forbidden                                  | Forbidden                    | ESLint `no-restricted-imports` in `eslint.config.mjs` (ticket `2.2.2`)                           |
+| `apps/*/app/api/**` route handlers                 | Forbidden            | Forbidden                                       | Forbidden                                  | Forbidden                    | ESLint `no-restricted-imports` in `eslint.config.mjs` (ticket `2.2.2`)                           |
+| `packages/api/src/**` business handlers            | Forbidden            | Allowed when request-context reads are required | Allowed for privileged business operations | Forbidden                    | Architectural rule (data-access boundary); CI/script enforcement is introduced by ticket `2.2.1` |
+| `packages/auth/**` and middleware/proxy auth flows | Forbidden            | Allowed                                         | Forbidden                                  | Forbidden                    | Auth boundary rule (`nextjs-supabase-auth` skill and backend rules)                              |
+| `packages/database/supabase/**`                    | Not a consumer layer | Not a consumer layer                            | Not a consumer layer                       | Allowed                      | Adapter layer; this is the only layer that should depend on raw Supabase SDK imports             |
 
-- UI layers are lint-restricted from importing
-  `@asym/database/supabase/server` and `@asym/database/supabase/admin`.
-- API route handlers are lint-restricted from direct Supabase imports
-  (`@asym/database/supabase/*`, `@supabase/ssr`, `@supabase/supabase-js`).
-- Route handlers should call approved wrappers/domain modules instead of
-  creating clients directly.
-- Admin client usage must remain server-only and must never cross a client
-  component boundary.
-- If uncertain, default to the least-privileged client and preserve RLS
-  assumptions.
+## Route handler policy
+
+Route handlers under `apps/*/app/api/**` should be thin and primarily re-export
+business handlers from `@asym/api/*`. They should not instantiate Supabase
+clients directly, including `@asym/database/supabase` and
+`@asym/database/supabase/*` imports.
+
+## Quick decision guide
+
+- Building UI state in components/features: use only
+  `@asym/database/supabase/client` when a Supabase client is needed.
+- Implementing API business logic: keep it in `packages/api/src/**`, then
+  re-export from app route handlers.
+- Working on low-level Supabase adapter code: limit raw `@supabase/*` imports to
+  `packages/database/supabase/*`.

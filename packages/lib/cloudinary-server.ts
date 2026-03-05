@@ -1,5 +1,7 @@
 import crypto from "crypto";
 
+import { clientEnv, serverEnv } from "@asym/env";
+
 export interface CloudinarySignature {
   signature: string;
   timestamp: number;
@@ -16,9 +18,9 @@ type CloudinarySignatureParam = string | number | boolean | null | undefined;
 export function generateCloudinarySignature(
   params: Record<string, CloudinarySignatureParam>,
 ): CloudinarySignature {
-  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-  const apiKey = process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY;
-  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  const cloudName = clientEnv.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const apiKey = clientEnv.NEXT_PUBLIC_CLOUDINARY_API_KEY;
+  const apiSecret = serverEnv.CLOUDINARY_API_SECRET;
 
   if (!cloudName || !apiKey || !apiSecret) {
     throw new Error("Cloudinary configuration is missing or incomplete");
@@ -61,5 +63,4 @@ export function generateCloudinarySignature(
   };
 }
 
-export const isCloudinaryEnabled =
-  process.env.NEXT_PUBLIC_CLOUDINARY_ENABLED === "true";
+export const isCloudinaryEnabled = clientEnv.NEXT_PUBLIC_CLOUDINARY_ENABLED;
