@@ -88,6 +88,69 @@ describe("public cms tenant resolution", () => {
     expect(find).toHaveBeenCalledTimes(2);
   });
 
+  it("falls back to a normalized host when the explicit tenant slug misses", async () => {
+    const find = vi
+      .fn()
+      .mockResolvedValueOnce({ docs: [] })
+      .mockResolvedValueOnce({
+        docs: [{ id: "tenant_4", primaryDomain: "alpha.example.org" }],
+      });
+    getPayloadClientMock.mockResolvedValue({ find });
+
+    const tenant = await resolveTenantFromRequest(
+      createRequest(
+        "/api/cms/public/pages/home?tenant=missing",
+        "Alpha.Example.org:443",
+      ),
+    );
+
+    expect(tenant).toMatchObject({
+      id: "tenant_4",
+      primaryDomain: "alpha.example.org",
+    });
+    expect(find).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        where: {
+          slug: {
+            equals: "missing",
+          },
+        },
+      }),
+    );
+    expect(find).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        where: {
+          primaryDomain: {
+            equals: "alpha.example.org",
+          },
+        },
+      }),
+    );
+  });
+
+  it("does not treat reserved www hosts as tenant slugs", async () => {
+    const find = vi.fn().mockResolvedValueOnce({ docs: [] });
+    getPayloadClientMock.mockResolvedValue({ find });
+
+    const tenant = await resolveTenantFromRequest(
+      createRequest("/api/cms/public/pages/home", "www.example.org:3000"),
+    );
+
+    expect(tenant).toBeNull();
+    expect(find).toHaveBeenCalledTimes(1);
+    expect(find).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          primaryDomain: {
+            equals: "www.example.org",
+          },
+        },
+      }),
+    );
+  });
+
   it("uses provided payload client override when available", async () => {
     const find = vi
       .fn()
