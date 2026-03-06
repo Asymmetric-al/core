@@ -1,9 +1,14 @@
 import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
+function resolveFromRepo(path: string) {
+  return fileURLToPath(new URL(`../../../${path}`, import.meta.url));
+}
+
 async function read(path: string) {
-  return readFile(path, "utf8");
+  return readFile(resolveFromRepo(path), "utf8");
 }
 
 function extractHandleNewUser(sql: string) {
@@ -16,7 +21,7 @@ function extractHandleNewUser(sql: string) {
 describe("auth role hardening migration artifacts", () => {
   it("contains role allowlist constraint + donor assignment", async () => {
     const sql = await read(
-      "/workspace/supabase/migrations/20260227060000_auth_role_hardening.sql",
+      "supabase/migrations/20260227060000_auth_role_hardening.sql",
     );
 
     expect(sql).toContain("ADD CONSTRAINT profiles_role_check");
@@ -27,7 +32,7 @@ describe("auth role hardening migration artifacts", () => {
   });
 
   it("keeps canonical schema trigger donor-enforced", async () => {
-    const schemaSql = await read("/workspace/supabase/schema.sql");
+    const schemaSql = await read("supabase/schema.sql");
     const handleNewUser = extractHandleNewUser(schemaSql);
 
     expect(handleNewUser).toContain("'donor'");
@@ -36,7 +41,7 @@ describe("auth role hardening migration artifacts", () => {
 
   it("keeps init migration trigger donor-enforced", async () => {
     const initSql = await read(
-      "/workspace/supabase/migrations/20250101000000_init_schema.sql",
+      "supabase/migrations/20250101000000_init_schema.sql",
     );
     const handleNewUser = extractHandleNewUser(initSql);
 
