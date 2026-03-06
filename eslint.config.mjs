@@ -24,7 +24,6 @@ export default defineConfig([
       ".cursor/skills/**",
       ".next-docs/**",
       "skills/**",
-      "scripts/**",
     ],
   },
   {
