@@ -26,17 +26,12 @@ export async function POST(
     return NextResponse.json({ error: fireError.message }, { status: 500 });
   }
 
-  const { data: postData } = await supabase
-    .from("posts")
-    .select("fires_count")
-    .eq("id", postId)
-    .single();
-  const currentCount = postData?.fires_count ?? 0;
-
-  await supabase
-    .from("posts")
-    .update({ fires_count: currentCount + 1 })
-    .eq("id", postId);
+  const { error: countError } = await supabase.rpc("increment_post_fire_count", {
+    post_id: postId,
+  });
+  if (countError) {
+    return NextResponse.json({ error: countError.message }, { status: 500 });
+  }
 
   return NextResponse.json({ success: true });
 }
@@ -55,27 +50,28 @@ export async function DELETE(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { error } = await supabase
+  const { data: deletedRows, error } = await supabase
     .from("post_fires")
     .delete()
     .eq("post_id", postId)
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .select("id");
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const { data: postData } = await supabase
-    .from("posts")
-    .select("fires_count")
-    .eq("id", postId)
-    .single();
-  const currentCount = postData?.fires_count ?? 0;
+  // Avoid mutating denormalized counters when there was no matching reaction row.
+  if (!deletedRows || deletedRows.length === 0) {
+    return NextResponse.json({ success: true });
+  }
 
-  await supabase
-    .from("posts")
-    .update({ fires_count: Math.max(0, currentCount - 1) })
-    .eq("id", postId);
+  const { error: countError } = await supabase.rpc("decrement_post_fire_count", {
+    post_id: postId,
+  });
+  if (countError) {
+    return NextResponse.json({ error: countError.message }, { status: 500 });
+  }
 
   return NextResponse.json({ success: true });
 }
