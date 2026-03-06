@@ -9,6 +9,11 @@ import {
   brandConfig,
 } from "@asym/ui/components/brand-logo";
 import {
+  EditorRoot,
+  EditorContent,
+  EditorToolbar,
+} from "@asym/ui/components/shadcn";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -72,7 +77,6 @@ import {
   Bell,
   Check,
 } from "lucide-react";
-import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useCallback, useReducer, useState } from "react";
@@ -83,19 +87,6 @@ import { PageHeader } from "@/components/page-header";
 type OrgPostVisibility = "all_donors" | "followers_only";
 type Visibility = "public" | "partners" | "private";
 type PostStatus = "published" | "draft";
-
-const RichTextEditor = dynamic(
-  () =>
-    import("@asym/ui/components/shadcn/RichTextEditor").then(
-      (mod) => mod.RichTextEditor,
-    ),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-[140px] w-full bg-muted rounded-xl animate-pulse" />
-    ),
-  },
-);
 
 const smoothTransition = {
   duration: 0.25,
@@ -1065,37 +1056,38 @@ function ComposeCard({
             transition={{ delay: 0.3 }}
             className="flex-1 min-w-0 rounded-xl sm:rounded-2xl border overflow-hidden focus-within:ring-2 focus-within:ring-ring/20 focus-within:border-ring transition-all"
           >
-            <RichTextEditor
-              value={postContent}
-              onChange={(value) =>
-                dispatchCompose({ type: "set-content", value })
-              }
-              placeholder={`Write your ${postType.toLowerCase()}...`}
-              className=""
-              contentClassName="py-3 sm:py-4 px-3 sm:px-4 text-sm sm:text-base text-foreground placeholder:text-muted-foreground min-h-[100px] sm:min-h-[140px] leading-relaxed"
-              toolbarPosition="bottom"
-              proseInvert={false}
-              actions={
-                <ComposeCardActions
-                  selectedMedia={selectedMedia}
-                  isUploading={isUploading}
-                  isPublishing={isPublishing}
-                  visibility={visibility}
-                  isDisabled={isDisabled}
-                  onAddMedia={handleAddMedia}
-                  onRemoveMedia={(item) =>
-                    dispatchCompose({ type: "remove-media", item })
-                  }
-                  onSetVisibility={(nextVisibility) =>
-                    dispatchCompose({
-                      type: "set-visibility",
-                      value: nextVisibility,
-                    })
-                  }
-                  onSaveDraft={handleSaveDraft}
-                  onPublish={handlePublish}
+            <div className="border border-border rounded-xl sm:rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-ring focus-within:border-transparent transition-all shadow-sm">
+              <EditorRoot
+                value={postContent}
+                onChange={(value: string) =>
+                  dispatchCompose({ type: "set-content", value })
+                }
+              >
+                <EditorToolbar />
+                <EditorContent
+                  placeholder="Type your update here..."
+                  className="bg-card text-foreground"
                 />
+              </EditorRoot>
+            </div>
+            <ComposeCardActions
+              selectedMedia={selectedMedia}
+              isUploading={isUploading}
+              isPublishing={isPublishing}
+              visibility={visibility}
+              isDisabled={isDisabled}
+              onAddMedia={handleAddMedia}
+              onRemoveMedia={(item) =>
+                dispatchCompose({ type: "remove-media", item })
               }
+              onSetVisibility={(nextVisibility) =>
+                dispatchCompose({
+                  type: "set-visibility",
+                  value: nextVisibility,
+                })
+              }
+              onSaveDraft={handleSaveDraft}
+              onPublish={handlePublish}
             />
           </motion.div>
         </div>
