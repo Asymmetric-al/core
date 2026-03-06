@@ -32,6 +32,7 @@ type MembershipRow = {
 
 export interface AuthMiddlewareOptions {
   publicRoutes?: string[];
+  protectedRoutes?: string[];
   authRoutes?: string[];
   loginPath?: string;
   redirectAuthenticatedTo?: string;
@@ -109,6 +110,7 @@ async function loadMembershipsForTenant(
 
 export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
   const publicRoutes = options.publicRoutes ?? [];
+  const protectedRoutes = options.protectedRoutes ?? [];
   const loginPath = options.loginPath ?? "/login";
   const authRoutes = options.authRoutes ?? [loginPath, "/register"];
   const redirectAuthenticatedTo = options.redirectAuthenticatedTo ?? "/";
@@ -127,7 +129,13 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     const isAuthRoute = authRoutes.some((route) =>
       isRouteMatch(pathname, route),
     );
-    const isProtectedRoute = !isPublicRoute && !isAuthRoute;
+    const isProtectedRoute = isPublicRoute
+      ? false
+      : isAuthRoute
+        ? false
+        : protectedRoutes.length > 0
+          ? protectedRoutes.some((route) => isRouteMatch(pathname, route))
+          : true;
 
     if (apiRoute && allowApi) {
       return NextResponse.next({ request });

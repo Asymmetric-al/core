@@ -97,6 +97,54 @@ describe("createAuthMiddleware", () => {
     expect(response.status).toBe(200);
   });
 
+  it("treats non-matching routes as public when protectedRoutes are provided", async () => {
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/auth/callback", "/api/health"],
+      protectedRoutes: ["/donor-dashboard", "/api"],
+      loginPath: "/login",
+      allowedRoles: ["donor", "super_admin"],
+      resolveSession: async () => ({ userId: null, role: null }),
+    });
+
+    const publicPageResponse = await middleware(createRequest("/mission-update"));
+    const healthResponse = await middleware(createRequest("/api/health"));
+    const protectedPageResponse = await middleware(
+      createRequest("/donor-dashboard/history"),
+    );
+    const protectedApiResponse = await middleware(createRequest("/api/profile"));
+
+    expect(publicPageResponse.status).toBe(200);
+    expect(healthResponse.status).toBe(200);
+    expect(protectedPageResponse.status).toBe(307);
+    expect(protectedPageResponse.headers.get("location")).toBe(
+      "https://example.org/login?next=%2Fdonor-dashboard%2Fhistory",
+    );
+    expect(protectedApiResponse.status).toBe(401);
+  });
+
+  it("allows explicitly public API prefixes even when all other routes are protected", async () => {
+    const middleware = createAuthMiddleware({
+      publicRoutes: [
+        "/login",
+        "/register",
+        "/auth/callback",
+        "/api/auth/demo-account",
+        "/api/cms/public",
+      ],
+      loginPath: "/login",
+      allowedRoles: ["staff", "admin", "super_admin"],
+      resolveSession: async () => ({ userId: null, role: null }),
+    });
+
+    const publicApiResponse = await middleware(
+      createRequest("/api/cms/public/pages/home"),
+    );
+    const protectedApiResponse = await middleware(createRequest("/api/secure"));
+
+    expect(publicApiResponse.status).toBe(200);
+    expect(protectedApiResponse.status).toBe(401);
+  });
+
   it("does not redirect authenticated users on auth routes when role is disallowed", async () => {
     const middleware = createAuthMiddleware({
       publicRoutes: ["/login", "/register", "/auth/callback"],
