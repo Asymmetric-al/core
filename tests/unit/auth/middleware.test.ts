@@ -84,6 +84,20 @@ describe("createAuthMiddleware", () => {
     expect(response.headers.get("location")).toBe("https://example.org/");
   });
 
+  it("returns 403 for authenticated protected API routes with disallowed roles", async () => {
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/auth/callback"],
+      loginPath: "/login",
+      allowedRoles: ["staff", "admin", "super_admin"],
+      resolveSession: async () => ({ userId: "user_123", role: "donor" }),
+    });
+
+    const response = await middleware(createRequest("/api/secure/tenants"));
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({ error: "Forbidden" });
+  });
+
   it("permits authenticated users with allowed roles", async () => {
     const middleware = createAuthMiddleware({
       publicRoutes: ["/login", "/register", "/auth/callback"],
