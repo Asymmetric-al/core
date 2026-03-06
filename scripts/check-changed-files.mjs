@@ -32,6 +32,8 @@ const cwdRelativeToRoot = path
   .replaceAll("\\", "/");
 const scopePrefix =
   cwdRelativeToRoot && cwdRelativeToRoot !== "." ? `${cwdRelativeToRoot}/` : "";
+const isCiRun =
+  process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true";
 
 function runGitCommand(args, { allowFailure = false } = {}) {
   const result = spawnSync("git", args, {
@@ -145,21 +147,21 @@ function main() {
     const baseSha = normalizeBaseSha(explicitBaseSha);
 
     if (!baseSha) {
-      console.log(
-        "No base SHA available for changed-file lint check. Skipping."
-      );
+      const message = "No base SHA available for changed-file lint check.";
+      if (isCiRun) {
+        console.error(`${message} Failing CI instead of skipping lint.`);
+        process.exit(1);
+      }
+      console.log(`${message} Skipping.`);
       process.exit(0);
     }
 
-    const changedFilesOutput = runGitCommand(
-      [
-        "diff",
-        "--name-only",
-        "--diff-filter=ACMRTUXB",
-        `${baseSha}...${headSha}`,
-      ],
-      { allowFailure: true }
-    );
+    const changedFilesOutput = runGitCommand([
+      "diff",
+      "--name-only",
+      "--diff-filter=ACMRTUXB",
+      `${baseSha}...${headSha}`,
+    ]);
     changedFiles.push(
       ...changedFilesOutput
         .split("\n")

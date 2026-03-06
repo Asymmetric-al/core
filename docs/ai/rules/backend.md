@@ -28,7 +28,7 @@ Use this before changing server actions, route handlers, database access, or mig
 
 - All business DB logic lives in `packages/api/src/*`; route handlers in `apps/*/app/api/` are thin re-exports only.
 - Full rule, approved exceptions, and examples live in `docs/guides/architecture/data-access-boundary.md`.
-- Primary enforcement is ESLint `no-restricted-imports` rules (ticket 2.2.2).
+- Primary enforcement is Biome `style.noRestrictedImports` in `biome.jsonc`.
 - CI enforcement is `scripts/verify/data-boundary-check.sh`.
 
 ### Security & auth

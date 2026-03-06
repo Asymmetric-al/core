@@ -17,6 +17,8 @@ jobs:
       TURBO_TEAM: ${{ vars.TURBO_TEAM }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.3.4"
@@ -29,8 +31,8 @@ jobs:
       - name: Determine lint diff range
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "LINT_BASE_SHA=$(git rev-parse HEAD~1)" >> "$GITHUB_ENV"
-            echo "LINT_HEAD_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+            echo "LINT_BASE_SHA=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_ENV"
+            echo "LINT_HEAD_SHA=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
           else
             before_sha="${{ github.event.before }}"
             if [ "$before_sha" = "0000000000000000000000000000000000000000" ]; then
@@ -40,12 +42,13 @@ jobs:
             echo "LINT_HEAD_SHA=${{ github.sha }}" >> "$GITHUB_ENV"
           fi
       - run: bun run check
+      - run: bun run verify:data-boundary
       - run: bun run verify:workspace-contract
       - run: bun run verify:lint-config
 
   check-full:
     runs-on: ubuntu-latest
-    continue-on-error: true
+    continue-on-error: true # Advisory until the full-repo baseline is clean.
     env:
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
       TURBO_TEAM: ${{ vars.TURBO_TEAM }}

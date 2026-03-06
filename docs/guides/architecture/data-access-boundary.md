@@ -6,7 +6,7 @@
 
 ## Enforcement
 
-1. Primary: ESLint `no-restricted-imports` rules in `eslint.config.mjs` (see ticket 2.2.2) catch violations during linting.
+1. Primary: Biome `style.noRestrictedImports` rules in `biome.jsonc` catch violations during linting.
 2. Secondary: `scripts/verify/data-boundary-check.sh` runs in CI as a belt-and-suspenders guard.
 
 The CI script currently scans `apps/*/app/api/**/*.ts`. This is why `apps/donor/app/auth/callback/route.ts` is not included in grep scope: it lives under `app/auth/`, not `app/api/`.

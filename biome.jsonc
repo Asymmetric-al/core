@@ -48,5 +48,73 @@
         }
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["apps/*/app/api/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "../../apps/*",
+                      "../../../apps/*",
+                      "../../../../apps/*"
+                    ],
+                    "message": "Apps cannot import from other apps. Use @asym/* packages instead."
+                  },
+                  {
+                    "group": ["**/apps/admin/**"],
+                    "message": "Cannot import from apps/admin. Use @asym/* packages instead."
+                  },
+                  {
+                    "group": ["**/apps/donor/**"],
+                    "message": "Cannot import from apps/donor. Use @asym/* packages instead."
+                  },
+                  {
+                    "group": ["**/apps/missionary/**"],
+                    "message": "Cannot import from apps/missionary. Use @asym/* packages instead."
+                  },
+                  {
+                    "group": [
+                      "@asym/database/supabase",
+                      "@asym/database/supabase/*",
+                      "@asym/database/supabase/**"
+                    ],
+                    "message": "Route handlers must not import Supabase clients directly; re-export handlers from @asym/api instead."
+                  },
+                  {
+                    "group": ["@supabase/*"],
+                    "message": "Route handlers must not import @supabase/* directly; use @asym/api boundaries."
+                  }
+                ],
+                "paths": {
+                  "@asym/database/supabase": "Route handlers must not import @asym/database/supabase directly; re-export handlers from @asym/api instead.",
+                  "@asym/database/supabase/client": "Route handlers must not import @asym/database/supabase/client directly; re-export handlers from @asym/api instead.",
+                  "@asym/database/supabase/server": "Route handlers must not import @asym/database/supabase/server directly; re-export handlers from @asym/api instead.",
+                  "@asym/database/supabase/admin": "Route handlers must not import @asym/database/supabase/admin directly; re-export handlers from @asym/api instead.",
+                  "@supabase/ssr": "Route handlers must not import @supabase/ssr directly; use @asym/api boundaries.",
+                  "@supabase/supabase-js": "Route handlers must not import @supabase/supabase-js directly; use @asym/api boundaries."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["apps/*/app/api/health/route.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": "off"
+          }
+        }
+      }
+    }
+  ]
 }

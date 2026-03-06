@@ -37,6 +37,7 @@
         "glob": "^13.0.4",
         "globals": "^17.3.0",
         "husky": "^9.1.7",
+        "jsonc-parser": "^3.3.1",
         "lint-staged": "^16.3.2",
         "tailwindcss": "^4",
         "turbo": "^2.7.5",
@@ -182,6 +183,7 @@
       "dependencies": {
         "@asym/auth": "workspace:*",
         "@asym/database": "workspace:*",
+        "@asym/env": "workspace:*",
         "@asym/lib": "workspace:*",
         "@supabase/ssr": "^0.5.2",
         "next": "16.1.1",
@@ -198,6 +200,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@asym/database": "workspace:*",
+        "@asym/env": "workspace:*",
         "@supabase/ssr": "^0.8.0",
         "@supabase/supabase-js": "^2.47.10",
         "next": "16.1.1",
@@ -213,6 +216,7 @@
       "name": "@asym/config",
       "version": "0.1.0",
       "dependencies": {
+        "@asym/env": "workspace:*",
         "lucide-react": "^0.468.0",
       },
       "devDependencies": {
@@ -224,6 +228,7 @@
       "name": "@asym/database",
       "version": "0.1.0",
       "dependencies": {
+        "@asym/env": "workspace:*",
         "@supabase/ssr": "^0.5.2",
         "@supabase/supabase-js": "^2.47.10",
         "@tanstack/db": "^0.5.16",
@@ -283,6 +288,7 @@
       "dependencies": {
         "@asym/auth": "workspace:*",
         "@asym/database": "workspace:*",
+        "@asym/env": "workspace:*",
         "@sentry/nextjs": "^10.32.1",
         "@stripe/stripe-js": "^5.3.0",
         "@supabase/supabase-js": "^2.89.0",

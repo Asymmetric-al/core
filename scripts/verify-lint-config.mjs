@@ -1,10 +1,30 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { parse as parseJsonc } from "jsonc-parser";
 
 const ROOT = process.cwd();
 const errors = [];
 const legacyEslintRcPattern = /^\.eslintrc(?:\..+)?$/i;
+const routeHandlerOverrideInclude =
+  "apps/*/app/api/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}";
+const healthRouteOverrideInclude = "apps/*/app/api/health/route.ts";
+const requiredRouteHandlerPatternGroups = [
+  [
+    "@asym/database/supabase",
+    "@asym/database/supabase/*",
+    "@asym/database/supabase/**",
+  ],
+  ["@supabase/*"],
+];
+const requiredRouteHandlerPaths = [
+  "@asym/database/supabase",
+  "@asym/database/supabase/client",
+  "@asym/database/supabase/server",
+  "@asym/database/supabase/admin",
+  "@supabase/ssr",
+  "@supabase/supabase-js",
+];
 
 const legacyRootFiles = [
   "eslint.config.mjs",
@@ -65,17 +85,40 @@ async function readJson(filePath) {
   return JSON.parse(raw);
 }
 
-async function verifyRootBiomeConfig() {
-  const biomePath = path.join(ROOT, "biome.jsonc");
-  if (!(await pathExists(biomePath))) {
-    errors.push("Missing root Biome config: biome.jsonc");
-    return;
+async function readJsonc(filePath) {
+  const raw = await fs.readFile(filePath, "utf8");
+  const parseErrors = [];
+  const parsed = parseJsonc(raw, parseErrors, {
+    allowEmptyContent: false,
+    allowTrailingComma: true,
+    disallowComments: false,
+  });
+
+  if (parseErrors.length > 0) {
+    throw new Error(
+      `Failed to parse JSONC file ${toRelative(filePath)} (${parseErrors.length} parse error(s))`
+    );
   }
 
-  const biomeConfig = await readJson(biomePath);
-  const extendsList = Array.isArray(biomeConfig.extends)
-    ? biomeConfig.extends
-    : [];
+  return parsed;
+}
+
+function getNoRestrictedImportsRule(config) {
+  return config?.linter?.rules?.style?.noRestrictedImports;
+}
+
+function hasExactGroup(patterns, expectedGroup) {
+  return patterns.some((pattern) => {
+    const group = pattern?.group;
+    if (!Array.isArray(group) || group.length !== expectedGroup.length) {
+      return false;
+    }
+
+    return expectedGroup.every((entry, index) => group[index] === entry);
+  });
+}
+
+function verifyRequiredBiomeExtends(extendsList) {
   const requiredExtends = [
     "ultracite/biome/core",
     "ultracite/biome/react",
@@ -87,6 +130,94 @@ async function verifyRootBiomeConfig() {
       errors.push(`Missing Biome extend "${requiredExtend}" in biome.jsonc`);
     }
   }
+}
+
+function verifyRouteHandlerOverride(overrides) {
+  const routeHandlerOverride = overrides.find((override) =>
+    override?.includes?.includes(routeHandlerOverrideInclude)
+  );
+
+  if (!routeHandlerOverride) {
+    errors.push(
+      `Missing Biome override for route handlers: ${routeHandlerOverrideInclude}`
+    );
+    return;
+  }
+
+  const noRestrictedImportsRule =
+    getNoRestrictedImportsRule(routeHandlerOverride);
+
+  if (!noRestrictedImportsRule || noRestrictedImportsRule.level !== "error") {
+    errors.push(
+      "Route-handler Biome override must enable style.noRestrictedImports at error level"
+    );
+    return;
+  }
+
+  const patterns = Array.isArray(noRestrictedImportsRule.options?.patterns)
+    ? noRestrictedImportsRule.options.patterns
+    : [];
+  const pathEntries =
+    noRestrictedImportsRule.options?.paths &&
+    typeof noRestrictedImportsRule.options.paths === "object"
+      ? noRestrictedImportsRule.options.paths
+      : {};
+  const pathNames = new Set(Object.keys(pathEntries));
+
+  for (const expectedGroup of requiredRouteHandlerPatternGroups) {
+    if (!hasExactGroup(patterns, expectedGroup)) {
+      errors.push(
+        `Route-handler Biome override is missing restricted import group: ${expectedGroup.join(", ")}`
+      );
+    }
+  }
+
+  for (const requiredPath of requiredRouteHandlerPaths) {
+    if (!pathNames.has(requiredPath)) {
+      errors.push(
+        `Route-handler Biome override is missing restricted import path: ${requiredPath}`
+      );
+    }
+  }
+}
+
+function verifyHealthRouteOverride(overrides) {
+  const healthRouteOverride = overrides.find((override) =>
+    override?.includes?.includes(healthRouteOverrideInclude)
+  );
+
+  if (!healthRouteOverride) {
+    errors.push(
+      `Missing approved-exception override for health routes: ${healthRouteOverrideInclude}`
+    );
+    return;
+  }
+
+  if (getNoRestrictedImportsRule(healthRouteOverride) !== "off") {
+    errors.push(
+      "Health-route Biome override must disable style.noRestrictedImports for the approved exception"
+    );
+  }
+}
+
+async function verifyRootBiomeConfig() {
+  const biomePath = path.join(ROOT, "biome.jsonc");
+  if (!(await pathExists(biomePath))) {
+    errors.push("Missing root Biome config: biome.jsonc");
+    return;
+  }
+
+  const biomeConfig = await readJsonc(biomePath);
+  const extendsList = Array.isArray(biomeConfig.extends)
+    ? biomeConfig.extends
+    : [];
+  const overrides = Array.isArray(biomeConfig.overrides)
+    ? biomeConfig.overrides
+    : [];
+
+  verifyRequiredBiomeExtends(extendsList);
+  verifyRouteHandlerOverride(overrides);
+  verifyHealthRouteOverride(overrides);
 }
 
 async function verifyLegacyRootFilesRemoved() {
@@ -102,6 +233,7 @@ async function verifyRootDependencies() {
   const rootPackagePath = path.join(ROOT, "package.json");
   const rootPackage = await readJson(rootPackagePath);
   const devDependencies = rootPackage.devDependencies ?? {};
+  const scripts = rootPackage.scripts ?? {};
 
   for (const dependency of legacyLintDependencies) {
     if (dependency in devDependencies) {
@@ -109,6 +241,15 @@ async function verifyRootDependencies() {
         `Legacy lint dependency should not be in root devDependencies: ${dependency}`
       );
     }
+  }
+
+  if (
+    scripts["verify:data-boundary"] !==
+    "bash scripts/verify/data-boundary-check.sh"
+  ) {
+    errors.push(
+      'Root package.json must keep "verify:data-boundary" as "bash scripts/verify/data-boundary-check.sh"'
+    );
   }
 }
 
@@ -238,6 +379,19 @@ async function verifyNoLegacyEslintrcFiles() {
   await walkFiles(ROOT);
 }
 
+async function verifyDataBoundaryScriptExists() {
+  const dataBoundaryScriptPath = path.join(
+    ROOT,
+    "scripts/verify/data-boundary-check.sh"
+  );
+
+  if (!(await pathExists(dataBoundaryScriptPath))) {
+    errors.push(
+      "Missing secondary data-boundary CI guard: scripts/verify/data-boundary-check.sh"
+    );
+  }
+}
+
 async function main() {
   await verifyRootBiomeConfig();
   await verifyLegacyRootFilesRemoved();
@@ -245,6 +399,7 @@ async function main() {
   await verifyWorkspaceLintScripts();
   await verifyLegacyEslintConfigsRemoved();
   await verifyNoLegacyEslintrcFiles();
+  await verifyDataBoundaryScriptExists();
 
   if (errors.length > 0) {
     console.error("Lint config verification failed:");
