@@ -1,52 +1,41 @@
 # Working Set
 
-- Date: 2026-02-23
+- Date: 2026-03-06
 - Repo: Asymmetric-al/core
 
 ## Current Goal (single source of truth)
 
-Resolve `origin/epic` merge conflicts cleanly with two intent-first outcomes:
-1. Adopt a hybrid E2E strategy (fast core suite + dedicated CMS/admin suite).
-2. Normalize `docs/ai/working-set.md` into a canonical "current truth" format that reduces future conflict churn.
+Harden regression coverage for PR `#71` by adding a focused unit test for a risky production code path that currently relies mostly on slower E2E validation.
 
 ## Current Scope
 
-- `playwright.config.ts`
-- `tests/e2e/*` (CMS tagging + suite boundaries)
-- `package.json` (E2E script split)
-- `.github/workflows/ci-integration.yml` (run both suites)
-- `README.md` + `docs/ci.md` (workflow and command docs)
-- `docs/ai/working-set.md` (canonical structure)
+- `packages/api/src/auth/demo-account.ts`
+- `tests/unit/auth/*`
+- `docs/ai/working-set.md`
 
 ## Constraints
 
-- Keep deterministic CI-equivalent behavior for default local/CI scripts.
-- Keep strict modes available for real-environment validation.
-- Maintain test stability (no hidden dependencies between donor-only and CMS/admin paths).
-- Keep manual/video tour tests out of default blocking E2E runs.
-- Avoid destructive rewrites outside merge-conflict scope.
+- Prefer deterministic unit coverage over broad new E2E coverage.
+- Keep production behavior unchanged unless a tiny testability refactor is required.
+- Cover high-risk branches with shared blast radius: auth gating, validation, backend failure handling, and cookie/session propagation.
+- Keep tests isolated from real network and real Supabase state.
 
-## Open Decisions
+## Candidate Risk Area
 
-- Should CMS E2E remain non-blocking long term, or become required after flake budget is reduced?
-- Should `@cms` tagging expand to additional integration specs as Site Studio coverage grows?
-
-## Recent Completed Streams (summary only)
-
-- 2026-02-26: Authz membership/RLS foundation landed (`authz.memberships`, role helpers, middleware/context integration, docs).
-- 2026-02-22: Supabase CLI hybrid workflow landed (global-first with pinned fallback, hosted migration safety).
-- 2026-02-23: Site Studio/Payload integration and quality gates expanded across CI + docs + tests.
+- Shared demo auth route `/api/auth/demo-account` is used across admin, donor, missionary, and E2E flows.
+- Existing coverage is mainly Playwright preflight smoke coverage; fast unit coverage is missing for several failure and guard branches.
 
 ## Evidence Sources Used
 
-- `playwright.config.ts`
-- `tests/e2e/cms-*.spec.ts`
-- `tests/e2e/usability-smoke.spec.ts`
-- `package.json`
-- `.github/workflows/ci-integration.yml`
-- `docs/ci.md`
-- `README.md`
+- `packages/api/src/auth/demo-account.ts`
+- `apps/donor/app/api/auth/demo-account/route.ts`
+- `tests/e2e/demo-auth-preflight.spec.ts`
+- `tests/unit/auth/e2e-auth.test.ts`
+- `tests/unit/cms/public-pages-route.test.ts`
+- `tests/unit/cms/public-navigation-route.test.ts`
+- `.next-docs/01-app/01-getting-started/15-route-handlers.mdx`
+- `.next-docs/01-app/03-api-reference/03-file-conventions/route.mdx`
 
 ## Tooling Note
 
-- MCP resources are unavailable in this runtime; used repo-scoped `rg`, direct file reads, and targeted command verification.
+- MCP resources for `nia` are unavailable in this runtime; used repo-scoped `rg`, direct file reads, GitHub PR metadata, and targeted command verification instead.
