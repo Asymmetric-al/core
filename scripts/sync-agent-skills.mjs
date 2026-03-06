@@ -17,6 +17,10 @@ const targetRoots = [
 const skillsToSync = [
   "supabase-postgres-best-practices",
   "nextjs-supabase-auth",
+  "building-components",
+  "turborepo",
+  "next-cache-components",
+  "ultracite",
 ];
 
 async function overlayDirectory(sourceDir, targetDir) {

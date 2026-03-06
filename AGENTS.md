@@ -199,11 +199,15 @@ Load the skill(s) below when the trigger matches.
 
 - **Next.js App Router structure, rendering, data fetching:** `docs/ai/skills/nextjs-app-router/SKILL.md`
 - **Cache Components / PPR / cacheTag & invalidation:** `docs/ai/skills/cache-components/SKILL.md`
+- **Next.js Cache Components deep reference / migration details:** `docs/ai/skills/next-cache-components/SKILL.md`
+- **Reusable component architecture/composition/accessibility:** `docs/ai/skills/building-components/SKILL.md`
 - **React component design/refactor:** `docs/ai/skills/react-component-dev/SKILL.md`
 - **shadcn/ui system usage:** `docs/ai/skills/moai-library-shadcn/SKILL.md`
 - **Motion animations (`motion/react`):** `docs/ai/skills/motion/SKILL.md`
 - **Recharts:** `docs/ai/skills/rechart/SKILL.md`
 - **TanStack Table v8:** `docs/ai/skills/tanstack-table/SKILL.md`
+- **Turborepo task graph/caching/filtering/CI patterns:** `docs/ai/skills/turborepo/SKILL.md`
+- **Ultracite lint/format + code quality standards:** `docs/ai/skills/ultracite/SKILL.md`
 - **GitHub issue/PR workflows (AL-###):**
   - Write issue: `docs/ai/skills/write-issue/SKILL.md`
   - Build issue: `docs/ai/skills/build-issue/SKILL.md`
