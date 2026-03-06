@@ -87,3 +87,13 @@
   - scoped lint/typecheck for touched packages/apps
   - `bun run test:unit`
   - Playwright session guard spec for donor/admin/missionary.
+
+## Documentation alignment follow-up (2026-03-06)
+
+- Clarified contributor-facing auth/setup docs to reflect the current public-key split:
+  - shared auth/database runtime supports `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and prefers it when present
+  - local onboarding helpers (`bun run setup`, `bun run setup:verify`) still require `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- Updated:
+  - `README.md`
+  - `docs/auth/sign-in.md`
+  - `docs/guides/development/{getting-started,contributing,build-runbook}.md`

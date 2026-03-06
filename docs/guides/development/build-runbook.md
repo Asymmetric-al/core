@@ -52,6 +52,7 @@ Use real values in `.env.local`:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- optional: `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 
 Then run:
 
@@ -62,6 +63,7 @@ bun run build:strict
 ```
 
 This strict mode is useful when validating real credentials and env shape before release.
+The shared auth/database runtime prefers `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` when present, but the current setup and verification helpers still require `NEXT_PUBLIC_SUPABASE_ANON_KEY`, so keep both if you are using the publishable key path locally.
 
 ## Build matrix commands
 

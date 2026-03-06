@@ -16,6 +16,7 @@ bun run verify
 
 **Required:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 **Optional:** All other entries in `.env.example` (Stripe, demo accounts, Unlayer, etc.)
+Runtime auth clients also accept `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and prefer it when present, but the current `bun run setup` and `bun run setup:verify` helpers still validate `NEXT_PUBLIC_SUPABASE_ANON_KEY` for local onboarding.
 
 ### Windows
 
@@ -408,6 +409,12 @@ Follow the Quickstart above, and set these required values in `.env.local`:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+Optional runtime override:
+
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (preferred by the shared auth/database clients when present)
+
+Keep `NEXT_PUBLIC_SUPABASE_ANON_KEY` populated for now even if you also set `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, because the repo setup helpers and connectivity checks still validate the anon-key path.
 
 ### How to request access
 

@@ -42,6 +42,11 @@ Required:
   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (preferred)
   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` (legacy-compatible)
 
+Notes:
+
+- Shared auth/database clients prefer `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` when both keys are present.
+- Local contributor setup is slightly stricter today: `bun run setup` and `bun run setup:verify` still validate `NEXT_PUBLIC_SUPABASE_ANON_KEY`, so keep the anon key populated for onboarding and connectivity checks.
+
 ### Demo feature flags
 
 - `DEMO_ONLY_LOGIN=true|false`

@@ -17,6 +17,7 @@ bun run verify
 ```
 
 Stripe credentials are optional and only required when testing donation flows.
+The shared auth/database clients also support `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and prefer it when present, but the current setup and verification helpers still require `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 
 Optional MCP tooling configuration for contributors is documented in `docs/mcp-config.example.toml`.
 
