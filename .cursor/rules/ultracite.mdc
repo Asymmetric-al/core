@@ -8,7 +8,7 @@ This project uses **Ultracite**, a zero-config preset that enforces strict code 
 - **Check for issues**: `bunx ultracite check`
 - **Diagnose setup**: `bunx ultracite doctor`
 
-ESLint + Prettier + Stylelint (the underlying engine) provides robust linting and formatting. Most issues are automatically fixable.
+Biome (the underlying engine) provides robust linting and formatting. Most issues are automatically fixable.
 
 ---
 
@@ -107,11 +107,11 @@ Write code that is **accessible, performant, type-safe, and maintainable**. Focu
 - Don't use `.only` or `.skip` in committed code
 - Keep test suites reasonably flat - avoid excessive `describe` nesting
 
-## When ESLint + Prettier + Stylelint Can't Help
+## When Biome Can't Help
 
-ESLint + Prettier + Stylelint's linter will catch most issues automatically. Focus your attention on:
+Biome's linter will catch most issues automatically. Focus your attention on:
 
-1. **Business logic correctness** - ESLint + Prettier + Stylelint can't validate your algorithms
+1. **Business logic correctness** - Biome can't validate your algorithms
 2. **Meaningful naming** - Use descriptive names for functions, variables, and types
 3. **Architecture decisions** - Component structure, data flow, and API design
 4. **Edge cases** - Handle boundary conditions and error states
@@ -120,4 +120,4 @@ ESLint + Prettier + Stylelint's linter will catch most issues automatically. Foc
 
 ---
 
-Most formatting and common issues are automatically fixed by ESLint + Prettier + Stylelint. Run `bunx ultracite fix` before committing to ensure compliance.
+Most formatting and common issues are automatically fixed by Biome. Run `bunx ultracite fix` before committing to ensure compliance.

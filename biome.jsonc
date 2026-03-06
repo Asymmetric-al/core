@@ -1,0 +1,52 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": [
+    "ultracite/biome/core",
+    "ultracite/biome/react",
+    "ultracite/biome/next"
+  ],
+  "files": {
+    "includes": [
+      "!!**/.agent",
+      "!!**/.agents",
+      "!!**/.cursor/skills",
+      "!!**/.next-docs",
+      "!!**/.nia-sync",
+      "!!**/.traycer",
+      "!!**/skills"
+    ]
+  },
+  "linter": {
+    "rules": {
+      "style": {
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "patterns": [
+              {
+                "group": [
+                  "../../apps/*",
+                  "../../../apps/*",
+                  "../../../../apps/*"
+                ],
+                "message": "Apps cannot import from other apps. Use @asym/* packages instead."
+              },
+              {
+                "group": ["**/apps/admin/**"],
+                "message": "Cannot import from apps/admin. Use @asym/* packages instead."
+              },
+              {
+                "group": ["**/apps/donor/**"],
+                "message": "Cannot import from apps/donor. Use @asym/* packages instead."
+              },
+              {
+                "group": ["**/apps/missionary/**"],
+                "message": "Cannot import from apps/missionary. Use @asym/* packages instead."
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

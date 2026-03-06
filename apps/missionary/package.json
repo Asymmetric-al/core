@@ -7,7 +7,7 @@
     "dev": "next dev --port 4000",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint .",
+    "lint": "bunx ultracite check .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -41,12 +41,10 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@asym/eslint-config": "workspace:*",
     "@asym/typescript-config": "workspace:*",
     "@types/node": "^22.10.5",
     "@types/react": "^19.0.6",
     "@types/react-dom": "^19.0.2",
-    "eslint": "^9.18.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^4.1.0",
     "typescript": "^5.7.3"

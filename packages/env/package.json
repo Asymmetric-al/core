@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "tsc --noEmit",
-    "lint": "eslint .",
+    "lint": "bunx ultracite check .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
