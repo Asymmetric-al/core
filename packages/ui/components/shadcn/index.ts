@@ -49,7 +49,7 @@ export * from "./progress";
 export * from "./radio-group";
 export * from "./resizable";
 export * from "./responsive-container";
-export * from "./RichTextEditor";
+export * from "./rich-text-editor";
 export * from "./ripple-button";
 export * from "./scroll-area";
 export * from "./select";

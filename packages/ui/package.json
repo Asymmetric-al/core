@@ -7,6 +7,7 @@
     ".": "./index.ts",
     "./components/shadcn": "./components/shadcn/index.ts",
     "./components/shadcn/*": "./components/shadcn/*.tsx",
+    "./components/shadcn/rich-text-editor": "./components/shadcn/rich-text-editor/index.ts",
     "./components/shadcn/icons": "./components/shadcn/icons/index.tsx",
     "./components/shadcn/data-table": "./components/shadcn/data-table/index.ts",
     "./components/shadcn/data-table/*": "./components/shadcn/data-table/*.tsx",

@@ -1,8 +1,9 @@
-import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import StarterKit from "@tiptap/starter-kit";
 
-export const extensions = [
+import { ResizableImageExtension } from "./image-view";
+
+export const defaultExtensions = [
   StarterKit.configure({
     heading: {
       levels: [1, 2],
@@ -28,18 +29,18 @@ export const extensions = [
         class: "text-primary underline cursor-pointer",
       },
     },
+    underline: {},
   }),
-  Image.configure({
-    HTMLAttributes: {
-      class: "rounded-lg max-w-full h-auto shadow-md",
-    },
+  ResizableImageExtension.configure({
+    inline: false,
+    allowBase64: false,
   }),
   Placeholder.configure({
     placeholder: ({ node }) => {
       if (node.type.name === "heading") {
         return "What is the title?";
       }
-      return "Type something amazing...";
+      return "Type something...";
     },
     includeChildren: true,
   }),
