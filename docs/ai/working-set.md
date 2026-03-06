@@ -87,3 +87,16 @@
   - scoped lint/typecheck for touched packages/apps
   - `bun run test:unit`
   - Playwright session guard spec for donor/admin/missionary.
+
+## Missing coverage follow-up (2026-03-06)
+
+- Goal: add minimal regression coverage for PR `#78` auth proxy behavior that still lacks direct unit tests.
+- Chosen target:
+  - `packages/auth/middleware.ts`
+  - `apps/donor/proxy.ts`
+- Risk being covered:
+  - logged-out protected donor routes must redirect to `/login?next=...`
+  - missing public Supabase config must fail closed with `error=auth_misconfigured`
+- Existing evidence:
+  - `tests/unit/auth/demo-login.test.ts` covers `safeNextParam()` sanitization only
+  - `tests/e2e/auth-session-guards.spec.ts` and `tests/e2e/auth-demo-donor.spec.ts` cover broader flows, but not the proxy's request-time redirect branch directly
