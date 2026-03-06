@@ -16,8 +16,6 @@ export interface AppIconProps extends React.ComponentPropsWithoutRef<"svg"> {
 /**
  * AppIcon abstraction that renders a Lucide icon with optional animation.
  * Animate ONLY the active route icon as per Phase 3 requirements.
- *
- * Falls back gracefully to standard Lucide icons if animated version is unavailable.
  */
 export const AppIcon = React.memo(function AppIcon({
   icon: Icon,
@@ -27,7 +25,7 @@ export const AppIcon = React.memo(function AppIcon({
   strokeWidth = 2,
   ...props
 }: AppIconProps) {
-  // Graceful fallback: If not animated, or for SSR consistency, render standard icon
+  // Keep the default path as a plain Lucide icon.
   if (!animated) {
     return (
       <Icon
@@ -39,8 +37,7 @@ export const AppIcon = React.memo(function AppIcon({
     );
   }
 
-  // Active route animation: subtle scale and opacity entrance
-  // This ensures no layout shift while providing a visual cue for the active state
+  // Active route animation: subtle scale and opacity entrance.
   return (
     <LazyMotion features={domAnimation}>
       <m.span

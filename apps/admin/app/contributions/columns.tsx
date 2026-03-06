@@ -1,6 +1,6 @@
 "use client";
 
-import { formatCurrency, getInitials } from "@asym/lib/utils";
+import { formatCurrency } from "@asym/lib/utils";
 import {
   Avatar,
   AvatarFallback,
@@ -13,8 +13,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { cn } from "@asym/ui/lib/utils";
@@ -25,12 +23,18 @@ import {
   Banknote,
   Globe,
   MoreHorizontal,
-  Mail,
-  Receipt,
   Eye,
   Copy,
-  RefreshCcw,
 } from "lucide-react";
+
+import {
+  contributionStatusDotColor,
+  formatContributionDate,
+  getContributionDonorInitials,
+  getContributionDonorName,
+  getContributionReceiptDotColor,
+  getContributionReceiptLabel,
+} from "./display";
 
 import type {
   Contribution,
@@ -39,18 +43,6 @@ import type {
   ContributionSource,
 } from "./types";
 import type { ColumnDef } from "@tanstack/react-table";
-
-/* ------------------------------------------------------------------ */
-/*  Status dot color config — accent colors for meaning, not decoration */
-/* ------------------------------------------------------------------ */
-
-const statusDotColor: Record<ContributionStatus, string> = {
-  Succeeded: "bg-emerald-500",
-  Pending: "bg-amber-500",
-  Failed: "bg-destructive",
-  Refunded: "bg-muted-foreground",
-  Disputed: "bg-orange-500",
-};
 
 /* ------------------------------------------------------------------ */
 /*  Payment method icons                                               */
@@ -105,7 +97,7 @@ export function getColumns({
             <Avatar className="h-9 w-9 border border-border">
               <AvatarImage src={donor.avatar} alt={donor.name} />
               <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium">
-                {isAnonymous ? "?" : getInitials(donor.name)}
+                {getContributionDonorInitials(row.original)}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
@@ -114,7 +106,7 @@ export function getColumns({
                 onClick={() => onViewContribution(row.original)}
                 className="text-sm font-semibold text-foreground leading-none hover:underline decoration-foreground/30 underline-offset-4 transition-all text-left"
               >
-                {isAnonymous ? "Anonymous" : donor.name}
+                {getContributionDonorName(row.original)}
               </button>
               {!isAnonymous && donor.email && (
                 <span className="text-xs text-muted-foreground truncate max-w-[180px] mt-0.5">
@@ -166,14 +158,9 @@ export function getColumns({
         <DataTableColumnHeader column={column} title="Date" />
       ),
       cell: ({ row }) => {
-        const date = new Date(row.getValue("date") as string);
         return (
           <span className="text-sm text-muted-foreground whitespace-nowrap">
-            {date.toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}
+            {formatContributionDate(row.getValue("date") as string)}
           </span>
         );
       },
@@ -194,7 +181,7 @@ export function getColumns({
             <span
               className={cn(
                 "h-2 w-2 shrink-0 rounded-full",
-                statusDotColor[status],
+                contributionStatusDotColor[status],
               )}
             />
             <span className="text-sm font-medium text-foreground">
@@ -315,11 +302,11 @@ export function getColumns({
             <span
               className={cn(
                 "h-2 w-2 shrink-0 rounded-full",
-                sent ? "bg-emerald-500" : "bg-muted-foreground/40",
+                getContributionReceiptDotColor(sent),
               )}
             />
             <span className="text-sm text-muted-foreground">
-              {sent ? "Sent" : "Pending"}
+              {getContributionReceiptLabel(sent)}
             </span>
           </div>
         );
@@ -366,7 +353,6 @@ export function getColumns({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuItem
                   onClick={() =>
                     navigator.clipboard.writeText(contribution.transactionId)
@@ -375,27 +361,12 @@ export function getColumns({
                   <Copy className="mr-2 size-4" />
                   Copy Transaction ID
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => onViewContribution(contribution)}
                 >
                   <Eye className="mr-2 size-4" />
                   View Details
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Mail className="mr-2 size-4" />
-                  Email Donor
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Receipt className="mr-2 size-4" />
-                  Send Receipt
-                </DropdownMenuItem>
-                {contribution.status === "Failed" && (
-                  <DropdownMenuItem>
-                    <RefreshCcw className="mr-2 size-4" />
-                    Retry Payment
-                  </DropdownMenuItem>
-                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

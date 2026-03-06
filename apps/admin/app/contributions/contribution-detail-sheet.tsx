@@ -1,6 +1,6 @@
 "use client";
 
-import { formatCurrency, getInitials } from "@asym/lib/utils";
+import { formatCurrency } from "@asym/lib/utils";
 import {
   Avatar,
   AvatarFallback,
@@ -12,22 +12,20 @@ import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import { Sheet, SheetContent } from "@asym/ui/components/shadcn/sheet";
 import { cn } from "@asym/ui/lib/utils";
-import { Copy, DollarSign, Mail, Receipt, RefreshCcw, X } from "lucide-react";
+import { Copy, DollarSign, X } from "lucide-react";
 import { toast } from "sonner";
 
-import type { Contribution, ContributionStatus } from "./types";
+import {
+  contributionStatusDotColor,
+  formatContributionDate,
+  formatContributionTimestamp,
+  getContributionDonorInitials,
+  getContributionDonorName,
+  getContributionReceiptDotColor,
+  getContributionReceiptLabel,
+} from "./display";
 
-/* ------------------------------------------------------------------ */
-/*  Status dot colors — accent colors for semantic meaning              */
-/* ------------------------------------------------------------------ */
-
-const statusDotColor: Record<ContributionStatus, string> = {
-  Succeeded: "bg-emerald-500",
-  Pending: "bg-amber-500",
-  Failed: "bg-destructive",
-  Refunded: "bg-muted-foreground",
-  Disputed: "bg-orange-500",
-};
+import type { Contribution } from "./types";
 
 /* ------------------------------------------------------------------ */
 /*  Detail field component                                              */
@@ -74,9 +72,6 @@ export function ContributionDetailSheet({
 }: ContributionDetailSheetProps) {
   if (!contribution) return null;
 
-  const { donor, isAnonymous } = contribution;
-  const date = new Date(contribution.date);
-
   const handleCopyTxn = () => {
     navigator.clipboard.writeText(contribution.transactionId);
     toast.success("Transaction ID copied to clipboard");
@@ -107,18 +102,21 @@ export function ContributionDetailSheet({
             {/* ---- Donor + Status ---- */}
             <div className="flex items-start gap-4">
               <Avatar className="h-16 w-16 border-4 border-background shadow-sm">
-                <AvatarImage src={donor.avatar} alt={donor.name} />
+                <AvatarImage
+                  src={contribution.donor.avatar}
+                  alt={contribution.donor.name}
+                />
                 <AvatarFallback className="bg-muted text-muted-foreground font-bold text-xl">
-                  {isAnonymous ? "?" : getInitials(donor.name)}
+                  {getContributionDonorInitials(contribution)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 space-y-1 pt-1">
                 <h2 className="text-2xl font-bold text-foreground tracking-tight">
-                  {isAnonymous ? "Anonymous Donor" : donor.name}
+                  {getContributionDonorName(contribution, "Anonymous Donor")}
                 </h2>
-                {!isAnonymous && donor.email && (
+                {!contribution.isAnonymous && contribution.donor.email && (
                   <p className="text-sm text-muted-foreground font-medium">
-                    {donor.email}
+                    {contribution.donor.email}
                   </p>
                 )}
                 <div className="flex items-center gap-2 pt-2">
@@ -129,7 +127,7 @@ export function ContributionDetailSheet({
                     <span
                       className={cn(
                         "h-1.5 w-1.5 shrink-0 rounded-full mr-1.5",
-                        statusDotColor[contribution.status],
+                        contributionStatusDotColor[contribution.status],
                       )}
                     />
                     {contribution.status}
@@ -159,11 +157,8 @@ export function ContributionDetailSheet({
             {/* ---- Details grid ---- */}
             <div className="grid grid-cols-2 gap-6">
               <DetailField label="Date">
-                {date.toLocaleDateString("en-US", {
+                {formatContributionDate(contribution.date, {
                   weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
                 })}
               </DetailField>
 
@@ -189,12 +184,10 @@ export function ContributionDetailSheet({
                   <span
                     className={cn(
                       "h-2 w-2 shrink-0 rounded-full",
-                      contribution.receiptSent
-                        ? "bg-emerald-500"
-                        : "bg-muted-foreground/40",
+                      getContributionReceiptDotColor(contribution.receiptSent),
                     )}
                   />
-                  {contribution.receiptSent ? "Sent" : "Pending"}
+                  {getContributionReceiptLabel(contribution.receiptSent)}
                 </span>
               </DetailField>
 
@@ -239,64 +232,17 @@ export function ContributionDetailSheet({
                   <Copy className="size-3.5" />
                   Copy Transaction ID
                 </Button>
-                {!isAnonymous && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2 rounded-xl font-bold uppercase tracking-widest text-[10px] h-9"
-                  >
-                    <Mail className="size-3.5" />
-                    Email Donor
-                  </Button>
-                )}
-                {!contribution.receiptSent && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2 rounded-xl font-bold uppercase tracking-widest text-[10px] h-9"
-                  >
-                    <Receipt className="size-3.5" />
-                    Send Receipt
-                  </Button>
-                )}
-                {contribution.status === "Failed" && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2 rounded-xl font-bold uppercase tracking-widest text-[10px] h-9"
-                  >
-                    <RefreshCcw className="size-3.5" />
-                    Retry Payment
-                  </Button>
-                )}
               </div>
             </div>
 
             {/* ---- Metadata ---- */}
             <div className="pt-2 space-y-1">
               <p className="text-[10px] text-muted-foreground font-bold">
-                Created{" "}
-                {new Date(contribution.createdAt).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                  hour: "numeric",
-                  minute: "2-digit",
-                })}
+                Created {formatContributionTimestamp(contribution.createdAt)}
               </p>
               {contribution.updatedAt !== contribution.createdAt && (
                 <p className="text-[10px] text-muted-foreground font-bold">
-                  Updated{" "}
-                  {new Date(contribution.updatedAt).toLocaleDateString(
-                    "en-US",
-                    {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                      hour: "numeric",
-                      minute: "2-digit",
-                    },
-                  )}
+                  Updated {formatContributionTimestamp(contribution.updatedAt)}
                 </p>
               )}
             </div>

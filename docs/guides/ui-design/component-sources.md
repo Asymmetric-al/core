@@ -6,7 +6,6 @@ This document serves as the single source of truth for UI block references and i
 
 - **Shoogle**: [https://shoogle.dev](https://shoogle.dev) - shadcn blocks search.
 - **lucide-react**: [https://lucide.dev](https://lucide.dev) - Standard icon library.
-- **lucide-animated**: [https://github.com/StevenLeRoux/lucide-animated](https://github.com/StevenLeRoux/lucide-animated) - Animated Lucide icons.
 - **AppIcon Abstraction**: `src/components/ui/icons/AppIcon.tsx` - Our internal wrapper that supports standard Lucide icons and adds optional `animated` behavior via `motion`.
 
 ## Dashboard & Admin Patterns

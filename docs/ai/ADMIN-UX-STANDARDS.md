@@ -110,7 +110,7 @@ Use ONLY when users might:
 
 ### Page Structure
 
-Every page follows this rhythm via `PageShell`:
+Most module pages follow this rhythm via `PageShell`:
 
 ```
 ┌──────────────────────────────────┐
@@ -148,7 +148,7 @@ No `max-w-*` constraint — content fills the available width (sidebar constrain
 
 ## PageShell Component
 
-All module pages wrap in `PageShell` from `@asym/ui/components/shadcn/page-shell`.
+Most module pages wrap in `PageShell` from `@asym/ui/components/shadcn/page-shell`.
 
 ```tsx
 <PageShell
@@ -163,7 +163,7 @@ All module pages wrap in `PageShell` from `@asym/ui/components/shadcn/page-shell
 </PageShell>
 ```
 
-**Do NOT use**: manual headers, `<h1>` tags outside PageShell, the old `PageHeader` component, or the `badge` prop (deprecated).
+**Do NOT use**: manual headers, `<h1>` tags outside PageShell, the old `PageHeader` component, or the `badge` prop (deprecated), unless the page is explicitly listed in the exceptions section below.
 
 ---
 
@@ -297,6 +297,12 @@ export function getColumns({ onViewItem }) {
 }
 ```
 
+### Interaction Rules
+
+- Only enable row selection when there is a real bulk action behind it.
+- Keep row-level actions read-only until the matching write flow exists.
+- Do not ship placeholder table, floating-bar, or header actions that only log to the console.
+
 ---
 
 ## Detail Sheets
@@ -326,6 +332,11 @@ text-3xl font-black font-mono tabular-nums text-foreground tracking-tight
 ```
 rounded-xl font-bold uppercase tracking-widest text-[10px] h-9
 ```
+
+**Rules**:
+
+- Prefer one implemented utility action over several placeholder mutation buttons.
+- If the sheet is read-only, keep the action area read-only too (for example, copy/share actions only).
 
 ---
 
@@ -436,8 +447,8 @@ Offline:   #d4d4d8 (zinc-300)
 ## Icons
 
 - **Standard icons**: Import from `lucide-react`
-- **Animated icons**: `lucide-animated` installed for sidebar active states
-- **AppIcon wrapper**: Use `@asym/ui/components/shadcn/icons/AppIcon` for icons that need active animation
+- **Animated icons**: Use `AppIcon` for the active-route spring animation
+- **AppIcon wrapper**: `@asym/ui/components/shadcn/icons/AppIcon` wraps standard Lucide icons with a small `motion/react` animation when `animated` is true
 - Icon size in sidebar: `size-4` (16px) via shadcn default
 - Icon size in buttons: `size-4` (16px)
 - Icon size in stat cards: not used (numbers speak for themselves)
@@ -492,13 +503,14 @@ import { DollarSign, Users, ... } from "lucide-react";
 
 These pages use different layout paradigms and are excluded from the PageShell standard:
 
-| Page           | Reason                       |
-| -------------- | ---------------------------- |
-| Email Studio   | Full-screen Unlayer editor   |
-| PDF Studio     | Full-screen Unlayer editor   |
-| Web Studio     | Editor + preview rail layout |
-| Sign Studio    | TilePage-based layout        |
-| Login/Register | Auth flow                    |
+| Page           | Reason                                                   |
+| -------------- | -------------------------------------------------------- |
+| Dashboard      | Shared `DashboardHome` component from `@asym/missionary` |
+| Email Studio   | Full-screen Unlayer editor                               |
+| PDF Studio     | Full-screen Unlayer editor                               |
+| Web Studio     | Editor + preview rail layout                             |
+| Sign Studio    | TilePage-based layout                                    |
+| Login/Register | Auth flow                                                |
 
 ---
 

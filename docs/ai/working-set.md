@@ -1,22 +1,21 @@
 # Working Set
 
-- Date: 2026-02-22
+- Date: 2026-03-06
 - Repo: Asymmetric-al/core
-- Goal: Implement a hybrid Supabase CLI workflow (global-first + pinned fallback) and align setup/scripts/docs with secure contributor defaults.
-- Primary area: `scripts/supabase-cli.mjs`, `package.json`, `scripts/seed-demo.sh`, `scripts/setup/*`, `README.md`, `docs/ops/environments.md`, `docs/ai/rules/backend.md`
+- Goal: Simplify the admin contributions flow and shared admin UI surface by removing placeholder actions, collapsing repeated presentation rules, removing dead icon dependency/documentation, and restoring the shared dashboard entry point.
+- Primary area: `apps/admin/app/contributions/*`, `apps/admin/app/page.tsx`, `apps/admin/package.json`, `bun.lock`, `docs/ai/ADMIN-UX-STANDARDS.md`
 - Constraints:
-  - No hardcoded secrets.
-  - Keep Supabase auth client boundaries unchanged (`@supabase/ssr` server/client separation).
-  - Preserve migration safety for hosted flows (`SUPABASE_DB_URL`, URL targeting checks).
-  - Keep contributor setup non-blocking while improving reproducibility.
+  - Keep the contributions page read-only until real write flows exist.
+  - Avoid adding new abstraction beyond small feature-local helpers.
+  - Preserve existing Maia styling where it does not add coordination cost.
+  - Keep dashboard behavior shared instead of carrying separate admin-only mock implementations.
 - Evidence sources used:
-  - `package.json`
-  - `scripts/seed-demo.sh`
-  - `scripts/setup/index.sh`
-  - `scripts/setup.ps1`
-  - `scripts/setup/index.ps1`
-  - `README.md`
-  - `docs/ops/environments.md`
-  - `docs/ai/rules/backend.md`
+  - `apps/admin/app/contributions/page.tsx`
+  - `apps/admin/app/contributions/columns.tsx`
+  - `apps/admin/app/contributions/contribution-detail-sheet.tsx`
+  - `apps/admin/app/page.tsx`
+  - `packages/missionary/components/dashboard-home.tsx`
+  - `apps/admin/package.json`
+  - `docs/ai/ADMIN-UX-STANDARDS.md`
 - Tooling note:
-  - Repo uses Bun-first workflows; Supabase runner should work with/without globally installed `supabase` binary.
+  - Next.js 16 docs reviewed from `.next-docs/` before editing client components.
