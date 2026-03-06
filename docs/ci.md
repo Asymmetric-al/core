@@ -21,10 +21,10 @@ bun run ci:preflight
 
 `ci:preflight` runs the same gate order as `.github/workflows/ci.yml`:
 
-1. `format:check`
-2. `lint`
+1. `check`
+2. `verify:data-boundary`
 3. `verify:workspace-contract`
-4. `verify:eslint`
+4. `verify:lint-config`
 5. `typecheck`
 6. `build` (with CI-compatible env defaults for local parity)
 7. `test:unit`
@@ -47,9 +47,9 @@ This check runs unit tests and fails if blocked warning patterns are present in 
 
 ### `check`
 
-- _What it checks:_ Runs `bun run check` (incremental Ultracite Biome check scoped to changed files in the event range), then `bun run verify:workspace-contract`, then `bun run verify:lint-config`.
+- _What it checks:_ Runs `bun run check` (incremental Ultracite Biome check scoped to changed files in the event range), then `bun run verify:data-boundary`, then `bun run verify:workspace-contract`, then `bun run verify:lint-config`.
 - _Why it exists:_ Keeps code quality enforcement non-mutating and practical while legacy lint debt is burned down incrementally.
-- _Debug locally:_ Run each command individually: `bun run check`, `bun run verify:workspace-contract`, `bun run verify:lint-config`.
+- _Debug locally:_ Run each command individually: `bun run check`, `bun run verify:data-boundary`, `bun run verify:workspace-contract`, `bun run verify:lint-config`.
 
 ### `check-full` (non-blocking)
 

@@ -5,25 +5,25 @@ const CI_FALLBACK_SUPABASE_ANON_KEY = "ci-placeholder-anon-key";
 
 /**
  * Mirrors blocking GitHub CI checks:
- * format -> lint -> verify:workspace-contract -> verify:eslint
+ * check -> verify:data-boundary -> verify:workspace-contract -> verify:lint-config
  * -> typecheck -> build -> test-unit
  */
 const stages = [
   {
-    id: "format",
-    script: "format:check",
+    id: "check",
+    script: "check",
   },
   {
-    id: "lint",
-    script: "lint",
+    id: "verify-data-boundary",
+    script: "verify:data-boundary",
   },
   {
     id: "verify-workspace-contract",
     script: "verify:workspace-contract",
   },
   {
-    id: "verify-eslint",
-    script: "verify:eslint",
+    id: "verify-lint-config",
+    script: "verify:lint-config",
   },
   {
     id: "typecheck",

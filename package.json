@@ -31,6 +31,7 @@
     "lint:donor": "turbo run lint --filter=@asym/donor",
     "format": "ultracite fix",
     "format:check": "ultracite check",
+    "ci:preflight": "node scripts/verify/ci-preflight.mjs",
     "typecheck": "turbo run typecheck",
     "typecheck:admin": "turbo run typecheck --filter=@asym/admin",
     "typecheck:missionary": "turbo run typecheck --filter=@asym/missionary-app",

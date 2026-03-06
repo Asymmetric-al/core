@@ -19,7 +19,7 @@ Thanks for contributing to asymmetric.al. We welcome pull requests, bug reports,
 - **Run before pushing (recommended):**
   - `bun run ci:preflight`
 - **Local PR-readiness gate (matches blocking CI):**
-  - `bun run check && bun run typecheck && bun run build && bun run test:unit`
+  - `bun run check && bun run verify:data-boundary && bun run verify:workspace-contract && bun run verify:lint-config && bun run typecheck && bun run build && bun run test:unit`
 - **Optional full lint baseline visibility:**
   - `bun run check:full`
 - **Optional:** `bun run test:e2e` (non-blocking in CI; run when changes impact user flows).
