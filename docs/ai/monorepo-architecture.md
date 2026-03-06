@@ -26,7 +26,6 @@ The workspace contract is defined in `README.md` and enforced by `bun run verify
 |  |- missionary
 |  `- ui
 `- tooling/
-   |- eslint-config
    `- typescript-config
 ```
 
@@ -47,7 +46,6 @@ Examples:
 - `@asym/donor`
 - `@asym/missionary-app`
 - `@asym/ui`
-- `@asym/eslint-config`
 
 ## Dependency Protocol
 
@@ -108,7 +106,6 @@ Quick rules:
 
 ### Tooling
 
-- `tooling/eslint-config` -> `@asym/eslint-config`
 - `tooling/typescript-config` -> `@asym/typescript-config`
 
 ## Adding New Workspaces
@@ -130,7 +127,7 @@ Minimal app `package.json`:
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "lint": "eslint .",
+    "lint": "bunx ultracite check .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

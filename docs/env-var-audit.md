@@ -46,7 +46,7 @@
 
 - All 5 jobs inject `TURBO_TOKEN` (GitHub secret) and `TURBO_TEAM` (GitHub variable) for Turborepo remote cache.
 - The `build` job additionally injects `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` from GitHub secrets, plus `SKIP_ENV_VALIDATION=1`; this prevents `@asym/env` (`packages/env/src/schema.ts:L89`) from throwing when Supabase values are empty on fork PRs.
-- The `lint` job also runs `bun run verify:workspace-contract` and `bun run verify:eslint`.
+- The `check` job also runs `bun run verify:workspace-contract` and `bun run verify:lint-config`.
 
 ### `ci-integration.yml` - Integration (3 jobs)
 

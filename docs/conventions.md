@@ -8,7 +8,7 @@
 | `scripts/`  | Automation and local verification helpers.                  | `scripts/seed-demo.sh`                                     |
 | `supabase/` | SQL migrations, schema, and seed data.                      | `supabase/migrations/20260216153000_demo_readonly_rls.sql` |
 | `tests/`    | End-to-end and integration test suites.                     | `tests/e2e/auth.spec.ts`                                   |
-| `tooling/`  | Lint/build/typecheck configuration packages.                | `tooling/eslint-config/library.mjs`                        |
+| `tooling/`  | Shared TypeScript/build tooling configuration packages.      | `tooling/typescript-config/base.json`                      |
 | `public/`   | Static assets served by Next.js apps.                       | `public/favicon.ico`                                       |
 | `src/`      | App/package source code when a project uses a `src` layout. | `apps/web/src/lib/utils.ts`                                |
 

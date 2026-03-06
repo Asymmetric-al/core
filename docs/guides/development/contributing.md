@@ -229,7 +229,7 @@ Run the following after changes to confirm caching is correct:
 | Change a source file                                                    | `bunx turbo run build`                        | Cache miss for `build`          | Task re-executes              |
 | Change a relevant env var                                               | `bunx turbo run build`                        | Cache miss for `build`          | Env invalidates hash          |
 | Change an irrelevant env var                                            | `bunx turbo run build`                        | Cache hit for `build`           | Task skipped, cache hit shown |
-| Change config (`next.config.mjs`, `tsconfig.json`, `eslint.config.mjs`) | `bunx turbo run build` / `lint` / `typecheck` | Cache miss for affected task(s) | Cache miss shown in output    |
+| Change config (`next.config.mjs`, `tsconfig.json`, `biome.jsonc`) | `bunx turbo run build` / `lint` / `typecheck` | Cache miss for affected task(s) | Cache miss shown in output    |
 
 ## File Organization
 

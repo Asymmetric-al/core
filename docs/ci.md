@@ -17,9 +17,9 @@ All fast-check jobs are **required** status checks. `test-e2e` is **informationa
 
 ### `check`
 
-- _What it checks:_ Runs `bun run check` (Ultracite Option A: ESLint + Prettier + Stylelint), then `bun run verify:workspace-contract`, then `bun run verify:eslint`.
+- _What it checks:_ Runs `bun run check` (Ultracite Biome provider), then `bun run verify:workspace-contract`, then `bun run verify:lint-config`.
 - _Why it exists:_ Keeps code quality enforcement in one non-mutating gate and avoids formatter/linter drift.
-- _Debug locally:_ Run each command individually: `bun run check`, `bun run verify:workspace-contract`, `bun run verify:eslint`.
+- _Debug locally:_ Run each command individually: `bun run check`, `bun run verify:workspace-contract`, `bun run verify:lint-config`.
 
 ### `typecheck` (needs: `check`)
 

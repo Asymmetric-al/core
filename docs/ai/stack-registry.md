@@ -24,12 +24,12 @@ Nia keywords:
 ## Monorepo and Tooling
 
 - Turborepo
-- ESLint, Prettier
+- Ultracite, Biome
 
 Nia keywords:
 
 - turbo.json, pipelines, cache
-- eslint, prettier
+- ultracite, biome
 
 ## UI and Frontend Standards
 

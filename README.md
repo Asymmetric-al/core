@@ -217,7 +217,7 @@ Verify command behavior:
 
 ### Linting and formatting
 
-Code quality is managed at the root with Ultracite Option A (ESLint + Prettier + Stylelint).
+Code quality is managed at the root with Ultracite's Biome provider.
 
 Canonical quality entrypoint:
 
@@ -231,11 +231,10 @@ Auto-fix entrypoint:
 bun run fix
 ```
 
-Architecture boundaries are enforced with `no-restricted-imports` so apps do not import from other apps directly.
+Architecture boundaries are enforced with Biome's `noRestrictedImports` rule so apps do not import from other apps directly.
 Shared code should be moved into `@asym/*` packages.
 
-For full config details, migration notes, and the pragmatic exception policy, see:
-`tooling/eslint-config/README.md`.
+Linting and formatting configuration lives in `biome.jsonc`.
 
 ### How to add a new app
 
@@ -254,7 +253,7 @@ Minimal app `package.json` example:
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "lint": "eslint .",
+    "lint": "bunx ultracite check .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

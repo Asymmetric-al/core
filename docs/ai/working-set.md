@@ -1,28 +1,29 @@
 # Working Set
 
-- Date: 2026-02-25
+- Date: 2026-03-06
 - Repo: Asymmetric-al/core
-- Goal: Land Ultracite Option A (ESLint + Prettier + Stylelint) at monorepo root with Bun/Turbo/Husky/CI integration, plus Ultracite Cloud documentation and Ultracite agent skill onboarding.
+- Goal: Rework the lint stack to Ultracite Biome provider across root/workspaces/CI while preserving Bun + Turbo + Husky + Cursor workflows.
 - Primary area:
   - `package.json`
-  - `eslint.config.mjs`, `prettier.config.mjs`, `stylelint.config.mjs`, `.stylelintignore`
+  - `biome.jsonc`
+  - `scripts/verify-lint-config.mjs`
   - `.husky/pre-commit`
   - `turbo.json`
   - `.github/workflows/ci.yml`
-  - `CONTRIBUTING.md`, `README.md`, `docs/ci.md`
-  - `.cursor/rules/ultracite.mdc`, `.cursor/hooks.json`
-  - `.agents/skills/ultracite/*`, `.cursor/skills/ultracite/*`
-  - `AGENTS.md`
+  - `README.md`, `CONTRIBUTING.md`, `docs/ci.md`, `docs/env-var-audit.md`
+  - `apps/*/package.json`, `packages/*/package.json`
+  - `.cursor/rules/ultracite.mdc`, `.cursor/hooks.json`, `.cursor/mcp.json`, `.vscode/settings.json`
 - Constraints:
-  - No repo-wide reformat in initial rollout PR.
+  - No repo-wide auto-fix/reformat in this migration PR.
   - Keep hooks staged-only and fast.
   - Keep CI non-mutating (`check`, not `fix`).
   - Keep changes Bun-first.
-  - Next.js is v16; do not rely on removed `next lint` / `next.config.eslint` behavior.
+  - Next.js is v16; `next lint`/`next.config.eslint` are removed and `next build` does not lint.
 - Evidence sources used:
-  - `.next-docs/01-app/03-api-reference/05-config/03-eslint.mdx`
   - `.next-docs/01-app/02-guides/upgrading/version-16.mdx`
+  - `.next-docs/01-app/03-api-reference/05-config/03-eslint.mdx`
+  - `node_modules/ultracite/config/biome/{core,react,next}/biome.jsonc`
   - `package.json`, `turbo.json`, `.husky/pre-commit`, `.github/workflows/ci.yml`
   - Ultracite CLI/runtime inspection (`bunx ultracite ...`)
 - Tooling note:
-  - Nia MCP tools are not available in this session; fallback is repo-scoped `rg` + direct file reads.
+  - Nia scoped query used; fallback remains repo-scoped `rg` + direct file reads where results are incomplete/time out.

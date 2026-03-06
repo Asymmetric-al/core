@@ -152,7 +152,6 @@ core/
 │   └── email/                # @asym/email - Email services
 │
 ├── tooling/                  # Build tooling
-│   ├── eslint-config/       # Shared ESLint config
 │   └── typescript-config/   # Shared TypeScript config
 │
 ├── turbo.json                # Turborepo configuration
