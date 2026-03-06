@@ -102,9 +102,9 @@ core/
 ├── apps/                       # Next.js applications
 │   ├── admin/                 # Mission Control (admin dashboard)
 │   │   ├── app/              # Next.js App Router
-│   │   │   ├── (admin)/mc/  # Admin routes
-│   │   │   ├── api/         # API routes
-│   │   │   └── auth/        # Auth callbacks
+│   │   │   ├── admin/       # Embedded Payload admin surface
+│   │   │   ├── system-admin/ # System administration routes
+│   │   │   └── api/         # API routes
 │   │   ├── components/       # App-specific components
 │   │   ├── features/         # App-specific features
 │   │   ├── lib/              # App-specific utilities
@@ -223,8 +223,8 @@ import { DashboardLayout } from "@/components/layouts";
 ### 4. Page Structure
 
 ```typescript
-// apps/admin/app/(admin)/mc/my-page/page.tsx
-import { PageHeader, TilePage } from '@/features/mission-control'
+// apps/admin/app/reports/page.tsx
+import { TilePage } from '@/features/mission-control'
 import { Card, CardContent, CardHeader, CardTitle } from '@asym/ui'
 
 export default function MyPage() {
@@ -274,22 +274,22 @@ Decide which app the page belongs to:
 
 ```bash
 # For Mission Control (admin app)
-mkdir -p apps/admin/app/\(admin\)/mc/my-page
-touch apps/admin/app/\(admin\)/mc/my-page/page.tsx
+mkdir -p apps/admin/app/my-page
+touch apps/admin/app/my-page/page.tsx
 
 # For Missionary Dashboard
 mkdir -p apps/missionary/app/my-page
 touch apps/missionary/app/my-page/page.tsx
 
-# For Donor Portal
-mkdir -p apps/donor/app/\(donor\)/donor-dashboard/my-page
-touch apps/donor/app/\(donor\)/donor-dashboard/my-page/page.tsx
+# For Donor Portal (authenticated dashboard)
+mkdir -p apps/donor/app/\(dashboard\)/donor-dashboard/my-page
+touch apps/donor/app/\(dashboard\)/donor-dashboard/my-page/page.tsx
 ```
 
 ### Step 3: Add the basic structure
 
 ```typescript
-// apps/admin/app/(admin)/mc/my-page/page.tsx
+// apps/admin/app/my-page/page.tsx
 import { TilePage } from '@/features/mission-control'
 import { Card, CardContent, CardHeader, CardTitle } from '@asym/ui'
 
@@ -316,11 +316,11 @@ export default function MyPage() {
 
 ### Step 4: Add navigation (if needed)
 
-Edit the appropriate navigation file:
+Edit the appropriate navigation shell for the app you are touching:
 
 - **Admin:** `apps/admin/features/mission-control/components/app-shell/sidebar-nav.tsx`
-- **Missionary:** `apps/missionary/features/missionary/components/app-shell/sidebar-nav.tsx`
-- **Donor:** `apps/donor/features/donor/components/app-shell/sidebar-nav.tsx`
+- **Missionary:** `apps/missionary/components/app-sidebar.tsx`
+- **Donor:** `apps/donor/features/donor/components/DonorSubNav.tsx`
 
 ## Adding a New Component
 

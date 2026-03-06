@@ -1,51 +1,53 @@
 # Working Set
 
-- Date: 2026-02-23
+- Date: 2026-03-06
 - Repo: Asymmetric-al/core
 
 ## Current Goal (single source of truth)
 
-Resolve `origin/epic` merge conflicts cleanly with two intent-first outcomes:
-1. Adopt a hybrid E2E strategy (fast core suite + dedicated CMS/admin suite).
-2. Normalize `docs/ai/working-set.md` into a canonical "current truth" format that reduces future conflict churn.
+Review PR `#71` as documentation automation and correct docs that drifted from the merged Site Studio, authz, and CI implementation.
 
 ## Current Scope
 
-- `playwright.config.ts`
-- `tests/e2e/*` (CMS tagging + suite boundaries)
-- `package.json` (E2E script split)
-- `.github/workflows/ci-integration.yml` (run both suites)
-- `README.md` + `docs/ci.md` (workflow and command docs)
-- `docs/ai/working-set.md` (canonical structure)
+- `README.md`
+- `docs/ci.md`
+- `docs/guides/features/teams-and-permissions.md`
+- `.github/workflows/ci.yml`
+- `.github/workflows/ci-integration.yml`
+- `apps/admin/app/system-admin/page.tsx`
+- `apps/admin/app/system-admin/teams/page.tsx`
+- `apps/admin/app/admin/teams/teams-sections.tsx`
+- `apps/admin/app/web-studio/page.tsx`
+- `packages/auth/permissions.ts`
 
 ## Constraints
 
-- Keep deterministic CI-equivalent behavior for default local/CI scripts.
-- Keep strict modes available for real-environment validation.
-- Maintain test stability (no hidden dependencies between donor-only and CMS/admin paths).
-- Keep manual/video tour tests out of default blocking E2E runs.
-- Avoid destructive rewrites outside merge-conflict scope.
+- Do not fabricate workflow behavior; only document what current YAML and code enforce.
+- Keep doc changes focused on recently changed subsystems with active drift.
+- Prefer updating existing docs instead of adding new pages.
+- Keep stakeholder-facing language clear without removing technical precision.
 
 ## Open Decisions
 
-- Should CMS E2E remain non-blocking long term, or become required after flake budget is reduced?
-- Should `@cms` tagging expand to additional integration specs as Site Studio coverage grows?
+- Which stale developer guides outside this PR should be modernized next (`getting-started`, architecture overviews, UI inventories)?
 
 ## Recent Completed Streams (summary only)
 
 - 2026-02-26: Authz membership/RLS foundation landed (`authz.memberships`, role helpers, middleware/context integration, docs).
-- 2026-02-22: Supabase CLI hybrid workflow landed (global-first with pinned fallback, hosted migration safety).
 - 2026-02-23: Site Studio/Payload integration and quality gates expanded across CI + docs + tests.
 
 ## Evidence Sources Used
 
-- `playwright.config.ts`
-- `tests/e2e/cms-*.spec.ts`
-- `tests/e2e/usability-smoke.spec.ts`
-- `package.json`
-- `.github/workflows/ci-integration.yml`
-- `docs/ci.md`
 - `README.md`
+- `docs/ci.md`
+- `docs/guides/features/teams-and-permissions.md`
+- `.github/workflows/ci.yml`
+- `.github/workflows/ci-integration.yml`
+- `apps/admin/app/system-admin/page.tsx`
+- `apps/admin/app/system-admin/teams/page.tsx`
+- `apps/admin/app/admin/teams/teams-sections.tsx`
+- `apps/admin/app/web-studio/page.tsx`
+- `packages/auth/permissions.ts`
 
 ## Tooling Note
 

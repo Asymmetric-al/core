@@ -64,7 +64,9 @@ Invoke-ScriptAnalyzer -Path .\scripts\setup.ps1, .\scripts\lib\*.ps1
 
 Mission Control now includes an embedded Site Studio powered by Payload:
 
-- Admin UI route: `apps/admin` -> `/admin`
+- Mission Control shell route: `apps/admin` -> `/`
+- Embedded Payload admin route: `apps/admin` -> `/admin`
+- Shortcut route: `/web-studio` redirects to `/admin`
 - Tenant-aware public content endpoints: `/api/cms/public/*`
 - Donor app fallback rendering for CMS-authored public pages
 - CMS storage schema: Postgres `cms`
@@ -118,13 +120,17 @@ In a live production environment, the platform uses dynamic routing based on hos
 | **Missionaries/Field Workers** | `my.tenanturl.org`           | Dedicated subdomain for field workers to manage their support and donors. |
 | **Donors/Partners**            | `tenanturl.org/givingportal` | Portal for donors to manage their contributions and pledges.              |
 
-### Demo Site Accessibility
+### Current local/dev routing
 
-For this demonstration and development environment, we have implemented aliases to allow easy access to all modules from a single domain:
+In the current repo, each Next.js app runs on its own dev port. Use these URLs when validating behavior locally:
 
-- **Mission Control (Admin)**: Accessible via [/admin](/admin) (mapped to `/mc`)
-- **Missionary Dashboard**: Accessible via [/my](/my) (mapped to `/`)
-- **Donor Portal**: Accessible via [/dashboard](/dashboard) (mapped to `/donor-dashboard`)
+| App                                      | Dev server              | Current app-owned routes                                                                                      |
+| :--------------------------------------- | :---------------------- | :------------------------------------------------------------------------------------------------------------ |
+| Mission Control (`apps/admin`)           | `http://127.0.0.1:3030` | `/` for the Mission Control shell, `/system-admin/*` for system administration, `/admin` for embedded Payload |
+| Donor portal (`apps/donor`)              | `http://127.0.0.1:3000` | `/` for public pages, `/donor-dashboard/*` for authenticated donor flows                                      |
+| Missionary dashboard (`apps/missionary`) | `http://127.0.0.1:4000` | `/` for the authenticated dashboard and top-level feature routes such as `/feed`, `/tasks`, `/analytics`      |
+
+The host-based production model above is still the long-term architecture, but local development currently uses these explicit ports and paths.
 
 ### Implementation Details
 
@@ -138,7 +144,9 @@ For this demonstration and development environment, we have implemented aliases 
 
 The administrative headquarters for organization leaders. Manage CRM, Contributions, Member Care, and Mobilization with advanced reporting and automation tools.
 
-- Route: `/mc`
+- App root: `/`
+- Embedded Site Studio: `/admin`
+- System administration: `/system-admin`
 
 ### Missionary Dashboard
 
@@ -149,7 +157,7 @@ Empowering field missionaries with donor engagement tools, task management, and 
   - **Premium Style**: Features a high-end "Maia" aesthetic with animated micro-interactions. Clicking a reaction triggers a delightful burst of floating emoji particles (❤️, 🙏, 🔥) and visceral pulsing effects.
   - **Workflow**: Missionaries can save drafts, manage visibility (Public vs Partners Only), and handle follower requests with manual or automated approval levels.
   - **Media Management**: Integrated media toolbar allows for quick image uploads and carousel creation to make updates visually engaging.
-- Route: `/`
+- App root: `/`
 
 ### Donor Portal
 
@@ -160,7 +168,8 @@ A seamless experience for kingdom partners to manage their giving and follow mis
   - **Automatic Integration**: When a donor makes a contribution to a missionary or clicks "Follow" on their profile, that missionary's feed is automatically integrated into the donor's personalized dashboard.
   - **Real-Time Updates**: Donors receive instant access to stories, prayer requests, and progress reports, allowing them to see exactly how their partnership is making a difference.
   - **Two-Way Interaction**: Donors can respond with reactions and comments, fostering a genuine relationship between the field and the support base.
-- Route: `/donor-portal`
+- Public site root: `/`
+- Authenticated dashboard: `/donor-dashboard`
 
 ## Development
 

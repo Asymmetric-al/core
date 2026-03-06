@@ -2,14 +2,19 @@
 
 ## Overview
 
-Two workflow files run on every PR to `develop` and `main`, and on every push to `main`:
+CI is split across two workflow files, and they do **not** run on exactly the same branches:
 
-| Workflow    | File                                   | Jobs                                                            | Target time               |
-| ----------- | -------------------------------------- | --------------------------------------------------------------- | ------------------------- |
-| Fast checks | `.github/workflows/ci.yml`             | `format → lint → typecheck → build → test-unit → test-unit-cms` | < 4 min with remote cache |
-| Integration | `.github/workflows/ci-integration.yml` | `migrate → smoke → test-e2e`                                    | ~5 min                    |
+| Workflow          | File                                   | Branches                                  | Jobs                                                            | Target time               |
+| ----------------- | -------------------------------------- | ----------------------------------------- | --------------------------------------------------------------- | ------------------------- |
+| Fast checks       | `.github/workflows/ci.yml`             | PRs + pushes on `develop`, `main`, `epic` | `format → lint → typecheck → build → test-unit → test-unit-cms` | < 4 min with remote cache |
+| Integration + E2E | `.github/workflows/ci-integration.yml` | PRs + pushes on `develop`, `main`         | `migrate → smoke → test-e2e`                                    | ~5 min                    |
 
-All fast-check jobs are **required** status checks. `test-e2e` is **informational only** (non-blocking).
+Current workflow semantics:
+
+- `ci.yml` is the always-on fast gate for the active long-lived branches (`develop`, `main`, `epic`).
+- `ci-integration.yml` is intentionally skipped for `epic`.
+- `test-e2e` is **informational on `develop`** (`continue-on-error: true` there).
+- `test-e2e` is **enforced on `main`** through the workflow's `e2e-gate`.
 
 ---
 
@@ -68,20 +73,24 @@ All fast-check jobs are **required** status checks. `test-e2e` is **informationa
 - _Why it matters:_ Verifies the app boots without a crash — catches missing imports, broken middleware, and startup-time errors that build alone cannot catch.
 - _Debug locally:_ Run `bun run test:e2e` (default CI-equivalent env) or `bun run dev:donor` with real `.env.local` values, then `curl http://localhost:3005/api/health`. Expect `{"status":"ok","checks":{"supabase":"ok"}}`.
 
-### `test-e2e` (needs: `smoke`, `continue-on-error: true`)
+### `test-e2e` (needs: `smoke`)
 
 - _What it does:_ Re-applies SQL migrations against a fresh Postgres container, runs Payload migrations + status checks, then applies seed data, starts `apps/donor` on port 3005, enables deterministic test auth mode (`E2E_AUTH_BYPASS=true`) for Playwright web servers, executes demo-auth preflight (`bun run test:e2e:auth-preflight`), then runs two suites:
   1. `bun run test:e2e --project=chromium` (core donor suite, excludes `@cms`, `@perf`, `@manual`)
   2. `bun run test:e2e:cms --project=chromium` (CMS/admin suite tagged `@cms`, excludes `@manual`)
      Uploads `playwright-report/` as an artifact on failure (retained 7 days).
-- _Why it's non-blocking:_ The E2E suite is still growing. Failures are surfaced as informational signals without blocking merges. See branch protection section below.
+- _Branch behavior:_ On `develop`, this job is informational (`continue-on-error: true`). On `main`, it is enforced by the workflow's `e2e-gate`. This workflow does not run on `epic`.
 - _Debug locally:_ Run `bun run test:e2e:auth-preflight` first, then `bun run test:e2e` (core suite), `bun run test:e2e:cms` (CMS/admin suite), `bun run test:e2e:strict` (core strict env), `bun run test:e2e:cms:strict` (CMS strict env), `bun run test:perf` (perf-only suites), or `bun run test:e2e --project=chromium` (Chromium only). Use `bun run test:e2e:ui` for interactive debugging.
 
 ---
 
 ## Branch protection
 
-**Required checks (must pass to merge):**
+The workflow files are the source of truth for execution. Branch protection should mirror the behavior you want to enforce in GitHub.
+
+### Recommended baseline checks
+
+These are the fast checks that match the repository's default "must stay green" contract:
 
 - `CI / format`
 - `CI / lint`
@@ -90,17 +99,20 @@ All fast-check jobs are **required** status checks. `test-e2e` is **informationa
 - `CI / test-unit`
 - `CI / test-unit-cms`
 
-**Informational only (not required):**
+### Integration checks by branch
 
-- `CI / test-e2e` — non-blocking; failures are visible but do not block merge.
+- `develop`: `CI Integration / migrate` and `CI Integration / smoke` run; `CI Integration / test-e2e` is visible but intentionally non-blocking.
+- `main`: `CI Integration / migrate`, `CI Integration / smoke`, and the workflow's `CI Integration / e2e-gate` represent the enforced path.
+- `epic`: only `ci.yml` runs; `ci-integration.yml` does not trigger.
 
-**How to configure in GitHub:**
+### GitHub branch rule guidance
 
 1. Go to _Settings → Branches → Branch protection rules_.
-2. Add a rule for `main` (and optionally `develop`).
+2. Add a rule for each protected branch you care about (`main`, `develop`, and optionally `epic` if you want fast checks enforced there too).
 3. Enable **Require status checks to pass before merging**.
-4. Search for and add each of the six required checks listed above.
-5. Do **not** add `CI / test-e2e` as a required check.
+4. Add the six fast checks listed above everywhere.
+5. For `main`, also consider requiring the integration workflow's gate job so E2E failures cannot be ignored.
+6. For `develop`, leave `CI Integration / test-e2e` optional if you want the current "signal, not blocker" behavior to remain intact.
 
 ---
 
