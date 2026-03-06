@@ -2,25 +2,22 @@
 
 - Date: 2026-03-06
 - Repo: Asymmetric-al/core
-- Goal: Add the upstream Unlayer skill family as repo-local canonical + runtime-ready skills, while preserving the existing Supabase upstream skill without duplication.
-- Primary area: `docs/ai/skills/unlayer*`, `AGENTS.md`, `scripts/sync-agent-skills.mjs`, `README.md`, `.agents/skills/*`, `.cursor/skills/*`
+- Goal: Add missing regression coverage for the Unlayer skill sync integration by testing `scripts/sync-agent-skills.mjs`.
+- Primary area: `scripts/sync-agent-skills.mjs`, `tests/unit/**/*.test.ts`, `docs/ai/skills/unlayer*`, `.agents/skills/*`, `.cursor/skills/*`
 - Constraints:
-  - No hardcoded secrets, project IDs, API keys, or environment-specific identifiers.
-  - Keep `docs/ai/skills/*` as the canonical source of truth.
-  - Keep runtime mirrors in `.agents/skills/*` and `.cursor/skills/*`.
-  - Adapt Unlayer guidance to the repo’s shared editor wrapper and existing Email/PDF Studio surfaces.
-  - Do not duplicate `supabase-postgres-best-practices`; verify and preserve the existing integration.
+  - Keep changes minimal and test-focused.
+  - Do not change runtime behavior except for a tiny testability refactor if needed.
+  - Keep tests deterministic and filesystem-local; avoid network or external services.
+  - Preserve the CLI behavior of `bun run skills:sync`.
 - Evidence sources used:
-  - `AGENTS.md`
-  - `README.md`
   - `scripts/sync-agent-skills.mjs`
-  - `packages/ui/components/studio/UnlayerEditor.tsx`
-  - `apps/admin/app/email/page.tsx`
-  - `apps/admin/app/pdf/page.tsx`
-  - `packages/config/email-studio.ts`
-  - `packages/config/pdf-studio.ts`
-  - `packages/env/src/schema.ts`
-  - `.env.example`
-  - upstream repos: `unlayer/unlayer-skills`, `supabase/agent-skills`
+  - `package.json`
+  - `tests/unit/utils.test.ts`
+  - `docs/ai/rules/testing.md`
+  - PR diff `8f2a6aa28da606af73c0cea252c60fdbdfdead88...0533ac70932904b2628897d34718289a1ab4c96a`
+- Risk under test:
+  - New Unlayer canonical skills may stop syncing into `.agents/skills` and `.cursor/skills`.
+  - Runtime-only assets in mirrored skill directories may be overwritten or dropped.
+  - Invalid `.agents/skills/*` directories without `SKILL.md` may be mirrored accidentally.
 - Tooling note:
-  - Use `bun run skills:sync` after canonical skill changes to refresh runtime mirrors.
+  - Run targeted Vitest coverage first, then broader unit validation.

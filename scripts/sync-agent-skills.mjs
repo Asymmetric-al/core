@@ -14,7 +14,7 @@ const targetRoots = [
   path.join(repoRoot, ".cursor", "skills"),
 ];
 
-const skillsToSync = [
+export const skillsToSync = [
   "supabase-postgres-best-practices",
   "nextjs-supabase-auth",
   "moai-library-shadcn",
@@ -26,7 +26,20 @@ const skillsToSync = [
   "unlayer-config",
 ];
 
-async function overlayDirectory(sourceDir, targetDir) {
+function createPaths(baseRepoRoot) {
+  return {
+    repoRoot: baseRepoRoot,
+    sourceRoot: path.join(baseRepoRoot, "docs", "ai", "skills"),
+    targetRoots: [
+      path.join(baseRepoRoot, ".agents", "skills"),
+      path.join(baseRepoRoot, ".cursor", "skills"),
+    ],
+    agentSkillsRoot: path.join(baseRepoRoot, ".agents", "skills"),
+    cursorSkillsRoot: path.join(baseRepoRoot, ".cursor", "skills"),
+  };
+}
+
+export async function overlayDirectory(sourceDir, targetDir) {
   await mkdir(targetDir, { recursive: true });
   const sourceEntries = await readdir(sourceDir, { withFileTypes: true });
   for (const entry of sourceEntries) {
@@ -39,7 +52,11 @@ async function overlayDirectory(sourceDir, targetDir) {
   }
 }
 
-async function syncCanonicalSkill(skillName) {
+export async function syncCanonicalSkill(
+  skillName,
+  { repoRoot: configuredRepoRoot = repoRoot } = {},
+) {
+  const { sourceRoot, targetRoots } = createPaths(configuredRepoRoot);
   const sourceDir = path.join(sourceRoot, skillName);
   for (const targetRoot of targetRoots) {
     const targetDir = path.join(targetRoot, skillName);
@@ -48,13 +65,19 @@ async function syncCanonicalSkill(skillName) {
     // Non-destructive sync: overlay canonical files while preserving
     // additional runtime-only assets already present in target skills.
     await overlayDirectory(sourceDir, targetDir);
-    console.log(`synced ${skillName} -> ${path.relative(repoRoot, targetDir)}`);
+    console.log(
+      `synced ${skillName} -> ${path.relative(configuredRepoRoot, targetDir)}`,
+    );
   }
 }
 
-async function mirrorAgentSkillToCursor(skillName) {
-  const sourceDir = path.join(repoRoot, ".agents", "skills", skillName);
-  const targetDir = path.join(repoRoot, ".cursor", "skills", skillName);
+export async function mirrorAgentSkillToCursor(
+  skillName,
+  { repoRoot: configuredRepoRoot = repoRoot } = {},
+) {
+  const { agentSkillsRoot, cursorSkillsRoot } = createPaths(configuredRepoRoot);
+  const sourceDir = path.join(agentSkillsRoot, skillName);
+  const targetDir = path.join(cursorSkillsRoot, skillName);
 
   try {
     // If the source directory already resolves to the cursor path (junction/symlink),
@@ -76,7 +99,7 @@ async function mirrorAgentSkillToCursor(skillName) {
   try {
     await overlayDirectory(sourceDir, targetDir);
     console.log(
-      `mirrored ${skillName} -> ${path.relative(repoRoot, targetDir)}`,
+      `mirrored ${skillName} -> ${path.relative(configuredRepoRoot, targetDir)}`,
     );
   } catch (error) {
     const errorCode =
@@ -103,8 +126,10 @@ async function mirrorAgentSkillToCursor(skillName) {
   }
 }
 
-async function listAgentSkillsForMirror() {
-  const agentSkillsRoot = path.join(repoRoot, ".agents", "skills");
+export async function listAgentSkillsForMirror({
+  repoRoot: configuredRepoRoot = repoRoot,
+} = {}) {
+  const { agentSkillsRoot } = createPaths(configuredRepoRoot);
   const entries = await readdir(agentSkillsRoot, { withFileTypes: true });
   const skillNames = [];
 
@@ -124,21 +149,32 @@ async function listAgentSkillsForMirror() {
   return skillNames.sort();
 }
 
-async function main() {
-  for (const skillName of skillsToSync) {
-    await syncCanonicalSkill(skillName);
+export async function runSkillSync({
+  repoRoot: configuredRepoRoot = repoRoot,
+  skillsToSync: configuredSkillsToSync = skillsToSync,
+} = {}) {
+  for (const skillName of configuredSkillsToSync) {
+    await syncCanonicalSkill(skillName, { repoRoot: configuredRepoRoot });
   }
 
-  const agentToCursorMirrorSkills = await listAgentSkillsForMirror();
+  const agentToCursorMirrorSkills = await listAgentSkillsForMirror({
+    repoRoot: configuredRepoRoot,
+  });
 
   for (const skillName of agentToCursorMirrorSkills) {
-    await mirrorAgentSkillToCursor(skillName);
+    await mirrorAgentSkillToCursor(skillName, { repoRoot: configuredRepoRoot });
   }
   console.log("agent skill sync complete");
 }
 
-main().catch((error) => {
-  console.error("agent skill sync failed");
-  console.error(error);
-  process.exit(1);
-});
+async function main() {
+  await runSkillSync();
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === __filename) {
+  main().catch((error) => {
+    console.error("agent skill sync failed");
+    console.error(error);
+    process.exit(1);
+  });
+}
