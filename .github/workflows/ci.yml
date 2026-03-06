@@ -28,7 +28,7 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run check
       - run: bun run verify:workspace-contract
-      - run: bun run verify:eslint
+      - run: bun run verify:lint-config
 
   typecheck:
     runs-on: ubuntu-latest
