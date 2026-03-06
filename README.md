@@ -225,6 +225,12 @@ Canonical quality entrypoint:
 bun run check
 ```
 
+Full baseline scan (non-blocking visibility in CI):
+
+```bash
+bun run check:full
+```
+
 Auto-fix entrypoint:
 
 ```bash
@@ -253,7 +259,8 @@ Minimal app `package.json` example:
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "lint": "bunx ultracite check .",
+    "lint": "node ../../scripts/check-changed-files.mjs",
+    "lint:full": "bunx ultracite check .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -290,6 +297,7 @@ Minimal package `package.json` example:
 Common commands:
 
 - `bun run fix`, `bun run check`, and `bun run typecheck`
+- `bun run check:full` for full-repo Biome baseline visibility
 - `bun run build`, `bun run test:unit`, `bun run test:e2e`
 - PR-readiness (matches blocking CI): `bun run check && bun run typecheck && bun run build && bun run test:unit`
 
@@ -319,7 +327,7 @@ Use Turbo for consistent task execution (and caching where applicable):
 
 - Local dev: `bunx turbo run dev`
 - Cached checks: `bunx turbo run check typecheck build`
-- Formatting and lint fixes: `bun run fix` (auto-fix) / `bun run check` (verify)
+- Formatting and lint fixes: `bun run fix` (auto-fix) / `bun run check` (incremental verify) / `bun run check:full` (full baseline verify)
 - Internal package `build` tasks are source-first validation (`tsc --noEmit`) so packages participate in the Turbo graph without forcing a `dist`-first workflow.
 
 Remote caching (Vercel Remote Cache) is enabled for internal PRs and protected branch CI (fork PRs do not have access to the required secrets/vars).
@@ -347,6 +355,9 @@ bun run fix
 
 # PR-readiness (matches blocking CI)
 bun run check && bun run typecheck && bun run build && bun run test:unit
+
+# Optional full baseline lint visibility (non-blocking in CI)
+bun run check:full
 
 # Optional (non-blocking in CI, but recommended for flow changes)
 bun run test:e2e

@@ -40,7 +40,8 @@
   },
   "scripts": {
     "build": "tsc --noEmit",
-    "lint": "bunx ultracite check .",
+    "lint": "node ../../scripts/check-changed-files.mjs",
+    "lint:full": "bunx ultracite check .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

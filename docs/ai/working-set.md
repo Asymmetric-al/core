@@ -2,11 +2,12 @@
 
 - Date: 2026-03-06
 - Repo: Asymmetric-al/core
-- Goal: Rework the lint stack to Ultracite Biome provider across root/workspaces/CI while preserving Bun + Turbo + Husky + Cursor workflows.
+- Goal: Rework the lint stack to Ultracite Biome provider and add incremental lint gating for Turborepo CI while preserving Bun + Turbo + Husky + Cursor workflows.
 - Primary area:
   - `package.json`
   - `biome.jsonc`
   - `scripts/verify-lint-config.mjs`
+  - `scripts/check-changed-files.mjs`
   - `.husky/pre-commit`
   - `turbo.json`
   - `.github/workflows/ci.yml`
@@ -16,7 +17,7 @@
 - Constraints:
   - No repo-wide auto-fix/reformat in this migration PR.
   - Keep hooks staged-only and fast.
-  - Keep CI non-mutating (`check`, not `fix`).
+  - Keep CI non-mutating (`check`, not `fix`) and use non-blocking full baseline visibility.
   - Keep changes Bun-first.
   - Next.js is v16; `next lint`/`next.config.eslint` are removed and `next build` does not lint.
 - Evidence sources used:

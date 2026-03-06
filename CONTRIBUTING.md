@@ -17,12 +17,15 @@ Thanks for contributing to asymmetric.al. We welcome pull requests, bug reports,
 - **Setup (macOS/Linux):** `bun run setup` (creates/validates `.env.local`, installs deps, runs verification).
 - **Local PR-readiness gate (matches blocking CI):**
   - `bun run check && bun run typecheck && bun run build && bun run test:unit`
+- **Optional full lint baseline visibility:**
+  - `bun run check:full`
 - **Optional:** `bun run test:e2e` (non-blocking in CI; run when changes impact user flows).
 
 ## Ultracite + Cursor workflow
 
 - **Primary quality commands (root):**
-  - `bun run check` → non-mutating Biome checks via Ultracite
+  - `bun run check` → non-mutating incremental Biome checks via Ultracite (changed files only)
+  - `bun run check:full` → full-repo Biome visibility scan (non-blocking in CI)
   - `bun run fix` → auto-fixes via Ultracite
 - **Pre-commit behavior:** Husky runs `lint-staged`, which runs `bunx ultracite fix` on **staged files only**.
 - **Cursor project integration files:**

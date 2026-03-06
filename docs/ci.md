@@ -6,7 +6,7 @@ Two workflow files run on every PR to `develop` and `main`, and on every push to
 
 | Workflow    | File                                   | Jobs                                            | Target time               |
 | ----------- | -------------------------------------- | ----------------------------------------------- | ------------------------- |
-| Fast checks | `.github/workflows/ci.yml`             | `check → typecheck → build → test-unit`         | < 3 min with remote cache |
+| Fast checks | `.github/workflows/ci.yml`             | `check → typecheck → build → test-unit` + non-blocking `check-full` | < 3 min with remote cache |
 | Integration | `.github/workflows/ci-integration.yml` | `migrate → smoke → test-e2e`                    | ~5 min                    |
 
 All fast-check jobs are **required** status checks. `test-e2e` is **informational only** (non-blocking).
@@ -17,9 +17,15 @@ All fast-check jobs are **required** status checks. `test-e2e` is **informationa
 
 ### `check`
 
-- _What it checks:_ Runs `bun run check` (Ultracite Biome provider), then `bun run verify:workspace-contract`, then `bun run verify:lint-config`.
-- _Why it exists:_ Keeps code quality enforcement in one non-mutating gate and avoids formatter/linter drift.
+- _What it checks:_ Runs `bun run check` (incremental Ultracite Biome check scoped to changed files in the event range), then `bun run verify:workspace-contract`, then `bun run verify:lint-config`.
+- _Why it exists:_ Keeps code quality enforcement non-mutating and practical while legacy lint debt is burned down incrementally.
 - _Debug locally:_ Run each command individually: `bun run check`, `bun run verify:workspace-contract`, `bun run verify:lint-config`.
+
+### `check-full` (non-blocking)
+
+- _What it checks:_ Runs `bun run check:full` (full-repo Ultracite Biome scan).
+- _Why it exists:_ Maintains continuous visibility into remaining baseline lint debt without blocking merges.
+- _Debug locally:_ Run `bun run check:full`.
 
 ### `typecheck` (needs: `check`)
 
@@ -76,6 +82,7 @@ All fast-check jobs are **required** status checks. `test-e2e` is **informationa
 
 **Informational only (not required):**
 
+- `CI / check-full` — non-blocking full lint baseline visibility.
 - `CI / test-e2e` — non-blocking; failures are visible but do not block merge.
 
 **How to configure in GitHub:**
@@ -84,7 +91,7 @@ All fast-check jobs are **required** status checks. `test-e2e` is **informationa
 2. Add a rule for `main` (and optionally `develop`).
 3. Enable **Require status checks to pass before merging**.
 4. Search for and add each of the five required checks listed above.
-5. Do **not** add `CI / test-e2e` as a required check.
+5. Do **not** add `CI / check-full` or `CI / test-e2e` as required checks.
 
 ---
 

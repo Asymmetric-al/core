@@ -7,7 +7,8 @@
     "dev": "next dev --port 4000",
     "build": "next build",
     "start": "next start",
-    "lint": "bunx ultracite check .",
+    "lint": "node ../../scripts/check-changed-files.mjs",
+    "lint:full": "bunx ultracite check .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

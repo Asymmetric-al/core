@@ -112,7 +112,8 @@ async function verifyRootDependencies() {
   }
 }
 
-async function verifyWorkspaceLintScripts() {
+async function listWorkspacePackageJsonPaths() {
+  const packageJsonPaths = [];
   const workspaceDirs = ["apps", "packages"];
 
   for (const workspaceDir of workspaceDirs) {
@@ -132,24 +133,52 @@ async function verifyWorkspaceLintScripts() {
         entry.name,
         "package.json"
       );
-      if (!(await pathExists(packageJsonPath))) {
-        continue;
-      }
-
-      const packageJson = await readJson(packageJsonPath);
-      const lintScript = packageJson?.scripts?.lint;
-
-      if (typeof lintScript !== "string") {
-        errors.push(`Missing lint script in ${toRelative(packageJsonPath)}`);
-        continue;
-      }
-
-      if (!lintScript.includes("ultracite check")) {
-        errors.push(
-          `Lint script must use Ultracite Biome flow in ${toRelative(packageJsonPath)}: "${lintScript}"`
-        );
+      if (await pathExists(packageJsonPath)) {
+        packageJsonPaths.push(packageJsonPath);
       }
     }
+  }
+
+  return packageJsonPaths;
+}
+
+function verifyWorkspaceLintScript(packageJsonPath, packageJson) {
+  const lintScript = packageJson?.scripts?.lint;
+
+  if (typeof lintScript !== "string") {
+    errors.push(`Missing lint script in ${toRelative(packageJsonPath)}`);
+    return;
+  }
+
+  const usesIncrementalLintScript = lintScript.includes(
+    "scripts/check-changed-files.mjs"
+  );
+  const usesDirectUltraciteCheck = lintScript.includes("ultracite check");
+
+  if (!(usesIncrementalLintScript || usesDirectUltraciteCheck)) {
+    errors.push(
+      `Lint script must use Ultracite Biome flow in ${toRelative(packageJsonPath)}: "${lintScript}"`
+    );
+  }
+
+  if (!usesIncrementalLintScript) {
+    return;
+  }
+
+  const lintFullScript = packageJson?.scripts?.["lint:full"];
+  if (lintFullScript !== "bunx ultracite check .") {
+    errors.push(
+      `Incremental lint scripts must keep lint:full as "bunx ultracite check ." in ${toRelative(packageJsonPath)}`
+    );
+  }
+}
+
+async function verifyWorkspaceLintScripts() {
+  const packageJsonPaths = await listWorkspacePackageJsonPaths();
+
+  for (const packageJsonPath of packageJsonPaths) {
+    const packageJson = await readJson(packageJsonPath);
+    verifyWorkspaceLintScript(packageJsonPath, packageJson);
   }
 }
 
