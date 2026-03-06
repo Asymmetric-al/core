@@ -171,6 +171,11 @@ bun run skills:sync
 - Canonical source: `docs/ai/skills/*`
 - Runtime mirrors: `.agents/skills/*` and `.cursor/skills/*`
 
+Bundled repo-local skill families include:
+
+- Supabase Postgres best practices (upstream-adapted, deduped in-place)
+- Unlayer router, integration, export, config, and custom-tools guidance
+
 ### Package Manager
 
 This project uses **bun** (v1.3+). Do not use npm/yarn/pnpm.

@@ -19,6 +19,11 @@ const skillsToSync = [
   "nextjs-supabase-auth",
   "moai-library-shadcn",
   "base-ui",
+  "unlayer",
+  "unlayer-integration",
+  "unlayer-custom-tools",
+  "unlayer-export",
+  "unlayer-config",
 ];
 
 async function overlayDirectory(sourceDir, targetDir) {

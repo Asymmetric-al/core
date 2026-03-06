@@ -174,6 +174,11 @@ Load the skill(s) below when the trigger matches.
 - **Motion animations (`motion/react`):** `docs/ai/skills/motion/SKILL.md`
 - **Recharts:** `docs/ai/skills/rechart/SKILL.md`
 - **TanStack Table v8:** `docs/ai/skills/tanstack-table/SKILL.md`
+- **Unlayer skill router (Email Studio / PDF Studio / editor tasks):** `docs/ai/skills/unlayer/SKILL.md`
+- **Unlayer shared integration / wrapper work:** `docs/ai/skills/unlayer-integration/SKILL.md`
+- **Unlayer export, save/load, and design JSON flows:** `docs/ai/skills/unlayer-export/SKILL.md`
+- **Unlayer configuration, merge tags, uploads, and security:** `docs/ai/skills/unlayer-config/SKILL.md`
+- **Unlayer custom drag-and-drop tools:** `docs/ai/skills/unlayer-custom-tools/SKILL.md`
 - **GitHub issue/PR workflows (AL-###):**
   - Write issue: `docs/ai/skills/write-issue/SKILL.md`
   - Build issue: `docs/ai/skills/build-issue/SKILL.md`
@@ -224,6 +229,9 @@ Load the skill(s) below when the trigger matches.
 
 - **"Where is auth handled?"** -> Update `docs/ai/working-set.md`; use Nia (scoped + preambled) to find auth entry points; then open `docs/ai/rules/backend.md`.
 - **"Add a new UI card component."** -> Open `docs/ai/rules/frontend.md` and `docs/ai/skills/react-component-dev/SKILL.md`. Use Nia to find existing patterns/components in this repo before writing new ones.
+- **"Add merge tags or appearance settings to Email Studio."** -> Open `docs/ai/skills/unlayer/SKILL.md`, then apply `docs/ai/skills/unlayer-config/SKILL.md` and inspect `packages/config/email-studio.ts`.
+- **"Change PDF export or save/load behavior in the editor."** -> Open `docs/ai/skills/unlayer/SKILL.md`, then apply `docs/ai/skills/unlayer-export/SKILL.md` and inspect `packages/ui/components/studio/UnlayerEditor.tsx`.
+- **"Create a custom Unlayer content block."** -> Open `docs/ai/skills/unlayer/SKILL.md`, then apply `docs/ai/skills/unlayer-custom-tools/SKILL.md`.
 - **"Use /cui for a page."** -> Open `docs/ai/rules/shadcn-studio-mcp.md` and follow its workflow exactly.
 
 ---

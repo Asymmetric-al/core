@@ -1,22 +1,26 @@
 # Working Set
 
-- Date: 2026-02-22
+- Date: 2026-03-06
 - Repo: Asymmetric-al/core
-- Goal: Implement a hybrid Supabase CLI workflow (global-first + pinned fallback) and align setup/scripts/docs with secure contributor defaults.
-- Primary area: `scripts/supabase-cli.mjs`, `package.json`, `scripts/seed-demo.sh`, `scripts/setup/*`, `README.md`, `docs/ops/environments.md`, `docs/ai/rules/backend.md`
+- Goal: Add the upstream Unlayer skill family as repo-local canonical + runtime-ready skills, while preserving the existing Supabase upstream skill without duplication.
+- Primary area: `docs/ai/skills/unlayer*`, `AGENTS.md`, `scripts/sync-agent-skills.mjs`, `README.md`, `.agents/skills/*`, `.cursor/skills/*`
 - Constraints:
-  - No hardcoded secrets.
-  - Keep Supabase auth client boundaries unchanged (`@supabase/ssr` server/client separation).
-  - Preserve migration safety for hosted flows (`SUPABASE_DB_URL`, URL targeting checks).
-  - Keep contributor setup non-blocking while improving reproducibility.
+  - No hardcoded secrets, project IDs, API keys, or environment-specific identifiers.
+  - Keep `docs/ai/skills/*` as the canonical source of truth.
+  - Keep runtime mirrors in `.agents/skills/*` and `.cursor/skills/*`.
+  - Adapt Unlayer guidance to the repo’s shared editor wrapper and existing Email/PDF Studio surfaces.
+  - Do not duplicate `supabase-postgres-best-practices`; verify and preserve the existing integration.
 - Evidence sources used:
-  - `package.json`
-  - `scripts/seed-demo.sh`
-  - `scripts/setup/index.sh`
-  - `scripts/setup.ps1`
-  - `scripts/setup/index.ps1`
+  - `AGENTS.md`
   - `README.md`
-  - `docs/ops/environments.md`
-  - `docs/ai/rules/backend.md`
+  - `scripts/sync-agent-skills.mjs`
+  - `packages/ui/components/studio/UnlayerEditor.tsx`
+  - `apps/admin/app/email/page.tsx`
+  - `apps/admin/app/pdf/page.tsx`
+  - `packages/config/email-studio.ts`
+  - `packages/config/pdf-studio.ts`
+  - `packages/env/src/schema.ts`
+  - `.env.example`
+  - upstream repos: `unlayer/unlayer-skills`, `supabase/agent-skills`
 - Tooling note:
-  - Repo uses Bun-first workflows; Supabase runner should work with/without globally installed `supabase` binary.
+  - Use `bun run skills:sync` after canonical skill changes to refresh runtime mirrors.
