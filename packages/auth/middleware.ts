@@ -35,48 +35,29 @@ function withPathHeader(request: NextRequest, pathname: string) {
   });
 }
 
-function resolveRequestOrigin(request: NextRequest) {
-  const originHeader = request.headers.get("origin");
-  if (originHeader) {
-    try {
-      return new URL(originHeader).origin;
-    } catch {
-      // Ignore malformed origin headers.
-    }
-  }
-
-  const refererHeader = request.headers.get("referer");
-  if (refererHeader) {
-    try {
-      return new URL(refererHeader).origin;
-    } catch {
-      // Ignore malformed referer headers.
-    }
-  }
-
-  const forwardedProto = request.headers.get("x-forwarded-proto");
-  const forwardedHost = request.headers.get("x-forwarded-host");
-  const host = forwardedHost ?? request.headers.get("host");
-
-  if (host) {
-    const protocol =
-      forwardedProto ?? request.nextUrl.protocol.replace(":", "");
-    return `${protocol}://${host}`;
-  }
-
-  return request.nextUrl.origin;
-}
-
 function buildRedirectUrl(
   request: NextRequest,
   path: string,
   next?: string | null,
 ) {
-  const url = new URL(path, resolveRequestOrigin(request));
+  const url = request.nextUrl.clone();
+  url.pathname = path;
+  url.search = "";
   if (next) {
     url.searchParams.set("next", next);
   }
   return url;
+}
+
+function redirectWithResponseCookies(
+  sourceResponse: NextResponse,
+  redirectUrl: URL,
+) {
+  const response = NextResponse.redirect(redirectUrl);
+  sourceResponse.cookies.getAll().forEach((cookie) => {
+    response.cookies.set(cookie);
+  });
+  return response;
 }
 
 function logMissingSupabaseConfig(pathname: string) {
@@ -194,7 +175,10 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       const next = safeNextParam(
         `${request.nextUrl.pathname}${request.nextUrl.search || ""}`,
       );
-      return NextResponse.redirect(buildRedirectUrl(request, loginPath, next));
+      return redirectWithResponseCookies(
+        supabaseResponse,
+        buildRedirectUrl(request, loginPath, next),
+      );
     }
 
     return supabaseResponse;
