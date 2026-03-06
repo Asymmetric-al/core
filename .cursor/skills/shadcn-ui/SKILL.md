@@ -12,338 +12,241 @@ allowed-tools:
 
 # shadcn/ui Component Integration
 
-You are a frontend engineer specialized in building applications with shadcn/ui—a collection of beautifully designed, accessible, and customizable components built with Radix UI or Base UI and Tailwind CSS. You help developers discover, integrate, and customize components following best practices.
+You are a frontend engineer specialized in building applications with shadcn/ui — a collection of beautifully designed, accessible, and customizable components built with **Base UI** and **Tailwind CSS v4**. This repo uses exclusively the **Maia** theme/preset.
+
+> **Repo constraint:** Always use `bunx --bun shadcn@latest` (not `npx`). Components live in `packages/ui/components/shadcn/`. Use `--cwd packages/ui` for all CLI commands.
 
 ## Core Principles
 
-shadcn/ui is **not a component library**—it's a collection of reusable components that you copy into your project. This gives you:
+shadcn/ui is **not a component library** — it's a collection of reusable components you copy into your project:
 
-- **Full ownership**: Components live in your codebase, not node_modules
-- **Complete customization**: Modify styling, behavior, and structure freely, including choosing between Radix UI or Base UI primitives
-- **No version lock-in**: Update components selectively at your own pace
-- **Zero runtime overhead**: No library bundle, just the code you need
+- **Full ownership**: Components live in your codebase, not `node_modules`
+- **Base UI primitives**: Uses `render` prop (not Radix's `asChild`) for polymorphic rendering
+- **Tailwind v4 CSS-first**: Tokens in `@theme inline {}` blocks, no `tailwind.config.js`
+- **Maia theme**: Consistent design language via preset; never override with raw colors
 
-## Component Discovery and Installation
+## CLI v4 Commands (Bun)
 
-### 1. Browse Available Components
+Always use `bunx --bun shadcn@latest` in this repo.
 
-Use the shadcn MCP tools to explore the component catalog and Registry Directory:
-
-- **List all components**: Use `list_components` to see the complete catalog
-- **Get component metadata**: Use `get_component_metadata` to understand props, dependencies, and usage
-- **View component demos**: Use `get_component_demo` to see implementation examples
-
-### 2. Component Installation
-
-There are two approaches to adding components:
-
-**A. Direct Installation (Recommended)**
+### `init` — Initialize or create a project
 
 ```bash
-npx shadcn@latest add [component-name]
+bunx --bun shadcn@latest init --preset <code> --base base --cwd packages/ui
 ```
 
-This command:
+Key flags: `--preset <code>`, `--base base`, `--template <next|vite|start|react-router|astro>`, `--monorepo`, `--force`, `--reinstall`
 
-- Downloads the component source code (adapting to your config: Radix vs Base UI)
-- Installs required dependencies
-- Places files in `components/ui/`
-- Updates your `components.json` config
-
-**B. Manual Integration**
-
-1. Use `get_component` to retrieve the source code
-2. Create the file in `components/ui/[component-name].tsx`
-3. Install peer dependencies manually
-4. Adjust imports if needed
-
-### 3. Registry and Custom Registries
-
-If working with a custom registry (defined in `components.json`) or exploring the Registry Directory:
-
-- Use `get_project_registries` to list available registries
-- Use `list_items_in_registries` to see registry-specific components
-- Use `view_items_in_registries` for detailed component information
-- Use `search_items_in_registries` to find specific components
-
-## Project Setup
-
-### Initial Configuration
-
-For **new projects**, use the `create` command to customize everything (style, fonts, component library):
+### `add` — Add components
 
 ```bash
-npx shadcn@latest create
+bunx --bun shadcn@latest add button --cwd packages/ui
+bunx --bun shadcn@latest add @magicui/shimmer-button --cwd packages/ui
 ```
 
-For **existing projects**, initialize configuration:
+Key flags: `--dry-run` (preview), `--diff [path]` (diff vs upstream), `--view [path]` (show file), `--overwrite` (only with user approval)
+
+**Smart merge workflow (update without losing local changes):**
+1. `bunx --bun shadcn@latest add <component> --dry-run --cwd packages/ui`
+2. For each file: `bunx --bun shadcn@latest add <component> --diff <file> --cwd packages/ui`
+3. Apply upstream changes while preserving local modifications
+
+### `search` — Discover components
 
 ```bash
-npx shadcn@latest init
+bunx --bun shadcn@latest search @shadcn -q "sidebar"
+bunx --bun shadcn@latest search @tailark @shadcn -q "hero"
 ```
 
-This creates `components.json` with your configuration:
+### `view` — Inspect before installing
 
-- **style**: default, new-york (classic) OR choose new visual styles like Vega, Nova, Maia, Lyra, Mira
-- **baseColor**: slate, gray, zinc, neutral, stone
-- **cssVariables**: true/false for CSS variable usage
-- **tailwind config**: paths to Tailwind files
-- **aliases**: import path shortcuts
-- **rsc**: Use React Server Components (yes/no)
-- **rtl**: Enable RTL support (optional)
-
-### Required Dependencies
-
-shadcn/ui components require:
-
-- **React** (18+)
-- **Tailwind CSS** (3.0+)
-- **Primitives**: Radix UI OR Base UI (depending on your choice)
-- **class-variance-authority** (for variant styling)
-- **clsx** and **tailwind-merge** (for class composition)
-
-## Component Architecture
-
-### File Structure
-
-```
-src/
-├── components/
-│   ├── ui/              # shadcn components
-│   │   ├── button.tsx
-│   │   ├── card.tsx
-│   │   └── dialog.tsx
-│   └── [custom]/        # your composed components
-│       └── user-card.tsx
-├── lib/
-│   └── utils.ts         # cn() utility
-└── app/
-    └── page.tsx
+```bash
+bunx --bun shadcn@latest view @shadcn/button card dialog --cwd packages/ui
 ```
 
-### The `cn()` Utility
+### `docs` — Get docs + API refs (ALWAYS run first)
 
-All shadcn components use the `cn()` helper for class merging:
-
-```typescript
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+```bash
+bunx --bun shadcn@latest docs button dialog select
 ```
 
-This allows you to:
+Fetches docs URLs, example URLs, and API reference URLs. **Always run this and fetch the URLs before generating component code.**
 
-- Override default styles without conflicts
-- Conditionally apply classes
-- Merge Tailwind classes intelligently
+### `info` — Project context
 
-## Customization Best Practices
+```bash
+bunx --bun shadcn@latest info --json --cwd packages/ui
+```
 
-### 1. Theme Customization
+Returns: `framework`, `tailwindVersion`, `tailwindCssFile`, `base`, `style`, `iconLibrary`, `aliases`, `resolvedPaths`, `components`.
 
-Edit your Tailwind config and CSS variables in `app/globals.css`:
+### `build` — Build custom registry
+
+```bash
+bunx --bun shadcn@latest build --output ./public/r
+```
+
+### Presets — Design system in one code
+
+```bash
+bunx --bun shadcn@latest init --preset maia      # named preset
+bunx --bun shadcn@latest init --preset a2r6bw    # preset code
+```
+
+Switching presets:
+- **Reinstall all**: `--preset <code> --force --reinstall`
+- **Config only**: `--preset <code> --force --no-reinstall`
+- **Smart merge**: `--preset <code> --force --no-reinstall`, then diff each component
+
+## Component Discovery
+
+### 1. Using MCP Tools (when MCP server is configured)
+
+- `shadcn:list_items_in_registries` — list all items from registries
+- `shadcn:search_items_in_registries` — fuzzy search
+- `shadcn:view_items_in_registries` — full file contents
+- `shadcn:get_item_examples_from_registries` — usage examples
+- `shadcn:get_add_command_for_items` — install command
+
+### 2. Using CLI
+
+```bash
+bunx --bun shadcn@latest search @shadcn -q "<term>"
+bunx --bun shadcn@latest docs <component>
+bunx --bun shadcn@latest view @shadcn/<component>
+```
+
+## Base UI Patterns (this repo uses Base UI exclusively)
+
+```tsx
+// Polymorphic rendering: render prop (NOT asChild)
+<Button render={<a href="/dashboard" />}>Dashboard</Button>
+<Button render={<Link href="/dashboard" />}>Dashboard</Button>
+
+// Select uses SelectOption (not SelectItem)
+<Select>
+  <SelectOption value="a">Option A</SelectOption>
+</Select>
+```
+
+## Tailwind v4 Theming (Maia)
+
+All custom tokens in global CSS using `@theme inline`:
 
 ```css
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    /* ... more variables */
-  }
+@import "tailwindcss";
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    /* ... dark mode overrides */
+@theme inline {
+  --color-primary: oklch(0.56 0.2 265);
+  --color-primary-foreground: oklch(0.99 0 0);
+  --color-muted: oklch(0.96 0.01 265);
+  --color-muted-foreground: oklch(0.55 0.02 265);
+  --radius: 0.5rem;
+}
+```
+
+- **Never** create or modify `tailwind.config.js`
+- **Never** hardcode hex/RGB colors in components
+- Use `oklch()` colors (Tailwind v4 default)
+- Find `tailwindCssFile` from `bunx --bun shadcn@latest info --json`
+
+## Critical Rules
+
+### Styling
+
+- `className` for layout only — never override component colors/typography
+- No `space-x-*` / `space-y-*` — use `flex gap-*`
+- No manual `dark:` color overrides — use semantic tokens
+- `cn()` for conditional classes — no template literal ternaries
+- `size-*` when width = height (not `w-* h-*`)
+- `truncate` shorthand (not `overflow-hidden text-ellipsis whitespace-nowrap`)
+
+### Forms
+
+- `FieldGroup` + `Field` for form layout (never raw `div` with `space-y-*`)
+- `InputGroup` + `InputGroupInput` (never raw `Input` inside `InputGroup`)
+- `ToggleGroup` for option sets of 2–7 choices
+- `FieldSet` + `FieldLegend` for grouped checkboxes/radios
+- Validation: `data-invalid` on `Field`, `aria-invalid` on control
+
+### Component Composition
+
+- Items inside Groups: `SelectOption` → `SelectGroup`, `DropdownMenuItem` → `DropdownMenuGroup`
+- Overlays always need a Title: `DialogTitle`, `SheetTitle`, `DrawerTitle` (use `sr-only` if hidden)
+- Full `Card` composition: `CardHeader`/`CardTitle`/`CardDescription`/`CardContent`/`CardFooter`
+- `Avatar` always needs `AvatarFallback`
+- `TabsTrigger` must be inside `TabsList`
+
+### Icons
+
+- Icons in `Button` use `data-icon` attribute
+- No sizing classes on icons inside components (no `size-4`, `w-4 h-4`)
+
+## Workflow
+
+1. Run `bunx --bun shadcn@latest info --json --cwd packages/ui` — get project context
+2. Check `packages/ui/components/shadcn/` — use existing before adding
+3. Search — `bunx --bun shadcn@latest search @shadcn -q "<term>"`
+4. Get docs — `bunx --bun shadcn@latest docs <component>` → fetch URLs
+5. Preview — `bunx --bun shadcn@latest add <component> --dry-run --cwd packages/ui`
+6. Install — `bunx --bun shadcn@latest add <component> --cwd packages/ui`
+7. Verify added files — check composition, imports, fix any issues
+8. Compose app wrappers outside `packages/ui/components/shadcn/`
+9. Run checks — `bunx turbo run lint typecheck --filter=@asym/ui`
+
+## Registry Types (CLI v4)
+
+- `registry:ui` — standard components
+- `registry:block` — full page sections / layouts
+- `registry:base` — full design system (components + CSS vars + fonts in one payload)
+- `registry:font` — font configuration as first-class registry item
+
+```json
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "font-inter",
+  "type": "registry:font",
+  "font": {
+    "family": "'Inter Variable', sans-serif",
+    "provider": "google",
+    "import": "Inter",
+    "variable": "--font-sans",
+    "subsets": ["latin"]
   }
 }
 ```
 
-### 2. Component Variants
+## Component Reference
 
-Use `class-variance-authority` (cva) for variant logic:
+| Need | Component |
+|---|---|
+| Button/action | `Button` with `variant` |
+| Form inputs | `Input`, `Select`, `Combobox`, `Switch`, `Checkbox`, `RadioGroup`, `Textarea`, `Slider` |
+| Toggle 2–5 options | `ToggleGroup` + `ToggleGroupItem` |
+| Data display | `Table`, `Card`, `Badge`, `Avatar` |
+| Navigation | `Sidebar`, `NavigationMenu`, `Breadcrumb`, `Tabs`, `Pagination` |
+| Overlays | `Dialog`, `Sheet`, `Drawer`, `AlertDialog` |
+| Feedback | `sonner` (toast), `Alert`, `Progress`, `Skeleton`, `Spinner` |
+| Empty states | `Empty` |
+| Menus | `DropdownMenu`, `ContextMenu`, `Menubar` |
+| Tooltips | `Tooltip`, `HoverCard`, `Popover` |
 
-```typescript
-import { cva } from "class-variance-authority";
+## Quality Gates
 
-const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-md",
-  {
-    variants: {
-      variant: {
-        default: "bg-primary text-primary-foreground",
-        outline: "border border-input",
-      },
-      size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-    },
-  },
-);
-```
+Before committing:
 
-### 3. Extending Components
-
-Create wrapper components in `components/` (not `components/ui/`):
-
-```typescript
-// components/custom-button.tsx
-import { Button } from "@/components/ui/button"
-import { Loader2 } from "lucide-react"
-
-export function LoadingButton({
-  loading,
-  children,
-  ...props
-}: ButtonProps & { loading?: boolean }) {
-  return (
-    <Button disabled={loading} {...props}>
-      {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-      {children}
-    </Button>
-  )
-}
-```
-
-## Blocks and Complex Components
-
-shadcn/ui provides complete UI blocks (authentication forms, dashboards, etc.):
-
-1. **List available blocks**: Use `list_blocks` with optional category filter
-2. **Get block source**: Use `get_block` with the block name
-3. **Install blocks**: Many blocks include multiple component files
-
-Blocks are organized by category:
-
-- **calendar**: Calendar interfaces
-- **dashboard**: Dashboard layouts
-- **login**: Authentication flows
-- **sidebar**: Navigation sidebars
-- **products**: E-commerce components
-
-## Accessibility
-
-All shadcn/ui components are built on Radix UI primitives, ensuring:
-
-- **Keyboard navigation**: Full keyboard support out of the box
-- **Screen reader support**: Proper ARIA attributes
-- **Focus management**: Logical focus flow
-- **Disabled states**: Proper disabled and aria-disabled handling
-
-When customizing, maintain accessibility:
-
-- Keep ARIA attributes
-- Preserve keyboard handlers
-- Test with screen readers
-- Maintain focus indicators
-
-## Common Patterns
-
-### Form Building
-
-```typescript
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-
-// Use with react-hook-form for validation
-import { useForm } from "react-hook-form";
-```
-
-### Dialog/Modal Patterns
-
-```typescript
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-```
-
-### Data Display
-
-```typescript
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-```
-
-## Troubleshooting
-
-### Import Errors
-
-- Check `components.json` for correct alias configuration
-- Verify `tsconfig.json` includes the `@` path alias:
-  ```json
-  {
-    "compilerOptions": {
-      "paths": {
-        "@/*": ["./src/*"]
-      }
-    }
-  }
-  ```
-
-### Style Conflicts
-
-- Ensure Tailwind CSS is properly configured
-- Check that `globals.css` is imported in your root layout
-- Verify CSS variable names match between components and theme
-
-### Missing Dependencies
-
-- Run component installation via CLI to auto-install deps
-- Manually check `package.json` for required Radix UI packages
-- Use `get_component_metadata` to see dependency lists
-
-### Version Compatibility
-
-- shadcn/ui v4 requires React 18+ and Next.js 13+ (if using Next.js)
-- Some components require specific Radix UI versions
-- Check documentation for breaking changes between versions
-
-## Validation and Quality
-
-Before committing components:
-
-1. **Type check**: Run `tsc --noEmit` to verify TypeScript
-2. **Lint**: Run your linter to catch style issues
-3. **Test accessibility**: Use tools like axe DevTools
-4. **Visual QA**: Test in light and dark modes
-5. **Responsive check**: Verify behavior at different breakpoints
+1. `bunx turbo run typecheck --filter=@asym/ui`
+2. `bunx turbo run lint --filter=@asym/ui`
+3. Visual QA in light and dark modes
+4. Keyboard navigation and focus management
+5. All overlays have accessible titles
 
 ## Resources
 
-Refer to the following resource files for detailed guidance:
-
-- `resources/setup-guide.md` - Step-by-step project initialization
-- `resources/component-catalog.md` - Complete component reference
-- `resources/customization-guide.md` - Theming and variant patterns
-- `resources/migration-guide.md` - Upgrading from other UI libraries
-
-## Examples
-
-See the `examples/` directory for:
-
-- Complete component implementations
-- Form patterns with validation
-- Dashboard layouts
-- Authentication flows
-- Data table implementations
+- Repo skill: `.cursor/skills/moai-library-shadcn/SKILL.md`
+- Full CLI reference: `.agents/skills/shadcn/cli.md`
+- MCP server: `.agents/skills/shadcn/mcp.md` and `.cursor/mcp.json`
+- Base UI rules: `.agents/skills/shadcn/rules/base-vs-radix.md`
+- Styling rules: `.agents/skills/shadcn/rules/styling.md`
+- Form rules: `.agents/skills/shadcn/rules/forms.md`
+- shadcn docs index: `.cursor/skills/moai-library-shadcn/reference-links.md`

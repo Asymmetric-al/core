@@ -41,10 +41,15 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 
 ### shadcn component workflow
 
+- **ALWAYS load `.cursor/skills/moai-library-shadcn/SKILL.md` + `.agents/skills/shadcn/SKILL.md` for any UI/UX work.**
+- Repo constraints: **Base UI** primitives (`render` not `asChild`), **Tailwind v4**, **Maia theme**.
 - Run shadcn additions from repo root with `--cwd packages/ui`:
   - `bunx --bun shadcn@latest add <component> --cwd packages/ui`
+- Always run `bunx --bun shadcn@latest docs <component>` and fetch URLs before using a component.
+- Preview changes with `--dry-run` and `--diff` before updating installed components.
 - Ensure generated files land in the shared UI package and remain correctly exported for `@asym/ui` consumers.
 - Do not run `shadcn add` inside app workspaces.
+- MCP server (search, view, install from registries) configured in `.cursor/mcp.json` — use shadcn MCP tools when available.
 
 ### shadcn/studio MCP workflows (conditional)
 
@@ -68,12 +73,14 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 
 ## Workflow
 
-1. Identify if the change is Server or Client and apply `skills/nextjs-app-router/SKILL.md` when relevant.
-2. Reuse shared primitives from `@asym/ui` before creating new UI.
-3. Keep Tailwind usage token-based and consistent with Maia/Zinc.
-4. Use TanStack Query for async data and invalidate on mutations.
-5. If adding a shadcn component, use `--cwd packages/ui` and verify exports.
-6. If shadcn/studio MCP is used, switch to `rules/shadcn-studio-mcp.md` and follow it exactly.
+1. **Load skills:** For any UI/UX work, open `.cursor/skills/moai-library-shadcn/SKILL.md` + `.agents/skills/shadcn/SKILL.md`.
+2. Identify if the change is Server or Client and apply `skills/nextjs-app-router/SKILL.md` when relevant.
+3. Run `bunx --bun shadcn@latest info --json --cwd packages/ui` to get project context (installed components, aliases, etc.).
+4. Reuse shared primitives from `@asym/ui` before creating new UI.
+5. Keep Tailwind usage token-based and consistent with Maia/Zinc.
+6. Use TanStack Query for async data and invalidate on mutations.
+7. If adding a shadcn component, use `--cwd packages/ui` and verify exports.
+8. If shadcn/studio MCP is used, switch to `rules/shadcn-studio-mcp.md` and follow it exactly.
 
 ## Checklists
 
