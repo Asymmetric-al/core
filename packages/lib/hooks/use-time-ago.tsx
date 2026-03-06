@@ -1,31 +1,47 @@
 "use client";
 
-import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
+import { useCallback, useMemo, useSyncExternalStore } from "react";
 
 export interface TimeAgoOptions {
-  updateInterval?: number;
   shortFormat?: boolean;
+  updateInterval?: number;
 }
 
-function calculateTimeAgo(dateString: string, shortFormat = false): string {
+function calculateTimeAgo(
+  dateString: string,
+  shortFormat = false,
+  nowMs = Date.now()
+): string {
   const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
+  const diffMs = nowMs - date.getTime();
+  const diffMins = Math.floor(diffMs / 60_000);
   const diffHours = Math.floor(diffMins / 60);
   const diffDays = Math.floor(diffHours / 24);
 
-  if (diffMins < 1) return "Just now";
+  if (diffMins < 1) {
+    return "Just now";
+  }
 
   if (shortFormat) {
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
+    if (diffMins < 60) {
+      return `${diffMins}m ago`;
+    }
+    if (diffHours < 24) {
+      return `${diffHours}h ago`;
+    }
+    if (diffDays < 7) {
+      return `${diffDays}d ago`;
+    }
   } else {
-    if (diffMins < 60) return `${diffMins} min ago`;
-    if (diffHours < 24)
+    if (diffMins < 60) {
+      return `${diffMins} min ago`;
+    }
+    if (diffHours < 24) {
       return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
-    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+    }
+    if (diffDays < 7) {
+      return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+    }
   }
 
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -33,61 +49,69 @@ function calculateTimeAgo(dateString: string, shortFormat = false): string {
 
 export function formatDate(
   dateString: string,
-  options?: Intl.DateTimeFormatOptions,
+  options?: Intl.DateTimeFormatOptions
 ): string {
   const date = new Date(dateString);
   return date.toLocaleDateString(
     "en-US",
-    options ?? { month: "short", day: "numeric", year: "numeric" },
+    options ?? { month: "short", day: "numeric", year: "numeric" }
   );
 }
 
 const emptySubscribe = () => () => {};
 
+function useNow(updateInterval?: number): number {
+  const intervalMs = updateInterval && updateInterval > 0 ? updateInterval : 0;
+
+  const subscribe = useCallback(
+    (onStoreChange: () => void) => {
+      if (intervalMs <= 0) {
+        return () => {};
+      }
+
+      const timer = window.setInterval(onStoreChange, intervalMs);
+      return () => window.clearInterval(timer);
+    },
+    [intervalMs]
+  );
+
+  return useSyncExternalStore(
+    subscribe,
+    () => Date.now(),
+    () => 0
+  );
+}
+
 function useIsClient(): boolean {
   return useSyncExternalStore(
     emptySubscribe,
     () => true,
-    () => false,
+    () => false
   );
 }
 
 export function useTimeAgo(
   dateString: string,
-  options?: TimeAgoOptions,
+  options?: TimeAgoOptions
 ): string {
   const { updateInterval, shortFormat = false } = options ?? {};
   const isClient = useIsClient();
-  const [timeAgo, setTimeAgo] = useState<string>(() =>
-    formatDate(dateString, { month: "short", day: "numeric" }),
-  );
+  const now = useNow(updateInterval);
 
-  const update = useCallback(() => {
-    setTimeAgo(calculateTimeAgo(dateString, shortFormat));
-  }, [dateString, shortFormat]);
-
-  useEffect(() => {
-    if (!isClient) return;
-    update();
-
-    if (updateInterval && updateInterval > 0) {
-      const interval = setInterval(update, updateInterval);
-      return () => clearInterval(interval);
+  return useMemo(() => {
+    if (!isClient) {
+      return formatDate(dateString, { month: "short", day: "numeric" });
     }
-  }, [update, updateInterval, isClient]);
 
-  if (!isClient) {
-    return formatDate(dateString, { month: "short", day: "numeric" });
-  }
-
-  return timeAgo;
+    return calculateTimeAgo(dateString, shortFormat, now);
+  }, [dateString, isClient, now, shortFormat]);
 }
 
 export interface TimeAgoProps {
+  className?: string;
   date: string;
   shortFormat?: boolean;
   updateInterval?: number;
-  className?: string;
 }
 
 export function TimeAgo({
@@ -102,14 +126,15 @@ export function TimeAgo({
 
 export function useLastSynced(): string {
   const isClient = useIsClient();
-  const [lastSynced, setLastSynced] = useState<string>("");
 
-  useEffect(() => {
-    if (!isClient) return;
-    setLastSynced(
-      new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    );
+  return useMemo(() => {
+    if (!isClient) {
+      return "";
+    }
+
+    return new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   }, [isClient]);
-
-  return lastSynced;
 }

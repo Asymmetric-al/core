@@ -2,28 +2,33 @@ import type {
   UnlayerAppearance,
   UnlayerMergeTags,
 } from "@asym/email/email-studio-types";
+import { clientEnv, runtimeEnvFlags } from "@asym/env";
 
 export interface UnlayerAccountConfig {
-  projectId: number | null;
-  isConfigured: boolean;
-  isWhiteLabel: boolean;
   allowedDomains: string[];
   environment: "development" | "staging" | "production";
+  isConfigured: boolean;
+  isWhiteLabel: boolean;
+  projectId: number | null;
 }
 
 export interface EmailStudioBrandConfig {
+  accentColor: string;
   companyName: string;
+  footerText?: string;
   logoUrl?: string;
   primaryColor: string;
-  accentColor: string;
-  footerText?: string;
 }
 
 export interface EmailStudioFullConfig {
   account: UnlayerAccountConfig;
-  brand: EmailStudioBrandConfig;
   appearance: UnlayerAppearance;
-  mergeTags: UnlayerMergeTags;
+  brand: EmailStudioBrandConfig;
+  export: {
+    minifyHtml: boolean;
+    cleanupCss: boolean;
+    inlineCss: boolean;
+  };
   features: {
     preview: boolean;
     imageEditor: boolean;
@@ -35,17 +40,12 @@ export interface EmailStudioFullConfig {
     customFonts: boolean;
     customBlocks: boolean;
   };
-  export: {
-    minifyHtml: boolean;
-    cleanupCss: boolean;
-    inlineCss: boolean;
-  };
+  mergeTags: UnlayerMergeTags;
 }
 
 function getEnvironment(): "development" | "staging" | "production" {
   if (typeof window === "undefined") {
-    return (process.env.NODE_ENV as "development" | "production") ===
-      "production"
+    return runtimeEnvFlags.NODE_ENV === "production"
       ? "production"
       : "development";
   }
@@ -66,12 +66,12 @@ function getAllowedDomains(): string[] {
   domains.push("localhost");
   domains.push("127.0.0.1");
 
-  const customDomains = process.env.NEXT_PUBLIC_UNLAYER_ALLOWED_DOMAINS;
+  const customDomains = clientEnv.NEXT_PUBLIC_UNLAYER_ALLOWED_DOMAINS;
   if (customDomains) {
-    domains.push(...customDomains.split(",").map((d) => d.trim()));
+    domains.push(...customDomains.split(",").map((d: string) => d.trim()));
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const siteUrl = clientEnv.NEXT_PUBLIC_SITE_URL;
   if (siteUrl) {
     try {
       const url = new URL(siteUrl);
@@ -83,17 +83,15 @@ function getAllowedDomains(): string[] {
 }
 
 export function getUnlayerAccountConfig(): UnlayerAccountConfig {
-  const projectIdStr = process.env.NEXT_PUBLIC_UNLAYER_PROJECT_ID;
-  const projectId = projectIdStr ? parseInt(projectIdStr, 10) : null;
+  const projectIdStr = clientEnv.NEXT_PUBLIC_UNLAYER_PROJECT_ID;
+  const projectId = projectIdStr ? Number.parseInt(projectIdStr, 10) : null;
   const isValidProjectId =
     projectId !== null && !isNaN(projectId) && projectId > 0;
 
   return {
     projectId: isValidProjectId ? projectId : null,
     isConfigured: isValidProjectId,
-    isWhiteLabel:
-      isValidProjectId &&
-      process.env.NEXT_PUBLIC_UNLAYER_WHITE_LABEL === "true",
+    isWhiteLabel: isValidProjectId && clientEnv.NEXT_PUBLIC_UNLAYER_WHITE_LABEL,
     allowedDomains: getAllowedDomains(),
     environment: getEnvironment(),
   };
@@ -101,11 +99,11 @@ export function getUnlayerAccountConfig(): UnlayerAccountConfig {
 
 export function getEmailStudioBrandConfig(): EmailStudioBrandConfig {
   return {
-    companyName: process.env.NEXT_PUBLIC_BRAND_NAME || "GiveHope",
-    logoUrl: process.env.NEXT_PUBLIC_BRAND_LOGO_URL,
-    primaryColor: process.env.NEXT_PUBLIC_BRAND_PRIMARY_COLOR || "#0f172a",
-    accentColor: process.env.NEXT_PUBLIC_BRAND_ACCENT_COLOR || "#2563eb",
-    footerText: process.env.NEXT_PUBLIC_EMAIL_FOOTER_TEXT,
+    companyName: clientEnv.NEXT_PUBLIC_BRAND_NAME || "GiveHope",
+    logoUrl: clientEnv.NEXT_PUBLIC_BRAND_LOGO_URL,
+    primaryColor: clientEnv.NEXT_PUBLIC_BRAND_PRIMARY_COLOR || "#0f172a",
+    accentColor: clientEnv.NEXT_PUBLIC_BRAND_ACCENT_COLOR || "#2563eb",
+    footerText: clientEnv.NEXT_PUBLIC_EMAIL_FOOTER_TEXT,
   };
 }
 

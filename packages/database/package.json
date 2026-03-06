@@ -44,6 +44,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@asym/env": "workspace:*",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.47.10",
     "@tanstack/db": "^0.5.16",

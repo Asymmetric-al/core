@@ -1,8 +1,10 @@
 "use client";
+"use no memo";
 
 import { createBrowserClient } from "@asym/database/supabase";
 import { useAuth, useTasks } from "@asym/lib/hooks";
-import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
+import type { Task } from "@asym/lib/hooks/use-tasks";
+import { AnimatePresence, LayoutGroup, motion } from "@asym/lib/motion";
 import { AddPartnerDialog } from "@asym/missionary/components/add-partner-dialog";
 import { TaskDialog } from "@asym/missionary/components/task-dialog";
 import {
@@ -24,8 +26,8 @@ import {
 } from "@asym/ui/components/shadcn/dialog";
 import {
   DropdownMenu,
-  DropdownMenuContent,
   DropdownMenuCheckboxItem,
+  DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -58,56 +60,54 @@ import {
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { cn } from "@asym/ui/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format, formatDistanceToNow, differenceInMonths } from "date-fns";
+import { differenceInMonths, format, formatDistanceToNow } from "date-fns";
 import {
-  Search,
-  Filter,
-  Mail,
-  Phone,
-  MapPin,
-  Plus,
-  Download,
-  Heart,
-  MessageSquare,
-  Send,
-  Copy,
-  ExternalLink,
-  Pencil,
-  User,
+  AlertCircle,
+  ArrowDownUp,
   ArrowLeft,
   ArrowUpRight,
-  ArrowDownUp,
-  Calendar,
-  History,
   Briefcase,
-  Clock,
-  AlertCircle,
-  RefreshCw,
-  MoreHorizontal,
-  ChevronRight,
-  Tag,
-  X,
+  Building2,
+  Calendar,
   Check,
   CheckCircle2,
+  ChevronRight,
+  Clock,
+  Copy,
   CreditCard,
-  Building2,
-  Globe,
   DollarSign,
-  TrendingUp,
-  Users,
-  Star,
-  Home,
+  Download,
+  ExternalLink,
+  Filter,
   Gift,
-  Loader2,
-  Repeat,
+  Globe,
+  Heart,
+  History,
+  Home,
   ListTodo,
+  Loader2,
+  Mail,
+  MapPin,
+  MessageSquare,
+  MoreHorizontal,
+  Pencil,
+  Phone,
+  Plus,
+  RefreshCw,
+  Repeat,
+  Search,
+  Send,
+  Star,
+  Tag,
+  TrendingUp,
+  User,
+  Users,
+  X,
 } from "lucide-react";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
-
-import type { Task } from "@asym/lib/hooks/use-tasks";
 
 import { PageHeader } from "@/components/page-header";
 
@@ -166,73 +166,73 @@ type GiftType =
 type RecurringStatus = "active" | "completed" | "paused" | "cancelled";
 
 interface Activity {
-  id: string;
-  type: ActivityType;
-  date: string;
-  title: string;
-  description?: string;
   amount?: number;
-  status?: string;
+  date: string;
+  description?: string;
   gift_type?: GiftType;
+  id: string;
   note?: string;
+  status?: string;
+  title: string;
+  type: ActivityType;
 }
 
 interface RecurringDonation {
-  id: string;
   amount: number;
-  frequency: string;
-  status: RecurringStatus;
-  start_date: string;
   end_date?: string;
+  frequency: string;
+  id: string;
   next_payment_date?: string;
-  total_paid: number;
-  total_expected: number;
+  payment_method?: string;
   payments_completed: number;
   payments_remaining: number;
-  payment_method?: string;
+  start_date: string;
+  status: RecurringStatus;
+  total_expected: number;
+  total_paid: number;
 }
 
 interface Address {
+  city?: string;
+  country?: string;
+  state?: string;
   street?: string;
   street2?: string;
-  city?: string;
-  state?: string;
   zip?: string;
-  country?: string;
 }
 
 interface Donor {
-  id: string;
-  name: string;
-  initials: string;
-  type: "Individual" | "Organization" | "Church";
-  status: "Active" | "Lapsed" | "New" | "At Risk";
-  total_given: number;
-  last_gift_date: string | null;
-  last_gift_amount: number | null;
-  frequency: string;
-  email: string;
-  phone: string;
-  mobile?: string;
-  work_phone?: string;
-  preferred_contact: "email" | "phone" | "text";
-  avatar_url?: string;
-  location: string;
-  address: Address;
-  work_address?: Address;
-  website?: string;
-  organization?: string;
-  title?: string;
-  joined_date: string;
-  birthday?: string;
-  anniversary?: string;
-  spouse?: string;
-  notes?: string;
-  tags: string[];
-  score: number;
   activities: Activity[];
-  recurring_donations: RecurringDonation[];
+  address: Address;
+  anniversary?: string;
+  avatar_url?: string;
+  birthday?: string;
+  email: string;
+  frequency: string;
   has_active_pledge: boolean;
+  id: string;
+  initials: string;
+  joined_date: string;
+  last_gift_amount: number | null;
+  last_gift_date: string | null;
+  location: string;
+  mobile?: string;
+  name: string;
+  notes?: string;
+  organization?: string;
+  phone: string;
+  preferred_contact: "email" | "phone" | "text";
+  recurring_donations: RecurringDonation[];
+  score: number;
+  spouse?: string;
+  status: "Active" | "Lapsed" | "New" | "At Risk";
+  tags: string[];
+  title?: string;
+  total_given: number;
+  type: "Individual" | "Organization" | "Church";
+  website?: string;
+  work_address?: Address;
+  work_phone?: string;
 }
 
 const AVAILABLE_TAGS = [
@@ -299,7 +299,9 @@ const AVAILABLE_TAGS = [
 ];
 
 const formatCurrency = (value: number | null | undefined) => {
-  if (value === null || value === undefined) return "$0";
+  if (value === null || value === undefined) {
+    return "$0";
+  }
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
@@ -331,11 +333,11 @@ const getStatusBadge = (status: string) => {
   };
   return (
     <Badge
-      variant="outline"
       className={cn(
-        "font-black border text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full",
-        styles[status] || styles["Lapsed"],
+        "rounded-full border px-2 py-0.5 font-black text-[9px] uppercase tracking-widest",
+        styles[status] || styles["Lapsed"]
       )}
+      variant="outline"
     >
       {status}
     </Badge>
@@ -351,11 +353,11 @@ const getRecurringStatusBadge = (status: RecurringStatus) => {
   };
   return (
     <Badge
-      variant="outline"
       className={cn(
-        "font-black border text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full",
-        styles[status],
+        "rounded-full border px-2 py-0.5 font-black text-[9px] uppercase tracking-widest",
+        styles[status]
       )}
+      variant="outline"
     >
       {status}
     </Badge>
@@ -456,14 +458,14 @@ const getTagLabel = (tagId: string) => {
 
 function DonorListSkeleton() {
   return (
-    <div className="p-3 space-y-2">
+    <div className="space-y-2 p-3">
       {Array.from({ length: 12 }).map((_, i) => (
         <motion.div
-          key={i}
-          initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
+          className="flex items-center gap-3 rounded-2xl border border-zinc-100 bg-white p-4"
+          initial={{ opacity: 0 }}
+          key={i}
           transition={{ delay: i * 0.03 }}
-          className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-zinc-100"
         >
           <Skeleton className="h-11 w-11 rounded-full" />
           <div className="flex-1 space-y-2">
@@ -486,29 +488,29 @@ function ErrorState({
   return (
     <motion.div
       {...fadeInUp}
+      className="flex h-64 flex-col items-center justify-center p-6 text-center"
       transition={smoothTransition}
-      className="flex flex-col items-center justify-center h-64 text-center p-6"
     >
       <motion.div
-        initial={{ scale: 0.8 }}
         animate={{ scale: 1 }}
+        className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-rose-100 bg-rose-50"
+        initial={{ scale: 0.8 }}
         transition={springTransition}
-        className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center mb-4 border border-rose-100"
       >
         <AlertCircle className="h-7 w-7 text-rose-500" />
       </motion.div>
-      <p className="text-sm font-bold text-zinc-900 mb-1">
+      <p className="mb-1 font-bold text-sm text-zinc-900">
         Something went wrong
       </p>
-      <p className="text-xs text-zinc-500 mb-4">{message}</p>
+      <p className="mb-4 text-xs text-zinc-500">{message}</p>
       <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
         <Button
-          variant="outline"
-          size="sm"
+          className="h-9 rounded-2xl border-zinc-200 bg-white font-black text-[10px] text-zinc-500 uppercase tracking-widest hover:text-zinc-900"
           onClick={onRetry}
-          className="h-9 rounded-2xl border-zinc-200 bg-white text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-900"
+          size="sm"
+          variant="outline"
         >
-          <RefreshCw className="h-3.5 w-3.5 mr-2" />
+          <RefreshCw className="mr-2 h-3.5 w-3.5" />
           Try Again
         </Button>
       </motion.div>
@@ -541,42 +543,42 @@ function StatCard({
 }) {
   const content = (
     <MotionCard
-      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      className={cn(
+        "rounded-xl border-zinc-200 bg-white shadow-sm transition-all",
+        onClick && "cursor-pointer",
+        isActive && "border-blue-400 ring-2 ring-blue-100"
+      )}
+      initial={{ opacity: 0, y: 20 }}
       transition={{ ...smoothTransition, delay }}
       whileHover={{ y: -2, boxShadow: "0 8px 30px rgba(0,0,0,0.08)" }}
       whileTap={onClick ? { scale: 0.98 } : undefined}
-      className={cn(
-        "border-zinc-200 bg-white shadow-sm transition-all rounded-xl",
-        onClick && "cursor-pointer",
-        isActive && "border-blue-400 ring-2 ring-blue-100",
-      )}
     >
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="space-y-0.5">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+            <p className="font-bold text-[10px] text-zinc-400 uppercase tracking-wider">
               {label}
             </p>
             <motion.p
-              key={value}
-              initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-xl font-bold tracking-tight text-zinc-900"
+              className="font-bold text-xl text-zinc-900 tracking-tight"
+              initial={{ opacity: 0, y: 5 }}
+              key={value}
             >
               {value}
             </motion.p>
-            <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">
+            <span className="font-medium text-[10px] text-zinc-400 uppercase tracking-wider">
               {subtext}
             </span>
           </div>
           <motion.div
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            transition={springTransition}
             className={cn(
-              "h-9 w-9 rounded-lg border flex items-center justify-center",
-              iconBg,
+              "flex h-9 w-9 items-center justify-center rounded-lg border",
+              iconBg
             )}
+            transition={springTransition}
+            whileHover={{ scale: 1.1, rotate: 5 }}
           >
             <Icon className={cn("h-4 w-4", iconColor)} />
           </motion.div>
@@ -587,7 +589,7 @@ function StatCard({
 
   if (onClick) {
     return (
-      <button onClick={onClick} className="text-left w-full">
+      <button className="w-full text-left" onClick={onClick}>
         {content}
       </button>
     );
@@ -685,7 +687,7 @@ function DonorTasks({
   const [editingTask, setEditingTask] = React.useState<Task | null>(null);
 
   const activeTasks = filteredTasks.filter(
-    (t) => t.status !== "completed" && t.status !== "deferred",
+    (t) => t.status !== "completed" && t.status !== "deferred"
   );
   const completedTasks = filteredTasks.filter((t) => t.status === "completed");
 
@@ -713,14 +715,14 @@ function DonorTasks({
       <div className="space-y-3">
         {Array.from({ length: 3 }).map((_, i) => (
           <div
+            className="flex animate-pulse items-start gap-3 rounded-xl border bg-white p-4"
             key={i}
-            className="flex items-start gap-3 p-4 border rounded-xl bg-white animate-pulse"
           >
-            <div className="h-5 w-5 rounded-md bg-zinc-200 mt-0.5" />
+            <div className="mt-0.5 h-5 w-5 rounded-md bg-zinc-200" />
             <div className="h-9 w-9 rounded-lg bg-zinc-200" />
             <div className="flex-1 space-y-2">
-              <div className="h-4 w-3/4 bg-zinc-200 rounded" />
-              <div className="h-3 w-1/2 bg-zinc-200 rounded" />
+              <div className="h-4 w-3/4 rounded bg-zinc-200" />
+              <div className="h-3 w-1/2 rounded bg-zinc-200" />
             </div>
           </div>
         ))}
@@ -732,24 +734,26 @@ function DonorTasks({
     <div className="space-y-6">
       <motion.div {...fadeInUp} className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-bold text-zinc-900">Tasks</h3>
-          <p className="text-xs text-zinc-500 mt-0.5">
+          <h3 className="font-bold text-sm text-zinc-900">Tasks</h3>
+          <p className="mt-0.5 text-xs text-zinc-500">
             Follow-ups and actions for {donorName}
           </p>
         </div>
         <TaskDialog
-          task={editingTask}
           defaultDonorId={donorId}
-          open={taskDialogOpen}
           onOpenChange={(open) => {
             setTaskDialogOpen(open);
-            if (!open) setEditingTask(null);
+            if (!open) {
+              setEditingTask(null);
+            }
           }}
           onSuccess={handleTaskSuccess}
+          open={taskDialogOpen}
+          task={editingTask}
           trigger={
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button size="sm" className="h-8 px-3 text-xs rounded-xl">
-                <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Task
+              <Button className="h-8 rounded-xl px-3 text-xs" size="sm">
+                <Plus className="mr-1.5 h-3.5 w-3.5" /> Add Task
               </Button>
             </motion.div>
           }
@@ -759,13 +763,13 @@ function DonorTasks({
       {filteredTasks.length === 0 ? (
         <motion.div
           {...fadeInUp}
-          className="flex flex-col items-center justify-center py-12 text-center bg-zinc-50 rounded-2xl border border-zinc-100"
+          className="flex flex-col items-center justify-center rounded-2xl border border-zinc-100 bg-zinc-50 py-12 text-center"
         >
-          <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center mb-4 shadow-sm">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-white shadow-sm">
             <ListTodo className="h-6 w-6 text-zinc-300" />
           </div>
-          <p className="text-sm font-bold text-zinc-900">No tasks yet</p>
-          <p className="text-xs text-zinc-400 mt-1 max-w-[240px]">
+          <p className="font-bold text-sm text-zinc-900">No tasks yet</p>
+          <p className="mt-1 max-w-[240px] text-xs text-zinc-400">
             Create a task to track follow-ups with this partner.
           </p>
         </motion.div>
@@ -773,13 +777,15 @@ function DonorTasks({
         <div className="space-y-4">
           {activeTasks.length > 0 && (
             <div className="space-y-2">
-              <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">
+              <p className="px-1 font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                 Active ({activeTasks.length})
               </p>
               {activeTasks.map((task, i) => {
                 const typeConfig =
                   TASK_TYPE_CONFIG[task.task_type] ?? TASK_TYPE_CONFIG.to_do!;
-                if (!typeConfig) return null;
+                if (!typeConfig) {
+                  return null;
+                }
                 const Icon = typeConfig.icon;
                 const isOverdue =
                   task.due_date && new Date(task.due_date) < new Date();
@@ -790,53 +796,53 @@ function DonorTasks({
 
                 return (
                   <motion.div
-                    key={task.id}
-                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
+                    className="group flex items-start gap-3 rounded-xl border border-zinc-100 bg-white p-4 transition-all hover:border-zinc-200"
+                    initial={{ opacity: 0, y: 10 }}
+                    key={task.id}
                     transition={{ delay: i * 0.03 }}
-                    className="flex items-start gap-3 p-4 border border-zinc-100 rounded-xl bg-white hover:border-zinc-200 transition-all group"
                   >
-                    <motion.div whileTap={{ scale: 0.9 }} className="mt-0.5">
+                    <motion.div className="mt-0.5" whileTap={{ scale: 0.9 }}>
                       <Checkbox
                         checked={false}
-                        onCheckedChange={() => handleComplete(task)}
                         className="h-5 w-5 rounded-md"
+                        onCheckedChange={() => handleComplete(task)}
                       />
                     </motion.div>
                     <div
                       className={cn(
-                        "h-9 w-9 rounded-lg flex items-center justify-center shrink-0",
+                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
                         typeConfig.bgColor,
-                        typeConfig.color,
+                        typeConfig.color
                       )}
                     >
                       <Icon className="h-4 w-4" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-sm font-bold text-zinc-900">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-bold text-sm text-zinc-900">
                           {task.title}
                         </p>
                         {task.priority === "high" && (
-                          <Badge className="bg-rose-50 text-rose-600 border-0 text-[9px] font-black uppercase tracking-widest px-1.5 h-4">
+                          <Badge className="h-4 border-0 bg-rose-50 px-1.5 font-black text-[9px] text-rose-600 uppercase tracking-widest">
                             High
                           </Badge>
                         )}
                       </div>
                       {task.description && (
-                        <p className="text-xs text-zinc-500 mt-0.5 line-clamp-1">
+                        <p className="mt-0.5 line-clamp-1 text-xs text-zinc-500">
                           {task.description}
                         </p>
                       )}
                       {task.due_date && (
                         <div
                           className={cn(
-                            "inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border",
+                            "mt-2 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-bold text-[10px] uppercase tracking-wider",
                             isOverdue
-                              ? "bg-rose-50 text-rose-600 border-rose-100"
+                              ? "border-rose-100 bg-rose-50 text-rose-600"
                               : isDueToday
-                                ? "bg-amber-50 text-amber-600 border-amber-100"
-                                : "bg-zinc-100 text-zinc-600 border-zinc-200",
+                                ? "border-amber-100 bg-amber-50 text-amber-600"
+                                : "border-zinc-200 bg-zinc-100 text-zinc-600"
                           )}
                         >
                           <Clock className="h-3 w-3" />
@@ -851,32 +857,32 @@ function DonorTasks({
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
-                          variant="ghost"
+                          className="h-8 w-8 rounded-lg opacity-0 transition-opacity group-hover:opacity-100"
                           size="icon"
-                          className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                          variant="ghost"
                         >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="rounded-xl">
                         <DropdownMenuItem
+                          className="font-medium text-xs"
                           onClick={() => handleEdit(task)}
-                          className="text-xs font-medium"
                         >
-                          <Pencil className="h-3.5 w-3.5 mr-2" /> Edit
+                          <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem
+                          className="font-medium text-xs"
                           onClick={() => handleComplete(task)}
-                          className="text-xs font-medium"
                         >
-                          <CheckCircle2 className="h-3.5 w-3.5 mr-2" /> Complete
+                          <CheckCircle2 className="mr-2 h-3.5 w-3.5" /> Complete
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
+                          className="font-medium text-destructive text-xs focus:text-destructive"
                           onClick={() => deleteTask(task.id)}
-                          className="text-xs font-medium text-destructive focus:text-destructive"
                         >
-                          <X className="h-3.5 w-3.5 mr-2" /> Delete
+                          <X className="mr-2 h-3.5 w-3.5" /> Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -888,45 +894,47 @@ function DonorTasks({
 
           {completedTasks.length > 0 && (
             <div className="space-y-2">
-              <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">
+              <p className="px-1 font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                 Completed ({completedTasks.length})
               </p>
               {completedTasks.slice(0, 5).map((task, i) => {
                 const typeConfig =
                   TASK_TYPE_CONFIG[task.task_type] ?? TASK_TYPE_CONFIG.to_do!;
-                if (!typeConfig) return null;
+                if (!typeConfig) {
+                  return null;
+                }
                 const Icon = typeConfig.icon;
 
                 return (
                   <motion.div
-                    key={task.id}
-                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
+                    className="group flex items-start gap-3 rounded-xl border border-transparent bg-zinc-50/50 p-4"
+                    initial={{ opacity: 0, y: 10 }}
+                    key={task.id}
                     transition={{ delay: i * 0.03 }}
-                    className="flex items-start gap-3 p-4 border border-transparent rounded-xl bg-zinc-50/50 group"
                   >
-                    <motion.div whileTap={{ scale: 0.9 }} className="mt-0.5">
+                    <motion.div className="mt-0.5" whileTap={{ scale: 0.9 }}>
                       <Checkbox
                         checked={true}
+                        className="h-5 w-5 rounded-md data-[state=checked]:border-emerald-500 data-[state=checked]:bg-emerald-500"
                         onCheckedChange={() => handleComplete(task)}
-                        className="h-5 w-5 rounded-md data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
                       />
                     </motion.div>
                     <div
                       className={cn(
-                        "h-9 w-9 rounded-lg flex items-center justify-center shrink-0 opacity-50",
+                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg opacity-50",
                         typeConfig.bgColor,
-                        typeConfig.color,
+                        typeConfig.color
                       )}
                     >
                       <Icon className="h-4 w-4" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-zinc-400 line-through">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-sm text-zinc-400 line-through">
                         {task.title}
                       </p>
                       {task.completed_at && (
-                        <p className="text-xs text-zinc-400 mt-0.5">
+                        <p className="mt-0.5 text-xs text-zinc-400">
                           Completed{" "}
                           {formatDistanceToNow(new Date(task.completed_at), {
                             addSuffix: true,
@@ -935,10 +943,10 @@ function DonorTasks({
                       )}
                     </div>
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="h-8 w-8 rounded-lg opacity-0 transition-opacity group-hover:opacity-100"
                       onClick={() => deleteTask(task.id)}
+                      size="icon"
+                      variant="ghost"
                     >
                       <X className="h-4 w-4 text-zinc-400" />
                     </Button>
@@ -946,7 +954,7 @@ function DonorTasks({
                 );
               })}
               {completedTasks.length > 5 && (
-                <p className="text-xs text-zinc-400 text-center py-2">
+                <p className="py-2 text-center text-xs text-zinc-400">
                   + {completedTasks.length - 5} more completed tasks
                 </p>
               )}
@@ -962,11 +970,11 @@ function useDonorsPageLayout() {
   const { profile, loading: authLoading } = useAuth();
   const supabase = React.useMemo(
     () => (typeof window === "undefined" ? null : createBrowserClient()),
-    [],
+    []
   );
   const [donors, setDonors] = React.useState<Donor[]>([]);
   const [selectedDonorId, setSelectedDonorId] = React.useState<string | null>(
-    null,
+    null
   );
   const [searchTerm, setSearchTerm] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<string>("All");
@@ -1018,7 +1026,7 @@ function useDonorsPageLayout() {
   });
 
   const fetchDonors = React.useCallback(async () => {
-    if (!profile?.id || !supabase) {
+    if (!(profile?.id && supabase)) {
       setLoading(false);
       return;
     }
@@ -1033,7 +1041,9 @@ function useDonorsPageLayout() {
         .eq("missionary_id", profile.id)
         .order("name", { ascending: true });
 
-      if (donorsError) throw donorsError;
+      if (donorsError) {
+        throw donorsError;
+      }
 
       const donorIds = (donorsData || []).map((d) => d.id);
 
@@ -1043,7 +1053,9 @@ function useDonorsPageLayout() {
         .in("donor_id", donorIds)
         .order("date", { ascending: false });
 
-      if (activitiesError) throw activitiesError;
+      if (activitiesError) {
+        throw activitiesError;
+      }
 
       const { data: pledgesData, error: pledgesError } = await supabase
         .from("donor_pledges")
@@ -1051,24 +1063,30 @@ function useDonorsPageLayout() {
         .in("donor_id", donorIds)
         .order("start_date", { ascending: false });
 
-      if (pledgesError) throw pledgesError;
+      if (pledgesError) {
+        throw pledgesError;
+      }
 
       const activitiesByDonor = (activitiesData || []).reduce(
         (acc, activity) => {
-          if (!acc[activity.donor_id]) acc[activity.donor_id] = [];
+          if (!acc[activity.donor_id]) {
+            acc[activity.donor_id] = [];
+          }
           acc[activity.donor_id].push(activity);
           return acc;
         },
-        {} as Record<string, Activity[]>,
+        {} as Record<string, Activity[]>
       );
 
       const pledgesByDonor = (pledgesData || []).reduce(
         (acc, pledge) => {
-          if (!acc[pledge.donor_id]) acc[pledge.donor_id] = [];
+          if (!acc[pledge.donor_id]) {
+            acc[pledge.donor_id] = [];
+          }
           acc[pledge.donor_id].push(pledge);
           return acc;
         },
-        {} as Record<string, RecurringDonation[]>,
+        {} as Record<string, RecurringDonation[]>
       );
 
       const formattedDonors: Donor[] = (donorsData || []).map((d) => ({
@@ -1141,7 +1159,7 @@ function useDonorsPageLayout() {
         case "name":
           comparison = (a.name || "").localeCompare(b.name || "");
           break;
-        case "last_gift":
+        case "last_gift": {
           const dateA = a.last_gift_date
             ? new Date(a.last_gift_date).getTime()
             : 0;
@@ -1150,14 +1168,16 @@ function useDonorsPageLayout() {
             : 0;
           comparison = dateB - dateA;
           break;
+        }
         case "total_given":
           comparison = (b.total_given || 0) - (a.total_given || 0);
           break;
-        case "joined_date":
+        case "joined_date": {
           const joinA = a.joined_date ? new Date(a.joined_date).getTime() : 0;
           const joinB = b.joined_date ? new Date(b.joined_date).getTime() : 0;
           comparison = joinB - joinA;
           break;
+        }
       }
       return sortAsc ? -comparison : comparison;
     });
@@ -1175,7 +1195,7 @@ function useDonorsPageLayout() {
 
   const selectedDonor = React.useMemo(
     () => donors.find((d) => d.id === selectedDonorId) || null,
-    [donors, selectedDonorId],
+    [donors, selectedDonorId]
   );
 
   React.useEffect(() => {
@@ -1190,7 +1210,9 @@ function useDonorsPageLayout() {
   }, []);
 
   const handleAddNote = React.useCallback(async () => {
-    if (!selectedDonor || !noteInput.trim() || !supabase) return;
+    if (!(selectedDonor && noteInput.trim() && supabase)) {
+      return;
+    }
 
     setIsSavingNote(true);
     try {
@@ -1211,7 +1233,9 @@ function useDonorsPageLayout() {
           date: new Date().toISOString(),
         });
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        throw insertError;
+      }
 
       toast.success("Activity logged successfully");
       setNoteInput("");
@@ -1226,7 +1250,9 @@ function useDonorsPageLayout() {
   }, [selectedDonor, noteInput, activityType, supabase, fetchDonors]);
 
   const handleSaveTags = React.useCallback(async () => {
-    if (!selectedDonor || !supabase) return;
+    if (!(selectedDonor && supabase)) {
+      return;
+    }
 
     setIsSavingTags(true);
     try {
@@ -1235,12 +1261,14 @@ function useDonorsPageLayout() {
         .update({ tags: selectedTags, updated_at: new Date().toISOString() })
         .eq("id", selectedDonor.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        throw updateError;
+      }
 
       setDonors((prev) =>
         prev.map((d) =>
-          d.id === selectedDonor.id ? { ...d, tags: selectedTags } : d,
-        ),
+          d.id === selectedDonor.id ? { ...d, tags: selectedTags } : d
+        )
       );
       toast.success("Tags updated successfully");
       setIsTagDialogOpen(false);
@@ -1254,12 +1282,14 @@ function useDonorsPageLayout() {
 
   const toggleTag = React.useCallback((tagId: string) => {
     setSelectedTags((prev) =>
-      prev.includes(tagId) ? prev.filter((t) => t !== tagId) : [...prev, tagId],
+      prev.includes(tagId) ? prev.filter((t) => t !== tagId) : [...prev, tagId]
     );
   }, []);
 
   const openEditDialog = React.useCallback(() => {
-    if (!selectedDonor) return;
+    if (!selectedDonor) {
+      return;
+    }
     editForm.reset({
       name: selectedDonor.name || "",
       email: selectedDonor.email || "",
@@ -1289,7 +1319,9 @@ function useDonorsPageLayout() {
 
   const handleSaveEdit = React.useCallback(
     async (values: EditDonorFormValues) => {
-      if (!selectedDonor || !supabase) return;
+      if (!(selectedDonor && supabase)) {
+        return;
+      }
 
       setIsSavingEdit(true);
       try {
@@ -1325,7 +1357,9 @@ function useDonorsPageLayout() {
           })
           .eq("id", selectedDonor.id);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          throw updateError;
+        }
 
         toast.success("Partner updated successfully");
         setIsEditDialogOpen(false);
@@ -1337,7 +1371,7 @@ function useDonorsPageLayout() {
         setIsSavingEdit(false);
       }
     },
-    [selectedDonor, supabase, fetchDonors],
+    [selectedDonor, supabase, fetchDonors]
   );
 
   const handleStatCardClick = React.useCallback(
@@ -1365,7 +1399,7 @@ function useDonorsPageLayout() {
       }
       setSelectedDonorId(null);
     },
-    [],
+    []
   );
 
   const clearAllFilters = React.useCallback(() => {
@@ -1384,9 +1418,11 @@ function useDonorsPageLayout() {
   const totalGiven = donors.reduce((sum, d) => sum + (d.total_given || 0), 0);
   const monthlyPledgeTotal = donors.reduce((sum, d) => {
     const activeRecurring = d.recurring_donations.find(
-      (p) => p.status === "active",
+      (p) => p.status === "active"
     );
-    if (!activeRecurring) return sum;
+    if (!activeRecurring) {
+      return sum;
+    }
     const monthly =
       activeRecurring.frequency === "Monthly"
         ? activeRecurring.amount
@@ -1398,18 +1434,25 @@ function useDonorsPageLayout() {
 
   const formatAddress = (address: Address) => {
     const parts = [];
-    if (address.street) parts.push(address.street);
-    if (address.street2) parts.push(address.street2);
+    if (address.street) {
+      parts.push(address.street);
+    }
+    if (address.street2) {
+      parts.push(address.street2);
+    }
     const cityLine = [address.city, address.state, address.zip]
       .filter(Boolean)
       .join(", ");
-    if (cityLine) parts.push(cityLine);
+    if (cityLine) {
+      parts.push(cityLine);
+    }
     if (
       address.country &&
       address.country !== "United States" &&
       address.country !== "USA"
-    )
+    ) {
       parts.push(address.country);
+    }
     return parts;
   };
 
@@ -1421,20 +1464,20 @@ function useDonorsPageLayout() {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
       className="space-y-6"
+      initial={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
     >
       <PageHeader
-        title="Partners"
         description="Manage your support network and donor relationships."
+        title="Partners"
       >
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
-            variant="outline"
+            className="h-9 px-4 font-medium text-xs"
             size="sm"
-            className="h-9 px-4 text-xs font-medium"
+            variant="outline"
           >
             <Download className="mr-2 h-4 w-4" />
             Export
@@ -1449,7 +1492,7 @@ function useDonorsPageLayout() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Button size="sm" className="h-9 px-4 text-xs font-medium">
+                <Button className="h-9 px-4 font-medium text-xs" size="sm">
                   <Plus className="mr-2 h-4 w-4" />
                   Add Partner
                 </Button>
@@ -1461,58 +1504,58 @@ function useDonorsPageLayout() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Total Partners"
-          value={donors.length}
-          subtext={`${activeCount} active`}
+          delay={0}
           icon={Users}
           iconBg="bg-zinc-50 border-zinc-100"
           iconColor="text-zinc-900"
-          delay={0}
+          label="Total Partners"
+          subtext={`${activeCount} active`}
+          value={donors.length}
         />
         <StatCard
-          label="Total Given"
-          value={formatCurrency(totalGiven)}
-          subtext="Lifetime"
+          delay={0.05}
           icon={Heart}
           iconBg="bg-emerald-50 border-emerald-100"
           iconColor="text-emerald-600"
-          delay={0.05}
+          label="Total Given"
+          subtext="Lifetime"
+          value={formatCurrency(totalGiven)}
         />
         <StatCard
-          label="Recurring Donations"
-          value={activePledgeCount}
-          subtext={`${formatCurrency(monthlyPledgeTotal)}/mo`}
+          delay={0.1}
           icon={Repeat}
           iconBg="bg-blue-50 border-blue-100"
           iconColor="text-blue-600"
-          onClick={() => handleStatCardClick("activePledge")}
           isActive={pledgeFilter === "Active"}
-          delay={0.1}
+          label="Recurring Donations"
+          onClick={() => handleStatCardClick("activePledge")}
+          subtext={`${formatCurrency(monthlyPledgeTotal)}/mo`}
+          value={activePledgeCount}
         />
         <StatCard
-          label="Needs Attention"
-          value={atRiskCount + lapsedCount}
-          subtext={`${atRiskCount} at risk, ${lapsedCount} lapsed`}
+          delay={0.15}
           icon={AlertCircle}
           iconBg="bg-amber-50 border-amber-100"
           iconColor="text-amber-600"
-          onClick={() => handleStatCardClick("atRisk")}
           isActive={statusFilter === "At Risk"}
-          delay={0.15}
+          label="Needs Attention"
+          onClick={() => handleStatCardClick("atRisk")}
+          subtext={`${atRiskCount} at risk, ${lapsedCount} lapsed`}
+          value={atRiskCount + lapsedCount}
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <motion.div
-          initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ ...smoothTransition, delay: 0.2 }}
           className="lg:col-span-4 xl:col-span-3"
+          initial={{ opacity: 0, x: -20 }}
+          transition={{ ...smoothTransition, delay: 0.2 }}
         >
-          <Card className="border-zinc-200 bg-white rounded-2xl overflow-hidden shadow-sm h-full flex flex-col">
-            <div className="p-4 border-b border-zinc-100 space-y-4 shrink-0">
+          <Card className="flex h-full flex-col overflow-hidden rounded-2xl border-zinc-200 bg-white shadow-sm">
+            <div className="shrink-0 space-y-4 border-zinc-100 border-b p-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                <h2 className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                   Partner List{" "}
                   {hasActiveFilters && (
                     <span className="text-blue-600">
@@ -1524,9 +1567,9 @@ function useDonorsPageLayout() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
-                        variant="ghost"
+                        className="h-8 w-8 rounded-lg text-zinc-400 hover:text-zinc-900"
                         size="icon"
-                        className="h-8 w-8 text-zinc-400 hover:text-zinc-900 rounded-lg"
+                        variant="ghost"
                       >
                         <ArrowDownUp className="h-4 w-4" />
                       </Button>
@@ -1535,7 +1578,7 @@ function useDonorsPageLayout() {
                       align="end"
                       className="w-48 rounded-xl border-zinc-100 shadow-xl"
                     >
-                      <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                      <DropdownMenuLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                         Sort By
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator className="bg-zinc-100" />
@@ -1546,12 +1589,12 @@ function useDonorsPageLayout() {
                         { value: "joined_date", label: "Partner Since" },
                       ].map((opt) => (
                         <DropdownMenuCheckboxItem
-                          key={opt.value}
                           checked={sortBy === opt.value}
+                          className="font-medium text-xs"
+                          key={opt.value}
                           onCheckedChange={() =>
                             setSortBy(opt.value as SortOption)
                           }
-                          className="text-xs font-medium"
                         >
                           {opt.label}
                         </DropdownMenuCheckboxItem>
@@ -1559,8 +1602,8 @@ function useDonorsPageLayout() {
                       <DropdownMenuSeparator className="bg-zinc-100" />
                       <DropdownMenuCheckboxItem
                         checked={sortAsc}
+                        className="font-medium text-xs"
                         onCheckedChange={() => setSortAsc(!sortAsc)}
-                        className="text-xs font-medium"
                       >
                         Ascending
                       </DropdownMenuCheckboxItem>
@@ -1569,49 +1612,49 @@ function useDonorsPageLayout() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
-                        variant="ghost"
-                        size="icon"
                         className={cn(
                           "h-8 w-8 rounded-lg",
                           hasActiveFilters
-                            ? "text-blue-600 bg-blue-50"
-                            : "text-zinc-400 hover:text-zinc-900",
+                            ? "bg-blue-50 text-blue-600"
+                            : "text-zinc-400 hover:text-zinc-900"
                         )}
+                        size="icon"
+                        variant="ghost"
                       >
                         <Filter className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                       align="end"
-                      className="w-56 rounded-xl border-zinc-100 shadow-xl max-h-[400px] overflow-y-auto"
+                      className="max-h-[400px] w-56 overflow-y-auto rounded-xl border-zinc-100 shadow-xl"
                     >
-                      <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                      <DropdownMenuLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                         Filter by Status
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator className="bg-zinc-100" />
                       {["All", "Active", "New", "Lapsed", "At Risk"].map(
                         (s) => (
                           <DropdownMenuCheckboxItem
-                            key={s}
                             checked={statusFilter === s}
+                            className="font-medium text-xs"
+                            key={s}
                             onCheckedChange={() => setStatusFilter(s)}
-                            className="text-xs font-medium"
                           >
                             {s}
                           </DropdownMenuCheckboxItem>
-                        ),
+                        )
                       )}
                       <DropdownMenuSeparator className="bg-zinc-100" />
-                      <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                      <DropdownMenuLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                         Filter by Recurring
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator className="bg-zinc-100" />
                       {["All", "Active", "Inactive"].map((p) => (
                         <DropdownMenuCheckboxItem
-                          key={p}
                           checked={pledgeFilter === p}
+                          className="font-medium text-xs"
+                          key={p}
                           onCheckedChange={() => setPledgeFilter(p)}
-                          className="text-xs font-medium"
                         >
                           {p === "Active"
                             ? "Has Recurring"
@@ -1621,22 +1664,22 @@ function useDonorsPageLayout() {
                         </DropdownMenuCheckboxItem>
                       ))}
                       <DropdownMenuSeparator className="bg-zinc-100" />
-                      <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                      <DropdownMenuLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                         Filter by Tag
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator className="bg-zinc-100" />
                       {AVAILABLE_TAGS.map((tag) => (
                         <DropdownMenuCheckboxItem
-                          key={tag.id}
                           checked={tagFilter.includes(tag.id)}
+                          className="font-medium text-xs"
+                          key={tag.id}
                           onCheckedChange={() =>
                             setTagFilter((prev) =>
                               prev.includes(tag.id)
                                 ? prev.filter((t) => t !== tag.id)
-                                : [...prev, tag.id],
+                                : [...prev, tag.id]
                             )
                           }
-                          className="text-xs font-medium"
                         >
                           {tag.label}
                         </DropdownMenuCheckboxItem>
@@ -1645,8 +1688,8 @@ function useDonorsPageLayout() {
                         <>
                           <DropdownMenuSeparator className="bg-zinc-100" />
                           <DropdownMenuItem
+                            className="font-medium text-rose-600 text-xs"
                             onClick={clearAllFilters}
-                            className="text-xs font-medium text-rose-600"
                           >
                             Clear All Filters
                           </DropdownMenuItem>
@@ -1657,21 +1700,21 @@ function useDonorsPageLayout() {
                 </div>
               </div>
               <div className="relative">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
+                <Search className="absolute top-2.5 left-3 h-4 w-4 text-zinc-400" />
                 <Input
-                  placeholder="Search partners..."
-                  className="pl-9 bg-zinc-50 border-zinc-100 focus:bg-white focus:border-zinc-300 transition-all h-10 rounded-xl text-sm"
-                  value={searchTerm}
+                  className="h-10 rounded-xl border-zinc-100 bg-zinc-50 pl-9 text-sm transition-all focus:border-zinc-300 focus:bg-white"
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search partners..."
+                  value={searchTerm}
                 />
               </div>
               <AnimatePresence mode="popLayout">
                 {hasActiveFilters && (
                   <motion.div
-                    initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
                     className="flex flex-wrap gap-1.5 overflow-hidden"
+                    exit={{ opacity: 0, height: 0 }}
+                    initial={{ opacity: 0, height: 0 }}
                   >
                     {statusFilter !== "All" && (
                       <motion.div
@@ -1680,13 +1723,13 @@ function useDonorsPageLayout() {
                         transition={springTransition}
                       >
                         <Badge
+                          className="rounded-full border-zinc-200 bg-zinc-100 px-2 py-0.5 font-black text-[9px] text-zinc-600 uppercase tracking-widest"
                           variant="outline"
-                          className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 border-zinc-200"
                         >
                           {statusFilter}
                           <button
-                            onClick={() => setStatusFilter("All")}
                             className="ml-1 hover:text-zinc-900"
+                            onClick={() => setStatusFilter("All")}
                           >
                             <X className="h-2.5 w-2.5" />
                           </button>
@@ -1700,15 +1743,15 @@ function useDonorsPageLayout() {
                         transition={springTransition}
                       >
                         <Badge
+                          className="rounded-full border-blue-200 bg-blue-50 px-2 py-0.5 font-black text-[9px] text-blue-600 uppercase tracking-widest"
                           variant="outline"
-                          className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border-blue-200"
                         >
                           {pledgeFilter === "Active"
                             ? "Recurring"
                             : "No Recurring"}
                           <button
-                            onClick={() => setPledgeFilter("All")}
                             className="ml-1 hover:text-blue-900"
+                            onClick={() => setPledgeFilter("All")}
                           >
                             <X className="h-2.5 w-2.5" />
                           </button>
@@ -1723,20 +1766,20 @@ function useDonorsPageLayout() {
                         transition={springTransition}
                       >
                         <Badge
-                          variant="outline"
                           className={cn(
-                            "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border",
-                            getTagStyle(tag),
+                            "rounded-full border px-2 py-0.5 font-black text-[9px] uppercase tracking-widest",
+                            getTagStyle(tag)
                           )}
+                          variant="outline"
                         >
                           {getTagLabel(tag)}
                           <button
+                            className="ml-1"
                             onClick={() =>
                               setTagFilter((prev) =>
-                                prev.filter((t) => t !== tag),
+                                prev.filter((t) => t !== tag)
                               )
                             }
-                            className="ml-1"
                           >
                             <X className="h-2.5 w-2.5" />
                           </button>
@@ -1744,11 +1787,11 @@ function useDonorsPageLayout() {
                       </motion.div>
                     ))}
                     <motion.button
+                      className="px-2 font-black text-[9px] text-rose-500 uppercase tracking-widest hover:text-rose-700"
                       layout
+                      onClick={clearAllFilters}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={clearAllFilters}
-                      className="text-[9px] font-black uppercase tracking-widest text-rose-500 hover:text-rose-700 px-2"
                     >
                       Clear All
                     </motion.button>
@@ -1757,7 +1800,7 @@ function useDonorsPageLayout() {
               </AnimatePresence>
             </div>
 
-            <ScrollArea className="flex-1 min-h-0">
+            <ScrollArea className="min-h-0 flex-1">
               {error ? (
                 <ErrorState message={error} onRetry={fetchDonors} />
               ) : isLoading ? (
@@ -1765,21 +1808,21 @@ function useDonorsPageLayout() {
               ) : filteredDonors.length === 0 ? (
                 <motion.div
                   {...fadeInUp}
+                  className="flex h-64 flex-col items-center justify-center p-6 text-center"
                   transition={smoothTransition}
-                  className="flex flex-col items-center justify-center h-64 text-center p-6"
                 >
                   <motion.div
-                    initial={{ scale: 0.8 }}
                     animate={{ scale: 1 }}
+                    className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-100"
+                    initial={{ scale: 0.8 }}
                     transition={springTransition}
-                    className="w-14 h-14 bg-zinc-100 rounded-2xl flex items-center justify-center mb-4"
                   >
                     <Search className="h-6 w-6 text-zinc-300" />
                   </motion.div>
-                  <p className="text-sm font-bold text-zinc-900">
+                  <p className="font-bold text-sm text-zinc-900">
                     No partners found
                   </p>
-                  <p className="text-xs text-zinc-400 mt-1">
+                  <p className="mt-1 text-xs text-zinc-400">
                     {hasActiveFilters
                       ? "Try adjusting your filters"
                       : "Add your first partner to get started"}
@@ -1790,10 +1833,10 @@ function useDonorsPageLayout() {
                       whileTap={{ scale: 0.98 }}
                     >
                       <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={clearAllFilters}
                         className="mt-4 h-8 rounded-xl text-xs"
+                        onClick={clearAllFilters}
+                        size="sm"
+                        variant="outline"
                       >
                         Clear Filters
                       </Button>
@@ -1803,33 +1846,33 @@ function useDonorsPageLayout() {
               ) : (
                 <LayoutGroup>
                   <motion.div
-                    variants={staggerContainer}
-                    initial="initial"
                     animate="animate"
-                    className="p-2 space-y-1"
+                    className="space-y-1 p-2"
+                    initial="initial"
+                    variants={staggerContainer}
                   >
                     <AnimatePresence mode="popLayout">
                       {filteredDonors.map((donor, index) => (
                         <motion.div
+                          animate="animate"
+                          className={cn(
+                            "group flex cursor-pointer items-center gap-3 rounded-2xl border p-3 transition-colors",
+                            selectedDonorId === donor.id
+                              ? "border-zinc-900 bg-zinc-900"
+                              : "border-transparent bg-white hover:border-zinc-200 hover:bg-zinc-50"
+                          )}
+                          exit="exit"
+                          initial="initial"
                           key={donor.id}
                           layout
-                          variants={fadeInUp}
-                          initial="initial"
-                          animate="animate"
-                          exit="exit"
+                          onClick={() => setSelectedDonorId(donor.id)}
                           transition={{
                             ...smoothTransition,
                             delay: index * 0.02,
                           }}
+                          variants={fadeInUp}
                           whileHover={{ scale: 1.01 }}
                           whileTap={{ scale: 0.99 }}
-                          onClick={() => setSelectedDonorId(donor.id)}
-                          className={cn(
-                            "group flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-colors border",
-                            selectedDonorId === donor.id
-                              ? "bg-zinc-900 border-zinc-900"
-                              : "bg-white border-transparent hover:bg-zinc-50 hover:border-zinc-200",
-                          )}
                         >
                           <div className="relative shrink-0">
                             <Avatar
@@ -1837,43 +1880,43 @@ function useDonorsPageLayout() {
                                 "h-10 w-10 border-2",
                                 selectedDonorId === donor.id
                                   ? "border-zinc-700"
-                                  : "border-white shadow-sm",
+                                  : "border-white shadow-sm"
                               )}
                             >
                               <AvatarImage src={donor.avatar_url} />
                               <AvatarFallback
                                 className={cn(
-                                  "text-xs font-bold",
+                                  "font-bold text-xs",
                                   selectedDonorId === donor.id
                                     ? "bg-zinc-800 text-zinc-300"
-                                    : "bg-zinc-100 text-zinc-500",
+                                    : "bg-zinc-100 text-zinc-500"
                                 )}
                               >
                                 {donor.initials}
                               </AvatarFallback>
                             </Avatar>
                             <motion.div
-                              initial={{ scale: 0.95, opacity: 0 }}
                               animate={{ scale: 1 }}
-                              transition={springTransition}
                               className={cn(
-                                "absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2",
+                                "absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2",
                                 selectedDonorId === donor.id
                                   ? "border-zinc-900"
                                   : "border-white",
-                                getStatusColor(donor.status),
+                                getStatusColor(donor.status)
                               )}
+                              initial={{ scale: 0.95, opacity: 0 }}
+                              transition={springTransition}
                             />
                           </div>
 
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-0.5">
+                          <div className="min-w-0 flex-1">
+                            <div className="mb-0.5 flex items-center justify-between">
                               <span
                                 className={cn(
-                                  "font-bold text-sm truncate",
+                                  "truncate font-bold text-sm",
                                   selectedDonorId === donor.id
                                     ? "text-white"
-                                    : "text-zinc-900",
+                                    : "text-zinc-900"
                                 )}
                               >
                                 {donor.name}
@@ -1881,34 +1924,37 @@ function useDonorsPageLayout() {
                               {donor.has_active_pledge && (
                                 <motion.div
                                   animate={{ scale: [1, 1.2, 1] }}
-                                  transition={{ duration: 2, repeat: Infinity }}
                                   className={cn(
-                                    "h-2 w-2 rounded-full shrink-0 ml-1",
+                                    "ml-1 h-2 w-2 shrink-0 rounded-full",
                                     selectedDonorId === donor.id
                                       ? "bg-emerald-400"
-                                      : "bg-emerald-500",
+                                      : "bg-emerald-500"
                                   )}
                                   title="Active recurring donation"
+                                  transition={{
+                                    duration: 2,
+                                    repeat: Number.POSITIVE_INFINITY,
+                                  }}
                                 />
                               )}
                             </div>
                             <div className="flex items-center justify-between">
                               <span
                                 className={cn(
-                                  "text-[10px] truncate max-w-[100px] font-medium uppercase tracking-wider",
+                                  "max-w-[100px] truncate font-medium text-[10px] uppercase tracking-wider",
                                   selectedDonorId === donor.id
                                     ? "text-zinc-400"
-                                    : "text-zinc-400",
+                                    : "text-zinc-400"
                                 )}
                               >
                                 {donor.location || "Unknown"}
                               </span>
                               <span
                                 className={cn(
-                                  "text-xs font-black",
+                                  "font-black text-xs",
                                   selectedDonorId === donor.id
                                     ? "text-zinc-300"
-                                    : "text-zinc-900",
+                                    : "text-zinc-900"
                                 )}
                               >
                                 {formatCurrency(donor.total_given)}
@@ -1926,7 +1972,7 @@ function useDonorsPageLayout() {
                                 "h-4 w-4 shrink-0",
                                 selectedDonorId === donor.id
                                   ? "text-zinc-500"
-                                  : "text-zinc-300",
+                                  : "text-zinc-300"
                               )}
                             />
                           </motion.div>
@@ -1941,10 +1987,10 @@ function useDonorsPageLayout() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ ...smoothTransition, delay: 0.25 }}
           className="lg:col-span-8 xl:col-span-9"
+          initial={{ opacity: 0, x: 20 }}
+          transition={{ ...smoothTransition, delay: 0.25 }}
         >
           <AnimatePresence mode="wait">
             {selectedDonor ? (
@@ -1953,42 +1999,42 @@ function useDonorsPageLayout() {
                 {...slideInRight}
                 transition={smoothTransition}
               >
-                <Card className="border-zinc-200 bg-white rounded-2xl overflow-hidden shadow-sm h-full flex flex-col">
-                  <div className="border-b border-zinc-100 p-6 shrink-0">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <Card className="flex h-full flex-col overflow-hidden rounded-2xl border-zinc-200 bg-white shadow-sm">
+                  <div className="shrink-0 border-zinc-100 border-b p-6">
+                    <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                       <div className="flex items-center gap-4">
                         <motion.div
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                         >
                           <Button
-                            variant="ghost"
-                            size="icon"
-                            className="lg:hidden h-9 w-9 text-zinc-400 rounded-xl hover:bg-zinc-100"
+                            className="h-9 w-9 rounded-xl text-zinc-400 hover:bg-zinc-100 lg:hidden"
                             onClick={() => setSelectedDonorId(null)}
+                            size="icon"
+                            variant="ghost"
                           >
                             <ArrowLeft className="h-5 w-5" />
                           </Button>
                         </motion.div>
                         <motion.div
-                          initial={{ scale: 0.8, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
+                          initial={{ scale: 0.8, opacity: 0 }}
                           transition={springTransition}
                         >
-                          <Avatar className="h-14 w-14 border-2 border-white shadow-lg rounded-2xl">
+                          <Avatar className="h-14 w-14 rounded-2xl border-2 border-white shadow-lg">
                             <AvatarImage src={selectedDonor.avatar_url} />
-                            <AvatarFallback className="text-lg font-bold bg-zinc-100 text-zinc-500">
+                            <AvatarFallback className="bg-zinc-100 font-bold text-lg text-zinc-500">
                               {selectedDonor.initials}
                             </AvatarFallback>
                           </Avatar>
                         </motion.div>
                         <motion.div
-                          initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
+                          initial={{ opacity: 0, x: -10 }}
                           transition={{ ...smoothTransition, delay: 0.1 }}
                         >
-                          <div className="flex items-center gap-3 mb-1">
-                            <h2 className="text-lg font-bold text-zinc-900 tracking-tight">
+                          <div className="mb-1 flex items-center gap-3">
+                            <h2 className="font-bold text-lg text-zinc-900 tracking-tight">
                               {selectedDonor.name}
                             </h2>
                             {getStatusBadge(selectedDonor.status)}
@@ -2012,67 +2058,67 @@ function useDonorsPageLayout() {
                         </motion.div>
                       </div>
                       <motion.div
-                        initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
+                        className="flex w-full items-center gap-2 sm:w-auto"
+                        initial={{ opacity: 0, y: 10 }}
                         transition={{ ...smoothTransition, delay: 0.15 }}
-                        className="flex items-center gap-2 w-full sm:w-auto"
                       >
                         <motion.div
+                          className="flex-1 sm:flex-none"
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          className="flex-1 sm:flex-none"
                         >
                           <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full h-9 px-4 text-xs font-medium rounded-xl border-zinc-200 hover:bg-zinc-50"
+                            className="h-9 w-full rounded-xl border-zinc-200 px-4 font-medium text-xs hover:bg-zinc-50"
                             onClick={() => {
                               setActivityType("note");
                               setIsNoteDialogOpen(true);
                             }}
+                            size="sm"
+                            variant="outline"
                           >
-                            <Pencil className="h-3.5 w-3.5 mr-1.5" /> Note
+                            <Pencil className="mr-1.5 h-3.5 w-3.5" /> Note
                           </Button>
                         </motion.div>
                         <motion.div
+                          className="flex-1 sm:flex-none"
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          className="flex-1 sm:flex-none"
                         >
                           <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full h-9 px-4 text-xs font-medium rounded-xl border-zinc-200 hover:bg-zinc-50"
                             asChild
+                            className="h-9 w-full rounded-xl border-zinc-200 px-4 font-medium text-xs hover:bg-zinc-50"
+                            size="sm"
+                            variant="outline"
                           >
                             <a
                               href={`tel:${selectedDonor.phone || selectedDonor.mobile}`}
                             >
-                              <Phone className="h-3.5 w-3.5 mr-1.5" /> Call
+                              <Phone className="mr-1.5 h-3.5 w-3.5" /> Call
                             </a>
                           </Button>
                         </motion.div>
                         <motion.div
+                          className="flex-1 sm:flex-none"
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          className="flex-1 sm:flex-none"
                         >
                           <Button
-                            size="sm"
-                            className="w-full h-9 px-4 text-xs font-medium rounded-xl"
                             asChild
+                            className="h-9 w-full rounded-xl px-4 font-medium text-xs"
+                            size="sm"
                           >
                             <a href={`mailto:${selectedDonor.email}`}>
-                              <Mail className="h-3.5 w-3.5 mr-1.5" /> Email
+                              <Mail className="mr-1.5 h-3.5 w-3.5" /> Email
                             </a>
                           </Button>
                         </motion.div>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
-                              variant="ghost"
+                              className="h-9 w-9 rounded-xl text-zinc-400 hover:bg-zinc-100"
                               size="icon"
-                              className="h-9 w-9 text-zinc-400 rounded-xl hover:bg-zinc-100"
+                              variant="ghost"
                             >
                               <MoreHorizontal className="h-5 w-5" />
                             </Button>
@@ -2081,51 +2127,51 @@ function useDonorsPageLayout() {
                             align="end"
                             className="rounded-xl border-zinc-100 shadow-xl"
                           >
-                            <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                            <DropdownMenuLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                               Actions
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator className="bg-zinc-100" />
                             <DropdownMenuItem
+                              className="font-medium text-xs"
                               onClick={openEditDialog}
-                              className="text-xs font-medium"
                             >
-                              <Pencil className="h-3.5 w-3.5 mr-2" /> Edit
+                              <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
                               Profile
                             </DropdownMenuItem>
                             <DropdownMenuItem
+                              className="font-medium text-xs"
                               onClick={() => setIsTagDialogOpen(true)}
-                              className="text-xs font-medium"
                             >
-                              <Tag className="h-3.5 w-3.5 mr-2" /> Manage Tags
+                              <Tag className="mr-2 h-3.5 w-3.5" /> Manage Tags
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="bg-zinc-100" />
                             <DropdownMenuItem
+                              className="font-medium text-xs"
                               onClick={() => {
                                 setActivityType("call");
                                 setIsNoteDialogOpen(true);
                               }}
-                              className="text-xs font-medium"
                             >
-                              <Phone className="h-3.5 w-3.5 mr-2" /> Log Call
+                              <Phone className="mr-2 h-3.5 w-3.5" /> Log Call
                             </DropdownMenuItem>
                             <DropdownMenuItem
+                              className="font-medium text-xs"
                               onClick={() => {
                                 setActivityType("meeting");
                                 setIsNoteDialogOpen(true);
                               }}
-                              className="text-xs font-medium"
                             >
-                              <Briefcase className="h-3.5 w-3.5 mr-2" /> Log
+                              <Briefcase className="mr-2 h-3.5 w-3.5" /> Log
                               Meeting
                             </DropdownMenuItem>
                             <DropdownMenuItem
+                              className="font-medium text-xs"
                               onClick={() => {
                                 setActivityType("email");
                                 setIsNoteDialogOpen(true);
                               }}
-                              className="text-xs font-medium"
                             >
-                              <Mail className="h-3.5 w-3.5 mr-2" /> Log Email
+                              <Mail className="mr-2 h-3.5 w-3.5" /> Log Email
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -2133,10 +2179,10 @@ function useDonorsPageLayout() {
                     </div>
 
                     <motion.div
-                      variants={staggerContainer}
-                      initial="initial"
                       animate="animate"
-                      className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6"
+                      className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4"
+                      initial="initial"
+                      variants={staggerContainer}
                     >
                       {[
                         {
@@ -2149,14 +2195,14 @@ function useDonorsPageLayout() {
                           extra: selectedDonor.last_gift_date
                             ? formatDistanceToNow(
                                 new Date(selectedDonor.last_gift_date),
-                                { addSuffix: true },
+                                { addSuffix: true }
                               )
                             : null,
                           showPulse:
                             selectedDonor.last_gift_date &&
                             differenceInMonths(
                               new Date(),
-                              new Date(selectedDonor.last_gift_date),
+                              new Date(selectedDonor.last_gift_date)
                             ) < 1,
                         },
                         {
@@ -2169,22 +2215,22 @@ function useDonorsPageLayout() {
                           value: selectedDonor.joined_date
                             ? format(
                                 new Date(selectedDonor.joined_date),
-                                "MMM yyyy",
+                                "MMM yyyy"
                               )
                             : "N/A",
                         },
                       ].map((stat, i) => (
                         <motion.div
+                          className="rounded-2xl border border-zinc-100 bg-zinc-50 p-4"
                           key={stat.label}
-                          variants={fadeInUp}
                           transition={{
                             ...smoothTransition,
                             delay: 0.2 + i * 0.05,
                           }}
+                          variants={fadeInUp}
                           whileHover={{ y: -2 }}
-                          className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100"
                         >
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                          <p className="mb-1 font-bold text-[10px] text-zinc-400 uppercase tracking-wider">
                             {stat.label}
                           </p>
                           <div className="flex items-center gap-2">
@@ -2197,7 +2243,7 @@ function useDonorsPageLayout() {
                                   stat.label === "Last Gift"
                                   ? "text-lg"
                                   : "text-sm",
-                                "font-bold text-zinc-900",
+                                "font-bold text-zinc-900"
                               )}
                             >
                               {stat.value}
@@ -2208,13 +2254,16 @@ function useDonorsPageLayout() {
                                   scale: [1, 1.3, 1],
                                   opacity: [1, 0.7, 1],
                                 }}
-                                transition={{ duration: 1.5, repeat: Infinity }}
-                                className="w-2 h-2 bg-emerald-500 rounded-full"
+                                className="h-2 w-2 rounded-full bg-emerald-500"
+                                transition={{
+                                  duration: 1.5,
+                                  repeat: Number.POSITIVE_INFINITY,
+                                }}
                               />
                             )}
                           </div>
                           {stat.extra && (
-                            <p className="text-[10px] text-zinc-400 mt-0.5">
+                            <p className="mt-0.5 text-[10px] text-zinc-400">
                               {stat.extra}
                             </p>
                           )}
@@ -2223,30 +2272,30 @@ function useDonorsPageLayout() {
                     </motion.div>
 
                     <motion.div
-                      initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
+                      className="mt-4 flex flex-wrap items-center gap-1.5"
+                      initial={{ opacity: 0 }}
                       transition={{ delay: 0.4 }}
-                      className="flex flex-wrap items-center gap-1.5 mt-4"
                     >
                       <AnimatePresence mode="popLayout">
                         {(selectedDonor.tags || []).map((tag, i) => (
                           <motion.div
-                            key={tag}
-                            layout
-                            initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.8 }}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            key={tag}
+                            layout
                             transition={{
                               ...springTransition,
                               delay: i * 0.03,
                             }}
                           >
                             <Badge
-                              variant="outline"
                               className={cn(
-                                "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border",
-                                getTagStyle(tag),
+                                "rounded-full border px-2 py-0.5 font-black text-[9px] uppercase tracking-widest",
+                                getTagStyle(tag)
                               )}
+                              variant="outline"
                             >
                               {getTagLabel(tag)}
                             </Badge>
@@ -2258,24 +2307,24 @@ function useDonorsPageLayout() {
                         whileTap={{ scale: 0.95 }}
                       >
                         <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 px-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900"
+                          className="h-6 px-2 font-black text-[10px] text-zinc-400 uppercase tracking-widest hover:text-zinc-900"
                           onClick={() => setIsTagDialogOpen(true)}
+                          size="sm"
+                          variant="ghost"
                         >
-                          <Plus className="h-3 w-3 mr-1" /> Add Tag
+                          <Plus className="mr-1 h-3 w-3" /> Add Tag
                         </Button>
                       </motion.div>
                     </motion.div>
                   </div>
 
                   <Tabs
-                    value={activeTab}
+                    className="flex min-h-0 flex-1 flex-col"
                     onValueChange={setActiveTab}
-                    className="flex-1 flex flex-col min-h-0"
+                    value={activeTab}
                   >
-                    <div className="px-6 py-4 border-b border-zinc-100 shrink-0">
-                      <TabsList className="bg-zinc-100/50 border border-zinc-100 p-1.5 h-auto rounded-2xl w-full sm:w-auto grid grid-cols-5 sm:flex">
+                    <div className="shrink-0 border-zinc-100 border-b px-6 py-4">
+                      <TabsList className="grid h-auto w-full grid-cols-5 rounded-2xl border border-zinc-100 bg-zinc-100/50 p-1.5 sm:flex sm:w-auto">
                         {[
                           "overview",
                           "tasks",
@@ -2284,9 +2333,9 @@ function useDonorsPageLayout() {
                           "giving",
                         ].map((tab) => (
                           <TabsTrigger
+                            className="rounded-xl px-4 py-2 font-black text-[10px] text-zinc-400 uppercase tracking-widest transition-all data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-sm sm:px-6"
                             key={tab}
                             value={tab}
-                            className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 sm:px-6 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 transition-all"
                           >
                             {tab === "overview"
                               ? "Overview"
@@ -2302,25 +2351,25 @@ function useDonorsPageLayout() {
                       </TabsList>
                     </div>
 
-                    <ScrollArea className="flex-1 min-h-0">
+                    <ScrollArea className="min-h-0 flex-1">
                       <div className="p-6">
                         <AnimatePresence mode="wait">
                           <TabsContent
-                            value="overview"
                             className="mt-0 space-y-6"
+                            value="overview"
                           >
                             <motion.div
                               {...fadeInUp}
+                              className="rounded-2xl border border-zinc-100 bg-zinc-50 p-4"
                               transition={smoothTransition}
-                              className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100"
                             >
                               <Textarea
-                                placeholder="Log a call, meeting notes, or observation..."
-                                className="min-h-[80px] border-none bg-white focus:ring-0 resize-none text-sm p-3 rounded-xl shadow-sm"
-                                value={noteInput}
+                                className="min-h-[80px] resize-none rounded-xl border-none bg-white p-3 text-sm shadow-sm focus:ring-0"
                                 onChange={(e) => setNoteInput(e.target.value)}
+                                placeholder="Log a call, meeting notes, or observation..."
+                                value={noteInput}
                               />
-                              <div className="flex justify-between items-center mt-3 pt-3 border-t border-zinc-100">
+                              <div className="mt-3 flex items-center justify-between border-zinc-100 border-t pt-3">
                                 <div className="flex gap-2">
                                   {[
                                     {
@@ -2346,22 +2395,22 @@ function useDonorsPageLayout() {
                                       whileTap={{ scale: 0.95 }}
                                     >
                                       <Button
-                                        variant="ghost"
-                                        size="sm"
                                         className={cn(
-                                          "h-8 rounded-lg text-[10px] font-black uppercase tracking-widest",
+                                          "h-8 rounded-lg font-black text-[10px] uppercase tracking-widest",
                                           hidden,
                                           activityType === type
                                             ? bg
-                                            : "text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100",
+                                            : "text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900"
                                         )}
                                         onClick={() =>
                                           setActivityType(
-                                            type as typeof activityType,
+                                            type as typeof activityType
                                           )
                                         }
+                                        size="sm"
+                                        variant="ghost"
                                       >
-                                        <Icon className="h-3.5 w-3.5 mr-1.5" />{" "}
+                                        <Icon className="mr-1.5 h-3.5 w-3.5" />{" "}
                                         {type.charAt(0).toUpperCase() +
                                           type.slice(1)}
                                       </Button>
@@ -2373,16 +2422,16 @@ function useDonorsPageLayout() {
                                   whileTap={{ scale: 0.98 }}
                                 >
                                   <Button
-                                    size="sm"
-                                    className="h-8 rounded-xl px-4 text-[10px] font-black uppercase tracking-widest"
-                                    onClick={handleAddNote}
+                                    className="h-8 rounded-xl px-4 font-black text-[10px] uppercase tracking-widest"
                                     disabled={!noteInput.trim() || isSavingNote}
+                                    onClick={handleAddNote}
+                                    size="sm"
                                   >
                                     {isSavingNote ? (
                                       <Loader2 className="h-3 w-3 animate-spin" />
                                     ) : (
                                       <>
-                                        Post <Send className="h-3 w-3 ml-1.5" />
+                                        Post <Send className="ml-1.5 h-3 w-3" />
                                       </>
                                     )}
                                   </Button>
@@ -2390,26 +2439,26 @@ function useDonorsPageLayout() {
                               </div>
                             </motion.div>
 
-                            <div className="space-y-4 relative">
-                              <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-zinc-100" />
+                            <div className="relative space-y-4">
+                              <div className="absolute top-0 bottom-0 left-4 w-0.5 bg-zinc-100" />
 
                               {selectedDonor.activities.length === 0 ? (
                                 <motion.div
                                   {...fadeInUp}
-                                  className="flex flex-col items-center justify-center py-16 text-center ml-8"
+                                  className="ml-8 flex flex-col items-center justify-center py-16 text-center"
                                 >
                                   <motion.div
-                                    initial={{ scale: 0.8 }}
                                     animate={{ scale: 1 }}
+                                    className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-100"
+                                    initial={{ scale: 0.8 }}
                                     transition={springTransition}
-                                    className="w-16 h-16 bg-zinc-100 rounded-2xl flex items-center justify-center mb-4"
                                   >
                                     <Calendar className="h-7 w-7 text-zinc-300" />
                                   </motion.div>
-                                  <p className="text-sm font-bold text-zinc-900">
+                                  <p className="font-bold text-sm text-zinc-900">
                                     No activity recorded yet
                                   </p>
-                                  <p className="text-xs text-zinc-400 mt-1">
+                                  <p className="mt-1 text-xs text-zinc-400">
                                     Start by logging your first interaction
                                   </p>
                                 </motion.div>
@@ -2418,69 +2467,69 @@ function useDonorsPageLayout() {
                                   {selectedDonor.activities.map(
                                     (activity, i) => (
                                       <motion.div
-                                        key={activity.id}
-                                        initial={{ opacity: 0, x: -20 }}
                                         animate={{ opacity: 1, x: 0 }}
+                                        className="group relative pl-10"
+                                        initial={{ opacity: 0, x: -20 }}
+                                        key={activity.id}
                                         transition={{
                                           ...smoothTransition,
                                           delay: i * 0.05,
                                         }}
-                                        className="relative pl-10 group"
                                       >
                                         <motion.div
-                                          whileHover={{ scale: 1.15 }}
                                           className={cn(
-                                            "absolute left-0 top-1 h-8 w-8 rounded-xl flex items-center justify-center shadow-sm z-10",
+                                            "absolute top-1 left-0 z-10 flex h-8 w-8 items-center justify-center rounded-xl shadow-sm",
                                             getActivityBg(
-                                              activity.type as ActivityType,
-                                            ),
+                                              activity.type as ActivityType
+                                            )
                                           )}
+                                          whileHover={{ scale: 1.15 }}
                                         >
                                           {getActivityIcon(
-                                            activity.type as ActivityType,
+                                            activity.type as ActivityType
                                           )}
                                         </motion.div>
 
                                         <motion.div
+                                          className="rounded-2xl border border-zinc-200 bg-white p-4 transition-all hover:border-zinc-300"
                                           whileHover={{
                                             y: -2,
                                             boxShadow:
                                               "0 8px 30px rgba(0,0,0,0.08)",
                                           }}
-                                          className="bg-white p-4 rounded-2xl border border-zinc-200 hover:border-zinc-300 transition-all"
                                         >
-                                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-1">
+                                          <div className="mb-1 flex flex-col justify-between gap-2 sm:flex-row sm:items-start">
                                             <div className="space-y-1">
                                               <div className="flex flex-wrap items-center gap-2">
-                                                <span className="text-sm font-bold text-zinc-900">
+                                                <span className="font-bold text-sm text-zinc-900">
                                                   {activity.title}
                                                 </span>
                                                 {activity.amount && (
                                                   <Badge
                                                     className={cn(
-                                                      "font-black px-2 h-5 rounded-lg text-[9px] uppercase tracking-widest border-0",
+                                                      "h-5 rounded-lg border-0 px-2 font-black text-[9px] uppercase tracking-widest",
                                                       activity.status ===
                                                         "Failed"
                                                         ? "bg-rose-50 text-rose-600"
-                                                        : "bg-emerald-50 text-emerald-700",
+                                                        : "bg-emerald-50 text-emerald-700"
                                                     )}
                                                   >
                                                     {formatCurrency(
-                                                      activity.amount,
+                                                      activity.amount
                                                     )}
                                                   </Badge>
                                                 )}
                                                 {activity.gift_type && (
-                                                  <span className="flex items-center gap-1 text-[10px] font-medium text-zinc-400">
+                                                  <span className="flex items-center gap-1 font-medium text-[10px] text-zinc-400">
                                                     {getGiftTypeIcon(
-                                                      activity.gift_type,
+                                                      activity.gift_type
                                                     )}
                                                     {activity.gift_type}
                                                   </span>
                                                 )}
                                                 {activity.status ===
                                                   "Failed" && (
-                                                  <Badge className="bg-rose-50 text-rose-600 border-0 text-[9px] font-black uppercase tracking-widest">
+                                                  <Badge className="border-0 bg-rose-50 font-black text-[9px] text-rose-600 uppercase tracking-widest">
                                                     Failed
                                                   </Badge>
                                                 )}
@@ -2496,23 +2545,23 @@ function useDonorsPageLayout() {
                                                 </p>
                                               )}
                                             </div>
-                                            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 whitespace-nowrap">
+                                            <span className="whitespace-nowrap font-bold text-[10px] text-zinc-400 uppercase tracking-widest">
                                               {format(
                                                 new Date(activity.date),
-                                                "MMM d, yyyy",
+                                                "MMM d, yyyy"
                                               )}
                                             </span>
                                           </div>
                                         </motion.div>
                                       </motion.div>
-                                    ),
+                                    )
                                   )}
                                 </AnimatePresence>
                               )}
                             </div>
                           </TabsContent>
 
-                          <TabsContent value="tasks" className="mt-0 space-y-6">
+                          <TabsContent className="mt-0 space-y-6" value="tasks">
                             <DonorTasks
                               donorId={selectedDonor.id}
                               donorName={selectedDonor.name}
@@ -2520,15 +2569,15 @@ function useDonorsPageLayout() {
                           </TabsContent>
 
                           <TabsContent
-                            value="contact"
                             className="mt-0 space-y-6"
+                            value="contact"
                           >
                             <motion.div
                               {...fadeInUp}
+                              className="mb-2 flex items-center justify-between"
                               transition={smoothTransition}
-                              className="flex items-center justify-between mb-2"
                             >
-                              <h3 className="text-sm font-bold text-zinc-900">
+                              <h3 className="font-bold text-sm text-zinc-900">
                                 Contact Information
                               </h3>
                               <motion.div
@@ -2536,22 +2585,22 @@ function useDonorsPageLayout() {
                                 whileTap={{ scale: 0.98 }}
                               >
                                 <Button
-                                  variant="outline"
-                                  size="sm"
+                                  className="h-8 rounded-xl border-zinc-200 px-3 text-xs"
                                   onClick={openEditDialog}
-                                  className="h-8 px-3 text-xs rounded-xl border-zinc-200"
+                                  size="sm"
+                                  variant="outline"
                                 >
-                                  <Pencil className="h-3.5 w-3.5 mr-1.5" /> Edit
+                                  <Pencil className="mr-1.5 h-3.5 w-3.5" /> Edit
                                 </Button>
                               </motion.div>
                             </motion.div>
 
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                               <motion.div
-                                variants={staggerContainer}
-                                initial="initial"
                                 animate="animate"
                                 className="space-y-3"
+                                initial="initial"
+                                variants={staggerContainer}
                               >
                                 {[
                                   {
@@ -2589,38 +2638,38 @@ function useDonorsPageLayout() {
                                   },
                                 ].map((item, i) => (
                                   <motion.div
+                                    className="group flex items-center justify-between rounded-2xl border border-zinc-100 bg-zinc-50 p-4 transition-all hover:border-zinc-200"
                                     key={item.label}
-                                    variants={fadeInUp}
                                     transition={{ delay: i * 0.05 }}
+                                    variants={fadeInUp}
                                     whileHover={{ y: -2 }}
-                                    className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-all"
                                   >
                                     <div className="flex items-center gap-3">
                                       <div
                                         className={cn(
-                                          "h-10 w-10 rounded-xl flex items-center justify-center shrink-0",
-                                          `bg-${item.color}-50 text-${item.color}-600`,
+                                          "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+                                          `bg-${item.color}-50 text-${item.color}-600`
                                         )}
                                       >
                                         <item.icon className="h-4 w-4" />
                                       </div>
                                       <div className="min-w-0">
                                         <div className="flex items-center gap-2">
-                                          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                                          <p className="font-bold text-[10px] text-zinc-400 uppercase tracking-widest">
                                             {item.label}
                                           </p>
                                           {item.preferred && (
                                             <Badge
                                               className={cn(
                                                 `bg-${item.color}-50 text-${item.color}-600`,
-                                                "border-0 text-[8px] font-black uppercase tracking-widest px-1.5 py-0",
+                                                "border-0 px-1.5 py-0 font-black text-[8px] uppercase tracking-widest"
                                               )}
                                             >
                                               Preferred
                                             </Badge>
                                           )}
                                         </div>
-                                        <p className="text-sm font-medium text-zinc-900 truncate">
+                                        <p className="truncate font-medium text-sm text-zinc-900">
                                           {item.value || "Not provided"}
                                         </p>
                                       </div>
@@ -2631,18 +2680,18 @@ function useDonorsPageLayout() {
                                         whileTap={{ scale: 0.9 }}
                                       >
                                         <Button
-                                          variant="ghost"
-                                          size="icon"
                                           className={cn(
-                                            "h-9 w-9 rounded-xl shrink-0",
-                                            `text-zinc-400 hover:text-${item.color}-600 hover:bg-${item.color}-50`,
+                                            "h-9 w-9 shrink-0 rounded-xl",
+                                            `text-zinc-400 hover:text-${item.color}-600 hover:bg-${item.color}-50`
                                           )}
                                           onClick={() =>
                                             copyToClipboard(
                                               item.value!,
-                                              item.label,
+                                              item.label
                                             )
                                           }
+                                          size="icon"
+                                          variant="ghost"
                                         >
                                           <Copy className="h-4 w-4" />
                                         </Button>
@@ -2652,19 +2701,19 @@ function useDonorsPageLayout() {
                                 ))}
                                 {selectedDonor.website && (
                                   <motion.div
+                                    className="group flex items-center justify-between rounded-2xl border border-zinc-100 bg-zinc-50 p-4 transition-all hover:border-zinc-200"
                                     variants={fadeInUp}
                                     whileHover={{ y: -2 }}
-                                    className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-all"
                                   >
                                     <div className="flex items-center gap-3">
-                                      <div className="h-10 w-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
                                         <Globe className="h-4 w-4" />
                                       </div>
                                       <div className="min-w-0">
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                                        <p className="font-bold text-[10px] text-zinc-400 uppercase tracking-widest">
                                           Website
                                         </p>
-                                        <p className="text-sm font-medium text-zinc-900 truncate">
+                                        <p className="truncate font-medium text-sm text-zinc-900">
                                           {selectedDonor.website}
                                         </p>
                                       </div>
@@ -2674,21 +2723,21 @@ function useDonorsPageLayout() {
                                       whileTap={{ scale: 0.9 }}
                                     >
                                       <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-9 w-9 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl shrink-0"
                                         asChild
+                                        className="h-9 w-9 shrink-0 rounded-xl text-zinc-400 hover:bg-indigo-50 hover:text-indigo-600"
+                                        size="icon"
+                                        variant="ghost"
                                       >
                                         <a
                                           href={
                                             selectedDonor.website.startsWith(
-                                              "http",
+                                              "http"
                                             )
                                               ? selectedDonor.website
                                               : `https://${selectedDonor.website}`
                                           }
-                                          target="_blank"
                                           rel="noopener noreferrer"
+                                          target="_blank"
                                         >
                                           <ExternalLink className="h-4 w-4" />
                                         </a>
@@ -2699,38 +2748,38 @@ function useDonorsPageLayout() {
                               </motion.div>
 
                               <motion.div
-                                variants={staggerContainer}
-                                initial="initial"
                                 animate="animate"
                                 className="space-y-4"
+                                initial="initial"
+                                variants={staggerContainer}
                               >
                                 <motion.div
+                                  className="rounded-2xl border border-zinc-100 bg-zinc-50 p-4"
                                   variants={fadeInUp}
                                   whileHover={{ y: -2 }}
-                                  className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100"
                                 >
                                   <div className="flex items-start justify-between">
                                     <div className="flex items-start gap-3">
-                                      <div className="h-10 w-10 rounded-xl bg-zinc-100 text-zinc-500 flex items-center justify-center shrink-0">
+                                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-zinc-500">
                                         <Home className="h-4 w-4" />
                                       </div>
                                       <div>
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">
+                                        <p className="mb-1 font-bold text-[10px] text-zinc-400 uppercase tracking-widest">
                                           Mailing Address
                                         </p>
                                         {selectedDonor.address?.street ? (
                                           <>
                                             {formatAddress(
-                                              selectedDonor.address,
+                                              selectedDonor.address
                                             ).map((line, i) => (
                                               <p
-                                                key={`${line}-${selectedDonor.id}`}
                                                 className={cn(
                                                   "text-sm",
                                                   i === 0
                                                     ? "font-medium text-zinc-900"
-                                                    : "text-zinc-500",
+                                                    : "text-zinc-500"
                                                 )}
+                                                key={`${line}-${selectedDonor.id}`}
                                               >
                                                 {line}
                                               </p>
@@ -2749,15 +2798,15 @@ function useDonorsPageLayout() {
                                         whileTap={{ scale: 0.9 }}
                                       >
                                         <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-9 w-9 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl shrink-0"
                                           asChild
+                                          className="h-9 w-9 shrink-0 rounded-xl text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900"
+                                          size="icon"
+                                          variant="ghost"
                                         >
                                           <a
                                             href={`https://maps.google.com/?q=${encodeURIComponent(formatAddress(selectedDonor.address).join(", "))}`}
-                                            target="_blank"
                                             rel="noopener noreferrer"
+                                            target="_blank"
                                           >
                                             <ExternalLink className="h-4 w-4" />
                                           </a>
@@ -2770,20 +2819,20 @@ function useDonorsPageLayout() {
                                 {(selectedDonor.organization ||
                                   selectedDonor.title) && (
                                   <motion.div
+                                    className="rounded-2xl border border-zinc-100 bg-zinc-50 p-4"
                                     variants={fadeInUp}
                                     whileHover={{ y: -2 }}
-                                    className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100"
                                   >
                                     <div className="flex items-start gap-3">
-                                      <div className="h-10 w-10 rounded-xl bg-zinc-100 text-zinc-500 flex items-center justify-center shrink-0">
+                                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-zinc-500">
                                         <Building2 className="h-4 w-4" />
                                       </div>
                                       <div>
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">
+                                        <p className="mb-1 font-bold text-[10px] text-zinc-400 uppercase tracking-widest">
                                           Organization
                                         </p>
                                         {selectedDonor.organization && (
-                                          <p className="text-sm font-medium text-zinc-900">
+                                          <p className="font-medium text-sm text-zinc-900">
                                             {selectedDonor.organization}
                                           </p>
                                         )}
@@ -2800,19 +2849,19 @@ function useDonorsPageLayout() {
                                 <div className="grid grid-cols-2 gap-3">
                                   {selectedDonor.spouse && (
                                     <motion.div
+                                      className="rounded-2xl border border-zinc-100 bg-zinc-50 p-4"
                                       variants={fadeInUp}
                                       whileHover={{ y: -2 }}
-                                      className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100"
                                     >
                                       <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
+                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-500">
                                           <Heart className="h-4 w-4" />
                                         </div>
                                         <div>
-                                          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                                          <p className="font-bold text-[10px] text-zinc-400 uppercase tracking-widest">
                                             Spouse
                                           </p>
-                                          <p className="text-sm font-medium text-zinc-900">
+                                          <p className="font-medium text-sm text-zinc-900">
                                             {selectedDonor.spouse}
                                           </p>
                                         </div>
@@ -2821,22 +2870,22 @@ function useDonorsPageLayout() {
                                   )}
                                   {selectedDonor.birthday && (
                                     <motion.div
+                                      className="rounded-2xl border border-zinc-100 bg-zinc-50 p-4"
                                       variants={fadeInUp}
                                       whileHover={{ y: -2 }}
-                                      className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100"
                                     >
                                       <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-500">
                                           <Star className="h-4 w-4" />
                                         </div>
                                         <div>
-                                          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                                          <p className="font-bold text-[10px] text-zinc-400 uppercase tracking-widest">
                                             Birthday
                                           </p>
-                                          <p className="text-sm font-medium text-zinc-900">
+                                          <p className="font-medium text-sm text-zinc-900">
                                             {format(
                                               new Date(selectedDonor.birthday),
-                                              "MMMM d",
+                                              "MMMM d"
                                             )}
                                           </p>
                                         </div>
@@ -2845,24 +2894,24 @@ function useDonorsPageLayout() {
                                   )}
                                   {selectedDonor.anniversary && (
                                     <motion.div
+                                      className="rounded-2xl border border-zinc-100 bg-zinc-50 p-4"
                                       variants={fadeInUp}
                                       whileHover={{ y: -2 }}
-                                      className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100"
                                     >
                                       <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 rounded-xl bg-purple-50 text-purple-500 flex items-center justify-center shrink-0">
+                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-50 text-purple-500">
                                           <Calendar className="h-4 w-4" />
                                         </div>
                                         <div>
-                                          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                                          <p className="font-bold text-[10px] text-zinc-400 uppercase tracking-widest">
                                             Anniversary
                                           </p>
-                                          <p className="text-sm font-medium text-zinc-900">
+                                          <p className="font-medium text-sm text-zinc-900">
                                             {format(
                                               new Date(
-                                                selectedDonor.anniversary,
+                                                selectedDonor.anniversary
                                               ),
-                                              "MMMM d",
+                                              "MMMM d"
                                             )}
                                           </p>
                                         </div>
@@ -2873,11 +2922,11 @@ function useDonorsPageLayout() {
 
                                 {selectedDonor.notes && (
                                   <motion.div
+                                    className="rounded-2xl border border-amber-100 bg-amber-50/50 p-4"
                                     variants={fadeInUp}
                                     whileHover={{ y: -2 }}
-                                    className="p-4 bg-amber-50/50 rounded-2xl border border-amber-100"
                                   >
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-amber-600 mb-2">
+                                    <p className="mb-2 font-bold text-[10px] text-amber-600 uppercase tracking-widest">
                                       Internal Notes
                                     </p>
                                     <p className="text-sm text-zinc-700">
@@ -2890,19 +2939,19 @@ function useDonorsPageLayout() {
                           </TabsContent>
 
                           <TabsContent
-                            value="recurring"
                             className="mt-0 space-y-6"
+                            value="recurring"
                           >
                             <motion.div
                               {...fadeInUp}
+                              className="mb-2 flex items-center justify-between"
                               transition={smoothTransition}
-                              className="flex items-center justify-between mb-2"
                             >
                               <div>
-                                <h3 className="text-sm font-bold text-zinc-900">
+                                <h3 className="font-bold text-sm text-zinc-900">
                                   Recurring Donations
                                 </h3>
-                                <p className="text-xs text-zinc-500 mt-0.5">
+                                <p className="mt-0.5 text-xs text-zinc-500">
                                   Scheduled giving commitments for this partner
                                 </p>
                               </div>
@@ -2911,76 +2960,76 @@ function useDonorsPageLayout() {
                             {selectedDonor.recurring_donations.length === 0 ? (
                               <motion.div
                                 {...fadeInUp}
-                                className="flex flex-col items-center justify-center py-16 text-center bg-zinc-50 rounded-2xl border border-zinc-100"
+                                className="flex flex-col items-center justify-center rounded-2xl border border-zinc-100 bg-zinc-50 py-16 text-center"
                               >
                                 <motion.div
-                                  initial={{ scale: 0.8 }}
                                   animate={{ scale: 1 }}
+                                  className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm"
+                                  initial={{ scale: 0.8 }}
                                   transition={springTransition}
-                                  className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-sm"
                                 >
                                   <Repeat className="h-7 w-7 text-zinc-300" />
                                 </motion.div>
-                                <p className="text-sm font-bold text-zinc-900">
+                                <p className="font-bold text-sm text-zinc-900">
                                   No recurring donations
                                 </p>
-                                <p className="text-xs text-zinc-400 mt-1 max-w-[280px]">
+                                <p className="mt-1 max-w-[280px] text-xs text-zinc-400">
                                   When this partner sets up a recurring gift, it
                                   will appear here with all the details.
                                 </p>
                               </motion.div>
                             ) : (
                               <motion.div
-                                variants={staggerContainer}
-                                initial="initial"
                                 animate="animate"
                                 className="space-y-4"
+                                initial="initial"
+                                variants={staggerContainer}
                               >
                                 {selectedDonor.recurring_donations.map(
                                   (recurring, i) => (
                                     <motion.div
-                                      key={recurring.id}
-                                      variants={fadeInUp}
-                                      transition={{ delay: i * 0.1 }}
-                                      whileHover={{ y: -2 }}
                                       className={cn(
-                                        "p-5 rounded-2xl border transition-all",
+                                        "rounded-2xl border p-5 transition-all",
                                         recurring.status === "active"
-                                          ? "bg-linear-to-br from-emerald-50/80 to-emerald-50/30 border-emerald-200"
-                                          : "bg-zinc-50 border-zinc-200",
+                                          ? "border-emerald-200 bg-linear-to-br from-emerald-50/80 to-emerald-50/30"
+                                          : "border-zinc-200 bg-zinc-50"
                                       )}
+                                      key={recurring.id}
+                                      transition={{ delay: i * 0.1 }}
+                                      variants={fadeInUp}
+                                      whileHover={{ y: -2 }}
                                     >
-                                      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 mb-5">
+                                      <div className="mb-5 flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
                                         <div className="flex items-start gap-4">
                                           <motion.div
+                                            className={cn(
+                                              "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl",
+                                              recurring.status === "active"
+                                                ? "bg-emerald-100"
+                                                : "bg-zinc-100"
+                                            )}
                                             whileHover={{
                                               scale: 1.1,
                                               rotate: 5,
                                             }}
-                                            className={cn(
-                                              "h-12 w-12 rounded-xl flex items-center justify-center shrink-0",
-                                              recurring.status === "active"
-                                                ? "bg-emerald-100"
-                                                : "bg-zinc-100",
-                                            )}
                                           >
                                             {getPaymentMethodIcon(
-                                              recurring.payment_method,
+                                              recurring.payment_method
                                             )}
                                           </motion.div>
                                           <div>
-                                            <div className="flex items-center gap-3 mb-1">
-                                              <h4 className="text-xl font-bold text-zinc-900">
+                                            <div className="mb-1 flex items-center gap-3">
+                                              <h4 className="font-bold text-xl text-zinc-900">
                                                 {formatCurrency(
-                                                  Number(recurring.amount),
+                                                  Number(recurring.amount)
                                                 )}
                                               </h4>
-                                              <span className="text-sm font-medium text-zinc-500">
+                                              <span className="font-medium text-sm text-zinc-500">
                                                 /{" "}
                                                 {recurring.frequency.toLowerCase()}
                                               </span>
                                               {getRecurringStatusBadge(
-                                                recurring.status as RecurringStatus,
+                                                recurring.status as RecurringStatus
                                               )}
                                             </div>
                                             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-zinc-500">
@@ -2989,9 +3038,9 @@ function useDonorsPageLayout() {
                                                 Started{" "}
                                                 {format(
                                                   new Date(
-                                                    recurring.start_date,
+                                                    recurring.start_date
                                                   ),
-                                                  "MMM d, yyyy",
+                                                  "MMM d, yyyy"
                                                 )}
                                               </span>
                                               {recurring.end_date ? (
@@ -3000,9 +3049,9 @@ function useDonorsPageLayout() {
                                                   Ends{" "}
                                                   {format(
                                                     new Date(
-                                                      recurring.end_date,
+                                                      recurring.end_date
                                                     ),
-                                                    "MMM d, yyyy",
+                                                    "MMM d, yyyy"
                                                   )}
                                                 </span>
                                               ) : (
@@ -3016,37 +3065,37 @@ function useDonorsPageLayout() {
                                         {recurring.status === "active" &&
                                           recurring.next_payment_date && (
                                             <motion.div
+                                              animate={{ opacity: 1, scale: 1 }}
+                                              className="rounded-xl border border-emerald-100 bg-white p-3 text-center lg:text-right"
                                               initial={{
                                                 opacity: 0,
                                                 scale: 0.9,
                                               }}
-                                              animate={{ opacity: 1, scale: 1 }}
-                                              className="bg-white p-3 rounded-xl border border-emerald-100 text-center lg:text-right"
                                             >
-                                              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                                              <p className="font-bold text-[10px] text-zinc-400 uppercase tracking-widest">
                                                 Next Payment
                                               </p>
-                                              <p className="text-lg font-bold text-zinc-900">
+                                              <p className="font-bold text-lg text-zinc-900">
                                                 {format(
                                                   new Date(
-                                                    recurring.next_payment_date,
+                                                    recurring.next_payment_date
                                                   ),
-                                                  "MMM d",
+                                                  "MMM d"
                                                 )}
                                               </p>
                                               <p className="text-xs text-zinc-500">
                                                 {formatDistanceToNow(
                                                   new Date(
-                                                    recurring.next_payment_date,
+                                                    recurring.next_payment_date
                                                   ),
-                                                  { addSuffix: true },
+                                                  { addSuffix: true }
                                                 )}
                                               </p>
                                             </motion.div>
                                           )}
                                       </div>
 
-                                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 p-4 bg-white/60 rounded-xl border border-zinc-100">
+                                      <div className="grid grid-cols-2 gap-4 rounded-xl border border-zinc-100 bg-white/60 p-4 sm:grid-cols-5">
                                         {[
                                           {
                                             label: "Payment Method",
@@ -3058,14 +3107,14 @@ function useDonorsPageLayout() {
                                           {
                                             label: "Total Paid",
                                             value: formatCurrency(
-                                              Number(recurring.total_paid),
+                                              Number(recurring.total_paid)
                                             ),
                                             color: "text-emerald-600",
                                           },
                                           {
                                             label: "Expected",
                                             value: formatCurrency(
-                                              Number(recurring.total_expected),
+                                              Number(recurring.total_expected)
                                             ),
                                           },
                                           {
@@ -3081,18 +3130,18 @@ function useDonorsPageLayout() {
                                           },
                                         ].map((item) => (
                                           <div key={item.label}>
-                                            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">
+                                            <p className="mb-1 font-bold text-[10px] text-zinc-400 uppercase tracking-widest">
                                               {item.label}
                                             </p>
                                             <div className="flex items-center gap-1.5">
                                               {item.icon &&
                                                 getPaymentMethodIcon(
-                                                  recurring.payment_method,
+                                                  recurring.payment_method
                                                 )}
                                               <p
                                                 className={cn(
-                                                  "text-sm font-bold",
-                                                  item.color || "text-zinc-900",
+                                                  "font-bold text-sm",
+                                                  item.color || "text-zinc-900"
                                                 )}
                                               >
                                                 {item.value}
@@ -3103,31 +3152,26 @@ function useDonorsPageLayout() {
                                       </div>
 
                                       <div className="mt-4">
-                                        <div className="flex items-center justify-between mb-1.5">
-                                          <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                                        <div className="mb-1.5 flex items-center justify-between">
+                                          <span className="font-bold text-[10px] text-zinc-400 uppercase tracking-widest">
                                             Progress
                                           </span>
-                                          <span className="text-xs font-bold text-zinc-600">
+                                          <span className="font-bold text-xs text-zinc-600">
                                             {Number(recurring.total_expected) >
                                             0
                                               ? `${Math.round((Number(recurring.total_paid) / Number(recurring.total_expected)) * 100)}%`
                                               : "Ongoing"}
                                           </span>
                                         </div>
-                                        <div className="h-2 bg-zinc-200 rounded-full overflow-hidden">
+                                        <div className="h-2 overflow-hidden rounded-full bg-zinc-200">
                                           <motion.div
-                                            initial={{ width: 0 }}
                                             animate={{
                                               width:
                                                 Number(
-                                                  recurring.total_expected,
+                                                  recurring.total_expected
                                                 ) > 0
                                                   ? `${Math.min((Number(recurring.total_paid) / Number(recurring.total_expected)) * 100, 100)}%`
                                                   : "100%",
-                                            }}
-                                            transition={{
-                                              duration: 0.8,
-                                              ease: "easeOut",
                                             }}
                                             className={cn(
                                               "h-full rounded-full",
@@ -3136,26 +3180,31 @@ function useDonorsPageLayout() {
                                                 : recurring.status ===
                                                     "completed"
                                                   ? "bg-blue-500"
-                                                  : "bg-zinc-400",
+                                                  : "bg-zinc-400"
                                             )}
+                                            initial={{ width: 0 }}
+                                            transition={{
+                                              duration: 0.8,
+                                              ease: "easeOut",
+                                            }}
                                           />
                                         </div>
                                       </div>
                                     </motion.div>
-                                  ),
+                                  )
                                 )}
                               </motion.div>
                             )}
                           </TabsContent>
 
-                          <TabsContent value="giving" className="mt-0">
+                          <TabsContent className="mt-0" value="giving">
                             <motion.div
                               {...fadeInUp}
-                              transition={smoothTransition}
                               className="overflow-x-auto rounded-2xl border border-zinc-200"
+                              transition={smoothTransition}
                             >
-                              <table className="w-full text-sm text-left">
-                                <thead className="text-[10px] font-black uppercase tracking-widest text-zinc-400 bg-zinc-50 border-b border-zinc-200">
+                              <table className="w-full text-left text-sm">
+                                <thead className="border-zinc-200 border-b bg-zinc-50 font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                                   <tr>
                                     <th className="px-6 py-4">Date</th>
                                     <th className="px-6 py-4">Type</th>
@@ -3166,22 +3215,22 @@ function useDonorsPageLayout() {
                                 </thead>
                                 <tbody className="divide-y divide-zinc-100">
                                   {selectedDonor.activities.filter(
-                                    (a) => a.type === "gift",
+                                    (a) => a.type === "gift"
                                   ).length > 0 ? (
                                     selectedDonor.activities
                                       .filter((a) => a.type === "gift")
                                       .map((gift, i) => (
                                         <motion.tr
-                                          key={gift.id}
-                                          initial={{ opacity: 0 }}
                                           animate={{ opacity: 1 }}
+                                          className="transition-colors hover:bg-zinc-50"
+                                          initial={{ opacity: 0 }}
+                                          key={gift.id}
                                           transition={{ delay: i * 0.05 }}
-                                          className="hover:bg-zinc-50 transition-colors"
                                         >
-                                          <td className="px-6 py-4 font-medium text-zinc-900 whitespace-nowrap">
+                                          <td className="whitespace-nowrap px-6 py-4 font-medium text-zinc-900">
                                             {format(
                                               new Date(gift.date),
-                                              "MMM d, yyyy",
+                                              "MMM d, yyyy"
                                             )}
                                           </td>
                                           <td className="px-6 py-4 text-zinc-500">
@@ -3200,10 +3249,10 @@ function useDonorsPageLayout() {
                                           <td className="px-6 py-4">
                                             <Badge
                                               className={cn(
-                                                "font-black rounded-full text-[9px] uppercase tracking-widest border-0",
+                                                "rounded-full border-0 font-black text-[9px] uppercase tracking-widest",
                                                 gift.status === "Failed"
                                                   ? "bg-rose-50 text-rose-600"
-                                                  : "bg-emerald-50 text-emerald-700",
+                                                  : "bg-emerald-50 text-emerald-700"
                                               )}
                                             >
                                               {gift.status || "Succeeded"}
@@ -3219,14 +3268,14 @@ function useDonorsPageLayout() {
                                           className="p-16 text-center"
                                         >
                                           <motion.div
-                                            initial={{ scale: 0.8 }}
                                             animate={{ scale: 1 }}
+                                            className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-100"
+                                            initial={{ scale: 0.8 }}
                                             transition={springTransition}
-                                            className="h-14 w-14 bg-zinc-100 rounded-2xl flex items-center justify-center mx-auto mb-4"
                                           >
                                             <History className="h-6 w-6 text-zinc-300" />
                                           </motion.div>
-                                          <p className="text-sm font-bold text-zinc-900">
+                                          <p className="font-bold text-sm text-zinc-900">
                                             No giving history available
                                           </p>
                                         </motion.div>
@@ -3249,37 +3298,37 @@ function useDonorsPageLayout() {
                 {...scaleIn}
                 transition={smoothTransition}
               >
-                <Card className="border-zinc-200 border-dashed bg-zinc-50/30 rounded-[2.5rem] h-full min-h-[600px] flex items-center justify-center">
+                <Card className="flex h-full min-h-[600px] items-center justify-center rounded-[2.5rem] border-zinc-200 border-dashed bg-zinc-50/30">
                   <CardContent className="p-16 text-center">
                     <motion.div
-                      initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
+                      className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-3xl border border-zinc-100 bg-white shadow-sm"
+                      initial={{ scale: 0.8, opacity: 0 }}
                       transition={springTransition}
-                      className="h-20 w-20 rounded-3xl bg-white shadow-sm border border-zinc-100 flex items-center justify-center mx-auto mb-8"
                     >
                       <User className="h-10 w-10 text-zinc-200" />
                     </motion.div>
                     <motion.h3
-                      initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.1 }}
                       className="font-black text-2xl text-zinc-900 tracking-tight"
+                      initial={{ opacity: 0, y: 10 }}
+                      transition={{ delay: 0.1 }}
                     >
                       Select a Partner
                     </motion.h3>
                     <motion.p
-                      initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
+                      className="mx-auto mt-2 max-w-[280px] font-medium text-sm text-zinc-400"
+                      initial={{ opacity: 0, y: 10 }}
                       transition={{ delay: 0.15 }}
-                      className="mt-2 text-sm font-medium text-zinc-400 max-w-[280px] mx-auto"
                     >
                       Choose a donor from the list to view their profile,
                       recurring donations, and giving history.
                     </motion.p>
                     {profile?.id && (
                       <motion.div
-                        initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
+                        initial={{ opacity: 0, y: 10 }}
                         transition={{ delay: 0.2 }}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
@@ -3288,8 +3337,8 @@ function useDonorsPageLayout() {
                           missionaryId={profile.id}
                           onSuccess={fetchDonors}
                           trigger={
-                            <Button className="mt-10 h-11 px-8 rounded-2xl bg-zinc-900 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:bg-zinc-800">
-                              <Plus className="h-4 w-4 mr-2" /> Add Partner
+                            <Button className="mt-10 h-11 rounded-2xl bg-zinc-900 px-8 font-black text-[10px] text-white uppercase tracking-[0.2em] hover:bg-zinc-800">
+                              <Plus className="mr-2 h-4 w-4" /> Add Partner
                             </Button>
                           }
                         />
@@ -3303,10 +3352,10 @@ function useDonorsPageLayout() {
         </motion.div>
       </div>
 
-      <Dialog open={isNoteDialogOpen} onOpenChange={setIsNoteDialogOpen}>
-        <DialogContent className="sm:max-w-[500px] rounded-2xl">
+      <Dialog onOpenChange={setIsNoteDialogOpen} open={isNoteDialogOpen}>
+        <DialogContent className="rounded-2xl sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold tracking-tight">
+            <DialogTitle className="font-bold text-lg tracking-tight">
               {activityType === "note"
                 ? "Add Note"
                 : activityType === "call"
@@ -3321,7 +3370,7 @@ function useDonorsPageLayout() {
           </DialogHeader>
           <div className="py-4">
             <Textarea
-              value={noteInput}
+              className="min-h-[150px] resize-none rounded-xl border-zinc-200"
               onChange={(e) => setNoteInput(e.target.value)}
               placeholder={
                 activityType === "call"
@@ -3330,21 +3379,21 @@ function useDonorsPageLayout() {
                     ? "Meeting notes..."
                     : "Type your note here..."
               }
-              className="min-h-[150px] resize-none rounded-xl border-zinc-200"
+              value={noteInput}
             />
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button
-              variant="outline"
+              className="h-10 rounded-xl border-zinc-200 px-6"
               onClick={() => setIsNoteDialogOpen(false)}
-              className="h-10 px-6 rounded-xl border-zinc-200"
+              variant="outline"
             >
               Cancel
             </Button>
             <Button
-              onClick={handleAddNote}
+              className="h-10 rounded-xl px-6"
               disabled={!noteInput.trim() || isSavingNote}
-              className="h-10 px-6 rounded-xl"
+              onClick={handleAddNote}
             >
               {isSavingNote ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -3356,10 +3405,10 @@ function useDonorsPageLayout() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isTagDialogOpen} onOpenChange={setIsTagDialogOpen}>
-        <DialogContent className="sm:max-w-[500px] rounded-2xl">
+      <Dialog onOpenChange={setIsTagDialogOpen} open={isTagDialogOpen}>
+        <DialogContent className="rounded-2xl sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold tracking-tight">
+            <DialogTitle className="font-bold text-lg tracking-tight">
               Manage Tags
             </DialogTitle>
             <DialogDescription className="text-sm text-zinc-500">
@@ -3369,35 +3418,35 @@ function useDonorsPageLayout() {
           </DialogHeader>
           <div className="py-4">
             <motion.div
-              variants={staggerContainer}
-              initial="initial"
               animate="animate"
               className="flex flex-wrap gap-2"
+              initial="initial"
+              variants={staggerContainer}
             >
               {AVAILABLE_TAGS.map((tag, i) => (
                 <motion.button
+                  className={cn(
+                    "rounded-full border px-3 py-1.5 font-bold text-xs transition-all",
+                    selectedTags.includes(tag.id)
+                      ? cn(tag.color, "ring-2 ring-zinc-400 ring-offset-1")
+                      : "border-zinc-200 bg-zinc-50 text-zinc-400 hover:bg-zinc-100"
+                  )}
                   key={tag.id}
-                  variants={fadeInUp}
+                  onClick={() => toggleTag(tag.id)}
                   transition={{ delay: i * 0.02 }}
+                  variants={fadeInUp}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => toggleTag(tag.id)}
-                  className={cn(
-                    "px-3 py-1.5 rounded-full text-xs font-bold border transition-all",
-                    selectedTags.includes(tag.id)
-                      ? cn(tag.color, "ring-2 ring-offset-1 ring-zinc-400")
-                      : "bg-zinc-50 text-zinc-400 border-zinc-200 hover:bg-zinc-100",
-                  )}
                 >
                   <AnimatePresence mode="wait">
                     {selectedTags.includes(tag.id) && (
                       <motion.span
-                        initial={{ width: 0, opacity: 0 }}
                         animate={{ width: "auto", opacity: 1 }}
-                        exit={{ width: 0, opacity: 0 }}
                         className="inline-flex overflow-hidden"
+                        exit={{ width: 0, opacity: 0 }}
+                        initial={{ width: 0, opacity: 0 }}
                       >
-                        <Check className="h-3 w-3 mr-1" />
+                        <Check className="mr-1 h-3 w-3" />
                       </motion.span>
                     )}
                   </AnimatePresence>
@@ -3408,16 +3457,16 @@ function useDonorsPageLayout() {
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button
-              variant="outline"
+              className="h-10 rounded-xl border-zinc-200 px-6"
               onClick={() => setIsTagDialogOpen(false)}
-              className="h-10 px-6 rounded-xl border-zinc-200"
+              variant="outline"
             >
               Cancel
             </Button>
             <Button
-              onClick={handleSaveTags}
+              className="h-10 rounded-xl px-6"
               disabled={isSavingTags}
-              className="h-10 px-6 rounded-xl"
+              onClick={handleSaveTags}
             >
               {isSavingTags ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -3429,10 +3478,10 @@ function useDonorsPageLayout() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto rounded-2xl">
+      <Dialog onOpenChange={setIsEditDialogOpen} open={isEditDialogOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl sm:max-w-[700px]">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold tracking-tight">
+            <DialogTitle className="font-bold text-lg tracking-tight">
               Edit Partner
             </DialogTitle>
             <DialogDescription className="text-sm text-zinc-500">
@@ -3441,11 +3490,11 @@ function useDonorsPageLayout() {
           </DialogHeader>
           <Form {...editForm}>
             <form
-              onSubmit={editForm.handleSubmit(handleSaveEdit)}
               className="space-y-6 py-4"
+              onSubmit={editForm.handleSubmit(handleSaveEdit)}
             >
               <div className="space-y-4">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                <h4 className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                   Basic Information
                 </h4>
                 <div className="grid grid-cols-2 gap-4">
@@ -3454,13 +3503,13 @@ function useDonorsPageLayout() {
                     name="name"
                     render={({ field }) => (
                       <FormItem className="col-span-2">
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                        <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                           Full Name
                         </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
+                            className="h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                           />
                         </FormControl>
                         <FormMessage />
@@ -3472,7 +3521,7 @@ function useDonorsPageLayout() {
                     name="type"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                        <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                           Type
                         </FormLabel>
                         <Select
@@ -3480,7 +3529,7 @@ function useDonorsPageLayout() {
                           value={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium">
+                            <SelectTrigger className="h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
                               <SelectValue />
                             </SelectTrigger>
                           </FormControl>
@@ -3503,7 +3552,7 @@ function useDonorsPageLayout() {
                     name="status"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                        <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                           Status
                         </FormLabel>
                         <Select
@@ -3511,7 +3560,7 @@ function useDonorsPageLayout() {
                           value={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium">
+                            <SelectTrigger className="h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
                               <SelectValue />
                             </SelectTrigger>
                           </FormControl>
@@ -3530,7 +3579,7 @@ function useDonorsPageLayout() {
               </div>
 
               <div className="space-y-4">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                <h4 className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                   Contact Information
                 </h4>
                 <div className="grid grid-cols-2 gap-4">
@@ -3539,14 +3588,14 @@ function useDonorsPageLayout() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                        <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                           Email
                         </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
+                            className="h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                             type="email"
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
                           />
                         </FormControl>
                         <FormMessage />
@@ -3558,13 +3607,13 @@ function useDonorsPageLayout() {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                        <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                           Primary Phone
                         </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
+                            className="h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                           />
                         </FormControl>
                         <FormMessage />
@@ -3576,13 +3625,13 @@ function useDonorsPageLayout() {
                     name="mobile"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                        <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                           Mobile / Text
                         </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
+                            className="h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                           />
                         </FormControl>
                         <FormMessage />
@@ -3594,13 +3643,13 @@ function useDonorsPageLayout() {
                     name="work_phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                        <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                           Work Phone
                         </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
+                            className="h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                           />
                         </FormControl>
                         <FormMessage />
@@ -3612,7 +3661,7 @@ function useDonorsPageLayout() {
                     name="preferred_contact"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                        <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                           Preferred Contact
                         </FormLabel>
                         <Select
@@ -3620,7 +3669,7 @@ function useDonorsPageLayout() {
                           value={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium">
+                            <SelectTrigger className="h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
                               <SelectValue />
                             </SelectTrigger>
                           </FormControl>
@@ -3639,13 +3688,13 @@ function useDonorsPageLayout() {
                     name="website"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                        <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                           Website
                         </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
+                            className="h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                           />
                         </FormControl>
                         <FormMessage />
@@ -3656,7 +3705,7 @@ function useDonorsPageLayout() {
               </div>
 
               <div className="space-y-4">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                <h4 className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                   Address
                 </h4>
                 <div className="grid grid-cols-2 gap-4">
@@ -3665,13 +3714,13 @@ function useDonorsPageLayout() {
                     name="street"
                     render={({ field }) => (
                       <FormItem className="col-span-2">
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                        <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                           Street Address
                         </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
+                            className="h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                           />
                         </FormControl>
                         <FormMessage />
@@ -3683,13 +3732,13 @@ function useDonorsPageLayout() {
                     name="street2"
                     render={({ field }) => (
                       <FormItem className="col-span-2">
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                        <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                           Apt, Suite, etc.
                         </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
+                            className="h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                           />
                         </FormControl>
                         <FormMessage />
@@ -3701,13 +3750,13 @@ function useDonorsPageLayout() {
                     name="city"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                        <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                           City
                         </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
+                            className="h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                           />
                         </FormControl>
                         <FormMessage />
@@ -3720,13 +3769,13 @@ function useDonorsPageLayout() {
                       name="state"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                          <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                             State
                           </FormLabel>
                           <FormControl>
                             <Input
                               {...field}
-                              className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
+                              className="h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                             />
                           </FormControl>
                           <FormMessage />
@@ -3738,13 +3787,13 @@ function useDonorsPageLayout() {
                       name="zip"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                          <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                             ZIP
                           </FormLabel>
                           <FormControl>
                             <Input
                               {...field}
-                              className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
+                              className="h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                             />
                           </FormControl>
                           <FormMessage />
@@ -3757,14 +3806,14 @@ function useDonorsPageLayout() {
                     name="location"
                     render={({ field }) => (
                       <FormItem className="col-span-2">
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                        <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                           Display Location (e.g. Denver, CO)
                         </FormLabel>
                         <FormControl>
                           <Input
                             placeholder="City, State"
                             {...field}
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
+                            className="h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                           />
                         </FormControl>
                         <FormMessage />
@@ -3775,7 +3824,7 @@ function useDonorsPageLayout() {
               </div>
 
               <div className="space-y-4">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                <h4 className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                   Personal Details
                 </h4>
                 <div className="grid grid-cols-2 gap-4">
@@ -3784,13 +3833,13 @@ function useDonorsPageLayout() {
                     name="organization"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                        <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                           Organization
                         </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
+                            className="h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                           />
                         </FormControl>
                         <FormMessage />
@@ -3802,13 +3851,13 @@ function useDonorsPageLayout() {
                     name="title"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                        <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                           Title / Role
                         </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
+                            className="h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                           />
                         </FormControl>
                         <FormMessage />
@@ -3820,13 +3869,13 @@ function useDonorsPageLayout() {
                     name="spouse"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                        <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                           Spouse
                         </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
+                            className="h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                           />
                         </FormControl>
                         <FormMessage />
@@ -3838,14 +3887,14 @@ function useDonorsPageLayout() {
                     name="birthday"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                        <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                           Birthday
                         </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
+                            className="h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                             type="date"
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
                           />
                         </FormControl>
                         <FormMessage />
@@ -3857,14 +3906,14 @@ function useDonorsPageLayout() {
                     name="anniversary"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                        <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                           Anniversary
                         </FormLabel>
                         <FormControl>
                           <Input
                             {...field}
+                            className="h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                             type="date"
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
                           />
                         </FormControl>
                         <FormMessage />
@@ -3879,13 +3928,13 @@ function useDonorsPageLayout() {
                 name="notes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                    <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                       Internal Notes
                     </FormLabel>
                     <FormControl>
                       <Textarea
                         {...field}
-                        className="min-h-[100px] resize-none bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
+                        className="min-h-[100px] resize-none rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                       />
                     </FormControl>
                     <FormMessage />
@@ -3893,19 +3942,19 @@ function useDonorsPageLayout() {
                 )}
               />
 
-              <DialogFooter className="gap-2 sm:gap-0 pt-4">
+              <DialogFooter className="gap-2 pt-4 sm:gap-0">
                 <Button
+                  className="h-10 rounded-xl border-zinc-200 px-6"
+                  onClick={() => setIsEditDialogOpen(false)}
                   type="button"
                   variant="outline"
-                  onClick={() => setIsEditDialogOpen(false)}
-                  className="h-10 px-6 rounded-xl border-zinc-200"
                 >
                   Cancel
                 </Button>
                 <Button
-                  type="submit"
+                  className="h-10 rounded-xl px-6"
                   disabled={isSavingEdit}
-                  className="h-10 px-6 rounded-xl"
+                  type="submit"
                 >
                   {isSavingEdit ? (
                     <Loader2 className="h-4 w-4 animate-spin" />

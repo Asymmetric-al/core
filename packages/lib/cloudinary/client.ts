@@ -1,18 +1,20 @@
+import { clientEnv } from "@asym/env";
+
 export interface CloudinaryUploadResponse {
-  public_id: string;
-  version: number;
-  signature: string;
-  width: number;
-  height: number;
-  format: string;
-  resource_type: string;
-  created_at: string;
   bytes: number;
+  context?: unknown;
+  created_at: string;
+  folder?: string;
+  format: string;
+  height: number;
+  public_id: string;
+  resource_type: string;
+  secure_url: string;
+  signature: string;
   type: string;
   url: string;
-  secure_url: string;
-  folder?: string;
-  context?: unknown;
+  version: number;
+  width: number;
 }
 
 /**
@@ -21,7 +23,7 @@ export interface CloudinaryUploadResponse {
  */
 export async function uploadToCloudinary(
   file: Blob | File,
-  options: { folder?: string; purpose?: string } = {},
+  options: { folder?: string; purpose?: string } = {}
 ): Promise<CloudinaryUploadResponse> {
   // 1. Get signature from our API
   const signatureResponse = await fetch("/api/upload/cloudinary/signature", {
@@ -46,8 +48,12 @@ export async function uploadToCloudinary(
   formData.append("api_key", apiKey);
   formData.append("timestamp", timestamp);
   formData.append("signature", signature);
-  if (folder) formData.append("folder", folder);
-  if (context) formData.append("context", context);
+  if (folder) {
+    formData.append("folder", folder);
+  }
+  if (context) {
+    formData.append("context", context);
+  }
 
   // 3. Upload to Cloudinary
   const uploadResponse = await fetch(
@@ -55,7 +61,7 @@ export async function uploadToCloudinary(
     {
       method: "POST",
       body: formData,
-    },
+    }
   );
 
   if (!uploadResponse.ok) {
@@ -66,5 +72,4 @@ export async function uploadToCloudinary(
   return uploadResponse.json();
 }
 
-export const isCloudinaryEnabled =
-  process.env.NEXT_PUBLIC_CLOUDINARY_ENABLED === "true";
+export const isCloudinaryEnabled = clientEnv.NEXT_PUBLIC_CLOUDINARY_ENABLED;

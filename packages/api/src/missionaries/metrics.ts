@@ -1,3 +1,4 @@
+import { serverEnv } from "@asym/env";
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -25,7 +26,9 @@ const PERMISSION_ERROR_CODES = new Set([
 ]);
 
 function normalizeCookieOptions(options?: PendingCookie["options"]) {
-  if (!options) return undefined;
+  if (!options) {
+    return undefined;
+  }
   const { sameSite, ...rest } = options;
   if (typeof sameSite === "boolean") {
     return rest;
@@ -34,14 +37,18 @@ function normalizeCookieOptions(options?: PendingCookie["options"]) {
 }
 
 function parseCookieHeader(cookieHeader: string | null) {
-  if (!cookieHeader) return [];
+  if (!cookieHeader) {
+    return [];
+  }
   return cookieHeader
     .split(";")
     .map((part) => part.trim())
     .filter(Boolean)
     .map((pair) => {
       const idx = pair.indexOf("=");
-      if (idx === -1) return { name: pair, value: "" };
+      if (idx === -1) {
+        return { name: pair, value: "" };
+      }
       return {
         name: pair.slice(0, idx),
         value: decodeURIComponent(pair.slice(idx + 1)),
@@ -50,8 +57,12 @@ function parseCookieHeader(cookieHeader: string | null) {
 }
 
 function isPermissionError(error: { code?: string; message?: string } | null) {
-  if (!error) return false;
-  if (error.code && PERMISSION_ERROR_CODES.has(error.code)) return true;
+  if (!error) {
+    return false;
+  }
+  if (error.code && PERMISSION_ERROR_CODES.has(error.code)) {
+    return true;
+  }
   const message = error.message?.toLowerCase() ?? "";
   return (
     message.includes("permission") ||
@@ -62,10 +73,10 @@ function isPermissionError(error: { code?: string; message?: string } | null) {
 
 function createAuthClient(request: NextRequest) {
   const pendingCookies: PendingCookie[] = [];
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseUrl = serverEnv.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = serverEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!(supabaseUrl && supabaseAnonKey)) {
     return { supabase: null, pendingCookies };
   }
 
@@ -77,7 +88,7 @@ function createAuthClient(request: NextRequest) {
         return requestCookies;
       },
       setAll(
-        cookiesToSet: Array<{ name: string; value: string; options?: unknown }>,
+        cookiesToSet: Array<{ name: string; value: string; options?: unknown }>
       ) {
         cookiesToSet.forEach(
           (cookie: { name: string; value: string; options?: unknown }) => {
@@ -86,7 +97,7 @@ function createAuthClient(request: NextRequest) {
               value: cookie.value,
               options: cookie.options as PendingCookie["options"],
             });
-          },
+          }
         );
       },
     },
@@ -98,14 +109,14 @@ function createAuthClient(request: NextRequest) {
 function jsonWithCookies(
   payload: Record<string, unknown>,
   init: { status?: number } | undefined,
-  pendingCookies: PendingCookie[],
+  pendingCookies: PendingCookie[]
 ) {
   const response = NextResponse.json(payload, init);
   pendingCookies.forEach((cookie) => {
     response.cookies.set(
       cookie.name,
       cookie.value,
-      normalizeCookieOptions(cookie.options),
+      normalizeCookieOptions(cookie.options)
     );
   });
   return response;
@@ -113,14 +124,14 @@ function jsonWithCookies(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { supabase, pendingCookies } = createAuthClient(request);
     if (!supabase) {
       return NextResponse.json(
         { error: "Supabase client unavailable." },
-        { status: 503 },
+        { status: 503 }
       );
     }
 
@@ -130,7 +141,7 @@ export async function GET(
       return jsonWithCookies(
         { error: "Missing missionary ID" },
         { status: 400 },
-        pendingCookies,
+        pendingCookies
       );
     }
 
@@ -142,7 +153,7 @@ export async function GET(
       return jsonWithCookies(
         { error: "Unauthorized" },
         { status: 401 },
-        pendingCookies,
+        pendingCookies
       );
     }
 
@@ -156,19 +167,17 @@ export async function GET(
       return jsonWithCookies(
         { error: "Unable to load profile." },
         { status: 500 },
-        pendingCookies,
+        pendingCookies
       );
     }
 
     if (
-      !profile?.tenant_id ||
-      !profile?.role ||
-      !ALLOWED_ROLES.has(profile.role)
+      !(profile?.tenant_id && profile?.role && ALLOWED_ROLES.has(profile.role))
     ) {
       return jsonWithCookies(
         { error: "Forbidden" },
         { status: 403 },
-        pendingCookies,
+        pendingCookies
       );
     }
 
@@ -183,7 +192,7 @@ export async function GET(
       return jsonWithCookies(
         { error: status === 403 ? "Forbidden" : "Internal server error" },
         { status },
-        pendingCookies,
+        pendingCookies
       );
     }
 
@@ -191,7 +200,7 @@ export async function GET(
       return jsonWithCookies(
         { error: "Missionary not found" },
         { status: 404 },
-        pendingCookies,
+        pendingCookies
       );
     }
 
@@ -199,7 +208,7 @@ export async function GET(
       return jsonWithCookies(
         { error: "Missionary not found" },
         { status: 404 },
-        pendingCookies,
+        pendingCookies
       );
     }
 
@@ -218,27 +227,27 @@ export async function GET(
         return jsonWithCookies(
           { donations: [], limited: true },
           { status: 200 },
-          pendingCookies,
+          pendingCookies
         );
       }
       console.error("Supabase error:", error);
       return jsonWithCookies(
         { error: "Internal server error" },
         { status: 500 },
-        pendingCookies,
+        pendingCookies
       );
     }
 
     return jsonWithCookies(
       { donations: data || [] },
       undefined,
-      pendingCookies,
+      pendingCookies
     );
   } catch (e) {
     console.error("API error:", e);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

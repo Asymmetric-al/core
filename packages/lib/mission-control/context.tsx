@@ -1,29 +1,30 @@
 "use client";
 
 import { createBrowserClient } from "@asym/database/supabase";
+import { runtimeEnvFlags } from "@asym/env";
 import {
   createContext,
-  useContext,
-  useCallback,
-  useReducer,
-  useEffect,
   type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useReducer,
 } from "react";
 
 import { ROLE_LABELS } from "./roles";
 
-import type { Role, User, Tenant } from "./types";
+import type { Role, Tenant, User } from "./types";
 
 interface MCContextValue {
-  user: User | null;
-  tenant: Tenant | null;
+  isDevMode: boolean;
+  loading: boolean;
   role: Role;
   setRole: (role: Role) => void;
-  isDevMode: boolean;
-  sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
-  loading: boolean;
+  sidebarCollapsed: boolean;
   signOut: () => Promise<void>;
+  tenant: Tenant | null;
+  user: User | null;
 }
 
 type MCState = {
@@ -88,7 +89,7 @@ function mapProfileRoleToMCRole(profileRole: string): Role {
 
 function toDisplayName(
   firstName: string | null | undefined,
-  lastName: string | null | undefined,
+  lastName: string | null | undefined
 ) {
   return `${firstName ?? ""} ${lastName ?? ""}`.trim();
 }
@@ -109,7 +110,7 @@ function mcReducer(state: MCState, action: MCAction): MCState {
           email: action.profile.email,
           name: toDisplayName(
             action.profile.first_name,
-            action.profile.last_name,
+            action.profile.last_name
           ),
           role: mcRole,
           tenantId: action.profile.tenant_id,
@@ -142,7 +143,7 @@ function mcReducer(state: MCState, action: MCAction): MCState {
 export function MCProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(mcReducer, INITIAL_MC_STATE);
   const { user, tenant, role, sidebarCollapsed, loading } = state;
-  const isDevMode = process.env.NODE_ENV === "development";
+  const isDevMode = runtimeEnvFlags.NODE_ENV === "development";
 
   const setRole = useCallback((nextRole: Role) => {
     dispatch({ type: "setRole", role: nextRole });
@@ -156,7 +157,7 @@ export function MCProvider({ children }: { children: ReactNode }) {
     (authUserId: string, profile: ProfileWithTenant) => {
       dispatch({ type: "setAuthenticated", authUserId, profile });
     },
-    [],
+    []
   );
 
   const applySignedOutState = useCallback(() => {
@@ -245,7 +246,9 @@ export function MCProvider({ children }: { children: ReactNode }) {
 
 export function useMC() {
   const ctx = useContext(MCContext);
-  if (!ctx) throw new Error("useMC must be used within MCProvider");
+  if (!ctx) {
+    throw new Error("useMC must be used within MCProvider");
+  }
   return ctx;
 }
 

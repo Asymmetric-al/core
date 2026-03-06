@@ -1,3 +1,5 @@
+import { serverEnv } from "@asym/env";
+
 export type BuildInfo = {
   /**
    * Git ref used to build URLs to the corresponding source.
@@ -13,10 +15,12 @@ const DEFAULT_REF_FALLBACK = "develop";
 
 function pickFirstEnv(names: string[]): string | undefined {
   for (const name of names) {
-    const value = process.env[name];
+    const value = serverEnv[name as keyof typeof serverEnv];
     if (typeof value === "string") {
       const trimmed = value.trim();
-      if (trimmed) return trimmed;
+      if (trimmed) {
+        return trimmed;
+      }
     }
   }
   return undefined;
@@ -28,25 +32,31 @@ function looksLikeGitSha(value: string): boolean {
 
 function normalizeBuildDate(value: string): string | undefined {
   // Prefer YYYY-MM-DD if present.
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
 
   // Common case: ISO timestamp.
-  if (/^\d{4}-\d{2}-\d{2}T/.test(value)) return value.slice(0, 10);
+  if (/^\d{4}-\d{2}-\d{2}T/.test(value)) {
+    return value.slice(0, 10);
+  }
 
   // Epoch seconds.
   if (/^\d{10}$/.test(value)) {
     const asNumber = Number(value) * 1000;
     const asDate = new Date(asNumber);
-    if (!Number.isNaN(asDate.getTime()))
+    if (!Number.isNaN(asDate.getTime())) {
       return asDate.toISOString().slice(0, 10);
+    }
   }
 
   // Epoch milliseconds.
   if (/^\d{13}$/.test(value)) {
     const asNumber = Number(value);
     const asDate = new Date(asNumber);
-    if (!Number.isNaN(asDate.getTime()))
+    if (!Number.isNaN(asDate.getTime())) {
       return asDate.toISOString().slice(0, 10);
+    }
   }
 
   return undefined;

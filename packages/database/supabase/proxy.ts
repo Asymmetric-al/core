@@ -1,12 +1,13 @@
+import { serverEnv } from "@asym/env";
 import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    serverEnv.NEXT_PUBLIC_SUPABASE_URL,
+    serverEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       cookies: {
         getAll() {
@@ -17,24 +18,24 @@ export async function updateSession(request: NextRequest) {
             name: string;
             value: string;
             options?: Record<string, unknown>;
-          }[],
+          }[]
         ) {
           try {
             cookiesToSet.forEach(({ name, value }) =>
-              request.cookies.set(name, value),
+              request.cookies.set(name, value)
             );
             supabaseResponse = NextResponse.next({ request });
             cookiesToSet.forEach(({ name, value, options }) =>
               supabaseResponse.cookies.set(
                 name,
                 value,
-                options as Record<string, unknown>,
-              ),
+                options as Record<string, unknown>
+              )
             );
           } catch {}
         },
       },
-    },
+    }
   );
 
   const {
@@ -49,16 +50,19 @@ export async function updateSession(request: NextRequest) {
     targetPathname = pathname.replace("/my", "") || "/";
   } else if (pathname === "/admin" || pathname.startsWith("/admin/")) {
     targetPathname = pathname.replace("/admin", "/mc");
-    if (targetPathname === "/mc/") targetPathname = "/mc";
+    if (targetPathname === "/mc/") {
+      targetPathname = "/mc";
+    }
   } else if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
     targetPathname = pathname.replace("/dashboard", "/donor-dashboard");
-    if (targetPathname === "/donor-dashboard/")
+    if (targetPathname === "/donor-dashboard/") {
       targetPathname = "/donor-dashboard";
+    }
   }
 
   // 2. Subdomain Routing Logic (Conceptual)
   const hostname = request.headers.get("host") || "";
-  const mainDomain = process.env.NEXT_PUBLIC_MAIN_DOMAIN || "localhost:3000";
+  const mainDomain = serverEnv.NEXT_PUBLIC_MAIN_DOMAIN || "localhost:3000";
   const subdomain = hostname.split(".")[0];
 
   if (subdomain === "my" && hostname !== mainDomain) {
@@ -87,10 +91,10 @@ export async function updateSession(request: NextRequest) {
     (route) =>
       targetPathname === route ||
       targetPathname.startsWith(route + "/") ||
-      targetPathname.startsWith("/api/"),
+      targetPathname.startsWith("/api/")
   );
 
-  if (!user && !isPublicRoute) {
+  if (!(user || isPublicRoute)) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     // If it's a demo alias, we might want to remember where they were going

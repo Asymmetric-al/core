@@ -1,10 +1,11 @@
 import {
+  type AuthenticatedContext,
   getAuthContext,
   requireAuth,
   requireRole,
-  type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
+import { serverEnv } from "@asym/env";
 import { createAuditLogger } from "@asym/lib/audit/logger";
 import { type NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
     const audit = createAuditLogger(ctx, request);
 
     const { amount, currency, missionary_id, fund_id } = donatePostSchema.parse(
-      await ensureJsonBody(request),
+      await ensureJsonBody(request)
     );
 
     const { data: tenant, error: tenantError } = await supabaseAdmin
@@ -43,11 +44,11 @@ export async function POST(request: NextRequest) {
     }
 
     const stripeSecretKey =
-      tenant.stripe_secret_key || process.env.STRIPE_SECRET_KEY;
+      tenant.stripe_secret_key || serverEnv.STRIPE_SECRET_KEY;
     if (!stripeSecretKey) {
       return NextResponse.json(
         { error: "Stripe not configured for this organization" },
-        { status: 500 },
+        { status: 500 }
       );
     }
 
@@ -76,7 +77,7 @@ export async function POST(request: NextRequest) {
       if (createError || !newDonor) {
         return NextResponse.json(
           { error: "Failed to create donor record" },
-          { status: 500 },
+          { status: 500 }
         );
       }
       donorRecord = newDonor;
@@ -121,7 +122,7 @@ export async function POST(request: NextRequest) {
       if (!missionary) {
         return NextResponse.json(
           { error: "Missionary not found or access denied" },
-          { status: 404 },
+          { status: 404 }
         );
       }
     }
@@ -138,7 +139,7 @@ export async function POST(request: NextRequest) {
       if (!fund) {
         return NextResponse.json(
           { error: "Fund not found or inactive" },
-          { status: 404 },
+          { status: 404 }
         );
       }
     }
@@ -177,7 +178,7 @@ export async function POST(request: NextRequest) {
     if (donationError) {
       return NextResponse.json(
         { error: "Failed to create donation record" },
-        { status: 500 },
+        { status: 500 }
       );
     }
 
@@ -192,7 +193,7 @@ export async function POST(request: NextRequest) {
       donationId: donation.id,
       publishableKey:
         tenant.stripe_publishable_key ||
-        process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+        serverEnv.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     });
   } catch (e) {
     console.error("Donation error:", e);
@@ -240,7 +241,7 @@ export async function GET(request: NextRequest) {
             funding_goal, 
             current_funding,
             profile:profiles!profile_id(first_name, last_name, avatar_url)
-          `,
+          `
           )
           .eq("id", missionaryId)
           .eq("tenant_id", ctx.tenantId)
@@ -273,7 +274,7 @@ export async function GET(request: NextRequest) {
           funding_goal, 
           current_funding,
           profile:profiles!profile_id(first_name, last_name, avatar_url)
-        `,
+        `
         )
         .eq("tenant_id", ctx.tenantId);
 

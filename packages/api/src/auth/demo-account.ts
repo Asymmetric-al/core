@@ -1,3 +1,4 @@
+import { runtimeEnvFlags, serverEnv } from "@asym/env";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 
@@ -27,7 +28,9 @@ type PendingCookie = {
 };
 
 function normalizeCookieOptions(options?: PendingCookie["options"]) {
-  if (!options) return undefined;
+  if (!options) {
+    return undefined;
+  }
   const { sameSite, ...rest } = options;
   if (typeof sameSite === "boolean") {
     return rest;
@@ -36,14 +39,18 @@ function normalizeCookieOptions(options?: PendingCookie["options"]) {
 }
 
 function parseCookieHeader(cookieHeader: string | null) {
-  if (!cookieHeader) return [];
+  if (!cookieHeader) {
+    return [];
+  }
   return cookieHeader
     .split(";")
     .map((part) => part.trim())
     .filter(Boolean)
     .map((pair) => {
       const idx = pair.indexOf("=");
-      if (idx === -1) return { name: pair, value: "" };
+      if (idx === -1) {
+        return { name: pair, value: "" };
+      }
       return {
         name: pair.slice(0, idx),
         value: decodeURIComponent(pair.slice(idx + 1)),
@@ -52,11 +59,11 @@ function parseCookieHeader(cookieHeader: string | null) {
 }
 
 function getDemoConfig() {
-  const password = process.env.DEMO_PASSWORD;
+  const password = serverEnv.DEMO_PASSWORD;
   const emails: Record<DemoRole, string | undefined> = {
-    admin: process.env.DEMO_ADMIN_EMAIL,
-    missionary: process.env.DEMO_MISSIONARY_EMAIL,
-    donor: process.env.DEMO_DONOR_EMAIL,
+    admin: serverEnv.DEMO_ADMIN_EMAIL,
+    missionary: serverEnv.DEMO_MISSIONARY_EMAIL,
+    donor: serverEnv.DEMO_DONOR_EMAIL,
   };
 
   const availability: DemoAvailability = {
@@ -70,10 +77,10 @@ function getDemoConfig() {
 
 function createAuthClient(request: Request) {
   const pendingCookies: PendingCookie[] = [];
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseUrl = serverEnv.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = serverEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!(supabaseUrl && supabaseAnonKey)) {
     return { supabase: null, pendingCookies };
   }
 
@@ -89,7 +96,7 @@ function createAuthClient(request: Request) {
           name: string;
           value: string;
           options?: PendingCookie["options"];
-        }[],
+        }[]
       ) {
         cookiesToSet.forEach((cookie) => {
           pendingCookies.push({
@@ -107,8 +114,8 @@ function createAuthClient(request: Request) {
 
 export async function GET() {
   if (
-    process.env.NODE_ENV === "production" &&
-    process.env.ALLOW_DEMO_ACCOUNTS !== "true"
+    runtimeEnvFlags.NODE_ENV === "production" &&
+    !serverEnv.ALLOW_DEMO_ACCOUNTS
   ) {
     return NextResponse.json({ availableRoles: defaultAvailability });
   }
@@ -119,32 +126,32 @@ export async function GET() {
 
 export async function POST(request: Request) {
   if (
-    process.env.NODE_ENV === "production" &&
-    process.env.ALLOW_DEMO_ACCOUNTS !== "true"
+    runtimeEnvFlags.NODE_ENV === "production" &&
+    !serverEnv.ALLOW_DEMO_ACCOUNTS
   ) {
     return NextResponse.json(
       { ok: false, error: "Demo login unavailable" },
-      { status: 403 },
+      { status: 403 }
     );
   }
 
   try {
     const { role } = (await request.json()) as { role?: DemoRole };
 
-    if (!role || !DEMO_ROLES.includes(role)) {
+    if (!(role && DEMO_ROLES.includes(role))) {
       return NextResponse.json(
         { ok: false, error: "Demo login unavailable" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     const { emails, password, availability } = getDemoConfig();
     const email = emails[role];
 
-    if (!availability[role] || !email || !password) {
+    if (!(availability[role] && email && password)) {
       return NextResponse.json(
         { ok: false, error: "Demo login unavailable" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -152,7 +159,7 @@ export async function POST(request: Request) {
     if (!supabase) {
       return NextResponse.json(
         { ok: false, error: "Demo login unavailable" },
-        { status: 503 },
+        { status: 503 }
       );
     }
 
@@ -163,7 +170,7 @@ export async function POST(request: Request) {
     if (signInError) {
       return NextResponse.json(
         { ok: false, error: "Invalid demo credentials" },
-        { status: 401 },
+        { status: 401 }
       );
     }
 
@@ -172,14 +179,14 @@ export async function POST(request: Request) {
       response.cookies.set(
         cookie.name,
         cookie.value,
-        normalizeCookieOptions(cookie.options),
+        normalizeCookieOptions(cookie.options)
       );
     });
     return response;
   } catch {
     return NextResponse.json(
       { ok: false, error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

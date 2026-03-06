@@ -1,14 +1,14 @@
 "use client";
 
-import { siteConfig } from "@asym/config/site";
+import { siteConfig } from "@asym/config/site-client";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@asym/ui/components/shadcn/card";
 import { Label } from "@asym/ui/components/shadcn/label";
 import {
@@ -22,28 +22,28 @@ import { Switch } from "@asym/ui/components/shadcn/switch";
 import { cn } from "@asym/ui/lib/utils";
 import {
   Bell,
-  Globe,
-  Link as LinkIcon,
-  Shield,
-  Save,
-  Info,
   Check,
   ExternalLink,
+  Globe,
+  Info,
+  Link as LinkIcon,
+  Save,
+  Shield,
 } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 
 interface ConnectedService {
-  name: string;
-  desc: string;
   connected: boolean;
+  desc: string;
+  name: string;
   readonly?: boolean;
 }
 
 interface AlertPreference {
-  label: string;
-  desc: string;
   defaultChecked: boolean;
+  desc: string;
+  label: string;
 }
 
 const CONNECTED_SERVICES: ConnectedService[] = [
@@ -86,10 +86,10 @@ const ALERT_PREFERENCES: AlertPreference[] = [
 function CareSettingsHeader() {
   return (
     <div>
-      <h2 className="text-3xl font-black tracking-tight text-zinc-900 text-left">
+      <h2 className="text-left font-black text-3xl text-zinc-900 tracking-tight">
         Care Settings
       </h2>
-      <p className="text-zinc-500 mt-1 font-medium text-left">
+      <p className="mt-1 text-left font-medium text-zinc-500">
         Configure regional defaults and care workflow integrations.
       </p>
     </div>
@@ -98,31 +98,31 @@ function CareSettingsHeader() {
 
 function RegionalLocalizationCard() {
   return (
-    <Card className="border-zinc-200 shadow-sm overflow-hidden rounded-[2rem]">
-      <CardHeader className="border-b border-zinc-50 bg-zinc-50/30">
+    <Card className="overflow-hidden rounded-[2rem] border-zinc-200 shadow-sm">
+      <CardHeader className="border-zinc-50 border-b bg-zinc-50/30">
         <div className="flex items-center gap-3">
           <Globe className="h-5 w-5 text-zinc-400" />
           <div>
-            <CardTitle className="text-lg font-bold text-zinc-900">
+            <CardTitle className="font-bold text-lg text-zinc-900">
               Regional Localization
             </CardTitle>
-            <CardDescription className="text-xs font-medium text-zinc-500">
+            <CardDescription className="font-medium text-xs text-zinc-500">
               Define your default focus area and timezone.
             </CardDescription>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pt-6 space-y-6">
+      <CardContent className="space-y-6 pt-6">
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-2 text-left">
             <Label
+              className="px-1 font-black text-[10px] text-zinc-400 uppercase tracking-wider"
               htmlFor="region"
-              className="text-[10px] font-black uppercase tracking-wider text-zinc-400 px-1"
             >
               Default Region
             </Label>
             <Select defaultValue="se-asia">
-              <SelectTrigger className="h-10 border-zinc-200 rounded-xl">
+              <SelectTrigger className="h-10 rounded-xl border-zinc-200">
                 <SelectValue placeholder="Select region" />
               </SelectTrigger>
               <SelectContent>
@@ -135,13 +135,13 @@ function RegionalLocalizationCard() {
           </div>
           <div className="space-y-2 text-left">
             <Label
+              className="px-1 font-black text-[10px] text-zinc-400 uppercase tracking-wider"
               htmlFor="timezone"
-              className="text-[10px] font-black uppercase tracking-wider text-zinc-400 px-1"
             >
               My Timezone
             </Label>
             <Select defaultValue="utc-5">
-              <SelectTrigger className="h-10 border-zinc-200 rounded-xl">
+              <SelectTrigger className="h-10 rounded-xl border-zinc-200">
                 <SelectValue placeholder="Select timezone" />
               </SelectTrigger>
               <SelectContent>
@@ -160,56 +160,56 @@ function RegionalLocalizationCard() {
 
 function ConnectedServicesCard() {
   return (
-    <Card className="border-zinc-200 shadow-sm overflow-hidden rounded-[2rem]">
-      <CardHeader className="border-b border-zinc-50 bg-zinc-50/30">
+    <Card className="overflow-hidden rounded-[2rem] border-zinc-200 shadow-sm">
+      <CardHeader className="border-zinc-50 border-b bg-zinc-50/30">
         <div className="flex items-center gap-3">
           <LinkIcon className="h-5 w-5 text-zinc-400" />
           <div>
-            <CardTitle className="text-lg font-bold text-zinc-900">
+            <CardTitle className="font-bold text-lg text-zinc-900">
               Connected Services
             </CardTitle>
-            <CardDescription className="text-xs font-medium text-zinc-500">
+            <CardDescription className="font-medium text-xs text-zinc-500">
               Sync check-ins and appointments with external tools.
             </CardDescription>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pt-6 space-y-4">
+      <CardContent className="space-y-4 pt-6">
         {CONNECTED_SERVICES.map((service) => (
           <div
+            className="group flex items-center justify-between rounded-xl border border-zinc-100 bg-white p-4 transition-colors hover:border-zinc-200"
             key={service.name}
-            className="flex items-center justify-between p-4 rounded-xl border border-zinc-100 bg-white group hover:border-zinc-200 transition-colors"
           >
             <div className="space-y-1 text-left">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-zinc-900">
+                <span className="font-bold text-sm text-zinc-900">
                   {service.name}
                 </span>
                 {service.connected && (
                   <Check className="h-3 w-3 text-zinc-900" />
                 )}
               </div>
-              <p className="text-xs font-medium text-zinc-400">
+              <p className="font-medium text-xs text-zinc-400">
                 {service.desc}
               </p>
             </div>
             {service.readonly ? (
               <Badge
+                className="border-none bg-zinc-100 font-bold text-[10px] text-zinc-500 uppercase tracking-widest"
                 variant="secondary"
-                className="text-[10px] font-bold uppercase tracking-widest bg-zinc-100 text-zinc-500 border-none"
               >
                 System Link
               </Badge>
             ) : (
               <Button
-                variant={service.connected ? "outline" : "default"}
-                size="sm"
                 className={cn(
-                  "h-8 text-[10px] font-black uppercase tracking-widest px-4 rounded-lg",
+                  "h-8 rounded-lg px-4 font-black text-[10px] uppercase tracking-widest",
                   service.connected
                     ? "border-zinc-200 text-zinc-500 hover:text-zinc-900"
-                    : "bg-zinc-900 text-white hover:bg-zinc-800 shadow-lg shadow-zinc-200/50",
+                    : "bg-zinc-900 text-white shadow-lg shadow-zinc-200/50 hover:bg-zinc-800"
                 )}
+                size="sm"
+                variant={service.connected ? "outline" : "default"}
               >
                 {service.connected ? "Disconnect" : "Connect"}
               </Button>
@@ -223,32 +223,32 @@ function ConnectedServicesCard() {
 
 function AlertPreferencesCard() {
   return (
-    <Card className="border-zinc-200 shadow-sm overflow-hidden rounded-[2rem]">
-      <CardHeader className="border-b border-zinc-50 bg-zinc-50/30">
+    <Card className="overflow-hidden rounded-[2rem] border-zinc-200 shadow-sm">
+      <CardHeader className="border-zinc-50 border-b bg-zinc-50/30">
         <div className="flex items-center gap-3">
           <Bell className="h-5 w-5 text-zinc-400" />
           <div>
-            <CardTitle className="text-lg font-bold text-zinc-900">
+            <CardTitle className="font-bold text-lg text-zinc-900">
               Alert Preferences
             </CardTitle>
-            <CardDescription className="text-xs font-medium text-zinc-500">
+            <CardDescription className="font-medium text-xs text-zinc-500">
               Manage how you receive wellness and crisis updates.
             </CardDescription>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pt-6 space-y-6">
+      <CardContent className="space-y-6 pt-6">
         {ALERT_PREFERENCES.map((pref) => (
-          <div key={pref.label} className="flex items-center justify-between">
+          <div className="flex items-center justify-between" key={pref.label}>
             <div className="space-y-0.5 text-left">
-              <Label className="text-sm font-bold text-zinc-900">
+              <Label className="font-bold text-sm text-zinc-900">
                 {pref.label}
               </Label>
-              <p className="text-xs font-medium text-zinc-400">{pref.desc}</p>
+              <p className="font-medium text-xs text-zinc-400">{pref.desc}</p>
             </div>
             <Switch
-              defaultChecked={pref.defaultChecked}
               className="data-[state=checked]:bg-zinc-900"
+              defaultChecked={pref.defaultChecked}
             />
           </div>
         ))}
@@ -258,25 +258,25 @@ function AlertPreferencesCard() {
 }
 
 interface SaveChangesCardProps {
-  saving: boolean;
   onSave: () => void;
+  saving: boolean;
 }
 
 function SaveChangesCard({ saving, onSave }: SaveChangesCardProps) {
   return (
-    <Card className="border-zinc-900 bg-zinc-900 text-white shadow-2xl shadow-zinc-300/50 overflow-hidden rounded-[2rem] sticky top-6">
-      <CardContent className="p-8 space-y-6">
+    <Card className="sticky top-6 overflow-hidden rounded-[2rem] border-zinc-900 bg-zinc-900 text-white shadow-2xl shadow-zinc-300/50">
+      <CardContent className="space-y-6 p-8">
         <div className="space-y-2">
           <h3 className="font-black text-xl tracking-tight">Save Changes</h3>
-          <p className="text-[10px] font-medium text-zinc-500 leading-relaxed uppercase tracking-widest">
+          <p className="font-medium text-[10px] text-zinc-500 uppercase leading-relaxed tracking-widest">
             Update your global preferences. Changes apply immediately across the
             Member Care module.
           </p>
         </div>
         <Button
-          onClick={onSave}
+          className="h-12 w-full rounded-2xl bg-white font-black text-[10px] text-zinc-900 uppercase tracking-widest shadow-lg hover:bg-zinc-100"
           disabled={saving}
-          className="w-full bg-white text-zinc-900 hover:bg-zinc-100 font-black h-12 shadow-lg rounded-2xl text-[10px] uppercase tracking-widest"
+          onClick={onSave}
         >
           {saving ? (
             "Updating..."
@@ -286,9 +286,9 @@ function SaveChangesCard({ saving, onSave }: SaveChangesCardProps) {
             </>
           )}
         </Button>
-        <div className="pt-6 border-t border-zinc-800 flex items-start gap-3">
-          <Shield className="h-4 w-4 text-zinc-500 shrink-0" />
-          <p className="text-[10px] font-medium text-zinc-500 text-left leading-relaxed">
+        <div className="flex items-start gap-3 border-zinc-800 border-t pt-6">
+          <Shield className="h-4 w-4 shrink-0 text-zinc-500" />
+          <p className="text-left font-medium text-[10px] text-zinc-500 leading-relaxed">
             Your data access is restricted to authorized personnel records.
             Pastoral notes are stored securely.
           </p>
@@ -300,44 +300,44 @@ function SaveChangesCard({ saving, onSave }: SaveChangesCardProps) {
 
 function ModuleInfoCard() {
   return (
-    <Card className="border-zinc-200 bg-white shadow-sm overflow-hidden rounded-[2rem]">
-      <CardContent className="p-8 space-y-6">
+    <Card className="overflow-hidden rounded-[2rem] border-zinc-200 bg-white shadow-sm">
+      <CardContent className="space-y-6 p-8">
         <div className="flex items-center gap-2 text-zinc-900">
           <Info className="h-4 w-4" />
-          <h4 className="text-[10px] font-black uppercase tracking-widest">
+          <h4 className="font-black text-[10px] uppercase tracking-widest">
             Module Info
           </h4>
         </div>
         <div className="space-y-4 text-left">
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-zinc-400 font-medium">Active Module</span>
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-medium text-zinc-400">Active Module</span>
             <span className="font-bold text-zinc-900">Member Care</span>
           </div>
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-zinc-400 font-medium">Status</span>
-            <Badge className="bg-zinc-100 text-zinc-900 border-none text-[10px] px-2 h-5 font-bold uppercase tracking-widest">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-medium text-zinc-400">Status</span>
+            <Badge className="h-5 border-none bg-zinc-100 px-2 font-bold text-[10px] text-zinc-900 uppercase tracking-widest">
               Active
             </Badge>
           </div>
 
-          <div className="pt-4 border-t border-zinc-100 space-y-4">
+          <div className="space-y-4 border-zinc-100 border-t pt-4">
             <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+              <span className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
                 Tenant Website
               </span>
-              <span className="text-xs font-bold text-zinc-900">
+              <span className="font-bold text-xs text-zinc-900">
                 {siteConfig.name}
               </span>
             </div>
             <Button
-              variant="outline"
-              className="w-full h-10 rounded-xl border-zinc-200 text-[10px] font-black uppercase tracking-widest text-zinc-900 group"
               asChild
+              className="group h-10 w-full rounded-xl border-zinc-200 font-black text-[10px] text-zinc-900 uppercase tracking-widest"
+              variant="outline"
             >
               <a
                 href={siteConfig.url}
-                target="_blank"
                 rel="noopener noreferrer"
+                target="_blank"
               >
                 Visit Home Page
                 <ExternalLink className="ml-2 h-3 w-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -362,18 +362,18 @@ export default function CareSettingsPage() {
   };
 
   return (
-    <div className="p-6 space-y-8 animate-in fade-in duration-500 pb-20">
+    <div className="fade-in animate-in space-y-8 p-6 pb-20 duration-500">
       <CareSettingsHeader />
 
       <div className="grid gap-8 lg:grid-cols-12">
-        <div className="lg:col-span-8 space-y-8">
+        <div className="space-y-8 lg:col-span-8">
           <RegionalLocalizationCard />
           <ConnectedServicesCard />
           <AlertPreferencesCard />
         </div>
 
-        <div className="lg:col-span-4 space-y-6">
-          <SaveChangesCard saving={saving} onSave={handleSave} />
+        <div className="space-y-6 lg:col-span-4">
+          <SaveChangesCard onSave={handleSave} saving={saving} />
           <ModuleInfoCard />
         </div>
       </div>

@@ -52,27 +52,27 @@ import { cn } from "@asym/ui/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import {
-  Loader2,
-  CalendarIcon,
-  Phone,
-  Mail,
-  CheckSquare,
-  UserPlus,
-  Heart,
-  Users,
   Bell,
-  Flag,
-  X,
+  CalendarIcon,
   Check,
+  CheckSquare,
   ChevronsUpDown,
+  Flag,
+  Heart,
+  Loader2,
+  Mail,
+  Phone,
   User,
+  UserPlus,
+  Users,
+  X,
 } from "lucide-react";
 import * as React from "react";
-import { useForm, type Control } from "react-hook-form";
+import { type Control, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import type { Task, TaskType, TaskStatus, TaskPriority } from "../types";
+import type { Task, TaskPriority, TaskStatus, TaskType } from "../types";
 
 const taskSchema = z.object({
   title: z.string().min(2, "Title must be at least 2 characters"),
@@ -162,21 +162,21 @@ const TASK_PRIORITIES: { value: TaskPriority; label: string; color: string }[] =
   ];
 
 interface SimpleDonor {
+  avatar_url?: string;
+  email?: string;
   id: string;
   name: string;
-  email?: string;
-  avatar_url?: string;
 }
 
 export interface TaskDialogProps {
-  task?: Task | null;
   defaultDonorId?: string | null;
   initialStatus?: TaskStatus;
-  onSuccess?: (task: Task) => void;
   onClose?: () => void;
-  trigger?: React.ReactNode;
-  open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  onSuccess?: (task: Task) => void;
+  open?: boolean;
+  task?: Task | null;
+  trigger?: React.ReactNode;
 }
 
 function TaskTitleField({ control }: { control: Control<TaskFormValues> }) {
@@ -186,14 +186,14 @@ function TaskTitleField({ control }: { control: Control<TaskFormValues> }) {
       name="title"
       render={({ field }) => (
         <FormItem>
-          <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+          <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
             Task Title *
           </FormLabel>
           <FormControl>
             <Input
               placeholder="e.g., Call to thank for donation"
               {...field}
-              className="h-12 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
+              className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
             />
           </FormControl>
           <FormMessage />
@@ -214,23 +214,23 @@ function TaskTypeSelectField({
       name="task_type"
       render={({ field }) => {
         const selectedTaskType = TASK_TYPES.find(
-          (t) => t.value === field.value,
+          (t) => t.value === field.value
         );
         return (
           <FormItem>
-            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+            <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
               Task Type
             </FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
-                <SelectTrigger className="h-12 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium">
+                <SelectTrigger className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
                   <SelectValue placeholder="Select type">
                     {selectedTaskType && (
                       <div className="flex items-center gap-2">
                         <div
                           className={cn(
-                            "h-6 w-6 rounded-lg flex items-center justify-center",
-                            selectedTaskType.color,
+                            "flex h-6 w-6 items-center justify-center rounded-lg",
+                            selectedTaskType.color
                           )}
                         >
                           <selectedTaskType.icon className="h-3.5 w-3.5" />
@@ -244,15 +244,15 @@ function TaskTypeSelectField({
               <SelectContent className="rounded-xl border-zinc-100">
                 {TASK_TYPES.map((type) => (
                   <SelectItem
+                    className="rounded-lg"
                     key={type.value}
                     value={type.value}
-                    className="rounded-lg"
                   >
                     <div className="flex items-center gap-2">
                       <div
                         className={cn(
-                          "h-6 w-6 rounded-lg flex items-center justify-center",
-                          type.color,
+                          "flex h-6 w-6 items-center justify-center rounded-lg",
+                          type.color
                         )}
                       >
                         <type.icon className="h-3.5 w-3.5" />
@@ -282,21 +282,21 @@ function PrioritySelectField({
       name="priority"
       render={({ field }) => (
         <FormItem>
-          <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+          <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
             Priority
           </FormLabel>
           <Select onValueChange={field.onChange} value={field.value}>
             <FormControl>
-              <SelectTrigger className="h-12 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium">
+              <SelectTrigger className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
                 <SelectValue placeholder="Select priority" />
               </SelectTrigger>
             </FormControl>
             <SelectContent className="rounded-xl border-zinc-100">
               {TASK_PRIORITIES.map((priority) => (
                 <SelectItem
+                  className="rounded-lg"
                   key={priority.value}
                   value={priority.value}
-                  className="rounded-lg"
                 >
                   <div className="flex items-center gap-2">
                     <Flag className={cn("h-4 w-4", priority.color)} />
@@ -332,18 +332,18 @@ function DatePickerField({
       name={name}
       render={({ field }) => (
         <FormItem className="flex flex-col">
-          <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+          <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
             {label}
           </FormLabel>
           <Popover>
             <PopoverTrigger asChild>
               <FormControl>
                 <Button
-                  variant="outline"
                   className={cn(
-                    "h-12 bg-zinc-50 border-transparent rounded-xl font-medium justify-start text-left hover:bg-zinc-100",
-                    !field.value && "text-zinc-400",
+                    "h-12 justify-start rounded-xl border-transparent bg-zinc-50 text-left font-medium hover:bg-zinc-100",
+                    !field.value && "text-zinc-400"
                   )}
+                  variant="outline"
                 >
                   <Icon className="mr-2 h-4 w-4" />
                   {field.value ? format(field.value, "PPP") : placeholder}
@@ -359,11 +359,11 @@ function DatePickerField({
                 </Button>
               </FormControl>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 rounded-xl" align="start">
+            <PopoverContent align="start" className="w-auto rounded-xl p-0">
               <Calendar
                 mode="single"
-                selected={field.value || undefined}
                 onSelect={field.onChange}
+                selected={field.value || undefined}
               />
             </PopoverContent>
           </Popover>
@@ -381,21 +381,21 @@ function StatusSelectField({ control }: { control: Control<TaskFormValues> }) {
       name="status"
       render={({ field }) => (
         <FormItem>
-          <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+          <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
             Status
           </FormLabel>
           <Select onValueChange={field.onChange} value={field.value}>
             <FormControl>
-              <SelectTrigger className="h-12 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium">
+              <SelectTrigger className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
             </FormControl>
             <SelectContent className="rounded-xl border-zinc-100">
               {TASK_STATUSES.map((status) => (
                 <SelectItem
+                  className="rounded-lg font-medium"
                   key={status.value}
                   value={status.value}
-                  className="rounded-lg font-medium"
                 >
                   {status.label}
                 </SelectItem>
@@ -432,24 +432,24 @@ function DonorSelectorField({
         const selectedDonor = donors.find((d) => d.id === field.value);
         return (
           <FormItem className="flex flex-col">
-            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+            <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
               Associated Partner
             </FormLabel>
             <Popover
-              open={donorSearchOpen}
               onOpenChange={onDonorSearchOpenChange}
+              open={donorSearchOpen}
             >
               <PopoverTrigger asChild>
                 <FormControl>
                   <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={donorSearchOpen}
                     aria-controls={donorListboxId}
+                    aria-expanded={donorSearchOpen}
                     className={cn(
-                      "h-12 bg-zinc-50 border-transparent rounded-xl font-medium justify-between hover:bg-zinc-100",
-                      !field.value && "text-zinc-400",
+                      "h-12 justify-between rounded-xl border-transparent bg-zinc-50 font-medium hover:bg-zinc-100",
+                      !field.value && "text-zinc-400"
                     )}
+                    role="combobox"
+                    variant="outline"
                   >
                     {selectedDonor ? (
                       <div className="flex items-center gap-2">
@@ -457,7 +457,7 @@ function DonorSelectorField({
                           <AvatarImage
                             src={selectedDonor.avatar_url || undefined}
                           />
-                          <AvatarFallback className="text-[10px] font-bold bg-zinc-200">
+                          <AvatarFallback className="bg-zinc-200 font-bold text-[10px]">
                             {selectedDonor.name
                               .split(" ")
                               .map((n) => n[0])
@@ -489,13 +489,13 @@ function DonorSelectorField({
                 </FormControl>
               </PopoverTrigger>
               <PopoverContent
-                className="w-[400px] p-0 rounded-xl"
                 align="start"
+                className="w-[400px] rounded-xl p-0"
               >
                 <Command className="rounded-xl">
                   <CommandInput
-                    placeholder="Search partners..."
                     className="h-11"
+                    placeholder="Search partners..."
                   />
                   <CommandList id={donorListboxId}>
                     <CommandEmpty>
@@ -510,22 +510,22 @@ function DonorSelectorField({
                     <CommandGroup>
                       {donors.map((donor) => (
                         <CommandItem
+                          className="rounded-lg"
                           key={donor.id}
-                          value={donor.name}
                           onSelect={() => {
                             field.onChange(
-                              donor.id === field.value ? null : donor.id,
+                              donor.id === field.value ? null : donor.id
                             );
                             onDonorSearchOpenChange(false);
                           }}
-                          className="rounded-lg"
+                          value={donor.name}
                         >
-                          <div className="flex items-center gap-3 flex-1">
+                          <div className="flex flex-1 items-center gap-3">
                             <Avatar className="h-8 w-8">
                               <AvatarImage
                                 src={donor.avatar_url || undefined}
                               />
-                              <AvatarFallback className="text-[10px] font-bold bg-zinc-100">
+                              <AvatarFallback className="bg-zinc-100 font-bold text-[10px]">
                                 {donor.name
                                   .split(" ")
                                   .map((n) => n[0])
@@ -533,12 +533,12 @@ function DonorSelectorField({
                                   .slice(0, 2)}
                               </AvatarFallback>
                             </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm truncate">
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate font-medium text-sm">
                                 {donor.name}
                               </p>
                               {donor.email && (
-                                <p className="text-xs text-zinc-400 truncate">
+                                <p className="truncate text-xs text-zinc-400">
                                   {donor.email}
                                 </p>
                               )}
@@ -549,7 +549,7 @@ function DonorSelectorField({
                               "h-4 w-4 shrink-0",
                               field.value === donor.id
                                 ? "opacity-100"
-                                : "opacity-0",
+                                : "opacity-0"
                             )}
                           />
                         </CommandItem>
@@ -581,14 +581,14 @@ function TaskDescriptionField({
       name="description"
       render={({ field }) => (
         <FormItem>
-          <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+          <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
             Description
           </FormLabel>
           <FormControl>
             <Textarea
               placeholder="Add details about this task..."
               {...field}
-              className="min-h-[80px] bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium resize-none"
+              className="min-h-[80px] resize-none rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
             />
           </FormControl>
           <FormMessage />
@@ -605,14 +605,14 @@ function TaskNotesField({ control }: { control: Control<TaskFormValues> }) {
       name="notes"
       render={({ field }) => (
         <FormItem>
-          <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+          <FormLabel className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
             Internal Notes
           </FormLabel>
           <FormControl>
             <Textarea
               placeholder="Private notes (not visible to partner)..."
               {...field}
-              className="min-h-[60px] bg-amber-50/50 border-transparent rounded-xl focus:bg-amber-50 focus:ring-2 focus:ring-amber-900/5 transition-all font-medium resize-none"
+              className="min-h-[60px] resize-none rounded-xl border-transparent bg-amber-50/50 font-medium transition-all focus:bg-amber-50 focus:ring-2 focus:ring-amber-900/5"
             />
           </FormControl>
           <FormDescription className="text-xs text-zinc-400">
@@ -685,7 +685,9 @@ export function TaskDialog({
   });
 
   const fetchDonors = React.useCallback(async () => {
-    if (!profile?.id) return;
+    if (!profile?.id) {
+      return;
+    }
     setLoadingDonors(true);
     try {
       const { data, error } = await supabase
@@ -694,13 +696,18 @@ export function TaskDialog({
         .eq("missionary_id", profile.id)
         .order("name");
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching donors:", error);
+        setLoadingDonors(false);
+        return;
+      }
       setDonors(data || []);
     } catch (e) {
       console.error("Error fetching donors:", e);
-    } finally {
       setLoadingDonors(false);
+      return;
     }
+    setLoadingDonors(false);
   }, [profile?.id, supabase]);
 
   React.useEffect(() => {
@@ -710,7 +717,9 @@ export function TaskDialog({
   }, [open, profile?.id, donors.length, loadingDonors, fetchDonors]);
 
   React.useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      return;
+    }
     form.reset(buildFormDefaults());
   }, [open, form, buildFormDefaults]);
 
@@ -748,11 +757,15 @@ export function TaskDialog({
             `
             *,
             donor:donors!missionary_tasks_donor_id_fkey(id, name, email, avatar_url)
-          `,
+          `
           )
           .single();
 
-        if (error) throw error;
+        if (error) {
+          toast.error(error.message || "Failed to update task");
+          setIsSubmitting(false);
+          return;
+        }
         result = { ...data, donor: data.donor || null };
         toast.success("Task updated successfully");
       } else {
@@ -763,11 +776,15 @@ export function TaskDialog({
             `
             *,
             donor:donors!missionary_tasks_donor_id_fkey(id, name, email, avatar_url)
-          `,
+          `
           )
           .single();
 
-        if (error) throw error;
+        if (error) {
+          toast.error(error.message || "Failed to create task");
+          setIsSubmitting(false);
+          return;
+        }
         result = { ...data, donor: data.donor || null };
         toast.success("Task created successfully");
       }
@@ -781,9 +798,8 @@ export function TaskDialog({
       const message =
         error instanceof Error ? error.message : "Failed to save task";
       toast.error(message);
-    } finally {
-      setIsSubmitting(false);
     }
+    setIsSubmitting(false);
   }
 
   const handleClose = () => {
@@ -794,19 +810,22 @@ export function TaskDialog({
 
   return (
     <Dialog
-      open={open}
       onOpenChange={(newOpen) => {
-        if (!newOpen) handleClose();
-        else setOpen?.(newOpen);
+        if (newOpen) {
+          setOpen?.(newOpen);
+        } else {
+          handleClose();
+        }
       }}
+      open={open}
     >
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] rounded-[2rem] border-zinc-100 p-0 overflow-hidden">
+      <DialogContent className="max-h-[90vh] overflow-hidden rounded-[2rem] border-zinc-100 p-0 sm:max-w-[600px]">
         <div className="bg-zinc-900 px-8 py-8 text-white">
-          <DialogTitle className="text-2xl font-black tracking-tight">
+          <DialogTitle className="font-black text-2xl tracking-tight">
             {isEditing ? "Edit Task" : "Create Task"}
           </DialogTitle>
-          <DialogDescription className="text-zinc-400 font-bold mt-1 uppercase tracking-widest text-[10px]">
+          <DialogDescription className="mt-1 font-bold text-[10px] text-zinc-400 uppercase tracking-widest">
             {isEditing ? "Update task details" : "Add a new follow-up task"}
           </DialogDescription>
         </div>
@@ -815,8 +834,8 @@ export function TaskDialog({
           <div className="p-8">
             <Form {...form}>
               <form
-                onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-6"
+                onSubmit={form.handleSubmit(onSubmit)}
               >
                 <TaskTitleField control={form.control} />
 
@@ -856,19 +875,19 @@ export function TaskDialog({
                 <TaskDescriptionField control={form.control} />
                 <TaskNotesField control={form.control} />
 
-                <div className="flex gap-3 pt-4 border-t border-zinc-100">
+                <div className="flex gap-3 border-zinc-100 border-t pt-4">
                   <Button
+                    className="h-12 flex-1 rounded-xl border-zinc-200 font-black text-[10px] uppercase tracking-widest"
+                    onClick={handleClose}
                     type="button"
                     variant="outline"
-                    onClick={handleClose}
-                    className="flex-1 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest border-zinc-200"
                   >
                     Cancel
                   </Button>
                   <Button
-                    type="submit"
+                    className="h-12 flex-1 rounded-xl bg-zinc-900 font-black text-[10px] text-white uppercase tracking-widest hover:bg-zinc-800"
                     disabled={isSubmitting}
-                    className="flex-1 h-12 rounded-xl bg-zinc-900 text-[10px] font-black uppercase tracking-widest text-white hover:bg-zinc-800"
+                    type="submit"
                   >
                     {isSubmitting ? (
                       <Loader2 className="h-4 w-4 animate-spin" />

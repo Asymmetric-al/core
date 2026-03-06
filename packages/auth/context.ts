@@ -1,30 +1,30 @@
+import type { UserRole } from "@asym/database/types";
+import { serverEnv } from "@asym/env";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-import type { UserRole } from "@asym/database/types";
-
 export interface AuthContext {
-  userId: string | null;
-  tenantId: string | null;
-  role: UserRole | null;
-  profileId: string | null;
   isAuthenticated: boolean;
+  profileId: string | null;
+  role: UserRole | null;
+  tenantId: string | null;
+  userId: string | null;
 }
 
 export interface AuthenticatedContext extends AuthContext {
-  userId: string;
-  tenantId: string;
-  role: UserRole;
-  profileId: string;
   isAuthenticated: true;
+  profileId: string;
+  role: UserRole;
+  tenantId: string;
+  userId: string;
 }
 
 export async function getAuthContext(): Promise<AuthContext> {
   const cookieStore = await cookies();
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    serverEnv.NEXT_PUBLIC_SUPABASE_URL,
+    serverEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       cookies: {
         getAll() {
@@ -35,16 +35,16 @@ export async function getAuthContext(): Promise<AuthContext> {
             name: string;
             value: string;
             options?: Parameters<typeof cookieStore.set>[2];
-          }>,
+          }>
         ) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
+              cookieStore.set(name, value, options)
             );
           } catch {}
         },
       },
-    },
+    }
   );
 
   const {
@@ -88,13 +88,15 @@ export async function getAuthContext(): Promise<AuthContext> {
 }
 
 export function requireAuth(
-  context: AuthContext,
+  context: AuthContext
 ): asserts context is AuthenticatedContext {
   if (
-    !context.isAuthenticated ||
-    !context.userId ||
-    !context.tenantId ||
-    !context.role
+    !(
+      context.isAuthenticated &&
+      context.userId &&
+      context.tenantId &&
+      context.role
+    )
   ) {
     throw new Error("Unauthorized");
   }
@@ -102,12 +104,12 @@ export function requireAuth(
 
 export function requireRole(
   context: AuthContext,
-  allowedRoles: UserRole[],
+  allowedRoles: UserRole[]
 ): asserts context is AuthenticatedContext {
   requireAuth(context);
   if (!allowedRoles.includes(context.role)) {
     throw new Error(
-      `Forbidden: requires one of ${allowedRoles.join(", ")} role`,
+      `Forbidden: requires one of ${allowedRoles.join(", ")} role`
     );
   }
 }

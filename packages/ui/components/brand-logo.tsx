@@ -1,13 +1,14 @@
 "use client";
+"use memo";
 
-import { brandConfig } from "@asym/config/site";
+import { brandConfig } from "@asym/config/site-client";
 
 import { cn } from "@asym/ui/lib/utils";
 
 interface BrandLogoProps {
+  className?: string;
   size?: "sm" | "md" | "lg";
   variant?: "default" | "muted";
-  className?: string;
 }
 
 const sizeClasses = {
@@ -29,10 +30,10 @@ export function BrandLogo({
   return (
     <div
       className={cn(
-        "rounded-xl flex items-center justify-center font-bold tracking-tight shadow-sm border border-transparent",
+        "flex items-center justify-center rounded-xl border border-transparent font-bold tracking-tight shadow-sm",
         sizeClasses[size],
         variantClasses,
-        className,
+        className
       )}
     >
       {brandConfig.shortName}
@@ -41,17 +42,17 @@ export function BrandLogo({
 }
 
 interface BrandAvatarProps {
-  size?: "sm" | "md" | "lg";
   className?: string;
+  size?: "sm" | "md" | "lg";
 }
 
 export function BrandAvatar({ size = "md", className }: BrandAvatarProps) {
   return (
     <div
       className={cn(
-        "rounded-full flex items-center justify-center font-bold tracking-tight bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-md ring-2 ring-background",
+        "flex items-center justify-center rounded-full bg-zinc-900 font-bold text-white tracking-tight shadow-md ring-2 ring-background dark:bg-white dark:text-zinc-900",
         sizeClasses[size],
-        className,
+        className
       )}
     >
       {brandConfig.shortName}

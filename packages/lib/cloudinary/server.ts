@@ -1,10 +1,11 @@
+import { clientEnv, serverEnv } from "@asym/env";
 import crypto from "crypto";
 
 export interface CloudinarySignature {
-  signature: string;
-  timestamp: number;
   apiKey: string;
   cloudName: string;
+  signature: string;
+  timestamp: number;
 }
 
 type CloudinarySignatureParam = string | number | boolean | null | undefined;
@@ -14,13 +15,13 @@ type CloudinarySignatureParam = string | number | boolean | null | undefined;
  * Follows Cloudinary's alphabetical sorting requirement.
  */
 export function generateCloudinarySignature(
-  params: Record<string, CloudinarySignatureParam>,
+  params: Record<string, CloudinarySignatureParam>
 ): CloudinarySignature {
-  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-  const apiKey = process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY;
-  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  const cloudName = clientEnv.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const apiKey = clientEnv.NEXT_PUBLIC_CLOUDINARY_API_KEY;
+  const apiSecret = serverEnv.CLOUDINARY_API_SECRET;
 
-  if (!cloudName || !apiKey || !apiSecret) {
+  if (!(cloudName && apiKey && apiSecret)) {
     throw new Error("Cloudinary configuration is missing or incomplete");
   }
 
@@ -42,7 +43,7 @@ export function generateCloudinarySignature(
         (key) =>
           signatureParams[key] !== undefined &&
           signatureParams[key] !== null &&
-          signatureParams[key] !== "",
+          signatureParams[key] !== ""
       )
       .map((key) => `${key}=${String(signatureParams[key])}`)
       .join("&") + apiSecret;
@@ -61,5 +62,4 @@ export function generateCloudinarySignature(
   };
 }
 
-export const isCloudinaryEnabled =
-  process.env.NEXT_PUBLIC_CLOUDINARY_ENABLED === "true";
+export const isCloudinaryEnabled = clientEnv.NEXT_PUBLIC_CLOUDINARY_ENABLED;

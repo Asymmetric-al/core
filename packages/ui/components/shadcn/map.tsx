@@ -2,19 +2,22 @@
 
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+
+import { cn } from "@asym/ui/lib/utils";
 import { useTheme } from "next-themes";
 import {
   createContext,
+  type MutableRefObject,
+  type ReactNode,
+  useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
+  useMemo,
   useRef,
   useState,
-  useCallback,
-  type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-
-import { cn } from "@asym/ui/lib/utils";
 
 type MapContextValue = {
   map: maplibregl.Map | null;
@@ -58,19 +61,19 @@ type MapProps = {
 
 function Loader() {
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-50/80 dark:bg-zinc-900/80 backdrop-blur-md z-50">
-      <div className="relative flex items-center justify-center mb-4">
-        <div className="absolute inset-0 rounded-full bg-primary/10 animate-ping" />
-        <div className="relative size-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-zinc-50/80 backdrop-blur-md dark:bg-zinc-900/80">
+      <div className="relative mb-4 flex items-center justify-center">
+        <div className="absolute inset-0 animate-ping rounded-full bg-primary/10" />
+        <div className="relative size-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
       </div>
-      <div className="flex gap-1.5 items-center">
-        <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+      <div className="flex items-center gap-1.5">
+        <span className="font-medium text-sm text-zinc-600 dark:text-zinc-400">
           Loading Map
         </span>
         <div className="flex gap-1">
-          <span className="size-1 rounded-full bg-primary animate-bounce" />
-          <span className="size-1 rounded-full bg-primary animate-bounce [animation-delay:150ms]" />
-          <span className="size-1 rounded-full bg-primary animate-bounce [animation-delay:300ms]" />
+          <span className="size-1 animate-bounce rounded-full bg-primary" />
+          <span className="size-1 animate-bounce rounded-full bg-primary [animation-delay:150ms]" />
+          <span className="size-1 animate-bounce rounded-full bg-primary [animation-delay:300ms]" />
         </div>
       </div>
     </div>
@@ -100,11 +103,6 @@ export function Map({
 
   const lightStyle = styles?.light ?? STYLES.light;
   const darkStyle = styles?.dark ?? STYLES.dark;
-  const initialMapConfigRef = useRef<{
-    styleUrl: string;
-    center: [number, number];
-    zoom: number;
-  } | null>(null);
   const mapLoaded = mapState.isLoaded;
 
   const markMapReady = useCallback(() => {
@@ -124,17 +122,6 @@ export function Map({
     setMapState({ map: null, isLoaded: false });
   }, []);
 
-  if (!initialMapConfigRef.current) {
-    const currentTheme = resolvedTheme === "dark" ? "dark" : "light";
-    initialMapConfigRef.current = {
-      styleUrl: currentTheme === "dark" ? darkStyle : lightStyle,
-      center: initialViewState
-        ? [initialViewState.longitude, initialViewState.latitude]
-        : (center ?? [0, 20]),
-      zoom: initialViewState?.zoom ?? zoom ?? 2,
-    };
-  }
-
   useEffect(() => {
     onLoadRef.current = onLoad;
   }, [onLoad]);
@@ -144,16 +131,22 @@ export function Map({
   }, [onClick]);
 
   useEffect(() => {
-    if (hasInitializedRef.current || !containerRef.current) return;
-    const initialConfig = initialMapConfigRef.current;
-    if (!initialConfig) return;
+    if (hasInitializedRef.current || !containerRef.current) {
+      return;
+    }
+    const currentTheme = resolvedTheme === "dark" ? "dark" : "light";
+    const initialStyle = currentTheme === "dark" ? darkStyle : lightStyle;
+    const initialCenter: [number, number] = initialViewState
+      ? [initialViewState.longitude, initialViewState.latitude]
+      : (center ?? [0, 20]);
+    const initialZoom = initialViewState?.zoom ?? zoom ?? 2;
 
     try {
       const map = new maplibregl.Map({
         container: containerRef.current,
-        style: initialConfig.styleUrl,
-        center: initialConfig.center,
-        zoom: initialConfig.zoom,
+        style: initialStyle,
+        center: initialCenter,
+        zoom: initialZoom,
         attributionControl: false,
       });
 
@@ -161,7 +154,9 @@ export function Map({
       hasInitializedRef.current = true;
 
       const onMapLoad = () => {
-        if (!mapInstanceRef.current) return;
+        if (!mapInstanceRef.current) {
+          return;
+        }
         markMapReady();
         onLoadRef.current?.(map);
       };
@@ -191,11 +186,22 @@ export function Map({
       hasInitializedRef.current = false;
       resetMapState();
     };
-  }, [markMapReady, resetMapState]);
+  }, [
+    center,
+    darkStyle,
+    initialViewState,
+    lightStyle,
+    markMapReady,
+    resetMapState,
+    resolvedTheme,
+    zoom,
+  ]);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
-    if (!map || !mapLoaded) return;
+    if (!(map && mapLoaded)) {
+      return;
+    }
 
     const currentTheme = resolvedTheme === "dark" ? "dark" : "light";
     const targetStyle = currentTheme === "dark" ? darkStyle : lightStyle;
@@ -211,7 +217,9 @@ export function Map({
 
   useEffect(() => {
     const map = mapInstanceRef.current;
-    if (!map || !mapLoaded) return;
+    if (!(map && mapLoaded)) {
+      return;
+    }
     if (center && zoom !== undefined) {
       map.flyTo({ center, zoom, duration: 1500 });
     }
@@ -220,11 +228,11 @@ export function Map({
   return (
     <MapContext.Provider value={mapState}>
       <div
-        ref={containerRef}
         className={cn(
-          "relative w-full h-full min-h-[400px] bg-zinc-100 dark:bg-zinc-900",
-          className,
+          "relative h-full min-h-[400px] w-full bg-zinc-100 dark:bg-zinc-900",
+          className
         )}
+        ref={containerRef}
       >
         {!mapLoaded && <Loader />}
         {mapLoaded && children}
@@ -234,7 +242,7 @@ export function Map({
 }
 
 type MarkerContextValue = {
-  marker: maplibregl.Marker | null;
+  markerRef: MutableRefObject<maplibregl.Marker | null>;
   element: HTMLDivElement | null;
 };
 
@@ -242,7 +250,9 @@ const MarkerContext = createContext<MarkerContextValue | null>(null);
 
 function useMarkerContext() {
   const ctx = useContext(MarkerContext);
-  if (!ctx) throw new Error("Must be used within MapMarker");
+  if (!ctx) {
+    throw new Error("Must be used within MapMarker");
+  }
   return ctx;
 }
 
@@ -262,64 +272,74 @@ export function MapMarker({
   draggable = false,
 }: MapMarkerProps) {
   const { map, isLoaded } = useMap();
-  const [markerState, setMarkerState] = useState<MarkerContextValue>({
-    marker: null,
-    element: null,
-  });
-  const marker = markerState.marker;
-
-  const setMarkerContext = useCallback(
-    (
-      nextMarker: maplibregl.Marker | null,
-      nextElement: HTMLDivElement | null,
-    ) => {
-      setMarkerState({
-        marker: nextMarker,
-        element: nextElement,
-      });
-    },
-    [],
-  );
-
-  useEffect(() => {
-    if (!isLoaded || !map) return;
-
-    const el = document.createElement("div");
-    el.className = "map-marker-container";
-    if (onClick) {
-      el.style.cursor = "pointer";
-      el.addEventListener("click", (e) => {
-        e.stopPropagation();
-        onClick();
-      });
+  const markerRef = useRef<maplibregl.Marker | null>(null);
+  const initialLngLatRef = useRef<[number, number]>([longitude, latitude]);
+  const onClickRef = useRef(onClick);
+  const markerElement = useMemo<HTMLDivElement | null>(() => {
+    if (typeof document === "undefined") {
+      return null;
     }
 
-    const m = new maplibregl.Marker({ element: el, draggable })
-      .setLngLat([longitude, latitude])
-      .addTo(map);
-
-    setMarkerContext(m, el);
-
-    return () => {
-      m.remove();
-      setMarkerContext(null, null);
-    };
-  }, [
-    map,
-    isLoaded,
-    longitude,
-    latitude,
-    draggable,
-    onClick,
-    setMarkerContext,
-  ]);
+    const element = document.createElement("div");
+    element.className = "map-marker-container";
+    return element;
+  }, []);
 
   useEffect(() => {
-    marker?.setLngLat([longitude, latitude]);
-  }, [marker, longitude, latitude]);
+    onClickRef.current = onClick;
+    if (markerElement) {
+      markerElement.style.cursor = onClick ? "pointer" : "";
+    }
+  }, [markerElement, onClick]);
+
+  useLayoutEffect(() => {
+    if (!(isLoaded && map && markerElement)) {
+      return;
+    }
+
+    const handleMarkerClick = (event: MouseEvent) => {
+      event.stopPropagation();
+      onClickRef.current?.();
+    };
+
+    markerElement.addEventListener("click", handleMarkerClick);
+
+    const marker = new maplibregl.Marker({
+      element: markerElement,
+      draggable,
+    })
+      .setLngLat(initialLngLatRef.current)
+      .addTo(map);
+
+    markerRef.current = marker;
+
+    return () => {
+      markerElement.removeEventListener("click", handleMarkerClick);
+      marker.remove();
+      if (markerRef.current === marker) {
+        markerRef.current = null;
+      }
+    };
+  }, [draggable, isLoaded, map, markerElement]);
+
+  useEffect(() => {
+    const marker = markerRef.current;
+    if (!marker) {
+      return;
+    }
+    marker.setLngLat([longitude, latitude]);
+  }, [longitude, latitude]);
+
+  const markerContext = useMemo<MarkerContextValue>(
+    () => ({
+      markerRef,
+      element: markerElement,
+    }),
+    [markerElement]
+  );
 
   return (
-    <MarkerContext.Provider value={markerState}>
+    <MarkerContext.Provider value={markerContext}>
       {children}
     </MarkerContext.Provider>
   );
@@ -333,19 +353,21 @@ export function MarkerContent({
   className?: string;
 }) {
   const { element } = useMarkerContext();
-  if (!element) return null;
+  if (!element) {
+    return null;
+  }
   return createPortal(
     <div
       className={cn(
         "relative transition-transform duration-200 hover:scale-110",
-        className,
+        className
       )}
     >
       {children ?? (
         <div className="size-6 rounded-full border-4 border-white bg-primary shadow-xl ring-2 ring-primary/20" />
       )}
     </div>,
-    element,
+    element
   );
 }
 
@@ -358,15 +380,19 @@ export function MarkerPopup({
   className?: string;
   offset?: number;
 }) {
-  const { marker } = useMarkerContext();
-  const [container, setContainer] = useState<HTMLDivElement | null>(null);
+  const { markerRef } = useMarkerContext();
+  const container = useMemo<HTMLDivElement | null>(() => {
+    if (typeof document === "undefined") {
+      return null;
+    }
+    return document.createElement("div");
+  }, []);
 
   useEffect(() => {
-    if (!marker) return;
-
-    const el = document.createElement("div");
-
-    setContainer(el);
+    const marker = markerRef.current;
+    if (!(marker && container)) {
+      return;
+    }
 
     const popup = new maplibregl.Popup({
       offset,
@@ -374,27 +400,28 @@ export function MarkerPopup({
       className: "custom-maplibre-popup",
     })
       .setMaxWidth("none")
-      .setDOMContent(el);
+      .setDOMContent(container);
 
     marker.setPopup(popup);
 
     return () => {
       popup.remove();
-      setContainer(null);
     };
-  }, [marker, offset]);
+  }, [container, markerRef, offset]);
 
-  if (!container) return null;
+  if (!container) {
+    return null;
+  }
   return createPortal(
     <div
       className={cn(
-        "relative rounded-2xl border border-zinc-200/50 bg-white dark:bg-zinc-900 p-0 text-zinc-900 dark:text-zinc-50 shadow-2xl",
-        className,
+        "relative rounded-2xl border border-zinc-200/50 bg-white p-0 text-zinc-900 shadow-2xl dark:bg-zinc-900 dark:text-zinc-50",
+        className
       )}
     >
       {children}
     </div>,
-    container,
+    container
   );
 }
 
@@ -430,18 +457,18 @@ export function MapOverlay({
 function ZoomInIcon() {
   return (
     <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
+      className="text-zinc-600 dark:text-zinc-400"
       fill="none"
+      height="18"
       stroke="currentColor"
-      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="text-zinc-600 dark:text-zinc-400"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+      width="18"
     >
-      <line x1="12" y1="5" x2="12" y2="19" />
-      <line x1="5" y1="12" x2="19" y2="12" />
+      <line x1="12" x2="12" y1="5" y2="19" />
+      <line x1="5" x2="19" y1="12" y2="12" />
     </svg>
   );
 }
@@ -449,17 +476,17 @@ function ZoomInIcon() {
 function ZoomOutIcon() {
   return (
     <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
+      className="text-zinc-600 dark:text-zinc-400"
       fill="none"
+      height="18"
       stroke="currentColor"
-      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="text-zinc-600 dark:text-zinc-400"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+      width="18"
     >
-      <line x1="5" y1="12" x2="19" y2="12" />
+      <line x1="5" x2="19" y1="12" y2="12" />
     </svg>
   );
 }
@@ -467,20 +494,20 @@ function ZoomOutIcon() {
 function LocateIcon() {
   return (
     <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
+      className="text-zinc-600 dark:text-zinc-400"
       fill="none"
+      height="18"
       stroke="currentColor"
-      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="text-zinc-600 dark:text-zinc-400"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+      width="18"
     >
-      <line x1="2" y1="12" x2="5" y2="12" />
-      <line x1="19" y1="12" x2="22" y2="12" />
-      <line x1="12" y1="2" x2="12" y2="5" />
-      <line x1="12" y1="19" x2="12" y2="22" />
+      <line x1="2" x2="5" y1="12" y2="12" />
+      <line x1="19" x2="22" y1="12" y2="12" />
+      <line x1="12" x2="12" y1="2" y2="5" />
+      <line x1="12" x2="12" y1="19" y2="22" />
       <circle cx="12" cy="12" r="7" />
       <circle cx="12" cy="12" r="3" />
     </svg>
@@ -490,15 +517,15 @@ function LocateIcon() {
 function MaximizeIcon() {
   return (
     <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
+      className="text-zinc-600 dark:text-zinc-400"
       fill="none"
+      height="18"
       stroke="currentColor"
-      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="text-zinc-600 dark:text-zinc-400"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+      width="18"
     >
       <path d="M8 3H5a2 2 0 0 0-2 2v3" />
       <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
@@ -511,15 +538,15 @@ function MaximizeIcon() {
 function SunIcon() {
   return (
     <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
+      className="text-zinc-400"
       fill="none"
+      height="18"
       stroke="currentColor"
-      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="text-zinc-400"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+      width="18"
     >
       <circle cx="12" cy="12" r="4" />
       <path d="M12 2v2" />
@@ -537,15 +564,15 @@ function SunIcon() {
 function MoonIcon() {
   return (
     <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
+      className="text-zinc-600"
       fill="none"
+      height="18"
       stroke="currentColor"
-      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="text-zinc-600"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+      width="18"
     >
       <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
     </svg>
@@ -570,7 +597,9 @@ export function MapControls({
   const handleZoomIn = useCallback(() => map?.zoomIn(), [map]);
   const handleZoomOut = useCallback(() => map?.zoomOut(), [map]);
   const handleGeolocate = useCallback(() => {
-    if (!navigator.geolocation || !map) return;
+    if (!(navigator.geolocation && map)) {
+      return;
+    }
     navigator.geolocation.getCurrentPosition((pos) => {
       map.flyTo({
         center: [pos.coords.longitude, pos.coords.latitude],
@@ -580,7 +609,9 @@ export function MapControls({
   }, [map]);
   const handleFullscreen = useCallback(() => {
     const el = map?.getContainer();
-    if (!el) return;
+    if (!el) {
+      return;
+    }
     if (document.fullscreenElement) {
       document.exitFullscreen();
       return;
@@ -589,26 +620,28 @@ export function MapControls({
     el.requestFullscreen();
   }, [map]);
 
-  if (!isLoaded) return null;
+  if (!isLoaded) {
+    return null;
+  }
 
   return (
     <MapOverlay
-      position={position}
       className={cn("flex flex-col gap-2", className)}
+      position={position}
     >
-      <div className="flex flex-col rounded-2xl border border-zinc-200/80 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl shadow-lg overflow-hidden ring-1 ring-black/5">
+      <div className="flex flex-col overflow-hidden rounded-2xl border border-zinc-200/80 bg-white/90 shadow-lg ring-1 ring-black/5 backdrop-blur-xl dark:bg-zinc-900/90">
         {showZoom && (
           <>
             <button
+              className="border-zinc-100 border-b p-2.5 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800"
               onClick={handleZoomIn}
-              className="p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors border-b border-zinc-100 dark:border-zinc-800"
               title="Zoom In"
             >
               <ZoomInIcon />
             </button>
             <button
+              className="border-zinc-100 border-b p-2.5 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800"
               onClick={handleZoomOut}
-              className="p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors border-b border-zinc-100 dark:border-zinc-800"
               title="Zoom Out"
             >
               <ZoomOutIcon />
@@ -617,8 +650,8 @@ export function MapControls({
         )}
         {showGeolocate && (
           <button
+            className="border-zinc-100 border-b p-2.5 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800"
             onClick={handleGeolocate}
-            className="p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors border-b border-zinc-100 dark:border-zinc-800"
             title="Find My Location"
           >
             <LocateIcon />
@@ -626,8 +659,8 @@ export function MapControls({
         )}
         {showFullscreen && (
           <button
+            className="p-2.5 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
             onClick={handleFullscreen}
-            className="p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
             title="Toggle Fullscreen"
           >
             <MaximizeIcon />
@@ -648,13 +681,15 @@ export function MapStyleToggle({
   const { resolvedTheme, setTheme } = useTheme();
   const { isLoaded } = useMap();
 
-  if (!isLoaded) return null;
+  if (!isLoaded) {
+    return null;
+  }
 
   return (
-    <MapOverlay position={position} className={cn(className)}>
+    <MapOverlay className={cn(className)} position={position}>
       <button
+        className="flex size-10 items-center justify-center rounded-2xl border border-zinc-200/80 bg-white/90 shadow-lg ring-1 ring-black/5 backdrop-blur-xl transition-all hover:bg-zinc-50 dark:bg-zinc-900/90 dark:hover:bg-zinc-800"
         onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-        className="size-10 flex items-center justify-center rounded-2xl border border-zinc-200/80 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl shadow-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all ring-1 ring-black/5"
       >
         {resolvedTheme === "dark" ? <SunIcon /> : <MoonIcon />}
       </button>
@@ -674,15 +709,17 @@ export function MapLegend({
   position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
 }) {
   const { isLoaded } = useMap();
-  if (!isLoaded) return null;
+  if (!isLoaded) {
+    return null;
+  }
 
   return (
     <MapOverlay
-      position={position}
       className={cn("hidden lg:block", className)}
+      position={position}
     >
-      <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-xl p-4 min-w-[160px] ring-1 ring-black/5">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-3">
+      <div className="min-w-[160px] rounded-2xl border border-zinc-200/80 bg-white/90 p-4 shadow-xl ring-1 ring-black/5 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-900/90">
+        <p className="mb-3 font-bold text-[10px] text-zinc-400 uppercase tracking-wider dark:text-zinc-500">
           {title}
         </p>
         <div className="space-y-2.5">{children}</div>
