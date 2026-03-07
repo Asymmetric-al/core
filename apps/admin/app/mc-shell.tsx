@@ -54,6 +54,7 @@ import {
   SparklesIcon,
   LifeBuoyIcon,
   ShieldCheckIcon,
+  SettingsIcon,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -167,6 +168,11 @@ const adminItems: MenuItem[] = [
     icon: ShieldCheckIcon,
     label: "Admin",
     href: "/admin",
+  },
+  {
+    icon: SettingsIcon,
+    label: "Settings",
+    href: "/settings",
   },
   {
     icon: LifeBuoyIcon,

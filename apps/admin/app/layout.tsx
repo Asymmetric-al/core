@@ -3,7 +3,7 @@ import { siteConfig } from "@asym/config/site";
 import { QueryProvider } from "@asym/database/providers";
 import { MotionProvider } from "@asym/lib/motion";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
-import { Inter, Geist_Mono } from "next/font/google";
+import { Inter, Geist_Mono, Geist, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Suspense } from "react";
 
@@ -11,10 +11,11 @@ import { MCShell } from "./mc-shell";
 
 import type { Metadata, Viewport } from "next";
 
+import { FontProvider, FONT_INLINE_SCRIPT } from "@/lib/font-provider";
 import { ThemeProvider } from "@/lib/theme-provider";
 import "./globals.css";
 
-// Inter — body and heading font (modern-clean pairing via fonttrio)
+// Inter — body font for modern-clean pairing
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -23,7 +24,33 @@ const inter = Inter({
   preload: true,
 });
 
-// Geist Mono — code and monospace (modern-clean pairing via fonttrio)
+// Plus Jakarta Sans — heading font for product pairing (default)
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta-sans",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+  display: "swap",
+  preload: true,
+});
+
+// JetBrains Mono — mono font for product pairing
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  display: "swap",
+  preload: false,
+});
+
+// Geist — heading+body font for minimal pairing
+const geist = Geist({
+  variable: "--font-geist",
+  subsets: ["latin"],
+  display: "swap",
+  preload: false,
+});
+
+// Geist Mono — mono font for minimal + modern-clean pairings
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
@@ -66,6 +93,8 @@ export default function RootLayout({
   return (
     <html lang={siteConfig.language} suppressHydrationWarning>
       <head>
+        {/* Inline script reads localStorage before first paint — prevents font FOUC */}
+        <script dangerouslySetInnerHTML={{ __html: FONT_INLINE_SCRIPT }} />
         <link
           rel="preconnect"
           href="https://kzeybagjclwsxpkjshqa.supabase.co"
@@ -87,7 +116,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#ffffff" />
       </head>
       <body
-        className={`${inter.variable} ${geistMono.variable} font-sans antialiased`}
+        className={`${inter.variable} ${plusJakartaSans.variable} ${jetbrainsMono.variable} ${geist.variable} ${geistMono.variable} font-sans antialiased`}
       >
         <ThemeProvider
           attribute="class"
@@ -97,15 +126,17 @@ export default function RootLayout({
           storageKey="admin-theme"
           disableTransitionOnChange
         >
-          <QueryProvider>
-            <MotionProvider>
-              <Suspense fallback={null}>
-                <NuqsAdapter>
-                  <MCShell>{children}</MCShell>
-                </NuqsAdapter>
-              </Suspense>
-            </MotionProvider>
-          </QueryProvider>
+          <FontProvider>
+            <QueryProvider>
+              <MotionProvider>
+                <Suspense fallback={null}>
+                  <NuqsAdapter>
+                    <MCShell>{children}</MCShell>
+                  </NuqsAdapter>
+                </Suspense>
+              </MotionProvider>
+            </QueryProvider>
+          </FontProvider>
         </ThemeProvider>
         <Toaster />
       </body>
