@@ -161,6 +161,33 @@ describe("withOperation", () => {
     expectBodyHasRequestId(body);
   });
 
+  it("adds requestId to handler returned error responses", async () => {
+    mockedGetAdminClient.mockReturnValue({
+      client: {} as never,
+      error: null,
+    });
+    mockedGetAuthContext.mockResolvedValue(authenticatedAdmin);
+    mockedCreateAuditLogger.mockReturnValue({
+      log: vi.fn(),
+      logDonation: vi.fn(),
+      logPost: vi.fn(),
+      logRoleChange: vi.fn(),
+    });
+
+    const handler = withOperation(
+      async () =>
+        NextResponse.json({ error: "Domain failure" }, { status: 422 }),
+      { roles: ["admin"] },
+    );
+
+    const response = await handler(createRequest());
+
+    expect(response.status).toBe(422);
+    const body = await response.json();
+    expect(body).toMatchObject({ error: "Domain failure" });
+    expectBodyHasRequestId(body);
+  });
+
   it("passes through successful handler response when checks pass", async () => {
     const supabaseAdmin = { from: vi.fn() } as never;
     mockedGetAdminClient.mockReturnValue({

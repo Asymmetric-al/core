@@ -8,7 +8,7 @@ import { getAdminClient } from "@asym/database/supabase/admin";
 import { createAuditLogger } from "@asym/lib/audit/logger";
 import { NextResponse } from "next/server";
 
-import { toApiHttpError } from "./http-errors";
+import { toErrorResponse } from "./http-errors";
 
 import type { UserRole } from "@asym/database/types";
 import type { NextRequest } from "next/server";
@@ -28,6 +28,52 @@ export interface OperationContext {
 
 export interface OperationOptions {
   roles?: UserRole[];
+}
+
+function isJsonErrorBody(
+  body: unknown,
+): body is Record<string, unknown> & { error: string } {
+  return (
+    typeof body === "object" &&
+    body !== null &&
+    "error" in body &&
+    typeof body.error === "string"
+  );
+}
+
+async function normalizeHandlerErrorResponse(
+  response: NextResponse,
+  requestId: string,
+): Promise<NextResponse> {
+  if (response.ok) {
+    return response;
+  }
+
+  const contentType = response.headers.get("content-type");
+  if (!contentType?.includes("application/json")) {
+    return response;
+  }
+
+  try {
+    const body = await response.clone().json();
+    if (!isJsonErrorBody(body) || typeof body.requestId === "string") {
+      return response;
+    }
+
+    const headers = new Headers(response.headers);
+    headers.delete("content-length");
+
+    return NextResponse.json(
+      { ...body, requestId },
+      {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      },
+    );
+  } catch {
+    return response;
+  }
 }
 
 export function withOperation(
@@ -56,19 +102,17 @@ export function withOperation(
       const auth = authContext;
       const audit = createAuditLogger(auth, request);
 
-      return handler({
+      const response = await handler({
         supabaseAdmin,
         auth,
         audit,
         request,
         requestId,
       });
+
+      return normalizeHandlerErrorResponse(response, requestId);
     } catch (error) {
-      const normalized = toApiHttpError(error);
-      return NextResponse.json(
-        { error: normalized.message, requestId },
-        { status: normalized.status },
-      );
+      return toErrorResponse(error, "Internal error", requestId);
     }
   };
 }

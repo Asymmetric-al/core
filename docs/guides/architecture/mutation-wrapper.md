@@ -16,7 +16,8 @@ focused on domain logic.
 4. Enforce access with `requireRole(...)` or `requireAuth(...)`.
 5. Build audit helper via `createAuditLogger(...)`.
 6. Call the wrapped handler with a typed `OperationContext`.
-7. Normalize thrown errors through `toApiHttpError(...)` and return
+7. Normalize thrown errors through `toApiHttpError(...)`, and normalize
+   handler-returned JSON error responses, so wrapped failures return
    `{ error, requestId }`.
 
 If the admin client is unavailable, it returns a `503` response that also
@@ -31,6 +32,8 @@ Use `withOperation` for `POST`, `PATCH`, `PUT`, and `DELETE` handlers in
 
 - `GET` handlers, unless they already require the same auth/admin/audit setup.
 - Health endpoints under `packages/api/src/health/`.
+- Read-only demo/no-op endpoints that should return a fixed response without
+  touching auth or admin-client setup.
 - Any handler outside `packages/api/`.
 
 ## Import Path Rule
@@ -59,5 +62,6 @@ Do not export `withOperation` from `packages/api/package.json`.
 3. Pass role constraints through `options.roles` when needed.
 4. Remove duplicate imports now handled by the wrapper
    (`getAdminClient`, auth guards, audit logger setup).
-5. Preserve existing status codes and response payloads from domain logic.
+5. Preserve existing status codes and success payloads from domain logic.
+   Wrapped error responses should consistently include `requestId`.
 6. Add or update tests for auth/admin failure paths and successful passthrough.
