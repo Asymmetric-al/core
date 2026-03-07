@@ -1,0 +1,43 @@
+schema: spec-driven
+
+context: |
+  Repo: Asymmetric-al/core
+  Monorepo: Bun + Turborepo with three Next.js apps (`apps/admin`, `apps/donor`, `apps/missionary`) and shared packages in `packages/*`.
+  Stack: Next.js 16 App Router, React 19, TypeScript 5.9, Supabase Auth/Postgres, Stripe, SendGrid, Unlayer.
+  Architecture:
+  - Keep app route handlers thin; business DB logic belongs in `packages/api/src/*`.
+  - Use `packages/*` for shared code and `apps/*` for app-specific routing, UI, and behavior.
+  - Prefer composition-oriented `page.tsx` and `layout.tsx`; move logic into features, lib modules, or packages.
+  Quality gates:
+  - `bun run format:check`
+  - `bun run lint`
+  - `bun run typecheck`
+  - `bun run build`
+  - `bun run test:unit`
+  - `bun run test:e2e` when user-facing flows change
+  - `bun run openspec:validate`
+  Workflow guidance:
+  - Treat `openspec/specs/*` as the canonical, repo-resident source of truth.
+  - Treat Traycer artifacts as supporting planning or verification material only.
+  - Prefer additive, reviewable changes and document rollout or rollback steps for risky work.
+
+rules:
+  proposal:
+    - State the user or business motivation and why the change matters now.
+    - Name impacted apps, packages, routes, APIs, docs, and CI workflows.
+    - Separate new capabilities from modified capabilities explicitly.
+
+  specs:
+    - Write concrete, testable behavior using SHALL or MUST wording.
+    - Use Given/When/Then style scenarios for user-visible or externally observable behavior.
+    - Do not copy transient plans, tickets, or speculative roadmap ideas into canonical specs.
+
+  design:
+    - Name impacted apps, packages, routes, data stores, and external services.
+    - Call out data flow, auth or RLS implications, env vars, migrations, rollout steps, and rollback strategy when relevant.
+    - Preserve existing app/package boundaries and thin route handlers unless the change explicitly redefines them.
+
+  tasks:
+    - Include implementation, validation, docs updates, and rollout or cleanup steps.
+    - Reference specific verification commands when behavior changes.
+    - Include sync or archive follow-up when a change updates canonical behavior.
