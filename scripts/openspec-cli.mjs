@@ -47,7 +47,10 @@ function ensureDir(dirPath) {
 }
 
 function getRuntimeRoot() {
-  const repoHash = createHash("sha1").update(repoRoot).digest("hex").slice(0, 12);
+  const repoHash = createHash("sha1")
+    .update(repoRoot)
+    .digest("hex")
+    .slice(0, 12);
   return path.join(os.tmpdir(), `openspec-${repoHash}`);
 }
 
