@@ -53,6 +53,10 @@
     "verify:e2e:loop": "bun scripts/verify-e2e-loop.mjs",
     "verify:t1": "bun run verify:workspace-contract",
     "verify:supabase-money": "bun run setup:verify && bun run verify:money-units",
+    "openspec": "node scripts/openspec-cli.mjs",
+    "openspec:init": "bun run openspec -- init --tools cursor --profile custom",
+    "openspec:update": "bun run openspec -- update",
+    "openspec:validate": "bun run openspec -- validate --all",
     "supabase": "node scripts/supabase-cli.mjs",
     "verify:eslint": "node scripts/verify-eslint-config.mjs",
     "verify:data-boundary": "bash scripts/verify/data-boundary-check.sh",
@@ -97,6 +101,7 @@
   "devDependencies": {
     "@asym/eslint-config": "workspace:*",
     "@axe-core/playwright": "^4.10.1",
+    "@fission-ai/openspec": "^1.2.0",
     "@lhci/cli": "^0.15.0",
     "@playwright/test": "^1.49.0",
     "@tailwindcss/postcss": "^4",
