@@ -35,78 +35,66 @@ async function findExistingDocument(
   });
 }
 
-export const assertUniquePageSlugWithinTenant: CollectionBeforeValidateHook = async ({
-  data,
-  operation,
-  originalDoc,
-  req,
-}) => {
-  const tenantId = getRelationshipId(data?.tenant);
-  const slug =
-    typeof data?.slug === "string" && data.slug.trim().length > 0
-      ? data.slug.trim()
-      : null;
+export const assertUniquePageSlugWithinTenant: CollectionBeforeValidateHook =
+  async ({ data, operation, originalDoc, req }) => {
+    const tenantId = getRelationshipId(data?.tenant);
+    const slug =
+      typeof data?.slug === "string" && data.slug.trim().length > 0
+        ? data.slug.trim()
+        : null;
 
-  if (!tenantId || !slug) {
+    if (!tenantId || !slug) {
+      return data;
+    }
+
+    const where: Where = {
+      and: [{ tenant: { equals: tenantId } }, { slug: { equals: slug } }],
+    };
+
+    const originalId =
+      operation === "update" && originalDoc
+        ? getRelationshipId((originalDoc as TypeWithID).id)
+        : null;
+    if (originalId) {
+      (where.and as NonNullable<Where["and"]>).push({
+        id: { not_equals: originalId },
+      });
+    }
+
+    const existing = await findExistingDocument(req, "pages", where);
+    if (existing.docs.length > 0) {
+      throw new Error(
+        `This tenant already uses the slug "${slug}" for another page.`,
+      );
+    }
+
     return data;
-  }
-
-  const where: Where = {
-    and: [{ tenant: { equals: tenantId } }, { slug: { equals: slug } }],
   };
 
-  const originalId =
-    operation === "update" && originalDoc
-      ? getRelationshipId((originalDoc as TypeWithID).id)
-      : null;
-  if (originalId) {
-    (where.and as NonNullable<Where["and"]>).push({
-      id: { not_equals: originalId },
+export const assertSingleNavigationPerTenant: CollectionBeforeValidateHook =
+  async ({ data, operation, originalDoc, req }) => {
+    const tenantId = getRelationshipId(data?.tenant);
+    if (!tenantId) {
+      return data;
+    }
+
+    const existing = await findExistingDocument(req, "navigation", {
+      tenant: {
+        equals: tenantId,
+      },
     });
-  }
 
-  const existing = await findExistingDocument(req, "pages", where);
-  if (existing.docs.length > 0) {
-    throw new Error(
-      `This tenant already uses the slug "${slug}" for another page.`,
-    );
-  }
+    const originalId =
+      operation === "update" && originalDoc
+        ? getRelationshipId((originalDoc as TypeWithID).id)
+        : null;
 
-  return data;
-};
+    if (existing.docs.some((doc) => normalizeDocId(doc) !== originalId)) {
+      throw new Error("A tenant can only have a single navigation document.");
+    }
 
-export const assertSingleNavigationPerTenant: CollectionBeforeValidateHook = async ({
-  data,
-  operation,
-  originalDoc,
-  req,
-}) => {
-  const tenantId = getRelationshipId(data?.tenant);
-  if (!tenantId) {
     return data;
-  }
-
-  const existing = await findExistingDocument(req, "navigation", {
-    tenant: {
-      equals: tenantId,
-    },
-  });
-
-  const originalId =
-    operation === "update" && originalDoc
-      ? getRelationshipId((originalDoc as TypeWithID).id)
-      : null;
-
-  if (
-    existing.docs.some((doc) => normalizeDocId(doc) !== originalId)
-  ) {
-    throw new Error(
-      "A tenant can only have a single navigation document.",
-    );
-  }
-
-  return data;
-};
+  };
 
 function normalizeDocId(doc: TypeWithID) {
   const id = getRelationshipId(doc.id);

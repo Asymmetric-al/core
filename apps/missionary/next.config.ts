@@ -7,6 +7,9 @@ const WORKSPACE_ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   cacheComponents: true,
+  reactCompiler: {
+    compilationMode: "annotation",
+  },
   turbopack: {
     root: WORKSPACE_ROOT,
   },

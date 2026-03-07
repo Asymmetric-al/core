@@ -35,6 +35,19 @@ function withPlaywrightEnvDefaults(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   return nextEnv;
 }
 
+function normalizeHostname(hostname: string): string {
+  return hostname.trim().toLowerCase().replace(/\.+$/, "");
+}
+
+function isLocalHostname(hostname: string): boolean {
+  const normalized = normalizeHostname(hostname).replace(/^\[(.*)\]$/, "$1");
+  return (
+    normalized === "localhost" ||
+    normalized === "127.0.0.1" ||
+    normalized === "::1"
+  );
+}
+
 function getLocalBaseUrlAndPort(defaultPort: number): {
   baseURL: string;
   port: number;
@@ -50,8 +63,7 @@ function getLocalBaseUrlAndPort(defaultPort: number): {
   // the dev server. If they point to a remote URL, don't start a local server.
   try {
     const url = new URL(envBase);
-    const isLocalHost =
-      url.hostname === "localhost" || url.hostname === "127.0.0.1";
+    const isLocalHost = isLocalHostname(url.hostname);
     const portFromUrl = url.port
       ? Number(url.port)
       : url.protocol === "https:"
@@ -87,7 +99,7 @@ const isRemoteBaseUrl = (() => {
   if (!envBase) return false;
   try {
     const url = new URL(envBase);
-    return url.hostname !== "localhost" && url.hostname !== "127.0.0.1";
+    return !isLocalHostname(url.hostname);
   } catch {
     return false;
   }

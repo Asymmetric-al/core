@@ -1,7 +1,7 @@
 # 5-ship-working-tree
 
 **Name:** `5-ship-working-tree`  
-**Purpose:** Turn **local, uncommitted changes** into a clean feature branch + (draft) PR, request the correct CODEOWNERS reviewers, push to GitHub, and **watch CI checks** until pass/fail—then notify the user and offer troubleshooting on failures.
+**Purpose:** Turn **local, uncommitted changes** into a clean feature branch + (draft) PR, request the correct **CODEOWNERS reviewer(s)** (only) immediately, push to GitHub, and **watch CI checks** until pass/fail—then notify the user and offer troubleshooting on failures. **Additional reviewer routing happens later via Greptile-triggered GitHub Action** using `.github/reviewers.yml`.
 
 **Applies when:** You have meaningful local changes (staged/unstaged/untracked) that you want shipped via PR.  
 **Do not use when:** You are mid-rebase/merge, you suspect secrets are present, or you need a multi-commit / multi-PR breakdown.
@@ -481,46 +481,53 @@ Optional but recommended:
 
 ---
 
-### 11) Resolve CODEOWNERS → request review in GitHub
+### 11) Resolve CODEOWNERS → request review in GitHub (CODEOWNERS only)
 
 **Important:** CODEOWNERS does not always auto-request reviews unless repo settings/branch protection require it. Always explicitly request reviewers.
 
-Steps:
+**Goal:** Request **only** the relevant **CODEOWNER(s)** (prefer individuals).  
+This command **must not** request an additional reviewer—reviewer routing happens later via GitHub Actions after Greptile posts.
+
+#### 11.1) Resolve CODEOWNERS (source-of-truth)
 
 1. Locate CODEOWNERS file (first found wins):
    - `.github/CODEOWNERS`
    - `CODEOWNERS`
    - `docs/CODEOWNERS`
 2. Determine changed files:
+   - `git fetch origin --prune`
    - `git diff --name-only origin/<base>...HEAD`
 3. Resolve owners:
-   - Apply CODEOWNERS pattern matching in order (last matching pattern wins, per GitHub behavior).
+   - Apply CODEOWNERS pattern matching in order (**last matching pattern wins**, per GitHub behavior).
    - Owners can be `@user` or `@org/team`.
-4. Build a reviewer set:
-   - Prefer owners for the most files changed.
-   - De-duplicate.
-   - If result is empty → fall back to:
-     - repo default owner, or
-     - prompt user for a reviewer.
 
-Then request reviews (run with `GITHUB_TOKEN` unset):
+Build a **codeowner reviewer set**:
 
-```bash
-env -u GITHUB_TOKEN gh pr edit --add-reviewer "<owner1>" --add-reviewer "<owner2>"
-```
+- De-duplicate.
+- If empty → prompt the user for a reviewer.
 
-**If GitHub rejects a review request because the only resolved owner is the PR author** (`HTTP 422: Review cannot be requested from pull request author.`):
+> If CODEOWNERS returns only teams but you prefer individuals, you may try to expand team members via GitHub API (`read:org`). If expansion fails, request the team as-is.
 
-- The command must **not** treat this as success.
-- Prompt the user for a fallback reviewer/team handle (e.g., `@org/team` or `@username`) and request that instead.
+#### 11.2) Request CODEOWNERS via GitHub (explicit)
 
-Also set PR assignee to the author:
+Request CODEOWNERS:
 
 ```bash
-gh pr edit --add-assignee "@me"
+env -u GITHUB_TOKEN gh pr edit --add-reviewer "<codeowner1>" --add-reviewer "<codeowner2>"
 ```
 
----
+**Edge case: CODEOWNER == PR author**
+GitHub does **not** allow requesting review from the PR author (`HTTP 422: Review cannot be requested from pull request author.`).  
+If the only resolved CODEOWNER(s) are the PR author:
+
+- Do **not** request reviewers.
+- Leave a short PR comment noting: “CODEOWNER is PR author; cannot request self-review.”
+
+(Optional) Set PR assignee to the author:
+
+```bash
+env -u GITHUB_TOKEN gh pr edit --add-assignee "@me"
+```
 
 ### 12) Watch CI checks until pass/fail
 
@@ -528,6 +535,21 @@ Watch checks:
 
 ```bash
 gh pr checks --watch
+```
+
+Greptile (async reviewer routing):
+
+- **Do not block/wait** for Greptile inside Cursor.
+- When Greptile submits its PR review, GitHub Actions (`.github/workflows/greptile-informer.yml`) will:
+  - read Greptile’s **Confidence Score (1–5)** (if present),
+  - combine it with PR file/line heuristics,
+  - and request **1 additional reviewer** from `.github/reviewers.yml`.
+- It will also post a short comment documenting the decision.
+
+Optional one-time check:
+
+```bash
+gh pr view --comments | rg -n "greptile|Reviewer routing|Assigned additional reviewer|difficulty" || true
 ```
 
 On **success**:

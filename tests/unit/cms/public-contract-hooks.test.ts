@@ -42,10 +42,7 @@ describe("CMS public contract hooks", () => {
       overrideAccess: true,
       pagination: false,
       where: {
-        and: [
-          { tenant: { equals: "tenant_1" } },
-          { slug: { equals: "home" } },
-        ],
+        and: [{ tenant: { equals: "tenant_1" } }, { slug: { equals: "home" } }],
       },
     });
   });

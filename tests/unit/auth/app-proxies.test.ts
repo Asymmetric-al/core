@@ -22,7 +22,9 @@ function createRequest(pathname: string) {
 
 describe("app proxy public route configuration", () => {
   it("keeps the admin public CMS API anonymous", async () => {
-    const response = await adminProxy(createRequest("/api/cms/public/pages/home"));
+    const response = await adminProxy(
+      createRequest("/api/cms/public/pages/home"),
+    );
 
     expect(response.status).toBe(200);
   });
