@@ -4,8 +4,14 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getSupabasePublicConfig } from "./config";
 
 /**
- * @deprecated Auth protection/redirect logic lives in `@asym/auth/middleware`.
- * This helper is retained only as a legacy cookie-refresh utility.
+ * @deprecated This helper is legacy-only.
+ *
+ * Auth protection, redirect decisions, and path/subdomain routing must live in:
+ * - app-level `proxy.ts` for app-specific rewrites/normalization
+ * - `@asym/auth/middleware` (`createAuthMiddleware`) for shared auth gating
+ *
+ * Keep this function cookie-refresh only to avoid creating a second auth source
+ * of truth.
  */
 export async function updateSession(request: NextRequest) {
   const { url, key } = getSupabasePublicConfig();
