@@ -3,7 +3,7 @@ import { siteConfig } from "@asym/config/site";
 import { QueryProvider } from "@asym/database/providers";
 import { MotionProvider } from "@asym/lib/motion";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
-import { Inter, Geist_Mono, Syne } from "next/font/google";
+import { Inter, Geist_Mono } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Suspense } from "react";
 
@@ -13,6 +13,7 @@ import { AppShell } from "@/components/app-shell";
 import { ThemeProvider } from "@/lib/theme-provider";
 import "./globals.css";
 
+// Inter — body and heading font (modern-clean pairing via fonttrio)
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -21,14 +22,7 @@ const inter = Inter({
   preload: true,
 });
 
-const syne = Syne({
-  variable: "--font-syne",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  display: "swap",
-  preload: true,
-});
-
+// Geist Mono — code and monospace (modern-clean pairing via fonttrio)
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
@@ -92,7 +86,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#ffffff" />
       </head>
       <body
-        className={`${inter.variable} ${geistMono.variable} ${syne.variable} font-sans antialiased`}
+        className={`${inter.variable} ${geistMono.variable} font-sans antialiased`}
       >
         <ThemeProvider
           attribute="class"

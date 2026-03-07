@@ -13,6 +13,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 
 import "./globals.css";
 
+// Inter — body and heading font (modern-clean pairing via fonttrio)
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -21,14 +22,18 @@ const inter = Inter({
   preload: true,
 });
 
+// Syne — display/brand font for public marketing pages only
+// Used via `font-syne` class in packages/ui/components/public/*
+// Not used in dashboard routes.
 const syne = Syne({
   variable: "--font-syne",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
   display: "swap",
-  preload: true,
+  preload: false,
 });
 
+// Geist Mono — code and monospace (modern-clean pairing via fonttrio)
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
