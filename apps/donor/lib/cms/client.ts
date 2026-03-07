@@ -1,13 +1,26 @@
+import {
+  parseCmsPublicErrorResponse,
+  parseCmsPublicPageResponse,
+  parseCmsPublicUpdatesResponse,
+  type CmsPublicErrorCode,
+  type CmsPublicPage,
+  type CmsPublicUpdate,
+} from "@asym/api/cms/public";
 import { headers } from "next/headers";
 
-export type CmsPage = {
-  id: string;
-  title: string;
-  slug: string;
-  summary?: string | null;
-  content?: unknown;
-  updatedAt?: string;
-};
+export type CmsPage = CmsPublicPage;
+export type CmsUpdate = CmsPublicUpdate;
+
+export class CmsFetchError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly code: CmsPublicErrorCode,
+  ) {
+    super(message);
+    this.name = "CmsFetchError";
+  }
+}
 
 function getCmsBaseUrl() {
   return process.env.CMS_BASE_URL ?? "http://127.0.0.1:3030";
@@ -26,31 +39,60 @@ async function getForwardedHost(hostOverride?: string) {
   );
 }
 
-async function fetchCmsJSON<T>(
-  path: string,
-  hostOverride?: string,
-): Promise<T | null> {
-  const cmsURL = getCmsBaseUrl();
-  const tenantHost = await getForwardedHost(hostOverride);
-
+async function readResponseBody(response: Response) {
   try {
-    const response = await fetch(`${cmsURL}${path}`, {
-      headers: {
-        "x-forwarded-host": tenantHost,
-      },
-      next: {
-        revalidate: 60,
-      },
-    });
-
-    if (!response.ok) {
-      return null;
-    }
-
-    return (await response.json()) as T;
+    return await response.json();
   } catch {
     return null;
   }
+}
+
+async function fetchCmsJSON<T>(
+  path: string,
+  parser: (value: unknown) => {
+    success: boolean;
+    data?: T;
+  },
+  hostOverride?: string,
+): Promise<T> {
+  const cmsURL = getCmsBaseUrl();
+  const tenantHost = await getForwardedHost(hostOverride);
+
+  const response = await fetch(`${cmsURL}${path}`, {
+    cache: "no-store",
+    headers: {
+      "x-forwarded-host": tenantHost,
+    },
+  });
+  const body = await readResponseBody(response);
+
+  if (!response.ok) {
+    const parsedError = parseCmsPublicErrorResponse(body);
+    if (parsedError.success) {
+      throw new CmsFetchError(
+        parsedError.data.error.message,
+        response.status,
+        parsedError.data.error.code,
+      );
+    }
+
+    throw new CmsFetchError(
+      `CMS request failed with status ${response.status}.`,
+      response.status,
+      "UPSTREAM_FAILURE",
+    );
+  }
+
+  const parsed = parser(body);
+  if (!parsed.success || parsed.data === undefined) {
+    throw new CmsFetchError(
+      "CMS response did not match the shared contract.",
+      502,
+      "INVALID_RESPONSE",
+    );
+  }
+
+  return parsed.data;
 }
 
 export async function fetchPublishedCmsPage(
@@ -58,23 +100,39 @@ export async function fetchPublishedCmsPage(
   hostOverride?: string,
 ) {
   const normalizedSlug = slugSegments.length ? slugSegments.join("/") : "home";
-  const payload = await fetchCmsJSON<{ page: CmsPage }>(
-    `/api/cms/public/pages/${normalizedSlug}`,
-    hostOverride,
-  );
+  const encodedSlug = normalizedSlug
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
 
-  return payload?.page ?? null;
+  try {
+    const payload = await fetchCmsJSON(
+      `/api/cms/public/pages/${encodedSlug}`,
+      parseCmsPublicPageResponse,
+      hostOverride,
+    );
+
+    return payload.page;
+  } catch (error) {
+    if (error instanceof CmsFetchError && error.status === 404) {
+      return null;
+    }
+
+    throw error;
+  }
 }
 
 export async function fetchPublishedCmsUpdates(
   limit = 5,
   hostOverride?: string,
 ) {
-  const payload = await fetchCmsJSON<{
-    updates: Array<Record<string, unknown>>;
-  }>(`/api/cms/public/updates?limit=${limit}`, hostOverride);
+  const payload = await fetchCmsJSON(
+    `/api/cms/public/updates?limit=${encodeURIComponent(String(limit))}`,
+    parseCmsPublicUpdatesResponse,
+    hostOverride,
+  );
 
-  return payload?.updates ?? [];
+  return payload.updates;
 }
 
 export function lexicalToPlainText(value: unknown): string {

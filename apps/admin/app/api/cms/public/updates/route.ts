@@ -1,7 +1,13 @@
-import { NextResponse, connection, type NextRequest } from "next/server";
+import { connection, type NextRequest } from "next/server";
 
 import { getPayloadClient } from "../../../../../src/cms/get-payload";
 import { resolveTenantFromRequest } from "../../../../../src/cms/public/resolve-tenant";
+import {
+  createPublicCmsErrorResponse,
+  createPublicCmsJsonResponse,
+  toCmsPublicUpdate,
+  toCmsTenantSummary,
+} from "../../../../../src/cms/public/response";
 
 async function ensureRequestTimeExecution() {
   if (process.env.NODE_ENV === "test") {
@@ -19,7 +25,11 @@ export async function GET(request: NextRequest) {
     const tenant = await resolveTenantFromRequest(request, payload);
 
     if (!tenant) {
-      return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+      return createPublicCmsErrorResponse(
+        404,
+        "TENANT_NOT_FOUND",
+        "Tenant not found",
+      );
     }
 
     const limitParam = request.nextUrl.searchParams.get("limit");
@@ -47,19 +57,17 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      tenant: {
-        id: tenant.id,
-        slug: tenant.slug ?? null,
-      },
-      updates: updatesQuery.docs,
+    return createPublicCmsJsonResponse({
+      tenant: toCmsTenantSummary(tenant),
+      updates: updatesQuery.docs.map((update) => toCmsPublicUpdate(update)),
     });
   } catch (error) {
     console.error("Failed to fetch ministry updates.", error);
 
-    return NextResponse.json(
-      { error: "Failed to fetch ministry updates" },
-      { status: 500 },
+    return createPublicCmsErrorResponse(
+      500,
+      "UPSTREAM_FAILURE",
+      "Failed to fetch ministry updates",
     );
   }
 }

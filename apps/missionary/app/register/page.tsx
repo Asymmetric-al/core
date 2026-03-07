@@ -1,6 +1,11 @@
 "use client";
 
 import {
+  SELF_SIGNUP_ROLE_OPTIONS,
+  getSelfSignupRedirectPath,
+  normalizeSelfSignupRole,
+} from "@asym/auth/self-signup";
+import {
   DEMO_AVAILABILITY_FALLBACK,
   useDemoAvailability,
 } from "@asym/database/hooks";
@@ -99,6 +104,7 @@ export default function RegisterPage() {
     }
 
     const supabase = createBrowserClient();
+    const selfSignupRole = normalizeSelfSignupRole(formData.role);
 
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: formData.email,
@@ -107,7 +113,7 @@ export default function RegisterPage() {
         data: {
           first_name: formData.firstName,
           last_name: formData.lastName,
-          role: formData.role,
+          role: selfSignupRole,
         },
       },
     });
@@ -119,14 +125,7 @@ export default function RegisterPage() {
     }
 
     if (authData.user) {
-      // Profile is created automatically by database trigger
-      if (formData.role === "admin" || formData.role === "staff") {
-        router.push("/mc");
-      } else if (formData.role === "missionary") {
-        router.push("/");
-      } else {
-        router.push("/donor-dashboard");
-      }
+      router.push(getSelfSignupRedirectPath(selfSignupRole));
     }
 
     setLoading(false);
@@ -210,12 +209,17 @@ export default function RegisterPage() {
                   <SelectValue placeholder="Select your role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="donor">Donor</SelectItem>
-                  <SelectItem value="missionary">Missionary</SelectItem>
-                  <SelectItem value="staff">Staff</SelectItem>
-                  <SelectItem value="admin">Administrator</SelectItem>
+                  {SELF_SIGNUP_ROLE_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                Staff and admin access are assigned separately through internal
+                provisioning.
+              </p>
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

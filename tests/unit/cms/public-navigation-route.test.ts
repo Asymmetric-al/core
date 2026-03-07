@@ -49,7 +49,12 @@ describe("public navigation route", () => {
     const body = await response.json();
 
     expect(response.status).toBe(404);
-    expect(body).toEqual({ error: "Tenant not found" });
+    expect(body).toEqual({
+      error: {
+        code: "TENANT_NOT_FOUND",
+        message: "Tenant not found",
+      },
+    });
     expect(find).not.toHaveBeenCalled();
     expect(resolveTenantFromRequestMock).toHaveBeenCalledWith(
       request,
@@ -59,7 +64,13 @@ describe("public navigation route", () => {
 
   it("returns newest tenant navigation record", async () => {
     const find = vi.fn().mockResolvedValue({
-      docs: [{ id: "nav_1", label: "Main Navigation" }],
+      docs: [
+        {
+          id: "nav_1",
+          label: "Main Navigation",
+          items: [],
+        },
+      ],
     });
     getPayloadClientMock.mockResolvedValue({ find });
     resolveTenantFromRequestMock.mockResolvedValue({
@@ -72,9 +83,11 @@ describe("public navigation route", () => {
 
     expect(response.status).toBe(200);
     expect(body).toEqual({
-      navigation: { id: "nav_1", label: "Main Navigation" },
+      navigation: { id: "nav_1", label: "Main Navigation", items: [] },
       tenant: { id: "tenant_1", slug: "alpha" },
     });
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.headers.get("vary")).toBe("x-forwarded-host, host");
     expect(find).toHaveBeenCalledWith({
       collection: "navigation",
       limit: 1,
@@ -122,7 +135,12 @@ describe("public navigation route", () => {
     const body = await response.json();
 
     expect(response.status).toBe(500);
-    expect(body).toEqual({ error: "Failed to fetch navigation content" });
+    expect(body).toEqual({
+      error: {
+        code: "UPSTREAM_FAILURE",
+        message: "Failed to fetch navigation content",
+      },
+    });
     expect(consoleErrorSpy).toHaveBeenCalled();
     consoleErrorSpy.mockRestore();
   });

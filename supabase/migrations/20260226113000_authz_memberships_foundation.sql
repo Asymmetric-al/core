@@ -215,7 +215,13 @@ SECURITY DEFINER
 SET search_path TO ''
 AS $function$
 DECLARE
-  role_from_metadata TEXT := COALESCE(new.raw_user_meta_data ->> 'role', 'donor');
+  -- Public signup is only allowed to self-assign safe end-user roles.
+  -- Privileged access is granted later through server-managed provisioning.
+  role_from_metadata TEXT := CASE
+    WHEN COALESCE(new.raw_user_meta_data ->> 'role', 'donor') = 'missionary'
+      THEN 'missionary'
+    ELSE 'donor'
+  END;
   tenant_from_metadata UUID := CASE
     WHEN (new.raw_app_meta_data ->> 'tenant_id')
       ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'

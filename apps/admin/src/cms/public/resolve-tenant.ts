@@ -1,7 +1,7 @@
 import { getPayloadClient } from "../get-payload";
 
 import type { NextRequest } from "next/server";
-import type { Payload } from "payload";
+import type { Payload, Where } from "payload";
 
 type TenantDoc = {
   id: number | string;
@@ -30,15 +30,9 @@ export async function resolveTenantFromRequest(
   );
 
   if (explicitTenant) {
-    const bySlug = await payload.find({
-      collection: "tenants",
-      limit: 1,
-      overrideAccess: true,
-      pagination: false,
-      where: {
-        slug: {
-          equals: explicitTenant,
-        },
+    const bySlug = await findActiveTenant(payload, {
+      slug: {
+        equals: explicitTenant,
       },
     });
 
@@ -51,15 +45,9 @@ export async function resolveTenantFromRequest(
     return null;
   }
 
-  const byDomain = await payload.find({
-    collection: "tenants",
-    limit: 1,
-    overrideAccess: true,
-    pagination: false,
-    where: {
-      primaryDomain: {
-        equals: host,
-      },
+  const byDomain = await findActiveTenant(payload, {
+    primaryDomain: {
+      equals: host,
     },
   });
 
@@ -72,17 +60,33 @@ export async function resolveTenantFromRequest(
     return null;
   }
 
-  const bySubdomain = await payload.find({
+  const bySubdomain = await findActiveTenant(payload, {
+    slug: {
+      equals: subdomain,
+    },
+  });
+
+  return (bySubdomain.docs[0] as TenantDoc | undefined) ?? null;
+}
+
+function findActiveTenant(
+  payload: TenantResolverPayloadClient,
+  matcher: Where,
+) {
+  return payload.find({
     collection: "tenants",
     limit: 1,
     overrideAccess: true,
     pagination: false,
     where: {
-      slug: {
-        equals: subdomain,
-      },
+      and: [
+        matcher,
+        {
+          isActive: {
+            equals: true,
+          },
+        },
+      ],
     },
   });
-
-  return (bySubdomain.docs[0] as TenantDoc | undefined) ?? null;
 }

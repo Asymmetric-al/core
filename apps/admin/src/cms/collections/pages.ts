@@ -5,6 +5,7 @@ import {
   tenantScopedUpdateAccess,
 } from "../access/tenant-access";
 import { logCmsChangeAudit, logCmsDeleteAudit } from "../hooks/audit";
+import { assertUniquePageSlugWithinTenant } from "../hooks/public-contract";
 import { applyTenantFromContext } from "../hooks/tenant";
 
 import type { CollectionConfig } from "payload";
@@ -22,7 +23,10 @@ export const Pages: CollectionConfig = {
     delete: tenantScopedDeleteAccess("tenant"),
   },
   hooks: {
-    beforeValidate: [applyTenantFromContext("tenant")],
+    beforeValidate: [
+      applyTenantFromContext("tenant"),
+      assertUniquePageSlugWithinTenant,
+    ],
     afterChange: [logCmsChangeAudit],
     afterDelete: [logCmsDeleteAudit],
   },

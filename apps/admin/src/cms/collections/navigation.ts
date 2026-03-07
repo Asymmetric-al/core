@@ -5,6 +5,7 @@ import {
   tenantScopedUpdateAccess,
 } from "../access/tenant-access";
 import { logCmsChangeAudit, logCmsDeleteAudit } from "../hooks/audit";
+import { assertSingleNavigationPerTenant } from "../hooks/public-contract";
 import { applyTenantFromContext } from "../hooks/tenant";
 
 import type { CollectionConfig } from "payload";
@@ -22,7 +23,10 @@ export const Navigation: CollectionConfig = {
     delete: tenantScopedDeleteAccess("tenant"),
   },
   hooks: {
-    beforeValidate: [applyTenantFromContext("tenant")],
+    beforeValidate: [
+      applyTenantFromContext("tenant"),
+      assertSingleNavigationPerTenant,
+    ],
     afterChange: [logCmsChangeAudit],
     afterDelete: [logCmsDeleteAudit],
   },

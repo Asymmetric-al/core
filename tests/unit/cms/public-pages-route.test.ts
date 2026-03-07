@@ -51,7 +51,12 @@ describe("public pages route", () => {
     const body = await response.json();
 
     expect(response.status).toBe(404);
-    expect(body).toEqual({ error: "Tenant not found" });
+    expect(body).toEqual({
+      error: {
+        code: "TENANT_NOT_FOUND",
+        message: "Tenant not found",
+      },
+    });
     expect(find).not.toHaveBeenCalled();
     expect(resolveTenantFromRequestMock).toHaveBeenCalledWith(
       request,
@@ -61,7 +66,16 @@ describe("public pages route", () => {
 
   it("queries published page by tenant and normalizes slug segments", async () => {
     const find = vi.fn().mockResolvedValue({
-      docs: [{ id: "page_1", slug: "about/team" }],
+      docs: [
+        {
+          id: "page_1",
+          slug: "about/team",
+          title: "About the Team",
+          summary: "Meet the team",
+          content: { root: { children: [] } },
+          updatedAt: "2026-03-07T00:00:00.000Z",
+        },
+      ],
     });
     getPayloadClientMock.mockResolvedValue({ find });
     resolveTenantFromRequestMock.mockResolvedValue({
@@ -76,9 +90,17 @@ describe("public pages route", () => {
 
     expect(response.status).toBe(200);
     expect(body).toMatchObject({
-      page: { id: "page_1", slug: "about/team" },
+      page: {
+        id: "page_1",
+        slug: "about/team",
+        title: "About the Team",
+        summary: "Meet the team",
+        updatedAt: "2026-03-07T00:00:00.000Z",
+      },
       tenant: { id: "tenant_1", slug: "alpha" },
     });
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.headers.get("vary")).toBe("x-forwarded-host, host");
     expect(find).toHaveBeenCalledWith({
       collection: "pages",
       limit: 1,
@@ -109,7 +131,16 @@ describe("public pages route", () => {
 
   it("falls back to home slug for missing catch-all params", async () => {
     const find = vi.fn().mockResolvedValue({
-      docs: [{ id: "page_home", slug: "home" }],
+      docs: [
+        {
+          id: "page_home",
+          slug: "home",
+          title: "Home",
+          summary: null,
+          content: { root: { children: [] } },
+          updatedAt: null,
+        },
+      ],
     });
     getPayloadClientMock.mockResolvedValue({ find });
     resolveTenantFromRequestMock.mockResolvedValue({
@@ -153,7 +184,12 @@ describe("public pages route", () => {
     const body = await response.json();
 
     expect(response.status).toBe(404);
-    expect(body).toEqual({ error: "Page not found" });
+    expect(body).toEqual({
+      error: {
+        code: "PAGE_NOT_FOUND",
+        message: "Page not found",
+      },
+    });
   });
 
   it("returns 500 when payload page query fails", async () => {
@@ -173,7 +209,12 @@ describe("public pages route", () => {
     const body = await response.json();
 
     expect(response.status).toBe(500);
-    expect(body).toEqual({ error: "Failed to fetch page content" });
+    expect(body).toEqual({
+      error: {
+        code: "UPSTREAM_FAILURE",
+        message: "Failed to fetch page content",
+      },
+    });
     expect(consoleErrorSpy).toHaveBeenCalled();
     consoleErrorSpy.mockRestore();
   });
@@ -191,7 +232,12 @@ describe("public pages route", () => {
     const body = await response.json();
 
     expect(response.status).toBe(500);
-    expect(body).toEqual({ error: "Failed to fetch page content" });
+    expect(body).toEqual({
+      error: {
+        code: "UPSTREAM_FAILURE",
+        message: "Failed to fetch page content",
+      },
+    });
     expect(resolveTenantFromRequestMock).not.toHaveBeenCalled();
     expect(consoleErrorSpy).toHaveBeenCalled();
     consoleErrorSpy.mockRestore();
@@ -214,7 +260,12 @@ describe("public pages route", () => {
     const body = await response.json();
 
     expect(response.status).toBe(500);
-    expect(body).toEqual({ error: "Failed to fetch page content" });
+    expect(body).toEqual({
+      error: {
+        code: "UPSTREAM_FAILURE",
+        message: "Failed to fetch page content",
+      },
+    });
     expect(find).not.toHaveBeenCalled();
     expect(consoleErrorSpy).toHaveBeenCalled();
     consoleErrorSpy.mockRestore();

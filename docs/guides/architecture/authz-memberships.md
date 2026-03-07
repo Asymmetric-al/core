@@ -33,6 +33,34 @@ A single login can access multiple dashboards by holding multiple memberships in
 - **Missionary:** own missionary workflows and designation-specific views
 - **Staff:** Mission Control operational workflows
 
+## Public signup policy
+
+Public signup is intentionally narrower than the full internal role model.
+
+- Allowed self-service roles:
+  - `donor`
+  - `missionary`
+- Not assignable from public signup input:
+  - `staff`
+  - `admin`
+  - `super_admin`
+
+Why:
+
+- Public form input is an untrusted API boundary.
+- Privileged roles must come from a server-managed invite, provisioning, or admin assignment flow.
+- The authz trigger in `supabase/migrations/20260226113000_authz_memberships_foundation.sql` now sanitizes incoming signup role metadata so unknown or privileged values collapse to `donor`.
+
+Code references:
+
+- UI helper: `packages/auth/self-signup.ts`
+- Public forms:
+  - `apps/admin/app/register/page.tsx`
+  - `apps/donor/app/(auth)/register/page.tsx`
+  - `apps/missionary/app/register/page.tsx`
+- Trigger sanitization:
+  - `supabase/migrations/20260226113000_authz_memberships_foundation.sql`
+
 ### Staff sub-roles in MVP
 
 Sub-roles are modeled now, but all staff sub-roles currently share full admin-dashboard access:

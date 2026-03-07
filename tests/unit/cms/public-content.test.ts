@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { getPayloadClientMock } = vi.hoisted(() => ({
   getPayloadClientMock: vi.fn(),
@@ -9,6 +9,15 @@ vi.mock("../../../apps/admin/src/cms/get-payload", () => ({
 }));
 
 let lexicalToPlainText: (value: unknown) => string;
+let fetchPublishedCmsPage: (
+  slugSegments: string[],
+  hostOverride?: string,
+) => Promise<unknown>;
+let fetchPublishedCmsUpdates: (
+  limit?: number,
+  hostOverride?: string,
+) => Promise<unknown[]>;
+let CmsFetchError: typeof Error;
 let resolveTenantFromRequest: (
   request: unknown,
   payloadOverride?: unknown,
@@ -20,6 +29,9 @@ beforeAll(async () => {
     import("../../../apps/admin/src/cms/public/resolve-tenant"),
   ]);
 
+  CmsFetchError = donorModule.CmsFetchError;
+  fetchPublishedCmsPage = donorModule.fetchPublishedCmsPage;
+  fetchPublishedCmsUpdates = donorModule.fetchPublishedCmsUpdates;
   lexicalToPlainText = donorModule.lexicalToPlainText;
   resolveTenantFromRequest = adminModule.resolveTenantFromRequest;
 });
@@ -65,9 +77,18 @@ describe("public cms tenant resolution", () => {
     expect(find).toHaveBeenCalledWith(
       expect.objectContaining({
         where: {
-          slug: {
-            equals: "one",
-          },
+          and: [
+            {
+              slug: {
+                equals: "one",
+              },
+            },
+            {
+              isActive: {
+                equals: true,
+              },
+            },
+          ],
         },
       }),
     );
@@ -86,6 +107,44 @@ describe("public cms tenant resolution", () => {
 
     expect(tenant).toMatchObject({ id: "tenant_2", slug: "alpha" });
     expect(find).toHaveBeenCalledTimes(2);
+    expect(find).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        where: {
+          and: [
+            {
+              primaryDomain: {
+                equals: "alpha.example.org",
+              },
+            },
+            {
+              isActive: {
+                equals: true,
+              },
+            },
+          ],
+        },
+      }),
+    );
+    expect(find).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        where: {
+          and: [
+            {
+              slug: {
+                equals: "alpha",
+              },
+            },
+            {
+              isActive: {
+                equals: true,
+              },
+            },
+          ],
+        },
+      }),
+    );
   });
 
   it("uses provided payload client override when available", async () => {
@@ -107,6 +166,14 @@ describe("public cms tenant resolution", () => {
 });
 
 describe("donor CMS content helpers", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it("extracts plain text from lexical JSON content", () => {
     const text = lexicalToPlainText({
       root: {
@@ -120,5 +187,71 @@ describe("donor CMS content helpers", () => {
     });
 
     expect(text).toContain("Hope for all.");
+  });
+
+  it("returns null for structured page 404 responses", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        json: vi.fn().mockResolvedValue({
+          error: {
+            code: "PAGE_NOT_FOUND",
+            message: "Page not found",
+          },
+        }),
+      }),
+    );
+
+    await expect(
+      fetchPublishedCmsPage(["unknown"], "alpha.example.org"),
+    ).resolves.toBeNull();
+  });
+
+  it("throws a typed CMS error for upstream failures", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: vi.fn().mockResolvedValue({
+          error: {
+            code: "UPSTREAM_FAILURE",
+            message: "Failed to fetch page content",
+          },
+        }),
+      }),
+    );
+
+    await expect(
+      fetchPublishedCmsPage(["home"], "alpha.example.org"),
+    ).rejects.toMatchObject({
+      name: "CmsFetchError",
+      status: 500,
+      code: "UPSTREAM_FAILURE",
+    });
+    expect(CmsFetchError).toBeDefined();
+  });
+
+  it("throws when the public updates payload does not match the shared contract", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: vi.fn().mockResolvedValue({
+          updates: [{ id: 123, title: null }],
+          tenant: { id: "tenant_1", slug: "alpha" },
+        }),
+      }),
+    );
+
+    await expect(
+      fetchPublishedCmsUpdates(3, "alpha.example.org"),
+    ).rejects.toMatchObject({
+      name: "CmsFetchError",
+      code: "INVALID_RESPONSE",
+    });
   });
 });

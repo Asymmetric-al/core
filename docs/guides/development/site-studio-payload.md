@@ -104,12 +104,23 @@ Output is written under `site-studio-review/<date>/cloud-agent/`:
 
 - `GET /api/cms/public/pages/<slug>`
   - Success: `{ tenant: { id, slug }, page }`
-  - Errors: `404 { error: "Tenant not found" }` or `404 { error: "Page not found" }`
+  - Errors use structured bodies:
+    - `404 { error: { code: "TENANT_NOT_FOUND", message: "Tenant not found" } }`
+    - `404 { error: { code: "PAGE_NOT_FOUND", message: "Page not found" } }`
+    - `500 { error: { code: "UPSTREAM_FAILURE", message: "Failed to fetch page content" } }`
 - `GET /api/cms/public/navigation`
   - Success: `{ tenant: { id, slug }, navigation }`
 - `GET /api/cms/public/updates?limit=5`
   - Success: `{ tenant: { id, slug }, updates: [] }`
   - `limit` is clamped to `1..20`
+
+Implementation notes:
+
+- Shared schema/types live in `packages/api/src/cms/public.ts`
+- Admin DTO/headers live in `apps/admin/src/cms/public/response.ts`
+- Donor runtime parsing lives in `apps/donor/lib/cms/client.ts`
+- Responses are `Cache-Control: no-store` and `Vary: x-forwarded-host, host`
+- The donor app intentionally performs uncached reads here until a cross-app invalidation mechanism exists
 
 Tenant resolution priority:
 
@@ -117,12 +128,19 @@ Tenant resolution priority:
 2. `x-forwarded-host` or `host` exact domain match
 3. subdomain slug fallback
 
+Only active tenants are eligible for resolution.
+
 ### Staff endpoints (auth required)
 
 - `GET/POST/PATCH/PUT/DELETE /api/*` (Payload REST)
 - `POST /api/graphql` (Payload GraphQL)
 
 These are guarded by Mission Control auth middleware and require `staff`, `admin`, or `super_admin`.
+
+## Public signup note
+
+Self-service registration only supports `donor` and `missionary` roles.
+Privileged roles are provisioned separately and are not derived from public form input.
 
 ## Rollback notes
 

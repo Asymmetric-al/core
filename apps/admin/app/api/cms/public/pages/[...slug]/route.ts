@@ -1,7 +1,13 @@
-import { NextResponse, connection, type NextRequest } from "next/server";
+import { connection, type NextRequest } from "next/server";
 
 import { getPayloadClient } from "../../../../../../src/cms/get-payload";
 import { resolveTenantFromRequest } from "../../../../../../src/cms/public/resolve-tenant";
+import {
+  createPublicCmsErrorResponse,
+  createPublicCmsJsonResponse,
+  toCmsPublicPage,
+  toCmsTenantSummary,
+} from "../../../../../../src/cms/public/response";
 
 type RouteContext = {
   params: Promise<{
@@ -25,7 +31,11 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const tenant = await resolveTenantFromRequest(request, payload);
 
     if (!tenant) {
-      return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+      return createPublicCmsErrorResponse(
+        404,
+        "TENANT_NOT_FOUND",
+        "Tenant not found",
+      );
     }
 
     const { slug } = await context.params;
@@ -65,22 +75,24 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     const page = pageQuery.docs[0];
     if (!page) {
-      return NextResponse.json({ error: "Page not found" }, { status: 404 });
+      return createPublicCmsErrorResponse(
+        404,
+        "PAGE_NOT_FOUND",
+        "Page not found",
+      );
     }
 
-    return NextResponse.json({
-      page,
-      tenant: {
-        id: tenant.id,
-        slug: tenant.slug ?? null,
-      },
+    return createPublicCmsJsonResponse({
+      page: toCmsPublicPage(page),
+      tenant: toCmsTenantSummary(tenant),
     });
   } catch (error) {
     console.error("Failed to fetch published CMS page.", error);
 
-    return NextResponse.json(
-      { error: "Failed to fetch page content" },
-      { status: 500 },
+    return createPublicCmsErrorResponse(
+      500,
+      "UPSTREAM_FAILURE",
+      "Failed to fetch page content",
     );
   }
 }

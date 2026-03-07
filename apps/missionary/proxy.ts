@@ -13,6 +13,7 @@ export const proxy = createAuthMiddleware({
     "/checkout",
     "/sign",
     "/api/auth/demo-account",
+    "/api/health",
     "/sitemap.xml",
     "/robots.txt",
   ],

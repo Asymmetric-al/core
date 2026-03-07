@@ -1,7 +1,13 @@
-import { NextResponse, connection, type NextRequest } from "next/server";
+import { connection, type NextRequest } from "next/server";
 
 import { getPayloadClient } from "../../../../../src/cms/get-payload";
 import { resolveTenantFromRequest } from "../../../../../src/cms/public/resolve-tenant";
+import {
+  createPublicCmsErrorResponse,
+  createPublicCmsJsonResponse,
+  toCmsPublicNavigation,
+  toCmsTenantSummary,
+} from "../../../../../src/cms/public/response";
 
 async function ensureRequestTimeExecution() {
   if (process.env.NODE_ENV === "test") {
@@ -19,7 +25,11 @@ export async function GET(request: NextRequest) {
     const tenant = await resolveTenantFromRequest(request, payload);
 
     if (!tenant) {
-      return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+      return createPublicCmsErrorResponse(
+        404,
+        "TENANT_NOT_FOUND",
+        "Tenant not found",
+      );
     }
 
     const navigationQuery = await payload.find({
@@ -35,19 +45,19 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      navigation: navigationQuery.docs[0] ?? null,
-      tenant: {
-        id: tenant.id,
-        slug: tenant.slug ?? null,
-      },
+    return createPublicCmsJsonResponse({
+      navigation: navigationQuery.docs[0]
+        ? toCmsPublicNavigation(navigationQuery.docs[0])
+        : null,
+      tenant: toCmsTenantSummary(tenant),
     });
   } catch (error) {
     console.error("Failed to fetch CMS navigation.", error);
 
-    return NextResponse.json(
-      { error: "Failed to fetch navigation content" },
-      { status: 500 },
+    return createPublicCmsErrorResponse(
+      500,
+      "UPSTREAM_FAILURE",
+      "Failed to fetch navigation content",
     );
   }
 }

@@ -38,7 +38,7 @@ export default async function HomePage() {
           <div className="grid gap-4 md:grid-cols-3">
             {latestUpdates.map((update) => (
               <article
-                key={String(update.id)}
+                key={update.id}
                 className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm"
               >
                 <p className="text-xs font-medium text-zinc-500">
@@ -47,10 +47,10 @@ export default async function HomePage() {
                     : "Published"}
                 </p>
                 <h3 className="mt-2 text-lg font-semibold text-zinc-900">
-                  {String(update.title ?? "Untitled update")}
+                  {update.title}
                 </h3>
                 <p className="mt-2 line-clamp-3 text-sm text-zinc-600">
-                  {String(update.excerpt ?? "No summary provided.")}
+                  {update.excerpt ?? "No summary provided."}
                 </p>
               </article>
             ))}
