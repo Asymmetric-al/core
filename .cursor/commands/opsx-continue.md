@@ -13,7 +13,7 @@ Continue working on a change by creating the next artifact.
 
 1. **If no change name provided, prompt for selection**
 
-   Run `openspec list --json` to get available changes sorted by most recently modified. Then use the **AskUserQuestion tool** to let the user select which change to work on.
+   Run `bun run openspec -- list --json` to get available changes sorted by most recently modified. Then use the **AskUserQuestion tool** to let the user select which change to work on.
 
    Present the top 3-4 most recently modified changes as options, showing:
    - Change name
@@ -28,7 +28,7 @@ Continue working on a change by creating the next artifact.
 2. **Check current status**
 
    ```bash
-   openspec status --change "<name>" --json
+   bun run openspec -- status --change "<name>" --json
    ```
 
    Parse the JSON to understand current state. The response includes:
@@ -52,7 +52,7 @@ Continue working on a change by creating the next artifact.
    - Pick the FIRST artifact with `status: "ready"` from the status output
    - Get its instructions:
      ```bash
-     openspec instructions <artifact-id> --change "<name>" --json
+     bun run openspec -- instructions <artifact-id> --change "<name>" --json
      ```
    - Parse the JSON. The key fields are:
      - `context`: Project background (constraints for you - do NOT include in output)
@@ -77,7 +77,7 @@ Continue working on a change by creating the next artifact.
 
 4. **After creating an artifact, show progress**
    ```bash
-   openspec status --change "<name>"
+   bun run openspec -- status --change "<name>"
    ```
 
 **Output**

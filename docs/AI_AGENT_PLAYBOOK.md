@@ -7,6 +7,29 @@
 - Cursor and OpenAI Codex should use this root `AGENTS.md` as the canonical rules file.
 - `CLAUDE.md` imports `@AGENTS.md` so Claude Code follows the same rules without duplication.
 
+## OpenSpec is the canonical workflow
+
+- OpenSpec is the repo-resident source of truth for spec-driven work in this monorepo.
+- Current-state behavior belongs in `openspec/specs/*`.
+- Active change planning belongs in `openspec/changes/*`.
+- Cursor should prefer the committed OPSX commands in `.cursor/commands/opsx-*.md`.
+
+Use the repo-managed CLI entrypoints:
+
+- `bun run openspec:init`
+- `bun run openspec:update`
+- `bun run openspec:validate`
+
+Recommended day-to-day flow in Cursor:
+
+1. `/opsx:explore` when requirements are still fuzzy
+2. `/opsx:propose` for the quick path, or `/opsx:new` + `/opsx:ff` for more explicit artifact control
+3. `/opsx:apply` to implement tasks
+4. `/opsx:verify` before calling work complete
+5. `/opsx:sync` and `/opsx:archive` once canonical specs should be updated
+
+Traycer artifacts are supporting inputs only. Keep durable truth in OpenSpec and preserve only curated Traycer references under `docs/traycer/`.
+
 ## Monorepo scoping (pick the right app first)
 
 - Admin app: `apps/admin` (`@asym/admin`)

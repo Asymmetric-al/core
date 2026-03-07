@@ -171,6 +171,32 @@ bun run skills:sync
 - Canonical source: `docs/ai/skills/*`
 - Runtime mirrors: `.agents/skills/*` and `.cursor/skills/*`
 
+### OpenSpec Workflow (Canonical)
+
+This repository uses **OpenSpec** as the canonical, repo-resident workflow for AI-assisted planning and execution.
+
+- Canonical current-state behavior lives in `openspec/specs/*`
+- In-flight change work lives in `openspec/changes/*`
+- Cursor-first OPSX commands are committed under `.cursor/commands/opsx-*.md`
+
+Use the repo-managed entrypoints instead of relying on a personal global install:
+
+```bash
+bun run openspec:init
+bun run openspec:update
+bun run openspec:validate
+```
+
+Recommended day-to-day Cursor flow:
+
+1. `/opsx:propose` or `/opsx:new` + `/opsx:ff`
+2. `/opsx:apply`
+3. `/opsx:verify`
+4. `/opsx:sync`
+5. `/opsx:archive`
+
+Traycer remains useful for planning and verification support, but it is **not** the canonical spec store. Distill durable truth into OpenSpec and keep supporting Traycer material in `docs/traycer/` when needed.
+
 ### Package Manager
 
 This project uses **bun** (v1.3+). Do not use npm/yarn/pnpm.

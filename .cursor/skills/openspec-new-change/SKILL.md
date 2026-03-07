@@ -30,20 +30,20 @@ Start a new change using the experimental artifact-driven approach.
 
    **Use a different schema only if the user mentions:**
    - A specific schema name → use `--schema <name>`
-   - "show workflows" or "what workflows" → run `openspec schemas --json` and let them choose
+   - "show workflows" or "what workflows" → run `bun run openspec -- schemas --json` and let them choose
 
    **Otherwise**: Omit `--schema` to use the default.
 
 3. **Create the change directory**
    ```bash
-   openspec new change "<name>"
+   bun run openspec -- new change "<name>"
    ```
    Add `--schema <name>` only if the user requested a specific workflow.
    This creates a scaffolded change at `openspec/changes/<name>/` with the selected schema.
 
 4. **Show the artifact status**
    ```bash
-   openspec status --change "<name>"
+   bun run openspec -- status --change "<name>"
    ```
    This shows which artifacts need to be created and which are ready (dependencies satisfied).
 
@@ -51,7 +51,7 @@ Start a new change using the experimental artifact-driven approach.
    The first artifact depends on the schema (e.g., `proposal` for spec-driven).
    Check the status output to find the first artifact with status "ready".
    ```bash
-   openspec instructions <first-artifact-id> --change "<name>"
+   bun run openspec -- instructions <first-artifact-id> --change "<name>"
    ```
    This outputs the template and context for creating the first artifact.
 

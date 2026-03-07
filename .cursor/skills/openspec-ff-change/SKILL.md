@@ -26,13 +26,13 @@ Fast-forward through artifact creation - generate everything needed to start imp
 
 2. **Create the change directory**
    ```bash
-   openspec new change "<name>"
+   bun run openspec -- new change "<name>"
    ```
    This creates a scaffolded change at `openspec/changes/<name>/`.
 
 3. **Get the artifact build order**
    ```bash
-   openspec status --change "<name>" --json
+   bun run openspec -- status --change "<name>" --json
    ```
    Parse the JSON to get:
    - `applyRequires`: array of artifact IDs needed before implementation (e.g., `["tasks"]`)
@@ -47,7 +47,7 @@ Fast-forward through artifact creation - generate everything needed to start imp
    a. **For each artifact that is `ready` (dependencies satisfied)**:
       - Get instructions:
         ```bash
-        openspec instructions <artifact-id> --change "<name>" --json
+        bun run openspec -- instructions <artifact-id> --change "<name>" --json
         ```
       - The instructions JSON includes:
         - `context`: Project background (constraints for you - do NOT include in output)
@@ -62,7 +62,7 @@ Fast-forward through artifact creation - generate everything needed to start imp
       - Show brief progress: "✓ Created <artifact-id>"
 
    b. **Continue until all `applyRequires` artifacts are complete**
-      - After creating each artifact, re-run `openspec status --change "<name>" --json`
+      - After creating each artifact, re-run `bun run openspec -- status --change "<name>" --json`
       - Check if every artifact ID in `applyRequires` has `status: "done"` in the artifacts array
       - Stop when all `applyRequires` artifacts are done
 
@@ -72,7 +72,7 @@ Fast-forward through artifact creation - generate everything needed to start imp
 
 5. **Show final status**
    ```bash
-   openspec status --change "<name>"
+   bun run openspec -- status --change "<name>"
    ```
 
 **Output**
@@ -85,7 +85,7 @@ After completing all artifacts, summarize:
 
 **Artifact Creation Guidelines**
 
-- Follow the `instruction` field from `openspec instructions` for each artifact type
+- Follow the `instruction` field from `bun run openspec -- instructions` for each artifact type
 - The schema defines what each artifact should contain - follow it
 - Read dependency artifacts for context before creating new ones
 - Use `template` as the structure for your output file - fill in its sections

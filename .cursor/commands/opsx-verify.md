@@ -13,7 +13,7 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
 
 1. **If no change name provided, prompt for selection**
 
-   Run `openspec list --json` to get available changes. Use the **AskUserQuestion tool** to let the user select.
+   Run `bun run openspec -- list --json` to get available changes. Use the **AskUserQuestion tool** to let the user select.
 
    Show changes that have implementation tasks (tasks artifact exists).
    Include the schema used for each change if available.
@@ -24,7 +24,7 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
 2. **Check status to understand the schema**
 
    ```bash
-   openspec status --change "<name>" --json
+   bun run openspec -- status --change "<name>" --json
    ```
 
    Parse the JSON to understand:
@@ -34,7 +34,7 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
 3. **Get the change directory and load artifacts**
 
    ```bash
-   openspec instructions apply --change "<name>" --json
+   bun run openspec -- instructions apply --change "<name>" --json
    ```
 
    This returns the change directory and context files. Read all available artifacts from `contextFiles`.

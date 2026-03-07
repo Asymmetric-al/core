@@ -150,6 +150,35 @@ Answer with citations/paths from the repo and avoid external sources unless just
 
 ---
 
+### OpenSpec + Traycer workflow (required)
+
+**Canonical workflow for spec-driven work in this repo:**
+
+- OpenSpec is the repo-resident source of truth.
+- Current-state truth lives in `openspec/specs/*`.
+- In-flight change work lives in `openspec/changes/*`.
+- Cursor OPSX commands (`/opsx:propose`, `/opsx:explore`, `/opsx:new`, `/opsx:continue`, `/opsx:ff`, `/opsx:apply`, `/opsx:verify`, `/opsx:sync`, `/opsx:archive`) are the preferred spec workflow.
+
+**Repo entrypoints (preferred over ad-hoc global installs):**
+
+- `bun run openspec:init`
+- `bun run openspec:update`
+- `bun run openspec:validate`
+
+**Traycer policy:**
+
+- Treat Traycer plans, run logs, and artifacts as supporting planning or verification material only.
+- Do **not** treat `.traycer/` or Traycer exports as the canonical spec store.
+- Distill durable behavior into `openspec/specs/*`.
+- Distill active implementation work into `openspec/changes/*`.
+- Keep curated reference material in `docs/traycer/` when it is worth preserving.
+
+**Compatibility note:**
+
+- Existing numbered `.cursor/commands/*` project workflows may still be useful for issue/PR/project operations, but they do not replace OpenSpec as the canonical source of truth.
+
+---
+
 ## Routing Rules (Deterministic)
 
 Load rulebooks before editing files in their domain.
