@@ -1,22 +1,34 @@
 # Working Set
 
-- Date: 2026-02-22
+- Date: 2026-03-07
 - Repo: Asymmetric-al/core
-- Goal: Implement a hybrid Supabase CLI workflow (global-first + pinned fallback) and align setup/scripts/docs with secure contributor defaults.
-- Primary area: `scripts/supabase-cli.mjs`, `package.json`, `scripts/seed-demo.sh`, `scripts/setup/*`, `README.md`, `docs/ops/environments.md`, `docs/ai/rules/backend.md`
+- Goal: Set up OpenSpec as the canonical spec-driven workflow for Cursor, with Traycer artifacts treated as supporting planning and verification material.
+- Primary area: `package.json`, `scripts/openspec-cli.mjs`, `openspec/**`, `.cursor/commands/**`, `.cursor/skills/**`, `AGENTS.md`, `README.md`, `docs/**`
 - Constraints:
-  - No hardcoded secrets.
-  - Keep Supabase auth client boundaries unchanged (`@supabase/ssr` server/client separation).
-  - Preserve migration safety for hosted flows (`SUPABASE_DB_URL`, URL targeting checks).
-  - Keep contributor setup non-blocking while improving reproducibility.
+  - Use modern OpenSpec OPSX workflows, not legacy `/openspec` commands.
+  - Keep setup project-local and committed where possible.
+  - Preserve existing repo-specific Cursor workflows; add OpenSpec without breaking them.
+  - Make OpenSpec canonical and Traycer non-canonical.
+  - Distill only verified current behavior into `openspec/specs/*`.
 - Evidence sources used:
   - `package.json`
-  - `scripts/seed-demo.sh`
-  - `scripts/setup/index.sh`
-  - `scripts/setup.ps1`
-  - `scripts/setup/index.ps1`
+  - `turbo.json`
+  - `AGENTS.md`
   - `README.md`
-  - `docs/ops/environments.md`
-  - `docs/ai/rules/backend.md`
+  - `docs/AI_AGENT_PLAYBOOK.md`
+  - `docs/guides/architecture/overview.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `docs/guides/features/teams-and-permissions.md`
+  - `docs/guides/features/email-studio.md`
+  - `docs/guides/features/pdf-studio.md`
+  - `docs/guides/features/sendgrid-integration.md`
+  - `packages/auth/context.ts`
+  - `packages/auth/middleware.ts`
+  - `packages/api/src/auth/demo-account.ts`
+  - `packages/api/src/donate/index.ts`
+  - `packages/api/src/posts/index.ts`
+  - `packages/api/src/follower-requests/request.ts`
+  - `packages/lib/mission-control/roles.ts`
+  - `packages/email/sendgrid.ts`
 - Tooling note:
-  - Repo uses Bun-first workflows; Supabase runner should work with/without globally installed `supabase` binary.
+  - OpenSpec upstream stores workflow profile in global config; this task will use a repo wrapper to make generated Cursor artifacts deterministic for the team.
