@@ -45,6 +45,8 @@
     "test:e2e": "node scripts/run-with-ci-env.mjs -- playwright test --grep-invert @perf",
     "test:e2e:strict": "playwright test --grep-invert @perf",
     "test:e2e:ui": "playwright test --ui",
+    "test:e2e:admin": "playwright test --config=playwright.admin.config.ts",
+    "test:e2e:admin:ui": "playwright test --config=playwright.admin.config.ts --ui",
     "test:a11y": "node scripts/run-with-ci-env.mjs -- playwright test tests/e2e/accessibility.spec.ts",
     "test:a11y:strict": "playwright test tests/e2e/accessibility.spec.ts",
     "test:perf": "node scripts/run-with-ci-env.mjs -- playwright test --grep @perf --workers=1",
