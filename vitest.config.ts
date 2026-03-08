@@ -4,7 +4,9 @@ import react from "@vitejs/plugin-react";
 
 const adminAppPath = fileURLToPath(new URL("./apps/admin", import.meta.url));
 const uiPkgPath = fileURLToPath(new URL("./packages/ui", import.meta.url));
-const reactPath = fileURLToPath(new URL("./node_modules/react", import.meta.url));
+const reactPath = fileURLToPath(
+  new URL("./node_modules/react", import.meta.url),
+);
 const reactDomPath = fileURLToPath(
   new URL("./node_modules/react-dom", import.meta.url),
 );

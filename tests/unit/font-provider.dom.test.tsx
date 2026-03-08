@@ -25,7 +25,11 @@ import React from "react";
 // ─── Module under test ────────────────────────────────────────────────────────
 // We import from the file paths directly so the aliases in vitest.config.ts
 // resolve "@admin/" → apps/admin/.
-import { FontProvider, useFontPairing, FONT_INLINE_SCRIPT } from "../../apps/admin/lib/font-provider";
+import {
+  FontProvider,
+  useFontPairing,
+  FONT_INLINE_SCRIPT,
+} from "../../apps/admin/lib/font-provider";
 import { FontAppearanceSettings } from "../../apps/admin/features/settings/components/font-appearance-settings";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -214,7 +218,9 @@ describe("FontProvider — setFont", () => {
     );
 
     // Should not throw — the try/catch in setFont handles it
-    await expect(user.click(screen.getByText("set-minimal"))).resolves.toBeUndefined();
+    await expect(
+      user.click(screen.getByText("set-minimal")),
+    ).resolves.toBeUndefined();
 
     // Context state should still update even if localStorage failed
     expect(screen.getByTestId("current-font").textContent).toBe("minimal");
@@ -284,12 +290,13 @@ describe("FontAppearanceSettings", () => {
     // Each card has a name in a semibold span — use getAllByText since
     // "Minimal" also appears as a mood Badge tag.
     expect(screen.getAllByText("Product").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("Modern Clean").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Modern Clean").length).toBeGreaterThanOrEqual(
+      1,
+    );
     expect(screen.getAllByText("Minimal").length).toBeGreaterThanOrEqual(1);
 
     // More specific: confirm the card names appear in the font-semibold spans
-    const semiboldSpans = document
-      .querySelectorAll('span.font-semibold');
+    const semiboldSpans = document.querySelectorAll("span.font-semibold");
     const cardNames = Array.from(semiboldSpans).map((el) => el.textContent);
     expect(cardNames).toContain("Product");
     expect(cardNames).toContain("Modern Clean");
@@ -311,7 +318,9 @@ describe("FontAppearanceSettings", () => {
 
     // The product card button should have the selected border class
     const buttons = screen.getAllByRole("button");
-    const productButton = buttons.find((b) => b.textContent?.includes("Product"));
+    const productButton = buttons.find((b) =>
+      b.textContent?.includes("Product"),
+    );
     expect(productButton).toBeDefined();
     expect(productButton?.className).toContain("border-foreground");
   });
@@ -321,7 +330,9 @@ describe("FontAppearanceSettings", () => {
     render(<FontAppearanceSettings />, { wrapper: Wrapper });
 
     const buttons = screen.getAllByRole("button");
-    const minimalButton = buttons.find((b) => b.textContent?.includes("Minimal"));
+    const minimalButton = buttons.find((b) =>
+      b.textContent?.includes("Minimal"),
+    );
     expect(minimalButton).toBeDefined();
 
     await user.click(minimalButton!);
@@ -353,7 +364,9 @@ describe("FontAppearanceSettings", () => {
   it("shows each pairing's tagline text", () => {
     render(<FontAppearanceSettings />, { wrapper: Wrapper });
 
-    expect(screen.getByText("Warm clarity, built for apps")).toBeInTheDocument();
+    expect(
+      screen.getByText("Warm clarity, built for apps"),
+    ).toBeInTheDocument();
     expect(
       screen.getByText("Neutral precision for data-dense UIs"),
     ).toBeInTheDocument();

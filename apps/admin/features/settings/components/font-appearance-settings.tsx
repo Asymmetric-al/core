@@ -34,9 +34,13 @@ const FONT_PAIRINGS: FontPairingMeta[] = [
     mono: "JetBrains Mono",
     mood: ["Default", "Professional", "Friendly"],
     sampleText: "The mission dashboard at a glance",
-    headingStyle: { fontFamily: "var(--font-plus-jakarta-sans, var(--font-inter))" },
+    headingStyle: {
+      fontFamily: "var(--font-plus-jakarta-sans, var(--font-inter))",
+    },
     bodyStyle: { fontFamily: "var(--font-inter)" },
-    monoStyle: { fontFamily: "var(--font-jetbrains-mono, var(--font-geist-mono))" },
+    monoStyle: {
+      fontFamily: "var(--font-jetbrains-mono, var(--font-geist-mono))",
+    },
   },
   {
     id: "modern-clean",
@@ -86,16 +90,14 @@ function FontCard({
       className={cn(
         "group relative flex flex-col text-left w-full rounded-xl border-2 bg-card transition-all duration-200 overflow-hidden",
         "hover:border-foreground/30 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-        selected
-          ? "border-foreground shadow-md"
-          : "border-border/60"
+        selected ? "border-foreground shadow-md" : "border-border/60",
       )}
     >
       {/* Preview panel */}
       <div
         className={cn(
           "px-5 pt-5 pb-4 flex flex-col gap-3 transition-colors duration-200",
-          selected ? "bg-foreground/[0.03]" : "bg-card"
+          selected ? "bg-foreground/[0.03]" : "bg-card",
         )}
       >
         {/* Heading sample */}
@@ -143,7 +145,7 @@ function FontCard({
               "shrink-0 flex size-6 items-center justify-center rounded-full border-2 transition-all duration-200 mt-0.5",
               selected
                 ? "border-foreground bg-foreground text-background"
-                : "border-border/60 bg-transparent group-hover:border-foreground/40"
+                : "border-border/60 bg-transparent group-hover:border-foreground/40",
             )}
           >
             {selected && <CheckIcon className="size-3" strokeWidth={3} />}
@@ -152,9 +154,22 @@ function FontCard({
 
         {/* Font stack labels */}
         <div className="flex flex-col gap-1.5">
-          <FontStackRow label="Heading" name={pairing.heading} style={pairing.headingStyle} />
-          <FontStackRow label="Body" name={pairing.body} style={pairing.bodyStyle} />
-          <FontStackRow label="Mono" name={pairing.mono} style={pairing.monoStyle} mono />
+          <FontStackRow
+            label="Heading"
+            name={pairing.heading}
+            style={pairing.headingStyle}
+          />
+          <FontStackRow
+            label="Body"
+            name={pairing.body}
+            style={pairing.bodyStyle}
+          />
+          <FontStackRow
+            label="Mono"
+            name={pairing.mono}
+            style={pairing.monoStyle}
+            mono
+          />
         </div>
 
         {/* Mood tags */}
@@ -191,10 +206,7 @@ function FontStackRow({
         {label}
       </span>
       <span
-        className={cn(
-          "text-xs text-muted-foreground",
-          mono && "font-mono"
-        )}
+        className={cn("text-xs text-muted-foreground", mono && "font-mono")}
         style={style}
       >
         {name}
@@ -221,7 +233,8 @@ export function FontAppearanceSettings() {
               Font Pairing
             </h2>
             <p className="text-xs text-muted-foreground">
-              Choose the typeface system for your dashboard. Changes apply instantly.
+              Choose the typeface system for your dashboard. Changes apply
+              instantly.
             </p>
           </div>
         </div>
@@ -276,7 +289,8 @@ export function FontAppearanceSettings() {
 
       {/* Persistence note */}
       <p className="text-xs text-muted-foreground/60">
-        Your font preference is saved locally to this browser. Other team members keep their own preference.
+        Your font preference is saved locally to this browser. Other team
+        members keep their own preference.
       </p>
     </div>
   );

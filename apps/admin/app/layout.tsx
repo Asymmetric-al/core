@@ -3,7 +3,13 @@ import { siteConfig } from "@asym/config/site";
 import { QueryProvider } from "@asym/database/providers";
 import { MotionProvider } from "@asym/lib/motion";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
-import { Inter, Geist_Mono, Geist, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import {
+  Inter,
+  Geist_Mono,
+  Geist,
+  Plus_Jakarta_Sans,
+  JetBrains_Mono,
+} from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Suspense } from "react";
 

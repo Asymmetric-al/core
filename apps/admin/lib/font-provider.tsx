@@ -35,7 +35,9 @@ function applyFont(font: FontPairing) {
 function readStoredFont(): FontPairing {
   try {
     const stored = localStorage.getItem(STORAGE_KEY) as FontPairing | null;
-    return stored && (VALID as string[]).includes(stored) ? stored : DEFAULT_FONT;
+    return stored && (VALID as string[]).includes(stored)
+      ? stored
+      : DEFAULT_FONT;
   } catch {
     return DEFAULT_FONT;
   }

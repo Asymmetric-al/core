@@ -101,26 +101,32 @@
 :root,
 html:not([data-font]),
 html[data-font="product"] {
-  --font-heading-override: var(--font-plus-jakarta-sans, var(--font-inter)), ui-sans-serif, system-ui, sans-serif;
+  --font-heading-override:
+    var(--font-plus-jakarta-sans, var(--font-inter)), ui-sans-serif, system-ui,
+    sans-serif;
   --font-body-override: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-mono-override: var(--font-jetbrains-mono, var(--font-geist-mono)), ui-monospace, monospace;
+  --font-mono-override:
+    var(--font-jetbrains-mono, var(--font-geist-mono)), ui-monospace, monospace;
 }
 
 /* modern-clean — Inter + Inter + Geist Mono */
 html[data-font="modern-clean"] {
-  --font-heading-override: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-heading-override:
+    var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-body-override: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono-override: var(--font-geist-mono), ui-monospace, monospace;
 }
 
 /* minimal — Geist + Geist + Geist Mono */
 html[data-font="minimal"] {
-  --font-heading-override: var(--font-geist, var(--font-inter)), ui-sans-serif, system-ui, sans-serif;
-  --font-body-override: var(--font-geist, var(--font-inter)), ui-sans-serif, system-ui, sans-serif;
+  --font-heading-override:
+    var(--font-geist, var(--font-inter)), ui-sans-serif, system-ui, sans-serif;
+  --font-body-override:
+    var(--font-geist, var(--font-inter)), ui-sans-serif, system-ui, sans-serif;
   --font-mono-override: var(--font-geist-mono), ui-monospace, monospace;
 }
 
-
+:root {
   color-scheme: light;
   --radius: 1rem;
 

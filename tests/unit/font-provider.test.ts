@@ -54,7 +54,9 @@ describe("FONT_INLINE_SCRIPT", () => {
   });
 
   it("reads from the correct localStorage key", () => {
-    expect(FONT_INLINE_SCRIPT).toContain(`localStorage.getItem("${STORAGE_KEY}")`);
+    expect(FONT_INLINE_SCRIPT).toContain(
+      `localStorage.getItem("${STORAGE_KEY}")`,
+    );
   });
 
   it("includes all three valid pairing values in the validation array", () => {
