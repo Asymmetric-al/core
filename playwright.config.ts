@@ -9,17 +9,17 @@ const PLAYWRIGHT_APPS = {
   admin: {
     defaultPort: 3030,
     devCommand:
-      'node -e "try{require(\'fs\').rmSync(\'apps/admin/.next/dev/lock\',{force:true})}catch{}" && bun run --cwd apps/admin dev -- --port __PORT__ --hostname 127.0.0.1',
+      "node -e \"try{require('fs').rmSync('apps/admin/.next/dev/lock',{force:true})}catch{}\" && bun run --cwd apps/admin dev -- --port __PORT__ --hostname 127.0.0.1",
   },
   donor: {
     defaultPort: DEFAULT_PORT,
     devCommand:
-      'node -e "try{require(\'fs\').rmSync(\'apps/donor/.next/dev/lock\',{force:true})}catch{}" && bun run --cwd apps/donor dev -- --port __PORT__ --hostname 127.0.0.1',
+      "node -e \"try{require('fs').rmSync('apps/donor/.next/dev/lock',{force:true})}catch{}\" && bun run --cwd apps/donor dev -- --port __PORT__ --hostname 127.0.0.1",
   },
   missionary: {
     defaultPort: 4000,
     devCommand:
-      'node -e "try{require(\'fs\').rmSync(\'apps/missionary/.next/dev/lock\',{force:true})}catch{}" && bun run --cwd apps/missionary dev -- --port __PORT__ --hostname 127.0.0.1',
+      "node -e \"try{require('fs').rmSync('apps/missionary/.next/dev/lock',{force:true})}catch{}\" && bun run --cwd apps/missionary dev -- --port __PORT__ --hostname 127.0.0.1",
   },
 } as const;
 

@@ -23,9 +23,9 @@ test.describe("Admin contributions", () => {
     await expect(dialog.locator('[data-slot="sheet-title"]')).toHaveText(
       "Contribution Details",
     );
-    await expect(dialog.locator('[data-slot="sheet-description"]')).toContainText(
-      "Review contribution details",
-    );
+    await expect(
+      dialog.locator('[data-slot="sheet-description"]'),
+    ).toContainText("Review contribution details");
 
     await page.keyboard.press("Escape");
     await expect(dialog).not.toBeVisible();
@@ -59,7 +59,9 @@ test.describe("Admin contributions", () => {
       .locator("tr")
       .filter({ hasText: "Robert Johnson" });
 
-    await failedContributionRow.getByRole("button", { name: "Open menu" }).click();
+    await failedContributionRow
+      .getByRole("button", { name: "Open menu" })
+      .click();
 
     const actionMenu = page.locator('[data-slot="dropdown-menu-content"]');
     await expect(
