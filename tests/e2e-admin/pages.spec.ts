@@ -55,9 +55,7 @@ test.describe("Login page — UI structure", () => {
   });
 
   test("shows card description", async ({ page }) => {
-    await expect(
-      page.getByText(/Enter your credentials/i),
-    ).toBeVisible();
+    await expect(page.getByText(/Enter your credentials/i)).toBeVisible();
   });
 
   test("has email input", async ({ page }) => {
@@ -80,9 +78,7 @@ test.describe("Login page — UI structure", () => {
   });
 
   test("has Sign In submit button", async ({ page }) => {
-    await expect(
-      page.getByRole("button", { name: /sign in/i }),
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: /sign in/i })).toBeVisible();
   });
 
   test("Sign In button is type=submit", async ({ page }) => {
@@ -109,9 +105,7 @@ test.describe("Login page — UI structure", () => {
   });
 
   test("Sign In button is enabled by default", async ({ page }) => {
-    await expect(
-      page.getByRole("button", { name: /sign in/i }),
-    ).toBeEnabled();
+    await expect(page.getByRole("button", { name: /sign in/i })).toBeEnabled();
   });
 
   test("email input is empty by default", async ({ page }) => {
@@ -190,15 +184,14 @@ test.describe("Register page — UI structure", () => {
   });
 
   test("has back to sign in link", async ({ page }) => {
-    await expect(
-      page.getByRole("link", { name: /sign in/i }),
-    ).toBeVisible();
+    await expect(page.getByRole("link", { name: /sign in/i })).toBeVisible();
   });
 
   test("Sign In link points to /login", async ({ page }) => {
-    await expect(
-      page.getByRole("link", { name: /sign in/i }),
-    ).toHaveAttribute("href", "/login");
+    await expect(page.getByRole("link", { name: /sign in/i })).toHaveAttribute(
+      "href",
+      "/login",
+    );
   });
 });
 
@@ -226,9 +219,7 @@ test.describe("Dashboard shell — sidebar and header", () => {
   });
 
   test("sidebar contains Contributions nav link", async ({ page }) => {
-    await expect(
-      page.locator("a", { hasText: "CONTRIBUTIONS" }),
-    ).toBeVisible();
+    await expect(page.locator("a", { hasText: "CONTRIBUTIONS" })).toBeVisible();
   });
 
   test("sidebar contains CRM nav link", async ({ page }) => {
@@ -273,9 +264,7 @@ test.describe("Sidebar navigation — links", () => {
     await expect(page.locator("#__next_error__")).toHaveCount(0);
   });
 
-  test("clicking Contributions opens /contributions page", async ({
-    page,
-  }) => {
+  test("clicking Contributions opens /contributions page", async ({ page }) => {
     await page.locator("a", { hasText: "CONTRIBUTIONS" }).click();
     await page.waitForLoadState("domcontentloaded");
     expect(page.url()).toContain("/contributions");
@@ -293,7 +282,9 @@ test.describe("Sidebar navigation — links", () => {
 // ── Contributions page ────────────────────────────────────────────────────────
 
 test.describe("Contributions page — structure", () => {
-  test.beforeEach(async ({ page }) => helpers.gotoReady(page, "/contributions"));
+  test.beforeEach(async ({ page }) =>
+    helpers.gotoReady(page, "/contributions"),
+  );
 
   test("page has no JS error overlay", async ({ page }) => {
     await expect(page.locator("#__next_error__")).toHaveCount(0);
@@ -303,16 +294,16 @@ test.describe("Contributions page — structure", () => {
     page,
   }) => {
     // Contributions page has stat cards + data table
-    await expect(
-      page.locator('[data-slot="card"]').first(),
-    ).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-slot="card"]').first()).toBeVisible({
+      timeout: 5000,
+    });
   });
 
   test("page renders stat cards", async ({ page }) => {
     // There should be multiple cards on the contributions page
     const cards = page.locator('[data-slot="card"]');
-    await expect(
-      async () => expect(await cards.count()).toBeGreaterThan(0)
+    await expect(async () =>
+      expect(await cards.count()).toBeGreaterThan(0),
     ).toPass({ timeout: 5000 });
   });
 });
@@ -333,9 +324,7 @@ test.describe("Settings — integrations (SendGrid) page", () => {
   });
 
   test("Appearance nav link is visible", async ({ page }) => {
-    await expect(
-      page.getByRole("link", { name: /appearance/i }),
-    ).toBeVisible();
+    await expect(page.getByRole("link", { name: /appearance/i })).toBeVisible();
   });
 
   test("Integrations nav link is visible", async ({ page }) => {

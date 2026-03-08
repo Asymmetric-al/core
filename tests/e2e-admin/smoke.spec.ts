@@ -71,9 +71,7 @@ test.describe("Admin app — login page", () => {
 
   test("login page has a sign-in submit button", async ({ page }) => {
     await waitForPageReady(page, "/login");
-    await expect(
-      page.getByRole("button", { name: /sign in/i }),
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: /sign in/i })).toBeVisible();
   });
 
   test("login page title includes Mission Control", async ({ page }) => {
@@ -147,8 +145,8 @@ test.describe("Admin app — FOUC prevention", () => {
   }) => {
     // Pre-seed localStorage with a non-default preference
     await page.goto("/login");
-    await page.evaluate(
-      () => localStorage.setItem("admin-font-pairing", "minimal"),
+    await page.evaluate(() =>
+      localStorage.setItem("admin-font-pairing", "minimal"),
     );
 
     // Navigate to a fresh page — the inline script in <head> must read the

@@ -1,7 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const ADMIN_PORT = 3030;
-const BASE_URL = process.env.PLAYWRIGHT_ADMIN_BASE_URL ?? `http://127.0.0.1:${ADMIN_PORT}`;
+const BASE_URL =
+  process.env.PLAYWRIGHT_ADMIN_BASE_URL ?? `http://127.0.0.1:${ADMIN_PORT}`;
 
 const isRemote = (() => {
   if (!process.env.PLAYWRIGHT_ADMIN_BASE_URL) return false;
@@ -39,8 +40,6 @@ export default defineConfig({
     screenshot: "only-on-failure",
     video: "retain-on-failure",
   },
-  projects: [
-    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
-  ],
+  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   ...(webServer ? { webServer } : {}),
 });

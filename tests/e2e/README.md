@@ -25,12 +25,14 @@ The `test-e2e` job in `.github/workflows/ci-integration.yml` is configured with 
 ## Admin app tests (`tests/e2e-admin/`)
 
 ### `smoke.spec.ts`
+
 - Health endpoint (`/api/health`) returns 200 with `status:ok`
 - Login page loads with correct UI elements (card title, email/password inputs, submit button)
 - All protected routes serve pages without JS error overlays
 - FOUC prevention: `data-font` attribute is set on `<html>` immediately after `domcontentloaded` (before React hydration) via the inline `<head>` script
 
 ### `font-switcher.spec.ts`
+
 - Font persistence cycle: each of the three pairings (product, modern-clean, minimal) is stored in `localStorage` and the corresponding `data-font` attribute is applied on reload
 - Edge cases: missing/invalid `localStorage` values fall back to `"product"`
 - CSS variable correctness: `data-font` is set on `<html>`, not `<body>`
