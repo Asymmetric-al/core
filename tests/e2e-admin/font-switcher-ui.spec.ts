@@ -3,7 +3,7 @@
  *
  * Tests the full UX flow on /settings:
  * - Clicking each font card updates the UI, live preview, localStorage, and data-font
- * - Visual selection state (border class, checkmark icon)
+ * - Semantic selection state (`role="radio"` + `aria-checked`)
  * - Keyboard navigation (Tab, Enter, Space)
  * - Live preview strip updates content
  * - Accessibility attributes
@@ -13,14 +13,22 @@
  * @vitest-environment happy-dom
  */
 
-import { test, expect, helpers, FONT_META, VALID_PAIRINGS, FONT_STORAGE_KEY } from "./fixtures";
+import {
+  test,
+  expect,
+  helpers,
+  FONT_META,
+  VALID_PAIRINGS,
+  FONT_STORAGE_KEY,
+} from "./fixtures";
 import type { Page } from "@playwright/test";
 
 // ── Selectors ─────────────────────────────────────────────────────────────────
 
 const LIVE_PREVIEW_HEADING = "Mission Control Dashboard";
 const SECTION_HEADING = "Font Pairing";
-const SECTION_DESC = "Choose the typeface system for your dashboard. Changes apply instantly.";
+const SECTION_DESC =
+  "Choose the typeface system for your dashboard. Changes apply instantly.";
 const PERSISTENCE_NOTE = /saved locally to this browser/i;
 const PREVIEW_CODE_SAMPLE = "getDashboardSummary";
 
@@ -30,11 +38,19 @@ test.describe("Settings page — structure", () => {
   test.beforeEach(async ({ page }) => helpers.gotoSettings(page));
 
   test("renders the Font Pairing section heading", async ({ page }) => {
-    await expect(page.getByText(SECTION_HEADING, { exact: true })).toBeVisible();
+    await expect(
+      page.getByText(SECTION_HEADING, { exact: true }),
+    ).toBeVisible();
   });
 
   test("renders the subtitle description", async ({ page }) => {
     await expect(page.getByText(SECTION_DESC)).toBeVisible();
+  });
+
+  test("renders the font picker as a radiogroup", async ({ page }) => {
+    await expect(
+      page.getByRole("radiogroup", { name: /font pairing/i }),
+    ).toBeVisible();
   });
 
   test("renders exactly three font pairing cards", async ({ page }) => {
@@ -71,12 +87,13 @@ test.describe("Settings page — structure", () => {
     await expect(page.getByText(PERSISTENCE_NOTE)).toBeVisible();
   });
 
-  test("all font cards are focusable buttons", async ({ page }) => {
+  test("all font cards are semantic radio buttons", async ({ page }) => {
     const cards = helpers.fontCards(page);
     const count = await cards.count();
     for (let i = 0; i < count; i++) {
       const card = cards.nth(i);
       await expect(card).toHaveAttribute("type", "button");
+      await expect(card).toHaveAttribute("role", "radio");
     }
   });
 });
@@ -89,29 +106,16 @@ test.describe("Font cards — default state (product)", () => {
   test("product card is selected by default", async ({ page }) => {
     const productCard = helpers.fontCard(page, "Product");
     await expect(productCard).toBeVisible();
-    // Selected cards get the 'border-foreground' class
-    const className = await productCard.getAttribute("class");
-    expect(className).toContain("border-foreground");
+    await expect(productCard).toHaveAttribute("aria-checked", "true");
   });
 
   test("modern-clean card is NOT selected by default", async ({ page }) => {
     const card = helpers.fontCard(page, "Modern Clean");
-    const className = await card.getAttribute("class");
-    // Unselected: has border-border/60. 
-    // The selected state is specifically 'border-foreground shadow-md' — no '/60' or '/30' suffix.
-    // hover:border-foreground/30 is in the base class for all cards, so we check
-    // specifically for the full 'border-foreground shadow-md' string.
-    expect(className).toContain("border-border/60");
-    // The selected border class is 'border-foreground' without any modifier
-    // It appears in the class list as a standalone token (not hover:border-foreground/30)
-    const tokens = className?.split(" ") ?? [];
-    expect(tokens).not.toContain("border-foreground");
+    await expect(card).toHaveAttribute("aria-checked", "false");
   });
 
   test("live preview shows 'Product' by default", async ({ page }) => {
-    await expect(
-      page.getByText(/Live Preview.*Product/i),
-    ).toBeVisible();
+    await expect(page.getByText(/Live Preview.*Product/i)).toBeVisible();
   });
 
   test("product card shows Default badge", async ({ page }) => {
@@ -139,10 +143,7 @@ test.describe("Font cards — click to select", () => {
 
     // Live preview label updates
     await expect(page.getByText(/Live Preview.*Modern Clean/i)).toBeVisible();
-
-    // Card visually selected
-    const className = await card.getAttribute("class");
-    expect(className).toContain("border-foreground");
+    await expect(card).toHaveAttribute("aria-checked", "true");
   });
 
   test("clicking 'Minimal' selects it and updates live preview", async ({
@@ -154,9 +155,7 @@ test.describe("Font cards — click to select", () => {
     await card.click();
 
     await expect(page.getByText(/Live Preview.*Minimal/i)).toBeVisible();
-
-    const className = await card.getAttribute("class");
-    expect(className).toContain("border-foreground");
+    await expect(card).toHaveAttribute("aria-checked", "true");
   });
 
   test("clicking 'Product' selects it from another selection", async ({
@@ -204,15 +203,9 @@ test.describe("Font cards — click to select", () => {
     // Click minimal
     await helpers.fontCard(page, "Minimal").click();
 
-    // Product card should no longer have the selected class
+    // Product card should no longer be announced as selected
     const productCard = helpers.fontCard(page, "Product");
-    await expect
-      .poll(async () => {
-        const cls = await productCard.getAttribute("class");
-        // Selected state has 'border-foreground', unselected has 'border-border/60'
-        return cls?.includes("border-foreground") && !cls?.includes("border-border/60");
-      }, { timeout: 2000 })
-      .toBe(false);
+    await expect(productCard).toHaveAttribute("aria-checked", "false");
   });
 
   test("cycling through all three pairings updates state correctly", async ({
@@ -230,8 +223,11 @@ test.describe("Font cards — click to select", () => {
       await expect
         .poll(() => helpers.getStoredFont(page), { timeout: 2000 })
         .toBe(pairing);
+      await expect(card).toHaveAttribute("aria-checked", "true");
       await expect(
-        page.getByText(new RegExp(`Live Preview.*${FONT_META[pairing].name}`, "i")),
+        page.getByText(
+          new RegExp(`Live Preview.*${FONT_META[pairing].name}`, "i"),
+        ),
       ).toBeVisible();
     }
   });
@@ -275,6 +271,18 @@ test.describe("Live preview strip — content", () => {
       ).toBeVisible();
     }
   });
+
+  test("live preview strip matches the default product pairing", async ({
+    page,
+  }) => {
+    await page.evaluate(async () => {
+      await document.fonts.ready;
+    });
+
+    await expect(page.getByTestId("font-live-preview")).toHaveScreenshot(
+      "font-live-preview-product.png",
+    );
+  });
 });
 
 // ── Font stack labels ─────────────────────────────────────────────────────────
@@ -297,9 +305,7 @@ test.describe("Font card stack labels", () => {
     await expect(page.getByText("Geist").first()).toBeVisible();
   });
 
-  test("modern-clean and minimal cards show 'Geist Mono'", async ({
-    page,
-  }) => {
+  test("modern-clean and minimal cards show 'Geist Mono'", async ({ page }) => {
     const geistMonoInstances = await page.getByText("Geist Mono").count();
     expect(geistMonoInstances).toBeGreaterThanOrEqual(2);
   });
@@ -412,7 +418,9 @@ test.describe("Font preference — reload persistence", () => {
       expect(await helpers.getDataFont(page)).toBe(pairing);
       // The correct card should appear selected
       await expect(
-        page.getByText(/Live Preview/i).filter({ hasText: FONT_META[pairing].name }),
+        page
+          .getByText(/Live Preview/i)
+          .filter({ hasText: FONT_META[pairing].name }),
       ).toBeVisible();
     });
   }
@@ -446,20 +454,29 @@ test.describe("Font cards — rapid switching", () => {
 test.describe("Settings layout — navigation", () => {
   /** The settings nav bar — using href to precisely target the settings layout nav links. */
   const settingsNavLink = (page: Page, href: string) =>
-    page.locator(`a[href="${href}"]`).first();
+    page
+      .locator('nav[aria-label="Settings sections"]')
+      .locator(`a[href="${href}"]`);
 
-  test("Appearance nav link is visible in settings header", async ({ page }) => {
+  test("Appearance nav link is visible in settings header", async ({
+    page,
+  }) => {
     await helpers.gotoSettings(page);
-    await expect(settingsNavLink(page, "/settings")).toBeVisible();
+    const appearanceLink = settingsNavLink(page, "/settings");
+    await expect(appearanceLink).toBeVisible();
+    await expect(appearanceLink).toHaveAttribute("aria-current", "page");
   });
 
   test("Integrations nav link is visible in settings header", async ({
     page,
   }) => {
     await helpers.gotoSettings(page);
-    await expect(
-      settingsNavLink(page, "/settings/integrations/sendgrid"),
-    ).toBeVisible();
+    const integrationsLink = settingsNavLink(
+      page,
+      "/settings/integrations/sendgrid",
+    );
+    await expect(integrationsLink).toBeVisible();
+    await expect(integrationsLink).not.toHaveAttribute("aria-current", "page");
   });
 
   test("clicking Integrations nav link navigates to /settings/integrations/sendgrid", async ({
@@ -467,9 +484,10 @@ test.describe("Settings layout — navigation", () => {
   }) => {
     await helpers.gotoSettings(page);
     // Wait for the link to be present and interactive
-    const integrationsLink = page.locator(
-      'a[href="/settings/integrations/sendgrid"]',
-    ).first();
+    const integrationsLink = settingsNavLink(
+      page,
+      "/settings/integrations/sendgrid",
+    );
     await expect(integrationsLink).toBeVisible();
     // Use Promise.all to capture the navigation triggered by the click
     await Promise.all([
@@ -478,18 +496,17 @@ test.describe("Settings layout — navigation", () => {
     ]);
     expect(page.url()).toContain("/settings/integrations/sendgrid");
     await expect(page.locator("#__next_error__")).toHaveCount(0);
+    await expect(integrationsLink).toHaveAttribute("aria-current", "page");
   });
 
   test("clicking Appearance nav link stays on /settings", async ({ page }) => {
     // Start at integrations, navigate back to appearance
     await helpers.gotoReady(page, "/settings/integrations/sendgrid");
-    const appearanceLink = page.locator('a[href="/settings"]').first();
+    const appearanceLink = settingsNavLink(page, "/settings");
     await expect(appearanceLink).toBeVisible();
-    await Promise.all([
-      page.waitForURL("**/settings"),
-      appearanceLink.click(),
-    ]);
+    await Promise.all([page.waitForURL("**/settings"), appearanceLink.click()]);
     expect(page.url()).toMatch(/\/settings\/?$/);
+    await expect(appearanceLink).toHaveAttribute("aria-current", "page");
   });
 
   test("Settings h1 heading is always visible", async ({ page }) => {

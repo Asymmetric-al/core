@@ -91,10 +91,7 @@ export const helpers = {
     );
   },
   async getStoredFont(page: Page): Promise<string | null> {
-    return page.evaluate(
-      (key) => localStorage.getItem(key),
-      FONT_STORAGE_KEY,
-    );
+    return page.evaluate((key) => localStorage.getItem(key), FONT_STORAGE_KEY);
   },
 
   /** Navigate with a seeded localStorage font preference and return data-font. */
@@ -123,15 +120,13 @@ export const helpers = {
 
   /** Get the three font card buttons on /settings. */
   fontCards(page: Page) {
-    return page.locator(
-      '.grid button[type="button"]',
-    );
+    return page.locator('button[role="radio"]');
   },
 
   /** Get a specific font card by its pairing name text. */
   fontCard(page: Page, name: string) {
     return page
-      .locator('button[type="button"]')
+      .locator('button[role="radio"]')
       .filter({ hasText: name })
       .first();
   },

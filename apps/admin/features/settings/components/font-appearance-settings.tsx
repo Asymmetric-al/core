@@ -87,6 +87,10 @@ function FontCard({
     <button
       type="button"
       onClick={onSelect}
+      role="radio"
+      aria-checked={selected}
+      aria-labelledby={`${pairing.id}-name`}
+      aria-describedby={`${pairing.id}-tagline`}
       className={cn(
         "group relative flex flex-col text-left w-full rounded-xl border-2 bg-card transition-all duration-200 overflow-hidden",
         "hover:border-foreground/30 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
@@ -131,10 +135,16 @@ function FontCard({
       <div className="px-5 py-4 flex flex-col gap-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-0.5 min-w-0">
-            <span className="text-sm font-semibold text-foreground">
+            <span
+              id={`${pairing.id}-name`}
+              className="text-sm font-semibold text-foreground"
+            >
               {pairing.name}
             </span>
-            <span className="text-xs text-muted-foreground">
+            <span
+              id={`${pairing.id}-tagline`}
+              className="text-xs text-muted-foreground"
+            >
               {pairing.tagline}
             </span>
           </div>
@@ -148,7 +158,13 @@ function FontCard({
                 : "border-border/60 bg-transparent group-hover:border-foreground/40",
             )}
           >
-            {selected && <CheckIcon className="size-3" strokeWidth={3} />}
+            {selected && (
+              <CheckIcon
+                aria-hidden="true"
+                className="size-3"
+                strokeWidth={3}
+              />
+            )}
           </div>
         </div>
 
@@ -229,10 +245,16 @@ export function FontAppearanceSettings() {
             <TypeIcon className="size-4 text-foreground/60" />
           </div>
           <div>
-            <h2 className="text-base font-semibold text-foreground">
+            <h2
+              id="font-pairing-heading"
+              className="text-base font-semibold text-foreground"
+            >
               Font Pairing
             </h2>
-            <p className="text-xs text-muted-foreground">
+            <p
+              id="font-pairing-description"
+              className="text-xs text-muted-foreground"
+            >
               Choose the typeface system for your dashboard. Changes apply
               instantly.
             </p>
@@ -241,7 +263,12 @@ export function FontAppearanceSettings() {
       </div>
 
       {/* Font picker grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div
+        className="grid grid-cols-1 md:grid-cols-3 gap-4"
+        role="radiogroup"
+        aria-labelledby="font-pairing-heading"
+        aria-describedby="font-pairing-description"
+      >
         {FONT_PAIRINGS.map((pairing) => (
           <FontCard
             key={pairing.id}
@@ -253,7 +280,10 @@ export function FontAppearanceSettings() {
       </div>
 
       {/* Live preview strip */}
-      <div className="rounded-xl border border-border/60 bg-muted/30 overflow-hidden">
+      <div
+        data-testid="font-live-preview"
+        className="rounded-xl border border-border/60 bg-muted/30 overflow-hidden"
+      >
         <div className="px-5 py-3 border-b border-border/40 flex items-center justify-between">
           <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
             Live Preview — {selected?.name}

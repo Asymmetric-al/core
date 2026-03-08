@@ -1,9 +1,4 @@
-import Link from "next/link";
-
-const settingsNav = [
-  { label: "Appearance", href: "/settings" },
-  { label: "Integrations", href: "/settings/integrations/sendgrid" },
-];
+import { SettingsNav } from "./settings-nav";
 
 export default function SettingsLayout({
   children,
@@ -18,17 +13,7 @@ export default function SettingsLayout({
             <h1 className="text-sm font-bold uppercase tracking-widest text-foreground mr-6">
               Settings
             </h1>
-            <nav className="flex items-center gap-1">
-              {settingsNav.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="relative px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground rounded-md hover:bg-muted/50"
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
+            <SettingsNav />
           </div>
         </div>
       </div>

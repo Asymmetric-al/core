@@ -313,6 +313,13 @@ describe("FontAppearanceSettings", () => {
     expect(screen.getByText("Font Pairing")).toBeInTheDocument();
   });
 
+  it("renders the font options as a radiogroup", () => {
+    render(<FontAppearanceSettings />, { wrapper: Wrapper });
+    expect(
+      screen.getByRole("radiogroup", { name: /font pairing/i }),
+    ).toBeInTheDocument();
+  });
+
   it("renders the live preview strip with default pairing name", () => {
     render(<FontAppearanceSettings />, { wrapper: Wrapper });
     expect(screen.getByText(/Live Preview.*Product/i)).toBeInTheDocument();
@@ -320,50 +327,40 @@ describe("FontAppearanceSettings", () => {
 
   it("shows 'Product' as selected by default", () => {
     render(<FontAppearanceSettings />, { wrapper: Wrapper });
-
-    // The product card button should have the selected border class
-    const buttons = screen.getAllByRole("button");
-    const productButton = buttons.find((b) =>
-      b.textContent?.includes("Product"),
+    expect(screen.getByRole("radio", { name: /product/i })).toHaveAttribute(
+      "aria-checked",
+      "true",
     );
-    expect(productButton).toBeDefined();
-    expect(productButton?.className).toContain("border-foreground");
   });
 
   it("selecting 'Minimal' updates the selected card and live preview", async () => {
     const user = userEvent.setup();
     render(<FontAppearanceSettings />, { wrapper: Wrapper });
+    const minimalOption = screen.getByRole("radio", { name: /minimal/i });
 
-    const buttons = screen.getAllByRole("button");
-    const minimalButton = buttons.find((b) =>
-      b.textContent?.includes("Minimal"),
-    );
-    expect(minimalButton).toBeDefined();
-
-    await user.click(minimalButton!);
+    await user.click(minimalOption);
 
     // Live preview label should now show Minimal
     expect(screen.getByText(/Live Preview.*Minimal/i)).toBeInTheDocument();
 
     // data-font attribute should be updated
     expect(getDataFont()).toBe("minimal");
+    expect(minimalOption).toHaveAttribute("aria-checked", "true");
   });
 
   it("selecting 'Modern Clean' updates context and persists to localStorage", async () => {
     const user = userEvent.setup();
     render(<FontAppearanceSettings />, { wrapper: Wrapper });
+    const modernCleanOption = screen.getByRole("radio", {
+      name: /modern clean/i,
+    });
 
-    const buttons = screen.getAllByRole("button");
-    const modernCleanButton = buttons.find((b) =>
-      b.textContent?.includes("Modern Clean"),
-    );
-    expect(modernCleanButton).toBeDefined();
-
-    await user.click(modernCleanButton!);
+    await user.click(modernCleanOption);
 
     expect(localStorage.getItem(STORAGE_KEY)).toBe("modern-clean");
     expect(getDataFont()).toBe("modern-clean");
     expect(screen.getByText(/Live Preview.*Modern Clean/i)).toBeInTheDocument();
+    expect(modernCleanOption).toHaveAttribute("aria-checked", "true");
   });
 
   it("shows each pairing's tagline text", () => {

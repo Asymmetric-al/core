@@ -1,22 +1,24 @@
 # Working Set
 
-- Date: 2026-02-22
+- Date: 2026-03-08
 - Repo: Asymmetric-al/core
-- Goal: Implement a hybrid Supabase CLI workflow (global-first + pinned fallback) and align setup/scripts/docs with secure contributor defaults.
-- Primary area: `scripts/supabase-cli.mjs`, `package.json`, `scripts/seed-demo.sh`, `scripts/setup/*`, `README.md`, `docs/ops/environments.md`, `docs/ai/rules/backend.md`
+- Goal: Fix the admin settings GUI review findings with minimal, modern changes: semantic selection for the font chooser, active/current-page state for settings nav, and the right-level regression tests.
+- Primary area: `apps/admin/features/settings/components/font-appearance-settings.tsx`, `apps/admin/app/settings/layout.tsx`, `tests/e2e-admin/font-switcher-ui.spec.ts`, `tests/unit/font-provider.dom.test.tsx`
 - Constraints:
-  - No hardcoded secrets.
-  - Keep Supabase auth client boundaries unchanged (`@supabase/ssr` server/client separation).
-  - Preserve migration safety for hosted flows (`SUPABASE_DB_URL`, URL targeting checks).
-  - Keep contributor setup non-blocking while improving reproducibility.
+  - Keep changes narrowly scoped to the reviewed GUI issues.
+  - Preserve Maia-theme token usage and the repo's current shipped shadcn/Radix primitive surface.
+  - Follow Next.js App Router best practices: keep the layout server-first and isolate pathname logic in a small Client Component.
+  - Prefer semantic HTML/ARIA over visual-only state.
 - Evidence sources used:
-  - `package.json`
-  - `scripts/seed-demo.sh`
-  - `scripts/setup/index.sh`
-  - `scripts/setup.ps1`
-  - `scripts/setup/index.ps1`
-  - `README.md`
-  - `docs/ops/environments.md`
-  - `docs/ai/rules/backend.md`
+  - `docs/ai/rules/frontend.md`
+  - `.cursor/skills/moai-library-shadcn/SKILL.md`
+  - `.agents/skills/shadcn/SKILL.md`
+  - `.next-docs/01-app/03-api-reference/04-functions/use-pathname.mdx`
+  - `.next-docs/01-app/03-api-reference/03-file-conventions/layout.mdx`
+  - `packages/ui/styles/globals.css`
+  - `packages/ui/components/shadcn/button.tsx`
+  - `packages/ui/components/shadcn/sidebar.tsx`
+  - `apps/admin/app/settings/layout.tsx`
+  - `apps/admin/features/settings/components/font-appearance-settings.tsx`
 - Tooling note:
-  - Repo uses Bun-first workflows; Supabase runner should work with/without globally installed `supabase` binary.
+  - Use Nia repo-scoped searches with this working set preamble before broader repo queries.
