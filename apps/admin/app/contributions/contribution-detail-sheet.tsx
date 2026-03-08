@@ -10,9 +10,15 @@ import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 import { Separator } from "@asym/ui/components/shadcn/separator";
-import { Sheet, SheetContent } from "@asym/ui/components/shadcn/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@asym/ui/components/shadcn/sheet";
 import { cn } from "@asym/ui/lib/utils";
-import { Copy, DollarSign, Mail, Receipt, RefreshCcw, X } from "lucide-react";
+import { Copy, DollarSign, Mail, Receipt, RefreshCcw } from "lucide-react";
 import { toast } from "sonner";
 
 import type { Contribution, ContributionStatus } from "./types";
@@ -28,6 +34,8 @@ const statusDotColor: Record<ContributionStatus, string> = {
   Refunded: "bg-muted-foreground",
   Disputed: "bg-orange-500",
 };
+
+const unavailableActionReason = "Coming soon";
 
 /* ------------------------------------------------------------------ */
 /*  Detail field component                                              */
@@ -65,41 +73,45 @@ function DetailField({
 
 interface ContributionDetailSheetProps {
   contribution: Contribution | null;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function ContributionDetailSheet({
   contribution,
-  onClose,
+  open,
+  onOpenChange,
 }: ContributionDetailSheetProps) {
   if (!contribution) return null;
 
   const { donor, isAnonymous } = contribution;
   const date = new Date(contribution.date);
 
-  const handleCopyTxn = () => {
-    navigator.clipboard.writeText(contribution.transactionId);
-    toast.success("Transaction ID copied to clipboard");
+  const handleCopyTxn = async () => {
+    try {
+      await navigator.clipboard.writeText(contribution.transactionId);
+      toast.success("Transaction ID copied to clipboard");
+    } catch {
+      toast.error("Could not copy transaction ID");
+    }
   };
 
   return (
-    <Sheet open={!!contribution} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="w-full sm:max-w-lg p-0 gap-0 border-l border-border bg-background shadow-2xl overflow-hidden flex flex-col h-full text-left">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full sm:max-w-lg p-0 gap-0 border-l border-border bg-background shadow-2xl overflow-hidden flex flex-col h-full text-left [&>button]:top-3 [&>button]:right-4 [&>button]:z-20 [&>button]:h-8 [&>button]:w-8 [&>button]:text-muted-foreground [&>button]:hover:text-foreground">
         {/* ---- Header ---- */}
-        <div className="h-14 bg-card border-b border-border flex items-center justify-between px-4 shrink-0 z-10">
+        <SheetHeader className="h-14 bg-card border-b border-border flex flex-row items-center px-4 py-0 pr-14 shrink-0 z-10">
           <div className="flex items-center gap-2 text-sm font-bold text-foreground uppercase tracking-wider">
             <DollarSign className="size-4 text-muted-foreground" />
-            <span>Contribution Details</span>
+            <SheetTitle className="text-sm font-bold text-foreground uppercase tracking-wider">
+              Contribution Details
+            </SheetTitle>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="h-8 w-8 text-muted-foreground hover:text-foreground"
-          >
-            <X className="size-4" />
-          </Button>
-        </div>
+          <SheetDescription className="sr-only">
+            Review contribution details and currently available follow-up
+            actions.
+          </SheetDescription>
+        </SheetHeader>
 
         {/* ---- Content ---- */}
         <ScrollArea className="flex-1">
@@ -229,6 +241,9 @@ export function ContributionDetailSheet({
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                 Actions
               </p>
+              <p className="text-xs text-muted-foreground">
+                Additional donor follow-up actions are not available yet.
+              </p>
               <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
@@ -241,6 +256,8 @@ export function ContributionDetailSheet({
                 </Button>
                 {!isAnonymous && (
                   <Button
+                    disabled
+                    aria-label={`Email donor (${unavailableActionReason})`}
                     variant="outline"
                     size="sm"
                     className="gap-2 rounded-xl font-bold uppercase tracking-widest text-[10px] h-9"
@@ -251,6 +268,8 @@ export function ContributionDetailSheet({
                 )}
                 {!contribution.receiptSent && (
                   <Button
+                    disabled
+                    aria-label={`Send receipt (${unavailableActionReason})`}
                     variant="outline"
                     size="sm"
                     className="gap-2 rounded-xl font-bold uppercase tracking-widest text-[10px] h-9"
@@ -261,6 +280,8 @@ export function ContributionDetailSheet({
                 )}
                 {contribution.status === "Failed" && (
                   <Button
+                    disabled
+                    aria-label={`Retry payment (${unavailableActionReason})`}
                     variant="outline"
                     size="sm"
                     className="gap-2 rounded-xl font-bold uppercase tracking-widest text-[10px] h-9"
@@ -276,7 +297,7 @@ export function ContributionDetailSheet({
             <div className="pt-2 space-y-1">
               <p className="text-[10px] text-muted-foreground font-bold">
                 Created{" "}
-                {new Date(contribution.createdAt).toLocaleDateString("en-US", {
+                {new Date(contribution.createdAt).toLocaleString("en-US", {
                   month: "short",
                   day: "numeric",
                   year: "numeric",
@@ -287,16 +308,13 @@ export function ContributionDetailSheet({
               {contribution.updatedAt !== contribution.createdAt && (
                 <p className="text-[10px] text-muted-foreground font-bold">
                   Updated{" "}
-                  {new Date(contribution.updatedAt).toLocaleDateString(
-                    "en-US",
-                    {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                      hour: "numeric",
-                      minute: "2-digit",
-                    },
-                  )}
+                  {new Date(contribution.updatedAt).toLocaleString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })}
                 </p>
               )}
             </div>

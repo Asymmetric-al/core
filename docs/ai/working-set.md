@@ -1,22 +1,23 @@
 # Working Set
 
-- Date: 2026-02-22
+- Date: 2026-03-08
 - Repo: Asymmetric-al/core
-- Goal: Implement a hybrid Supabase CLI workflow (global-first + pinned fallback) and align setup/scripts/docs with secure contributor defaults.
-- Primary area: `scripts/supabase-cli.mjs`, `package.json`, `scripts/seed-demo.sh`, `scripts/setup/*`, `README.md`, `docs/ops/environments.md`, `docs/ai/rules/backend.md`
+- Goal: Fix admin contributions GUI reliability issues in the detail sheet and action affordances, then add admin-targeted Playwright coverage.
+- Primary area: `apps/admin/app/contributions/*`, `packages/ui/components/shadcn/sheet.tsx`, `playwright.config.ts`, `tests/e2e/*`
 - Constraints:
-  - No hardcoded secrets.
-  - Keep Supabase auth client boundaries unchanged (`@supabase/ssr` server/client separation).
-  - Preserve migration safety for hosted flows (`SUPABASE_DB_URL`, URL targeting checks).
-  - Keep contributor setup non-blocking while improving reproducibility.
+  - Preserve the current Maia/zinc visual treatment.
+  - Align with shared shadcn/Radix sheet semantics and focus behavior.
+  - Do not ship active-looking no-op controls; disable or clearly mark unavailable actions until implemented.
+  - Keep the fix surgical and avoid unrelated admin page refactors.
+  - Use Bun/Turbo workflows and repo-scoped Nia searches with the required preamble.
 - Evidence sources used:
-  - `package.json`
-  - `scripts/seed-demo.sh`
-  - `scripts/setup/index.sh`
-  - `scripts/setup.ps1`
-  - `scripts/setup/index.ps1`
-  - `README.md`
-  - `docs/ops/environments.md`
-  - `docs/ai/rules/backend.md`
+  - `apps/admin/app/contributions/page.tsx`
+  - `apps/admin/app/contributions/contribution-detail-sheet.tsx`
+  - `apps/admin/app/contributions/columns.tsx`
+  - `packages/ui/components/shadcn/sheet.tsx`
+  - `packages/ui/components/shadcn/page-shell.tsx`
+  - `docs/ai/ADMIN-UX-STANDARDS.md`
+  - `playwright.config.ts`
+  - `tests/e2e/accessibility.spec.ts`
 - Tooling note:
-  - Repo uses Bun-first workflows; Supabase runner should work with/without globally installed `supabase` binary.
+  - Existing Playwright config targets `apps/donor`; admin browser coverage may need a targeted local-server override or an admin-specific config adjustment.

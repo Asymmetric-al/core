@@ -31,6 +31,7 @@ import {
   Copy,
   RefreshCcw,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import type {
   Contribution,
@@ -78,12 +79,14 @@ const sourceLabels: Record<ContributionSource, string> = {
   Import: "Import",
 };
 
+const unavailableActionReason = "Coming soon";
+
 /* ------------------------------------------------------------------ */
 /*  Column factory                                                      */
 /* ------------------------------------------------------------------ */
 
 interface ColumnOptions {
-  onViewContribution: (contribution: Contribution) => void;
+  onViewContribution: (contribution: Contribution, triggerId?: string) => void;
 }
 
 export function getColumns({
@@ -111,7 +114,11 @@ export function getColumns({
             <div className="flex flex-col">
               <button
                 type="button"
-                onClick={() => onViewContribution(row.original)}
+                data-contribution-trigger={row.original.id}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onViewContribution(row.original, row.original.id);
+                }}
                 className="text-sm font-semibold text-foreground leading-none hover:underline decoration-foreground/30 underline-offset-4 transition-all text-left"
               >
                 {isAnonymous ? "Anonymous" : donor.name}
@@ -352,6 +359,14 @@ export function getColumns({
       id: "actions",
       cell: ({ row }) => {
         const contribution = row.original;
+        const handleCopyTransactionId = async () => {
+          try {
+            await navigator.clipboard.writeText(contribution.transactionId);
+            toast.success("Transaction ID copied to clipboard");
+          } catch {
+            toast.error("Could not copy transaction ID");
+          }
+        };
 
         return (
           <div className="flex justify-end">
@@ -360,6 +375,7 @@ export function getColumns({
                 <Button
                   variant="ghost"
                   className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                  onClick={(event) => event.stopPropagation()}
                 >
                   <span className="sr-only">Open menu</span>
                   <MoreHorizontal className="size-4" />
@@ -367,11 +383,7 @@ export function getColumns({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem
-                  onClick={() =>
-                    navigator.clipboard.writeText(contribution.transactionId)
-                  }
-                >
+                <DropdownMenuItem onClick={handleCopyTransactionId}>
                   <Copy className="mr-2 size-4" />
                   Copy Transaction ID
                 </DropdownMenuItem>
@@ -382,16 +394,20 @@ export function getColumns({
                   <Eye className="mr-2 size-4" />
                   View Details
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Mail className="mr-2 size-4" />
-                  Email Donor
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Receipt className="mr-2 size-4" />
-                  Send Receipt
-                </DropdownMenuItem>
+                {!contribution.isAnonymous && (
+                  <DropdownMenuItem disabled title={unavailableActionReason}>
+                    <Mail className="mr-2 size-4" />
+                    Email Donor
+                  </DropdownMenuItem>
+                )}
+                {!contribution.receiptSent && (
+                  <DropdownMenuItem disabled title={unavailableActionReason}>
+                    <Receipt className="mr-2 size-4" />
+                    Send Receipt
+                  </DropdownMenuItem>
+                )}
                 {contribution.status === "Failed" && (
-                  <DropdownMenuItem>
+                  <DropdownMenuItem disabled title={unavailableActionReason}>
                     <RefreshCcw className="mr-2 size-4" />
                     Retry Payment
                   </DropdownMenuItem>

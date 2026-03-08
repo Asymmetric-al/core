@@ -78,6 +78,8 @@ interface DataTableResponsiveProps<TData, TValue> {
     icon?: React.ComponentType<{ className?: string }>;
     onClick: (rows: TData[]) => void;
     variant?: "default" | "destructive";
+    disabled?: boolean;
+    disabledReason?: string;
   }[];
   rowActions?: {
     label: string;

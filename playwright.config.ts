@@ -3,6 +3,40 @@ import { defineConfig, devices } from "@playwright/test";
 const DEFAULT_PORT = 3005;
 const DEFAULT_SUPABASE_URL = "https://example.supabase.co";
 const DEFAULT_SUPABASE_ANON_KEY = "example-anon-key";
+const PLAYWRIGHT_APP = process.env.PLAYWRIGHT_APP ?? "donor";
+
+const PLAYWRIGHT_APPS = {
+  admin: {
+    defaultPort: 3030,
+    devCommand:
+      'node -e "try{require(\'fs\').rmSync(\'apps/admin/.next/dev/lock\',{force:true})}catch{}" && bun run --cwd apps/admin dev -- --port __PORT__ --hostname 127.0.0.1',
+  },
+  donor: {
+    defaultPort: DEFAULT_PORT,
+    devCommand:
+      'node -e "try{require(\'fs\').rmSync(\'apps/donor/.next/dev/lock\',{force:true})}catch{}" && bun run --cwd apps/donor dev -- --port __PORT__ --hostname 127.0.0.1',
+  },
+  missionary: {
+    defaultPort: 4000,
+    devCommand:
+      'node -e "try{require(\'fs\').rmSync(\'apps/missionary/.next/dev/lock\',{force:true})}catch{}" && bun run --cwd apps/missionary dev -- --port __PORT__ --hostname 127.0.0.1',
+  },
+} as const;
+
+function getPlaywrightAppConfig() {
+  const appConfig =
+    PLAYWRIGHT_APPS[PLAYWRIGHT_APP as keyof typeof PLAYWRIGHT_APPS];
+
+  if (!appConfig) {
+    throw new Error(
+      `Unsupported PLAYWRIGHT_APP: ${PLAYWRIGHT_APP}. Expected one of ${Object.keys(
+        PLAYWRIGHT_APPS,
+      ).join(", ")}`,
+    );
+  }
+
+  return appConfig;
+}
 
 function withCiEquivalentEnvDefaults(
   env: NodeJS.ProcessEnv,
@@ -35,8 +69,9 @@ function isLocalHostname(hostname: string): boolean {
 }
 
 function getLocalBaseUrlAndPort(): { baseURL: string; port: number } {
+  const appConfig = getPlaywrightAppConfig();
   const envBase = process.env.PLAYWRIGHT_BASE_URL;
-  const envPort = Number(process.env.PLAYWRIGHT_PORT || DEFAULT_PORT);
+  const envPort = Number(process.env.PLAYWRIGHT_PORT || appConfig.defaultPort);
 
   if (!envBase) {
     return { baseURL: `http://127.0.0.1:${envPort}`, port: envPort };
@@ -66,6 +101,7 @@ function getLocalBaseUrlAndPort(): { baseURL: string; port: number } {
 }
 
 const { baseURL, port } = getLocalBaseUrlAndPort();
+const selectedApp = getPlaywrightAppConfig();
 
 const isRemoteBaseUrl = (() => {
   const envBase = process.env.PLAYWRIGHT_BASE_URL;
@@ -81,7 +117,7 @@ const isRemoteBaseUrl = (() => {
 const webServer = isRemoteBaseUrl
   ? undefined
   : {
-      command: `node -e "try{require('fs').rmSync('apps/donor/.next/dev/lock',{force:true})}catch{}" && bun run --cwd apps/donor dev -- --port ${port} --hostname 127.0.0.1`,
+      command: selectedApp.devCommand.replace("__PORT__", String(port)),
       env: withCiEquivalentEnvDefaults(process.env),
       url: baseURL,
       // Always reuse if already running; otherwise start it.

@@ -309,7 +309,7 @@ function IntegrationHealthCard() {
           ))}
           <Button
             variant="outline"
-            className="w-full text-xs font-bold text-zinc-600 h-11 px-4 rounded-xl border-zinc-200 hover:bg-zinc-50 font-bold uppercase tracking-widest text-[10px] gap-2 mt-2"
+            className="w-full h-11 px-4 rounded-xl border-zinc-200 text-zinc-600 hover:bg-zinc-50 font-bold uppercase tracking-widest text-[10px] gap-2 mt-2"
           >
             <Settings className="mr-2 h-3.5 w-3.5" /> Manage Connections
           </Button>

@@ -23,6 +23,8 @@ interface FloatingActionBarAction<TData> {
   onClick: (rows: TData[]) => void;
   variant?: "default" | "destructive";
   hideOnMobile?: boolean;
+  disabled?: boolean;
+  disabledReason?: string;
 }
 
 interface DataTableFloatingBarProps<TData> {
@@ -98,9 +100,11 @@ export function DataTableFloatingBar<TData>({
                 key={action.label}
                 variant="ghost"
                 size="sm"
+                disabled={action.disabled}
                 onClick={() =>
                   action.onClick(selectedRows.map((row) => row.original))
                 }
+                title={action.disabledReason}
                 className={cn(
                   "h-8 px-2 sm:px-3 gap-1.5 rounded-xl",
                   "text-background hover:bg-background/10 hover:text-background",
@@ -133,11 +137,13 @@ export function DataTableFloatingBar<TData>({
                         <DropdownMenuSeparator />
                       )}
                       <DropdownMenuItem
+                        disabled={action.disabled}
                         onClick={() =>
                           action.onClick(
                             selectedRows.map((row) => row.original),
                           )
                         }
+                        title={action.disabledReason}
                         className={cn(
                           "rounded-lg gap-2",
                           action.variant === "destructive" &&

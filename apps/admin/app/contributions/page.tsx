@@ -15,7 +15,7 @@ import {
 import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import { cn } from "@asym/ui/lib/utils";
 import { DollarSign, Download, Plus, Trash2, Receipt } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { getColumns } from "./columns";
 import { ContributionDetailSheet } from "./contribution-detail-sheet";
@@ -49,6 +49,9 @@ const statusDotColor: Record<string, string> = {
   Refunded: "bg-muted-foreground",
   Disputed: "bg-orange-500",
 };
+
+const unavailableActionReason = "Coming soon";
+const detailSheetCloseDurationMs = 300;
 
 /* ------------------------------------------------------------------ */
 /*  Stat card — with motion hover                                      */
@@ -93,6 +96,11 @@ export default function ContributionsPage() {
   const [isLoading] = useState(false);
   const [selectedContribution, setSelectedContribution] =
     useState<Contribution | null>(null);
+  const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
+  const [detailSheetTriggerId, setDetailSheetTriggerId] = useState<
+    string | null
+  >(null);
+  const [closeTimeoutId, setCloseTimeoutId] = useState<number | null>(null);
 
   /* ---- Computed stats ---- */
   const stats = useMemo(() => {
@@ -119,10 +127,64 @@ export default function ContributionsPage() {
     };
   }, [data]);
 
+  const openContributionDetails = useCallback(
+    (contribution: Contribution, triggerId?: string) => {
+      if (closeTimeoutId) {
+        window.clearTimeout(closeTimeoutId);
+        setCloseTimeoutId(null);
+      }
+
+      setDetailSheetTriggerId(triggerId ?? null);
+      setSelectedContribution(contribution);
+      setIsDetailSheetOpen(true);
+    },
+    [closeTimeoutId],
+  );
+
+  const handleDetailSheetOpenChange = useCallback(
+    (open: boolean) => {
+      if (open) {
+        setIsDetailSheetOpen(true);
+        return;
+      }
+
+      setIsDetailSheetOpen(false);
+      const focusTargetId = detailSheetTriggerId;
+
+      if (closeTimeoutId) {
+        window.clearTimeout(closeTimeoutId);
+      }
+
+      const timeoutId = window.setTimeout(() => {
+        setSelectedContribution(null);
+        setCloseTimeoutId(null);
+        window.requestAnimationFrame(() => {
+          if (!focusTargetId) return;
+
+          document
+            .querySelector<HTMLElement>(
+              `[data-contribution-trigger="${focusTargetId}"]`,
+            )
+            ?.focus({ preventScroll: true });
+        });
+      }, detailSheetCloseDurationMs);
+      setCloseTimeoutId(timeoutId);
+    },
+    [closeTimeoutId, detailSheetTriggerId],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutId) {
+        window.clearTimeout(closeTimeoutId);
+      }
+    };
+  }, [closeTimeoutId]);
+
   /* ---- Column factory ---- */
   const columns = useMemo(
-    () => getColumns({ onViewContribution: setSelectedContribution }),
-    [],
+    () => getColumns({ onViewContribution: openContributionDetails }),
+    [openContributionDetails],
   );
 
   /* ---- Filter fields ---- */
@@ -149,24 +211,7 @@ export default function ContributionsPage() {
     },
   ];
 
-  /* ---- Handlers ---- */
-  const handleBulkDelete = (rows: Contribution[]) => {
-    console.log(
-      "Delete rows:",
-      rows.map((r) => r.id),
-    );
-  };
-
-  const handleBulkReceipt = (rows: Contribution[]) => {
-    console.log(
-      "Send receipts to:",
-      rows.map((r) => r.id),
-    );
-  };
-
-  const handleExport = () => {
-    console.log("Exporting contributions...");
-  };
+  const handleUnavailableBulkAction = (_rows: Contribution[]) => undefined;
 
   return (
     <PageShell
@@ -176,13 +221,18 @@ export default function ContributionsPage() {
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
+            disabled
+            aria-label={`Export contributions (${unavailableActionReason})`}
             className="h-11 px-4 rounded-xl border-zinc-200 hover:bg-zinc-50 transition-all font-bold uppercase tracking-widest text-[10px] gap-2"
-            onClick={handleExport}
           >
             <Download className="size-4" />
             Export
           </Button>
-          <Button className="h-11 px-6 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-zinc-200 gap-2">
+          <Button
+            disabled
+            aria-label={`Add contribution (${unavailableActionReason})`}
+            className="h-11 px-6 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-zinc-200 gap-2"
+          >
             <Plus className="size-4" />
             Add Contribution
           </Button>
@@ -242,18 +292,22 @@ export default function ContributionsPage() {
                 source: false,
               },
             }}
-            onRowClick={(row) => setSelectedContribution(row.original)}
+            onRowClick={(row) => openContributionDetails(row.original)}
             floatingBarActions={[
               {
                 label: "Send Receipts",
                 icon: Receipt,
-                onClick: handleBulkReceipt,
+                onClick: handleUnavailableBulkAction,
+                disabled: true,
+                disabledReason: unavailableActionReason,
               },
               {
                 label: "Delete",
                 icon: Trash2,
-                onClick: handleBulkDelete,
+                onClick: handleUnavailableBulkAction,
                 variant: "destructive",
+                disabled: true,
+                disabledReason: unavailableActionReason,
               },
             ]}
             mobileCardConfig={{
@@ -266,7 +320,10 @@ export default function ContributionsPage() {
                 return (
                   <button
                     type="button"
-                    onClick={() => setSelectedContribution(contribution)}
+                    data-contribution-trigger={contribution.id}
+                    onClick={() =>
+                      openContributionDetails(contribution, contribution.id)
+                    }
                     className="w-full p-4 cursor-pointer space-y-3 text-left"
                   >
                     <div className="flex items-center justify-between">
@@ -334,7 +391,11 @@ export default function ContributionsPage() {
                   Get started by recording your first contribution or importing
                   from another source.
                 </p>
-                <Button className="mt-8 h-12 px-8 rounded-xl bg-zinc-900 text-white font-black uppercase tracking-widest text-[10px]">
+                <Button
+                  disabled
+                  aria-label={`Add contribution (${unavailableActionReason})`}
+                  className="mt-8 h-12 px-8 rounded-xl bg-zinc-900 text-white font-black uppercase tracking-widest text-[10px]"
+                >
                   <Plus className="mr-2 size-4" />
                   Add Contribution
                 </Button>
@@ -349,7 +410,8 @@ export default function ContributionsPage() {
       {/* ============================================================== */}
       <ContributionDetailSheet
         contribution={selectedContribution}
-        onClose={() => setSelectedContribution(null)}
+        open={isDetailSheetOpen}
+        onOpenChange={handleDetailSheetOpenChange}
       />
     </PageShell>
   );
