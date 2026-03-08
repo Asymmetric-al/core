@@ -1,3 +1,5 @@
+import { serverEnv } from "@asym/env";
+
 export type BuildInfo = {
   /**
    * Git ref used to build URLs to the corresponding source.
@@ -13,7 +15,7 @@ const DEFAULT_REF_FALLBACK = "develop";
 
 function pickFirstEnv(names: string[]): string | undefined {
   for (const name of names) {
-    const value = process.env[name];
+    const value = serverEnv[name as keyof typeof serverEnv];
     if (typeof value === "string") {
       const trimmed = value.trim();
       if (trimmed) return trimmed;
