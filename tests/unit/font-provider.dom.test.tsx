@@ -243,23 +243,29 @@ describe("useFontPairing — outside provider", () => {
 
 // ─── FONT_INLINE_SCRIPT execution ─────────────────────────────────────────────
 describe("FONT_INLINE_SCRIPT execution", () => {
+  function runScript() {
+    // Evaluate the FOUC script in the current happy-dom context.
+    // We wrap in a function via the Function constructor which is the standard
+    // approach for evaluating inline scripts in tests — the eslint rule is
+    // disabled with a project-required justification token.
+    // eslint-disable-next-line no-new-func -- TODO(font-tests): evaluating FOUC inline script in happy-dom test environment
+    new Function(FONT_INLINE_SCRIPT)();
+  }
+
   it("sets data-font to the stored value when it is valid", () => {
     localStorage.setItem(STORAGE_KEY, "minimal");
-    // eslint-disable-next-line no-new-func
-    new Function(FONT_INLINE_SCRIPT)();
+    runScript();
     expect(getDataFont()).toBe("minimal");
   });
 
   it("sets data-font to 'product' when localStorage is empty", () => {
-    // eslint-disable-next-line no-new-func
-    new Function(FONT_INLINE_SCRIPT)();
+    runScript();
     expect(getDataFont()).toBe("product");
   });
 
   it("sets data-font to 'product' when the stored value is invalid", () => {
     localStorage.setItem(STORAGE_KEY, "times-new-roman");
-    // eslint-disable-next-line no-new-func
-    new Function(FONT_INLINE_SCRIPT)();
+    runScript();
     expect(getDataFont()).toBe("product");
   });
 
@@ -270,8 +276,7 @@ describe("FONT_INLINE_SCRIPT execution", () => {
     };
 
     expect(() => {
-      // eslint-disable-next-line no-new-func
-      new Function(FONT_INLINE_SCRIPT)();
+      runScript();
     }).not.toThrow();
 
     Storage.prototype.getItem = original;
