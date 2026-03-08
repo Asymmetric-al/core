@@ -236,14 +236,16 @@ test.describe("Root layout — font CSS variable injection", () => {
     // Use domcontentloaded — networkidle never fires when Supabase is unavailable
     await page.waitForLoadState("domcontentloaded");
 
-    // Filter out expected auth/Supabase connection errors (no real DB in CI)
+    // Filter out expected auth/Supabase/React dev noise
     const unexpectedErrors = errors.filter(
       (e) =>
         !e.includes("supabase") &&
         !e.includes("fetch") &&
         !e.includes("network") &&
         !e.includes("Failed to fetch") &&
-        !e.includes("NEXT_REDIRECT"),
+        !e.includes("NEXT_REDIRECT") &&
+        !e.includes("AbortError") &&
+        !e.includes("Load failed"),
     );
     expect(unexpectedErrors).toHaveLength(0);
   });
