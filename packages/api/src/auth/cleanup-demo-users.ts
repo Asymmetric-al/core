@@ -1,4 +1,5 @@
 import { getAdminClient } from "@asym/database/supabase/admin";
+import { serverEnv } from "@asym/env";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -6,8 +7,8 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
   if (
-    process.env.CRON_SECRET &&
-    authHeader !== `Bearer ${process.env.CRON_SECRET}`
+    serverEnv.CRON_SECRET &&
+    authHeader !== `Bearer ${serverEnv.CRON_SECRET}`
   ) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

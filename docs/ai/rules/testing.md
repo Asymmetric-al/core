@@ -13,6 +13,7 @@ Use this when adding tests, modifying critical flows, or verifying changes.
 - **Unit tests:** Vitest (configured for `tests/unit/**/*.test.ts(x)`).
 - **Accessibility:** `@axe-core/playwright`.
 - **Performance:** Playwright-based Web Vitals assertions.
+- **Local CI parity:** Run `bun run ci:preflight` before push/PR-ready to mirror blocking GitHub checks.
 
 ## Branch protection (required)
 
@@ -28,8 +29,9 @@ See `docs/ci.md` for the full CI gate reference (what each check does, how to de
 
 1. Decide the test scope (unit, e2e, a11y, perf, or specific user flow).
 2. Add coverage to the appropriate Playwright specs if needed.
-3. Run the relevant Playwright command(s) before marking a PR ready.
-4. Fix failures before proceeding.
+3. Run `bun run ci:preflight` before push/PR-ready.
+4. Run the relevant Playwright command(s) before marking a PR ready.
+5. Fix failures before proceeding.
 
 ## Checklists
 
@@ -39,6 +41,7 @@ See `docs/ci.md` for the full CI gate reference (what each check does, how to de
 - [ ] Performance thresholds are preserved
 - [ ] Critical user flows have Playwright coverage
 - [ ] Unit tests added for new logic/utils where applicable
+- [ ] Local CI parity gate passed (`bun run ci:preflight`)
 
 ### Review checklist
 

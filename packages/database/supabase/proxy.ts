@@ -1,3 +1,4 @@
+import { serverEnv } from "@asym/env";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -5,8 +6,8 @@ export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    serverEnv.NEXT_PUBLIC_SUPABASE_URL,
+    serverEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       cookies: {
         getAll() {
@@ -58,7 +59,7 @@ export async function updateSession(request: NextRequest) {
 
   // 2. Subdomain Routing Logic (Conceptual)
   const hostname = request.headers.get("host") || "";
-  const mainDomain = process.env.NEXT_PUBLIC_MAIN_DOMAIN || "localhost:3000";
+  const mainDomain = serverEnv.NEXT_PUBLIC_MAIN_DOMAIN || "localhost:3000";
   const subdomain = hostname.split(".")[0];
 
   if (subdomain === "my" && hostname !== mainDomain) {
