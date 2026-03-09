@@ -39,3 +39,28 @@ if (diffResult.status !== 0) {
   );
   process.exit(diffResult.status ?? 1);
 }
+
+const untrackedResult = spawnSync(
+  "git",
+  [
+    "ls-files",
+    "--others",
+    "--exclude-standard",
+    "--",
+    ".agents/skills",
+    ".cursor/skills",
+  ],
+  { encoding: "utf8", stdio: ["inherit", "pipe", "inherit"] },
+);
+
+if (untrackedResult.error) {
+  throw untrackedResult.error;
+}
+
+if (untrackedResult.stdout.trim()) {
+  console.error(untrackedResult.stdout.trim());
+  console.error(
+    "Skill mirror drift detected. Run `bun run skills:sync` and commit mirror updates.",
+  );
+  process.exit(1);
+}

@@ -28,7 +28,28 @@ async function overlayDirectory(sourceDir, targetDir) {
 }
 
 async function listCanonicalSkillsForSync() {
-  const entries = await readdir(sourceRoot, { withFileTypes: true });
+  let entries;
+
+  try {
+    entries = await readdir(sourceRoot, { withFileTypes: true });
+  } catch (error) {
+    const errorCode =
+      typeof error === "object" && error !== null && "code" in error
+        ? String(error.code)
+        : "";
+
+    if (errorCode === "ENOENT") {
+      throw new Error(
+        `Canonical skill source directory not found: ${path.relative(repoRoot, sourceRoot)}`,
+      );
+    }
+
+    throw new Error(
+      `Unable to read canonical skill source directory: ${path.relative(repoRoot, sourceRoot)}`,
+      { cause: error },
+    );
+  }
+
   const skillNames = [];
 
   for (const entry of entries) {

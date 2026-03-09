@@ -22,12 +22,13 @@ bun run ci:preflight
 `ci:preflight` runs the same gate order as `.github/workflows/ci.yml`:
 
 1. `format:check`
-2. `lint`
-3. `verify:workspace-contract`
-4. `verify:eslint`
-5. `typecheck`
-6. `build` (with CI-compatible env defaults for local parity)
-7. `test:unit`
+2. `skills:verify`
+3. `lint`
+4. `verify:workspace-contract`
+5. `verify:eslint`
+6. `typecheck`
+7. `build` (with CI-compatible env defaults for local parity)
+8. `test:unit`
 
 This command is wired into `.husky/pre-push` so pushes fail fast when a blocking CI gate would fail in GitHub.
 
