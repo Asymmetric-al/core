@@ -163,9 +163,9 @@ describe("api/reads/donor-history", () => {
       error: null,
     });
 
-    await expect(
-      resolveDonorId(null, "tenant-1", "profile-1"),
-    ).resolves.toBe("donor-456");
+    await expect(resolveDonorId(null, "tenant-1", "profile-1")).resolves.toBe(
+      "donor-456",
+    );
     expect(donorLookupQuery.maybeSingle).toHaveBeenCalledTimes(1);
   });
 });
