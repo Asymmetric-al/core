@@ -65,8 +65,9 @@ bun.lock text eol=lf
 *.mp4 binary
 *.webm binary
 
-# Agent skill libraries are ignored by local formatting gates; leave untouched.
+# Agent skill mirrors: normalize to LF so CI sync matches committed files.
+.agents/** text eol=lf
+.cursor/skills/** text eol=lf
+.cursor/skills-cursor/** text eol=lf
+# Legacy agent dir (if present) leave untouched.
 .agent/** -text
-.agents/** -text
-.cursor/skills/** -text
-.cursor/skills-cursor/** -text
