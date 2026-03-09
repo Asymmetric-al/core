@@ -1,6 +1,5 @@
 import { execFileSync, execSync } from "node:child_process";
 import { cp, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
@@ -9,7 +8,9 @@ const repoRoot = process.cwd();
 const tempRoots: string[] = [];
 
 async function createTempRepo(prefix: string) {
-  const tempRoot = await mkdtemp(path.join(os.tmpdir(), `${prefix}-`));
+  const testRoot = path.join(repoRoot, ".tmp");
+  await mkdir(testRoot, { recursive: true });
+  const tempRoot = await mkdtemp(path.join(testRoot, `${prefix}-`));
   tempRoots.push(tempRoot);
   return tempRoot;
 }
