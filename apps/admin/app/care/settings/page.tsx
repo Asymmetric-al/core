@@ -1,6 +1,6 @@
 "use client";
 
-import { siteConfig } from "@asym/config/site";
+import { siteConfig } from "@asym/config/site-client";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {

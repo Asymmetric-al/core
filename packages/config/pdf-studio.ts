@@ -1,3 +1,5 @@
+import { clientEnv, runtimeEnvFlags } from "@asym/env";
+
 import type {
   UnlayerAppearance,
   UnlayerMergeTags,
@@ -54,8 +56,7 @@ export interface PDFStudioFullConfig {
 
 function getEnvironment(): "development" | "staging" | "production" {
   if (typeof window === "undefined") {
-    return (process.env.NODE_ENV as "development" | "production") ===
-      "production"
+    return runtimeEnvFlags.NODE_ENV === "production"
       ? "production"
       : "development";
   }
@@ -76,12 +77,12 @@ function getAllowedDomains(): string[] {
   domains.push("localhost");
   domains.push("127.0.0.1");
 
-  const customDomains = process.env.NEXT_PUBLIC_UNLAYER_ALLOWED_DOMAINS;
+  const customDomains = clientEnv.NEXT_PUBLIC_UNLAYER_ALLOWED_DOMAINS;
   if (customDomains) {
-    domains.push(...customDomains.split(",").map((d) => d.trim()));
+    domains.push(...customDomains.split(",").map((d: string) => d.trim()));
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const siteUrl = clientEnv.NEXT_PUBLIC_SITE_URL;
   if (siteUrl) {
     try {
       const url = new URL(siteUrl);
@@ -93,7 +94,7 @@ function getAllowedDomains(): string[] {
 }
 
 export function getUnlayerAccountConfig(): UnlayerAccountConfig {
-  const projectIdStr = process.env.NEXT_PUBLIC_UNLAYER_PROJECT_ID;
+  const projectIdStr = clientEnv.NEXT_PUBLIC_UNLAYER_PROJECT_ID;
   const projectId = projectIdStr ? parseInt(projectIdStr, 10) : null;
   const isValidProjectId =
     projectId !== null && !isNaN(projectId) && projectId > 0;
@@ -101,9 +102,7 @@ export function getUnlayerAccountConfig(): UnlayerAccountConfig {
   return {
     projectId: isValidProjectId ? projectId : null,
     isConfigured: isValidProjectId,
-    isWhiteLabel:
-      isValidProjectId &&
-      process.env.NEXT_PUBLIC_UNLAYER_WHITE_LABEL === "true",
+    isWhiteLabel: isValidProjectId && clientEnv.NEXT_PUBLIC_UNLAYER_WHITE_LABEL,
     allowedDomains: getAllowedDomains(),
     environment: getEnvironment(),
   };
@@ -111,13 +110,13 @@ export function getUnlayerAccountConfig(): UnlayerAccountConfig {
 
 export function getPDFStudioBrandConfig(): PDFStudioBrandConfig {
   return {
-    companyName: process.env.NEXT_PUBLIC_BRAND_NAME || "GiveHope",
-    logoUrl: process.env.NEXT_PUBLIC_BRAND_LOGO_URL,
-    primaryColor: process.env.NEXT_PUBLIC_BRAND_PRIMARY_COLOR || "#0f172a",
-    accentColor: process.env.NEXT_PUBLIC_BRAND_ACCENT_COLOR || "#2563eb",
+    companyName: clientEnv.NEXT_PUBLIC_BRAND_NAME || "GiveHope",
+    logoUrl: clientEnv.NEXT_PUBLIC_BRAND_LOGO_URL,
+    primaryColor: clientEnv.NEXT_PUBLIC_BRAND_PRIMARY_COLOR || "#0f172a",
+    accentColor: clientEnv.NEXT_PUBLIC_BRAND_ACCENT_COLOR || "#2563eb",
     footerText:
-      process.env.NEXT_PUBLIC_PDF_FOOTER_TEXT ||
-      process.env.NEXT_PUBLIC_EMAIL_FOOTER_TEXT,
+      clientEnv.NEXT_PUBLIC_PDF_FOOTER_TEXT ||
+      clientEnv.NEXT_PUBLIC_EMAIL_FOOTER_TEXT,
   };
 }
 

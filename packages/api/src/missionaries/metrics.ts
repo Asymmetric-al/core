@@ -1,3 +1,4 @@
+import { serverEnv } from "@asym/env";
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -62,8 +63,8 @@ function isPermissionError(error: { code?: string; message?: string } | null) {
 
 function createAuthClient(request: NextRequest) {
   const pendingCookies: PendingCookie[] = [];
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseUrl = serverEnv.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = serverEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
     return { supabase: null, pendingCookies };
