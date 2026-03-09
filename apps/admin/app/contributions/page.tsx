@@ -1,9 +1,9 @@
 import {
   getDonorHistory,
+  resolveDonorId,
   type DonorHistoryItem,
 } from "@asym/api/reads/donor-history";
 import { getAuthContext } from "@asym/auth/context";
-import { getAdminClient } from "@asym/database/supabase/admin";
 
 import { ContributionsClient } from "./contributions-client";
 
@@ -88,38 +88,6 @@ function mapDonorHistoryItemToContribution(
     createdAt: item.createdAt,
     updatedAt: item.createdAt,
   };
-}
-
-async function resolveDonorId(
-  queryDonorId: string | null,
-  tenantId: string,
-  profileId: string | null,
-): Promise<string | null> {
-  if (queryDonorId) {
-    return queryDonorId;
-  }
-
-  if (!profileId) {
-    return null;
-  }
-
-  const { client, error } = getAdminClient();
-  if (!client || error) {
-    return null;
-  }
-
-  const { data, error: donorLookupError } = await client
-    .from("donors")
-    .select("id")
-    .eq("tenant_id", tenantId)
-    .eq("profile_id", profileId)
-    .maybeSingle<{ id: string }>();
-
-  if (donorLookupError || !data?.id) {
-    return null;
-  }
-
-  return data.id;
 }
 
 export default async function ContributionsPage({

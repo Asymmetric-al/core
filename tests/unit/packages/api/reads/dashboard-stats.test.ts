@@ -45,15 +45,37 @@ describe("api/reads/dashboard-stats", () => {
   });
 
   it("returns dashboard stats on the happy path", async () => {
+    const donorCountQuery = createThenableQuery({
+      data: null,
+      count: 3,
+      error: null,
+    });
+    const missionaryCountQuery = createThenableQuery({
+      data: null,
+      count: 2,
+      error: null,
+    });
+    const donationCountQuery = createThenableQuery({
+      data: null,
+      count: 5,
+      error: null,
+    });
+    const revenueQuery = createThenableQuery({
+      data: [{ amount: 120 }, { amount: 80 }, { amount: null }],
+      error: null,
+    });
+    const activeFundsQuery = createThenableQuery({
+      data: null,
+      count: 4,
+      error: null,
+    });
+
     const queries = [
-      createThenableQuery({ data: null, count: 3, error: null }),
-      createThenableQuery({ data: null, count: 2, error: null }),
-      createThenableQuery({ data: null, count: 5, error: null }),
-      createThenableQuery({
-        data: [{ amount: 120 }, { amount: 80 }, { amount: null }],
-        error: null,
-      }),
-      createThenableQuery({ data: null, count: 4, error: null }),
+      donorCountQuery,
+      missionaryCountQuery,
+      donationCountQuery,
+      revenueQuery,
+      activeFundsQuery,
     ];
 
     const from = vi.fn(() => queries.shift());
@@ -71,6 +93,7 @@ describe("api/reads/dashboard-stats", () => {
       revenueThisMonth: 200,
       activeFundsCount: 4,
     });
+    expect(revenueQuery.eq).toHaveBeenCalledWith("tenant_id", "tenant-1");
     expect(from).toHaveBeenCalledTimes(5);
   });
 

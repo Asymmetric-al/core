@@ -25,6 +25,10 @@ type DonationRow = {
   created_at: string | null;
 };
 
+type DonorRow = {
+  id: string;
+};
+
 function toErrorMessage(error: QueryError, fallback: string): string {
   return error?.message || fallback;
 }
@@ -110,4 +114,44 @@ export async function getDonorHistory(
     offset,
     hasMore: offset + data.length < total,
   };
+}
+
+export async function resolveDonorId(
+  queryDonorId: string | null,
+  tenantId: string,
+  profileId: string | null,
+): Promise<string | null> {
+  "use cache";
+
+  if (queryDonorId) {
+    return queryDonorId;
+  }
+
+  if (!profileId) {
+    return null;
+  }
+
+  applyCacheMetadata([
+    "donor-profile",
+    `tenant:${tenantId}`,
+    `profile:${profileId}`,
+  ]);
+
+  const { client, error } = getAdminClient();
+  if (!client || error) {
+    return null;
+  }
+
+  const { data, error: donorLookupError } = await client
+    .from("donors")
+    .select("id")
+    .eq("tenant_id", tenantId)
+    .eq("profile_id", profileId)
+    .maybeSingle<DonorRow>();
+
+  if (donorLookupError || !data?.id) {
+    return null;
+  }
+
+  return data.id;
 }

@@ -1,6 +1,7 @@
-import { getDashboardStats } from "@asym/api/reads/dashboard-stats";
 import { getAuthContext } from "@asym/auth/context";
 import { DashboardHome } from "@asym/missionary/components/dashboard-home";
+
+import { loadDashboardStats } from "./dashboard-stats-loader";
 
 import { AdminDashboardStatsSection } from "@/features/mission-control/components/AdminDashboardStatsSection";
 
@@ -11,7 +12,11 @@ export default async function MissionControlDashboard() {
     return <DashboardHome />;
   }
 
-  const stats = await getDashboardStats(auth.tenantId);
+  const stats = await loadDashboardStats(auth.tenantId);
+
+  if (!stats) {
+    return <DashboardHome />;
+  }
 
   return (
     <>

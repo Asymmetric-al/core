@@ -1,5 +1,30 @@
 # Working Set
 
+## 2026-03-09
+
+- Date: 2026-03-09
+- Repo: Asymmetric-al/core
+- Goal: Finish PR #67 for merge by keeping the new donor-specific contributions direction, adding safe dashboard KPI fallback behavior, moving donor lookup into `packages/api/src/reads`, and removing the Greptile informer workflow.
+- Primary area: `packages/api/src/reads/*`, `apps/admin/app/page.tsx`, `apps/admin/app/contributions/page.tsx`, `tests/unit/packages/api/reads/*`, `tests/unit/apps/admin/app/*`, `.github/workflows/greptile-informer.yml`
+- Constraints:
+  - Keep `/contributions` donor-specific for this PR.
+  - Preserve the existing dashboard shell when KPI stats fail to load.
+  - Keep current placeholder contribution labels and visible bulk-action stubs.
+  - Move page-level admin-client access into `packages/api/src/reads`.
+- Evidence sources used:
+  - `apps/admin/app/page.tsx`
+  - `apps/admin/app/contributions/page.tsx`
+  - `apps/admin/app/contributions/contributions-client.tsx`
+  - `apps/admin/app/mc-shell.tsx`
+  - `packages/api/src/reads/{dashboard-stats,donor-history,missionary-metrics}.ts`
+  - `tests/unit/packages/api/reads/*`
+  - `docs/guides/architecture/db-client-usage-matrix.md`
+  - `.next-docs/01-app/01-getting-started/10-error-handling.mdx`
+  - `.next-docs/01-app/03-api-reference/03-file-conventions/error.mdx`
+- Notes:
+  - Nia repo-scoped search workflow is required by `AGENTS.md`, but Nia tools are not available in this session; using `rg`, `git grep`, and direct file reads as fallback.
+  - PR #67 is currently merge-conflicting with `epic`, so code fixes and rebase readiness need to be evaluated separately.
+
 ## 2026-02-23
 
 - Date: 2026-02-23
