@@ -31,6 +31,8 @@ Use `withOperation` for `POST`, `PATCH`, `PUT`, and `DELETE` handlers in
 
 - `GET` handlers, unless they already require the same auth/admin/audit setup.
 - Health endpoints under `packages/api/src/health/`.
+- Read-only demo or stub handlers that always return a fixed response and do not
+  run domain logic.
 - Any handler outside `packages/api/`.
 
 ## Import Path Rule
@@ -60,4 +62,5 @@ Do not export `withOperation` from `packages/api/package.json`.
 4. Remove duplicate imports now handled by the wrapper
    (`getAdminClient`, auth guards, audit logger setup).
 5. Preserve existing status codes and response payloads from domain logic.
-6. Add or update tests for auth/admin failure paths and successful passthrough.
+6. Keep fixed-response demo/stub handlers as plain route functions.
+7. Add or update tests for auth/admin failure paths and successful passthrough.
