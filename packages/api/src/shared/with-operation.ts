@@ -56,7 +56,7 @@ export function withOperation(
       const auth = authContext;
       const audit = createAuditLogger(auth, request);
 
-      return handler({
+      return await handler({
         supabaseAdmin,
         auth,
         audit,

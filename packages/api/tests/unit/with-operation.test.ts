@@ -191,4 +191,24 @@ describe("withOperation", () => {
     expect(body).toEqual({ ok: true });
     expect(mockedCreateAuditLogger).toHaveBeenCalledTimes(1);
   });
+
+  it("normalizes async handler failures with requestId", async () => {
+    mockedGetAdminClient.mockReturnValue({
+      client: {} as never,
+      error: null,
+    });
+    mockedGetAuthContext.mockResolvedValue(authenticatedAdmin);
+
+    const handler = withOperation(async () => {
+      await Promise.resolve();
+      throw new Error("Database exploded");
+    });
+
+    const response = await handler(createRequest());
+
+    expect(response.status).toBe(500);
+    const body = await response.json();
+    expect(body).toMatchObject({ error: "Database exploded" });
+    expectBodyHasRequestId(body);
+  });
 });
