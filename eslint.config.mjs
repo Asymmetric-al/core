@@ -137,7 +137,7 @@ const eslintConfig = defineConfig([
   },
   {
     // Approved exception: health routes are minimal probes; see data-access-boundary.md
-    files: ["apps/*/app/api/health/route.ts"],
+    files: ["apps/*/app/api/health/route.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
     rules: {
       "no-restricted-imports": "off",
     },

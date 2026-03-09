@@ -29,6 +29,7 @@ jobs:
           restore-keys: turbo-${{ runner.os }}-
       - run: bun install --frozen-lockfile
       - run: bun run format:check
+      - run: bun run skills:verify
 
   lint:
     runs-on: ubuntu-latest
