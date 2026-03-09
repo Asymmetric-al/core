@@ -136,6 +136,12 @@ const eslintConfig = defineConfig([
     },
   },
   {
+    files: ["apps/*/app/api/health/route.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
+    rules: {
+      "no-restricted-imports": "off",
+    },
+  },
+  {
     ignores: ["out/**", "**/out/**", "next-env.d.ts"],
   },
 ]);

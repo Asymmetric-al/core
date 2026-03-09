@@ -8,8 +8,11 @@ import { serverEnv } from "@asym/env";
 import { type NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
+import { findOrCreateDonor } from "./queries";
+import { findMissionaryById } from "../missionaries/queries";
 import { donateGetQuerySchema, donatePostSchema } from "../schemas/donate";
 import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
+import { findDonorByProfileId, findProfileById } from "../shared/queries";
 import { withOperation } from "../shared/with-operation";
 
 function getStripeClient(secretKey: string): Stripe {
@@ -46,42 +49,26 @@ export const POST = withOperation(
 
       const stripe = getStripeClient(stripeSecretKey);
 
-      const { data: donor, error: donorError } = await supabaseAdmin
-        .from("donors")
-        .select("id, stripe_customer_id, profile_id")
-        .eq("profile_id", ctx.profileId)
-        .eq("tenant_id", ctx.tenantId)
-        .single();
+      const { data: donorRecord, error: donorError } = await findOrCreateDonor(
+        supabaseAdmin,
+        ctx.profileId,
+        ctx.tenantId,
+      );
 
-      let donorRecord = donor;
-      if (donorError || !donor) {
-        const { data: newDonor, error: createError } = await supabaseAdmin
-          .from("donors")
-          .insert({
-            tenant_id: ctx.tenantId,
-            profile_id: ctx.profileId,
-            giving_preferences: {},
-            total_given: 0,
-          })
-          .select("id, stripe_customer_id, profile_id")
-          .single();
-
-        if (createError || !newDonor) {
-          return NextResponse.json(
-            { error: "Failed to create donor record" },
-            { status: 500 },
-          );
-        }
-        donorRecord = newDonor;
+      if (donorError || !donorRecord) {
+        return NextResponse.json(
+          { error: "Failed to create donor record" },
+          { status: 500 },
+        );
       }
 
-      const { data: profile } = await supabaseAdmin
-        .from("profiles")
-        .select("email, first_name, last_name")
-        .eq("id", ctx.profileId)
-        .single();
+      const { data: profile } = await findProfileById(
+        supabaseAdmin,
+        ctx.profileId,
+        ctx.tenantId,
+      );
 
-      let stripeCustomerId = donorRecord?.stripe_customer_id;
+      let stripeCustomerId = donorRecord.stripe_customer_id;
 
       if (!stripeCustomerId) {
         const customer = await stripe.customers.create({
@@ -90,7 +77,7 @@ export const POST = withOperation(
             ? `${profile.first_name} ${profile.last_name}`
             : undefined,
           metadata: {
-            donor_id: donorRecord!.id,
+            donor_id: donorRecord.id,
             tenant_id: ctx.tenantId,
             user_id: ctx.userId,
           },
@@ -100,16 +87,15 @@ export const POST = withOperation(
         await supabaseAdmin
           .from("donors")
           .update({ stripe_customer_id: stripeCustomerId })
-          .eq("id", donorRecord!.id);
+          .eq("id", donorRecord.id);
       }
 
       if (missionary_id) {
-        const { data: missionary } = await supabaseAdmin
-          .from("missionaries")
-          .select("id")
-          .eq("id", missionary_id)
-          .eq("tenant_id", ctx.tenantId)
-          .single();
+        const { data: missionary } = await findMissionaryById(
+          supabaseAdmin,
+          missionary_id,
+          ctx.tenantId,
+        );
 
         if (!missionary) {
           return NextResponse.json(
@@ -143,7 +129,7 @@ export const POST = withOperation(
         currency: currency.toLowerCase(),
         customer: stripeCustomerId,
         metadata: {
-          donor_id: donorRecord!.id,
+          donor_id: donorRecord.id,
           missionary_id: missionary_id || "",
           fund_id: fund_id || "",
           tenant_id: ctx.tenantId,
@@ -156,7 +142,7 @@ export const POST = withOperation(
         .from("donations")
         .insert({
           tenant_id: ctx.tenantId,
-          donor_id: donorRecord!.id,
+          donor_id: donorRecord.id,
           missionary_id: missionary_id || null,
           fund_id: fund_id || null,
           amount: amountInCents,
@@ -213,12 +199,11 @@ export async function GET(request: NextRequest) {
         fund_id: searchParams.get("fund_id"),
       });
 
-    const { data: donor } = await supabaseAdmin
-      .from("donors")
-      .select("id")
-      .eq("profile_id", ctx.profileId)
-      .eq("tenant_id", ctx.tenantId)
-      .single();
+    const { data: donor } = await findDonorByProfileId(
+      supabaseAdmin,
+      ctx.profileId,
+      ctx.tenantId,
+    );
 
     let designations: { missionaries: unknown[]; funds: unknown[] } = {
       missionaries: [],
@@ -231,8 +216,8 @@ export async function GET(request: NextRequest) {
           .from("missionaries")
           .select(
             `
-            id, 
-            funding_goal, 
+            id,
+            funding_goal,
             current_funding,
             profile:profiles!profile_id(first_name, last_name, avatar_url)
           `,
@@ -264,8 +249,8 @@ export async function GET(request: NextRequest) {
         .from("missionaries")
         .select(
           `
-          id, 
-          funding_goal, 
+          id,
+          funding_goal,
           current_funding,
           profile:profiles!profile_id(first_name, last_name, avatar_url)
         `,
@@ -288,7 +273,7 @@ export async function GET(request: NextRequest) {
       designations,
       donor: donor || null,
     });
-  } catch (e) {
-    return toErrorResponse(e);
+  } catch (error) {
+    return toErrorResponse(error);
   }
 }

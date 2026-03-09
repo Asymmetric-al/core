@@ -6,6 +6,7 @@ import {
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { getPostReactionStatus } from "./queries";
 import { postsQuerySchema } from "../schemas/posts";
 import { toErrorResponse } from "../shared/http-errors";
 
@@ -53,32 +54,10 @@ export async function GET(request: NextRequest) {
     const postIds = (posts || []).map((p: { id: string }) => p.id);
     if (postIds.length === 0) return NextResponse.json({ posts: [] });
 
-    const { data: likes } = await supabaseAdmin
-      .from("post_likes")
-      .select("post_id")
-      .in("post_id", postIds)
-      .eq("user_id", ctx.userId);
-
-    const { data: prayers } = await supabaseAdmin
-      .from("post_prayers")
-      .select("post_id")
-      .in("post_id", postIds)
-      .eq("user_id", ctx.userId);
-
-    const { data: fires } = await supabaseAdmin
-      .from("post_fires")
-      .select("post_id")
-      .in("post_id", postIds)
-      .eq("user_id", ctx.userId);
-
-    const likedSet = new Set(
-      (likes || []).map((l: { post_id: string }) => l.post_id),
-    );
-    const prayedSet = new Set(
-      (prayers || []).map((p: { post_id: string }) => p.post_id),
-    );
-    const firedSet = new Set(
-      (fires || []).map((f: { post_id: string }) => f.post_id),
+    const { likedSet, prayedSet, firedSet } = await getPostReactionStatus(
+      supabaseAdmin,
+      postIds,
+      ctx.userId,
     );
 
     const postsWithStatus = (posts || []).map((post: { id: string }) => ({
