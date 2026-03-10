@@ -4,6 +4,7 @@ import {
   type DonorHistoryItem,
 } from "@asym/api/reads/donor-history";
 import { getAuthContext } from "@asym/auth/context";
+import * as React from "react";
 
 import { ContributionsClient } from "./contributions-client";
 
@@ -96,7 +97,12 @@ export default async function ContributionsPage({
   const auth = await getAuthContext();
 
   if (!auth.isAuthenticated || !auth.tenantId) {
-    return <ContributionsClient initialData={[]} />;
+    return (
+      <ContributionsClient
+        initialData={[]}
+        errorMessage="Sign in to view contributions."
+      />
+    );
   }
 
   const resolvedSearchParams = await searchParams;
@@ -107,19 +113,41 @@ export default async function ContributionsPage({
   );
 
   if (!donorId) {
-    return <ContributionsClient initialData={[]} />;
+    return (
+      <ContributionsClient
+        initialData={[]}
+        errorMessage="You do not have permission to view these contributions."
+      />
+    );
   }
 
-  const donorHistory = await getDonorHistory(donorId, auth.tenantId, {
+  const donorHistoryResult = await getDonorHistory(donorId, auth.tenantId, {
     limit: 20,
     offset: 0,
-  }).catch(() => null);
+  })
+    .then((data) => ({ data, errorMessage: null as string | null }))
+    .catch((error: unknown) => ({
+      data: null,
+      errorMessage:
+        error instanceof Error
+          ? error.message
+          : "Failed to load contributions.",
+    }));
 
-  const initialData = donorHistory
-    ? donorHistory.data.map((item) =>
-        mapDonorHistoryItemToContribution(item, donorId),
-      )
-    : [];
+  if (donorHistoryResult.errorMessage || !donorHistoryResult.data) {
+    return (
+      <ContributionsClient
+        initialData={[]}
+        errorMessage={
+          donorHistoryResult.errorMessage || "Failed to load contributions."
+        }
+      />
+    );
+  }
+
+  const initialData = donorHistoryResult.data.data.map((item) =>
+    mapDonorHistoryItemToContribution(item, donorId),
+  );
 
   return <ContributionsClient initialData={initialData} />;
 }

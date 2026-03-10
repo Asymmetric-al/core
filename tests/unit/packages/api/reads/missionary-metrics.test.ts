@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+﻿import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { getAdminClientMock } = vi.hoisted(() => ({
   getAdminClientMock: vi.fn(),
@@ -25,6 +25,7 @@ function createThenableQuery<T>(result: QueryResult<T>) {
   const query: {
     select: ReturnType<typeof vi.fn>;
     eq: ReturnType<typeof vi.fn>;
+    in: ReturnType<typeof vi.fn>;
     gte: ReturnType<typeof vi.fn>;
     order: ReturnType<typeof vi.fn>;
     maybeSingle: ReturnType<typeof vi.fn>;
@@ -32,6 +33,7 @@ function createThenableQuery<T>(result: QueryResult<T>) {
   } = {
     select: vi.fn(() => query),
     eq: vi.fn(() => query),
+    in: vi.fn(() => query),
     gte: vi.fn(() => query),
     order: vi.fn(() => query),
     maybeSingle: vi.fn(() => Promise.resolve(result)),
@@ -57,30 +59,40 @@ describe("api/reads/missionary-metrics", () => {
       Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 10),
     ).toISOString();
 
+    const missionaryQuery = createThenableQuery({
+      data: { id: "missionary-1", profile_id: "profile-1" },
+      error: null,
+    });
+    const followerCountQuery = createThenableQuery({
+      data: null,
+      count: 12,
+      error: null,
+    });
+    const postsQuery = createThenableQuery({
+      data: [
+        { id: "post-1", like_count: 2, prayer_count: 3, comment_count: 1 },
+        { id: "post-2", like_count: 1, prayer_count: 0, comment_count: 4 },
+      ],
+      error: null,
+    });
+    const donationTotalsQuery = createThenableQuery({
+      data: [{ amount: 125 }, { amount: 75 }],
+      error: null,
+    });
+    const donationSeriesQuery = createThenableQuery({
+      data: [
+        { amount: 125, created_at: thisMonthDate },
+        { amount: 75, created_at: lastMonthDate },
+      ],
+      error: null,
+    });
+
     const queries = [
-      createThenableQuery({
-        data: { id: "missionary-1", profile_id: "profile-1" },
-        error: null,
-      }),
-      createThenableQuery({ data: null, count: 12, error: null }),
-      createThenableQuery({
-        data: [
-          { id: "post-1", like_count: 2, prayer_count: 3, comment_count: 1 },
-          { id: "post-2", like_count: 1, prayer_count: 0, comment_count: 4 },
-        ],
-        error: null,
-      }),
-      createThenableQuery({
-        data: [{ amount: 125 }, { amount: 75 }],
-        error: null,
-      }),
-      createThenableQuery({
-        data: [
-          { amount: 125, created_at: thisMonthDate },
-          { amount: 75, created_at: lastMonthDate },
-        ],
-        error: null,
-      }),
+      missionaryQuery,
+      followerCountQuery,
+      postsQuery,
+      donationTotalsQuery,
+      donationSeriesQuery,
     ];
 
     const from = vi.fn(() => queries.shift());
@@ -102,6 +114,16 @@ describe("api/reads/missionary-metrics", () => {
     expect(result.donationsLast13Months.some((point) => point.amount > 0)).toBe(
       true,
     );
+    expect(donationTotalsQuery.in).toHaveBeenCalledWith("status", [
+      "completed",
+      "succeeded",
+      "success",
+    ]);
+    expect(donationSeriesQuery.in).toHaveBeenCalledWith("status", [
+      "completed",
+      "succeeded",
+      "success",
+    ]);
     expect(from).toHaveBeenCalledTimes(5);
   });
 

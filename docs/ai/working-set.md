@@ -1,5 +1,30 @@
 # Working Set
 
+## 2026-03-10
+
+- Date: 2026-03-10
+- Repo: Asymmetric-al/core
+- Goal: Reconcile PR #68 with current `epic`, keep donor-specific contributions, share settled-status KPI handling, and resolve merge conflicts for admin merge.
+- Primary area: `apps/admin/app/{page,contributions/page}.tsx`, `apps/admin/app/contributions/contributions-client.tsx`, `apps/admin/features/mission-control/components/AdminDashboardStatsSection.tsx`, `packages/api/src/reads/*`, `tests/unit/{apps/admin/app,packages/api/reads}/*`
+- Constraints:
+  - Keep `/contributions` donor-specific and validate `donorId` against the signed-in donor profile.
+  - Preserve the existing dashboard shell when KPI stats fail to load.
+  - Keep explicit contribution load failures visible in the UI.
+  - Use one shared settled-status source for dashboard and missionary metrics.
+  - Leave the tenant-wide contributions implementation out of this PR.
+- Evidence sources used:
+  - `apps/admin/app/page.tsx`
+  - `apps/admin/app/contributions/page.tsx`
+  - `apps/admin/app/contributions/contributions-client.tsx`
+  - `apps/admin/features/mission-control/components/AdminDashboardStatsSection.tsx`
+  - `packages/api/src/reads/{dashboard-stats,donor-history,missionary-metrics}.ts`
+  - `tests/unit/packages/api/reads/*`
+  - `tests/unit/apps/admin/app/*`
+  - `.next-docs/01-app/01-getting-started/{03-layouts-and-pages,06-cache-components,10-error-handling}.mdx`
+- Notes:
+  - Nia repo-scoped search workflow is required by `AGENTS.md`, but Nia tools are not available in this session; using `rg`, `git grep`, and direct file reads as fallback.
+  - PR #68 required conflict resolution against `epic` before merge.
+
 ## 2026-03-09
 
 - Date: 2026-03-09
@@ -24,8 +49,6 @@
 - Notes:
   - Nia repo-scoped search workflow is required by `AGENTS.md`, but Nia tools are not available in this session; using `rg`, `git grep`, and direct file reads as fallback.
   - PR #67 is currently merge-conflicting with `epic`, so code fixes and rebase readiness need to be evaluated separately.
-
-## 2026-02-23
 
 - Date: 2026-02-23
 - Repo: Asymmetric-al/core

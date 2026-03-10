@@ -1,4 +1,4 @@
-# Technical Decisions
+﻿# Technical Decisions
 
 ## React Compiler Enablement (Annotation Mode)
 

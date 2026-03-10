@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+﻿import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { getAdminClientMock } = vi.hoisted(() => ({
   getAdminClientMock: vi.fn(),
@@ -145,13 +145,6 @@ describe("api/reads/donor-history", () => {
     ).rejects.toThrow("history query failed");
   });
 
-  it("returns the explicit donor id without performing a lookup", async () => {
-    await expect(
-      resolveDonorId("donor-123", "tenant-1", "profile-1"),
-    ).resolves.toBe("donor-123");
-    expect(getAdminClientMock).not.toHaveBeenCalled();
-  });
-
   it("looks up the donor id from the profile id", async () => {
     const donorLookupQuery = createThenableQuery({
       data: { id: "donor-456" },
@@ -167,5 +160,38 @@ describe("api/reads/donor-history", () => {
       "donor-456",
     );
     expect(donorLookupQuery.maybeSingle).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns the explicit donor id only when it matches the signed-in profile", async () => {
+    const donorLookupQuery = createThenableQuery({
+      data: { id: "donor-123" },
+      error: null,
+    });
+
+    getAdminClientMock.mockReturnValue({
+      client: { from: vi.fn(() => donorLookupQuery) } as never,
+      error: null,
+    });
+
+    await expect(
+      resolveDonorId("donor-123", "tenant-1", "profile-1"),
+    ).resolves.toBe("donor-123");
+    expect(donorLookupQuery.maybeSingle).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects an explicit donor id that does not match the signed-in profile", async () => {
+    const donorLookupQuery = createThenableQuery({
+      data: { id: "donor-456" },
+      error: null,
+    });
+
+    getAdminClientMock.mockReturnValue({
+      client: { from: vi.fn(() => donorLookupQuery) } as never,
+      error: null,
+    });
+
+    await expect(
+      resolveDonorId("donor-123", "tenant-1", "profile-1"),
+    ).resolves.toBeNull();
   });
 });

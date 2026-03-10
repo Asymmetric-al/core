@@ -1,6 +1,8 @@
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { cacheLife, cacheTag } from "next/cache";
 
+import { SETTLED_DONATION_STATUSES } from "./settled-donation-statuses";
+
 type QueryError = { message?: string } | null;
 
 export interface DashboardStats {
@@ -68,11 +70,13 @@ export async function getDashboardStats(
       .from("donations")
       .select("id", { count: "exact", head: true })
       .eq("tenant_id", tenantId)
+      .in("status", [...SETTLED_DONATION_STATUSES])
       .gte("created_at", monthStartIso),
     client
       .from("donations")
       .select("amount")
       .eq("tenant_id", tenantId)
+      .in("status", [...SETTLED_DONATION_STATUSES])
       .gte("created_at", monthStartIso),
     client
       .from("funds")

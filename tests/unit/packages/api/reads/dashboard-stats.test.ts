@@ -25,11 +25,13 @@ function createThenableQuery<T>(result: QueryResult<T>) {
   const query: {
     select: ReturnType<typeof vi.fn>;
     eq: ReturnType<typeof vi.fn>;
+    in: ReturnType<typeof vi.fn>;
     gte: ReturnType<typeof vi.fn>;
     then?: PromiseLike<QueryResult<T>>["then"];
   } = {
     select: vi.fn(() => query),
     eq: vi.fn(() => query),
+    in: vi.fn(() => query),
     gte: vi.fn(() => query),
   };
 
@@ -69,7 +71,6 @@ describe("api/reads/dashboard-stats", () => {
       count: 4,
       error: null,
     });
-
     const queries = [
       donorCountQuery,
       missionaryCountQuery,
@@ -93,7 +94,16 @@ describe("api/reads/dashboard-stats", () => {
       revenueThisMonth: 200,
       activeFundsCount: 4,
     });
-    expect(revenueQuery.eq).toHaveBeenCalledWith("tenant_id", "tenant-1");
+    expect(donationCountQuery.in).toHaveBeenCalledWith("status", [
+      "completed",
+      "succeeded",
+      "success",
+    ]);
+    expect(revenueQuery.in).toHaveBeenCalledWith("status", [
+      "completed",
+      "succeeded",
+      "success",
+    ]);
     expect(from).toHaveBeenCalledTimes(5);
   });
 

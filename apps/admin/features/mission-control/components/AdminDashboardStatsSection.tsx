@@ -39,13 +39,13 @@ export function AdminDashboardStatsSection({
       id: "month-donation-count",
       label: "Donations This Month",
       value: stats.totalDonationsThisMonth.toLocaleString(),
-      hint: "Created since month start",
+      hint: "Settled since month start",
     },
     {
       id: "month-revenue",
       label: "Revenue This Month",
       value: formatCurrency(stats.revenueThisMonth),
-      hint: "Sum of monthly donation amounts",
+      hint: "Sum of settled donation amounts",
     },
     {
       id: "active-funds",

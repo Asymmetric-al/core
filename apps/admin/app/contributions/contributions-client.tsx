@@ -46,9 +46,13 @@ const statusIcons = {
 
 type ContributionsClientProps = {
   initialData: Contribution[];
+  errorMessage?: string;
 };
 
-export function ContributionsClient({ initialData }: ContributionsClientProps) {
+export function ContributionsClient({
+  initialData,
+  errorMessage,
+}: ContributionsClientProps) {
   const [data] = useState<Contribution[]>(initialData);
   const [isLoading] = useState(false);
 
@@ -148,6 +152,16 @@ export function ContributionsClient({ initialData }: ContributionsClientProps) {
             </Button>
           </div>
         </div>
+
+        {errorMessage && (
+          <Card className="border-red-200 bg-red-50/70 shadow-sm dark:border-red-900 dark:bg-red-950/30">
+            <CardContent className="py-4">
+              <p className="text-sm font-medium text-red-700 dark:text-red-300">
+                Unable to load contributions: {errorMessage}
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
           <Card className="border-border/50 shadow-sm">

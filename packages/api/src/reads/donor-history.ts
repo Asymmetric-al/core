@@ -1,4 +1,4 @@
-import { getAdminClient } from "@asym/database/supabase/admin";
+﻿import { getAdminClient } from "@asym/database/supabase/admin";
 import { cacheLife, cacheTag } from "next/cache";
 
 import { type PaginatedResult, type PaginationParams } from "./types";
@@ -123,10 +123,6 @@ export async function resolveDonorId(
 ): Promise<string | null> {
   "use cache";
 
-  if (queryDonorId) {
-    return queryDonorId;
-  }
-
   if (!profileId) {
     return null;
   }
@@ -150,6 +146,10 @@ export async function resolveDonorId(
     .maybeSingle<DonorRow>();
 
   if (donorLookupError || !data?.id) {
+    return null;
+  }
+
+  if (queryDonorId && queryDonorId !== data.id) {
     return null;
   }
 
