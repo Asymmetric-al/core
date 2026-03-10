@@ -14,8 +14,6 @@ const targetRoots = [
   path.join(repoRoot, ".cursor", "skills"),
 ];
 
-];
-
 async function overlayDirectory(sourceDir, targetDir) {
   await mkdir(targetDir, { recursive: true });
   const sourceEntries = await readdir(sourceDir, { withFileTypes: true });
