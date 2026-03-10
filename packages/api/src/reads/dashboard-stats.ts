@@ -1,12 +1,9 @@
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { cacheLife, cacheTag } from "next/cache";
 
+import { SETTLED_DONATION_STATUSES } from "./settled-donation-statuses";
+
 type QueryError = { message?: string } | null;
-const SETTLED_DONATION_STATUSES = [
-  "completed",
-  "succeeded",
-  "success",
-] as const;
 
 export interface DashboardStats {
   totalDonors: number;

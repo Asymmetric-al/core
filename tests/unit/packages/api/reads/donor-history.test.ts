@@ -13,7 +13,10 @@ vi.mock("next/cache", () => ({
   cacheLife: vi.fn(),
 }));
 
-import { getDonorHistory } from "../../../../../packages/api/src/reads/donor-history";
+import {
+  getDonorHistory,
+  resolveDonorId,
+} from "../../../../../packages/api/src/reads/donor-history";
 
 type QueryResult<T> = {
   data: T;
@@ -27,12 +30,14 @@ function createThenableQuery<T>(result: QueryResult<T>) {
     eq: ReturnType<typeof vi.fn>;
     order: ReturnType<typeof vi.fn>;
     range: ReturnType<typeof vi.fn>;
+    maybeSingle: ReturnType<typeof vi.fn>;
     then?: PromiseLike<QueryResult<T>>["then"];
   } = {
     select: vi.fn(() => query),
     eq: vi.fn(() => query),
     order: vi.fn(() => query),
     range: vi.fn(() => query),
+    maybeSingle: vi.fn(() => Promise.resolve(result)),
   };
 
   query.then = (onFulfilled, onRejected) =>
@@ -138,5 +143,55 @@ describe("api/reads/donor-history", () => {
     await expect(
       getDonorHistory("donor-1", "tenant-1", { limit: 20, offset: 0 }),
     ).rejects.toThrow("history query failed");
+  });
+
+  it("looks up the donor id from the profile id", async () => {
+    const donorLookupQuery = createThenableQuery({
+      data: { id: "donor-456" },
+      error: null,
+    });
+
+    getAdminClientMock.mockReturnValue({
+      client: { from: vi.fn(() => donorLookupQuery) } as never,
+      error: null,
+    });
+
+    await expect(resolveDonorId(null, "tenant-1", "profile-1")).resolves.toBe(
+      "donor-456",
+    );
+    expect(donorLookupQuery.maybeSingle).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns the explicit donor id only when it matches the signed-in profile", async () => {
+    const donorLookupQuery = createThenableQuery({
+      data: { id: "donor-123" },
+      error: null,
+    });
+
+    getAdminClientMock.mockReturnValue({
+      client: { from: vi.fn(() => donorLookupQuery) } as never,
+      error: null,
+    });
+
+    await expect(
+      resolveDonorId("donor-123", "tenant-1", "profile-1"),
+    ).resolves.toBe("donor-123");
+    expect(donorLookupQuery.maybeSingle).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects an explicit donor id that does not match the signed-in profile", async () => {
+    const donorLookupQuery = createThenableQuery({
+      data: { id: "donor-456" },
+      error: null,
+    });
+
+    getAdminClientMock.mockReturnValue({
+      client: { from: vi.fn(() => donorLookupQuery) } as never,
+      error: null,
+    });
+
+    await expect(
+      resolveDonorId("donor-123", "tenant-1", "profile-1"),
+    ).resolves.toBeNull();
   });
 });
