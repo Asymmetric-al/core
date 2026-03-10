@@ -119,6 +119,8 @@ export async function getMissionaryMetrics(
     donationTotalsResult,
     donationSeriesResult,
   ] = await Promise.all([
+    // Engagement tables are keyed by the missionary's profile record, while
+    // donations are keyed by the missionary entity record in `missionaries`.
     client
       .from("follows")
       .select("id", { count: "exact", head: true })
