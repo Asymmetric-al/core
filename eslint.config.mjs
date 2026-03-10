@@ -64,12 +64,12 @@ const eslintConfig = defineConfig([
             {
               name: "@asym/database/supabase/admin",
               message:
-                "Client-side code cannot import the admin Supabase client.",
+                "UI layers must not import the admin database client directly.",
             },
             {
               name: "@asym/database/supabase/server",
               message:
-                "Client-side code cannot import the server Supabase client.",
+                "UI layers must not import the server database client directly.",
             },
           ],
         },
@@ -136,6 +136,7 @@ const eslintConfig = defineConfig([
     },
   },
   {
+    // Approved exception: health routes are minimal probes; see data-access-boundary.md
     files: ["apps/*/app/api/health/route.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
     rules: {
       "no-restricted-imports": "off",

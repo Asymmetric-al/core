@@ -140,3 +140,51 @@ function ClientOnly({ children, fallback }) {
 ### Date
 
 December 2024
+
+## Read-Model Modules for Admin Dashboard (Ticket 2.2.7)
+
+### Issue
+
+Admin dashboard data and contributions history were UI-mocked and lacked a typed,
+cache-aware read-model surface that can evolve cleanly as schema and access
+patterns grow.
+
+### Decisions
+
+1. Add read models under `packages/api/src/reads/`:
+   - `dashboard-stats.ts`
+   - `missionary-metrics.ts`
+   - `donor-history.ts`
+   - `types.ts` (internal pagination primitives)
+2. Use Next.js Cache Components APIs in read models:
+   - function-scoped `'use cache'`
+   - explicit `cacheLife('minutes')`
+   - scoped `cacheTag(...)` keys for future invalidation
+3. Keep read-model DB access server-only by calling
+   `getAdminClient()` inside read-model functions.
+4. Convert admin dashboard root page to a Server Component wrapper that fetches
+   stats and renders existing client dashboard UI unchanged.
+5. Convert contributions page to a server-wrapper + client-component split:
+   - server page fetches read-model data
+   - client component keeps existing DataTable interactions
+6. Skip speculative missionary-detail wiring because no dedicated
+   `apps/admin/app/missionaries/[id]/page.tsx` route exists yet.
+
+### Schema Alignment
+
+- Active funds are filtered with `funds.is_active = true` (current schema)
+  rather than a non-existent `funds.status = 'active'` column.
+
+### Files Added/Changed
+
+- `packages/api/src/reads/*`
+- `packages/api/package.json` exports for `./reads/*`
+- `apps/admin/app/page.tsx`
+- `apps/admin/features/mission-control/components/AdminDashboardStatsSection.tsx`
+- `apps/admin/app/contributions/page.tsx`
+- `apps/admin/app/contributions/contributions-client.tsx`
+- `tests/unit/packages/api/reads/*.test.ts`
+
+### Date
+
+February 2026
