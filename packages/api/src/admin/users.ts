@@ -1,22 +1,9 @@
-import {
-  getAuthContext,
-  requireRole,
-  type AuthenticatedContext,
-} from "@asym/auth/context";
-import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: NextRequest) {
-  try {
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
-    }
+import { withOperation } from "../shared/with-operation";
 
-    const auth = await getAuthContext();
-    requireRole(auth, ["staff", "admin", "super_admin"]);
-    const ctx = auth as AuthenticatedContext;
-
+export const GET = withOperation(
+  async ({ supabaseAdmin, auth: ctx, request }) => {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "50");
     const offset = parseInt(searchParams.get("offset") || "0");
@@ -38,16 +25,9 @@ export async function GET(request: NextRequest) {
     if (error)
       return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ users: data });
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "Internal error";
-    const status = message.includes("Unauthorized")
-      ? 401
-      : message.includes("Forbidden")
-        ? 403
-        : 500;
-    return NextResponse.json({ error: message }, { status });
-  }
-}
+  },
+  { roles: ["admin"] },
+);
 
 /** Read-only demo: user updates disabled. */
 export async function PATCH(_request: NextRequest) {

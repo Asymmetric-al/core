@@ -33,6 +33,7 @@ jobs:
           restore-keys: turbo-${{ runner.os }}-
       - run: bun install --frozen-lockfile
       - run: bun run format:check
+      - run: bun run skills:verify
 
   lint:
     runs-on: ubuntu-latest
@@ -57,6 +58,8 @@ jobs:
           restore-keys: turbo-${{ runner.os }}-
       - run: bun install --frozen-lockfile
       - run: bun run lint
+      - name: Check data access boundary
+        run: bun run verify:data-boundary
       - run: bun run verify:workspace-contract
       - run: bun run verify:eslint
 

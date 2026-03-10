@@ -1,3 +1,4 @@
+import { serverEnv } from "@asym/env";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
@@ -50,8 +51,8 @@ export async function getAuthContext(): Promise<AuthContext> {
   const cookieStore = await cookies();
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    serverEnv.NEXT_PUBLIC_SUPABASE_URL,
+    serverEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       cookies: {
         getAll() {

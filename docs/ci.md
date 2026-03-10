@@ -2,7 +2,7 @@
 
 ## Overview
 
-CI is split across two workflow files, and they do **not** run on exactly the same branches:
+Two workflow files run on every PR to `develop`, `main`, and `epic`, and on every push to `main`, `develop`, and `epic`:
 
 | Workflow          | File                                   | Branches                                  | Jobs                                                            | Target time               |
 | ----------------- | -------------------------------------- | ----------------------------------------- | --------------------------------------------------------------- | ------------------------- |
@@ -16,15 +16,46 @@ Current workflow semantics:
 - `test-e2e` is **informational on `develop`** (`continue-on-error: true` there).
 - `test-e2e` is **enforced on `main`** through the workflow's `e2e-gate`.
 
+## Local CI parity (pre-push)
+
+Use the local preflight command to mirror blocking GitHub checks before pushing:
+
+```bash
+bun run ci:preflight
+```
+
+`ci:preflight` runs the same gate order as `.github/workflows/ci.yml`:
+
+1. `format:check`
+2. `skills:verify`
+3. `lint`
+4. `verify:workspace-contract`
+5. `verify:eslint`
+6. `typecheck`
+7. `build` (with CI-compatible env defaults for local parity)
+8. `test:unit`
+
+This command is wired into `.husky/pre-push` so pushes fail fast when a blocking CI gate would fail in GitHub.
+
+### Tooling warning audit (periodic)
+
+Run this maintenance check to detect known test-runner deprecation warnings (for example, Vite CJS Node API deprecations) before they become CI noise:
+
+```bash
+bun run test:unit:warnings
+```
+
+This check runs unit tests and fails if blocked warning patterns are present in test output.
+
 ---
 
 ## Fast-checks workflow (`ci.yml`)
 
 ### `format`
 
-- _What it checks:_ Runs `bun run format:check` (Prettier). Fails if any file is not formatted.
-- _Why it exists:_ Prevents formatting drift that causes noisy diffs and merge conflicts.
-- _Debug locally:_ Run `bun run format:check` to see violations; run `bun run format` to auto-fix, then re-check.
+- _What it checks:_ Runs `bun run format:check` (Prettier) and `bun run skills:verify` (skills mirror drift gate). Fails if formatting or mirror sync is out of policy.
+- _Why it exists:_ Prevents formatting drift and skill-source/mirror drift that cause noisy diffs and review confusion.
+- _Debug locally:_ Run `bun run format:check`; if needed run `bun run format`. Then run `bun run skills:verify` (or `bun run skills:sync` to update mirrors) and re-check.
 
 ### `lint` (needs: `format`)
 

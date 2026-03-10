@@ -1,6 +1,6 @@
 "use client";
 
-import { siteConfig } from "@asym/config/site";
+import { siteConfig } from "@asym/config/site-client";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
