@@ -1,4 +1,4 @@
-﻿export interface PaginationParams {
+export interface PaginationParams {
   limit: number;
   offset: number;
 }

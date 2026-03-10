@@ -1,0 +1,6 @@
+{
+  "name": "@asym/demo",
+  "dependencies": {
+    "@asym/ui": "workspace:*"
+  }
+}

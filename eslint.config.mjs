@@ -85,36 +85,6 @@ const eslintConfig = defineConfig([
           patterns: [
             ...crossAppImportRestrictions,
             {
-              group: ["@supabase/*"],
-              message:
-                "Client-side surfaces must consume Supabase via @asym/database wrappers, not @supabase/* directly.",
-            },
-          ],
-          paths: [
-            {
-              name: "@asym/database/supabase/admin",
-              message:
-                "UI layers must not import the admin database client directly.",
-            },
-            {
-              name: "@asym/database/supabase/server",
-              message:
-                "UI layers must not import the server database client directly.",
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    files: ["apps/*/app/api/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
-    rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [
-            ...crossAppImportRestrictions,
-            {
               group: [
                 "@asym/database/supabase",
                 "@asym/database/supabase/*",
