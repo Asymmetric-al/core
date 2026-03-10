@@ -7,6 +7,8 @@
     ".": "./index.ts",
     "./constants": "./constants.ts",
     "./site": "./site.ts",
+    "./site-client": "./site-client.ts",
+    "./site-shared": "./site-shared.ts",
     "./navigation": "./navigation.ts",
     "./tiles": "./tiles.ts",
     "./email-studio": "./email-studio.ts",
@@ -18,6 +20,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@asym/env": "workspace:*",
     "lucide-react": "^0.468.0"
   },
   "devDependencies": {

@@ -1,0 +1,13 @@
+{
+  "name": "@asym/root",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "packages/env",
+    "tooling/*"
+  ],
+  "dependencies": {
+    "@asym/ui": "workspace:*"
+  }
+}

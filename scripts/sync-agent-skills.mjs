@@ -14,10 +14,6 @@ const targetRoots = [
   path.join(repoRoot, ".cursor", "skills"),
 ];
 
-const skillsToSync = [
-  "components-build",
-  "supabase-postgres-best-practices",
-  "nextjs-supabase-auth",
 ];
 
 async function overlayDirectory(sourceDir, targetDir) {
@@ -31,6 +27,47 @@ async function overlayDirectory(sourceDir, targetDir) {
       force: true,
     });
   }
+}
+
+async function listCanonicalSkillsForSync() {
+  let entries;
+
+  try {
+    entries = await readdir(sourceRoot, { withFileTypes: true });
+  } catch (error) {
+    const errorCode =
+      typeof error === "object" && error !== null && "code" in error
+        ? String(error.code)
+        : "";
+
+    if (errorCode === "ENOENT") {
+      throw new Error(
+        `Canonical skill source directory not found: ${path.relative(repoRoot, sourceRoot)}`,
+      );
+    }
+
+    throw new Error(
+      `Unable to read canonical skill source directory: ${path.relative(repoRoot, sourceRoot)}`,
+      { cause: error },
+    );
+  }
+
+  const skillNames = [];
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
+
+    // Sync only valid skills (directory containing SKILL.md).
+    const skillDir = path.join(sourceRoot, entry.name);
+    const skillFiles = await readdir(skillDir);
+    if (skillFiles.includes("SKILL.md")) {
+      skillNames.push(entry.name);
+    }
+  }
+
+  return skillNames.sort();
 }
 
 async function syncCanonicalSkill(skillName) {
@@ -119,7 +156,9 @@ async function listAgentSkillsForMirror() {
 }
 
 async function main() {
-  for (const skillName of skillsToSync) {
+  const canonicalSkills = await listCanonicalSkillsForSync();
+
+  for (const skillName of canonicalSkills) {
     await syncCanonicalSkill(skillName);
   }
 
