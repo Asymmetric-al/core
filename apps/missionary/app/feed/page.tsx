@@ -1,4 +1,5 @@
 "use client";
+"use no memo";
 
 import { SafeHtml } from "@asym/lib/components/safe-html";
 import { TimeAgo, useLastSynced } from "@asym/lib/hooks";

@@ -6,6 +6,8 @@ import {
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { findProfileByUserId } from "../shared/queries";
+
 interface FollowerRequestWithDonor {
   donor?: {
     name?: string | null;
@@ -37,12 +39,11 @@ export async function PATCH(
       );
     }
 
-    const { data: profile } = await supabaseAdmin
-      .from("profiles")
-      .select("id")
-      .eq("user_id", ctx.userId)
-      .eq("tenant_id", ctx.tenantId)
-      .single();
+    const { data: profile } = await findProfileByUserId(
+      supabaseAdmin,
+      ctx.userId,
+      ctx.tenantId,
+    );
 
     if (!profile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
@@ -132,12 +133,11 @@ export async function DELETE(
     const ctx = auth as AuthenticatedContext;
     const { requestId } = await params;
 
-    const { data: profile } = await supabaseAdmin
-      .from("profiles")
-      .select("id")
-      .eq("user_id", ctx.userId)
-      .eq("tenant_id", ctx.tenantId)
-      .single();
+    const { data: profile } = await findProfileByUserId(
+      supabaseAdmin,
+      ctx.userId,
+      ctx.tenantId,
+    );
 
     if (!profile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });

@@ -25,7 +25,10 @@
     "./admin/comments": "./src/admin/comments/index.ts",
     "./admin/comments/comment": "./src/admin/comments/comment.ts",
     "./missionaries": "./src/missionaries/index.ts",
-    "./missionaries/metrics": "./src/missionaries/metrics.ts"
+    "./missionaries/metrics": "./src/missionaries/metrics.ts",
+    "./reads/dashboard-stats": "./src/reads/dashboard-stats.ts",
+    "./reads/missionary-metrics": "./src/reads/missionary-metrics.ts",
+    "./reads/donor-history": "./src/reads/donor-history.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
@@ -35,6 +38,7 @@
   "dependencies": {
     "@asym/auth": "workspace:*",
     "@asym/database": "workspace:*",
+    "@asym/env": "workspace:*",
     "@asym/lib": "workspace:*",
     "@supabase/ssr": "^0.5.2",
     "next": "16.1.1",

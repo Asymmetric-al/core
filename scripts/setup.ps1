@@ -24,6 +24,25 @@ function Require-Command {
   return $true
 }
 
+function Write-SupabaseCliGuidance {
+  $supabaseCommand = Get-Command 'supabase' -ErrorAction SilentlyContinue
+  if ($supabaseCommand) {
+    $version = ((& supabase --version 2>$null) -join '').Trim()
+    if ([string]::IsNullOrWhiteSpace($version)) {
+      Write-Log 'Found global Supabase CLI'
+    } else {
+      Write-Log "Found global Supabase CLI ($version)"
+    }
+    return
+  }
+
+  Write-Log 'Supabase CLI not found globally. Repo fallback will use pinned CLI via: bun run supabase -- <command>'
+  Write-Log 'Recommended global install for faster startup (Windows):'
+  Write-Log '  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git'
+  Write-Log '  scoop install supabase'
+  Write-Log 'Docs: https://supabase.com/docs/guides/local-development/cli/getting-started'
+}
+
 function Get-RepoRoot {
   $root = Get-Item -LiteralPath (Join-Path $PSScriptRoot '..')
   return $root.FullName
@@ -114,6 +133,7 @@ $ok = $true
 $ok = (Require-Command 'bun' 'Install Bun for Windows and ensure it is on PATH: https://bun.sh/docs/installation#windows') -and $ok
 $ok = (Require-Command 'git' 'Install Git for Windows and ensure it is on PATH: https://git-scm.com/download/win') -and $ok
 if (-not $ok) { exit 1 }
+Write-SupabaseCliGuidance
 
 Ensure-EnvLocal
 
