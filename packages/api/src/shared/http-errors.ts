@@ -58,8 +58,15 @@ function getStatusFromUnknown(error: unknown): number | undefined {
     return STATUS_BY_ERROR_CODE[error.code];
   }
 
-  if ("cause" in error) {
-    return getStatusFromUnknown(error.cause);
+  if ("cause" in error && error.cause !== error) {
+    const causeStatus = getStatusFromUnknown(error.cause);
+    if (causeStatus !== undefined) return causeStatus;
+  }
+
+  if (error instanceof Error && error.message) {
+    const msg = error.message;
+    if (msg.includes("Unauthorized")) return 401;
+    if (msg.includes("Forbidden")) return 403;
   }
 
   return undefined;
