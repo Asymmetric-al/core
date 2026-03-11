@@ -1,0 +1,57 @@
+{
+  "name": "@asym/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./posts": "./src/posts/index.ts",
+    "./posts/post": "./src/posts/post.ts",
+    "./posts/comments": "./src/posts/comments.ts",
+    "./posts/like": "./src/posts/like.ts",
+    "./posts/fire": "./src/posts/fire.ts",
+    "./posts/prayer": "./src/posts/prayer.ts",
+    "./follower-requests": "./src/follower-requests/index.ts",
+    "./follower-requests/request": "./src/follower-requests/request.ts",
+    "./auth/demo-account": "./src/auth/demo-account.ts",
+    "./auth/cleanup-demo-users": "./src/auth/cleanup-demo-users.ts",
+    "./donate": "./src/donate/index.ts",
+    "./donations": "./src/donations/index.ts",
+    "./profile": "./src/profile/index.ts",
+    "./feed-preferences": "./src/feed-preferences/index.ts",
+    "./admin/org-settings": "./src/admin/org-settings.ts",
+    "./admin/users": "./src/admin/users.ts",
+    "./admin/posts": "./src/admin/posts/index.ts",
+    "./admin/posts/post": "./src/admin/posts/post.ts",
+    "./admin/comments": "./src/admin/comments/index.ts",
+    "./admin/comments/comment": "./src/admin/comments/comment.ts",
+    "./missionaries": "./src/missionaries/index.ts",
+    "./missionaries/metrics": "./src/missionaries/metrics.ts",
+    "./reads/dashboard-stats": "./src/reads/dashboard-stats.ts",
+    "./reads/missionary-metrics": "./src/reads/missionary-metrics.ts",
+    "./reads/donor-history": "./src/reads/donor-history.ts",
+    "./reads/tenant-contributions": "./src/reads/tenant-contributions.ts",
+    "./health/db": "./src/health/db.ts",
+    "./email/connect": "./src/email/connect.ts",
+    "./email/test-send": "./src/email/test-send.ts",
+    "./email/webhooks/resend": "./src/email/webhooks/resend.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@asym/auth": "workspace:*",
+    "@asym/database": "workspace:*",
+    "@asym/env": "workspace:*",
+    "@asym/lib": "workspace:*",
+    "@supabase/ssr": "^0.5.2",
+    "next": "16.1.6",
+    "stripe": "^17.4.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@asym/typescript-config": "workspace:*",
+    "typescript": "^5.7.3"
+  }
+}

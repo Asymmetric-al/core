@@ -1,0 +1,5 @@
+{
+  "extends": "@asym/typescript-config/library-transitional.json",
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
