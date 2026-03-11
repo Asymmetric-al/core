@@ -78,6 +78,107 @@ export interface Tenant {
   updated_at: string;
 }
 
+export interface TenantEmailSettingsRecord {
+  id: string;
+  tenant_id: string;
+  is_connected: boolean;
+  connection_verified_at: string | null;
+  last_error: string | null;
+  default_from_email: string | null;
+  default_from_name: string | null;
+  reply_to_email: string | null;
+  resend_api_key_encrypted: string | null;
+  resend_api_key_hint: string | null;
+  webhook_url: string | null;
+  webhook_signing_secret_hint: string | null;
+  domain_authenticated: boolean;
+  dkim_verified: boolean;
+  spf_verified: boolean;
+  dmarc_policy: "none" | "quarantine" | "reject" | null;
+  deliverability_score: number | null;
+  daily_send_limit: number;
+  sends_today: number;
+  limit_reset_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EmailSendLogRecord {
+  id: string;
+  tenant_id: string;
+  idempotency_key: string;
+  correlation_id: string;
+  status: string;
+  resend_message_id: string | null;
+  recipient_count: number;
+  message_type: string;
+  template_id: string | null;
+  campaign_id: string | null;
+  requested_at: string;
+  sent_at: string | null;
+  error_code: string | null;
+  error_message: string | null;
+  retry_count: number;
+  metadata: Record<string, unknown>;
+}
+
+export interface EmailEventRecord {
+  id: string;
+  tenant_id: string;
+  resend_event_id: string | null;
+  resend_message_id: string;
+  event_type: string;
+  recipient_email: string;
+  occurred_at: string;
+  bounce_type: string | null;
+  bounce_reason: string | null;
+  click_url: string | null;
+  user_agent: string | null;
+  ip_address: string | null;
+  campaign_id: string | null;
+  raw_event: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface EmailSuppressionGroupRecord {
+  id: string;
+  tenant_id: string;
+  name: string;
+  description: string | null;
+  is_default: boolean;
+  created_at: string;
+}
+
+export interface EmailSuppressionRecord {
+  id: string;
+  tenant_id: string;
+  email: string;
+  suppression_type: string;
+  group_id: string | null;
+  reason: string | null;
+  source: string | null;
+  created_at: string;
+}
+
+export interface EmailInboundMessageRecord {
+  id: string;
+  tenant_id: string | null;
+  resend_email_id: string;
+  event_type: string;
+  from_email: string;
+  subject: string | null;
+  to_recipients: string[];
+  cc_recipients: string[];
+  bcc_recipients: string[];
+  attachment_count: number;
+  received_at: string | null;
+  payload: Record<string, unknown>;
+  parsed_text: string | null;
+  parsed_html: string | null;
+  created_at: string;
+}
+
 export interface DonorFeedPreferences {
   id: string;
   donor_id: string;

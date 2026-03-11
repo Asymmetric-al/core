@@ -1,6 +1,6 @@
 # Email Studio
 
-A professional drag-and-drop email editor powered by Unlayer, integrated with SendGrid for email delivery.
+A professional drag-and-drop email editor powered by Unlayer, integrated with Resend for email delivery.
 
 ## Overview
 
@@ -18,7 +18,7 @@ Email Studio provides a visual email builder that enables non-technical users to
 | HTML Export                | Complete | Via `exportHtml()` method                          |
 | PDF Export                 | Complete | Via `exportPdf()` method                           |
 | Template Save              | Partial  | UI complete, API stubbed                           |
-| SendGrid Integration       | Complete | `src/lib/email/sendgrid.ts`                        |
+| Resend Integration         | Complete | `packages/email/resend.ts`                         |
 | Template Database Storage  | Planned  | Requires Supabase table                            |
 | Campaign Management        | Planned  | Bulk sends with scheduling                         |
 
@@ -56,7 +56,7 @@ src/
 └── lib/email/
     ├── index.ts                    # Public exports
     ├── constants.ts                # API endpoints, error codes
-    └── sendgrid.ts                 # SendGrid service
+    └── resend.ts                   # Resend service
 ```
 
 ---
@@ -66,7 +66,7 @@ src/
 ### Prerequisites
 
 1. **Unlayer Account** - Required for advanced features
-2. **SendGrid Account** - Required for email delivery
+2. **Resend Account** - Required for email delivery
 3. **Verified Sender** - Domain or single sender verification
 
 ### Step 1: Unlayer Configuration
@@ -105,16 +105,16 @@ NEXT_PUBLIC_UNLAYER_PROJECT_ID=123456
 NEXT_PUBLIC_UNLAYER_WHITE_LABEL=true
 ```
 
-### Step 2: SendGrid Configuration
+### Step 2: Resend Configuration
 
-See [SendGrid Integration](./sendgrid-integration.md) for complete setup instructions.
+See [Resend Integration](./resend-integration.md) for complete setup instructions.
 
 Quick setup:
 
-1. Create SendGrid account at [signup.sendgrid.com](https://signup.sendgrid.com)
-2. Create API key with `mail.send` permission
+1. Create Resend account at [resend.com/signup](https://resend.com/signup)
+2. Create API key with sending access
 3. Verify sender email or authenticate domain
-4. Connect via Settings > Integrations > SendGrid in the admin panel
+4. Connect via Settings > Integrations > Resend in the admin panel
 
 ### Step 3: Branding Configuration
 
@@ -398,9 +398,9 @@ Critical CSS in `globals.css`:
 
 ---
 
-## SendGrid Integration
+## Resend Integration
 
-Email Studio integrates with SendGrid for delivery. See [SendGrid Integration](./sendgrid-integration.md) for:
+Email Studio integrates with Resend for delivery. See [Resend Integration](./resend-integration.md) for:
 
 - API key setup
 - Sender verification
@@ -412,7 +412,7 @@ Email Studio integrates with SendGrid for delivery. See [SendGrid Integration](.
 
 ## Security Considerations
 
-1. **API Keys**: Never expose SendGrid API keys to the client. All email sending happens server-side.
+1. **API Keys**: Never expose Resend API keys to the client. All email sending happens server-side.
 2. **Merge Tags**: Sanitize merge tag values before rendering to prevent XSS.
 3. **Content**: The editor allows HTML content; ensure proper sanitization if displaying user-generated emails.
 4. **Domain Verification**: Always use authenticated domains in production for deliverability.
@@ -441,8 +441,8 @@ Email Studio integrates with SendGrid for delivery. See [SendGrid Integration](.
 - [Merge Tags](https://docs.unlayer.com/builder/merge-tags)
 - [Appearance](https://docs.unlayer.com/builder/appearance)
 
-### SendGrid Documentation
+### Resend Documentation
 
-- [Node.js Quickstart](https://www.twilio.com/docs/sendgrid/for-developers/sending-email/quickstart-nodejs)
-- [API Reference](https://docs.sendgrid.com/api-reference/mail-send/mail-send)
-- [Event Webhooks](https://www.twilio.com/docs/sendgrid/for-developers/tracking-events/event)
+- [Getting Started](https://resend.com/docs/send-with-nodejs)
+- [API Reference](https://resend.com/docs/api-reference/emails/send-email)
+- [Webhooks](https://resend.com/docs/dashboard/webhooks/introduction)
