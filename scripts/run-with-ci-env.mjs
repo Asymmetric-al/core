@@ -5,6 +5,7 @@ const DEFAULT_ENV = {
   SKIP_ENV_VALIDATION: "1",
   NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
   NEXT_PUBLIC_SUPABASE_ANON_KEY: "example-anon-key",
+  PAYLOAD_SECRET: "ci-placeholder-payload-secret",
 };
 
 function getCommandParts() {

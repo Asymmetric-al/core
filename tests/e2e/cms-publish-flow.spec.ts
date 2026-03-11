@@ -7,9 +7,9 @@ test.describe("@cms CMS publish flow guards", () => {
   test("staff-only admin route redirects unauthenticated users", async ({
     page,
   }) => {
-    await page.goto(`${adminBaseURL}/admin`);
+    await page.goto(`${adminBaseURL}/web-studio`);
 
     await expect(page).toHaveURL(/\/login/);
-    await expect(page).toHaveURL(/next=%2Fadmin/);
+    await expect(page).toHaveURL(/next=%2Fweb-studio/);
   });
 });

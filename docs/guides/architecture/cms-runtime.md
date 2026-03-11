@@ -4,7 +4,7 @@
 
 Payload runs in `apps/admin` and is exposed through:
 
-- Admin UI: `/admin`
+- Admin UI: `/web-studio`
 - REST/GraphQL routes under `(payload)` route group
 - Public CMS routes: `/api/cms/public/*`
 
@@ -21,7 +21,7 @@ This keeps CMS management inside Mission Control and avoids running multiple Pay
 
 - Supabase remains the identity provider.
 - Payload auth uses a custom Supabase session strategy (`supabase-strategy`).
-- Admin middleware enforces staff/admin/super-admin access before `/admin` routes.
+- Admin middleware enforces staff/admin/super-admin access before `/web-studio` routes.
 
 ## Tenant isolation model
 

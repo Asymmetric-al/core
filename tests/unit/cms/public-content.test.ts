@@ -59,7 +59,10 @@ describe("public cms tenant resolution", () => {
     getPayloadClientMock.mockResolvedValue({ find });
 
     const tenant = await resolveTenantFromRequest(
-      createRequest("/api/cms/public/pages/home?tenant=ignored", "one.example.org"),
+      createRequest(
+        "/api/cms/public/pages/home?tenant=ignored",
+        "one.example.org",
+      ),
     );
 
     expect(tenant).toMatchObject({ id: "tenant_1", slug: "one" });
@@ -115,7 +118,10 @@ describe("public cms tenant resolution", () => {
     getPayloadClientMock.mockResolvedValue({ find });
 
     const tenant = await resolveTenantFromRequest(
-      createRequest("/api/cms/public/pages/home?tenant=gamma", "localhost:3030"),
+      createRequest(
+        "/api/cms/public/pages/home?tenant=gamma",
+        "localhost:3030",
+      ),
     );
 
     expect(tenant).toMatchObject({ id: "tenant_4", slug: "gamma" });

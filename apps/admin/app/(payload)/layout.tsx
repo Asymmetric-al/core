@@ -3,7 +3,7 @@ import "@payloadcms/next/css";
 import { RootLayout, handleServerFunctions } from "@payloadcms/next/layouts";
 import "@/src/styles/payloadStyles.css";
 
-import { importMap } from "./admin/importMap";
+import { importMap } from "./web-studio/importMap";
 
 import type { ServerFunctionClient } from "payload";
 

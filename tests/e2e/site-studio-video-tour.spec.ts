@@ -59,7 +59,7 @@ test.describe("@manual Site Studio CMS video tour", () => {
     await page.goto("/web-studio");
 
     await expect(page).toHaveURL(/\/login/);
-    await expect(page).toHaveURL(/next=%2F(web-studio|admin)/);
+    await expect(page).toHaveURL(/next=%2Fweb-studio/);
 
     await expect(page.getByLabel("Email")).toBeVisible();
     await expect(page.getByLabel("Password")).toBeVisible();
@@ -72,7 +72,7 @@ test.describe("@manual Site Studio CMS video tour", () => {
     const demoAdminAvailable = await isDemoAdminAvailable(page.request);
 
     if (!demoAdminAvailable) {
-      await page.goto(`${adminBaseURL}/login?next=%2Fadmin`);
+      await page.goto(`${adminBaseURL}/login?next=%2Fweb-studio`);
       await expect(page.getByLabel("Email")).toBeVisible();
       await expect(page.getByLabel("Password")).toBeVisible();
       await page.getByLabel("Email").fill("staff@example.com");
@@ -84,14 +84,14 @@ test.describe("@manual Site Studio CMS video tour", () => {
 
     const didAuth = await authenticateAsDemoAdmin(page.request, page.context());
     if (!didAuth) {
-      await page.goto(`${adminBaseURL}/login?next=%2Fadmin`);
+      await page.goto(`${adminBaseURL}/login?next=%2Fweb-studio`);
       await expect(page.getByLabel("Email")).toBeVisible();
       await expect(page.getByLabel("Password")).toBeVisible();
       return;
     }
 
-    await page.goto(`${adminBaseURL}/admin`);
-    await expect(page).toHaveURL(/\/admin/);
+    await page.goto(`${adminBaseURL}/web-studio`);
+    await expect(page).toHaveURL(/\/web-studio/);
 
     const candidateLinks = [
       "Pages",

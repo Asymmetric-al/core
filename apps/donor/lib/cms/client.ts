@@ -10,9 +10,7 @@ export type CmsPage = {
 };
 
 function normalizeSlugSegments(slugSegments: string[]) {
-  return slugSegments
-    .map((segment) => segment.trim())
-    .filter(Boolean);
+  return slugSegments.map((segment) => segment.trim()).filter(Boolean);
 }
 
 export function buildPublicCmsPagePath(slugSegments: string[]) {

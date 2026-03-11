@@ -4,7 +4,7 @@ This guide explains how to run and validate the Site Studio integration that liv
 
 ## What is included
 
-- Payload admin UI mounted at `/admin` in Mission Control
+- Payload admin UI mounted at `/web-studio` in Mission Control
 - Payload admin theming bridged to shared Maia + Zinc design tokens from `@asym/ui`
 - CMS tables in Postgres `cms` schema
 - Tenant-aware collection access controls
@@ -68,7 +68,7 @@ bun run dev:donor
 
 ## Quick verification checklist
 
-- Open `http://127.0.0.1:3030/admin` and confirm unauthenticated users are redirected to `/login`.
+- Open `http://127.0.0.1:3030/web-studio` and confirm unauthenticated users are redirected to `/login`.
 - Sign in as staff/admin and confirm Payload admin loads.
 - Confirm collection lists are tenant-filtered for non-super-admin users.
 - Call:

@@ -144,7 +144,7 @@ const toolsItems: MenuItem[] = [
   {
     icon: GlobeIcon,
     label: "Web Studio",
-    href: "/admin",
+    href: "/web-studio",
   },
   {
     icon: PenToolIcon,
@@ -420,7 +420,7 @@ function ApplicationShell({ children }: { children: ReactNode }) {
 export function MCShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isPayloadAdmin =
-    pathname === "/admin" || pathname.startsWith("/admin/");
+    pathname === "/web-studio" || pathname.startsWith("/web-studio/");
 
   if (isPayloadAdmin) {
     return <>{children}</>;

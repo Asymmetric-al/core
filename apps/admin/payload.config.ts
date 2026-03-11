@@ -32,7 +32,9 @@ function resolvePayloadSecret() {
     return "payload-local-dev-secret";
   }
 
-  throw new Error("PAYLOAD_SECRET must be configured outside local development.");
+  throw new Error(
+    "PAYLOAD_SECRET must be configured outside local development.",
+  );
 }
 
 export default buildConfig({
@@ -69,6 +71,9 @@ export default buildConfig({
     },
   }),
   editor: lexicalEditor(),
+  routes: {
+    admin: "/web-studio",
+  },
   secret: resolvePayloadSecret(),
   typescript: {
     outputFile: path.resolve(dirname, "payload-types.ts"),

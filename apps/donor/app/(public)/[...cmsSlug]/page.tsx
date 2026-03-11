@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+
 import type { ReactNode } from "react";
 
 import { fetchPublishedCmsPage } from "@/lib/cms/client";
@@ -97,7 +98,9 @@ function renderLexicalNode(node: LexicalNode, key: string): ReactNode {
     case "listitem":
       return <li key={key}>{renderChildren(node.children, key)}</li>;
     case "quote":
-      return <blockquote key={key}>{renderChildren(node.children, key)}</blockquote>;
+      return (
+        <blockquote key={key}>{renderChildren(node.children, key)}</blockquote>
+      );
     case "paragraph":
       return <p key={key}>{renderChildren(node.children, key)}</p>;
     default:
