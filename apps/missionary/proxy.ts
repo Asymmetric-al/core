@@ -1,6 +1,8 @@
 import { createAuthMiddleware } from "@asym/auth/middleware";
 
-export const proxy = createAuthMiddleware({
+import type { NextRequest } from "next/server";
+
+const authProxy = createAuthMiddleware({
   publicRoutes: [
     "/",
     "/about",
@@ -21,6 +23,10 @@ export const proxy = createAuthMiddleware({
   unauthorizedRedirectTo: "/",
   allowedRoles: ["missionary", "super_admin"],
 });
+
+export function proxy(request: NextRequest) {
+  return authProxy(request);
+}
 
 export const config = {
   matcher: [
