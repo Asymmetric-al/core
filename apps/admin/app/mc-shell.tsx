@@ -56,6 +56,7 @@ import {
   ShieldCheckIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import type { ComponentType, ReactNode } from "react";
 
@@ -166,7 +167,7 @@ const adminItems: MenuItem[] = [
   {
     icon: ShieldCheckIcon,
     label: "Admin",
-    href: "/admin",
+    href: "/system-admin",
   },
   {
     icon: LifeBuoyIcon,
@@ -417,6 +418,14 @@ function ApplicationShell({ children }: { children: ReactNode }) {
 }
 
 export function MCShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const isPayloadAdmin =
+    pathname === "/web-studio" || pathname.startsWith("/web-studio/");
+
+  if (isPayloadAdmin) {
+    return <>{children}</>;
+  }
+
   return (
     <ThemeProvider
       attribute="class"

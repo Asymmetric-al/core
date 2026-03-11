@@ -24,7 +24,8 @@
     "NEXT_PUBLIC_APP_URL",
     "NEXT_PUBLIC_MAIN_DOMAIN",
     "ALLOW_DEMO_ACCOUNTS",
-    "CRON_SECRET"
+    "CRON_SECRET",
+    "PAYLOAD_SECRET"
   ],
   "tasks": {
     "transit": {
@@ -49,6 +50,7 @@
         "NEXT_PUBLIC_SUPABASE_ANON_KEY",
         "SUPABASE_SERVICE_ROLE_KEY",
         "SUPABASE_*",
+        "PAYLOAD_SECRET",
         "RESEND_API_KEY",
         "RESEND_WEBHOOK_SECRET",
         "RESEND_ENCRYPTION_KEY"
