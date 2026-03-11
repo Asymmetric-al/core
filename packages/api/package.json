@@ -28,12 +28,7 @@
     "./missionaries/metrics": "./src/missionaries/metrics.ts",
     "./reads/dashboard-stats": "./src/reads/dashboard-stats.ts",
     "./reads/missionary-metrics": "./src/reads/missionary-metrics.ts",
-    "./reads/donor-history": "./src/reads/donor-history.ts",
-    "./reads/tenant-contributions": "./src/reads/tenant-contributions.ts",
-    "./health/db": "./src/health/db.ts",
-    "./email/connect": "./src/email/connect.ts",
-    "./email/test-send": "./src/email/test-send.ts",
-    "./email/webhooks/resend": "./src/email/webhooks/resend.ts"
+    "./reads/donor-history": "./src/reads/donor-history.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
@@ -46,7 +41,7 @@
     "@asym/env": "workspace:*",
     "@asym/lib": "workspace:*",
     "@supabase/ssr": "^0.5.2",
-    "next": "16.1.6",
+    "next": "^16.2.0-canary.58",
     "stripe": "^17.4.0",
     "zod": "^4.3.6"
   },
