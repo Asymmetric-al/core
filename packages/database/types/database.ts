@@ -1,0 +1,534 @@
+/**
+ * MULTI-TENANCY APPROACH
+ *
+ * asymmetric.al Platform uses Row Level Security (RLS) with tenant_id for data isolation.
+ *
+ * Architecture:
+ * - All tenant-scoped tables include a `tenant_id` column (UUID)
+ * - Supabase RLS policies enforce tenant isolation at the database level
+ * - The user's tenant_id is stored in their JWT claims (via auth.users metadata)
+ * - All queries are automatically filtered by tenant_id via RLS policies
+ *
+ * Example RLS Policy (to be created in Supabase):
+ * ```sql
+ * CREATE POLICY "Users can only view their tenant's data"
+ * ON public.donations
+ * FOR SELECT
+ * USING (tenant_id = (auth.jwt() -> 'app_metadata' ->> 'tenant_id')::uuid);
+ * ```
+ *
+ * Benefits:
+ * - Data isolation enforced at database layer (not application layer)
+ * - Single database, single schema (simpler operations)
+ * - Automatic filtering on all queries
+ * - No risk of cross-tenant data leaks from application bugs
+ */
+
+export type UserRole =
+  | "donor"
+  | "missionary"
+  | "admin"
+  | "staff"
+  | "super_admin";
+export type DonationStatus = "pending" | "completed" | "failed" | "refunded";
+export type GivingFrequency =
+  | "weekly"
+  | "biweekly"
+  | "monthly"
+  | "quarterly"
+  | "yearly";
+export type DonationSource =
+  | "direct"
+  | "one_time"
+  | "pledge"
+  | "import"
+  | string;
+export type MoneyCents = number;
+
+export interface Profile {
+  id: string;
+  tenant_id: string;
+  user_id: string;
+  role: UserRole;
+  first_name: string;
+  last_name: string;
+  display_name: string | null;
+  email: string;
+  avatar_url: string | null;
+  phone: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type OrgPostVisibility = "all_donors" | "followers_only";
+
+export interface Tenant {
+  id: string;
+  name: string;
+  slug: string;
+  org_post_visibility: OrgPostVisibility;
+  org_settings: Record<string, unknown>;
+  stripe_secret_key: string | null;
+  stripe_publishable_key: string | null;
+  stripe_webhook_secret: string | null;
+  billing_email: string | null;
+  default_timezone: string;
+  locale: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TenantEmailSettingsRecord {
+  id: string;
+  tenant_id: string;
+  is_connected: boolean;
+  connection_verified_at: string | null;
+  last_error: string | null;
+  default_from_email: string | null;
+  default_from_name: string | null;
+  reply_to_email: string | null;
+  resend_api_key_encrypted: string | null;
+  resend_api_key_hint: string | null;
+  webhook_url: string | null;
+  webhook_signing_secret_hint: string | null;
+  domain_authenticated: boolean;
+  dkim_verified: boolean;
+  spf_verified: boolean;
+  dmarc_policy: "none" | "quarantine" | "reject" | null;
+  deliverability_score: number | null;
+  daily_send_limit: number;
+  sends_today: number;
+  limit_reset_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EmailSendLogRecord {
+  id: string;
+  tenant_id: string;
+  idempotency_key: string;
+  correlation_id: string;
+  status: string;
+  resend_message_id: string | null;
+  recipient_count: number;
+  message_type: string;
+  template_id: string | null;
+  campaign_id: string | null;
+  requested_at: string;
+  sent_at: string | null;
+  error_code: string | null;
+  error_message: string | null;
+  retry_count: number;
+  metadata: Record<string, unknown>;
+}
+
+export interface EmailEventRecord {
+  id: string;
+  tenant_id: string;
+  resend_event_id: string | null;
+  resend_message_id: string;
+  event_type: string;
+  recipient_email: string;
+  occurred_at: string;
+  bounce_type: string | null;
+  bounce_reason: string | null;
+  click_url: string | null;
+  user_agent: string | null;
+  ip_address: string | null;
+  campaign_id: string | null;
+  raw_event: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface EmailSuppressionGroupRecord {
+  id: string;
+  tenant_id: string;
+  name: string;
+  description: string | null;
+  is_default: boolean;
+  created_at: string;
+}
+
+export interface EmailSuppressionRecord {
+  id: string;
+  tenant_id: string;
+  email: string;
+  suppression_type: string;
+  group_id: string | null;
+  reason: string | null;
+  source: string | null;
+  created_at: string;
+}
+
+export interface EmailInboundMessageRecord {
+  id: string;
+  tenant_id: string | null;
+  resend_email_id: string;
+  event_type: string;
+  from_email: string;
+  subject: string | null;
+  to_recipients: string[];
+  cc_recipients: string[];
+  bcc_recipients: string[];
+  attachment_count: number;
+  received_at: string | null;
+  payload: Record<string, unknown>;
+  parsed_text: string | null;
+  parsed_html: string | null;
+  created_at: string;
+}
+
+export interface DonorFeedPreferences {
+  id: string;
+  donor_id: string;
+  tenant_id: string;
+  show_org_posts: boolean;
+  show_missionary_posts: boolean;
+  follow_org: boolean;
+  email_org_posts: boolean;
+  email_missionary_posts: boolean;
+  push_org_posts: boolean;
+  push_missionary_posts: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Missionary {
+  id: string;
+  tenant_id: string;
+  profile_id: string;
+  bio: string | null;
+  mission_field: string | null;
+  funding_goal: MoneyCents;
+  current_funding: MoneyCents;
+  phone: string | null;
+  location: string | null;
+  tagline: string | null;
+  social_links: {
+    facebook?: string;
+    instagram?: string;
+    twitter?: string;
+    youtube?: string;
+    website?: string;
+  };
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MissionaryWithProfile extends Missionary {
+  profile: Profile;
+}
+
+export interface Donor {
+  id: string;
+  tenant_id: string;
+  profile_id: string | null;
+  missionary_id: string | null;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  mobile: string | null;
+  work_phone: string | null;
+  preferred_contact: string | null;
+  avatar_url: string | null;
+  location: string | null;
+  type: string | null;
+  status: string | null;
+  giving_preferences: Record<string, unknown>;
+  total_given: MoneyCents;
+  first_gift_date: string | null;
+  last_gift_date: string | null;
+  last_gift_amount: MoneyCents | null;
+  gift_count: number;
+  frequency: string | null;
+  joined_date: string | null;
+  tags: string[] | null;
+  score: number | null;
+  address: Record<string, unknown> | null;
+  work_address: Record<string, unknown> | null;
+  website: string | null;
+  organization: string | null;
+  title: string | null;
+  birthday: string | null;
+  anniversary: string | null;
+  spouse: string | null;
+  notes: string | null;
+  do_not_contact: boolean;
+  do_not_email: boolean;
+  receipt_email_frequency: string;
+  default_update_frequency: string | null;
+  preferred_language: string;
+  has_active_pledge: boolean | null;
+  stripe_customer_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DonorWithProfile extends Donor {
+  profile: Profile;
+}
+
+export interface Fund {
+  id: string;
+  tenant_id: string;
+  name: string;
+  description: string | null;
+  target_amount: MoneyCents;
+  goal_amount: MoneyCents;
+  current_amount: MoneyCents;
+  currency: string | null;
+  missionary_id: string | null;
+  is_active: boolean;
+  start_date: string | null;
+  end_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RecurringGiving {
+  id: string;
+  tenant_id: string;
+  donor_id: string;
+  missionary_id: string | null;
+  fund_id: string | null;
+  amount: number;
+  currency: string;
+  frequency: GivingFrequency;
+  next_charge_date: string;
+  stripe_subscription_id: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Follow {
+  id: string;
+  tenant_id: string | null;
+  donor_id: string | null;
+  missionary_id: string | null;
+  status: string;
+  is_donor: boolean;
+  approved_at: string | null;
+  notification_frequency: string | null;
+  muted: boolean;
+  created_at: string;
+}
+
+export interface Donation {
+  id: string;
+  tenant_id: string | null;
+  donor_id: string | null;
+  missionary_id: string | null;
+  fund_id: string | null;
+  amount: MoneyCents;
+  currency: string;
+  status: DonationStatus;
+  donation_type: string | null;
+  payment_method: string | null;
+  is_recurring: boolean | null;
+  recurring_interval: string | null;
+  notes: string | null;
+  stripe_payment_intent_id: string | null;
+  gift_date: string;
+  campaign_id: string | null;
+  pledge_id: string | null;
+  processed_at: string | null;
+  completed_at: string | null;
+  failed_at: string | null;
+  error_code: string | null;
+  error_message: string | null;
+  stripe_charge_id: string | null;
+  refunded_at: string | null;
+  refund_amount: MoneyCents;
+  source: DonationSource | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DonationWithDetails extends Donation {
+  donor: Profile;
+  missionary: MissionaryWithProfile;
+  fund: Fund | null;
+}
+
+export interface Campaign {
+  id: string;
+  tenant_id: string;
+  title: string;
+  story: string | null;
+  channel: string;
+  status: string;
+  audience_filter: Record<string, unknown>;
+  metadata: Record<string, unknown>;
+  goal_amount: MoneyCents;
+  current_amount: MoneyCents;
+  share_url: string | null;
+  slug: string | null;
+  creator_donor_id: string;
+  missionary_id: string;
+  start_date: string | null;
+  end_date: string | null;
+  scheduled_for: string | null;
+  sent_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NotificationQueueItem {
+  id: string;
+  tenant_id: string;
+  campaign_id: string | null;
+  donor_id: string | null;
+  recipient_donor_id: string;
+  profile_id: string | null;
+  notification_type: string;
+  channel: string;
+  template_key: string | null;
+  payload: Record<string, unknown>;
+  dedupe_key: string | null;
+  status: string;
+  attempts: number;
+  scheduled_for: string;
+  available_at: string;
+  processed_at: string | null;
+  last_error: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DonorActivity {
+  id: string;
+  donor_id: string | null;
+  type: string;
+  title: string;
+  description: string | null;
+  date: string | null;
+  amount: MoneyCents | null;
+  status: string | null;
+  gift_type: string | null;
+  note: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DonorPledge {
+  id: string;
+  tenant_id: string | null;
+  donor_id: string | null;
+  missionary_id: string | null;
+  fund_id: string | null;
+  amount: MoneyCents;
+  currency: string;
+  frequency: string | null;
+  status: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  next_payment_date: string | null;
+  stripe_subscription_id: string | null;
+  billing_day_of_month: number | null;
+  billing_timezone: string | null;
+  stripe_payment_method_id: string | null;
+  retry_count: number;
+  last_charge_at: string | null;
+  last_charge_attempt: string | null;
+  failed_charge_count: number;
+  pause_reason: string | null;
+  paused_at: string | null;
+  next_charge_at: string | null;
+  total_paid: MoneyCents;
+  total_expected: MoneyCents;
+  payments_completed: number | null;
+  payments_remaining: number | null;
+  payment_method: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PledgeChargeAttempt {
+  id: string;
+  tenant_id: string;
+  pledge_id: string;
+  donor_id: string | null;
+  donation_id: string | null;
+  attempt_number: number;
+  status: string;
+  amount: MoneyCents;
+  currency: string;
+  scheduled_for_date: string;
+  stripe_payment_intent_id: string | null;
+  gateway_response: Record<string, unknown>;
+  error_code: string | null;
+  error_message: string | null;
+  attempted_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MediaItem {
+  url: string;
+  type: "image" | "video";
+  width?: number;
+  height?: number;
+}
+
+export interface Post {
+  id: string;
+  tenant_id: string;
+  missionary_id: string;
+  content: string;
+  media: MediaItem[];
+  like_count: number;
+  prayer_count: number;
+  comment_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PostLike {
+  id: string;
+  post_id: string;
+  user_id: string;
+  created_at: string;
+}
+
+export interface PostPrayer {
+  id: string;
+  post_id: string;
+  user_id: string;
+  created_at: string;
+}
+
+export interface PostComment {
+  id: string;
+  post_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PostWithAuthor extends Post {
+  author: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    avatar_url: string | null;
+  };
+  user_liked?: boolean;
+  user_prayed?: boolean;
+}
+
+export interface AuditLog {
+  id: string;
+  tenant_id: string;
+  user_id: string;
+  action: string;
+  resource_type: string;
+  resource_id: string | null;
+  details: Record<string, unknown>;
+  ip_address: string | null;
+  user_agent: string | null;
+  created_at: string;
+}

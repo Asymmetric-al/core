@@ -1,0 +1,73 @@
+# Repository line-ending policy (targeted, not catch-all)
+# Keep text sources/config/docs LF across all platforms.
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.jsx text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+*.mts text eol=lf
+*.cts text eol=lf
+*.json text eol=lf
+*.jsonc text eol=lf
+*.webmanifest text eol=lf
+*.md text eol=lf
+*.mdx text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.sass text eol=lf
+*.less text eol=lf
+*.html text eol=lf
+*.xml text eol=lf
+*.svg text eol=lf
+*.sh text eol=lf
+*.bash text eol=lf
+*.zsh text eol=lf
+*.sql text eol=lf
+*.graphql text eol=lf
+*.gql text eol=lf
+*.txt text eol=lf
+*.env text eol=lf
+*.env.* text eol=lf
+*.gitignore text eol=lf
+*.gitattributes text eol=lf
+*.editorconfig text eol=lf
+*.lock text eol=lf
+bun.lock text eol=lf
+
+# Windows-native scripts remain CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary assets should never be normalized.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.eot binary
+*.zip binary
+*.gz binary
+*.tgz binary
+*.bz2 binary
+*.7z binary
+*.mp4 binary
+*.webm binary
+
+# Agent skill mirrors: normalize to LF so CI sync matches committed files.
+.agents/** text eol=lf
+.cursor/skills/** text eol=lf
+.cursor/skills-cursor/** text eol=lf
+# Legacy agent dir (if present) leave untouched.
+.agent/** -text
