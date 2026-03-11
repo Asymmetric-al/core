@@ -47,13 +47,15 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@asym/env": "workspace:*",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.47.10",
     "@tanstack/db": "^0.5.28",
     "@tanstack/query-db-collection": "^1.0.25",
     "@tanstack/react-db": "^0.1.72",
     "@tanstack/react-query": "^5.90.21",
-    "next": "16.1.1",
+    "@tanstack/react-query-devtools": "^5.90.15",
+    "next": "16.1.6",
     "react": "^19.0.0",
     "zod": "^4.3.6"
   },

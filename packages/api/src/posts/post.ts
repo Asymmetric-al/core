@@ -35,6 +35,8 @@ function toAuthAwareErrorResponse(error: unknown) {
   return NextResponse.json({ error: message }, { status: 500 });
 }
 
+import { findProfileByUserId } from "../shared/queries";
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ postId: string }> },
@@ -53,12 +55,11 @@ export async function PATCH(
     const body = await request.json();
     const { content, media, status, visibility, post_type } = body;
 
-    const { data: profile } = await supabaseAdmin
-      .from("profiles")
-      .select("id")
-      .eq("user_id", ctx.userId)
-      .eq("tenant_id", ctx.tenantId)
-      .single();
+    const { data: profile } = await findProfileByUserId(
+      supabaseAdmin,
+      ctx.userId,
+      ctx.tenantId,
+    );
 
     if (!profile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
@@ -146,12 +147,11 @@ export async function DELETE(
     const ctx = auth as AuthenticatedContext;
     const { postId } = postIdParamSchema.parse(await params);
 
-    const { data: profile } = await supabaseAdmin
-      .from("profiles")
-      .select("id")
-      .eq("user_id", ctx.userId)
-      .eq("tenant_id", ctx.tenantId)
-      .single();
+    const { data: profile } = await findProfileByUserId(
+      supabaseAdmin,
+      ctx.userId,
+      ctx.tenantId,
+    );
 
     if (!profile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });

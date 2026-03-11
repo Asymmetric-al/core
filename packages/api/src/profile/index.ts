@@ -1,11 +1,14 @@
 import {
   getAuthContext,
+  hasContextRole,
   requireAuth,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { findFullProfileById } from "./queries";
+import { findMissionaryByProfileId } from "../shared/queries";
 import { toErrorResponse } from "../shared/http-errors";
 
 export async function GET() {
@@ -19,12 +22,11 @@ export async function GET() {
     requireAuth(auth);
     const ctx = auth as AuthenticatedContext;
 
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from("profiles")
-      .select("*")
-      .eq("id", ctx.profileId)
-      .eq("tenant_id", ctx.tenantId)
-      .single();
+    const { data: profile, error: profileError } = await findFullProfileById(
+      supabaseAdmin,
+      ctx.profileId,
+      ctx.tenantId,
+    );
 
     if (profileError)
       return NextResponse.json(
@@ -34,12 +36,11 @@ export async function GET() {
 
     let profileData = { ...profile };
 
-    if (ctx.role === "missionary") {
-      const { data: missionary } = await supabaseAdmin
-        .from("missionaries")
-        .select("*")
-        .eq("profile_id", ctx.profileId)
-        .single();
+    if (hasContextRole(ctx, "missionary")) {
+      const { data: missionary } = await findMissionaryByProfileId(
+        supabaseAdmin,
+        ctx.profileId,
+      );
 
       if (missionary) {
         profileData = { ...profileData, missionary };

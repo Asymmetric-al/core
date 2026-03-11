@@ -11,6 +11,8 @@ import { resolveRequiredIdempotencyKey } from "../donate/idempotency";
 import { processDonationSagaOutboxEvent } from "../donate/saga";
 import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
 
+import { findMissionaryById } from "../missionaries/queries";
+
 function getSupabaseAdmin() {
   const { client, error } = getAdminClient();
   if (!client) return { supabaseAdmin: null, error };

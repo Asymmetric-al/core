@@ -44,6 +44,7 @@
   "dependencies": {
     "@asym/auth": "workspace:*",
     "@asym/database": "workspace:*",
+    "@asym/env": "workspace:*",
     "@sentry/nextjs": "^10.32.1",
     "@stripe/stripe-js": "^5.3.0",
     "@supabase/supabase-js": "^2.89.0",
@@ -52,7 +53,7 @@
     "isomorphic-dompurify": "^2.36.0",
     "lucide-react": "^0.554.0",
     "motion": "^12.34.2",
-    "next": "16.1.1",
+    "next": "16.1.6",
     "react": "19.2.3",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",

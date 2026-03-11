@@ -1,3 +1,9 @@
+import {
+  createE2EAuthCookieValue,
+  E2E_AUTH_COOKIE_NAME,
+  isE2EAuthBypassEnabled,
+} from "@asym/auth";
+import { runtimeEnvFlags, serverEnv } from "@asym/env";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 
@@ -52,11 +58,11 @@ function parseCookieHeader(cookieHeader: string | null) {
 }
 
 function getDemoConfig() {
-  const password = process.env.DEMO_PASSWORD;
+  const password = serverEnv.DEMO_PASSWORD;
   const emails: Record<DemoRole, string | undefined> = {
-    admin: process.env.DEMO_ADMIN_EMAIL,
-    missionary: process.env.DEMO_MISSIONARY_EMAIL,
-    donor: process.env.DEMO_DONOR_EMAIL,
+    admin: serverEnv.DEMO_ADMIN_EMAIL,
+    missionary: serverEnv.DEMO_MISSIONARY_EMAIL,
+    donor: serverEnv.DEMO_DONOR_EMAIL,
   };
 
   const availability: DemoAvailability = {
@@ -70,8 +76,8 @@ function getDemoConfig() {
 
 function createAuthClient(request: Request) {
   const pendingCookies: PendingCookie[] = [];
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseUrl = serverEnv.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = serverEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
     return { supabase: null, pendingCookies };
@@ -106,9 +112,15 @@ function createAuthClient(request: Request) {
 }
 
 export async function GET() {
+  if (isE2EAuthBypassEnabled()) {
+    return NextResponse.json({
+      availableRoles: { admin: true, missionary: true, donor: true },
+    });
+  }
+
   if (
-    process.env.NODE_ENV === "production" &&
-    process.env.ALLOW_DEMO_ACCOUNTS !== "true"
+    runtimeEnvFlags.NODE_ENV === "production" &&
+    !serverEnv.ALLOW_DEMO_ACCOUNTS
   ) {
     return NextResponse.json({ availableRoles: defaultAvailability });
   }
@@ -119,8 +131,8 @@ export async function GET() {
 
 export async function POST(request: Request) {
   if (
-    process.env.NODE_ENV === "production" &&
-    process.env.ALLOW_DEMO_ACCOUNTS !== "true"
+    runtimeEnvFlags.NODE_ENV === "production" &&
+    !serverEnv.ALLOW_DEMO_ACCOUNTS
   ) {
     return NextResponse.json(
       { ok: false, error: "Demo login unavailable" },
@@ -136,6 +148,29 @@ export async function POST(request: Request) {
         { ok: false, error: "Demo login unavailable" },
         { status: 400 },
       );
+    }
+
+    if (isE2EAuthBypassEnabled()) {
+      const response = NextResponse.json({ ok: true, role, bypass: true });
+      const secure = new URL(request.url).protocol === "https:";
+
+      response.cookies.set(
+        E2E_AUTH_COOKIE_NAME,
+        createE2EAuthCookieValue({
+          userId: `e2e-${role}-user`,
+          role,
+          tenantId: null,
+        }),
+        {
+          httpOnly: true,
+          maxAge: 60 * 60,
+          path: "/",
+          sameSite: "lax",
+          secure,
+        },
+      );
+
+      return response;
     }
 
     const { emails, password, availability } = getDemoConfig();

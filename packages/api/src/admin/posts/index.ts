@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     }
 
     const auth = await getAuthContext();
-    requireRole(auth, ["admin", "super_admin"]);
+    requireRole(auth, ["staff", "admin", "super_admin"]);
     const ctx = auth as AuthenticatedContext;
 
     const { searchParams } = new URL(request.url);

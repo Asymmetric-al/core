@@ -12,6 +12,7 @@ import { resolveRequiredIdempotencyKey } from "./idempotency";
 import { processDonationSagaOutboxEvent } from "./saga";
 import { donateGetQuerySchema, donatePostSchema } from "../schemas/donate";
 import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
+import { findDonorByProfileId, findProfileById } from "../shared/queries";
 
 function getStripeClient(secretKey: string): Stripe {
   return new Stripe(secretKey, { apiVersion: "2025-02-24.acacia" });
@@ -174,12 +175,11 @@ export async function GET(request: NextRequest) {
         fund_id: searchParams.get("fund_id"),
       });
 
-    const { data: donor } = await supabaseAdmin
-      .from("donors")
-      .select("id")
-      .eq("profile_id", ctx.profileId)
-      .eq("tenant_id", ctx.tenantId)
-      .single();
+    const { data: donor } = await findDonorByProfileId(
+      supabaseAdmin,
+      ctx.profileId,
+      ctx.tenantId,
+    );
 
     let designations: { missionaries: unknown[]; funds: unknown[] } = {
       missionaries: [],
@@ -192,8 +192,8 @@ export async function GET(request: NextRequest) {
           .from("missionaries")
           .select(
             `
-            id, 
-            funding_goal, 
+            id,
+            funding_goal,
             current_funding,
             profile:profiles!profile_id(first_name, last_name, avatar_url)
           `,
@@ -225,8 +225,8 @@ export async function GET(request: NextRequest) {
         .from("missionaries")
         .select(
           `
-          id, 
-          funding_goal, 
+          id,
+          funding_goal,
           current_funding,
           profile:profiles!profile_id(first_name, last_name, avatar_url)
         `,
@@ -249,7 +249,7 @@ export async function GET(request: NextRequest) {
       designations,
       donor: donor || null,
     });
-  } catch (e) {
-    return toErrorResponse(e);
+  } catch (error) {
+    return toErrorResponse(error);
   }
 }

@@ -1,5 +1,31 @@
 ﻿# Technical Decisions
 
+## React Compiler Enablement (Annotation Mode)
+
+### Issue
+
+`react-doctor` reported "React Compiler: Not found" because the compiler was not enabled in app configs and the required Babel plugin was not installed.
+
+### Solution
+
+Enabled React Compiler in gradual opt-in mode across Next.js apps:
+
+- Added `babel-plugin-react-compiler` as a dev dependency at workspace root
+- Set `reactCompiler.compilationMode = "annotation"` in:
+  - `apps/admin/next.config.ts`
+  - `apps/donor/next.config.ts`
+  - `apps/missionary/next.config.ts`
+
+Using annotation mode keeps risk low and avoids global behavior changes. Only files explicitly marked with `"use memo"` are compiled.
+
+### Performance Note
+
+This rollout mainly enables compiler infrastructure and resolves "not found" status. Material runtime performance improvements require targeted `"use memo"` adoption in suitable components.
+
+### Date
+
+February 2026
+
 ## TanStack Table + React Compiler Compatibility
 
 ### Issue

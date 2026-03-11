@@ -1,22 +1,22 @@
-import { getDashboardStats } from "@asym/api/reads/dashboard-stats";
 import { getAuthContext } from "@asym/auth/context";
 import { DashboardHome } from "@asym/missionary/components/dashboard-home";
 
+import { loadDashboardStats } from "./dashboard-stats-loader";
+
 import { AdminDashboardStatsSection } from "@/features/mission-control/components/AdminDashboardStatsSection";
-import { hasAdminReadAccess } from "@/lib/admin-access";
 
 export default async function MissionControlDashboard() {
   const auth = await getAuthContext();
 
-  if (
-    !auth.isAuthenticated ||
-    !auth.tenantId ||
-    !hasAdminReadAccess(auth.role)
-  ) {
+  if (!auth.isAuthenticated || !auth.tenantId) {
     return <DashboardHome />;
   }
 
-  const stats = await getDashboardStats(auth.tenantId);
+  const stats = await loadDashboardStats(auth.tenantId);
+
+  if (!stats) {
+    return <DashboardHome />;
+  }
 
   return (
     <>

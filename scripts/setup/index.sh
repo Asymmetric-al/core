@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 cd "$ROOT_DIR"
 
@@ -21,6 +21,23 @@ require_cmd() {
   fi
 }
 
+supabase_cli_guidance() {
+  if command -v supabase >/dev/null 2>&1; then
+    local version
+    version="$(supabase --version 2>/dev/null || true)"
+    if [[ -n "$version" ]]; then
+      log "Found global Supabase CLI (${version})"
+    else
+      log "Found global Supabase CLI"
+    fi
+    return
+  fi
+
+  log "Supabase CLI not found globally. Repo fallback will use pinned CLI via: bun run supabase -- <command>"
+  log "Recommended global install for faster startup: brew install supabase/tap/supabase (macOS/Linux) or Scoop on Windows"
+  log "Docs: https://supabase.com/docs/guides/local-development/cli/getting-started"
+}
+
 trim_value() {
   local value="$1"
   value="${value//$'\r'/}"
@@ -38,6 +55,7 @@ has_env_value() {
 log "Checking prerequisites..."
 require_cmd bun
 require_cmd git
+supabase_cli_guidance
 
 existing_supabase_url="$(trim_value "${NEXT_PUBLIC_SUPABASE_URL-}")"
 existing_supabase_anon_key="$(trim_value "${NEXT_PUBLIC_SUPABASE_ANON_KEY-}")"

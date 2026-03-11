@@ -1,6 +1,8 @@
 ﻿import { getAdminClient } from "@asym/database/supabase/admin";
 import { cacheLife, cacheTag } from "next/cache";
 
+import { SETTLED_DONATION_STATUSES } from "./settled-donation-statuses";
+
 type QueryError = { message?: string } | null;
 
 interface DonationSeriesPoint {
@@ -135,13 +137,13 @@ export async function getMissionaryMetrics(
       .select("amount")
       .eq("tenant_id", tenantId)
       .eq("missionary_id", missionaryId)
-      .eq("status", "completed"),
+      .in("status", [...SETTLED_DONATION_STATUSES]),
     client
       .from("donations")
       .select("amount, created_at")
       .eq("tenant_id", tenantId)
       .eq("missionary_id", missionaryId)
-      .eq("status", "completed")
+      .in("status", [...SETTLED_DONATION_STATUSES])
       .gte("created_at", seriesStartIso)
       .order("created_at", { ascending: true }),
   ]);

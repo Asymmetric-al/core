@@ -1,4 +1,4 @@
-﻿# Backend & Data Rules ΓÇö Rules
+# Backend & Data Rules — Rules
 
 **Name:** `backend-rules`
 **Purpose:** Guardrails for Supabase, auth, data access, mutations, and environment variables.
@@ -15,7 +15,7 @@ Use this before changing server actions, route handlers, database access, or mig
 - Migrations/seed data:
   - `supabase/migrations/*.sql`
   - `supabase/seed.sql`
-- Supabase CLI is not used in contributor workflows; cloud schema/seed is managed outside this repo.
+- Supabase CLI is used through the repo runner: `bun run supabase -- <command>` (global CLI preferred when installed, pinned fallback otherwise).
 
 ### Supabase access (critical)
 
@@ -23,6 +23,14 @@ Use this before changing server actions, route handlers, database access, or mig
 - **Client-side:** Use the singleton browser client to avoid auth desync.
 - For allowed/forbidden import boundaries by code area, see
   [`docs/guides/architecture/db-client-usage-matrix.md`](../../guides/architecture/db-client-usage-matrix.md).
+- **Route handlers:** `apps/*/app/api/**` route handlers should not import `@asym/database/supabase` (or subpaths) directly; use `@asym/api/*` handler boundaries.
+
+### Data Access Boundary
+
+- All business DB logic lives in `packages/api/src/*`; route handlers in `apps/*/app/api/` are thin re-exports only.
+- Full rule, approved exceptions, and examples live in `docs/guides/architecture/data-access-boundary.md`.
+- Primary enforcement is ESLint `no-restricted-imports` rules (ticket 2.2.2).
+- CI enforcement is `scripts/verify/data-boundary-check.sh`.
 
 ### Security & auth
 
@@ -64,8 +72,8 @@ Use this before changing server actions, route handlers, database access, or mig
 
 ### Implementation checklist
 
-- [ ] Server code uses `@/lib/supabase/server`
-- [ ] Client code uses `@/lib/supabase/client`
+- [ ] Server code uses `@asym/database/supabase/server`
+- [ ] Client code uses `@asym/database/supabase/client`
 - [ ] Inputs validated with Zod
 - [ ] RLS assumptions maintained
 - [ ] No service role key in client code
@@ -81,7 +89,7 @@ Use this before changing server actions, route handlers, database access, or mig
 ### Server-side client
 
 ```ts
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@asym/database/supabase/server";
 
 export async function myAction() {
   const supabase = await createClient();
@@ -94,7 +102,7 @@ export async function myAction() {
 ### Client-side client
 
 ```ts
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@asym/database/supabase/client";
 
 export function MyComponent() {
   const supabase = createClient();
@@ -107,3 +115,17 @@ export function MyComponent() {
 - Using the server client in client components
 - Using service role keys in the browser
 - Skipping Zod validation before writes
+
+### Route segment config policy (required)
+
+- With `cacheComponents: true` enabled in this repo, App Router route segment config exports are disabled.
+- In `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}`, do **not** export any of:
+  - `runtime`
+  - `dynamic`
+  - `dynamicParams`
+  - `revalidate`
+  - `fetchCache`
+  - `preferredRegion`
+  - `maxDuration`
+- Keep runtime/data behavior in handler/component logic and request-level cache controls instead.
+- See `docs/guides/architecture/runtime-map.md` for repo-specific rationale and API route inventory.
