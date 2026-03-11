@@ -58,7 +58,7 @@ function hasMembershipRole(snapshot: RoleSnapshot, role: MembershipRole) {
   );
 }
 
-export function hasRole(snapshot: RoleSnapshot, role: UserRole) {
+export function hasRole(snapshot: RoleSnapshot, role: UserRole): boolean {
   if (role === "super_admin") {
     return snapshot.profileRole === "super_admin";
   }
