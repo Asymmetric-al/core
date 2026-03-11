@@ -6,6 +6,7 @@
   "exports": {
     ".": "./index.ts",
     "./context": "./context.ts",
+    "./permissions": "./permissions.ts",
     "./use-auth": "./use-auth.ts",
     "./middleware": "./middleware.ts",
     "./constants": "./constants.ts"
@@ -20,7 +21,7 @@
     "@asym/env": "workspace:*",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.47.10",
-    "next": "16.1.6",
+    "next": "^16.2.0-canary.58",
     "react": "^19.0.0"
   },
   "devDependencies": {

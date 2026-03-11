@@ -18,6 +18,8 @@ export const proxy = createAuthMiddleware({
   ],
   loginPath: "/login",
   redirectAuthenticatedTo: "/",
+  unauthorizedRedirectTo: "/",
+  allowedRoles: ["missionary", "super_admin"],
 });
 
 export const config = {

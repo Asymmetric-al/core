@@ -1,5 +1,6 @@
 import {
   getAuthContext,
+  hasContextRole,
   requireAuth,
   type AuthenticatedContext,
 } from "@asym/auth/context";
@@ -34,7 +35,7 @@ export async function GET() {
 
     let profileData = { ...profile };
 
-    if (ctx.role === "missionary") {
+    if (hasContextRole(ctx, "missionary")) {
       const { data: missionary } = await findMissionaryByProfileId(
         supabaseAdmin,
         ctx.profileId,
