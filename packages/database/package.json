@@ -47,11 +47,11 @@
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.47.10",
     "@tanstack/db": "^0.5.16",
-    "@tanstack/react-db": "^0.1.60",
     "@tanstack/query-db-collection": "^1.0.12",
+    "@tanstack/react-db": "^0.1.60",
     "@tanstack/react-query": "^5.90.15",
     "@tanstack/react-query-devtools": "^5.90.15",
-    "next": "16.1.6",
+    "next": "^16.2.0-canary.58",
     "react": "^19.0.0"
   },
   "devDependencies": {

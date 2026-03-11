@@ -275,7 +275,7 @@ export function HomeMission() {
           </div>
 
           <figure className="relative lg:ml-auto group w-full h-full">
-            <div className="relative z-10 h-full w-full rounded-3xl overflow-hidden bg-slate-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)]">
+            <div className="relative z-10 h-[420px] sm:h-[520px] lg:h-[640px] w-full rounded-3xl overflow-hidden bg-slate-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)]">
               <Image
                 src={MISSION_IMAGE}
                 alt="Field workers providing humanitarian aid in communities"

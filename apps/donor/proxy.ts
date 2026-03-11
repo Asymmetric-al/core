@@ -24,6 +24,10 @@ export const proxy = createAuthMiddleware({
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webmanifest|json)$).*)",
+    "/auth/callback",
+    "/login",
+    "/register",
+    "/donor-dashboard/:path*",
+    "/api/:path*",
   ],
 };
