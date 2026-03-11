@@ -11,7 +11,6 @@ import {
 import { cacheLife, cacheTag } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
 
-import { getPostReactionStatus } from "./queries";
 import { postsQuerySchema } from "../schemas/posts";
 import { CACHE_TAGS } from "../shared/cache-tags";
 import { toErrorResponse } from "../shared/http-errors";

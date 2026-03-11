@@ -12,7 +12,7 @@ import { resolveRequiredIdempotencyKey } from "./idempotency";
 import { processDonationSagaOutboxEvent } from "./saga";
 import { donateGetQuerySchema, donatePostSchema } from "../schemas/donate";
 import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
-import { findDonorByProfileId, findProfileById } from "../shared/queries";
+import { findDonorByProfileId } from "../shared/queries";
 
 function getStripeClient(secretKey: string): Stripe {
   return new Stripe(secretKey, { apiVersion: "2025-02-24.acacia" });

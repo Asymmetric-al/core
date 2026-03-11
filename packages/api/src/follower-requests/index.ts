@@ -6,8 +6,8 @@ import {
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
-import { findProfileByUserId } from "../shared/queries";
 import { toErrorResponse } from "../shared/http-errors";
+import { findProfileByUserId } from "../shared/queries";
 
 interface FollowerRequestRow {
   id: string;
