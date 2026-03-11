@@ -105,13 +105,13 @@ Nia keywords:
 ## Email, Templates, and PDFs
 
 - Unlayer (react-email-editor)
-- SendGrid (mail + event webhooks)
+- Resend (mail + webhooks)
 - Shared template source for email + PDF rendering pipeline
 
 Nia keywords:
 
 - unlayer, email editor, react-email-editor
-- sendgrid, eventwebhook
+- resend, webhook
 - pdf render, template pipeline
 
 ## Observability
@@ -171,7 +171,7 @@ Nia keywords:
 - "db/schema/migration" -> Postgres, Supabase
 - "dashboard/table" -> TanStack Table, Query, Tailwind/shadcn
 - "payment/checkout/webhook" -> Stripe
-- "email/template/pdf" -> Unlayer, SendGrid
+- "email/template/pdf" -> Unlayer, Resend
 - "charts/visualization" -> Recharts
 - "motion/animation" -> motion
 

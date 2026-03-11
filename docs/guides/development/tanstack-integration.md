@@ -142,18 +142,19 @@ import { useLiveQuery, eq } from "@tanstack/react-db";
 
 export function usePostsWithAuthors(missionaryId?: string) {
   return useLiveQuery((q) => {
-    let query = q.from({ post: postsCollection });
+    let query = q.from({ post: postsCollection.value });
 
     if (missionaryId) {
       query = query.where(({ post }) => eq(post.missionary_id, missionaryId));
     }
 
     return query
-      .join({ missionary: missionariesCollection }, ({ post, missionary }) =>
-        eq(post.missionary_id, missionary!.id),
+      .join(
+        { missionary: missionariesCollection.value },
+        ({ post, missionary }) => eq(post.missionary_id, missionary.id),
       )
-      .join({ profile: profilesCollection }, ({ missionary, profile }) =>
-        eq(missionary!.profile_id, profile.id),
+      .join({ profile: profilesCollection.value }, ({ missionary, profile }) =>
+        eq(missionary?.profile_id ?? "", profile.id),
       )
       .select(({ post, profile }) => ({
         ...post,

@@ -546,4 +546,4 @@ Sample values:
 ### Related Documentation
 
 - [Email Studio](./email-studio.md) - Email template builder
-- [SendGrid Integration](./sendgrid-integration.md) - Email delivery
+- [Resend Integration](./resend-integration.md) - Email delivery
