@@ -27,6 +27,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+type PublicRegistrationRole = "donor" | "missionary";
+
 export default function RegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -107,7 +109,7 @@ export default function RegisterPage() {
         data: {
           first_name: formData.firstName,
           last_name: formData.lastName,
-          role: formData.role,
+          role: formData.role as PublicRegistrationRole,
         },
       },
     });
@@ -120,9 +122,7 @@ export default function RegisterPage() {
 
     if (authData.user) {
       // Profile is created automatically by database trigger
-      if (formData.role === "admin" || formData.role === "staff") {
-        router.push("/mc");
-      } else if (formData.role === "missionary") {
+      if (formData.role === "missionary") {
         router.push("/");
       } else {
         router.push("/donor-dashboard");
@@ -218,8 +218,6 @@ export default function RegisterPage() {
                 <SelectContent>
                   <SelectItem value="donor">Donor</SelectItem>
                   <SelectItem value="missionary">Missionary</SelectItem>
-                  <SelectItem value="staff">Staff</SelectItem>
-                  <SelectItem value="admin">Administrator</SelectItem>
                 </SelectContent>
               </Select>
             </div>

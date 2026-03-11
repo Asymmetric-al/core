@@ -16,7 +16,7 @@ type PendingCookie = {
   };
 };
 
-const ALLOWED_ROLES = new Set(["admin", "missionary", "super_admin"]);
+const ALLOWED_ROLES = new Set(["staff", "admin", "missionary", "super_admin"]);
 const PERMISSION_ERROR_CODES = new Set([
   "42501",
   "PGRST301",
