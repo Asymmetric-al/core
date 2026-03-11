@@ -18,14 +18,14 @@ This document describes how TanStack Query, TanStack Table, and TanStack DB are 
 
 ### Provider Setup
 
-The application uses a single unified `TanStackDBProvider` that provides both TanStack Query and TanStack DB functionality:
+Use `QueryProvider` as the single recommended provider for TanStack Query and TanStack DB functionality:
 
 ```tsx
 // apps/[app-name]/app/layout.tsx
-import { TanStackDBProvider } from "@asym/database/providers";
+import { QueryProvider } from "@asym/database/providers";
 
 export default function RootLayout({ children }) {
-  return <TanStackDBProvider>{children}</TanStackDBProvider>;
+  return <QueryProvider>{children}</QueryProvider>;
 }
 ```
 
@@ -35,7 +35,7 @@ export default function RootLayout({ children }) {
 packages/database/
 ├── collections/      # Collection definitions with Supabase integration
 ├── hooks/            # Custom hooks using useLiveQuery
-├── providers/        # TanStackDBProvider component
+├── providers/        # QueryProvider + compatibility alias
 ├── supabase/         # Supabase clients (server/client/admin)
 └── types/            # Database types
 ```
@@ -48,46 +48,74 @@ Collections are defined using `queryCollectionOptions` from `@tanstack/query-db-
 import { createCollection } from "@tanstack/db";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
 
-export const postsCollection = createCollection<Post>(
-  queryCollectionOptions({
-    queryKey: ["posts"],
-    queryClient: getQueryClient(),
-    getKey: (item) => item.id,
-    queryFn: async () => {
-      const supabase = getSupabase();
-      const { data, error } = await supabase
-        .from("posts")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
-    },
-    onInsert: async ({ transaction }) => {
-      const supabase = getSupabase();
-      const posts = transaction.mutations.map((m) => m.modified);
-      const { error } = await supabase.from("posts").insert(posts);
-      if (error) throw error;
-    },
-    onUpdate: async ({ transaction }) => {
-      const supabase = getSupabase();
-      await Promise.all(
-        transaction.mutations.map(async (mutation) => {
-          const { error } = await supabase
-            .from("posts")
-            .update(mutation.modified)
-            .eq("id", mutation.key as string);
-          if (error) throw error;
-        }),
-      );
-    },
-    onDelete: async ({ transaction }) => {
-      const supabase = getSupabase();
-      const ids = transaction.mutations.map((m) => m.key as string);
-      const { error } = await supabase.from("posts").delete().in("id", ids);
-      if (error) throw error;
-    },
-  }),
-);
+function createPostsCollection() {
+  return createCollection<Post>(
+    queryCollectionOptions({
+      queryKey: ["posts"],
+      queryClient: getQueryClient(),
+      getKey: (item) => item.id,
+      queryFn: async () => {
+        const { data, error } = await getSupabase()
+          .from("posts")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        return data ?? [];
+      },
+      onInsert: async ({ transaction }) => {
+        const items = transaction.mutations.map((m) => m.modified);
+        const { error } = await getSupabase().from("posts").insert(items);
+        if (error) throw error;
+      },
+      onUpdate: async ({ transaction }) => {
+        await Promise.all(
+          transaction.mutations.map(async (mutation) => {
+            const { error } = await getSupabase()
+              .from("posts")
+              .update(mutation.modified)
+              .eq("id", mutation.key as string);
+            if (error) throw error;
+          }),
+        );
+      },
+      onDelete: async ({ transaction }) => {
+        const ids = transaction.mutations.map((m) => m.key as string);
+        const { error } = await getSupabase()
+          .from("posts")
+          .delete()
+          .in("id", ids);
+        if (error) throw error;
+      },
+    }),
+  );
+}
+
+let _postsCollection: ReturnType<typeof createPostsCollection> | undefined;
+
+function getOrCreateCollection<T>(
+  existing: T | undefined,
+  create: () => T,
+  set: (value: T) => void,
+): T {
+  if (existing !== undefined) {
+    return existing;
+  }
+  const created = create();
+  set(created);
+  return created;
+}
+
+export const postsCollection = {
+  get value() {
+    return getOrCreateCollection(
+      _postsCollection,
+      createPostsCollection,
+      (value) => {
+        _postsCollection = value;
+      },
+    );
+  },
+};
 ```
 
 ### Available Collections
@@ -114,18 +142,19 @@ import { useLiveQuery, eq } from "@tanstack/react-db";
 
 export function usePostsWithAuthors(missionaryId?: string) {
   return useLiveQuery((q) => {
-    let query = q.from({ post: postsCollection });
+    let query = q.from({ post: postsCollection.value });
 
     if (missionaryId) {
       query = query.where(({ post }) => eq(post.missionary_id, missionaryId));
     }
 
     return query
-      .join({ missionary: missionariesCollection }, ({ post, missionary }) =>
-        eq(post.missionary_id, missionary!.id),
+      .join(
+        { missionary: missionariesCollection.value },
+        ({ post, missionary }) => eq(post.missionary_id, missionary.id),
       )
-      .join({ profile: profilesCollection }, ({ missionary, profile }) =>
-        eq(missionary!.profile_id, profile.id),
+      .join({ profile: profilesCollection.value }, ({ missionary, profile }) =>
+        eq(missionary?.profile_id ?? "", profile.id),
       )
       .select(({ post, profile }) => ({
         ...post,
@@ -185,10 +214,10 @@ export function ContributionsTable({ data }) {
 
 ## Supabase Integration
 
-Collections use the Supabase client from `@/lib/supabase/client`:
+Collections use the Supabase client from `@asym/database/supabase`:
 
 ```typescript
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@asym/database/supabase";
 
 function getSupabase() {
   if (!supabaseClient) {
@@ -208,9 +237,19 @@ The shared QueryClient is configured with:
 new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60 * 1000, // 1 minute
-      gcTime: 5 * 60 * 1000, // 5 minutes
-      refetchOnWindowFocus: false,
+      staleTime: 60 * 1000, // Prevents refetch-on-hydration, 1-minute window
+      gcTime: 5 * 60 * 1000, // 5-minute garbage collection
+      refetchOnWindowFocus: false, // Explicit opt-out
+      retry: (failureCount, error) => {
+        if (error instanceof Error && error.message.includes("401"))
+          return false;
+        if (error instanceof Error && error.message.includes("403"))
+          return false;
+        return failureCount < 3;
+      },
+    },
+    mutations: {
+      retry: false, // Mutations are not retried
     },
   },
 });
