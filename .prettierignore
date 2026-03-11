@@ -43,6 +43,7 @@ next-env.d.ts
 .nia-sync
 .traycer
 ~
+vendor/payload-upstream
 
 # keep command docs but skip bundled skill libraries
 .cursor/skills
