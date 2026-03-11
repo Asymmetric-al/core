@@ -23,13 +23,14 @@ require_env() {
 }
 
 run_local() {
-  require_cmd supabase
-  echo "Applying local migrations and seeding via Supabase CLI..."
-  supabase db reset --local
+  require_cmd bun
+  echo "Applying local migrations and seeding via Supabase CLI (repo runner)..."
+  bun run supabase -- db reset --local
   echo "Local seed complete."
 }
 
 run_hosted() {
+  require_cmd bun
   require_cmd psql
   require_env SUPABASE_SERVICE_ROLE_KEY
   require_env SUPABASE_DB_URL
@@ -41,13 +42,8 @@ run_hosted() {
     exit 1
   fi
 
-  if command -v supabase >/dev/null 2>&1; then
-    echo "Applying migrations to hosted database via Supabase CLI..."
-    supabase db push --db-url "$SUPABASE_DB_URL"
-  else
-    echo "Supabase CLI not found; skipping migration apply step."
-    echo "Install Supabase CLI if you need this script to apply migrations automatically."
-  fi
+  echo "Applying migrations to hosted database via Supabase CLI (repo runner)..."
+  bun run supabase -- db push --db-url "$SUPABASE_DB_URL"
 
   echo "Running deterministic seed SQL on hosted database..."
   psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f "$SEED_SQL"

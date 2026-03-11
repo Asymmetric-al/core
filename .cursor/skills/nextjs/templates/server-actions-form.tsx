@@ -12,11 +12,9 @@
 
 'use server'
 
-import { revalidateTag, updateTag  } from 'next/cache'
-import { redirect } from 'next/navigation'
-import { useOptimistic, useState  } from 'react'
-import { useFormState, useFormStatus } from 'react-dom'
-import { z } from 'zod'
+import { revalidateTag, updateTag } from "next/cache";
+import { redirect } from "next/navigation";
+import { z } from "zod";
 
 // ============================================================================
 // Example 1: Basic Server Action
@@ -122,6 +120,7 @@ export async function createPostWithValidation(
 // Form with validation errors
 'use client'
 
+import { useFormState, useFormStatus } from "react-dom";
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -200,8 +199,7 @@ export async function likePost(postId: string) {
 // Client component with optimistic updates
 'use client'
 
-
-import { likePost, uploadImage  } from './actions'
+import { useOptimistic } from "react";
 
 export function LikeButton({ postId, initialLikes }: { postId: string; initialLikes: number }) {
   const [optimisticLikes, addOptimisticLike] = useOptimistic(
@@ -269,6 +267,7 @@ export async function uploadImage(formData: FormData) {
 // File upload form
 'use client'
 
+import { useState } from "react";
 
 export function ImageUploadForm() {
   const [preview, setPreview] = useState<string | null>(null)
@@ -344,6 +343,7 @@ export function SubscribeForm() {
 // Enhanced with JavaScript
 'use client'
 
+import { useFormState } from "react-dom";
 
 export function EnhancedSubscribeForm() {
   const [state, formAction] = useFormState(subscribe, null)
@@ -405,6 +405,7 @@ export async function submitMultiStepForm(data: FormData) {
 // Multi-step form component
 'use client'
 
+import { useState } from "react";
 
 export function MultiStepForm() {
   const [step, setStep] = useState(1)

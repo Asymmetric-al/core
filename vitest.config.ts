@@ -1,15 +1,21 @@
-import path from "node:path";
-
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
+
+const srcPath = fileURLToPath(new URL("./src", import.meta.url));
 
 export default defineConfig({
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      "@": srcPath,
     },
   },
   test: {
-    include: ["tests/unit/**/*.test.ts", "tests/unit/**/*.test.tsx"],
+    include: [
+      "tests/unit/**/*.test.ts",
+      "tests/unit/**/*.test.tsx",
+      "packages/api/tests/unit/**/*.test.ts",
+      "packages/api/tests/unit/**/*.test.tsx",
+    ],
     environment: "node",
     clearMocks: true,
     coverage: {

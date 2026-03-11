@@ -95,9 +95,9 @@ export class NotificationService implements EmailSender, SmsSender, PushSender {
 
 // Or separate implementations
 @Injectable()
-export class SendGridEmailService implements EmailSender {
+export class ResendEmailService implements EmailSender {
   async sendEmail(to: string, subject: string, body: string): Promise<void> {
-    // SendGrid-specific implementation
+    // Resend-specific implementation
   }
 }
 
@@ -128,7 +128,7 @@ export const SMS_SENDER = Symbol("SMS_SENDER");
 
 @Module({
   providers: [
-    { provide: EMAIL_SENDER, useClass: SendGridEmailService },
+    { provide: EMAIL_SENDER, useClass: ResendEmailService },
     { provide: SMS_SENDER, useClass: TwilioSmsService },
   ],
   exports: [EMAIL_SENDER, SMS_SENDER],

@@ -3,9 +3,25 @@ import reactHooksPlugin from "eslint-plugin-react-hooks";
 
 import { baseConfig } from "./base.mjs";
 
+const nextVitalsWithoutTsPlugin = nextVitals.map((entry) => {
+  if (!("plugins" in entry) || !entry.plugins?.["@typescript-eslint"]) {
+    return entry;
+  }
+
+  const plugins = Object.fromEntries(
+    Object.entries(entry.plugins).filter(
+      ([pluginName]) => pluginName !== "@typescript-eslint",
+    ),
+  );
+  return {
+    ...entry,
+    plugins,
+  };
+});
+
 export const nextjsConfig = [
   ...baseConfig,
-  ...nextVitals,
+  ...nextVitalsWithoutTsPlugin,
   {
     plugins: {
       "react-hooks": reactHooksPlugin,

@@ -30,8 +30,8 @@ export class DatabaseService {
 export class EmailService {
   sendEmail() {
     // Different services access env differently
-    const apiKey = process.env.SENDGRID_API_KEY || "default";
-    // Typos go unnoticed: process.env.SENDGRID_API_KY
+    const apiKey = process.env.RESEND_API_KEY || "default";
+    // Typos go unnoticed: process.env.RESEND_API_KY
   }
 }
 ```

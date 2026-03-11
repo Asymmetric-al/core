@@ -1,4 +1,7 @@
 export type {
+  Membership,
+  MembershipRole,
+  StaffSubrole,
   UserRole,
   DonationStatus,
   GivingFrequency,
