@@ -13,7 +13,7 @@ export async function PATCH(
     }
 
     const auth = await getAuthContext();
-    requireRole(auth, ["admin", "super_admin"]);
+    requireRole(auth, ["staff", "admin", "super_admin"]);
     const { commentId } = await params;
 
     const body = await request.json();
@@ -70,7 +70,7 @@ export async function DELETE(
     }
 
     const auth = await getAuthContext();
-    requireRole(auth, ["admin", "super_admin"]);
+    requireRole(auth, ["staff", "admin", "super_admin"]);
     const { commentId } = await params;
 
     const { data: existingComment } = await supabaseAdmin

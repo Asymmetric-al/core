@@ -2,22 +2,17 @@ import { createAuthMiddleware } from "@asym/auth/middleware";
 
 export const proxy = createAuthMiddleware({
   publicRoutes: [
-    "/",
-    "/about",
     "/auth/callback",
-    "/faq",
-    "/financials",
+    "/login",
     "/register",
-    "/ways-to-give",
-    "/workers",
-    "/checkout",
-    "/sign",
     "/api/auth/demo-account",
     "/sitemap.xml",
     "/robots.txt",
   ],
   loginPath: "/login",
   redirectAuthenticatedTo: "/",
+  unauthorizedRedirectTo: "/login",
+  allowedRoles: ["staff", "admin", "super_admin"],
 });
 
 export const config = {

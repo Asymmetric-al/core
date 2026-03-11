@@ -79,6 +79,8 @@ const authenticatedAdmin: TestAuthContext = {
   role: "admin",
   profileId: "profile-1",
   isAuthenticated: true,
+  profileRole: "admin",
+  memberships: [],
 };
 
 function createRequest(): NextRequest {
@@ -127,6 +129,8 @@ describe("withOperation", () => {
       role: null,
       profileId: null,
       isAuthenticated: false,
+      profileRole: null,
+      memberships: [],
     });
 
     const handler = withOperation(async () => NextResponse.json({ ok: true }));
