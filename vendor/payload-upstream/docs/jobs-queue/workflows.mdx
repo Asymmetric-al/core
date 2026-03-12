@@ -413,7 +413,6 @@ When you define a `concurrency` key:
 1. **When queuing:** The concurrency key is computed from the job's input and stored on the job document.
 
 2. **When running:** The job runner enforces exclusive execution through two mechanisms:
-
    - It first checks which concurrency keys are currently being processed and excludes pending jobs with those keys from the query
    - If multiple pending jobs with the same key are picked up in the same batch, only the first one (by creation order) runs - the others are released back to `processing: false` and will be picked up on subsequent runs
 

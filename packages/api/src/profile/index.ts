@@ -8,6 +8,7 @@ import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { findFullProfileById } from "./queries";
+import { toErrorResponse } from "../shared/http-errors";
 import { findMissionaryByProfileId } from "../shared/queries";
 
 export async function GET() {
@@ -48,11 +49,7 @@ export async function GET() {
 
     return NextResponse.json({ profile: profileData });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Internal error";
-    return NextResponse.json(
-      { error: message },
-      { status: message.includes("Unauthorized") ? 401 : 500 },
-    );
+    return toErrorResponse(e);
   }
 }
 

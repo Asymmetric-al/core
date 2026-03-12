@@ -1,3 +1,4 @@
+import type { VirtualizationConfig } from "../data-table/types";
 import type { ColumnDef, Row } from "@tanstack/react-table";
 
 export type DataGridCellType =
@@ -61,9 +62,14 @@ export interface DataGridConfig {
   enableRowAdd?: boolean;
   enableRowDelete?: boolean;
   enableColumnResize?: boolean;
+
+  virtualization?: VirtualizationConfig;
+
+  // Legacy virtualization fields kept for backward compatibility.
   virtualizeRows?: boolean;
   virtualizeColumns?: boolean;
   rowHeight?: number;
+  virtualOverscan?: number;
   headerHeight?: number;
   maxHeight?: number | string;
 }

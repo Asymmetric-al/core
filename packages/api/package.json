@@ -15,6 +15,7 @@
     "./auth/demo-account": "./src/auth/demo-account.ts",
     "./auth/cleanup-demo-users": "./src/auth/cleanup-demo-users.ts",
     "./donate": "./src/donate/index.ts",
+    "./donate/outbox": "./src/donate/outbox.ts",
     "./donations": "./src/donations/index.ts",
     "./profile": "./src/profile/index.ts",
     "./feed-preferences": "./src/feed-preferences/index.ts",

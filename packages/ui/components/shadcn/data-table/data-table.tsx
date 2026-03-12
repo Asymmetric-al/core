@@ -1,5 +1,4 @@
 "use client";
-"use no memo";
 
 import {
   type ColumnDef,
@@ -8,6 +7,7 @@ import {
   type VisibilityState,
   type RowSelectionState,
   type PaginationState,
+  type Row,
   flexRender,
   getCoreRowModel,
   getFacetedRowModel,
@@ -38,6 +38,7 @@ import {
   DataTableLoadingOverlay,
 } from "./data-table-skeleton";
 import { DataTableToolbar } from "./data-table-toolbar";
+import { useDataTableVirtualization } from "./hooks";
 
 import type { DataTableFilterField, DataTableConfig } from "./types";
 
@@ -49,7 +50,16 @@ interface DataTableProps<TData, TValue> {
   searchPlaceholder?: string;
   config?: DataTableConfig;
   isLoading?: boolean;
+  /**
+   * Total pages for manual server-side pagination when total rows are unknown.
+   * Ignored when `rowCount` is provided.
+   */
   pageCount?: number;
+  /**
+   * Authoritative total rows for manual server-side pagination.
+   * Takes precedence over `pageCount` and is used to derive page count.
+   */
+  rowCount?: number;
   onPaginationChange?: (pagination: PaginationState) => void;
   onSortingChange?: (sorting: SortingState) => void;
   onFiltersChange?: (filters: ColumnFiltersState) => void;
@@ -88,6 +98,7 @@ export function DataTable<TData, TValue>({
   config = EMPTY_DATA_TABLE_CONFIG,
   isLoading = false,
   pageCount,
+  rowCount,
   onPaginationChange,
   onSortingChange,
   onFiltersChange,
@@ -166,10 +177,27 @@ export function DataTable<TData, TValue>({
     return columns;
   }, [columns, enableRowSelection, selectColumn]);
 
+  const resolvedRowCount = rowCount ?? undefined;
+  const resolvedPageCount =
+    rowCount == null ? (pageCount ?? undefined) : undefined;
+
+  React.useEffect(() => {
+    if (
+      process.env.NODE_ENV !== "production" &&
+      rowCount != null &&
+      pageCount != null
+    ) {
+      console.warn(
+        "[asym/ui] DataTable received both rowCount and pageCount. pageCount is ignored because rowCount is authoritative. Pass only one of these props.",
+      );
+    }
+  }, [pageCount, rowCount]);
+
   const table = useReactTable({
     data,
     columns: tableColumns,
-    pageCount: pageCount ?? undefined,
+    rowCount: resolvedRowCount,
+    pageCount: resolvedPageCount,
     state: {
       sorting,
       columnVisibility,
@@ -217,6 +245,63 @@ export function DataTable<TData, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
+  const tableContainerRef = React.useRef<HTMLDivElement>(null);
+  const rows = table.getRowModel().rows;
+  const getVirtualRowKey = React.useCallback(
+    (index: number) => rows[index]?.id ?? index,
+    [rows],
+  );
+  const virtualizationConfig = React.useMemo(
+    () => ({
+      ...config.virtualization,
+      getItemKey: config.virtualization?.getItemKey ?? getVirtualRowKey,
+    }),
+    [config.virtualization, getVirtualRowKey],
+  );
+  const {
+    config: resolvedVirtualization,
+    virtualItems: virtualRows,
+    paddingTop: virtualPaddingTop,
+    paddingBottom: virtualPaddingBottom,
+    isEnabled: isVirtualized,
+  } = useDataTableVirtualization({
+    count: rows.length,
+    scrollElementRef: tableContainerRef,
+    virtualization: virtualizationConfig,
+    legacy: {
+      enabled: config.enableVirtualization,
+      estimateSize: config.virtualRowHeight,
+      overscan: config.virtualOverscan,
+      containerHeight: config.virtualContainerHeight,
+    },
+    defaults: {
+      enabled: false,
+      estimateSize: 56,
+      overscan: 8,
+      containerHeight: 640,
+    },
+  });
+
+  const renderRow = (row: Row<TData>) => (
+    <TableRow
+      key={row.id}
+      data-state={row.getIsSelected() && "selected"}
+      className="hover:bg-muted/30 transition-colors border-border data-[state=selected]:bg-muted/50"
+    >
+      {row.getVisibleCells().map((cell) => {
+        const meta = cell.column.columnDef.meta;
+        return (
+          <TableCell
+            key={cell.id}
+            className={cn("py-4 px-4", meta?.cellClassName)}
+          >
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </TableCell>
+        );
+      })}
+    </TableRow>
+  );
+
   if (isLoading && data.length === 0) {
     return <DataTableSkeleton columnCount={columns.length} />;
   }
@@ -255,74 +340,90 @@ export function DataTable<TData, TValue>({
             tableClassName,
           )}
         >
-          <Table>
-            <TableHeader className="bg-muted/30">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow
-                  key={headerGroup.id}
-                  className="hover:bg-transparent border-border"
-                >
-                  {headerGroup.headers.map((header) => {
-                    const meta = header.column.columnDef.meta;
-                    return (
-                      <TableHead
-                        key={header.id}
-                        className={cn(
-                          "h-12 px-4 text-xs font-semibold text-muted-foreground",
-                          meta?.headerClassName,
-                        )}
-                        style={{
-                          width:
-                            header.getSize() !== 150
-                              ? header.getSize()
-                              : undefined,
-                        }}
-                      >
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
+          <div
+            ref={tableContainerRef}
+            className={cn(isVirtualized && "overflow-y-auto")}
+            style={
+              isVirtualized
+                ? { maxHeight: resolvedVirtualization.containerHeight }
+                : undefined
+            }
+          >
+            <Table>
+              <TableHeader className="bg-muted/30">
+                {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    className="hover:bg-muted/30 transition-colors border-border data-[state=selected]:bg-muted/50"
+                    key={headerGroup.id}
+                    className="hover:bg-transparent border-border"
                   >
-                    {row.getVisibleCells().map((cell) => {
-                      const meta = cell.column.columnDef.meta;
+                    {headerGroup.headers.map((header) => {
+                      const meta = header.column.columnDef.meta;
                       return (
-                        <TableCell
-                          key={cell.id}
-                          className={cn("py-4 px-4", meta?.cellClassName)}
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
+                        <TableHead
+                          key={header.id}
+                          className={cn(
+                            "h-12 px-4 text-xs font-semibold text-muted-foreground",
+                            meta?.headerClassName,
                           )}
-                        </TableCell>
+                          style={{
+                            width:
+                              header.getSize() !== 150
+                                ? header.getSize()
+                                : undefined,
+                          }}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                        </TableHead>
                       );
                     })}
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={tableColumns.length} className="h-64">
-                    {emptyState ?? defaultEmptyState}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {rows.length ? (
+                  isVirtualized ? (
+                    <>
+                      {virtualPaddingTop > 0 && (
+                        <TableRow>
+                          <TableCell
+                            colSpan={tableColumns.length}
+                            className="p-0"
+                            style={{ height: virtualPaddingTop }}
+                          />
+                        </TableRow>
+                      )}
+                      {virtualRows.map((virtualRow) => {
+                        const row = rows[virtualRow.index];
+                        return renderRow(row as Row<TData>);
+                      })}
+                      {virtualPaddingBottom > 0 && (
+                        <TableRow>
+                          <TableCell
+                            colSpan={tableColumns.length}
+                            className="p-0"
+                            style={{ height: virtualPaddingBottom }}
+                          />
+                        </TableRow>
+                      )}
+                    </>
+                  ) : (
+                    rows.map((row) => renderRow(row as Row<TData>))
+                  )
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={tableColumns.length} className="h-64">
+                      {emptyState ?? defaultEmptyState}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
 

@@ -56,10 +56,25 @@ looks_like_supabase_anon_jwt() {
   [[ "$v" == eyJ* ]]
 }
 
-if [[ -f ".env.local" ]]; then
+EXISTING_SUPABASE_URL="$(strip_crlf "${NEXT_PUBLIC_SUPABASE_URL:-}")"
+EXISTING_SUPABASE_ANON_KEY="$(strip_crlf "${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}")"
+
+if [[ -n "$EXISTING_SUPABASE_URL" && -n "$EXISTING_SUPABASE_ANON_KEY" ]]; then
+  log "Using Supabase vars from process environment"
+elif [[ -f ".env.local" ]]; then
   set -a
   source ".env.local"
   set +a
+
+  if [[ -n "$EXISTING_SUPABASE_URL" ]]; then
+    export NEXT_PUBLIC_SUPABASE_URL="$EXISTING_SUPABASE_URL"
+  fi
+
+  if [[ -n "$EXISTING_SUPABASE_ANON_KEY" ]]; then
+    export NEXT_PUBLIC_SUPABASE_ANON_KEY="$EXISTING_SUPABASE_ANON_KEY"
+  fi
+elif [[ -n "$EXISTING_SUPABASE_URL" || -n "$EXISTING_SUPABASE_ANON_KEY" ]]; then
+  log "Detected partial Supabase env vars in process environment"
 fi
 
 require_env NEXT_PUBLIC_SUPABASE_URL
