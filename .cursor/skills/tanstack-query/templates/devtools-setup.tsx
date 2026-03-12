@@ -1,8 +1,10 @@
 // src/main.tsx - Complete DevTools Setup
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { ReactQueryDevtools as ReactQueryDevtoolsProd } from '@tanstack/react-query-devtools-production'
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+
 import App from './App'
 
 /**
@@ -176,7 +178,6 @@ function DebugRefetchingIssue() {
  * For debugging production issues remotely
  * npm install @tanstack/react-query-devtools-production
  */
-import { ReactQueryDevtools as ReactQueryDevtoolsProd } from '@tanstack/react-query-devtools-production'
 
 function AppWithProductionDevTools() {
   const [showDevTools, setShowDevTools] = useState(false)

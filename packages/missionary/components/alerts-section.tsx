@@ -1,13 +1,13 @@
-import * as React from "react";
-import Link from "next/link";
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
-import { Badge } from "@asym/ui/components/shadcn/badge";
 import { AlertCircle, ChevronRight } from "lucide-react";
+import Link from "next/link";
+import * as React from "react";
 
 interface Alert {
   id: number;

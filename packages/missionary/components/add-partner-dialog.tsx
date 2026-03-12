@@ -1,9 +1,7 @@
 "use client";
 
-import * as React from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { createBrowserClient } from "@asym/database/supabase";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +18,6 @@ import {
   FormMessage,
 } from "@asym/ui/components/shadcn/form";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Select,
   SelectContent,
@@ -28,9 +25,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
-import { createBrowserClient } from "@asym/database/supabase";
-import { toast } from "sonner";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
+import * as React from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
 
 const partnerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),

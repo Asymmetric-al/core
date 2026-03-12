@@ -1,4 +1,4 @@
-import { test, expect, Page } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
 const LCP_THRESHOLD_MS = 2500;
 // This suite runs against `next dev` (Turbopack), where homepage TTFB includes
