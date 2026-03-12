@@ -17,7 +17,7 @@ export async function GET(
     }
 
     const auth = await getAuthContext();
-    requireRole(auth, ["admin", "super_admin"]);
+    requireRole(auth, ["staff", "admin", "super_admin"]);
     const ctx = auth as AuthenticatedContext;
     const { postId } = await params;
 

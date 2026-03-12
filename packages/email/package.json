@@ -5,7 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./index.ts",
-    "./sendgrid": "./sendgrid.ts",
+    "./resend": "./resend.ts",
     "./constants": "./constants.ts",
     "./types": "./types.ts",
     "./email-studio-types": "./email-studio-types.ts"
@@ -16,7 +16,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@sendgrid/mail": "^8.1.4"
+    "resend": "^6.9.2"
   },
   "devDependencies": {
     "@asym/typescript-config": "workspace:*",

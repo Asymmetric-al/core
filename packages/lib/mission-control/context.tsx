@@ -2,6 +2,7 @@
 
 import { signOutOnServer } from "@asym/auth/client-signout";
 import { createBrowserClient } from "@asym/database/supabase";
+import { runtimeEnvFlags } from "@asym/env";
 import {
   createContext,
   useContext,
@@ -143,7 +144,7 @@ function mcReducer(state: MCState, action: MCAction): MCState {
 export function MCProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(mcReducer, INITIAL_MC_STATE);
   const { user, tenant, role, sidebarCollapsed, loading } = state;
-  const isDevMode = process.env.NODE_ENV === "development";
+  const isDevMode = runtimeEnvFlags.NODE_ENV === "development";
 
   const setRole = useCallback((nextRole: Role) => {
     dispatch({ type: "setRole", role: nextRole });

@@ -10,7 +10,12 @@ export interface AuthMiddlewareOptions {
   protectedRoutePrefixes?: string[];
   loginPath?: string;
   redirectAuthenticatedTo?: string;
+  unauthorizedRedirectTo?: string;
+  allowedRoles?: UserRole[];
   allowApi?: boolean;
+  resolveSession?: (
+    request: NextRequest,
+  ) => Promise<{ userId: string | null; role: UserRole | null }>;
 }
 
 const DEFAULT_AUTH_ROUTES = ["/login", "/register"] as const;

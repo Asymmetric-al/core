@@ -1,4 +1,5 @@
 "use client";
+"use memo";
 
 import { siteConfig } from "@asym/config/site";
 import Link from "next/link";

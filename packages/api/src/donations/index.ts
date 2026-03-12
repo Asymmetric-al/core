@@ -7,6 +7,8 @@ import { getAdminClient } from "@asym/database/supabase/admin";
 import { createAuditLogger } from "@asym/lib/audit/logger";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { findMissionaryById } from "../missionaries/queries";
+
 function getSupabaseAdmin() {
   const { client, error } = getAdminClient();
   if (!client) return { supabaseAdmin: null, error };
@@ -80,12 +82,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data: missionary } = await supabaseAdmin
-      .from("missionaries")
-      .select("id")
-      .eq("id", missionaryId)
-      .eq("tenant_id", ctx.tenantId)
-      .single();
+    const { data: missionary } = await findMissionaryById(
+      supabaseAdmin,
+      missionaryId,
+      ctx.tenantId,
+    );
 
     if (!missionary) {
       return NextResponse.json(

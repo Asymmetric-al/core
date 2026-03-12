@@ -7,6 +7,8 @@ import { getAdminClient } from "@asym/database/supabase/admin";
 import { createAuditLogger } from "@asym/lib/audit/logger";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { findProfileByUserId } from "../shared/queries";
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ postId: string }> },
@@ -26,12 +28,11 @@ export async function PATCH(
     const body = await request.json();
     const { content, media, status, visibility, post_type } = body;
 
-    const { data: profile } = await supabaseAdmin
-      .from("profiles")
-      .select("id")
-      .eq("user_id", ctx.userId)
-      .eq("tenant_id", ctx.tenantId)
-      .single();
+    const { data: profile } = await findProfileByUserId(
+      supabaseAdmin,
+      ctx.userId,
+      ctx.tenantId,
+    );
 
     if (!profile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
@@ -100,12 +101,11 @@ export async function DELETE(
     const audit = createAuditLogger(ctx, request);
     const { postId } = await params;
 
-    const { data: profile } = await supabaseAdmin
-      .from("profiles")
-      .select("id")
-      .eq("user_id", ctx.userId)
-      .eq("tenant_id", ctx.tenantId)
-      .single();
+    const { data: profile } = await findProfileByUserId(
+      supabaseAdmin,
+      ctx.userId,
+      ctx.tenantId,
+    );
 
     if (!profile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });

@@ -21,6 +21,8 @@ export const proxy = createAuthMiddleware({
   protectedRoutePrefixes: ["/donor-dashboard"],
   loginPath: "/login",
   redirectAuthenticatedTo: "/donor-dashboard",
+  unauthorizedRedirectTo: "/",
+  allowedRoles: ["donor", "super_admin"],
 });
 
 export const config = {

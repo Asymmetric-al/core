@@ -1,5 +1,11 @@
 import { APP_ROLES, type AppRole } from "@asym/auth/roles";
+import {
+  createE2EAuthCookieValue,
+  E2E_AUTH_COOKIE_NAME,
+  isE2EAuthBypassEnabled,
+} from "@asym/auth";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
+import { runtimeEnvFlags, serverEnv } from "@asym/env";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 
@@ -114,8 +120,8 @@ function createAuthClient(request: Request) {
 
 function isDemoEndpointEnabled() {
   if (
-    process.env.NODE_ENV === "production" &&
-    process.env.ALLOW_DEMO_ACCOUNTS !== "true"
+    runtimeEnvFlags.NODE_ENV === "production" &&
+    !serverEnv.ALLOW_DEMO_ACCOUNTS
   ) {
     return false;
   }
@@ -144,6 +150,11 @@ function toSafeDemoError(rawMessage: string | undefined) {
 }
 
 export async function GET() {
+  if (isE2EAuthBypassEnabled()) {
+    return NextResponse.json({
+      availableRoles: { admin: true, missionary: true, donor: true },
+    });
+  }
   if (!isDemoEndpointEnabled()) {
     return NextResponse.json(
       buildAvailabilityResponse(
@@ -159,7 +170,6 @@ export async function GET() {
 
 export async function POST(request: Request) {
   if (!isDemoEndpointEnabled()) {
-    return NextResponse.json(
       {
         ok: false,
         error: "Demo login unavailable",
@@ -181,6 +191,29 @@ export async function POST(request: Request) {
         },
         { status: 400 },
       );
+    }
+
+    if (isE2EAuthBypassEnabled()) {
+      const response = NextResponse.json({ ok: true, role, bypass: true });
+      const secure = new URL(request.url).protocol === "https:";
+
+      response.cookies.set(
+        E2E_AUTH_COOKIE_NAME,
+        createE2EAuthCookieValue({
+          userId: `e2e-${role}-user`,
+          role,
+          tenantId: null,
+        }),
+        {
+          httpOnly: true,
+          maxAge: 60 * 60,
+          path: "/",
+          sameSite: "lax",
+          secure,
+        },
+      );
+
+      return response;
     }
 
     const { emails, password, availability } = getDemoConfig();
