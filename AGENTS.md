@@ -157,6 +157,7 @@ Load rulebooks before editing files in their domain.
 - **General workflow / AL-### / CI gates / labels:** `docs/ai/rules/general.md`
 - **Frontend UI/components/styling/UX:** `docs/ai/rules/frontend.md`
 - **Backend/Supabase/auth/data access/migrations:** `docs/ai/rules/backend.md`
+- **When touching API routes or data access patterns:** `docs/guides/architecture/data-access-boundary.md`
 - **Testing/Playwright/a11y/perf gates:** `docs/ai/rules/testing.md`
 - **shadcn/studio MCP workflows (/cui, /rui, /iui, /ftc):** `docs/ai/rules/shadcn-studio-mcp.md` (only when running those workflows)
 
@@ -169,6 +170,7 @@ Load the skill(s) below when the trigger matches.
 - **Next.js App Router structure, rendering, data fetching:** `docs/ai/skills/nextjs-app-router/SKILL.md`
 - **Cache Components / PPR / cacheTag & invalidation:** `docs/ai/skills/cache-components/SKILL.md`
 - **React component design/refactor:** `docs/ai/skills/react-component-dev/SKILL.md`
+- **Composable, accessible UI components (components.build spec):** `docs/ai/skills/components-build/SKILL.md`
 - **shadcn/ui system usage:** `docs/ai/skills/moai-library-shadcn/SKILL.md`
 - **Motion animations (`motion/react`):** `docs/ai/skills/motion/SKILL.md`
 - **Recharts:** `docs/ai/skills/rechart/SKILL.md`

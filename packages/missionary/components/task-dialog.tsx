@@ -694,13 +694,18 @@ export function TaskDialog({
         .eq("missionary_id", profile.id)
         .order("name");
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching donors:", error);
+        setLoadingDonors(false);
+        return;
+      }
       setDonors(data || []);
     } catch (e) {
       console.error("Error fetching donors:", e);
-    } finally {
       setLoadingDonors(false);
+      return;
     }
+    setLoadingDonors(false);
   }, [profile?.id, supabase]);
 
   React.useEffect(() => {
@@ -752,7 +757,11 @@ export function TaskDialog({
           )
           .single();
 
-        if (error) throw error;
+        if (error) {
+          toast.error(error.message || "Failed to update task");
+          setIsSubmitting(false);
+          return;
+        }
         result = { ...data, donor: data.donor || null };
         toast.success("Task updated successfully");
       } else {
@@ -767,7 +776,11 @@ export function TaskDialog({
           )
           .single();
 
-        if (error) throw error;
+        if (error) {
+          toast.error(error.message || "Failed to create task");
+          setIsSubmitting(false);
+          return;
+        }
         result = { ...data, donor: data.donor || null };
         toast.success("Task created successfully");
       }
@@ -781,9 +794,8 @@ export function TaskDialog({
       const message =
         error instanceof Error ? error.message : "Failed to save task";
       toast.error(message);
-    } finally {
-      setIsSubmitting(false);
     }
+    setIsSubmitting(false);
   }
 
   const handleClose = () => {

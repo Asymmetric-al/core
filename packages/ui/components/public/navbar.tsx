@@ -1,6 +1,7 @@
 "use client";
+"use memo";
 
-import { siteConfig } from "@asym/config/site";
+import { siteConfig } from "@asym/config/site-client";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 

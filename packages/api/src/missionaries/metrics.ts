@@ -1,3 +1,4 @@
+import { serverEnv } from "@asym/env";
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -15,7 +16,7 @@ type PendingCookie = {
   };
 };
 
-const ALLOWED_ROLES = new Set(["admin", "missionary", "super_admin"]);
+const ALLOWED_ROLES = new Set(["staff", "admin", "missionary", "super_admin"]);
 const PERMISSION_ERROR_CODES = new Set([
   "42501",
   "PGRST301",
@@ -62,8 +63,8 @@ function isPermissionError(error: { code?: string; message?: string } | null) {
 
 function createAuthClient(request: NextRequest) {
   const pendingCookies: PendingCookie[] = [];
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseUrl = serverEnv.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = serverEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
     return { supabase: null, pendingCookies };

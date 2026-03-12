@@ -9,7 +9,7 @@ packages/
 ├── ui/                 # Shared UI components (@asym/ui)
 ├── database/           # Supabase clients + types (@asym/database)
 ├── auth/               # Authentication logic (@asym/auth)
-├── email/              # SendGrid integration (@asym/email)
+├── email/              # Resend integration (@asym/email)
 ├── lib/                # Shared utilities (@asym/lib)
 └── config/             # Shared configs (@asym/config)
 ```

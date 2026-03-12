@@ -1,7 +1,7 @@
 /**
- * SendGrid Multi-Tenant Email Integration Types
+ * Resend Multi-Tenant Email Integration Types
  *
- * This module defines all types for the SendGrid integration, including:
+ * This module defines all types for the Resend integration, including:
  * - Tenant email settings and credentials
  * - Email templates and campaigns
  * - Event webhooks and analytics
@@ -31,7 +31,7 @@ export type EmailSendStatus = "pending" | "sent" | "failed" | "bounced";
 
 export type SuppressionType = "unsubscribe" | "bounce" | "spam" | "manual";
 
-export type SuppressionSource = "sendgrid" | "user" | "admin" | "import";
+export type SuppressionSource = "resend" | "user" | "admin" | "import";
 
 export type BounceType = "hard" | "soft" | "blocked";
 
@@ -43,19 +43,17 @@ export type DeliverabilityCheckStatus =
   | "failed"
   | "pending";
 
-// SendGrid event types from webhook
-export type SendGridEventType =
-  | "processed"
-  | "delivered"
-  | "bounce"
-  | "dropped"
-  | "deferred"
-  | "open"
-  | "click"
-  | "unsubscribe"
-  | "spamreport"
-  | "group_unsubscribe"
-  | "group_resubscribe";
+// Resend event types from webhook
+export type ResendEventType =
+  | "email.sent"
+  | "email.delivered"
+  | "email.delivery_delayed"
+  | "email.bounced"
+  | "email.complained"
+  | "email.opened"
+  | "email.clicked"
+  | "email.suppressed"
+  | "email.received";
 
 // =============================================================================
 // TENANT EMAIL SETTINGS
@@ -76,7 +74,7 @@ export interface TenantEmailSettings {
   reply_to_email: string | null;
 
   // API key hint (last 4 chars for display)
-  sendgrid_api_key_hint: string | null;
+  resend_api_key_hint: string | null;
 
   // Deliverability status
   domain_authenticated: boolean;
@@ -328,7 +326,7 @@ export interface EmailCampaignRecipient {
   recipient_name: string | null;
   personalization_data: Record<string, unknown> | null;
   status: EmailSendStatus;
-  sendgrid_message_id: string | null;
+  resend_message_id: string | null;
   sent_at: string | null;
   error_message: string | null;
   batch_number: number | null;
@@ -345,7 +343,7 @@ export interface EmailCampaignRecipientInsert {
 
 export interface EmailCampaignRecipientUpdate {
   status?: EmailSendStatus;
-  sendgrid_message_id?: string | null;
+  resend_message_id?: string | null;
   sent_at?: string | null;
   error_message?: string | null;
 }
@@ -360,7 +358,7 @@ export interface EmailSendLog {
   idempotency_key: string;
   correlation_id: string;
   status: EmailSendStatus;
-  sendgrid_message_id: string | null;
+  resend_message_id: string | null;
   recipient_count: number;
   message_type: EmailMessageType;
   template_id: string | null;
@@ -382,7 +380,7 @@ export interface EmailSendLogInsert {
   requested_at: string;
   template_id?: string | null;
   campaign_id?: string | null;
-  sendgrid_message_id?: string | null;
+  resend_message_id?: string | null;
   error_code?: string | null;
   error_message?: string | null;
 }
@@ -394,8 +392,8 @@ export interface EmailSendLogInsert {
 export interface EmailEvent {
   id: string;
   tenant_id: string;
-  sendgrid_message_id: string;
-  event_type: SendGridEventType;
+  resend_message_id: string;
+  event_type: ResendEventType;
   recipient_email: string;
   timestamp: string;
   bounce_type: BounceType | null;
@@ -410,8 +408,8 @@ export interface EmailEvent {
 
 export interface EmailEventInsert {
   tenant_id: string;
-  sendgrid_message_id: string;
-  event_type: SendGridEventType;
+  resend_message_id: string;
+  event_type: ResendEventType;
   recipient_email: string;
   timestamp: string;
   bounce_type?: BounceType | null;
@@ -467,15 +465,15 @@ export interface EmailSuppressionInsert {
 // API REQUEST/RESPONSE TYPES
 // =============================================================================
 
-// Connect SendGrid
-export interface ConnectSendGridRequest {
+// Connect Resend
+export interface ConnectResendRequest {
   apiKey: string;
   defaultFromEmail: string;
   defaultFromName: string;
   replyToEmail?: string;
 }
 
-export interface SendGridAccountInfo {
+export interface ResendAccountInfo {
   type: "free" | "essentials" | "pro" | "premier";
   monthlyLimit: number;
   usedThisMonth: number;
@@ -495,11 +493,18 @@ export interface DomainAuthentication {
   domain: string;
   subdomain: string | null;
   valid: boolean;
-  dns: {
-    dkim1: { valid: boolean; host: string; data: string };
-    dkim2: { valid: boolean; host: string; data: string };
-    mail_cname?: { valid: boolean; host: string; data: string };
-  };
+  status?: string;
+  region?: string | null;
+  createdAt?: string;
+  records?: Array<{
+    type?: string;
+    name: string;
+    value: string;
+    status?: string;
+    ttl?: string;
+    record?: string;
+    priority?: number;
+  }>;
 }
 
 export interface DeliverabilityWarning {
@@ -509,10 +514,25 @@ export interface DeliverabilityWarning {
   helpUrl?: string;
 }
 
-export interface ConnectSendGridResponse {
+export interface ConnectResendResponse {
   success: boolean;
   connectionId?: string;
-  account?: SendGridAccountInfo;
+  apiKeyHint?: string | null;
+  account?: ResendAccountInfo;
+  senderIdentities?: SenderIdentity[];
+  domainAuthentication?: DomainAuthentication[];
+  deliverabilityScore?: number;
+  warnings?: DeliverabilityWarning[];
+  error?: string;
+}
+
+export interface ResendConnectionStateResponse {
+  success: boolean;
+  connected: boolean;
+  apiKeyHint?: string | null;
+  defaultFromEmail?: string | null;
+  defaultFromName?: string | null;
+  replyToEmail?: string | null;
   senderIdentities?: SenderIdentity[];
   domainAuthentication?: DomainAuthentication[];
   deliverabilityScore?: number;
@@ -736,25 +756,62 @@ export interface UpdatePreferencesRequest {
 // WEBHOOK TYPES
 // =============================================================================
 
-export interface SendGridWebhookEvent {
-  email: string;
-  timestamp: number;
-  event: SendGridEventType;
-  sg_message_id: string;
-  sg_event_id: string;
+export interface ResendWebhookEnvelope<TData = Record<string, unknown>> {
+  type: ResendEventType;
+  created_at: string;
+  data: TData;
+}
 
-  // Optional based on event type
-  reason?: string;
-  type?: string; // bounce type
-  url?: string; // click URL
-  useragent?: string;
-  ip?: string;
+export interface ResendWebhookHeaders {
+  "svix-id": string | null;
+  "svix-timestamp": string | null;
+  "svix-signature": string | null;
+}
 
-  // Custom args passed during send
-  campaign_id?: string;
-  tenant_id?: string;
+export interface ResendOutboundEventData {
+  email_id?: string;
+  from?: string;
+  to?: string[];
+  subject?: string;
+  created_at?: string;
+  [key: string]: unknown;
+}
 
-  // Additional fields
+export interface ResendInboundEventData {
+  email_id: string;
+  from: string;
+  to: string[];
+  cc?: string[];
+  bcc?: string[];
+  subject?: string;
+  attachments?: Array<{
+    id: string;
+    filename: string;
+    content_type: string;
+  }>;
+  [key: string]: unknown;
+}
+
+export interface ResendReceivedEmail {
+  id?: string;
+  from?: string;
+  to?: string[];
+  cc?: string[];
+  bcc?: string[];
+  subject?: string;
+  html?: string | null;
+  text?: string | null;
+  headers?: Record<string, string> | Array<{ name: string; value: string }>;
+  created_at?: string;
+  [key: string]: unknown;
+}
+
+export interface ResendReceivedAttachment {
+  id: string;
+  filename: string;
+  content_type?: string;
+  download_url: string;
+  expires_at?: string;
   [key: string]: unknown;
 }
 
@@ -841,10 +898,3 @@ export const DEFAULT_ALERT_CONFIG: AlertConfig = {
   alertRecipients: [],
   pauseCampaignOnThreshold: true,
 };
-
-export const SENDGRID_REQUIRED_SCOPES = ["mail.send"] as const;
-export const SENDGRID_OPTIONAL_SCOPES = [
-  "tracking_settings.read",
-  "suppression.read",
-  "user.webhooks.event_settings.read",
-] as const;

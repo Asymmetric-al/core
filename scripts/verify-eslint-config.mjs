@@ -28,6 +28,7 @@ const IGNORE_DIRECTORIES = new Set([
   "tmp",
   "tmp-bun",
   "tmp-npm-cache",
+  "vendor",
 ]);
 const DISABLE_FORMAT =
   /eslint-disable(?:-next-line|-line)?\s+[^\n]+--\s*(TODO\([^)]+\)|[A-Z]+-\d+)/;
