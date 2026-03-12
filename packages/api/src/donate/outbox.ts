@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     const stripeSecretKey =
-      tenant.stripe_secret_key || process.env.STRIPE_SECRET_KEY;
+      tenant.stripe_secret_key ?? process.env.STRIPE_SECRET_KEY;
     if (!stripeSecretKey) {
       return NextResponse.json(
         { error: "Stripe not configured for this organization" },
@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
       supabaseAdmin,
       stripe,
       actorUserId: ctx.userId,
+      tenantId: ctx.tenantId,
       limit,
     });
 

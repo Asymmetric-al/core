@@ -17,6 +17,30 @@ BEGIN
   END IF;
 END $$;
 
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'donation_saga_outbox_idempotency_unique'
+      AND conrelid = 'public.donation_saga_outbox'::regclass
+  ) THEN
+    ALTER TABLE public.donation_saga_outbox
+      DROP CONSTRAINT donation_saga_outbox_idempotency_unique;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'donation_saga_outbox_tenant_idempotency_unique'
+      AND conrelid = 'public.donation_saga_outbox'::regclass
+  ) THEN
+    ALTER TABLE public.donation_saga_outbox
+      ADD CONSTRAINT donation_saga_outbox_tenant_idempotency_unique
+      UNIQUE (tenant_id, idempotency_key);
+  END IF;
+END $$;
+
 CREATE OR REPLACE FUNCTION public.decrement_post_comment_count(post_id UUID)
 RETURNS void
 LANGUAGE plpgsql
@@ -138,12 +162,15 @@ BEGIN
       USING ERRCODE = '22023';
   END IF;
 
-  PERFORM pg_advisory_xact_lock(hashtext(p_idempotency_key));
+  PERFORM pg_advisory_xact_lock(
+    hashtextextended(p_tenant_id::text || ':' || p_idempotency_key, 0)
+  );
 
   SELECT id, donation_id
   INTO v_outbox_id, v_donation_id
   FROM public.donation_saga_outbox
-  WHERE idempotency_key = p_idempotency_key
+  WHERE tenant_id = p_tenant_id
+    AND idempotency_key = p_idempotency_key
   LIMIT 1;
 
   IF v_outbox_id IS NOT NULL THEN
@@ -286,7 +313,8 @@ EXCEPTION
     SELECT id, donation_id
     INTO v_outbox_id, v_donation_id
     FROM public.donation_saga_outbox
-    WHERE idempotency_key = p_idempotency_key
+    WHERE tenant_id = p_tenant_id
+      AND idempotency_key = p_idempotency_key
     LIMIT 1;
 
     IF v_outbox_id IS NOT NULL THEN
@@ -300,6 +328,21 @@ EXCEPTION
     RAISE;
 END;
 $function$;
+
+-- Server-only RPC privilege hardening for mutation and outbox functions.
+-- These functions are intended to be called only from trusted server code
+-- using the service-role client, not directly from browser-accessible roles.
+REVOKE EXECUTE ON FUNCTION public.decrement_post_comment_count(UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.decrement_post_comment_count(UUID) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.atomic_delete_comment_thread(UUID, UUID, UUID, TEXT, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.atomic_delete_comment_thread(UUID, UUID, UUID, TEXT, TEXT) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.begin_donation_saga(UUID, UUID, UUID, BIGINT, TEXT, UUID, UUID, TEXT, TEXT, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.begin_donation_saga(UUID, UUID, UUID, BIGINT, TEXT, UUID, UUID, TEXT, TEXT, TEXT) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.record_donation_saga_failure(UUID, UUID, TEXT, TEXT, INTEGER, INTEGER, UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.record_donation_saga_failure(UUID, UUID, TEXT, TEXT, INTEGER, INTEGER, UUID) TO service_role;
 
 CREATE OR REPLACE FUNCTION public.record_donation_saga_failure(
   p_outbox_id UUID,

@@ -344,6 +344,7 @@ export async function processDueDonationSagaOutboxEvents(params: {
   supabaseAdmin: DonationSupabaseClient;
   stripe: Stripe;
   actorUserId: string;
+  tenantId: string;
   limit?: number;
 }) {
   const limit = Math.max(1, Math.min(params.limit ?? 10, 100));
@@ -352,6 +353,7 @@ export async function processDueDonationSagaOutboxEvents(params: {
   const { data: claimRaw, error: claimError } = await params.supabaseAdmin.rpc(
     "claim_due_donation_saga_events",
     {
+      p_tenant_id: params.tenantId,
       p_limit: limit,
       p_lock_id: lockId,
     },

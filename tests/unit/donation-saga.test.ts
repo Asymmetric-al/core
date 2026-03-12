@@ -326,6 +326,7 @@ describe("donation saga helpers", () => {
       supabaseAdmin: supabaseAdmin as never,
       stripe,
       actorUserId: "usr-4",
+      tenantId: "ten-4",
       limit: 25,
     });
 
@@ -337,6 +338,7 @@ describe("donation saga helpers", () => {
       results: [],
     });
     expect(rpc).toHaveBeenCalledWith("claim_due_donation_saga_events", {
+      p_tenant_id: "ten-4",
       p_limit: 25,
       p_lock_id: expect.any(String),
     });

@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     }
 
     const stripeSecretKey =
-      tenant.stripe_secret_key || process.env.STRIPE_SECRET_KEY;
+      tenant.stripe_secret_key ?? process.env.STRIPE_SECRET_KEY;
     if (!stripeSecretKey) {
       return NextResponse.json(
         { error: "Stripe not configured for this organization" },
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
       idempotencyKey,
       replayed: Boolean(beginResult?.replayed),
       publishableKey:
-        tenant.stripe_publishable_key ||
+        tenant.stripe_publishable_key ??
         process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     });
   } catch (e) {

@@ -568,7 +568,6 @@ function HistoryTransactionsCard({
   filteredTransactions: Transaction[];
 }) {
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
-  const shouldVirtualize = filteredTransactions.length > 30;
   const getVirtualItemKey = React.useCallback(
     (index: number) => filteredTransactions[index]?.id ?? index,
     [filteredTransactions],
@@ -583,7 +582,7 @@ function HistoryTransactionsCard({
     count: filteredTransactions.length,
     scrollElementRef: scrollContainerRef,
     virtualization: {
-      enabled: shouldVirtualize,
+      enabled: true,
       estimateSize: 84,
       overscan: 8,
       containerHeight: 640,

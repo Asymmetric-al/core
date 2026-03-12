@@ -1176,7 +1176,6 @@ function useDonorsPageLayout() {
   ]);
 
   const donorListViewportRef = React.useRef<HTMLDivElement | null>(null);
-  const shouldVirtualizeDonorList = filteredDonors.length > 30;
   const getDonorVirtualItemKey = React.useCallback(
     (index: number) => filteredDonors[index]?.id ?? index,
     [filteredDonors],
@@ -1190,7 +1189,7 @@ function useDonorsPageLayout() {
     count: filteredDonors.length,
     scrollElementRef: donorListViewportRef,
     virtualization: {
-      enabled: shouldVirtualizeDonorList,
+      enabled: true,
       estimateSize: 88,
       overscan: 10,
       containerHeight: 640,

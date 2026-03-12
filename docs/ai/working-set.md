@@ -1,5 +1,27 @@
 # Working Set
 
+## 2026-03-12
+
+- Date: 2026-03-12
+- Repo: Asymmetric-al/core
+- Goal: Finish PR #73 merge blockers by tenant-scoping donation saga claims/idempotency, locking new write RPCs to service-role execution, stabilizing virtualization pilots, and tightening Stripe fallback semantics.
+- Primary area: `packages/api/src/donate/{index,outbox,saga}.ts`, `packages/api/src/donations/index.ts`, `supabase/migrations/{20260223170000_atomic_rpc_and_donation_saga,20260226100000_atomic_mutation_rpcs_and_donation_saga}.sql`, `apps/{donor,missionary}/app/*`, `tests/unit/*`
+- Constraints:
+  - Keep business logic in `packages/api/src/*`; route handlers stay thin re-exports where applicable.
+  - Follow Next.js 16 route handler and client-component rules from `.next-docs`.
+  - Preserve current public HTTP shapes while fixing tenant isolation and SQL authz.
+  - Keep virtualization stable for the lifetime of the mounted pilot screens.
+- Evidence sources used:
+  - `packages/api/src/donate/{index,outbox,saga}.ts`
+  - `packages/api/src/donations/index.ts`
+  - `supabase/migrations/{20260223170000_atomic_rpc_and_donation_saga,20260226100000_atomic_mutation_rpcs_and_donation_saga}.sql`
+  - `apps/donor/app/(dashboard)/donor-dashboard/history/page.tsx`
+  - `apps/missionary/app/donors/page.tsx`
+  - `.next-docs/01-app/03-api-reference/03-file-conventions/route.mdx`
+  - `.next-docs/01-app/01-getting-started/05-server-and-client-components.mdx`
+- Notes:
+  - `AGENTS.md` requires Nia for repo-scoped search, but Nia tools are unavailable in this session; using `rg`, direct file reads, and targeted tests as fallback.
+
 ## 2026-02-23 (resend future readiness hardening)
 
 - Date: 2026-02-23

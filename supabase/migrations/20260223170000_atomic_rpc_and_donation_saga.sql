@@ -918,7 +918,7 @@ CREATE TABLE IF NOT EXISTS public.donation_saga_outbox (
   CONSTRAINT donation_saga_outbox_status_check
     CHECK (status IN ('pending', 'processing', 'failed', 'completed', 'dead_letter')),
   CONSTRAINT donation_saga_outbox_idempotency_unique
-    UNIQUE (idempotency_key)
+    UNIQUE (tenant_id, idempotency_key)
 );
 
 CREATE INDEX IF NOT EXISTS idx_donation_saga_outbox_status_next_attempt
@@ -957,6 +957,10 @@ BEGIN
       USING ERRCODE = '22023';
   END IF;
 
+  PERFORM pg_advisory_xact_lock(
+    hashtextextended(p_tenant_id::text || ':' || p_idempotency_key, 0)
+  );
+
   IF p_missionary_id IS NOT NULL THEN
     PERFORM 1
     FROM public.missionaries
@@ -985,7 +989,8 @@ BEGIN
   SELECT id, donation_id
   INTO v_outbox_id, v_donation_id
   FROM public.donation_saga_outbox
-  WHERE idempotency_key = p_idempotency_key
+  WHERE tenant_id = p_tenant_id
+    AND idempotency_key = p_idempotency_key
   LIMIT 1;
 
   IF v_outbox_id IS NOT NULL THEN
@@ -1096,6 +1101,24 @@ BEGIN
     'donation_id', v_donation_id,
     'donor_id', v_donor_id
   );
+EXCEPTION
+  WHEN unique_violation THEN
+    SELECT id, donation_id
+    INTO v_outbox_id, v_donation_id
+    FROM public.donation_saga_outbox
+    WHERE tenant_id = p_tenant_id
+      AND idempotency_key = p_idempotency_key
+    LIMIT 1;
+
+    IF v_outbox_id IS NOT NULL THEN
+      RETURN jsonb_build_object(
+        'replayed', true,
+        'outbox_id', v_outbox_id,
+        'donation_id', v_donation_id
+      );
+    END IF;
+
+    RAISE;
 END;
 $function$;
 
@@ -1143,6 +1166,7 @@ END;
 $function$;
 
 CREATE OR REPLACE FUNCTION public.claim_due_donation_saga_events(
+  p_tenant_id UUID,
   p_limit INTEGER,
   p_lock_id UUID
 )
@@ -1167,6 +1191,7 @@ BEGIN
     SELECT d.id
     FROM public.donation_saga_outbox d
     WHERE d.status IN ('pending', 'failed')
+      AND d.tenant_id = p_tenant_id
       AND d.next_attempt_at <= NOW()
     ORDER BY d.created_at ASC
     LIMIT GREATEST(COALESCE(p_limit, 1), 1)
@@ -1324,3 +1349,69 @@ BEGIN
   );
 END;
 $function$;
+
+-- Server-only RPC privilege hardening for mutation and outbox functions.
+-- These functions are intended to be called only from trusted server code
+-- using the service-role client, not directly from browser-accessible roles.
+REVOKE EXECUTE ON FUNCTION public.decrement_post_comment_count(UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.decrement_post_comment_count(UUID) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.atomic_like_post(UUID, UUID, UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.atomic_like_post(UUID, UUID, UUID) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.atomic_unlike_post(UUID, UUID, UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.atomic_unlike_post(UUID, UUID, UUID) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.atomic_pray_for_post(UUID, UUID, UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.atomic_pray_for_post(UUID, UUID, UUID) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.atomic_unpray_for_post(UUID, UUID, UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.atomic_unpray_for_post(UUID, UUID, UUID) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.atomic_fire_post(UUID, UUID, UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.atomic_fire_post(UUID, UUID, UUID) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.atomic_unfire_post(UUID, UUID, UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.atomic_unfire_post(UUID, UUID, UUID) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.atomic_add_post_comment(UUID, UUID, UUID, TEXT, UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.atomic_add_post_comment(UUID, UUID, UUID, TEXT, UUID) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.atomic_delete_comment_thread(UUID, UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.atomic_delete_comment_thread(UUID, UUID) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.atomic_update_post_with_audit(UUID, UUID, UUID, JSONB, TEXT, TEXT, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.atomic_update_post_with_audit(UUID, UUID, UUID, JSONB, TEXT, TEXT, TEXT) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.atomic_delete_post_with_audit(UUID, UUID, UUID, TEXT, JSONB, TEXT, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.atomic_delete_post_with_audit(UUID, UUID, UUID, TEXT, JSONB, TEXT, TEXT) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.atomic_update_profile_with_audit(UUID, UUID, UUID, JSONB, TEXT, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.atomic_update_profile_with_audit(UUID, UUID, UUID, JSONB, TEXT, TEXT) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.atomic_create_post_with_audit(UUID, UUID, TEXT, JSONB, UUID, TEXT, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.atomic_create_post_with_audit(UUID, UUID, TEXT, JSONB, UUID, TEXT, TEXT) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.atomic_update_missionary_with_audit(UUID, UUID, UUID, JSONB, TEXT, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.atomic_update_missionary_with_audit(UUID, UUID, UUID, JSONB, TEXT, TEXT) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.atomic_update_user_role_with_audit(UUID, UUID, UUID, TEXT, TEXT, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.atomic_update_user_role_with_audit(UUID, UUID, UUID, TEXT, TEXT, TEXT) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.atomic_create_donation_with_audit(UUID, UUID, UUID, UUID, BIGINT, TEXT, UUID, TEXT, TEXT, JSONB, TEXT, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.atomic_create_donation_with_audit(UUID, UUID, UUID, UUID, BIGINT, TEXT, UUID, TEXT, TEXT, JSONB, TEXT, TEXT) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.begin_donation_saga(UUID, UUID, UUID, BIGINT, TEXT, UUID, UUID, TEXT, TEXT, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.begin_donation_saga(UUID, UUID, UUID, BIGINT, TEXT, UUID, UUID, TEXT, TEXT, TEXT) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.claim_donation_saga_event(UUID, UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.claim_donation_saga_event(UUID, UUID) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.claim_due_donation_saga_events(UUID, INTEGER, UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.claim_due_donation_saga_events(UUID, INTEGER, UUID) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.complete_donation_saga_event(UUID, UUID, TEXT, TEXT, JSONB) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.complete_donation_saga_event(UUID, UUID, TEXT, TEXT, JSONB) TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.record_donation_saga_failure(UUID, UUID, TEXT, TEXT, INTEGER, INTEGER) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.record_donation_saga_failure(UUID, UUID, TEXT, TEXT, INTEGER, INTEGER) TO service_role;
