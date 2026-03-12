@@ -1,5 +1,4 @@
 "use client";
-"use no memo";
 
 import {
   flexRender,
@@ -12,7 +11,6 @@ import {
   type Row,
   type SortingState,
 } from "@tanstack/react-table";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   Plus,
   Trash2,
@@ -28,6 +26,7 @@ import { cn } from "@asym/ui/lib/utils";
 
 import { Button } from "../button";
 import { Checkbox } from "../checkbox";
+import { useDataTableVirtualization } from "../data-table/hooks";
 import { Input } from "../input";
 import { DataGridCell } from "./data-grid-cell";
 import {
@@ -545,6 +544,7 @@ export function DataGrid<TData extends Record<string, unknown>>({
     enableRowDelete = true,
     virtualizeRows = true,
     rowHeight = DEFAULT_ROW_HEIGHT,
+    virtualOverscan = 5,
     headerHeight = DEFAULT_HEADER_HEIGHT,
     maxHeight = 600,
   } = config;
@@ -744,21 +744,39 @@ export function DataGrid<TData extends Record<string, unknown>>({
   });
 
   const { rows } = table.getRowModel();
-
-  const rowVirtualizer = useVirtualizer({
+  const {
+    config: resolvedVirtualization,
+    virtualItems,
+    totalSize,
+    isEnabled,
+  } = useDataTableVirtualization({
     count: rows.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => rowHeight,
-    overscan: 5,
-    enabled: virtualizeRows,
+    scrollElementRef: parentRef,
+    virtualization: config.virtualization,
+    legacy: {
+      enabled: virtualizeRows,
+      estimateSize: rowHeight,
+      overscan: virtualOverscan,
+      containerHeight: maxHeight,
+    },
+    defaults: {
+      enabled: true,
+      estimateSize: DEFAULT_ROW_HEIGHT,
+      overscan: 5,
+      containerHeight: 600,
+    },
   });
 
-  const virtualRows = virtualizeRows
-    ? rowVirtualizer.getVirtualItems()
-    : rows.map((_, i) => ({ index: i, start: i * rowHeight, size: rowHeight }));
-  const totalSize = virtualizeRows
-    ? rowVirtualizer.getTotalSize()
-    : rows.length * rowHeight;
+  const virtualRows: VirtualGridRow[] = isEnabled
+    ? virtualItems
+    : rows.map((_, index) => ({
+        index,
+        start: index * resolvedVirtualization.estimateSize,
+        size: resolvedVirtualization.estimateSize,
+      }));
+  const totalVirtualSize = isEnabled
+    ? totalSize
+    : rows.length * resolvedVirtualization.estimateSize;
   const selectCell = React.useCallback(
     (rowIndex: number, columnId: string) => {
       if (columnId === "select") return;
@@ -803,10 +821,10 @@ export function DataGrid<TData extends Record<string, unknown>>({
 
       <DataGridViewport
         parentRef={parentRef}
-        maxHeight={maxHeight}
-        totalSize={totalSize}
+        maxHeight={resolvedVirtualization.containerHeight}
+        totalSize={totalVirtualSize}
         headerHeight={headerHeight}
-        rowHeight={rowHeight}
+        rowHeight={resolvedVirtualization.estimateSize}
         rows={rows}
         virtualRows={virtualRows}
         selectedRows={selectedRows}

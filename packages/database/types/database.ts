@@ -38,7 +38,12 @@ export type StaffSubrole =
   | "development"
   | "hr"
   | "member_care";
-export type DonationStatus = "pending" | "completed" | "failed" | "refunded";
+export type DonationStatus =
+  | "pending"
+  | "processing"
+  | "completed"
+  | "failed"
+  | "refunded";
 export type GivingFrequency =
   | "weekly"
   | "biweekly"
@@ -398,6 +403,7 @@ export interface Post {
   media: MediaItem[];
   like_count: number;
   prayer_count: number;
+  fires_count: number;
   comment_count: number;
   created_at: string;
   updated_at: string;

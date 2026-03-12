@@ -56,6 +56,19 @@ export interface DataTableRowAction<TData> {
   type: "update" | "delete";
 }
 
+export interface VirtualizationConfig {
+  /**
+   * Toggles TanStack Virtual observers for this instance.
+   * Runtime changes reset virtualizer state (including scroll offset and
+   * measurements), so treat this as stable for a mounted component.
+   */
+  enabled?: boolean;
+  estimateSize?: number;
+  overscan?: number;
+  containerHeight?: number | string;
+  getItemKey?: (index: number) => string | number;
+}
+
 export interface DataTableConfig {
   enableRowSelection?: boolean;
   enableMultiSort?: boolean;
@@ -74,6 +87,13 @@ export interface DataTableConfig {
   manualPagination?: boolean;
   manualSorting?: boolean;
   manualFiltering?: boolean;
+  virtualization?: VirtualizationConfig;
+
+  // Legacy virtualization fields kept for backward compatibility.
+  enableVirtualization?: boolean;
+  virtualRowHeight?: number;
+  virtualOverscan?: number;
+  virtualContainerHeight?: number | string;
   columnResizingPersistKey?: string;
 }
 

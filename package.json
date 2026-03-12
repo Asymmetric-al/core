@@ -79,6 +79,7 @@
     "validate:full": "bun run format:check && bun run lint && bun run typecheck && bun run test:unit && bun run test:e2e && bun run test:a11y && bun run test:perf && bun run verify && bun run verify:eslint && bun run prepare && bun run build",
     "lighthouse": "lhci autorun",
     "generate:icons": "node scripts/generate-icons.js",
+    "shadcn:uikit:add": "bun scripts/shadcn/add-shadcnuikit.ts",
     "setup": "bash ./scripts/setup/index.sh",
     "setup:verify": "node scripts/setup-verify.mjs",
     "clean": "turbo run clean && rm -rf node_modules .turbo",

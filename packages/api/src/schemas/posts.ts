@@ -12,3 +12,7 @@ export const postsQuerySchema = z.object({
   status: z.string().trim().min(1),
   missionaryId: optionalIdentifier,
 });
+
+export const postIdParamSchema = z.object({
+  postId: z.string().uuid("Invalid post ID"),
+});

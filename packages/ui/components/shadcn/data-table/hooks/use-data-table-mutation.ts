@@ -5,6 +5,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 
 type MutationType = "insert" | "update" | "delete" | "upsert";
+type OptimisticContext<TData> = {
+  previousData: TData[] | undefined;
+};
 
 interface OptimisticMutationConfig<TData, TVariables> {
   tableName: string;
@@ -12,15 +15,21 @@ interface OptimisticMutationConfig<TData, TVariables> {
   type: MutationType;
   getId: (data: TData | TVariables) => string;
   onMutate?: (variables: TVariables) => Promise<void> | void;
-  onSuccess?: (data: TData, variables: TVariables) => Promise<void> | void;
+  onSuccess?: (
+    data: TData,
+    variables: TVariables,
+    context: OptimisticContext<TData> | undefined,
+  ) => Promise<void> | void;
   onError?: (
     error: Error,
     variables: TVariables,
-    context: unknown,
+    context: OptimisticContext<TData> | undefined,
   ) => Promise<void> | void;
   onSettled?: (
     data: TData | undefined,
     error: Error | null,
+    variables: TVariables,
+    context: OptimisticContext<TData> | undefined,
   ) => Promise<void> | void;
   select?: string;
   matchColumn?: string;
@@ -61,7 +70,7 @@ export function useDataTableMutation<
     TData,
     Error,
     TVariables,
-    { previousData: TData[] | undefined }
+    OptimisticContext<TData>
   >({
     mutationFn: async (variables) => {
       let result;
@@ -161,12 +170,12 @@ export function useDataTableMutation<
       }
       await onError?.(error, variables, context);
     },
-    onSuccess: async (data, variables) => {
-      await onSuccess?.(data, variables);
+    onSuccess: async (data, variables, context) => {
+      await onSuccess?.(data, variables, context);
     },
-    onSettled: async (data, error) => {
+    onSettled: async (data, error, variables, context) => {
       queryClient.invalidateQueries({ queryKey });
-      await onSettled?.(data, error);
+      await onSettled?.(data, error, variables, context);
     },
   });
 
