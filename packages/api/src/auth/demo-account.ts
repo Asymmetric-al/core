@@ -9,6 +9,8 @@ import { runtimeEnvFlags, serverEnv } from "@asym/env";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 
+import type { UserRole } from "@asym/database/types";
+
 type DemoAvailability = Record<AppRole, boolean>;
 
 const defaultAvailability: DemoAvailability = {
@@ -80,6 +82,14 @@ function getDemoConfig() {
   };
 
   return { password, emails, availability };
+}
+
+/** Map AppRole to UserRole for E2E cookie (UserRole is a subset). */
+function appRoleToUserRole(role: AppRole): UserRole {
+  if (role === "admin" || role === "missionary" || role === "donor") {
+    return role;
+  }
+  return "admin";
 }
 
 function createAuthClient(request: Request) {
@@ -195,6 +205,7 @@ export async function POST(request: Request) {
     }
 
     if (isE2EAuthBypassEnabled()) {
+      const e2eRole = appRoleToUserRole(role);
       const response = NextResponse.json({ ok: true, role, bypass: true });
       const secure = new URL(request.url).protocol === "https:";
 
@@ -202,7 +213,7 @@ export async function POST(request: Request) {
         E2E_AUTH_COOKIE_NAME,
         createE2EAuthCookieValue({
           userId: `e2e-${role}-user`,
-          role,
+          role: e2eRole,
           tenantId: null,
         }),
         {
