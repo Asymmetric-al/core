@@ -83,10 +83,11 @@ describe("api/auth/demo-account", () => {
   });
 
   it("blocks demo login in production unless explicitly enabled", async () => {
-    const { POST } =
-      await import("../../../packages/api/src/auth/demo-account");
+    vi.resetModules();
     process.env.NODE_ENV = "production";
     process.env.ALLOW_DEMO_ACCOUNTS = "false";
+    const { POST } =
+      await import("../../../packages/api/src/auth/demo-account");
 
     const request = new Request("http://localhost/api/auth/demo-account", {
       method: "POST",

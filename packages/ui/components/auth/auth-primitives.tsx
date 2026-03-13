@@ -1,11 +1,11 @@
 "use client";
 
-import { Checkbox } from "@base-ui/react/checkbox";
 import { cva, type VariantProps } from "class-variance-authority";
-import { Check, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import * as React from "react";
 
 import { cn } from "../../lib/utils";
+import { Checkbox } from "../shadcn/checkbox";
 
 const authButtonVariants = cva(
   "inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
@@ -159,18 +159,14 @@ export function AuthCheckbox({
       htmlFor={id}
       className="flex items-center gap-2 text-sm text-muted-foreground"
     >
-      <Checkbox.Root
+      <Checkbox
         id={id}
         checked={checked}
         defaultChecked={defaultChecked}
-        onCheckedChange={onCheckedChange}
+        onCheckedChange={(value) => onCheckedChange?.(value === true)}
         disabled={disabled}
-        className="grid size-4 place-items-center rounded-[4px] border border-input bg-background text-primary shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[checked]:border-primary data-[checked]:bg-primary data-[checked]:text-primary-foreground"
-      >
-        <Checkbox.Indicator className="grid place-items-center">
-          <Check className="size-3" />
-        </Checkbox.Indicator>
-      </Checkbox.Root>
+        className="grid size-4 place-items-center rounded-[4px] border border-input bg-background text-primary shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+      />
       <span>{label}</span>
     </label>
   );
