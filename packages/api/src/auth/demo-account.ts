@@ -1,9 +1,9 @@
-import { APP_ROLES, type AppRole } from "@asym/auth/roles";
 import {
   createE2EAuthCookieValue,
   E2E_AUTH_COOKIE_NAME,
   isE2EAuthBypassEnabled,
 } from "@asym/auth";
+import { APP_ROLES, type AppRole } from "@asym/auth/roles";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { runtimeEnvFlags, serverEnv } from "@asym/env";
 import { createServerClient } from "@supabase/ssr";
@@ -170,6 +170,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   if (!isDemoEndpointEnabled()) {
+    return NextResponse.json(
       {
         ok: false,
         error: "Demo login unavailable",

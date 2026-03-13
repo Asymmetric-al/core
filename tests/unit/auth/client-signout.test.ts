@@ -14,24 +14,26 @@ afterEach(() => {
 describe("signOutOnServer", () => {
   it("returns ok true on successful server signout", async () => {
     global.fetch = vi.fn(async () => new Response("", { status: 200 }));
-    const { signOutOnServer } = await import(
-      "../../../packages/auth/client-signout"
-    );
+    const { signOutOnServer } =
+      await import("../../../packages/auth/client-signout");
 
     const result = await signOutOnServer();
     expect(result).toEqual({ ok: true });
   });
 
   it("returns failure with message on non-200 response", async () => {
-    global.fetch = vi.fn(async () =>
-      new Response(JSON.stringify({ error: "Invalid sign-out request origin." }), {
-        status: 403,
-        headers: { "content-type": "application/json" },
-      }),
+    global.fetch = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({ error: "Invalid sign-out request origin." }),
+          {
+            status: 403,
+            headers: { "content-type": "application/json" },
+          },
+        ),
     );
-    const { signOutOnServer } = await import(
-      "../../../packages/auth/client-signout"
-    );
+    const { signOutOnServer } =
+      await import("../../../packages/auth/client-signout");
 
     const result = await signOutOnServer();
     expect(result.ok).toBe(false);
@@ -42,9 +44,8 @@ describe("signOutOnServer", () => {
     global.fetch = vi.fn(async () => {
       throw new Error("network down");
     });
-    const { signOutOnServer } = await import(
-      "../../../packages/auth/client-signout"
-    );
+    const { signOutOnServer } =
+      await import("../../../packages/auth/client-signout");
 
     const result = await signOutOnServer();
     expect(result.ok).toBe(false);

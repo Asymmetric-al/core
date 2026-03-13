@@ -4,6 +4,8 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { safeNextParam } from "./demo-login";
 
+import type { UserRole } from "@asym/database/types";
+
 export interface AuthMiddlewareOptions {
   publicRoutes?: string[];
   authRoutes?: string[];
