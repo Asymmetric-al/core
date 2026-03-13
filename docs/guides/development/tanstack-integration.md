@@ -1,256 +1,197 @@
 # TanStack Integration Guide
 
-This document describes how TanStack Query, TanStack Table, and TanStack DB are integrated in this Next.js 16.1.1 project.
+This guide documents the project-standard integration for TanStack Query v5, Table v8, DB, and Virtual v3 in this Next.js 16.1.1 monorepo.
 
-## Package Versions
+## Version Matrix
 
-| Package                          | Version  | Purpose                          |
-| -------------------------------- | -------- | -------------------------------- |
-| `@tanstack/react-query`          | ^5.90.15 | Server state management          |
-| `@tanstack/react-query-devtools` | ^5.90.15 | Development debugging            |
-| `@tanstack/react-table`          | ^8.21.3  | Headless table UI                |
-| `@tanstack/db`                   | ^0.5.16  | Client-side database collections |
-| `@tanstack/react-db`             | ^0.1.60  | React bindings for TanStack DB   |
-| `@tanstack/query-db-collection`  | ^1.0.12  | Query-based collections          |
-| `@tanstack/react-virtual`        | ^3.13.13 | Virtualized lists                |
+| Package                         | Version    | Primary workspace(s)               | Role                      |
+| ------------------------------- | ---------- | ---------------------------------- | ------------------------- |
+| `@tanstack/react-query`         | `^5.90.21` | `packages/database`, apps          | Query state and caching   |
+| `@tanstack/react-table`         | `^8.21.3`  | `packages/ui`, apps                | Headless table state      |
+| `@tanstack/react-db`            | `^0.1.72`  | `packages/database`, `packages/ui` | React DB bindings         |
+| `@tanstack/query-db-collection` | `^1.0.25`  | `packages/database`                | Query-backed collections  |
+| `@tanstack/db`                  | `^0.5.28`  | `packages/database`                | DB runtime                |
+| `@tanstack/react-virtual`       | `^3.13.19` | `packages/ui`                      | Row/list virtualization   |
+| `zod`                           | `^4.3.6`   | apps + shared packages             | Runtime schema validation |
 
-## Architecture
+## Architecture Boundaries
 
-### Provider Setup
+1. **Server/cache layer (Next.js Cache Components)**  
+   Use `use cache`, `cacheTag`, `cacheLife`, `revalidateTag`, and `updateTag` only in server-safe code paths.
 
-Use `QueryProvider` as the single recommended provider for TanStack Query and TanStack DB functionality:
+2. **Data layer (TanStack Query + TanStack DB)**  
+   Fetching, optimistic updates, cache invalidation, and collection joins belong here.
+
+3. **View state layer (TanStack Table + TanStack Virtual)**  
+   Sorting/filter/pagination/virtualization belong in UI components and should stay decoupled from fetch logic.
+
+4. **Rendering layer (App/UI components)**  
+   Components read from Query/DB state and opt into virtualization through the shared API.
+
+## Provider Standard
+
+Use `QueryProvider` at app layout level:
 
 ```tsx
-// apps/[app-name]/app/layout.tsx
 import { QueryProvider } from "@asym/database/providers";
 
-export default function RootLayout({ children }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return <QueryProvider>{children}</QueryProvider>;
 }
 ```
 
-### File Structure
+## Query + Table Integration Pattern
 
+- Put pagination/sorting/filtering in explicit serializable state.
+- Query key must include that state.
+- For server-mode tables, use `manualPagination`, `manualSorting`, and `manualFiltering`.
+- Prefer `placeholderData: keepPreviousData` in Query v5 for smoother transitions.
+- Prefer `rowCount` for server pagination totals; TanStack Table derives `pageCount` from `rowCount` + page size.
+- Use `pageCount` only when `rowCount` is unavailable.
+- Shared `DataTable`/`DataTableResponsive` treat `rowCount` as authoritative. If both are passed, `pageCount` is ignored and a dev warning is logged.
+
+```tsx
+const query = useQuery({
+  queryKey: ["donations", pagination, sorting, filters],
+  queryFn: () => fetchDonations({ pagination, sorting, filters }),
+  placeholderData: keepPreviousData,
+});
 ```
-packages/database/
-├── collections/      # Collection definitions with Supabase integration
-├── hooks/            # Custom hooks using useLiveQuery
-├── providers/        # QueryProvider + compatibility alias
-├── supabase/         # Supabase clients (server/client/admin)
-└── types/            # Database types
+
+## TanStack DB Collection Pattern
+
+- Define collection schema with Zod.
+- Use `queryCollectionOptions` with explicit `queryKey`.
+- Keep mutation handlers transactional and error-throwing.
+- Prefer `Promise.all` for independent network calls.
+
+```ts
+const collection = createCollection<Item>(
+  queryCollectionOptions({
+    id: "items",
+    queryKey: ["items"],
+    queryClient: getQueryClient(),
+    schema: itemSchema,
+    getKey: (item) => item.id,
+    queryFn: fetchItems,
+    onUpdate: async ({ transaction }) => {
+      await Promise.all(
+        transaction.mutations.map(async (mutation) => {
+          await updateItem(mutation.key as string, mutation.modified);
+        }),
+      );
+    },
+  }),
+);
 ```
 
-## TanStack DB Collections
+## Shared Virtualization Foundation
 
-Collections are defined using `queryCollectionOptions` from `@tanstack/query-db-collection`:
+### Canonical API
 
-```typescript
-import { createCollection } from "@tanstack/db";
-import { queryCollectionOptions } from "@tanstack/query-db-collection";
+Shared API is implemented in:
 
-function createPostsCollection() {
-  return createCollection<Post>(
-    queryCollectionOptions({
-      queryKey: ["posts"],
-      queryClient: getQueryClient(),
-      getKey: (item) => item.id,
-      queryFn: async () => {
-        const { data, error } = await getSupabase()
-          .from("posts")
-          .select("*")
-          .order("created_at", { ascending: false });
-        if (error) throw error;
-        return data ?? [];
-      },
-      onInsert: async ({ transaction }) => {
-        const items = transaction.mutations.map((m) => m.modified);
-        const { error } = await getSupabase().from("posts").insert(items);
-        if (error) throw error;
-      },
-      onUpdate: async ({ transaction }) => {
-        await Promise.all(
-          transaction.mutations.map(async (mutation) => {
-            const { error } = await getSupabase()
-              .from("posts")
-              .update(mutation.modified)
-              .eq("id", mutation.key as string);
-            if (error) throw error;
-          }),
-        );
-      },
-      onDelete: async ({ transaction }) => {
-        const ids = transaction.mutations.map((m) => m.key as string);
-        const { error } = await getSupabase()
-          .from("posts")
-          .delete()
-          .in("id", ids);
-        if (error) throw error;
-      },
-    }),
-  );
-}
+- `packages/ui/components/shadcn/data-table/hooks/use-data-table-virtualization.ts`
+- `packages/ui/components/shadcn/data-table/types.ts` (`VirtualizationConfig`)
 
-let _postsCollection: ReturnType<typeof createPostsCollection> | undefined;
-
-function getOrCreateCollection<T>(
-  existing: T | undefined,
-  create: () => T,
-  set: (value: T) => void,
-): T {
-  if (existing !== undefined) {
-    return existing;
-  }
-  const created = create();
-  set(created);
-  return created;
-}
-
-export const postsCollection = {
-  get value() {
-    return getOrCreateCollection(
-      _postsCollection,
-      createPostsCollection,
-      (value) => {
-        _postsCollection = value;
-      },
-    );
-  },
+```ts
+type VirtualizationConfig = {
+  enabled?: boolean;
+  estimateSize?: number;
+  overscan?: number;
+  containerHeight?: number | string;
+  getItemKey?: (index: number) => string | number;
 };
 ```
 
-### Available Collections
+### Backward-Compatible Legacy Mapping
 
-| Collection               | Table         | Mutations              |
-| ------------------------ | ------------- | ---------------------- |
-| `profilesCollection`     | profiles      | Read-only              |
-| `missionariesCollection` | missionaries  | Read-only              |
-| `donorsCollection`       | donors        | Read-only              |
-| `postsCollection`        | posts         | Insert, Update, Delete |
-| `postCommentsCollection` | post_comments | Insert                 |
-| `donationsCollection`    | donations     | Read-only              |
-| `fundsCollection`        | funds         | Read-only              |
-| `followsCollection`      | follows       | Insert, Delete         |
+| Legacy field                              | Shared field                     |
+| ----------------------------------------- | -------------------------------- |
+| `enableVirtualization` / `virtualizeRows` | `virtualization.enabled`         |
+| `virtualRowHeight` / `rowHeight`          | `virtualization.estimateSize`    |
+| `virtualOverscan`                         | `virtualization.overscan`        |
+| `virtualContainerHeight` / `maxHeight`    | `virtualization.containerHeight` |
 
-## Custom Hooks
+Use `virtualization` for new code. Legacy fields are still accepted for compatibility.
 
-### useLiveQuery
+### Toggle Semantics (TanStack Virtual v3)
 
-The `useLiveQuery` hook from `@tanstack/react-db` provides reactive queries with joins:
+- `virtualization.enabled` maps directly to TanStack Virtual's `enabled` option.
+- Keep `count` as the real row/item length and toggle behavior with `enabled`; do not disable by forcing `count` to `0`.
+- `enabled: false` resets virtualizer state (observers, scroll offset, and measurement cache).
+- Keep the same `scrollElementRef` mounted regardless of `enabled`; avoid conditional ref attach/detach.
+- Treat virtualization mode as stable for one component mount. If toggled at runtime, expect scroll position reset.
 
-```typescript
-import { useLiveQuery, eq } from "@tanstack/react-db";
+### Table/Grid Usage
 
-export function usePostsWithAuthors(missionaryId?: string) {
-  return useLiveQuery((q) => {
-    let query = q.from({ post: postsCollection.value });
-
-    if (missionaryId) {
-      query = query.where(({ post }) => eq(post.missionary_id, missionaryId));
-    }
-
-    return query
-      .join(
-        { missionary: missionariesCollection.value },
-        ({ post, missionary }) => eq(post.missionary_id, missionary.id),
-      )
-      .join({ profile: profilesCollection.value }, ({ missionary, profile }) =>
-        eq(missionary?.profile_id ?? "", profile.id),
-      )
-      .select(({ post, profile }) => ({
-        ...post,
-        author: profile,
-      }))
-      .orderBy(({ post }) => post.created_at, "desc");
-  });
-}
-```
-
-### Available Hooks
-
-| Hook                              | Purpose                          |
-| --------------------------------- | -------------------------------- |
-| `usePostsWithAuthors`             | Posts with author profile data   |
-| `usePostsForFollowedMissionaries` | Posts from followed missionaries |
-| `useDonorGivingHistory`           | Donor's donation history         |
-| `useMissionarySupporters`         | Missionary's supporters list     |
-| `useCommentsWithAuthors`          | Comments with author data        |
-| `useFundsWithProgress`            | Funds with progress calculation  |
-| `useMissionaryDashboard`          | Missionary dashboard data        |
-| `useMissionaryStats`              | Missionary statistics            |
-
-## TanStack Table
-
-TanStack Table is used for data grids. The data table components are in `packages/ui/components/shadcn/data-table/`.
-
-### Basic Usage
+`DataTable`, `DataTableResponsive`, and `DataGrid` all consume the shared resolver/hook.
 
 ```tsx
-import { DataTable } from "@asym/ui";
-import { columns } from "./columns";
-
-export function ContributionsTable({ data }) {
-  return (
-    <DataTable
-      columns={columns}
-      data={data}
-      enableRowSelection
-      enablePagination
-    />
-  );
-}
-```
-
-## Best Practices
-
-1. **Use collections for shared data**: Collections provide caching and optimistic updates across components.
-
-2. **Join types with non-null assertions**: When joining collections, use `!` for TypeScript null safety since joins guarantee presence.
-
-3. **Use transaction pattern for mutations**: Always use the `{ transaction }` destructured parameter in mutation handlers.
-
-4. **Batch operations**: Use `Promise.all` for multiple mutations to ensure atomicity.
-
-5. **Error handling**: Always check for errors from Supabase operations and throw to trigger rollback.
-
-## Supabase Integration
-
-Collections use the Supabase client from `@asym/database/supabase`:
-
-```typescript
-import { createClient } from "@asym/database/supabase";
-
-function getSupabase() {
-  if (!supabaseClient) {
-    supabaseClient = createClient();
-  }
-  return supabaseClient;
-}
-```
-
-This ensures a single Supabase client instance is reused across all collections.
-
-## Query Client Configuration
-
-The shared QueryClient is configured with:
-
-```typescript
-new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 60 * 1000, // Prevents refetch-on-hydration, 1-minute window
-      gcTime: 5 * 60 * 1000, // 5-minute garbage collection
-      refetchOnWindowFocus: false, // Explicit opt-out
-      retry: (failureCount, error) => {
-        if (error instanceof Error && error.message.includes("401"))
-          return false;
-        if (error instanceof Error && error.message.includes("403"))
-          return false;
-        return failureCount < 3;
-      },
+<DataTableResponsive
+  config={{
+    virtualization: {
+      enabled: true,
+      estimateSize: 56,
+      overscan: 10,
+      containerHeight: 720,
     },
-    mutations: {
-      retry: false, // Mutations are not retried
-    },
-  },
-});
+  }}
+/>
 ```
+
+### List Usage
+
+For non-table lists, use the same shared hook and point it at the real scroll container:
+
+```tsx
+const viewportRef = React.useRef<HTMLElement | null>(null);
+
+const { virtualizer, virtualItems, totalSize, isEnabled } =
+  useDataTableVirtualization({
+    count: items.length,
+    scrollElementRef: viewportRef,
+    virtualization: {
+      enabled: items.length > 30,
+      estimateSize: 88,
+      overscan: 10,
+      getItemKey: (index) => items[index]?.id ?? index,
+    },
+  });
+```
+
+## Next.js Cache Components Notes
+
+- Virtualization is **client-side rendering optimization only**.  
+  It must not own data freshness policy.
+- Keep fetch/cache invalidation decisions in server/data layers:
+  - Server read models: `use cache` + `cacheTag`.
+  - Mutations: call `revalidateTag`/`updateTag` and invalidate Query keys when needed.
+- Do not call request-bound APIs (`cookies`, `headers`, etc.) inside cached scopes.
+
+## Counter Mutation Consistency Pattern
+
+When a mutation writes a reaction row and updates an aggregate counter via RPC, treat it as a two-step flow that must remain logically atomic for end users:
+
+1. Write the relation row (`post_likes` / `post_prayers` / `post_fires`)
+2. Update aggregate counter RPC (`increment_*` / `decrement_*`)
+3. If step 2 fails, execute a compensating write:
+   - POST-style add flow: remove inserted relation row
+   - DELETE-style remove flow: restore deleted relation row
+
+This preserves count consistency without requiring route-level SQL transactions and keeps behavior aligned across REST and GraphQL mutation paths.
+
+## Quality Checklist
+
+- [ ] Query keys include table/list state that impacts data.
+- [ ] Table manual mode aligns with API behavior.
+- [ ] DB collection schemas are validated with Zod.
+- [ ] New virtualization uses `virtualization` object config.
+- [ ] `getItemKey` is stable and uses row/item IDs.
+- [ ] Mutations trigger correct cache invalidation path (Query + Next cache tags).
+- [ ] Counter RPC mutation flows include compensating writes on partial failure.
+- [ ] Lint/typecheck/unit tests pass on affected workspaces.

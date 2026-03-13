@@ -1,6 +1,6 @@
+import { promises as fs } from "node:fs";
 import inspector from "node:inspector";
 import path from "node:path";
-import { promises as fs } from "node:fs";
 
 const session = new inspector.Session();
 let sessionStarted = false;

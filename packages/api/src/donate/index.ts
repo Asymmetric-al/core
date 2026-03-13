@@ -1,185 +1,161 @@
 import {
   getAuthContext,
   requireAuth,
+  requireRole,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
-import { serverEnv } from "@asym/env";
 import { type NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
-import { findOrCreateDonor } from "./queries";
-import { findMissionaryById } from "../missionaries/queries";
+import { resolveRequiredIdempotencyKey } from "./idempotency";
+import { processDonationSagaOutboxEvent } from "./saga";
 import { donateGetQuerySchema, donatePostSchema } from "../schemas/donate";
 import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
-import { findDonorByProfileId, findProfileById } from "../shared/queries";
-import { withOperation } from "../shared/with-operation";
+import { findDonorByProfileId } from "../shared/queries";
 
 function getStripeClient(secretKey: string): Stripe {
   return new Stripe(secretKey, { apiVersion: "2025-02-24.acacia" });
 }
 
-export const POST = withOperation(
-  async ({ supabaseAdmin, auth: ctx, audit, request }) => {
-    try {
-      const { amount, currency, missionary_id, fund_id } =
-        donatePostSchema.parse(await ensureJsonBody(request));
+function parseRpcObject<T extends Record<string, unknown>>(
+  value: unknown,
+): T | null {
+  if (!value) return null;
+  if (Array.isArray(value)) {
+    const first = value[0];
+    return first && typeof first === "object" ? (first as T) : null;
+  }
+  return typeof value === "object" ? (value as T) : null;
+}
 
-      const { data: tenant, error: tenantError } = await supabaseAdmin
-        .from("tenants")
-        .select("id, stripe_secret_key, stripe_publishable_key")
-        .eq("id", ctx.tenantId)
-        .single();
+export async function POST(request: NextRequest) {
+  try {
+    const { client: supabaseAdmin, error: adminError } = getAdminClient();
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: adminError }, { status: 503 });
+    }
 
-      if (tenantError || !tenant) {
+    const auth = await getAuthContext();
+    requireRole(auth, ["donor", "admin", "staff", "super_admin"]);
+    const ctx = auth as AuthenticatedContext;
+
+    const { amount, currency, missionary_id, fund_id } = donatePostSchema.parse(
+      await ensureJsonBody(request),
+    );
+
+    const { data: tenant, error: tenantError } = await supabaseAdmin
+      .from("tenants")
+      .select("id, stripe_secret_key, stripe_publishable_key")
+      .eq("id", ctx.tenantId)
+      .single();
+
+    if (tenantError || !tenant) {
+      return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+    }
+
+    const stripeSecretKey =
+      tenant.stripe_secret_key ?? process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) {
+      return NextResponse.json(
+        { error: "Stripe not configured for this organization" },
+        { status: 500 },
+      );
+    }
+
+    const stripe = getStripeClient(stripeSecretKey);
+    const amountInCents = Math.round(amount * 100);
+    const idempotencyKey = resolveRequiredIdempotencyKey(request.headers);
+
+    const { data: beginRaw, error: beginError } = await supabaseAdmin.rpc(
+      "begin_donation_saga",
+      {
+        p_tenant_id: ctx.tenantId,
+        p_profile_id: ctx.profileId,
+        p_actor_user_id: ctx.userId,
+        p_amount: amountInCents,
+        p_currency: currency.toLowerCase(),
+        p_missionary_id: missionary_id || null,
+        p_fund_id: fund_id || null,
+        p_idempotency_key: idempotencyKey,
+        p_ip_address: request.headers.get("x-forwarded-for"),
+        p_user_agent: request.headers.get("user-agent"),
+      },
+    );
+
+    if (beginError) {
+      if (beginError.code === "P0002") {
         return NextResponse.json(
-          { error: "Tenant not found" },
+          { error: "Missionary or fund not found" },
           { status: 404 },
         );
       }
-
-      const stripeSecretKey =
-        tenant.stripe_secret_key || serverEnv.STRIPE_SECRET_KEY;
-      if (!stripeSecretKey) {
+      if (beginError.code === "22023") {
         return NextResponse.json(
-          { error: "Stripe not configured for this organization" },
-          { status: 500 },
+          { error: beginError.message },
+          { status: 400 },
         );
       }
-
-      const stripe = getStripeClient(stripeSecretKey);
-
-      const { data: donorRecord, error: donorError } = await findOrCreateDonor(
-        supabaseAdmin,
-        ctx.profileId,
-        ctx.tenantId,
-      );
-
-      if (donorError || !donorRecord) {
-        return NextResponse.json(
-          { error: "Failed to create donor record" },
-          { status: 500 },
-        );
-      }
-
-      const { data: profile } = await findProfileById(
-        supabaseAdmin,
-        ctx.profileId,
-        ctx.tenantId,
-      );
-
-      let stripeCustomerId = donorRecord.stripe_customer_id;
-
-      if (!stripeCustomerId) {
-        const customer = await stripe.customers.create({
-          email: profile?.email,
-          name: profile
-            ? `${profile.first_name} ${profile.last_name}`
-            : undefined,
-          metadata: {
-            donor_id: donorRecord.id,
-            tenant_id: ctx.tenantId,
-            user_id: ctx.userId,
-          },
-        });
-        stripeCustomerId = customer.id;
-
-        await supabaseAdmin
-          .from("donors")
-          .update({ stripe_customer_id: stripeCustomerId })
-          .eq("id", donorRecord.id);
-      }
-
-      if (missionary_id) {
-        const { data: missionary } = await findMissionaryById(
-          supabaseAdmin,
-          missionary_id,
-          ctx.tenantId,
-        );
-
-        if (!missionary) {
-          return NextResponse.json(
-            { error: "Missionary not found or access denied" },
-            { status: 404 },
-          );
-        }
-      }
-
-      if (fund_id) {
-        const { data: fund } = await supabaseAdmin
-          .from("funds")
-          .select("id, name, description, target_amount, current_amount")
-          .eq("id", fund_id)
-          .eq("tenant_id", ctx.tenantId)
-          .eq("is_active", true)
-          .single();
-
-        if (!fund) {
-          return NextResponse.json(
-            { error: "Fund not found or inactive" },
-            { status: 404 },
-          );
-        }
-      }
-
-      const amountInCents = Math.round(amount * 100);
-
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: amountInCents,
-        currency: currency.toLowerCase(),
-        customer: stripeCustomerId,
-        metadata: {
-          donor_id: donorRecord.id,
-          missionary_id: missionary_id || "",
-          fund_id: fund_id || "",
-          tenant_id: ctx.tenantId,
-          user_id: ctx.userId,
-        },
-        automatic_payment_methods: { enabled: true },
-      });
-
-      const { data: donation, error: donationError } = await supabaseAdmin
-        .from("donations")
-        .insert({
-          tenant_id: ctx.tenantId,
-          donor_id: donorRecord.id,
-          missionary_id: missionary_id || null,
-          fund_id: fund_id || null,
-          amount: amountInCents,
-          currency: currency.toLowerCase(),
-          stripe_payment_intent_id: paymentIntent.id,
-          status: "pending",
-        })
-        .select("id")
-        .single();
-
-      if (donationError) {
-        return NextResponse.json(
-          { error: "Failed to create donation record" },
-          { status: 500 },
-        );
-      }
-
-      await audit.logDonation(donation.id, "donation_initiated", {
-        amount: amountInCents,
-        currency,
-      });
-
-      return NextResponse.json({
-        clientSecret: paymentIntent.client_secret,
-        paymentIntentId: paymentIntent.id,
-        donationId: donation.id,
-        publishableKey:
-          tenant.stripe_publishable_key ||
-          serverEnv.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
-      });
-    } catch (error) {
-      console.error("Donation error:", error);
-      throw error;
+      return NextResponse.json({ error: beginError.message }, { status: 500 });
     }
-  },
-  { roles: ["donor", "admin", "staff", "super_admin"] },
-);
+
+    const beginResult = parseRpcObject<{
+      outbox_id?: string;
+      donation_id?: string;
+      replayed?: boolean;
+    }>(beginRaw);
+
+    const outboxId = beginResult?.outbox_id ?? null;
+    const donationId = beginResult?.donation_id ?? null;
+    if (!outboxId || !donationId) {
+      return NextResponse.json(
+        { error: "Failed to start donation saga" },
+        { status: 500 },
+      );
+    }
+
+    const sagaResult = await processDonationSagaOutboxEvent({
+      supabaseAdmin,
+      stripe,
+      outboxId,
+      actorUserId: ctx.userId,
+    });
+
+    if (sagaResult.status !== "completed") {
+      return NextResponse.json(
+        {
+          error: sagaResult.error ?? "Donation is still processing",
+          donationId,
+          outboxId,
+          status: sagaResult.status,
+        },
+        { status: sagaResult.status === "processing" ? 202 : 500 },
+      );
+    }
+
+    if (!sagaResult.clientSecret || !sagaResult.paymentIntentId) {
+      return NextResponse.json(
+        { error: "Failed to initialize payment intent" },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json({
+      clientSecret: sagaResult.clientSecret,
+      paymentIntentId: sagaResult.paymentIntentId,
+      donationId,
+      outboxId,
+      idempotencyKey,
+      replayed: Boolean(beginResult?.replayed),
+      publishableKey:
+        tenant.stripe_publishable_key ??
+        process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+    });
+  } catch (e) {
+    console.error("Donation error:", e);
+    return toErrorResponse(e);
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {

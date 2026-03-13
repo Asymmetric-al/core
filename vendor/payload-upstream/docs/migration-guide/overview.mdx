@@ -49,7 +49,6 @@ For more details, see the [Documentation](https://payloadcms.com/docs/getting-st
    ```
 
    Also install the other @payloadcms packages specific to the plugins and adapters you are using. Depending on your project, these may include:
-
    - @payloadcms/db-mongodb
    - @payloadcms/db-postgres
    - @payloadcms/richtext-slate
@@ -73,7 +72,6 @@ For more details, see the [Documentation](https://payloadcms.com/docs/getting-st
 1. Database Adapter Migrations
 
    _If you have existing data_ and are using the MongoDB or Postgres adapters, you will need to run the database migrations to ensure your database schema is up-to-date.
-
    - [postgres](https://github.com/payloadcms/payload/releases/tag/v3.0.0-beta.39)
    - [mongodb](https://github.com/payloadcms/payload/releases/tag/v3.0.0-beta.131)
 
@@ -185,7 +183,6 @@ For more details, see the [Documentation](https://payloadcms.com/docs/getting-st
     ```
 
     To migrate, choose one of the following options:
-
     1. For most use cases, you can simply customize the file located at `(payload)/custom.scss`. You can import or add your own styles here, such as for Tailwind.
     1. For plugins author, you can use a Custom Provider at `admin.components.providers` to import your stylesheet:
 
@@ -477,7 +474,6 @@ For more details, see the [Documentation](https://payloadcms.com/docs/getting-st
    For more details, see the [Documentation](https://payloadcms.com/docs/custom-components/overview#client-components).
 
 1. The `admin.description` property within Collection, Globals, and Fields no longer accepts a React Component. Instead, you must define it as a Custom Component.
-
    1. For Collections, use the `admin.components.edit.Description` key:
 
    ```diff

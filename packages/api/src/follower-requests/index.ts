@@ -6,6 +6,7 @@ import {
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { toErrorResponse } from "../shared/http-errors";
 import { findProfileByUserId } from "../shared/queries";
 
 interface FollowerRequestRow {
@@ -112,11 +113,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ requests: formattedRequests });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Internal error";
-    return NextResponse.json(
-      { error: message },
-      { status: message.includes("Unauthorized") ? 401 : 500 },
-    );
+    return toErrorResponse(e);
   }
 }
 

@@ -15,6 +15,7 @@ import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
+import { useDataTableVirtualization } from "@asym/ui/components/shadcn/data-table";
 import {
   Dialog,
   DialogContent,
@@ -1174,6 +1175,34 @@ function useDonorsPageLayout() {
     sortAsc,
   ]);
 
+  const donorListViewportRef = React.useRef<HTMLDivElement | null>(null);
+  const getDonorVirtualItemKey = React.useCallback(
+    (index: number) => filteredDonors[index]?.id ?? index,
+    [filteredDonors],
+  );
+  const {
+    virtualizer: donorListVirtualizer,
+    virtualItems: virtualDonorItems,
+    totalSize: virtualDonorListSize,
+    isEnabled: isDonorListVirtualized,
+  } = useDataTableVirtualization({
+    count: filteredDonors.length,
+    scrollElementRef: donorListViewportRef,
+    virtualization: {
+      enabled: true,
+      estimateSize: 88,
+      overscan: 10,
+      containerHeight: 640,
+      getItemKey: getDonorVirtualItemKey,
+    },
+    defaults: {
+      enabled: false,
+      estimateSize: 88,
+      overscan: 10,
+      containerHeight: 640,
+    },
+  });
+
   const selectedDonor = React.useMemo(
     () => donors.find((d) => d.id === selectedDonorId) || null,
     [donors, selectedDonorId],
@@ -1758,186 +1787,316 @@ function useDonorsPageLayout() {
               </AnimatePresence>
             </div>
 
-            <ScrollArea className="flex-1 min-h-0">
-              {error ? (
-                <ErrorState message={error} onRetry={fetchDonors} />
-              ) : isLoading ? (
-                <DonorListSkeleton />
-              ) : filteredDonors.length === 0 ? (
-                <motion.div
-                  {...fadeInUp}
-                  transition={smoothTransition}
-                  className="flex flex-col items-center justify-center h-64 text-center p-6"
-                >
+            <div className="flex-1 min-h-0">
+              <ScrollArea className="h-full" viewportRef={donorListViewportRef}>
+                {error ? (
+                  <ErrorState message={error} onRetry={fetchDonors} />
+                ) : isLoading ? (
+                  <DonorListSkeleton />
+                ) : filteredDonors.length === 0 ? (
                   <motion.div
-                    initial={{ scale: 0.8 }}
-                    animate={{ scale: 1 }}
-                    transition={springTransition}
-                    className="w-14 h-14 bg-zinc-100 rounded-2xl flex items-center justify-center mb-4"
+                    {...fadeInUp}
+                    transition={smoothTransition}
+                    className="flex flex-col items-center justify-center h-64 text-center p-6"
                   >
-                    <Search className="h-6 w-6 text-zinc-300" />
-                  </motion.div>
-                  <p className="text-sm font-bold text-zinc-900">
-                    No partners found
-                  </p>
-                  <p className="text-xs text-zinc-400 mt-1">
-                    {hasActiveFilters
-                      ? "Try adjusting your filters"
-                      : "Add your first partner to get started"}
-                  </p>
-                  {hasActiveFilters && (
                     <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                      initial={{ scale: 0.8 }}
+                      animate={{ scale: 1 }}
+                      transition={springTransition}
+                      className="w-14 h-14 bg-zinc-100 rounded-2xl flex items-center justify-center mb-4"
                     >
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={clearAllFilters}
-                        className="mt-4 h-8 rounded-xl text-xs"
-                      >
-                        Clear Filters
-                      </Button>
+                      <Search className="h-6 w-6 text-zinc-300" />
                     </motion.div>
-                  )}
-                </motion.div>
-              ) : (
-                <LayoutGroup>
-                  <motion.div
-                    variants={staggerContainer}
-                    initial="initial"
-                    animate="animate"
-                    className="p-2 space-y-1"
-                  >
-                    <AnimatePresence mode="popLayout">
-                      {filteredDonors.map((donor, index) => (
-                        <motion.div
-                          key={donor.id}
-                          layout
-                          variants={fadeInUp}
-                          initial="initial"
-                          animate="animate"
-                          exit="exit"
-                          transition={{
-                            ...smoothTransition,
-                            delay: index * 0.02,
-                          }}
-                          whileHover={{ scale: 1.01 }}
-                          whileTap={{ scale: 0.99 }}
-                          onClick={() => setSelectedDonorId(donor.id)}
-                          className={cn(
-                            "group flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-colors border",
-                            selectedDonorId === donor.id
-                              ? "bg-zinc-900 border-zinc-900"
-                              : "bg-white border-transparent hover:bg-zinc-50 hover:border-zinc-200",
-                          )}
+                    <p className="text-sm font-bold text-zinc-900">
+                      No partners found
+                    </p>
+                    <p className="text-xs text-zinc-400 mt-1">
+                      {hasActiveFilters
+                        ? "Try adjusting your filters"
+                        : "Add your first partner to get started"}
+                    </p>
+                    {hasActiveFilters && (
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={clearAllFilters}
+                          className="mt-4 h-8 rounded-xl text-xs"
                         >
-                          <div className="relative shrink-0">
-                            <Avatar
-                              className={cn(
-                                "h-10 w-10 border-2",
-                                selectedDonorId === donor.id
-                                  ? "border-zinc-700"
-                                  : "border-white shadow-sm",
-                              )}
-                            >
-                              <AvatarImage src={donor.avatar_url} />
-                              <AvatarFallback
-                                className={cn(
-                                  "text-xs font-bold",
-                                  selectedDonorId === donor.id
-                                    ? "bg-zinc-800 text-zinc-300"
-                                    : "bg-zinc-100 text-zinc-500",
-                                )}
-                              >
-                                {donor.initials}
-                              </AvatarFallback>
-                            </Avatar>
-                            <motion.div
-                              initial={{ scale: 0.95, opacity: 0 }}
-                              animate={{ scale: 1 }}
-                              transition={springTransition}
-                              className={cn(
-                                "absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2",
-                                selectedDonorId === donor.id
-                                  ? "border-zinc-900"
-                                  : "border-white",
-                                getStatusColor(donor.status),
-                              )}
-                            />
-                          </div>
-
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-0.5">
-                              <span
-                                className={cn(
-                                  "font-bold text-sm truncate",
-                                  selectedDonorId === donor.id
-                                    ? "text-white"
-                                    : "text-zinc-900",
-                                )}
-                              >
-                                {donor.name}
-                              </span>
-                              {donor.has_active_pledge && (
-                                <motion.div
-                                  animate={{ scale: [1, 1.2, 1] }}
-                                  transition={{ duration: 2, repeat: Infinity }}
-                                  className={cn(
-                                    "h-2 w-2 rounded-full shrink-0 ml-1",
-                                    selectedDonorId === donor.id
-                                      ? "bg-emerald-400"
-                                      : "bg-emerald-500",
-                                  )}
-                                  title="Active recurring donation"
-                                />
-                              )}
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <span
-                                className={cn(
-                                  "text-[10px] truncate max-w-[100px] font-medium uppercase tracking-wider",
-                                  selectedDonorId === donor.id
-                                    ? "text-zinc-400"
-                                    : "text-zinc-400",
-                                )}
-                              >
-                                {donor.location || "Unknown"}
-                              </span>
-                              <span
-                                className={cn(
-                                  "text-xs font-black",
-                                  selectedDonorId === donor.id
-                                    ? "text-zinc-300"
-                                    : "text-zinc-900",
-                                )}
-                              >
-                                {formatCurrency(donor.total_given)}
-                              </span>
-                            </div>
-                          </div>
-                          <motion.div
-                            animate={{
-                              x: selectedDonorId === donor.id ? 0 : -2,
-                            }}
-                            whileHover={{ x: 2 }}
-                          >
-                            <ChevronRight
-                              className={cn(
-                                "h-4 w-4 shrink-0",
-                                selectedDonorId === donor.id
-                                  ? "text-zinc-500"
-                                  : "text-zinc-300",
-                              )}
-                            />
-                          </motion.div>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
+                          Clear Filters
+                        </Button>
+                      </motion.div>
+                    )}
                   </motion.div>
-                </LayoutGroup>
-              )}
-            </ScrollArea>
+                ) : isDonorListVirtualized ? (
+                  <div
+                    className="p-2"
+                    style={{
+                      height: virtualDonorListSize,
+                      position: "relative",
+                    }}
+                  >
+                    {virtualDonorItems.map((virtualItem) => {
+                      const donor = filteredDonors[virtualItem.index];
+                      if (!donor) return null;
+
+                      return (
+                        <div
+                          key={donor.id}
+                          data-index={virtualItem.index}
+                          ref={donorListVirtualizer.measureElement}
+                          className="absolute left-0 top-0 w-full px-2 pb-1"
+                          style={{
+                            transform: `translateY(${virtualItem.start}px)`,
+                          }}
+                        >
+                          <div
+                            onClick={() => setSelectedDonorId(donor.id)}
+                            className={cn(
+                              "group flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-colors border",
+                              selectedDonorId === donor.id
+                                ? "bg-zinc-900 border-zinc-900"
+                                : "bg-white border-transparent hover:bg-zinc-50 hover:border-zinc-200",
+                            )}
+                          >
+                            <div className="relative shrink-0">
+                              <Avatar
+                                className={cn(
+                                  "h-10 w-10 border-2",
+                                  selectedDonorId === donor.id
+                                    ? "border-zinc-700"
+                                    : "border-white shadow-sm",
+                                )}
+                              >
+                                <AvatarImage src={donor.avatar_url} />
+                                <AvatarFallback
+                                  className={cn(
+                                    "text-xs font-bold",
+                                    selectedDonorId === donor.id
+                                      ? "bg-zinc-800 text-zinc-300"
+                                      : "bg-zinc-100 text-zinc-500",
+                                  )}
+                                >
+                                  {donor.initials}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div
+                                className={cn(
+                                  "absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2",
+                                  selectedDonorId === donor.id
+                                    ? "border-zinc-900"
+                                    : "border-white",
+                                  getStatusColor(donor.status),
+                                )}
+                              />
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-0.5">
+                                <span
+                                  className={cn(
+                                    "font-bold text-sm truncate",
+                                    selectedDonorId === donor.id
+                                      ? "text-white"
+                                      : "text-zinc-900",
+                                  )}
+                                >
+                                  {donor.name}
+                                </span>
+                                {donor.has_active_pledge && (
+                                  <div
+                                    className={cn(
+                                      "h-2 w-2 rounded-full shrink-0 ml-1",
+                                      selectedDonorId === donor.id
+                                        ? "bg-emerald-400"
+                                        : "bg-emerald-500",
+                                    )}
+                                    title="Active recurring donation"
+                                  />
+                                )}
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span
+                                  className={cn(
+                                    "text-[10px] truncate max-w-[100px] font-medium uppercase tracking-wider",
+                                    selectedDonorId === donor.id
+                                      ? "text-zinc-400"
+                                      : "text-zinc-400",
+                                  )}
+                                >
+                                  {donor.location || "Unknown"}
+                                </span>
+                                <span
+                                  className={cn(
+                                    "text-xs font-black",
+                                    selectedDonorId === donor.id
+                                      ? "text-zinc-300"
+                                      : "text-zinc-900",
+                                  )}
+                                >
+                                  {formatCurrency(donor.total_given)}
+                                </span>
+                              </div>
+                            </div>
+                            <div>
+                              <ChevronRight
+                                className={cn(
+                                  "h-4 w-4 shrink-0",
+                                  selectedDonorId === donor.id
+                                    ? "text-zinc-500"
+                                    : "text-zinc-300",
+                                )}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <LayoutGroup>
+                    <motion.div
+                      variants={staggerContainer}
+                      initial="initial"
+                      animate="animate"
+                      className="p-2 space-y-1"
+                    >
+                      <AnimatePresence mode="popLayout">
+                        {filteredDonors.map((donor, index) => (
+                          <motion.div
+                            key={donor.id}
+                            layout
+                            variants={fadeInUp}
+                            initial="initial"
+                            animate="animate"
+                            exit="exit"
+                            transition={{
+                              ...smoothTransition,
+                              delay: index * 0.02,
+                            }}
+                            whileHover={{ scale: 1.01 }}
+                            whileTap={{ scale: 0.99 }}
+                            onClick={() => setSelectedDonorId(donor.id)}
+                            className={cn(
+                              "group flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-colors border",
+                              selectedDonorId === donor.id
+                                ? "bg-zinc-900 border-zinc-900"
+                                : "bg-white border-transparent hover:bg-zinc-50 hover:border-zinc-200",
+                            )}
+                          >
+                            <div className="relative shrink-0">
+                              <Avatar
+                                className={cn(
+                                  "h-10 w-10 border-2",
+                                  selectedDonorId === donor.id
+                                    ? "border-zinc-700"
+                                    : "border-white shadow-sm",
+                                )}
+                              >
+                                <AvatarImage src={donor.avatar_url} />
+                                <AvatarFallback
+                                  className={cn(
+                                    "text-xs font-bold",
+                                    selectedDonorId === donor.id
+                                      ? "bg-zinc-800 text-zinc-300"
+                                      : "bg-zinc-100 text-zinc-500",
+                                  )}
+                                >
+                                  {donor.initials}
+                                </AvatarFallback>
+                              </Avatar>
+                              <motion.div
+                                initial={{ scale: 0.95, opacity: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={springTransition}
+                                className={cn(
+                                  "absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2",
+                                  selectedDonorId === donor.id
+                                    ? "border-zinc-900"
+                                    : "border-white",
+                                  getStatusColor(donor.status),
+                                )}
+                              />
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-0.5">
+                                <span
+                                  className={cn(
+                                    "font-bold text-sm truncate",
+                                    selectedDonorId === donor.id
+                                      ? "text-white"
+                                      : "text-zinc-900",
+                                  )}
+                                >
+                                  {donor.name}
+                                </span>
+                                {donor.has_active_pledge && (
+                                  <motion.div
+                                    animate={{ scale: [1, 1.2, 1] }}
+                                    transition={{
+                                      duration: 2,
+                                      repeat: Infinity,
+                                    }}
+                                    className={cn(
+                                      "h-2 w-2 rounded-full shrink-0 ml-1",
+                                      selectedDonorId === donor.id
+                                        ? "bg-emerald-400"
+                                        : "bg-emerald-500",
+                                    )}
+                                    title="Active recurring donation"
+                                  />
+                                )}
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span
+                                  className={cn(
+                                    "text-[10px] truncate max-w-[100px] font-medium uppercase tracking-wider",
+                                    selectedDonorId === donor.id
+                                      ? "text-zinc-400"
+                                      : "text-zinc-400",
+                                  )}
+                                >
+                                  {donor.location || "Unknown"}
+                                </span>
+                                <span
+                                  className={cn(
+                                    "text-xs font-black",
+                                    selectedDonorId === donor.id
+                                      ? "text-zinc-300"
+                                      : "text-zinc-900",
+                                  )}
+                                >
+                                  {formatCurrency(donor.total_given)}
+                                </span>
+                              </div>
+                            </div>
+                            <motion.div
+                              animate={{
+                                x: selectedDonorId === donor.id ? 0 : -2,
+                              }}
+                              whileHover={{ x: 2 }}
+                            >
+                              <ChevronRight
+                                className={cn(
+                                  "h-4 w-4 shrink-0",
+                                  selectedDonorId === donor.id
+                                    ? "text-zinc-500"
+                                    : "text-zinc-300",
+                                )}
+                              />
+                            </motion.div>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </motion.div>
+                  </LayoutGroup>
+                )}
+              </ScrollArea>
+            </div>
           </Card>
         </motion.div>
 

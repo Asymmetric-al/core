@@ -1,7 +1,9 @@
-import { test, expect } from "@playwright/test";
-import type { APIRequestContext } from "@playwright/test";
-import path from "path";
 import fs from "fs";
+import path from "path";
+
+import { test, expect } from "@playwright/test";
+
+import type { APIRequestContext } from "@playwright/test";
 
 const TEST_IMAGE_PATH = path.join(__dirname, "fixtures", "test-image.png");
 const AUTH_OPTIONAL_SUITES = new Set(["Backend Image Processing"]);

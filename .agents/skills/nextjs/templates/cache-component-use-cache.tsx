@@ -52,7 +52,6 @@ export async function getExpensiveData(id: string) {
 }
 
 // Usage in component (not cached itself):
-import { getExpensiveData } from '@/lib/data'
 
 export async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -237,6 +236,8 @@ export async function getPosts() {
 // ============================================================================
 
 import { cookies } from 'next/headers'
+
+import { getExpensiveData } from '@/lib/data'
 
 export async function getContent() {
   const cookieStore = await cookies()
