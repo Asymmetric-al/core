@@ -1,5 +1,25 @@
 # Working Set
 
+## 2026-03-13
+
+- Date: 2026-03-13
+- Repo: Asymmetric-al/core
+- Goal: Upgrade declared Base UI dependencies to v1.3.0 and perform the smallest safe shared-wrapper migration needed for modern Base UI alignment without redesigning the Maia UI layer.
+- Primary area: `apps/{admin,donor,missionary}/package.json`, `packages/ui/package.json`, `packages/ui/components/shadcn/{drawer}.tsx`, `packages/ui/styles/globals.css`
+- Constraints:
+  - Keep public wrapper APIs stable where possible.
+  - Prefer shared-wrapper adaptation over touching call sites.
+  - Preserve Maia classes/tokens and avoid broad Radix/Base rewrites in one pass.
+  - Follow Next.js 16 server/client boundary guidance from `.next-docs`.
+- Evidence sources used:
+  - `apps/{admin,donor,missionary}/package.json`
+  - `packages/ui/components/shadcn/{drawer,dialog,sheet,select,tooltip,command}.tsx`
+  - `packages/ui/styles/globals.css`
+  - `apps/*/app/layout.tsx`
+  - Base UI release docs / live docs for v1.3.0 Drawer stability, SwipeArea, Tooltip `closeOnClick`, Select/Combobox/Slider labels, and overlay setup guidance
+- Notes:
+  - Repo-scoped NIA search remains useful for external docs, but current branch source-of-truth is local `rg` + direct file reads because the indexed repo snapshot lagged behind local branch content for this migration.
+
 ## 2026-03-12
 
 - Date: 2026-03-12
