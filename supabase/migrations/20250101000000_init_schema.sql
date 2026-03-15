@@ -130,6 +130,7 @@ CREATE TABLE IF NOT EXISTS public.posts (
     status TEXT DEFAULT 'published',
     like_count INTEGER DEFAULT 0,
     prayer_count INTEGER DEFAULT 0,
+    fires_count INTEGER DEFAULT 0,
     comment_count INTEGER DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -404,6 +405,30 @@ BEGIN
 END;
 $function$;
 
+CREATE OR REPLACE FUNCTION public.increment_post_fire_count(post_id UUID)
+RETURNS void
+LANGUAGE plpgsql
+AS $function$
+BEGIN
+  UPDATE public.posts
+  SET fires_count = COALESCE(fires_count, 0) + 1,
+      updated_at = NOW()
+  WHERE id = post_id;
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.decrement_post_fire_count(post_id UUID)
+RETURNS void
+LANGUAGE plpgsql
+AS $function$
+BEGIN
+  UPDATE public.posts
+  SET fires_count = GREATEST(COALESCE(fires_count, 0) - 1, 0),
+      updated_at = NOW()
+  WHERE id = post_id;
+END;
+$function$;
+
 CREATE OR REPLACE FUNCTION public.increment_post_comment_count(post_id UUID)
 RETURNS void
 LANGUAGE plpgsql
@@ -411,6 +436,18 @@ AS $function$
 BEGIN
   UPDATE public.posts
   SET comment_count = COALESCE(comment_count, 0) + 1,
+      updated_at = NOW()
+  WHERE id = post_id;
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.decrement_post_comment_count(post_id UUID)
+RETURNS void
+LANGUAGE plpgsql
+AS $function$
+BEGIN
+  UPDATE public.posts
+  SET comment_count = GREATEST(COALESCE(comment_count, 0) - 1, 0),
       updated_at = NOW()
   WHERE id = post_id;
 END;

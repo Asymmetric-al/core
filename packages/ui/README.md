@@ -73,6 +73,19 @@ bunx --bun shadcn@latest add <component> --cwd packages/ui
 
 - Do **NOT** run `shadcn init` inside individual apps - the shared config in `packages/ui` is the single integration point.
 
+### shadcnuikit registry installs
+
+- Set `REGISTRY_TOKEN` in root `.env.local` (never commit real tokens).
+- Install shadcnuikit items from repo root with:
+
+```bash
+bun run shadcn:uikit:add button1
+```
+
+- The wrapper script fetches the registry item, sanitizes unsafe `target` metadata for non-file/page entries, and then calls `shadcn add` with local JSON.
+- This is required because recent `shadcn` CLI safety validation can reject some third-party payloads on Windows with:
+  - `We found an unsafe file path ... in the registry item. Installation aborted.`
+
 ### `components.json` ownership
 
 - `packages/ui/components.json` is intentionally used for registry configuration in this repo.

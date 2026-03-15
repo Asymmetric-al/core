@@ -1,6 +1,7 @@
 // src/hooks/useInfiniteTodos.ts
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
+
 import type { Todo } from './useTodos'
 
 /**

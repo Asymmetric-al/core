@@ -64,7 +64,7 @@ export interface Gift {
   gift_type: "one_time" | "recurring";
   recurring_agreement_id?: string;
   stripe_payment_id?: string;
-  status: "pending" | "completed" | "failed" | "refunded";
+  status: "pending" | "processing" | "completed" | "failed" | "refunded";
   gift_date: string;
   notes?: string;
   created_at: string;

@@ -35,7 +35,7 @@
     "@payloadcms/richtext-lexical": "^3.77.0",
     "@radix-ui/react-visually-hidden": "^1.2.4",
     "@supabase/ssr": "^0.8.0",
-    "@tanstack/react-query": "^5.90.15",
+    "@tanstack/react-query": "^5.90.21",
     "@tanstack/react-table": "^8.21.3",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -51,7 +51,7 @@
     "recharts": "^2.15.4",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
-    "zod": "^4.1.12"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@asym/eslint-config": "workspace:*",

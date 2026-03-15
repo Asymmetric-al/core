@@ -93,12 +93,10 @@ payload migrate
 The migration processes your version history chronologically to determine the correct status for each locale:
 
 1. **Published with specific locale** (`publishedLocale: 'en'`)
-
    - That locale becomes 'published'
    - Other locales remain 'draft'
 
 2. **Published without locale** (all locales)
-
    - All locales become 'published'
 
 3. **Draft save**

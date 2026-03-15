@@ -43,3 +43,18 @@ export {
   useDataTableWithRealtime,
   createRealtimeSubscription,
 } from "./use-supabase-realtime";
+
+export {
+  useDataTableVirtualization,
+  resolveVirtualizationConfig,
+  getVirtualPadding,
+  DEFAULT_VIRTUALIZATION_DEFAULTS,
+} from "./use-data-table-virtualization";
+export type {
+  VirtualizationLegacyConfig,
+  VirtualizationDefaults,
+  ResolvedVirtualizationConfig,
+  VirtualizationPadding,
+  UseDataTableVirtualizationOptions,
+  UseDataTableVirtualizationReturn,
+} from "./use-data-table-virtualization";
