@@ -71,7 +71,11 @@ type LoadingButtonProps = React.ComponentProps<typeof Button> & {
   loading?: boolean;
 };
 
-export function LoadingButton({ loading, children, ...props }: LoadingButtonProps) {
+export function LoadingButton({
+  loading,
+  children,
+  ...props
+}: LoadingButtonProps) {
   return (
     <Button disabled={loading} {...props}>
       {children}

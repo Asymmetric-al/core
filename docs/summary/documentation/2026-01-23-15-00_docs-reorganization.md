@@ -51,7 +51,7 @@ docs/guides/
 │   ├── pdf-studio.md
 │   ├── care-hub.md
 │   ├── teams-and-permissions.md
-│   └── sendgrid-integration.md
+│   └── resend-integration.md
 └── ui-design/
     ├── component-inventory.md
     ├── component-sources.md
@@ -70,7 +70,7 @@ Moved all feature documentation from `docs/modules/` to `docs/guides/features/`:
 - ✅ `pdf-studio.md` - Document/PDF editor (550 lines)
 - ✅ `care-hub.md` - Member care system (82 lines)
 - ✅ `teams-and-permissions.md` - Access control (52 lines)
-- ✅ `sendgrid-integration.md` - Email delivery (332 lines)
+- ✅ `resend-integration.md` - Email delivery (332 lines)
 
 **Removed:** `docs/modules/` directory (empty)
 
@@ -128,7 +128,7 @@ docs/
 │   │   ├── pdf-studio.md
 │   │   ├── care-hub.md
 │   │   ├── teams-and-permissions.md
-│   │   └── sendgrid-integration.md
+│   │   └── resend-integration.md
 │   └── ui-design/                      # UI/design system
 │       ├── component-inventory.md
 │       ├── component-sources.md
@@ -195,7 +195,7 @@ docs/
 | `docs/modules/pdf-studio.md`            | `docs/guides/features/pdf-studio.md`              | ✅ Moved |
 | `docs/modules/care-hub.md`              | `docs/guides/features/care-hub.md`                | ✅ Moved |
 | `docs/modules/teams-and-permissions.md` | `docs/guides/features/teams-and-permissions.md`   | ✅ Moved |
-| `docs/modules/sendgrid-integration.md`  | `docs/guides/features/sendgrid-integration.md`    | ✅ Moved |
+| `docs/modules/resend-integration.md`    | `docs/guides/features/resend-integration.md`      | ✅ Moved |
 
 ---
 

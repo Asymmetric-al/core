@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 cd "$ROOT_DIR"
 
@@ -46,12 +46,31 @@ trim_value() {
   printf "%s" "$value"
 }
 
+has_env_value() {
+  local value="$1"
+  value="$(trim_value "$value")"
+  [[ -n "$value" ]]
+}
+
 log "Checking prerequisites..."
 require_cmd bun
 require_cmd git
 supabase_cli_guidance
 
-if [[ ! -f ".env.local" ]]; then
+existing_supabase_url="$(trim_value "${NEXT_PUBLIC_SUPABASE_URL-}")"
+existing_supabase_anon_key="$(trim_value "${NEXT_PUBLIC_SUPABASE_ANON_KEY-}")"
+
+if has_env_value "$existing_supabase_url" && has_env_value "$existing_supabase_anon_key"; then
+  log "Using Supabase vars from process environment"
+elif [[ -f ".env.local" ]]; then
+  log ".env.local already exists"
+  set -a
+  # shellcheck disable=SC1091
+  source .env.local
+  set +a
+elif has_env_value "$existing_supabase_url" || has_env_value "$existing_supabase_anon_key"; then
+  log "Detected partial Supabase env vars in process environment"
+else
   if [[ -f ".env.example" ]]; then
     cp .env.example .env.local
     log "Created .env.local from .env.example"
@@ -62,15 +81,19 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 EOF
     log "Created .env.local with placeholders"
   fi
-else
-  log ".env.local already exists"
-fi
 
-if [[ -f ".env.local" ]]; then
   set -a
   # shellcheck disable=SC1091
   source .env.local
   set +a
+fi
+
+if has_env_value "$existing_supabase_url"; then
+  export NEXT_PUBLIC_SUPABASE_URL="$existing_supabase_url"
+fi
+
+if has_env_value "$existing_supabase_anon_key"; then
+  export NEXT_PUBLIC_SUPABASE_ANON_KEY="$existing_supabase_anon_key"
 fi
 
 missing=0
@@ -91,8 +114,8 @@ check_required_env "NEXT_PUBLIC_SUPABASE_URL" "https://your-project.supabase.co"
 check_required_env "NEXT_PUBLIC_SUPABASE_ANON_KEY" "your-anon-key"
 
 if [[ $missing -ne 0 ]]; then
-  fail "Missing required env vars in .env.local. This is expected on first run."
-  log "Edit .env.local and set:"
+  fail "Missing required env vars. Set them in process env or .env.local."
+  log "Set these values:"
   log "  - NEXT_PUBLIC_SUPABASE_URL"
   log "  - NEXT_PUBLIC_SUPABASE_ANON_KEY"
   log "Then re-run: bun run setup"

@@ -129,7 +129,7 @@ core/
 │   │   └── package.json
 │   │
 │   ├── email/                # @asym/email - Email services
-│   │   ├── sendgrid.ts      # SendGrid integration
+│   │   ├── resend.ts        # Resend integration
 │   │   ├── types.ts         # Email types
 │   │   └── package.json
 │   │
@@ -534,4 +534,4 @@ bun run build --filter=@asym/ui   # Build UI package only
 - [Technical Decisions](./technical-decisions.md) - Key technical decisions and their rationale
 - [TanStack Integration](./tanstack-integration.md) - TanStack Query/DB usage guide
 - [Modules: Teams & Permissions](./modules/teams-and-permissions.md) - Teams system documentation
-- [Modules: SendGrid Integration](./modules/sendgrid-integration.md) - Multi-tenant email sending via SendGrid
+- [Resend Integration](../features/resend-integration.md) - Multi-tenant email sending via Resend

@@ -431,6 +431,14 @@ function ApplicationShell({ children }: { children: ReactNode }) {
 }
 
 export function MCShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const isPayloadAdmin =
+    pathname === "/web-studio" || pathname.startsWith("/web-studio/");
+
+  if (isPayloadAdmin) {
+    return <>{children}</>;
+  }
+
   return (
     <ThemeProvider
       attribute="class"

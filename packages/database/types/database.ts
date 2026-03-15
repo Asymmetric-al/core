@@ -5,9 +5,10 @@
  *
  * Architecture:
  * - All tenant-scoped tables include a `tenant_id` column (UUID)
+ * - Memberships are modeled in `authz.memberships` (user_id + tenant_id + role)
  * - Supabase RLS policies enforce tenant isolation at the database level
- * - The user's tenant_id is stored in their JWT claims (via auth.users metadata)
- * - All queries are automatically filtered by tenant_id via RLS policies
+ * - BFF route and handler checks provide primary permission enforcement
+ * - Database RLS policies provide defense-in-depth backup enforcement
  *
  * Example RLS Policy (to be created in Supabase):
  * ```sql
@@ -30,7 +31,19 @@ export type UserRole =
   | "admin"
   | "staff"
   | "super_admin";
-export type DonationStatus = "pending" | "completed" | "failed" | "refunded";
+export type MembershipRole = "donor" | "missionary" | "staff";
+export type StaffSubrole =
+  | "finance"
+  | "mobilizer"
+  | "development"
+  | "hr"
+  | "member_care";
+export type DonationStatus =
+  | "pending"
+  | "processing"
+  | "completed"
+  | "failed"
+  | "refunded";
 export type GivingFrequency =
   | "weekly"
   | "biweekly"
@@ -56,6 +69,16 @@ export interface Profile {
   email: string;
   avatar_url: string | null;
   phone: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Membership {
+  user_id: string;
+  tenant_id: string;
+  role: MembershipRole;
+  staff_role: StaffSubrole | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -380,6 +403,7 @@ export interface Post {
   media: MediaItem[];
   like_count: number;
   prayer_count: number;
+  fires_count: number;
   comment_count: number;
   created_at: string;
   updated_at: string;

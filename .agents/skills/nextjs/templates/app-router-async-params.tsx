@@ -139,6 +139,8 @@ export async function DraftBanner() {
 // Example 6: Generate Metadata with Async Params
 // ============================================================================
 
+import { NextResponse } from 'next/server'
+
 import type { Metadata } from 'next'
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -178,7 +180,6 @@ export async function generateStaticParams() {
 
 // File: app/api/posts/[id]/route.ts
 
-import { NextResponse } from 'next/server'
 
 export async function GET(
   request: Request,

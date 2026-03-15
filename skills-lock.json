@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "components-build": {
+      "source": "nolly-studio/components-build-skill",
+      "sourceType": "github",
+      "computedHash": "ef827017f8483932b644935f8b69a7a5a8a862b5f2a818b9e688503e0ffede0c"
+    }
+  }
+}

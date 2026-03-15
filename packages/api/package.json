@@ -15,6 +15,7 @@
     "./auth/demo-account": "./src/auth/demo-account.ts",
     "./auth/cleanup-demo-users": "./src/auth/cleanup-demo-users.ts",
     "./donate": "./src/donate/index.ts",
+    "./donate/outbox": "./src/donate/outbox.ts",
     "./donations": "./src/donations/index.ts",
     "./profile": "./src/profile/index.ts",
     "./feed-preferences": "./src/feed-preferences/index.ts",
@@ -25,7 +26,15 @@
     "./admin/comments": "./src/admin/comments/index.ts",
     "./admin/comments/comment": "./src/admin/comments/comment.ts",
     "./missionaries": "./src/missionaries/index.ts",
-    "./missionaries/metrics": "./src/missionaries/metrics.ts"
+    "./missionaries/metrics": "./src/missionaries/metrics.ts",
+    "./reads/dashboard-stats": "./src/reads/dashboard-stats.ts",
+    "./reads/missionary-metrics": "./src/reads/missionary-metrics.ts",
+    "./reads/donor-history": "./src/reads/donor-history.ts",
+    "./reads/tenant-contributions": "./src/reads/tenant-contributions.ts",
+    "./health/db": "./src/health/db.ts",
+    "./email/connect": "./src/email/connect.ts",
+    "./email/test-send": "./src/email/test-send.ts",
+    "./email/webhooks/resend": "./src/email/webhooks/resend.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
@@ -38,7 +47,7 @@
     "@asym/env": "workspace:*",
     "@asym/lib": "workspace:*",
     "@supabase/ssr": "^0.5.2",
-    "next": "16.1.1",
+    "next": "16.1.6",
     "stripe": "^17.4.0",
     "zod": "^4.3.6"
   },

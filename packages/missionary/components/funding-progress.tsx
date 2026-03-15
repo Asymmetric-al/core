@@ -1,12 +1,12 @@
-import * as React from "react";
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
-import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Target, TrendingUp } from "lucide-react";
+import * as React from "react";
 
 interface FundingProgressProps {
   monthlySupport: number;

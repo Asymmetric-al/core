@@ -9,6 +9,7 @@ SET LOCAL timezone = 'UTC';
 -- ---------------------------------------------------------------------------
 -- 0) Reset public app tables in dependency order.
 -- ---------------------------------------------------------------------------
+DELETE FROM authz.memberships;
 DELETE FROM public.notification_queue;
 DELETE FROM public.pledge_charge_attempts;
 DELETE FROM public.audit_logs;
@@ -154,6 +155,41 @@ SET
   role = EXCLUDED.role,
   tenant_id = EXCLUDED.tenant_id,
   updated_at = EXCLUDED.updated_at;
+
+INSERT INTO authz.memberships (
+  user_id,
+  tenant_id,
+  role,
+  staff_role,
+  is_active
+)
+VALUES
+  (
+    '11111111-1111-1111-1111-111111111111',
+    '00000000-0000-0000-0000-000000000001',
+    'staff',
+    'member_care',
+    true
+  ),
+  (
+    '11111111-1111-1111-1111-111111111111',
+    '00000000-0000-0000-0000-000000000001',
+    'donor',
+    NULL,
+    true
+  ),
+  (
+    '11111111-1111-1111-1111-111111111111',
+    '00000000-0000-0000-0000-000000000001',
+    'missionary',
+    NULL,
+    true
+  )
+ON CONFLICT (user_id, tenant_id, role, COALESCE(staff_role::text, ''))
+DO UPDATE
+SET
+  is_active = true,
+  updated_at = NOW();
 
 -- ---------------------------------------------------------------------------
 -- 2) Missionaries, donors, funds (projects)

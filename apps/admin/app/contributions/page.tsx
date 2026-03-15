@@ -16,6 +16,7 @@ import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import { cn } from "@asym/ui/lib/utils";
 import { DollarSign, Download, Plus, Trash2, Receipt } from "lucide-react";
 import { useState, useMemo } from "react";
+import { toast } from "sonner";
 
 import { getColumns } from "./columns";
 import { ContributionDetailSheet } from "./contribution-detail-sheet";
@@ -122,7 +123,7 @@ export default function ContributionsPage() {
   /* ---- Column factory ---- */
   const columns = useMemo(
     () => getColumns({ onViewContribution: setSelectedContribution }),
-    [],
+    [setSelectedContribution],
   );
 
   /* ---- Filter fields ---- */
@@ -149,23 +150,17 @@ export default function ContributionsPage() {
     },
   ];
 
-  /* ---- Handlers ---- */
-  const handleBulkDelete = (rows: Contribution[]) => {
-    console.log(
-      "Delete rows:",
-      rows.map((r) => r.id),
-    );
+  /* ---- Handlers (placeholders until backend is ready) ---- */
+  const handleBulkDelete = (_rows: Contribution[]) => {
+    toast.info("Bulk delete coming soon.");
   };
 
-  const handleBulkReceipt = (rows: Contribution[]) => {
-    console.log(
-      "Send receipts to:",
-      rows.map((r) => r.id),
-    );
+  const handleBulkReceipt = (_rows: Contribution[]) => {
+    toast.info("Send receipts coming soon.");
   };
 
   const handleExport = () => {
-    console.log("Exporting contributions...");
+    toast.info("Export coming soon.");
   };
 
   return (

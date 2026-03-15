@@ -2,6 +2,8 @@ import { getAuthContext, requireRole } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { toErrorResponse } from "../../shared/http-errors";
+
 export async function GET(request: NextRequest) {
   try {
     const { client: supabaseAdmin, error: adminError } = getAdminClient();
@@ -10,7 +12,7 @@ export async function GET(request: NextRequest) {
     }
 
     const auth = await getAuthContext();
-    requireRole(auth, ["admin", "super_admin"]);
+    requireRole(auth, ["staff", "admin", "super_admin"]);
 
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "50");
@@ -44,10 +46,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ comments: filteredComments });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Internal error";
-    return NextResponse.json(
-      { error: message },
-      { status: message.includes("Forbidden") ? 403 : 500 },
-    );
+    return toErrorResponse(e);
   }
 }

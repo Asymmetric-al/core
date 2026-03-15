@@ -17,6 +17,22 @@ bun run verify
 **Required:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 **Optional:** All other entries in `.env.example` (Stripe, demo accounts, Unlayer, etc.)
 
+### Cursor Cloud Agent (VM) secrets
+
+For Cursor Cloud Agent runs, set secrets in the Cloud Agent Secrets settings instead of committing values to repo files.
+
+Set these keys in the cloud environment:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` (optional, server-only/admin workflows)
+
+Security rules:
+
+- `.env.local` stays local-only and is already gitignored.
+- Never expose `SUPABASE_SERVICE_ROLE_KEY` in browser/client code.
+- Browser login flows require only `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+
 ### Windows
 
 Windows PowerShell 5.1:
