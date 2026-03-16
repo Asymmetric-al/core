@@ -173,6 +173,7 @@ Load the skill(s) below when the trigger matches.
 - **Composable, accessible UI components (components.build spec):** `docs/ai/skills/components-build/SKILL.md`
 - **shadcn/ui system usage:** `docs/ai/skills/moai-library-shadcn/SKILL.md`
 - **Motion animations (`motion/react`):** `docs/ai/skills/motion/SKILL.md`
+- **UI polish, animation craft, design engineering (Emil Kowalski patterns):** `.cursor/skills/emil-design-eng/SKILL.md`
 - **Recharts:** `docs/ai/skills/rechart/SKILL.md`
 - **TanStack Table v8:** `docs/ai/skills/tanstack-table/SKILL.md`
 - **GitHub issue/PR workflows (AL-###):**
