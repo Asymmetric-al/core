@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { columns } from "./columns";
+import { getColumns } from "./columns";
 import {
   contributionStatusOptions,
   contributionTypeOptions,
@@ -55,6 +55,11 @@ export function ContributionsClient({
 }: ContributionsClientProps) {
   const [data] = useState<Contribution[]>(initialData);
   const [isLoading] = useState(false);
+
+  const columns = useMemo(
+    () => getColumns({ onViewContribution: () => {} }),
+    [],
+  );
 
   const stats = useMemo(() => {
     const totalAmount = data.reduce(
