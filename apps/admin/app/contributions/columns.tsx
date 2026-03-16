@@ -111,7 +111,10 @@ export function getColumns({
             <div className="flex flex-col">
               <button
                 type="button"
-                onClick={() => onViewContribution(row.original)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onViewContribution(row.original);
+                }}
                 className="text-sm font-semibold text-foreground leading-none hover:underline decoration-foreground/30 underline-offset-4 transition-all text-left"
               >
                 {isAnonymous ? "Anonymous" : donor.name}
@@ -354,7 +357,10 @@ export function getColumns({
         const contribution = row.original;
 
         return (
-          <div className="flex justify-end">
+          <div
+            className="flex justify-end"
+            onClick={(e) => e.stopPropagation()}
+          >
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button

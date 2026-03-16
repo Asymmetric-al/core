@@ -77,9 +77,13 @@ export function ContributionDetailSheet({
   const { donor, isAnonymous } = contribution;
   const date = new Date(contribution.date);
 
-  const handleCopyTxn = () => {
-    navigator.clipboard.writeText(contribution.transactionId);
-    toast.success("Transaction ID copied to clipboard");
+  const handleCopyTxn = async () => {
+    try {
+      await navigator.clipboard.writeText(contribution.transactionId);
+      toast.success("Transaction ID copied to clipboard");
+    } catch {
+      toast.error("Could not copy to clipboard");
+    }
   };
 
   return (
@@ -276,7 +280,7 @@ export function ContributionDetailSheet({
             <div className="pt-2 space-y-1">
               <p className="text-[10px] text-muted-foreground font-bold">
                 Created{" "}
-                {new Date(contribution.createdAt).toLocaleDateString("en-US", {
+                {new Date(contribution.createdAt).toLocaleString("en-US", {
                   month: "short",
                   day: "numeric",
                   year: "numeric",
@@ -287,16 +291,13 @@ export function ContributionDetailSheet({
               {contribution.updatedAt !== contribution.createdAt && (
                 <p className="text-[10px] text-muted-foreground font-bold">
                   Updated{" "}
-                  {new Date(contribution.updatedAt).toLocaleDateString(
-                    "en-US",
-                    {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                      hour: "numeric",
-                      minute: "2-digit",
-                    },
-                  )}
+                  {new Date(contribution.updatedAt).toLocaleString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })}
                 </p>
               )}
             </div>

@@ -51,7 +51,7 @@ export default function CareProfilePage() {
           href="/mc/care/directory"
           className="flex items-center gap-2 text-sm font-bold text-zinc-500 hover:text-zinc-900 transition-colors group"
         >
-          <ChevronLeft className="h-4 w-4 transition-transform group-hover:-tranzinc-x-0.5" />
+          <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
           Back to Directory
         </Link>
         <div className="flex gap-2">
