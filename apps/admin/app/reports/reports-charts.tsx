@@ -29,7 +29,7 @@ interface ReportsChartsProps {
 function ReportsChartsFallback() {
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7 text-left">
-      <Card className="col-span-4 border-slate-200 shadow-sm">
+      <Card className="col-span-4 border-zinc-100 rounded-2xl shadow-sm">
         <CardHeader>
           <CardTitle className="text-sm font-bold uppercase tracking-wider">
             Giving Trends
@@ -39,11 +39,11 @@ function ReportsChartsFallback() {
           </CardDescription>
         </CardHeader>
         <CardContent className="pl-0">
-          <div className="h-[320px] w-full rounded-xl border border-slate-100 bg-slate-50/60" />
+          <div className="h-[320px] w-full rounded-xl border border-zinc-100 bg-zinc-50/60" />
         </CardContent>
       </Card>
 
-      <Card className="col-span-3 border-slate-200 shadow-sm">
+      <Card className="col-span-3 border-zinc-100 rounded-2xl shadow-sm">
         <CardHeader>
           <CardTitle className="text-sm font-bold uppercase tracking-wider">
             Donor Engagement
@@ -53,7 +53,7 @@ function ReportsChartsFallback() {
           </CardDescription>
         </CardHeader>
         <CardContent className="pl-0">
-          <div className="h-[300px] w-full rounded-xl border border-slate-100 bg-slate-50/60" />
+          <div className="h-[300px] w-full rounded-xl border border-zinc-100 bg-zinc-50/60" />
         </CardContent>
       </Card>
     </div>
@@ -80,7 +80,7 @@ const ReportsChartsContent = dynamic<ReportsChartsProps>(
     }: ReportsChartsProps) {
       return (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7 text-left">
-          <Card className="col-span-4 border-slate-200 shadow-sm">
+          <Card className="col-span-4 border-zinc-100 rounded-2xl shadow-sm">
             <CardHeader>
               <CardTitle className="text-sm font-bold uppercase tracking-wider">
                 Giving Trends
@@ -150,7 +150,7 @@ const ReportsChartsContent = dynamic<ReportsChartsProps>(
             </CardContent>
           </Card>
 
-          <Card className="col-span-3 border-slate-200 shadow-sm">
+          <Card className="col-span-3 border-zinc-100 rounded-2xl shadow-sm">
             <CardHeader>
               <CardTitle className="text-sm font-bold uppercase tracking-wider">
                 Donor Engagement

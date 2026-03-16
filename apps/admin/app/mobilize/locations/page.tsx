@@ -83,7 +83,6 @@ export default function LocationsPage() {
 
   return (
     <PageShell
-      badge="Strategic Map"
       title="Where We Work"
       description="Manage global ministry footprints and projects."
       actions={actions}
