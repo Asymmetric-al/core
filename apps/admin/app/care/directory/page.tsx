@@ -35,7 +35,6 @@ export default function CareDirectoryPage() {
 
   return (
     <PageShell
-      badge="Care Protocol"
       title="Personnel Directory"
       description="Manage and monitor all global team members."
       actions={actions}

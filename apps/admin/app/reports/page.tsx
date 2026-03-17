@@ -2,7 +2,6 @@
 
 import { SafeHtml } from "@asym/lib/components/safe-html";
 import { motion, AnimatePresence } from "@asym/lib/motion";
-import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
@@ -11,7 +10,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@asym/ui/components/shadcn/card";
-import { cn } from "@asym/ui/lib/utils";
+import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import {
   TrendingUp,
   DollarSign,
@@ -65,7 +64,7 @@ const ReportsCharts = dynamic(
     ssr: false,
     loading: () => (
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7 text-left">
-        <Card className="col-span-4 border-slate-200 shadow-sm">
+        <Card className="col-span-4 border-zinc-100 shadow-sm rounded-2xl">
           <CardHeader>
             <CardTitle className="text-sm font-bold uppercase tracking-wider">
               Giving Trends
@@ -75,10 +74,10 @@ const ReportsCharts = dynamic(
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[320px] animate-pulse rounded-xl bg-slate-100" />
+            <div className="h-[320px] animate-pulse rounded-xl bg-zinc-100" />
           </CardContent>
         </Card>
-        <Card className="col-span-3 border-slate-200 shadow-sm">
+        <Card className="col-span-3 border-zinc-100 shadow-sm rounded-2xl">
           <CardHeader>
             <CardTitle className="text-sm font-bold uppercase tracking-wider">
               Donor Engagement
@@ -88,7 +87,7 @@ const ReportsCharts = dynamic(
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px] animate-pulse rounded-xl bg-slate-100" />
+            <div className="h-[300px] animate-pulse rounded-xl bg-zinc-100" />
           </CardContent>
         </Card>
       </div>
@@ -103,7 +102,6 @@ export default function MissionControlReports() {
   const generateReport = async () => {
     setIsGenerating(true);
     setReport(null);
-    // Simulate data analysis
     await new Promise((r) => setTimeout(r, 1500));
     setReport(`
 ### 📊 Performance Summary
@@ -115,149 +113,130 @@ export default function MissionControlReports() {
   };
 
   return (
-    <div className="space-y-12 max-w-7xl mx-auto pb-20 animate-in fade-in duration-1000">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-zinc-100 pb-8">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="size-2 rounded-full bg-slate-900" />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400">
-              Reports Analytics
-            </span>
-          </div>
-          <h1 className="text-5xl font-black tracking-tighter text-zinc-900 lg:text-6xl uppercase">
-            Reports & Analytics
-          </h1>
-          <p className="text-zinc-400 mt-3 text-sm font-bold uppercase tracking-widest leading-relaxed">
-            Financial and operational insights for the organization.
-          </p>
-        </div>
-        <div className="flex gap-4">
+    <PageShell
+      title="Reports"
+      description="Financial and operational insights for the organization."
+      actions={
+        <div className="flex items-center gap-3">
           <Button
             variant="outline"
-            size="sm"
-            className="h-14 px-8 font-black border-zinc-200 text-zinc-500 uppercase tracking-[0.2em] text-[10px] rounded-2xl hover:bg-zinc-50 hover:text-zinc-900 transition-all"
+            className="h-11 px-4 rounded-xl border-zinc-200 hover:bg-zinc-50 transition-all font-bold uppercase tracking-widest text-[10px] gap-2"
           >
-            <Library className="h-4 w-4 mr-3" /> Report Library
+            <Library className="size-4" />
+            Report Library
           </Button>
           <Button
             onClick={generateReport}
             disabled={isGenerating}
-            size="sm"
-            className="h-14 px-10 bg-zinc-900 text-white shadow-2xl shadow-zinc-200 uppercase tracking-[0.2em] text-[10px] rounded-2xl hover:bg-zinc-800 transition-all"
+            className="h-11 px-6 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-zinc-200 gap-2"
           >
             {isGenerating ? (
-              <Loader2 className="mr-3 h-4 w-4 animate-spin" />
+              <Loader2 className="size-4 animate-spin" />
             ) : (
-              <ClipboardList className="mr-3 h-4 w-4" />
+              <ClipboardList className="size-4" />
             )}
             {isGenerating ? "Summarizing..." : "Quick Summary"}
           </Button>
         </div>
-      </div>
-
-      <AnimatePresence>
-        {report && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -20 }}
-            className="overflow-hidden"
-          >
-            <Card className="border-none bg-zinc-900 text-white shadow-2xl relative overflow-hidden rounded-[2.5rem]">
-              <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-white opacity-[0.03] rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl pointer-events-none" />
-              <CardHeader className="p-10 pb-4 relative z-10">
-                <CardTitle className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em] flex items-center gap-3">
-                  <FileText className="h-4 w-4 text-emerald-400" /> Executive
-                  Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-10 pt-0 relative z-10">
-                <SafeHtml
-                  className="prose prose-invert prose-sm max-w-none text-zinc-300 leading-relaxed font-bold tracking-tight text-lg"
-                  html={report.replace(/\n/g, "<br/>")}
-                />
-              </CardContent>
-              <div className="absolute top-8 right-8">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setReport(null)}
-                  className="h-10 w-10 text-zinc-600 hover:text-white hover:bg-white/10 rounded-full transition-all"
-                >
-                  <X className="h-5 w-5" />
-                </Button>
-              </div>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* KPI Cards */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          {
-            label: "Global Revenue",
-            value: "$26.4M",
-            trend: "+20.1%",
-            icon: DollarSign,
-            color: "bg-blue-50 text-blue-600",
-          },
-          {
-            label: "Avg Contribution",
-            value: "$420",
-            trend: "+4%",
-            icon: TrendingUp,
-            color: "bg-emerald-50 text-emerald-600",
-          },
-          {
-            label: "Retention Rate",
-            value: "88.4%",
-            trend: "+1.2%",
-            icon: Activity,
-            color: "bg-indigo-50 text-indigo-600",
-          },
-          {
-            label: "Recurring Mix",
-            value: "45%",
-            trend: "Stable",
-            icon: Repeat,
-            color: "bg-zinc-50 text-zinc-500",
-          },
-        ].map((kpi) => (
-          <Card
-            key={kpi.label}
-            className="border-zinc-100 bg-white shadow-sm hover:border-zinc-200 transition-all rounded-3xl"
-          >
-            <CardContent className="p-8">
-              <div className="flex justify-between items-start mb-6">
-                <div
-                  className={cn(
-                    "size-12 rounded-2xl flex items-center justify-center shadow-sm",
-                    kpi.color,
-                  )}
-                >
-                  <kpi.icon className="h-5 w-5" />
+      }
+    >
+      <div className="space-y-10">
+        {/* AI Summary */}
+        <AnimatePresence>
+          {report && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: -20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -20 }}
+              className="overflow-hidden"
+            >
+              <Card className="border-none bg-zinc-900 text-white shadow-2xl relative overflow-hidden rounded-[2.5rem]">
+                <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-white opacity-[0.03] rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl pointer-events-none" />
+                <CardHeader className="p-10 pb-4 relative z-10">
+                  <CardTitle className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em] flex items-center gap-3">
+                    <FileText className="size-4 text-emerald-400" /> Executive
+                    Summary
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-10 pt-0 relative z-10">
+                  <SafeHtml
+                    className="prose prose-invert prose-sm max-w-none text-zinc-300 leading-relaxed font-bold tracking-tight text-lg"
+                    html={report.replace(/\n/g, "<br/>")}
+                  />
+                </CardContent>
+                <div className="absolute top-8 right-8">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setReport(null)}
+                    className="h-10 w-10 text-zinc-600 hover:text-white hover:bg-white/10 rounded-full transition-all"
+                  >
+                    <X className="size-5" />
+                  </Button>
                 </div>
-                <Badge className="bg-emerald-50 text-emerald-700 border-none font-black text-[9px] uppercase tracking-widest px-2 h-6 rounded-full">
-                  {kpi.trend.includes("+") ? kpi.trend : "Live"}
-                </Badge>
-              </div>
-              <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-2">
-                {kpi.label}
-              </h4>
-              <div className="text-3xl font-black text-zinc-900 tracking-tighter">
-                {kpi.value}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-      <ReportsCharts
-        donationData={DONATION_DATA}
-        engagementData={ENGAGEMENT_DATA}
-      />
-    </div>
+        {/* KPI Cards — neutral, consistent */}
+        <div className="flex flex-wrap gap-4">
+          {[
+            {
+              label: "Global Revenue",
+              value: "$26.4M",
+              trend: "+20.1%",
+              icon: DollarSign,
+            },
+            {
+              label: "Avg Contribution",
+              value: "$420",
+              trend: "+4%",
+              icon: TrendingUp,
+            },
+            {
+              label: "Retention Rate",
+              value: "88.4%",
+              trend: "+1.2%",
+              icon: Activity,
+            },
+            {
+              label: "Recurring Mix",
+              value: "45%",
+              trend: "Stable",
+              icon: Repeat,
+            },
+          ].map((kpi, index) => (
+            <motion.div
+              key={kpi.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.25,
+                ease: [0.25, 0.1, 0.25, 1],
+                delay: index * 0.05,
+              }}
+            >
+              <div className="flex items-center gap-4 px-6 py-5 rounded-2xl border border-zinc-100 bg-white shadow-sm transition-all min-w-[160px]">
+                <div className="flex flex-col">
+                  <span className="text-3xl font-black tabular-nums tracking-tight text-zinc-900">
+                    {kpi.value}
+                  </span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mt-0.5">
+                    {kpi.label}
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Charts */}
+        <ReportsCharts
+          donationData={DONATION_DATA}
+          engagementData={ENGAGEMENT_DATA}
+        />
+      </div>
+    </PageShell>
   );
 }

@@ -1,6 +1,8 @@
 "use client";
 
+import { motion } from "@asym/lib/motion";
 import { Button } from "@asym/ui/components/shadcn/button";
+import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Heart, BookOpen } from "lucide-react";
 import React from "react";
@@ -45,38 +47,38 @@ export default function MemberCareDashboardPage() {
   }
 
   return (
-    <div className="container-responsive py-responsive-section section-gap animate-in fade-in duration-500 pb-32">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-responsive-md">
-        <div className="page-header">
-          <h1 className="text-responsive-h1 text-primary tracking-tight">
-            Member Care
-          </h1>
-          <p className="text-responsive-body text-muted-foreground font-medium max-w-2xl">
-            Holistic support and health monitoring for your global team.
-          </p>
-        </div>
-        <div className="flex gap-responsive-sm shrink-0">
+    <PageShell
+      title="Member Care"
+      description="Holistic support and health monitoring for your global team."
+      actions={
+        <>
           <Button
             variant="outline"
-            className="btn-responsive font-bold border-border hover:bg-muted"
+            className="h-11 rounded-xl border-zinc-200 font-bold uppercase tracking-widest text-[10px]"
           >
             <BookOpen className="mr-2 h-4 w-4 text-muted-foreground" />
-            <span className="hide-mobile">Resources</span>
+            <span className="hide-mobile">Knowledge Base</span>
             <span className="show-mobile-only">Docs</span>
           </Button>
-          <Button className="btn-responsive font-bold bg-primary text-primary-foreground hover:opacity-90 shadow-sm">
+          <Button className="h-11 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-black uppercase tracking-widest text-[10px]">
             <Heart className="mr-2 h-4 w-4 fill-current" />
-            Log Check-in
+            New Care Record
           </Button>
-        </div>
-      </div>
-
-      <CareDashboard
-        personnel={personnel || []}
-        activities={activities || []}
-      />
-
-      <CareTools personnel={personnel || []} />
-    </div>
+        </>
+      }
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+        className="space-y-6 animate-in fade-in duration-500 pb-32"
+      >
+        <CareDashboard
+          personnel={personnel || []}
+          activities={activities || []}
+        />
+        <CareTools personnel={personnel || []} />
+      </motion.div>
+    </PageShell>
   );
 }

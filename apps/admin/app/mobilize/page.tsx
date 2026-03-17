@@ -1,5 +1,9 @@
 "use client";
 
+import { motion } from "@asym/lib/motion";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { PageShell } from "@asym/ui/components/shadcn/page-shell";
+import { Plus } from "lucide-react";
 import React, { useMemo, useState } from "react";
 
 import {
@@ -8,7 +12,6 @@ import {
   type MobilizeTab,
   MobilizeAddCandidateSheet,
   MobilizeCandidateDetailSheet,
-  MobilizeHeader,
   MobilizePipelineTable,
   MobilizeStatsRow,
 } from "./mobilize-sections";
@@ -52,17 +55,34 @@ export default function Mobilize() {
   }, []);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-20">
-      <MobilizeHeader onAddCandidate={() => setIsAddSheetOpen(true)} />
-      <MobilizeStatsRow stats={stats} />
-      <MobilizePipelineTable
-        activeTab={activeTab}
-        searchTerm={searchTerm}
-        candidates={filteredCandidates}
-        onTabChange={setActiveTab}
-        onSearchTermChange={setSearchTerm}
-        onSelectCandidate={setSelectedCandidate}
-      />
+    <PageShell
+      title="Mobilize"
+      description="Recruitment pipeline and candidate management."
+      actions={
+        <Button
+          className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-black uppercase tracking-widest text-[10px]"
+          onClick={() => setIsAddSheetOpen(true)}
+        >
+          <Plus className="mr-2 h-4 w-4" /> Add Candidate
+        </Button>
+      }
+    >
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4 }}
+        className="space-y-6"
+      >
+        <MobilizeStatsRow stats={stats} />
+        <MobilizePipelineTable
+          activeTab={activeTab}
+          searchTerm={searchTerm}
+          candidates={filteredCandidates}
+          onTabChange={setActiveTab}
+          onSearchTermChange={setSearchTerm}
+          onSelectCandidate={setSelectedCandidate}
+        />
+      </motion.div>
       <MobilizeAddCandidateSheet
         open={isAddSheetOpen}
         onOpenChange={setIsAddSheetOpen}
@@ -75,6 +95,6 @@ export default function Mobilize() {
           }
         }}
       />
-    </div>
+    </PageShell>
   );
 }
