@@ -34,6 +34,7 @@ Nia keywords:
 ## UI and Frontend Standards
 
 - Tailwind CSS v4
+- Base UI
 - shadcn/ui (Radix UI primitives)
 - Lucide icons
 - MAIA theme, Zinc palette
@@ -43,6 +44,7 @@ Nia keywords:
 Nia keywords:
 
 - tailwind, className, cn, tw
+- Base UI, @base-ui/react, drawer, dialog, select, tooltip
 - shadcn, components/ui, radix
 - lucide-react
 - MAIA, Zinc, theme, next-themes
