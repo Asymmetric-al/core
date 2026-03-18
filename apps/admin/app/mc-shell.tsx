@@ -12,22 +12,24 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@asym/ui/components/shadcn/collapsible";
+import { AppIcon } from "@asym/ui/components/shadcn/icons/AppIcon";
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarProvider,
+  SidebarRail,
   SidebarTrigger,
 } from "@asym/ui/components/shadcn/sidebar";
 import ActivityDialog from "@asym/ui/components/shadcn-studio/blocks/dialog-activity";
@@ -35,233 +37,287 @@ import SearchDialog from "@asym/ui/components/shadcn-studio/blocks/dialog-search
 import LanguageDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-language";
 import NotificationDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-notification";
 import ProfileDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-profile";
+import { cn } from "@asym/ui/lib/utils";
 import {
-  ActivityIcon,
-  BellIcon,
-  ChartPieIcon,
-  ChevronRightIcon,
-  DollarSignIcon,
-  LanguagesIcon,
-  LayoutGridIcon,
-  MailIcon,
-  SearchIcon,
-  UsersIcon,
-  HeartHandshakeIcon,
-  CalendarIcon,
-  FileTextIcon,
-  GlobeIcon,
-  PenToolIcon,
-  SparklesIcon,
-  LifeBuoyIcon,
-  ShieldCheckIcon,
-  LogOutIcon,
+  Activity,
+  BarChart3,
+  Bell,
+  Calendar,
+  ChevronRight,
+  DollarSign,
+  FileText,
+  Globe,
+  Heart,
+  Languages,
+  LayoutGrid,
+  LifeBuoy,
+  LogOut,
+  Mail,
+  PenTool,
+  Search,
+  Shield,
+  Sparkles,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import type { ComponentType, ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { ClientOnly } from "@/features/mission-control/components/client-only";
 import { ThemeProvider } from "@/lib/theme-provider";
 
-type MenuSubItem = {
-  label: string;
+/* ------------------------------------------------------------------ */
+/*  Navigation data                                                    */
+/* ------------------------------------------------------------------ */
+
+interface NavItem {
+  title: string;
   href: string;
-  badge?: string;
-};
+  icon: typeof DollarSign;
+  items?: { title: string; href: string }[];
+}
 
-type MenuItem = {
-  icon: ComponentType<{ className?: string }>;
-  label: string;
-} & (
-  | {
-      href: string;
-      badge?: string;
-      items?: never;
-    }
-  | { href?: never; badge?: never; items: MenuSubItem[] }
-);
+const mainNav: NavItem[] = [{ title: "Dashboard", href: "/", icon: BarChart3 }];
 
-const menuItems: MenuItem[] = [
+const moduleNav: NavItem[] = [
+  { title: "Contributions", href: "/contributions", icon: DollarSign },
+  { title: "CRM", href: "/crm", icon: Users },
+  { title: "Member Care", href: "/care", icon: Heart },
+  { title: "Events", href: "/events", icon: Calendar },
+  { title: "Reports", href: "/reports", icon: BarChart3 },
   {
-    icon: ChartPieIcon,
-    label: "Dashboard",
-    href: "/",
-  },
-];
-
-const modulesItems: MenuItem[] = [
-  {
-    icon: DollarSignIcon,
-    label: "Contributions",
-    href: "/contributions",
-  },
-  {
-    icon: UsersIcon,
-    label: "CRM",
-    href: "/crm",
-  },
-  {
-    icon: HeartHandshakeIcon,
-    label: "Member Care",
-    href: "/care",
-  },
-  {
-    icon: CalendarIcon,
-    label: "Events",
-    href: "/events",
-  },
-  {
-    icon: FileTextIcon,
-    label: "Reports",
-    href: "/reports",
-  },
-  {
-    icon: ActivityIcon,
-    label: "Ministry Updates",
+    title: "Ministry Updates",
+    href: "/feed",
+    icon: Activity,
     items: [
-      { label: "Content Moderation", href: "/feed" },
-      { label: "Org Updates", href: "/feed/org-updates" },
+      { title: "Content Moderation", href: "/feed" },
+      { title: "Org Updates", href: "/feed/org-updates" },
     ],
   },
-  {
-    icon: SparklesIcon,
-    label: "Tasks",
-    href: "/tasks",
-  },
-  {
-    icon: LayoutGridIcon,
-    label: "Mobilize",
-    href: "/mobilize",
-  },
+  { title: "Tasks", href: "/tasks", icon: Sparkles },
+  { title: "Mobilize", href: "/mobilize", icon: LayoutGrid },
 ];
 
-const toolsItems: MenuItem[] = [
-  {
-    icon: MailIcon,
-    label: "Email Studio",
-    href: "/email",
-  },
-  {
-    icon: GlobeIcon,
-    label: "Web Studio",
-    href: "/web-studio",
-  },
-  {
-    icon: PenToolIcon,
-    label: "Sign",
-    href: "/sign",
-  },
-  {
-    icon: FileTextIcon,
-    label: "PDF",
-    href: "/pdf",
-  },
-  {
-    icon: SparklesIcon,
-    label: "Automations",
-    href: "/automations",
-  },
+const toolNav: NavItem[] = [
+  { title: "Email Studio", href: "/email", icon: Mail },
+  { title: "Web Studio", href: "/web-studio", icon: Globe },
+  { title: "Sign", href: "/sign", icon: PenTool },
+  { title: "PDF", href: "/pdf", icon: FileText },
+  { title: "Automations", href: "/automations", icon: Sparkles },
 ];
 
-const adminItems: MenuItem[] = [
-  {
-    icon: ShieldCheckIcon,
-    label: "Admin",
-    href: "/system-admin",
-  },
-  {
-    icon: LifeBuoyIcon,
-    label: "Support",
-    href: "/support",
-  },
+const systemNav: NavItem[] = [
+  { title: "Admin", href: "/admin", icon: Shield },
+  { title: "Support", href: "/support", icon: LifeBuoy },
 ];
 
-function SidebarGroupedMenuItems({
-  data,
-  groupLabel,
+/* ------------------------------------------------------------------ */
+/*  Nav section component                                              */
+/* ------------------------------------------------------------------ */
+
+function NavSection({
+  items,
+  label,
+  pathname,
 }: {
-  data: MenuItem[];
-  groupLabel?: string;
+  items: NavItem[];
+  label?: string;
+  pathname: string;
 }) {
   return (
-    <SidebarGroup className="py-0.5">
-      {groupLabel && (
-        <SidebarGroupLabel className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 px-4 mb-0.5 h-6">
-          {groupLabel}
+    <SidebarGroup className="p-0">
+      {label && (
+        <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400 px-2 mb-1 h-6">
+          {label}
         </SidebarGroupLabel>
       )}
       <SidebarGroupContent>
-        <SidebarMenu className="gap-px">
-          {data.map((item) =>
-            item.items ? (
-              <Collapsible className="group/collapsible" key={item.label}>
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton
-                      tooltip={item.label}
-                      className="h-8 px-3"
-                    >
-                      <item.icon className="size-3.5" />
-                      <span className="text-xs font-bold uppercase tracking-tight">
-                        {item.label}
-                      </span>
-                      <ChevronRightIcon className="ml-auto size-3 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarMenuSub className="ml-4 border-l border-zinc-100 gap-px">
-                      {item.items.map((subItem) => (
-                        <SidebarMenuSubItem key={subItem.label}>
-                          <SidebarMenuSubButton
-                            className="justify-between h-7 px-3"
-                            asChild
-                          >
-                            <a
-                              href={subItem.href}
-                              className="text-[11px] font-medium uppercase tracking-tight"
-                            >
-                              {subItem.label}
-                              {subItem.badge && (
-                                <span className="bg-primary/10 flex h-3.5 min-w-3.5 items-center justify-center rounded-full text-[9px]">
-                                  {subItem.badge}
-                                </span>
-                              )}
-                            </a>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                </SidebarMenuItem>
-              </Collapsible>
-            ) : (
-              <SidebarMenuItem key={item.label}>
-                <SidebarMenuButton
-                  tooltip={item.label}
-                  asChild
-                  className="h-8 px-3"
+        <SidebarMenu className="gap-0.5">
+          {items.map((item) => {
+            const isActive =
+              pathname === item.href ||
+              (item.href !== "/" && pathname.startsWith(item.href));
+
+            if (item.items) {
+              return (
+                <Collapsible
+                  key={item.title}
+                  defaultOpen={item.items.some((sub) =>
+                    pathname.startsWith(sub.href),
+                  )}
+                  className="group/collapsible"
                 >
-                  <a href={item.href}>
-                    <item.icon className="size-3.5" />
-                    <span className="text-xs font-bold uppercase tracking-tight">
-                      {item.label}
-                    </span>
-                  </a>
+                  <SidebarMenuItem>
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton
+                        tooltip={item.title}
+                        className={cn(
+                          "h-8 px-2 rounded-md transition-colors",
+                          isActive
+                            ? "bg-zinc-100 text-zinc-900 font-medium"
+                            : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50",
+                        )}
+                      >
+                        <AppIcon
+                          icon={item.icon}
+                          animated={isActive}
+                          className={cn(
+                            "size-4 shrink-0",
+                            isActive ? "text-zinc-700" : "text-zinc-400",
+                          )}
+                        />
+                        <span className="text-[13px] truncate">
+                          {item.title}
+                        </span>
+                        <ChevronRight className="ml-auto size-3.5 text-zinc-400 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {item.items.map((sub) => {
+                          const subActive = pathname === sub.href;
+                          return (
+                            <SidebarMenuSubItem key={sub.href}>
+                              <SidebarMenuSubButton
+                                asChild
+                                isActive={subActive}
+                                className={cn(
+                                  "transition-colors",
+                                  subActive
+                                    ? "text-zinc-900 font-medium"
+                                    : "text-zinc-500 hover:text-zinc-900",
+                                )}
+                              >
+                                <Link href={sub.href}>
+                                  <span className="text-[13px] truncate">
+                                    {sub.title}
+                                  </span>
+                                </Link>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          );
+                        })}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </SidebarMenuItem>
+                </Collapsible>
+              );
+            }
+
+            return (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive}
+                  tooltip={item.title}
+                  className={cn(
+                    "h-8 px-2 rounded-md transition-colors",
+                    isActive
+                      ? "bg-zinc-100 text-zinc-900 font-medium"
+                      : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50",
+                  )}
+                >
+                  <Link href={item.href} className="flex items-center gap-2.5">
+                    <AppIcon
+                      icon={item.icon}
+                      animated={isActive}
+                      className={cn(
+                        "size-4 shrink-0",
+                        isActive ? "text-zinc-700" : "text-zinc-400",
+                      )}
+                    />
+                    <span className="text-[13px] truncate">{item.title}</span>
+                  </Link>
                 </SidebarMenuButton>
-                {item.badge && (
-                  <SidebarMenuBadge className="bg-primary/10 rounded-full text-[9px]">
-                    {item.badge}
-                  </SidebarMenuBadge>
-                )}
               </SidebarMenuItem>
-            ),
-          )}
+            );
+          })}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/*  User footer                                                        */
+/* ------------------------------------------------------------------ */
+
+function UserFooter() {
+  const { user } = useMC();
+
+  return (
+    <SidebarFooter className="px-3 py-3 border-t border-zinc-100">
+      <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
+        <Avatar className="size-7 rounded-md ring-1 ring-zinc-950/5">
+          <AvatarImage
+            src={
+              user?.avatarUrl ||
+              "https://cdn.shadcnstudio.com/ss-assets/avatar/avatar-1.png"
+            }
+          />
+          <AvatarFallback className="rounded-md bg-zinc-100 text-zinc-600 text-xs font-medium">
+            {user?.name?.charAt(0) || "U"}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
+          <span className="text-[13px] font-medium text-zinc-900 truncate leading-tight">
+            {user?.name || "User Name"}
+          </span>
+          <span className="text-[11px] text-zinc-500 truncate">Missionary</span>
+        </div>
+      </div>
+    </SidebarFooter>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  App sidebar                                                        */
+/* ------------------------------------------------------------------ */
+
+function AppSidebar() {
+  const pathname = usePathname();
+
+  return (
+    <Sidebar
+      collapsible="icon"
+      className="border-r border-zinc-200/60 bg-white"
+    >
+      <SidebarHeader className="px-3 py-3">
+        <Link href="/" className="flex items-center gap-2 group">
+          <div className="flex size-7 items-center justify-center rounded-md bg-zinc-900 text-white font-semibold text-xs shadow-sm ring-1 ring-zinc-950/5 group-hover:ring-zinc-950/10 transition-all">
+            G
+          </div>
+          <div className="flex flex-col group-data-[collapsible=icon]:hidden">
+            <span className="text-[13px] font-semibold text-zinc-900 leading-tight tracking-tight">
+              Give Hope
+            </span>
+            <span className="text-[10px] text-zinc-400 leading-tight">
+              Mission Control
+            </span>
+          </div>
+        </Link>
+      </SidebarHeader>
+
+      <SidebarContent className="px-2">
+        <NavSection items={mainNav} pathname={pathname} />
+        <NavSection items={moduleNav} label="Modules" pathname={pathname} />
+        <NavSection items={toolNav} label="Tools" pathname={pathname} />
+        <NavSection items={systemNav} label="System" pathname={pathname} />
+      </SidebarContent>
+
+      <ClientOnly fallback={null}>
+        <UserFooter />
+      </ClientOnly>
+
+      <SidebarRail />
+    </Sidebar>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Top header                                                         */
+/* ------------------------------------------------------------------ */
 
 function AppHeader() {
   const { user, signOut } = useMC();
@@ -271,46 +327,46 @@ function AppHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-12 items-center justify-between px-3 sm:px-4 lg:px-6">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <SidebarTrigger className="-ml-1 h-8 w-8 [&_svg]:!size-4 touch-target" />
+      <div className="flex h-12 items-center justify-between px-4">
+        <div className="flex items-center gap-3">
+          <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="h-4 hidden sm:block" />
           <SearchDialog
             trigger={
               <>
                 <Button
                   variant="ghost"
-                  className="hidden h-8 w-48 sm:w-64 justify-start px-2 font-normal text-muted-foreground hover:bg-muted/50 sm:flex"
+                  className="hidden h-8 w-56 justify-start px-3 text-muted-foreground hover:bg-muted/50 sm:flex gap-2"
                 >
-                  <SearchIcon className="mr-2 size-3.5" />
-                  <span className="text-xs font-bold uppercase tracking-tight">
+                  <Search className="size-4" />
+                  <span className="text-sm text-muted-foreground/60">
                     Search...
                   </span>
-                  <kbd className="pointer-events-none ml-auto hidden sm:inline-flex h-4 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
+                  <kbd className="pointer-events-none ml-auto hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
                     <span className="text-xs">⌘</span>K
                   </kbd>
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 sm:hidden touch-target"
+                  className="size-8 sm:hidden"
                 >
-                  <SearchIcon className="size-4" />
+                  <Search className="size-4" />
                   <span className="sr-only">Search</span>
                 </Button>
               </>
             }
           />
         </div>
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex items-center gap-1">
           <LanguageDropdown
             trigger={
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 hidden sm:inline-flex"
+                className="size-8 hidden sm:inline-flex"
               >
-                <LanguagesIcon className="size-4" />
+                <Languages className="size-4" />
               </Button>
             }
           />
@@ -319,39 +375,31 @@ function AppHeader() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 hidden sm:inline-flex"
+                className="size-8 hidden sm:inline-flex"
               >
-                <ActivityIcon className="size-4" />
+                <Activity className="size-4" />
               </Button>
             }
           />
           <NotificationDropdown
             trigger={
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative h-8 w-8 touch-target"
-              >
-                <BellIcon className="size-4" />
-                <span className="bg-rose-500 absolute top-2 right-2 size-1.5 rounded-full ring-2 ring-background" />
+              <Button variant="ghost" size="icon" className="relative size-8">
+                <Bell className="size-4" />
+                <span className="bg-rose-500 absolute top-1.5 right-1.5 size-1.5 rounded-full ring-2 ring-background" />
               </Button>
             }
           />
           <ProfileDropdown
             trigger={
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-8 rounded-lg touch-target"
-              >
-                <Avatar className="size-8 rounded-lg">
+              <Button variant="ghost" size="icon" className="size-8">
+                <Avatar className="size-7 rounded-lg">
                   <AvatarImage
                     src={
                       user?.avatarUrl ||
                       "https://cdn.shadcnstudio.com/ss-assets/avatar/avatar-1.png"
                     }
                   />
-                  <AvatarFallback className="text-[10px] rounded-lg">
+                  <AvatarFallback className="text-[10px] rounded-lg font-semibold">
                     {user?.name?.charAt(0) || "U"}
                   </AvatarFallback>
                 </Avatar>
@@ -367,7 +415,7 @@ function AppHeader() {
             className="h-8 px-2 text-xs hidden md:inline-flex"
             onClick={handleSignOut}
           >
-            <LogOutIcon className="mr-1 size-3.5" />
+            <LogOut className="mr-1 size-3.5" />
             Sign out
           </Button>
         </div>
@@ -376,58 +424,23 @@ function AppHeader() {
   );
 }
 
+/* ------------------------------------------------------------------ */
+/*  Shell                                                              */
+/* ------------------------------------------------------------------ */
+
 function ApplicationShell({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen w-full bg-zinc-50/50">
-      <SidebarProvider>
-        <Sidebar
-          collapsible="icon"
-          className="border-r border-zinc-200/50 shadow-sm"
+    <SidebarProvider>
+      <AppSidebar />
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <ClientOnly
+          fallback={<div className="h-12 border-b bg-background/95" />}
         >
-          <SidebarHeader className="h-12 border-b border-zinc-200/50 px-3 sm:px-4 flex items-center justify-center">
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  size="sm"
-                  className="gap-2 sm:gap-2.5 !bg-transparent"
-                  asChild
-                >
-                  <Link href="/">
-                    <div className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-lg bg-zinc-900 text-white font-bold text-xs shadow-sm shrink-0">
-                      G
-                    </div>
-                    <div className="flex flex-col items-start group-data-[collapsible=icon]:hidden min-w-0">
-                      <span className="text-[10px] sm:text-xs font-black tracking-widest uppercase leading-none truncate">
-                        GIVE HOPE
-                      </span>
-                      <span className="text-[7px] sm:text-[8px] font-bold text-zinc-500 tracking-[0.2em] uppercase leading-none mt-0.5 truncate">
-                        MISSION CONTROL
-                      </span>
-                    </div>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarHeader>
-          <SidebarContent className="scrollbar-none">
-            <SidebarGroupedMenuItems data={menuItems} />
-            <SidebarGroupedMenuItems data={modulesItems} groupLabel="Modules" />
-            <SidebarGroupedMenuItems data={toolsItems} groupLabel="Tools" />
-            <SidebarGroupedMenuItems data={adminItems} groupLabel="System" />
-          </SidebarContent>
-        </Sidebar>
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <ClientOnly
-            fallback={<div className="h-12 border-b bg-background/95" />}
-          >
-            <AppHeader />
-          </ClientOnly>
-          <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
-            {children}
-          </main>
-        </div>
-      </SidebarProvider>
-    </div>
+          <AppHeader />
+        </ClientOnly>
+        <main className="flex-1 overflow-auto">{children}</main>
+      </div>
+    </SidebarProvider>
   );
 }
 

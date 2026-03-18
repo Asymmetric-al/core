@@ -19,11 +19,6 @@ import {
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { cn } from "@asym/ui/lib/utils";
 import {
-  CircleCheck,
-  XCircle,
-  Clock,
-  RotateCcw,
-  AlertTriangle,
   CreditCard,
   Building2,
   FileText,
@@ -45,36 +40,21 @@ import type {
 } from "./types";
 import type { ColumnDef } from "@tanstack/react-table";
 
-const statusConfig: Record<
-  ContributionStatus,
-  { icon: typeof CircleCheck; className: string }
-> = {
-  Succeeded: {
-    icon: CircleCheck,
-    className:
-      "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800",
-  },
-  Pending: {
-    icon: Clock,
-    className:
-      "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800",
-  },
-  Failed: {
-    icon: XCircle,
-    className:
-      "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800",
-  },
-  Refunded: {
-    icon: RotateCcw,
-    className:
-      "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-950/50 dark:text-slate-400 dark:border-slate-800",
-  },
-  Disputed: {
-    icon: AlertTriangle,
-    className:
-      "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/50 dark:text-orange-400 dark:border-orange-800",
-  },
+/* ------------------------------------------------------------------ */
+/*  Status dot color config — accent colors for meaning, not decoration */
+/* ------------------------------------------------------------------ */
+
+const statusDotColor: Record<ContributionStatus, string> = {
+  Succeeded: "bg-emerald-500",
+  Pending: "bg-amber-500",
+  Failed: "bg-destructive",
+  Refunded: "bg-muted-foreground",
+  Disputed: "bg-orange-500",
 };
+
+/* ------------------------------------------------------------------ */
+/*  Payment method icons                                               */
+/* ------------------------------------------------------------------ */
 
 const paymentMethodIcons: Record<PaymentMethod, typeof CreditCard> = {
   "Credit Card": CreditCard,
@@ -85,6 +65,10 @@ const paymentMethodIcons: Record<PaymentMethod, typeof CreditCard> = {
   Other: CreditCard,
 };
 
+/* ------------------------------------------------------------------ */
+/*  Source labels                                                       */
+/* ------------------------------------------------------------------ */
+
 const sourceLabels: Record<ContributionSource, string> = {
   Online: "Online",
   Mobile: "Mobile",
@@ -94,262 +78,335 @@ const sourceLabels: Record<ContributionSource, string> = {
   Import: "Import",
 };
 
-export const columns: ColumnDef<Contribution>[] = [
-  {
-    accessorKey: "donor",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Donor" />
-    ),
-    cell: ({ row }) => {
-      const donor = row.original.donor;
-      const isAnonymous = row.original.isAnonymous;
+/* ------------------------------------------------------------------ */
+/*  Column factory                                                      */
+/* ------------------------------------------------------------------ */
 
-      return (
-        <div className="flex items-center gap-3 min-w-[200px]">
-          <Avatar className="h-9 w-9 border border-border">
-            <AvatarImage src={donor.avatar} alt={donor.name} />
-            <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium">
-              {isAnonymous ? "?" : getInitials(donor.name)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col">
-            <span className="font-semibold text-sm text-foreground">
-              {isAnonymous ? "Anonymous" : donor.name}
-            </span>
-            {!isAnonymous && donor.email && (
-              <span className="text-xs text-muted-foreground truncate max-w-[180px]">
-                {donor.email}
-              </span>
-            )}
+interface ColumnOptions {
+  onViewContribution: (contribution: Contribution) => void;
+}
+
+export function getColumns({
+  onViewContribution,
+}: ColumnOptions): ColumnDef<Contribution>[] {
+  return [
+    /* ---- Donor ---- */
+    {
+      accessorKey: "donor",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Donor" />
+      ),
+      cell: ({ row }) => {
+        const donor = row.original.donor;
+        const isAnonymous = row.original.isAnonymous;
+
+        return (
+          <div className="flex items-center gap-3 min-w-[200px]">
+            <Avatar className="h-9 w-9 border border-border">
+              <AvatarImage src={donor.avatar} alt={donor.name} />
+              <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium">
+                {isAnonymous ? "?" : getInitials(donor.name)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onViewContribution(row.original);
+                }}
+                className="text-sm font-semibold text-foreground leading-none hover:underline decoration-foreground/30 underline-offset-4 transition-all text-left"
+              >
+                {isAnonymous ? "Anonymous" : donor.name}
+              </button>
+              {!isAnonymous && donor.email && (
+                <span className="text-xs text-muted-foreground truncate max-w-[180px] mt-0.5">
+                  {donor.email}
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-      );
+        );
+      },
+      enableSorting: true,
+      filterFn: (row, _id, value) => {
+        const donor = row.original.donor;
+        const searchValue = (value as string).toLowerCase();
+        return (
+          donor.name.toLowerCase().includes(searchValue) ||
+          donor.email.toLowerCase().includes(searchValue)
+        );
+      },
+      meta: { label: "Donor" },
     },
-    enableSorting: true,
-    filterFn: (row, id, value) => {
-      const donor = row.original.donor;
-      const searchValue = value.toLowerCase();
-      return (
-        donor.name.toLowerCase().includes(searchValue) ||
-        donor.email.toLowerCase().includes(searchValue)
-      );
-    },
-  },
-  {
-    accessorKey: "amount",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Amount" />
-    ),
-    cell: ({ row }) => {
-      const amount = row.getValue("amount") as number;
-      return (
-        <div className="font-semibold text-foreground tabular-nums">
-          {formatCurrency(amount)}
-        </div>
-      );
-    },
-    enableSorting: true,
-  },
-  {
-    accessorKey: "date",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Date" />
-    ),
-    cell: ({ row }) => {
-      const date = new Date(row.getValue("date") as string);
-      return (
-        <div className="text-sm text-muted-foreground whitespace-nowrap">
-          {date.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })}
-        </div>
-      );
-    },
-    enableSorting: true,
-  },
-  {
-    accessorKey: "status",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Status" />
-    ),
-    cell: ({ row }) => {
-      const status = row.getValue("status") as ContributionStatus;
-      const config = statusConfig[status];
-      const Icon = config.icon;
 
-      return (
-        <Badge
-          variant="outline"
-          className={cn(
-            "gap-1.5 font-medium text-xs px-2 py-0.5",
-            config.className,
-          )}
-        >
-          <Icon className="h-3 w-3" />
-          {status}
-        </Badge>
-      );
+    /* ---- Amount ---- */
+    {
+      accessorKey: "amount",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Amount"
+          className="justify-end"
+        />
+      ),
+      cell: ({ row }) => {
+        const amount = row.getValue("amount") as number;
+        return (
+          <div className="text-right font-mono text-sm font-semibold text-foreground tabular-nums">
+            {formatCurrency(amount)}
+          </div>
+        );
+      },
+      enableSorting: true,
+      meta: { label: "Amount" },
     },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
-    },
-    enableSorting: true,
-  },
-  {
-    accessorKey: "type",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Type" />
-    ),
-    cell: ({ row }) => {
-      const type = row.getValue("type") as string;
-      return (
-        <Badge variant="secondary" className="font-medium text-xs">
-          {type}
-        </Badge>
-      );
-    },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
-    },
-    enableSorting: true,
-  },
-  {
-    accessorKey: "paymentMethod",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Payment" />
-    ),
-    cell: ({ row }) => {
-      const method = row.getValue("paymentMethod") as PaymentMethod;
-      const Icon = paymentMethodIcons[method];
 
-      return (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Icon className="h-4 w-4" />
-          <span>{method}</span>
-        </div>
-      );
-    },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
-    },
-    enableSorting: true,
-  },
-  {
-    accessorKey: "fundName",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Fund" />
-    ),
-    cell: ({ row }) => {
-      const fundName = row.getValue("fundName") as string;
-      const fundCode = row.original.fundCode;
-
-      return (
-        <div className="flex flex-col">
-          <span className="text-sm font-medium text-foreground">
-            {fundName}
+    /* ---- Date ---- */
+    {
+      accessorKey: "date",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Date" />
+      ),
+      cell: ({ row }) => {
+        const date = new Date(row.getValue("date") as string);
+        return (
+          <span className="text-sm text-muted-foreground whitespace-nowrap">
+            {date.toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })}
           </span>
-          <span className="text-xs text-muted-foreground">{fundCode}</span>
-        </div>
-      );
+        );
+      },
+      enableSorting: true,
+      meta: { label: "Date" },
     },
-    enableSorting: true,
-  },
-  {
-    accessorKey: "source",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Source" />
-    ),
-    cell: ({ row }) => {
-      const source = row.getValue("source") as ContributionSource;
-      return (
-        <span className="text-sm text-muted-foreground">
-          {sourceLabels[source]}
-        </span>
-      );
-    },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
-    },
-    enableSorting: true,
-  },
-  {
-    accessorKey: "receiptSent",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Receipt" />
-    ),
-    cell: ({ row }) => {
-      const sent = row.getValue("receiptSent") as boolean;
-      return (
-        <div className="flex items-center gap-1.5">
-          {sent ? (
-            <Badge
-              variant="outline"
-              className="gap-1 bg-emerald-50 text-emerald-700 border-emerald-200 text-xs"
-            >
-              <CircleCheck className="h-3 w-3" />
-              Sent
-            </Badge>
-          ) : (
-            <Badge
-              variant="outline"
-              className="gap-1 bg-slate-50 text-slate-500 border-slate-200 text-xs"
-            >
-              <Clock className="h-3 w-3" />
-              Pending
-            </Badge>
-          )}
-        </div>
-      );
-    },
-    enableSorting: true,
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => {
-      const contribution = row.original;
 
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() =>
-                navigator.clipboard.writeText(contribution.transactionId)
-              }
-            >
-              <Copy className="mr-2 h-4 w-4" />
-              Copy Transaction ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Eye className="mr-2 h-4 w-4" />
-              View Details
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Mail className="mr-2 h-4 w-4" />
-              Email Donor
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Receipt className="mr-2 h-4 w-4" />
-              Send Receipt
-            </DropdownMenuItem>
-            {contribution.status === "Failed" && (
-              <DropdownMenuItem>
-                <RefreshCcw className="mr-2 h-4 w-4" />
-                Retry Payment
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+    /* ---- Status ---- */
+    {
+      accessorKey: "status",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Status" />
+      ),
+      cell: ({ row }) => {
+        const status = row.getValue("status") as ContributionStatus;
+        return (
+          <div className="flex items-center gap-2">
+            <span
+              className={cn(
+                "h-2 w-2 shrink-0 rounded-full",
+                statusDotColor[status],
+              )}
+            />
+            <span className="text-sm font-medium text-foreground">
+              {status}
+            </span>
+          </div>
+        );
+      },
+      filterFn: (row, id, value) => {
+        return (value as string[]).includes(row.getValue(id));
+      },
+      enableSorting: true,
+      meta: { label: "Status" },
     },
-  },
-];
+
+    /* ---- Type ---- */
+    {
+      accessorKey: "type",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Type" />
+      ),
+      cell: ({ row }) => {
+        const type = row.getValue("type") as string;
+        return (
+          <Badge variant="secondary" className="text-xs font-medium">
+            {type}
+          </Badge>
+        );
+      },
+      filterFn: (row, id, value) => {
+        return (value as string[]).includes(row.getValue(id));
+      },
+      enableSorting: true,
+      meta: { label: "Type" },
+    },
+
+    /* ---- Payment Method ---- */
+    {
+      accessorKey: "paymentMethod",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Payment" />
+      ),
+      cell: ({ row }) => {
+        const method = row.getValue("paymentMethod") as PaymentMethod;
+        const Icon = paymentMethodIcons[method];
+
+        return (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Icon className="size-4 shrink-0" />
+            <span>{method}</span>
+          </div>
+        );
+      },
+      filterFn: (row, id, value) => {
+        return (value as string[]).includes(row.getValue(id));
+      },
+      enableSorting: true,
+      meta: { label: "Payment" },
+    },
+
+    /* ---- Fund ---- */
+    {
+      accessorKey: "fundName",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Fund" />
+      ),
+      cell: ({ row }) => {
+        const fundName = row.getValue("fundName") as string;
+        const fundCode = row.original.fundCode;
+
+        return (
+          <div className="flex flex-col">
+            <span className="text-sm font-medium text-foreground">
+              {fundName}
+            </span>
+            <span className="font-mono text-xs text-muted-foreground">
+              {fundCode}
+            </span>
+          </div>
+        );
+      },
+      enableSorting: true,
+      meta: { label: "Fund" },
+    },
+
+    /* ---- Source ---- */
+    {
+      accessorKey: "source",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Source" />
+      ),
+      cell: ({ row }) => {
+        const source = row.getValue("source") as ContributionSource;
+        return (
+          <span className="text-sm text-muted-foreground">
+            {sourceLabels[source]}
+          </span>
+        );
+      },
+      filterFn: (row, id, value) => {
+        return (value as string[]).includes(row.getValue(id));
+      },
+      enableSorting: true,
+      enableHiding: true,
+      meta: { label: "Source" },
+    },
+
+    /* ---- Receipt ---- */
+    {
+      accessorKey: "receiptSent",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Receipt" />
+      ),
+      cell: ({ row }) => {
+        const sent = row.getValue("receiptSent") as boolean;
+        return (
+          <div className="flex items-center gap-2">
+            <span
+              className={cn(
+                "h-2 w-2 shrink-0 rounded-full",
+                sent ? "bg-emerald-500" : "bg-muted-foreground/40",
+              )}
+            />
+            <span className="text-sm text-muted-foreground">
+              {sent ? "Sent" : "Pending"}
+            </span>
+          </div>
+        );
+      },
+      enableSorting: true,
+      meta: { label: "Receipt" },
+    },
+
+    /* ---- Transaction ID (hidden by default) ---- */
+    {
+      accessorKey: "transactionId",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Transaction ID" />
+      ),
+      cell: ({ row }) => {
+        const txnId = row.getValue("transactionId") as string;
+        return (
+          <span className="font-mono text-xs text-muted-foreground tabular-nums">
+            {txnId}
+          </span>
+        );
+      },
+      enableHiding: true,
+      enableSorting: false,
+      meta: { label: "Transaction ID" },
+    },
+
+    /* ---- Actions ---- */
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        const contribution = row.original;
+
+        return (
+          <div
+            className="flex justify-end"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                >
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem
+                  onClick={() =>
+                    navigator.clipboard.writeText(contribution.transactionId)
+                  }
+                >
+                  <Copy className="mr-2 size-4" />
+                  Copy Transaction ID
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => onViewContribution(contribution)}
+                >
+                  <Eye className="mr-2 size-4" />
+                  View Details
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Mail className="mr-2 size-4" />
+                  Email Donor
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Receipt className="mr-2 size-4" />
+                  Send Receipt
+                </DropdownMenuItem>
+                {contribution.status === "Failed" && (
+                  <DropdownMenuItem>
+                    <RefreshCcw className="mr-2 size-4" />
+                    Retry Payment
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
+    },
+  ];
+}

@@ -227,7 +227,6 @@ export function TasksPageContent() {
     <PageShell
       title="Mission Pipeline"
       description="Coordinate donor outreach and field operations."
-      badge="Task Management"
       actions={
         <Button
           onClick={() => dispatchUi({ type: "open-create-modal" })}

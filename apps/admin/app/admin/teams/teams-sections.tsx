@@ -129,7 +129,7 @@ export const TEAMS: Team[] = [
     membersCount: 8,
     status: "Active",
     avatar: "TO",
-    color: "bg-slate-100 text-slate-700",
+    color: "bg-zinc-100 text-zinc-700",
     permissions: {
       admin: "Admin",
       automations: "Admin",
@@ -218,7 +218,7 @@ function getPermissionColor(level: string) {
     case "View":
       return "text-blue-600 bg-blue-50 border-blue-100";
     default:
-      return "text-slate-400 bg-slate-50 border-slate-100";
+      return "text-zinc-400 bg-zinc-50 border-zinc-100";
   }
 }
 
@@ -226,16 +226,16 @@ export function TeamsPageHeader() {
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight text-slate-900">
+        <h2 className="text-3xl font-bold tracking-tight text-zinc-900">
           Manage Teams
         </h2>
-        <p className="text-slate-500 mt-1">
+        <p className="text-zinc-500 mt-1">
           Organize users and departments with shared, granular permissions.
         </p>
       </div>
       <Dialog>
         <DialogTrigger asChild>
-          <Button className="bg-slate-900 text-white shadow-xl hover:bg-slate-800">
+          <Button className="bg-zinc-900 text-white shadow-xl hover:bg-zinc-800">
             <Plus className="mr-2 h-4 w-4" /> Create Team
           </Button>
         </DialogTrigger>
@@ -290,7 +290,7 @@ function TeamPermissionsTab({ selectedTeam }: { selectedTeam: Team }) {
         </div>
 
         <div className="space-y-3">
-          <h3 className="text-sm font-black uppercase tracking-widest text-slate-400">
+          <h3 className="text-sm font-black uppercase tracking-widest text-zinc-400">
             Module Access
           </h3>
           <div className="grid gap-2">
@@ -299,24 +299,24 @@ function TeamPermissionsTab({ selectedTeam }: { selectedTeam: Team }) {
               return (
                 <div
                   key={tile.id}
-                  className="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:border-slate-200 bg-white shadow-sm transition-all hover:shadow-md group"
+                  className="flex items-center justify-between p-4 rounded-xl border border-zinc-100 hover:border-zinc-200 bg-white shadow-sm transition-all hover:shadow-md group"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-50 text-slate-500 border border-slate-100 group-hover:bg-slate-900 group-hover:text-white transition-colors">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-50 text-zinc-500 border border-zinc-100 group-hover:bg-zinc-900 group-hover:text-white transition-colors">
                       <TileIcon iconName={tile.icon} />
                     </div>
                     <div className="flex flex-col">
-                      <span className="font-bold text-slate-900">
+                      <span className="font-bold text-zinc-900">
                         {tile.title}
                       </span>
-                      <span className="text-[11px] text-slate-500 font-medium">
+                      <span className="text-[11px] text-zinc-500 font-medium">
                         /{tile.id}
                       </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Select defaultValue={currentLevel}>
-                      <SelectTrigger className="w-[110px] h-8 text-[11px] font-bold border-slate-200">
+                      <SelectTrigger className="w-[110px] h-8 text-[11px] font-bold border-zinc-200">
                         <SelectValue placeholder="Access Level" />
                       </SelectTrigger>
                       <SelectContent>
@@ -346,7 +346,7 @@ function TeamPermissionsTab({ selectedTeam }: { selectedTeam: Team }) {
                         </SelectItem>
                       </SelectContent>
                     </Select>
-                    <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-slate-50 border border-slate-100 text-slate-400">
+                    <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-zinc-50 border border-zinc-100 text-zinc-400">
                       {currentLevel === "Admin" ? (
                         <ShieldCheck className="h-4 w-4 text-emerald-600" />
                       ) : (
@@ -375,13 +375,13 @@ function TeamMembersTab({
     <TabsContent value="members" className="flex-1 overflow-y-auto p-6 m-0">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-black uppercase tracking-widest text-slate-400">
+          <h3 className="text-sm font-black uppercase tracking-widest text-zinc-400">
             Team Members
           </h3>
           <Button
             variant="outline"
             size="sm"
-            className="h-8 text-[11px] font-bold border-slate-200"
+            className="h-8 text-[11px] font-bold border-zinc-200"
           >
             <UserPlus className="h-3.5 w-3.5 mr-1" /> Add Member
           </Button>
@@ -392,19 +392,19 @@ function TeamMembersTab({
             .map((member) => (
               <div
                 key={member.id}
-                className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-white shadow-sm"
+                className="flex items-center justify-between p-3 rounded-xl border border-zinc-100 bg-white shadow-sm"
               >
                 <div className="flex items-center gap-3">
                   <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
-                    <AvatarFallback className="bg-slate-100 text-slate-600 font-bold text-xs">
+                    <AvatarFallback className="bg-zinc-100 text-zinc-600 font-bold text-xs">
                       {member.name.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col">
-                    <span className="font-bold text-slate-900 text-sm">
+                    <span className="font-bold text-zinc-900 text-sm">
                       {member.name}
                     </span>
-                    <span className="text-[11px] text-slate-500 font-medium">
+                    <span className="text-[11px] text-zinc-500 font-medium">
                       {member.email}
                     </span>
                   </div>
@@ -412,14 +412,14 @@ function TeamMembersTab({
                 <div className="flex items-center gap-2">
                   <Badge
                     variant="secondary"
-                    className="text-[10px] font-bold px-1.5 py-0 bg-slate-100 text-slate-600 border-transparent shadow-none"
+                    className="text-[10px] font-bold px-1.5 py-0 bg-zinc-100 text-zinc-600 border-transparent shadow-none"
                   >
                     {member.role}
                   </Badge>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 text-slate-400"
+                    className="h-7 w-7 text-zinc-400"
                   >
                     <MoreHorizontal className="h-3.5 w-3.5" />
                   </Button>
@@ -438,25 +438,25 @@ function TeamSettingsTab({ selectedTeam }: { selectedTeam: Team }) {
       <div className="space-y-6">
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <Label className="text-xs font-bold text-slate-500 uppercase">
+            <Label className="text-xs font-bold text-zinc-500 uppercase">
               Team Branding Name
             </Label>
             <Input
               defaultValue={selectedTeam.name}
-              className="h-10 font-bold border-slate-200"
+              className="h-10 font-bold border-zinc-200"
             />
           </div>
           <div className="grid gap-2">
-            <Label className="text-xs font-bold text-slate-500 uppercase">
+            <Label className="text-xs font-bold text-zinc-500 uppercase">
               Team Description
             </Label>
             <Input
               defaultValue={selectedTeam.description}
-              className="h-10 font-medium border-slate-200"
+              className="h-10 font-medium border-zinc-200"
             />
           </div>
         </div>
-        <Separator className="border-slate-100" />
+        <Separator className="border-zinc-100" />
         <div className="bg-rose-50/50 border border-rose-100 p-4 rounded-xl space-y-3">
           <div className="flex items-center gap-2 text-rose-800">
             <Trash2 className="h-4 w-4" />
@@ -492,7 +492,7 @@ function TeamManagementSheet({
     <SheetContent className="sm:max-w-xl p-0">
       {selectedTeam && (
         <div className="flex flex-col h-full">
-          <SheetHeader className="p-6 pb-2 bg-slate-50/80 border-b border-slate-100">
+          <SheetHeader className="p-6 pb-2 bg-zinc-50/80 border-b border-zinc-100">
             <div className="flex items-center gap-4">
               <div
                 className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl font-bold text-lg shadow-md ${selectedTeam.color}`}
@@ -500,10 +500,10 @@ function TeamManagementSheet({
                 {selectedTeam.avatar}
               </div>
               <div>
-                <SheetTitle className="text-2xl font-black text-slate-900">
+                <SheetTitle className="text-2xl font-black text-zinc-900">
                   {selectedTeam.name}
                 </SheetTitle>
-                <SheetDescription className="text-slate-500 font-medium">
+                <SheetDescription className="text-zinc-500 font-medium">
                   Manage members and granular access for this team.
                 </SheetDescription>
               </div>
@@ -514,24 +514,24 @@ function TeamManagementSheet({
             defaultValue="permissions"
             className="flex-1 overflow-hidden flex flex-col"
           >
-            <div className="px-6 bg-slate-50/80 border-b border-slate-100">
+            <div className="px-6 bg-zinc-50/80 border-b border-zinc-100">
               <TabsList className="bg-transparent h-12 gap-6 rounded-none p-0 border-b-0">
                 <TabsTrigger
                   value="permissions"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-slate-900 data-[state=active]:bg-transparent data-[state=active]:shadow-none font-bold text-slate-500 data-[state=active]:text-slate-900 px-0 h-12"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:bg-transparent data-[state=active]:shadow-none font-bold text-zinc-500 data-[state=active]:text-zinc-900 px-0 h-12"
                 >
                   <ShieldCheck className="h-4 w-4 mr-2" /> Permissions
                 </TabsTrigger>
                 <TabsTrigger
                   value="members"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-slate-900 data-[state=active]:bg-transparent data-[state=active]:shadow-none font-bold text-slate-500 data-[state=active]:text-slate-900 px-0 h-12"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:bg-transparent data-[state=active]:shadow-none font-bold text-zinc-500 data-[state=active]:text-zinc-900 px-0 h-12"
                 >
                   <Users className="h-4 w-4 mr-2" /> Members (
                   {selectedTeam.membersCount})
                 </TabsTrigger>
                 <TabsTrigger
                   value="settings"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-slate-900 data-[state=active]:bg-transparent data-[state=active]:shadow-none font-bold text-slate-500 data-[state=active]:text-slate-900 px-0 h-12"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:bg-transparent data-[state=active]:shadow-none font-bold text-zinc-500 data-[state=active]:text-zinc-900 px-0 h-12"
                 >
                   <Settings2 className="h-4 w-4 mr-2" /> Settings
                 </TabsTrigger>
@@ -543,9 +543,9 @@ function TeamManagementSheet({
             <TeamSettingsTab selectedTeam={selectedTeam} />
           </Tabs>
 
-          <SheetFooter className="p-6 pt-4 bg-slate-50/80 border-t border-slate-100 mt-auto">
+          <SheetFooter className="p-6 pt-4 bg-zinc-50/80 border-t border-zinc-100 mt-auto">
             <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2 text-slate-500">
+              <div className="flex items-center gap-2 text-zinc-500">
                 <Activity className="h-3.5 w-3.5" />
                 <span className="text-[10px] font-bold uppercase tracking-wider">
                   Last edit: 2 mins ago
@@ -556,14 +556,14 @@ function TeamManagementSheet({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-9 px-4 text-xs font-bold border-slate-200 shadow-none"
+                    className="h-9 px-4 text-xs font-bold border-zinc-200 shadow-none"
                   >
                     Cancel
                   </Button>
                 </SheetClose>
                 <Button
                   size="sm"
-                  className="h-9 px-6 text-xs font-bold bg-slate-900 text-white shadow-lg shadow-slate-200"
+                  className="h-9 px-6 text-xs font-bold bg-zinc-900 text-white shadow-lg shadow-zinc-200"
                   onClick={onClose}
                 >
                   Save Changes
@@ -589,7 +589,7 @@ function TeamsTableRow({
   onSelectTeam: (team: Team | null) => void;
 }) {
   return (
-    <TableRow className="group hover:bg-slate-50/80 transition-colors">
+    <TableRow className="group hover:bg-zinc-50/80 transition-colors">
       <TableCell className="py-4">
         <div className="flex items-center gap-3">
           <div
@@ -598,8 +598,8 @@ function TeamsTableRow({
             {team.avatar}
           </div>
           <div className="flex flex-col">
-            <span className="font-bold text-slate-900">{team.name}</span>
-            <span className="text-xs text-slate-500 line-clamp-1">
+            <span className="font-bold text-zinc-900">{team.name}</span>
+            <span className="text-xs text-zinc-500 line-clamp-1">
               {team.description}
             </span>
           </div>
@@ -613,7 +613,7 @@ function TeamsTableRow({
               <Badge
                 key={key}
                 variant="outline"
-                className={`text-[10px] px-1.5 py-0 capitalize border-slate-200 font-medium ${getPermissionColor(level as string)}`}
+                className={`text-[10px] px-1.5 py-0 capitalize border-zinc-200 font-medium ${getPermissionColor(level as string)}`}
               >
                 {key}: {level}
               </Badge>
@@ -621,7 +621,7 @@ function TeamsTableRow({
           {Object.keys(team.permissions).length > 3 && (
             <Badge
               variant="outline"
-              className="text-[10px] px-1.5 py-0 border-slate-200 text-slate-400"
+              className="text-[10px] px-1.5 py-0 border-zinc-200 text-zinc-400"
             >
               +{Object.keys(team.permissions).length - 3} more
             </Badge>
@@ -634,13 +634,13 @@ function TeamsTableRow({
             {["A", "B", "C"].map((initial) => (
               <div
                 key={initial}
-                className="size-6 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 shadow-sm"
+                className="size-6 rounded-full border-2 border-white bg-zinc-200 flex items-center justify-center text-[10px] font-bold text-zinc-500 shadow-sm"
               >
                 {initial}
               </div>
             ))}
           </div>
-          <span className="text-xs font-bold text-slate-600">
+          <span className="text-xs font-bold text-zinc-600">
             {team.membersCount}
           </span>
         </div>
@@ -651,7 +651,7 @@ function TeamsTableRow({
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 hover:bg-slate-200/50 font-bold text-slate-600 gap-1"
+              className="h-8 hover:bg-zinc-200/50 font-bold text-zinc-600 gap-1"
               onClick={() => onSelectTeam(team)}
             >
               Manage <ChevronRight className="h-4 w-4" />
@@ -686,8 +686,8 @@ export function TeamsTableCard({
   onSelectTeam,
 }: TeamsTableCardProps) {
   return (
-    <Card className="border-slate-200 shadow-sm overflow-hidden">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-slate-50/50 border-b border-slate-100 py-4">
+    <Card className="border-zinc-200 shadow-sm overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-zinc-50/50 border-b border-zinc-100 py-4">
         <div>
           <CardTitle className="text-lg font-bold">
             Organization Teams
@@ -697,10 +697,10 @@ export function TeamsTableCard({
           </CardDescription>
         </div>
         <div className="relative w-64">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-500" />
           <Input
             placeholder="Search teams..."
-            className="pl-9 bg-white border-slate-200 h-9"
+            className="pl-9 bg-white border-zinc-200 h-9"
             value={searchTerm}
             onChange={(event) => onSearchTermChange(event.target.value)}
           />
@@ -709,17 +709,15 @@ export function TeamsTableCard({
       <CardContent className="p-0">
         <Table>
           <TableHeader>
-            <TableRow className="hover:bg-transparent bg-slate-50/30">
-              <TableHead className="w-[300px] py-3 font-bold text-slate-900">
+            <TableRow className="hover:bg-transparent bg-zinc-50/30">
+              <TableHead className="w-[300px] py-3 font-bold text-zinc-900">
                 Team Name
               </TableHead>
-              <TableHead className="font-bold text-slate-900">
+              <TableHead className="font-bold text-zinc-900">
                 Permissions Preview
               </TableHead>
-              <TableHead className="font-bold text-slate-900">
-                Members
-              </TableHead>
-              <TableHead className="text-right font-bold text-slate-900">
+              <TableHead className="font-bold text-zinc-900">Members</TableHead>
+              <TableHead className="text-right font-bold text-zinc-900">
                 Actions
               </TableHead>
             </TableRow>
@@ -743,8 +741,8 @@ export function TeamsTableCard({
 
 export function SystemUsersCard({ members }: { members: Member[] }) {
   return (
-    <Card className="border-slate-200 shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-slate-50 py-4">
+    <Card className="border-zinc-200 shadow-sm">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-zinc-50 py-4">
         <div>
           <CardTitle className="text-lg font-bold">System Users</CardTitle>
           <CardDescription>
@@ -754,27 +752,27 @@ export function SystemUsersCard({ members }: { members: Member[] }) {
         <Button
           variant="outline"
           size="sm"
-          className="bg-white border-slate-200 h-9 font-bold text-slate-700"
+          className="bg-white border-zinc-200 h-9 font-bold text-zinc-700"
         >
           <UserPlus className="mr-2 h-4 w-4" /> Invite User
         </Button>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="divide-y divide-slate-50">
+        <div className="divide-y divide-zinc-50">
           {members.map((member) => (
             <div
               key={member.id}
-              className="flex items-center justify-between p-4 transition-all hover:bg-slate-50/50"
+              className="flex items-center justify-between p-4 transition-all hover:bg-zinc-50/50"
             >
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
-                  <AvatarFallback className="bg-slate-200 text-slate-600 font-bold">
+                  <AvatarFallback className="bg-zinc-200 text-zinc-600 font-bold">
                     {member.name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-slate-900">
+                    <span className="font-bold text-zinc-900">
                       {member.name}
                     </span>
                     {member.role === "Owner" && (
@@ -783,7 +781,7 @@ export function SystemUsersCard({ members }: { members: Member[] }) {
                       </Badge>
                     )}
                   </div>
-                  <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
+                  <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 font-medium">
                     <Mail className="h-3 w-3" />
                     {member.email}
                   </div>
@@ -791,18 +789,18 @@ export function SystemUsersCard({ members }: { members: Member[] }) {
               </div>
               <div className="flex items-center gap-6">
                 <div className="hidden sm:flex flex-col items-end">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">
                     Team
                   </span>
-                  <span className="text-xs font-bold text-slate-700">
+                  <span className="text-xs font-bold text-zinc-700">
                     {member.team}
                   </span>
                 </div>
                 <div className="hidden sm:flex flex-col items-end mr-4">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">
                     Role
                   </span>
-                  <span className="text-xs font-bold text-slate-700">
+                  <span className="text-xs font-bold text-zinc-700">
                     {member.role}
                   </span>
                 </div>
@@ -811,7 +809,7 @@ export function SystemUsersCard({ members }: { members: Member[] }) {
                   className={
                     member.status === "Active"
                       ? "bg-blue-50 text-blue-700 hover:bg-blue-50 border-blue-100 text-[10px] font-bold"
-                      : "text-slate-400 border-slate-200 text-[10px] font-bold"
+                      : "text-zinc-400 border-zinc-200 text-[10px] font-bold"
                   }
                 >
                   {member.status}
@@ -821,7 +819,7 @@ export function SystemUsersCard({ members }: { members: Member[] }) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-slate-400 hover:text-slate-900"
+                      className="h-8 w-8 text-zinc-400 hover:text-zinc-900"
                     >
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
@@ -832,15 +830,15 @@ export function SystemUsersCard({ members }: { members: Member[] }) {
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem className="cursor-pointer font-bold text-xs py-2">
-                      <UserCog className="mr-2 h-4 w-4 text-slate-400" /> Change
+                      <UserCog className="mr-2 h-4 w-4 text-zinc-400" /> Change
                       Role
                     </DropdownMenuItem>
                     <DropdownMenuItem className="cursor-pointer font-bold text-xs py-2">
-                      <Shield className="mr-2 h-4 w-4 text-slate-400" /> Assign
+                      <Shield className="mr-2 h-4 w-4 text-zinc-400" /> Assign
                       Team
                     </DropdownMenuItem>
                     <DropdownMenuItem className="cursor-pointer font-bold text-xs py-2">
-                      <Settings2 className="mr-2 h-4 w-4 text-slate-400" /> User
+                      <Settings2 className="mr-2 h-4 w-4 text-zinc-400" /> User
                       Settings
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -853,11 +851,11 @@ export function SystemUsersCard({ members }: { members: Member[] }) {
             </div>
           ))}
         </div>
-        <div className="p-4 border-t border-slate-50 flex justify-center bg-slate-50/30">
+        <div className="p-4 border-t border-zinc-50 flex justify-center bg-zinc-50/30">
           <Button
             variant="ghost"
             size="sm"
-            className="text-slate-500 hover:text-slate-900 font-bold text-xs"
+            className="text-zinc-500 hover:text-zinc-900 font-bold text-xs"
           >
             View All 124 System Users{" "}
             <ExternalLink className="ml-2 h-3.5 w-3.5" />
