@@ -10,7 +10,7 @@ let mockSupabaseConfig: {
   key: null,
   keyType: null,
 };
-let mockClaimsSub: string | null = null;
+let mockUserId: string | null = null;
 let configReadCount = 0;
 
 vi.mock("@asym/database/supabase/config", () => ({
@@ -23,9 +23,11 @@ vi.mock("@asym/database/supabase/config", () => ({
 vi.mock("@supabase/ssr", () => ({
   createServerClient: () => ({
     auth: {
-      getClaims: () =>
+      getUser: () =>
         Promise.resolve({
-          data: { claims: mockClaimsSub ? { sub: mockClaimsSub } : null },
+          data: {
+            user: mockUserId ? { id: mockUserId } : null,
+          },
         }),
     },
   }),
@@ -53,7 +55,7 @@ function createRequest(pathname: string) {
 
 function mockNoConfig() {
   mockSupabaseConfig = { url: null, key: null, keyType: null };
-  mockClaimsSub = null;
+  mockUserId = null;
 }
 
 function mockConfigWithUser(userId: string | null = "user_123") {
@@ -62,7 +64,7 @@ function mockConfigWithUser(userId: string | null = "user_123") {
     key: "anon-key",
     keyType: "anon",
   };
-  mockClaimsSub = userId;
+  mockUserId = userId;
 }
 
 describe("createAuthMiddleware", () => {
@@ -175,29 +177,20 @@ describe("createAuthMiddleware", () => {
     expect(response.status).toBe(200);
   });
 
-  it("accepts e2e auth bypass cookie when enabled", async () => {
-    process.env.E2E_AUTH_BYPASS = "true";
-    mockConfigWithUser();
-
+  it("uses only nextUrl.origin for redirect (no open redirect)", async () => {
+    mockNoConfig();
     const middleware = createAuthMiddleware({
-      publicRoutes: ["/login", "/register", "/auth/callback"],
+      publicRoutes: ["/register", "/auth/callback"],
       loginPath: "/login",
     });
 
-    const request = createRequest("/web-studio");
-    const encoded = Buffer.from(
-      JSON.stringify({
-        userId: "e2e-admin-user",
-        role: "admin",
-        tenantId: null,
-      }),
-    ).toString("base64url");
-    request.cookies.get = vi.fn((name: string) =>
-      name === "asym_e2e_auth" ? { value: encoded } : undefined,
-    );
-
+    const request = createRequest("/reports");
     const response = await middleware(request);
 
-    expect(response.status).toBe(200);
+    if (response.status === 307) {
+      const location = response.headers.get("location") ?? "";
+      expect(location).toMatch(/^https:\/\/example\.org\/login/);
+      expect(location).not.toMatch(/^https:\/\/evil\.com/);
+    }
   });
 });

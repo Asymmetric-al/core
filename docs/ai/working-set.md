@@ -1,5 +1,21 @@
 # Working Set
 
+## 2026-03-18 (auth stabilization — cursor/supabase-login-foundation-6869)
+
+- Date: 2026-03-18
+- Repo: Asymmetric-al/core
+- Goal: Stabilize and complete auth on branch using latest epic as base; fix known auth issues and run clean lint/typecheck/unit tests.
+- Primary area: `packages/auth/middleware.ts`, `packages/ui/components/auth/LoginScreen.tsx`, `packages/database/supabase/proxy.ts`, `packages/api/src/auth/demo-account.ts`, `tests/unit/auth/*`, merge resolution with epic (mc-shell, ui package.json, bun.lock), base-ui drawer types.
+- Decisions:
+  - LoginScreen: use `getUser()` instead of `getSession()` to avoid redirect loop from cached revoked sessions.
+  - Middleware: redirect base uses only `request.nextUrl.origin` (no Origin/Referer) to prevent open redirect.
+  - Middleware: session validation uses `getUser()` instead of `getClaims()` so revoked sessions are rejected.
+  - E2E auth bypass: removed test that expected middleware to honor E2E cookie; middleware stays simple and does not implement bypass.
+  - Proxy: cookie refresh uses `getSession()` (legacy helper remains cookie-refresh only).
+  - Config logging: `logMissingSupabaseConfig` takes `SupabasePublicConfig` instead of reading `process.env` in auth package.
+  - Demo-account: use `serverEnv` / `runtimeEnvFlags` instead of raw `process.env`.
+- Verification: `bun run lint`, `bun run typecheck`, `bunx vitest run tests/unit/auth/` (38 tests pass). Full `bun run test:unit` has pre-existing CMS/script-verifier timeouts unrelated to auth.
+
 ## 2026-03-13
 
 - Date: 2026-03-13

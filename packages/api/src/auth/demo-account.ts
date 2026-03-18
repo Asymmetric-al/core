@@ -62,14 +62,14 @@ function parseCookieHeader(cookieHeader: string | null) {
 }
 
 function getDemoConfig() {
-  const password = process.env.DEMO_PASSWORD;
+  const password = serverEnv.DEMO_PASSWORD;
   const emails: Record<AppRole, string | undefined> = {
-    admin: process.env.DEMO_ADMIN_EMAIL,
-    missionary: process.env.DEMO_MISSIONARY_EMAIL,
-    donor: process.env.DEMO_DONOR_EMAIL,
-    delivery: process.env.DEMO_DELIVERY_EMAIL,
-    ticketing: process.env.DEMO_TICKETING_EMAIL,
-    machinery: process.env.DEMO_MACHINERY_EMAIL,
+    admin: serverEnv.DEMO_ADMIN_EMAIL,
+    missionary: serverEnv.DEMO_MISSIONARY_EMAIL,
+    donor: serverEnv.DEMO_DONOR_EMAIL,
+    delivery: serverEnv.DEMO_DELIVERY_EMAIL,
+    ticketing: serverEnv.DEMO_TICKETING_EMAIL,
+    machinery: serverEnv.DEMO_MACHINERY_EMAIL,
   };
 
   const availability: DemoAvailability = {
@@ -269,7 +269,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (process.env.NODE_ENV !== "production") {
+    if (runtimeEnvFlags.NODE_ENV !== "production") {
       console.info(`[demo-auth] demo login success role=${role}`);
     }
 

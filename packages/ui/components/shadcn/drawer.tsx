@@ -1,6 +1,6 @@
 "use client";
 
-import { Drawer as DrawerPrimitive } from "@base-ui/react/drawer";
+import { DrawerPreview as DrawerPrimitive } from "@base-ui/react/drawer";
 import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
 
@@ -24,7 +24,11 @@ function Drawer({
 }) {
   const resolvedSwipeDirection =
     swipeDirection ??
-    (direction ? LEGACY_DIRECTION_TO_SWIPE_DIRECTION[direction] : undefined);
+    (direction
+      ? LEGACY_DIRECTION_TO_SWIPE_DIRECTION[
+          direction as keyof typeof LEGACY_DIRECTION_TO_SWIPE_DIRECTION
+        ]
+      : undefined);
 
   return (
     <DrawerPrimitive.Root

@@ -105,9 +105,9 @@ export function LoginScreen({
 
     void (async () => {
       const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!active || !session) return;
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!active || !user) return;
       router.replace(targetPath);
       router.refresh();
     })();

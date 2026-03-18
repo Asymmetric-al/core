@@ -1,4 +1,7 @@
-import { getSupabasePublicConfig } from "@asym/database/supabase/config";
+import {
+  getSupabasePublicConfig,
+  type SupabasePublicConfig,
+} from "@asym/database/supabase/config";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -42,66 +45,33 @@ function withPathHeader(request: NextRequest, pathname: string) {
   });
 }
 
-function resolveRequestOrigin(request: NextRequest) {
-  const originHeader = request.headers.get("origin");
-  if (originHeader) {
-    try {
-      return new URL(originHeader).origin;
-    } catch {
-      // Ignore malformed origin headers.
-    }
-  }
-
-  const refererHeader = request.headers.get("referer");
-  if (refererHeader) {
-    try {
-      return new URL(refererHeader).origin;
-    } catch {
-      // Ignore malformed referer headers.
-    }
-  }
-
-  const forwardedProto = request.headers.get("x-forwarded-proto");
-  const forwardedHost = request.headers.get("x-forwarded-host");
-  const host = forwardedHost ?? request.headers.get("host");
-
-  if (host) {
-    const protocol =
-      forwardedProto ?? request.nextUrl.protocol.replace(":", "");
-    return `${protocol}://${host}`;
-  }
-
-  return request.nextUrl.origin;
-}
-
+/**
+ * Use only the request's nextUrl.origin for redirects to prevent open redirect.
+ * Do not trust Origin, Referer, or X-Forwarded-* headers for redirect targets.
+ */
 function buildRedirectUrl(
   request: NextRequest,
   path: string,
   next?: string | null,
 ) {
-  const url = new URL(path, resolveRequestOrigin(request));
+  const url = new URL(path, request.nextUrl.origin);
   if (next) {
     url.searchParams.set("next", next);
   }
   return url;
 }
 
-function logMissingSupabaseConfig(pathname: string) {
+function logMissingSupabaseConfig(
+  pathname: string,
+  config: SupabasePublicConfig,
+) {
   const missing: string[] = [];
-
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    missing.push("NEXT_PUBLIC_SUPABASE_URL");
-  }
-
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  ) {
+  if (!config.url) missing.push("NEXT_PUBLIC_SUPABASE_URL");
+  if (!config.key) {
     missing.push(
       "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY|NEXT_PUBLIC_SUPABASE_ANON_KEY",
     );
   }
-
   const missingHint =
     missing.length > 0 ? ` Missing: ${missing.join(", ")}.` : "";
   console.error(
@@ -115,8 +85,8 @@ function logMissingSupabaseConfig(pathname: string) {
  * Cookie/session implications:
  * - Uses Supabase SSR `getAll/setAll` bridging so refreshed auth cookies are
  *   written back to the response.
- * - Validates/refreshes JWT claims via `auth.getClaims()` on each matched
- *   protected request to maintain SSR session continuity.
+ * - Validates session via `auth.getUser()` on each matched protected request
+ *   so revoked sessions are rejected and cookies stay in sync.
  */
 export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
   const publicRoutes = options.publicRoutes ?? [];
@@ -132,7 +102,8 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       return withPathHeader(request, pathname);
     }
 
-    const { url, key } = getSupabasePublicConfig();
+    const config = getSupabasePublicConfig();
+    const { url, key } = config;
     const isAuthRoute = authRoutes.some((route) =>
       matchesRoutePrefix(pathname, route),
     );
@@ -143,7 +114,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
 
     if (!url || !key) {
       if (requiresAuthentication) {
-        logMissingSupabaseConfig(pathname);
+        logMissingSupabaseConfig(pathname, config);
         const next = safeNextParam(
           `${request.nextUrl.pathname}${request.nextUrl.search || ""}`,
         );
@@ -186,8 +157,10 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       },
     });
 
-    const { data: claimsResult } = await supabase.auth.getClaims();
-    const userId = claimsResult?.claims?.sub ?? null;
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    const userId = user?.id ?? null;
 
     if (isPublicRoute(pathname, publicRoutes) && !isAuthRoute) {
       return supabaseResponse;
