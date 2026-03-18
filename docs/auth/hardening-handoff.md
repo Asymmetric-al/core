@@ -38,7 +38,7 @@ This document captures where auth hardening currently stands, how it is wired, a
 
 - `/login` is shared-UI backed in all apps, with server-side session check + redirect away when authenticated.
 - Proxy middleware handles:
-  - cookie/session continuity (`getClaims()` path)
+  - cookie/session continuity (`getUser()` path)
   - protected-route redirect to `/login?next=...`
 - Server layouts enforce role checks and redirect mismatches to `/no-access`.
 
