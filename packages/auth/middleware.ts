@@ -1,38 +1,18 @@
+import {
+  getSupabasePublicConfig,
+  type SupabasePublicConfig,
+} from "@asym/database/supabase/config";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-import {
-  E2E_AUTH_COOKIE_NAME,
-  isE2EAuthBypassEnabled,
-  parseE2EAuthCookieValue,
-} from "./e2e-auth";
-import {
-  derivePrimaryRole,
-  hasAnyRole,
-  type AuthMembership,
-} from "./permissions";
+import { safeNextParam } from "./demo-login";
 
 import type { UserRole } from "@asym/database/types";
-
-const MEMBERSHIP_ROLES = new Set(["donor", "missionary", "staff"]);
-const STAFF_SUBROLES = new Set([
-  "finance",
-  "mobilizer",
-  "development",
-  "hr",
-  "member_care",
-]);
-
-type MembershipRow = {
-  tenant_id: string | null;
-  role: string | null;
-  staff_role: string | null;
-  is_active: boolean | null;
-};
 
 export interface AuthMiddlewareOptions {
   publicRoutes?: string[];
   authRoutes?: string[];
+  protectedRoutePrefixes?: string[];
   loginPath?: string;
   redirectAuthenticatedTo?: string;
   unauthorizedRedirectTo?: string;
@@ -43,259 +23,160 @@ export interface AuthMiddlewareOptions {
   ) => Promise<{ userId: string | null; role: UserRole | null }>;
 }
 
-function isRouteMatch(pathname: string, route: string) {
-  if (route === "/") {
-    return pathname === "/";
-  }
+const DEFAULT_AUTH_ROUTES = ["/login", "/register"] as const;
 
+function matchesRoutePrefix(pathname: string, route: string) {
   return pathname === route || pathname.startsWith(`${route}/`);
 }
 
-function createAuthRedirect(request: NextRequest, loginPath: string) {
-  const loginURL = request.nextUrl.clone();
-  loginURL.pathname = loginPath;
-  loginURL.search = "";
-
-  const targetPath = `${request.nextUrl.pathname}${request.nextUrl.search}`;
-  if (targetPath !== loginPath && targetPath !== `${loginPath}/`) {
-    loginURL.searchParams.set("next", targetPath);
-  }
-
-  return NextResponse.redirect(loginURL);
+function isPublicRoute(pathname: string, publicRoutes: string[]) {
+  return publicRoutes.some((route) => matchesRoutePrefix(pathname, route));
 }
 
-function createApiAuthError(status: number, message: string) {
-  return NextResponse.json({ error: message }, { status });
+function isProtectedRoute(pathname: string, prefixes: string[]) {
+  return prefixes.some((prefix) => matchesRoutePrefix(pathname, prefix));
 }
 
-function isApiRoute(pathname: string) {
-  return pathname === "/api" || pathname.startsWith("/api/");
-}
-
-function isAllowedResolvedRole(
-  userRole: UserRole | null,
-  allowedRoles: readonly UserRole[],
-) {
-  if (!userRole) {
-    return false;
-  }
-
-  return allowedRoles.some((allowedRole) => {
-    if (userRole === "super_admin") {
-      return true;
-    }
-
-    if (allowedRole === "admin" || allowedRole === "staff") {
-      return userRole === "admin" || userRole === "staff";
-    }
-
-    return userRole === allowedRole;
+function withPathHeader(request: NextRequest, pathname: string) {
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-asym-pathname", pathname);
+  return NextResponse.next({
+    request: { headers: requestHeaders },
   });
 }
 
-async function loadMembershipsForTenant(
-  supabase: ReturnType<typeof createServerClient>,
-  userId: string,
-  tenantId: string | null,
-): Promise<AuthMembership[]> {
-  if (!tenantId) {
-    return [];
+/**
+ * Use only the request's nextUrl.origin for redirects to prevent open redirect.
+ * Do not trust Origin, Referer, or X-Forwarded-* headers for redirect targets.
+ */
+function buildRedirectUrl(
+  request: NextRequest,
+  path: string,
+  next?: string | null,
+) {
+  const url = new URL(path, request.nextUrl.origin);
+  if (next) {
+    url.searchParams.set("next", next);
   }
-
-  const { data: rows } = await supabase
-    .schema("authz")
-    .from("memberships")
-    .select("tenant_id, role, staff_role, is_active")
-    .eq("user_id", userId)
-    .eq("tenant_id", tenantId)
-    .eq("is_active", true);
-
-  return ((rows ?? []) as MembershipRow[])
-    .filter(
-      (row): row is MembershipRow & { tenant_id: string; role: string } =>
-        typeof row.tenant_id === "string" &&
-        typeof row.role === "string" &&
-        MEMBERSHIP_ROLES.has(row.role),
-    )
-    .map((row) => ({
-      tenantId: row.tenant_id,
-      role: row.role as AuthMembership["role"],
-      staffRole:
-        typeof row.staff_role === "string" && STAFF_SUBROLES.has(row.staff_role)
-          ? (row.staff_role as NonNullable<AuthMembership["staffRole"]>)
-          : null,
-      isActive: row.is_active ?? true,
-    }));
+  return url;
 }
 
+function logMissingSupabaseConfig(
+  pathname: string,
+  config: SupabasePublicConfig,
+) {
+  const missing: string[] = [];
+  if (!config.url) missing.push("NEXT_PUBLIC_SUPABASE_URL");
+  if (!config.key) {
+    missing.push(
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY|NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    );
+  }
+  const missingHint =
+    missing.length > 0 ? ` Missing: ${missing.join(", ")}.` : "";
+  console.error(
+    `[auth] Supabase auth config missing in proxy.${missingHint} Failing closed for protected path "${pathname}".`,
+  );
+}
+
+/**
+ * Shared auth proxy middleware for all app surfaces.
+ *
+ * Cookie/session implications:
+ * - Uses Supabase SSR `getAll/setAll` bridging so refreshed auth cookies are
+ *   written back to the response.
+ * - Validates session via `auth.getUser()` on each matched protected request
+ *   so revoked sessions are rejected and cookies stay in sync.
+ */
 export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
   const publicRoutes = options.publicRoutes ?? [];
+  const authRoutes = options.authRoutes ?? [...DEFAULT_AUTH_ROUTES];
+  const protectedRoutePrefixes = options.protectedRoutePrefixes ?? ["/"];
   const loginPath = options.loginPath ?? "/login";
-  const authRoutes = options.authRoutes ?? [loginPath, "/register"];
-  const redirectAuthenticatedTo = options.redirectAuthenticatedTo ?? "/";
-  const unauthorizedRedirectTo =
-    options.unauthorizedRedirectTo ?? redirectAuthenticatedTo;
-  const allowApi = options.allowApi ?? false;
-  const allowedRoles = options.allowedRoles;
-  const resolveSession = options.resolveSession;
+  const allowApi = options.allowApi ?? true;
 
   return async function authMiddleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
-    const apiRoute = isApiRoute(pathname);
-    const isPublicRoute = publicRoutes.some((route) =>
-      isRouteMatch(pathname, route),
-    );
+
+    if (allowApi && pathname.startsWith("/api/")) {
+      return withPathHeader(request, pathname);
+    }
+
+    const config = getSupabasePublicConfig();
+    const { url, key } = config;
     const isAuthRoute = authRoutes.some((route) =>
-      isRouteMatch(pathname, route),
+      matchesRoutePrefix(pathname, route),
     );
-    const isProtectedRoute = !isPublicRoute && !isAuthRoute;
+    const isExplicitlyPublic =
+      isAuthRoute || isPublicRoute(pathname, publicRoutes);
+    const requiresAuthentication =
+      !isExplicitlyPublic && isProtectedRoute(pathname, protectedRoutePrefixes);
 
-    if (apiRoute && allowApi) {
-      return NextResponse.next({ request });
+    if (!url || !key) {
+      if (requiresAuthentication) {
+        logMissingSupabaseConfig(pathname, config);
+        const next = safeNextParam(
+          `${request.nextUrl.pathname}${request.nextUrl.search || ""}`,
+        );
+        const redirectUrl = buildRedirectUrl(request, loginPath, next);
+        redirectUrl.searchParams.set("error", "auth_misconfigured");
+        return NextResponse.redirect(redirectUrl);
+      }
+
+      return withPathHeader(request, pathname);
     }
 
-    let response = NextResponse.next({ request });
-    let userId: string | null = null;
-    let userRole: UserRole | null = null;
-    const roleSnapshot: {
-      profileRole: UserRole | null;
-      memberships: AuthMembership[];
-    } = {
-      profileRole: null,
-      memberships: [],
-    };
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-asym-pathname", pathname);
+    const requestWithHeaders = NextResponse.next({
+      request: { headers: requestHeaders },
+    });
+    const supabaseResponse = requestWithHeaders;
 
-    if (resolveSession) {
-      const session = await resolveSession(request);
-      userId = session.userId;
-      userRole = session.role;
-      roleSnapshot.profileRole = session.role;
-    } else {
-      const e2eSession = isE2EAuthBypassEnabled()
-        ? parseE2EAuthCookieValue(
-            request.cookies.get(E2E_AUTH_COOKIE_NAME)?.value,
-          )
-        : null;
+    const supabase = createServerClient(url, key, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(
+          cookiesToSet: {
+            name: string;
+            value: string;
+            options?: Record<string, unknown>;
+          }[],
+        ) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            request.cookies.set(name, value);
+            supabaseResponse.cookies.set(
+              name,
+              value,
+              options as Record<string, unknown>,
+            );
+          });
+        },
+      },
+    });
 
-      if (e2eSession) {
-        userId = e2eSession.userId;
-        userRole = e2eSession.role;
-        roleSnapshot.profileRole = e2eSession.role;
-      } else {
-        const supabaseURL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    const userId = user?.id ?? null;
 
-        if (!supabaseURL || !supabaseAnonKey) {
-          if (isProtectedRoute) {
-            if (apiRoute) {
-              return createApiAuthError(401, "Unauthorized");
-            }
-
-            return createAuthRedirect(request, loginPath);
-          }
-
-          return response;
-        }
-
-        const supabase = createServerClient(supabaseURL, supabaseAnonKey, {
-          cookies: {
-            getAll() {
-              return request.cookies.getAll();
-            },
-            setAll(
-              cookiesToSet: Array<{
-                name: string;
-                value: string;
-                options?: Record<string, unknown>;
-              }>,
-            ) {
-              cookiesToSet.forEach(({ name, value }) =>
-                request.cookies.set(name, value),
-              );
-              response = NextResponse.next({ request });
-              cookiesToSet.forEach(({ name, value, options }) =>
-                response.cookies.set(
-                  name,
-                  value,
-                  options as Record<string, unknown>,
-                ),
-              );
-            },
-          },
-        });
-
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        userId = user?.id ?? null;
-
-        if (userId && allowedRoles?.length) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("tenant_id, role")
-            .eq("user_id", userId)
-            .single();
-
-          roleSnapshot.profileRole =
-            typeof profile?.role === "string"
-              ? (profile.role as UserRole)
-              : null;
-          roleSnapshot.memberships = await loadMembershipsForTenant(
-            supabase,
-            userId,
-            typeof profile?.tenant_id === "string" ? profile.tenant_id : null,
-          );
-          userRole = derivePrimaryRole(roleSnapshot);
-        }
-      }
-    }
-
-    if (!userId) {
-      if (!isProtectedRoute) {
-        return response;
-      }
-
-      if (apiRoute) {
-        return createApiAuthError(401, "Unauthorized");
-      }
-
-      return createAuthRedirect(request, loginPath);
+    if (isPublicRoute(pathname, publicRoutes) && !isAuthRoute) {
+      return supabaseResponse;
     }
 
     if (isAuthRoute) {
-      if (
-        allowedRoles?.length &&
-        (!userRole ||
-          (!hasAnyRole(roleSnapshot, allowedRoles) &&
-            !isAllowedResolvedRole(userRole, allowedRoles)))
-      ) {
-        return response;
-      }
-
-      const url = request.nextUrl.clone();
-      url.pathname = redirectAuthenticatedTo;
-      url.search = "";
-      return NextResponse.redirect(url);
+      return supabaseResponse;
     }
 
-    if (isProtectedRoute && allowedRoles?.length) {
-      if (
-        !userRole ||
-        (!hasAnyRole(roleSnapshot, allowedRoles) &&
-          !isAllowedResolvedRole(userRole, allowedRoles))
-      ) {
-        if (apiRoute) {
-          return createApiAuthError(403, "Forbidden");
-        }
-
-        const url = request.nextUrl.clone();
-        url.pathname = unauthorizedRedirectTo;
-        url.search = "";
-        return NextResponse.redirect(url);
-      }
+    if (isProtectedRoute(pathname, protectedRoutePrefixes) && !userId) {
+      const next = safeNextParam(
+        `${request.nextUrl.pathname}${request.nextUrl.search || ""}`,
+      );
+      return NextResponse.redirect(buildRedirectUrl(request, loginPath, next));
     }
 
-    return response;
+    return supabaseResponse;
   };
 }

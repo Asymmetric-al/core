@@ -1,5 +1,6 @@
 "use client";
 
+import { signOutOnServer } from "@asym/auth/client-signout";
 import { createBrowserClient } from "@asym/database/supabase";
 import { useState, useEffect } from "react";
 
@@ -62,8 +63,17 @@ export function useAuth() {
   }, []);
 
   const signOut = async () => {
+    const serverSignOut = await signOutOnServer();
+    if (!serverSignOut.ok) {
+      window.alert(
+        serverSignOut.message ?? "Unable to sign out. Please try again.",
+      );
+    }
+
     const supabase = createBrowserClient();
-    await supabase.auth.signOut();
+    void supabase.auth.signOut().catch((error) => {
+      console.warn("[auth] browser signout cleanup failed", error);
+    });
     window.location.href = "/login";
   };
 

@@ -1,4 +1,4 @@
-import { serverEnv } from "@asym/env";
+import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
@@ -50,31 +50,40 @@ export interface AuthenticatedContext extends AuthContext {
 
 export async function getAuthContext(): Promise<AuthContext> {
   const cookieStore = await cookies();
+  const { url, key } = getSupabasePublicConfig();
 
-  const supabase = createServerClient(
-    serverEnv.NEXT_PUBLIC_SUPABASE_URL,
-    serverEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(
-          cookiesToSet: Array<{
-            name: string;
-            value: string;
-            options?: Parameters<typeof cookieStore.set>[2];
-          }>,
-        ) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            );
-          } catch {}
-        },
+  if (!url || !key) {
+    return {
+      userId: null,
+      tenantId: null,
+      role: null,
+      profileRole: null,
+      memberships: [],
+      profileId: null,
+      isAuthenticated: false,
+    };
+  }
+
+  const supabase = createServerClient(url, key, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(
+        cookiesToSet: Array<{
+          name: string;
+          value: string;
+          options?: Parameters<typeof cookieStore.set>[2];
+        }>,
+      ) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options),
+          );
+        } catch {}
       },
     },
-  );
+  });
 
   const {
     data: { user },

@@ -1,131 +1,52 @@
-import { serverEnv } from "@asym/env";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
+import { getSupabasePublicConfig } from "./config";
 
-  const supabase = createServerClient(
-    serverEnv.NEXT_PUBLIC_SUPABASE_URL,
-    serverEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(
-          cookiesToSet: {
-            name: string;
-            value: string;
-            options?: Record<string, unknown>;
-          }[],
-        ) {
-          try {
-            cookiesToSet.forEach(({ name, value }) =>
-              request.cookies.set(name, value),
+/**
+ * @deprecated This helper is legacy-only.
+ *
+ * Auth protection, redirect decisions, and path/subdomain routing must live in:
+ * - app-level `proxy.ts` for app-specific rewrites/normalization
+ * - `@asym/auth/middleware` (`createAuthMiddleware`) for shared auth gating
+ *
+ * Keep this function cookie-refresh only to avoid creating a second auth source
+ * of truth.
+ */
+export async function updateSession(request: NextRequest) {
+  const { url, key } = getSupabasePublicConfig();
+  if (!url || !key) {
+    return NextResponse.next({ request });
+  }
+
+  const supabaseResponse = NextResponse.next({ request });
+
+  const supabase = createServerClient(url, key, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(
+        cookiesToSet: {
+          name: string;
+          value: string;
+          options?: Record<string, unknown>;
+        }[],
+      ) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            request.cookies.set(name, value);
+            supabaseResponse.cookies.set(
+              name,
+              value,
+              options as Record<string, unknown>,
             );
-            supabaseResponse = NextResponse.next({ request });
-            cookiesToSet.forEach(({ name, value, options }) =>
-              supabaseResponse.cookies.set(
-                name,
-                value,
-                options as Record<string, unknown>,
-              ),
-            );
-          } catch {}
-        },
+          });
+        } catch {}
       },
     },
-  );
+  });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const pathname = request.nextUrl.pathname;
-
-  // 1. Normalize Aliases (Demo Paths)
-  let targetPathname = pathname;
-  if (pathname === "/my" || pathname.startsWith("/my/")) {
-    targetPathname = pathname.replace("/my", "") || "/";
-  } else if (pathname === "/admin" || pathname.startsWith("/admin/")) {
-    targetPathname = pathname.replace("/admin", "/mc");
-    if (targetPathname === "/mc/") targetPathname = "/mc";
-  } else if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
-    targetPathname = pathname.replace("/dashboard", "/donor-dashboard");
-    if (targetPathname === "/donor-dashboard/")
-      targetPathname = "/donor-dashboard";
-  }
-
-  // 2. Subdomain Routing Logic (Conceptual)
-  const hostname = request.headers.get("host") || "";
-  const mainDomain = serverEnv.NEXT_PUBLIC_MAIN_DOMAIN || "localhost:3000";
-  const subdomain = hostname.split(".")[0];
-
-  if (subdomain === "my" && hostname !== mainDomain) {
-    targetPathname = targetPathname === "" ? "/" : targetPathname;
-  }
-
-  // 3. Auth Protection
-  // Allow these routes without auth
-  const publicRoutes = [
-    "/",
-    "/login",
-    "/register",
-    "/auth/callback",
-    "/api/auth/demo-account",
-    "/about",
-    "/faq",
-    "/financials",
-    "/ways-to-give",
-    "/workers",
-    "/checkout",
-    "/sign",
-    "/sitemap.xml",
-    "/robots.txt",
-  ];
-  const isPublicRoute = publicRoutes.some(
-    (route) =>
-      targetPathname === route ||
-      targetPathname.startsWith(route + "/") ||
-      targetPathname.startsWith("/api/"),
-  );
-
-  if (!user && !isPublicRoute) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    // If it's a demo alias, we might want to remember where they were going
-    if (targetPathname !== pathname) {
-      url.searchParams.set("next", pathname);
-    }
-    return NextResponse.redirect(url);
-  }
-
-  // 4. Redirect logged-in users away from login/register
-  if (user && (targetPathname === "/login" || targetPathname === "/register")) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("user_id", user.id)
-      .single();
-
-    const url = request.nextUrl.clone();
-    if (profile?.role === "admin" || profile?.role === "staff") {
-      url.pathname = "/mc";
-    } else if (profile?.role === "missionary") {
-      url.pathname = "/";
-    } else {
-      url.pathname = "/donor-dashboard";
-    }
-    return NextResponse.redirect(url);
-  }
-
-  // 5. Apply Rewrite if target differs from current pathname
-  if (targetPathname !== pathname) {
-    const url = request.nextUrl.clone();
-    url.pathname = targetPathname;
-    return NextResponse.rewrite(url);
-  }
-
+  await supabase.auth.getSession();
   return supabaseResponse;
 }

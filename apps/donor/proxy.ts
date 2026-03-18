@@ -8,6 +8,7 @@ export const proxy = createAuthMiddleware({
     "/faq",
     "/financials",
     "/register",
+    "/forgot-password",
     "/ways-to-give",
     "/workers",
     "/checkout",
@@ -15,7 +16,9 @@ export const proxy = createAuthMiddleware({
     "/api/auth/demo-account",
     "/sitemap.xml",
     "/robots.txt",
+    "/no-access",
   ],
+  protectedRoutePrefixes: ["/donor-dashboard"],
   loginPath: "/login",
   redirectAuthenticatedTo: "/donor-dashboard",
   unauthorizedRedirectTo: "/",
@@ -24,10 +27,6 @@ export const proxy = createAuthMiddleware({
 
 export const config = {
   matcher: [
-    "/auth/callback",
-    "/login",
-    "/register",
-    "/donor-dashboard/:path*",
-    "/api/:path*",
+    "/((?!_next/static|_next/image|_next/data|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webmanifest|json|txt|xml)$).*)",
   ],
 };

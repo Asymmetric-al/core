@@ -69,7 +69,11 @@ export const env = createEnv({
     DEMO_ADMIN_EMAIL: z.string().email().optional(),
     DEMO_MISSIONARY_EMAIL: z.string().email().optional(),
     DEMO_DONOR_EMAIL: z.string().email().optional(),
+    DEMO_DELIVERY_EMAIL: z.string().email().optional(),
+    DEMO_TICKETING_EMAIL: z.string().email().optional(),
+    DEMO_MACHINERY_EMAIL: z.string().email().optional(),
     DEMO_PASSWORD: z.string().optional(),
+    DEMO_ONLY_LOGIN: optionalBoolean,
     CRON_SECRET: z.string().optional(),
     STRIPE_SECRET_KEY: requireInProtectedDeployments(
       "STRIPE_SECRET_KEY",
@@ -120,7 +124,8 @@ export const env = createEnv({
   },
   client: {
     NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).optional(),
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(1).optional(),
     NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
     NEXT_PUBLIC_APP_URL: z.string().url().optional(),
     NEXT_PUBLIC_MAIN_DOMAIN: z.string().optional(),
@@ -155,12 +160,18 @@ export const env = createEnv({
     VERCEL_GIT_COMMIT_SHA: process.env.VERCEL_GIT_COMMIT_SHA,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
     SUPABASE_DB_URL: process.env.SUPABASE_DB_URL,
     DEMO_ADMIN_EMAIL: process.env.DEMO_ADMIN_EMAIL,
     DEMO_MISSIONARY_EMAIL: process.env.DEMO_MISSIONARY_EMAIL,
     DEMO_DONOR_EMAIL: process.env.DEMO_DONOR_EMAIL,
+    DEMO_DELIVERY_EMAIL: process.env.DEMO_DELIVERY_EMAIL,
+    DEMO_TICKETING_EMAIL: process.env.DEMO_TICKETING_EMAIL,
+    DEMO_MACHINERY_EMAIL: process.env.DEMO_MACHINERY_EMAIL,
     DEMO_PASSWORD: process.env.DEMO_PASSWORD,
+    DEMO_ONLY_LOGIN: process.env.DEMO_ONLY_LOGIN,
     CRON_SECRET: process.env.CRON_SECRET,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
@@ -216,6 +227,16 @@ export const env = createEnv({
     process.env.SKIP_ENV_VALIDATION === "true",
   emptyStringAsUndefined: true,
 });
+
+if (
+  !process.env.SKIP_ENV_VALIDATION &&
+  !env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
+  !env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+) {
+  throw new Error(
+    "Missing Supabase public key. Set NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY.",
+  );
+}
 
 type ClientEnvKey = Extract<keyof typeof env, `NEXT_PUBLIC_${string}`>;
 

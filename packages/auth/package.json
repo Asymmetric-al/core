@@ -8,8 +8,11 @@
     "./context": "./context.ts",
     "./permissions": "./permissions.ts",
     "./use-auth": "./use-auth.ts",
+    "./client-signout": "./client-signout.ts",
     "./middleware": "./middleware.ts",
-    "./constants": "./constants.ts"
+    "./constants": "./constants.ts",
+    "./roles": "./roles.ts",
+    "./demo-login": "./demo-login.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

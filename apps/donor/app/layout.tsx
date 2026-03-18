@@ -1,6 +1,7 @@
 import "@asym/env";
 import { siteConfig } from "@asym/config/site";
 import { QueryProvider } from "@asym/database/providers";
+import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { MotionProvider } from "@asym/lib/motion";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { Inter, Geist_Mono, Syne } from "next/font/google";
@@ -35,6 +36,21 @@ const geistMono = Geist_Mono({
   display: "swap",
   preload: false,
 });
+
+function getSupabaseOrigin() {
+  const { url } = getSupabasePublicConfig();
+  if (!url) {
+    return null;
+  }
+
+  try {
+    return new URL(url).origin;
+  } catch {
+    return null;
+  }
+}
+
+const supabaseOrigin = getSupabaseOrigin();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -118,14 +134,12 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://images.unsplash.com" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
-        <link
-          rel="preconnect"
-          href="https://kzeybagjclwsxpkjshqa.supabase.co"
-        />
-        <link
-          rel="dns-prefetch"
-          href="https://kzeybagjclwsxpkjshqa.supabase.co"
-        />
+        {supabaseOrigin ? (
+          <>
+            <link rel="preconnect" href={supabaseOrigin} />
+            <link rel="dns-prefetch" href={supabaseOrigin} />
+          </>
+        ) : null}
         <link
           rel="preconnect"
           href="https://fonts.gstatic.com"

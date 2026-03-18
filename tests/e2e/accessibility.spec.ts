@@ -48,9 +48,7 @@ test.describe("Accessibility Tests", () => {
   test("Login page should be accessible", async ({ page }) => {
     await gotoStableRoute(page, "/login");
     await page.waitForLoadState("networkidle");
-    await expect(
-      page.locator('[data-slot="card-title"]', { hasText: "Sign In" }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Sign In" })).toBeVisible();
 
     const accessibilityScanResults = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa"])
@@ -67,7 +65,9 @@ test.describe("Accessibility Tests", () => {
     await gotoStableRoute(page, "/register");
     await page.waitForLoadState("networkidle");
     await expect(
-      page.locator('[data-slot="card-title"]', { hasText: "Create Account" }),
+      page.getByRole("heading", {
+        name: /Create Account|Create Donor Account|Registration unavailable/i,
+      }),
     ).toBeVisible();
 
     const accessibilityScanResults = await new AxeBuilder({ page })
