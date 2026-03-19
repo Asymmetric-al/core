@@ -39,7 +39,7 @@ export default async function HomePage() {
             {latestUpdates.map((update) => (
               <article
                 key={String(update.id)}
-                className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md max-[prefers-reduced-motion:reduce]:hover:translate-y-0"
+                className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md"
               >
                 <p className="text-xs font-medium text-zinc-500">
                   {typeof update.publishedAt === "string"

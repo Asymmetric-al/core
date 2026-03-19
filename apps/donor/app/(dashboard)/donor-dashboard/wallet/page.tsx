@@ -643,7 +643,7 @@ function ACHNudgeBanner({
             </button>
           </div>
           <div className="flex gap-5 items-start relative z-10">
-            <div className="h-12 w-12 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-md shrink-0 border border-emerald-50 group-hover:scale-[1.02] transition-transform duration-300 ease-out max-[prefers-reduced-motion:reduce]:group-hover:scale-100">
+            <div className="h-12 w-12 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-md shrink-0 border border-emerald-50 group-hover:scale-[1.02] transition-transform duration-300 ease-out">
               <Landmark className="h-6 w-6" />
             </div>
             <div>

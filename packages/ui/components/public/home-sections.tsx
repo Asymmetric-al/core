@@ -290,7 +290,7 @@ export function HomeStats() {
             </p>
           </article>
 
-          <article className="md:col-span-4 group bg-white p-8 md:p-10 rounded-2xl hover:scale-[1.02] transition-transform duration-300 ease-out max-[prefers-reduced-motion:reduce]:hover:scale-100 flex flex-col justify-between text-slate-950">
+          <article className="md:col-span-4 group bg-white p-8 md:p-10 rounded-2xl hover:scale-[1.02] transition-transform duration-300 ease-out flex flex-col justify-between text-slate-950">
             <Users className="h-8 w-8 mb-8" aria-hidden="true" />
             <div>
               <p className="text-6xl md:text-7xl font-bold tracking-tighter font-syne mb-4">
@@ -399,7 +399,7 @@ export function HomeFeatured() {
                     src={item.img}
                     alt={`${item.title} project - ${item.loc}`}
                     fill
-                    className="object-cover saturate-[0.8] contrast-[1.1] transition-transform duration-500 ease-out group-hover:scale-[1.02] max-[prefers-reduced-motion:reduce]:group-hover:scale-100"
+                    className="object-cover saturate-[0.8] contrast-[1.1] transition-transform duration-500 ease-out group-hover:scale-[1.02]"
                     sizes="(max-width: 768px) 100vw, 33vw"
                     loading="lazy"
                     quality={75}
@@ -484,7 +484,7 @@ export function HomeCTA() {
         <div className="flex flex-col md:flex-row gap-4 justify-center">
           <Button
             size="lg"
-            className="h-14 px-10 rounded-full bg-white text-slate-950 hover:bg-zinc-200 hover:text-slate-900 text-lg font-bold font-syne shadow-lg transition-transform duration-200 ease-out hover:scale-[1.02] active:scale-[0.98] max-[prefers-reduced-motion:reduce]:hover:scale-100 max-[prefers-reduced-motion:reduce]:active:scale-100"
+            className="h-14 px-10 rounded-full bg-white text-slate-950 hover:bg-zinc-200 hover:text-slate-900 text-lg font-bold font-syne shadow-lg transition-transform duration-200 ease-out hover:scale-[1.02] active:scale-[0.98]"
             asChild
           >
             <Link href="/workers">Initiate Support</Link>

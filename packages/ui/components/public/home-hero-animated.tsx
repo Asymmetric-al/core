@@ -79,7 +79,7 @@ export function HomeHeroAnimated({
             >
               <Button
                 size="lg"
-                className="bg-white text-slate-950 hover:bg-zinc-200 hover:text-slate-900 border-none h-12 px-8 text-sm font-bold font-syne rounded-full shadow-lg transition-transform duration-200 ease-out hover:scale-[1.02] active:scale-[0.98] max-[prefers-reduced-motion:reduce]:hover:scale-100 max-[prefers-reduced-motion:reduce]:active:scale-100 group"
+                className="bg-white text-slate-950 hover:bg-zinc-200 hover:text-slate-900 border-none h-12 px-8 text-sm font-bold font-syne rounded-full shadow-lg transition-transform duration-200 ease-out hover:scale-[1.02] active:scale-[0.98] group"
                 asChild
               >
                 <Link href="/workers">
@@ -138,7 +138,7 @@ export function HomeHeroAnimated({
           <span className="sr-only">Scroll to explore more content</span>
           <span aria-hidden="true">Explore</span>
           <div
-            className="w-px h-16 bg-gradient-to-b from-white/0 via-white/40 to-white/0 animate-pulse max-[prefers-reduced-motion:reduce]:animate-none"
+            className="w-px h-16 bg-gradient-to-b from-white/0 via-white/40 to-white/0 animate-pulse"
             aria-hidden="true"
           />
         </div>

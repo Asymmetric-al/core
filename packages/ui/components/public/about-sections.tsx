@@ -113,7 +113,7 @@ export function AboutBelief() {
                   <Image
                     src="https://images.unsplash.com/photo-1509099836639-18ba1795216d?q=80&w=2000"
                     fill
-                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02] max-[prefers-reduced-motion:reduce]:group-hover:scale-100"
+                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
                     alt="Community members gathering together"
                     sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
                     loading="eager"
@@ -201,7 +201,7 @@ export function AboutValues() {
                   delay: reduceMotion ? 0 : idx * STAGGER_MEDIUM,
                 }}
               >
-                <Card className="group border-none bg-white rounded-2xl shadow-lg hover:-translate-y-1 transition-[transform,box-shadow] duration-300 ease-out h-full max-[prefers-reduced-motion:reduce]:hover:translate-y-0">
+                <Card className="group border-none bg-white rounded-2xl shadow-lg hover:-translate-y-1 transition-[transform,box-shadow] duration-300 ease-out h-full">
                   <CardContent className="pt-10 pb-8 px-8 flex flex-col items-center text-center space-y-6 h-full">
                     <div
                       className={cn(
@@ -293,7 +293,7 @@ export function AboutLeadership() {
                     src={person.img}
                     alt={`${person.name}, ${person.role} at GiveHope`}
                     fill
-                    className="object-cover saturate-0 group-hover:saturate-[0.8] contrast-[1.1] transition-all duration-500 ease-out group-hover:scale-[1.02] max-[prefers-reduced-motion:reduce]:group-hover:scale-100"
+                    className="object-cover saturate-0 group-hover:saturate-[0.8] contrast-[1.1] transition-all duration-500 ease-out group-hover:scale-[1.02]"
                     sizes="(max-width: 768px) 100vw, 25vw"
                   />
                   <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/0 transition-colors duration-300 ease-out" />
@@ -340,7 +340,7 @@ export function AboutCTA() {
             <div className="flex flex-col md:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="h-14 px-10 rounded-full bg-white text-slate-950 hover:bg-emerald-400 hover:text-emerald-950 text-lg font-bold font-syne shadow-xl transition-transform duration-200 ease-out hover:scale-[1.02] active:scale-[0.98] max-[prefers-reduced-motion:reduce]:hover:scale-100 max-[prefers-reduced-motion:reduce]:active:scale-100"
+                className="h-14 px-10 rounded-full bg-white text-slate-950 hover:bg-emerald-400 hover:text-emerald-950 text-lg font-bold font-syne shadow-xl transition-transform duration-200 ease-out hover:scale-[1.02] active:scale-[0.98]"
                 asChild
               >
                 <Link href="/workers">View Directory</Link>

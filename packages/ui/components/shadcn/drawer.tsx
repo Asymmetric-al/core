@@ -1,12 +1,12 @@
 "use client";
 
 import * as DrawerPrimitiveModule from "@base-ui/react/drawer";
-
-const DrawerPrimitive = DrawerPrimitiveModule.Drawer;
 import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
+
+const DrawerPrimitive = DrawerPrimitiveModule.Drawer;
 
 type LegacyDrawerDirection = "top" | "bottom" | "left" | "right";
 
