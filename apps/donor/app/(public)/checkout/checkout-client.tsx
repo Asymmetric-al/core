@@ -1020,7 +1020,7 @@ function PaymentStep({
                 animate={{ opacity: 1, scale: 1 }}
                 className="flex items-center justify-center h-full min-h-[300px]"
               >
-                <button className="h-20 px-12 rounded-full bg-black text-white font-bold text-2xl flex items-center gap-4 hover:scale-105 transition-all shadow-2xl">
+                <button className="h-20 px-12 rounded-full bg-black text-white font-bold text-2xl flex items-center gap-4 hover:scale-[1.02] transition-all shadow-2xl">
                   <Wallet className="h-8 w-8" aria-hidden="true" /> Pay with
                   Apple Pay
                 </button>

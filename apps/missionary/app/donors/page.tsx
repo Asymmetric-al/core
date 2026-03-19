@@ -798,7 +798,7 @@ function DonorTasks({
                     transition={{ delay: i * 0.03 }}
                     className="flex items-start gap-3 p-4 border border-zinc-100 rounded-xl bg-white hover:border-zinc-200 transition-all group"
                   >
-                    <motion.div whileTap={{ scale: 0.9 }} className="mt-0.5">
+                    <motion.div whileTap={{ scale: 0.97 }} className="mt-0.5">
                       <Checkbox
                         checked={false}
                         onCheckedChange={() => handleComplete(task)}
@@ -907,7 +907,7 @@ function DonorTasks({
                     transition={{ delay: i * 0.03 }}
                     className="flex items-start gap-3 p-4 border border-transparent rounded-xl bg-zinc-50/50 group"
                   >
-                    <motion.div whileTap={{ scale: 0.9 }} className="mt-0.5">
+                    <motion.div whileTap={{ scale: 0.97 }} className="mt-0.5">
                       <Checkbox
                         checked={true}
                         onCheckedChange={() => handleComplete(task)}
@@ -1775,8 +1775,8 @@ function useDonorsPageLayout() {
                     ))}
                     <motion.button
                       layout
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={clearAllFilters}
                       className="text-[9px] font-black uppercase tracking-widest text-rose-500 hover:text-rose-700 px-2"
                     >
@@ -2118,8 +2118,8 @@ function useDonorsPageLayout() {
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
                         <motion.div
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
                         >
                           <Button
                             variant="ghost"
@@ -2414,8 +2414,8 @@ function useDonorsPageLayout() {
                         ))}
                       </AnimatePresence>
                       <motion.div
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                       >
                         <Button
                           variant="ghost"
@@ -2502,8 +2502,8 @@ function useDonorsPageLayout() {
                                   ].map(({ type, icon: Icon, bg, hidden }) => (
                                     <motion.div
                                       key={type}
-                                      whileHover={{ scale: 1.05 }}
-                                      whileTap={{ scale: 0.95 }}
+                                      whileHover={{ scale: 1.02 }}
+                                      whileTap={{ scale: 0.98 }}
                                     >
                                       <Button
                                         variant="ghost"
@@ -2788,7 +2788,7 @@ function useDonorsPageLayout() {
                                     {item.value && (
                                       <motion.div
                                         whileHover={{ scale: 1.1 }}
-                                        whileTap={{ scale: 0.9 }}
+                                        whileTap={{ scale: 0.97 }}
                                       >
                                         <Button
                                           variant="ghost"
@@ -2831,7 +2831,7 @@ function useDonorsPageLayout() {
                                     </div>
                                     <motion.div
                                       whileHover={{ scale: 1.1 }}
-                                      whileTap={{ scale: 0.9 }}
+                                      whileTap={{ scale: 0.97 }}
                                     >
                                       <Button
                                         variant="ghost"
@@ -2906,7 +2906,7 @@ function useDonorsPageLayout() {
                                     {selectedDonor.address?.street && (
                                       <motion.div
                                         whileHover={{ scale: 1.1 }}
-                                        whileTap={{ scale: 0.9 }}
+                                        whileTap={{ scale: 0.97 }}
                                       >
                                         <Button
                                           variant="ghost"
@@ -3539,8 +3539,8 @@ function useDonorsPageLayout() {
                   key={tag.id}
                   variants={fadeInUp}
                   transition={{ delay: i * 0.02 }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => toggleTag(tag.id)}
                   className={cn(
                     "px-3 py-1.5 rounded-full text-xs font-bold border transition-all",

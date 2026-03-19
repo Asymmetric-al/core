@@ -17,7 +17,7 @@
 
 ## Core Philosophy
 
-**Animation should be invisible.** When done right, users don't notice animation — they notice that the interface feels *good*. The moment someone says "nice animation," you've probably overdone it.
+**Animation should be invisible.** When done right, users don't notice animation — they notice that the interface feels _good_. The moment someone says "nice animation," you've probably overdone it.
 
 > "The best animations are the ones you don't notice." — Emil Kowalski
 
@@ -123,7 +123,9 @@
 
 ```css
 .element {
-  transition: transform 200ms ease-out, opacity 200ms ease-out;
+  transition:
+    transform 200ms ease-out,
+    opacity 200ms ease-out;
 }
 
 /* Hover: instant on, fade off */
@@ -169,19 +171,33 @@
 ### Stagger Pattern
 
 ```css
-.item { animation: fadeInUp 200ms ease-out backwards; }
-.item:nth-child(1) { animation-delay: 0ms; }
-.item:nth-child(2) { animation-delay: 40ms; }
-.item:nth-child(3) { animation-delay: 80ms; }
-.item:nth-child(4) { animation-delay: 120ms; }
-.item:nth-child(5) { animation-delay: 160ms; }
+.item {
+  animation: fadeInUp 200ms ease-out backwards;
+}
+.item:nth-child(1) {
+  animation-delay: 0ms;
+}
+.item:nth-child(2) {
+  animation-delay: 40ms;
+}
+.item:nth-child(3) {
+  animation-delay: 80ms;
+}
+.item:nth-child(4) {
+  animation-delay: 120ms;
+}
+.item:nth-child(5) {
+  animation-delay: 160ms;
+}
 ```
 
 ### Reduced Motion
 
 ```css
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -222,7 +238,7 @@
     visible: { transition: { staggerChildren: 0.04 } },
   }}
 >
-  {items.map(item => (
+  {items.map((item) => (
     <motion.li
       key={item.id}
       variants={{
@@ -290,6 +306,11 @@
 - [ ] Would a user notice if you removed it? (If yes, reconsider)
 - [ ] Does it work on a $200 Android phone?
 
+## Shared implementation (this monorepo)
+
+- **`@asym/lib/motion-presets`** — canonical durations, easings, stagger steps, `SCALE_ENTRANCE` (0.96), and helpers (`propsHeroEntrance`, `propsFadeRiseInView`, `propsScaleFadeInView`) that respect `useReducedMotion()`. Prefer importing these in client components next to `@asym/lib/motion` or `motion/react`.
+- **`@asym/lib/motion`** — re-exports `useReducedMotion` for LazyMotion trees.
+
 ## Common mistakes / pitfalls
 
 - Linear easing on interactive UI
@@ -300,4 +321,4 @@
 
 ---
 
-*"Animation is not about moving things. It's about not making users wait."* — Emil Kowalski
+_"Animation is not about moving things. It's about not making users wait."_ — Emil Kowalski

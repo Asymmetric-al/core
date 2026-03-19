@@ -1,7 +1,16 @@
 "use client";
 
+import {
+  DURATION_STANDARD,
+  EASE_OUT_SOFT,
+  propsFadeRiseInView,
+  propsHeroEntrance,
+  propsScaleFadeInView,
+  STAGGER_MEDIUM,
+  STAGGER_TIGHT,
+} from "@asym/lib/motion-presets";
 import { Target, Users, Shield, Heart, Globe, Sparkles } from "lucide-react";
-import { LazyMotion, domAnimation, m } from "motion/react";
+import { LazyMotion, domAnimation, m, useReducedMotion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -9,14 +18,9 @@ import { Button } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { cn } from "@asym/ui/lib/utils";
 
-const fadeInUp = {
-  initial: { opacity: 0, y: 40 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true },
-  transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as const },
-};
-
 export function AboutHero() {
+  const reduceMotion = useReducedMotion();
+
   return (
     <LazyMotion features={domAnimation}>
       <section className="relative pt-48 pb-64 overflow-hidden isolate bg-slate-950">
@@ -27,31 +31,35 @@ export function AboutHero() {
         </div>
 
         <div className="container mx-auto px-6 relative z-10">
-          <m.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            className="max-w-6xl space-y-12"
-          >
-            <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-white/60 text-[10px] font-black uppercase tracking-[0.4em] backdrop-blur-xl">
-              <Sparkles className="w-4 h-4 text-amber-500" /> The Asymmetric
-              Method
-            </div>
+          <div className="max-w-6xl space-y-12">
+            <m.div {...propsHeroEntrance(reduceMotion, 0)}>
+              <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-white/60 text-[10px] font-black uppercase tracking-[0.4em] backdrop-blur-xl">
+                <Sparkles className="w-4 h-4 text-amber-500" /> The Asymmetric
+                Method
+              </div>
+            </m.div>
 
-            <h1 className="text-6xl md:text-[10rem] font-bold tracking-tighter text-white leading-[0.85] font-syne text-balance">
-              Engineered <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-white/20">
-                Restoration.
-              </span>
-            </h1>
+            <m.div {...propsHeroEntrance(reduceMotion, STAGGER_TIGHT)}>
+              <h1 className="text-6xl md:text-[10rem] font-bold tracking-tighter text-white leading-[0.85] font-syne text-balance">
+                Engineered <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-white/20">
+                  Restoration.
+                </span>
+              </h1>
+            </m.div>
 
-            <p className="text-2xl md:text-3xl text-slate-400 max-w-3xl font-light leading-relaxed tracking-tight text-balance">
-              Geography should not dictate destiny. We build the infrastructure
-              that connects{" "}
-              <span className="text-white font-medium">global capital</span> to{" "}
-              <span className="text-white font-medium">frontline courage.</span>
-            </p>
-          </m.div>
+            <m.div {...propsHeroEntrance(reduceMotion, STAGGER_TIGHT * 2)}>
+              <p className="text-2xl md:text-3xl text-slate-400 max-w-3xl font-light leading-relaxed tracking-tight text-balance">
+                Geography should not dictate destiny. We build the
+                infrastructure that connects{" "}
+                <span className="text-white font-medium">global capital</span>{" "}
+                to{" "}
+                <span className="text-white font-medium">
+                  frontline courage.
+                </span>
+              </p>
+            </m.div>
+          </div>
         </div>
       </section>
     </LazyMotion>
@@ -59,12 +67,17 @@ export function AboutHero() {
 }
 
 export function AboutBelief() {
+  const reduceMotion = useReducedMotion();
+
   return (
     <LazyMotion features={domAnimation}>
       <section className="py-40 bg-white relative overflow-hidden">
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-32 items-center">
-            <m.div {...fadeInUp} className="space-y-12">
+            <m.div
+              {...propsFadeRiseInView(reduceMotion, { y: 12 })}
+              className="space-y-12"
+            >
               <div className="space-y-6">
                 <span className="text-emerald-600 font-black tracking-[0.4em] uppercase text-xs">
                   Our Thesis
@@ -86,7 +99,7 @@ export function AboutBelief() {
               <div className="pt-8">
                 <Button
                   size="lg"
-                  className="h-14 px-10 rounded-full bg-slate-950 text-white hover:bg-emerald-500 transition-all font-bold font-syne text-xs uppercase tracking-widest"
+                  className="h-14 px-10 rounded-full bg-slate-950 text-white hover:bg-emerald-500 transition-colors duration-200 ease-out font-bold font-syne text-xs uppercase tracking-widest"
                   asChild
                 >
                   <Link href="/workers">Explore the Frontlines</Link>
@@ -94,19 +107,13 @@ export function AboutBelief() {
               </div>
             </m.div>
 
-            <m.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-              className="relative"
-            >
+            <m.div {...propsScaleFadeInView(reduceMotion)} className="relative">
               <div className="aspect-square bg-slate-50 rounded-3xl p-8 flex items-center justify-center border border-slate-100 shadow-xl overflow-hidden relative group">
-                <div className="absolute inset-0 opacity-20 pointer-events-none grayscale group-hover:grayscale-0 transition-all duration-700">
+                <div className="absolute inset-0 opacity-20 pointer-events-none grayscale group-hover:grayscale-0 transition-all duration-500 ease-out">
                   <Image
                     src="https://images.unsplash.com/photo-1509099836639-18ba1795216d?q=80&w=2000"
                     fill
-                    className="object-cover"
+                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02] max-[prefers-reduced-motion:reduce]:group-hover:scale-100"
                     alt="Community members gathering together"
                     sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
                     loading="eager"
@@ -135,6 +142,8 @@ export function AboutBelief() {
 }
 
 export function AboutValues() {
+  const reduceMotion = useReducedMotion();
+
   const values = [
     {
       icon: Target,
@@ -181,16 +190,22 @@ export function AboutValues() {
             {values.map((item, idx) => (
               <m.div
                 key={item.title}
-                initial={{ opacity: 0, y: 20 }}
+                initial={
+                  reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }
+                }
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: idx * 0.1, duration: 0.8 }}
+                transition={{
+                  duration: DURATION_STANDARD,
+                  ease: EASE_OUT_SOFT,
+                  delay: reduceMotion ? 0 : idx * STAGGER_MEDIUM,
+                }}
               >
-                <Card className="border-none bg-white rounded-2xl shadow-lg hover:-translate-y-1 transition-all duration-500 h-full">
+                <Card className="group border-none bg-white rounded-2xl shadow-lg hover:-translate-y-1 transition-[transform,box-shadow] duration-300 ease-out h-full max-[prefers-reduced-motion:reduce]:hover:translate-y-0">
                   <CardContent className="pt-10 pb-8 px-8 flex flex-col items-center text-center space-y-6 h-full">
                     <div
                       className={cn(
-                        "h-12 w-12 rounded-xl flex items-center justify-center transition-transform group-hover:rotate-6",
+                        "h-12 w-12 rounded-xl flex items-center justify-center transition-transform duration-200 ease-out group-hover:rotate-6",
                         item.color === "emerald"
                           ? "bg-emerald-50 text-emerald-600"
                           : item.color === "blue"
@@ -222,6 +237,8 @@ export function AboutValues() {
 }
 
 export function AboutLeadership() {
+  const reduceMotion = useReducedMotion();
+
   const team = [
     {
       name: "Dr. Elena Rostova",
@@ -257,24 +274,32 @@ export function AboutLeadership() {
             {team.map((person, i) => (
               <m.div
                 key={person.name}
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={
+                  reduceMotion
+                    ? { opacity: 1, scale: 1 }
+                    : { opacity: 0, scale: 0.96 }
+                }
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.8 }}
+                transition={{
+                  duration: 0.35,
+                  ease: EASE_OUT_SOFT,
+                  delay: reduceMotion ? 0 : i * STAGGER_MEDIUM,
+                }}
                 className="group cursor-pointer"
               >
-                <div className="relative aspect-[3/4] mb-8 overflow-hidden rounded-2xl bg-slate-100 shadow-xl group-hover:shadow-emerald-500/10 transition-all duration-700">
+                <div className="relative aspect-[3/4] mb-8 overflow-hidden rounded-2xl bg-slate-100 shadow-xl group-hover:shadow-emerald-500/10 transition-shadow duration-300 ease-out">
                   <Image
                     src={person.img}
                     alt={`${person.name}, ${person.role} at GiveHope`}
                     fill
-                    className="object-cover saturate-0 group-hover:saturate-[0.8] contrast-[1.1] transition-all duration-[1s] group-hover:scale-110"
+                    className="object-cover saturate-0 group-hover:saturate-[0.8] contrast-[1.1] transition-all duration-500 ease-out group-hover:scale-[1.02] max-[prefers-reduced-motion:reduce]:group-hover:scale-100"
                     sizes="(max-width: 768px) 100vw, 25vw"
                   />
-                  <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/0 transition-all duration-700" />
+                  <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/0 transition-colors duration-300 ease-out" />
                 </div>
                 <div className="space-y-1 text-center">
-                  <h3 className="text-2xl font-bold text-slate-950 font-syne group-hover:text-emerald-600 transition-colors">
+                  <h3 className="text-2xl font-bold text-slate-950 font-syne group-hover:text-emerald-600 transition-colors duration-200 ease-out">
                     {person.name}
                   </h3>
                   <p className="text-slate-400 font-black text-[9px] uppercase tracking-[0.3em]">
@@ -291,6 +316,8 @@ export function AboutLeadership() {
 }
 
 export function AboutCTA() {
+  const reduceMotion = useReducedMotion();
+
   return (
     <LazyMotion features={domAnimation}>
       <section className="py-60 bg-slate-950 relative overflow-hidden text-center">
@@ -300,10 +327,7 @@ export function AboutCTA() {
 
         <div className="container mx-auto px-6 relative z-10 max-w-5xl">
           <m.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1 }}
+            {...propsFadeRiseInView(reduceMotion, { y: 12, duration: 0.35 })}
           >
             <h2 className="text-6xl md:text-8xl font-bold text-white tracking-tighter mb-8 leading-[0.8] font-syne">
               Join the <br />
@@ -316,7 +340,7 @@ export function AboutCTA() {
             <div className="flex flex-col md:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="h-14 px-10 rounded-full bg-white text-slate-950 hover:bg-emerald-400 hover:text-emerald-950 text-lg font-bold font-syne shadow-xl transition-all hover:scale-105 active:scale-95"
+                className="h-14 px-10 rounded-full bg-white text-slate-950 hover:bg-emerald-400 hover:text-emerald-950 text-lg font-bold font-syne shadow-xl transition-transform duration-200 ease-out hover:scale-[1.02] active:scale-[0.98] max-[prefers-reduced-motion:reduce]:hover:scale-100 max-[prefers-reduced-motion:reduce]:active:scale-100"
                 asChild
               >
                 <Link href="/workers">View Directory</Link>
@@ -324,7 +348,7 @@ export function AboutCTA() {
               <Button
                 size="lg"
                 variant="outline"
-                className="h-14 px-10 rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 text-lg font-bold font-syne backdrop-blur-xl transition-all"
+                className="h-14 px-10 rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 text-lg font-bold font-syne backdrop-blur-xl transition-colors duration-200 ease-out"
                 asChild
               >
                 <Link href="/checkout?fund=general">Support Urgent Needs</Link>

@@ -1,6 +1,8 @@
 "use client";
 
-import { DrawerPreview as DrawerPrimitive } from "@base-ui/react/drawer";
+import * as DrawerPrimitiveModule from "@base-ui/react/drawer";
+
+const DrawerPrimitive = DrawerPrimitiveModule.Drawer;
 import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
 
