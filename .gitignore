@@ -42,6 +42,7 @@ next-env.d.ts
 /backups
 
 # agent use
+.reference/
 docs/ai/working-set.md
 .env*
 .cursor/settings.json
