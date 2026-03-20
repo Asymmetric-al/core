@@ -3,8 +3,16 @@ import {
   safeNextParam,
 } from "@asym/auth/demo-login";
 import { createClient } from "@asym/database/supabase/server";
+import { serverEnv } from "@asym/env";
 import { LoginScreen } from "@asym/ui/components/auth/LoginScreen";
 import { redirect } from "next/navigation";
+
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Sign in",
+  description: "Sign in to the missionary portal.",
+};
 
 type LoginPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -29,7 +37,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     <LoginScreen
       appId="missionary"
       nextPath={nextPath}
-      demoOnly={process.env.DEMO_ONLY_LOGIN === "true"}
+      demoOnly={serverEnv.DEMO_ONLY_LOGIN === true}
       title="Sign In"
       subtitle="Access the missionary portal"
       registerHref="/register"
