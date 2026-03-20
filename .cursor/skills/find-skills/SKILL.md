@@ -31,6 +31,12 @@ The Skills CLI (`npx skills`) is the package manager for the open agent skills e
 
 **Browse skills at:** https://skills.sh/
 
+### Repo-local skills (Asymmetric-al/core)
+
+Before searching the public index, check **`docs/ai/skills/`** and **`AGENTS.md` → Skill Routing**. Canonical skills there are mirrored to `.cursor/skills/` and `.agents/skills/` with `bun run skills:sync` (CI: `bun run skills:verify`).
+
+**Example — Tiptap:** rich text work is covered by `docs/ai/skills/tiptap/SKILL.md`. To compare against upstream: `npx skills add ueberdosis/tiptap` (see also [Tiptap agent skill](https://tiptap.dev/docs/resources/agent-skill)).
+
 ## How to Help Users Find Skills
 
 ### Step 1: Understand What They Need
