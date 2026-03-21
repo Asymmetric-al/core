@@ -42,10 +42,10 @@ Do **not** use this skill when:
 
 This repo standardizes on **Bun** (`bun`, `bunx`). Prefer `bunx` for one-off CLIs; `npx` remains valid for the open **Skills** package manager.
 
-| Purpose | Command |
-| -------- | -------- |
-| Install / refresh the **upstream** Tiptap agent skill in another workspace | `npx skills add ueberdosis/tiptap` |
-| **Tiptap project CLI** (init, add UI pieces, cloud login) | `bunx @tiptap/cli@latest` (or `npx @tiptap/cli@latest`) |
+| Purpose                                                                    | Command                                                 |
+| -------------------------------------------------------------------------- | ------------------------------------------------------- |
+| Install / refresh the **upstream** Tiptap agent skill in another workspace | `npx skills add ueberdosis/tiptap`                      |
+| **Tiptap project CLI** (init, add UI pieces, cloud login)                  | `bunx @tiptap/cli@latest` (or `npx @tiptap/cli@latest`) |
 
 When running Tiptap CLI against this monorepo, set the working directory to the package that owns the editor (**`packages/ui`**) unless the CLI docs require the app root.
 
