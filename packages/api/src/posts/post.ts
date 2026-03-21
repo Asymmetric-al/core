@@ -10,6 +10,7 @@ import { ZodError } from "zod";
 
 import { postIdParamSchema } from "../schemas/posts";
 import { CACHE_TAGS } from "../shared/cache-tags";
+import { findProfileByUserId } from "../shared/queries";
 
 function revalidatePostTags(postId: string, tenantId: string) {
   revalidateTag(CACHE_TAGS.tenantPosts(tenantId), "max");
@@ -34,8 +35,6 @@ function toAuthAwareErrorResponse(error: unknown) {
   }
   return NextResponse.json({ error: message }, { status: 500 });
 }
-
-import { findProfileByUserId } from "../shared/queries";
 
 export async function PATCH(
   request: NextRequest,
