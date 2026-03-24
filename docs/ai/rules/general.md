@@ -12,7 +12,7 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 - **Project name:** Asymmetric.al
 - **Issue key format:** `AL-###`
 - **Main branch:** `main` is protected. Do not push directly.
-- **Tech stack (reference):** Next.js 16.1 (App Router), React 19, TypeScript 5.8, Tailwind CSS 4, Supabase client libraries, package manager `bun`.
+- **Tech stack (reference):** Next.js 16.1.x (App Router), React 19, TypeScript 5.9, Tailwind CSS 4, Supabase client libraries, package manager `bun`.
 
 ### Label taxonomy (required for every issue)
 

@@ -8,11 +8,30 @@ Before any Next.js work, find and read the relevant doc in `node_modules/next/di
 
 ## Agent compatibility
 
-- `AGENTS.md` is the single source of truth for Cursor and OpenAI Codex in this repo.
+- `AGENTS.md` is the repo-wide entrypoint for Cursor, Claude Code (via `CLAUDE.md`), Copilot (via `.github/copilot-instructions.md`), and other agents that read it.
 - `CLAUDE.md` must contain only `@AGENTS.md` so Claude Code imports the exact same rules.
 - Keep both generated marker regions intact:
   - `<!-- BEGIN:nextjs-agent-rules --> ... <!-- END:nextjs-agent-rules -->`
   - `<!-- NEXT-AGENTS-MD-START --> ... <!-- NEXT-AGENTS-MD-END -->`
+
+## Source-of-truth order
+
+Use this order when instructions conflict:
+
+1. **OpenSpec (when `openspec/` exists in the repo):** `openspec/specs/` = merged product intent; `openspec/changes/` = proposed changes not yet folded into specs.
+2. **Repo instruction system:** root `AGENTS.md`, nearest nested `AGENTS.md`, `.cursor/rules`, `CLAUDE.md`, `.github/copilot-instructions.md`, `.github/instructions/*.md`, `docs/ai/*` rulebooks.
+3. **Repo-local canonical skills:** `docs/ai/skills/*/SKILL.md` (mirrored into `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`; verify with `bun run skills:verify`).
+4. **Next.js API truth:** bundled docs under `node_modules/next/dist/docs/` for the installed version (then repo root `node_modules`; see **Next.js docs source of truth** below).
+5. **MCP runtime facts:** e.g. Next.js devtools MCP against a running dev server (see **Next.js MCP (devtools)** below), TanStack MCP from root `.mcp.json`, plus any other MCP servers enabled in the agent.
+6. **External docs:** prefer indexed doc search / package source (e.g. Nia) over training data; use direct official docs when needed.
+7. **General model knowledge:** lowest priority; never substitute memory for version-specific or repo-specific facts.
+
+## Nested `AGENTS.md` (this repo)
+
+Cursor and other tools merge nested agent instructions with the root file. In this workspace, use:
+
+- `supabase/AGENTS.md` — migrations, seed, demo RLS posture
+- `scripts/AGENTS.md` — operational scripts that touch Supabase data
 
 # Agent Router — Rules
 
@@ -87,6 +106,19 @@ Rules:
 - read top matches
 - cite exact file paths and specific functions/components
 
+#### Default workflow (do not stop at snippets)
+
+1. Search (scoped + preambled when using `mcp__nia__search`).
+2. Read full sources on the best matches (`nia_read`, or local file reads).
+3. Grep exact identifiers when needed (`nia_grep` or `rg`).
+4. Edit only after evidence.
+
+#### Pre-indexed docs and packages
+
+- Prefer subscribed or indexed documentation and package sources when available (reduces stale answers).
+- If an important upstream doc set is missing from your Nia workspace, subscribe or index it before relying on memory.
+- For public package implementation details, use Nia package search for the **exact** dependency version from the nearest `package.json`.
+
 #### If Nia cannot find evidence
 
 - say so explicitly
@@ -132,21 +164,35 @@ Answer with citations/paths from the repo and avoid external sources unless just
 
 ---
 
-### Context7 (default for third-party APIs)
+### Context7 (optional third-party API lookup)
 
-**Use when:**
+**When the agent has Context7 configured:**
 
-- any third-party library/framework/API surface is involved
-
-**Actions:**
-
-- resolve library ID
-- query docs for the exact API
+- Use for quick third-party library / API surface questions (resolve library ID, query the exact API).
 
 **If Context7 is unavailable:**
 
-- consult upstream docs
-- state assumptions explicitly
+- Prefer Nia documentation / package search for dependencies actually declared in this repo
+- Otherwise consult upstream docs and state assumptions explicitly
+
+---
+
+## Next.js MCP (devtools)
+
+This repo configures the Next.js devtools MCP server in **root** `.mcp.json` (also mirrored to `.cursor/mcp.json` for Cursor).
+
+- **Requirement:** Next.js 16+ dev server running (e.g. `bun run dev:donor`). The MCP client connects to the app’s `/_next/mcp` endpoint via `next-devtools-mcp`.
+- **Use it for runtime-grounded work:** current errors, dev logs, routes, page metadata, server actions — **do not guess** these when the MCP tools can query the live dev server.
+- **Docs:** [Next.js MCP guide](https://nextjs.org/docs/app/guides/mcp) and the [`next-devtools-mcp` repository](https://github.com/vercel/next-devtools-mcp).
+
+### TanStack MCP
+
+Root `.mcp.json` also defines the TanStack CLI MCP (`@tanstack/cli mcp`). Enable it in your agent when working on TanStack Query / Router / related surfaces.
+
+### Dev servers and logs
+
+- Before starting a dev server, check whether one is already running (agent terminal sessions / process list).
+- When a Next.js dev server is running, prefer Next.js devtools MCP (`get_errors`, `get_logs`, `get_routes`, `get_page_metadata`, etc.) over guessing routes, runtime errors, or browser-only state.
 
 ---
 
@@ -165,24 +211,25 @@ Load rulebooks before editing files in their domain.
 
 ## Skill Routing (Deterministic)
 
-Load the skill(s) below when the trigger matches.
+Load the skill(s) below when the trigger matches. Canonical skill source is `docs/ai/skills/`; run `bun run skills:sync` to refresh mirrors under `.cursor/skills/` and `.agents/skills/`.
 
 - **Next.js App Router structure, rendering, data fetching:** `docs/ai/skills/nextjs-app-router/SKILL.md`
 - **Cache Components / PPR / cacheTag & invalidation:** `docs/ai/skills/cache-components/SKILL.md`
 - **React component design/refactor:** `docs/ai/skills/react-component-dev/SKILL.md`
 - **Composable, accessible UI components (components.build spec):** `docs/ai/skills/components-build/SKILL.md`
 - **shadcn/ui system usage:** `docs/ai/skills/moai-library-shadcn/SKILL.md`
+- **Base UI:** `docs/ai/skills/base-ui/SKILL.md`
 - **Motion animations (`motion/react`):** `docs/ai/skills/motion/SKILL.md`
 - **Recharts:** `docs/ai/skills/rechart/SKILL.md`
 - **TanStack Table v8:** `docs/ai/skills/tanstack-table/SKILL.md`
-- **GitHub issue/PR workflows (AL-###):**
-  - Write issue: `docs/ai/skills/write-issue/SKILL.md`
-  - Build issue: `docs/ai/skills/build-issue/SKILL.md`
-  - Start issue: `docs/ai/skills/start-issue/SKILL.md`
-  - Ship issue: `docs/ai/skills/ship-issue/SKILL.md`
-  - Close issue: `docs/ai/skills/close-issue/SKILL.md`
-  - Create issues batch: `docs/ai/skills/create-issues/SKILL.md`
+- **Supabase Postgres tuning / query patterns:** `docs/ai/skills/supabase-postgres-best-practices/SKILL.md`
+- **Next.js + Supabase Auth integration:** `docs/ai/skills/nextjs-supabase-auth/SKILL.md`
+- **Vercel React + Next performance patterns:** `docs/ai/skills/vercel-react-best-practices/SKILL.md`
 - **Commit message creation:** `docs/ai/skills/commit/SKILL.md`
+
+**GitHub `AL-###` issue/PR workflow:** there are no `SKILL.md` files under `docs/ai/skills/` for those flows today; follow `docs/ai/rules/general.md`. Deprecated stubs live under `skills/*/DEPRECATED.md` only.
+
+**Extra Cursor-packaged skills:** additional `SKILL.md` files under `.cursor/skills/` (e.g. Playwright, Stripe, Turborepo) may be present; use them when the task matches their descriptions.
 
 ---
 
@@ -208,8 +255,9 @@ Load the skill(s) below when the trigger matches.
 ### Routing checklist
 
 - [ ] Identified domain(s) and opened the matching rulebook(s)
-- [ ] Applied required skills based on triggers
-- [ ] Used Nia or Context7 when required (or explicitly noted fallback)
+- [ ] Applied required skills based on triggers (canonical: `docs/ai/skills/`)
+- [ ] Used Nia when required (or explicitly noted fallback)
+- [ ] For Next.js dev debugging, considered Next.js devtools MCP when a dev server is running
 - [ ] Nia tool calls are repo-scoped to `Asymmetric-al/core`
 - [ ] Nia search calls include the "Nia query preamble" built from `docs/ai/working-set.md` + `docs/ai/stack-registry.md`
 
@@ -287,8 +335,9 @@ Note: unit tests are currently run repo-wide with `bun run test:unit`.
 1. Read docs from the nearest matching install for the app you are changing:
    - `apps/<app>/node_modules/next/dist/docs/` (if present)
    - then `node_modules/next/dist/docs/` at repo root
-2. This monorepo currently uses `next@16.1.1` across all Next.js apps.
-3. If `node_modules` docs are unavailable or unreadable:
+2. This monorepo currently pins `next@16.1.6` in root and app `package.json` files (workspace packages align on the same version).
+3. **Upstream note:** Next.js 16.2+ docs describe adding the minimal `AGENTS.md` block directly when on `v16.2.0-canary.37` or later; on 16.1.x the `npx @next/codemod@latest agents-md` flow may still emit `.next-docs/` — this repo keeps both bundled `node_modules` docs (when installed) and committed `.next-docs/` for sandboxes.
+4. If `node_modules` docs are unavailable or unreadable:
    - run `bunx @next/codemod@canary agents-md`
    - confirm `.next-docs/` exists
    - confirm `AGENTS.md` includes the codemod's compressed docs index
@@ -296,6 +345,12 @@ Note: unit tests are currently run repo-wide with `bun run test:unit`.
    - if the generated index text shows `npx @next/codemod agents-md --output AGENTS.md`, use the Bun equivalent in this repo: `bunx @next/codemod@canary agents-md --output AGENTS.md`
 
 `.next-docs/` is committed in this repo to support remote/sandbox agent runs where `node_modules` is not present at session start.
+
+### Official references
+
+- [AI agents / AGENTS.md](https://nextjs.org/docs/app/guides/ai-agents)
+- [Next.js MCP](https://nextjs.org/docs/app/guides/mcp)
+- [Upgrading to version 16](https://nextjs.org/docs/app/guides/upgrading/version-16)
 
 ## Vercel docs rules
 
