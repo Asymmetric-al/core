@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
+
       - name: Find Nia source id
         env:
           NIA_API_KEY: ${{ secrets.NIA_API_KEY }}
@@ -24,7 +26,7 @@ jobs:
             --data-urlencode 'query=asymmetric-al/core' \
             --data-urlencode 'limit=100')"
 
-          source_id="$(printf '%s' "$response" | python3 -c "import sys, json; data=json.load(sys.stdin); items=data.get('items', []); match=next((i for i in items if (i.get('identifier') or '').rstrip('/').lower() in ('https://github.com/asymmetric-al/core','asymmetric-al/core')), None); print((match or items[0])['id'])")"
+          source_id="$(printf '%s' "$response" | python3 scripts/nia_pick_core_source.py)"
 
           if [ -z "$source_id" ]; then
             echo "Could not find a Nia source for asymmetric-al/core"
@@ -32,7 +34,7 @@ jobs:
           fi
 
           echo "SOURCE_ID=$source_id" >> "$GITHUB_ENV"
-          echo "Using Nia source: $source_id"
+          echo "Resolved SOURCE_ID=$source_id"
 
       - name: Trigger Nia sync
         env:
@@ -40,10 +42,8 @@ jobs:
         run: |
           set -euo pipefail
 
-          curl --fail --silent --show-error \
+          curl --fail-with-body --silent --show-error \
             -X POST "https://apigcp.trynia.ai/v2/sources/${SOURCE_ID}/sync" \
-            -H "Authorization: Bearer ${NIA_API_KEY}" \
-            -H 'Content-Type: application/json' \
-            --data '{}'
+            -H "Authorization: Bearer ${NIA_API_KEY}"
 
           echo "Triggered Nia sync for source ${SOURCE_ID}"
