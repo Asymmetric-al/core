@@ -1,3 +1,7 @@
+# Verifies the asymmetric-al/core repository is registered as a Nia source.
+# POST /v2/sources/{id}/sync is not supported for GitHub repos (Nia returns 400:
+# "Sync is only supported for local folders and Google Drive"). Repo indexing is
+# driven by Nia's GitHub integration, not this endpoint.
 name: Nia reindex
 
 on:
@@ -36,16 +40,8 @@ jobs:
           echo "SOURCE_ID=$source_id" >> "$GITHUB_ENV"
           echo "Resolved SOURCE_ID=$source_id"
 
-      - name: Trigger Nia sync
-        env:
-          NIA_API_KEY: ${{ secrets.NIA_API_KEY }}
+      - name: Repository source registered (GitHub sync is not API-triggerable)
         run: |
           set -euo pipefail
-
-          curl --fail-with-body --silent --show-error \
-            -X POST "https://apigcp.trynia.ai/v2/sources/${SOURCE_ID}/sync" \
-            -H "Authorization: Bearer ${NIA_API_KEY}" \
-            -H 'Content-Type: application/json' \
-            --data '{}'
-
-          echo "Triggered Nia sync for source ${SOURCE_ID}"
+          echo "Nia source for this repo is registered (id=${SOURCE_ID})."
+          echo "GitHub repository reindexing is handled by Nia's GitHub connector, not POST /v2/sources/{id}/sync."
