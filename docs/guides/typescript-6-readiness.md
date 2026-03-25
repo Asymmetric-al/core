@@ -23,7 +23,7 @@ From the official 6.0 announcement (non-exhaustive; see the post for the full li
 | **`rootDir`** | Default becomes the directory containing `tsconfig.json`; emit layout can change if you relied on inference | Packages with `outDir` + deep `include` should keep **explicit** `rootDir` where emit layout matters. |
 | **`types`** | Default becomes `[]` instead of “all `@types`” | Config/scripts that relied on ambient `@types` without imports may need explicit `"types": ["node"]` (or test runner types) per workspace. |
 | **`noUncheckedSideEffectImports`** | Default becomes `true` in 6.0 | Layouts use `import "./globals.css"` and similar; enabling globally requires verified module declarations. **Deferred** for default shared config. |
-| **Import assertions** | Old `import ... assert { }` deprecated (extended to dynamic `import()`) | Repo audit: no `assert {` usage found; do not add legacy assertion syntax. |
+| **Import attributes** | Legacy `import ... assert { }` deprecated; use ECMAScript **`import ... with { type: "json" }`** (and the matching dynamic `import()` form) when you need attributes — see TypeScript 6.0 announcement | Repo audit: no `assert {` usage found; do not add legacy assertion syntax. |
 | **`stableTypeOrdering`** | New flag to align ordering with TS 7 for **comparison** | **Do not** enable in normal shared configs; optional diagnostic only (slows checks ~up to 25% per official note). |
 
 ## What TypeScript 7 means here (plain language)
@@ -79,7 +79,7 @@ From the official 6.0 announcement (non-exhaustive; see the post for the full li
 
 - Do not add **`baseUrl`**.
 - Do not use **`moduleResolution: "node"`** / **`node10`** for new projects.
-- Do not use legacy **`import ... assert { type: "json" }`** (use current `with` / supported syntax per TS version when you upgrade).
+- Do not use legacy **`import ... assert { }`**; prefer **`import ... with { }`** (import attributes) per current ECMAScript / TypeScript guidance when you upgrade or add new attribute imports.
 - Do not enable **`stableTypeOrdering`** in shared CI or default configs.
 - Do not add **`@typescript/native-preview`** or **`tsgo`** to default `package.json` scripts in this prep phase.
 
@@ -151,7 +151,7 @@ From the official 6.0 announcement (non-exhaustive; see the post for the full li
 
 ## Internal doc mismatches (recorded)
 
-- `docs/ai/rules/general.md` may still mention an older TypeScript minor; **live** `package.json` devDependency is authoritative (currently **5.9.3**).
+- `docs/ai/rules/general.md` references **TypeScript 5.9.x** with a pointer to root `package.json` for the exact version (currently **5.9.3**).
 - Default Git branch in automation may be **`epic`** while `general.md` discusses **`main`** as protected; follow **remote default** for branch operations.
 
 ## Audit matrix (snapshot)

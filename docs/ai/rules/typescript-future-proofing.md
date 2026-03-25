@@ -37,6 +37,7 @@
 - Removing `paths` when removing `baseUrl` (keep `paths`; they work without `baseUrl`).
 - Assuming `moduleResolution: "bundler"` should be switched to `nodenext` “because newer” (choose per runtime: bundler for Next/Bun-bundled apps; NodeNext for Node-first emit).
 - Enabling TypeScript 6.0 defaults globally without fixing `types`, `rootDir`, and side-effect imports first.
+- Using legacy **`import ... assert { }`** instead of **`import ... with { }`** (import attributes) for new code.
 
 ## Related
 

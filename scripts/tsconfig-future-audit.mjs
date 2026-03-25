@@ -2,11 +2,15 @@
 /**
  * Non-blocking audit: scan repo tsconfig JSON files for patterns relevant to TS 6/7 prep.
  * Does not modify files. Exits 0 always (informational only).
+ *
+ * Policy source: TypeScript TSConfig reference + official TS 6/7 announcements
+ * (see docs/guides/typescript-6-readiness.md).
  */
 import { readFileSync, readdirSync } from "node:fs";
-import { join, relative } from "node:path";
+import { dirname, join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = join(import.meta.dirname, "..");
+const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const skipDir = new Set([
   "node_modules",
   "dist",
@@ -64,7 +68,7 @@ for (const file of walkTsconfigs(root)) {
   const mr = o.moduleResolution;
   if (typeof mr === "string") {
     const m = mr.toLowerCase();
-    if (m === "node") findings.moduleResolutionNode10.push(rel);
+    if (m === "node" || m === "node10") findings.moduleResolutionNode10.push(rel);
     if (m === "nodenext" || m === "node16") findings.moduleResolutionNode.push(rel);
   }
 }
