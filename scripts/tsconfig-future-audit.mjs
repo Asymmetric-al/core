@@ -50,8 +50,8 @@ function readJson(path) {
 
 const findings = {
   baseUrl: [],
-  moduleResolutionNode: [],
-  moduleResolutionNode10: [],
+  moduleResolutionModern: [],
+  moduleResolutionDeprecated: [],
 };
 
 for (const file of walkTsconfigs(root)) {
@@ -68,23 +68,23 @@ for (const file of walkTsconfigs(root)) {
   const mr = o.moduleResolution;
   if (typeof mr === "string") {
     const m = mr.toLowerCase();
-    if (m === "node" || m === "node10") findings.moduleResolutionNode10.push(rel);
-    if (m === "nodenext" || m === "node16") findings.moduleResolutionNode.push(rel);
+    if (m === "node" || m === "node10") findings.moduleResolutionDeprecated.push(rel);
+    if (m === "nodenext" || m === "node16") findings.moduleResolutionModern.push(rel);
   }
 }
 
 console.log("tsconfig future-readiness audit (informational)\n");
 console.log("baseUrl present (avoid in new code; TS 7 removes baseUrl):");
 console.log(findings.baseUrl.length ? findings.baseUrl.map((x) => `  - ${x}`).join("\n") : "  (none under repo root except vendor/)");
-console.log("\nmoduleResolution node (deprecated node10 / \"node\"):");
+console.log('\nmoduleResolution deprecated (node / node10 — avoid; removed in TS 7):');
 console.log(
-  findings.moduleResolutionNode10.length
-    ? findings.moduleResolutionNode10.map((x) => `  - ${x}`).join("\n")
+  findings.moduleResolutionDeprecated.length
+    ? findings.moduleResolutionDeprecated.map((x) => `  - ${x}`).join("\n")
     : "  (none under repo root except vendor/)",
 );
-console.log("\nmoduleResolution node16/nodenext (informational):");
+console.log("\nmoduleResolution modern (node16 / nodenext — informational):");
 console.log(
-  findings.moduleResolutionNode.length
-    ? findings.moduleResolutionNode.map((x) => `  - ${x}`).join("\n")
+  findings.moduleResolutionModern.length
+    ? findings.moduleResolutionModern.map((x) => `  - ${x}`).join("\n")
     : "  (none)",
 );
