@@ -1,5 +1,18 @@
 # Working Set
 
+## 2026-03-25 (TypeScript 6/7 future-readiness prep — cursor/typescript-future-readiness-4e19)
+
+- Date: 2026-03-25
+- Repo: Asymmetric-al/core
+- Goal: Conservative prep for future TypeScript 6 and 7 migrations without upgrading the compiler or changing runtime behavior.
+- Primary area: `tooling/typescript-config/base.json`, `apps/{admin,donor,missionary}/tsconfig.json`, `packages/{ui,missionary}/tsconfig.json`, `docs/guides/typescript-6-readiness.md`, `docs/ai/rules/typescript-future-proofing.md`, `AGENTS.md`, `docs/README.md`, `scripts/tsconfig-future-audit.mjs`
+- Decisions:
+  - Explicit `libReplacement: true` and `noUncheckedSideEffectImports: false` in shared base to freeze TypeScript 5.9 behavior before TS 6 default changes.
+  - Removed redundant `baseUrl` where only `paths` was used (official `paths` does not require `baseUrl`).
+  - Documented policy, audit matrix, and optional non-blocking `bun run tsconfig:future-audit`.
+- Deferred: enabling `noUncheckedSideEffectImports` globally, repo-wide `types` arrays, `rootDir` churn, TS 6/7 compiler adoption, native preview in default workflows.
+- Verification: `bun run typecheck` after config edits.
+
 ## 2026-03-18 (auth stabilization — cursor/supabase-login-foundation-6869)
 
 - Date: 2026-03-18
