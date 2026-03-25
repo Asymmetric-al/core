@@ -83,8 +83,8 @@ The platform follows a standardized **Zinc Light** theme, optimized for both des
 ### Typography
 
 - **Primary**: Inter (`tracking-tight`)
-- **Mono**: 
-- **Headings**: 
+- **Mono**:
+- **Headings**:
 
 ### Design Tokens
 
