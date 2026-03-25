@@ -1,0 +1,49 @@
+name: Nia reindex
+
+on:
+  push:
+    branches:
+      - epic
+  workflow_dispatch:
+
+jobs:
+  reindex:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Find Nia source id
+        env:
+          NIA_API_KEY: ${{ secrets.NIA_API_KEY }}
+        run: |
+          set -euo pipefail
+
+          response="$(curl --fail --silent --show-error --get \
+            'https://apigcp.trynia.ai/v2/sources' \
+            -H "Authorization: Bearer ${NIA_API_KEY}" \
+            --data-urlencode 'type=repository' \
+            --data-urlencode 'query=asymmetric-al/core' \
+            --data-urlencode 'limit=100')"
+
+          source_id="$(printf '%s' "$response" | python3 -c "import sys, json; data=json.load(sys.stdin); items=data.get('items', []); match=next((i for i in items if (i.get('identifier') or '').rstrip('/').lower() in ('https://github.com/asymmetric-al/core','asymmetric-al/core')), None); print((match or items[0])['id'])")"
+
+          if [ -z "$source_id" ]; then
+            echo "Could not find a Nia source for asymmetric-al/core"
+            exit 1
+          fi
+
+          echo "SOURCE_ID=$source_id" >> "$GITHUB_ENV"
+          echo "Using Nia source: $source_id"
+
+      - name: Trigger Nia sync
+        env:
+          NIA_API_KEY: ${{ secrets.NIA_API_KEY }}
+        run: |
+          set -euo pipefail
+
+          curl --fail --silent --show-error \
+            -X POST "https://apigcp.trynia.ai/v2/sources/${SOURCE_ID}/sync" \
+            -H "Authorization: Bearer ${NIA_API_KEY}" \
+            -H 'Content-Type: application/json' \
+            --data '{}'
+
+          echo "Triggered Nia sync for source ${SOURCE_ID}"
