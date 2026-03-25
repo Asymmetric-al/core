@@ -44,6 +44,8 @@ jobs:
 
           curl --fail-with-body --silent --show-error \
             -X POST "https://apigcp.trynia.ai/v2/sources/${SOURCE_ID}/sync" \
-            -H "Authorization: Bearer ${NIA_API_KEY}"
+            -H "Authorization: Bearer ${NIA_API_KEY}" \
+            -H 'Content-Type: application/json' \
+            --data '{}'
 
           echo "Triggered Nia sync for source ${SOURCE_ID}"
