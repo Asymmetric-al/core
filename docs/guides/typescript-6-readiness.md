@@ -57,6 +57,21 @@ From the official 6.0 announcement (non-exhaustive; see the post for the full li
 - **Prefer:** local `tsconfig` for **Node scripts**, **Vitest**, or **Playwright** configs if they need `node` or test globals explicitly.
 - If you see “Cannot find name `process` / `describe` / …” after an upgrade, add the minimal `types` entry for that project (official 6.0 announcement examples).
 
+### Bun + TypeScript 6 / 7 ([Bun docs: TypeScript 6 and 7](https://bun.com/docs/typescript-6))
+
+Bun’s documentation matches the TypeScript 6.0 story: with **`types` defaulting to `[]`**, you must **explicitly** include packages whose globals you need, and you still need **`@types/bun` installed** (`bun add -d @types/bun`).
+
+**How this fits this monorepo (Bun package manager + Next.js apps):**
+
+| Situation | What to do |
+|-----------|------------|
+| **Today (TypeScript 5.9)** | Do **not** set `compilerOptions.types` to `["bun"]` only on Next app tsconfigs. TypeScript 5.9 still auto-includes `@types/*`; a narrow `types` array **drops** `node`, `react`, etc. and will break typechecking. |
+| **After upgrading to TypeScript 6+** | Where TypeScript should see **`Bun`**, add **`@types/bun`** and list it in **`types`** alongside other globals that project needs (Bun’s doc shows `"types": ["bun", "react"]`; Next apps typically need **`node`** at minimum—combine per workspace, e.g. `"types": ["node", "bun"]` only after verifying nothing else breaks). |
+| **`paths` / `@/*` (e.g. `apps/missionary/tsconfig.json`)** | Path aliases are **unrelated** to Bun globals. Keep **`paths`** as-is; add Bun **`types`** only when you actually reference **`Bun`** in that project’s TypeScript and you are on TS 6+ empty-default behavior. |
+| **Root `scripts/*.ts` using `Bun.*`** (e.g. `scripts/shadcn/add-shadcnuikit.ts`) | On TS 6+, either: add a **small `tsconfig`** scoped to those scripts with `"types": ["bun", "node"]`, or ensure the root/workspace project that includes them lists both. Install **`@types/bun`** at the root when you add that. |
+
+Bun’s sample tsconfig (ESNext, `module: "Preserve"`, etc.) targets **Bun-first apps**. This repo’s **Next.js** workspaces should **keep** extending `@asym/typescript-config/nextjs.json`; only adopt the **`types: ["bun"]`** (and peers) part of Bun’s guide when TS 6+ and when that workspace needs Bun globals.
+
 ## Test globals (Vitest / Playwright)
 
 - Vitest provides globals via its tooling; root tests use `vitest/config` and `environment: "node"`.
@@ -167,6 +182,7 @@ From the official 6.0 announcement (non-exhaustive; see the post for the full li
 | Root `vitest.config.ts` | `alias "@": ./src` | Not tsc | Low | None |
 | Playwright configs | `process.env` | Node globals if `types` empty | Med | Defer explicit `types` until upgrade |
 | App layouts | CSS side-effect imports | `noUncheckedSideEffectImports` | Med | Deferred; flag stays false in base until audited |
+| Root scripts using `Bun.*` | `Bun` global | TS6 `types: []`; need `@types/bun` + `types` | Med | On TS6+: `bun add -d @types/bun` + scoped `types` ([Bun TS6 doc](https://bun.com/docs/typescript-6)) |
 
 ---
 

@@ -38,9 +38,11 @@
 - Assuming `moduleResolution: "bundler"` should be switched to `nodenext` “because newer” (choose per runtime: bundler for Next/Bun-bundled apps; NodeNext for Node-first emit).
 - Enabling TypeScript 6.0 defaults globally without fixing `types`, `rootDir`, and side-effect imports first.
 - Using legacy **`import ... assert { }`** instead of **`import ... with { }`** (import attributes) for new code.
+- On **TypeScript 6+**, following [Bun’s TypeScript 6 / 7 doc](https://bun.com/docs/typescript-6): add **`@types/bun`** and **`types`** entries where **`Bun`** is referenced—**never** `types: ["bun"]` alone on Next workspaces until **`node`** (and any other required globals) are accounted for.
 
 ## Related
 
 - `docs/guides/typescript-6-readiness.md` — audit matrix, examples, checklists.
 - `tooling/typescript-config/` — shared presets.
 - Official: [Announcing TypeScript 6.0](https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/), [Progress on TypeScript 7 - December 2025](https://devblogs.microsoft.com/typescript/progress-on-typescript-7-december-2025/), [TSConfig Reference](https://www.typescriptlang.org/tsconfig).
+- Bun: [TypeScript 6 and 7](https://bun.com/docs/typescript-6) (`types` + `@types/bun`).
