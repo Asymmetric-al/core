@@ -1,0 +1,31 @@
+name: Codex Review Request Code Owner
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  request_code_owner_review:
+    if: >
+      github.event.issue.pull_request &&
+      github.event.comment.user.login == 'chatgpt-codex-connector[bot]' &&
+      contains(github.event.comment.body, 'Codex Review')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Request review from code owner
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          CODE_OWNER_USERNAME: II-ricky-bobby-II
+        run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/$REPO/pulls/$PR_NUMBER/requested_reviewers" \
+            -f reviewers[]="$CODE_OWNER_USERNAME" || true
