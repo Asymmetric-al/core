@@ -1,5 +1,13 @@
 # Working Set
 
+## 2026-03-29 (regression tests — Next 16.2 / donor public shell)
+
+- Date: 2026-03-29
+- Repo: Asymmetric-al/core
+- Goal: Lock in minimal unit coverage for high-blast-radius surfaces from the Next 16.2.1 upgrade and donor public navbar fix.
+- Primary area: `packages/ui/lib/drawer-swipe-direction.ts`, `packages/ui/components/shadcn/drawer.tsx`, `apps/donor/next.config.ts` (`images.qualities`), `packages/ui/components/public/navbar.tsx`, `tests/unit/{packages/ui,apps/donor}/*`
+- Verification: `bunx vitest run tests/unit/packages/ui/drawer-swipe-direction.test.ts tests/unit/apps/donor/next-config-images.test.ts tests/unit/packages/ui/navbar-public-imports.test.ts`
+
 ## 2026-03-22 (Next.js 16.2.1 stabilization)
 
 - Date: 2026-03-22
