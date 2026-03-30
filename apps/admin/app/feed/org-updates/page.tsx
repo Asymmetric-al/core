@@ -33,6 +33,11 @@ import {
   RadioGroup,
   RadioGroupItem,
 } from "@asym/ui/components/shadcn/radio-group";
+import {
+  isPostContentEmpty,
+  isRichText,
+  RichTextViewer,
+} from "@asym/ui/components/shadcn/rich-text-editor";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import {
@@ -487,10 +492,17 @@ function PostCard({
             transition={{ delay: 0.1 }}
             className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-4"
           >
-            <SafeHtml
-              className="prose prose-sm sm:prose-base max-w-none text-foreground/80 leading-relaxed prose-headings:font-bold prose-headings:text-foreground prose-headings:tracking-tight prose-strong:font-bold prose-strong:text-foreground prose-a:text-primary prose-a:font-bold prose-a:no-underline hover:prose-a:underline"
-              html={post.content}
-            />
+            {isRichText(post.content) ? (
+              <RichTextViewer
+                value={post.content}
+                className="text-foreground/80 leading-relaxed"
+              />
+            ) : (
+              <SafeHtml
+                className="prose prose-sm sm:prose-base max-w-none text-foreground/80 leading-relaxed prose-headings:font-bold prose-headings:text-foreground prose-headings:tracking-tight prose-strong:font-bold prose-strong:text-foreground prose-a:text-primary prose-a:font-bold prose-a:no-underline hover:prose-a:underline"
+                html={post.content}
+              />
+            )}
             {post.media && post.media.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.98 }}
@@ -578,10 +590,19 @@ function DraftCard({
                 Saved <TimeAgo date={draft.created_at} />
               </span>
             </div>
-            <SafeHtml
-              className="prose prose-sm max-w-none line-clamp-2 opacity-60 text-foreground"
-              html={draft.content}
-            />
+            {isRichText(draft.content) ? (
+              <div className="line-clamp-2 opacity-60">
+                <RichTextViewer
+                  value={draft.content}
+                  className="text-foreground/80 text-sm"
+                />
+              </div>
+            ) : (
+              <SafeHtml
+                className="prose prose-sm max-w-none line-clamp-2 opacity-60 text-foreground"
+                html={draft.content}
+              />
+            )}
           </div>
           <div className="flex flex-row sm:flex-col gap-2 shrink-0 w-full sm:w-auto">
             <motion.div
@@ -968,8 +989,7 @@ function ComposeCard({
   } = composeState;
 
   const handlePublish = async () => {
-    const plainText = postContent.replace(/<[^>]*>?/gm, "").trim();
-    if (!plainText && !postContent.includes("<img")) return;
+    if (isPostContentEmpty(postContent)) return;
 
     dispatchCompose({ type: "set-publishing", value: true });
     await new Promise((resolve) => setTimeout(resolve, 800));
@@ -989,8 +1009,7 @@ function ComposeCard({
   };
 
   const handleSaveDraft = async () => {
-    const plainText = postContent.replace(/<[^>]*>?/gm, "").trim();
-    if (!plainText && !postContent.includes("<img")) return;
+    if (isPostContentEmpty(postContent)) return;
 
     dispatchCompose({ type: "set-publishing", value: true });
     await new Promise((resolve) => setTimeout(resolve, 500));
@@ -1028,10 +1047,7 @@ function ComposeCard({
   const isDisabled =
     isPublishing ||
     isUploading ||
-    ((!postContent ||
-      postContent === "<p></p>" ||
-      postContent === "<p><br></p>") &&
-      selectedMedia.length === 0);
+    (isPostContentEmpty(postContent) && selectedMedia.length === 0);
 
   return (
     <MotionCard
