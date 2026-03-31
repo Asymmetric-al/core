@@ -15,7 +15,6 @@ jobs:
       github.event.comment.user.login == 'chatgpt-codex-connector[bot]' &&
       contains(github.event.comment.body, 'Codex Review')
     runs-on: ubuntu-latest
-
     steps:
       - name: Request review from code owner
         env:
