@@ -21,6 +21,21 @@
 - Deferred: enabling `noUncheckedSideEffectImports` globally, repo-wide `types` arrays, `rootDir` churn, TS 6/7 compiler adoption, native preview in default workflows.
 - Verification: `bun run typecheck` after config edits.
 
+## 2026-03-24 (instruction system — cursor/instruction-system-architecture-75bb)
+
+- Date: 2026-03-24
+- Repo: Asymmetric-al/core
+- Goal: Conservative refresh of agent instruction routing (AGENTS.md, Copilot, Cursor rules/MCP mirror) without changing product code; align Next.js version pins and skill paths with repo reality.
+- Primary area: `AGENTS.md`, `.github/copilot-instructions.md`, `.cursor/mcp.json`, `.cursor/rules/next-devtools-mcp.mdc`, `cursor.md`, `docs/ai/rules/general.md`, `docs/ai/working-set.md`, `SKILL.md`
+- Constraints:
+  - Preserve `<!-- BEGIN:nextjs-agent-rules -->` block verbatim and keep `<!-- NEXT-AGENTS-MD-START -->` … `END` region intact.
+  - No edits under `apps/`, `packages/` product code, tests, or DB migrations.
+- Evidence sources used:
+  - Root and app `package.json` (Next.js pin; see live manifests)
+  - Root `.mcp.json` (`next-devtools`, `tanstack`)
+  - `docs/ai/skills/*/SKILL.md` inventory vs `AGENTS.md` skill routing
+  - `https://nextjs.org/docs/app/guides/ai-agents`, `https://nextjs.org/docs/app/guides/mcp`, `https://cursor.com/docs/rules`
+
 ## 2026-03-22 (Next.js 16.2.1 stabilization)
 
 - Date: 2026-03-22
