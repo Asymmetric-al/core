@@ -105,7 +105,7 @@
     "@tiptap/pm": "^3.20.0",
     "graphql": "16.12.0",
     "graphql-yoga": "5.17.1",
-    "next": "16.1.6",
+    "next": "16.2.1",
     "require-in-the-middle": "^8.0.1",
     "sharp": "^0.34.5"
   },
@@ -123,7 +123,7 @@
     "babel-plugin-react-compiler": "^1.0.0",
     "canvas": "^3.2.1",
     "eslint": "^9.39.2",
-    "eslint-config-next": "^16.1.6",
+    "eslint-config-next": "16.2.1",
     "eslint-plugin-import-x": "^4.16.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-unused-imports": "^4.3.0",
