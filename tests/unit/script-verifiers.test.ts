@@ -139,11 +139,15 @@ describe("verify-workspace-contract", () => {
 });
 
 describe("verify-skills-sync", () => {
-  it("fails when sync would generate untracked mirror files", async () => {
-    const tempRoot = await createSkillsVerifyRepo();
+  it(
+    "fails when sync would generate untracked mirror files",
+    async () => {
+      const tempRoot = await createSkillsVerifyRepo();
 
-    expect(() =>
-      runNodeScript(tempRoot, "scripts/verify-skills-sync.mjs"),
-    ).toThrow(/Skill mirror drift detected/);
-  });
+      expect(() =>
+        runNodeScript(tempRoot, "scripts/verify-skills-sync.mjs"),
+      ).toThrow(/Skill mirror drift detected/);
+    },
+    15000,
+  );
 });

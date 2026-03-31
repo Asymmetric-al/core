@@ -9,39 +9,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@asym/ui/components/shadcn/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@asym/ui/components/shadcn/form";
-import { Input } from "@asym/ui/components/shadcn/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@asym/ui/components/shadcn/select";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useAsymForm } from "@asym/ui/components/shadcn/form";
 import { Loader2 } from "lucide-react";
 import * as React from "react";
-import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import * as z from "zod";
 
-const partnerSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().optional(),
-  type: z.enum(["Individual", "Organization", "Church"]),
-  frequency: z.enum(["Monthly", "One-Time", "Annually", "Irregular"]),
-  location: z.string().min(2, "Location is required"),
-});
-
-type PartnerFormValues = z.infer<typeof partnerSchema>;
+import {
+  createInitialPartnerFormValues,
+  partnerSchema,
+  toPartnerInsertPayload,
+} from "./add-partner-form-model";
 
 export interface AddPartnerDialogProps {
   missionaryId: string;
@@ -50,6 +27,19 @@ export interface AddPartnerDialogProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
+
+const PARTNER_TYPE_OPTIONS = [
+  { label: "Individual", value: "Individual" },
+  { label: "Organization", value: "Organization" },
+  { label: "Church", value: "Church" },
+] as const;
+
+const PARTNER_FREQUENCY_OPTIONS = [
+  { label: "Monthly", value: "Monthly" },
+  { label: "One-Time", value: "One-Time" },
+  { label: "Annually", value: "Annually" },
+  { label: "Irregular", value: "Irregular" },
+] as const;
 
 export function AddPartnerDialog({
   missionaryId,
@@ -61,232 +51,181 @@ export function AddPartnerDialog({
   const [internalOpen, setInternalOpen] = React.useState(false);
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
-  const onOpenChange = isControlled ? controlledOnOpenChange : setInternalOpen;
+  const setOpen = isControlled ? controlledOnOpenChange : setInternalOpen;
 
   const supabase = React.useMemo(() => createBrowserClient(), []);
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const form = useForm<PartnerFormValues>({
-    resolver: zodResolver(partnerSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      type: "Individual",
-      frequency: "Monthly",
-      location: "",
+  const form = useAsymForm({
+    defaultValues: createInitialPartnerFormValues(),
+    validators: {
+      onChange: partnerSchema,
+    },
+    onSubmit: async ({ value }) => {
+      if (!missionaryId) {
+        toast.error("Missionary ID is missing");
+        return;
+      }
+
+      try {
+        const { error } = await supabase
+          .from("donors")
+          .insert(toPartnerInsertPayload({ missionaryId, values: value }));
+
+        if (error) {
+          throw error;
+        }
+
+        toast.success("Partner added successfully");
+        form.reset(createInitialPartnerFormValues());
+        setOpen?.(false);
+        onSuccess?.();
+      } catch (error: unknown) {
+        console.error("Error adding partner:", error);
+        const message =
+          error instanceof Error ? error.message : "Failed to add partner";
+        toast.error(message);
+      }
     },
   });
 
-  async function onSubmit(values: PartnerFormValues) {
-    if (!missionaryId) {
-      toast.error("Missionary ID is missing");
-      return;
-    }
+  const handleOpenChange = React.useCallback(
+    (nextOpen: boolean) => {
+      if (!nextOpen) {
+        form.reset(createInitialPartnerFormValues());
+      }
 
-    setIsSubmitting(true);
-    try {
-      const { error } = await supabase.from("donors").insert({
-        missionary_id: missionaryId,
-        name: values.name,
-        email: values.email,
-        phone: values.phone,
-        type: values.type,
-        frequency: values.frequency,
-        location: values.location,
-        status: "Active",
-        total_given: 0,
-        last_gift_amount: 0,
-        score: 70, // Default starting score
-      });
-
-      if (error) throw error;
-
-      toast.success("Partner added successfully");
-      form.reset();
-      onOpenChange?.(false);
-      onSuccess?.();
-    } catch (error: any) {
-      console.error("Error adding partner:", error);
-      toast.error(error.message || "Failed to add partner");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
+      setOpen?.(nextOpen);
+    },
+    [form, setOpen],
+  );
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-      <DialogContent className="sm:max-w-[500px] rounded-[2rem] border-zinc-100 p-0 overflow-hidden">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
+      <DialogContent className="overflow-hidden rounded-[2rem] border-zinc-100 p-0 sm:max-w-[500px]">
         <div className="bg-zinc-900 px-8 py-10 text-white">
           <DialogTitle className="text-3xl font-black tracking-tighter">
             Add New Partner
           </DialogTitle>
-          <DialogDescription className="text-zinc-400 font-bold mt-2 uppercase tracking-widest text-[10px]">
+          <DialogDescription className="mt-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
             Enter the details for your new ministry partner
           </DialogDescription>
         </div>
+
         <div className="p-8">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem className="col-span-2">
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                        FullName / Org Name
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter name"
-                          {...field}
-                          className="h-12 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-bold"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                        Email Address
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="email@example.com"
-                          {...field}
-                          className="h-12 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-bold"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                        Phone Number
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="(555) 000-0000"
-                          {...field}
-                          className="h-12 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-bold"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                        Partner Type
-                      </FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="h-12 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-bold">
-                            <SelectValue placeholder="Select type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="rounded-xl border-zinc-100 font-bold">
-                          <SelectItem value="Individual">Individual</SelectItem>
-                          <SelectItem value="Organization">
-                            Organization
-                          </SelectItem>
-                          <SelectItem value="Church">Church</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="frequency"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                        Giving Frequency
-                      </FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="h-12 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-bold">
-                            <SelectValue placeholder="Select frequency" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="rounded-xl border-zinc-100 font-bold">
-                          <SelectItem value="Monthly">Monthly</SelectItem>
-                          <SelectItem value="One-Time">One-Time</SelectItem>
-                          <SelectItem value="Annually">Annually</SelectItem>
-                          <SelectItem value="Irregular">Irregular</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="location"
-                  render={({ field }) => (
-                    <FormItem className="col-span-2">
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                        Location (City, State)
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Denver, CO"
-                          {...field}
-                          className="h-12 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-bold"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="flex gap-3 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => onOpenChange?.(false)}
-                  className="flex-1 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest border-zinc-200"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex-1 h-12 rounded-xl bg-zinc-900 text-[10px] font-black uppercase tracking-widest text-white hover:bg-zinc-800"
-                >
-                  {isSubmitting ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    "Add Partner"
-                  )}
-                </Button>
-              </div>
-            </form>
-          </Form>
+          <form
+            className="space-y-6"
+            onSubmit={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              form.handleSubmit();
+            }}
+          >
+            <div className="grid grid-cols-2 gap-4">
+              <form.AppField name="name">
+                {(field) => (
+                  <field.TextField
+                    className="col-span-2"
+                    inputClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-bold transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
+                    label="Full Name / Org Name"
+                    labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
+                    placeholder="Enter name"
+                  />
+                )}
+              </form.AppField>
+
+              <form.AppField name="email">
+                {(field) => (
+                  <field.TextField
+                    inputClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-bold transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
+                    label="Email Address"
+                    labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
+                    placeholder="email@example.com"
+                    type="email"
+                  />
+                )}
+              </form.AppField>
+
+              <form.AppField name="phone">
+                {(field) => (
+                  <field.TextField
+                    inputClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-bold transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
+                    label="Phone Number"
+                    labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
+                    placeholder="(555) 000-0000"
+                  />
+                )}
+              </form.AppField>
+
+              <form.AppField name="type">
+                {(field) => (
+                  <field.SelectField
+                    label="Partner Type"
+                    labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
+                    options={PARTNER_TYPE_OPTIONS}
+                    placeholder="Select type"
+                    triggerClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-bold transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
+                  />
+                )}
+              </form.AppField>
+
+              <form.AppField name="frequency">
+                {(field) => (
+                  <field.SelectField
+                    label="Giving Frequency"
+                    labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
+                    options={PARTNER_FREQUENCY_OPTIONS}
+                    placeholder="Select frequency"
+                    triggerClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-bold transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
+                  />
+                )}
+              </form.AppField>
+
+              <form.AppField name="location">
+                {(field) => (
+                  <field.TextField
+                    className="col-span-2"
+                    inputClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-bold transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
+                    label="Location (City, State)"
+                    labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
+                    placeholder="Denver, CO"
+                  />
+                )}
+              </form.AppField>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                className="h-12 flex-1 rounded-xl border-zinc-200 text-[10px] font-black uppercase tracking-widest"
+                onClick={() => handleOpenChange(false)}
+                type="button"
+                variant="outline"
+              >
+                Cancel
+              </Button>
+
+              <form.Subscribe
+                selector={(state) => ({
+                  canSubmit: state.canSubmit,
+                  isSubmitting: state.isSubmitting,
+                })}
+              >
+                {({ canSubmit, isSubmitting }) => (
+                  <Button
+                    className="h-12 flex-1 rounded-xl bg-zinc-900 text-[10px] font-black uppercase tracking-widest text-white hover:bg-zinc-800"
+                    disabled={!canSubmit || isSubmitting}
+                    type="submit"
+                  >
+                    {isSubmitting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "Add Partner"
+                    )}
+                  </Button>
+                )}
+              </form.Subscribe>
+            </div>
+          </form>
         </div>
       </DialogContent>
     </Dialog>
