@@ -1,18 +1,13 @@
 ---
-name: core
-description: A brief description of what this skill does
+name: repo-entry
+description: Pointer to the canonical agent instruction and skill system for this monorepo
 ---
 
-# core
+# Repository agent instructions
 
-Instructions for the agent to follow when this skill is activated.
+This file is not the primary instruction source.
 
-## When to use
-
-Describe when this skill should be used.
-
-## Instructions
-
-1. First step
-2. Second step
-3. Additional steps as needed
+1. Read and follow root **`AGENTS.md`** (Next.js managed block, routing, Nia, MCP, monorepo commands).
+2. For **canonical** task skills maintained by this repo, use **`docs/ai/skills/*/SKILL.md`**.
+3. After changing skills under `docs/ai/skills/`, run **`bun run skills:sync`** and ensure **`bun run skills:verify`** passes before committing.
+4. Additional packs may exist only under **`.cursor/skills/`**; use them when their `SKILL.md` description matches the task.

@@ -1,0 +1,15 @@
+---
+description: Use Next.js devtools MCP for live errors, logs, routes, and page metadata when a dev server is running
+globs: apps/**/*
+alwaysApply: false
+---
+
+# Next.js devtools MCP
+
+When editing or debugging Next.js apps under `apps/admin`, `apps/donor`, or `apps/missionary`:
+
+1. If a dev server is already running for the relevant app, use the **next-devtools** MCP tools first (`get_errors`, `get_logs`, `get_routes`, `get_page_metadata`, `get_project_metadata`, etc.) instead of guessing routes or console output.
+2. Start the correct app if nothing is running (ports: donor `3000`, admin `3030`, missionary `4000` — see root `AGENTS.md`).
+3. Config lives in root `.mcp.json` and `.cursor/mcp.json` (`next-devtools-mcp@latest` via `bunx`).
+
+Reference: https://nextjs.org/docs/app/guides/mcp
