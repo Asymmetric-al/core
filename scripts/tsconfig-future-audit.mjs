@@ -68,15 +68,23 @@ for (const file of walkTsconfigs(root)) {
   const mr = o.moduleResolution;
   if (typeof mr === "string") {
     const m = mr.toLowerCase();
-    if (m === "node" || m === "node10") findings.moduleResolutionDeprecated.push(rel);
-    if (m === "nodenext" || m === "node16") findings.moduleResolutionModern.push(rel);
+    if (m === "node" || m === "node10")
+      findings.moduleResolutionDeprecated.push(rel);
+    if (m === "nodenext" || m === "node16")
+      findings.moduleResolutionModern.push(rel);
   }
 }
 
 console.log("tsconfig future-readiness audit (informational)\n");
 console.log("baseUrl present (avoid in new code; TS 7 removes baseUrl):");
-console.log(findings.baseUrl.length ? findings.baseUrl.map((x) => `  - ${x}`).join("\n") : "  (none under repo root except vendor/)");
-console.log('\nmoduleResolution deprecated (node / node10 — avoid; removed in TS 7):');
+console.log(
+  findings.baseUrl.length
+    ? findings.baseUrl.map((x) => `  - ${x}`).join("\n")
+    : "  (none under repo root except vendor/)",
+);
+console.log(
+  "\nmoduleResolution deprecated (node / node10 — avoid; removed in TS 7):",
+);
 console.log(
   findings.moduleResolutionDeprecated.length
     ? findings.moduleResolutionDeprecated.map((x) => `  - ${x}`).join("\n")
@@ -88,3 +96,5 @@ console.log(
     ? findings.moduleResolutionModern.map((x) => `  - ${x}`).join("\n")
     : "  (none)",
 );
+
+process.exit(0);
