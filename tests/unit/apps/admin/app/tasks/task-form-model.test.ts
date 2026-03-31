@@ -45,7 +45,9 @@ describe("apps/admin/app/tasks/task-form-model", () => {
       },
     ]);
 
-    expect(reminders[0]?.id).toMatch(/^rem-notification-2026-03-31T09:00:00.000Z-0$/);
+    expect(reminders[0]?.id).toMatch(
+      /^rem-notification-2026-03-31T09:00:00.000Z-0$/,
+    );
     expect(reminders[1]?.id).toBe("existing-reminder");
   });
 
@@ -89,7 +91,9 @@ describe("apps/admin/app/tasks/task-form-model", () => {
   });
 
   it("creates a default reminder one hour before the due date", () => {
-    const reminder = createDefaultReminder(new Date("2026-04-01T18:00:00.000Z"));
+    const reminder = createDefaultReminder(
+      new Date("2026-04-01T18:00:00.000Z"),
+    );
 
     expect(reminder.remind_at).toBe("2026-04-01T17:00:00.000Z");
     expect(reminder.type).toBe("notification");
