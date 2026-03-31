@@ -1,5 +1,41 @@
 # Working Set
 
+## 2026-03-29 (regression tests — Next 16.2 / donor public shell)
+
+- Date: 2026-03-29
+- Repo: Asymmetric-al/core
+- Goal: Lock in minimal unit coverage for high-blast-radius surfaces from the Next 16.2.1 upgrade and donor public navbar fix.
+- Primary area: `packages/ui/lib/drawer-swipe-direction.ts`, `packages/ui/components/shadcn/drawer.tsx`, `apps/donor/next.config.ts` (`images.qualities`), `packages/ui/components/public/navbar.tsx`, `tests/unit/{packages/ui,apps/donor}/*`
+- Verification: `bunx vitest run tests/unit/packages/ui/drawer-swipe-direction.test.ts tests/unit/apps/donor/next-config-images.test.ts tests/unit/packages/ui/navbar-public-imports.test.ts`
+
+## 2026-03-25 (TypeScript 6/7 future-readiness prep — cursor/typescript-future-readiness-4e19)
+
+- Date: 2026-03-25
+- Repo: Asymmetric-al/core
+- Goal: Conservative prep for future TypeScript 6 and 7 migrations without upgrading the compiler or changing runtime behavior.
+- Primary area: `tooling/typescript-config/base.json`, `apps/{admin,donor,missionary}/tsconfig.json`, `packages/{ui,missionary}/tsconfig.json`, `docs/guides/typescript-6-readiness.md`, `docs/ai/rules/typescript-future-proofing.md`, `AGENTS.md`, `docs/README.md`, `scripts/tsconfig-future-audit.mjs`
+- Decisions:
+  - Explicit `libReplacement: true` and `noUncheckedSideEffectImports: false` in shared base to freeze TypeScript 5.9 behavior before TS 6 default changes.
+  - Removed redundant `baseUrl` where only `paths` was used (official `paths` does not require `baseUrl`).
+  - Documented policy, audit matrix, and optional non-blocking `bun run tsconfig:future-audit`.
+- Deferred: enabling `noUncheckedSideEffectImports` globally, repo-wide `types` arrays, `rootDir` churn, TS 6/7 compiler adoption, native preview in default workflows.
+- Verification: `bun run typecheck` after config edits.
+
+## 2026-03-24 (instruction system — cursor/instruction-system-architecture-75bb)
+
+- Date: 2026-03-24
+- Repo: Asymmetric-al/core
+- Goal: Conservative refresh of agent instruction routing (AGENTS.md, Copilot, Cursor rules/MCP mirror) without changing product code; align Next.js version pins and skill paths with repo reality.
+- Primary area: `AGENTS.md`, `.github/copilot-instructions.md`, `.cursor/mcp.json`, `.cursor/rules/next-devtools-mcp.mdc`, `cursor.md`, `docs/ai/rules/general.md`, `docs/ai/working-set.md`, `SKILL.md`
+- Constraints:
+  - Preserve `<!-- BEGIN:nextjs-agent-rules -->` block verbatim and keep `<!-- NEXT-AGENTS-MD-START -->` … `END` region intact.
+  - No edits under `apps/`, `packages/` product code, tests, or DB migrations.
+- Evidence sources used:
+  - Root and app `package.json` (Next.js pin; see live manifests)
+  - Root `.mcp.json` (`next-devtools`, `tanstack`)
+  - `docs/ai/skills/*/SKILL.md` inventory vs `AGENTS.md` skill routing
+  - `https://nextjs.org/docs/app/guides/ai-agents`, `https://nextjs.org/docs/app/guides/mcp`, `https://cursor.com/docs/rules`
+
 ## 2026-03-22 (Next.js 16.2.1 stabilization)
 
 - Date: 2026-03-22
