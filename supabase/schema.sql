@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     display_name TEXT,
     phone TEXT,
     avatar_url TEXT,
-    role TEXT DEFAULT 'donor', -- 'admin', 'missionary', 'donor'
+    role TEXT NOT NULL DEFAULT 'donor' CHECK (role IN ('admin', 'staff', 'super_admin', 'missionary', 'donor', 'finance', 'fundraising', 'mobilizers', 'member_care', 'events', 'delivery', 'ticketing', 'machinery')),
     tenant_id UUID REFERENCES public.tenants(id),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -1034,7 +1034,7 @@ BEGIN
       TRIM(CONCAT(new.raw_user_meta_data->>'first_name', ' ', new.raw_user_meta_data->>'last_name'))
     ),
     new.raw_user_meta_data->>'avatar_url',
-    COALESCE(new.raw_user_meta_data->>'role', 'donor'),
+    'donor',
     COALESCE((new.raw_app_meta_data->>'tenant_id')::uuid, '00000000-0000-0000-0000-000000000001'::uuid)
   );
   RETURN new;

@@ -244,6 +244,8 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
+    position: relative;
+    isolation: isolate;
   }
 
   /* Accessibility baseline: respect reduced-motion preference. */

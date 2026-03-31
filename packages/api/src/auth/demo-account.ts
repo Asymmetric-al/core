@@ -3,19 +3,23 @@ import {
   E2E_AUTH_COOKIE_NAME,
   isE2EAuthBypassEnabled,
 } from "@asym/auth";
+import { APP_ROLES, type AppRole } from "@asym/auth/roles";
+import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { runtimeEnvFlags, serverEnv } from "@asym/env";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 
-const DEMO_ROLES = ["admin", "missionary", "donor"] as const;
-type DemoRole = (typeof DEMO_ROLES)[number];
+import type { UserRole } from "@asym/database/types";
 
-type DemoAvailability = Record<DemoRole, boolean>;
+type DemoAvailability = Record<AppRole, boolean>;
 
 const defaultAvailability: DemoAvailability = {
   admin: false,
   missionary: false,
   donor: false,
+  delivery: false,
+  ticketing: false,
+  machinery: false,
 };
 
 type PendingCookie = {
@@ -59,33 +63,46 @@ function parseCookieHeader(cookieHeader: string | null) {
 
 function getDemoConfig() {
   const password = serverEnv.DEMO_PASSWORD;
-  const emails: Record<DemoRole, string | undefined> = {
+  const emails: Record<AppRole, string | undefined> = {
     admin: serverEnv.DEMO_ADMIN_EMAIL,
     missionary: serverEnv.DEMO_MISSIONARY_EMAIL,
     donor: serverEnv.DEMO_DONOR_EMAIL,
+    delivery: serverEnv.DEMO_DELIVERY_EMAIL,
+    ticketing: serverEnv.DEMO_TICKETING_EMAIL,
+    machinery: serverEnv.DEMO_MACHINERY_EMAIL,
   };
 
   const availability: DemoAvailability = {
     admin: Boolean(password && emails.admin),
     missionary: Boolean(password && emails.missionary),
     donor: Boolean(password && emails.donor),
+    delivery: Boolean(password && emails.delivery),
+    ticketing: Boolean(password && emails.ticketing),
+    machinery: Boolean(password && emails.machinery),
   };
 
   return { password, emails, availability };
 }
 
+/** Map AppRole to UserRole for E2E cookie (UserRole is a subset). */
+function appRoleToUserRole(role: AppRole): UserRole {
+  if (role === "admin" || role === "missionary" || role === "donor") {
+    return role;
+  }
+  return "admin";
+}
+
 function createAuthClient(request: Request) {
   const pendingCookies: PendingCookie[] = [];
-  const supabaseUrl = serverEnv.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = serverEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const { url, key } = getSupabasePublicConfig();
 
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!url || !key) {
     return { supabase: null, pendingCookies };
   }
 
   const requestCookies = parseCookieHeader(request.headers.get("cookie"));
 
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+  const supabase = createServerClient(url, key, {
     cookies: {
       getAll() {
         return requestCookies;
@@ -111,46 +128,84 @@ function createAuthClient(request: Request) {
   return { supabase, pendingCookies };
 }
 
+function isDemoEndpointEnabled() {
+  if (
+    runtimeEnvFlags.NODE_ENV === "production" &&
+    !serverEnv.ALLOW_DEMO_ACCOUNTS
+  ) {
+    return false;
+  }
+  return true;
+}
+
+function buildAvailabilityResponse(
+  availability: DemoAvailability,
+  reason?: string,
+) {
+  return {
+    enabled: Object.values(availability).some(Boolean),
+    roles: availability,
+    ...(reason ? { reason } : {}),
+    // Backward compatibility for existing consumers.
+    availableRoles: availability,
+  };
+}
+
+function toSafeDemoError(rawMessage: string | undefined) {
+  const message = rawMessage?.toLowerCase() ?? "";
+  if (message.includes("invalid login credentials")) {
+    return "Invalid login credentials";
+  }
+  return "Demo login is not configured.";
+}
+
 export async function GET() {
   if (isE2EAuthBypassEnabled()) {
     return NextResponse.json({
       availableRoles: { admin: true, missionary: true, donor: true },
     });
   }
-
-  if (
-    runtimeEnvFlags.NODE_ENV === "production" &&
-    !serverEnv.ALLOW_DEMO_ACCOUNTS
-  ) {
-    return NextResponse.json({ availableRoles: defaultAvailability });
+  if (!isDemoEndpointEnabled()) {
+    return NextResponse.json(
+      buildAvailabilityResponse(
+        defaultAvailability,
+        "Demo accounts are disabled in production.",
+      ),
+    );
   }
 
   const { availability } = getDemoConfig();
-  return NextResponse.json({ availableRoles: availability });
+  return NextResponse.json(buildAvailabilityResponse(availability));
 }
 
 export async function POST(request: Request) {
-  if (
-    runtimeEnvFlags.NODE_ENV === "production" &&
-    !serverEnv.ALLOW_DEMO_ACCOUNTS
-  ) {
+  if (!isDemoEndpointEnabled()) {
     return NextResponse.json(
-      { ok: false, error: "Demo login unavailable" },
+      {
+        ok: false,
+        error: "Demo login unavailable",
+        code: "DEMO_DISABLED",
+      },
       { status: 403 },
     );
   }
 
   try {
-    const { role } = (await request.json()) as { role?: DemoRole };
+    const { role } = (await request.json()) as { role?: AppRole };
 
-    if (!role || !DEMO_ROLES.includes(role)) {
+    if (!role || !APP_ROLES.includes(role)) {
       return NextResponse.json(
-        { ok: false, error: "Demo login unavailable" },
+        {
+          ok: false,
+          error: "Demo login unavailable",
+          code: "DEMO_INVALID_ROLE",
+        },
         { status: 400 },
       );
     }
 
     if (isE2EAuthBypassEnabled()) {
+      const e2eRole = appRoleToUserRole(role);
       const response = NextResponse.json({ ok: true, role, bypass: true });
       const secure = new URL(request.url).protocol === "https:";
 
@@ -158,7 +213,7 @@ export async function POST(request: Request) {
         E2E_AUTH_COOKIE_NAME,
         createE2EAuthCookieValue({
           userId: `e2e-${role}-user`,
-          role,
+          role: e2eRole,
           tenantId: null,
         }),
         {
@@ -178,7 +233,11 @@ export async function POST(request: Request) {
 
     if (!availability[role] || !email || !password) {
       return NextResponse.json(
-        { ok: false, error: "Demo login unavailable" },
+        {
+          ok: false,
+          error: "Demo login is not configured.",
+          code: "DEMO_ROLE_UNAVAILABLE",
+        },
         { status: 400 },
       );
     }
@@ -186,7 +245,11 @@ export async function POST(request: Request) {
     const { supabase, pendingCookies } = createAuthClient(request);
     if (!supabase) {
       return NextResponse.json(
-        { ok: false, error: "Demo login unavailable" },
+        {
+          ok: false,
+          error: "Demo login is not configured.",
+          code: "DEMO_SUPABASE_MISSING",
+        },
         { status: 503 },
       );
     }
@@ -197,12 +260,20 @@ export async function POST(request: Request) {
     });
     if (signInError) {
       return NextResponse.json(
-        { ok: false, error: "Invalid demo credentials" },
+        {
+          ok: false,
+          error: toSafeDemoError(signInError.message),
+          code: "DEMO_SIGNIN_FAILED",
+        },
         { status: 401 },
       );
     }
 
-    const response = NextResponse.json({ ok: true, role });
+    if (runtimeEnvFlags.NODE_ENV !== "production") {
+      console.info(`[demo-auth] demo login success role=${role}`);
+    }
+
+    const response = NextResponse.json({ ok: true });
     pendingCookies.forEach((cookie) => {
       response.cookies.set(
         cookie.name,
@@ -213,7 +284,7 @@ export async function POST(request: Request) {
     return response;
   } catch {
     return NextResponse.json(
-      { ok: false, error: "Internal server error" },
+      { ok: false, error: "Internal server error", code: "DEMO_SERVER_ERROR" },
       { status: 500 },
     );
   }

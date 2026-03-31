@@ -1,5 +1,94 @@
 # Working Set
 
+## 2026-03-29 (regression tests — Next 16.2 / donor public shell)
+
+- Date: 2026-03-29
+- Repo: Asymmetric-al/core
+- Goal: Lock in minimal unit coverage for high-blast-radius surfaces from the Next 16.2.1 upgrade and donor public navbar fix.
+- Primary area: `packages/ui/lib/drawer-swipe-direction.ts`, `packages/ui/components/shadcn/drawer.tsx`, `apps/donor/next.config.ts` (`images.qualities`), `packages/ui/components/public/navbar.tsx`, `tests/unit/{packages/ui,apps/donor}/*`
+- Verification: `bunx vitest run tests/unit/packages/ui/drawer-swipe-direction.test.ts tests/unit/apps/donor/next-config-images.test.ts tests/unit/packages/ui/navbar-public-imports.test.ts`
+
+## 2026-03-22 (Next.js 16.2.1 stabilization)
+
+- Date: 2026-03-22
+- Repo: Asymmetric-al/core
+- Goal: Upgrade the monorepo from Next.js 16.1.6 to 16.2.1 with the smallest safe diff, validate all three apps, and avoid canary/install drift.
+- Primary area:
+  - `package.json`
+  - `apps/{admin,donor,missionary}/package.json`
+  - `packages/{api,auth,database,lib,missionary,ui}/package.json`
+  - `apps/donor/next.config.ts`
+  - `packages/ui/components/{shadcn/drawer,public/navbar}.tsx`
+  - `bun.lock`
+- Constraints:
+  - Keep Turbopack for `next dev` and only change build strategy if validation proves it necessary.
+  - Avoid broad codemods; repo is already on proxy/async request APIs/ESLint CLI.
+  - Preserve Payload + Cache Components behavior in admin.
+  - Keep unrelated dependency churn out of the diff.
+- Evidence sources used:
+  - root/app/package manifests + `bun.lock`
+  - `.next-docs/01-app/02-guides/upgrading/version-16.mdx`
+  - `.next-docs/01-app/03-api-reference/{06-cli/next,05-config/01-next-config-js/{turbopack,reactCompiler,isolatedDevBuild,optimizePackageImports},04-functions/{revalidateTag,updateTag},02-components/image}.mdx`
+  - Next.js 16.2 / 16.2.1 release notes and Turbopack 16.2 notes
+- Decisions:
+  - Clean reinstall first to remove stale canary/install drift before trusting any build output.
+  - Keep the build scripts on default `next build` because all three apps successfully build on 16.2.1 with Turbopack after the real compatibility fixes.
+  - Add `images.qualities` to donor config to preserve the existing `quality={85}` worker hero image behavior under Next 16 image allowlisting.
+  - Update shared drawer wrapper from `DrawerPreview` to stable `Drawer` for Base UI 1.3.0 compatibility.
+  - Fix client/server env boundary by switching `packages/ui/components/public/navbar.tsx` from `@asym/config/site` to `@asym/config/site-client`.
+- Verification:
+  - Direct production builds:
+    - `node scripts/run-with-ci-env.mjs -- bun run --cwd apps/donor build`
+    - `node scripts/run-with-ci-env.mjs -- bun run --cwd apps/missionary build`
+    - `node scripts/run-with-ci-env.mjs -- bun run --cwd apps/admin build`
+  - Local CI parity:
+    - `bun run ci:preflight`
+  - Production start smoke:
+    - donor `http://127.0.0.1:3005`
+    - missionary `http://127.0.0.1:4005`
+    - admin `http://127.0.0.1:3036`
+  - Manual browser smoke:
+    - donor protected route redirect verified
+    - missionary login verified
+    - admin login verified
+    - donor worker detail page initially failed from client-side server-env access, then passed on refreshed build after navbar fix
+
+## 2026-03-18 (auth stabilization — cursor/supabase-login-foundation-6869)
+
+- Date: 2026-03-18
+- Repo: Asymmetric-al/core
+- Goal: Stabilize and complete auth on branch using latest epic as base; fix known auth issues and run clean lint/typecheck/unit tests.
+- Primary area: `packages/auth/middleware.ts`, `packages/ui/components/auth/LoginScreen.tsx`, `packages/database/supabase/proxy.ts`, `packages/api/src/auth/demo-account.ts`, `tests/unit/auth/*`, merge resolution with epic (mc-shell, ui package.json, bun.lock), base-ui drawer types.
+- Decisions:
+  - LoginScreen: use `getUser()` instead of `getSession()` to avoid redirect loop from cached revoked sessions.
+  - Middleware: redirect base uses only `request.nextUrl.origin` (no Origin/Referer) to prevent open redirect.
+  - Middleware: session validation uses `getUser()` instead of `getClaims()` so revoked sessions are rejected.
+  - E2E auth bypass: removed test that expected middleware to honor E2E cookie; middleware stays simple and does not implement bypass.
+  - Proxy: cookie refresh uses `getSession()` (legacy helper remains cookie-refresh only).
+  - Config logging: `logMissingSupabaseConfig` takes `SupabasePublicConfig` instead of reading `process.env` in auth package.
+  - Demo-account: use `serverEnv` / `runtimeEnvFlags` instead of raw `process.env`.
+- Verification: `bun run lint`, `bun run typecheck`, `bunx vitest run tests/unit/auth/` (38 tests pass). Full `bun run test:unit` has pre-existing CMS/script-verifier timeouts unrelated to auth.
+
+## 2026-03-13
+
+- Date: 2026-03-13
+- Repo: Asymmetric-al/core
+- Goal: Upgrade declared Base UI dependencies to v1.3.0 and perform the smallest safe shared-wrapper migration needed for modern Base UI alignment without redesigning the Maia UI layer.
+- Primary area: `apps/{admin,donor,missionary}/package.json`, `packages/ui/package.json`, `packages/ui/components/shadcn/{drawer}.tsx`, `packages/ui/styles/globals.css`
+- Constraints:
+  - Keep public wrapper APIs stable where possible.
+  - Prefer shared-wrapper adaptation over touching call sites.
+  - Preserve Maia classes/tokens and avoid broad Radix/Base rewrites in one pass.
+  - Follow Next.js 16 server/client boundary guidance from `.next-docs`.
+- Evidence sources used:
+  - `apps/{admin,donor,missionary}/package.json`
+  - `packages/ui/components/shadcn/{drawer,dialog,sheet,select,tooltip,command}.tsx`
+  - `packages/ui/styles/globals.css`
+  - `apps/*/app/layout.tsx`
+  - Base UI release docs / live docs for v1.3.0 Drawer stability, SwipeArea, Tooltip `closeOnClick`, Select/Combobox/Slider labels, and overlay setup guidance
+- Notes:
+  - Repo-scoped NIA search remains useful for external docs, but current branch source-of-truth is local `rg` + direct file reads because the indexed repo snapshot lagged behind local branch content for this migration.
+
 ## 2026-03-12
 
 - Date: 2026-03-12
@@ -21,6 +110,11 @@
   - `.next-docs/01-app/01-getting-started/05-server-and-client-components.mdx`
 - Notes:
   - `AGENTS.md` requires Nia for repo-scoped search, but Nia tools are unavailable in this session; using `rg`, direct file reads, and targeted tests as fallback.
+
+## 2026-02-26 (PR #78 merge prep)
+
+- Date: 2026-02-26
+- Goal: Resolve merge conflicts with epic for Supabase login foundation PR.
 
 ## 2026-02-23 (resend future readiness hardening)
 
@@ -350,22 +444,90 @@
 ## 2026-02-22
 
 - Date: 2026-02-22
+- Date: 2026-02-22
 - Repo: Asymmetric-al/core
-- Goal: Implement a hybrid Supabase CLI workflow (global-first + pinned fallback) and align setup/scripts/docs with secure contributor defaults.
-- Primary area: `scripts/supabase-cli.mjs`, `package.json`, `scripts/seed-demo.sh`, `scripts/setup/*`, `README.md`, `docs/ops/environments.md`, `docs/ai/rules/backend.md`
+- Goal: Ship a shared Supabase sign-in foundation across `admin`, `missionary`, and `donor` with demo-only + full-login modes, SSR cookie continuity, and role-safe redirects.
+- Primary area:
+  - `packages/auth/*`
+  - `packages/api/src/auth/*`
+  - `packages/ui/components/auth/*`
+  - `packages/database/supabase/*`
+  - `apps/{admin,missionary,donor}/app/(auth)/login/page.tsx`
+  - `apps/{admin,missionary,donor}/proxy.ts`
+  - `docs/auth/sign-in.md`
 - Constraints:
-  - No hardcoded secrets.
-  - Keep Supabase auth client boundaries unchanged (`@supabase/ssr` server/client separation).
-  - Preserve migration safety for hosted flows (`SUPABASE_DB_URL`, URL targeting checks).
-  - Keep contributor setup non-blocking while improving reproducibility.
+  - Demo credentials stay server-side.
+  - No Radix-based auth UI usage.
+  - Use modern Supabase SSR + Next.js proxy patterns.
+  - Preserve production safety (`ALLOW_DEMO_ACCOUNTS`).
 - Evidence sources used:
-  - `package.json`
-  - `scripts/seed-demo.sh`
-  - `scripts/setup/index.sh`
-  - `scripts/setup.ps1`
-  - `scripts/setup/index.ps1`
-  - `README.md`
-  - `docs/ops/environments.md`
-  - `docs/ai/rules/backend.md`
+  - Existing app login pages and proxy files in all three apps
+  - `packages/api/src/auth/demo-account.ts`
+  - `packages/auth/middleware.ts` and `packages/auth/context.ts`
+  - Next.js docs from `.next-docs` (`proxy`, `authentication`)
+  - `scripts/supabase-cli.mjs` and root script updates from `epic`
 - Tooling note:
-  - Repo uses Bun-first workflows; Supabase runner should work with/without globally installed `supabase` binary.
+  - Nia MCP unavailable in this runtime; fallback used repo-scoped file reads + `rg`.
+
+## Follow-up hardening execution notes (2026-02-27)
+
+- Completed remaining auth hardening phases:
+  - donor authenticated `/login` redirect behavior fixed (proxy auth-route redirect removed; page/client redirect path used).
+  - explicit sign-out made SSR-safe with shared `/api/auth/signout` route and cookie-clearing server sign-out.
+  - shared registration screen in `@asym/ui` used across apps with donor-only self-registration and admin/missionary invite-only UI.
+  - permanent auth E2E specs added for session guards, registration policy, and permissions.
+- Verified with:
+  - full lint/typecheck/unit (`bun run check`) pass
+  - Playwright auth suite runs across donor/admin/missionary (session guards + registration + permission matrix).
+
+## Best-practice hardening follow-up (2026-02-27)
+
+- Removed client-supplied role from public registration payload in shared `RegisterScreen`.
+- Added DB role hardening migration:
+  - `supabase/migrations/20260227060000_auth_role_hardening.sql`
+  - enforces allowlisted `profiles.role` values
+  - sets `profiles.role` non-null + default donor
+  - updates `handle_new_user` to assign `donor` for self-registration.
+- Synced canonical schema and init migration to same role constraints and trigger behavior.
+- Hardened sign-out route:
+  - same-origin validation via `Origin`/`Referer`
+  - explicit `Cache-Control: no-store`
+  - added unit coverage in `tests/unit/auth/signout-handler.test.ts`.
+- Stabilized auth e2e sign-out targeting with `data-testid=\"auth-signout\"` controls.
+
+## Docs/test handoff pass (2026-02-27)
+
+- Added developer handoff guide:
+  - `docs/auth/hardening-handoff.md`
+  - includes current wiring, completed work, and explicit backlog mapping for priorities 1–5.
+- Added migration artifact regression tests:
+  - `tests/unit/auth/role-hardening-migration.test.ts`
+  - guards role-check constraint and donor-enforced trigger behavior.
+- Updated auth-related e2e selectors/defaults for compatibility with current UI:
+  - `tests/e2e/accessibility.spec.ts`
+  - `tests/e2e/auth-registration-policy.spec.ts`
+- Validation rerun complete:
+  - `bun run test:e2e` passes (24 passed, 34 skipped)
+  - cross-dashboard auth smoke/matrix runs pass
+  - `bun run format:check`, `bun run check`, and `bun run build` pass.
+
+## Review follow-up pass (2026-02-27)
+
+- Addressed sign-out error handling review note:
+  - added shared client helper `packages/auth/client-signout.ts`
+  - callers now log server sign-out failures and show a user warning before continuing client cleanup.
+- Exposed helper as `@asym/auth/client-signout` and adopted in:
+  - `packages/auth/use-auth.ts`
+  - `packages/lib/hooks/use-auth.ts`
+  - `packages/lib/mission-control/context.tsx`
+  - donor and missionary sign-out UI components.
+- Removed duplicate auth source-of-truth risk in legacy DB proxy:
+  - simplified `packages/database/supabase/proxy.ts` to cookie refresh only
+  - documented auth-guard ownership in `@asym/auth/middleware`.
+- Refined sign-out origin policy for reliability:
+  - `packages/api/src/auth/signout.ts` now treats missing `Origin`/`Referer` as allowable fallback while still rejecting explicit cross-origin requests.
+  - updated tests in `tests/unit/auth/signout-handler.test.ts`.
+- Re-validated:
+  - scoped lint/typecheck for touched packages/apps
+  - `bun run test:unit`
+  - Playwright session guard spec for donor/admin/missionary.

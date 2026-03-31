@@ -8,8 +8,11 @@
     "./context": "./context.ts",
     "./permissions": "./permissions.ts",
     "./use-auth": "./use-auth.ts",
+    "./client-signout": "./client-signout.ts",
     "./middleware": "./middleware.ts",
-    "./constants": "./constants.ts"
+    "./constants": "./constants.ts",
+    "./roles": "./roles.ts",
+    "./demo-login": "./demo-login.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
@@ -21,7 +24,7 @@
     "@asym/env": "workspace:*",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.47.10",
-    "next": "16.1.6",
+    "next": "16.2.1",
     "react": "^19.0.0"
   },
   "devDependencies": {

@@ -68,7 +68,7 @@ Invoke-ScriptAnalyzer -Path .\scripts\setup.ps1, .\scripts\lib\*.ps1
 ## Architecture & Tech Stack
 
 - **Framework**: Next.js 16.1 (App Router, Turbopack) - _Optimized for Performance_
-- **UI System**: Tailwind CSS 4 + shadcn/ui (Maia Theme) + Radix UI + Base UI
+- **UI System**: Tailwind CSS 4 + shadcn/ui (Maia Theme) + Base UI
 - **Theme**: Light Zinc Aesthetic (Zinc/Zinc), Shadcn/UI Maia Theme
 - **Database**: Supabase (PostgreSQL)
 - **Authentication**: Supabase Auth (Unified across platforms)
@@ -76,15 +76,15 @@ Invoke-ScriptAnalyzer -Path .\scripts\setup.ps1, .\scripts\lib\*.ps1
 - **State Management**: React 19 + TanStack Query v5
 - **Animations**: Motion + Tailwind Motion
 
-## UX/UI Standards (Shadcn/UI December 2025)
+## UX/UI Standards (Shadcn/UI)
 
 The platform follows a standardized **Zinc Light** theme, optimized for both desktop and mobile viewports with a seamless, responsive transition.
 
 ### Typography
 
 - **Primary**: Inter (`tracking-tight`)
-- **Mono**: Geist Mono
-- **Headings**: Refined tracking and bold weight for clarity
+- **Mono**:
+- **Headings**:
 
 ### Design Tokens
 
@@ -438,6 +438,9 @@ Ask a maintainer for access to the shared dev Supabase project and request the p
 
 The demo login flow uses `/api/auth/demo-account` with the public anon client and pre-seeded demo users.
 Set `DEMO_ADMIN_EMAIL`, `DEMO_MISSIONARY_EMAIL`, `DEMO_DONOR_EMAIL`, and `DEMO_PASSWORD` in `.env.local` to enable the demo buttons.
+
+For full sign-in mode, demo-only mode, and middleware/layout integration details, see
+`docs/auth/sign-in.md`.
 
 ## Supabase CLI Workflow (Hybrid)
 

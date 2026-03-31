@@ -12,6 +12,10 @@
       "types": "./supabase/server.ts",
       "default": "./supabase/server.ts"
     },
+    "./supabase/config": {
+      "types": "./supabase/config.ts",
+      "default": "./supabase/config.ts"
+    },
     "./supabase/admin": {
       "types": "./supabase/admin.ts",
       "default": "./supabase/admin.ts"
@@ -44,7 +48,8 @@
   "scripts": {
     "build": "tsc --noEmit",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "seed:demo-users": "bun scripts/seed-demo-users.ts"
   },
   "dependencies": {
     "@asym/env": "workspace:*",
@@ -55,7 +60,7 @@
     "@tanstack/react-db": "^0.1.72",
     "@tanstack/react-query": "^5.90.21",
     "@tanstack/react-query-devtools": "^5.90.15",
-    "next": "16.1.6",
+    "next": "16.2.1",
     "react": "^19.0.0",
     "zod": "^4.3.6"
   },
