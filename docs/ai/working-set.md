@@ -1,5 +1,58 @@
 # Working Set
 
+## 2026-03-29 (regression tests — Next 16.2 / donor public shell)
+
+- Date: 2026-03-29
+- Repo: Asymmetric-al/core
+- Goal: Lock in minimal unit coverage for high-blast-radius surfaces from the Next 16.2.1 upgrade and donor public navbar fix.
+- Primary area: `packages/ui/lib/drawer-swipe-direction.ts`, `packages/ui/components/shadcn/drawer.tsx`, `apps/donor/next.config.ts` (`images.qualities`), `packages/ui/components/public/navbar.tsx`, `tests/unit/{packages/ui,apps/donor}/*`
+- Verification: `bunx vitest run tests/unit/packages/ui/drawer-swipe-direction.test.ts tests/unit/apps/donor/next-config-images.test.ts tests/unit/packages/ui/navbar-public-imports.test.ts`
+
+## 2026-03-22 (Next.js 16.2.1 stabilization)
+
+- Date: 2026-03-22
+- Repo: Asymmetric-al/core
+- Goal: Upgrade the monorepo from Next.js 16.1.6 to 16.2.1 with the smallest safe diff, validate all three apps, and avoid canary/install drift.
+- Primary area:
+  - `package.json`
+  - `apps/{admin,donor,missionary}/package.json`
+  - `packages/{api,auth,database,lib,missionary,ui}/package.json`
+  - `apps/donor/next.config.ts`
+  - `packages/ui/components/{shadcn/drawer,public/navbar}.tsx`
+  - `bun.lock`
+- Constraints:
+  - Keep Turbopack for `next dev` and only change build strategy if validation proves it necessary.
+  - Avoid broad codemods; repo is already on proxy/async request APIs/ESLint CLI.
+  - Preserve Payload + Cache Components behavior in admin.
+  - Keep unrelated dependency churn out of the diff.
+- Evidence sources used:
+  - root/app/package manifests + `bun.lock`
+  - `.next-docs/01-app/02-guides/upgrading/version-16.mdx`
+  - `.next-docs/01-app/03-api-reference/{06-cli/next,05-config/01-next-config-js/{turbopack,reactCompiler,isolatedDevBuild,optimizePackageImports},04-functions/{revalidateTag,updateTag},02-components/image}.mdx`
+  - Next.js 16.2 / 16.2.1 release notes and Turbopack 16.2 notes
+- Decisions:
+  - Clean reinstall first to remove stale canary/install drift before trusting any build output.
+  - Keep the build scripts on default `next build` because all three apps successfully build on 16.2.1 with Turbopack after the real compatibility fixes.
+  - Add `images.qualities` to donor config to preserve the existing `quality={85}` worker hero image behavior under Next 16 image allowlisting.
+  - Update shared drawer wrapper from `DrawerPreview` to stable `Drawer` for Base UI 1.3.0 compatibility.
+  - Fix client/server env boundary by switching `packages/ui/components/public/navbar.tsx` from `@asym/config/site` to `@asym/config/site-client`.
+- Verification:
+  - Direct production builds:
+    - `node scripts/run-with-ci-env.mjs -- bun run --cwd apps/donor build`
+    - `node scripts/run-with-ci-env.mjs -- bun run --cwd apps/missionary build`
+    - `node scripts/run-with-ci-env.mjs -- bun run --cwd apps/admin build`
+  - Local CI parity:
+    - `bun run ci:preflight`
+  - Production start smoke:
+    - donor `http://127.0.0.1:3005`
+    - missionary `http://127.0.0.1:4005`
+    - admin `http://127.0.0.1:3036`
+  - Manual browser smoke:
+    - donor protected route redirect verified
+    - missionary login verified
+    - admin login verified
+    - donor worker detail page initially failed from client-side server-env access, then passed on refreshed build after navbar fix
+
 ## 2026-03-18 (auth stabilization — cursor/supabase-login-foundation-6869)
 
 - Date: 2026-03-18
