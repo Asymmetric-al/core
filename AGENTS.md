@@ -159,6 +159,7 @@ Load rulebooks before editing files in their domain.
 - **Backend/Supabase/auth/data access/migrations:** `docs/ai/rules/backend.md`
 - **When touching API routes or data access patterns:** `docs/guides/architecture/data-access-boundary.md`
 - **Testing/Playwright/a11y/perf gates:** `docs/ai/rules/testing.md`
+- **TypeScript config / TS 6–7 prep (no version bump):** `docs/ai/rules/typescript-future-proofing.md` and `docs/guides/typescript-6-readiness.md`
 - **shadcn/studio MCP workflows (/cui, /rui, /iui, /ftc):** `docs/ai/rules/shadcn-studio-mcp.md` (only when running those workflows)
 
 ---
