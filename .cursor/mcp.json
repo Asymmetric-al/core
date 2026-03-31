@@ -6,7 +6,7 @@
     },
     "tanstack": {
       "command": "bunx",
-      "args": ["@tanstack/cli", "mcp"]
+      "args": ["-y", "@tanstack/cli", "mcp"]
     }
   }
 }

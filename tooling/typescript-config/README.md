@@ -2,17 +2,21 @@
 
 This package provides shared TypeScript config presets for the monorepo.
 
+**TypeScript 6 / 7 prep (no compiler bump here):** See `docs/guides/typescript-6-readiness.md` and `docs/ai/rules/typescript-future-proofing.md`. Run `bun run tsconfig:future-audit` for a quick local scan (non-blocking).
+
 ## Configs
 
 - `base.json`
   - Monorepo strict baseline.
   - Enforces `strict`, `verbatimModuleSyntax`, and `noUncheckedIndexedAccess`.
+  - Sets **`libReplacement`: true** and **`noUncheckedSideEffectImports`: false** explicitly so behavior stays aligned with TypeScript 5.9 until a deliberate upgrade adopts TypeScript 6.0 defaults (see [Announcing TypeScript 6.0](https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/)).
+  - Uses **`moduleResolution`: `Bundler`** and **`module`: `ESNext`** — the recommended combination for Next.js and Bun-bundled code; avoid legacy `node` / `node10` resolution (removed in TypeScript 7).
 - `nextjs.json`
   - App-focused preset for Next.js workspaces.
   - Extends `base.json` and keeps `noEmit` for app typechecking.
 - `library.json`
   - Package-focused preset for shared libraries.
-  - Extends `base.json` and enables `isolatedDeclarations` for staged TS 6.0 readiness.
+  - Extends `base.json` and enables `isolatedDeclarations` for stricter, tooling-friendly declaration emit (see [TypeScript 5.5 release notes — isolatedDeclarations](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-5.html#isolated-declarations)).
   - Sets `composite`, `declaration`, and `declarationMap`.
 - `library-transitional.json`
   - Transitional preset for packages not yet ready for `isolatedDeclarations`.
@@ -35,13 +39,18 @@ This package provides shared TypeScript config presets for the monorepo.
 ## Staged `isolatedDeclarations` Rollout
 
 - `isolatedDeclarations` is enabled only in `library.json`.
-- `base.json` intentionally keeps `isolatedModules` but does not force `isolatedDeclarations`.
-- This keeps app ergonomics unchanged while enforcing stronger declaration safety in shared packages.
+- `base.json` sets `isolatedModules: true` but does **not** set `isolatedDeclarations` (remains off for consumers that do not extend `library.json`).
+- This keeps app ergonomics unchanged while enforcing stronger declaration safety in shared packages that opt into `library.json`.
+
+## Path aliases (`paths`) without `baseUrl`
+
+Per the [TSConfig `paths` reference](https://www.typescriptlang.org/tsconfig#paths), **`paths` does not require `baseUrl`**. App and package tsconfigs in this repo use `paths` only (for example `@/*` → `./*`). Do not add `baseUrl` for new work — TypeScript 7 removes `baseUrl` ([progress update](https://devblogs.microsoft.com/typescript/progress-on-typescript-7-december-2025/)).
 
 Related readiness context:
 
-- TypeScript release notes for `isolatedDeclarations`: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-5.html#isolated-declarations
-- TypeScript roadmap: https://github.com/microsoft/TypeScript/wiki/Roadmap
+- TypeScript 6.0 announcement (defaults, deprecations): https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/
+- TypeScript 7 progress: https://devblogs.microsoft.com/typescript/progress-on-typescript-7-december-2025/
+- TSConfig reference: https://www.typescriptlang.org/tsconfig
 
 ## Migration Examples
 

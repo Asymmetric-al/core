@@ -1,7 +1,7 @@
 "use client";
 "use memo";
 
-import { siteConfig } from "@asym/config/site";
+import { siteConfig } from "@asym/config/site-client";
 import Link from "next/link";
 
 import { NavbarClient } from "./navbar-client";
