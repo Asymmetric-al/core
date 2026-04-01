@@ -225,9 +225,11 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 - **UI polish, animation craft, design engineering (Emil Kowalski patterns):** `docs/ai/skills/emil-design-eng/SKILL.md`
 - **Recharts:** `docs/ai/skills/rechart/SKILL.md`
 - **TanStack Table v8:** `docs/ai/skills/tanstack-table/SKILL.md`
+- **Tiptap rich text editor (`@tiptap/*`, shared editor in `@asym/ui`):** `docs/ai/skills/tiptap/SKILL.md`
 - **Supabase Postgres tuning / query patterns:** `docs/ai/skills/supabase-postgres-best-practices/SKILL.md`
 - **Next.js + Supabase Auth integration:** `docs/ai/skills/nextjs-supabase-auth/SKILL.md`
 - **Vercel React + Next performance patterns:** `docs/ai/skills/vercel-react-best-practices/SKILL.md`
+- **Discover/install agent skills (skills.sh, repo canonical skills):** `docs/ai/skills/find-skills/SKILL.md`
 - **Commit message creation:** `docs/ai/skills/commit/SKILL.md`
 
 **GitHub `AL-###` issue/PR workflow:** there are no `SKILL.md` files under `docs/ai/skills/` for those flows today; follow `docs/ai/rules/general.md`. Deprecated stubs live under `skills/*/DEPRECATED.md` only.

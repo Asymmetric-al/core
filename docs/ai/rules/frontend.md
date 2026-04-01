@@ -70,11 +70,12 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 ## Workflow
 
 1. Identify if the change is Server or Client and apply `skills/nextjs-app-router/SKILL.md` when relevant.
-2. Reuse shared primitives from `@asym/ui` before creating new UI.
-3. Keep Tailwind usage token-based and consistent with Maia/Zinc.
-4. Use TanStack Query for async data and invalidate on mutations.
-5. If adding a shadcn component, use `--cwd packages/ui` and verify exports.
-6. If shadcn/studio MCP is used, switch to `rules/shadcn-studio-mcp.md` and follow it exactly.
+2. For Tiptap / rich text editor work, apply `skills/tiptap/SKILL.md`.
+3. Reuse shared primitives from `@asym/ui` before creating new UI.
+4. Keep Tailwind usage token-based and consistent with Maia/Zinc.
+5. Use TanStack Query for async data and invalidate on mutations.
+6. If adding a shadcn component, use `--cwd packages/ui` and verify exports.
+7. If shadcn/studio MCP is used, switch to `rules/shadcn-studio-mcp.md` and follow it exactly.
 
 ## Checklists
 
