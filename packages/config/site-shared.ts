@@ -60,6 +60,9 @@ export const siteConfigShared = {
       financials: "/financials",
       waysToGive: "/ways-to-give",
       checkout: "/checkout",
+      privacy: "/privacy",
+      terms: "/terms",
+      cookies: "/cookies",
     },
     auth: {
       login: "/",
@@ -122,9 +125,9 @@ export const siteConfigShared = {
       { platform: "linkedin", href: "#" },
     ],
     legal: [
-      { label: "Privacy Policy", href: "#" },
-      { label: "Terms of Service", href: "#" },
-      { label: "Cookie Policy", href: "#" },
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Terms of Service", href: "/terms" },
+      { label: "Cookie Policy", href: "/cookies" },
     ],
     copyright: "© 2025 GiveHope. Registered 501(c)(3) nonprofit.",
     poweredBy: {
