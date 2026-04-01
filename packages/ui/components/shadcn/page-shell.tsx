@@ -1,14 +1,10 @@
 "use client";
 
-import { motion } from "@asym/lib/motion";
+import { motion, useReducedMotion } from "@asym/lib/motion";
+import { transitionStandard } from "@asym/lib/motion-presets";
 import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
-
-const smoothTransition = {
-  duration: 0.3,
-  ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
-};
 
 interface PageShellProps {
   title: string;
@@ -33,47 +29,64 @@ export function PageShell({
   headerClassName,
   contentClassName,
 }: PageShellProps) {
+  const reduceMotion = useReducedMotion();
+
+  const headerMotion = reduceMotion
+    ? {
+        initial: { opacity: 1, y: 0 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0 },
+      }
+    : {
+        initial: { opacity: 0, y: -8 },
+        animate: { opacity: 1, y: 0 },
+        transition: transitionStandard,
+      };
+
+  const actionsMotion = reduceMotion
+    ? {
+        initial: { opacity: 1, x: 0 },
+        animate: { opacity: 1, x: 0 },
+        transition: { duration: 0 },
+      }
+    : {
+        initial: { opacity: 0, x: 12 },
+        animate: { opacity: 1, x: 0 },
+        transition: { ...transitionStandard, delay: 0.08 },
+      };
+
   return (
     <div
       className={cn("flex flex-col gap-10 p-4 sm:p-6 lg:p-8 pb-20", className)}
     >
-      {/* Header — smooth entrance */}
       <motion.div
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={smoothTransition}
+        {...headerMotion}
         className={cn(
-          "flex flex-col md:flex-row items-start md:items-end justify-between gap-6 border-b border-zinc-100 pb-8",
+          "flex flex-col md:flex-row items-start md:items-end justify-between gap-6 border-b border-border pb-8",
           headerClassName,
         )}
       >
         <div className="space-y-3">
           {breadcrumbs && <div className="mb-4">{breadcrumbs}</div>}
 
-          <h1 className="text-5xl font-black tracking-tighter text-zinc-900 lg:text-6xl uppercase">
+          <h1 className="text-5xl font-black tracking-tighter text-foreground lg:text-6xl uppercase">
             {title}
           </h1>
 
           {description && (
-            <p className="text-zinc-400 text-sm font-bold uppercase tracking-widest leading-relaxed max-w-2xl">
+            <p className="text-muted-foreground text-sm font-bold uppercase tracking-widest leading-relaxed max-w-2xl">
               {description}
             </p>
           )}
         </div>
 
         {actions && (
-          <motion.div
-            initial={{ opacity: 0, x: 12 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ ...smoothTransition, delay: 0.1 }}
-            className="flex flex-wrap gap-3"
-          >
+          <motion.div {...actionsMotion} className="flex flex-wrap gap-3">
             {actions}
           </motion.div>
         )}
       </motion.div>
 
-      {/* Content */}
       <div className={cn(contentClassName)}>{children}</div>
     </div>
   );

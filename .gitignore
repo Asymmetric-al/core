@@ -7,6 +7,7 @@ node_modules
 /coverage
 /playwright-report/
 /test-results/
+/apps/donor/generated/
 
 # next.js
 .next/
@@ -42,6 +43,7 @@ next-env.d.ts
 /backups
 
 # agent use
+.reference/
 docs/ai/working-set.md
 .env*
 .cursor/settings.json

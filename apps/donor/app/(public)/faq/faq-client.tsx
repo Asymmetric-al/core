@@ -400,7 +400,7 @@ export function FAQPageClient() {
 
           <div className="flex flex-col sm:flex-row gap-4 relative z-10 w-full md:w-auto">
             <Button
-              className="h-14 px-8 bg-white text-slate-950 hover:bg-slate-100 font-bold text-base rounded-full shadow-lg transition-transform hover:scale-105"
+              className="h-14 px-8 bg-white text-slate-950 hover:bg-slate-100 font-bold text-base rounded-full shadow-lg transition-transform hover:scale-[1.02]"
               asChild
             >
               <Link href="/contact">
@@ -409,7 +409,7 @@ export function FAQPageClient() {
             </Button>
             <Button
               variant="outline"
-              className="h-14 px-8 border-white/20 text-white hover:bg-white/10 hover:text-white font-semibold text-base rounded-full backdrop-blur-sm transition-transform hover:scale-105"
+              className="h-14 px-8 border-white/20 text-white hover:bg-white/10 hover:text-white font-semibold text-base rounded-full backdrop-blur-sm transition-transform hover:scale-[1.02]"
             >
               <MessageCircle className="mr-2 h-5 w-5" /> Chat with Us
             </Button>

@@ -40,6 +40,7 @@ Nia keywords:
 - MAIA theme, Zinc palette
 - Fonts: Inter, Syne, Geist Mono
 - next-themes (theme switching)
+- Tiptap 3 (`@tiptap/react`, StarterKit, extensions)
 
 Nia keywords:
 
@@ -49,6 +50,7 @@ Nia keywords:
 - lucide-react
 - MAIA, Zinc, theme, next-themes
 - Inter, Syne, Geist Mono, fonts
+- tiptap, useEditor, EditorContent, StarterKit, prosemirror
 
 ## Animation and Charts
 
@@ -176,6 +178,7 @@ Nia keywords:
 - "email/template/pdf" -> Unlayer, Resend
 - "charts/visualization" -> Recharts
 - "motion/animation" -> motion
+- "rich text/editor/tiptap" -> Tiptap, @tiptap/react, StarterKit
 
 ## "Planned" tags (only for explicit integration work)
 
