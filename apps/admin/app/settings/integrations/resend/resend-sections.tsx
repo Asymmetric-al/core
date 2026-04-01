@@ -23,8 +23,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@asym/ui/components/shadcn/dialog";
+import {
+  Field,
+  FieldContent,
+  FieldError,
+  FieldLabel,
+} from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { Label } from "@asym/ui/components/shadcn/label";
 import { cn } from "@asym/ui/lib/utils";
 import {
   AlertTriangle,
@@ -44,6 +49,10 @@ import {
 } from "lucide-react";
 
 import type {
+  ResendConnectFormApi,
+  ResendTestFormApi,
+} from "./use-resend-forms";
+import type {
   DeliverabilityWarning,
   DomainAuthentication,
   SenderIdentity,
@@ -51,12 +60,6 @@ import type {
 
 type ConnectionStatus = "disconnected" | "connecting" | "connected" | "error";
 type TestEmailStatus = "idle" | "sending" | "success" | "error";
-type EditableField =
-  | "apiKey"
-  | "fromEmail"
-  | "fromName"
-  | "replyToEmail"
-  | "testEmail";
 
 interface ResendPageHeaderProps {
   isConnected: boolean;
@@ -77,28 +80,21 @@ interface ResendConnectedViewProps {
 }
 
 interface ResendDisconnectedViewProps {
-  apiKey: string;
-  showApiKey: boolean;
-  fromEmail: string;
-  fromName: string;
-  replyToEmail: string;
-  connectionStatus: ConnectionStatus;
   connectionError?: string;
-  onFieldChange: (field: EditableField, value: string) => void;
+  connectionStatus: ConnectionStatus;
+  form: ResendConnectFormApi;
+  showApiKey: boolean;
   onToggleApiKeyVisibility: () => void;
-  onConnect: () => void;
 }
 
 interface ResendTestDialogProps {
+  form: ResendTestFormApi;
   open: boolean;
-  testEmail: string;
   testStatus: TestEmailStatus;
   testError: string | null;
   fromName: string;
   fromEmail: string;
   onOpenChange: (open: boolean) => void;
-  onTestEmailChange: (value: string) => void;
-  onSendTest: () => void;
 }
 
 function warningClassName(severity: DeliverabilityWarning["severity"]): string {
@@ -106,6 +102,42 @@ function warningClassName(severity: DeliverabilityWarning["severity"]): string {
   if (severity === "warning")
     return "border-amber-200 bg-amber-50 text-amber-900";
   return "border-blue-200 bg-blue-50 text-blue-900";
+}
+
+function getRenderableErrors(field: {
+  form: { state: { submissionAttempts: number } };
+  state: {
+    meta: {
+      errors: unknown[];
+      isTouched: boolean;
+    };
+  };
+}) {
+  if (
+    !field.state.meta.isTouched &&
+    field.form.state.submissionAttempts === 0
+  ) {
+    return [];
+  }
+
+  return field.state.meta.errors.flatMap((error) => {
+    if (!error) {
+      return [];
+    }
+
+    if (typeof error === "string") {
+      return [{ message: error }];
+    }
+
+    if (typeof error === "object" && "message" in error) {
+      const message = error.message;
+      if (typeof message === "string" && message.length > 0) {
+        return [{ message }];
+      }
+    }
+
+    return [{ message: String(error) }];
+  });
 }
 
 export function ResendPageHeader({ isConnected }: ResendPageHeaderProps) {
@@ -125,15 +157,15 @@ export function ResendPageHeader({ isConnected }: ResendPageHeaderProps) {
           through your own verified domain.
         </p>
       </div>
-      {isConnected && (
+      {isConnected ? (
         <Badge
-          variant="outline"
           className="gap-1.5 border-emerald-200 bg-emerald-50 px-3 py-1.5 text-emerald-700"
+          variant="outline"
         >
           <CheckCircle2 className="h-3.5 w-3.5" />
           Connected
         </Badge>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -158,7 +190,7 @@ export function ResendConnectedView({
                 API Key: ••••••••{connection.apiKeyHint ?? "----"}
               </CardDescription>
             </div>
-            <Button variant="outline" size="sm" onClick={onDisconnect}>
+            <Button onClick={onDisconnect} size="sm" variant="outline">
               Disconnect
             </Button>
           </div>
@@ -193,17 +225,17 @@ export function ResendConnectedView({
 
           <div className="flex flex-wrap items-center gap-3">
             <Button
-              onClick={onOpenTestDialog}
               className="bg-blue-600 hover:bg-blue-700"
+              onClick={onOpenTestDialog}
             >
               <Send className="mr-2 h-4 w-4" />
               Send Test Email
             </Button>
             <Button
-              variant="outline"
               onClick={() =>
                 window.open("https://resend.com/domains", "_blank")
               }
+              variant="outline"
             >
               <ExternalLink className="mr-2 h-4 w-4" />
               Open Resend Dashboard
@@ -212,7 +244,7 @@ export function ResendConnectedView({
         </CardContent>
       </Card>
 
-      {connection.warnings.length > 0 && (
+      {connection.warnings.length > 0 ? (
         <div className="space-y-3">
           <h3 className="flex items-center gap-2 font-semibold text-slate-900">
             <AlertTriangle className="h-4 w-4 text-amber-500" />
@@ -220,30 +252,30 @@ export function ResendConnectedView({
           </h3>
           {connection.warnings.map((warning) => (
             <Alert
+              className={warningClassName(warning.severity)}
               key={`${warning.code}-${warning.message}`}
               variant={warning.severity === "error" ? "destructive" : "default"}
-              className={warningClassName(warning.severity)}
             >
               <AlertTitle>{warning.code}</AlertTitle>
               <AlertDescription className="flex items-center justify-between gap-3">
                 <span>{warning.message}</span>
-                {warning.helpUrl && (
+                {warning.helpUrl ? (
                   <Button
-                    variant="link"
-                    size="sm"
                     className="h-auto p-0 text-inherit"
                     onClick={() => window.open(warning.helpUrl, "_blank")}
+                    size="sm"
+                    variant="link"
                   >
                     Learn more <ArrowRight className="ml-1 h-3 w-3" />
                   </Button>
-                )}
+                ) : null}
               </AlertDescription>
             </Alert>
           ))}
         </div>
-      )}
+      ) : null}
 
-      {connection.domainAuthentication.length > 0 && (
+      {connection.domainAuthentication.length > 0 ? (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
@@ -254,26 +286,26 @@ export function ResendConnectedView({
           <CardContent className="space-y-2">
             {connection.domainAuthentication.map((domain) => (
               <div
-                key={domain.id}
                 className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 p-3"
+                key={domain.id}
               >
                 <div>
                   <div className="font-medium text-slate-900">
                     {domain.domain}
                   </div>
-                  {domain.subdomain && (
+                  {domain.subdomain ? (
                     <div className="text-sm text-slate-500">
                       Subdomain: {domain.subdomain}
                     </div>
-                  )}
+                  ) : null}
                 </div>
                 <Badge
-                  variant="outline"
                   className={cn(
                     domain.valid
                       ? "border-emerald-200 bg-emerald-50 text-emerald-700"
                       : "border-amber-200 bg-amber-50 text-amber-700",
                   )}
+                  variant="outline"
                 >
                   {domain.valid ? "Verified" : "Pending"}
                 </Badge>
@@ -281,262 +313,302 @@ export function ResendConnectedView({
             ))}
           </CardContent>
         </Card>
-      )}
+      ) : null}
     </div>
   );
 }
 
 export function ResendDisconnectedView({
-  apiKey,
-  showApiKey,
-  fromEmail,
-  fromName,
-  replyToEmail,
-  connectionStatus,
   connectionError,
-  onFieldChange,
+  connectionStatus,
+  form,
+  showApiKey,
   onToggleApiKeyVisibility,
-  onConnect,
 }: ResendDisconnectedViewProps) {
-  const isConnecting = connectionStatus === "connecting";
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Key className="h-5 w-5 text-slate-600" />
-          Connect Resend
-        </CardTitle>
-        <CardDescription>
-          Enter your Resend API key and sender defaults to get started.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <Alert className="border-blue-200 bg-blue-50">
-          <Info className="h-4 w-4 text-blue-600" />
-          <AlertTitle className="text-blue-900">
-            Getting your API key
-          </AlertTitle>
-          <AlertDescription className="text-blue-800">
-            <ol className="mt-2 list-inside list-decimal space-y-1">
-              <li>
-                Open{" "}
-                <a
-                  href="https://resend.com/api-keys"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium underline"
-                >
-                  Resend API Keys
-                </a>
-              </li>
-              <li>Create a new key with sending access.</li>
-              <li>Copy the generated key (starts with re_).</li>
-            </ol>
-          </AlertDescription>
-        </Alert>
-
-        <div className="space-y-2">
-          <Label htmlFor="apiKey">
-            Resend API Key <span className="text-red-500">*</span>
-          </Label>
-          <div className="relative">
-            <Input
-              id="apiKey"
-              type={showApiKey ? "text" : "password"}
-              value={apiKey}
-              onChange={(event) => onFieldChange("apiKey", event.target.value)}
-              placeholder="re_xxxxxxxxxxxxxxxxxxxx"
-              className="pr-10 font-mono text-sm"
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-              onClick={onToggleApiKeyVisibility}
-            >
-              {showApiKey ? (
-                <EyeOff className="h-4 w-4 text-slate-400" />
-              ) : (
-                <Eye className="h-4 w-4 text-slate-400" />
-              )}
-            </Button>
-          </div>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="fromEmail">
-              From Email <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="fromEmail"
-              type="email"
-              value={fromEmail}
-              onChange={(event) =>
-                onFieldChange("fromEmail", event.target.value)
-              }
-              placeholder="hello@yourdomain.com"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="fromName">
-              From Name <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="fromName"
-              value={fromName}
-              onChange={(event) =>
-                onFieldChange("fromName", event.target.value)
-              }
-              placeholder="Give Hope"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="replyTo">Reply-To Email (optional)</Label>
-          <Input
-            id="replyTo"
-            type="email"
-            value={replyToEmail}
-            onChange={(event) =>
-              onFieldChange("replyToEmail", event.target.value)
-            }
-            placeholder="support@yourdomain.com"
-          />
-        </div>
-
-        {connectionStatus === "error" && connectionError && (
-          <Alert variant="destructive">
-            <XCircle className="h-4 w-4" />
-            <AlertTitle>Connection Failed</AlertTitle>
-            <AlertDescription>{connectionError}</AlertDescription>
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        form.handleSubmit();
+      }}
+    >
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Key className="h-5 w-5 text-slate-600" />
+            Connect Resend
+          </CardTitle>
+          <CardDescription>
+            Enter your Resend API key and sender defaults to get started.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <Alert className="border-blue-200 bg-blue-50">
+            <Info className="h-4 w-4 text-blue-600" />
+            <AlertTitle className="text-blue-900">
+              Getting your API key
+            </AlertTitle>
+            <AlertDescription className="text-blue-800">
+              <ol className="mt-2 list-inside list-decimal space-y-1">
+                <li>
+                  Open{" "}
+                  <a
+                    className="font-medium underline"
+                    href="https://resend.com/api-keys"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    Resend API Keys
+                  </a>
+                </li>
+                <li>Create a new key with sending access.</li>
+                <li>Copy the generated key (starts with re_).</li>
+              </ol>
+            </AlertDescription>
           </Alert>
-        )}
-      </CardContent>
-      <CardFooter className="flex items-center justify-between border-t bg-slate-50/50 pt-6">
-        <Button
-          variant="outline"
-          onClick={() => window.open("https://resend.com/signup", "_blank")}
-        >
-          <ExternalLink className="mr-2 h-4 w-4" />
-          Create Resend Account
-        </Button>
-        <Button
-          onClick={onConnect}
-          disabled={!apiKey || !fromEmail || !fromName || isConnecting}
-          className="min-w-[140px] bg-blue-600 hover:bg-blue-700"
-        >
-          {isConnecting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Connecting...
-            </>
-          ) : (
-            "Connect Resend"
-          )}
-        </Button>
-      </CardFooter>
-    </Card>
+
+          <form.Field name="apiKey">
+            {(field) => {
+              const errors = getRenderableErrors(field);
+
+              return (
+                <Field data-invalid={errors.length > 0}>
+                  <FieldLabel>
+                    Resend API Key <span className="text-red-500">*</span>
+                  </FieldLabel>
+                  <FieldContent>
+                    <div className="relative">
+                      <Input
+                        className="pr-10 font-mono text-sm"
+                        onBlur={field.handleBlur}
+                        onChange={(event) =>
+                          field.handleChange(event.target.value)
+                        }
+                        placeholder="re_xxxxxxxxxxxxxxxxxxxx"
+                        type={showApiKey ? "text" : "password"}
+                        value={field.state.value}
+                      />
+                      <Button
+                        className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                        onClick={onToggleApiKeyVisibility}
+                        size="sm"
+                        type="button"
+                        variant="ghost"
+                      >
+                        {showApiKey ? (
+                          <EyeOff className="h-4 w-4 text-slate-400" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-slate-400" />
+                        )}
+                      </Button>
+                    </div>
+                    <FieldError errors={errors} />
+                  </FieldContent>
+                </Field>
+              );
+            }}
+          </form.Field>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <form.AppField name="fromEmail">
+              {(field) => (
+                <field.TextField
+                  inputClassName=""
+                  label={
+                    <>
+                      From Email <span className="text-red-500">*</span>
+                    </>
+                  }
+                  placeholder="hello@yourdomain.com"
+                  type="email"
+                />
+              )}
+            </form.AppField>
+
+            <form.AppField name="fromName">
+              {(field) => (
+                <field.TextField
+                  label={
+                    <>
+                      From Name <span className="text-red-500">*</span>
+                    </>
+                  }
+                  placeholder="Give Hope"
+                />
+              )}
+            </form.AppField>
+          </div>
+
+          <form.AppField name="replyToEmail">
+            {(field) => (
+              <field.TextField
+                label="Reply-To Email (optional)"
+                placeholder="support@yourdomain.com"
+                type="email"
+              />
+            )}
+          </form.AppField>
+
+          {connectionStatus === "error" && connectionError ? (
+            <Alert variant="destructive">
+              <XCircle className="h-4 w-4" />
+              <AlertTitle>Connection Failed</AlertTitle>
+              <AlertDescription>{connectionError}</AlertDescription>
+            </Alert>
+          ) : null}
+        </CardContent>
+        <CardFooter className="flex items-center justify-between border-t bg-slate-50/50 pt-6">
+          <Button
+            onClick={() => window.open("https://resend.com/signup", "_blank")}
+            type="button"
+            variant="outline"
+          >
+            <ExternalLink className="mr-2 h-4 w-4" />
+            Create Resend Account
+          </Button>
+          <form.Subscribe
+            selector={(state) => ({
+              canSubmit: state.canSubmit,
+              isSubmitting: state.isSubmitting,
+            })}
+          >
+            {({ canSubmit, isSubmitting }) => (
+              <Button
+                className="min-w-[140px] bg-blue-600 hover:bg-blue-700"
+                disabled={!canSubmit || isSubmitting}
+                type="submit"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Connecting...
+                  </>
+                ) : (
+                  "Connect Resend"
+                )}
+              </Button>
+            )}
+          </form.Subscribe>
+        </CardFooter>
+      </Card>
+    </form>
   );
 }
 
 export function ResendTestDialog({
+  form,
   open,
-  testEmail,
   testStatus,
   testError,
   fromName,
   fromEmail,
   onOpenChange,
-  onTestEmailChange,
-  onSendTest,
 }: ResendTestDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Send className="h-5 w-5 text-blue-600" />
-            Send Test Email
-          </DialogTitle>
-          <DialogDescription>
-            Send a test email to confirm your Resend configuration is working.
-          </DialogDescription>
-        </DialogHeader>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            form.handleSubmit();
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Send className="h-5 w-5 text-blue-600" />
+              Send Test Email
+            </DialogTitle>
+            <DialogDescription>
+              Send a test email to confirm your Resend configuration is working.
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="testEmail">Recipient Email</Label>
-            <Input
-              id="testEmail"
-              type="email"
-              value={testEmail}
-              onChange={(event) => onTestEmailChange(event.target.value)}
-              placeholder="you@example.com"
-              disabled={testStatus === "sending"}
-            />
-          </div>
+          <div className="space-y-4 py-4">
+            <form.AppField name="testEmail">
+              {(field) => (
+                <field.TextField
+                  label="Recipient Email"
+                  placeholder="you@example.com"
+                  type="email"
+                />
+              )}
+            </form.AppField>
 
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
-            <div className="grid grid-cols-2 gap-2 text-slate-600">
-              <span className="text-slate-500">From:</span>
-              <span className="font-medium">
-                {fromName} &lt;{fromEmail}&gt;
-              </span>
-              <span className="text-slate-500">Subject:</span>
-              <span className="font-medium">Resend Test Email</span>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
+              <div className="grid grid-cols-2 gap-2 text-slate-600">
+                <span className="text-slate-500">From:</span>
+                <span className="font-medium">
+                  {fromName} &lt;{fromEmail}&gt;
+                </span>
+                <span className="text-slate-500">Subject:</span>
+                <span className="font-medium">Resend Test Email</span>
+              </div>
             </div>
+
+            {testStatus === "success" ? (
+              <Alert className="border-emerald-200 bg-emerald-50">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                <AlertTitle className="text-emerald-800">
+                  Email Sent!
+                </AlertTitle>
+                <AlertDescription className="text-emerald-700">
+                  Check your inbox for the test email.
+                </AlertDescription>
+              </Alert>
+            ) : null}
+
+            {testStatus === "error" && testError ? (
+              <Alert variant="destructive">
+                <XCircle className="h-4 w-4" />
+                <AlertTitle>Failed to Send</AlertTitle>
+                <AlertDescription>{testError}</AlertDescription>
+              </Alert>
+            ) : null}
           </div>
 
-          {testStatus === "success" && (
-            <Alert className="border-emerald-200 bg-emerald-50">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-              <AlertTitle className="text-emerald-800">Email Sent!</AlertTitle>
-              <AlertDescription className="text-emerald-700">
-                Check your inbox at {testEmail}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {testStatus === "error" && testError && (
-            <Alert variant="destructive">
-              <XCircle className="h-4 w-4" />
-              <AlertTitle>Failed to Send</AlertTitle>
-              <AlertDescription>{testError}</AlertDescription>
-            </Alert>
-          )}
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {testStatus === "success" ? "Close" : "Cancel"}
-          </Button>
-          <Button
-            onClick={onSendTest}
-            disabled={!testEmail || testStatus === "sending"}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            {testStatus === "sending" ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Sending...
-              </>
-            ) : testStatus === "success" ? (
-              <>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Send Another
-              </>
-            ) : (
-              <>
-                <Send className="mr-2 h-4 w-4" />
-                Send Test
-              </>
-            )}
-          </Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button
+              onClick={() => onOpenChange(false)}
+              type="button"
+              variant="outline"
+            >
+              {testStatus === "success" ? "Close" : "Cancel"}
+            </Button>
+            <form.Subscribe
+              selector={(state) => ({
+                canSubmit: state.canSubmit,
+                isSubmitting: state.isSubmitting,
+              })}
+            >
+              {({ canSubmit, isSubmitting }) => (
+                <Button
+                  className="bg-blue-600 hover:bg-blue-700"
+                  disabled={!canSubmit || isSubmitting}
+                  type="submit"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : testStatus === "success" ? (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Send Another
+                    </>
+                  ) : (
+                    <>
+                      <Send className="mr-2 h-4 w-4" />
+                      Send Test
+                    </>
+                  )}
+                </Button>
+              )}
+            </form.Subscribe>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

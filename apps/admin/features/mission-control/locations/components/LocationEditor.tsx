@@ -2,14 +2,12 @@
 
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@asym/ui/components/shadcn/form";
-import { Input } from "@asym/ui/components/shadcn/input";
+  Field,
+  FieldContent,
+  FieldError,
+  FieldLabel,
+} from "@asym/ui/components/shadcn/field";
+import { useAsymForm } from "@asym/ui/components/shadcn/form";
 import {
   Select,
   SelectContent,
@@ -20,20 +18,16 @@ import {
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
   SheetDescription,
   SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from "@asym/ui/components/shadcn/sheet";
 import { Switch } from "@asym/ui/components/shadcn/switch";
-import { Textarea } from "@asym/ui/components/shadcn/textarea";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Trash2 } from "lucide-react";
-import React from "react";
-import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
-import { useUpsertLocation, useLinkedEntities } from "../hooks/use-locations";
+import { useLinkedEntities, useUpsertLocation } from "../hooks/use-locations";
 
 import type { Location } from "../hooks/use-locations";
 
@@ -65,6 +59,31 @@ function toLocationFormValues(
   };
 }
 
+function toFieldErrors(errors: unknown[], showErrors: boolean) {
+  if (!showErrors) {
+    return [];
+  }
+
+  return errors.flatMap((error) => {
+    if (!error) {
+      return [];
+    }
+
+    if (typeof error === "string") {
+      return [{ message: error }];
+    }
+
+    if (typeof error === "object" && "message" in error) {
+      const message = error.message;
+      if (typeof message === "string" && message.length > 0) {
+        return [{ message }];
+      }
+    }
+
+    return [{ message: String(error) }];
+  });
+}
+
 interface LocationEditorProps {
   location: Partial<Location> | null;
   isOpen: boolean;
@@ -78,30 +97,27 @@ export function LocationEditor({
   onOpenChange,
   onDelete,
 }: LocationEditorProps) {
-  const { mutate: upsertLocation, isPending: isSaving } = useUpsertLocation();
+  const { mutateAsync: upsertLocation, isPending: isSaving } =
+    useUpsertLocation();
   const { data: linkedEntities } = useLinkedEntities();
 
-  const form = useForm<LocationFormValues>({
-    resolver: zodResolver(locationSchema),
+  const form = useAsymForm({
     defaultValues: toLocationFormValues(location),
-  });
-
-  const onSubmit = (values: LocationFormValues) => {
-    upsertLocation(values, {
-      onSuccess: () => {
-        onOpenChange(false);
-      },
-    });
-  };
-
-  const selectedType = useWatch({
-    control: form.control,
-    name: "type",
+    validators: {
+      onChange: locationSchema,
+    },
+    onSubmit: async ({ value }) => {
+      await upsertLocation({
+        ...value,
+        linked_id: value.type === "custom" ? null : (value.linked_id ?? null),
+      });
+      onOpenChange(false);
+    },
   });
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-md overflow-y-auto">
+      <SheetContent className="overflow-y-auto sm:max-w-md">
         <SheetHeader className="mb-6">
           <SheetTitle className="text-xl font-black uppercase tracking-tight">
             {location?.id ? "Edit Location" : "Add Location"}
@@ -111,214 +127,238 @@ export function LocationEditor({
           </SheetDescription>
         </SheetHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                    Location Title
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="e.g. Amazon Medical Center"
-                      {...field}
-                      className="rounded-xl border-zinc-200"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+        <form
+          className="space-y-6"
+          onSubmit={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            form.handleSubmit();
+          }}
+        >
+          <form.AppField name="title">
+            {(field) => (
+              <field.TextField
+                inputClassName="rounded-xl border-zinc-200"
+                label="Location Title"
+                labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
+                placeholder="e.g. Amazon Medical Center"
+              />
+            )}
+          </form.AppField>
+
+          <div className="grid grid-cols-2 gap-4">
+            <form.AppField name="lat">
+              {(field) => (
+                <field.NumberField
+                  inputClassName="rounded-xl border-zinc-200"
+                  label="Latitude"
+                  labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
+                  step="any"
+                />
               )}
-            />
+            </form.AppField>
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="lat"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                      Latitude
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        step="any"
-                        {...field}
-                        onChange={(e) =>
-                          field.onChange(parseFloat(e.target.value))
-                        }
-                        className="rounded-xl border-zinc-200"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="lng"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                      Longitude
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        step="any"
-                        {...field}
-                        onChange={(e) =>
-                          field.onChange(parseFloat(e.target.value))
-                        }
-                        className="rounded-xl border-zinc-200"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <form.AppField name="lng">
+              {(field) => (
+                <field.NumberField
+                  inputClassName="rounded-xl border-zinc-200"
+                  label="Longitude"
+                  labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
+                  step="any"
+                />
+              )}
+            </form.AppField>
+          </div>
 
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+          <form.Field name="type">
+            {(field) => {
+              const showErrors =
+                field.state.meta.isTouched || form.state.submissionAttempts > 0;
+              const errors = toFieldErrors(field.state.meta.errors, showErrors);
+
+              return (
+                <Field data-invalid={errors.length > 0}>
+                  <FieldLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
                     Marker Type
-                  </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    value={field.value}
-                  >
-                    <FormControl>
+                  </FieldLabel>
+                  <FieldContent>
+                    <Select
+                      onOpenChange={(open) => {
+                        if (!open) {
+                          field.handleBlur();
+                        }
+                      }}
+                      onValueChange={(value) =>
+                        field.handleChange(value as LocationFormValues["type"])
+                      }
+                      value={field.state.value}
+                    >
                       <SelectTrigger className="rounded-xl border-zinc-200">
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="missionary">Missionary</SelectItem>
-                      <SelectItem value="project">Project</SelectItem>
-                      <SelectItem value="custom">Custom</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {selectedType !== "custom" && (
-              <FormField
-                control={form.control}
-                name="linked_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                      Link to{" "}
-                      {selectedType === "missionary" ? "Missionary" : "Project"}
-                    </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value || undefined}
-                      value={field.value || undefined}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="rounded-xl border-zinc-200">
-                          <SelectValue placeholder={`Select ${selectedType}`} />
-                        </SelectTrigger>
-                      </FormControl>
                       <SelectContent>
-                        {selectedType === "missionary" ? (
-                          linkedEntities?.missionaries.map((m) => (
-                            <SelectItem key={m.id} value={m.id}>
-                              {m.full_name}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="none" disabled>
-                            No projects found
-                          </SelectItem>
-                        )}
+                        <SelectItem value="missionary">Missionary</SelectItem>
+                        <SelectItem value="project">Project</SelectItem>
+                        <SelectItem value="custom">Custom</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                    <FieldError errors={errors} />
+                  </FieldContent>
+                </Field>
+              );
+            }}
+          </form.Field>
+
+          <form.Subscribe selector={(state) => state.values.type}>
+            {(selectedType) =>
+              selectedType !== "custom" ? (
+                <form.Field name="linked_id">
+                  {(field) => {
+                    const showErrors =
+                      field.state.meta.isTouched ||
+                      form.state.submissionAttempts > 0;
+                    const errors = toFieldErrors(
+                      field.state.meta.errors,
+                      showErrors,
+                    );
+                    const options =
+                      selectedType === "missionary"
+                        ? (linkedEntities?.missionaries ?? []).map(
+                            (missionary) => (
+                              <SelectItem
+                                key={missionary.id}
+                                value={missionary.id}
+                              >
+                                {missionary.full_name}
+                              </SelectItem>
+                            ),
+                          )
+                        : [
+                            <SelectItem
+                              disabled
+                              key="no-projects"
+                              value="__empty"
+                            >
+                              No projects found
+                            </SelectItem>,
+                          ];
+
+                    return (
+                      <Field data-invalid={errors.length > 0}>
+                        <FieldLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                          Link to{" "}
+                          {selectedType === "missionary"
+                            ? "Missionary"
+                            : "Project"}
+                        </FieldLabel>
+                        <FieldContent>
+                          <Select
+                            onOpenChange={(open) => {
+                              if (!open) {
+                                field.handleBlur();
+                              }
+                            }}
+                            onValueChange={(value) =>
+                              field.handleChange(
+                                value === "__empty" ? null : value,
+                              )
+                            }
+                            value={field.state.value ?? undefined}
+                          >
+                            <SelectTrigger className="rounded-xl border-zinc-200">
+                              <SelectValue
+                                placeholder={`Select ${selectedType}`}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>{options}</SelectContent>
+                          </Select>
+                          <FieldError errors={errors} />
+                        </FieldContent>
+                      </Field>
+                    );
+                  }}
+                </form.Field>
+              ) : null
+            }
+          </form.Subscribe>
+
+          <form.AppField name="summary">
+            {(field) => (
+              <field.TextareaField
+                inputClassName="min-h-[100px] resize-none rounded-xl border-zinc-200"
+                label="Summary"
+                labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
+                placeholder="Brief description of work at this location..."
               />
             )}
+          </form.AppField>
 
-            <FormField
-              control={form.control}
-              name="summary"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                    Summary
-                  </FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Brief description of work at this location..."
-                      className="resize-none rounded-xl border-zinc-200 min-h-[100px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-[1.25rem] border border-zinc-100 bg-zinc-50/50 p-4">
+          <form.Field name="status">
+            {(field) => (
+              <Field
+                className="rounded-[1.25rem] border border-zinc-100 bg-zinc-50/50 p-4"
+                orientation="horizontal"
+              >
+                <FieldLabel className="flex-1">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-900">
+                    <div className="text-[10px] font-black uppercase tracking-widest text-zinc-900">
                       Published
-                    </FormLabel>
-                    <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
+                    </div>
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
                       Visible on public map
                     </div>
                   </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value === "published"}
-                      onCheckedChange={(checked) =>
-                        field.onChange(checked ? "published" : "draft")
-                      }
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+                </FieldLabel>
+                <FieldContent className="flex-none">
+                  <Switch
+                    checked={field.state.value === "published"}
+                    onBlur={field.handleBlur}
+                    onCheckedChange={(checked) =>
+                      field.handleChange(checked ? "published" : "draft")
+                    }
+                  />
+                </FieldContent>
+              </Field>
+            )}
+          </form.Field>
 
-            <SheetFooter className="flex-col sm:flex-col gap-3 pt-6 border-t border-zinc-50">
-              <Button
-                type="submit"
-                className="w-full h-12 rounded-xl bg-zinc-900 font-bold text-[11px] uppercase tracking-widest"
-                disabled={isSaving}
-              >
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {location?.id ? "Update Location" : "Save Location"}
-              </Button>
-
-              {location?.id && onDelete && (
+          <SheetFooter className="flex-col gap-3 border-t border-zinc-50 pt-6 sm:flex-col">
+            <form.Subscribe
+              selector={(state) => ({
+                canSubmit: state.canSubmit,
+                isSubmitting: state.isSubmitting,
+              })}
+            >
+              {({ canSubmit, isSubmitting }) => (
                 <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full h-12 rounded-xl border-red-100 text-red-600 hover:bg-red-50 hover:text-red-700 font-bold text-[11px] uppercase tracking-widest transition-all"
-                  onClick={() => onDelete(location.id!)}
+                  className="h-12 w-full rounded-xl bg-zinc-900 text-[11px] font-bold uppercase tracking-widest"
+                  disabled={!canSubmit || isSaving || isSubmitting}
+                  type="submit"
                 >
-                  <Trash2 className="mr-2 h-4 w-4" /> Delete Marker
+                  {(isSaving || isSubmitting) && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  {location?.id ? "Update Location" : "Save Location"}
                 </Button>
               )}
-            </SheetFooter>
-          </form>
-        </Form>
+            </form.Subscribe>
+
+            {location?.id && onDelete ? (
+              <Button
+                className="h-12 w-full rounded-xl border-red-100 text-[11px] font-bold uppercase tracking-widest text-red-600 transition-all hover:bg-red-50 hover:text-red-700"
+                onClick={() => {
+                  if (location.id) {
+                    onDelete(location.id);
+                  }
+                }}
+                type="button"
+                variant="outline"
+              >
+                <Trash2 className="mr-2 h-4 w-4" /> Delete Marker
+              </Button>
+            ) : null}
+          </SheetFooter>
+        </form>
       </SheetContent>
     </Sheet>
   );
