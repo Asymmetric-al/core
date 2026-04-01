@@ -352,7 +352,7 @@ For lockfile/workspace-root warnings in Next builds, see the runbook section `Mu
 
 | Package               | Version | Notes                                      |
 | --------------------- | ------- | ------------------------------------------ |
-| Next.js               | 16.1.1  | App Router + Turbopack                     |
+| Next.js               | 16.2.1  | App Router + Turbopack                     |
 | React                 | 19.2.3  | Concurrent features                        |
 | TypeScript            | 5.9.3   | Strict mode                                |
 | motion                | 12.x    | Animation library (formerly framer-motion) |

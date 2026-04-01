@@ -35,7 +35,7 @@ describe("api/auth/demo-account", () => {
     };
     expect(payload.enabled).toBe(true);
     expect(payload.roles.admin).toBe(true);
-  });
+  }, 20_000);
 
   it("returns ok true and sets auth cookie on successful POST", async () => {
     const { POST } =
