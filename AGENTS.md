@@ -221,6 +221,7 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 - **shadcn/ui system usage:** `docs/ai/skills/moai-library-shadcn/SKILL.md`
 - **Base UI:** `docs/ai/skills/base-ui/SKILL.md`
 - **Motion animations (`motion/react`):** `docs/ai/skills/motion/SKILL.md`
+- **UI polish, animation craft, design engineering (Emil Kowalski patterns):** `docs/ai/skills/emil-design-eng/SKILL.md`
 - **Recharts:** `docs/ai/skills/rechart/SKILL.md`
 - **TanStack Table v8:** `docs/ai/skills/tanstack-table/SKILL.md`
 - **Supabase Postgres tuning / query patterns:** `docs/ai/skills/supabase-postgres-best-practices/SKILL.md`
