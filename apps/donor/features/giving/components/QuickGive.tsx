@@ -8,7 +8,7 @@ import React from "react";
 export function QuickGive({ workerId }: { workerId: string }) {
   return (
     <Button
-      className="w-full rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-10 shadow-md group transition-all active:scale-95"
+      className="w-full rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-10 shadow-md group transition-all active:scale-[0.98]"
       asChild
     >
       <Link href={`/checkout?workerId=${workerId}`}>

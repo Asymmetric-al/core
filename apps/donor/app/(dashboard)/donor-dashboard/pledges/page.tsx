@@ -1,6 +1,12 @@
 "use client";
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
+import {
+  DURATION_MICRO,
+  DURATION_STANDARD,
+  EASE_IN_SOFT,
+  EASE_OUT_SOFT,
+} from "@asym/lib/motion-presets";
 import { formatCurrency } from "@asym/lib/utils";
 import {
   Avatar,
@@ -190,9 +196,14 @@ function PledgeCard({
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
+      exit={{
+        opacity: 0,
+        scale: 0.98,
+        transition: { duration: DURATION_MICRO, ease: EASE_IN_SOFT },
+      }}
+      transition={{ duration: DURATION_STANDARD, ease: EASE_OUT_SOFT }}
     >
       <Card
         className={cn(
@@ -496,7 +507,7 @@ function PausePledgeContent({
         <Button
           onClick={onConfirmPause}
           disabled={pauseDuration === "" && !customResumeDate}
-          className="bg-amber-600 hover:bg-amber-700 text-white shadow-md font-bold uppercase tracking-widest text-[9px] h-9 px-6 rounded-lg transition-transform active:scale-95"
+          className="bg-amber-600 hover:bg-amber-700 text-white shadow-md font-bold uppercase tracking-widest text-[9px] h-9 px-6 rounded-lg transition-transform active:scale-[0.98]"
         >
           Confirm Pause
         </Button>
@@ -1227,14 +1238,14 @@ function MovePledgeDialog({
             <Button
               onClick={onConfirmMove}
               disabled={!selectedTargetId}
-              className="bg-zinc-900 text-white shadow-lg font-bold uppercase tracking-widest text-[9px] h-10 px-6 rounded-lg transition-transform active:scale-95"
+              className="bg-zinc-900 text-white shadow-lg font-bold uppercase tracking-widest text-[9px] h-10 px-6 rounded-lg transition-transform active:scale-[0.98]"
             >
               Confirm Move
             </Button>
           ) : (
             <Button
               onClick={onSaveNewMethod}
-              className="bg-zinc-900 text-white shadow-lg font-bold uppercase tracking-widest text-[9px] h-10 px-6 rounded-lg transition-transform active:scale-95"
+              className="bg-zinc-900 text-white shadow-lg font-bold uppercase tracking-widest text-[9px] h-10 px-6 rounded-lg transition-transform active:scale-[0.98]"
             >
               Save & Use {newMethodType === "card" ? "Card" : "Account"}
             </Button>
