@@ -133,3 +133,35 @@ export async function getDashboardStats(
     activeFundsCount: activeFundsCountResult.count || 0,
   };
 }
+
+export async function getDashboardMissionaryId(
+  tenantId: string,
+): Promise<string | null> {
+  "use cache";
+
+  applyCacheMetadata(["dashboard-home-missionary", `tenant:${tenantId}`]);
+
+  const { client, error } = getAdminClient();
+  if (!client) {
+    throw new Error(error || "Admin client unavailable.");
+  }
+
+  const { data, error: queryError } = await client
+    .from("missionaries")
+    .select("id")
+    .eq("tenant_id", tenantId)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (queryError) {
+    throw new Error(
+      toErrorMessage(
+        queryError,
+        "Failed to load dashboard missionary context.",
+      ),
+    );
+  }
+
+  return typeof data?.id === "string" ? data.id : null;
+}

@@ -10,6 +10,7 @@ const {
   readTenantEmailSettingsMock,
   upsertTenantEmailSettingsMock,
   disconnectTenantEmailSettingsMock,
+  tenantEmailSettingsStorageUnavailableError,
 } = vi.hoisted(() => ({
   getAuthContextMock: vi.fn(),
   requireRoleMock: vi.fn(),
@@ -19,6 +20,13 @@ const {
   readTenantEmailSettingsMock: vi.fn(),
   upsertTenantEmailSettingsMock: vi.fn(),
   disconnectTenantEmailSettingsMock: vi.fn(),
+  tenantEmailSettingsStorageUnavailableError: Object.assign(
+    new Error("storage unavailable"),
+    {
+      name: "TenantEmailSettingsStorageUnavailableError",
+      status: 503,
+    },
+  ),
 }));
 
 vi.mock("@asym/auth/context", () => ({
@@ -48,6 +56,8 @@ vi.mock("../../../../../packages/api/src/email/settings-store", () => ({
   readTenantEmailSettings: readTenantEmailSettingsMock,
   upsertTenantEmailSettings: upsertTenantEmailSettingsMock,
   disconnectTenantEmailSettings: disconnectTenantEmailSettingsMock,
+  isTenantEmailSettingsStorageUnavailable: (error: unknown) =>
+    error === tenantEmailSettingsStorageUnavailableError,
 }));
 
 import {
@@ -136,5 +146,59 @@ describe("api/email/connect", () => {
     expect(response.status).toBe(200);
     expect(body.connected).toBe(false);
     expect(disconnectTenantEmailSettingsMock).toHaveBeenCalledWith("tenant_1");
+  });
+
+  it("returns disconnected session-only state when persistence storage is unavailable", async () => {
+    readTenantEmailSettingsMock.mockRejectedValueOnce(
+      tenantEmailSettingsStorageUnavailableError,
+    );
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.connected).toBe(false);
+    expect(body.persisted).toBe(false);
+    expect(body.warnings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "EMAIL_SETTINGS_STORAGE_UNAVAILABLE",
+        }),
+      ]),
+    );
+  });
+
+  it("validates and returns a session-only connection when persistence storage is unavailable", async () => {
+    validateResendApiKeyMock.mockResolvedValueOnce({
+      valid: true,
+      senderIdentities: [],
+      domainAuthentication: [],
+      deliverabilityScore: 88,
+      warnings: [],
+    });
+    encryptResendApiKeyMock.mockReturnValueOnce("encrypted-key");
+    upsertTenantEmailSettingsMock.mockRejectedValueOnce(
+      tenantEmailSettingsStorageUnavailableError,
+    );
+
+    const response = await POST(
+      createPostRequest({
+        apiKey: "re_live_1234",
+        defaultFromEmail: "from@example.com",
+        defaultFromName: "From Team",
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(body.persisted).toBe(false);
+    expect(body.warnings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "EMAIL_SETTINGS_STORAGE_UNAVAILABLE",
+        }),
+      ]),
+    );
   });
 });

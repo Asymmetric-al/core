@@ -1,3 +1,5 @@
+import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
+import { getAdminClient } from "@asym/database/supabase/admin";
 import { serverEnv } from "@asym/env";
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
@@ -156,11 +158,9 @@ export async function GET(
       );
     }
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-    if (userError || !user) {
+    const auth = await getAuthContext(request);
+
+    if (!auth.isAuthenticated || !auth.userId) {
       return jsonWithCookies(
         { error: "Unauthorized" },
         { status: 401 },
@@ -168,24 +168,11 @@ export async function GET(
       );
     }
 
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("id, tenant_id, role")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (profileError) {
-      return jsonWithCookies(
-        { error: "Unable to load profile." },
-        { status: 500 },
-        pendingCookies,
-      );
-    }
-
     if (
-      !profile?.tenant_id ||
-      !profile?.role ||
-      !ALLOWED_ROLES.has(profile.role)
+      !auth.tenantId ||
+      !auth.role ||
+      !ALLOWED_ROLES.has(auth.role) ||
+      !hasAnyContextRole(auth, ["staff", "admin", "missionary", "super_admin"])
     ) {
       return jsonWithCookies(
         { error: "Forbidden" },
@@ -194,7 +181,9 @@ export async function GET(
       );
     }
 
-    const { data: missionary, error: missionaryError } = await supabase
+    const dataReader = getAdminClient().client ?? supabase;
+
+    const { data: missionary, error: missionaryError } = await dataReader
       .from("missionaries")
       .select("id, tenant_id")
       .eq("id", missionaryId)
@@ -217,7 +206,7 @@ export async function GET(
       );
     }
 
-    if (missionary.tenant_id && missionary.tenant_id !== profile.tenant_id) {
+    if (missionary.tenant_id && missionary.tenant_id !== auth.tenantId) {
       return jsonWithCookies(
         { error: "Missionary not found" },
         { status: 404 },
@@ -228,7 +217,7 @@ export async function GET(
     const thirteenMonthsAgo = new Date();
     thirteenMonthsAgo.setMonth(thirteenMonthsAgo.getMonth() - 13);
 
-    const { data, error } = await supabase
+    const { data, error } = await dataReader
       .from("donations")
       .select("id, amount, donation_type, created_at, status")
       .eq("missionary_id", missionaryId)

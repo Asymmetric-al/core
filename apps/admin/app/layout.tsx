@@ -1,8 +1,14 @@
 import "@asym/env";
+import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
 import { siteConfig } from "@asym/config/site";
 import { QueryProvider } from "@asym/database/providers";
+import { getAdminClient } from "@asym/database/supabase/admin";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { createClient } from "@asym/database/supabase/server";
+import {
+  createMCBootstrapState,
+  type MCBootstrapState,
+} from "@asym/lib/mission-control/bootstrap";
 import { MotionProvider } from "@asym/lib/motion";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { Inter, Geist_Mono, Syne } from "next/font/google";
@@ -56,7 +62,6 @@ function getSupabaseOrigin() {
 
 const supabaseOrigin = getSupabaseOrigin();
 
-const ADMIN_ALLOWED_ROLES = new Set(["admin", "staff", "super_admin"]);
 const ADMIN_PUBLIC_PATH_PREFIXES = [
   "/login",
   "/register",
@@ -66,6 +71,27 @@ const ADMIN_PUBLIC_PATH_PREFIXES = [
   "/api/",
 ] as const;
 
+type AdminShellProfile = {
+  avatar_url: string | null;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  role: string | null;
+  tenant_id: string | null;
+  tenants:
+    | {
+        id: string;
+        name: string;
+        slug: string;
+      }
+    | {
+        id: string;
+        name: string;
+        slug: string;
+      }[]
+    | null;
+};
+
 function isPublicPath(pathname: string) {
   return ADMIN_PUBLIC_PATH_PREFIXES.some((prefix) =>
     prefix.endsWith("/")
@@ -74,32 +100,71 @@ function isPublicPath(pathname: string) {
   );
 }
 
-async function AdminRoleGate({ children }: { children: React.ReactNode }) {
-  const pathname = (await headers()).get("x-asym-pathname") ?? "/";
-  if (isPublicPath(pathname)) {
-    return <>{children}</>;
+function normalizeTenant(
+  tenant: AdminShellProfile["tenants"],
+  tenantId: string | null,
+) {
+  const resolvedTenant = Array.isArray(tenant) ? tenant[0] : tenant;
+
+  if (
+    resolvedTenant &&
+    typeof resolvedTenant.id === "string" &&
+    typeof resolvedTenant.name === "string" &&
+    typeof resolvedTenant.slug === "string"
+  ) {
+    return resolvedTenant;
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  if (!tenantId) {
+    return null;
+  }
 
-  if (!user) {
+  return {
+    id: tenantId,
+    name: "Give Hope",
+    slug: "give-hope",
+  };
+}
+
+async function getProtectedShellState(
+  pathname: string,
+): Promise<MCBootstrapState> {
+  const auth = await getAuthContext();
+
+  if (!auth.isAuthenticated || !auth.userId) {
     redirect(`/login?next=${encodeURIComponent(pathname)}`);
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (!profile?.role || !ADMIN_ALLOWED_ROLES.has(profile.role)) {
+  if (
+    !auth.tenantId ||
+    !hasAnyContextRole(auth, ["staff", "admin", "super_admin"])
+  ) {
     redirect("/no-access");
   }
 
-  return <>{children}</>;
+  const serverClient = await createClient();
+  const profileReader = getAdminClient().client ?? serverClient;
+  const { data: profile } = await profileReader
+    .from("profiles")
+    .select(
+      "email, first_name, last_name, avatar_url, role, tenant_id, tenants(id, name, slug)",
+    )
+    .eq("user_id", auth.userId)
+    .maybeSingle<AdminShellProfile>();
+
+  return createMCBootstrapState({
+    userId: auth.userId,
+    email: profile?.email ?? "",
+    firstName: profile?.first_name,
+    lastName: profile?.last_name,
+    avatarUrl: profile?.avatar_url,
+    profileRole:
+      auth.profileRole ??
+      auth.role ??
+      (typeof profile?.role === "string" ? profile.role : null),
+    tenantId: auth.tenantId,
+    tenant: normalizeTenant(profile?.tenants ?? null, auth.tenantId),
+  });
 }
 
 export const metadata: Metadata = {
@@ -128,6 +193,22 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
 };
+
+async function LayoutContent({ children }: { children: React.ReactNode }) {
+  const pathname = (await headers()).get("x-asym-pathname") ?? "/";
+  const isPublic = isPublicPath(pathname);
+  const shellState = isPublic ? null : await getProtectedShellState(pathname);
+
+  return (
+    <NuqsAdapter>
+      {isPublic ? (
+        children
+      ) : (
+        <MCShell initialState={shellState}>{children}</MCShell>
+      )}
+    </NuqsAdapter>
+  );
+}
 
 export default function RootLayout({
   children,
@@ -169,11 +250,7 @@ export default function RootLayout({
           <QueryProvider>
             <MotionProvider>
               <Suspense fallback={null}>
-                <NuqsAdapter>
-                  <AdminRoleGate>
-                    <MCShell>{children}</MCShell>
-                  </AdminRoleGate>
-                </NuqsAdapter>
+                <LayoutContent>{children}</LayoutContent>
               </Suspense>
             </MotionProvider>
           </QueryProvider>

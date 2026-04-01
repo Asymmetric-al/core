@@ -7,6 +7,7 @@ import { RESEND_ERROR_CODES, validateResendApiKey } from "@asym/email";
 import {
   type ConnectResendRequest,
   type ConnectResendResponse,
+  type DeliverabilityWarning,
   type ResendConnectionStateResponse,
 } from "@asym/email/types";
 import { type NextRequest, NextResponse } from "next/server";
@@ -15,6 +16,7 @@ import { z } from "zod";
 import { decryptResendApiKey, encryptResendApiKey } from "./crypto";
 import {
   disconnectTenantEmailSettings,
+  isTenantEmailSettingsStorageUnavailable,
   readTenantEmailSettings,
   upsertTenantEmailSettings,
 } from "./settings-store";
@@ -55,8 +57,10 @@ function statusFromResendCode(errorCode?: string): number {
   }
 }
 
-async function requireAdminContext(): Promise<AuthenticatedContext> {
-  const auth = await getAuthContext();
+async function requireAdminContext(
+  request?: Request,
+): Promise<AuthenticatedContext> {
+  const auth = await getAuthContext(request);
   requireRole(auth, ["admin", "super_admin"]);
   return auth as AuthenticatedContext;
 }
@@ -66,16 +70,44 @@ function getApiKeyHint(apiKey: string): string {
   return suffix.padStart(4, "*");
 }
 
-export async function GET() {
+function getStorageUnavailableWarning(): DeliverabilityWarning {
+  return {
+    code: "EMAIL_SETTINGS_STORAGE_UNAVAILABLE",
+    severity: "warning",
+    message:
+      "This environment cannot persist Resend settings yet. The API key can be validated and used for this session, but the connection will not survive a page refresh until the email settings migration is applied.",
+  };
+}
+
+export async function GET(request: NextRequest) {
   try {
-    const ctx = await requireAdminContext();
-    const storedSettings = await readTenantEmailSettings(ctx.tenantId);
+    const ctx = await requireAdminContext(request);
+    let storedSettings;
+
+    try {
+      storedSettings = await readTenantEmailSettings(ctx.tenantId);
+    } catch (error) {
+      if (!isTenantEmailSettingsStorageUnavailable(error)) {
+        throw error;
+      }
+
+      return NextResponse.json(
+        {
+          success: true,
+          connected: false,
+          persisted: false,
+          warnings: [getStorageUnavailableWarning()],
+        } satisfies ResendConnectionStateResponse,
+        { status: 200 },
+      );
+    }
 
     if (!storedSettings || !storedSettings.is_connected) {
       return NextResponse.json(
         {
           success: true,
           connected: false,
+          persisted: true,
         } satisfies ResendConnectionStateResponse,
         { status: 200 },
       );
@@ -123,6 +155,7 @@ export async function GET() {
         deliverabilityScore,
         warnings,
         error,
+        persisted: true,
       } satisfies ResendConnectionStateResponse,
       { status: 200 },
     );
@@ -133,7 +166,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const ctx = await requireAdminContext();
+    const ctx = await requireAdminContext(request);
 
     const body = connectResendSchema.parse(
       await ensureJsonBody(request),
@@ -150,34 +183,50 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await upsertTenantEmailSettings({
-      tenantId: ctx.tenantId,
-      defaultFromEmail: body.defaultFromEmail,
-      defaultFromName: body.defaultFromName,
-      replyToEmail: body.replyToEmail,
-      encryptedApiKey: encryptResendApiKey(body.apiKey),
-      apiKeyHint: getApiKeyHint(body.apiKey),
-      domainAuthenticated:
-        (validation.domainAuthentication ?? []).filter((domain) => domain.valid)
-          .length > 0,
-      dkimVerified:
-        (validation.domainAuthentication ?? []).filter((domain) => domain.valid)
-          .length > 0,
-      spfVerified:
-        (validation.domainAuthentication ?? []).filter((domain) => domain.valid)
-          .length > 0,
-      deliverabilityScore: validation.deliverabilityScore ?? 0,
-    });
+    let persisted = true;
+    let warnings = validation.warnings ?? [];
+
+    try {
+      await upsertTenantEmailSettings({
+        tenantId: ctx.tenantId,
+        defaultFromEmail: body.defaultFromEmail,
+        defaultFromName: body.defaultFromName,
+        replyToEmail: body.replyToEmail,
+        encryptedApiKey: encryptResendApiKey(body.apiKey),
+        apiKeyHint: getApiKeyHint(body.apiKey),
+        domainAuthenticated:
+          (validation.domainAuthentication ?? []).filter(
+            (domain) => domain.valid,
+          ).length > 0,
+        dkimVerified:
+          (validation.domainAuthentication ?? []).filter(
+            (domain) => domain.valid,
+          ).length > 0,
+        spfVerified:
+          (validation.domainAuthentication ?? []).filter(
+            (domain) => domain.valid,
+          ).length > 0,
+        deliverabilityScore: validation.deliverabilityScore ?? 0,
+      });
+    } catch (error) {
+      if (!isTenantEmailSettingsStorageUnavailable(error)) {
+        throw error;
+      }
+
+      persisted = false;
+      warnings = [...warnings, getStorageUnavailableWarning()];
+    }
 
     return NextResponse.json(
       {
         success: true,
-        connectionId: `${ctx.tenantId}:resend`,
+        connectionId: persisted ? `${ctx.tenantId}:resend` : undefined,
         apiKeyHint: getApiKeyHint(body.apiKey),
         senderIdentities: validation.senderIdentities ?? [],
         domainAuthentication: validation.domainAuthentication ?? [],
         deliverabilityScore: validation.deliverabilityScore ?? 0,
-        warnings: validation.warnings ?? [],
+        warnings,
+        persisted,
       } satisfies ConnectResendResponse,
       { status: 200 },
     );
@@ -186,15 +235,26 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function DELETE() {
+export async function DELETE(request: NextRequest) {
   try {
-    const ctx = await requireAdminContext();
-    await disconnectTenantEmailSettings(ctx.tenantId);
+    const ctx = await requireAdminContext(request);
+    let persisted = true;
+
+    try {
+      await disconnectTenantEmailSettings(ctx.tenantId);
+    } catch (error) {
+      if (!isTenantEmailSettingsStorageUnavailable(error)) {
+        throw error;
+      }
+
+      persisted = false;
+    }
 
     return NextResponse.json(
       {
         success: true,
         connected: false,
+        persisted,
       } satisfies ResendConnectionStateResponse,
       { status: 200 },
     );
