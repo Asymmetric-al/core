@@ -10,6 +10,7 @@ import { Suspense } from "react";
 
 import type { Metadata, Viewport } from "next";
 
+import { OpenPolicyProvider } from "@/components/providers/openpolicy-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 
 import "./globals.css";
@@ -166,7 +167,9 @@ export default function RootLayout({
           <QueryProvider>
             <MotionProvider>
               <Suspense fallback={null}>
-                <NuqsAdapter>{children}</NuqsAdapter>
+                <NuqsAdapter>
+                  <OpenPolicyProvider>{children}</OpenPolicyProvider>
+                </NuqsAdapter>
               </Suspense>
             </MotionProvider>
           </QueryProvider>

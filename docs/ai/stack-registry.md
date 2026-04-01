@@ -7,7 +7,7 @@ Agents MUST use this to build better Nia query preambles and to pick the right d
 
 - Next.js (App Router)
 - React
-- TypeScript (default language)
+- TypeScript (default language); future TS 6/7 prep policy: `docs/guides/typescript-6-readiness.md`
 - Node.js (runtime target)
 - Bun (preferred package manager/runtime)
 - PostgreSQL (Supabase Postgres)
@@ -178,6 +178,7 @@ Nia keywords:
 - "email/template/pdf" -> Unlayer, Resend
 - "charts/visualization" -> Recharts
 - "motion/animation" -> motion
+- "rich text/editor/tiptap" -> Tiptap, @tiptap/react, StarterKit
 
 ## "Planned" tags (only for explicit integration work)
 

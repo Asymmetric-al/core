@@ -60,7 +60,8 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 
 ### Forms
 
-- Use React Hook Form + Zod validation.
+- Use TanStack Form + Zod for complex client forms with multiple fields, reusable sections, array/dynamic inputs, cross-field validation, async validation, or modal/drawer workflows.
+- Prefer native `<form>`, `next/form`, or server-action patterns for simple search bars, URL-sync inputs, one-field filters, and server-only forms.
 
 ### Frontend testing
 
@@ -69,7 +70,7 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 ## Workflow
 
 1. Identify if the change is Server or Client and apply `skills/nextjs-app-router/SKILL.md` when relevant.
-2. For Tiptap / rich text editor work, apply `skills/tiptap/SKILL.md` (canonical under `docs/ai/skills/tiptap/SKILL.md`).
+2. For Tiptap / rich text editor work, apply `skills/tiptap/SKILL.md`.
 3. Reuse shared primitives from `@asym/ui` before creating new UI.
 4. Keep Tailwind usage token-based and consistent with Maia/Zinc.
 5. Use TanStack Query for async data and invalidate on mutations.
@@ -86,7 +87,8 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 - [ ] New direct app-level Radix imports include a short justification comment
 - [ ] Tailwind uses tokens (no arbitrary values)
 - [ ] TanStack Query used for async server data
-- [ ] Forms use React Hook Form + Zod
+- [ ] Complex client forms use TanStack Form + Zod
+- [ ] Simple/native/server-only forms use native `<form>`, `next/form`, or server actions intentionally
 
 ### Review checklist
 
@@ -116,15 +118,46 @@ import { cn } from "@/lib/utils";
 bunx --bun shadcn@latest add button --cwd packages/ui
 ```
 
-### Form setup
+### Complex client form setup
 
 ```tsx
-const form = useForm({ resolver: zodResolver(schema) });
+const form = useAsymForm({
+  defaultValues,
+  validators: {
+    onChange: schema,
+  },
+  onSubmit: async ({ value }) => {
+    await save(value);
+  },
+});
+
 return (
-  <Form {...form}>
-    <form onSubmit={form.handleSubmit(onSubmit)} />
-  </Form>
+  <form
+    onSubmit={(event) => {
+      event.preventDefault();
+      form.handleSubmit();
+    }}
+  >
+    <form.AppField name="title">
+      {(field) => <field.TextField label="Title" />}
+    </form.AppField>
+  </form>
 );
+```
+
+### Simple search / URL form
+
+```tsx
+import Form from "next/form";
+
+export function SearchForm() {
+  return (
+    <Form action="/search">
+      <input name="query" />
+      <button type="submit">Search</button>
+    </Form>
+  );
+}
 ```
 
 ## Common mistakes / pitfalls
@@ -135,3 +168,4 @@ return (
 - Using arbitrary Tailwind values instead of tokens
 - Hardcoding colors instead of shared Maia/Zinc tokens
 - Using Zustand or other unapproved state libraries
+- Forcing TanStack Form onto trivial search/filter or server-only form surfaces

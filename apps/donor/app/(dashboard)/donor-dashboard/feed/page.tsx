@@ -626,7 +626,7 @@ const PostCard: React.FC<{
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="relative group cursor-pointer">
-            <Avatar className="h-10 w-10 border border-zinc-100 shadow-sm transition-transform group-hover:scale-105">
+            <Avatar className="h-10 w-10 border border-zinc-100 shadow-sm transition-transform group-hover:scale-[1.02]">
               <AvatarImage src={post.workerAvatar} />
               <AvatarFallback className="bg-zinc-100 font-bold text-zinc-600 uppercase">
                 {post.workerName[0]}

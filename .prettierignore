@@ -37,6 +37,7 @@ yarn-error.log*
 next-env.d.ts
 
 # generated and auxiliary agent artifacts
+.tmp
 .agent
 .agents
 .next-docs

@@ -137,3 +137,13 @@ I can still help you with this task directly! Would you like me to proceed?
 If this is something you do often, you could create your own skill:
 npx skills init my-xyz-skill
 ```
+
+## Triggers
+
+- User asks how to do something that might have an existing skill
+- User wants to find, install, or compare agent skills (public or repo-local)
+
+## Checklist
+
+- [ ] Checked `docs/ai/skills/` and **Skill Routing** in `AGENTS.md` before suggesting `npx skills find`
+- [ ] For repo work, pointed at canonical paths under `docs/ai/skills/` and `bun run skills:sync` when mirrors matter

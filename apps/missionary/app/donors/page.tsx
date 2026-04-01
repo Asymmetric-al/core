@@ -33,23 +33,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@asym/ui/components/shadcn/form";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@asym/ui/components/shadcn/select";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import {
   Tabs,
@@ -59,7 +44,6 @@ import {
 } from "@asym/ui/components/shadcn/tabs";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { cn } from "@asym/ui/lib/utils";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { format, formatDistanceToNow, differenceInMonths } from "date-fns";
 import {
   Search,
@@ -105,9 +89,9 @@ import {
   ListTodo,
 } from "lucide-react";
 import * as React from "react";
-import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import * as z from "zod";
+
+import { EditDonorDialog } from "./edit-donor-dialog";
 
 import type { Task } from "@asym/lib/hooks/use-tasks";
 
@@ -597,33 +581,6 @@ function StatCard({
   return content;
 }
 
-const editDonorSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().optional(),
-  mobile: z.string().optional(),
-  work_phone: z.string().optional(),
-  preferred_contact: z.enum(["email", "phone", "text"]),
-  type: z.enum(["Individual", "Organization", "Church"]),
-  status: z.enum(["Active", "Lapsed", "New", "At Risk"]),
-  frequency: z.string(),
-  location: z.string().optional(),
-  website: z.string().optional(),
-  organization: z.string().optional(),
-  title: z.string().optional(),
-  spouse: z.string().optional(),
-  birthday: z.string().optional(),
-  anniversary: z.string().optional(),
-  notes: z.string().optional(),
-  street: z.string().optional(),
-  street2: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  zip: z.string().optional(),
-});
-
-type EditDonorFormValues = z.infer<typeof editDonorSchema>;
-
 type SortOption = "name" | "last_gift" | "total_given" | "joined_date";
 
 const TASK_TYPE_CONFIG: Record<
@@ -798,7 +755,7 @@ function DonorTasks({
                     transition={{ delay: i * 0.03 }}
                     className="flex items-start gap-3 p-4 border border-zinc-100 rounded-xl bg-white hover:border-zinc-200 transition-all group"
                   >
-                    <motion.div whileTap={{ scale: 0.9 }} className="mt-0.5">
+                    <motion.div whileTap={{ scale: 0.97 }} className="mt-0.5">
                       <Checkbox
                         checked={false}
                         onCheckedChange={() => handleComplete(task)}
@@ -907,7 +864,7 @@ function DonorTasks({
                     transition={{ delay: i * 0.03 }}
                     className="flex items-start gap-3 p-4 border border-transparent rounded-xl bg-zinc-50/50 group"
                   >
-                    <motion.div whileTap={{ scale: 0.9 }} className="mt-0.5">
+                    <motion.div whileTap={{ scale: 0.97 }} className="mt-0.5">
                       <Checkbox
                         checked={true}
                         onCheckedChange={() => handleComplete(task)}
@@ -986,38 +943,9 @@ function useDonorsPageLayout() {
   const [selectedTags, setSelectedTags] = React.useState<string[]>([]);
   const [isSavingTags, setIsSavingTags] = React.useState(false);
   const [isSavingNote, setIsSavingNote] = React.useState(false);
-  const [isSavingEdit, setIsSavingEdit] = React.useState(false);
   const [activityType, setActivityType] = React.useState<
     "note" | "call" | "meeting" | "email"
   >("note");
-
-  const editForm = useForm<EditDonorFormValues>({
-    resolver: zodResolver(editDonorSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      mobile: "",
-      work_phone: "",
-      preferred_contact: "email",
-      type: "Individual",
-      status: "Active",
-      frequency: "Monthly",
-      location: "",
-      website: "",
-      organization: "",
-      title: "",
-      spouse: "",
-      birthday: "",
-      anniversary: "",
-      notes: "",
-      street: "",
-      street2: "",
-      city: "",
-      state: "",
-      zip: "",
-    },
-  });
 
   const fetchDonors = React.useCallback(async () => {
     if (!profile?.id || !supabase) {
@@ -1290,85 +1218,8 @@ function useDonorsPageLayout() {
 
   const openEditDialog = React.useCallback(() => {
     if (!selectedDonor) return;
-    editForm.reset({
-      name: selectedDonor.name || "",
-      email: selectedDonor.email || "",
-      phone: selectedDonor.phone || "",
-      mobile: selectedDonor.mobile || "",
-      work_phone: selectedDonor.work_phone || "",
-      preferred_contact: selectedDonor.preferred_contact || "email",
-      type: selectedDonor.type || "Individual",
-      status: selectedDonor.status || "Active",
-      frequency: selectedDonor.frequency || "Monthly",
-      location: selectedDonor.location || "",
-      website: selectedDonor.website || "",
-      organization: selectedDonor.organization || "",
-      title: selectedDonor.title || "",
-      spouse: selectedDonor.spouse || "",
-      birthday: selectedDonor.birthday || "",
-      anniversary: selectedDonor.anniversary || "",
-      notes: selectedDonor.notes || "",
-      street: selectedDonor.address?.street || "",
-      street2: selectedDonor.address?.street2 || "",
-      city: selectedDonor.address?.city || "",
-      state: selectedDonor.address?.state || "",
-      zip: selectedDonor.address?.zip || "",
-    });
     setIsEditDialogOpen(true);
-  }, [selectedDonor, editForm]);
-
-  const handleSaveEdit = React.useCallback(
-    async (values: EditDonorFormValues) => {
-      if (!selectedDonor || !supabase) return;
-
-      setIsSavingEdit(true);
-      try {
-        const { error: updateError } = await supabase
-          .from("donors")
-          .update({
-            name: values.name,
-            email: values.email,
-            phone: values.phone || null,
-            mobile: values.mobile || null,
-            work_phone: values.work_phone || null,
-            preferred_contact: values.preferred_contact,
-            type: values.type,
-            status: values.status,
-            frequency: values.frequency,
-            location: values.location || null,
-            website: values.website || null,
-            organization: values.organization || null,
-            title: values.title || null,
-            spouse: values.spouse || null,
-            birthday: values.birthday || null,
-            anniversary: values.anniversary || null,
-            notes: values.notes || null,
-            address: {
-              street: values.street || "",
-              street2: values.street2 || "",
-              city: values.city || "",
-              state: values.state || "",
-              zip: values.zip || "",
-              country: "USA",
-            },
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", selectedDonor.id);
-
-        if (updateError) throw updateError;
-
-        toast.success("Partner updated successfully");
-        setIsEditDialogOpen(false);
-        fetchDonors();
-      } catch (err) {
-        toast.error("Failed to update partner");
-        console.error(err);
-      } finally {
-        setIsSavingEdit(false);
-      }
-    },
-    [selectedDonor, supabase, fetchDonors],
-  );
+  }, [selectedDonor]);
 
   const handleStatCardClick = React.useCallback(
     (filterType: "atRisk" | "activePledge" | "lapsed" | "new") => {
@@ -1775,8 +1626,8 @@ function useDonorsPageLayout() {
                     ))}
                     <motion.button
                       layout
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={clearAllFilters}
                       className="text-[9px] font-black uppercase tracking-widest text-rose-500 hover:text-rose-700 px-2"
                     >
@@ -2118,8 +1969,8 @@ function useDonorsPageLayout() {
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
                         <motion.div
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
                         >
                           <Button
                             variant="ghost"
@@ -2414,8 +2265,8 @@ function useDonorsPageLayout() {
                         ))}
                       </AnimatePresence>
                       <motion.div
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                       >
                         <Button
                           variant="ghost"
@@ -2502,8 +2353,8 @@ function useDonorsPageLayout() {
                                   ].map(({ type, icon: Icon, bg, hidden }) => (
                                     <motion.div
                                       key={type}
-                                      whileHover={{ scale: 1.05 }}
-                                      whileTap={{ scale: 0.95 }}
+                                      whileHover={{ scale: 1.02 }}
+                                      whileTap={{ scale: 0.98 }}
                                     >
                                       <Button
                                         variant="ghost"
@@ -2788,7 +2639,7 @@ function useDonorsPageLayout() {
                                     {item.value && (
                                       <motion.div
                                         whileHover={{ scale: 1.1 }}
-                                        whileTap={{ scale: 0.9 }}
+                                        whileTap={{ scale: 0.97 }}
                                       >
                                         <Button
                                           variant="ghost"
@@ -2831,7 +2682,7 @@ function useDonorsPageLayout() {
                                     </div>
                                     <motion.div
                                       whileHover={{ scale: 1.1 }}
-                                      whileTap={{ scale: 0.9 }}
+                                      whileTap={{ scale: 0.97 }}
                                     >
                                       <Button
                                         variant="ghost"
@@ -2906,7 +2757,7 @@ function useDonorsPageLayout() {
                                     {selectedDonor.address?.street && (
                                       <motion.div
                                         whileHover={{ scale: 1.1 }}
-                                        whileTap={{ scale: 0.9 }}
+                                        whileTap={{ scale: 0.97 }}
                                       >
                                         <Button
                                           variant="ghost"
@@ -3539,8 +3390,8 @@ function useDonorsPageLayout() {
                   key={tag.id}
                   variants={fadeInUp}
                   transition={{ delay: i * 0.02 }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => toggleTag(tag.id)}
                   className={cn(
                     "px-3 py-1.5 rounded-full text-xs font-bold border transition-all",
@@ -3589,495 +3440,12 @@ function useDonorsPageLayout() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold tracking-tight">
-              Edit Partner
-            </DialogTitle>
-            <DialogDescription className="text-sm text-zinc-500">
-              Update {selectedDonor?.name}&apos;s information.
-            </DialogDescription>
-          </DialogHeader>
-          <Form {...editForm}>
-            <form
-              onSubmit={editForm.handleSubmit(handleSaveEdit)}
-              className="space-y-6 py-4"
-            >
-              <div className="space-y-4">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                  Basic Information
-                </h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={editForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem className="col-span-2">
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                          Full Name
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="type"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                          Type
-                        </FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium">
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="rounded-xl">
-                            <SelectItem value="Individual">
-                              Individual
-                            </SelectItem>
-                            <SelectItem value="Church">Church</SelectItem>
-                            <SelectItem value="Organization">
-                              Organization
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                          Status
-                        </FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium">
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="rounded-xl">
-                            <SelectItem value="Active">Active</SelectItem>
-                            <SelectItem value="New">New</SelectItem>
-                            <SelectItem value="Lapsed">Lapsed</SelectItem>
-                            <SelectItem value="At Risk">At Risk</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                  Contact Information
-                </h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={editForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                          Email
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="email"
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                          Primary Phone
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="mobile"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                          Mobile / Text
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="work_phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                          Work Phone
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="preferred_contact"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                          Preferred Contact
-                        </FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium">
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="rounded-xl">
-                            <SelectItem value="email">Email</SelectItem>
-                            <SelectItem value="phone">Phone</SelectItem>
-                            <SelectItem value="text">Text</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="website"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                          Website
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                  Address
-                </h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={editForm.control}
-                    name="street"
-                    render={({ field }) => (
-                      <FormItem className="col-span-2">
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                          Street Address
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="street2"
-                    render={({ field }) => (
-                      <FormItem className="col-span-2">
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                          Apt, Suite, etc.
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="city"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                          City
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={editForm.control}
-                      name="state"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                            State
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={editForm.control}
-                      name="zip"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                            ZIP
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <FormField
-                    control={editForm.control}
-                    name="location"
-                    render={({ field }) => (
-                      <FormItem className="col-span-2">
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                          Display Location (e.g. Denver, CO)
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="City, State"
-                            {...field}
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                  Personal Details
-                </h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={editForm.control}
-                    name="organization"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                          Organization
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                          Title / Role
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="spouse"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                          Spouse
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="birthday"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                          Birthday
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="date"
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="anniversary"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                          Anniversary
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="date"
-                            className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              <FormField
-                control={editForm.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                      Internal Notes
-                    </FormLabel>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        className="min-h-[100px] resize-none bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <DialogFooter className="gap-2 sm:gap-0 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsEditDialogOpen(false)}
-                  className="h-10 px-6 rounded-xl border-zinc-200"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isSavingEdit}
-                  className="h-10 px-6 rounded-xl"
-                >
-                  {isSavingEdit ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    "Save Changes"
-                  )}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+      <EditDonorDialog
+        donor={selectedDonor}
+        onOpenChange={setIsEditDialogOpen}
+        onSuccess={fetchDonors}
+        open={isEditDialogOpen}
+      />
     </motion.div>
   );
 }

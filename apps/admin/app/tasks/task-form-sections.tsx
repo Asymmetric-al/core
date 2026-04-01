@@ -22,8 +22,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@asym/ui/components/shadcn/dialog";
+import {
+  Field,
+  FieldContent,
+  FieldError,
+  FieldLabel,
+} from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { Label } from "@asym/ui/components/shadcn/label";
 import {
   Popover,
   PopoverContent,
@@ -36,7 +41,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
-import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { cn } from "@asym/ui/lib/utils";
 import { format } from "date-fns";
 import {
@@ -44,7 +48,6 @@ import {
   Calendar as CalendarIcon,
   Check,
   CheckSquare,
-  Clock,
   FileText,
   Link2,
   Mail,
@@ -58,15 +61,14 @@ import {
 } from "lucide-react";
 
 import { DEFAULT_TASK_TAGS, TAG_CATEGORIES, getTagConfig } from "./tags";
+import {
+  createDefaultReminder,
+  type TaskFormReminder,
+} from "./task-form-model";
 import { TASK_PRIORITIES, TASK_TYPES } from "./types";
 
-import type {
-  LinkedEntity,
-  StaffMember,
-  TaskPriority,
-  TaskReminder,
-  TaskType,
-} from "./types";
+import type { LinkedEntity, StaffMember, TaskType } from "./types";
+import type { TaskFormApi } from "./use-task-form";
 import type { ComponentType } from "react";
 
 const TYPE_ICONS: Record<TaskType, ComponentType<{ className?: string }>> = {
@@ -78,243 +80,235 @@ const TYPE_ICONS: Record<TaskType, ComponentType<{ className?: string }>> = {
   review: FileText,
 };
 
+type RenderableFieldState = {
+  form: {
+    state: {
+      submissionAttempts: number;
+    };
+  };
+  state: {
+    meta: {
+      errors: unknown[];
+      isTouched: boolean;
+    };
+  };
+};
+
 interface TaskFormDialogHeaderProps {
   isEdit: boolean;
 }
 
 interface TaskFormDialogFooterProps {
+  form: TaskFormApi;
   isEdit: boolean;
-  saveDisabled: boolean;
   onClose: () => void;
-  onSave: () => void;
 }
 
 interface TaskFormFieldsProps {
-  title: string;
-  description: string;
-  type: TaskType;
-  priority: TaskPriority;
-  dueDate?: Date;
-  dueTime: string;
-  assignedTo?: string;
-  linkedEntity?: LinkedEntity;
-  reminders: Partial<TaskReminder>[];
-  tags: string[];
-  searchValue: string;
-  showEntitySearch: boolean;
-  staffMembers: StaffMember[];
+  form: TaskFormApi;
+  isEntitySearchOpen: boolean;
   linkedEntities: LinkedEntity[];
-  onTitleChange: (value: string) => void;
-  onDescriptionChange: (value: string) => void;
-  onTypeChange: (value: TaskType) => void;
-  onPriorityChange: (value: TaskPriority) => void;
-  onDueDateChange: (value?: Date) => void;
-  onDueTimeChange: (value: string) => void;
-  onAssignedToChange: (value: string) => void;
-  onLinkedEntityChange: (value: LinkedEntity | undefined) => void;
-  onShowEntitySearchChange: (value: boolean) => void;
-  onAddReminder: () => void;
-  onRemoveReminder: (index: number) => void;
-  onUpdateReminder: (index: number, payload: Partial<TaskReminder>) => void;
-  onAddTag: (value: string) => void;
-  onRemoveTag: (value: string) => void;
-  onTagSearchChange: (value: string) => void;
+  staffMembers: StaffMember[];
+  tagSearchValue: string;
+  onEntitySearchOpenChange: (open: boolean) => void;
+  onTagSearchValueChange: (value: string) => void;
 }
 
-function TaskBasicsSection({
-  title,
-  description,
-  onTitleChange,
-  onDescriptionChange,
-}: Pick<
-  TaskFormFieldsProps,
-  "title" | "description" | "onTitleChange" | "onDescriptionChange"
->) {
+function getRenderableErrors(field: RenderableFieldState) {
+  if (
+    !field.state.meta.isTouched &&
+    field.form.state.submissionAttempts === 0
+  ) {
+    return [];
+  }
+
+  return field.state.meta.errors.flatMap((error) => {
+    if (!error) {
+      return [];
+    }
+
+    if (typeof error === "string") {
+      return [{ message: error }];
+    }
+
+    if (typeof error === "object" && "message" in error) {
+      const message = error.message;
+      if (typeof message === "string" && message.length > 0) {
+        return [{ message }];
+      }
+    }
+
+    return [{ message: String(error) }];
+  });
+}
+
+function TaskBasicsSection({ form }: { form: TaskFormApi }) {
   return (
     <>
-      <div className="space-y-2">
-        <Label
-          htmlFor="title"
-          className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground"
-        >
-          Task Title *
-        </Label>
-        <Input
-          id="title"
-          placeholder="Enter task title..."
-          value={title}
-          onChange={(event) => onTitleChange(event.target.value)}
-          className="text-sm rounded-xl"
-        />
-      </div>
+      <form.AppField name="title">
+        {(field) => (
+          <field.TextField
+            inputClassName="text-sm rounded-xl"
+            label="Task Title *"
+            labelClassName="text-[9px] font-bold uppercase tracking-widest text-muted-foreground"
+            placeholder="Enter task title..."
+          />
+        )}
+      </form.AppField>
 
-      <div className="space-y-2">
-        <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
-          Description
-        </Label>
-        <Textarea
-          placeholder="Add more details about this task..."
-          value={description}
-          onChange={(event) => onDescriptionChange(event.target.value)}
-          className="min-h-[80px] text-sm resize-none rounded-xl"
-        />
-      </div>
+      <form.AppField name="description">
+        {(field) => (
+          <field.TextareaField
+            inputClassName="min-h-[80px] text-sm resize-none rounded-xl"
+            label="Description"
+            labelClassName="text-[9px] font-bold uppercase tracking-widest text-muted-foreground"
+            placeholder="Add more details about this task..."
+          />
+        )}
+      </form.AppField>
     </>
   );
 }
 
-function TaskTypeAndPrioritySection({
-  type,
-  priority,
-  onTypeChange,
-  onPriorityChange,
-}: Pick<
-  TaskFormFieldsProps,
-  "type" | "priority" | "onTypeChange" | "onPriorityChange"
->) {
+function TaskTypeAndPrioritySection({ form }: { form: TaskFormApi }) {
   return (
     <div className="grid grid-cols-2 gap-4">
-      <div className="space-y-2">
-        <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
-          Task Type
-        </Label>
-        <Select
-          value={type}
-          onValueChange={(value) => onTypeChange(value as TaskType)}
-        >
-          <SelectTrigger className="text-sm rounded-xl">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="rounded-2xl">
-            {TASK_TYPES.map((taskType) => {
+      <form.AppField name="type">
+        {(field) => (
+          <field.SelectField
+            label="Task Type"
+            labelClassName="text-[9px] font-bold uppercase tracking-widest text-muted-foreground"
+            options={TASK_TYPES.map((taskType) => {
               const Icon = TYPE_ICONS[taskType.value];
-              return (
-                <SelectItem
-                  key={taskType.value}
-                  value={taskType.value}
-                  className="rounded-xl"
-                >
+
+              return {
+                label: (
                   <div className="flex items-center gap-2">
                     <Icon className="size-4" />
                     {taskType.label}
                   </div>
-                </SelectItem>
-              );
+                ),
+                value: taskType.value,
+              };
             })}
-          </SelectContent>
-        </Select>
-      </div>
+            placeholder="Select type"
+            triggerClassName="text-sm rounded-xl"
+          />
+        )}
+      </form.AppField>
 
-      <div className="space-y-2">
-        <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
-          Priority
-        </Label>
-        <Select
-          value={priority}
-          onValueChange={(value) => onPriorityChange(value as TaskPriority)}
-        >
-          <SelectTrigger className="text-sm rounded-xl">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="rounded-2xl">
-            {TASK_PRIORITIES.map((taskPriority) => (
-              <SelectItem
-                key={taskPriority.value}
-                value={taskPriority.value}
-                className="rounded-xl"
-              >
+      <form.AppField name="priority">
+        {(field) => (
+          <field.SelectField
+            label="Priority"
+            labelClassName="text-[9px] font-bold uppercase tracking-widest text-muted-foreground"
+            options={TASK_PRIORITIES.map((taskPriority) => ({
+              label: (
                 <Badge
-                  variant="outline"
                   className={cn(
-                    "text-[10px] h-5 rounded-md",
+                    "h-5 rounded-md text-[10px]",
                     taskPriority.color,
                   )}
+                  variant="outline"
                 >
                   {taskPriority.label}
                 </Badge>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+              ),
+              value: taskPriority.value,
+            }))}
+            placeholder="Select priority"
+            triggerClassName="text-sm rounded-xl"
+          />
+        )}
+      </form.AppField>
     </div>
   );
 }
 
-function TaskDueDateSection({
-  dueDate,
-  dueTime,
-  onDueDateChange,
-  onDueTimeChange,
-}: Pick<
-  TaskFormFieldsProps,
-  "dueDate" | "dueTime" | "onDueDateChange" | "onDueTimeChange"
->) {
+function TaskDueDateSection({ form }: { form: TaskFormApi }) {
   return (
     <div className="grid grid-cols-2 gap-4">
-      <div className="space-y-2">
-        <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-          <CalendarIcon className="size-3" /> Due Date
-        </Label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-full justify-start text-left font-normal text-sm rounded-xl",
-                !dueDate && "text-muted-foreground",
-              )}
-            >
-              <CalendarIcon className="mr-2 size-4" />
-              {dueDate ? format(dueDate, "PPP") : "Pick a date"}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 rounded-2xl" align="start">
-            <Calendar
-              mode="single"
-              selected={dueDate}
-              onSelect={(date) => onDueDateChange(date)}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
+      <form.Field name="dueDate">
+        {(field) => {
+          const errors = getRenderableErrors(field);
 
-      <div className="space-y-2">
-        <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-          <Clock className="size-3" /> Time (Optional)
-        </Label>
-        <Input
-          type="time"
-          value={dueTime}
-          onChange={(event) => onDueTimeChange(event.target.value)}
-          className="text-sm rounded-xl"
-        />
-      </div>
+          return (
+            <Field data-invalid={errors.length > 0}>
+              <FieldLabel className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                <CalendarIcon className="size-3" /> Due Date
+              </FieldLabel>
+              <FieldContent>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      className={cn(
+                        "w-full justify-start rounded-xl text-left text-sm font-normal",
+                        !field.state.value && "text-muted-foreground",
+                      )}
+                      type="button"
+                      variant="outline"
+                    >
+                      <CalendarIcon className="mr-2 size-4" />
+                      {field.state.value
+                        ? format(field.state.value, "PPP")
+                        : "Pick a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    align="start"
+                    className="w-auto rounded-2xl p-0"
+                  >
+                    <Calendar
+                      initialFocus
+                      mode="single"
+                      onSelect={(date) => {
+                        field.handleChange(date);
+                        field.handleBlur();
+                      }}
+                      selected={field.state.value}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FieldError errors={errors} />
+              </FieldContent>
+            </Field>
+          );
+        }}
+      </form.Field>
+
+      <form.AppField name="dueTime">
+        {(field) => (
+          <field.TextField
+            inputClassName="text-sm rounded-xl"
+            label="Time (Optional)"
+            labelClassName="text-[9px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5"
+            type="time"
+          />
+        )}
+      </form.AppField>
     </div>
   );
 }
 
 function TaskAssigneeSection({
-  assignedTo,
+  form,
   staffMembers,
-  onAssignedToChange,
-}: Pick<
-  TaskFormFieldsProps,
-  "assignedTo" | "staffMembers" | "onAssignedToChange"
->) {
+}: {
+  form: TaskFormApi;
+  staffMembers: StaffMember[];
+}) {
   return (
-    <div className="space-y-2">
-      <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-        <User className="size-3" /> Assign To
-      </Label>
-      <Select value={assignedTo} onValueChange={onAssignedToChange}>
-        <SelectTrigger className="text-sm rounded-xl">
-          <SelectValue placeholder="Select team member..." />
-        </SelectTrigger>
-        <SelectContent className="rounded-2xl">
-          {staffMembers.map((staff) => (
-            <SelectItem key={staff.id} value={staff.id} className="rounded-xl">
+    <form.AppField name="assignedTo">
+      {(field) => (
+        <field.SelectField
+          label={
+            <span className="flex items-center gap-1.5">
+              <User className="size-3" /> Assign To
+            </span>
+          }
+          labelClassName="text-[9px] font-bold uppercase tracking-widest text-muted-foreground"
+          options={staffMembers.map((staff) => ({
+            label: (
               <div className="flex items-center gap-2">
                 <Avatar className="size-5 border border-border">
                   <AvatarImage src={staff.avatar_url} />
@@ -327,375 +321,472 @@ function TaskAssigneeSection({
                   ({staff.role})
                 </span>
               </div>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+            ),
+            value: staff.id,
+          }))}
+          placeholder="Select team member..."
+          triggerClassName="text-sm rounded-xl"
+        />
+      )}
+    </form.AppField>
   );
 }
 
 function TaskLinkedRecordSection({
-  linkedEntity,
+  form,
+  isEntitySearchOpen,
   linkedEntities,
-  showEntitySearch,
-  onLinkedEntityChange,
-  onShowEntitySearchChange,
+  onEntitySearchOpenChange,
 }: Pick<
   TaskFormFieldsProps,
-  | "linkedEntity"
-  | "linkedEntities"
-  | "showEntitySearch"
-  | "onLinkedEntityChange"
-  | "onShowEntitySearchChange"
+  "form" | "isEntitySearchOpen" | "linkedEntities" | "onEntitySearchOpenChange"
 >) {
   return (
-    <div className="space-y-2">
-      <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-        <Link2 className="size-3" /> Link to Record
-      </Label>
-      {linkedEntity ? (
-        <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-card">
-          <div className="flex items-center gap-3">
-            <Avatar className="size-8 border border-border">
-              <AvatarImage src={linkedEntity.avatar} />
-              <AvatarFallback>{linkedEntity.name[0]}</AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="text-sm font-medium">{linkedEntity.name}</p>
-              <Badge
-                variant="secondary"
-                className="text-[9px] h-4 capitalize rounded-md"
+    <form.Field name="linkedEntity">
+      {(field) => (
+        <Field>
+          <FieldLabel className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+            <Link2 className="size-3" /> Link to Record
+          </FieldLabel>
+          <FieldContent>
+            {field.state.value ? (
+              <div className="flex items-center justify-between rounded-xl border border-border bg-card p-3">
+                <div className="flex items-center gap-3">
+                  <Avatar className="size-8 border border-border">
+                    <AvatarImage src={field.state.value.avatar} />
+                    <AvatarFallback>{field.state.value.name[0]}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm font-medium">
+                      {field.state.value.name}
+                    </p>
+                    <Badge
+                      className="text-[9px] h-4 capitalize rounded-md"
+                      variant="secondary"
+                    >
+                      {field.state.value.type}
+                    </Badge>
+                  </div>
+                </div>
+                <Button
+                  className="size-8 rounded-xl"
+                  onClick={() => field.handleChange(undefined)}
+                  size="icon"
+                  type="button"
+                  variant="ghost"
+                >
+                  <X className="size-4" />
+                </Button>
+              </div>
+            ) : (
+              <Popover
+                onOpenChange={onEntitySearchOpenChange}
+                open={isEntitySearchOpen}
               >
-                {linkedEntity.type}
-              </Badge>
-            </div>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onLinkedEntityChange(undefined)}
-            className="size-8 rounded-xl"
-          >
-            <X className="size-4" />
-          </Button>
-        </div>
-      ) : (
-        <Popover
-          open={showEntitySearch}
-          onOpenChange={onShowEntitySearchChange}
-        >
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className="w-full justify-start text-sm text-muted-foreground rounded-xl"
-            >
-              <Plus className="mr-2 size-4" />
-              Link a donor, missionary, or contact...
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[400px] p-0 rounded-2xl" align="start">
-            <Command className="rounded-2xl">
-              <CommandInput placeholder="Search records..." />
-              <CommandList>
-                <CommandEmpty>No records found.</CommandEmpty>
-                <CommandGroup heading="Donors">
-                  {linkedEntities
-                    .filter((entity) => entity.type === "donor")
-                    .map((entity) => (
-                      <CommandItem
-                        key={entity.id}
-                        onSelect={() => {
-                          onLinkedEntityChange(entity);
-                          onShowEntitySearchChange(false);
-                        }}
-                        className="cursor-pointer rounded-xl"
-                      >
-                        <Avatar className="size-6 mr-2 border border-border">
-                          <AvatarImage src={entity.avatar} />
-                          <AvatarFallback className="text-[9px]">
-                            {entity.name[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span>{entity.name}</span>
-                      </CommandItem>
-                    ))}
-                </CommandGroup>
-                <CommandGroup heading="Missionaries">
-                  {linkedEntities
-                    .filter((entity) => entity.type === "missionary")
-                    .map((entity) => (
-                      <CommandItem
-                        key={entity.id}
-                        onSelect={() => {
-                          onLinkedEntityChange(entity);
-                          onShowEntitySearchChange(false);
-                        }}
-                        className="cursor-pointer rounded-xl"
-                      >
-                        <Avatar className="size-6 mr-2 border border-border">
-                          <AvatarImage src={entity.avatar} />
-                          <AvatarFallback className="text-[9px]">
-                            {entity.name[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span>{entity.name}</span>
-                      </CommandItem>
-                    ))}
-                </CommandGroup>
-                <CommandGroup heading="Contacts">
-                  {linkedEntities
-                    .filter((entity) => entity.type === "contact")
-                    .map((entity) => (
-                      <CommandItem
-                        key={entity.id}
-                        onSelect={() => {
-                          onLinkedEntityChange(entity);
-                          onShowEntitySearchChange(false);
-                        }}
-                        className="cursor-pointer rounded-xl"
-                      >
-                        <Avatar className="size-6 mr-2 border border-border">
-                          <AvatarImage src={entity.avatar} />
-                          <AvatarFallback className="text-[9px]">
-                            {entity.name[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span>{entity.name}</span>
-                      </CommandItem>
-                    ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    className="w-full justify-start rounded-xl text-sm text-muted-foreground"
+                    type="button"
+                    variant="outline"
+                  >
+                    <Plus className="mr-2 size-4" />
+                    Link a donor, missionary, or contact...
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="start"
+                  className="w-[400px] rounded-2xl p-0"
+                >
+                  <Command className="rounded-2xl">
+                    <CommandInput placeholder="Search records..." />
+                    <CommandList>
+                      <CommandEmpty>No records found.</CommandEmpty>
+                      <CommandGroup heading="Donors">
+                        {linkedEntities
+                          .filter((entity) => entity.type === "donor")
+                          .map((entity) => (
+                            <CommandItem
+                              className="cursor-pointer rounded-xl"
+                              key={entity.id}
+                              onSelect={() => {
+                                field.handleChange(entity);
+                                onEntitySearchOpenChange(false);
+                              }}
+                            >
+                              <Avatar className="mr-2 size-6 border border-border">
+                                <AvatarImage src={entity.avatar} />
+                                <AvatarFallback className="text-[9px]">
+                                  {entity.name[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span>{entity.name}</span>
+                            </CommandItem>
+                          ))}
+                      </CommandGroup>
+                      <CommandGroup heading="Missionaries">
+                        {linkedEntities
+                          .filter((entity) => entity.type === "missionary")
+                          .map((entity) => (
+                            <CommandItem
+                              className="cursor-pointer rounded-xl"
+                              key={entity.id}
+                              onSelect={() => {
+                                field.handleChange(entity);
+                                onEntitySearchOpenChange(false);
+                              }}
+                            >
+                              <Avatar className="mr-2 size-6 border border-border">
+                                <AvatarImage src={entity.avatar} />
+                                <AvatarFallback className="text-[9px]">
+                                  {entity.name[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span>{entity.name}</span>
+                            </CommandItem>
+                          ))}
+                      </CommandGroup>
+                      <CommandGroup heading="Contacts">
+                        {linkedEntities
+                          .filter((entity) => entity.type === "contact")
+                          .map((entity) => (
+                            <CommandItem
+                              className="cursor-pointer rounded-xl"
+                              key={entity.id}
+                              onSelect={() => {
+                                field.handleChange(entity);
+                                onEntitySearchOpenChange(false);
+                              }}
+                            >
+                              <Avatar className="mr-2 size-6 border border-border">
+                                <AvatarImage src={entity.avatar} />
+                                <AvatarFallback className="text-[9px]">
+                                  {entity.name[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span>{entity.name}</span>
+                            </CommandItem>
+                          ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            )}
+          </FieldContent>
+        </Field>
       )}
-    </div>
+    </form.Field>
   );
 }
 
-function TaskRemindersSection({
-  reminders,
-  onAddReminder,
-  onRemoveReminder,
-  onUpdateReminder,
-}: Pick<
-  TaskFormFieldsProps,
-  "reminders" | "onAddReminder" | "onRemoveReminder" | "onUpdateReminder"
->) {
+function TaskRemindersSection({ form }: { form: TaskFormApi }) {
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-          <Bell className="size-3" /> Reminders
-        </Label>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onAddReminder}
-          className="h-7 text-xs rounded-xl"
-        >
-          <Plus className="size-3 mr-1" /> Add Reminder
-        </Button>
-      </div>
-      {reminders.length > 0 && (
-        <div className="space-y-2">
-          {reminders.map((reminder, index) => (
-            <div
-              key={reminder.id}
-              className="flex items-center gap-2 p-3 rounded-xl border border-border bg-muted/30"
+    <form.Field mode="array" name="reminders">
+      {(remindersField) => (
+        <Field>
+          <FieldLabel className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <Bell className="size-3" /> Reminders
+            </span>
+            <Button
+              className="h-7 rounded-xl text-xs"
+              onClick={() =>
+                remindersField.pushValue(
+                  createDefaultReminder(form.getFieldValue("dueDate")),
+                )
+              }
+              size="sm"
+              type="button"
+              variant="ghost"
             >
-              <Input
-                type="datetime-local"
-                value={
-                  reminder.remind_at
-                    ? format(new Date(reminder.remind_at), "yyyy-MM-dd'T'HH:mm")
-                    : ""
-                }
-                onChange={(event) => {
-                  onUpdateReminder(index, {
-                    remind_at: new Date(event.target.value).toISOString(),
-                  });
-                }}
-                className="flex-1 text-sm h-8 rounded-lg"
-              />
-              <Select
-                value={reminder.type || "notification"}
-                onValueChange={(value) => {
-                  onUpdateReminder(index, {
-                    type: value as TaskReminder["type"],
-                  });
-                }}
-              >
-                <SelectTrigger className="w-32 h-8 text-xs rounded-lg">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  <SelectItem value="notification" className="rounded-lg">
-                    Notification
-                  </SelectItem>
-                  <SelectItem value="email" className="rounded-lg">
-                    Email
-                  </SelectItem>
-                  <SelectItem value="both" className="rounded-lg">
-                    Both
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onRemoveReminder(index)}
-                className="size-8 shrink-0 rounded-lg"
-              >
-                <Trash2 className="size-3" />
-              </Button>
-            </div>
-          ))}
-        </div>
+              <Plus className="mr-1 size-3" /> Add Reminder
+            </Button>
+          </FieldLabel>
+          <FieldContent>
+            {remindersField.state.value.length > 0 ? (
+              <div className="space-y-2">
+                {remindersField.state.value.map(
+                  (reminder: TaskFormReminder, index: number) => (
+                    <div
+                      className="space-y-2 rounded-xl border border-border bg-muted/30 p-3"
+                      key={reminder.id ?? index}
+                    >
+                      <div className="flex items-center gap-2">
+                        <form.Field name={`reminders[${index}].remind_at`}>
+                          {(field) => (
+                            <Input
+                              className="h-8 flex-1 rounded-lg text-sm"
+                              onBlur={field.handleBlur}
+                              onChange={(event) =>
+                                field.handleChange(
+                                  event.target.value
+                                    ? new Date(event.target.value).toISOString()
+                                    : "",
+                                )
+                              }
+                              type="datetime-local"
+                              value={
+                                field.state.value
+                                  ? format(
+                                      new Date(field.state.value),
+                                      "yyyy-MM-dd'T'HH:mm",
+                                    )
+                                  : ""
+                              }
+                            />
+                          )}
+                        </form.Field>
+
+                        <form.Field name={`reminders[${index}].type`}>
+                          {(field) => (
+                            <Select
+                              onOpenChange={(open) => {
+                                if (!open) {
+                                  field.handleBlur();
+                                }
+                              }}
+                              onValueChange={(value) =>
+                                field.handleChange(
+                                  value as TaskFormReminder["type"],
+                                )
+                              }
+                              value={field.state.value || "notification"}
+                            >
+                              <SelectTrigger className="h-8 w-32 rounded-lg text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="rounded-xl">
+                                <SelectItem
+                                  className="rounded-lg"
+                                  value="notification"
+                                >
+                                  Notification
+                                </SelectItem>
+                                <SelectItem
+                                  className="rounded-lg"
+                                  value="email"
+                                >
+                                  Email
+                                </SelectItem>
+                                <SelectItem className="rounded-lg" value="both">
+                                  Both
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          )}
+                        </form.Field>
+
+                        <Button
+                          className="size-8 shrink-0 rounded-lg"
+                          onClick={() => remindersField.removeValue(index)}
+                          size="icon"
+                          type="button"
+                          variant="ghost"
+                        >
+                          <Trash2 className="size-3" />
+                        </Button>
+                      </div>
+
+                      <div className="space-y-1">
+                        <form.Field name={`reminders[${index}].remind_at`}>
+                          {(field) => (
+                            <FieldError errors={getRenderableErrors(field)} />
+                          )}
+                        </form.Field>
+                        <form.Field name={`reminders[${index}].type`}>
+                          {(field) => (
+                            <FieldError errors={getRenderableErrors(field)} />
+                          )}
+                        </form.Field>
+                      </div>
+                    </div>
+                  ),
+                )}
+              </div>
+            ) : null}
+          </FieldContent>
+        </Field>
       )}
-    </div>
+    </form.Field>
   );
 }
 
 function TaskTagsSection({
-  tags,
-  searchValue,
-  onAddTag,
-  onRemoveTag,
-  onTagSearchChange,
+  form,
+  tagSearchValue,
+  onTagSearchValueChange,
 }: Pick<
   TaskFormFieldsProps,
-  "tags" | "searchValue" | "onAddTag" | "onRemoveTag" | "onTagSearchChange"
+  "form" | "tagSearchValue" | "onTagSearchValueChange"
 >) {
   return (
-    <div className="space-y-2">
-      <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
-        Tags
-      </Label>
-      {tags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-2">
-          {tags.map((tagId) => {
-            const tagConfig = getTagConfig(tagId);
-            return (
-              <Badge
-                key={tagId}
-                className={cn(
-                  "text-xs h-6 gap-1 rounded-lg border-0",
-                  tagConfig?.color || "bg-muted text-muted-foreground",
-                )}
-              >
-                {tagConfig?.label || tagId}
-                <button
-                  type="button"
-                  onClick={() => onRemoveTag(tagId)}
-                  className="ml-0.5 hover:opacity-70"
-                >
-                  <X className="size-3" />
-                </button>
-              </Badge>
-            );
-          })}
-        </div>
-      )}
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full justify-start text-sm text-muted-foreground rounded-xl"
-          >
-            <Plus className="mr-2 size-4" />
-            Add tags...
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[320px] p-0 rounded-2xl" align="start">
-          <Command className="rounded-2xl" shouldFilter={false}>
-            <CommandInput
-              placeholder="Search or create tags..."
-              value={searchValue}
-              onValueChange={onTagSearchChange}
-            />
-            <CommandList className="max-h-[300px]">
-              {searchValue.trim() &&
-                !DEFAULT_TASK_TAGS.some(
-                  (tag) =>
-                    tag.label.toLowerCase() === searchValue.toLowerCase(),
-                ) && (
-                  <CommandGroup heading="New Tag">
-                    <CommandItem
-                      onSelect={() => {
-                        const newTag = searchValue.trim();
-                        if (newTag) {
-                          onAddTag(newTag);
-                          onTagSearchChange("");
-                        }
-                      }}
-                      className="cursor-pointer rounded-xl flex items-center gap-2"
-                    >
-                      <div className="p-1 rounded-md bg-primary/10 text-primary">
-                        <Plus className="size-3" />
-                      </div>
-                      <span className="text-sm">
-                        Create &ldquo;{searchValue}&rdquo;
-                      </span>
-                    </CommandItem>
-                  </CommandGroup>
-                )}
-              <CommandEmpty>No tags found.</CommandEmpty>
-              {TAG_CATEGORIES.map((category) => {
-                const categoryTags = DEFAULT_TASK_TAGS.filter(
-                  (tag) =>
-                    tag.category === category.value &&
-                    tag.label.toLowerCase().includes(searchValue.toLowerCase()),
-                );
-                if (categoryTags.length === 0) return null;
+    <form.Field name="tags">
+      {(field) => {
+        const appendUniqueTag = (tag: string) => {
+          const nextTag = tag.trim();
+          if (!nextTag) {
+            return;
+          }
 
-                return (
-                  <CommandGroup key={category.value} heading={category.label}>
-                    {categoryTags.map((tag) => {
-                      const isSelected = tags.includes(tag.id);
-                      return (
-                        <CommandItem
-                          key={tag.id}
-                          onSelect={() => {
-                            if (isSelected) {
-                              onRemoveTag(tag.id);
-                            } else {
-                              onAddTag(tag.id);
-                            }
-                            onTagSearchChange("");
-                          }}
-                          className="cursor-pointer rounded-xl flex items-center justify-between"
+          field.handleChange([...new Set([...field.state.value, nextTag])]);
+        };
+
+        const removeTag = (tagToRemove: string) => {
+          field.handleChange(
+            field.state.value.filter((tag) => tag !== tagToRemove),
+          );
+        };
+
+        return (
+          <Field>
+            <FieldLabel className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+              Tags
+            </FieldLabel>
+            <FieldContent>
+              {field.state.value.length > 0 ? (
+                <div className="mb-2 flex flex-wrap gap-1.5">
+                  {field.state.value.map((tagId) => {
+                    const tagConfig = getTagConfig(tagId);
+
+                    return (
+                      <Badge
+                        className={cn(
+                          "h-6 gap-1 rounded-lg border-0 text-xs",
+                          tagConfig?.color || "bg-muted text-muted-foreground",
+                        )}
+                        key={tagId}
+                      >
+                        {tagConfig?.label || tagId}
+                        <button
+                          className="ml-0.5 hover:opacity-70"
+                          onClick={() => removeTag(tagId)}
+                          type="button"
                         >
-                          <Badge
-                            className={cn(
-                              "text-xs h-5 rounded-md border-0",
-                              tag.color,
-                            )}
+                          <X className="size-3" />
+                        </button>
+                      </Badge>
+                    );
+                  })}
+                </div>
+              ) : null}
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    className="w-full justify-start rounded-xl text-sm text-muted-foreground"
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                  >
+                    <Plus className="mr-2 size-4" />
+                    Add tags...
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="start"
+                  className="w-[320px] rounded-2xl p-0"
+                >
+                  <Command className="rounded-2xl" shouldFilter={false}>
+                    <CommandInput
+                      onValueChange={onTagSearchValueChange}
+                      placeholder="Search or create tags..."
+                      value={tagSearchValue}
+                    />
+                    <CommandList className="max-h-[300px]">
+                      {tagSearchValue.trim() &&
+                      !DEFAULT_TASK_TAGS.some(
+                        (tag) =>
+                          tag.label.toLowerCase() ===
+                          tagSearchValue.toLowerCase(),
+                      ) ? (
+                        <CommandGroup heading="New Tag">
+                          <CommandItem
+                            className="flex cursor-pointer items-center gap-2 rounded-xl"
+                            onSelect={() => {
+                              appendUniqueTag(tagSearchValue);
+                              onTagSearchValueChange("");
+                            }}
                           >
-                            {tag.label}
-                          </Badge>
-                          {isSelected && (
-                            <Check className="size-4 text-emerald-600" />
-                          )}
-                        </CommandItem>
-                      );
-                    })}
-                  </CommandGroup>
-                );
-              })}
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-    </div>
+                            <div className="rounded-md bg-primary/10 p-1 text-primary">
+                              <Plus className="size-3" />
+                            </div>
+                            <span className="text-sm">
+                              Create &ldquo;{tagSearchValue}&rdquo;
+                            </span>
+                          </CommandItem>
+                        </CommandGroup>
+                      ) : null}
+
+                      <CommandEmpty>No tags found.</CommandEmpty>
+
+                      {TAG_CATEGORIES.map((category) => {
+                        const categoryTags = DEFAULT_TASK_TAGS.filter(
+                          (tag) =>
+                            tag.category === category.value &&
+                            tag.label
+                              .toLowerCase()
+                              .includes(tagSearchValue.toLowerCase()),
+                        );
+
+                        if (categoryTags.length === 0) {
+                          return null;
+                        }
+
+                        return (
+                          <CommandGroup
+                            heading={category.label}
+                            key={category.value}
+                          >
+                            {categoryTags.map((tag) => {
+                              const isSelected = field.state.value.includes(
+                                tag.id,
+                              );
+
+                              return (
+                                <CommandItem
+                                  className="flex cursor-pointer items-center justify-between rounded-xl"
+                                  key={tag.id}
+                                  onSelect={() => {
+                                    if (isSelected) {
+                                      removeTag(tag.id);
+                                    } else {
+                                      appendUniqueTag(tag.id);
+                                    }
+                                    onTagSearchValueChange("");
+                                  }}
+                                >
+                                  <Badge
+                                    className={cn(
+                                      "h-5 rounded-md border-0 text-xs",
+                                      tag.color,
+                                    )}
+                                  >
+                                    {tag.label}
+                                  </Badge>
+                                  {isSelected ? (
+                                    <Check className="size-4 text-emerald-600" />
+                                  ) : null}
+                                </CommandItem>
+                              );
+                            })}
+                          </CommandGroup>
+                        );
+                      })}
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </FieldContent>
+          </Field>
+        );
+      }}
+    </form.Field>
   );
 }
 
 export function TaskFormDialogHeader({ isEdit }: TaskFormDialogHeaderProps) {
   return (
-    <DialogHeader className="px-6 py-5 border-b border-border">
+    <DialogHeader className="border-b border-border px-6 py-5">
       <DialogTitle className="text-lg font-bold">
         {isEdit ? "Edit Task" : "Create New Task"}
       </DialogTitle>
@@ -708,108 +799,78 @@ export function TaskFormDialogHeader({ isEdit }: TaskFormDialogHeaderProps) {
   );
 }
 
-export function TaskFormFields(props: TaskFormFieldsProps) {
-  const {
-    title,
-    description,
-    type,
-    priority,
-    dueDate,
-    dueTime,
-    assignedTo,
-    linkedEntity,
-    reminders,
-    tags,
-    searchValue,
-    showEntitySearch,
-    staffMembers,
-    linkedEntities,
-    onTitleChange,
-    onDescriptionChange,
-    onTypeChange,
-    onPriorityChange,
-    onDueDateChange,
-    onDueTimeChange,
-    onAssignedToChange,
-    onLinkedEntityChange,
-    onShowEntitySearchChange,
-    onAddReminder,
-    onRemoveReminder,
-    onUpdateReminder,
-    onAddTag,
-    onRemoveTag,
-    onTagSearchChange,
-  } = props;
-
+export function TaskFormFields({
+  form,
+  isEntitySearchOpen,
+  linkedEntities,
+  staffMembers,
+  tagSearchValue,
+  onEntitySearchOpenChange,
+  onTagSearchValueChange,
+}: TaskFormFieldsProps) {
   return (
-    <div className="px-6 py-5 space-y-6 max-h-[60vh] overflow-y-auto">
-      <TaskBasicsSection
-        title={title}
-        description={description}
-        onTitleChange={onTitleChange}
-        onDescriptionChange={onDescriptionChange}
-      />
+    <div className="max-h-[60vh] space-y-6 overflow-y-auto px-6 py-5">
+      <TaskBasicsSection form={form} />
 
-      <TaskTypeAndPrioritySection
-        type={type}
-        priority={priority}
-        onTypeChange={onTypeChange}
-        onPriorityChange={onPriorityChange}
-      />
+      <TaskTypeAndPrioritySection form={form} />
 
-      <TaskDueDateSection
-        dueDate={dueDate}
-        dueTime={dueTime}
-        onDueDateChange={onDueDateChange}
-        onDueTimeChange={onDueTimeChange}
-      />
+      <TaskDueDateSection form={form} />
 
-      <TaskAssigneeSection
-        assignedTo={assignedTo}
-        staffMembers={staffMembers}
-        onAssignedToChange={onAssignedToChange}
-      />
+      <TaskAssigneeSection form={form} staffMembers={staffMembers} />
 
       <TaskLinkedRecordSection
-        linkedEntity={linkedEntity}
+        form={form}
+        isEntitySearchOpen={isEntitySearchOpen}
         linkedEntities={linkedEntities}
-        showEntitySearch={showEntitySearch}
-        onLinkedEntityChange={onLinkedEntityChange}
-        onShowEntitySearchChange={onShowEntitySearchChange}
+        onEntitySearchOpenChange={onEntitySearchOpenChange}
       />
 
-      <TaskRemindersSection
-        reminders={reminders}
-        onAddReminder={onAddReminder}
-        onRemoveReminder={onRemoveReminder}
-        onUpdateReminder={onUpdateReminder}
-      />
+      <TaskRemindersSection form={form} />
 
       <TaskTagsSection
-        tags={tags}
-        searchValue={searchValue}
-        onAddTag={onAddTag}
-        onRemoveTag={onRemoveTag}
-        onTagSearchChange={onTagSearchChange}
+        form={form}
+        onTagSearchValueChange={onTagSearchValueChange}
+        tagSearchValue={tagSearchValue}
       />
     </div>
   );
 }
 
 export function TaskFormDialogFooter({
+  form,
   isEdit,
-  saveDisabled,
   onClose,
-  onSave,
 }: TaskFormDialogFooterProps) {
   return (
-    <DialogFooter className="px-6 py-4 border-t border-border bg-muted/30">
-      <Button variant="outline" onClick={onClose} className="rounded-xl">
+    <DialogFooter className="border-t border-border bg-muted/30 px-6 py-4">
+      <Button
+        className="rounded-xl"
+        onClick={onClose}
+        type="button"
+        variant="outline"
+      >
         Cancel
       </Button>
-      <Button onClick={onSave} disabled={saveDisabled} className="rounded-xl">
-        {isEdit ? "Save Changes" : "Create Task"}
-      </Button>
+      <form.Subscribe
+        selector={(state) => ({
+          canSubmit: state.canSubmit,
+          isSubmitting: state.isSubmitting,
+        })}
+      >
+        {({ canSubmit, isSubmitting }) => (
+          <Button
+            className="rounded-xl"
+            disabled={!canSubmit || isSubmitting}
+            type="submit"
+          >
+            {isSubmitting
+              ? "Saving..."
+              : isEdit
+                ? "Save Changes"
+                : "Create Task"}
+          </Button>
+        )}
+      </form.Subscribe>
     </DialogFooter>
   );
 }
