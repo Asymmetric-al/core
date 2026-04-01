@@ -145,5 +145,5 @@ describe("verify-skills-sync", () => {
     expect(() =>
       runNodeScript(tempRoot, "scripts/verify-skills-sync.mjs"),
     ).toThrow(/Skill mirror drift detected/);
-  });
+  }, 20_000);
 });

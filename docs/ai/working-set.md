@@ -1,5 +1,194 @@
 # Working Set
 
+## 2026-03-31 (admin TanStack Form migration)
+
+- Date: 2026-03-31
+- Repo: Asymmetric-al/core
+- Goal: Replace RHF/manual complex form state in `apps/admin` with TanStack Form where it clearly improves multi-field validation/composition, while keeping simple native or local-state surfaces unchanged.
+- Primary area:
+  - `apps/admin/features/mission-control/locations/components/LocationEditor.tsx`
+  - `apps/admin/app/tasks/{task-form,task-form-sections,task-drawer-sections,tasks-content}.tsx`
+  - `apps/admin/app/settings/integrations/resend/{page,resend-sections}.tsx`
+  - `packages/ui/components/shadcn/{form,field}.tsx`
+  - `apps/admin/package.json`
+  - `packages/ui/package.json`
+  - `docs/ai/rules/frontend.md`
+  - `tests/unit/apps/admin/*` and/or targeted form helper tests if extraction is needed
+- Constraints:
+  - Preserve Maia theme and shadcn/ui composition; no parallel design system.
+  - Keep client boundaries small and App Router-safe.
+  - Do not force TanStack Form onto trivial search/filter or one-field surfaces.
+  - Use existing mutation transport: React Query for locations, existing task save flow, and route-handler `fetch` for Resend.
+  - Use TanStack Form native APIs and direct Zod/Standard Schema validation; do not preserve RHF-shaped shared APIs by inertia.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/ai/{stack-registry,working-set}.md`
+  - `docs/ai/rules/{general,frontend,backend,testing}.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `docs/ai/skills/{nextjs-app-router,react-component-dev,components-build,moai-library-shadcn}/SKILL.md`
+  - `.agents/skills/{better-forms,test-driven-development,lint-and-validate}/SKILL.md`
+  - `.next-docs/01-app/{02-guides/forms,01-getting-started/05-server-and-client-components,01-getting-started/08-updating-data,03-api-reference/02-components/form}.mdx`
+  - Context7 official TanStack Form docs for validation, arrays, `createFormHook`, and Standard Schema / Zod support
+- Notes:
+  - `AGENTS.md` requires Nia repo-scoped search, but Nia tools are unavailable in this session; using repo-scoped `rg`, direct file reads, and targeted tests as fallback.
+  - `docs/ai/rules/frontend.md` currently mandates React Hook Form; this pass will update that rule to TanStack Form + Zod for complex client forms while preserving native/simple form guidance.
+
+## 2026-03-31 (OpenPolicy donor legal scaffold)
+
+- Date: 2026-03-31
+- Repo: Asymmetric-al/core
+- Goal: Add a low-risk OpenPolicy integration in `apps/donor` with public legal routes, Maia-native rendering, validation/generation scripts, and repo docs for future human and AI policy authoring.
+- Primary area:
+  - `apps/donor/openpolicy.ts`
+  - `apps/donor/components/openpolicy/*`
+  - `apps/donor/components/providers/openpolicy-provider.tsx`
+  - `apps/donor/app/layout.tsx`
+  - `apps/donor/app/(public)/{privacy,terms,cookies}/page.tsx`
+  - `apps/donor/package.json`
+  - `package.json`
+  - `packages/config/site-shared.ts`
+  - `packages/lib/seo/metadata.ts`
+  - `tests/e2e/accessibility.spec.ts`
+  - `docs/guides/features/openpolicy-legal-pages.md`
+  - `docs/ai/OPENPOLICY-*.md`
+- Constraints:
+  - Keep OpenPolicy ownership in the donor app; do not add OpenPolicy internals to `packages/ui`.
+  - Preserve the existing donor provider stack and Maia/Zinc token ownership in `packages/ui/styles/globals.css`.
+  - Use repo-native `@asym/ui` primitives and semantic classes only.
+  - Do not invent legal facts; use placeholders and TODO markers for human/legal review.
+  - Keep cookie consent scope honest; no heavy banner implementation in this pass.
+- Evidence sources used:
+  - `apps/donor/app/layout.tsx`
+  - `apps/donor/package.json`
+  - `packages/ui/components/public/footer.tsx`
+  - `packages/config/site-shared.ts`
+  - `packages/lib/seo/metadata.ts`
+  - `.env.example`
+  - `packages/env/src/schema.ts`
+  - `packages/lib/{stripe.ts,monitoring/sentry.ts,cloudinary-*.ts}`
+  - `packages/email/resend.ts`
+  - `packages/ui/components/studio/UnlayerEditor.tsx`
+  - OpenPolicy upstream repo (`jamiedavenport/openpolicy`) for current config, React, and CLI APIs
+- Notes:
+  - `AGENTS.md` requires Nia repo-scoped search, but Nia tools are unavailable in this session; using repo-scoped shell reads and targeted file inspection as fallback.
+  - Next.js docs were re-read from the local docs snapshot before touching App Router files.
+  - Final donor validation was temporarily blocked by a pre-existing Base UI drawer wrapper import (`DrawerPreview`) after the repo's Base UI 1.3.0 upgrade; shared wrapper is being aligned to the current `Drawer` namespace so `typecheck` and `build` can complete.
+  - Final scoped verification is now green for donor/OpenPolicy (`lint:donor`, `typecheck:donor`, `build:donor`, legal validate/generate, unit tests, live route checks).
+  - Follow-up hardening replaced raw public `TODO:` policy prose with public-safe review markers in `apps/donor/openpolicy.ts`; validator/tests/docs/generated artifacts must stay aligned to that model.
+  - Effective dates are now set to `April 2, 2026`; generated public outputs should no longer render review-marker date text.
+  - Repo-wide `bun run check` and `bun run build` are green again after restoring RHF-compatible exports in `packages/ui/components/shadcn/form.tsx` for the still-unmigrated missionary surfaces while keeping the new TanStack Form exports available for admin migration work.
+  - Explicit human-provided drafting facts are now wired into `apps/donor/openpolicy.ts` for legal identity, mailing address, privacy contact, California governing law / venue, donation reversals, public subprocessors, retention schedule, necessary-cookies-only posture, and the current no-intentional-EEA/UK-targeting posture.
+
+## 2026-03-31 (missionary TanStack Form completion)
+
+- Date: 2026-03-31
+- Repo: Asymmetric-al/core
+- Goal: Finish the last missionary React Hook Form surfaces so `packages/ui/components/shadcn/form.tsx` can return to a single TanStack Form implementation.
+- Primary area:
+  - `apps/missionary/app/donors/{page,edit-donor-dialog,edit-donor-form-model}.tsx`
+  - `packages/missionary/components/{add-partner-dialog,add-partner-form-model,task-dialog,task-form-model}.tsx`
+  - `packages/ui/components/shadcn/form.tsx`
+  - `apps/missionary/package.json`
+  - `packages/missionary/package.json`
+  - `packages/ui/package.json`
+  - `tests/unit/apps/missionary/app/donors/edit-donor-form-model.test.ts`
+  - `tests/unit/packages/missionary/{add-partner-form-model,task-form-model}.test.ts`
+- Constraints:
+  - Keep the missionary donor/tasks UX and Maia styling intact.
+  - Extract validation/payload logic into small testable helpers before large UI rewrites.
+  - Remove the temporary RHF compatibility surface only after repo-wide caller verification.
+  - Keep App Router client boundaries explicit and compatible with Next.js 16 guidance.
+- Evidence sources used:
+  - `apps/missionary/app/donors/page.tsx`
+  - `packages/missionary/components/{add-partner-dialog,task-dialog}.tsx`
+  - `packages/ui/components/shadcn/form.tsx`
+  - `.next-docs/01-app/{02-guides/forms,01-getting-started/05-server-and-client-components}.mdx`
+  - `.agents/skills/{better-forms,test-driven-development}/SKILL.md`
+- Notes:
+  - `AGENTS.md` requires Nia repo-scoped search, but Nia tools are unavailable in this session; repo-scoped `git grep`, direct file reads, and targeted tests were used instead.
+  - Added helper-model tests first, then migrated the three missionary surfaces (`add partner`, `task dialog`, `edit partner`) onto `useAsymForm`.
+  - `packages/ui/components/shadcn/form.tsx` now exports TanStack Form utilities only; `react-hook-form` and `@hookform/resolvers` were removed from `apps/missionary`, `packages/missionary`, and `packages/ui`.
+  - Post-migration verification is green: scoped lint/typecheck, helper-model tests, full `bun run check`, and full `bun run build`.
+## 2026-03-29 (regression tests — Next 16.2 / donor public shell)
+
+- Date: 2026-03-29
+- Repo: Asymmetric-al/core
+- Goal: Lock in minimal unit coverage for high-blast-radius surfaces from the Next 16.2.1 upgrade and donor public navbar fix.
+- Primary area: `packages/ui/lib/drawer-swipe-direction.ts`, `packages/ui/components/shadcn/drawer.tsx`, `apps/donor/next.config.ts` (`images.qualities`), `packages/ui/components/public/navbar.tsx`, `tests/unit/{packages/ui,apps/donor}/*`
+- Verification: `bunx vitest run tests/unit/packages/ui/drawer-swipe-direction.test.ts tests/unit/apps/donor/next-config-images.test.ts tests/unit/packages/ui/navbar-public-imports.test.ts`
+
+## 2026-03-25 (TypeScript 6/7 future-readiness prep — cursor/typescript-future-readiness-4e19)
+
+- Date: 2026-03-25
+- Repo: Asymmetric-al/core
+- Goal: Conservative prep for future TypeScript 6 and 7 migrations without upgrading the compiler or changing runtime behavior.
+- Primary area: `tooling/typescript-config/base.json`, `apps/{admin,donor,missionary}/tsconfig.json`, `packages/{ui,missionary}/tsconfig.json`, `docs/guides/typescript-6-readiness.md`, `docs/ai/rules/typescript-future-proofing.md`, `AGENTS.md`, `docs/README.md`, `scripts/tsconfig-future-audit.mjs`
+- Decisions:
+  - Explicit `libReplacement: true` and `noUncheckedSideEffectImports: false` in shared base to freeze TypeScript 5.9 behavior before TS 6 default changes.
+  - Removed redundant `baseUrl` where only `paths` was used (official `paths` does not require `baseUrl`).
+  - Documented policy, audit matrix, and optional non-blocking `bun run tsconfig:future-audit`.
+- Deferred: enabling `noUncheckedSideEffectImports` globally, repo-wide `types` arrays, `rootDir` churn, TS 6/7 compiler adoption, native preview in default workflows.
+- Verification: `bun run typecheck` after config edits.
+
+## 2026-03-24 (instruction system — cursor/instruction-system-architecture-75bb)
+
+- Date: 2026-03-24
+- Repo: Asymmetric-al/core
+- Goal: Conservative refresh of agent instruction routing (AGENTS.md, Copilot, Cursor rules/MCP mirror) without changing product code; align Next.js version pins and skill paths with repo reality.
+- Primary area: `AGENTS.md`, `.github/copilot-instructions.md`, `.cursor/mcp.json`, `.cursor/rules/next-devtools-mcp.mdc`, `cursor.md`, `docs/ai/rules/general.md`, `docs/ai/working-set.md`, `SKILL.md`
+- Constraints:
+  - Preserve `<!-- BEGIN:nextjs-agent-rules -->` block verbatim and keep `<!-- NEXT-AGENTS-MD-START -->` … `END` region intact.
+  - No edits under `apps/`, `packages/` product code, tests, or DB migrations.
+- Evidence sources used:
+  - Root and app `package.json` (Next.js pin; see live manifests)
+  - Root `.mcp.json` (`next-devtools`, `tanstack`)
+  - `docs/ai/skills/*/SKILL.md` inventory vs `AGENTS.md` skill routing
+  - `https://nextjs.org/docs/app/guides/ai-agents`, `https://nextjs.org/docs/app/guides/mcp`, `https://cursor.com/docs/rules`
+
+## 2026-03-22 (Next.js 16.2.1 stabilization)
+
+- Date: 2026-03-22
+- Repo: Asymmetric-al/core
+- Goal: Upgrade the monorepo from Next.js 16.1.6 to 16.2.1 with the smallest safe diff, validate all three apps, and avoid canary/install drift.
+- Primary area:
+  - `package.json`
+  - `apps/{admin,donor,missionary}/package.json`
+  - `packages/{api,auth,database,lib,missionary,ui}/package.json`
+  - `apps/donor/next.config.ts`
+  - `packages/ui/components/{shadcn/drawer,public/navbar}.tsx`
+  - `bun.lock`
+- Constraints:
+  - Keep Turbopack for `next dev` and only change build strategy if validation proves it necessary.
+  - Avoid broad codemods; repo is already on proxy/async request APIs/ESLint CLI.
+  - Preserve Payload + Cache Components behavior in admin.
+  - Keep unrelated dependency churn out of the diff.
+- Evidence sources used:
+  - root/app/package manifests + `bun.lock`
+  - `.next-docs/01-app/02-guides/upgrading/version-16.mdx`
+  - `.next-docs/01-app/03-api-reference/{06-cli/next,05-config/01-next-config-js/{turbopack,reactCompiler,isolatedDevBuild,optimizePackageImports},04-functions/{revalidateTag,updateTag},02-components/image}.mdx`
+  - Next.js 16.2 / 16.2.1 release notes and Turbopack 16.2 notes
+- Decisions:
+  - Clean reinstall first to remove stale canary/install drift before trusting any build output.
+  - Keep the build scripts on default `next build` because all three apps successfully build on 16.2.1 with Turbopack after the real compatibility fixes.
+  - Add `images.qualities` to donor config to preserve the existing `quality={85}` worker hero image behavior under Next 16 image allowlisting.
+  - Update shared drawer wrapper from `DrawerPreview` to stable `Drawer` for Base UI 1.3.0 compatibility.
+  - Fix client/server env boundary by switching `packages/ui/components/public/navbar.tsx` from `@asym/config/site` to `@asym/config/site-client`.
+- Verification:
+  - Direct production builds:
+    - `node scripts/run-with-ci-env.mjs -- bun run --cwd apps/donor build`
+    - `node scripts/run-with-ci-env.mjs -- bun run --cwd apps/missionary build`
+    - `node scripts/run-with-ci-env.mjs -- bun run --cwd apps/admin build`
+  - Local CI parity:
+    - `bun run ci:preflight`
+  - Production start smoke:
+    - donor `http://127.0.0.1:3005`
+    - missionary `http://127.0.0.1:4005`
+    - admin `http://127.0.0.1:3036`
+  - Manual browser smoke:
+    - donor protected route redirect verified
+    - missionary login verified
+    - admin login verified
+    - donor worker detail page initially failed from client-side server-env access, then passed on refreshed build after navbar fix
 ## 2026-03-18 (auth stabilization — cursor/supabase-login-foundation-6869)
 
 - Date: 2026-03-18

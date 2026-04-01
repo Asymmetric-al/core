@@ -17,6 +17,7 @@ Organized documentation for developers working on this project:
 
 #### **Development**
 
+- **[TypeScript 6 / 7 readiness](./guides/typescript-6-readiness.md)** - Prep policy for future TypeScript upgrades (not the upgrade itself)
 - **[Getting Started](./guides/development/getting-started.md)** - Development setup, workflow, and best practices
 - **[Contributing Guide](./guides/development/contributing.md)** - How to contribute to the project
 - **[Mock Data Guide](./guides/development/mock-data.md)** - Working with mock data and seeding
@@ -53,7 +54,7 @@ AI-generated documentation following the naming convention `YYYY-MM-DD-HH-MM_{sh
 
 Configuration and rules for AI coding assistants:
 
-- **`rules/`** - AI agent rules (general, frontend, backend, testing)
+- **`rules/`** - AI agent rules (general, frontend, backend, testing, TypeScript future-proofing)
 - **`skills/`** - AI agent skills for specific technologies
 - **`stack-registry.md`** - Technology stack registry
 - **`working-set.md`** - Current work context

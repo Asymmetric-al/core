@@ -1,21 +1,15 @@
 "use client";
 
-import * as DrawerPrimitiveModule from "@base-ui/react/drawer";
+import { Drawer as DrawerPrimitive } from "@base-ui/react/drawer";
 import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
 
-const DrawerPrimitive = DrawerPrimitiveModule.Drawer;
-
-type LegacyDrawerDirection = "top" | "bottom" | "left" | "right";
-
-const LEGACY_DIRECTION_TO_SWIPE_DIRECTION = {
-  top: "up",
-  bottom: "down",
-  left: "left",
-  right: "right",
-} as const;
+import {
+  resolveDrawerSwipeDirection,
+  type LegacyDrawerDirection,
+} from "../../lib/drawer-swipe-direction";
 
 function Drawer({
   direction,
@@ -24,13 +18,10 @@ function Drawer({
 }: React.ComponentProps<typeof DrawerPrimitive.Root> & {
   direction?: LegacyDrawerDirection;
 }) {
-  const resolvedSwipeDirection =
-    swipeDirection ??
-    (direction
-      ? LEGACY_DIRECTION_TO_SWIPE_DIRECTION[
-          direction as keyof typeof LEGACY_DIRECTION_TO_SWIPE_DIRECTION
-        ]
-      : undefined);
+  const resolvedSwipeDirection = resolveDrawerSwipeDirection({
+    swipeDirection,
+    direction,
+  });
 
   return (
     <DrawerPrimitive.Root

@@ -7,7 +7,7 @@ Agents MUST use this to build better Nia query preambles and to pick the right d
 
 - Next.js (App Router)
 - React
-- TypeScript (default language)
+- TypeScript (default language); future TS 6/7 prep policy: `docs/guides/typescript-6-readiness.md`
 - Node.js (runtime target)
 - Bun (preferred package manager/runtime)
 - PostgreSQL (Supabase Postgres)

@@ -1,8 +1,9 @@
 "use client";
 
+import { useReducedMotion } from "@asym/lib/motion";
 import { propsHeroEntrance, STAGGER_TIGHT } from "@asym/lib/motion-presets";
 import { ArrowRight, Zap } from "lucide-react";
-import { LazyMotion, domAnimation, m, useReducedMotion } from "motion/react";
+import { LazyMotion, domAnimation, m } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -138,7 +139,7 @@ export function HomeHeroAnimated({
           <span className="sr-only">Scroll to explore more content</span>
           <span aria-hidden="true">Explore</span>
           <div
-            className="w-px h-16 bg-gradient-to-b from-white/0 via-white/40 to-white/0 animate-pulse"
+            className="w-px h-16 bg-gradient-to-b from-white/0 via-white/40 to-white/0 animate-pulse [@media(prefers-reduced-motion:reduce)]:animate-none"
             aria-hidden="true"
           />
         </div>
