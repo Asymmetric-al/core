@@ -20,7 +20,7 @@ export default function PrivacyPolicyPage() {
       <LegalPageShell
         currentRoute="privacy"
         effectiveDate={openPolicyConfig.privacy?.effectiveDate}
-        intro="This privacy policy scaffold covers the donor app's current account, donation, payment, and technical data handling model based on repo evidence as of March 31, 2026."
+        intro="This privacy policy covers how we collect, use, and protect your personal information when you use the donor application."
         title="Privacy Policy"
       >
         <PrivacyPolicyDocument />

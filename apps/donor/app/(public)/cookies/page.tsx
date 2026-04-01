@@ -20,7 +20,7 @@ export default function CookiePolicyPage() {
       <LegalPageShell
         currentRoute="cookies"
         effectiveDate={openPolicyConfig.cookie?.effectiveDate}
-        intro="This cookie policy scaffold documents the donor app's essential-cookie baseline and current conservative assumptions. A full consent banner is intentionally not claimed or shipped in this pass."
+        intro="This cookie policy explains how we use cookies and similar technologies in the donor application and what choices you have."
         title="Cookie Policy"
       >
         <CookiePolicyDocument />

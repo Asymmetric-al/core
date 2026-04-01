@@ -1,4 +1,3 @@
-import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import Link from "next/link";
@@ -37,13 +36,6 @@ export function LegalPageShell({
       <div className="container-responsive py-12 sm:py-16 lg:py-20">
         <div className="mx-auto flex max-w-5xl flex-col gap-8 sm:gap-10">
           <header className="flex flex-col gap-6">
-            <Badge
-              variant="outline"
-              className="w-fit border-border/80 bg-background/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
-            >
-              Legal Scaffold
-            </Badge>
-
             <div className="flex flex-col gap-4">
               <h1 className="max-w-3xl text-balance text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
                 {title}
@@ -58,11 +50,6 @@ export function LegalPageShell({
                 Effective date
               </span>
               <span>{effectiveDate ?? "TODO: Replace before production."}</span>
-            </div>
-
-            <div className="rounded-2xl border border-border/80 bg-secondary/65 px-4 py-4 text-sm leading-7 text-secondary-foreground">
-              This page is a conservative starter legal scaffold. Human review
-              and legal review are still required before production sign-off.
             </div>
 
             <div className="flex flex-wrap gap-2">

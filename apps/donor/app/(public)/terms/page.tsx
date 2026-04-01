@@ -20,7 +20,7 @@ export default function TermsOfServicePage() {
       <LegalPageShell
         currentRoute="terms"
         effectiveDate={openPolicyConfig.terms?.effectiveDate}
-        intro="This terms scaffold defines the current operating assumptions for donor-facing use of the platform and donation-related flows. Human and legal review are still required before production use."
+        intro="These terms of service govern your use of the donor application, including account creation, donations, and related platform features."
         title="Terms of Service"
       >
         <TermsOfServiceDocument />

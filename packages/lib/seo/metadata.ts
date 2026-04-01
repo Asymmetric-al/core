@@ -163,21 +163,21 @@ export const pageMetadata = {
   privacy: createMetadata({
     title: "Privacy Policy",
     description:
-      "Review the donor application's current privacy policy scaffold for account, payment, donation, and technical data handling.",
+      "Review the donor application's privacy policy for account, payment, donation, and technical data handling.",
     path: "/privacy",
   }),
 
   terms: createMetadata({
     title: "Terms of Service",
     description:
-      "Review the current donor application terms of service scaffold covering platform use, accounts, and donation-related transactions.",
+      "Review the donor application terms of service covering platform use, accounts, and donation-related transactions.",
     path: "/terms",
   }),
 
   cookies: createMetadata({
     title: "Cookie Policy",
     description:
-      "Review the current donor application cookie policy scaffold, including essential-cookie defaults and the present consent scope.",
+      "Review the donor application cookie policy, including essential-cookie defaults and the present consent scope.",
     path: "/cookies",
   }),
 
