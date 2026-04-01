@@ -149,7 +149,7 @@ function UpdateCard({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) {
                   src={update.image}
                   alt={`Visual from ${update.title}`}
                   fill
-                  className="object-cover hover:scale-105 transition-transform duration-700"
+                  className="object-cover hover:scale-[1.02] transition-transform duration-700"
                   sizes="(max-width: 768px) 100vw, 500px"
                   loading="lazy"
                 />
@@ -337,7 +337,7 @@ export default async function WorkerProfilePage({ params }: PageProps) {
                     src={worker.image}
                     alt={`${worker.title} - Missionary serving in ${worker.location}`}
                     fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
                     sizes="(max-width: 768px) 100vw, 800px"
                     priority
                     quality={85}

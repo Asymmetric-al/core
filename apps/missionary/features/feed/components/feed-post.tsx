@@ -187,7 +187,7 @@ const ReactionButton = ({
           y: -4,
           boxShadow: `0 12px 24px -8px ${glowColor}`,
         }}
-        whileTap={{ scale: 0.9 }}
+        whileTap={{ scale: 0.97 }}
         onClick={(e) => {
           e.stopPropagation();
           handleClick();

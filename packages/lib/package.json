@@ -20,6 +20,7 @@
     "./html/sanitize": "./html/sanitize.ts",
     "./components/safe-html": "./components/safe-html.tsx",
     "./motion": "./motion.tsx",
+    "./motion-presets": "./motion-presets.ts",
     "./responsive": "./responsive.ts",
     "./audit/logger": "./audit/logger.ts",
     "./posts/reaction-idempotency": "./posts/reaction-idempotency.ts",

@@ -311,7 +311,7 @@ function SocialIcon({ platform, url }: { platform: string; url: string }) {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.8 }}
       whileHover={{ scale: 1.1, y: -1 }}
-      whileTap={{ scale: 0.95 }}
+      whileTap={{ scale: 0.98 }}
       transition={springTransition}
     >
       <Icon className="h-4 w-4 text-zinc-400 hover:text-zinc-600 transition-colors" />

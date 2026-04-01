@@ -1,14 +1,16 @@
 "use client";
 
-import React, { useCallback, useEffect, useReducer, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { toResendConnectPayload } from "./resend-form-schema";
 import {
   ResendConnectedView,
   ResendDisconnectedView,
   ResendPageHeader,
   ResendTestDialog,
 } from "./resend-sections";
+import { useResendConnectForm, useResendTestForm } from "./use-resend-forms";
 
 import type {
   ConnectResendResponse,
@@ -31,102 +33,11 @@ interface ConnectionState {
   error?: string;
 }
 
-interface ResendUiState {
-  apiKey: string;
-  showApiKey: boolean;
-  fromEmail: string;
-  fromName: string;
-  replyToEmail: string;
-  showTestDialog: boolean;
-  testEmail: string;
-  testStatus: TestEmailStatus;
-  testError: string | null;
-}
-
-type EditableField =
-  | "apiKey"
-  | "fromEmail"
-  | "fromName"
-  | "replyToEmail"
-  | "testEmail";
-
-type ResendUiAction =
-  | { type: "set-field"; field: EditableField; value: string }
-  | { type: "toggle-api-key-visibility" }
-  | { type: "open-test-dialog" }
-  | { type: "close-test-dialog" }
-  | { type: "set-test-status"; status: TestEmailStatus }
-  | { type: "set-test-error"; error: string | null };
-
-const INITIAL_UI_STATE: ResendUiState = {
-  apiKey: "",
-  showApiKey: false,
-  fromEmail: "",
-  fromName: "",
-  replyToEmail: "",
-  showTestDialog: false,
-  testEmail: "",
-  testStatus: "idle",
-  testError: null,
-};
-
-function resendUiReducer(
-  state: ResendUiState,
-  action: ResendUiAction,
-): ResendUiState {
-  switch (action.type) {
-    case "set-field":
-      return {
-        ...state,
-        [action.field]: action.value,
-      };
-    case "toggle-api-key-visibility":
-      return {
-        ...state,
-        showApiKey: !state.showApiKey,
-      };
-    case "open-test-dialog":
-      return {
-        ...state,
-        showTestDialog: true,
-        testEmail: "",
-        testStatus: "idle",
-        testError: null,
-      };
-    case "close-test-dialog":
-      return {
-        ...state,
-        showTestDialog: false,
-      };
-    case "set-test-status":
-      return {
-        ...state,
-        testStatus: action.status,
-      };
-    case "set-test-error":
-      return {
-        ...state,
-        testError: action.error,
-      };
-    default:
-      return state;
-  }
-}
-
 export default function ResendSettingsPage() {
-  const [uiState, dispatchUi] = useReducer(resendUiReducer, INITIAL_UI_STATE);
-  const {
-    apiKey,
-    showApiKey,
-    fromEmail,
-    fromName,
-    replyToEmail,
-    showTestDialog,
-    testEmail,
-    testStatus,
-    testError,
-  } = uiState;
-
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [showTestDialog, setShowTestDialog] = useState(false);
+  const [testStatus, setTestStatus] = useState<TestEmailStatus>("idle");
+  const [testError, setTestError] = useState<string | null>(null);
   const [connection, setConnection] = useState<ConnectionState>({
     status: "disconnected",
     senderIdentities: [],
@@ -135,6 +46,106 @@ export default function ResendSettingsPage() {
     warnings: [],
   });
   const [isHydratingConnection, setIsHydratingConnection] = useState(true);
+
+  const connectForm = useResendConnectForm({
+    onSubmit: async (value) => {
+      setConnection((prev) => ({
+        ...prev,
+        status: "connecting",
+        error: undefined,
+      }));
+
+      try {
+        const response = await fetch("/api/email/connect", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(toResendConnectPayload(value)),
+        });
+
+        const data = (await response.json()) as ConnectResendResponse & {
+          error?: string;
+        };
+
+        if (!data.success) {
+          const errorMessage = data.error || "Failed to connect";
+          setConnection((prev) => ({
+            ...prev,
+            status: "error",
+            error: errorMessage,
+          }));
+          toast.error("Connection failed", { description: errorMessage });
+          return;
+        }
+
+        setConnection({
+          status: "connected",
+          apiKeyHint: data.apiKeyHint ?? value.apiKey.slice(-4),
+          senderIdentities: data.senderIdentities || [],
+          domainAuthentication: data.domainAuthentication || [],
+          deliverabilityScore: data.deliverabilityScore || 0,
+          warnings: data.warnings || [],
+        });
+
+        connectForm.reset({
+          apiKey: "",
+          fromEmail: value.fromEmail,
+          fromName: value.fromName,
+          replyToEmail: value.replyToEmail,
+        });
+
+        toast.success("Resend connected!", {
+          description: "Your API key has been validated successfully",
+        });
+      } catch {
+        setConnection((prev) => ({
+          ...prev,
+          status: "error",
+          error: "Network error. Please try again.",
+        }));
+        toast.error("Connection failed", { description: "Network error" });
+      }
+    },
+  });
+
+  const testForm = useResendTestForm({
+    onSubmit: async (value) => {
+      setTestStatus("sending");
+      setTestError(null);
+
+      try {
+        const response = await fetch("/api/email/test-send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            apiKey: connectForm.getFieldValue("apiKey") || undefined,
+            toEmail: value.testEmail,
+            fromEmail: connectForm.getFieldValue("fromEmail") || undefined,
+            fromName: connectForm.getFieldValue("fromName") || undefined,
+          }),
+        });
+
+        const data = (await response.json()) as {
+          success: boolean;
+          error?: string;
+        };
+
+        if (!data.success) {
+          const errorMessage = data.error || "Failed to send test email";
+          setTestStatus("error");
+          setTestError(errorMessage);
+          return;
+        }
+
+        setTestStatus("success");
+        toast.success("Test email sent!", {
+          description: `Check ${value.testEmail} for the test email`,
+        });
+      } catch {
+        setTestStatus("error");
+        setTestError("Network error. Please try again.");
+      }
+    },
+  });
 
   useEffect(() => {
     let isActive = true;
@@ -150,6 +161,7 @@ export default function ResendSettingsPage() {
           (await response.json()) as ResendConnectionStateResponse & {
             error?: string;
           };
+
         if (!isActive) {
           return;
         }
@@ -163,24 +175,11 @@ export default function ResendSettingsPage() {
           return;
         }
 
-        if (data.defaultFromEmail) {
-          dispatchUi({
-            type: "set-field",
-            field: "fromEmail",
-            value: data.defaultFromEmail,
-          });
-        }
-        if (data.defaultFromName) {
-          dispatchUi({
-            type: "set-field",
-            field: "fromName",
-            value: data.defaultFromName,
-          });
-        }
-        dispatchUi({
-          type: "set-field",
-          field: "replyToEmail",
-          value: data.replyToEmail ?? "",
+        connectForm.reset({
+          apiKey: "",
+          fromEmail: data.defaultFromEmail ?? "",
+          fromName: data.defaultFromName ?? "",
+          replyToEmail: data.replyToEmail ?? "",
         });
 
         if (!data.connected) {
@@ -207,6 +206,7 @@ export default function ResendSettingsPage() {
         if (!isActive) {
           return;
         }
+
         setConnection((prev) => ({
           ...prev,
           status: "error",
@@ -224,69 +224,9 @@ export default function ResendSettingsPage() {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [connectForm]);
 
-  const handleConnect = useCallback(async () => {
-    if (!apiKey || !fromEmail || !fromName) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
-    setConnection((prev) => ({
-      ...prev,
-      status: "connecting",
-      error: undefined,
-    }));
-
-    try {
-      const response = await fetch("/api/email/connect", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          apiKey,
-          defaultFromEmail: fromEmail,
-          defaultFromName: fromName,
-          replyToEmail: replyToEmail || undefined,
-        }),
-      });
-
-      const data = (await response.json()) as ConnectResendResponse & {
-        error?: string;
-      };
-
-      if (!data.success) {
-        setConnection((prev) => ({
-          ...prev,
-          status: "error",
-          error: data.error || "Failed to connect",
-        }));
-        toast.error("Connection failed", { description: data.error });
-        return;
-      }
-
-      setConnection({
-        status: "connected",
-        apiKeyHint: data.apiKeyHint ?? apiKey.slice(-4),
-        senderIdentities: data.senderIdentities || [],
-        domainAuthentication: data.domainAuthentication || [],
-        deliverabilityScore: data.deliverabilityScore || 0,
-        warnings: data.warnings || [],
-      });
-
-      toast.success("Resend connected!", {
-        description: "Your API key has been validated successfully",
-      });
-    } catch {
-      setConnection((prev) => ({
-        ...prev,
-        status: "error",
-        error: "Network error. Please try again.",
-      }));
-      toast.error("Connection failed", { description: "Network error" });
-    }
-  }, [apiKey, fromEmail, fromName, replyToEmail]);
-
-  const handleDisconnect = useCallback(async () => {
+  const handleDisconnect = async () => {
     try {
       const response = await fetch("/api/email/connect", {
         method: "DELETE",
@@ -311,62 +251,24 @@ export default function ResendSettingsPage() {
         deliverabilityScore: 0,
         warnings: [],
       });
-      dispatchUi({ type: "set-field", field: "apiKey", value: "" });
+      connectForm.setFieldValue("apiKey", "");
       toast.info("Resend disconnected");
     } catch {
       toast.error("Disconnect failed", {
         description: "Network error while disconnecting Resend.",
       });
     }
-  }, []);
+  };
 
-  const handleSendTest = useCallback(async () => {
-    if (!testEmail) {
-      toast.error("Please enter a test email address");
-      return;
+  const handleTestDialogOpenChange = (open: boolean) => {
+    setShowTestDialog(open);
+
+    if (open) {
+      testForm.reset({ testEmail: "" });
+      setTestStatus("idle");
+      setTestError(null);
     }
-
-    dispatchUi({ type: "set-test-status", status: "sending" });
-    dispatchUi({ type: "set-test-error", error: null });
-
-    try {
-      const response = await fetch("/api/email/test-send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          apiKey: apiKey || undefined,
-          toEmail: testEmail,
-          fromEmail: fromEmail || undefined,
-          fromName: fromName || undefined,
-        }),
-      });
-
-      const data = (await response.json()) as {
-        success: boolean;
-        error?: string;
-      };
-
-      if (!data.success) {
-        dispatchUi({ type: "set-test-status", status: "error" });
-        dispatchUi({
-          type: "set-test-error",
-          error: data.error || "Failed to send test email",
-        });
-        return;
-      }
-
-      dispatchUi({ type: "set-test-status", status: "success" });
-      toast.success("Test email sent!", {
-        description: `Check ${testEmail} for the test email`,
-      });
-    } catch {
-      dispatchUi({ type: "set-test-status", status: "error" });
-      dispatchUi({
-        type: "set-test-error",
-        error: "Network error. Please try again.",
-      });
-    }
-  }, [apiKey, testEmail, fromEmail, fromName]);
+  };
 
   if (isHydratingConnection) {
     return (
@@ -386,41 +288,28 @@ export default function ResendSettingsPage() {
         <ResendConnectedView
           connection={connection}
           onDisconnect={handleDisconnect}
-          onOpenTestDialog={() => dispatchUi({ type: "open-test-dialog" })}
+          onOpenTestDialog={() => handleTestDialogOpenChange(true)}
         />
       ) : (
         <ResendDisconnectedView
-          apiKey={apiKey}
-          showApiKey={showApiKey}
-          fromEmail={fromEmail}
-          fromName={fromName}
-          replyToEmail={replyToEmail}
-          connectionStatus={connection.status}
           connectionError={connection.error}
-          onFieldChange={(field, value) =>
-            dispatchUi({ type: "set-field", field, value })
-          }
+          connectionStatus={connection.status}
+          form={connectForm}
+          showApiKey={showApiKey}
           onToggleApiKeyVisibility={() =>
-            dispatchUi({ type: "toggle-api-key-visibility" })
+            setShowApiKey((currentValue) => !currentValue)
           }
-          onConnect={handleConnect}
         />
       )}
 
       <ResendTestDialog
+        form={testForm}
+        fromEmail={String(connectForm.getFieldValue("fromEmail") ?? "")}
+        fromName={String(connectForm.getFieldValue("fromName") ?? "")}
         open={showTestDialog}
-        testEmail={testEmail}
-        testStatus={testStatus}
         testError={testError}
-        fromName={fromName}
-        fromEmail={fromEmail}
-        onOpenChange={(open) =>
-          dispatchUi({ type: open ? "open-test-dialog" : "close-test-dialog" })
-        }
-        onTestEmailChange={(value) =>
-          dispatchUi({ type: "set-field", field: "testEmail", value })
-        }
-        onSendTest={handleSendTest}
+        testStatus={testStatus}
+        onOpenChange={handleTestDialogOpenChange}
       />
     </div>
   );

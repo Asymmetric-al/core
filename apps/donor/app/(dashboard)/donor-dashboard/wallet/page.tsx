@@ -1,6 +1,13 @@
 "use client";
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
+import {
+  DURATION_MICRO,
+  DURATION_STANDARD,
+  EASE_IN_SOFT,
+  EASE_OUT_SOFT,
+  STAGGER_MEDIUM,
+} from "@asym/lib/motion-presets";
 import { formatCurrency } from "@asym/lib/utils";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -616,9 +623,15 @@ function ACHNudgeBanner({
     <AnimatePresence>
       {visible && (
         <motion.div
-          initial={{ opacity: 0, height: 0, scale: 0.95 }}
+          initial={{ opacity: 0, height: 0, scale: 0.96 }}
           animate={{ opacity: 1, height: "auto", scale: 1 }}
-          exit={{ opacity: 0, height: 0, scale: 0.95 }}
+          exit={{
+            opacity: 0,
+            height: 0,
+            scale: 0.96,
+            transition: { duration: DURATION_MICRO, ease: EASE_IN_SOFT },
+          }}
+          transition={{ duration: DURATION_STANDARD, ease: EASE_OUT_SOFT }}
           className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 rounded-2xl p-6 relative overflow-hidden shadow-sm group text-left"
         >
           <div className="absolute top-4 right-4 z-20">
@@ -630,7 +643,7 @@ function ACHNudgeBanner({
             </button>
           </div>
           <div className="flex gap-5 items-start relative z-10">
-            <div className="h-12 w-12 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-md shrink-0 border border-emerald-50 group-hover:scale-110 transition-transform duration-500">
+            <div className="h-12 w-12 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-md shrink-0 border border-emerald-50 group-hover:scale-[1.02] transition-transform duration-300 ease-out">
               <Landmark className="h-6 w-6" />
             </div>
             <div>
@@ -684,11 +697,20 @@ function MethodCard({
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.4, delay: index * 0.1 }}
-      className="group bg-white rounded-2xl border border-zinc-200 p-2 shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden text-left"
+      exit={{
+        opacity: 0,
+        scale: 0.98,
+        y: 6,
+        transition: { duration: DURATION_MICRO, ease: EASE_IN_SOFT },
+      }}
+      transition={{
+        duration: DURATION_STANDARD,
+        delay: index * STAGGER_MEDIUM,
+        ease: EASE_OUT_SOFT,
+      }}
+      className="group bg-white rounded-2xl border border-zinc-200 p-2 shadow-sm hover:shadow-xl transition-shadow duration-300 ease-out overflow-hidden text-left"
     >
       <div className="flex flex-col lg:flex-row gap-8 p-6 lg:p-8">
         <div className="w-full lg:w-[340px] shrink-0 self-start">
@@ -950,7 +972,7 @@ function AddMethodDialog({
           </Button>
           <Button
             onClick={onSave}
-            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-12 px-8 font-black uppercase tracking-widest text-[10px] rounded-xl transition-transform active:scale-95"
+            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-12 px-8 font-black uppercase tracking-widest text-[10px] rounded-xl transition-transform active:scale-[0.98]"
           >
             {editingMethod ? "Update Method" : "Save Payment Method"}
           </Button>
@@ -1083,7 +1105,7 @@ function SwapPledgeDialog({
           <Button
             onClick={onConfirmMove}
             disabled={!targetMethodId}
-            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-10 px-6 font-black uppercase tracking-widest text-[10px] rounded-xl transition-transform active:scale-95"
+            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-10 px-6 font-black uppercase tracking-widest text-[10px] rounded-xl transition-transform active:scale-[0.98]"
           >
             Confirm Move
           </Button>
@@ -1213,7 +1235,7 @@ function BulkMoveDialog({
           <Button
             onClick={onConfirmMoveAndDelete}
             disabled={!targetMethodId}
-            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-10 px-6 font-black uppercase tracking-widest text-[10px] rounded-xl transition-transform active:scale-95"
+            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-10 px-6 font-black uppercase tracking-widest text-[10px] rounded-xl transition-transform active:scale-[0.98]"
           >
             Transfer & Delete
           </Button>

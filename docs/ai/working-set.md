@@ -1,5 +1,114 @@
 # Working Set
 
+## 2026-03-31 (admin TanStack Form migration)
+
+- Date: 2026-03-31
+- Repo: Asymmetric-al/core
+- Goal: Replace RHF/manual complex form state in `apps/admin` with TanStack Form where it clearly improves multi-field validation/composition, while keeping simple native or local-state surfaces unchanged.
+- Primary area:
+  - `apps/admin/features/mission-control/locations/components/LocationEditor.tsx`
+  - `apps/admin/app/tasks/{task-form,task-form-sections,task-drawer-sections,tasks-content}.tsx`
+  - `apps/admin/app/settings/integrations/resend/{page,resend-sections}.tsx`
+  - `packages/ui/components/shadcn/{form,field}.tsx`
+  - `apps/admin/package.json`
+  - `packages/ui/package.json`
+  - `docs/ai/rules/frontend.md`
+  - `tests/unit/apps/admin/*` and/or targeted form helper tests if extraction is needed
+- Constraints:
+  - Preserve Maia theme and shadcn/ui composition; no parallel design system.
+  - Keep client boundaries small and App Router-safe.
+  - Do not force TanStack Form onto trivial search/filter or one-field surfaces.
+  - Use existing mutation transport: React Query for locations, existing task save flow, and route-handler `fetch` for Resend.
+  - Use TanStack Form native APIs and direct Zod/Standard Schema validation; do not preserve RHF-shaped shared APIs by inertia.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/ai/{stack-registry,working-set}.md`
+  - `docs/ai/rules/{general,frontend,backend,testing}.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `docs/ai/skills/{nextjs-app-router,react-component-dev,components-build,moai-library-shadcn}/SKILL.md`
+  - `.agents/skills/{better-forms,test-driven-development,lint-and-validate}/SKILL.md`
+  - `.next-docs/01-app/{02-guides/forms,01-getting-started/05-server-and-client-components,01-getting-started/08-updating-data,03-api-reference/02-components/form}.mdx`
+  - Context7 official TanStack Form docs for validation, arrays, `createFormHook`, and Standard Schema / Zod support
+- Notes:
+  - `AGENTS.md` requires Nia repo-scoped search, but Nia tools are unavailable in this session; using repo-scoped `rg`, direct file reads, and targeted tests as fallback.
+  - `docs/ai/rules/frontend.md` currently mandates React Hook Form; this pass will update that rule to TanStack Form + Zod for complex client forms while preserving native/simple form guidance.
+
+## 2026-03-31 (OpenPolicy donor legal scaffold)
+
+- Date: 2026-03-31
+- Repo: Asymmetric-al/core
+- Goal: Add a low-risk OpenPolicy integration in `apps/donor` with public legal routes, Maia-native rendering, validation/generation scripts, and repo docs for future human and AI policy authoring.
+- Primary area:
+  - `apps/donor/openpolicy.ts`
+  - `apps/donor/components/openpolicy/*`
+  - `apps/donor/components/providers/openpolicy-provider.tsx`
+  - `apps/donor/app/layout.tsx`
+  - `apps/donor/app/(public)/{privacy,terms,cookies}/page.tsx`
+  - `apps/donor/package.json`
+  - `package.json`
+  - `packages/config/site-shared.ts`
+  - `packages/lib/seo/metadata.ts`
+  - `tests/e2e/accessibility.spec.ts`
+  - `docs/guides/features/openpolicy-legal-pages.md`
+  - `docs/ai/OPENPOLICY-*.md`
+- Constraints:
+  - Keep OpenPolicy ownership in the donor app; do not add OpenPolicy internals to `packages/ui`.
+  - Preserve the existing donor provider stack and Maia/Zinc token ownership in `packages/ui/styles/globals.css`.
+  - Use repo-native `@asym/ui` primitives and semantic classes only.
+  - Do not invent legal facts; use placeholders and TODO markers for human/legal review.
+  - Keep cookie consent scope honest; no heavy banner implementation in this pass.
+- Evidence sources used:
+  - `apps/donor/app/layout.tsx`
+  - `apps/donor/package.json`
+  - `packages/ui/components/public/footer.tsx`
+  - `packages/config/site-shared.ts`
+  - `packages/lib/seo/metadata.ts`
+  - `.env.example`
+  - `packages/env/src/schema.ts`
+  - `packages/lib/{stripe.ts,monitoring/sentry.ts,cloudinary-*.ts}`
+  - `packages/email/resend.ts`
+  - `packages/ui/components/studio/UnlayerEditor.tsx`
+  - OpenPolicy upstream repo (`jamiedavenport/openpolicy`) for current config, React, and CLI APIs
+- Notes:
+  - `AGENTS.md` requires Nia repo-scoped search, but Nia tools are unavailable in this session; using repo-scoped shell reads and targeted file inspection as fallback.
+  - Next.js docs were re-read from the local docs snapshot before touching App Router files.
+  - Final donor validation was temporarily blocked by a pre-existing Base UI drawer wrapper import (`DrawerPreview`) after the repo's Base UI 1.3.0 upgrade; shared wrapper is being aligned to the current `Drawer` namespace so `typecheck` and `build` can complete.
+  - Final scoped verification is now green for donor/OpenPolicy (`lint:donor`, `typecheck:donor`, `build:donor`, legal validate/generate, unit tests, live route checks).
+  - Follow-up hardening replaced raw public `TODO:` policy prose with public-safe review markers in `apps/donor/openpolicy.ts`; validator/tests/docs/generated artifacts must stay aligned to that model.
+  - Effective dates are now set to `April 2, 2026`; generated public outputs should no longer render review-marker date text.
+  - Repo-wide `bun run check` and `bun run build` are green again after restoring RHF-compatible exports in `packages/ui/components/shadcn/form.tsx` for the still-unmigrated missionary surfaces while keeping the new TanStack Form exports available for admin migration work.
+  - Explicit human-provided drafting facts are now wired into `apps/donor/openpolicy.ts` for legal identity, mailing address, privacy contact, California governing law / venue, donation reversals, public subprocessors, retention schedule, necessary-cookies-only posture, and the current no-intentional-EEA/UK-targeting posture.
+
+## 2026-03-31 (missionary TanStack Form completion)
+
+- Date: 2026-03-31
+- Repo: Asymmetric-al/core
+- Goal: Finish the last missionary React Hook Form surfaces so `packages/ui/components/shadcn/form.tsx` can return to a single TanStack Form implementation.
+- Primary area:
+  - `apps/missionary/app/donors/{page,edit-donor-dialog,edit-donor-form-model}.tsx`
+  - `packages/missionary/components/{add-partner-dialog,add-partner-form-model,task-dialog,task-form-model}.tsx`
+  - `packages/ui/components/shadcn/form.tsx`
+  - `apps/missionary/package.json`
+  - `packages/missionary/package.json`
+  - `packages/ui/package.json`
+  - `tests/unit/apps/missionary/app/donors/edit-donor-form-model.test.ts`
+  - `tests/unit/packages/missionary/{add-partner-form-model,task-form-model}.test.ts`
+- Constraints:
+  - Keep the missionary donor/tasks UX and Maia styling intact.
+  - Extract validation/payload logic into small testable helpers before large UI rewrites.
+  - Remove the temporary RHF compatibility surface only after repo-wide caller verification.
+  - Keep App Router client boundaries explicit and compatible with Next.js 16 guidance.
+- Evidence sources used:
+  - `apps/missionary/app/donors/page.tsx`
+  - `packages/missionary/components/{add-partner-dialog,task-dialog}.tsx`
+  - `packages/ui/components/shadcn/form.tsx`
+  - `.next-docs/01-app/{02-guides/forms,01-getting-started/05-server-and-client-components}.mdx`
+  - `.agents/skills/{better-forms,test-driven-development}/SKILL.md`
+- Notes:
+  - `AGENTS.md` requires Nia repo-scoped search, but Nia tools are unavailable in this session; repo-scoped `git grep`, direct file reads, and targeted tests were used instead.
+  - Added helper-model tests first, then migrated the three missionary surfaces (`add partner`, `task dialog`, `edit partner`) onto `useAsymForm`.
+  - `packages/ui/components/shadcn/form.tsx` now exports TanStack Form utilities only; `react-hook-form` and `@hookform/resolvers` were removed from `apps/missionary`, `packages/missionary`, and `packages/ui`.
+  - Post-migration verification is green: scoped lint/typecheck, helper-model tests, full `bun run check`, and full `bun run build`.
 ## 2026-03-29 (regression tests — Next 16.2 / donor public shell)
 
 - Date: 2026-03-29
@@ -80,7 +189,6 @@
     - missionary login verified
     - admin login verified
     - donor worker detail page initially failed from client-side server-env access, then passed on refreshed build after navbar fix
-
 ## 2026-03-18 (auth stabilization — cursor/supabase-login-foundation-6869)
 
 - Date: 2026-03-18

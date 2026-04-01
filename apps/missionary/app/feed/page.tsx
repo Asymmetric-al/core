@@ -377,7 +377,7 @@ function FollowerRequestItem({
       )}
     >
       <div className="flex items-start gap-3">
-        <motion.div whileHover={{ scale: 1.05 }} transition={springTransition}>
+        <motion.div whileHover={{ scale: 1.02 }} transition={springTransition}>
           <Avatar className="h-9 w-9 shrink-0 border border-border/50 shadow-sm">
             <AvatarImage src={request.avatar_url || undefined} />
             <AvatarFallback className="bg-gradient-to-br from-muted to-muted/50 text-muted-foreground text-[10px] font-bold">
@@ -635,8 +635,8 @@ function ReactionButton({
         ))}
       </AnimatePresence>
       <motion.button
-        whileHover={{ scale: 1.05, y: -2 }}
-        whileTap={{ scale: 0.92 }}
+        whileHover={{ scale: 1.02, y: -2 }}
+        whileTap={{ scale: 0.97 }}
         onClick={(e) => {
           e.stopPropagation();
           handleClick();
@@ -727,7 +727,7 @@ function CommentSection({
             >
               <div className="flex gap-3 sm:gap-4 text-sm">
                 <motion.div
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: 1.02 }}
                   transition={springTransition}
                 >
                   <Avatar className="h-8 w-8 sm:h-9 sm:w-9 bg-card border border-border mt-1 shadow-sm">
@@ -778,8 +778,8 @@ function CommentSection({
                   </motion.div>
                   <div className="flex items-center gap-4 pl-3">
                     <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                       className="text-[10px] font-bold text-muted-foreground hover:text-foreground uppercase tracking-wider transition-colors"
                       onClick={() =>
                         setReplyingTo(
@@ -790,8 +790,8 @@ function CommentSection({
                       Reply
                     </motion.button>
                     <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                       className="text-[10px] font-bold text-muted-foreground hover:text-rose-600 uppercase tracking-wider transition-colors"
                     >
                       Like
@@ -888,7 +888,7 @@ function CommentSection({
                       />
                       <motion.button
                         whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
+                        whileTap={{ scale: 0.97 }}
                         onClick={() => submitReply(comment.id)}
                         disabled={!replyText}
                         className="absolute right-2 top-2 p-1.5 text-primary hover:bg-muted rounded-lg disabled:opacity-50 transition-all"
@@ -927,7 +927,7 @@ function CommentSection({
             e.key === "Enter" && text && (onAddComment(text), setText(""))
           }
         />
-        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
             size="icon"
             className="absolute right-1.5 top-1.5 h-8 w-8 sm:h-9 sm:w-9 bg-primary hover:bg-primary/90 transition-all shadow-sm rounded-lg"
@@ -995,7 +995,7 @@ function PostCard({
         <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-4 flex flex-row items-start justify-between space-y-0">
           <div className="flex gap-3 sm:gap-4">
             <motion.div
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.02 }}
               transition={springTransition}
             >
               <Avatar className="h-10 w-10 sm:h-12 sm:w-12 border-2 border-background shadow-md ring-1 ring-border">
@@ -1041,8 +1041,8 @@ function PostCard({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
                 <Button
                   variant="ghost"
@@ -1670,7 +1670,7 @@ function PostComposerActions({
                 />
                 <motion.button
                   whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() =>
                     setSelectedMedia((prev) => prev.filter((_, i) => i !== idx))
                   }
