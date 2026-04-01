@@ -46,4 +46,3 @@ next-env.d.ts
 docs/ai/working-set.md
 .env*
 .cursor/settings.json
-.cursor/mcp.json
