@@ -1,5 +1,7 @@
 # Commit — Skill
 
+Retained for reference only. This skill is not part of the active repo routing and should not be used unless a user explicitly asks for this commit workflow.
+
 **Name:** `commit`
 **Purpose:** Create a Conventional Commit message for staged changes and run `git commit`.
 Use this skill when you are ready to commit work in this repo.
