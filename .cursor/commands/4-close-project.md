@@ -1,125 +1,75 @@
 # 4-close-project
 
 **Name:** `4-close-project`  
-**Purpose:** Execute the plan using **Traycer**, then finalize the PR: review generated changes, run repo quality gates, commit/push, mark PR ready, and continuously update the Linear project with progress + artifacts + exact prompts/sources used.
+**Purpose:** Finish implementation of an OpenSpec change, verify the repo checks, update the change artifacts, and archive the change when it is genuinely complete.
 
-**Applies when:** `traycer.handoff.md` exists and you’re ready to generate/implement code + ship the PR.  
-**Do not use when:** You still need a validated plan (use `/2-implement-project` and `/3-commit-project` first).
+**Applies when:** You are implementing or finalizing a change that already has proposal, design, tasks, and spec delta artifacts.
+**Do not use when:** The change still needs planning work from `/2-implement-project` or `/3-commit-project`.
 
 ---
 
 ## Rules
 
-- Base branch: `epic`. PR base must be `epic`.
-- Treat Traycer as **human-initiated** in Cursor:
-  - You open Traycer and paste `traycer.handoff.md`.
-  - The agent cannot “start the Traycer UI” on its own.
-- Canonical local PR-readiness checks (for `epic` PRs) must pass:
+- Use the OpenSpec change folder as the primary project record:
+  - `openspec/changes/<change-id>/proposal.md`
+  - `openspec/changes/<change-id>/design.md`
+  - `openspec/changes/<change-id>/tasks.md`
+  - `openspec/changes/<change-id>/specs/**`
+- External execution tools or extra agents are optional. Do not assume Traycer or any other specific executor exists.
+- Canonical local quality gates for this repo remain:
   - `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
-- Branch-aware CI gate requirements:
-  - `epic`: `ci-gate` (format/lint/typecheck/build/test-unit)
-  - `develop`: `ci-gate` + `integration-gate` (`migrate` + `smoke`)
-  - `main`: `ci-gate` + `integration-gate` + `e2e-gate`
-- Formatting: fix with `bun run format`, verify with `bun run format:check`.
-- E2E (`bun run test:e2e`) should be run when user flows are impacted; it is enforced by `e2e-gate` for `main`.
-- Every major milestone must be posted back to Linear (plan accepted, Traycer executed, gates green, PR ready).
+- Use `bun run test:e2e` when user flows are materially affected.
 
 ---
 
 ## Workflow
 
-1. **Pre-flight (git):**
-   - Confirm you are on the feature branch created in `/1-start-project`.
-   - Run: `git status`, `git branch --show-current`.
-   - Sync from `epic` (follow repo convention: merge/rebase as preferred).
+1. **Pre-flight**
+   - Confirm the active branch and working tree state.
+   - Re-read the proposal, design, tasks, and spec delta for the change.
 
-2. **Open Traycer (Cursor integration) — manual step:**
-   - Launch Traycer from Cursor’s command palette or sidebar.
-   - Create a task in Traycer.
-   - Paste `docs/projects/<AL-###>/traycer.handoff.md` as the primary input.
+2. **Implement the change**
+   - Use the planned tasks as the source of truth for execution order.
+   - If scope changes materially, update the OpenSpec artifacts before proceeding.
 
-3. **Review Traycer plan before execution (required):**
-   - Ensure it matches `plan.cursor.md` + `plan.nia.md`.
-   - Ensure non-negotiables are preserved:
-     - protect existing behavior
-     - small PRs / staged rollout
-     - rollback paths where relevant
-   - Save: `docs/projects/<AL-###>/traycer.plan.md` (the final plan used)
+3. **Review the diff**
+   - Inspect changed files for correctness and scope drift.
+   - Confirm the work still matches the change artifacts.
 
-4. **Execute in Traycer:**
-   - Run the task and apply code changes.
-   - Save run output/logs into:
-     - `docs/projects/<AL-###>/traycer.runlog.md`
-
-5. **Post-run code review (human-in-the-loop):**
-   - Inspect the diff for correctness and scope.
-   - Scan changed files for TODO/FIXME:
-     - `git grep -nE "TODO|FIXME" -- .`
-   - If scope drift occurred, fix it now before committing.
-
-6. **Run repo checks (quality gates):**
-   - `bun run format`
+4. **Run repo checks**
    - `bun run format:check`
+   - If formatting fails on in-scope files, run `bunx prettier --write <touched-files>` instead of formatting the whole repo.
    - `bun run lint`
    - `bun run typecheck`
    - `bun run build`
    - `bun run test:unit`
-   - If flows impacted: `bun run test:e2e` (recommended; required for `main` gate in CI)
+   - `bun run test:e2e` when flow changes justify it
 
-7. **Commit + push:**
-   - Stage changes intentionally.
-   - Commit message policy:
-     - title: `AL-123: <short summary>`
-     - body: include `ref AL-123`
-   - Push branch and ensure PR is updated.
+5. **Update the change artifacts**
+   - Mark completed items in `openspec/changes/<change-id>/tasks.md`.
+   - Update `design.md` or `proposal.md` if implementation realities changed.
 
-8. **PR readiness + review:**
-   - Mark PR “Ready for review”.
-   - Request CODEOWNERS reviewers if applicable.
-   - Ensure PR body has:
-     - `fixes AL-###` lines
-     - Artifacts section linking dossier path and key files
+6. **Validate and archive**
+   - Run `bunx @fission-ai/openspec@latest validate <change-id>`.
+   - When the change is genuinely done and the durable spec is accurate, run:
+     - `bunx @fission-ai/openspec@latest archive <change-id> --yes`
+   - If the change is not ready to archive, document the blockers in the change
+     folder and stop there.
 
-9. **Update Linear project (final + milestone updates):**
-   - As you complete each milestone, update Linear (don’t wait until the end):
-     - After Traycer plan accepted: post `traycer.plan.md`
-     - After execution: post `traycer.runlog.md` + summary
-     - After gates green: post commands run + results
-     - When PR ready: post PR link + status “Done/Complete”
-   - Final Linear comment must include:
-     - completion status (e.g., 100%)
-     - links/paths to:
-       - `plan.cursor.md`
-       - `plan.nia.md`
-       - `traycer.handoff.md`
-       - `traycer.plan.md`
-       - `traycer.runlog.md`
-       - `nia.runlog.md`
-     - the exact Nia `data_sources` list + model + mode used (copied from `/3-commit-project` outputs)
+7. **Update external tracking only if available**
+   - If a tracker or PR exists, post:
+     - status
+     - verification commands run
+     - whether the change was archived
 
 ---
 
 ## Checklists
 
-### Pre-flight checklist
+### Completion checklist
 
-- [ ] On feature branch
-- [ ] Synced with `epic`
-- [ ] `traycer.handoff.md` exists
-- [ ] PR targets `epic`
-
-### Quality gate checklist
-
-- [ ] format:check pass
-- [ ] lint pass
-- [ ] typecheck pass
-- [ ] build pass
-- [ ] unit tests pass
-- [ ] e2e run if relevant (recommended; required on `main` via `e2e-gate`)
-
-### Linear update checklist
-
-- [ ] Traycer plan posted
-- [ ] Traycer runlog posted
-- [ ] CI/gates status posted
-- [ ] Final artifacts + prompts/sources posted
+- [ ] OpenSpec artifacts still match the implemented scope
+- [ ] Repo quality gates passed
+- [ ] `tasks.md` updated
+- [ ] `bunx @fission-ai/openspec@latest validate <change-id>` run
+- [ ] `bunx @fission-ai/openspec@latest archive <change-id> --yes` run or blockers documented

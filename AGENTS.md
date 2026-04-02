@@ -18,13 +18,14 @@ Before any Next.js work, find and read the relevant doc in `node_modules/next/di
 
 Use this order when instructions conflict:
 
-1. **OpenSpec (when `openspec/` exists in the repo):** `openspec/specs/` = merged product intent; `openspec/changes/` = proposed changes not yet folded into specs.
-2. **Repo instruction system:** root `AGENTS.md`, nearest nested `AGENTS.md`, `.cursor/rules`, `CLAUDE.md`, `.github/copilot-instructions.md`, `.github/instructions/*.md`, `docs/ai/*` rulebooks.
-3. **Repo-local canonical skills:** `docs/ai/skills/*/SKILL.md` (mirrored into `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`; verify with `bun run skills:verify`).
-4. **Next.js API truth:** bundled docs under `node_modules/next/dist/docs/` for the installed version (then repo root `node_modules`; see **Next.js docs source of truth** below).
-5. **MCP runtime facts:** e.g. Next.js devtools MCP against a running dev server (see **Next.js MCP (devtools)** below), TanStack MCP from root `.mcp.json`, plus any other MCP servers enabled in the agent.
-6. **External docs:** prefer indexed doc search / package source (e.g. Nia) over training data; use direct official docs when needed.
-7. **General model knowledge:** lowest priority; never substitute memory for version-specific or repo-specific facts.
+1. **OpenSpec:** `openspec/project.md` = durable project context; `openspec/specs/` = current intended behavior; `openspec/changes/` = proposed or active changes not yet archived into the durable specs.
+2. **Repo instruction system:** root `AGENTS.md`, nearest nested `AGENTS.md`, `.cursor/rules`, `CLAUDE.md`, `cursor.md`, `.github/copilot-instructions.md`, `.github/instructions/*.instructions.md`, `docs/ai/*` rulebooks.
+3. **Installed platform integrations and Codex capability layers:** provider plugins, Codex surfaces, and optional workspace capabilities that are actually present in the current environment. These are helpers, not the source of truth.
+4. **Repo-local canonical skills:** `docs/ai/skills/*/SKILL.md` (mirrored into `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`; verify with `bun run skills:verify`).
+5. **Local framework docs:** bundled docs under `node_modules/next/dist/docs/` for the installed version (then repo root `node_modules`; see **Next.js docs source of truth** below).
+6. **MCP runtime facts:** e.g. Next.js devtools MCP against a running dev server (see **Next.js MCP (devtools)** below), TanStack MCP from root `.mcp.json`, plus any other MCP servers enabled in the agent.
+7. **Official external docs:** prefer indexed doc search / package source (for example Nia) over training data; use direct official docs when needed.
+8. **General model knowledge:** lowest priority; never substitute memory for version-specific or repo-specific facts.
 
 ## Nested `AGENTS.md` (this repo)
 
@@ -32,6 +33,26 @@ Cursor and other tools merge nested agent instructions with the root file. In th
 
 - `supabase/AGENTS.md` — migrations, seed, demo RLS posture
 - `scripts/AGENTS.md` — operational scripts that touch Supabase data
+
+## Role Separation
+
+- **OpenSpec** owns durable project context, durable behavior specs, and active change artifacts.
+- **Repo files** show current implementation reality.
+- **Nia** grounds repo evidence and fresh third-party dependency context when available.
+- **Local Next.js docs** are the framework source of truth for Next.js work.
+- **MCP runtime facts** are the source of truth for current routes, logs, errors, and live runtime state.
+- **Provider plugins, Codex surfaces, and optional workspace helpers** are capability bundles, not the primary source of truth.
+- **`AGENTS.md`** is the always-on router that tells agents how to combine these layers safely.
+
+## OpenSpec-First Workflow
+
+Before non-trivial feature work, behavior changes, repo workflow changes, or multi-step project work:
+
+1. Read `openspec/project.md`.
+2. Read the relevant specs under `openspec/specs/**`.
+3. Read any active change under `openspec/changes/**` that already covers the work.
+4. If durable behavior is changing and no suitable change exists, create or update an OpenSpec change before major implementation.
+5. Use the OpenSpec CLI via `bunx @fission-ai/openspec@latest <command>` as the repo-safe default when relevant (`list`, `show`, `view`, `validate`, `archive`). If `openspec` is already installed on `PATH`, that is equivalent. If Bun is unavailable, use `npx -y @fission-ai/openspec@latest <command>`.
 
 # Agent Router — Rules
 
@@ -164,16 +185,32 @@ Answer with citations/paths from the repo and avoid external sources unless just
 
 ---
 
-### Context7 (optional third-party API lookup)
+### Context7 (fallback third-party API lookup)
 
-**When the agent has Context7 configured:**
+**Default rule:**
 
-- Use for quick third-party library / API surface questions (resolve library ID, query the exact API).
+- Use Nia first for fresh third-party docs, package source, and repo-grounded dependency research when the current client exposes it.
 
-**If Context7 is unavailable:**
+**When Nia is unavailable or insufficient in the current session:**
 
-- Prefer Nia documentation / package search for dependencies actually declared in this repo
-- Otherwise consult upstream docs and state assumptions explicitly
+- If Context7 is configured, use it for quick third-party library / API surface questions (resolve library ID, query the exact API).
+- Otherwise fall back to direct repo reads plus official docs.
+- State the fallback explicitly instead of implying Nia evidence that was not actually retrieved.
+
+**If both Nia and Context7 are unavailable:**
+
+- Consult upstream official docs and state assumptions explicitly.
+
+---
+
+## Installed Plugins, Codex Surfaces, and Optional Capability Layers
+
+Use these layers only when the current workspace proves they are installed and relevant.
+
+- **Provider plugins:** Vercel, GitHub, Linear, Stripe, Canva, and Build Web Apps may be available in some workspaces. Use them for provider-specific workflows after reading OpenSpec plus the repo-local rulebooks.
+- **Codex surfaces:** Codex IDE extension, Codex CLI, Codex app skills, Codex automations, Codex app server, and MCP-connected Codex workflows may be present. Treat `AGENTS.md`, OpenSpec, canonical repo-local skills, and local framework docs as the guardrails for all of them.
+- **Conflict rule:** if a provider plugin or Codex helper conflicts with repo-specific guidance, preserve the repo-specific guidance unless the repo explicitly delegates that area to the plugin.
+- **Honesty rule:** do not hard-wire plugins, automations, or MCP helpers into repo instructions unless the repo owns them or the current workspace clearly exposes them.
 
 ---
 
@@ -191,8 +228,10 @@ Root `.mcp.json` also defines the TanStack CLI MCP (`@tanstack/cli mcp`). Enable
 
 ### Dev servers and logs
 
-- Before starting a dev server, check whether one is already running (agent terminal sessions / process list).
+- Before starting a dev server, check whether one is already running (agent terminal sessions / process list) and inspect the relevant app's `.next/dev/lock` file when present.
+- If a lock file points to a running server, reuse that server or connect to it instead of starting another one blindly.
 - When a Next.js dev server is running, prefer Next.js devtools MCP (`get_errors`, `get_logs`, `get_routes`, `get_page_metadata`, etc.) over guessing routes, runtime errors, or browser-only state.
+- Next.js 16.2 forwards browser-side errors to the terminal by default, so check terminal output and `.next/dev/logs/next-development.log` before asking for browser console logs.
 
 ---
 
@@ -200,6 +239,7 @@ Root `.mcp.json` also defines the TanStack CLI MCP (`@tanstack/cli mcp`). Enable
 
 Load rulebooks before editing files in their domain.
 
+- **OpenSpec / non-trivial project work / behavior changes:** `docs/ai/rules/openspec.md`
 - **General workflow / AL-### / CI gates / labels:** `docs/ai/rules/general.md`
 - **Frontend UI/components/styling/UX:** `docs/ai/rules/frontend.md`
 - **Backend/Supabase/auth/data access/migrations:** `docs/ai/rules/backend.md`
@@ -260,6 +300,8 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 ### Routing checklist
 
 - [ ] Identified domain(s) and opened the matching rulebook(s)
+- [ ] Read `openspec/project.md` plus the relevant specs/changes when the task affected durable context or behavior
+- [ ] Opened `docs/ai/rules/openspec.md` for non-trivial project work or behavior changes
 - [ ] Applied required skills based on triggers (canonical: `docs/ai/skills/`)
 - [ ] Used Nia when required (or explicitly noted fallback)
 - [ ] For Next.js dev debugging, considered Next.js devtools MCP when a dev server is running
@@ -276,6 +318,7 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 
 ## Minimal examples
 
+- **"Plan a feature or workflow change."** -> Open `docs/ai/rules/openspec.md`, read `openspec/project.md`, inspect `openspec/specs/**` and `openspec/changes/**`, then create or update the matching change before implementation.
 - **"Where is auth handled?"** -> Update `docs/ai/working-set.md`; use Nia (scoped + preambled) to find auth entry points; then open `docs/ai/rules/backend.md`.
 - **"Add a new UI card component."** -> Open `docs/ai/rules/frontend.md` and `docs/ai/skills/react-component-dev/SKILL.md`. Use Nia to find existing patterns/components in this repo before writing new ones.
 - **"Use /cui for a page."** -> Open `docs/ai/rules/shadcn-studio-mcp.md` and follow its workflow exactly.
@@ -284,6 +327,7 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 
 ## Common mistakes / pitfalls
 
+- Skipping OpenSpec on non-trivial feature work or behavior changes
 - Skipping Nia on multi-file or architecture questions
 - Running unscoped Nia searches outside `Asymmetric-al/core`
 - Calling Nia without first updating `docs/ai/working-set.md`
