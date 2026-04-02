@@ -12,15 +12,13 @@ import { parseContent } from "./helpers";
 import { ResizableImageExtension } from "./image-view";
 import "./tiptap.css";
 
-import type { AnyExtension } from "@tiptap/core";
-
 export interface RichTextViewerProps {
   /** Stored value — JSON string or legacy plain text / HTML. */
   value: string;
   className?: string;
 }
 
-const viewerExtensions: AnyExtension[] = [
+const viewerExtensions = [
   StarterKit.configure({
     heading: { levels: [1, 2] },
     bulletList: {
@@ -46,7 +44,7 @@ const viewerExtensions: AnyExtension[] = [
     inline: false,
     allowBase64: false,
   }),
-] as AnyExtension[];
+];
 
 export function RichTextViewer({ value, className }: RichTextViewerProps) {
   const editor = useEditor({

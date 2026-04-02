@@ -32,7 +32,9 @@
   - Implemented a shared `PostContent` renderer in `@asym/ui`, swapped the known `post.content` / `draft.content` readers onto it, updated the viewer to use `ResizableImageExtension` plus `tiptap.css`, and fixed invalid-link / image-upload / live-disabled-state editor regressions in the shared rich-text components.
   - Added `packages/api/src/posts/content.ts` to canonicalize stored TipTap JSON docs on `PATCH /api/posts/[postId]` without trimming legacy HTML/plain-text content.
   - Added pure unit tests for the shared rich-text helpers and the post-content normalizer under `tests/unit/packages/{ui,api}/...`.
-  - Local Bun/Node executables are unavailable in this session, so Vitest/lint/typecheck could not be run here; manual diff review and `git diff --check` were used as the fallback verification pass.
+  - Local Bun/Node executables were available after restoring `PATH` to include `/Users/blake/.bun/bin` and `/opt/homebrew/bin`; targeted Vitest and scoped lint passed before the PR branch update.
+  - After pushing the updated PR head, GitHub Actions reported `format`, `typecheck`, and `build` failures. Log inspection showed the actionable regression in this change set was the new direct `@tiptap/core` type import in `packages/ui/components/shadcn/rich-text-editor/{extensions,rich-text-viewer}.tsx`, which CI could not resolve in `@asym/ui`.
+  - Follow-up fix removed that unnecessary direct type import and relied on local inference instead; `bun run format:check` now passes in the PR worktree, and the CI-specific missing-module error is no longer present in the source.
 
 ## 2026-04-01 (post-pull epic merge verification)
 

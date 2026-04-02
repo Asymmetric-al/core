@@ -5,8 +5,6 @@ import StarterKit from "@tiptap/starter-kit";
 
 import { ResizableImageExtension } from "./image-view";
 
-import type { AnyExtension } from "@tiptap/core";
-
 export interface CreateDefaultExtensionsOptions {
   /** Shown for body paragraphs when using the Placeholder extension. */
   placeholder?: string;
@@ -14,7 +12,7 @@ export interface CreateDefaultExtensionsOptions {
 
 export function createDefaultExtensions(
   options?: CreateDefaultExtensionsOptions,
-): AnyExtension[] {
+) {
   const placeholderText = options?.placeholder?.trim() || "Type something...";
 
   return [
@@ -58,5 +56,5 @@ export function createDefaultExtensions(
       },
       includeChildren: true,
     }),
-  ] as AnyExtension[];
+  ];
 }

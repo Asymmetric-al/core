@@ -11,7 +11,9 @@ describe("rich text helpers", () => {
       isRichText(
         JSON.stringify({
           type: "doc",
-          content: [{ type: "paragraph", content: [{ type: "text", text: "Hi" }] }],
+          content: [
+            { type: "paragraph", content: [{ type: "text", text: "Hi" }] },
+          ],
         }),
       ),
     ).toBe(true);
@@ -25,13 +27,15 @@ describe("rich text helpers", () => {
       isPostContentEmpty(
         JSON.stringify({
           type: "doc",
-          content: [{ type: "image", attrs: { src: "https://example.com/a.jpg" } }],
+          content: [
+            { type: "image", attrs: { src: "https://example.com/a.jpg" } },
+          ],
         }),
       ),
     ).toBe(false);
-    expect(isPostContentEmpty('<p><img src="https://example.com/a.jpg" /></p>')).toBe(
-      false,
-    );
+    expect(
+      isPostContentEmpty('<p><img src="https://example.com/a.jpg" /></p>'),
+    ).toBe(false);
   });
 
   it("treats blank JSON docs, blank HTML, and blank text as empty", () => {
