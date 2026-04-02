@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   createResendValidationSnapshot,
-  getFirstBlockingDeliverabilityWarning,
   isResendValidationSendReady,
   parseResendValidationSnapshot,
   sendEmail,
@@ -284,31 +283,5 @@ describe("@asym/email resend service", () => {
 
     expect(result.success).toBe(false);
     expect(result.errorCode).toBe("webhook_signature_invalid");
-  });
-
-  it("returns the first blocking deliverability warning", () => {
-    expect(
-      getFirstBlockingDeliverabilityWarning([
-        {
-          code: "INFO_WARNING",
-          message: "Informational warning",
-          severity: "info",
-        },
-        {
-          code: "BLOCKING_WARNING",
-          message: "Blocking warning",
-          severity: "error",
-        },
-        {
-          code: "SECOND_BLOCKING_WARNING",
-          message: "Second blocking warning",
-          severity: "error",
-        },
-      ]),
-    ).toEqual(
-      expect.objectContaining({
-        code: "BLOCKING_WARNING",
-      }),
-    );
   });
 });

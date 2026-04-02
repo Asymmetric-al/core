@@ -13,6 +13,7 @@ import {
   RESEND_ERROR_CODES,
   RETRY_CONFIG,
 } from "./constants";
+import { getFirstBlockingDeliverabilityWarning } from "./deliverability-warnings";
 
 import type {
   DeliverabilityWarning,
@@ -83,7 +84,9 @@ export interface SendTestEmailOptions {
 }
 
 export interface ResendClient {
-  validateKey: () => Promise<ResendValidationResult>;
+  validateKey: (
+    options?: ResendValidationOptions,
+  ) => Promise<ResendValidationResult>;
   sendEmail: (options: SendEmailOptions) => Promise<EmailSendResult>;
   sendTestEmail: (
     toEmail: string,
@@ -475,18 +478,6 @@ function getSenderDomainMismatchWarning(
     message: `${defaultFromEmail} does not use one of your exact verified Resend domains. ${verifiedDomainHint}`,
     helpUrl: DELIVERABILITY_HELP_URLS.DOMAIN_MISMATCH,
   };
-}
-
-function isBlockingDeliverabilityWarning(
-  warning: DeliverabilityWarning,
-): boolean {
-  return warning.severity === "error";
-}
-
-export function getFirstBlockingDeliverabilityWarning(
-  warnings?: DeliverabilityWarning[],
-): DeliverabilityWarning | undefined {
-  return warnings?.find(isBlockingDeliverabilityWarning);
 }
 
 function normalizeRecordField(value?: string | null): string {
@@ -1057,8 +1048,10 @@ export async function listReceivedEmailAttachments(
 
 export function createResendClient(apiKey: string): ResendClient {
   return {
-    validateKey: (): Promise<ResendValidationResult> =>
-      validateResendApiKey(apiKey),
+    validateKey: (
+      options?: ResendValidationOptions,
+    ): Promise<ResendValidationResult> =>
+      validateResendApiKey(apiKey, options ?? {}),
     sendEmail: (options: SendEmailOptions): Promise<EmailSendResult> =>
       sendEmail(apiKey, options),
     sendTestEmail: (

@@ -43,6 +43,8 @@ export const RESEND_ERROR_CODES = {
   SERVER_ERROR: "server_error",
   SENDER_NOT_VERIFIED: "sender_not_verified",
   DOMAIN_NOT_AUTHENTICATED: "domain_not_authenticated",
+  DEFAULT_FROM_EMAIL_DOMAIN_NOT_VERIFIED:
+    "default_from_email_domain_not_verified",
   INVALID_EMAIL: "invalid_email",
   SUPPRESSED: "suppressed",
   WEBHOOK_SIGNATURE_INVALID: "webhook_signature_invalid",

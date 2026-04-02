@@ -7,6 +7,7 @@ const {
   sendTestEmailMock,
   validateResendApiKeyMock,
   getFirstBlockingDeliverabilityWarningMock,
+  toTestSendBlockingErrorCodeMock,
   readTenantEmailSettingsMock,
   decryptResendApiKeyMock,
   getAdminClientMock,
@@ -29,6 +30,12 @@ const {
             }>
           | undefined,
       ) => warnings?.find((warning) => warning.severity === "error"),
+    ),
+    toTestSendBlockingErrorCodeMock: vi.fn(
+      (warning: { code: string }) =>
+        warning.code === "DEFAULT_FROM_EMAIL_DOMAIN_NOT_VERIFIED"
+          ? "default_from_email_domain_not_verified"
+          : "domain_not_authenticated",
     ),
     readTenantEmailSettingsMock: vi.fn(),
     decryptResendApiKeyMock: vi.fn(),
@@ -60,6 +67,8 @@ vi.mock("@asym/email", () => ({
     VALIDATION_ERROR: "validation_error",
     INVALID_API_KEY: "invalid_api_key",
     DOMAIN_NOT_AUTHENTICATED: "domain_not_authenticated",
+    DEFAULT_FROM_EMAIL_DOMAIN_NOT_VERIFIED:
+      "default_from_email_domain_not_verified",
     SENDER_NOT_VERIFIED: "sender_not_verified",
     SERVER_ERROR: "server_error",
   },
@@ -67,6 +76,7 @@ vi.mock("@asym/email", () => ({
   validateResendApiKey: validateResendApiKeyMock,
   getFirstBlockingDeliverabilityWarning:
     getFirstBlockingDeliverabilityWarningMock,
+  toTestSendBlockingErrorCode: toTestSendBlockingErrorCodeMock,
 }));
 
 vi.mock("@asym/database/supabase/admin", () => ({
@@ -303,7 +313,7 @@ describe("api/email/test-send", () => {
     const body = await response.json();
 
     expect(response.status).toBe(422);
-    expect(body.code).toBe("domain_not_authenticated");
+    expect(body.code).toBe("default_from_email_domain_not_verified");
     expect(body.error).toContain("exact verified Resend domains");
     expect(sendTestEmailMock).not.toHaveBeenCalled();
   });

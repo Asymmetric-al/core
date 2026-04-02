@@ -8,6 +8,7 @@ import {
   getFirstBlockingDeliverabilityWarning,
   RESEND_ERROR_CODES,
   sendTestEmail,
+  toTestSendBlockingErrorCode,
   type TestSendEmailResponse,
   validateResendApiKey,
 } from "@asym/email";
@@ -132,7 +133,7 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           error: blockingWarning.message,
-          code: RESEND_ERROR_CODES.DOMAIN_NOT_AUTHENTICATED,
+          code: toTestSendBlockingErrorCode(blockingWarning),
         },
         { status: 422 },
       );

@@ -5,10 +5,14 @@
  */
 
 export {
+  getFirstBlockingDeliverabilityWarning,
+  toTestSendBlockingErrorCode,
+} from "./deliverability-warnings";
+
+export {
   validateResendApiKey,
   createResendValidationSnapshot,
   parseResendValidationSnapshot,
-  getFirstBlockingDeliverabilityWarning,
   isResendValidationSendReady,
   sendEmail,
   sendTestEmail,

@@ -6,6 +6,7 @@
   "exports": {
     ".": "./index.ts",
     "./resend": "./resend.ts",
+    "./deliverability-warnings": "./deliverability-warnings.ts",
     "./constants": "./constants.ts",
     "./types": "./types.ts",
     "./email-studio-types": "./email-studio-types.ts"
