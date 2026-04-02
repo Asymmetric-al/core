@@ -155,6 +155,34 @@ describe("@asym/email resend service", () => {
     );
   });
 
+  it("defaults persisted sender verification to false when older snapshots omit the flag", () => {
+    const snapshot = parseResendValidationSnapshot({
+      senderIdentities: [
+        {
+          id: 1,
+          nickname: "default",
+          from_email: "from@example.com",
+          from_name: "From Team",
+          reply_to_email: null,
+        },
+      ],
+      domainAuthentication: [],
+      warnings: [],
+      deliverabilityScore: 88,
+      validatedAt: "2026-04-02T12:00:00.000Z",
+      domainAuthenticated: false,
+      dkimVerified: false,
+      spfVerified: false,
+    });
+
+    expect(snapshot?.senderIdentities).toEqual([
+      expect.objectContaining({
+        from_email: "from@example.com",
+        verified: false,
+      }),
+    ]);
+  });
+
   it("surfaces a blocking warning when the default sender domain is not verified", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch");
     fetchSpy

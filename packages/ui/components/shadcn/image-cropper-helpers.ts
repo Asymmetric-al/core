@@ -30,3 +30,15 @@ export function preloadImageSource(
     image.src = source;
   });
 }
+
+export function shouldDisplayCropperPreloadFailure({
+  cropperHasLoaded,
+  loadAttempt,
+  activeLoadAttempt,
+}: {
+  cropperHasLoaded: boolean;
+  loadAttempt: number;
+  activeLoadAttempt: number;
+}) {
+  return !cropperHasLoaded && loadAttempt === activeLoadAttempt;
+}

@@ -22,7 +22,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./dialog";
-import { preloadImageSource } from "./image-cropper-helpers";
+import {
+  preloadImageSource,
+  shouldDisplayCropperPreloadFailure,
+} from "./image-cropper-helpers";
 import { Slider } from "./slider";
 
 interface ImageCropperProps {
@@ -101,6 +104,8 @@ export function ImageCropper({
 }: ImageCropperProps) {
   const [state, dispatch] = useReducer(cropperReducer, INITIAL_CROPPER_STATE);
   const processingRef = useRef(false);
+  const cropperHasLoadedRef = useRef(false);
+  const loadAttemptRef = useRef(0);
 
   const onCropChange = useCallback((newCrop: Point) => {
     dispatch({ type: "setCrop", crop: newCrop });
@@ -159,6 +164,7 @@ export function ImageCropper({
   }, [onCancel, state.isProcessing]);
 
   const handleMediaLoaded = useCallback(() => {
+    cropperHasLoadedRef.current = true;
     dispatch({ type: "setImageError", imageError: false });
   }, []);
 
@@ -168,6 +174,11 @@ export function ImageCropper({
     }
 
     let isActive = true;
+    const loadAttempt = loadAttemptRef.current + 1;
+    let preloadFailureTimer: ReturnType<typeof setTimeout> | undefined;
+
+    loadAttemptRef.current = loadAttempt;
+    cropperHasLoadedRef.current = false;
     dispatch({ type: "setImageError", imageError: false });
 
     void preloadImageSource(image)
@@ -177,13 +188,28 @@ export function ImageCropper({
         }
       })
       .catch(() => {
-        if (isActive) {
-          dispatch({ type: "setImageError", imageError: true });
+        if (!isActive) {
+          return;
         }
+
+        preloadFailureTimer = setTimeout(() => {
+          if (
+            shouldDisplayCropperPreloadFailure({
+              cropperHasLoaded: cropperHasLoadedRef.current,
+              loadAttempt,
+              activeLoadAttempt: loadAttemptRef.current,
+            })
+          ) {
+            dispatch({ type: "setImageError", imageError: true });
+          }
+        }, 150);
       });
 
     return () => {
       isActive = false;
+      if (preloadFailureTimer) {
+        clearTimeout(preloadFailureTimer);
+      }
     };
   }, [image, open]);
 

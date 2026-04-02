@@ -380,9 +380,9 @@ function mapPersistedSenderIdentity(
   const fromEmail = asString(value.from_email);
   const fromName = asString(value.from_name);
   const nickname = asString(value.nickname);
-  const verified = asBoolean(value.verified);
+  const verified = asBoolean(value.verified) ?? false;
 
-  if (!fromEmail || !fromName || !nickname || verified === null) {
+  if (!fromEmail || !fromName || !nickname) {
     return null;
   }
 

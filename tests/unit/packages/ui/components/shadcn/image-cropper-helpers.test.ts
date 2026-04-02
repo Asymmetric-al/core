@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { preloadImageSource } from "../../../../../../packages/ui/components/shadcn/image-cropper-helpers";
+import {
+  preloadImageSource,
+  shouldDisplayCropperPreloadFailure,
+} from "../../../../../../packages/ui/components/shadcn/image-cropper-helpers";
 
 describe("image-cropper helpers", () => {
   it("resolves when the image factory reports a successful load", async () => {
@@ -33,5 +36,35 @@ describe("image-cropper helpers", () => {
         };
       }),
     ).rejects.toThrow("bad image");
+  });
+
+  it("ignores preload failures once the cropper has already loaded the image", () => {
+    expect(
+      shouldDisplayCropperPreloadFailure({
+        cropperHasLoaded: true,
+        loadAttempt: 2,
+        activeLoadAttempt: 2,
+      }),
+    ).toBe(false);
+  });
+
+  it("ignores stale preload failures from an older image load attempt", () => {
+    expect(
+      shouldDisplayCropperPreloadFailure({
+        cropperHasLoaded: false,
+        loadAttempt: 1,
+        activeLoadAttempt: 2,
+      }),
+    ).toBe(false);
+  });
+
+  it("surfaces preload failures only for the active image when the cropper never loads", () => {
+    expect(
+      shouldDisplayCropperPreloadFailure({
+        cropperHasLoaded: false,
+        loadAttempt: 3,
+        activeLoadAttempt: 3,
+      }),
+    ).toBe(true);
   });
 });

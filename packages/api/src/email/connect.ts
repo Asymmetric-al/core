@@ -3,12 +3,13 @@ import {
   requireRole,
   type AuthenticatedContext,
 } from "@asym/auth/context";
-import { RESEND_ERROR_CODES, validateResendApiKey } from "@asym/email";
 import {
   createResendValidationSnapshot,
   isResendValidationSendReady,
   parseResendValidationSnapshot,
-} from "@asym/email/resend";
+  RESEND_ERROR_CODES,
+  validateResendApiKey,
+} from "@asym/email";
 import {
   type ConnectResendRequest,
   type ConnectResendResponse,

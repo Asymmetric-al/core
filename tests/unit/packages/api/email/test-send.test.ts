@@ -291,8 +291,39 @@ describe("api/email/test-send", () => {
     const body = await response.json();
 
     expect(response.status).toBe(422);
-    expect(body.code).toBe("domain_not_authenticated");
+    expect(body.code).toBe("sender_not_verified");
     expect(body.error).toContain("exact verified Resend domains");
+    expect(sendTestEmailMock).not.toHaveBeenCalled();
+  });
+
+  it("falls back to a generic validation code for unknown blocking warnings", async () => {
+    readTenantEmailSettingsMock.mockRejectedValueOnce(
+      tenantEmailSettingsStorageUnavailableError,
+    );
+    validateResendApiKeyMock.mockResolvedValueOnce({
+      valid: true,
+      warnings: [
+        {
+          code: "TEST_BLOCKING_WARNING",
+          severity: "error",
+          message: "Blocked by a future deliverability rule.",
+        },
+      ],
+    });
+
+    const response = await POST(
+      createPostRequest({
+        apiKey: "re_session_key",
+        toEmail: "recipient@example.com",
+        fromEmail: "sender@example.com",
+        fromName: "Session Sender",
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(422);
+    expect(body.code).toBe("validation_error");
+    expect(body.error).toContain("future deliverability rule");
     expect(sendTestEmailMock).not.toHaveBeenCalled();
   });
 });

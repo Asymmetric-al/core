@@ -5,6 +5,9 @@ const {
   getAuthContextMock,
   requireRoleMock,
   validateResendApiKeyMock,
+  createResendValidationSnapshotMock,
+  parseResendValidationSnapshotMock,
+  isResendValidationSendReadyMock,
   encryptResendApiKeyMock,
   decryptResendApiKeyMock,
   readTenantEmailSettingsMock,
@@ -15,6 +18,55 @@ const {
   getAuthContextMock: vi.fn(),
   requireRoleMock: vi.fn(),
   validateResendApiKeyMock: vi.fn(),
+  createResendValidationSnapshotMock: vi.fn(
+    (validation: {
+      senderIdentities?: unknown[];
+      domainAuthentication?: Array<{
+        valid?: boolean;
+        records?: Array<{
+          record?: string;
+          type?: string;
+          status?: string;
+        }>;
+      }>;
+      warnings?: Array<{ severity?: string }>;
+      deliverabilityScore?: number;
+    }) => {
+      const domainAuthentication = validation.domainAuthentication ?? [];
+
+      return {
+        senderIdentities: validation.senderIdentities ?? [],
+        domainAuthentication,
+        warnings: validation.warnings ?? [],
+        deliverabilityScore: validation.deliverabilityScore ?? 0,
+        validatedAt: "2026-04-02T12:00:00.000Z",
+        domainAuthenticated: domainAuthentication.some((domain) => domain.valid),
+        dkimVerified: domainAuthentication.some((domain) =>
+          (domain.records ?? []).some(
+            (record) =>
+              record.record === "DKIM" && record.status === "verified",
+          ),
+        ),
+        spfVerified: domainAuthentication.some((domain) =>
+          (domain.records ?? []).some(
+            (record) =>
+              record.record === "SPF" &&
+              record.type === "TXT" &&
+              record.status === "verified",
+          ),
+        ),
+      };
+    },
+  ),
+  parseResendValidationSnapshotMock: vi.fn((snapshot: unknown) => snapshot ?? null),
+  isResendValidationSendReadyMock: vi.fn(
+    (snapshot: {
+      domainAuthenticated?: boolean;
+      warnings?: Array<{ severity?: string }>;
+    }) =>
+      Boolean(snapshot.domainAuthenticated) &&
+      !(snapshot.warnings ?? []).some((warning) => warning.severity === "error"),
+  ),
   encryptResendApiKeyMock: vi.fn(),
   decryptResendApiKeyMock: vi.fn(),
   readTenantEmailSettingsMock: vi.fn(),
@@ -45,6 +97,9 @@ vi.mock("@asym/email", () => ({
     SERVER_ERROR: "server_error",
   },
   validateResendApiKey: validateResendApiKeyMock,
+  createResendValidationSnapshot: createResendValidationSnapshotMock,
+  parseResendValidationSnapshot: parseResendValidationSnapshotMock,
+  isResendValidationSendReady: isResendValidationSendReadyMock,
 }));
 
 vi.mock("../../../../../packages/api/src/email/crypto", () => ({

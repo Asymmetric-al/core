@@ -1,5 +1,37 @@
 # Working Set
 
+## 2026-04-02 (PR #144 follow-up: Resend edge cases + cropper race)
+
+- Date: 2026-04-02
+- Repo: Asymmetric-al/core
+- Goal: Land the narrow PR #144 follow-up fixes for Resend test harness/import stability, blocking-warning code mapping, backward-compatible persisted sender parsing, and the image cropper preload race without expanding scope.
+- Primary area:
+  - `packages/api/src/email/{connect,test-send}.ts`
+  - `packages/email/{index,resend}.ts`
+  - `packages/ui/components/shadcn/{image-cropper,image-cropper-helpers}.ts*`
+  - `tests/unit/packages/api/email/{connect,test-send}.test.ts`
+  - `tests/unit/packages/email/resend.test.ts`
+  - `tests/unit/packages/ui/components/shadcn/image-cropper-helpers.test.ts`
+- Constraints:
+  - Keep the fix surgical and compatible with the existing PR #144 branch shape.
+  - Prefer import/mocking changes over broader Vitest config churn for the email test harness issue.
+  - Preserve the current `422` contract for deliverability-blocked test sends while returning a more accurate shared error code.
+  - Treat missing persisted `verified` flags as `false` instead of dropping sender rows.
+  - Eliminate false negative cropper load failures without regressing the original image-load fallback behavior.
+- Evidence sources used:
+  - `.next-docs/01-app/02-guides/testing/playwright.mdx`
+  - `docs/ai/rules/{backend,frontend,testing}.md`
+  - `packages/api/src/email/{connect,test-send}.ts`
+  - `packages/email/{index,resend,constants}.ts`
+  - `packages/ui/components/shadcn/{image-cropper,image-cropper-helpers}.ts`
+  - `tests/unit/packages/api/email/{connect,test-send}.test.ts`
+  - `tests/unit/packages/email/resend.test.ts`
+  - `tests/unit/packages/ui/components/shadcn/image-cropper-helpers.test.ts`
+- Notes:
+  - The current clone does not reproduce the Vitest suite-load failure, so the import-path fix should stay narrow: remove the `@asym/email/resend` dependency from `connect.ts` and let the existing `@asym/email` mock own the module boundary.
+  - `test-send.ts` currently hardcodes `domain_not_authenticated` for every blocking warning; this needs an explicit mapping plus a generic fallback.
+  - `ImageCropper` already clears `imageError` on `onMediaLoaded`, but preload failure can still win the race if it resolves later; the fix needs stale-attempt and cropper-loaded guards before surfacing a fatal error.
+
 ## 2026-04-02 (post-validation cleanup: Resend defaults, audit logging, mobile nav, missionary metadata)
 
 - Date: 2026-04-02
