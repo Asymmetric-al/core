@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="missionaryIconTitle">
+  <title id="missionaryIconTitle">Missionary Dashboard Icon</title>
+  <rect width="128" height="128" rx="28" fill="#020617" />
+  <path d="M32 92V36h16l16 25.6L80 36h16v56H82V61.6L64 88 46 61.6V92H32Z" fill="#FFFFFF" />
+</svg>

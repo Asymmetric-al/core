@@ -63,6 +63,8 @@ import * as React from "react";
 import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 
+import { hasProfileChanges } from "./profile-dirty-state";
+
 import { PageHeader } from "@/components/page-header";
 import { QuickGive } from "@/features/giving/components/quick-give";
 
@@ -489,7 +491,6 @@ type ProfilePageUiState = {
   isSaving: boolean;
   previewMode: PreviewMode;
   saveSuccess: boolean;
-  hasChanges: boolean;
   copiedLink: boolean;
   fetchError: string | null;
   validationErrors: ValidationErrors;
@@ -923,6 +924,7 @@ function ProfileFormColumn({
               }}
               path="avatars"
               aspect={1}
+              triggerAriaLabel="Upload profile picture"
             >
               <AvatarUploadArea
                 avatarUrl={profile.avatarUrl}
@@ -969,6 +971,7 @@ function ProfileFormColumn({
               }}
               path="covers"
               aspect={3 / 1}
+              triggerAriaLabel="Upload cover photo"
             >
               <CoverUploadArea coverUrl={profile.coverUrl} />
             </ImageUpload>
@@ -1393,7 +1396,6 @@ function useProfilePageView() {
     isSaving: false,
     previewMode: "mobile",
     saveSuccess: false,
-    hasChanges: false,
     copiedLink: false,
     fetchError: null,
     validationErrors: {},
@@ -1402,7 +1404,6 @@ function useProfilePageView() {
     isSaving,
     previewMode,
     saveSuccess,
-    hasChanges,
     copiedLink,
     fetchError,
     validationErrors,
@@ -1441,10 +1442,6 @@ function useProfilePageView() {
     (value: React.SetStateAction<boolean>) => setUiField("saveSuccess", value),
     [setUiField],
   );
-  const setHasChanges = useCallback(
-    (value: React.SetStateAction<boolean>) => setUiField("hasChanges", value),
-    [setUiField],
-  );
   const setCopiedLink = useCallback(
     (value: React.SetStateAction<boolean>) => setUiField("copiedLink", value),
     [setUiField],
@@ -1467,6 +1464,7 @@ function useProfilePageView() {
   const initials =
     (profile.firstName?.[0] || "") + (profile.lastName?.[0] || "");
   const bioWordCount = countWords(profile.bio);
+  const hasChanges = hasProfileChanges(profile, originalProfile);
 
   const profileQuery = useQuery<ProfileData | null>({
     queryKey: ["profile"],
@@ -1523,11 +1521,6 @@ function useProfilePageView() {
   }, [profileQuery.error, setFetchError]);
 
   const isLoading = profileQuery.isPending && !hasInitializedProfile.current;
-
-  useEffect(() => {
-    const changed = JSON.stringify(profile) !== JSON.stringify(originalProfile);
-    setHasChanges(changed);
-  }, [profile, originalProfile, setHasChanges]);
 
   const validateProfile = useCallback((): boolean => {
     const errors: ValidationErrors = {};
@@ -1632,7 +1625,6 @@ function useProfilePageView() {
 
   const handleDiscard = () => {
     setProfile(originalProfile);
-    setHasChanges(false);
     setValidationErrors({});
     toast.info("Changes discarded");
   };

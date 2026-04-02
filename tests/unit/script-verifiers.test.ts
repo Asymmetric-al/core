@@ -67,6 +67,12 @@ async function createWorkspaceContractRepo() {
   return tempRoot;
 }
 
+async function createDataBoundaryRepo() {
+  const tempRoot = await createTempRepo("data-boundary");
+  await copyScript(tempRoot, "scripts/verify/data-boundary-check.mjs");
+  return tempRoot;
+}
+
 async function createSkillsVerifyRepo() {
   const tempRoot = await createTempRepo("skills-verify");
   await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
@@ -146,4 +152,46 @@ describe("verify-skills-sync", () => {
       runNodeScript(tempRoot, "scripts/verify-skills-sync.mjs"),
     ).toThrow(/Skill mirror drift detected/);
   }, 20_000);
+});
+
+describe("data-boundary-check", () => {
+  it("ignores the approved health route exception", async () => {
+    const tempRoot = await createDataBoundaryRepo();
+    const routePath = path.join(tempRoot, "apps/demo/app/api/health/route.ts");
+    await mkdir(path.dirname(routePath), { recursive: true });
+    await writeFile(
+      routePath,
+      [
+        'import { createClient } from "@asym/database/supabase/server";',
+        "",
+        "export async function GET() {",
+        "  return Response.json({ ok: true });",
+        "}",
+      ].join("\n"),
+    );
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/verify/data-boundary-check.mjs"),
+    ).not.toThrow();
+  });
+
+  it("fails on direct Supabase imports in app route handlers", async () => {
+    const tempRoot = await createDataBoundaryRepo();
+    const routePath = path.join(tempRoot, "apps/demo/app/api/users/route.ts");
+    await mkdir(path.dirname(routePath), { recursive: true });
+    await writeFile(
+      routePath,
+      [
+        'import { createClient } from "@asym/database/supabase/server";',
+        "",
+        "export async function GET() {",
+        "  return Response.json({ ok: true });",
+        "}",
+      ].join("\n"),
+    );
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/verify/data-boundary-check.mjs"),
+    ).toThrow(/Data access boundary violations detected/);
+  });
 });

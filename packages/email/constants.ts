@@ -98,6 +98,8 @@ export const DELIVERABILITY_HELP_URLS = {
   SENDER_VERIFICATION: "https://resend.com/docs/dashboard/domains/introduction",
   DOMAIN_AUTHENTICATION:
     "https://resend.com/docs/dashboard/domains/introduction",
+  DOMAIN_MISMATCH:
+    "https://resend.com/docs/knowledge-base/403-error-domain-mismatch",
   WEBHOOKS: "https://resend.com/docs/dashboard/webhooks/introduction",
   INBOUND: "https://resend.com/docs/dashboard/emails/receiving-emails",
   DMARC: "https://resend.com/docs/knowledge-base/what-is-dmarc",

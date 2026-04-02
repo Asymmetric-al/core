@@ -23,6 +23,10 @@ import { cn } from "@asym/ui/lib/utils";
 
 import { Button } from "./button";
 import { ImageCropper } from "./image-cropper";
+import {
+  composeEventHandlers,
+  isKeyboardClickKey,
+} from "./image-upload-helpers";
 
 const passthroughImageLoader: ImageLoader = ({ src }) => src;
 
@@ -37,6 +41,7 @@ export interface ImageUploadProps {
   children?: React.ReactNode;
   disabled?: boolean;
   useBackendProcessing?: boolean;
+  triggerAriaLabel?: string;
 }
 
 export interface ImageUploadChildProps {
@@ -68,6 +73,7 @@ function ImageUploadCustomTrigger({
   disabled,
   isUploading,
   openFilePicker,
+  triggerAriaLabel,
 }: {
   children: React.ReactNode;
   isInteractive: boolean;
@@ -75,28 +81,83 @@ function ImageUploadCustomTrigger({
   disabled: boolean;
   isUploading: boolean;
   openFilePicker: () => void;
+  triggerAriaLabel?: string;
 }) {
+  const content = resolveImageUploadChildren(children, {
+    isUploading,
+    openFilePicker,
+  });
+  const sharedClassName = cn(
+    "cursor-pointer",
+    isDragging && "ring-2 ring-zinc-400 ring-offset-2 rounded-lg",
+    (disabled || isUploading) && "cursor-not-allowed opacity-50",
+  );
+  const isSingleElement = React.isValidElement(content);
+  const elementType = isSingleElement ? content.type : null;
+  const isButtonLike =
+    (typeof elementType === "string" && elementType === "button") ||
+    elementType === Button;
+
+  if (isSingleElement) {
+    const element = content as React.ReactElement<{
+      className?: string;
+      onClick?: React.MouseEventHandler;
+      onKeyDown?: React.KeyboardEventHandler;
+      role?: string;
+      tabIndex?: number;
+      disabled?: boolean;
+      "aria-disabled"?: boolean;
+      "aria-label"?: string;
+    }>;
+
+    return React.cloneElement(element, {
+      onClick: composeEventHandlers(
+        element.props.onClick,
+        isInteractive
+          ? () => {
+              openFilePicker();
+            }
+          : undefined,
+      ),
+      onKeyDown: isButtonLike
+        ? element.props.onKeyDown
+        : composeEventHandlers(
+            element.props.onKeyDown,
+            (e: React.KeyboardEvent) => {
+              if (!isInteractive || !isKeyboardClickKey(e.key)) {
+                return;
+              }
+
+              e.preventDefault();
+              openFilePicker();
+            },
+          ),
+      role: isButtonLike
+        ? element.props.role
+        : (element.props.role ?? "button"),
+      tabIndex: isButtonLike
+        ? element.props.tabIndex
+        : (element.props.tabIndex ?? (isInteractive ? 0 : -1)),
+      "aria-disabled": isInteractive ? undefined : true,
+      "aria-label": isButtonLike ? undefined : triggerAriaLabel,
+      disabled: isButtonLike ? !isInteractive : undefined,
+      className: cn(element.props.className, sharedClassName),
+    });
+  }
+
   return (
-    <div
+    <button
+      type="button"
       onClick={isInteractive ? openFilePicker : undefined}
-      onKeyDown={(e) => {
-        if (!isInteractive) return;
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          openFilePicker();
-        }
-      }}
-      role="button"
-      tabIndex={isInteractive ? 0 : -1}
-      aria-disabled={!isInteractive}
+      disabled={!isInteractive}
+      aria-label={triggerAriaLabel}
       className={cn(
-        "cursor-pointer",
-        isDragging && "ring-2 ring-zinc-400 ring-offset-2 rounded-lg",
-        (disabled || isUploading) && "cursor-not-allowed opacity-50",
+        "border-0 bg-transparent p-0 text-inherit",
+        sharedClassName,
       )}
     >
-      {resolveImageUploadChildren(children, { isUploading, openFilePicker })}
-    </div>
+      {content}
+    </button>
   );
 }
 
@@ -233,6 +294,7 @@ export function ImageUpload({
   children,
   disabled = false,
   useBackendProcessing = true,
+  triggerAriaLabel = "Upload image",
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -443,6 +505,7 @@ export function ImageUpload({
           disabled={disabled}
           isUploading={isUploading}
           openFilePicker={openFilePicker}
+          triggerAriaLabel={triggerAriaLabel}
         >
           {children}
         </ImageUploadCustomTrigger>

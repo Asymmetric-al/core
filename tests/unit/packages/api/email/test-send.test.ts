@@ -5,6 +5,7 @@ const {
   getAuthContextMock,
   requireRoleMock,
   sendTestEmailMock,
+  validateResendApiKeyMock,
   readTenantEmailSettingsMock,
   decryptResendApiKeyMock,
   getAdminClientMock,
@@ -18,6 +19,7 @@ const {
     getAuthContextMock: vi.fn(),
     requireRoleMock: vi.fn(),
     sendTestEmailMock: vi.fn(),
+    validateResendApiKeyMock: vi.fn(),
     readTenantEmailSettingsMock: vi.fn(),
     decryptResendApiKeyMock: vi.fn(),
     getAdminClientMock: vi.fn(),
@@ -47,10 +49,12 @@ vi.mock("@asym/email", () => ({
     INVALID_EMAIL: "invalid_email",
     VALIDATION_ERROR: "validation_error",
     INVALID_API_KEY: "invalid_api_key",
+    DOMAIN_NOT_AUTHENTICATED: "domain_not_authenticated",
     SENDER_NOT_VERIFIED: "sender_not_verified",
     SERVER_ERROR: "server_error",
   },
   sendTestEmail: sendTestEmailMock,
+  validateResendApiKey: validateResendApiKeyMock,
 }));
 
 vi.mock("@asym/database/supabase/admin", () => ({
@@ -80,11 +84,16 @@ function createPostRequest(body: unknown): NextRequest {
 describe("api/email/test-send", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.spyOn(globalThis.crypto, "randomUUID").mockReturnValue("uuid-1234");
     getAuthContextMock.mockResolvedValue({
       tenantId: "tenant_1",
       role: "admin",
     });
     requireRoleMock.mockReturnValue(undefined);
+    validateResendApiKeyMock.mockResolvedValue({
+      valid: true,
+      warnings: [],
+    });
     getAdminClientMock.mockReturnValue({
       client: { from: fromMock },
       error: null,
@@ -114,13 +123,22 @@ describe("api/email/test-send", () => {
 
     expect(response.status).toBe(200);
     expect(body.success).toBe(true);
+    const expectedIdempotencyKey = "test-send/tenant_1/uuid-1234";
     expect(sendTestEmailMock).toHaveBeenCalledWith(
       "re_stored_key",
       "recipient@example.com",
       "stored-from@example.com",
       "Stored Sender",
+      expect.objectContaining({
+        idempotencyKey: expectedIdempotencyKey,
+      }),
     );
     expect(insertMock).toHaveBeenCalledTimes(1);
+    expect(insertMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        idempotency_key: expectedIdempotencyKey,
+      }),
+    );
   });
 
   it("returns 400 when no API key is available", async () => {
@@ -165,6 +183,116 @@ describe("api/email/test-send", () => {
       "recipient@example.com",
       "session-from@example.com",
       "Session Sender",
+      expect.objectContaining({
+        idempotencyKey: "test-send/tenant_1/uuid-1234",
+      }),
     );
+  });
+
+  it("reuses the same idempotency key for the provider send and audit log write", async () => {
+    readTenantEmailSettingsMock.mockResolvedValueOnce({
+      resend_api_key_encrypted: "encrypted",
+      default_from_email: "stored-from@example.com",
+      default_from_name: "Stored Sender",
+    });
+    decryptResendApiKeyMock.mockReturnValueOnce("re_stored_key");
+    sendTestEmailMock.mockResolvedValueOnce({
+      success: true,
+      messageId: "msg_1",
+      correlationId: "corr_1",
+      recipientCount: 1,
+    });
+
+    await POST(
+      createPostRequest({
+        toEmail: "recipient@example.com",
+      }),
+    );
+
+    const sendIdempotencyKey =
+      sendTestEmailMock.mock.calls[0]?.[4]?.idempotencyKey;
+    const loggedIdempotencyKey = insertMock.mock.calls[0]?.[0]?.idempotency_key;
+
+    expect(sendIdempotencyKey).toBe("test-send/tenant_1/uuid-1234");
+    expect(loggedIdempotencyKey).toBe(sendIdempotencyKey);
+  });
+
+  it("surfaces audit-log persistence failures without turning a delivered email into a hard failure", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    try {
+      readTenantEmailSettingsMock.mockResolvedValueOnce({
+        resend_api_key_encrypted: "encrypted",
+        default_from_email: "stored-from@example.com",
+        default_from_name: "Stored Sender",
+      });
+      decryptResendApiKeyMock.mockReturnValueOnce("re_stored_key");
+      sendTestEmailMock.mockResolvedValueOnce({
+        success: true,
+        messageId: "msg_1",
+        correlationId: "corr_1",
+        recipientCount: 1,
+      });
+      insertMock.mockResolvedValueOnce({
+        data: null,
+        error: { message: "insert failed" },
+      });
+
+      const response = await POST(
+        createPostRequest({
+          toEmail: "recipient@example.com",
+        }),
+      );
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.success).toBe(true);
+      expect(body.auditLogged).toBe(false);
+      expect(body.warning).toContain("audit");
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "Failed to persist Resend test email audit log",
+        expect.objectContaining({
+          tenantId: "tenant_1",
+          correlationId: "corr_1",
+          idempotencyKey: "test-send/tenant_1/uuid-1234",
+          message: "insert failed",
+        }),
+      );
+    } finally {
+      consoleErrorSpy.mockRestore();
+    }
+  });
+
+  it("blocks test sends when the from address is not on a verified Resend domain", async () => {
+    readTenantEmailSettingsMock.mockRejectedValueOnce(
+      tenantEmailSettingsStorageUnavailableError,
+    );
+    validateResendApiKeyMock.mockResolvedValueOnce({
+      valid: true,
+      warnings: [
+        {
+          code: "DEFAULT_FROM_EMAIL_DOMAIN_NOT_VERIFIED",
+          severity: "error",
+          message:
+            "conrad@globalfellowship.org does not use one of your exact verified Resend domains.",
+        },
+      ],
+    });
+
+    const response = await POST(
+      createPostRequest({
+        apiKey: "re_session_key",
+        toEmail: "recipient@example.com",
+        fromEmail: "conrad@globalfellowship.org",
+        fromName: "Session Sender",
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(422);
+    expect(body.code).toBe("domain_not_authenticated");
+    expect(body.error).toContain("exact verified Resend domains");
+    expect(sendTestEmailMock).not.toHaveBeenCalled();
   });
 });

@@ -1,8 +1,8 @@
 import "@asym/env";
+import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
 import { siteConfig } from "@asym/config/site";
 import { QueryProvider } from "@asym/database/providers";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
-import { createClient } from "@asym/database/supabase/server";
 import { MotionProvider } from "@asym/lib/motion";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { Inter, Geist_Mono, Syne } from "next/font/google";
@@ -13,6 +13,7 @@ import { Suspense } from "react";
 
 import type { Metadata, Viewport } from "next";
 
+import { MISSIONARY_ALLOWED_ROLES } from "@/app/access";
 import { AppShell } from "@/components/app-shell";
 import { ThemeProvider } from "@/lib/theme-provider";
 import "./globals.css";
@@ -55,12 +56,6 @@ function getSupabaseOrigin() {
 
 const supabaseOrigin = getSupabaseOrigin();
 
-const MISSIONARY_ALLOWED_ROLES = new Set([
-  "missionary",
-  "admin",
-  "staff",
-  "super_admin",
-]);
 const MISSIONARY_PUBLIC_PATH_PREFIXES = [
   "/login",
   "/register",
@@ -84,22 +79,13 @@ async function MissionaryRoleGate({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const authContext = await getAuthContext();
 
-  if (!user) {
+  if (!authContext.isAuthenticated) {
     redirect(`/login?next=${encodeURIComponent(pathname)}`);
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (!profile?.role || !MISSIONARY_ALLOWED_ROLES.has(profile.role)) {
+  if (!hasAnyContextRole(authContext, [...MISSIONARY_ALLOWED_ROLES])) {
     redirect("/no-access");
   }
 
@@ -152,12 +138,6 @@ export default function RootLayout({
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
-
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <link rel="manifest" href="/manifest.webmanifest" />
-        <meta name="theme-color" content="#ffffff" />
       </head>
       <body
         className={`${inter.variable} ${geistMono.variable} ${syne.variable} font-sans antialiased`}

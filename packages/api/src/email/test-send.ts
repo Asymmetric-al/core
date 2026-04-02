@@ -4,7 +4,12 @@ import {
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
-import { RESEND_ERROR_CODES, sendTestEmail } from "@asym/email";
+import {
+  RESEND_ERROR_CODES,
+  sendTestEmail,
+  type TestSendEmailResponse,
+  validateResendApiKey,
+} from "@asym/email";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -47,6 +52,7 @@ function statusFromErrorCode(errorCode?: string): number {
     case RESEND_ERROR_CODES.VALIDATION_ERROR:
     case RESEND_ERROR_CODES.INVALID_API_KEY:
       return 400;
+    case RESEND_ERROR_CODES.DOMAIN_NOT_AUTHENTICATED:
     case RESEND_ERROR_CODES.SENDER_NOT_VERIFIED:
       return 422;
     case RESEND_ERROR_CODES.SERVER_ERROR:
@@ -54,6 +60,18 @@ function statusFromErrorCode(errorCode?: string): number {
     default:
       return 500;
   }
+}
+
+function getBlockingWarning(
+  warnings:
+    | Array<{
+        code: string;
+        message: string;
+        severity: "info" | "warning" | "error";
+      }>
+    | undefined,
+) {
+  return warnings?.find((warning) => warning.severity === "error");
 }
 
 export async function POST(request: NextRequest) {
@@ -102,34 +120,90 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const validation = await validateResendApiKey(resolvedApiKey, {
+      defaultFromEmail: resolvedFromEmail,
+    });
+
+    if (!validation.valid) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: validation.error ?? "Failed to validate Resend API key",
+          code: validation.errorCode,
+        },
+        { status: statusFromErrorCode(validation.errorCode) },
+      );
+    }
+
+    const blockingWarning = getBlockingWarning(validation.warnings);
+    if (blockingWarning) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: blockingWarning.message,
+          code: RESEND_ERROR_CODES.DOMAIN_NOT_AUTHENTICATED,
+        },
+        { status: 422 },
+      );
+    }
+
+    const idempotencyKey = `test-send/${ctx.tenantId}/${crypto.randomUUID()}`;
     const result = await sendTestEmail(
       resolvedApiKey,
       body.toEmail,
       resolvedFromEmail,
       resolvedFromName,
+      { idempotencyKey },
     );
-    const idempotencyKey = `test-send/${ctx.tenantId}/${Date.now()}`;
     const { client: supabaseAdmin } = getAdminClient();
+    let auditLogged = true;
+    let auditLogWarning: string | undefined;
+
     if (supabaseAdmin) {
-      await supabaseAdmin.from("email_send_logs").insert({
-        tenant_id: ctx.tenantId,
-        idempotency_key: idempotencyKey,
-        correlation_id: result.correlationId,
-        status: result.success ? "sent" : "failed",
-        resend_message_id: result.messageId ?? null,
-        recipient_count: 1,
-        message_type: "transactional",
-        requested_at: new Date().toISOString(),
-        sent_at: result.success ? new Date().toISOString() : null,
-        error_code: result.errors?.[0]?.code ?? null,
-        error_message: result.errors?.[0]?.message ?? null,
-        retry_count: 0,
-        metadata: {
-          toEmail: body.toEmail,
-          fromEmail: resolvedFromEmail,
-          fromName: resolvedFromName,
-          source: "admin_test_send",
-        },
+      const { error: auditLogError } = await supabaseAdmin
+        .from("email_send_logs")
+        .insert({
+          tenant_id: ctx.tenantId,
+          idempotency_key: idempotencyKey,
+          correlation_id: result.correlationId,
+          status: result.success ? "sent" : "failed",
+          resend_message_id: result.messageId ?? null,
+          recipient_count: 1,
+          message_type: "transactional",
+          requested_at: new Date().toISOString(),
+          sent_at: result.success ? new Date().toISOString() : null,
+          error_code: result.errors?.[0]?.code ?? null,
+          error_message: result.errors?.[0]?.message ?? null,
+          retry_count: 0,
+          metadata: {
+            toEmail: body.toEmail,
+            fromEmail: resolvedFromEmail,
+            fromName: resolvedFromName,
+            source: "admin_test_send",
+          },
+        });
+
+      if (auditLogError) {
+        auditLogged = false;
+        auditLogWarning =
+          "The test email was sent, but the audit log could not be saved. Check server logs before relying on audit history.";
+        console.error("Failed to persist Resend test email audit log", {
+          tenantId: ctx.tenantId,
+          correlationId: result.correlationId,
+          idempotencyKey,
+          code: auditLogError.code,
+          message: auditLogError.message,
+        });
+      }
+    } else {
+      auditLogged = false;
+      auditLogWarning =
+        "The test email was sent, but audit logging is unavailable in this environment.";
+      console.error("Failed to persist Resend test email audit log", {
+        tenantId: ctx.tenantId,
+        correlationId: result.correlationId,
+        idempotencyKey,
+        message: "Admin client unavailable",
       });
     }
 
@@ -141,7 +215,9 @@ export async function POST(request: NextRequest) {
           error: firstError?.message ?? "Failed to send test email",
           code: firstError?.code,
           correlationId: result.correlationId,
-        },
+          auditLogged,
+          warning: auditLogWarning,
+        } satisfies TestSendEmailResponse,
         { status: statusFromErrorCode(firstError?.code) },
       );
     }
@@ -151,7 +227,9 @@ export async function POST(request: NextRequest) {
         success: true,
         messageId: result.messageId,
         correlationId: result.correlationId,
-      },
+        auditLogged,
+        warning: auditLogWarning,
+      } satisfies TestSendEmailResponse,
       { status: 200 },
     );
   } catch (error) {

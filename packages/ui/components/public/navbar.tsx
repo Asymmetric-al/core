@@ -44,6 +44,7 @@ function DesktopNav({ isScrolled }: { isScrolled: boolean }) {
       ))}
       <Button
         asChild
+        variant="ghost"
         className={`rounded-full px-5 lg:px-6 font-bold uppercase tracking-widest text-[10px] h-10 shadow-lg ${isScrolled ? "bg-slate-900 text-white" : "bg-white text-slate-900 hover:bg-slate-100"}`}
       >
         <Link href={siteConfig.nav.cta.href}>{siteConfig.nav.cta.label}</Link>

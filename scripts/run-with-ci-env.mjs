@@ -1,4 +1,6 @@
 import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
+import path from "node:path";
 
 const DEFAULT_ENV = {
   ASYM_USE_CI_ENV_DEFAULTS: "1",
@@ -17,7 +19,22 @@ function getCommandParts() {
   return args;
 }
 
+function loadLocalEnvFiles() {
+  const repoRoot = process.cwd();
+  const envCandidates = [".env.local", ".env"];
+
+  for (const relativePath of envCandidates) {
+    const absolutePath = path.join(repoRoot, relativePath);
+    if (!existsSync(absolutePath)) {
+      continue;
+    }
+
+    process.loadEnvFile(absolutePath);
+  }
+}
+
 function getEnv() {
+  loadLocalEnvFiles();
   const env = { ...process.env };
   for (const [key, value] of Object.entries(DEFAULT_ENV)) {
     if (!env[key]) {

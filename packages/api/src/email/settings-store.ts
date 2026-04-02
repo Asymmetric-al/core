@@ -1,4 +1,5 @@
 import { getAdminClient } from "@asym/database/supabase/admin";
+import { type ResendValidationSnapshot } from "@asym/email/types";
 
 import { ApiHttpError } from "../shared/http-errors";
 
@@ -8,6 +9,7 @@ export interface TenantEmailSettingsRow {
   id: string;
   tenant_id: string;
   is_connected: boolean;
+  connection_verified_at: string | null;
   default_from_email: string | null;
   default_from_name: string | null;
   reply_to_email: string | null;
@@ -18,6 +20,7 @@ export interface TenantEmailSettingsRow {
   spf_verified: boolean;
   deliverability_score: number | null;
   webhook_url: string | null;
+  validation_snapshot: ResendValidationSnapshot | null;
   updated_at: string;
 }
 
@@ -89,6 +92,7 @@ export async function readTenantEmailSettings(
         "id",
         "tenant_id",
         "is_connected",
+        "connection_verified_at",
         "default_from_email",
         "default_from_name",
         "reply_to_email",
@@ -99,6 +103,7 @@ export async function readTenantEmailSettings(
         "spf_verified",
         "deliverability_score",
         "webhook_url",
+        "validation_snapshot",
         "updated_at",
       ].join(", "),
     )
@@ -127,6 +132,7 @@ interface UpsertTenantEmailSettingsInput {
   dkimVerified: boolean;
   spfVerified: boolean;
   deliverabilityScore: number;
+  validationSnapshot: ResendValidationSnapshot;
   webhookUrl?: string | null;
 }
 
@@ -152,6 +158,7 @@ export async function upsertTenantEmailSettings(
         spf_verified: input.spfVerified,
         deliverability_score: input.deliverabilityScore,
         webhook_url: input.webhookUrl ?? null,
+        validation_snapshot: input.validationSnapshot,
         updated_at: new Date().toISOString(),
       },
       {
@@ -163,6 +170,7 @@ export async function upsertTenantEmailSettings(
         "id",
         "tenant_id",
         "is_connected",
+        "connection_verified_at",
         "default_from_email",
         "default_from_name",
         "reply_to_email",
@@ -173,6 +181,7 @@ export async function upsertTenantEmailSettings(
         "spf_verified",
         "deliverability_score",
         "webhook_url",
+        "validation_snapshot",
         "updated_at",
       ].join(", "),
     )
@@ -205,6 +214,7 @@ export async function disconnectTenantEmailSettings(
       dkim_verified: false,
       spf_verified: false,
       deliverability_score: null,
+      validation_snapshot: null,
       updated_at: new Date().toISOString(),
     })
     .eq("tenant_id", tenantId)
@@ -213,6 +223,7 @@ export async function disconnectTenantEmailSettings(
         "id",
         "tenant_id",
         "is_connected",
+        "connection_verified_at",
         "default_from_email",
         "default_from_name",
         "reply_to_email",
@@ -223,6 +234,7 @@ export async function disconnectTenantEmailSettings(
         "spf_verified",
         "deliverability_score",
         "webhook_url",
+        "validation_snapshot",
         "updated_at",
       ].join(", "),
     )
