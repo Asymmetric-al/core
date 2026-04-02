@@ -1,4 +1,5 @@
 import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
+import { getProtectedAppRedirectPath } from "@asym/auth/redirects";
 import { Footer } from "@asym/ui/components/public/footer";
 import { Navbar } from "@asym/ui/components/public/navbar";
 import { redirect } from "next/navigation";
@@ -26,16 +27,13 @@ export default async function DonorDashboardLayout({
   children: React.ReactNode;
 }) {
   const authContext = await getAuthContext();
+  const authRedirectPath = getProtectedAppRedirectPath(
+    authContext,
+    "/login?next=/donor-dashboard",
+  );
 
-  if (authContext.userId == null) {
-    redirect("/login?next=/donor-dashboard");
-  }
-
-  // A non-null userId with isAuthenticated=false means the Supabase session
-  // exists but the profile/membership context is missing or unusable. Treat
-  // that as forbidden, not logged out, so support paths do not bounce to login.
-  if (!authContext.isAuthenticated) {
-    redirect("/no-access");
+  if (authRedirectPath) {
+    redirect(authRedirectPath);
   }
 
   if (!hasAnyContextRole(authContext, [...DONOR_ALLOWED_ROLES])) {

@@ -1,5 +1,33 @@
 # Working Set
 
+## 2026-04-02 (PR #144 follow-up: hydration-safe Resend label + auth invariant tests)
+
+- Date: 2026-04-02
+- Repo: Asymmetric-al/core
+- Goal: Remove the App Router hydration risk in the Resend `validatedAt` label and add direct regression coverage for the “session exists but profile is unusable” redirect invariant without changing auth or Resend route semantics.
+- Primary area:
+  - `apps/admin/app/settings/integrations/resend/{resend-sections,validated-at}.ts*`
+  - `packages/auth/{redirects,index,package}.ts`
+  - `apps/donor/app/(dashboard)/donor-dashboard/layout.tsx`
+  - `apps/missionary/app/layout.tsx`
+  - `tests/unit/{apps/admin/resend-validated-at,auth/redirects}.test.ts`
+- Constraints:
+  - Keep `validatedAt` payloads unchanged and make the first render deterministic across server/client environments.
+  - Preserve the current redirect URLs and public-path handling; only centralize the duplicated “login vs. no-access” split.
+  - Avoid brittle Next runtime mocking; prefer pure helper coverage for the auth invariant.
+  - Keep diffs surgical and avoid touching unrelated worktree changes.
+- Evidence sources used:
+  - `.next-docs/01-app/01-getting-started/05-server-and-client-components.mdx`
+  - `docs/ai/rules/testing.md`
+  - `apps/admin/app/settings/integrations/resend/resend-sections.tsx`
+  - `apps/donor/app/(dashboard)/donor-dashboard/layout.tsx`
+  - `apps/missionary/app/layout.tsx`
+  - `packages/auth/context.ts`
+- Notes:
+  - Nia is not available in this session, so repo-scoped direct file reads and targeted verification are being used instead.
+  - The Resend label should prefer a deterministic UTC display over locale-sensitive formatting during initial render.
+  - The auth invariant already exists in `getAuthContext`; this follow-up only centralizes and tests the redirect decision.
+
 ## 2026-04-02 (PR #144 follow-up: auth redirect split + smoke restoration)
 
 - Date: 2026-04-02

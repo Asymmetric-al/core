@@ -48,6 +48,8 @@ import {
   XCircle,
 } from "lucide-react";
 
+import { formatValidatedAtUtcLabel } from "./validated-at";
+
 import type {
   ResendConnectFormApi,
   ResendTestFormApi,
@@ -107,22 +109,6 @@ function warningClassName(severity: DeliverabilityWarning["severity"]): string {
   if (severity === "warning")
     return "border-amber-200 bg-amber-50 text-amber-900";
   return "border-blue-200 bg-blue-50 text-blue-900";
-}
-
-function formatValidatedAt(validatedAt?: string): string | null {
-  if (!validatedAt) {
-    return null;
-  }
-
-  const date = new Date(validatedAt);
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
 }
 
 function getRenderableErrors(field: {
@@ -200,7 +186,7 @@ export function ResendConnectedView({
   const authenticatedDomains = connection.domainAuthentication.filter(
     (domain) => domain.valid,
   ).length;
-  const validatedAtLabel = formatValidatedAt(connection.validatedAt);
+  const validatedAtLabel = formatValidatedAtUtcLabel(connection.validatedAt);
 
   return (
     <div className="space-y-6">
@@ -212,9 +198,12 @@ export function ResendConnectedView({
               <CardDescription>
                 API Key: ********{connection.apiKeyHint ?? "----"}
               </CardDescription>
-              {validatedAtLabel ? (
+              {validatedAtLabel && connection.validatedAt ? (
                 <p className="mt-1 text-xs text-slate-500">
-                  Last verified {validatedAtLabel}
+                  Last verified{" "}
+                  <time dateTime={connection.validatedAt}>
+                    {validatedAtLabel}
+                  </time>
                 </p>
               ) : null}
             </div>

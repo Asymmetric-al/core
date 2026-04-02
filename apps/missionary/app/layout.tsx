@@ -1,5 +1,6 @@
 import "@asym/env";
 import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
+import { getProtectedAppRedirectPath } from "@asym/auth/redirects";
 import { siteConfig } from "@asym/config/site";
 import { QueryProvider } from "@asym/database/providers";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
@@ -80,16 +81,13 @@ async function MissionaryRoleGate({ children }: { children: React.ReactNode }) {
   }
 
   const authContext = await getAuthContext();
+  const authRedirectPath = getProtectedAppRedirectPath(
+    authContext,
+    `/login?next=${encodeURIComponent(pathname)}`,
+  );
 
-  if (authContext.userId == null) {
-    redirect(`/login?next=${encodeURIComponent(pathname)}`);
-  }
-
-  // A non-null userId with isAuthenticated=false means the Supabase session
-  // exists but the missionary auth profile context could not be built. Keep
-  // that on the forbidden path instead of sending the user back to login.
-  if (!authContext.isAuthenticated) {
-    redirect("/no-access");
+  if (authRedirectPath) {
+    redirect(authRedirectPath);
   }
 
   if (!hasAnyContextRole(authContext, [...MISSIONARY_ALLOWED_ROLES])) {
