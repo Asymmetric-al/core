@@ -1,7 +1,6 @@
 import {
   getAuthContext,
   requireAuth,
-  requireRole,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
@@ -13,6 +12,7 @@ import { processDonationSagaOutboxEvent } from "./saga";
 import { donateGetQuerySchema, donatePostSchema } from "../schemas/donate";
 import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
 import { findDonorByProfileId } from "../shared/queries";
+import { withOperation } from "../shared/with-operation";
 
 function getStripeClient(secretKey: string): Stripe {
   return new Stripe(secretKey, { apiVersion: "2025-02-24.acacia" });
@@ -29,15 +29,8 @@ function parseRpcObject<T extends Record<string, unknown>>(
   return typeof value === "object" ? (value as T) : null;
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
-    }
-
-    const auth = await getAuthContext();
-    requireRole(auth, ["donor", "admin", "staff", "super_admin"]);
+export const POST = withOperation(
+  async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
 
     const { amount, currency, missionary_id, fund_id } = donatePostSchema.parse(
@@ -151,11 +144,9 @@ export async function POST(request: NextRequest) {
         tenant.stripe_publishable_key ??
         process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     });
-  } catch (e) {
-    console.error("Donation error:", e);
-    return toErrorResponse(e);
-  }
-}
+  },
+  { roles: ["donor", "admin", "staff", "super_admin"] },
+);
 
 export async function GET(request: NextRequest) {
   try {

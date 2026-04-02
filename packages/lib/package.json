@@ -32,6 +32,7 @@
     "./hooks/use-tasks": "./hooks/use-tasks.ts",
     "./hooks/use-email-studio": "./hooks/use-email-studio.ts",
     "./mission-control/context": "./mission-control/context.tsx",
+    "./mission-control/bootstrap": "./mission-control/bootstrap.ts",
     "./mission-control/tiles": "./mission-control/tiles.ts",
     "./mission-control/nav": "./mission-control/nav.ts",
     "./mission-control/roles": "./mission-control/roles.ts",

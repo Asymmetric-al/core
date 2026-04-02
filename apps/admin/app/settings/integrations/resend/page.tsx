@@ -20,11 +20,14 @@ import type {
   SenderIdentity,
 } from "@asym/email/types";
 
+import { fetchWithSupabaseAuth } from "@/lib/authenticated-fetch";
+
 type ConnectionStatus = "disconnected" | "connecting" | "connected" | "error";
 type TestEmailStatus = "idle" | "sending" | "success" | "error";
 
 interface ConnectionState {
   status: ConnectionStatus;
+  persisted: boolean;
   apiKeyHint?: string;
   senderIdentities: SenderIdentity[];
   domainAuthentication: DomainAuthentication[];
@@ -40,6 +43,7 @@ export default function ResendSettingsPage() {
   const [testError, setTestError] = useState<string | null>(null);
   const [connection, setConnection] = useState<ConnectionState>({
     status: "disconnected",
+    persisted: true,
     senderIdentities: [],
     domainAuthentication: [],
     deliverabilityScore: 0,
@@ -56,7 +60,7 @@ export default function ResendSettingsPage() {
       }));
 
       try {
-        const response = await fetch("/api/email/connect", {
+        const response = await fetchWithSupabaseAuth("/api/email/connect", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(toResendConnectPayload(value)),
@@ -79,6 +83,7 @@ export default function ResendSettingsPage() {
 
         setConnection({
           status: "connected",
+          persisted: data.persisted ?? true,
           apiKeyHint: data.apiKeyHint ?? value.apiKey.slice(-4),
           senderIdentities: data.senderIdentities || [],
           domainAuthentication: data.domainAuthentication || [],
@@ -86,16 +91,23 @@ export default function ResendSettingsPage() {
           warnings: data.warnings || [],
         });
 
-        connectForm.reset({
-          apiKey: "",
-          fromEmail: value.fromEmail,
-          fromName: value.fromName,
-          replyToEmail: value.replyToEmail,
-        });
+        if (data.persisted ?? true) {
+          connectForm.reset({
+            apiKey: "",
+            fromEmail: value.fromEmail,
+            fromName: value.fromName,
+            replyToEmail: value.replyToEmail,
+          });
 
-        toast.success("Resend connected!", {
-          description: "Your API key has been validated successfully",
-        });
+          toast.success("Resend connected!", {
+            description: "Your API key has been validated successfully",
+          });
+        } else {
+          toast.warning("Resend validated for this session", {
+            description:
+              "This environment cannot persist the connection yet, so the key remains available only until refresh.",
+          });
+        }
       } catch {
         setConnection((prev) => ({
           ...prev,
@@ -113,7 +125,7 @@ export default function ResendSettingsPage() {
       setTestError(null);
 
       try {
-        const response = await fetch("/api/email/test-send", {
+        const response = await fetchWithSupabaseAuth("/api/email/test-send", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -152,7 +164,7 @@ export default function ResendSettingsPage() {
 
     async function hydrateConnectionState() {
       try {
-        const response = await fetch("/api/email/connect", {
+        const response = await fetchWithSupabaseAuth("/api/email/connect", {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         });
@@ -185,16 +197,19 @@ export default function ResendSettingsPage() {
         if (!data.connected) {
           setConnection({
             status: "disconnected",
+            persisted: data.persisted ?? true,
             senderIdentities: [],
             domainAuthentication: [],
             deliverabilityScore: 0,
-            warnings: [],
+            warnings: data.warnings || [],
+            error: data.error,
           });
           return;
         }
 
         setConnection({
           status: "connected",
+          persisted: data.persisted ?? true,
           apiKeyHint: data.apiKeyHint ?? undefined,
           senderIdentities: data.senderIdentities || [],
           domainAuthentication: data.domainAuthentication || [],
@@ -228,13 +243,14 @@ export default function ResendSettingsPage() {
 
   const handleDisconnect = async () => {
     try {
-      const response = await fetch("/api/email/connect", {
+      const response = await fetchWithSupabaseAuth("/api/email/connect", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
       });
       const data = (await response.json()) as {
         success?: boolean;
         error?: string;
+        persisted?: boolean;
       };
 
       if (!response.ok || !data.success) {
@@ -246,6 +262,7 @@ export default function ResendSettingsPage() {
 
       setConnection({
         status: "disconnected",
+        persisted: data.persisted ?? connection.persisted,
         senderIdentities: [],
         domainAuthentication: [],
         deliverabilityScore: 0,
@@ -292,6 +309,7 @@ export default function ResendSettingsPage() {
         />
       ) : (
         <ResendDisconnectedView
+          connectionWarnings={connection.warnings}
           connectionError={connection.error}
           connectionStatus={connection.status}
           form={connectForm}

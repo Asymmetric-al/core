@@ -2,6 +2,8 @@ import { createBrowserClient } from "@asym/database/supabase";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import { fetchWithSupabaseAuth } from "@/lib/authenticated-fetch";
+
 export type LocationType = "missionary" | "project" | "custom";
 export type LocationStatus = "draft" | "published";
 
@@ -21,19 +23,68 @@ export interface Location {
   updated_at: string;
 }
 
+type LinkedMissionary = {
+  id: string;
+  full_name: string | null;
+};
+
+type LinkedEntities = {
+  missionaries: LinkedMissionary[];
+  projects: [];
+};
+
+type AdminLocationsResponse = {
+  locations: Location[];
+  linkedEntities: LinkedEntities;
+};
+
+type LocationMutationPayload = {
+  id?: string;
+  title: string;
+  lat: number;
+  lng: number;
+  type: LocationType;
+  linked_id?: string | null;
+  summary?: string | null;
+  status: LocationStatus;
+};
+
+const adminLocationsQueryKey = ["admin", "locations"] as const;
+
+async function parseJsonResponse<T>(response: Response): Promise<T> {
+  const payload = (await response.json().catch(() => null)) as
+    | (T & { error?: string })
+    | null;
+
+  if (!response.ok) {
+    throw new Error(
+      payload?.error || `Request failed with status ${response.status}`,
+    );
+  }
+
+  if (!payload) {
+    throw new Error("Request returned an empty response.");
+  }
+
+  return payload;
+}
+
+async function fetchAdminLocations(): Promise<AdminLocationsResponse> {
+  const response = await fetchWithSupabaseAuth("/api/admin/locations", {
+    cache: "no-store",
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  return parseJsonResponse<AdminLocationsResponse>(response);
+}
+
 export function useLocations() {
   return useQuery({
-    queryKey: ["locations"],
-    queryFn: async () => {
-      const supabase = createBrowserClient();
-      const { data, error } = await supabase
-        .from("locations")
-        .select("*")
-        .order("sort_key", { ascending: true });
-
-      if (error) throw error;
-      return data as Location[];
-    },
+    queryKey: adminLocationsQueryKey,
+    queryFn: fetchAdminLocations,
+    select: (data) => data.locations,
   });
 }
 
@@ -58,19 +109,20 @@ export function useUpsertLocation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (location: Partial<Location>) => {
-      const supabase = createBrowserClient();
-      const { data, error } = await supabase
-        .from("locations")
-        .upsert(location)
-        .select()
-        .single();
+    mutationFn: async (location: LocationMutationPayload) => {
+      const response = await fetchWithSupabaseAuth("/api/admin/locations", {
+        body: JSON.stringify(location),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
 
-      if (error) throw error;
-      return data;
+      const result = await parseJsonResponse<{ location: Location }>(response);
+      return result.location;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["locations"] });
+      queryClient.invalidateQueries({ queryKey: adminLocationsQueryKey });
       toast.success("Location saved successfully");
     },
     onError: (error) => {
@@ -84,13 +136,18 @@ export function useDeleteLocation() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const supabase = createBrowserClient();
-      const { error } = await supabase.from("locations").delete().eq("id", id);
+      const response = await fetchWithSupabaseAuth("/api/admin/locations", {
+        body: JSON.stringify({ id }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "DELETE",
+      });
 
-      if (error) throw error;
+      await parseJsonResponse<{ success: true }>(response);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["locations"] });
+      queryClient.invalidateQueries({ queryKey: adminLocationsQueryKey });
       toast.success("Location deleted successfully");
     },
     onError: (error) => {
@@ -101,20 +158,8 @@ export function useDeleteLocation() {
 
 export function useLinkedEntities() {
   return useQuery({
-    queryKey: ["linked-entities"],
-    queryFn: async () => {
-      const supabase = createBrowserClient();
-      const { data: missionaries, error: mError } = await supabase
-        .from("profiles")
-        .select("id, full_name")
-        .eq("role", "missionary");
-
-      if (mError) throw mError;
-
-      return {
-        missionaries: missionaries || [],
-        projects: [],
-      };
-    },
+    queryKey: adminLocationsQueryKey,
+    queryFn: fetchAdminLocations,
+    select: (data) => data.linkedEntities,
   });
 }

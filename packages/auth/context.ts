@@ -1,5 +1,7 @@
+import { getAdminClient } from "@asym/database/supabase/admin";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { createServerClient } from "@supabase/ssr";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 import {
@@ -48,23 +50,48 @@ export interface AuthenticatedContext extends AuthContext {
   isAuthenticated: true;
 }
 
-export async function getAuthContext(): Promise<AuthContext> {
-  const cookieStore = await cookies();
+function getBearerToken(request?: Request): string | null {
+  const authorizationHeader = request?.headers.get("authorization")?.trim();
+  if (!authorizationHeader) {
+    return null;
+  }
+
+  const [scheme, ...tokenParts] = authorizationHeader.split(" ");
+  if (scheme?.toLowerCase() !== "bearer") {
+    return null;
+  }
+
+  const token = tokenParts.join(" ").trim();
+  return token || null;
+}
+
+async function createAuthContextClient(
+  request?: Request,
+): Promise<SupabaseClient | null> {
   const { url, key } = getSupabasePublicConfig();
 
   if (!url || !key) {
-    return {
-      userId: null,
-      tenantId: null,
-      role: null,
-      profileRole: null,
-      memberships: [],
-      profileId: null,
-      isAuthenticated: false,
-    };
+    return null;
   }
 
-  const supabase = createServerClient(url, key, {
+  const bearerToken = getBearerToken(request);
+  if (bearerToken) {
+    return createClient(url, key, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+      global: {
+        headers: {
+          Authorization: `Bearer ${bearerToken}`,
+        },
+      },
+    });
+  }
+
+  const cookieStore = await cookies();
+
+  return createServerClient(url, key, {
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -84,25 +111,41 @@ export async function getAuthContext(): Promise<AuthContext> {
       },
     },
   });
+}
+
+function createUnauthenticatedContext(): AuthContext {
+  return {
+    userId: null,
+    tenantId: null,
+    role: null,
+    profileRole: null,
+    memberships: [],
+    profileId: null,
+    isAuthenticated: false,
+  };
+}
+
+export async function getAuthContext(request?: Request): Promise<AuthContext> {
+  const bearerToken = getBearerToken(request);
+  const supabase = await createAuthContextClient(request);
+
+  if (!supabase) {
+    return createUnauthenticatedContext();
+  }
 
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser();
+  } = await supabase.auth.getUser(bearerToken ?? undefined);
 
   if (userError || !user) {
-    return {
-      userId: null,
-      tenantId: null,
-      role: null,
-      profileRole: null,
-      memberships: [],
-      profileId: null,
-      isAuthenticated: false,
-    };
+    return createUnauthenticatedContext();
   }
 
-  const { data: profile } = await supabase
+  const adminClient = getAdminClient().client;
+  const profileReader = adminClient ?? supabase;
+
+  const { data: profile } = await profileReader
     .from("profiles")
     .select("id, tenant_id, role")
     .eq("user_id", user.id)
@@ -129,7 +172,7 @@ export async function getAuthContext(): Promise<AuthContext> {
         ? DEFAULT_TENANT_ID
         : null;
   const memberships = await loadMembershipsForTenant(
-    supabase,
+    adminClient ?? supabase,
     user.id,
     tenantId,
   );
@@ -147,7 +190,7 @@ export async function getAuthContext(): Promise<AuthContext> {
 }
 
 async function loadMembershipsForTenant(
-  supabase: ReturnType<typeof createServerClient>,
+  supabase: SupabaseClient,
   userId: string,
   tenantId: string | null,
 ): Promise<AuthMembership[]> {

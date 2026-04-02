@@ -94,10 +94,13 @@ export function toApiHttpError(
 export function toErrorResponse(
   error: unknown,
   fallbackMessage = "Internal error",
+  requestId?: string,
 ) {
   const normalized = toApiHttpError(error, fallbackMessage);
   return NextResponse.json(
-    { error: normalized.message },
+    requestId
+      ? { error: normalized.message, requestId }
+      : { error: normalized.message },
     { status: normalized.status },
   );
 }

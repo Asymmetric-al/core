@@ -34,6 +34,45 @@
   - Added pure unit tests for the shared rich-text helpers and the post-content normalizer under `tests/unit/packages/{ui,api}/...`.
   - Local Bun/Node executables are unavailable in this session, so Vitest/lint/typecheck could not be run here; manual diff review and `git diff --check` were used as the fallback verification pass.
 
+## 2026-04-01 (post-pull epic merge verification)
+
+- Date: 2026-04-01
+- Repo: Asymmetric-al/core
+- Goal: Verify that the current local `epic` state after pulling `origin` still merges and runs cleanly with the previously developed admin auth/locations/Resend compatibility fixes, without downgrading the branch off Next.js 16.2.1.
+- Primary area:
+  - `apps/admin/app/{layout,mc-shell,page,dashboard-stats-loader}.tsx`
+  - `apps/admin/app/settings/integrations/resend/{page,resend-sections}.tsx`
+  - `apps/admin/app/api/admin/locations/route.ts`
+  - `apps/admin/features/mission-control/locations/hooks/use-locations.ts`
+  - `apps/admin/lib/authenticated-fetch.ts`
+  - `packages/{api,auth,email,lib}/**`
+  - `tests/unit/{auth,packages/api/email}/*`
+- Constraints:
+  - Keep the pulled branch on Next.js `16.2.1`; do not restore older `16.1.6` manifests from the local compatibility branch.
+  - Treat `origin/epic` as the source of truth for package versions; only reapply the missing runtime fixes.
+  - Use repo-local evidence because Nia is unavailable in this session.
+  - Verify both production build and real browser behavior on the pulled branch.
+- Evidence sources used:
+  - `git status --short --branch`
+  - `git log --graph --decorate --oneline --max-count=40`
+  - `git diff c42e0422..HEAD -- <paths>`
+  - `.next-docs/01-app/01-getting-started/{03-layouts-and-pages,15-route-handlers}.mdx`
+  - `docs/ai/rules/{general,backend,frontend,testing}.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `apps/admin/.next/dev-admin-origin.log`
+- Notes:
+  - `origin/epic` already contains the earlier TanStack/admin merge commit, but it did not contain the later local compatibility fixes for server-first admin bootstrap, authenticated admin fetches, or the Resend missing-table fallback.
+  - After `git pull`, the live install was stale and still resolving `next@16.1.6`; `bun install` was required to bring the workspace back to the declared `16.2.1` state.
+  - Browser verification must use `http://localhost:3030`, not `127.0.0.1:3030`, because Next.js 16 dev blocks cross-origin HMR requests unless `allowedDevOrigins` is configured.
+  - Verification completed successfully after reinstall:
+    - `bunx turbo run lint --filter=@asym/admin --filter=@asym/api --filter=@asym/auth --filter=@asym/lib --filter=@asym/missionary-app --filter=@asym/ui`
+    - `bunx turbo run typecheck --filter=@asym/admin --filter=@asym/api --filter=@asym/auth --filter=@asym/lib --filter=@asym/missionary-app --filter=@asym/ui`
+    - `bunx vitest run tests/unit/auth/permissions.test.ts tests/unit/packages/api/email/connect.test.ts tests/unit/packages/api/email/test-send.test.ts`
+    - `bun run check`
+    - `bun run build`
+    - Playwright smoke on admin login, tasks create, locations create, and Resend settings page
+  - Remaining known caveat from verification: the Resend settings screen in this hosted environment still reports `EMAIL_SETTINGS_STORAGE_UNAVAILABLE`, so connect is session-only until the hosted DB gets the tenant email settings migration.
+
 ## 2026-03-31 (admin TanStack Form migration)
 
 - Date: 2026-03-31
