@@ -523,6 +523,7 @@ export interface ConnectResendResponse {
   domainAuthentication?: DomainAuthentication[];
   deliverabilityScore?: number;
   warnings?: DeliverabilityWarning[];
+  persisted?: boolean;
   error?: string;
 }
 
@@ -537,6 +538,7 @@ export interface ResendConnectionStateResponse {
   domainAuthentication?: DomainAuthentication[];
   deliverabilityScore?: number;
   warnings?: DeliverabilityWarning[];
+  persisted?: boolean;
   error?: string;
 }
 

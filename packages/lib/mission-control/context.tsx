@@ -12,6 +12,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { type MCBootstrapState } from "./bootstrap";
 import { ROLE_LABELS } from "./roles";
 
 import type { Role, User, Tenant } from "./types";
@@ -36,20 +37,6 @@ type MCState = {
   loading: boolean;
 };
 
-type ProfileWithTenant = {
-  role: string;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  tenant_id: string;
-  avatar_url: string | null;
-  tenants: {
-    id: string;
-    name: string;
-    slug: string;
-  } | null;
-};
-
 const MCContext = createContext<MCContextValue | null>(null);
 
 const DEFAULT_TENANT: Tenant = {
@@ -63,36 +50,27 @@ const INITIAL_MC_STATE: MCState = {
   tenant: DEFAULT_TENANT,
   role: "admin",
   sidebarCollapsed: false,
-  loading: true,
+  loading: false,
 };
 
 type MCAction =
   | { type: "setRole"; role: Role }
   | { type: "setSidebarCollapsed"; collapsed: boolean }
-  | { type: "setAuthenticated"; authUserId: string; profile: ProfileWithTenant }
   | { type: "setSignedOut" }
   | { type: "setLoadingComplete" };
 
-function mapProfileRoleToMCRole(profileRole: string): Role {
-  const roleMap: Record<string, Role> = {
-    admin: "admin",
-    staff: "staff",
-    missionary: "fundraising",
-    donor: "staff",
-    finance: "finance",
-    fundraising: "fundraising",
-    mobilizers: "mobilizers",
-    member_care: "member_care",
-    events: "events",
-  };
-  return roleMap[profileRole] || "staff";
-}
+function createInitialMCState(initialState?: MCBootstrapState | null): MCState {
+  if (!initialState) {
+    return INITIAL_MC_STATE;
+  }
 
-function toDisplayName(
-  firstName: string | null | undefined,
-  lastName: string | null | undefined,
-) {
-  return `${firstName ?? ""} ${lastName ?? ""}`.trim();
+  return {
+    user: initialState.user,
+    tenant: initialState.tenant ?? DEFAULT_TENANT,
+    role: initialState.role,
+    sidebarCollapsed: false,
+    loading: false,
+  };
 }
 
 function mcReducer(state: MCState, action: MCAction): MCState {
@@ -101,32 +79,6 @@ function mcReducer(state: MCState, action: MCAction): MCState {
       return { ...state, role: action.role };
     case "setSidebarCollapsed":
       return { ...state, sidebarCollapsed: action.collapsed };
-    case "setAuthenticated": {
-      const mcRole = mapProfileRoleToMCRole(action.profile.role);
-      return {
-        ...state,
-        role: mcRole,
-        user: {
-          id: action.authUserId,
-          email: action.profile.email,
-          name: toDisplayName(
-            action.profile.first_name,
-            action.profile.last_name,
-          ),
-          role: mcRole,
-          tenantId: action.profile.tenant_id,
-          avatarUrl: action.profile.avatar_url ?? undefined,
-        },
-        tenant: action.profile.tenants
-          ? {
-              id: action.profile.tenants.id,
-              name: action.profile.tenants.name,
-              slug: action.profile.tenants.slug,
-            }
-          : state.tenant,
-        loading: false,
-      };
-    }
     case "setSignedOut":
       return {
         ...state,
@@ -141,8 +93,18 @@ function mcReducer(state: MCState, action: MCAction): MCState {
   }
 }
 
-export function MCProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(mcReducer, INITIAL_MC_STATE);
+export function MCProvider({
+  children,
+  initialState,
+}: {
+  children: ReactNode;
+  initialState?: MCBootstrapState | null;
+}) {
+  const [state, dispatch] = useReducer(
+    mcReducer,
+    initialState,
+    createInitialMCState,
+  );
   const { user, tenant, role, sidebarCollapsed, loading } = state;
   const isDevMode = runtimeEnvFlags.NODE_ENV === "development";
 
@@ -153,13 +115,6 @@ export function MCProvider({ children }: { children: ReactNode }) {
   const setSidebarCollapsed = useCallback((collapsed: boolean) => {
     dispatch({ type: "setSidebarCollapsed", collapsed });
   }, []);
-
-  const applyAuthenticatedState = useCallback(
-    (authUserId: string, profile: ProfileWithTenant) => {
-      dispatch({ type: "setAuthenticated", authUserId, profile });
-    },
-    [],
-  );
 
   const applySignedOutState = useCallback(() => {
     dispatch({ type: "setSignedOut" });
@@ -172,53 +127,21 @@ export function MCProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const supabase = createBrowserClient();
 
-    async function loadUser() {
-      const {
-        data: { user: authUser },
-      } = await supabase.auth.getUser();
-
-      if (authUser) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("*, tenants(*)")
-          .eq("user_id", authUser.id)
-          .single();
-
-        if (profile) {
-          applyAuthenticatedState(authUser.id, profile);
-          return;
-        }
-      }
-
-      applySignedOutState();
-    }
-
-    loadUser();
-
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("*, tenants(*)")
-          .eq("user_id", session.user.id)
-          .single();
-
-        if (profile) {
-          applyAuthenticatedState(session.user.id, profile);
-          return;
-        }
-      } else {
+      if (!session?.user) {
         applySignedOutState();
         return;
       }
 
-      markLoadingComplete();
+      if (!user) {
+        markLoadingComplete();
+      }
     });
 
     return () => subscription.unsubscribe();
-  }, [applyAuthenticatedState, applySignedOutState, markLoadingComplete]);
+  }, [applySignedOutState, markLoadingComplete, user]);
 
   const signOut = async () => {
     const serverSignOut = await signOutOnServer();

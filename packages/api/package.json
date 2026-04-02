@@ -23,6 +23,7 @@
     "./feed-preferences": "./src/feed-preferences/index.ts",
     "./admin/org-settings": "./src/admin/org-settings.ts",
     "./admin/users": "./src/admin/users.ts",
+    "./admin/locations": "./src/admin/locations/index.ts",
     "./admin/posts": "./src/admin/posts/index.ts",
     "./admin/posts/post": "./src/admin/posts/post.ts",
     "./admin/comments": "./src/admin/comments/index.ts",

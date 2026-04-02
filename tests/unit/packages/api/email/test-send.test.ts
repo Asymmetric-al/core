@@ -10,6 +10,7 @@ const {
   getAdminClientMock,
   fromMock,
   insertMock,
+  tenantEmailSettingsStorageUnavailableError,
 } = vi.hoisted(() => {
   const insert = vi.fn().mockResolvedValue({ data: null, error: null });
   const from = vi.fn(() => ({ insert }));
@@ -22,6 +23,13 @@ const {
     getAdminClientMock: vi.fn(),
     fromMock: from,
     insertMock: insert,
+    tenantEmailSettingsStorageUnavailableError: Object.assign(
+      new Error("storage unavailable"),
+      {
+        name: "TenantEmailSettingsStorageUnavailableError",
+        status: 503,
+      },
+    ),
   };
 });
 
@@ -51,6 +59,8 @@ vi.mock("@asym/database/supabase/admin", () => ({
 
 vi.mock("../../../../../packages/api/src/email/settings-store", () => ({
   readTenantEmailSettings: readTenantEmailSettingsMock,
+  isTenantEmailSettingsStorageUnavailable: (error: unknown) =>
+    error === tenantEmailSettingsStorageUnavailableError,
 }));
 
 vi.mock("../../../../../packages/api/src/email/crypto", () => ({
@@ -125,5 +135,36 @@ describe("api/email/test-send", () => {
 
     expect(response.status).toBe(400);
     expect(body.error).toContain("Resend API key is required");
+  });
+
+  it("sends with explicit session values when persistence storage is unavailable", async () => {
+    readTenantEmailSettingsMock.mockRejectedValueOnce(
+      tenantEmailSettingsStorageUnavailableError,
+    );
+    sendTestEmailMock.mockResolvedValueOnce({
+      success: true,
+      messageId: "msg_2",
+      correlationId: "corr_2",
+      recipientCount: 1,
+    });
+
+    const response = await POST(
+      createPostRequest({
+        apiKey: "re_session_key",
+        toEmail: "recipient@example.com",
+        fromEmail: "session-from@example.com",
+        fromName: "Session Sender",
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(sendTestEmailMock).toHaveBeenCalledWith(
+      "re_session_key",
+      "recipient@example.com",
+      "session-from@example.com",
+      "Session Sender",
+    );
   });
 });

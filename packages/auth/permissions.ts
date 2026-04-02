@@ -65,13 +65,19 @@ export function hasRole(snapshot: RoleSnapshot, role: UserRole): boolean {
 
   if (role === "admin") {
     return (
-      hasMembershipRole(snapshot, "staff") || hasRole(snapshot, "super_admin")
+      hasMembershipRole(snapshot, "staff") ||
+      snapshot.profileRole === "admin" ||
+      snapshot.profileRole === "staff" ||
+      hasRole(snapshot, "super_admin")
     );
   }
 
   if (role === "staff") {
     return (
-      hasMembershipRole(snapshot, "staff") || hasRole(snapshot, "super_admin")
+      hasMembershipRole(snapshot, "staff") ||
+      snapshot.profileRole === "admin" ||
+      snapshot.profileRole === "staff" ||
+      hasRole(snapshot, "super_admin")
     );
   }
 
@@ -98,6 +104,8 @@ export function derivePrimaryRole(snapshot: RoleSnapshot): UserRole | null {
   if (hasMembershipRole(snapshot, "staff")) return "staff";
   if (hasMembershipRole(snapshot, "missionary")) return "missionary";
   if (hasMembershipRole(snapshot, "donor")) return "donor";
+  if (snapshot.profileRole === "admin") return "admin";
+  if (snapshot.profileRole === "staff") return "staff";
 
   if (
     snapshot.profileRole &&
