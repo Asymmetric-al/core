@@ -9,7 +9,10 @@ import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { decryptResendApiKey } from "./crypto";
-import { readTenantEmailSettings } from "./settings-store";
+import {
+  isTenantEmailSettingsStorageUnavailable,
+  readTenantEmailSettings,
+} from "./settings-store";
 import {
   ApiHttpError,
   ensureJsonBody,
@@ -55,12 +58,20 @@ function statusFromErrorCode(errorCode?: string): number {
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = await getAuthContext();
+    const auth = await getAuthContext(request);
     requireRole(auth, ["admin", "super_admin"]);
     const ctx = auth as AuthenticatedContext;
 
     const body = sendTestEmailSchema.parse(await ensureJsonBody(request));
-    const storedSettings = await readTenantEmailSettings(ctx.tenantId);
+    let storedSettings = null;
+
+    try {
+      storedSettings = await readTenantEmailSettings(ctx.tenantId);
+    } catch (error) {
+      if (!isTenantEmailSettingsStorageUnavailable(error)) {
+        throw error;
+      }
+    }
 
     const resolvedApiKey =
       body.apiKey ??

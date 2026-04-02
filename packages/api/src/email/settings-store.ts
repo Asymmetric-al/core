@@ -2,6 +2,8 @@ import { getAdminClient } from "@asym/database/supabase/admin";
 
 import { ApiHttpError } from "../shared/http-errors";
 
+const TENANT_EMAIL_SETTINGS_TABLE = "tenant_email_settings";
+
 export interface TenantEmailSettingsRow {
   id: string;
   tenant_id: string;
@@ -23,6 +25,18 @@ type AdminSupabaseClient = NonNullable<
   ReturnType<typeof getAdminClient>["client"]
 >;
 
+export class TenantEmailSettingsStorageUnavailableError extends ApiHttpError {
+  readonly code = "TENANT_EMAIL_SETTINGS_STORAGE_UNAVAILABLE";
+
+  constructor() {
+    super(
+      503,
+      "Resend settings storage is unavailable in this environment. Apply the email settings migration to persist tenant configuration.",
+    );
+    this.name = "TenantEmailSettingsStorageUnavailableError";
+  }
+}
+
 function getAdminSupabaseClient(): AdminSupabaseClient {
   const { client, error } = getAdminClient();
   if (!client) {
@@ -31,12 +45,45 @@ function getAdminSupabaseClient(): AdminSupabaseClient {
   return client;
 }
 
+function isTenantEmailSettingsStorageMissing(error: {
+  code?: string;
+  message?: string;
+}): boolean {
+  const message = error.message?.toLowerCase() ?? "";
+
+  return (
+    message.includes(TENANT_EMAIL_SETTINGS_TABLE) &&
+    (error.code === "PGRST205" ||
+      error.code === "42P01" ||
+      message.includes("schema cache") ||
+      message.includes("could not find the table") ||
+      message.includes("does not exist"))
+  );
+}
+
+function toTenantEmailSettingsStorageUnavailableError(error: {
+  code?: string;
+  message?: string;
+}): TenantEmailSettingsStorageUnavailableError | null {
+  if (!isTenantEmailSettingsStorageMissing(error)) {
+    return null;
+  }
+
+  return new TenantEmailSettingsStorageUnavailableError();
+}
+
+export function isTenantEmailSettingsStorageUnavailable(
+  error: unknown,
+): error is TenantEmailSettingsStorageUnavailableError {
+  return error instanceof TenantEmailSettingsStorageUnavailableError;
+}
+
 export async function readTenantEmailSettings(
   tenantId: string,
 ): Promise<TenantEmailSettingsRow | null> {
   const supabaseAdmin = getAdminSupabaseClient();
   const { data, error } = await supabaseAdmin
-    .from("tenant_email_settings")
+    .from(TENANT_EMAIL_SETTINGS_TABLE)
     .select(
       [
         "id",
@@ -59,6 +106,10 @@ export async function readTenantEmailSettings(
     .maybeSingle();
 
   if (error) {
+    const storageError = toTenantEmailSettingsStorageUnavailableError(error);
+    if (storageError) {
+      throw storageError;
+    }
     throw new ApiHttpError(500, error.message);
   }
 
@@ -84,7 +135,7 @@ export async function upsertTenantEmailSettings(
 ): Promise<TenantEmailSettingsRow> {
   const supabaseAdmin = getAdminSupabaseClient();
   const { data, error } = await supabaseAdmin
-    .from("tenant_email_settings")
+    .from(TENANT_EMAIL_SETTINGS_TABLE)
     .upsert(
       {
         tenant_id: input.tenantId,
@@ -128,6 +179,10 @@ export async function upsertTenantEmailSettings(
     .single();
 
   if (error) {
+    const storageError = toTenantEmailSettingsStorageUnavailableError(error);
+    if (storageError) {
+      throw storageError;
+    }
     throw new ApiHttpError(500, error.message);
   }
 
@@ -139,7 +194,7 @@ export async function disconnectTenantEmailSettings(
 ): Promise<TenantEmailSettingsRow | null> {
   const supabaseAdmin = getAdminSupabaseClient();
   const { data, error } = await supabaseAdmin
-    .from("tenant_email_settings")
+    .from(TENANT_EMAIL_SETTINGS_TABLE)
     .update({
       is_connected: false,
       last_error: null,
@@ -174,6 +229,10 @@ export async function disconnectTenantEmailSettings(
     .maybeSingle();
 
   if (error) {
+    const storageError = toTenantEmailSettingsStorageUnavailableError(error);
+    if (storageError) {
+      throw storageError;
+    }
     throw new ApiHttpError(500, error.message);
   }
 

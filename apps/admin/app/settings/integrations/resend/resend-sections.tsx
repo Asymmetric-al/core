@@ -81,6 +81,7 @@ interface ResendConnectedViewProps {
 
 interface ResendDisconnectedViewProps {
   connectionError?: string;
+  connectionWarnings: DeliverabilityWarning[];
   connectionStatus: ConnectionStatus;
   form: ResendConnectFormApi;
   showApiKey: boolean;
@@ -320,17 +321,23 @@ export function ResendConnectedView({
 
 export function ResendDisconnectedView({
   connectionError,
+  connectionWarnings,
   connectionStatus,
   form,
   showApiKey,
   onToggleApiKeyVisibility,
 }: ResendDisconnectedViewProps) {
+  const apiKeyInputId = "resend-api-key";
+  const handleConnectSubmit = () => {
+    void form.handleSubmit();
+  };
+
   return (
     <form
       onSubmit={(event) => {
         event.preventDefault();
         event.stopPropagation();
-        form.handleSubmit();
+        handleConnectSubmit();
       }}
     >
       <Card>
@@ -374,13 +381,14 @@ export function ResendDisconnectedView({
 
               return (
                 <Field data-invalid={errors.length > 0}>
-                  <FieldLabel>
+                  <FieldLabel htmlFor={apiKeyInputId}>
                     Resend API Key <span className="text-red-500">*</span>
                   </FieldLabel>
                   <FieldContent>
                     <div className="relative">
                       <Input
                         className="pr-10 font-mono text-sm"
+                        id={apiKeyInputId}
                         onBlur={field.handleBlur}
                         onChange={(event) =>
                           field.handleChange(event.target.value)
@@ -457,6 +465,17 @@ export function ResendDisconnectedView({
               <AlertDescription>{connectionError}</AlertDescription>
             </Alert>
           ) : null}
+
+          {connectionWarnings.map((warning) => (
+            <Alert
+              className={warningClassName(warning.severity)}
+              key={`${warning.code}-${warning.message}`}
+              variant={warning.severity === "error" ? "destructive" : "default"}
+            >
+              <AlertTitle>{warning.code}</AlertTitle>
+              <AlertDescription>{warning.message}</AlertDescription>
+            </Alert>
+          ))}
         </CardContent>
         <CardFooter className="flex items-center justify-between border-t bg-slate-50/50 pt-6">
           <Button
@@ -477,7 +496,8 @@ export function ResendDisconnectedView({
               <Button
                 className="min-w-[140px] bg-blue-600 hover:bg-blue-700"
                 disabled={!canSubmit || isSubmitting}
-                type="submit"
+                onClick={handleConnectSubmit}
+                type="button"
               >
                 {isSubmitting ? (
                   <>
@@ -505,6 +525,10 @@ export function ResendTestDialog({
   fromEmail,
   onOpenChange,
 }: ResendTestDialogProps) {
+  const handleTestSubmit = () => {
+    void form.handleSubmit();
+  };
+
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="sm:max-w-md">
@@ -512,7 +536,7 @@ export function ResendTestDialog({
           onSubmit={(event) => {
             event.preventDefault();
             event.stopPropagation();
-            form.handleSubmit();
+            handleTestSubmit();
           }}
         >
           <DialogHeader>
@@ -586,7 +610,8 @@ export function ResendTestDialog({
                 <Button
                   className="bg-blue-600 hover:bg-blue-700"
                   disabled={!canSubmit || isSubmitting}
-                  type="submit"
+                  onClick={handleTestSubmit}
+                  type="button"
                 >
                   {isSubmitting ? (
                     <>

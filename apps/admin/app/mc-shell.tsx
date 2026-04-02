@@ -62,6 +62,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import type { MCBootstrapState } from "@asym/lib/mission-control/bootstrap";
 import type { ReactNode } from "react";
 
 import { ClientOnly } from "@/features/mission-control/components/client-only";
@@ -444,7 +445,13 @@ function ApplicationShell({ children }: { children: ReactNode }) {
   );
 }
 
-export function MCShell({ children }: { children: ReactNode }) {
+export function MCShell({
+  children,
+  initialState,
+}: {
+  children: ReactNode;
+  initialState?: MCBootstrapState | null;
+}) {
   const pathname = usePathname();
   const isPayloadAdmin =
     pathname === "/web-studio" || pathname.startsWith("/web-studio/");
@@ -461,7 +468,7 @@ export function MCShell({ children }: { children: ReactNode }) {
       enableSystem={false}
       disableTransitionOnChange
     >
-      <MCProvider>
+      <MCProvider initialState={initialState}>
         <ApplicationShell>{children}</ApplicationShell>
       </MCProvider>
     </ThemeProvider>
