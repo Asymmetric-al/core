@@ -40,7 +40,9 @@ const {
         warnings: validation.warnings ?? [],
         deliverabilityScore: validation.deliverabilityScore ?? 0,
         validatedAt: "2026-04-02T12:00:00.000Z",
-        domainAuthenticated: domainAuthentication.some((domain) => domain.valid),
+        domainAuthenticated: domainAuthentication.some(
+          (domain) => domain.valid,
+        ),
         dkimVerified: domainAuthentication.some((domain) =>
           (domain.records ?? []).some(
             (record) =>
@@ -58,14 +60,18 @@ const {
       };
     },
   ),
-  parseResendValidationSnapshotMock: vi.fn((snapshot: unknown) => snapshot ?? null),
+  parseResendValidationSnapshotMock: vi.fn(
+    (snapshot: unknown) => snapshot ?? null,
+  ),
   isResendValidationSendReadyMock: vi.fn(
     (snapshot: {
       domainAuthenticated?: boolean;
       warnings?: Array<{ severity?: string }>;
     }) =>
       Boolean(snapshot.domainAuthenticated) &&
-      !(snapshot.warnings ?? []).some((warning) => warning.severity === "error"),
+      !(snapshot.warnings ?? []).some(
+        (warning) => warning.severity === "error",
+      ),
   ),
   encryptResendApiKeyMock: vi.fn(),
   decryptResendApiKeyMock: vi.fn(),
