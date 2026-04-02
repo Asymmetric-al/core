@@ -1,7 +1,5 @@
 "use client";
 
-import { createBrowserClient } from "@asym/database/supabase";
-import { type Editor } from "@tiptap/react";
 import {
   Bold,
   Italic,
@@ -13,18 +11,21 @@ import {
   Heading2,
   Link as LinkIcon,
   Image as ImageIcon,
+  Undo2,
+  Redo2,
 } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
 import { cn } from "@asym/ui/lib/utils";
 
+import { useOptionalEditorContext } from "./editor-context";
+import { getUrlFromString } from "./helpers";
 import { Button } from "../button";
 import { Input } from "../input";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 import { Separator } from "../separator";
 import { Toggle } from "../toggle";
-import { ToggleGroup } from "../toggle-group";
 import {
   Tooltip,
   TooltipContent,
@@ -32,53 +33,121 @@ import {
   TooltipTrigger,
 } from "../tooltip";
 
-interface EditorToolbarProps {
-  editor: Editor | null;
-  actions?: React.ReactNode;
+import type { Editor } from "@tiptap/react";
+
+/* ---------------------------- Tool definitions ---------------------------- */
+
+export type ToolbarTool =
+  | "bold"
+  | "italic"
+  | "underline"
+  | "heading"
+  | "blockquote"
+  | "bulletList"
+  | "orderedList"
+  | "link"
+  | "image"
+  | "undo"
+  | "redo";
+
+const ALL_TOOLS: ToolbarTool[] = [
+  "bold",
+  "italic",
+  "underline",
+  "heading",
+  "blockquote",
+  "bulletList",
+  "orderedList",
+  "link",
+  "image",
+  "undo",
+  "redo",
+];
+
+/* -------------------------------------------------------------------------- */
+
+export interface EditorToolbarProps {
+  /** Pass an editor directly, or omit to use context. */
+  editor?: Editor | null;
+  /** Which tools to show. Defaults to all (image only if upload/click handler provided). */
+  tools?: ToolbarTool[];
+  /** Provide to enable the image upload button (receives file, returns public URL). */
+  onImageUpload?: (file: File) => Promise<string>;
+  /** When set, image button calls this instead of opening a file picker. */
   onImageClick?: () => void;
+  /** Extra content rendered below the toolbar (e.g. submit button). */
+  actions?: React.ReactNode;
 }
 
 export function EditorToolbar({
-  editor,
-  actions,
+  editor: editorProp,
+  tools,
+  onImageUpload,
   onImageClick,
+  actions,
 }: EditorToolbarProps) {
+  const ctx = useOptionalEditorContext();
+  const editor = editorProp ?? ctx?.editor ?? null;
+
   if (!editor) return null;
 
-  return (
-    <TooltipProvider delayDuration={0}>
-      <div className="border-t border-border bg-muted/40">
-        <div className="flex flex-wrap items-center gap-0.5 px-3 sm:px-4 py-2.5">
-          <ToggleGroup type="multiple" className="flex items-center gap-0.5">
-            <ToolbarButton
-              onClick={() => editor.chain().focus().toggleBold().run()}
-              active={editor.isActive("bold")}
-              tooltip="Bold"
-            >
-              <Bold className="h-3.5 w-3.5" />
-            </ToolbarButton>
-            <ToolbarButton
-              onClick={() => editor.chain().focus().toggleItalic().run()}
-              active={editor.isActive("italic")}
-              tooltip="Italic"
-            >
-              <Italic className="h-3.5 w-3.5" />
-            </ToolbarButton>
-            <ToolbarButton
-              onClick={() => editor.chain().focus().toggleUnderline().run()}
-              active={editor.isActive("underline")}
-              tooltip="Underline"
-            >
-              <Underline className="h-3.5 w-3.5" />
-            </ToolbarButton>
-          </ToggleGroup>
+  const enabledTools = new Set(
+    tools ??
+      ALL_TOOLS.filter((t) => {
+        if (t !== "image") return true;
+        return Boolean(onImageUpload || onImageClick);
+      }),
+  );
 
-          <Separator
-            orientation="vertical"
-            className="h-4 mx-1.5 bg-border/60"
-          />
+  const has = (tool: ToolbarTool) => enabledTools.has(tool);
 
-          <ToggleGroup type="multiple" className="flex items-center gap-0.5">
+  const formatting = has("bold") || has("italic") || has("underline");
+  const headings = has("heading") || has("blockquote");
+  const lists = has("bulletList") || has("orderedList");
+  const media = has("link") || has("image");
+  const history = has("undo") || has("redo");
+
+  const sections: React.ReactNode[] = [];
+
+  if (formatting) {
+    sections.push(
+      <div key="formatting" className="flex items-center gap-0.5">
+        {has("bold") && (
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            active={editor.isActive("bold")}
+            tooltip="Bold (Ctrl+B)"
+          >
+            <Bold className="h-3.5 w-3.5" />
+          </ToolbarButton>
+        )}
+        {has("italic") && (
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            active={editor.isActive("italic")}
+            tooltip="Italic (Ctrl+I)"
+          >
+            <Italic className="h-3.5 w-3.5" />
+          </ToolbarButton>
+        )}
+        {has("underline") && (
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleMark("underline").run()}
+            active={editor.isActive("underline")}
+            tooltip="Underline (Ctrl+U)"
+          >
+            <Underline className="h-3.5 w-3.5" />
+          </ToolbarButton>
+        )}
+      </div>,
+    );
+  }
+
+  if (headings) {
+    sections.push(
+      <div key="headings" className="flex items-center gap-0.5">
+        {has("heading") && (
+          <>
             <ToolbarButton
               onClick={() =>
                 editor.chain().focus().toggleHeading({ level: 1 }).run()
@@ -97,64 +166,102 @@ export function EditorToolbar({
             >
               <Heading2 className="h-3.5 w-3.5" />
             </ToolbarButton>
-            <ToolbarButton
-              onClick={() => editor.chain().focus().toggleBlockquote().run()}
-              active={editor.isActive("blockquote")}
-              tooltip="Quote"
-            >
-              <Quote className="h-3.5 w-3.5" />
-            </ToolbarButton>
-          </ToggleGroup>
+          </>
+        )}
+        {has("blockquote") && (
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+            active={editor.isActive("blockquote")}
+            tooltip="Quote"
+          >
+            <Quote className="h-3.5 w-3.5" />
+          </ToolbarButton>
+        )}
+      </div>,
+    );
+  }
 
-          <Separator
-            orientation="vertical"
-            className="h-4 mx-1.5 bg-border/60"
-          />
+  if (lists) {
+    sections.push(
+      <div key="lists" className="flex items-center gap-0.5">
+        {has("bulletList") && (
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            active={editor.isActive("bulletList")}
+            tooltip="Bullet List"
+          >
+            <List className="h-3.5 w-3.5" />
+          </ToolbarButton>
+        )}
+        {has("orderedList") && (
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            active={editor.isActive("orderedList")}
+            tooltip="Numbered List"
+          >
+            <ListOrdered className="h-3.5 w-3.5" />
+          </ToolbarButton>
+        )}
+      </div>,
+    );
+  }
 
-          <ToggleGroup type="multiple" className="flex items-center gap-0.5">
-            <ToolbarButton
-              onClick={() => editor.chain().focus().toggleBulletList().run()}
-              active={editor.isActive("bulletList")}
-              tooltip="Bullet List"
-            >
-              <List className="h-3.5 w-3.5" />
-            </ToolbarButton>
-            <ToolbarButton
-              onClick={() => editor.chain().focus().toggleOrderedList().run()}
-              active={editor.isActive("orderedList")}
-              tooltip="Numbered List"
-            >
-              <ListOrdered className="h-3.5 w-3.5" />
-            </ToolbarButton>
-          </ToggleGroup>
+  if (media) {
+    sections.push(
+      <div key="media" className="flex items-center gap-0.5">
+        {has("link") && <LinkButton editor={editor} />}
+        {has("image") && onImageClick && (
+          <ImageClickButton onClick={onImageClick} />
+        )}
+        {has("image") && !onImageClick && onImageUpload && (
+          <ImageButton editor={editor} onUpload={onImageUpload} />
+        )}
+      </div>,
+    );
+  }
 
-          <Separator
-            orientation="vertical"
-            className="h-4 mx-1.5 bg-border/60"
-          />
+  if (history) {
+    sections.push(
+      <div key="history" className="flex items-center gap-0.5">
+        {has("undo") && (
+          <ToolbarButton
+            onClick={() => editor.chain().focus().undo().run()}
+            active={false}
+            disabled={!editor.can().undo()}
+            tooltip="Undo (Ctrl+Z)"
+          >
+            <Undo2 className="h-3.5 w-3.5" />
+          </ToolbarButton>
+        )}
+        {has("redo") && (
+          <ToolbarButton
+            onClick={() => editor.chain().focus().redo().run()}
+            active={false}
+            disabled={!editor.can().redo()}
+            tooltip="Redo (Ctrl+Shift+Z)"
+          >
+            <Redo2 className="h-3.5 w-3.5" />
+          </ToolbarButton>
+        )}
+      </div>,
+    );
+  }
 
-          <div className="flex items-center gap-0.5">
-            <LinkButton editor={editor} />
-            {onImageClick ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 w-7 p-0 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={onImageClick}
-                  >
-                    <ImageIcon className="h-3.5 w-3.5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="text-xs">
-                  Image
-                </TooltipContent>
-              </Tooltip>
-            ) : (
-              <ImageButton editor={editor} />
-            )}
-          </div>
+  return (
+    <TooltipProvider delayDuration={0}>
+      <div className="sticky top-0 z-10 border-b border-border bg-muted/40 backdrop-blur-sm">
+        <div className="flex items-center gap-0.5 overflow-x-auto px-3 sm:px-4 py-2">
+          {sections.map((section, i) => (
+            <React.Fragment key={i}>
+              {i > 0 && (
+                <Separator
+                  orientation="vertical"
+                  className="h-4 mx-1.5 bg-border/60"
+                />
+              )}
+              {section}
+            </React.Fragment>
+          ))}
         </div>
 
         {actions && (
@@ -171,12 +278,14 @@ function ToolbarButton({
   onClick,
   active,
   tooltip,
+  disabled,
   children,
   className,
 }: {
   onClick: () => void;
   active: boolean;
   tooltip: string;
+  disabled?: boolean;
   children: React.ReactNode;
   className?: string;
 }) {
@@ -187,11 +296,13 @@ function ToolbarButton({
           size="sm"
           pressed={active}
           onPressedChange={onClick}
+          disabled={disabled}
           className={cn(
             "h-7 w-7 p-0 rounded-md transition-colors",
             active
               ? "bg-primary text-primary-foreground"
               : "hover:bg-muted text-muted-foreground hover:text-foreground",
+            disabled && "opacity-40",
             className,
           )}
         >
@@ -207,18 +318,42 @@ function ToolbarButton({
 
 function LinkButton({ editor }: { editor: Editor }) {
   const [url, setUrl] = React.useState("");
+  const [open, setOpen] = React.useState(false);
 
-  const handleSetLink = () => {
-    if (url === "") {
-      editor.chain().focus().extendMarkRange("link").unsetLink().run();
+  const existingHref = editor.getAttributes("link").href as string | undefined;
+
+  React.useEffect(() => {
+    if (open) {
+      setUrl(existingHref ?? "");
+    }
+  }, [open, existingHref]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!url) {
+      editor.chain().focus().extendMarkRange("link").unsetMark("link").run();
+      setOpen(false);
       return;
     }
-    editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+    const parsed = getUrlFromString(url);
+    if (!parsed) {
+      toast.error("Please enter a valid URL");
+      return;
+    }
+
+    editor
+      .chain()
+      .focus()
+      .extendMarkRange("link")
+      .setMark("link", { href: parsed })
+      .run();
+
     setUrl("");
+    setOpen(false);
   };
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <Tooltip>
         <TooltipTrigger asChild>
           <PopoverTrigger asChild>
@@ -241,49 +376,79 @@ function LinkButton({ editor }: { editor: Editor }) {
         </TooltipContent>
       </Tooltip>
       <PopoverContent
-        className="w-64 p-2.5 rounded-xl border-border shadow-lg"
+        className="w-72 p-3 rounded-xl border-border shadow-lg"
         align="start"
+        onCloseAutoFocus={(e) => e.preventDefault()}
       >
-        <div className="flex flex-col gap-2">
-          <div className="flex gap-1.5">
-            <Input
-              placeholder="https://example.com"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              className="h-8 rounded-lg border-border bg-muted/30 text-sm"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSetLink();
-              }}
-            />
-            <Button
-              size="sm"
-              onClick={handleSetLink}
-              variant="maia"
-              className="h-8 px-3 rounded-lg text-[10px] uppercase tracking-wider"
-            >
-              Add
+        <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
+          <p className="text-xs text-muted-foreground">
+            Attach a link to the selected text
+          </p>
+          <Input
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://example.com"
+            className="h-8 rounded-lg border-border bg-muted/30 text-sm"
+          />
+          <div className="flex items-center justify-end gap-2">
+            {existingHref && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => {
+                  editor
+                    .chain()
+                    .focus()
+                    .extendMarkRange("link")
+                    .unsetMark("link")
+                    .run();
+                  setUrl("");
+                  setOpen(false);
+                }}
+              >
+                Remove
+              </Button>
+            )}
+            <Button type="submit" size="sm" className="h-7 px-3 text-xs">
+              {existingHref ? "Update" : "Add"}
             </Button>
           </div>
-          {editor.isActive("link") && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 w-full rounded-lg text-[10px] uppercase tracking-wider font-bold text-destructive hover:bg-destructive/10 hover:text-destructive"
-              onClick={() => {
-                editor.chain().focus().unsetLink().run();
-                setUrl("");
-              }}
-            >
-              Remove Link
-            </Button>
-          )}
-        </div>
+        </form>
       </PopoverContent>
     </Popover>
   );
 }
 
-function ImageButton({ editor }: { editor: Editor }) {
+function ImageClickButton({ onClick }: { onClick: () => void }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 w-7 p-0 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+          type="button"
+          onClick={onClick}
+        >
+          <ImageIcon className="h-3.5 w-3.5" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="text-xs">
+        Image
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+function ImageButton({
+  editor,
+  onUpload,
+}: {
+  editor: Editor;
+  onUpload: (file: File) => Promise<string>;
+}) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = React.useState(false);
 
@@ -292,28 +457,12 @@ function ImageButton({ editor }: { editor: Editor }) {
     if (!file) return;
 
     setIsUploading(true);
-    const supabase = createBrowserClient();
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-    const filePath = `editor/${fileName}`;
-
     try {
-      const { error: uploadError } = await supabase.storage
-        .from("document-uploads")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("document-uploads").getPublicUrl(filePath);
-
-      editor.chain().focus().setImage({ src: publicUrl }).run();
-      toast.success("Image uploaded successfully");
-    } catch (error: unknown) {
+      const url = await onUpload(file);
+      editor.chain().focus().setImage({ src: url }).run();
+    } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to upload image";
-      console.error("Error uploading image:", error);
       toast.error(message);
     } finally {
       setIsUploading(false);
@@ -341,6 +490,7 @@ function ImageButton({ editor }: { editor: Editor }) {
               "hover:bg-muted text-muted-foreground hover:text-foreground",
               isUploading && "animate-pulse",
             )}
+            type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
           >

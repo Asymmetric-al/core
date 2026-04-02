@@ -1,6 +1,5 @@
 "use client";
 
-import { SafeHtml } from "@asym/lib/components/safe-html";
 import { TimeAgo } from "@asym/lib/hooks";
 import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
 import { BrandAvatar, brandConfig } from "@asym/ui/components/brand-logo";
@@ -42,6 +41,7 @@ import {
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { PageShell } from "@asym/ui/components/shadcn/page-shell";
+import { PostContent } from "@asym/ui/components/shadcn/rich-text-editor";
 import {
   Select,
   SelectContent,
@@ -658,9 +658,10 @@ function ModerationQueuePostCard({
                 )}
               </AnimatePresence>
 
-              <SafeHtml
-                className="prose prose-sm max-w-none text-sm text-foreground/80 line-clamp-2"
-                html={post.content}
+              <PostContent
+                value={post.content}
+                richTextClassName="prose prose-sm max-w-none text-sm text-foreground/80 line-clamp-2"
+                htmlClassName="prose prose-sm max-w-none text-sm text-foreground/80 line-clamp-2"
               />
 
               {post.media && post.media.length > 0 && (
@@ -820,9 +821,10 @@ function ModerationQueueDialogs({
                 </div>
               </div>
 
-              <SafeHtml
-                className="prose prose-sm max-w-none"
-                html={selectedPost.content}
+              <PostContent
+                value={selectedPost.content}
+                richTextClassName="prose prose-sm max-w-none"
+                htmlClassName="prose prose-sm max-w-none"
               />
 
               {selectedPost.media && selectedPost.media.length > 0 && (
@@ -1201,9 +1203,10 @@ function AllPostsFeedPostCard({
                 </DropdownMenu>
               </div>
 
-              <SafeHtml
-                className="prose prose-sm max-w-none text-sm text-foreground/80 line-clamp-3"
-                html={post.content}
+              <PostContent
+                value={post.content}
+                richTextClassName="prose prose-sm max-w-none text-sm text-foreground/80 line-clamp-3"
+                htmlClassName="prose prose-sm max-w-none text-sm text-foreground/80 line-clamp-3"
               />
 
               {post.media && post.media.length > 0 && (
