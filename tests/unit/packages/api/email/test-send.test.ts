@@ -31,11 +31,10 @@ const {
           | undefined,
       ) => warnings?.find((warning) => warning.severity === "error"),
     ),
-    toTestSendBlockingErrorCodeMock: vi.fn(
-      (warning: { code: string }) =>
-        warning.code === "DEFAULT_FROM_EMAIL_DOMAIN_NOT_VERIFIED"
-          ? "default_from_email_domain_not_verified"
-          : "domain_not_authenticated",
+    toTestSendBlockingErrorCodeMock: vi.fn((warning: { code: string }) =>
+      warning.code === "DEFAULT_FROM_EMAIL_DOMAIN_NOT_VERIFIED"
+        ? "default_from_email_domain_not_verified"
+        : "domain_not_authenticated",
     ),
     readTenantEmailSettingsMock: vi.fn(),
     decryptResendApiKeyMock: vi.fn(),
