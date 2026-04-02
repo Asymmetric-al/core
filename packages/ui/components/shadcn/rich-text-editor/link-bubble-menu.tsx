@@ -10,7 +10,7 @@ import { cn } from "@asym/ui/lib/utils";
 import { Button } from "../button";
 import { Input } from "../input";
 import { useEditorContext } from "./editor-context";
-import { getUrlFromString } from "./helpers";
+import { getUrlFromString, normalizePostLinkHref } from "./helpers";
 
 export function LinkBubbleMenu() {
   const { editor } = useEditorContext();
@@ -99,18 +99,30 @@ function PreviewView({
   onEdit: () => void;
   onRemove: () => void;
 }) {
+  const safeHref = normalizePostLinkHref(href);
+
   return (
     <>
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-primary hover:bg-muted truncate max-w-[220px]"
-        title={href}
-      >
-        <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-        <span className="truncate">{href}</span>
-      </a>
+      {safeHref ? (
+        <a
+          href={safeHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-primary hover:bg-muted truncate max-w-[220px]"
+          title={safeHref}
+        >
+          <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">{safeHref}</span>
+        </a>
+      ) : (
+        <div
+          className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-muted-foreground truncate max-w-[220px]"
+          title={href}
+        >
+          <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">{href}</span>
+        </div>
+      )}
       <div className="h-4 w-px bg-border" />
       <Button
         variant="ghost"

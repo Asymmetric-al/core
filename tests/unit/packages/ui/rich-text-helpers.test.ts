@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  getUrlFromString,
+  isAllowedPostLinkHref,
   isPostContentEmpty,
   isRichText,
 } from "../../../../packages/ui/components/shadcn/rich-text-editor/helpers";
@@ -20,6 +22,17 @@ describe("rich text helpers", () => {
     expect(isRichText("<p>Legacy HTML</p>")).toBe(false);
     expect(isRichText("Plain text")).toBe(false);
     expect(isRichText(JSON.stringify({ type: "paragraph" }))).toBe(false);
+  });
+
+  it("enforces the shared http/https link policy", () => {
+    expect(isAllowedPostLinkHref("https://example.com")).toBe(true);
+    expect(getUrlFromString("example.com/path")).toBe(
+      "https://example.com/path",
+    );
+    expect(isAllowedPostLinkHref("javascript:alert(1)")).toBe(false);
+    expect(isAllowedPostLinkHref("data:text/html;base64,abc")).toBe(false);
+    expect(isAllowedPostLinkHref("http://")).toBe(false);
+    expect(getUrlFromString(" https://example.com ")).toBeNull();
   });
 
   it("treats image-only content as non-empty across JSON and legacy formats", () => {

@@ -35,6 +35,9 @@
   - Local Bun/Node executables were available after restoring `PATH` to include `/Users/blake/.bun/bin` and `/opt/homebrew/bin`; targeted Vitest and scoped lint passed before the PR branch update.
   - After pushing the updated PR head, GitHub Actions reported `format`, `typecheck`, and `build` failures. Log inspection showed the actionable regression in this change set was the new direct `@tiptap/core` type import in `packages/ui/components/shadcn/rich-text-editor/{extensions,rich-text-viewer}.tsx`, which CI could not resolve in `@asym/ui`.
   - Follow-up fix removed that unnecessary direct type import and relied on local inference instead; `bun run format:check` now passes in the PR worktree, and the CI-specific missing-module error is no longer present in the source.
+  - The next Greptile pass raised a new blocker around unsafe link protocols in stored TipTap JSON. The chosen fix keeps scope narrow: a shared pure link-policy helper in `@asym/lib`, explicit `isAllowedUri` callbacks in the editor/viewer link extensions, inert preview rendering in the link bubble menu for unsafe stored hrefs, and recursive stripping of unsafe `link` marks in the existing `PATCH /api/posts/[postId]` normalizer.
+  - Verification for the link-policy change succeeded via `bun run format:check`, `git diff --check`, and direct Bun runtime assertions against the shared helper plus `normalizeStoredPostContent`.
+  - Full Vitest execution remains unreliable in this detached worktree because it lacks local workspace package links and `tsconfig` package resolution, so the targeted assertions were run with `NODE_PATH=/Users/blake/Documents/asymmetrical/repos/core/node_modules` instead of relying on false-negative Vitest loader failures here.
 
 ## 2026-04-01 (post-pull epic merge verification)
 

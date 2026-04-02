@@ -8,7 +8,7 @@ import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
 
-import { parseContent } from "./helpers";
+import { isAllowedPostLinkHref, parseContent } from "./helpers";
 import { ResizableImageExtension } from "./image-view";
 import "./tiptap.css";
 
@@ -33,6 +33,7 @@ const viewerExtensions = [
   }),
   Link.configure({
     openOnClick: true,
+    isAllowedUri: (url) => isAllowedPostLinkHref(url),
     HTMLAttributes: {
       class: "text-primary underline cursor-pointer",
       target: "_blank",
