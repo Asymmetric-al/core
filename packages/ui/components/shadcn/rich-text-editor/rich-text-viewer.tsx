@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Underline from "@tiptap/extension-underline";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -10,6 +9,10 @@ import * as React from "react";
 import { cn } from "@asym/ui/lib/utils";
 
 import { parseContent } from "./helpers";
+import { ResizableImageExtension } from "./image-view";
+import "./tiptap.css";
+
+import type { AnyExtension } from "@tiptap/core";
 
 export interface RichTextViewerProps {
   /** Stored value — JSON string or legacy plain text / HTML. */
@@ -17,7 +20,7 @@ export interface RichTextViewerProps {
   className?: string;
 }
 
-const viewerExtensions = [
+const viewerExtensions: AnyExtension[] = [
   StarterKit.configure({
     heading: { levels: [1, 2] },
     bulletList: {
@@ -39,12 +42,11 @@ const viewerExtensions = [
     },
   }),
   Underline,
-  Image.configure({
-    HTMLAttributes: {
-      class: "rounded-lg max-w-full h-auto shadow-md",
-    },
+  ResizableImageExtension.configure({
+    inline: false,
+    allowBase64: false,
   }),
-];
+] as AnyExtension[];
 
 export function RichTextViewer({ value, className }: RichTextViewerProps) {
   const editor = useEditor({

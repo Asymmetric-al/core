@@ -3,6 +3,7 @@
 import { BubbleMenu } from "@tiptap/react/menus";
 import { ExternalLink, Pencil, Trash2, Check, X } from "lucide-react";
 import * as React from "react";
+import { toast } from "sonner";
 
 import { cn } from "@asym/ui/lib/utils";
 
@@ -27,20 +28,25 @@ export function LinkBubbleMenu() {
 
   const handleSave = () => {
     const parsed = getUrlFromString(url);
-    if (parsed) {
-      editor
-        .chain()
-        .focus()
-        .extendMarkRange("link")
-        .setLink({ href: parsed })
-        .run();
+    if (!parsed) {
+      toast.error("Please enter a valid URL");
+      inputRef.current?.focus();
+      return;
     }
+
+    editor
+      .chain()
+      .focus()
+      .extendMarkRange("link")
+      .setMark("link", { href: parsed })
+      .run();
+
     setIsEditing(false);
     setUrl("");
   };
 
   const handleRemove = () => {
-    editor.chain().focus().extendMarkRange("link").unsetLink().run();
+    editor.chain().focus().extendMarkRange("link").unsetMark("link").run();
     setIsEditing(false);
     setUrl("");
   };

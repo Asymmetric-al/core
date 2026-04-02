@@ -15,6 +15,7 @@ import {
   Redo2,
 } from "lucide-react";
 import * as React from "react";
+import { toast } from "sonner";
 
 import { cn } from "@asym/ui/lib/utils";
 
@@ -131,7 +132,7 @@ export function EditorToolbar({
         )}
         {has("underline") && (
           <ToolbarButton
-            onClick={() => editor.chain().focus().toggleUnderline().run()}
+            onClick={() => editor.chain().focus().toggleMark("underline").run()}
             active={editor.isActive("underline")}
             tooltip="Underline (Ctrl+U)"
           >
@@ -330,19 +331,23 @@ function LinkButton({ editor }: { editor: Editor }) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!url) {
-      editor.chain().focus().extendMarkRange("link").unsetLink().run();
+      editor.chain().focus().extendMarkRange("link").unsetMark("link").run();
       setOpen(false);
       return;
     }
     const parsed = getUrlFromString(url);
-    if (parsed) {
-      editor
-        .chain()
-        .focus()
-        .extendMarkRange("link")
-        .setLink({ href: parsed })
-        .run();
+    if (!parsed) {
+      toast.error("Please enter a valid URL");
+      return;
     }
+
+    editor
+      .chain()
+      .focus()
+      .extendMarkRange("link")
+      .setMark("link", { href: parsed })
+      .run();
+
     setUrl("");
     setOpen(false);
   };
@@ -397,7 +402,7 @@ function LinkButton({ editor }: { editor: Editor }) {
                     .chain()
                     .focus()
                     .extendMarkRange("link")
-                    .unsetLink()
+                    .unsetMark("link")
                     .run();
                   setUrl("");
                   setOpen(false);
@@ -455,8 +460,10 @@ function ImageButton({
     try {
       const url = await onUpload(file);
       editor.chain().focus().setImage({ src: url }).run();
-    } catch {
-      // Consumer handles error UI
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to upload image";
+      toast.error(message);
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";

@@ -1,7 +1,6 @@
 "use client";
 "use no memo";
 
-import { SafeHtml } from "@asym/lib/components/safe-html";
 import { TimeAgo, useLastSynced } from "@asym/lib/hooks";
 import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
 import {
@@ -39,8 +38,7 @@ import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import {
   isPostContentEmpty,
-  isRichText,
-  RichTextViewer,
+  PostContent,
 } from "@asym/ui/components/shadcn/rich-text-editor";
 import { Switch } from "@asym/ui/components/shadcn/switch";
 import {
@@ -1085,21 +1083,15 @@ function PostCard({
             transition={{ delay: 0.1 }}
             className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-4 sm:space-y-6"
           >
-            {isRichText(post.content) ? (
-              <RichTextViewer
-                value={post.content}
-                className="text-foreground/80 leading-relaxed"
-              />
-            ) : (
-              <SafeHtml
-                className="prose prose-sm sm:prose-base max-w-none text-foreground/80 leading-relaxed
+            <PostContent
+              value={post.content}
+              richTextClassName="text-foreground/80 leading-relaxed"
+              htmlClassName="prose prose-sm sm:prose-base max-w-none text-foreground/80 leading-relaxed
                         prose-headings:font-bold prose-headings:text-foreground prose-headings:tracking-tight
                         prose-strong:font-bold prose-strong:text-foreground
                         prose-a:text-primary prose-a:font-bold prose-a:no-underline hover:prose-a:underline
                         prose-blockquote:border-l-4 prose-blockquote:border-border prose-blockquote:italic prose-blockquote:text-muted-foreground"
-                html={post.content}
-              />
-            )}
+            />
             {post.media && post.media.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.98 }}
@@ -2116,19 +2108,11 @@ function FeedPostsTabsSection({
                                 ).toLocaleDateString()}
                               </span>
                             </div>
-                            {isRichText(draft.content) ? (
-                              <div className="line-clamp-3 opacity-60">
-                                <RichTextViewer
-                                  value={draft.content}
-                                  className="text-foreground/80 text-sm"
-                                />
-                              </div>
-                            ) : (
-                              <SafeHtml
-                                className="prose prose-sm sm:prose-base max-w-none line-clamp-3 opacity-60 text-foreground"
-                                html={draft.content}
-                              />
-                            )}
+                            <PostContent
+                              value={draft.content}
+                              richTextClassName="line-clamp-3 opacity-60 text-foreground/80 text-sm"
+                              htmlClassName="prose prose-sm sm:prose-base max-w-none line-clamp-3 opacity-60 text-foreground"
+                            />
                           </div>
                           <div className="flex flex-row sm:flex-col gap-2 shrink-0 w-full sm:w-auto">
                             <motion.div

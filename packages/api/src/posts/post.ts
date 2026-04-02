@@ -11,6 +11,7 @@ import { ZodError } from "zod";
 import { postIdParamSchema } from "../schemas/posts";
 import { CACHE_TAGS } from "../shared/cache-tags";
 import { findProfileByUserId } from "../shared/queries";
+import { normalizeStoredPostContent } from "./content";
 
 function revalidatePostTags(postId: string, tenantId: string) {
   revalidateTag(CACHE_TAGS.tenantPosts(tenantId), "max");
@@ -82,7 +83,9 @@ export async function PATCH(
     const updateData: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     };
-    if (content !== undefined) updateData.content = content.trim();
+    if (content !== undefined) {
+      updateData.content = normalizeStoredPostContent(content);
+    }
     if (media !== undefined) updateData.media = media;
     if (status !== undefined) updateData.status = status;
     if (visibility !== undefined) updateData.visibility = visibility;
