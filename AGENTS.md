@@ -164,7 +164,7 @@ Load the skill(s) below when the trigger matches.
   - Ship issue: `docs/ai/skills/ship-issue/SKILL.md`
   - Close issue: `docs/ai/skills/close-issue/SKILL.md`
   - Create issues batch: `docs/ai/skills/create-issues/SKILL.md`
-- **Commit message creation:** `docs/ai/skills/commit/SKILL.md`
+- **Commit message creation:** inactive. Do not route commit work through `docs/ai/skills/commit/SKILL.md`; the file is retained for reference only until it is removed.
 
 ---
 
