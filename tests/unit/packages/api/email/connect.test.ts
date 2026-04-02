@@ -8,6 +8,7 @@ const {
   createResendValidationSnapshotMock,
   parseResendValidationSnapshotMock,
   isResendValidationSendReadyMock,
+  getFirstBlockingDeliverabilityWarningMock,
   encryptResendApiKeyMock,
   decryptResendApiKeyMock,
   readTenantEmailSettingsMock,
@@ -73,6 +74,15 @@ const {
         (warning) => warning.severity === "error",
       ),
   ),
+  getFirstBlockingDeliverabilityWarningMock: vi.fn(
+    (
+      warnings:
+        | Array<{
+            severity?: "info" | "warning" | "error";
+          }>
+        | undefined,
+    ) => warnings?.find((warning) => warning.severity === "error"),
+  ),
   encryptResendApiKeyMock: vi.fn(),
   decryptResendApiKeyMock: vi.fn(),
   readTenantEmailSettingsMock: vi.fn(),
@@ -106,6 +116,8 @@ vi.mock("@asym/email", () => ({
   createResendValidationSnapshot: createResendValidationSnapshotMock,
   parseResendValidationSnapshot: parseResendValidationSnapshotMock,
   isResendValidationSendReady: isResendValidationSendReadyMock,
+  getFirstBlockingDeliverabilityWarning:
+    getFirstBlockingDeliverabilityWarningMock,
 }));
 
 vi.mock("../../../../../packages/api/src/email/crypto", () => ({

@@ -5,6 +5,15 @@ import { ApiHttpError } from "../shared/http-errors";
 
 const TENANT_EMAIL_SETTINGS_TABLE = "tenant_email_settings";
 
+/**
+ * Canonical persisted Resend connection row.
+ *
+ * Reads that need rich connection state for the admin UI should prefer
+ * `validation_snapshot` once it is present and parseable. The scalar
+ * deliverability columns are still persisted for compatibility and reporting,
+ * but writers must keep them synchronized with the snapshot so they do not
+ * drift.
+ */
 export interface TenantEmailSettingsRow {
   id: string;
   tenant_id: string;
@@ -136,6 +145,13 @@ interface UpsertTenantEmailSettingsInput {
   webhookUrl?: string | null;
 }
 
+/**
+ * Canonical write path for tenant Resend settings.
+ *
+ * Callers should persist both the snapshot and the synchronized scalar
+ * deliverability columns through this function so the connection UI, reporting,
+ * and legacy consumers all read consistent state.
+ */
 export async function upsertTenantEmailSettings(
   input: UpsertTenantEmailSettingsInput,
 ): Promise<TenantEmailSettingsRow> {

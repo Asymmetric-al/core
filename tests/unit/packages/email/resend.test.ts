@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   createResendValidationSnapshot,
+  getFirstBlockingDeliverabilityWarning,
   isResendValidationSendReady,
   parseResendValidationSnapshot,
   sendEmail,
@@ -134,6 +135,42 @@ describe("@asym/email resend service", () => {
     expect(isResendValidationSendReady(snapshot)).toBe(true);
   });
 
+  it("detects DKIM and SPF from verified record hints even when labels are absent", () => {
+    const snapshot = createResendValidationSnapshot(
+      {
+        senderIdentities: [],
+        domainAuthentication: [
+          {
+            id: 1,
+            domain: "example.com",
+            subdomain: null,
+            valid: true,
+            records: [
+              {
+                type: "TXT",
+                name: "resend._domainkey",
+                value: "p=abc123",
+                status: "verified",
+              },
+              {
+                type: "TXT",
+                name: "send",
+                value: "v=spf1 include:spf.resend.com ~all",
+                status: "verified",
+              },
+            ],
+          },
+        ],
+        deliverabilityScore: 100,
+        warnings: [],
+      },
+      "2026-04-02T12:00:00.000Z",
+    );
+
+    expect(snapshot.dkimVerified).toBe(true);
+    expect(snapshot.spfVerified).toBe(true);
+  });
+
   it("parses only valid persisted validation snapshots", () => {
     expect(parseResendValidationSnapshot(null)).toBeNull();
     expect(
@@ -247,5 +284,31 @@ describe("@asym/email resend service", () => {
 
     expect(result.success).toBe(false);
     expect(result.errorCode).toBe("webhook_signature_invalid");
+  });
+
+  it("returns the first blocking deliverability warning", () => {
+    expect(
+      getFirstBlockingDeliverabilityWarning([
+        {
+          code: "INFO_WARNING",
+          message: "Informational warning",
+          severity: "info",
+        },
+        {
+          code: "BLOCKING_WARNING",
+          message: "Blocking warning",
+          severity: "error",
+        },
+        {
+          code: "SECOND_BLOCKING_WARNING",
+          message: "Second blocking warning",
+          severity: "error",
+        },
+      ]),
+    ).toEqual(
+      expect.objectContaining({
+        code: "BLOCKING_WARNING",
+      }),
+    );
   });
 });

@@ -8,6 +8,7 @@ export {
   validateResendApiKey,
   createResendValidationSnapshot,
   parseResendValidationSnapshot,
+  getFirstBlockingDeliverabilityWarning,
   isResendValidationSendReady,
   sendEmail,
   sendTestEmail,

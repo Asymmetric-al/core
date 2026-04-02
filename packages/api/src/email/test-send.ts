@@ -5,6 +5,7 @@ import {
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import {
+  getFirstBlockingDeliverabilityWarning,
   RESEND_ERROR_CODES,
   sendTestEmail,
   type TestSendEmailResponse,
@@ -59,37 +60,6 @@ function statusFromErrorCode(errorCode?: string): number {
       return 502;
     default:
       return 500;
-  }
-}
-
-function getBlockingWarning(
-  warnings:
-    | Array<{
-        code: string;
-        message: string;
-        severity: "info" | "warning" | "error";
-      }>
-    | undefined,
-) {
-  return warnings?.find((warning) => warning.severity === "error");
-}
-
-function getBlockingWarningErrorCode(blockingWarning: {
-  code: string;
-  severity: "info" | "warning" | "error";
-}) {
-  switch (blockingWarning.code) {
-    case "DEFAULT_FROM_EMAIL_DOMAIN_NOT_VERIFIED":
-      return RESEND_ERROR_CODES.SENDER_NOT_VERIFIED;
-    case "DOMAIN_NOT_VERIFIED":
-    case RESEND_ERROR_CODES.DOMAIN_NOT_AUTHENTICATED:
-      return RESEND_ERROR_CODES.DOMAIN_NOT_AUTHENTICATED;
-    case RESEND_ERROR_CODES.SENDER_NOT_VERIFIED:
-      return RESEND_ERROR_CODES.SENDER_NOT_VERIFIED;
-    case RESEND_ERROR_CODES.VALIDATION_ERROR:
-      return RESEND_ERROR_CODES.VALIDATION_ERROR;
-    default:
-      return RESEND_ERROR_CODES.VALIDATION_ERROR;
   }
 }
 
@@ -154,13 +124,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const blockingWarning = getBlockingWarning(validation.warnings);
+    const blockingWarning = getFirstBlockingDeliverabilityWarning(
+      validation.warnings,
+    );
     if (blockingWarning) {
       return NextResponse.json(
         {
           success: false,
           error: blockingWarning.message,
-          code: getBlockingWarningErrorCode(blockingWarning),
+          code: RESEND_ERROR_CODES.DOMAIN_NOT_AUTHENTICATED,
         },
         { status: 422 },
       );

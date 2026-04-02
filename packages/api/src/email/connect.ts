@@ -5,6 +5,7 @@ import {
 } from "@asym/auth/context";
 import {
   createResendValidationSnapshot,
+  getFirstBlockingDeliverabilityWarning,
   isResendValidationSendReady,
   parseResendValidationSnapshot,
   RESEND_ERROR_CODES,
@@ -92,12 +93,6 @@ function getRevalidationRequiredWarning(): DeliverabilityWarning {
     message:
       "This Resend connection was saved before validation metadata was persisted. Reconnect once to refresh verified domains, sender suggestions, and send readiness.",
   };
-}
-
-function getBlockingWarning(
-  warnings: DeliverabilityWarning[] | undefined,
-): DeliverabilityWarning | undefined {
-  return warnings?.find((warning) => warning.severity === "error");
 }
 
 export async function GET(request: NextRequest) {
@@ -216,7 +211,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const blockingWarning = getBlockingWarning(validation.warnings);
+    const blockingWarning = getFirstBlockingDeliverabilityWarning(
+      validation.warnings,
+    );
     if (blockingWarning) {
       return NextResponse.json(
         {

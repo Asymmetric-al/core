@@ -6,6 +6,7 @@ const {
   requireRoleMock,
   sendTestEmailMock,
   validateResendApiKeyMock,
+  getFirstBlockingDeliverabilityWarningMock,
   readTenantEmailSettingsMock,
   decryptResendApiKeyMock,
   getAdminClientMock,
@@ -20,6 +21,15 @@ const {
     requireRoleMock: vi.fn(),
     sendTestEmailMock: vi.fn(),
     validateResendApiKeyMock: vi.fn(),
+    getFirstBlockingDeliverabilityWarningMock: vi.fn(
+      (
+        warnings:
+          | Array<{
+              severity?: "info" | "warning" | "error";
+            }>
+          | undefined,
+      ) => warnings?.find((warning) => warning.severity === "error"),
+    ),
     readTenantEmailSettingsMock: vi.fn(),
     decryptResendApiKeyMock: vi.fn(),
     getAdminClientMock: vi.fn(),
@@ -55,6 +65,8 @@ vi.mock("@asym/email", () => ({
   },
   sendTestEmail: sendTestEmailMock,
   validateResendApiKey: validateResendApiKeyMock,
+  getFirstBlockingDeliverabilityWarning:
+    getFirstBlockingDeliverabilityWarningMock,
 }));
 
 vi.mock("@asym/database/supabase/admin", () => ({
@@ -291,7 +303,7 @@ describe("api/email/test-send", () => {
     const body = await response.json();
 
     expect(response.status).toBe(422);
-    expect(body.code).toBe("sender_not_verified");
+    expect(body.code).toBe("domain_not_authenticated");
     expect(body.error).toContain("exact verified Resend domains");
     expect(sendTestEmailMock).not.toHaveBeenCalled();
   });
@@ -322,7 +334,7 @@ describe("api/email/test-send", () => {
     const body = await response.json();
 
     expect(response.status).toBe(422);
-    expect(body.code).toBe("validation_error");
+    expect(body.code).toBe("domain_not_authenticated");
     expect(body.error).toContain("future deliverability rule");
     expect(sendTestEmailMock).not.toHaveBeenCalled();
   });

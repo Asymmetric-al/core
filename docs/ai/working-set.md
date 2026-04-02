@@ -1,5 +1,32 @@
 # Working Set
 
+## 2026-04-02 (PR #144 follow-up: Resend deliverability cleanup)
+
+- Date: 2026-04-02
+- Repo: Asymmetric-al/core
+- Goal: Land the small complexity-review follow-up on the Resend integration by centralizing blocking deliverability warning detection, documenting `validation_snapshot` as the canonical connection-state read source, and broadening DKIM/SPF verification heuristics without changing the existing route contracts.
+- Primary area:
+  - `packages/email/{resend,index,types}.ts`
+  - `packages/api/src/email/{connect,test-send,settings-store}.ts`
+  - `tests/unit/packages/{email/resend,api/email/{connect,test-send}}.test.ts`
+- Constraints:
+  - Keep HTTP behavior stable for the admin email routes, especially the current `422` blocking-warning contract.
+  - Keep diffs surgical and avoid schema changes or broader Resend/UI refactors.
+  - Use one shared implementation of “first blocking deliverability warning”.
+  - Treat `validation_snapshot` as the canonical rich-state read path; scalar columns remain synchronized persistence/compat fields.
+- Evidence sources used:
+  - `docs/ai/rules/{backend,testing}.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `.agents/skills/{test-driven-development,clean-code}/SKILL.md`
+  - `packages/email/{resend,index,types}.ts`
+  - `packages/api/src/email/{connect,test-send,settings-store}.ts`
+  - `tests/unit/packages/{email/resend,api/email/{connect,test-send}}.test.ts`
+  - Resend docs for domain-authentication context (`https://resend.com/docs/dashboard/domains/dmarc`)
+- Notes:
+  - Nia is not available in this session, so repo-scoped direct file reads and targeted searches are being used instead.
+  - The current branch already widened `test-send` warning-code mapping; this follow-up should preserve the established route contract unless a test proves it wrong.
+  - DKIM/SPF detection currently relies too heavily on the display label in `record.record`; the new heuristics should also recognize host/value evidence like `_domainkey` and `v=spf1`.
+
 ## 2026-04-02 (PR #144 follow-up: Resend edge cases + cropper race)
 
 - Date: 2026-04-02

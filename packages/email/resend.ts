@@ -28,6 +28,7 @@ import type {
 } from "./types";
 
 type JsonRecord = Record<string, unknown>;
+type DomainRecord = NonNullable<DomainAuthentication["records"]>[number];
 
 interface ResendErrorDetails {
   name?: string;
@@ -482,34 +483,59 @@ function isBlockingDeliverabilityWarning(
   return warning.severity === "error";
 }
 
-function hasVerifiedRecord(
+export function getFirstBlockingDeliverabilityWarning(
+  warnings?: DeliverabilityWarning[],
+): DeliverabilityWarning | undefined {
+  return warnings?.find(isBlockingDeliverabilityWarning);
+}
+
+function normalizeRecordField(value?: string | null): string {
+  return value?.trim().toLowerCase() ?? "";
+}
+
+function isVerifiedDomainRecord(record: DomainRecord): boolean {
+  return normalizeRecordField(record.status) === "verified";
+}
+
+function isTxtDomainRecord(record: DomainRecord): boolean {
+  return normalizeRecordField(record.type) === "txt";
+}
+
+function isVerifiedDkimRecord(record: DomainRecord): boolean {
+  const recordLabel = normalizeRecordField(record.record);
+  const recordName = normalizeRecordField(record.name);
+  const recordValue = normalizeRecordField(record.value);
+
+  if (recordLabel === "dkim") {
+    return true;
+  }
+
+  if (!isTxtDomainRecord(record)) {
+    return false;
+  }
+
+  return recordName.includes("_domainkey") || recordValue.includes("v=dkim1");
+}
+
+function isVerifiedSpfRecord(record: DomainRecord): boolean {
+  const recordLabel = normalizeRecordField(record.record);
+  const recordValue = normalizeRecordField(record.value);
+
+  if (recordLabel === "spf" && (!record.type || isTxtDomainRecord(record))) {
+    return true;
+  }
+
+  return isTxtDomainRecord(record) && recordValue.includes("v=spf1");
+}
+
+function hasVerifiedDomainRecord(
   domains: DomainAuthentication[],
-  recordName: string,
-  expectedType?: string,
+  predicate: (record: DomainRecord) => boolean,
 ): boolean {
-  const normalizedRecordName = recordName.trim().toLowerCase();
-  const normalizedExpectedType = expectedType?.trim().toLowerCase();
-
   return domains.some((domain) =>
-    (domain.records ?? []).some((record) => {
-      const recordStatus = record.status?.trim().toLowerCase();
-      const recordLabel = record.record?.trim().toLowerCase();
-      const recordType = record.type?.trim().toLowerCase();
-
-      if (recordStatus !== "verified") {
-        return false;
-      }
-
-      if (recordLabel !== normalizedRecordName) {
-        return false;
-      }
-
-      if (normalizedExpectedType && recordType !== normalizedExpectedType) {
-        return false;
-      }
-
-      return true;
-    }),
+    (domain.records ?? []).some(
+      (record) => isVerifiedDomainRecord(record) && predicate(record),
+    ),
   );
 }
 
@@ -538,8 +564,14 @@ export function createResendValidationSnapshot(
     deliverabilityScore,
     validatedAt,
     domainAuthenticated,
-    dkimVerified: hasVerifiedRecord(domainAuthentication, "DKIM"),
-    spfVerified: hasVerifiedRecord(domainAuthentication, "SPF", "TXT"),
+    dkimVerified: hasVerifiedDomainRecord(
+      domainAuthentication,
+      isVerifiedDkimRecord,
+    ),
+    spfVerified: hasVerifiedDomainRecord(
+      domainAuthentication,
+      isVerifiedSpfRecord,
+    ),
   };
 }
 
@@ -620,7 +652,7 @@ export function isResendValidationSendReady(
 ): boolean {
   return (
     snapshot.domainAuthenticated &&
-    !snapshot.warnings.some(isBlockingDeliverabilityWarning)
+    !getFirstBlockingDeliverabilityWarning(snapshot.warnings)
   );
 }
 
