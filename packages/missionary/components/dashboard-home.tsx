@@ -89,21 +89,13 @@ interface DashboardHomeProps {
   missionaryId?: string;
 }
 
-export const DashboardHome: React.FC<DashboardHomeProps> = ({
-  setActiveTab,
+function DashboardHomeContent({
   missionaryId,
-}) => {
-  const { user, loading } = useAuth();
-
-  let effectiveMissionaryId: string;
-  if (missionaryId) {
-    effectiveMissionaryId = missionaryId;
-  } else if (!loading && user?.id) {
-    effectiveMissionaryId = user.id;
-  } else {
-    effectiveMissionaryId = DEMO_MISSIONARY_ID;
-  }
-
+  setActiveTab,
+}: {
+  missionaryId: string;
+  setActiveTab?: (tab: string) => void;
+}) {
   const alerts = [
     { id: 1, text: "3 recurring gifts failed this week", severity: "high" },
     {
@@ -128,7 +120,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
         </Button>
       </PageHeader>
 
-      <MetricTiles missionaryId={effectiveMissionaryId} />
+      <MetricTiles missionaryId={missionaryId} />
 
       <Card className="border-zinc-200 shadow-sm bg-white overflow-hidden rounded-xl">
         <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-0.5 border-b border-zinc-50 space-y-2 sm:space-y-0 px-3 sm:px-4 pt-2.5">
@@ -152,7 +144,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
           )}
         </CardHeader>
         <CardContent className="pt-2 pb-1 px-0.5 sm:px-2 md:px-4">
-          <GivingBreakdownChart missionaryId={effectiveMissionaryId} />
+          <GivingBreakdownChart missionaryId={missionaryId} />
         </CardContent>
       </Card>
 
@@ -374,4 +366,34 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
       </div>
     </div>
   );
+}
+
+function DashboardHomeWithAuth({ setActiveTab }: DashboardHomeProps) {
+  const { user, loading } = useAuth();
+
+  const resolvedMissionaryId =
+    !loading && user?.id ? user.id : DEMO_MISSIONARY_ID;
+
+  return (
+    <DashboardHomeContent
+      missionaryId={resolvedMissionaryId}
+      setActiveTab={setActiveTab}
+    />
+  );
+}
+
+export const DashboardHome: React.FC<DashboardHomeProps> = ({
+  setActiveTab,
+  missionaryId,
+}) => {
+  if (missionaryId) {
+    return (
+      <DashboardHomeContent
+        missionaryId={missionaryId}
+        setActiveTab={setActiveTab}
+      />
+    );
+  }
+
+  return <DashboardHomeWithAuth setActiveTab={setActiveTab} />;
 };
