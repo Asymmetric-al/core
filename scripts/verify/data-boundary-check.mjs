@@ -12,6 +12,7 @@ const bannedImports = [
   "@supabase/ssr",
   "@supabase/supabase-js",
 ];
+const API_ROUTE_SOURCE_EXTENSIONS = new Set([".ts", ".tsx"]);
 
 function toRepoRelative(filePath) {
   return path.relative(repoRoot, filePath).split(path.sep).join("/");
@@ -28,7 +29,10 @@ function collectTypeScriptFiles(directoryPath) {
       continue;
     }
 
-    if (entry.isFile() && entry.name.endsWith(".ts")) {
+    if (
+      entry.isFile() &&
+      API_ROUTE_SOURCE_EXTENSIONS.has(path.extname(entry.name))
+    ) {
       files.push(entryPath);
     }
   }
@@ -92,7 +96,7 @@ const apiRouteFiles = collectApiRouteFiles();
 
 if (apiRouteFiles.length === 0) {
   console.log(
-    "No app API route TypeScript files found under apps/*/app/api/**/*.ts (after exclusions); data boundary check skipped.",
+    "No app API route source files found under apps/*/app/api/**/*.{ts,tsx} (after exclusions); data boundary check skipped.",
   );
   process.exit(0);
 }
@@ -101,7 +105,7 @@ const violations = apiRouteFiles.flatMap(collectViolations);
 
 if (violations.length > 0) {
   console.error(
-    "Data access boundary violations detected in apps/*/app/api/**/*.ts:",
+    "Data access boundary violations detected in apps/*/app/api/**/*.{ts,tsx}:",
   );
   console.error(violations.join("\n"));
   console.error("");
@@ -115,5 +119,5 @@ if (violations.length > 0) {
 }
 
 console.log(
-  "Data access boundary check passed: no direct Supabase imports found in apps/*/app/api/**/*.ts.",
+  "Data access boundary check passed: no direct Supabase imports found in apps/*/app/api/**/*.{ts,tsx}.",
 );

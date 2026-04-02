@@ -194,4 +194,24 @@ describe("data-boundary-check", () => {
       runNodeScript(tempRoot, "scripts/verify/data-boundary-check.mjs"),
     ).toThrow(/Data access boundary violations detected/);
   });
+
+  it("also scans TSX API route handlers for direct Supabase imports", async () => {
+    const tempRoot = await createDataBoundaryRepo();
+    const routePath = path.join(tempRoot, "apps/demo/app/api/users/route.tsx");
+    await mkdir(path.dirname(routePath), { recursive: true });
+    await writeFile(
+      routePath,
+      [
+        'import { createClient } from "@asym/database/supabase/server";',
+        "",
+        "export async function GET() {",
+        "  return Response.json({ ok: true });",
+        "}",
+      ].join("\n"),
+    );
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/verify/data-boundary-check.mjs"),
+    ).toThrow(/Data access boundary violations detected/);
+  });
 });

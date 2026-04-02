@@ -32,6 +32,7 @@ interface ConnectionState {
   hasValidationMetadata: boolean;
   persisted: boolean;
   apiKeyHint?: string;
+  validatedAt?: string;
   senderIdentities: SenderIdentity[];
   domainAuthentication: DomainAuthentication[];
   deliverabilityScore: number;
@@ -96,6 +97,7 @@ export default function ResendSettingsPage() {
             data.deliverabilityScore !== undefined,
           persisted: data.persisted ?? true,
           apiKeyHint: data.apiKeyHint ?? value.apiKey.slice(-4),
+          validatedAt: data.validatedAt,
           senderIdentities: data.senderIdentities || [],
           domainAuthentication: data.domainAuthentication || [],
           deliverabilityScore: data.deliverabilityScore || 0,
@@ -217,6 +219,7 @@ export default function ResendSettingsPage() {
             sendReady: data.sendReady,
             hasValidationMetadata: false,
             persisted: data.persisted ?? true,
+            validatedAt: undefined,
             senderIdentities: [],
             domainAuthentication: [],
             deliverabilityScore: 0,
@@ -235,6 +238,7 @@ export default function ResendSettingsPage() {
             data.deliverabilityScore !== undefined,
           persisted: data.persisted ?? true,
           apiKeyHint: data.apiKeyHint ?? undefined,
+          validatedAt: data.validatedAt,
           senderIdentities: data.senderIdentities || [],
           domainAuthentication: data.domainAuthentication || [],
           deliverabilityScore: data.deliverabilityScore || 0,
@@ -289,6 +293,7 @@ export default function ResendSettingsPage() {
         sendReady: false,
         hasValidationMetadata: false,
         persisted: data.persisted ?? connection.persisted,
+        validatedAt: undefined,
         senderIdentities: [],
         domainAuthentication: [],
         deliverabilityScore: 0,

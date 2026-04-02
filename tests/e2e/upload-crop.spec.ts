@@ -5,6 +5,8 @@ import { test, expect } from "@playwright/test";
 
 import type { APIRequestContext } from "@playwright/test";
 
+import { getDemoRoleMap } from "./helpers/demo-auth";
+
 const TEST_IMAGE_PATH = path.join(__dirname, "fixtures", "test-image.png");
 const AUTH_OPTIONAL_SUITES = new Set(["Backend Image Processing"]);
 
@@ -49,9 +51,10 @@ async function getDemoAuthState(
   }
 
   const payload = (await availabilityRes.json().catch(() => ({}))) as {
+    roles?: Partial<Record<"donor", boolean>>;
     availableRoles?: Partial<Record<"donor", boolean>>;
   };
-  if (!payload.availableRoles?.donor) {
+  if (!getDemoRoleMap(payload)?.donor) {
     demoAuthState = {
       available: false,
       reason: "Demo donor account is not available for E2E.",
@@ -86,32 +89,6 @@ test.beforeEach(async ({ page }, testInfo) => {
       `Demo auth unavailable (${res.status()}): ${body || "no body"}`,
     );
   }
-
-  const setCookieHeader = res.headers()["set-cookie"];
-  if (!setCookieHeader) {
-    throw new Error("Demo auth did not return Set-Cookie header");
-  }
-
-  const cookiePair = setCookieHeader.split(";")[0] || "";
-  const equalsIndex = cookiePair.indexOf("=");
-  if (equalsIndex <= 0) {
-    throw new Error("Failed to parse demo auth Set-Cookie header");
-  }
-
-  const name = cookiePair.slice(0, equalsIndex).trim();
-  const value = cookiePair.slice(equalsIndex + 1);
-  const url = new URL(res.url());
-
-  await page.context().addCookies([
-    {
-      name,
-      value,
-      url: url.origin,
-      httpOnly: true,
-      secure: url.protocol === "https:",
-      sameSite: "Lax",
-    },
-  ]);
 });
 
 test.describe("Image Upload and Crop Flow", () => {

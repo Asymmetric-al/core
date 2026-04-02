@@ -69,6 +69,7 @@ interface ConnectedConnectionSummary {
   apiKeyHint?: string;
   hasValidationMetadata: boolean;
   sendReady: boolean;
+  validatedAt?: string;
   senderIdentities: SenderIdentity[];
   domainAuthentication: DomainAuthentication[];
   deliverabilityScore: number;
@@ -106,6 +107,22 @@ function warningClassName(severity: DeliverabilityWarning["severity"]): string {
   if (severity === "warning")
     return "border-amber-200 bg-amber-50 text-amber-900";
   return "border-blue-200 bg-blue-50 text-blue-900";
+}
+
+function formatValidatedAt(validatedAt?: string): string | null {
+  if (!validatedAt) {
+    return null;
+  }
+
+  const date = new Date(validatedAt);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
 }
 
 function getRenderableErrors(field: {
@@ -183,6 +200,7 @@ export function ResendConnectedView({
   const authenticatedDomains = connection.domainAuthentication.filter(
     (domain) => domain.valid,
   ).length;
+  const validatedAtLabel = formatValidatedAt(connection.validatedAt);
 
   return (
     <div className="space-y-6">
@@ -194,6 +212,11 @@ export function ResendConnectedView({
               <CardDescription>
                 API Key: ********{connection.apiKeyHint ?? "----"}
               </CardDescription>
+              {validatedAtLabel ? (
+                <p className="mt-1 text-xs text-slate-500">
+                  Last verified {validatedAtLabel}
+                </p>
+              ) : null}
             </div>
             <Button onClick={onDisconnect} size="sm" variant="outline">
               Disconnect

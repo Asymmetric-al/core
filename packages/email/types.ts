@@ -532,6 +532,7 @@ export interface ConnectResendResponse {
   sendReady: boolean;
   connectionId?: string;
   apiKeyHint?: string | null;
+  validatedAt?: string;
   account?: ResendAccountInfo;
   senderIdentities?: SenderIdentity[];
   domainAuthentication?: DomainAuthentication[];
@@ -546,6 +547,7 @@ export interface ResendConnectionStateResponse {
   connected: boolean;
   sendReady: boolean;
   apiKeyHint?: string | null;
+  validatedAt?: string;
   defaultFromEmail?: string | null;
   defaultFromName?: string | null;
   replyToEmail?: string | null;

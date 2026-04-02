@@ -27,8 +27,15 @@ export default async function DonorDashboardLayout({
 }) {
   const authContext = await getAuthContext();
 
-  if (!authContext.isAuthenticated) {
+  if (authContext.userId == null) {
     redirect("/login?next=/donor-dashboard");
+  }
+
+  // A non-null userId with isAuthenticated=false means the Supabase session
+  // exists but the profile/membership context is missing or unusable. Treat
+  // that as forbidden, not logged out, so support paths do not bounce to login.
+  if (!authContext.isAuthenticated) {
+    redirect("/no-access");
   }
 
   if (!hasAnyContextRole(authContext, [...DONOR_ALLOWED_ROLES])) {

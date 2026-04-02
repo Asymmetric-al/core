@@ -1,5 +1,48 @@
 # Working Set
 
+## 2026-04-02 (PR #144 follow-up: auth redirect split + smoke restoration)
+
+- Date: 2026-04-02
+- Repo: Asymmetric-al/core
+- Goal: Land the narrow PR #144 follow-up fixes for session-without-profile auth redirects, restored smoke coverage, `.tsx` API-route boundary scanning, and a minimal Resend freshness signal without changing route semantics or broadening scope.
+- Primary area:
+  - `apps/donor/app/(dashboard)/donor-dashboard/layout.tsx`
+  - `apps/missionary/app/layout.tsx`
+  - `package.json`
+  - `tests/e2e/{demo-auth-preflight,usability-smoke,upload-crop,donate}.spec.ts`
+  - `tests/e2e/helpers/demo-auth.ts`
+  - `scripts/verify/data-boundary-check.mjs`
+  - `tests/unit/{script-verifiers,packages/api/email/connect}.test.ts`
+  - `packages/api/src/email/connect.ts`
+  - `packages/email/types.ts`
+  - `apps/admin/app/settings/integrations/resend/{page,resend-sections}.tsx`
+  - `docs/guides/features/resend-integration.md`
+- Constraints:
+  - Preserve existing login redirect URLs and missionary public-path handling.
+  - Treat `userId != null && !isAuthenticated` as “session exists, profile unusable” and send that branch to `/no-access`, not login.
+  - Restore the smoke entrypoint through `node scripts/run-with-ci-env.mjs --` and keep Chromium + single-worker stability flags.
+  - Extend the data-boundary verifier to `.tsx` API routes without changing banned imports or exception policy.
+  - Keep the Resend freshness improvement small and snapshot-backed; do not reintroduce live provider validation on `GET /api/email/connect`.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/ai/rules/{backend,testing}.md`
+  - `docs/ai/skills/nextjs-app-router/SKILL.md`
+  - `.next-docs/01-app/03-api-reference/03-file-conventions/layout.mdx`
+  - `.next-docs/01-app/02-guides/testing/playwright.mdx`
+  - `packages/auth/context.ts`
+  - `apps/donor/app/(dashboard)/donor-dashboard/layout.tsx`
+  - `apps/missionary/app/layout.tsx`
+  - `scripts/verify/data-boundary-check.mjs`
+  - `tests/unit/script-verifiers.test.ts`
+  - `packages/api/src/email/connect.ts`
+  - `packages/email/types.ts`
+  - `apps/admin/app/settings/integrations/resend/{page,resend-sections}.tsx`
+  - `docs/guides/features/resend-integration.md`
+- Notes:
+  - Nia is not available in this session, so repo-scoped direct file reads and targeted searches are being used instead.
+  - CI workflows do not currently invoke `test:e2e:smoke`, so the safest coverage fix is to restore the root smoke script itself instead of adding a new CI-only entrypoint.
+  - The repo currently has only `.ts` files under `apps/*/app/api`, so `.tsx` support is the only concrete verifier extension needed right now.
+
 ## 2026-04-02 (PR #144 follow-up: Resend deliverability cleanup)
 
 - Date: 2026-04-02

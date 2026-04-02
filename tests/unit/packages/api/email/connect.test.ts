@@ -212,6 +212,7 @@ describe("api/email/connect", () => {
     expect(response.status).toBe(200);
     expect(body.success).toBe(true);
     expect(body.sendReady).toBe(true);
+    expect(body.validatedAt).toBe("2026-04-02T12:00:00.000Z");
     expect(upsertTenantEmailSettingsMock).toHaveBeenCalledWith(
       expect.objectContaining({
         tenantId: "tenant_1",
@@ -325,6 +326,7 @@ describe("api/email/connect", () => {
     expect(body.defaultFromName).toBe("From Team");
     expect(body.replyToEmail).toBe("reply@example.com");
     expect(body.deliverabilityScore).toBe(91);
+    expect(body.validatedAt).toBe("2026-04-02T12:00:00.000Z");
     expect(body.sendReady).toBe(true);
     expect(body.senderIdentities).toEqual(
       expect.arrayContaining([

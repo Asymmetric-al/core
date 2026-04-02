@@ -60,6 +60,11 @@ Legacy connected rows without a snapshot are treated conservatively:
 `connected = true`, `sendReady = false`, and the admin UI asks the tenant to
 reconnect once to refresh sender/domain metadata.
 
+Deploy note: apply
+`supabase/migrations/20260402100000_resend_validation_snapshot.sql` before, or
+in the same rollout as, any app version that reads or writes
+`tenant_email_settings.validation_snapshot`.
+
 When a tenant disconnects Resend, the stored default sender fields remain
 available so the admin form can preserve the last known `from` address, sender
 name, and reply-to email for the next reconnect flow.
