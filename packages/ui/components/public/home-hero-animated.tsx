@@ -2,7 +2,7 @@
 
 import { useReducedMotion } from "@asym/lib/motion";
 import { propsHeroEntrance, STAGGER_TIGHT } from "@asym/lib/motion-presets";
-import { ArrowRight, Zap } from "lucide-react";
+import { Activity, ArrowRight, Users, Zap } from "lucide-react";
 import { LazyMotion, domAnimation, m } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -17,14 +17,17 @@ export type HomeHeroStat = {
   Icon: LucideIcon;
 };
 
+const heroStats: readonly HomeHeroStat[] = [
+  { label: "Deployed", val: "$26.4M", Icon: Activity },
+  { label: "Partners", val: "42.1k", Icon: Users },
+];
+
 export function HomeHeroAnimated({
   heroImageSrc,
   blurDataURL,
-  stats,
 }: {
   heroImageSrc: string;
   blurDataURL: string;
-  stats: readonly HomeHeroStat[];
 }) {
   const reduceMotion = useReducedMotion();
 
@@ -113,7 +116,7 @@ export function HomeHeroAnimated({
           className="absolute bottom-24 right-6 hidden xl:flex flex-col gap-4"
           aria-hidden="true"
         >
-          {stats.map((stat, i) => (
+          {heroStats.map((stat, i) => (
             <m.div
               key={stat.label}
               {...propsHeroEntrance(

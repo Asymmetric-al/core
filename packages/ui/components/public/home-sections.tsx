@@ -55,11 +55,6 @@ const tickerActivities = [
   ...activities.map((text) => ({ key: `${text}-2`, text })),
 ];
 
-const heroStats = [
-  { label: "Deployed", val: "$26.4M", Icon: Activity },
-  { label: "Partners", val: "42.1k", Icon: Users },
-] as const;
-
 const ratingStars = ["star-1", "star-2", "star-3", "star-4", "star-5"] as const;
 
 const HERO_BLUR_DATA_URL =
@@ -94,7 +89,6 @@ export function HomeHero() {
     <HomeHeroAnimated
       heroImageSrc={HERO_IMAGE}
       blurDataURL={HERO_BLUR_DATA_URL}
-      stats={heroStats}
     />
   );
 }
