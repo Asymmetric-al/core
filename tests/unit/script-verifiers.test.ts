@@ -6,6 +6,9 @@ import { afterEach, describe, expect, it } from "vitest";
 
 const repoRoot = process.cwd();
 const tempRoots: string[] = [];
+const isolatedGitEnv = Object.fromEntries(
+  Object.entries(process.env).filter(([key]) => !key.startsWith("GIT_")),
+);
 
 async function createTempRepo(prefix: string) {
   const testRoot = path.join(repoRoot, ".tmp");
@@ -31,6 +34,7 @@ function runNodeScript(tempRoot: string, relativePath: string) {
   return execFileSync(process.execPath, [relativePath], {
     cwd: tempRoot,
     encoding: "utf8",
+    env: isolatedGitEnv,
     stdio: "pipe",
   });
 }
@@ -80,14 +84,27 @@ async function createSkillsVerifyRepo() {
     "# Sample skill\n",
   );
 
-  execSync("git init -b main", { cwd: tempRoot, stdio: "pipe" });
-  execSync('git config user.email "codex@example.com"', {
+  execSync("git init -b main", {
     cwd: tempRoot,
+    env: isolatedGitEnv,
     stdio: "pipe",
   });
-  execSync('git config user.name "Codex"', { cwd: tempRoot, stdio: "pipe" });
-  execSync("git add .", { cwd: tempRoot, stdio: "pipe" });
-  execSync('git commit -m "init"', { cwd: tempRoot, stdio: "pipe" });
+  execSync('git config user.email "codex@example.com"', {
+    cwd: tempRoot,
+    env: isolatedGitEnv,
+    stdio: "pipe",
+  });
+  execSync('git config user.name "Codex"', {
+    cwd: tempRoot,
+    env: isolatedGitEnv,
+    stdio: "pipe",
+  });
+  execSync("git add .", { cwd: tempRoot, env: isolatedGitEnv, stdio: "pipe" });
+  execSync('git commit -m "init"', {
+    cwd: tempRoot,
+    env: isolatedGitEnv,
+    stdio: "pipe",
+  });
 
   return tempRoot;
 }
