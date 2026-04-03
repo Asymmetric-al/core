@@ -1,7 +1,6 @@
 "use client";
 "use no memo";
 
-import { SafeHtml } from "@asym/lib/components/safe-html";
 import { TimeAgo, useLastSynced } from "@asym/lib/hooks";
 import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
 import {
@@ -37,6 +36,10 @@ import {
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
+import {
+  isPostContentEmpty,
+  PostContent,
+} from "@asym/ui/components/shadcn/rich-text-editor";
 import { Switch } from "@asym/ui/components/shadcn/switch";
 import {
   Tabs,
@@ -1080,13 +1083,14 @@ function PostCard({
             transition={{ delay: 0.1 }}
             className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-4 sm:space-y-6"
           >
-            <SafeHtml
-              className="prose prose-sm sm:prose-base max-w-none text-foreground/80 leading-relaxed
+            <PostContent
+              value={post.content}
+              richTextClassName="text-foreground/80 leading-relaxed"
+              htmlClassName="prose prose-sm sm:prose-base max-w-none text-foreground/80 leading-relaxed
                         prose-headings:font-bold prose-headings:text-foreground prose-headings:tracking-tight
                         prose-strong:font-bold prose-strong:text-foreground
                         prose-a:text-primary prose-a:font-bold prose-a:no-underline hover:prose-a:underline
                         prose-blockquote:border-l-4 prose-blockquote:border-border prose-blockquote:italic prose-blockquote:text-muted-foreground"
-              html={post.content}
             />
             {post.media && post.media.length > 0 && (
               <motion.div
@@ -1839,8 +1843,7 @@ function PostComposerCard({
   simulateUpload,
   handlePost,
 }: PostComposerCardProps) {
-  const isComposerEmpty =
-    !postContent || postContent === "<p></p>" || postContent === "<p><br></p>";
+  const isComposerEmpty = isPostContentEmpty(postContent);
   const postActionDisabled =
     isSaving || isUploading || (isComposerEmpty && selectedMedia.length === 0);
 
@@ -2105,9 +2108,10 @@ function FeedPostsTabsSection({
                                 ).toLocaleDateString()}
                               </span>
                             </div>
-                            <SafeHtml
-                              className="prose prose-sm sm:prose-base max-w-none line-clamp-3 opacity-60 text-foreground"
-                              html={draft.content}
+                            <PostContent
+                              value={draft.content}
+                              richTextClassName="line-clamp-3 opacity-60 text-foreground/80 text-sm"
+                              htmlClassName="prose prose-sm sm:prose-base max-w-none line-clamp-3 opacity-60 text-foreground"
                             />
                           </div>
                           <div className="flex flex-row sm:flex-col gap-2 shrink-0 w-full sm:w-auto">
@@ -2446,8 +2450,7 @@ function useWorkerFeedPageView() {
 
   const handlePost = useCallback(
     async (status: PostStatus = "published") => {
-      const plainText = postContent.replace(/<[^>]*>?/gm, "").trim();
-      if (!plainText && !postContent.includes("<img")) return;
+      if (isPostContentEmpty(postContent)) return;
 
       setIsSaving(true);
       try {
@@ -2524,9 +2527,7 @@ function useWorkerFeedPageView() {
 
   useEffect(() => {
     if (
-      !postContent ||
-      postContent === "<p></p>" ||
-      postContent === "<p><br></p>" ||
+      isPostContentEmpty(postContent) ||
       isSaving ||
       (activeTab === "published" && !editingPostId)
     )

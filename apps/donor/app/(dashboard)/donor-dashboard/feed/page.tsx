@@ -1,6 +1,5 @@
 "use client";
 
-import { SafeHtml } from "@asym/lib/components/safe-html";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import {
   Avatar,
@@ -18,6 +17,7 @@ import {
   DropdownMenuLabel,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { Input } from "@asym/ui/components/shadcn/input";
+import { PostContent } from "@asym/ui/components/shadcn/rich-text-editor";
 import { cn } from "@asym/ui/lib/utils";
 import {
   Heart,
@@ -714,9 +714,10 @@ const PostCard: React.FC<{
           </div>
         )}
 
-        <SafeHtml
-          className="prose prose-zinc prose-sm sm:prose-base max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-p:leading-relaxed prose-p:text-zinc-600 prose-p:font-medium prose-blockquote:border-l-4 prose-blockquote:border-zinc-900 prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:font-bold prose-blockquote:text-zinc-800 prose-a:text-zinc-900 prose-a:underline hover:prose-a:opacity-70 prose-img:rounded-xl uppercase tracking-tight"
-          html={post.content}
+        <PostContent
+          value={post.content}
+          richTextClassName="prose prose-zinc prose-sm sm:prose-base max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-p:leading-relaxed prose-p:text-zinc-600 prose-p:font-medium prose-blockquote:border-l-4 prose-blockquote:border-zinc-900 prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:font-bold prose-blockquote:text-zinc-800 prose-a:text-zinc-900 prose-a:underline hover:prose-a:opacity-70 prose-img:rounded-xl uppercase tracking-tight"
+          htmlClassName="prose prose-zinc prose-sm sm:prose-base max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-p:leading-relaxed prose-p:text-zinc-600 prose-p:font-medium prose-blockquote:border-l-4 prose-blockquote:border-zinc-900 prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:font-bold prose-blockquote:text-zinc-800 prose-a:text-zinc-900 prose-a:underline hover:prose-a:opacity-70 prose-img:rounded-xl uppercase tracking-tight"
         />
       </div>
 

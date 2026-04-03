@@ -16,8 +16,11 @@ focused on domain logic.
 4. Enforce access with `requireRole(...)` or `requireAuth(...)`.
 5. Build audit helper via `createAuditLogger(...)`.
 6. Call the wrapped handler with a typed `OperationContext`.
-7. Normalize thrown errors through `toApiHttpError(...)` and return
-   `{ error, requestId }`.
+7. Normalize failures to `{ error, requestId }`:
+   - Thrown errors go through `toErrorResponse(..., requestId)`.
+   - Handler-returned non-OK **JSON** responses whose body is an object with a
+     **string** `error` property and no existing **string** `requestId` get
+     `requestId` merged in. Other shapes or non-JSON responses are unchanged.
 
 If the admin client is unavailable, it returns a `503` response that also
 includes `requestId`.
@@ -62,5 +65,8 @@ Do not export `withOperation` from `packages/api/package.json`.
 4. Remove duplicate imports now handled by the wrapper
    (`getAdminClient`, auth guards, audit logger setup).
 5. Preserve existing status codes and response payloads from domain logic.
-6. Keep fixed-response demo/stub handlers as plain route functions.
+   Wrapped handler-returned JSON errors shaped as `{ error: string }` receive
+   `requestId` when missing.
+6. Keep fixed-response demo/stub handlers as plain route functions (no
+   `withOperation`); their error bodies may omit `requestId` by design.
 7. Add or update tests for auth/admin failure paths and successful passthrough.
