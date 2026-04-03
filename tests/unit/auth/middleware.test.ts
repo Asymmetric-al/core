@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createE2EAuthCookieValue } from "../../../packages/auth/e2e-auth";
 
 // Module-level config so mocks survive clearMocks (vitest.config has clearMocks: true)
 let mockSupabaseConfig: {
@@ -161,6 +162,29 @@ describe("createAuthMiddleware", () => {
     });
 
     const response = await middleware(createRequest("/web-studio"));
+
+    expect(response.status).toBe(200);
+  });
+
+  it("allows protected routes when the e2e bypass cookie is present", async () => {
+    process.env.E2E_AUTH_BYPASS = "true";
+    mockNoConfig();
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/auth/callback"],
+      protectedRoutePrefixes: ["/"],
+      loginPath: "/login",
+    });
+    const request = createRequest("/web-studio");
+    const encoded = createE2EAuthCookieValue({
+      userId: "e2e-donor-user",
+      role: "donor",
+      tenantId: null,
+    });
+    request.cookies.get = vi.fn((name: string) =>
+      name === "asym_e2e_auth" ? { value: encoded } : undefined,
+    );
+
+    const response = await middleware(request);
 
     expect(response.status).toBe(200);
   });

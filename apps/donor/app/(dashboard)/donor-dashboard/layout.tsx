@@ -1,4 +1,5 @@
-import { createClient } from "@asym/database/supabase/server";
+import { getAuthContext } from "@asym/auth/context";
+import { canAccessDashboard } from "@asym/auth/permissions";
 import { Footer } from "@asym/ui/components/public/footer";
 import { Navbar } from "@asym/ui/components/public/navbar";
 import { redirect } from "next/navigation";
@@ -18,29 +19,18 @@ export const metadata: Metadata = {
   },
 };
 
-const DONOR_ALLOWED_ROLES = new Set(["donor"]);
-
 export default async function DonorDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const auth = await getAuthContext();
 
-  if (!user) {
+  if (!auth.isAuthenticated || !auth.userId) {
     redirect("/login?next=/donor-dashboard");
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (!profile?.role || !DONOR_ALLOWED_ROLES.has(profile.role)) {
+  if (!canAccessDashboard(auth, "donor_portal")) {
     redirect("/no-access");
   }
 
