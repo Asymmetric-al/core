@@ -26,6 +26,7 @@ import { ImageCropper } from "./image-cropper";
 import {
   composeEventHandlers,
   isKeyboardClickKey,
+  resolveButtonTriggerType,
 } from "./image-upload-helpers";
 
 const passthroughImageLoader: ImageLoader = ({ src }) => src;
@@ -105,6 +106,7 @@ function ImageUploadCustomTrigger({
       onKeyDown?: React.KeyboardEventHandler;
       role?: string;
       tabIndex?: number;
+      type?: "button" | "submit" | "reset";
       disabled?: boolean;
       "aria-disabled"?: boolean;
       "aria-label"?: string;
@@ -140,6 +142,9 @@ function ImageUploadCustomTrigger({
         : (element.props.tabIndex ?? (isInteractive ? 0 : -1)),
       "aria-disabled": isInteractive ? undefined : true,
       "aria-label": isButtonLike ? undefined : triggerAriaLabel,
+      type: isButtonLike
+        ? resolveButtonTriggerType(element.props.type)
+        : undefined,
       disabled: isButtonLike ? !isInteractive : undefined,
       className: cn(element.props.className, sharedClassName),
     });

@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   composeEventHandlers,
   isKeyboardClickKey,
+  resolveButtonTriggerType,
 } from "../../../../../../packages/ui/components/shadcn/image-upload-helpers";
 
 describe("image-upload helpers", () => {
@@ -34,5 +35,14 @@ describe("image-upload helpers", () => {
     expect(isKeyboardClickKey("Enter")).toBe(true);
     expect(isKeyboardClickKey(" ")).toBe(true);
     expect(isKeyboardClickKey("Escape")).toBe(false);
+  });
+
+  it('defaults omitted button trigger types to "button"', () => {
+    expect(resolveButtonTriggerType(undefined)).toBe("button");
+  });
+
+  it("preserves explicit consumer button trigger types", () => {
+    expect(resolveButtonTriggerType("submit")).toBe("submit");
+    expect(resolveButtonTriggerType("reset")).toBe("reset");
   });
 });
