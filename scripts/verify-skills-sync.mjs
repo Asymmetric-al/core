@@ -10,14 +10,34 @@ const gitSafeEnv = Object.fromEntries(
   Object.entries(process.env).filter(([key]) => !key.startsWith("GIT_")),
 );
 const dotGitPath = path.join(repoRoot, ".git");
-const gitDir = statSync(dotGitPath).isDirectory()
-  ? dotGitPath
-  : path.resolve(
+
+function resolveGitDir() {
+  let resolvedGitDir = dotGitPath;
+
+  try {
+    if (statSync(dotGitPath).isDirectory()) {
+      return dotGitPath;
+    }
+
+    resolvedGitDir = path.resolve(
       repoRoot,
       readFileSync(dotGitPath, "utf8")
         .trim()
         .replace(/^gitdir:\s*/i, ""),
     );
+
+    return resolvedGitDir;
+  } catch (error) {
+    console.error(`repoRoot: ${repoRoot}`);
+    console.error(`resolvedGitDir: ${resolvedGitDir}`);
+    console.error(
+      "hint: ensure .git points to a readable gitdir and run the verifier from the repo root.",
+    );
+    throw error;
+  }
+}
+
+const gitDir = resolveGitDir();
 const gitArgs = [`--git-dir=${gitDir}`, `--work-tree=${repoRoot}`];
 
 function run(command, args) {
