@@ -20,10 +20,10 @@ Use this order when instructions conflict:
 
 1. **OpenSpec:** `openspec/project.md` = durable project context; `openspec/specs/` = current intended behavior; `openspec/changes/` = proposed or active changes not yet archived into the durable specs.
 2. **Repo instruction system:** root `AGENTS.md`, nearest nested `AGENTS.md`, `.cursor/rules`, `CLAUDE.md`, `cursor.md`, `.github/copilot-instructions.md`, `.github/instructions/*.instructions.md`, `docs/ai/*` rulebooks.
-3. **Installed platform integrations and Codex capability layers:** provider plugins, Codex surfaces, and optional workspace capabilities that are actually present in the current environment. These are helpers, not the source of truth.
-4. **Repo-local canonical skills:** `docs/ai/skills/*/SKILL.md` (mirrored into `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`; verify with `bun run skills:verify`).
-5. **Local framework docs:** bundled docs under `node_modules/next/dist/docs/` for the installed version (then repo root `node_modules`; see **Next.js docs source of truth** below).
-6. **MCP runtime facts:** e.g. Next.js devtools MCP against a running dev server (see **Next.js MCP (devtools)** below), TanStack MCP from root `.mcp.json`, plus any other MCP servers enabled in the agent.
+3. **Repo-local canonical skills:** `docs/ai/skills/*/SKILL.md` (mirrored into `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`; verify with `bun run skills:verify`).
+4. **Local framework docs:** bundled docs under `node_modules/next/dist/docs/` for the installed version (then repo root `node_modules`; see **Next.js docs source of truth** below).
+5. **MCP runtime facts:** e.g. Next.js devtools MCP against a running dev server (see **Next.js MCP (devtools)** below), TanStack MCP from root `.mcp.json`, plus any other MCP servers enabled in the agent.
+6. **Installed platform integrations and Codex capability layers:** provider plugins, Codex surfaces, and optional workspace capabilities that are actually present in the current environment. These are helpers, not the source of truth.
 7. **Official external docs:** prefer indexed doc search / package source (for example Nia) over training data; use direct official docs when needed.
 8. **General model knowledge:** lowest priority; never substitute memory for version-specific or repo-specific facts.
 
