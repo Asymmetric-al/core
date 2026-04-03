@@ -2,7 +2,11 @@ type EventWithDefaultPrevention = {
   defaultPrevented?: boolean;
 };
 
-export function resolveButtonTriggerType(type?: string) {
+type ButtonTriggerType = "button" | "submit" | "reset";
+
+export function resolveButtonTriggerType(
+  type?: ButtonTriggerType,
+): ButtonTriggerType {
   return type ?? "button";
 }
 

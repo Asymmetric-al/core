@@ -59,10 +59,7 @@ function applyEnvValues(env, values) {
 
 export function loadEnvFileWithFallback(
   absolutePath,
-  {
-    env = process.env,
-    loadEnvFile = process.loadEnvFile,
-  } = {},
+  { env = process.env, loadEnvFile = process.loadEnvFile } = {},
 ) {
   if (typeof loadEnvFile === "function" && env === process.env) {
     loadEnvFile(absolutePath);

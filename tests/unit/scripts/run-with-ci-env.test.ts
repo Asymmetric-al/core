@@ -72,9 +72,11 @@ describe("run-with-ci-env", () => {
     );
     await writeFile(
       path.join(tempRoot, ".env"),
-      ["EXISTING=env-should-not-win", "LOCAL_ONLY=env-fallback", "SHARED=env"].join(
-        "\n",
-      ),
+      [
+        "EXISTING=env-should-not-win",
+        "LOCAL_ONLY=env-fallback",
+        "SHARED=env",
+      ].join("\n"),
     );
 
     const env: Record<string, string> = { EXISTING: "already-set" };
