@@ -22,10 +22,10 @@ interface TableQueryOptions {
   };
 }
 
-type SchemaOutput<TSchema extends StandardSchema<any>> =
+type SchemaOutput<TSchema extends StandardSchema<unknown>> =
   InferSchemaOutput<TSchema>;
 
-interface ReadOnlyCollectionConfig<TSchema extends StandardSchema<any>> {
+interface ReadOnlyCollectionConfig<TSchema extends StandardSchema<unknown>> {
   id: string;
   queryKey: readonly string[];
   tableName: string;
@@ -57,7 +57,7 @@ async function fetchTableRows<TItem extends object>(
   return (data ?? []) as TItem[];
 }
 
-function createReadOnlyCollection<TSchema extends StandardSchema<any>>({
+function createReadOnlyCollection<TSchema extends StandardSchema<unknown>>({
   id,
   queryKey,
   tableName,

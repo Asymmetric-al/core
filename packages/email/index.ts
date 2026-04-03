@@ -5,7 +5,15 @@
  */
 
 export {
+  getFirstBlockingDeliverabilityWarning,
+  toTestSendBlockingErrorCode,
+} from "./deliverability-warnings";
+
+export {
   validateResendApiKey,
+  createResendValidationSnapshot,
+  parseResendValidationSnapshot,
+  isResendValidationSendReady,
   sendEmail,
   sendTestEmail,
   verifyResendWebhookSignature,
@@ -15,6 +23,8 @@ export {
   type ResendValidationResult,
   type SendEmailOptions,
 } from "./resend";
+
+export type { ResendValidationSnapshot, TestSendEmailResponse } from "./types";
 
 export {
   RESEND_API_BASE,

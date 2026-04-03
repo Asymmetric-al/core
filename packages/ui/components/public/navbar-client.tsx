@@ -132,6 +132,7 @@ export function NavbarClient({
             ))}
             <Button
               asChild
+              variant="ghost"
               className={cn(
                 "rounded-full px-5 lg:px-6 font-bold uppercase tracking-widest text-[10px] h-10 shadow-lg transition-all",
                 showScrolledStyles
@@ -175,7 +176,7 @@ export function NavbarClient({
           aria-hidden={!isMobileMenuOpen}
         >
           <div className="container-responsive pt-20 pb-8 flex flex-col h-full">
-            <div className="flex flex-col gap-2 flex-1" role="menu">
+            <div className="flex flex-col gap-2 flex-1">
               {navLinks.map((link, index) => (
                 <Link
                   key={link.href}
@@ -192,7 +193,6 @@ export function NavbarClient({
                     index === 2 && "nav-delay-3",
                     index === 3 && "nav-delay-4",
                   )}
-                  role="menuitem"
                 >
                   {link.label}
                 </Link>
@@ -202,6 +202,7 @@ export function NavbarClient({
             <div className="pt-6 safe-area-bottom">
               <Button
                 asChild
+                variant="ghost"
                 className="w-full h-14 rounded-xl bg-slate-900 text-white font-bold uppercase tracking-widest text-xs shadow-lg hover:bg-slate-800"
               >
                 <Link href={ctaHref} onClick={() => setIsMobileMenuOpen(false)}>

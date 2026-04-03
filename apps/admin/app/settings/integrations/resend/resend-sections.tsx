@@ -48,6 +48,8 @@ import {
   XCircle,
 } from "lucide-react";
 
+import { formatValidatedAtUtcLabel } from "./validated-at";
+
 import type {
   ResendConnectFormApi,
   ResendTestFormApi,
@@ -67,6 +69,9 @@ interface ResendPageHeaderProps {
 
 interface ConnectedConnectionSummary {
   apiKeyHint?: string;
+  hasValidationMetadata: boolean;
+  sendReady: boolean;
+  validatedAt?: string;
   senderIdentities: SenderIdentity[];
   domainAuthentication: DomainAuthentication[];
   deliverabilityScore: number;
@@ -74,6 +79,7 @@ interface ConnectedConnectionSummary {
 }
 
 interface ResendConnectedViewProps {
+  canSendTestEmail: boolean;
   connection: ConnectedConnectionSummary;
   onDisconnect: () => void;
   onOpenTestDialog: () => void;
@@ -172,6 +178,7 @@ export function ResendPageHeader({ isConnected }: ResendPageHeaderProps) {
 }
 
 export function ResendConnectedView({
+  canSendTestEmail,
   connection,
   onDisconnect,
   onOpenTestDialog,
@@ -179,6 +186,7 @@ export function ResendConnectedView({
   const authenticatedDomains = connection.domainAuthentication.filter(
     (domain) => domain.valid,
   ).length;
+  const validatedAtLabel = formatValidatedAtUtcLabel(connection.validatedAt);
 
   return (
     <div className="space-y-6">
@@ -188,8 +196,16 @@ export function ResendConnectedView({
             <div>
               <CardTitle className="text-lg">Connection Active</CardTitle>
               <CardDescription>
-                API Key: ••••••••{connection.apiKeyHint ?? "----"}
+                API Key: ********{connection.apiKeyHint ?? "----"}
               </CardDescription>
+              {validatedAtLabel && connection.validatedAt ? (
+                <p className="mt-1 text-xs text-slate-500">
+                  Last verified{" "}
+                  <time dateTime={connection.validatedAt}>
+                    {validatedAtLabel}
+                  </time>
+                </p>
+              ) : null}
             </div>
             <Button onClick={onDisconnect} size="sm" variant="outline">
               Disconnect
@@ -197,40 +213,54 @@ export function ResendConnectedView({
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-            <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
-              <div className="text-2xl font-bold text-slate-900">
-                {connection.senderIdentities.length}
+          {connection.hasValidationMetadata ? (
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+              <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
+                <div className="text-2xl font-bold text-slate-900">
+                  {connection.senderIdentities.length}
+                </div>
+                <div className="mt-1 text-xs text-slate-500">
+                  Suggested senders
+                </div>
               </div>
-              <div className="mt-1 text-xs text-slate-500">
-                Suggested senders
+              <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
+                <div className="text-2xl font-bold text-slate-900">
+                  {authenticatedDomains}
+                </div>
+                <div className="mt-1 text-xs text-slate-500">
+                  Verified domains
+                </div>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
+                <div className="text-2xl font-bold text-slate-900">
+                  {connection.deliverabilityScore}%
+                </div>
+                <div className="mt-1 text-xs text-slate-500">
+                  Deliverability score
+                </div>
               </div>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
-              <div className="text-2xl font-bold text-slate-900">
-                {authenticatedDomains}
-              </div>
-              <div className="mt-1 text-xs text-slate-500">
-                Verified domains
-              </div>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
-              <div className="text-2xl font-bold text-slate-900">
-                {connection.deliverabilityScore}%
-              </div>
-              <div className="mt-1 text-xs text-slate-500">
-                Deliverability score
-              </div>
-            </div>
-          </div>
+          ) : (
+            <Alert className="border-slate-200 bg-white">
+              <Info className="h-4 w-4 text-slate-500" />
+              <AlertTitle>Reconnect Required</AlertTitle>
+              <AlertDescription>
+                Reconnect Resend once to refresh verified domains, sender
+                suggestions, and test-send readiness for this saved connection.
+              </AlertDescription>
+            </Alert>
+          )}
 
           <div className="flex flex-wrap items-center gap-3">
             <Button
               className="bg-blue-600 hover:bg-blue-700"
+              disabled={!canSendTestEmail}
               onClick={onOpenTestDialog}
             >
               <Send className="mr-2 h-4 w-4" />
-              Send Test Email
+              {canSendTestEmail
+                ? "Send Test Email"
+                : "Resolve Delivery Setup First"}
             </Button>
             <Button
               onClick={() =>
@@ -276,7 +306,8 @@ export function ResendConnectedView({
         </div>
       ) : null}
 
-      {connection.domainAuthentication.length > 0 ? (
+      {connection.hasValidationMetadata &&
+      connection.domainAuthentication.length > 0 ? (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
