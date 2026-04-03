@@ -287,6 +287,39 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 
 ---
 
+## Code Style
+
+- Write code for clarity and long term maintenance first.
+- Prefer straightforward code over clever, compressed, or heavily chained code.
+- Keep each line focused on one idea. Split dense or compound expressions into well named intermediate variables when it improves readability.
+- Extract small helper functions when logic starts to mix concerns, repeat, or become hard to scan. Do not extract helpers only to make a line shorter.
+- Use clear, descriptive names that make intent obvious.
+- Prefer explicit control flow, shallow nesting, and early returns over deeply nested or overly compact logic.
+- Follow existing project patterns and conventions unless this file says otherwise.
+- Write code that a teammate can read, understand, and modify quickly.
+
+---
+
+## Validation
+
+Before finishing, run the smallest set of checks that matches the change.
+
+Use the repo's standard commands:
+
+- `bun run lint` for touched code
+- `bun run typecheck` for affected code
+- `bun run test:unit` when the change affects tested behavior
+
+When the change is limited to one app or workspace, prefer the most targeted lint and typecheck commands available.
+
+When changing user flows, browser behavior, accessibility, or other integration-heavy behavior, run the relevant higher-level checks too, such as e2e, a11y, perf, or verification commands.
+
+When fixing a bug, reproduce it first when possible, then rerun the same repro after the change.
+
+When changing behavior, add or update tests to cover the change.
+
+---
+
 ## Quality Gate (Required)
 
 - Do not include secrets, tokens, or credentials in docs.
