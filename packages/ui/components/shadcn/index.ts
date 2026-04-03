@@ -50,6 +50,17 @@ export * from "./radio-group";
 export * from "./resizable";
 export * from "./responsive-container";
 export * from "./RichTextEditor";
+export {
+  EditorRoot,
+  EditorContent,
+  EditorToolbar,
+  PostContent,
+  RichTextViewer,
+  isPostContentEmpty,
+  LegacyRichTextEditor,
+  RichTextEditor as RichTextEditorCompound,
+} from "./rich-text-editor";
+export type { PostContentProps } from "./rich-text-editor";
 export * from "./ripple-button";
 export * from "./scroll-area";
 export * from "./select";

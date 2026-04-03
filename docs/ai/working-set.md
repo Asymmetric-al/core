@@ -1,5 +1,44 @@
 # Working Set
 
+## 2026-04-02 (PR #142 rich text contract completion)
+
+- Date: 2026-04-02
+- Repo: Asymmetric-al/core
+- Goal: Finish PR #142 by completing the TipTap JSON post-content contract across shared UI renderers and the mutable post update path, while fixing the concrete regressions called out in review.
+- Primary area:
+  - `packages/ui/components/shadcn/rich-text-editor/*`
+  - `packages/ui/components/shadcn/index.ts`
+  - `apps/donor/app/(dashboard)/donor-dashboard/feed/page.tsx`
+  - `apps/admin/app/feed/{page,org-updates/page}.tsx`
+  - `apps/missionary/{app/feed/page.tsx,features/feed/components/feed-post.tsx}`
+  - `packages/api/src/posts/post.ts`
+  - `tests/unit/{packages/ui,packages/api}/**/*`
+- Constraints:
+  - Keep TipTap JSON as the stored format for new/edited rich-text posts in this PR.
+  - Complete real `post.content` / `draft.content` readers without broadening scope into unrelated `SafeHtml` consumers.
+  - Preserve Next.js App Router client boundaries and `immediatelyRender: false` for TipTap editors/viewers.
+  - Do not change demo-disabled `POST /api/posts` or `POST /api/admin/posts` behavior in this pass.
+  - Focus on correctness; defer viewer performance refactors and broad server-side schema validation follow-up work.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/ai/{stack-registry,working-set}.md`
+  - `docs/ai/rules/{frontend,backend,testing}.md`
+  - `docs/ai/skills/tiptap/SKILL.md`
+  - `.next-docs/01-app/{01-getting-started/05-server-and-client-components,03-api-reference/03-file-conventions/route,03-api-reference/04-functions/revalidateTag}.mdx`
+  - repo-scoped `rg`, direct file reads, and PR-head worktree inspection under `.tmp/pr142`
+- Notes:
+  - Bundled `node_modules/next/dist/docs` docs were unavailable in the PR worktree, so the committed `.next-docs/` snapshot is being used as the version-aligned Next.js source of truth.
+  - Nia’s indexed repo view appears stale relative to this PR branch, so local PR-head reads are the primary evidence source for implementation.
+  - Implemented a shared `PostContent` renderer in `@asym/ui`, swapped the known `post.content` / `draft.content` readers onto it, updated the viewer to use `ResizableImageExtension` plus `tiptap.css`, and fixed invalid-link / image-upload / live-disabled-state editor regressions in the shared rich-text components.
+  - Added `packages/api/src/posts/content.ts` to canonicalize stored TipTap JSON docs on `PATCH /api/posts/[postId]` without trimming legacy HTML/plain-text content.
+  - Added pure unit tests for the shared rich-text helpers and the post-content normalizer under `tests/unit/packages/{ui,api}/...`.
+  - Local Bun/Node executables were available after restoring `PATH` to include `/Users/blake/.bun/bin` and `/opt/homebrew/bin`; targeted Vitest and scoped lint passed before the PR branch update.
+  - After pushing the updated PR head, GitHub Actions reported `format`, `typecheck`, and `build` failures. Log inspection showed the actionable regression in this change set was the new direct `@tiptap/core` type import in `packages/ui/components/shadcn/rich-text-editor/{extensions,rich-text-viewer}.tsx`, which CI could not resolve in `@asym/ui`.
+  - Follow-up fix removed that unnecessary direct type import and relied on local inference instead; `bun run format:check` now passes in the PR worktree, and the CI-specific missing-module error is no longer present in the source.
+  - The next Greptile pass raised a new blocker around unsafe link protocols in stored TipTap JSON. The chosen fix keeps scope narrow: a shared pure link-policy helper in `@asym/lib`, explicit `isAllowedUri` callbacks in the editor/viewer link extensions, inert preview rendering in the link bubble menu for unsafe stored hrefs, and recursive stripping of unsafe `link` marks in the existing `PATCH /api/posts/[postId]` normalizer.
+  - Verification for the link-policy change succeeded via `bun run format:check`, `git diff --check`, and direct Bun runtime assertions against the shared helper plus `normalizeStoredPostContent`.
+  - Full Vitest execution remains unreliable in this detached worktree because it lacks local workspace package links and `tsconfig` package resolution, so the targeted assertions were run with `NODE_PATH=/Users/blake/Documents/asymmetrical/repos/core/node_modules` instead of relying on false-negative Vitest loader failures here.
+
 ## 2026-04-01 (post-pull epic merge verification)
 
 - Date: 2026-04-01

@@ -1,0 +1,139 @@
+/* Placeholder text */
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--muted-foreground, oklch(0.552 0.016 285.938));
+  pointer-events: none;
+  height: 0;
+}
+
+.tiptap [data-placeholder]::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--muted-foreground, oklch(0.552 0.016 285.938));
+  pointer-events: none;
+  height: 0;
+}
+
+/* Headings — tighter spacing within prose */
+.tiptap h1 {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.tiptap h2 {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Links — smooth underline transition */
+.tiptap a {
+  color: var(--primary, oklch(0.21 0.006 285.885));
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+  transition: text-decoration-thickness 150ms ease;
+  cursor: pointer;
+}
+
+.tiptap a:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* Blockquote */
+.tiptap blockquote {
+  border-left: 4px solid var(--primary, oklch(0.21 0.006 285.885));
+  padding-left: 1rem;
+  font-style: italic;
+  color: var(--muted-foreground, oklch(0.552 0.016 285.938));
+}
+
+/* Code blocks */
+.tiptap pre {
+  background: var(--muted, oklch(0.967 0.001 286.375));
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+  font-family: var(--font-geist-mono, ui-monospace, monospace);
+  font-size: 0.875rem;
+}
+
+.tiptap code {
+  background: var(--muted, oklch(0.967 0.001 286.375));
+  border-radius: 0.25rem;
+  padding: 0.15rem 0.35rem;
+  font-family: var(--font-geist-mono, ui-monospace, monospace);
+  font-size: 0.875em;
+}
+
+.tiptap pre code {
+  background: none;
+  padding: 0;
+}
+
+/* Lists — ensure consistent spacing */
+.tiptap ul,
+.tiptap ol {
+  padding-left: 1.25rem;
+}
+
+.tiptap li {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.tiptap li p {
+  margin: 0;
+}
+
+/* Horizontal rule */
+.tiptap hr {
+  border: none;
+  border-top: 1px solid var(--border, oklch(0.92 0.004 286.32));
+  margin: 1.5rem 0;
+}
+
+/* Selection highlight */
+.tiptap ::selection {
+  background: oklch(0.488 0.243 264.376 / 0.2);
+}
+
+/* Images — resizable wrapper */
+.image-resizable {
+  display: inline-block;
+  max-width: 100%;
+  margin: 0.75rem 0;
+  line-height: 0;
+  transition: outline-color 150ms ease;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+.image-selected {
+  outline-color: var(--primary, oklch(0.21 0.006 285.885));
+}
+
+/* Focus: no browser outline since parent handles ring */
+.tiptap:focus {
+  outline: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .tiptap h1 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+
+  .tiptap h2 {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+}
