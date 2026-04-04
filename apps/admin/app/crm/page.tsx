@@ -480,14 +480,6 @@ export default function MissionControlCRM() {
                   searchKey="name"
                   searchPlaceholder="Search contacts..."
                   getRowId={(contact) => contact.id}
-                  urlState={{
-                    pageIndexKey: "crmPage",
-                    pageSizeKey: "crmPerPage",
-                    sortKey: "crmSort",
-                    filterKey: "crmFilter",
-                    searchKey: "crmQuery",
-                    visibilityKey: "crmCols",
-                  }}
                   config={{
                     enableRowSelection: true,
                     enableColumnVisibility: true,
