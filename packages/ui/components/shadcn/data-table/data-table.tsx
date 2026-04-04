@@ -33,17 +33,14 @@ import {
   TableRow,
 } from "../table";
 import { DataTableActionBar } from "./data-table-action-bar";
-import { DataTableRowActions } from "./data-table-row-actions";
 import { DataTablePagination } from "./data-table-pagination";
+import { DataTableRowActions } from "./data-table-row-actions";
 import {
   DataTableSkeleton,
   DataTableLoadingOverlay,
 } from "./data-table-skeleton";
 import { DataTableToolbar } from "./data-table-toolbar";
-import {
-  useDataTableState,
-  useDataTableVirtualization,
-} from "./hooks";
+import { useDataTableState, useDataTableVirtualization } from "./hooks";
 
 import type {
   DataTableControlledState,
@@ -153,9 +150,7 @@ export function DataTable<TData, TValue>({
   } = config;
 
   const resolvedUrlState =
-    urlState === true
-      ? ({} as DataTableUrlStateConfig)
-      : urlState || undefined;
+    urlState === true ? ({} as DataTableUrlStateConfig) : urlState || undefined;
 
   const tableState = useDataTableState({
     initialState,

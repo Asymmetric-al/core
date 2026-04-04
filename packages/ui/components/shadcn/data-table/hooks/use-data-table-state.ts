@@ -2,6 +2,12 @@
 
 import * as React from "react";
 
+import { useDataTableUrlState } from "./use-data-table-url-state";
+
+import type {
+  DataTableControlledState,
+  DataTableUrlStateConfig,
+} from "../types";
 import type {
   ColumnFiltersState,
   PaginationState,
@@ -10,13 +16,6 @@ import type {
   Updater,
   VisibilityState,
 } from "@tanstack/react-table";
-
-import { useDataTableUrlState } from "./use-data-table-url-state";
-
-import type {
-  DataTableControlledState,
-  DataTableUrlStateConfig,
-} from "../types";
 
 export interface DataTableInitialState {
   pagination?: PaginationState;
@@ -94,7 +93,9 @@ function splitSearchColumnFilter(
   for (const filter of filters) {
     if (filter.id === searchColumnKey) {
       searchValue =
-        typeof filter.value === "string" ? filter.value : String(filter.value ?? "");
+        typeof filter.value === "string"
+          ? filter.value
+          : String(filter.value ?? "");
       continue;
     }
 
@@ -116,7 +117,9 @@ function mergeSearchColumnFilter(
     return filters;
   }
 
-  const mergedFilters = filters.filter((filter) => filter.id !== searchColumnKey);
+  const mergedFilters = filters.filter(
+    (filter) => filter.id !== searchColumnKey,
+  );
 
   if (globalFilter) {
     mergedFilters.unshift({
@@ -150,12 +153,13 @@ export function useDataTableState({
   const [internalSorting, setInternalSorting] = React.useState<SortingState>(
     initialState?.sorting ?? [],
   );
-  const [internalPagination, setInternalPagination] = React.useState<PaginationState>(
-    initialState?.pagination ?? {
-      pageIndex: 0,
-      pageSize: 10,
-    },
-  );
+  const [internalPagination, setInternalPagination] =
+    React.useState<PaginationState>(
+      initialState?.pagination ?? {
+        pageIndex: 0,
+        pageSize: 10,
+      },
+    );
 
   const urlTableState = useDataTableUrlState({
     defaultPageSize:
@@ -183,7 +187,9 @@ export function useDataTableState({
     (urlStateEnabled ? urlTableState.pagination : internalPagination);
   const columnVisibility =
     resolvedControlledState?.columnVisibility ??
-    (urlStateEnabled ? urlTableState.columnVisibility : internalColumnVisibility);
+    (urlStateEnabled
+      ? urlTableState.columnVisibility
+      : internalColumnVisibility);
   const columnFilters =
     resolvedControlledState?.columnFilters ??
     (urlStateEnabled
@@ -193,7 +199,8 @@ export function useDataTableState({
           searchKey,
         )
       : internalColumnFilters);
-  const rowSelection = resolvedControlledState?.rowSelection ?? internalRowSelection;
+  const rowSelection =
+    resolvedControlledState?.rowSelection ?? internalRowSelection;
 
   const setSorting = React.useCallback(
     (updater: Updater<SortingState>) => {
@@ -222,7 +229,10 @@ export function useDataTableState({
     (updater: Updater<PaginationState>) => {
       const nextPagination = resolveUpdater(updater, pagination);
 
-      if (resolvedControlledState?.pagination === undefined && !urlStateEnabled) {
+      if (
+        resolvedControlledState?.pagination === undefined &&
+        !urlStateEnabled
+      ) {
         setInternalPagination(nextPagination);
       }
 
@@ -245,7 +255,10 @@ export function useDataTableState({
     (updater: Updater<ColumnFiltersState>) => {
       const nextFilters = resolveUpdater(updater, columnFilters);
 
-      if (resolvedControlledState?.columnFilters === undefined && !urlStateEnabled) {
+      if (
+        resolvedControlledState?.columnFilters === undefined &&
+        !urlStateEnabled
+      ) {
         setInternalColumnFilters(nextFilters);
       }
 
@@ -309,22 +322,25 @@ export function useDataTableState({
     [resolvedControlledState?.rowSelection, onRowSelectionChange, rowSelection],
   );
 
-  const getRowId = React.useCallback(<TData,>(originalRow: TData, index: number) => {
-    if (typeof originalRow === "object" && originalRow !== null) {
-      const candidate = originalRow as Record<string, unknown>;
-      const id =
-        candidate.id ??
-        candidate.uuid ??
-        candidate._id ??
-        candidate.key ??
-        candidate.slug;
-      if (typeof id === "string" || typeof id === "number") {
-        return String(id);
+  const getRowId = React.useCallback(
+    <TData>(originalRow: TData, index: number) => {
+      if (typeof originalRow === "object" && originalRow !== null) {
+        const candidate = originalRow as Record<string, unknown>;
+        const id =
+          candidate.id ??
+          candidate.uuid ??
+          candidate._id ??
+          candidate.key ??
+          candidate.slug;
+        if (typeof id === "string" || typeof id === "number") {
+          return String(id);
+        }
       }
-    }
 
-    return String(index);
-  }, []);
+      return String(index);
+    },
+    [],
+  );
 
   return {
     sorting,

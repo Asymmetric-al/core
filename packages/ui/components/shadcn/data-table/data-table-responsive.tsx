@@ -83,11 +83,7 @@ interface DataTableResponsiveProps<TData, TValue> {
    * Takes precedence over `pageCount` and is used to derive page count.
    */
   rowCount?: number;
-  getRowId?: (
-    originalRow: TData,
-    index: number,
-    parent?: Row<TData>,
-  ) => string;
+  getRowId?: (originalRow: TData, index: number, parent?: Row<TData>) => string;
   state?: DataTableControlledState;
   urlState?: DataTableUrlStateConfig | boolean;
   onPaginationChange?: (pagination: PaginationState) => void;
@@ -561,7 +557,9 @@ export function DataTableResponsive<TData, TValue>({
 
   const [viewMode, setViewMode] = React.useState<ViewMode>(defaultViewMode);
   const [isMobile, setIsMobile] = React.useState(false);
-  const urlStateConfig = React.useMemo<DataTableUrlStateConfig | undefined>(() => {
+  const urlStateConfig = React.useMemo<
+    DataTableUrlStateConfig | undefined
+  >(() => {
     if (!urlState || urlState === true) {
       return urlState === true ? { searchColumnKey: searchKey } : undefined;
     }
