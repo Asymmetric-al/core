@@ -56,8 +56,8 @@ const tickerActivities = [
 ];
 
 const heroStats = [
-  { label: "Deployed", val: "$26.4M", Icon: Activity },
-  { label: "Partners", val: "42.1k", Icon: Users },
+  { label: "Deployed", val: "$26.4M", icon: "activity" },
+  { label: "Partners", val: "42.1k", icon: "users" },
 ] as const;
 
 const ratingStars = ["star-1", "star-2", "star-3", "star-4", "star-5"] as const;
@@ -484,7 +484,8 @@ export function HomeCTA() {
         <div className="flex flex-col md:flex-row gap-4 justify-center">
           <Button
             size="lg"
-            className="h-14 px-10 rounded-full bg-white text-slate-950 hover:bg-zinc-200 hover:text-slate-900 text-lg font-bold font-syne shadow-lg transition-transform duration-200 ease-out hover:scale-[1.02] active:scale-[0.98]"
+            variant="ghost"
+            className="h-14 rounded-full border border-white/15 bg-white px-10 text-lg font-bold font-syne text-slate-950 shadow-lg transition-transform duration-200 ease-out hover:scale-[1.02] hover:bg-zinc-100 hover:text-slate-950 active:scale-[0.98]"
             asChild
           >
             <Link href="/workers">Initiate Support</Link>

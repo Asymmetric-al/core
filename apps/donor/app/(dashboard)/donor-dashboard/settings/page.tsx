@@ -147,6 +147,7 @@ const ProfileTab = () => {
               onChange={(url) => setAvatarUrl(url)}
               path="avatars"
               aspect={1}
+              triggerAriaLabel="Upload public avatar"
             >
               <div className="relative group cursor-pointer">
                 <Avatar className="h-20 w-20 border-4 border-white shadow-md ring-1 ring-zinc-100">

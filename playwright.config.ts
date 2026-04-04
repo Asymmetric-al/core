@@ -2,11 +2,13 @@ import { defineConfig, devices } from "@playwright/test";
 
 const DEFAULT_DONOR_PORT = 3005;
 const DEFAULT_ADMIN_PORT = 3030;
+const DEFAULT_LOCAL_HOSTNAME = "localhost";
 const DEFAULT_SUPABASE_URL = "https://example.supabase.co";
 const DEFAULT_SUPABASE_ANON_KEY = "example-anon-key";
 const DEFAULT_PAYLOAD_DATABASE_URI =
   "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
 const DEFAULT_PAYLOAD_SECRET = "playwright-secret";
+const DEFAULT_LOCAL_WORKERS = 1;
 
 function withCiEquivalentEnvDefaults(
   env: NodeJS.ProcessEnv,
@@ -48,6 +50,15 @@ function withPlaywrightEnvDefaults(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   return nextEnv;
 }
 
+function getWorkerCount(): number {
+  const envWorkers = Number(process.env.PLAYWRIGHT_WORKERS);
+  if (Number.isFinite(envWorkers) && envWorkers > 0) {
+    return envWorkers;
+  }
+
+  return process.env.CI ? 1 : DEFAULT_LOCAL_WORKERS;
+}
+
 function getLocalBaseUrlAndPort(defaultPort: number): {
   baseURL: string;
   port: number;
@@ -56,7 +67,10 @@ function getLocalBaseUrlAndPort(defaultPort: number): {
   const envPort = Number(process.env.PLAYWRIGHT_PORT || defaultPort);
 
   if (!envBase) {
-    return { baseURL: `http://127.0.0.1:${envPort}`, port: envPort };
+    return {
+      baseURL: `http://${DEFAULT_LOCAL_HOSTNAME}:${envPort}`,
+      port: envPort,
+    };
   }
 
   // If the user points to a local URL (common in `.env.local`), still start/reuse
@@ -71,14 +85,32 @@ function getLocalBaseUrlAndPort(defaultPort: number): {
         : 80;
 
     return {
-      // Prefer IPv4 loopback to avoid "localhost" resolving to ::1 and failing
-      // when the server binds only on 127.0.0.1.
-      baseURL: isLocalHost ? `http://127.0.0.1:${portFromUrl}` : envBase,
+      baseURL: isLocalHost
+        ? `http://${DEFAULT_LOCAL_HOSTNAME}:${portFromUrl}`
+        : envBase,
       port: portFromUrl,
     };
   } catch {
     // If it's not a valid URL string, fall back to port-based local URL.
-    return { baseURL: `http://127.0.0.1:${envPort}`, port: envPort };
+    return {
+      baseURL: `http://${DEFAULT_LOCAL_HOSTNAME}:${envPort}`,
+      port: envPort,
+    };
+  }
+}
+
+function normalizeBaseUrl(baseUrl: string, defaultPort: number): string {
+  try {
+    const url = new URL(baseUrl);
+    if (!isLocalHostname(url.hostname)) {
+      return baseUrl;
+    }
+
+    const port =
+      url.port || String(url.protocol === "https:" ? 443 : defaultPort);
+    return `http://${DEFAULT_LOCAL_HOSTNAME}:${port}`;
+  } catch {
+    return `http://${DEFAULT_LOCAL_HOSTNAME}:${defaultPort}`;
   }
 }
 
@@ -86,8 +118,11 @@ const { baseURL, port } = getLocalBaseUrlAndPort(DEFAULT_DONOR_PORT);
 const adminPort = Number(
   process.env.PLAYWRIGHT_ADMIN_PORT || DEFAULT_ADMIN_PORT,
 );
-const adminBaseURL =
-  process.env.PLAYWRIGHT_ADMIN_BASE_URL || `http://127.0.0.1:${adminPort}`;
+const adminBaseURL = normalizeBaseUrl(
+  process.env.PLAYWRIGHT_ADMIN_BASE_URL ||
+    `http://${DEFAULT_LOCAL_HOSTNAME}:${adminPort}`,
+  adminPort,
+);
 const resolvedEnv = withPlaywrightEnvDefaults(process.env);
 const supabaseURL =
   resolvedEnv.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL;
@@ -131,7 +166,7 @@ function shouldIncludeAdminServer() {
 }
 
 const donorServer = {
-  command: `node -e "try{require('fs').rmSync('apps/donor/.next/dev/lock',{force:true})}catch{}" && bun run --cwd apps/donor dev:playwright -- --port ${port} --hostname 127.0.0.1`,
+  command: `node -e "try{require('fs').rmSync('apps/donor/.next/dev/lock',{force:true})}catch{}" && bun run --cwd apps/donor dev:playwright -- --port ${port} --hostname ${DEFAULT_LOCAL_HOSTNAME}`,
   env: {
     ...resolvedEnv,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnonKey,
@@ -142,12 +177,12 @@ const donorServer = {
     DEMO_PASSWORD: resolvedEnv.DEMO_PASSWORD || "",
   },
   url: baseURL,
-  reuseExistingServer: true,
+  reuseExistingServer: !process.env.CI,
   timeout: 120000,
 } as const;
 
 const adminServer = {
-  command: `node -e "try{require('fs').rmSync('apps/admin/.next/dev/lock',{force:true})}catch{}" && bun run --cwd apps/admin dev:playwright -- --port ${adminPort} --hostname 127.0.0.1`,
+  command: `node -e "try{require('fs').rmSync('apps/admin/.next/dev/lock',{force:true})}catch{}" && bun run --cwd apps/admin dev:playwright -- --port ${adminPort} --hostname ${DEFAULT_LOCAL_HOSTNAME}`,
   env: {
     ...resolvedEnv,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnonKey,
@@ -161,7 +196,7 @@ const adminServer = {
     DEMO_PASSWORD: resolvedEnv.DEMO_PASSWORD || "",
   },
   url: `${adminBaseURL}/login`,
-  reuseExistingServer: true,
+  reuseExistingServer: !process.env.CI,
   timeout: 120000,
 } as const;
 
@@ -174,10 +209,10 @@ const webServer = isRemoteBaseUrl
 
 export default defineConfig({
   testDir: "./tests/e2e",
-  fullyParallel: true,
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: getWorkerCount(),
   reporter: [
     ["html", { outputFolder: "playwright-report" }],
     ["json", { outputFile: "playwright-report/results.json" }],
