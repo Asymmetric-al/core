@@ -6,6 +6,11 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { safeNextParam } from "./demo-login";
+import {
+  E2E_AUTH_COOKIE_NAME,
+  isE2EAuthBypassEnabled,
+  parseE2EAuthCookieValue,
+} from "./e2e-auth";
 
 import type { UserRole } from "@asym/database/types";
 
@@ -160,7 +165,19 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    const userId = user?.id ?? null;
+    let userId = user?.id ?? null;
+
+    if (
+      !userId &&
+      isE2EAuthBypassEnabled() &&
+      isProtectedRoute(pathname, protectedRoutePrefixes)
+    ) {
+      const raw = request.cookies.get(E2E_AUTH_COOKIE_NAME)?.value;
+      const e2e = parseE2EAuthCookieValue(raw);
+      if (e2e) {
+        userId = e2e.userId;
+      }
+    }
 
     if (isPublicRoute(pathname, publicRoutes) && !isAuthRoute) {
       return supabaseResponse;
