@@ -239,12 +239,14 @@ export function TasksTableSection({
           columns={columns}
           data={data}
           searchKey="title"
+          getRowId={(task) => task.id}
           config={{
             enableRowSelection: true,
             enableColumnVisibility: true,
             enablePagination: true,
             enableFilters: true,
             enableSorting: true,
+            enableKeyboardNavigation: true,
           }}
           emptyState={{
             title: "No missions found",

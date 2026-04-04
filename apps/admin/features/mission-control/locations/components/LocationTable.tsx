@@ -38,6 +38,8 @@ export function LocationTable({
   onEdit,
   onDelete,
 }: LocationTableProps) {
+  const getRowId = React.useCallback((location: Location) => location.id, []);
+
   const columns: ColumnDef<Location>[] = [
     {
       accessorKey: "title",
@@ -160,6 +162,7 @@ export function LocationTable({
       columns={columns}
       data={data}
       isLoading={isLoading}
+      getRowId={getRowId}
       searchKey="title"
       searchPlaceholder="Search locations..."
       config={{

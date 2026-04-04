@@ -8,6 +8,7 @@ import {
   type RowSelectionState,
   type PaginationState,
   type Row,
+  type TableOptions,
   flexRender,
   getCoreRowModel,
   getFacetedRowModel,
@@ -32,15 +33,24 @@ import {
   TableRow,
 } from "../table";
 import { DataTableActionBar } from "./data-table-action-bar";
+import { DataTableRowActions } from "./data-table-row-actions";
 import { DataTablePagination } from "./data-table-pagination";
 import {
   DataTableSkeleton,
   DataTableLoadingOverlay,
 } from "./data-table-skeleton";
 import { DataTableToolbar } from "./data-table-toolbar";
-import { useDataTableVirtualization } from "./hooks";
+import {
+  useDataTableState,
+  useDataTableVirtualization,
+} from "./hooks";
 
-import type { DataTableFilterField, DataTableConfig } from "./types";
+import type {
+  DataTableControlledState,
+  DataTableFilterField,
+  DataTableConfig,
+  DataTableUrlStateConfig,
+} from "./types";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -64,12 +74,23 @@ interface DataTableProps<TData, TValue> {
   onSortingChange?: (sorting: SortingState) => void;
   onFiltersChange?: (filters: ColumnFiltersState) => void;
   onRowSelectionChange?: (selection: RowSelectionState) => void;
+  onColumnVisibilityChange?: (visibility: VisibilityState) => void;
   actionBarActions?: {
     label: string;
     icon?: React.ComponentType<{ className?: string }>;
     onClick: (rows: TData[]) => void;
     variant?: "default" | "destructive";
   }[];
+  rowActions?: {
+    label: string;
+    icon?: React.ComponentType<{ className?: string }>;
+    onClick: (row: TData) => void;
+    variant?: "default" | "destructive";
+  }[];
+  onRowClick?: (row: Row<TData>) => void;
+  state?: DataTableControlledState;
+  getRowId?: TableOptions<TData>["getRowId"];
+  urlState?: DataTableUrlStateConfig | boolean;
   className?: string;
   tableClassName?: string;
   emptyState?: React.ReactNode;
@@ -103,7 +124,13 @@ export function DataTable<TData, TValue>({
   onSortingChange,
   onFiltersChange,
   onRowSelectionChange,
+  onColumnVisibilityChange,
   actionBarActions,
+  rowActions,
+  onRowClick,
+  state,
+  getRowId,
+  urlState,
   className,
   tableClassName,
   emptyState,
@@ -118,28 +145,29 @@ export function DataTable<TData, TValue>({
     enablePagination = true,
     enableFilters = true,
     enableSorting = true,
+    enableMultiSort = true,
+    enableColumnPinning = false,
     manualPagination = false,
     manualSorting = false,
     manualFiltering = false,
   } = config;
 
-  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>(
-    initialState.rowSelection ?? {},
-  );
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>(initialState.columnVisibility ?? {});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    initialState.columnFilters ?? [],
-  );
-  const [sorting, setSorting] = React.useState<SortingState>(
-    initialState.sorting ?? [],
-  );
-  const [pagination, setPagination] = React.useState<PaginationState>(
-    initialState.pagination ?? {
-      pageIndex: 0,
-      pageSize: 10,
-    },
-  );
+  const resolvedUrlState =
+    urlState === true
+      ? ({} as DataTableUrlStateConfig)
+      : urlState || undefined;
+
+  const tableState = useDataTableState({
+    initialState,
+    controlledState: state,
+    onSortingChange,
+    onFiltersChange,
+    onPaginationChange,
+    onRowSelectionChange,
+    onColumnVisibilityChange,
+    searchKey,
+    urlState: resolvedUrlState,
+  });
 
   const selectColumn = React.useMemo<ColumnDef<TData, unknown>>(
     () => ({
@@ -161,6 +189,8 @@ export function DataTable<TData, TValue>({
           onCheckedChange={(value) => row.toggleSelected(!!value)}
           aria-label="Select row"
           className="translate-y-0.5"
+          disabled={!row.getCanSelect()}
+          onClick={(event) => event.stopPropagation()}
         />
       ),
       enableSorting: false,
@@ -198,43 +228,20 @@ export function DataTable<TData, TValue>({
     columns: tableColumns,
     rowCount: resolvedRowCount,
     pageCount: resolvedPageCount,
-    state: {
-      sorting,
-      columnVisibility,
-      rowSelection,
-      columnFilters,
-      pagination,
-    },
+    getRowId: getRowId ?? tableState.getRowId,
+    state: tableState.state,
     enableRowSelection,
     enableSorting,
+    enableMultiSort,
+    enableColumnPinning,
     manualPagination,
     manualSorting,
     manualFiltering,
-    onRowSelectionChange: (updater) => {
-      const newSelection =
-        typeof updater === "function" ? updater(rowSelection) : updater;
-      setRowSelection(newSelection);
-      onRowSelectionChange?.(newSelection);
-    },
-    onSortingChange: (updater) => {
-      const newSorting =
-        typeof updater === "function" ? updater(sorting) : updater;
-      setSorting(newSorting);
-      onSortingChange?.(newSorting);
-    },
-    onColumnFiltersChange: (updater) => {
-      const newFilters =
-        typeof updater === "function" ? updater(columnFilters) : updater;
-      setColumnFilters(newFilters);
-      onFiltersChange?.(newFilters);
-    },
-    onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: (updater) => {
-      const newPagination =
-        typeof updater === "function" ? updater(pagination) : updater;
-      setPagination(newPagination);
-      onPaginationChange?.(newPagination);
-    },
+    onRowSelectionChange: tableState.handlers.onRowSelectionChange,
+    onSortingChange: tableState.handlers.onSortingChange,
+    onColumnFiltersChange: tableState.handlers.onColumnFiltersChange,
+    onColumnVisibilityChange: tableState.handlers.onColumnVisibilityChange,
+    onPaginationChange: tableState.handlers.onPaginationChange,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: manualFiltering ? undefined : getFilteredRowModel(),
     getPaginationRowModel: manualPagination
@@ -282,11 +289,34 @@ export function DataTable<TData, TValue>({
     },
   });
 
+  const renderRowActionsCell = (row: Row<TData>) => {
+    if (!rowActions?.length) {
+      return null;
+    }
+
+    return (
+      <TableCell className="w-0 py-4 px-4 text-right">
+        <DataTableRowActions row={row} actions={rowActions} />
+      </TableCell>
+    );
+  };
+
   const renderRow = (row: Row<TData>) => (
     <TableRow
       key={row.id}
       data-state={row.getIsSelected() && "selected"}
-      className="hover:bg-muted/30 transition-colors border-border data-[state=selected]:bg-muted/50"
+      className={cn(
+        "hover:bg-muted/30 transition-colors border-border data-[state=selected]:bg-muted/50",
+        onRowClick && "cursor-pointer",
+      )}
+      tabIndex={onRowClick ? 0 : undefined}
+      onClick={() => onRowClick?.(row)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onRowClick?.(row);
+        }
+      }}
     >
       {row.getVisibleCells().map((cell) => {
         const meta = cell.column.columnDef.meta;
@@ -299,6 +329,7 @@ export function DataTable<TData, TValue>({
           </TableCell>
         );
       })}
+      {renderRowActionsCell(row)}
     </TableRow>
   );
 

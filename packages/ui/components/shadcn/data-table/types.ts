@@ -5,6 +5,10 @@ import type {
   Table,
   ColumnSizingState,
   VisibilityState,
+  ColumnFiltersState,
+  PaginationState,
+  RowSelectionState,
+  SortingState,
 } from "@tanstack/react-table";
 
 export type DataTableFilterVariant =
@@ -74,16 +78,13 @@ export interface DataTableConfig {
   enableMultiSort?: boolean;
   enableColumnResizing?: boolean;
   enableColumnPinning?: boolean;
-  enableGlobalFilter?: boolean;
   enableColumnVisibility?: boolean;
   enablePagination?: boolean;
   enableFilters?: boolean;
   enableAdvancedFilters?: boolean;
   enableSorting?: boolean;
-  enableFullscreen?: boolean;
   enableKeyboardNavigation?: boolean;
   enableExport?: boolean;
-  enableUrlState?: boolean;
   manualPagination?: boolean;
   manualSorting?: boolean;
   manualFiltering?: boolean;
@@ -97,6 +98,14 @@ export interface DataTableConfig {
   columnResizingPersistKey?: string;
 }
 
+export interface DataTableControlledState {
+  sorting?: SortingState;
+  columnFilters?: ColumnFiltersState;
+  columnVisibility?: VisibilityState;
+  rowSelection?: RowSelectionState;
+  pagination?: PaginationState;
+}
+
 export interface DataTableUrlStateConfig {
   pageIndexKey?: string;
   pageSizeKey?: string;
@@ -104,6 +113,13 @@ export interface DataTableUrlStateConfig {
   filterKey?: string;
   searchKey?: string;
   visibilityKey?: string;
+  defaultPageSize?: number;
+  debounceMs?: number;
+  shallow?: boolean;
+  scroll?: boolean;
+  history?: "push" | "replace";
+  clearOnDefault?: boolean;
+  searchColumnKey?: string;
 }
 
 export interface DataTableState {
@@ -138,4 +154,8 @@ export type {
   Table,
   ColumnSizingState,
   VisibilityState,
+  ColumnFiltersState,
+  PaginationState,
+  RowSelectionState,
+  SortingState,
 };

@@ -42,6 +42,8 @@ export type {
   KeyboardNavigationOptions,
   KeyboardNavigationState,
   UseDataTableKeyboardReturn,
+  UseDataTableStateOptions,
+  UseDataTableStateReturn,
   ColumnResizingOptions,
   UseColumnResizingReturn,
   VirtualizationLegacyConfig,

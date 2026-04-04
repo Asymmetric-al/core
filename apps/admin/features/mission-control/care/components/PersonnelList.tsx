@@ -171,6 +171,7 @@ export function PersonnelList({ data, isLoading }: PersonnelListProps) {
         filterFields={filterFields}
         searchKey="name"
         searchPlaceholder="Find personnel..."
+        getRowId={(personnel) => personnel.id}
         config={{
           enableRowSelection: false,
           enableColumnVisibility: false,

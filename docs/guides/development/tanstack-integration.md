@@ -53,6 +53,10 @@ export default function RootLayout({
 - Prefer `rowCount` for server pagination totals; TanStack Table derives `pageCount` from `rowCount` + page size.
 - Use `pageCount` only when `rowCount` is unavailable.
 - Shared `DataTable`/`DataTableResponsive` treat `rowCount` as authoritative. If both are passed, `pageCount` is ignored and a dev warning is logged.
+- Only control the table state your screen actually needs outside the table. Leave noisy internal state internal unless another system depends on it.
+- Prefer `initialState` when the screen only needs defaults and not external ownership.
+- Pass a stable `getRowId` whenever rows have durable IDs. Row selection, action targeting, and virtualization all depend on stable row identities.
+- Use `urlState` only on screens that intentionally deep-link page, sort, filter, search, or column-visibility state.
 
 ```tsx
 const query = useQuery({
@@ -144,6 +148,32 @@ Use `virtualization` for new code. Legacy fields are still accepted for compatib
 />
 ```
 
+### Shared table state ownership
+
+Shared table primitives now follow one contract:
+
+- `DataTable` and `DataTableResponsive` accept:
+  - `state` for selectively controlled `sorting`, `columnFilters`, `pagination`, `rowSelection`, and `columnVisibility`
+  - `initialState` for uncontrolled defaults
+  - `urlState` for opt-in query-string ownership
+  - `getRowId` for stable row identity
+- `DataTableWrapper` delegates to `DataTableResponsive`, so wrapper consumers inherit the same responsive/card, keyboard, and URL-state behavior.
+
+```tsx
+<DataTableResponsive
+  columns={columns}
+  data={rows}
+  getRowId={(row) => row.id}
+  state={{ sorting, pagination }}
+  onSortingChange={setSorting}
+  onPaginationChange={setPagination}
+  urlState={{
+    history: "replace",
+    searchColumnKey: "name",
+  }}
+/>
+```
+
 ### List Usage
 
 For non-table lists, use the same shared hook and point it at the real scroll container:
@@ -189,6 +219,8 @@ This preserves count consistency without requiring route-level SQL transactions 
 
 - [ ] Query keys include table/list state that impacts data.
 - [ ] Table manual mode aligns with API behavior.
+- [ ] Only externally controlled state slices are hoisted.
+- [ ] Stable `getRowId` is provided for durable records.
 - [ ] DB collection schemas are validated with Zod.
 - [ ] New virtualization uses `virtualization` object config.
 - [ ] `getItemKey` is stable and uses row/item IDs.

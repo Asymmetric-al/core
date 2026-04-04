@@ -58,3 +58,9 @@ export type {
   UseDataTableVirtualizationOptions,
   UseDataTableVirtualizationReturn,
 } from "./use-data-table-virtualization";
+
+export { useDataTableState } from "./use-data-table-state";
+export type {
+  UseDataTableStateOptions,
+  UseDataTableStateReturn,
+} from "./use-data-table-state";

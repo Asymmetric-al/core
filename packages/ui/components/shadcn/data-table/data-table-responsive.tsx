@@ -47,10 +47,16 @@ import {
   getKeyboardNavigationStyles,
   useDataTableVirtualization,
 } from "./hooks";
+import { useDataTableState } from "./hooks/use-data-table-state";
 
 import type { AdvancedFilterState, FilterFieldDefinition } from "./filters";
 import type { UseDataTableKeyboardReturn } from "./hooks";
-import type { DataTableFilterField, DataTableConfig } from "./types";
+import type {
+  DataTableControlledState,
+  DataTableFilterField,
+  DataTableConfig,
+  DataTableUrlStateConfig,
+} from "./types";
 
 type ViewMode = "table" | "card";
 
@@ -77,14 +83,23 @@ interface DataTableResponsiveProps<TData, TValue> {
    * Takes precedence over `pageCount` and is used to derive page count.
    */
   rowCount?: number;
+  getRowId?: (
+    originalRow: TData,
+    index: number,
+    parent?: Row<TData>,
+  ) => string;
+  state?: DataTableControlledState;
+  urlState?: DataTableUrlStateConfig | boolean;
   onPaginationChange?: (pagination: PaginationState) => void;
   onSortingChange?: (sorting: SortingState) => void;
   onFiltersChange?: (filters: ColumnFiltersState) => void;
+  onColumnVisibilityChange?: (visibility: VisibilityState) => void;
   onRowSelectionChange?: (selection: RowSelectionState) => void;
   onAdvancedFilterChange?: (filter: AdvancedFilterState) => void;
   onRefresh?: () => void;
   onExport?: () => void;
   onRowClick?: (row: Row<TData>) => void;
+  enableVirtualization?: boolean;
   floatingBarActions?: {
     label: string;
     icon?: React.ComponentType<{ className?: string }>;
@@ -240,6 +255,7 @@ function DataTableResponsiveTableView<TData>({
   virtualRowHeight,
   virtualOverscan,
   virtualContainerHeight,
+  rowActions,
 }: {
   table: TanStackTable<TData>;
   tableColumnsLength: number;
@@ -254,6 +270,12 @@ function DataTableResponsiveTableView<TData>({
   virtualRowHeight: number;
   virtualOverscan: number;
   virtualContainerHeight: number | string;
+  rowActions?: {
+    label: string;
+    icon?: React.ComponentType<{ className?: string }>;
+    onClick: (row: TData) => void;
+    variant?: "default" | "destructive";
+  }[];
 }) {
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
   const rows = table.getRowModel().rows;
@@ -304,11 +326,13 @@ function DataTableResponsiveTableView<TData>({
           onRowClick && "cursor-pointer",
           rowProps["data-focused"] && keyboardStyles.focusedRow,
         )}
+        ref={rowProps.ref}
         tabIndex={rowProps.tabIndex}
         onKeyDown={rowProps.onKeyDown}
         onFocus={rowProps.onFocus}
         onBlur={rowProps.onBlur}
         onClick={() => onRowClick?.(row)}
+        role="row"
       >
         {row.getVisibleCells().map((cell, cellIndex) => {
           const meta = cell.column.columnDef.meta;
@@ -325,11 +349,36 @@ function DataTableResponsiveTableView<TData>({
                 cellProps["data-cell-focused"] && keyboardStyles.focusedCell,
               )}
               tabIndex={cellProps.tabIndex}
+              role="gridcell"
             >
               {flexRender(cell.column.columnDef.cell, cell.getContext())}
             </TableCell>
           );
         })}
+        {rowActions && rowActions.length > 0 && (
+          <TableCell className="py-3 px-4 text-right" role="gridcell">
+            <div className="flex justify-end gap-1">
+              {rowActions.map((action) => (
+                <Button
+                  key={action.label}
+                  type="button"
+                  variant={
+                    action.variant === "destructive" ? "destructive" : "ghost"
+                  }
+                  size="sm"
+                  className="h-8 gap-2 rounded-lg"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    action.onClick(row.original);
+                  }}
+                >
+                  {action.icon && <action.icon className="size-4" />}
+                  <span className="sr-only sm:not-sr-only">{action.label}</span>
+                </Button>
+              ))}
+            </div>
+          </TableCell>
+        )}
       </TableRow>
     );
   };
@@ -341,6 +390,8 @@ function DataTableResponsiveTableView<TData>({
         "rounded-2xl border border-border bg-card overflow-hidden shadow-sm",
         tableClassName,
       )}
+      role="region"
+      aria-label="Data table"
     >
       <div
         ref={tableContainerRef}
@@ -351,12 +402,13 @@ function DataTableResponsiveTableView<TData>({
             : undefined
         }
       >
-        <Table>
+        <Table role="grid" aria-rowcount={rows.length}>
           <TableHeader className="bg-muted/30">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
                 className="hover:bg-transparent border-border"
+                role="row"
               >
                 {headerGroup.headers.map((header) => {
                   const meta = header.column.columnDef.meta;
@@ -377,6 +429,7 @@ function DataTableResponsiveTableView<TData>({
                             ? header.getSize()
                             : undefined,
                       }}
+                      role="columnheader"
                     >
                       {header.isPlaceholder
                         ? null
@@ -387,10 +440,18 @@ function DataTableResponsiveTableView<TData>({
                     </TableHead>
                   );
                 })}
+                {rowActions && rowActions.length > 0 && (
+                  <TableHead
+                    className="h-11 px-4 text-right text-xs font-semibold text-muted-foreground whitespace-nowrap"
+                    role="columnheader"
+                  >
+                    Actions
+                  </TableHead>
+                )}
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody>
+          <TableBody role="rowgroup">
             {rows.length ? (
               isVirtualized ? (
                 <>
@@ -423,8 +484,12 @@ function DataTableResponsiveTableView<TData>({
                 )
               )
             ) : (
-              <TableRow>
-                <TableCell colSpan={tableColumnsLength} className="h-64">
+              <TableRow role="row">
+                <TableCell
+                  colSpan={tableColumnsLength + (rowActions ? 1 : 0)}
+                  className="h-64"
+                  role="gridcell"
+                >
                   {emptyState ?? defaultEmptyState}
                 </TableCell>
               </TableRow>
@@ -447,14 +512,19 @@ export function DataTableResponsive<TData, TValue>({
   isLoading = false,
   pageCount,
   rowCount,
+  getRowId,
+  state,
+  urlState,
   onPaginationChange,
   onSortingChange,
   onFiltersChange,
+  onColumnVisibilityChange,
   onRowSelectionChange,
   onAdvancedFilterChange,
   onRefresh,
   onExport,
   onRowClick,
+  enableVirtualization,
   floatingBarActions,
   rowActions,
   mobileCardConfig,
@@ -473,6 +543,8 @@ export function DataTableResponsive<TData, TValue>({
     enableFilters = true,
     enableAdvancedFilters = false,
     enableSorting = true,
+    enableMultiSort = true,
+    enableColumnPinning = false,
     enableExport = false,
     enableKeyboardNavigation = true,
     enableViewToggle = true,
@@ -481,7 +553,7 @@ export function DataTableResponsive<TData, TValue>({
     manualPagination = false,
     manualSorting = false,
     manualFiltering = false,
-    enableVirtualization = false,
+    enableVirtualization: configVirtualizationEnabled = false,
     virtualRowHeight = 56,
     virtualOverscan = 8,
     virtualContainerHeight = 640,
@@ -489,23 +561,30 @@ export function DataTableResponsive<TData, TValue>({
 
   const [viewMode, setViewMode] = React.useState<ViewMode>(defaultViewMode);
   const [isMobile, setIsMobile] = React.useState(false);
-  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>(
-    initialState.rowSelection ?? {},
-  );
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>(initialState.columnVisibility ?? {});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    initialState.columnFilters ?? [],
-  );
-  const [sorting, setSorting] = React.useState<SortingState>(
-    initialState.sorting ?? [],
-  );
-  const [pagination, setPagination] = React.useState<PaginationState>(
-    initialState.pagination ?? {
-      pageIndex: 0,
-      pageSize: 10,
-    },
-  );
+  const urlStateConfig = React.useMemo<DataTableUrlStateConfig | undefined>(() => {
+    if (!urlState || urlState === true) {
+      return urlState === true ? { searchColumnKey: searchKey } : undefined;
+    }
+    return {
+      ...urlState,
+      searchColumnKey: urlState.searchColumnKey ?? searchKey,
+      defaultPageSize:
+        urlState.defaultPageSize ?? initialState.pagination?.pageSize ?? 10,
+    };
+  }, [initialState.pagination?.pageSize, searchKey, urlState]);
+  const resolvedEnableVirtualization =
+    enableVirtualization ?? configVirtualizationEnabled;
+  const tableState = useDataTableState({
+    initialState,
+    controlledState: state,
+    urlState: urlStateConfig,
+    onSortingChange,
+    onFiltersChange,
+    onColumnVisibilityChange,
+    onRowSelectionChange,
+    onPaginationChange,
+    searchKey,
+  });
   const [advancedFilter, setAdvancedFilter] =
     React.useState<AdvancedFilterState>(
       initialState.advancedFilter ?? createEmptyFilterState(),
@@ -600,43 +679,20 @@ export function DataTableResponsive<TData, TValue>({
     columns: tableColumns,
     rowCount: resolvedRowCount,
     pageCount: resolvedPageCount,
-    state: {
-      sorting,
-      columnVisibility,
-      rowSelection,
-      columnFilters,
-      pagination,
-    },
+    state: tableState.state,
     enableRowSelection,
     enableSorting,
+    enableMultiSort,
+    enableColumnPinning,
     manualPagination,
     manualSorting,
     manualFiltering,
-    onRowSelectionChange: (updater) => {
-      const newSelection =
-        typeof updater === "function" ? updater(rowSelection) : updater;
-      setRowSelection(newSelection);
-      onRowSelectionChange?.(newSelection);
-    },
-    onSortingChange: (updater) => {
-      const newSorting =
-        typeof updater === "function" ? updater(sorting) : updater;
-      setSorting(newSorting);
-      onSortingChange?.(newSorting);
-    },
-    onColumnFiltersChange: (updater) => {
-      const newFilters =
-        typeof updater === "function" ? updater(columnFilters) : updater;
-      setColumnFilters(newFilters);
-      onFiltersChange?.(newFilters);
-    },
-    onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: (updater) => {
-      const newPagination =
-        typeof updater === "function" ? updater(pagination) : updater;
-      setPagination(newPagination);
-      onPaginationChange?.(newPagination);
-    },
+    getRowId: getRowId ?? tableState.getRowId,
+    onRowSelectionChange: tableState.handlers.onRowSelectionChange,
+    onSortingChange: tableState.handlers.onSortingChange,
+    onColumnFiltersChange: tableState.handlers.onColumnFiltersChange,
+    onColumnVisibilityChange: tableState.handlers.onColumnVisibilityChange,
+    onPaginationChange: tableState.handlers.onPaginationChange,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: manualFiltering ? undefined : getFilteredRowModel(),
     getPaginationRowModel: manualPagination
@@ -725,10 +781,11 @@ export function DataTableResponsive<TData, TValue>({
             emptyState={emptyState}
             defaultEmptyState={defaultEmptyState}
             virtualization={config.virtualization}
-            enableVirtualization={enableVirtualization}
+            enableVirtualization={resolvedEnableVirtualization}
             virtualRowHeight={virtualRowHeight}
             virtualOverscan={virtualOverscan}
             virtualContainerHeight={virtualContainerHeight}
+            rowActions={rowActions}
           />
         )}
 
