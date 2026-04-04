@@ -793,3 +793,88 @@
   border: none !important;
   display: block !important;
 }
+
+/* -------------------------------------------------------------------------- */
+/* React View Transitions — Maia / Zinc: quiet cross-fade + subtle settle      */
+/* Scoped classes; pair with @asym/ui RouteMainViewTransitionBoundary         */
+/* -------------------------------------------------------------------------- */
+
+::view-transition-old(asym-vt-route-exit),
+::view-transition-new(asym-vt-route-enter) {
+  animation-duration: 240ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-old(asym-vt-route-exit) {
+  animation-name: asym-vt-route-fade-out;
+}
+
+::view-transition-new(asym-vt-route-enter) {
+  animation-name: asym-vt-route-fade-in;
+}
+
+@keyframes asym-vt-route-fade-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(4px) scale(0.99);
+  }
+}
+
+@keyframes asym-vt-route-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+::view-transition-old(asym-vt-share-morph),
+::view-transition-new(asym-vt-share-morph) {
+  animation-duration: 280ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-old(asym-vt-share-morph) {
+  animation-name: asym-vt-share-out;
+}
+
+::view-transition-new(asym-vt-share-morph) {
+  animation-name: asym-vt-share-in;
+}
+
+@keyframes asym-vt-share-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0.92;
+    transform: scale(0.99);
+  }
+}
+
+@keyframes asym-vt-share-in {
+  from {
+    opacity: 0.88;
+    transform: scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

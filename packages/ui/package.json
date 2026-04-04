@@ -39,7 +39,8 @@
     "./lib/utils": "./lib/utils.ts",
     "./lib/theme-provider": "./lib/theme-provider.tsx",
     "./styles/*": "./styles/*",
-    "./tailwind-preset": "./tailwind-preset.ts"
+    "./tailwind-preset": "./tailwind-preset.ts",
+    "./components/view-transitions": "./components/view-transitions/index.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

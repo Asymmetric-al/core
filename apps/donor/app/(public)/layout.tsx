@@ -1,5 +1,6 @@
 import { Footer } from "@asym/ui/components/public/footer";
 import { Navbar } from "@asym/ui/components/public/navbar";
+import { RouteMainViewTransitionBoundary } from "@asym/ui/components/view-transitions";
 
 export default function PublicLayout({
   children,
@@ -9,7 +10,9 @@ export default function PublicLayout({
   return (
     <>
       <Navbar />
-      {children}
+      <RouteMainViewTransitionBoundary>
+        {children}
+      </RouteMainViewTransitionBoundary>
       <Footer />
     </>
   );

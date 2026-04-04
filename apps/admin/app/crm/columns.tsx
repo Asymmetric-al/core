@@ -2,6 +2,10 @@
 
 import { formatCurrency } from "@asym/lib/utils";
 import {
+  crmRecordAvatarTransitionName,
+  crmRecordTitleTransitionName,
+} from "@asym/lib/view-transitions";
+import {
   Avatar,
   AvatarFallback,
   AvatarImage,
@@ -17,6 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
+import { SharedNamedViewTransition } from "@asym/ui/components/view-transitions";
 import { cn } from "@asym/ui/lib/utils";
 import { type ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
@@ -42,19 +47,27 @@ export function getColumns({
         const contact = row.original;
         return (
           <div className="flex items-center gap-3">
-            <Avatar className="h-9 w-9 border border-border">
-              <AvatarImage src={contact.avatar} />
-              <AvatarFallback className="text-[10px] font-semibold bg-primary text-primary-foreground">
-                {contact.name[0]}
-              </AvatarFallback>
-            </Avatar>
+            <SharedNamedViewTransition
+              name={crmRecordAvatarTransitionName(contact.id)}
+            >
+              <Avatar className="h-9 w-9 border border-border">
+                <AvatarImage src={contact.avatar} />
+                <AvatarFallback className="text-[10px] font-semibold bg-primary text-primary-foreground">
+                  {contact.name[0]}
+                </AvatarFallback>
+              </Avatar>
+            </SharedNamedViewTransition>
             <div className="flex flex-col">
-              <button
-                onClick={() => onViewContact(contact)}
-                className="font-semibold text-sm text-foreground leading-none hover:text-primary hover:underline decoration-primary/30 underline-offset-4 transition-all text-left"
+              <SharedNamedViewTransition
+                name={crmRecordTitleTransitionName(contact.id)}
               >
-                {contact.name}
-              </button>
+                <button
+                  onClick={() => onViewContact(contact)}
+                  className="font-semibold text-sm text-foreground leading-none hover:text-primary hover:underline decoration-primary/30 underline-offset-4 transition-all text-left"
+                >
+                  {contact.name}
+                </button>
+              </SharedNamedViewTransition>
               <span className="text-xs text-muted-foreground mt-0.5">
                 {contact.title}
               </span>

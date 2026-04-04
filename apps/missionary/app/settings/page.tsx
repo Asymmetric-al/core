@@ -1,6 +1,7 @@
 "use client";
 
 import { siteConfig } from "@asym/config/site-client";
+import { MISSIONARY_SETTINGS_HEADER_VT_NAME } from "@asym/lib/view-transitions";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
@@ -185,6 +186,7 @@ export default function SettingsPage() {
     <div className="space-y-6 animate-in fade-in duration-500">
       <PageHeader
         title="Settings"
+        titleViewTransitionName={MISSIONARY_SETTINGS_HEADER_VT_NAME}
         description="Manage your account, notifications, and ministry preferences."
       >
         <Button
