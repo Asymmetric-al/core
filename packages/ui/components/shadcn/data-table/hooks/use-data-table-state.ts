@@ -80,7 +80,7 @@ export interface UseDataTableStateReturn {
 
 export type UseDataTableStateCoreOptions = Omit<
   UseDataTableStateOptions,
-  "urlState"
+  "urlState" | "searchKey" | "searchColumnId"
 >;
 
 export type UseDataTableStateWithUrlOptions = Omit<
@@ -104,6 +104,92 @@ function useEffectiveSearchColumnKey(
   return urlState?.searchColumnKey ?? searchColumnId ?? searchKey;
 }
 
+/** Shared default row id when consumers do not pass `getRowId` to the table. */
+export function getDefaultDataTableRowId<TData>(
+  originalRow: TData,
+  index: number,
+): string {
+  if (typeof originalRow === "object" && originalRow !== null) {
+    const candidate = originalRow as Record<string, unknown>;
+    const id =
+      candidate.id ??
+      candidate.uuid ??
+      candidate._id ??
+      candidate.key ??
+      candidate.slug;
+    if (typeof id === "string" || typeof id === "number") {
+      return String(id);
+    }
+  }
+  return String(index);
+}
+
+function useStableGetRowId() {
+  return React.useCallback(getDefaultDataTableRowId, []);
+}
+
+type TableStateSlices = {
+  sorting: SortingState;
+  columnFilters: ColumnFiltersState;
+  columnVisibility: VisibilityState;
+  rowSelection: RowSelectionState;
+  pagination: PaginationState;
+};
+
+type TableStateSetters = {
+  setSorting: (updater: Updater<SortingState>) => void;
+  setColumnFilters: (updater: Updater<ColumnFiltersState>) => void;
+  setColumnVisibility: (updater: Updater<VisibilityState>) => void;
+  setRowSelection: (updater: Updater<RowSelectionState>) => void;
+  setPagination: (updater: Updater<PaginationState>) => void;
+};
+
+function buildUseDataTableStateReturn(
+  slices: TableStateSlices,
+  setters: TableStateSetters,
+  getRowId: <TData>(originalRow: TData, index: number) => string,
+  isUrlStatePending: boolean,
+): UseDataTableStateReturn {
+  const { sorting, columnFilters, columnVisibility, rowSelection, pagination } =
+    slices;
+  const {
+    setSorting,
+    setColumnFilters,
+    setColumnVisibility,
+    setRowSelection,
+    setPagination,
+  } = setters;
+
+  return {
+    sorting,
+    columnFilters,
+    columnVisibility,
+    rowSelection,
+    pagination,
+    setSorting,
+    setColumnFilters,
+    setColumnVisibility,
+    setRowSelection,
+    setPagination,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+      pagination,
+    },
+    handlers: {
+      onSortingChange: setSorting,
+      onColumnFiltersChange: setColumnFilters,
+      onColumnVisibilityChange: setColumnVisibility,
+      onRowSelectionChange: setRowSelection,
+      onPaginationChange: setPagination,
+    },
+    getRowId,
+    isUrlStatePending,
+  };
+}
+
 /**
  * Table state without nuqs / URL sync. Use from a component that does not call
  * `useDataTableUrlState`, so query hooks stay inactive when URL state is off.
@@ -117,8 +203,6 @@ export function useDataTableStateCore({
   onFiltersChange,
   onColumnVisibilityChange,
   onRowSelectionChange,
-  searchKey: _searchKey,
-  searchColumnId: _searchColumnId,
 }: UseDataTableStateCoreOptions): UseDataTableStateReturn {
   const resolvedControlledState = state ?? controlledState;
   const [internalRowSelection, setInternalRowSelection] =
@@ -206,53 +290,26 @@ export function useDataTableStateCore({
     [resolvedControlledState?.rowSelection, onRowSelectionChange, rowSelection],
   );
 
-  const getRowId = React.useCallback(
-    <TData>(originalRow: TData, index: number) => {
-      if (typeof originalRow === "object" && originalRow !== null) {
-        const candidate = originalRow as Record<string, unknown>;
-        const id =
-          candidate.id ??
-          candidate.uuid ??
-          candidate._id ??
-          candidate.key ??
-          candidate.slug;
-        if (typeof id === "string" || typeof id === "number") {
-          return String(id);
-        }
-      }
-      return String(index);
-    },
-    [],
-  );
+  const getRowId = useStableGetRowId();
 
-  return {
-    sorting,
-    columnFilters,
-    columnVisibility,
-    rowSelection,
-    pagination,
-    setSorting,
-    setColumnFilters,
-    setColumnVisibility,
-    setRowSelection,
-    setPagination,
-    state: {
+  return buildUseDataTableStateReturn(
+    {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
       pagination,
     },
-    handlers: {
-      onSortingChange: setSorting,
-      onColumnFiltersChange: setColumnFilters,
-      onColumnVisibilityChange: setColumnVisibility,
-      onRowSelectionChange: setRowSelection,
-      onPaginationChange: setPagination,
+    {
+      setSorting,
+      setColumnFilters,
+      setColumnVisibility,
+      setRowSelection,
+      setPagination,
     },
     getRowId,
-    isUrlStatePending: false,
-  };
+    false,
+  );
 }
 
 /**
@@ -365,51 +422,36 @@ export function useDataTableStateWithUrl({
     [resolvedControlledState?.rowSelection, onRowSelectionChange, rowSelection],
   );
 
-  const getRowId = React.useCallback(
-    <TData>(originalRow: TData, index: number) => {
-      if (typeof originalRow === "object" && originalRow !== null) {
-        const candidate = originalRow as Record<string, unknown>;
-        const id =
-          candidate.id ??
-          candidate.uuid ??
-          candidate._id ??
-          candidate.key ??
-          candidate.slug;
-        if (typeof id === "string" || typeof id === "number") {
-          return String(id);
-        }
-      }
-      return String(index);
-    },
-    [],
-  );
+  const getRowId = useStableGetRowId();
 
-  return {
-    sorting,
-    columnFilters,
-    columnVisibility,
-    rowSelection,
-    pagination,
-    setSorting,
-    setColumnFilters,
-    setColumnVisibility,
-    setRowSelection,
-    setPagination,
-    state: {
+  return buildUseDataTableStateReturn(
+    {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
       pagination,
     },
-    handlers: {
-      onSortingChange: setSorting,
-      onColumnFiltersChange: setColumnFilters,
-      onColumnVisibilityChange: setColumnVisibility,
-      onRowSelectionChange: setRowSelection,
-      onPaginationChange: setPagination,
+    {
+      setSorting,
+      setColumnFilters,
+      setColumnVisibility,
+      setRowSelection,
+      setPagination,
     },
     getRowId,
-    isUrlStatePending: urlTableState.isPending,
-  };
+    urlTableState.isPending,
+  );
+}
+
+/**
+ * @deprecated Prefer `useDataTableStateCore` (no URL) or `useDataTableStateWithUrl`
+ * (nuqs). A single hook cannot safely branch on `urlState` without violating the
+ * Rules of Hooks; URL sync must use `useDataTableStateWithUrl` from a dedicated
+ * component (as `DataTable` / `DataTableResponsive` do).
+ */
+export function useDataTableState(
+  options: UseDataTableStateCoreOptions,
+): UseDataTableStateReturn {
+  return useDataTableStateCore(options);
 }

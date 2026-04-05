@@ -157,13 +157,19 @@ Shared table primitives now follow one contract:
   - `initialState` for uncontrolled defaults
   - `urlState` for opt-in query-string ownership
   - `getRowId` for stable row identity
-- `DataTableWrapper` delegates to `DataTableResponsive`, so wrapper consumers inherit the same responsive/card, keyboard, and URL-state behavior.
+- **`searchColumnId` (preferred)** is the TanStack **column id** used for the toolbar search input. The legacy prop **`searchKey`** means the same thing and is deprecated.
+- **`DataTableUrlStateConfig.searchKey`** is unrelated: it names the **URL query parameter** for search when using `nuqs` (defaults to `q` inside `useDataTableUrlState`). Use **`searchColumnKey`** (or `searchColumnId` on the table) to choose which column receives that search value.
+- **Hooks:** `useDataTableStateCore` holds local table state only (no URL). `useDataTableStateWithUrl` wires `nuqs` and must run inside a component that is mounted only when URL sync is enabled (the table components branch internally for this). **`useDataTableState`** is a deprecated alias for **`useDataTableStateCore`** only; it cannot enable URL sync by itself (Rules of Hooks forbid branching on `urlState` inside one hook).
+- **Default row id:** `getDefaultDataTableRowId` matches the fallback used when no `getRowId` is passed to the table.
+- **`DataTableWrapper`** delegates to `DataTableResponsive` but merges defaults first: `enableViewToggle: false`, `defaultViewMode: "table"`, and `mobileBreakpoint: 0` so the wrapper stays **table-only** and does not auto-switch to card on narrow viewports. Pass `config` to override (spread order is defaults then `...config`).
+- **Remounting:** switching `urlState` from off to on (or the reverse) swaps the inner implementation component and **resets** uncontrolled table state for that mount. Avoid hot-toggling `urlState` if you need to preserve in-memory table state.
 
 ```tsx
 <DataTableResponsive
   columns={columns}
   data={rows}
   getRowId={(row) => row.id}
+  searchColumnId="name"
   state={{ sorting, pagination }}
   onSortingChange={setSorting}
   onPaginationChange={setPagination}

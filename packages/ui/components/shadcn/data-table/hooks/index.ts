@@ -60,8 +60,10 @@ export type {
 } from "./use-data-table-virtualization";
 
 export {
+  useDataTableState,
   useDataTableStateCore,
   useDataTableStateWithUrl,
+  getDefaultDataTableRowId,
 } from "./use-data-table-state";
 export type {
   UseDataTableStateOptions,

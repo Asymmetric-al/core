@@ -34,6 +34,10 @@ export {
   resolveVirtualizationConfig,
   getVirtualPadding,
   DEFAULT_VIRTUALIZATION_DEFAULTS,
+  useDataTableState,
+  useDataTableStateCore,
+  useDataTableStateWithUrl,
+  getDefaultDataTableRowId,
 } from "./hooks";
 
 export type {
