@@ -63,6 +63,11 @@ export default defineConfig({
         command:
           "node -e \"try{require('fs').rmSync('apps/admin/.next/dev/lock',{force:true})}catch{}\" && bun run --cwd apps/admin dev:playwright -- --port 3030 --hostname localhost",
         url: baseURL,
+        env: {
+          ...process.env,
+          // Align with scripts/run-with-ci-env.mjs when tests are run without it.
+          E2E_AUTH_BYPASS: process.env.E2E_AUTH_BYPASS || "1",
+        },
         reuseExistingServer: !process.env.CI,
         timeout: 120000,
       }

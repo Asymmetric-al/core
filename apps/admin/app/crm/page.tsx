@@ -495,6 +495,7 @@ export default function MissionControlCRM() {
                     },
                   }}
                   initialState={{
+                    pagination: { pageIndex: 0, pageSize: 5 },
                     columnVisibility: {
                       email: false,
                       city: false,

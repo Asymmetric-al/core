@@ -6,6 +6,11 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { safeNextParam } from "./demo-login";
+import {
+  E2E_AUTH_COOKIE_NAME,
+  isE2EAuthBypassEnabled,
+  parseE2EAuthCookieValue,
+} from "./e2e-auth";
 
 import type { UserRole } from "@asym/database/types";
 
@@ -94,6 +99,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
   const protectedRoutePrefixes = options.protectedRoutePrefixes ?? ["/"];
   const loginPath = options.loginPath ?? "/login";
   const allowApi = options.allowApi ?? true;
+  const allowedRoles = options.allowedRoles;
 
   return async function authMiddleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
@@ -160,7 +166,19 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    const userId = user?.id ?? null;
+    const supabaseUserId = user?.id ?? null;
+
+    const e2eSession =
+      isE2EAuthBypassEnabled() && !supabaseUserId
+        ? parseE2EAuthCookieValue(
+            request.cookies.get(E2E_AUTH_COOKIE_NAME)?.value,
+          )
+        : null;
+    const userId = supabaseUserId ?? e2eSession?.userId ?? null;
+    const e2eRoleAllowed =
+      !e2eSession ||
+      !allowedRoles?.length ||
+      allowedRoles.includes(e2eSession.role);
 
     if (isPublicRoute(pathname, publicRoutes) && !isAuthRoute) {
       return supabaseResponse;
@@ -170,7 +188,10 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       return supabaseResponse;
     }
 
-    if (isProtectedRoute(pathname, protectedRoutePrefixes) && !userId) {
+    if (
+      isProtectedRoute(pathname, protectedRoutePrefixes) &&
+      (!userId || (e2eSession && !e2eRoleAllowed))
+    ) {
       const next = safeNextParam(
         `${request.nextUrl.pathname}${request.nextUrl.search || ""}`,
       );

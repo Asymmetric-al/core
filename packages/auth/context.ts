@@ -5,6 +5,11 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 import {
+  E2E_AUTH_COOKIE_NAME,
+  isE2EAuthBypassEnabled,
+  parseE2EAuthCookieValue,
+} from "./e2e-auth";
+import {
   derivePrimaryRole,
   hasAnyRole,
   hasRole,
@@ -139,6 +144,28 @@ export async function getAuthContext(request?: Request): Promise<AuthContext> {
   } = await supabase.auth.getUser(bearerToken ?? undefined);
 
   if (userError || !user) {
+    if (!bearerToken && isE2EAuthBypassEnabled()) {
+      const cookieStore = await cookies();
+      const e2eSession = parseE2EAuthCookieValue(
+        cookieStore.get(E2E_AUTH_COOKIE_NAME)?.value,
+      );
+      if (e2eSession) {
+        const profileRole = e2eSession.role;
+        const role = derivePrimaryRole({
+          profileRole,
+          memberships: [],
+        });
+        return {
+          userId: e2eSession.userId,
+          tenantId: e2eSession.tenantId,
+          role,
+          profileRole,
+          memberships: [],
+          profileId: null,
+          isAuthenticated: true,
+        };
+      }
+    }
     return createUnauthenticatedContext();
   }
 
