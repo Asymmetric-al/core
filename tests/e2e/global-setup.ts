@@ -1,6 +1,7 @@
 import { chromium, type FullConfig } from "@playwright/test";
 import fs from "fs";
 import path from "path";
+import { adminBaseURL, donorBaseURL } from "./base-urls";
 
 async function writeEmptyStorage(authFile: string) {
   const authDir = path.dirname(authFile);
@@ -56,7 +57,7 @@ async function prepareAuthState({
   }
 }
 
-export default async function globalSetup(config: FullConfig) {
+export default async function globalSetup(_config: FullConfig) {
   const donorAuthFile = path.join(process.cwd(), ".auth", "donor.json");
   const adminAuthFile = path.join(process.cwd(), ".auth", "admin.json");
 
@@ -68,17 +69,11 @@ export default async function globalSetup(config: FullConfig) {
     return;
   }
 
-  const baseURL =
-    process.env.PLAYWRIGHT_BASE_URL ??
-    (typeof config.projects?.[0]?.use?.baseURL === "string"
-      ? config.projects[0].use.baseURL
-      : "http://localhost:3000");
-
   await fs.promises.mkdir(path.dirname(donorAuthFile), { recursive: true });
 
   await prepareAuthState({
     authFile: donorAuthFile,
-    baseURL,
+    baseURL: donorBaseURL,
     email: process.env.E2E_DONOR_EMAIL ?? process.env.DEMO_DONOR_EMAIL ?? "",
     password: process.env.E2E_DONOR_PASSWORD ?? process.env.DEMO_PASSWORD ?? "",
     destinationPattern: /donor-dashboard/,
@@ -87,7 +82,7 @@ export default async function globalSetup(config: FullConfig) {
 
   await prepareAuthState({
     authFile: adminAuthFile,
-    baseURL,
+    baseURL: adminBaseURL,
     email: process.env.E2E_ADMIN_EMAIL ?? process.env.DEMO_ADMIN_EMAIL ?? "",
     password: process.env.E2E_ADMIN_PASSWORD ?? process.env.DEMO_PASSWORD ?? "",
     destinationPattern: /\/(admin|contributions|feed|care)/,
