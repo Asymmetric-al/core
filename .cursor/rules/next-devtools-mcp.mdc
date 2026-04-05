@@ -10,7 +10,7 @@ When editing or debugging Next.js apps under `apps/admin`, `apps/donor`, or `app
 
 1. If a dev server is already running for the relevant app, use the **next-devtools** MCP tools first (`get_errors`, `get_logs`, `get_routes`, `get_page_metadata`, `get_project_metadata`, etc.) instead of guessing routes or console output.
 2. Before starting another dev server, check the relevant app's `.next/dev/lock` file and `.next/dev/logs/next-development.log`. Reuse the running server if the lock file already points to a live process.
-3. Next.js 16.2 forwards browser-side errors to the terminal by default, so check terminal output and MCP logs before asking for browser-console screenshots or copy-pasted console output.
+3. Check terminal output and MCP logs first. Browser console errors are only forwarded to the terminal when the app enables `experimental.browserDebugInfoInTerminal` in `next.config` (disabled by default); for client-only logs, MCP or the browser may still be required.
 4. Start the correct app only if nothing relevant is already running (ports: donor `3000`, admin `3030`, missionary `4000` - see root `AGENTS.md`).
 5. Config lives in root `.mcp.json` and `.cursor/mcp.json` (`next-devtools-mcp@latest` via `bunx`).
 

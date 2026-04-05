@@ -231,7 +231,7 @@ Root `.mcp.json` also defines the TanStack CLI MCP (`@tanstack/cli mcp`). Enable
 - Before starting a dev server, check whether one is already running (agent terminal sessions / process list) and inspect the relevant app's `.next/dev/lock` file when present.
 - If a lock file points to a running server, reuse that server or connect to it instead of starting another one blindly.
 - When a Next.js dev server is running, prefer Next.js devtools MCP (`get_errors`, `get_logs`, `get_routes`, `get_page_metadata`, etc.) over guessing routes, runtime errors, or browser-only state.
-- Next.js 16.2 forwards browser-side errors to the terminal by default, so check terminal output and `.next/dev/logs/next-development.log` before asking for browser console logs.
+- Check terminal output and `.next/dev/logs/next-development.log` for dev-server logs. Browser console output is only mirrored to the terminal when `experimental.browserDebugInfoInTerminal` is enabled in the app’s `next.config` (it is **off by default** per Next.js docs). For client-only issues, use devtools MCP or the browser when the terminal does not show them.
 
 ---
 
