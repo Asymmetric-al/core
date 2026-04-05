@@ -65,4 +65,8 @@ The attribute is **not** honored unless listed in `snapshotConfig.excludeSelecto
 
 ## Playwright smoke (`tests/e2e/boneyard-smoke.spec.ts`)
 
-Run with `-c playwright.admin.config.ts` or `-c playwright.missionary.config.ts` (projects `admin-boneyard` / `missionary-boneyard`). Alternatively set `PLAYWRIGHT_BONEYARD_TARGET=admin` or `missionary` when using another config whose `baseURL` port does not distinguish the app.
+The default root `playwright.config.ts` uses the donor `baseURL` (port **3005**), so this spec **skips** unless you target admin or missionary explicitly.
+
+- **Local / CI:** `bun run test:e2e:boneyard:admin` and `bun run test:e2e:boneyard:missionary` (each config starts its own dev server on **3030** / **4000**).
+- **Manual:** `-c playwright.admin.config.ts` / `playwright.missionary.config.ts` with `--project=admin-boneyard` / `missionary-boneyard`.
+- **Override:** set `PLAYWRIGHT_BONEYARD_TARGET=admin` or `missionary` if `baseURL` uses port **3030** / **4000** but project names differ.

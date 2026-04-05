@@ -54,6 +54,8 @@
     "test:e2e:auth:donor": "node scripts/run-with-ci-env.mjs -- playwright test tests/e2e/auth-demo-donor.spec.ts --project=chromium",
     "test:e2e:auth:admin": "node scripts/run-with-ci-env.mjs -- playwright test -c playwright.admin.config.ts tests/e2e/auth-demo-admin.spec.ts --project=admin-boneyard",
     "test:e2e:auth:missionary": "node scripts/run-with-ci-env.mjs -- playwright test -c playwright.missionary.config.ts tests/e2e/auth-demo-missionary.spec.ts --project=missionary-boneyard",
+    "test:e2e:boneyard:admin": "node scripts/run-with-ci-env.mjs -- playwright test -c playwright.admin.config.ts tests/e2e/boneyard-smoke.spec.ts --project=admin-boneyard",
+    "test:e2e:boneyard:missionary": "node scripts/run-with-ci-env.mjs -- playwright test -c playwright.missionary.config.ts tests/e2e/boneyard-smoke.spec.ts --project=missionary-boneyard",
     "test:a11y": "node scripts/run-with-ci-env.mjs -- playwright test tests/e2e/accessibility.spec.ts",
     "test:a11y:strict": "playwright test tests/e2e/accessibility.spec.ts",
     "test:perf": "node scripts/run-with-ci-env.mjs -- playwright test --grep @perf --workers=1",
