@@ -32,6 +32,7 @@ export interface DataTableInitialState {
 export interface UseDataTableStateOptions {
   initialState?: DataTableInitialState;
   state?: DataTableControlledState;
+  /** @deprecated Prefer `state`; same shape. */
   controlledState?: DataTableControlledState;
   onPaginationChange?: (pagination: PaginationState) => void;
   onSortingChange?: (sorting: SortingState) => void;

@@ -84,6 +84,7 @@ export function DataTableResponsiveToolbar<TData>({
   isMobile,
   viewMode,
   onViewModeChange,
+  urlStatePending = false,
 }: {
   enableFilters: boolean;
   toolbar?: React.ReactNode;
@@ -104,6 +105,7 @@ export function DataTableResponsiveToolbar<TData>({
   isMobile: boolean;
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
+  urlStatePending?: boolean;
 }) {
   if (!enableFilters) return null;
 
@@ -123,6 +125,7 @@ export function DataTableResponsiveToolbar<TData>({
         onExport={onExport}
         onRefresh={onRefresh}
         isLoading={isLoading}
+        urlStatePending={urlStatePending}
       >
         {enableViewToggle && !isMobile && (
           <DataTableViewModeToggle

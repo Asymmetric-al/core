@@ -60,6 +60,8 @@ interface DataTableToolbarResponsiveProps<TData> {
   onExport?: () => void;
   onRefresh?: () => void;
   isLoading?: boolean;
+  /** Disable filter/search controls while URL query state is updating (nuqs). */
+  urlStatePending?: boolean;
   className?: string;
   children?: React.ReactNode;
 }
@@ -81,6 +83,7 @@ export function DataTableToolbarResponsive<TData>({
   onExport,
   onRefresh,
   isLoading = false,
+  urlStatePending = false,
   className,
   children,
 }: DataTableToolbarResponsiveProps<TData>) {
@@ -143,6 +146,8 @@ export function DataTableToolbarResponsive<TData>({
                 onChange={(event) =>
                   table.getColumn(searchKey)?.setFilterValue(event.target.value)
                 }
+                disabled={urlStatePending}
+                aria-busy={urlStatePending || undefined}
                 className="h-9 pl-9 rounded-xl bg-background"
               />
               {(table.getColumn(searchKey)?.getFilterValue() as string) && (
@@ -161,6 +166,7 @@ export function DataTableToolbarResponsive<TData>({
               size="icon"
               className="sm:hidden size-9 rounded-xl"
               onClick={() => setSearchOpen((prev) => !prev)}
+              disabled={urlStatePending}
             >
               <Search className="size-4" />
             </Button>
@@ -178,6 +184,7 @@ export function DataTableToolbarResponsive<TData>({
                 column={column}
                 title={field.label}
                 options={field.options}
+                disabled={urlStatePending}
               />
             );
           })}
@@ -203,6 +210,7 @@ export function DataTableToolbarResponsive<TData>({
             activeFilterCount={activeFilterCount}
             onReset={resetAllFilters}
             enableAdvancedFilter={enableAdvancedFilter}
+            urlStatePending={urlStatePending}
           />
         </div>
 
@@ -210,6 +218,7 @@ export function DataTableToolbarResponsive<TData>({
           <Button
             variant="ghost"
             onClick={resetAllFilters}
+            disabled={urlStatePending}
             className="hidden lg:flex h-9 px-3 rounded-xl text-muted-foreground hover:text-foreground"
           >
             Reset
@@ -252,6 +261,7 @@ export function DataTableToolbarResponsive<TData>({
                 <Button
                   variant="outline"
                   size="sm"
+                  disabled={urlStatePending}
                   className="h-9 gap-2 rounded-xl"
                 >
                   <Columns className="size-4" />
@@ -298,6 +308,8 @@ export function DataTableToolbarResponsive<TData>({
               onChange={(event) =>
                 table.getColumn(searchKey)?.setFilterValue(event.target.value)
               }
+              disabled={urlStatePending}
+              aria-busy={urlStatePending || undefined}
               className="h-10 pl-9 rounded-xl bg-background"
             />
             {(table.getColumn(searchKey)?.getFilterValue() as string) && (
@@ -340,6 +352,7 @@ interface MobileFiltersDrawerProps<TData> {
   activeFilterCount: number;
   onReset: () => void;
   enableAdvancedFilter: boolean;
+  urlStatePending?: boolean;
 }
 
 function MobileFiltersDrawer<TData>({
@@ -353,11 +366,17 @@ function MobileFiltersDrawer<TData>({
   activeFilterCount,
   onReset,
   enableAdvancedFilter,
+  urlStatePending = false,
 }: MobileFiltersDrawerProps<TData>) {
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerTrigger asChild>
-        <Button variant="outline" size="sm" className="h-9 gap-2 rounded-xl">
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-9 gap-2 rounded-xl"
+          disabled={urlStatePending}
+        >
           <SlidersHorizontal className="size-4" />
           <span>Filters</span>
           {activeFilterCount > 0 && (
@@ -392,6 +411,7 @@ function MobileFiltersDrawer<TData>({
                       column={column}
                       title={field.label}
                       options={field.options}
+                      disabled={urlStatePending}
                     />
                   );
                 })}
@@ -418,7 +438,7 @@ function MobileFiltersDrawer<TData>({
           <Button
             variant="outline"
             onClick={onReset}
-            disabled={activeFilterCount === 0}
+            disabled={activeFilterCount === 0 || urlStatePending}
             className="flex-1 rounded-xl"
           >
             Clear All

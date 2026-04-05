@@ -1,7 +1,9 @@
 "use client";
 
 import { parseAsInteger, parseAsString, useQueryStates } from "nuqs";
-import { useCallback, useMemo, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useTransition } from "react";
+
+import { parseColumnFiltersFromUrlString } from "../data-table-url-filter-parse";
 
 import type {
   ColumnFiltersState,
@@ -60,15 +62,6 @@ function stringToSorting(str: string | null): SortingState {
 function filtersToString(filters: ColumnFiltersState): string {
   if (filters.length === 0) return "";
   return JSON.stringify(filters);
-}
-
-function stringToFilters(str: string | null): ColumnFiltersState {
-  if (!str) return [];
-  try {
-    return JSON.parse(str);
-  } catch {
-    return [];
-  }
 }
 
 function visibilityToString(visibility: VisibilityState): string {
@@ -146,10 +139,22 @@ export function useDataTableUrlState(
     [searchParams, sortKey],
   );
 
-  const columnFilters = useMemo<ColumnFiltersState>(
-    () => stringToFilters(searchParams[filterKey] as string),
-    [searchParams, filterKey],
+  const rawFilterParam = searchParams[filterKey] as string | null | undefined;
+  const filterParse = useMemo(
+    () => parseColumnFiltersFromUrlString(rawFilterParam),
+    [rawFilterParam],
   );
+  const columnFilters = filterParse.filters;
+
+  const shouldClearFilterParam =
+    !filterParse.ok && filterParse.shouldClearParam;
+
+  useEffect(() => {
+    if (!shouldClearFilterParam) return;
+    startTransition(() => {
+      setSearchParams({ [filterKey]: null });
+    });
+  }, [shouldClearFilterParam, filterKey, setSearchParams]);
 
   const columnVisibility = useMemo<VisibilityState>(
     () => stringToVisibility(searchParams[visibilityKey] as string),

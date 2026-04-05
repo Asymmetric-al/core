@@ -56,10 +56,16 @@ export interface DataTableAdvancedFilterField<
   isMulti?: boolean;
 }
 
-export interface DataTableRowAction<TData> {
+/** Legacy row mutation descriptor (not the toolbar row-actions menu). */
+export interface DataTableRowMutationAction<TData> {
   row: Row<TData>;
   type: "update" | "delete";
 }
+
+/**
+ * @deprecated Use `DataTableRowMutationAction` — distinct from `DataTableInteractiveRowAction`.
+ */
+export type DataTableRowAction<TData> = DataTableRowMutationAction<TData>;
 
 /** Toolbar / menu actions on a row (table buttons, dropdown, cards). */
 export interface DataTableInteractiveRowAction<TData> {

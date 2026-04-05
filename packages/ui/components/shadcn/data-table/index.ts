@@ -76,6 +76,7 @@ export type {
   DataTableFilterOption,
   DataTableFilterField,
   DataTableAdvancedFilterField,
+  DataTableRowMutationAction,
   DataTableRowAction,
   DataTableInteractiveRowAction,
   VirtualizationConfig,

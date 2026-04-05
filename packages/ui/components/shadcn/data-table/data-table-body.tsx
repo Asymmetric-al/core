@@ -484,6 +484,7 @@ export function DataTableBodyWithTableState<TData, TValue>({
             searchKey={toolbarSearchColumnId}
             searchPlaceholder={searchPlaceholder}
             enableColumnVisibility={enableColumnVisibility}
+            urlStatePending={tableState.isUrlStatePending}
           />
         ))}
 
@@ -586,6 +587,7 @@ export function DataTableBodyWithTableState<TData, TValue>({
         <DataTablePagination
           table={table}
           showSelectedCount={enableRowSelection}
+          urlStatePending={tableState.isUrlStatePending}
         />
       )}
 

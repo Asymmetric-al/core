@@ -294,6 +294,7 @@ export function DataTableResponsiveInner<TData, TValue>({
         isMobile={isMobile}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
+        urlStatePending={tableState.isUrlStatePending}
       />
 
       <div className="relative">
@@ -338,6 +339,7 @@ export function DataTableResponsiveInner<TData, TValue>({
         <DataTablePagination
           table={table}
           showSelectedCount={enableRowSelection}
+          urlStatePending={tableState.isUrlStatePending}
         />
       )}
 

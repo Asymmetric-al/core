@@ -487,12 +487,6 @@ export default function MissionControlCRM() {
                     enableFilters: true,
                     enableSorting: true,
                     enableKeyboardNavigation: true,
-                    virtualization: {
-                      enabled: MOCK_CONTACTS.length > 5,
-                      estimateSize: 64,
-                      overscan: 6,
-                      containerHeight: 560,
-                    },
                   }}
                   initialState={{
                     pagination: { pageIndex: 0, pageSize: 5 },
