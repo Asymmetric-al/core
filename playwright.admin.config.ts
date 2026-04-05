@@ -66,7 +66,7 @@ export default defineConfig({
         env: {
           ...process.env,
           // Align with scripts/run-with-ci-env.mjs when tests are run without it.
-          E2E_AUTH_BYPASS: process.env.E2E_AUTH_BYPASS || "1",
+          E2E_AUTH_BYPASS: process.env.E2E_AUTH_BYPASS || "true",
         },
         reuseExistingServer: !process.env.CI,
         timeout: 120000,
