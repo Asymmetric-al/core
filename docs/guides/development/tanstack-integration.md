@@ -163,6 +163,7 @@ Shared table primitives now follow one contract:
 - **Default row id:** `getDefaultDataTableRowId` matches the fallback used when no `getRowId` is passed to the table.
 - **`DataTableWrapper`** delegates to `DataTableResponsive` but merges defaults first: `enableViewToggle: false`, `defaultViewMode: "table"`, and `mobileBreakpoint: 0` so the wrapper stays **table-only** and does not auto-switch to card on narrow viewports. Pass `config` to override (spread order is defaults then `...config`).
 - **Remounting:** switching `urlState` from off to on (or the reverse) swaps the inner implementation component and **resets** uncontrolled table state for that mount. Avoid hot-toggling `urlState` if you need to preserve in-memory table state.
+- **Pending URL transitions (`nuqs`):** When URL sync is on, `useDataTableStateWithUrl` exposes **`isUrlStatePending`** (mirrors `useDataTableUrlState`’s transition pending flag). `DataTable` / `DataTableResponsive` pass this through as **`urlStatePending`** to **`DataTableToolbar`**, **`DataTableToolbarResponsive`**, and **`DataTablePagination`**. While pending, search inputs, faceted filters, column visibility, reset/export/refresh actions, and pagination controls are **disabled**, and busy regions use **`aria-busy`** where appropriate. That reduces races (e.g. typing or paging ahead of the query string catching up) without changing committed URL semantics.
 
 ```tsx
 <DataTableResponsive
@@ -232,4 +233,5 @@ This preserves count consistency without requiring route-level SQL transactions 
 - [ ] `getItemKey` is stable and uses row/item IDs.
 - [ ] Mutations trigger correct cache invalidation path (Query + Next cache tags).
 - [ ] Counter RPC mutation flows include compensating writes on partial failure.
+- [ ] URL-backed tables: expect toolbar/pagination to disable while `isUrlStatePending` is true.
 - [ ] Lint/typecheck/unit tests pass on affected workspaces.
