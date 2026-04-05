@@ -48,7 +48,7 @@ The attribute is **not** honored unless listed in `snapshotConfig.excludeSelecto
 - **Breakpoints** — responsive bone selection uses **viewport** width (`window.innerWidth`), not the measured container width; avoid narrow nested panels for first rollout.
 - **Motion** — increase `wait` in `boneyard.config.json` if captures catch mid-animation.
 - **Charts / dense SVG** — avoid or add aggressive `excludeSelectors` for chart internals.
-- **Crawler** — starting URL should be the `__boneyard__` page; the CLI may crawl other internal links (login, etc.) where no named skeletons exist.
+- **Crawler** — starting URL should be the public `/boneyard/...` capture page; the CLI may crawl other internal links (login, etc.) where no named skeletons exist.
 
 ## Checklist
 

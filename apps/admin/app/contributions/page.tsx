@@ -2,28 +2,22 @@
 
 import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
 import { PageShell } from "@asym/ui/components/shadcn/page-shell";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { ContributionsBoneyardFallback } from "./boneyard-fallback";
 import { ContributionDetailSheet } from "./contribution-detail-sheet";
 import { mockContributions } from "./data";
 import { ContributionsMainBody, ContributionsPageActions } from "./main-body";
+import { useAdminContributions } from "./use-admin-contributions";
 
 import type { Contribution } from "./types";
 
 export default function ContributionsPage() {
-  const [isPagePending, setIsPagePending] = useState(true);
-  const [data] = useState<Contribution[]>(mockContributions);
+  const contributionsQuery = useAdminContributions();
   const [selectedContribution, setSelectedContribution] =
     useState<Contribution | null>(null);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setIsPagePending(false);
-    }, 250);
-
-    return () => window.clearTimeout(timer);
-  }, []);
+  const data = contributionsQuery.data ?? mockContributions;
+  const isPagePending = contributionsQuery.isPending;
 
   return (
     <PageShell

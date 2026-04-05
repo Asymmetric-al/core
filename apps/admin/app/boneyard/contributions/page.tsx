@@ -14,6 +14,14 @@ import {
  * Run: `bun run boneyard:admin` with dev server on :3030.
  */
 export default function BoneyardContributionsCapturePage() {
+  const skeletonContent = (
+    <ContributionsMainBody
+      data={mockContributions}
+      isLoading={false}
+      onSelectContribution={() => {}}
+    />
+  );
+
   return (
     <PageShell
       title="Contributions"
@@ -23,19 +31,13 @@ export default function BoneyardContributionsCapturePage() {
       <BoneyardSkeleton
         name="admin-contributions-content"
         loading={true}
-        fixture={
-          <ContributionsMainBody
-            data={mockContributions}
-            isLoading={false}
-            onSelectContribution={() => {}}
-          />
-        }
+        fixture={skeletonContent}
         snapshotConfig={{
           excludeSelectors: ["[data-no-skeleton]", "svg.lucide", "svg"],
           excludeTags: ["footer"],
         }}
       >
-        <div />
+        {skeletonContent}
       </BoneyardSkeleton>
     </PageShell>
   );
