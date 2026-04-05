@@ -35,6 +35,10 @@
     "./types": {
       "types": "./types/index.ts",
       "default": "./types/index.ts"
+    },
+    "./query-keys": {
+      "types": "./query-keys.ts",
+      "default": "./query-keys.ts"
     }
   },
   "scripts": {

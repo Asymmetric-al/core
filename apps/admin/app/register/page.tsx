@@ -237,7 +237,10 @@ export default function RegisterPage() {
                   setFormData({ ...formData, role: value })
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger
+                  aria-label="Select your role"
+                  title="Select your role"
+                >
                   <SelectValue placeholder="Select your role" />
                 </SelectTrigger>
                 <SelectContent>
@@ -307,7 +310,10 @@ export default function RegisterPage() {
 
           <p className="mt-4 text-center text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link href="/login" className="text-primary hover:underline">
+            <Link
+              href="/login"
+              className="text-primary underline underline-offset-2 hover:no-underline"
+            >
               Sign In
             </Link>
           </p>

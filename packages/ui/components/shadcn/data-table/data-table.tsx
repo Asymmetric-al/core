@@ -9,6 +9,7 @@ import {
   type VisibilityState,
   type RowSelectionState,
   type PaginationState,
+  type Table as TanStackTable,
   flexRender,
   getCoreRowModel,
   getFacetedRowModel,
@@ -42,6 +43,7 @@ import type { DataTableFilterField, DataTableConfig } from "./types";
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  table?: TanStackTable<TData>;
   filterFields?: DataTableFilterField<TData>[];
   searchKey?: string;
   searchPlaceholder?: string;
@@ -74,6 +76,7 @@ interface DataTableProps<TData, TValue> {
 export function DataTable<TData, TValue>({
   columns,
   data,
+  table: externalTable,
   filterFields = [],
   searchKey,
   searchPlaceholder,
@@ -157,7 +160,7 @@ export function DataTable<TData, TValue>({
   }, [columns, enableRowSelection, selectColumn]);
 
   // eslint-disable-next-line react-hooks/incompatible-library -- "use no memo" directive applied, warning acknowledged
-  const table = useReactTable({
+  const internalTable = useReactTable({
     data,
     columns: tableColumns,
     pageCount: pageCount ?? undefined,
@@ -207,6 +210,10 @@ export function DataTable<TData, TValue>({
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
+
+  const table = externalTable ?? internalTable;
+  const emptyStateColSpan =
+    table.getVisibleLeafColumns().length || tableColumns.length;
 
   if (isLoading && data.length === 0) {
     return <DataTableSkeleton columnCount={columns.length} />;
@@ -307,7 +314,7 @@ export function DataTable<TData, TValue>({
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={tableColumns.length} className="h-64">
+                  <TableCell colSpan={emptyStateColSpan} className="h-64">
                     {emptyState ?? defaultEmptyState}
                   </TableCell>
                 </TableRow>

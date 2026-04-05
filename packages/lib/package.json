@@ -24,6 +24,7 @@
     "./hooks/use-time-ago": "./hooks/use-time-ago.tsx",
     "./hooks/use-donation-metrics": "./hooks/use-donation-metrics.ts",
     "./hooks/use-tasks": "./hooks/use-tasks.ts",
+    "./hooks/use-donor-record": "./hooks/use-donor-record.ts",
     "./hooks/use-email-studio": "./hooks/use-email-studio.ts",
     "./mission-control/context": "./mission-control/context.tsx",
     "./mission-control/tiles": "./mission-control/tiles.ts",

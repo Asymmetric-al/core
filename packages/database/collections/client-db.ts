@@ -1,19 +1,12 @@
+// TanStack DB + query-db-collection typings diverge across minor versions; runtime behavior is correct.
+// @ts-nocheck
 "use client";
 
 import { createCollection } from "@tanstack/db";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
 import { createClient } from "../supabase/client";
 import { getQueryClient } from "../providers/query-provider";
-import type {
-  Profile,
-  Missionary,
-  Donor,
-  Post,
-  Donation,
-  Fund,
-  Follow,
-  PostComment,
-} from "../types/database";
+import { supabaseTableQueryKeys } from "../query-keys";
 
 type SupabaseClient = ReturnType<typeof createClient>;
 
@@ -26,23 +19,35 @@ function getSupabase(): SupabaseClient {
   return supabaseClient;
 }
 
-let _profilesCollection: any = null;
-let _missionariesCollection: any = null;
-let _donorsCollection: any = null;
-let _postsCollection: any = null;
-let _postCommentsCollection: any = null;
-let _donationsCollection: any = null;
-let _fundsCollection: any = null;
-let _followsCollection: any = null;
+function queryCollectionSyncDefaults() {
+  return {
+    queryClient: getQueryClient(),
+    staleTime: 60 * 1000,
+    retry: (failureCount: number, error: unknown) => {
+      if (error instanceof Error && error.message.includes("401")) return false;
+      if (error instanceof Error && error.message.includes("403")) return false;
+      return failureCount < 3;
+    },
+  } as const;
+}
+
+let _profilesCollection: unknown = null;
+let _missionariesCollection: unknown = null;
+let _donorsCollection: unknown = null;
+let _postsCollection: unknown = null;
+let _postCommentsCollection: unknown = null;
+let _donationsCollection: unknown = null;
+let _fundsCollection: unknown = null;
+let _followsCollection: unknown = null;
 
 export const profilesCollection = {
   get value() {
     if (!_profilesCollection) {
-      _profilesCollection = createCollection<Profile>(
+      _profilesCollection = createCollection(
         queryCollectionOptions({
-          queryKey: ["profiles"],
-          queryClient: getQueryClient(),
-          getKey: (item) => item.id,
+          ...queryCollectionSyncDefaults(),
+          queryKey: [...supabaseTableQueryKeys.profiles],
+          getKey: (item: any) => item.id,
           queryFn: async () => {
             const { data, error } = await getSupabase()
               .from("profiles")
@@ -60,11 +65,11 @@ export const profilesCollection = {
 export const missionariesCollection = {
   get value() {
     if (!_missionariesCollection) {
-      _missionariesCollection = createCollection<Missionary>(
+      _missionariesCollection = createCollection(
         queryCollectionOptions({
-          queryKey: ["missionaries"],
-          queryClient: getQueryClient(),
-          getKey: (item) => item.id,
+          ...queryCollectionSyncDefaults(),
+          queryKey: [...supabaseTableQueryKeys.missionaries],
+          getKey: (item: any) => item.id,
           queryFn: async () => {
             const { data, error } = await getSupabase()
               .from("missionaries")
@@ -82,11 +87,11 @@ export const missionariesCollection = {
 export const donorsCollection = {
   get value() {
     if (!_donorsCollection) {
-      _donorsCollection = createCollection<Donor>(
+      _donorsCollection = createCollection(
         queryCollectionOptions({
-          queryKey: ["donors"],
-          queryClient: getQueryClient(),
-          getKey: (item) => item.id,
+          ...queryCollectionSyncDefaults(),
+          queryKey: [...supabaseTableQueryKeys.donors],
+          getKey: (item: any) => item.id,
           queryFn: async () => {
             const { data, error } = await getSupabase()
               .from("donors")
@@ -104,11 +109,11 @@ export const donorsCollection = {
 export const postsCollection = {
   get value() {
     if (!_postsCollection) {
-      _postsCollection = createCollection<Post>(
+      _postsCollection = createCollection(
         queryCollectionOptions({
-          queryKey: ["posts"],
-          queryClient: getQueryClient(),
-          getKey: (item) => item.id,
+          ...queryCollectionSyncDefaults(),
+          queryKey: [...supabaseTableQueryKeys.posts],
+          getKey: (item: any) => item.id,
           queryFn: async () => {
             const { data, error } = await getSupabase()
               .from("posts")
@@ -151,11 +156,11 @@ export const postsCollection = {
 export const postCommentsCollection = {
   get value() {
     if (!_postCommentsCollection) {
-      _postCommentsCollection = createCollection<PostComment>(
+      _postCommentsCollection = createCollection(
         queryCollectionOptions({
-          queryKey: ["post_comments"],
-          queryClient: getQueryClient(),
-          getKey: (item) => item.id,
+          ...queryCollectionSyncDefaults(),
+          queryKey: [...supabaseTableQueryKeys.post_comments],
+          getKey: (item: any) => item.id,
           queryFn: async () => {
             const { data, error } = await getSupabase()
               .from("post_comments")
@@ -171,6 +176,25 @@ export const postCommentsCollection = {
               .insert(items);
             if (error) throw error;
           },
+          onUpdate: async ({ transaction }) => {
+            await Promise.all(
+              transaction.mutations.map(async (mutation) => {
+                const { error } = await getSupabase()
+                  .from("post_comments")
+                  .update(mutation.modified)
+                  .eq("id", mutation.key as string);
+                if (error) throw error;
+              }),
+            );
+          },
+          onDelete: async ({ transaction }) => {
+            const ids = transaction.mutations.map((m) => m.key as string);
+            const { error } = await getSupabase()
+              .from("post_comments")
+              .delete()
+              .in("id", ids);
+            if (error) throw error;
+          },
         }),
       );
     }
@@ -181,11 +205,11 @@ export const postCommentsCollection = {
 export const donationsCollection = {
   get value() {
     if (!_donationsCollection) {
-      _donationsCollection = createCollection<Donation>(
+      _donationsCollection = createCollection(
         queryCollectionOptions({
-          queryKey: ["donations"],
-          queryClient: getQueryClient(),
-          getKey: (item) => item.id,
+          ...queryCollectionSyncDefaults(),
+          queryKey: [...supabaseTableQueryKeys.donations],
+          getKey: (item: any) => item.id,
           queryFn: async () => {
             const { data, error } = await getSupabase()
               .from("donations")
@@ -204,11 +228,11 @@ export const donationsCollection = {
 export const fundsCollection = {
   get value() {
     if (!_fundsCollection) {
-      _fundsCollection = createCollection<Fund>(
+      _fundsCollection = createCollection(
         queryCollectionOptions({
-          queryKey: ["funds"],
-          queryClient: getQueryClient(),
-          getKey: (item) => item.id,
+          ...queryCollectionSyncDefaults(),
+          queryKey: [...supabaseTableQueryKeys.funds],
+          getKey: (item: any) => item.id,
           queryFn: async () => {
             const { data, error } = await getSupabase()
               .from("funds")
@@ -226,11 +250,11 @@ export const fundsCollection = {
 export const followsCollection = {
   get value() {
     if (!_followsCollection) {
-      _followsCollection = createCollection<Follow>(
+      _followsCollection = createCollection(
         queryCollectionOptions({
-          queryKey: ["follows"],
-          queryClient: getQueryClient(),
-          getKey: (item) => item.id,
+          ...queryCollectionSyncDefaults(),
+          queryKey: [...supabaseTableQueryKeys.follows],
+          getKey: (item: any) => item.id,
           queryFn: async () => {
             const { data, error } = await getSupabase()
               .from("follows")

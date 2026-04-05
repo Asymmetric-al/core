@@ -5,7 +5,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { QueryProvider } from "@asym/database/providers";
+import { TanStackDBProvider } from "@asym/database/providers";
 import { siteConfig } from "@asym/config/site";
 
 const inter = Inter({
@@ -144,11 +144,11 @@ export default function RootLayout({
           storageKey="donor-theme"
           disableTransitionOnChange
         >
-          <QueryProvider>
+          <TanStackDBProvider>
             <Suspense fallback={null}>
               <NuqsAdapter>{children}</NuqsAdapter>
             </Suspense>
-          </QueryProvider>
+          </TanStackDBProvider>
         </ThemeProvider>
         <Toaster />
       </body>

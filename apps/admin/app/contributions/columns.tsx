@@ -6,7 +6,6 @@ import {
   XCircle,
   Clock,
   RotateCcw,
-  AlertTriangle,
   CreditCard,
   Building2,
   FileText,
@@ -48,31 +47,33 @@ const statusConfig: Record<
   ContributionStatus,
   { icon: typeof CircleCheck; className: string }
 > = {
-  Succeeded: {
+  completed: {
     icon: CircleCheck,
     className:
       "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800",
   },
-  Pending: {
+  pending: {
     icon: Clock,
     className:
       "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800",
   },
-  Failed: {
+  failed: {
     icon: XCircle,
     className:
       "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800",
   },
-  Refunded: {
+  refunded: {
     icon: RotateCcw,
     className:
       "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-950/50 dark:text-slate-400 dark:border-slate-800",
   },
-  Disputed: {
-    icon: AlertTriangle,
-    className:
-      "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/50 dark:text-orange-400 dark:border-orange-800",
-  },
+};
+
+const statusLabels: Record<ContributionStatus, string> = {
+  completed: "Completed",
+  pending: "Pending",
+  failed: "Failed",
+  refunded: "Refunded",
 };
 
 const paymentMethodIcons: Record<PaymentMethod, typeof CreditCard> = {
@@ -95,29 +96,31 @@ const sourceLabels: Record<ContributionSource, string> = {
 
 export const columns: ColumnDef<Contribution>[] = [
   {
-    accessorKey: "donor",
+    accessorKey: "donorName",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Donor" />
     ),
     cell: ({ row }) => {
-      const donor = row.original.donor;
       const isAnonymous = row.original.isAnonymous;
+      const donorName = row.original.donorName ?? row.original.donorEmail;
+      const donorEmail = row.original.donorEmail;
+      const donorAvatar = row.original.donorAvatar ?? undefined;
 
       return (
         <div className="flex items-center gap-3 min-w-[200px]">
           <Avatar className="h-9 w-9 border border-border">
-            <AvatarImage src={donor.avatar} alt={donor.name} />
+            <AvatarImage src={donorAvatar} alt={donorName} />
             <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium">
-              {isAnonymous ? "?" : getInitials(donor.name)}
+              {isAnonymous ? "?" : getInitials(donorName)}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
             <span className="font-semibold text-sm text-foreground">
-              {isAnonymous ? "Anonymous" : donor.name}
+              {isAnonymous ? "Anonymous" : donorName}
             </span>
-            {!isAnonymous && donor.email && (
+            {!isAnonymous && donorEmail && (
               <span className="text-xs text-muted-foreground truncate max-w-[180px]">
-                {donor.email}
+                {donorEmail}
               </span>
             )}
           </div>
@@ -126,11 +129,10 @@ export const columns: ColumnDef<Contribution>[] = [
     },
     enableSorting: true,
     filterFn: (row, id, value) => {
-      const donor = row.original.donor;
-      const searchValue = value.toLowerCase();
+      const searchValue = String(value).toLowerCase();
       return (
-        donor.name.toLowerCase().includes(searchValue) ||
-        donor.email.toLowerCase().includes(searchValue)
+        (row.original.donorName ?? "").toLowerCase().includes(searchValue) ||
+        row.original.donorEmail.toLowerCase().includes(searchValue)
       );
     },
   },
@@ -187,12 +189,12 @@ export const columns: ColumnDef<Contribution>[] = [
           )}
         >
           <Icon className="h-3 w-3" />
-          {status}
+          {statusLabels[status]}
         </Badge>
       );
     },
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
+      return (value as string[]).includes(row.getValue(id) as string);
     },
     enableSorting: true,
   },
@@ -210,7 +212,7 @@ export const columns: ColumnDef<Contribution>[] = [
       );
     },
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
+      return (value as string[]).includes(row.getValue(id) as string);
     },
     enableSorting: true,
   },
@@ -231,7 +233,7 @@ export const columns: ColumnDef<Contribution>[] = [
       );
     },
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
+      return (value as string[]).includes(row.getValue(id) as string);
     },
     enableSorting: true,
   },
@@ -241,15 +243,17 @@ export const columns: ColumnDef<Contribution>[] = [
       <DataTableColumnHeader column={column} title="Fund" />
     ),
     cell: ({ row }) => {
-      const fundName = row.getValue("fundName") as string;
+      const fundName = row.getValue("fundName") as string | null;
       const fundCode = row.original.fundCode;
 
       return (
         <div className="flex flex-col">
           <span className="text-sm font-medium text-foreground">
-            {fundName}
+            {fundName || "General Fund"}
           </span>
-          <span className="text-xs text-muted-foreground">{fundCode}</span>
+          <span className="text-xs text-muted-foreground">
+            {fundCode || "GENERAL"}
+          </span>
         </div>
       );
     },
@@ -269,7 +273,7 @@ export const columns: ColumnDef<Contribution>[] = [
       );
     },
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
+      return (value as string[]).includes(row.getValue(id) as string);
     },
     enableSorting: true,
   },
@@ -321,7 +325,9 @@ export const columns: ColumnDef<Contribution>[] = [
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem
               onClick={() =>
-                navigator.clipboard.writeText(contribution.transactionId)
+                navigator.clipboard.writeText(
+                  contribution.transactionId ?? contribution.id,
+                )
               }
             >
               <Copy className="mr-2 h-4 w-4" />
@@ -340,7 +346,7 @@ export const columns: ColumnDef<Contribution>[] = [
               <Receipt className="mr-2 h-4 w-4" />
               Send Receipt
             </DropdownMenuItem>
-            {contribution.status === "Failed" && (
+            {contribution.status === "failed" && (
               <DropdownMenuItem>
                 <RefreshCcw className="mr-2 h-4 w-4" />
                 Retry Payment

@@ -47,6 +47,9 @@ export interface Profile {
   last_name: string;
   email: string;
   avatar_url: string | null;
+  /** Present when stored in Supabase; optional for older typings. */
+  display_name?: string | null;
+  phone?: string | null;
   created_at: string;
   updated_at: string;
 }

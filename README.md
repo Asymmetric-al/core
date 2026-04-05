@@ -11,6 +11,7 @@ A high-performance, enterprise-grade Next.js 16.1 application for mission-focuse
 # NEXT_PUBLIC_SUPABASE_URL
 # NEXT_PUBLIC_SUPABASE_ANON_KEY
 bun run dev
+# `./scripts/verify` is bash-based; on Windows use Git Bash / WSL / `bash ./scripts/verify`
 ./scripts/verify
 ```
 
@@ -158,7 +159,9 @@ This project uses **bun** (v1.3+). Do not use npm/yarn/pnpm.
 Common commands:
 
 - `bun run format` (fix), `bun run format:check` (verify), `bun run lint`, and `bun run typecheck`
+- `bun run verify` for the bash-based localhost smoke script (use Git Bash / WSL on Windows)
 - `bun run test:e2e`
+- `bun run verify:e2e` for Playwright with the repo's default project set
 
 ### Git Hooks Setup
 
