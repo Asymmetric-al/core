@@ -71,6 +71,7 @@ export type {
   DataTableFilterField,
   DataTableAdvancedFilterField,
   DataTableRowAction,
+  DataTableInteractiveRowAction,
   VirtualizationConfig,
   DataTableConfig,
   DataTableUrlStateConfig,

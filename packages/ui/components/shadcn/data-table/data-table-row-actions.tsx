@@ -1,8 +1,7 @@
 "use client";
 
-import * as React from "react";
-
 import { MoreHorizontal } from "lucide-react";
+import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
 
@@ -14,19 +13,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../dropdown-menu";
+import { getDataTableRowActionKey } from "./data-table-row-action-key";
 
+import type { DataTableInteractiveRowAction } from "./types";
 import type { Row } from "@tanstack/react-table";
-
-interface DataTableRowAction<TData> {
-  label: string;
-  icon?: React.ComponentType<{ className?: string }>;
-  onClick: (row: TData) => void;
-  variant?: "default" | "destructive";
-}
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
-  actions: DataTableRowAction<TData>[];
+  actions: DataTableInteractiveRowAction<TData>[];
   className?: string;
 }
 
@@ -55,7 +49,7 @@ export function DataTableRowActions<TData>({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="rounded-xl">
         {actions.map((action, index) => (
-          <React.Fragment key={action.label}>
+          <React.Fragment key={getDataTableRowActionKey(action, index)}>
             {action.variant === "destructive" && index > 0 && (
               <DropdownMenuSeparator />
             )}

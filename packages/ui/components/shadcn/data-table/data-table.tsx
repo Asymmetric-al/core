@@ -46,6 +46,7 @@ import type {
   DataTableControlledState,
   DataTableFilterField,
   DataTableConfig,
+  DataTableInteractiveRowAction,
   DataTableUrlStateConfig,
 } from "./types";
 
@@ -78,12 +79,7 @@ interface DataTableProps<TData, TValue> {
     onClick: (rows: TData[]) => void;
     variant?: "default" | "destructive";
   }[];
-  rowActions?: {
-    label: string;
-    icon?: React.ComponentType<{ className?: string }>;
-    onClick: (row: TData) => void;
-    variant?: "default" | "destructive";
-  }[];
+  rowActions?: DataTableInteractiveRowAction<TData>[];
   onRowClick?: (row: Row<TData>) => void;
   state?: DataTableControlledState;
   getRowId?: TableOptions<TData>["getRowId"];

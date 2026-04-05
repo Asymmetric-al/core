@@ -2,6 +2,10 @@
 
 import * as React from "react";
 
+import {
+  mergeSearchColumnFilter,
+  splitSearchColumnFilter,
+} from "../data-table-search-column-bridge";
 import { useDataTableUrlState } from "./use-data-table-url-state";
 
 import type {
@@ -73,64 +77,6 @@ function resolveUpdater<T>(updater: Updater<T>, currentValue: T): T {
     : updater;
 }
 
-function splitSearchColumnFilter(
-  filters: ColumnFiltersState,
-  searchColumnKey?: string,
-): {
-  searchValue: string;
-  remainingFilters: ColumnFiltersState;
-} {
-  if (!searchColumnKey) {
-    return {
-      searchValue: "",
-      remainingFilters: filters,
-    };
-  }
-
-  const remainingFilters: ColumnFiltersState = [];
-  let searchValue = "";
-
-  for (const filter of filters) {
-    if (filter.id === searchColumnKey) {
-      searchValue =
-        typeof filter.value === "string"
-          ? filter.value
-          : String(filter.value ?? "");
-      continue;
-    }
-
-    remainingFilters.push(filter);
-  }
-
-  return {
-    searchValue,
-    remainingFilters,
-  };
-}
-
-function mergeSearchColumnFilter(
-  filters: ColumnFiltersState,
-  globalFilter: string,
-  searchColumnKey?: string,
-): ColumnFiltersState {
-  if (!searchColumnKey) {
-    return filters;
-  }
-
-  const mergedFilters = filters.filter(
-    (filter) => filter.id !== searchColumnKey,
-  );
-
-  if (globalFilter) {
-    mergedFilters.unshift({
-      id: searchColumnKey,
-      value: globalFilter,
-    });
-  }
-
-  return mergedFilters;
-}
-
 export function useDataTableState({
   initialState,
   state,
@@ -144,6 +90,7 @@ export function useDataTableState({
   searchKey,
 }: UseDataTableStateOptions): UseDataTableStateReturn {
   const resolvedControlledState = state ?? controlledState;
+  const effectiveSearchColumnKey = urlState?.searchColumnKey ?? searchKey;
   const [internalRowSelection, setInternalRowSelection] =
     React.useState<RowSelectionState>(initialState?.rowSelection ?? {});
   const [internalColumnVisibility, setInternalColumnVisibility] =
@@ -196,7 +143,7 @@ export function useDataTableState({
       ? mergeSearchColumnFilter(
           urlTableState.columnFilters,
           urlTableState.globalFilter,
-          searchKey,
+          effectiveSearchColumnKey,
         )
       : internalColumnFilters);
   const rowSelection =
@@ -265,7 +212,7 @@ export function useDataTableState({
       if (urlStateEnabled) {
         const { searchValue, remainingFilters } = splitSearchColumnFilter(
           nextFilters,
-          searchKey,
+          effectiveSearchColumnKey,
         );
         urlTableState.setColumnFilters(remainingFilters);
         urlTableState.setGlobalFilter(searchValue);
@@ -277,7 +224,7 @@ export function useDataTableState({
       columnFilters,
       resolvedControlledState?.columnFilters,
       onFiltersChange,
-      searchKey,
+      effectiveSearchColumnKey,
       urlStateEnabled,
       urlTableState,
     ],

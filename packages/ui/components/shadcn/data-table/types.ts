@@ -10,6 +10,7 @@ import type {
   RowSelectionState,
   SortingState,
 } from "@tanstack/react-table";
+import type * as React from "react";
 
 export type DataTableFilterVariant =
   | "text"
@@ -58,6 +59,16 @@ export interface DataTableAdvancedFilterField<
 export interface DataTableRowAction<TData> {
   row: Row<TData>;
   type: "update" | "delete";
+}
+
+/** Toolbar / menu actions on a row (table buttons, dropdown, cards). */
+export interface DataTableInteractiveRowAction<TData> {
+  /** Optional stable key when multiple actions share the same label. */
+  id?: string;
+  label: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  onClick: (row: TData) => void;
+  variant?: "default" | "destructive";
 }
 
 export interface VirtualizationConfig {

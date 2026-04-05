@@ -20,6 +20,7 @@ import type {
   DataTableConfig,
   DataTableControlledState,
   DataTableFilterField,
+  DataTableInteractiveRowAction,
   DataTableUrlStateConfig,
 } from "./types";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -39,12 +40,7 @@ interface DataTableWrapperProps<TData, TValue> {
   error?: string | Error;
   onRetry?: () => void;
   onRowClick?: (row: TData) => void;
-  rowActions?: {
-    label: string;
-    icon?: React.ComponentType<{ className?: string }>;
-    onClick: (row: TData) => void;
-    variant?: "default" | "destructive";
-  }[];
+  rowActions?: DataTableInteractiveRowAction<TData>[];
   emptyState?: {
     title?: string;
     description?: string;

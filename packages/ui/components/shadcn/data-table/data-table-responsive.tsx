@@ -36,6 +36,7 @@ import {
 import { DataTableCardView } from "./data-table-card-view";
 import { DataTableFloatingBar } from "./data-table-floating-bar";
 import { DataTablePagination } from "./data-table-pagination";
+import { getDataTableRowActionKey } from "./data-table-row-action-key";
 import {
   DataTableSkeleton,
   DataTableLoadingOverlay,
@@ -55,6 +56,7 @@ import type {
   DataTableControlledState,
   DataTableFilterField,
   DataTableConfig,
+  DataTableInteractiveRowAction,
   DataTableUrlStateConfig,
 } from "./types";
 
@@ -102,12 +104,7 @@ interface DataTableResponsiveProps<TData, TValue> {
     onClick: (rows: TData[]) => void;
     variant?: "default" | "destructive";
   }[];
-  rowActions?: {
-    label: string;
-    icon?: React.ComponentType<{ className?: string }>;
-    onClick: (row: TData) => void;
-    variant?: "default" | "destructive";
-  }[];
+  rowActions?: DataTableInteractiveRowAction<TData>[];
   mobileCardConfig?: {
     primaryField?: string;
     secondaryField?: string;
@@ -266,12 +263,7 @@ function DataTableResponsiveTableView<TData>({
   virtualRowHeight: number;
   virtualOverscan: number;
   virtualContainerHeight: number | string;
-  rowActions?: {
-    label: string;
-    icon?: React.ComponentType<{ className?: string }>;
-    onClick: (row: TData) => void;
-    variant?: "default" | "destructive";
-  }[];
+  rowActions?: DataTableInteractiveRowAction<TData>[];
 }) {
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
   const rows = table.getRowModel().rows;
@@ -354,9 +346,9 @@ function DataTableResponsiveTableView<TData>({
         {rowActions && rowActions.length > 0 && (
           <TableCell className="py-3 px-4 text-right" role="gridcell">
             <div className="flex justify-end gap-1">
-              {rowActions.map((action) => (
+              {rowActions.map((action, actionIndex) => (
                 <Button
-                  key={action.label}
+                  key={getDataTableRowActionKey(action, actionIndex)}
                   type="button"
                   variant={
                     action.variant === "destructive" ? "destructive" : "ghost"
