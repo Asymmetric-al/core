@@ -1,6 +1,6 @@
 export { TaskBulkActionsBar } from "./task-bulk-actions-bar";
 export { TaskDetailsSheet } from "./task-details-sheet";
-export { TaskEmptyState } from "./task-empty-state";
+export { EmptyState as TaskEmptyState } from "./task-empty-state";
 export { TaskErrorState } from "./task-error-state";
 export { TaskListSkeleton } from "./task-list-skeleton";
 export { TaskRow } from "./task-row";

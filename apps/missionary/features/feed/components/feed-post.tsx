@@ -1,17 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
-import { formatDistanceToNow } from "date-fns";
-import { MessageCircle } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
-import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
+import { motion, AnimatePresence } from "@asym/lib/motion";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
 import { Button } from "@asym/ui/components/shadcn/button";
+import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
 import {
   Carousel,
   CarouselContent,
@@ -19,14 +15,66 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@asym/ui/components/shadcn/carousel";
+import { PostContent } from "@asym/ui/components/shadcn/rich-text-editor";
 import { cn } from "@asym/ui/lib/utils";
-import type { PostWithAuthor } from "@asym/database/types";
+import { formatDistanceToNow } from "date-fns";
+import { MessageCircle } from "lucide-react";
+import Image from "next/image";
+import { useReducer, useState } from "react";
+
 import { CommentsDialog } from "./comments-dialog";
+
+import type { PostWithAuthor } from "@asym/database/types";
 
 interface FeedPostProps {
   post: PostWithAuthor;
   onLike: (postId: string, liked: boolean) => void;
   onPrayer: (postId: string, prayed: boolean) => void;
+}
+
+type FeedPostState = {
+  liked: boolean;
+  prayed: boolean;
+  fired: boolean;
+  likeCount: number;
+  prayerCount: number;
+  showComments: boolean;
+};
+
+type FeedPostAction =
+  | { type: "toggleLike" }
+  | { type: "togglePrayer" }
+  | { type: "toggleFire" }
+  | { type: "setShowComments"; showComments: boolean };
+
+function feedPostReducer(
+  state: FeedPostState,
+  action: FeedPostAction,
+): FeedPostState {
+  switch (action.type) {
+    case "toggleLike": {
+      const liked = !state.liked;
+      return {
+        ...state,
+        liked,
+        likeCount: liked ? state.likeCount + 1 : state.likeCount - 1,
+      };
+    }
+    case "togglePrayer": {
+      const prayed = !state.prayed;
+      return {
+        ...state,
+        prayed,
+        prayerCount: prayed ? state.prayerCount + 1 : state.prayerCount - 1,
+      };
+    }
+    case "toggleFire":
+      return { ...state, fired: !state.fired };
+    case "setShowComments":
+      return { ...state, showComments: action.showComments };
+    default:
+      return state;
+  }
 }
 
 const FloatingEmoji = ({
@@ -40,10 +88,10 @@ const FloatingEmoji = ({
 }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0, y: 0, x: 0 }}
+      initial={{ opacity: 0, scale: 0.95, y: 0, x: 0 }}
       animate={{
         opacity: [0, 1, 1, 0],
-        scale: [0, 1.8, 1.2, 0.8],
+        scale: [0.95, 1.8, 1.2, 0.8],
         y: [-20, -120],
         x: offsetX,
         rotate: offsetRotate,
@@ -139,7 +187,7 @@ const ReactionButton = ({
           y: -4,
           boxShadow: `0 12px 24px -8px ${glowColor}`,
         }}
-        whileTap={{ scale: 0.9 }}
+        whileTap={{ scale: 0.97 }}
         onClick={(e) => {
           e.stopPropagation();
           handleClick();
@@ -193,29 +241,30 @@ const ReactionButton = ({
 };
 
 export function FeedPost({ post, onLike, onPrayer }: FeedPostProps) {
-  const [liked, setLiked] = useState(post.user_liked ?? false);
-  const [prayed, setPrayed] = useState(post.user_prayed ?? false);
-  const [fired, setFired] = useState(false);
-  const [likeCount, setLikeCount] = useState(post.like_count);
-  const [prayerCount, setPrayerCount] = useState(post.prayer_count);
-  const [showComments, setShowComments] = useState(false);
+  const [state, dispatch] = useReducer(feedPostReducer, {
+    liked: post.user_liked ?? false,
+    prayed: post.user_prayed ?? false,
+    fired: false,
+    likeCount: post.like_count,
+    prayerCount: post.prayer_count,
+    showComments: false,
+  });
+  const { liked, prayed, fired, likeCount, prayerCount, showComments } = state;
 
   const handleLike = () => {
-    const newLiked = !liked;
-    setLiked(newLiked);
-    setLikeCount((prev: number) => (newLiked ? prev + 1 : prev - 1));
-    onLike(post.id, newLiked);
+    const nextLiked = !liked;
+    dispatch({ type: "toggleLike" });
+    onLike(post.id, nextLiked);
   };
 
   const handlePrayer = () => {
-    const newPrayed = !prayed;
-    setPrayed(newPrayed);
-    setPrayerCount((prev: number) => (newPrayed ? prev + 1 : prev - 1));
-    onPrayer(post.id, newPrayed);
+    const nextPrayed = !prayed;
+    dispatch({ type: "togglePrayer" });
+    onPrayer(post.id, nextPrayed);
   };
 
   const handleFire = () => {
-    setFired(!fired);
+    dispatch({ type: "toggleFire" });
   };
 
   const initials = `${post.author.first_name[0]}${post.author.last_name[0]}`;
@@ -274,8 +323,11 @@ export function FeedPost({ post, onLike, onPrayer }: FeedPostProps) {
             ) : (
               <Carousel className="w-full">
                 <CarouselContent className="-ml-0">
-                  {post.media.map((item: any, index: number) => (
-                    <CarouselItem key={index} className="pl-0">
+                  {post.media.map((item, index: number) => (
+                    <CarouselItem
+                      key={`${item.type}-${item.url}`}
+                      className="pl-0"
+                    >
                       <div className="relative aspect-[4/3] w-full overflow-hidden">
                         {item.type === "video" ? (
                           <video
@@ -332,7 +384,9 @@ export function FeedPost({ post, onLike, onPrayer }: FeedPostProps) {
               variant="ghost"
               size="icon"
               className="rounded-full hover:bg-slate-100 transition-colors h-10 w-10"
-              onClick={() => setShowComments(true)}
+              onClick={() =>
+                dispatch({ type: "setShowComments", showComments: true })
+              }
             >
               <MessageCircle className="size-5 text-slate-400" />
             </Button>
@@ -349,9 +403,10 @@ export function FeedPost({ post, onLike, onPrayer }: FeedPostProps) {
           </div>
 
           <div className="space-y-2">
-            <div
-              className="prose prose-sm dark:prose-invert max-w-none text-foreground/90 leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: post.content }}
+            <PostContent
+              value={post.content}
+              richTextClassName="prose prose-sm dark:prose-invert max-w-none text-foreground/90 leading-relaxed"
+              htmlClassName="prose prose-sm dark:prose-invert max-w-none text-foreground/90 leading-relaxed"
             />
           </div>
 
@@ -359,7 +414,9 @@ export function FeedPost({ post, onLike, onPrayer }: FeedPostProps) {
             <Button
               variant="link"
               className="h-auto p-0 text-xs font-semibold text-primary hover:no-underline"
-              onClick={() => setShowComments(true)}
+              onClick={() =>
+                dispatch({ type: "setShowComments", showComments: true })
+              }
             >
               View all {post.comment_count} comments
             </Button>
@@ -370,7 +427,9 @@ export function FeedPost({ post, onLike, onPrayer }: FeedPostProps) {
       <CommentsDialog
         postId={post.id}
         open={showComments}
-        onOpenChange={setShowComments}
+        onOpenChange={(nextOpen) =>
+          dispatch({ type: "setShowComments", showComments: nextOpen })
+        }
       />
     </>
   );

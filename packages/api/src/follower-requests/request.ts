@@ -1,10 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
 import {
   getAuthContext,
   requireAuth,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
+import { type NextRequest, NextResponse } from "next/server";
+
+import { findProfileByUserId } from "../shared/queries";
+
+interface FollowerRequestWithDonor {
+  donor?: {
+    name?: string | null;
+  } | null;
+}
 
 export async function PATCH(
   request: NextRequest,
@@ -31,12 +39,11 @@ export async function PATCH(
       );
     }
 
-    const { data: profile } = await supabaseAdmin
-      .from("profiles")
-      .select("id")
-      .eq("user_id", ctx.userId)
-      .eq("tenant_id", ctx.tenantId)
-      .single();
+    const { data: profile } = await findProfileByUserId(
+      supabaseAdmin,
+      ctx.userId,
+      ctx.tenantId,
+    );
 
     if (!profile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
@@ -59,7 +66,7 @@ export async function PATCH(
       );
     }
 
-    const updateData: Record<string, any> = {
+    const updateData: Record<string, string> = {
       status,
       updated_at: new Date().toISOString(),
       resolved_at: new Date().toISOString(),
@@ -94,11 +101,15 @@ export async function PATCH(
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    const donorName =
+      (updatedRequest as FollowerRequestWithDonor | null)?.donor?.name ||
+      "Unknown Donor";
+
     return NextResponse.json({
       request: {
         ...updatedRequest,
-        name: (updatedRequest as any).donor?.name || "Unknown Donor",
-        initials: getInitials((updatedRequest as any).donor?.name || "Unknown"),
+        name: donorName,
+        initials: getInitials(donorName),
       },
     });
   } catch (e) {
@@ -122,12 +133,11 @@ export async function DELETE(
     const ctx = auth as AuthenticatedContext;
     const { requestId } = await params;
 
-    const { data: profile } = await supabaseAdmin
-      .from("profiles")
-      .select("id")
-      .eq("user_id", ctx.userId)
-      .eq("tenant_id", ctx.tenantId)
-      .single();
+    const { data: profile } = await findProfileByUserId(
+      supabaseAdmin,
+      ctx.userId,
+      ctx.tenantId,
+    );
 
     if (!profile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });

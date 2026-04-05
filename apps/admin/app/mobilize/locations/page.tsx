@@ -1,30 +1,39 @@
 "use client";
 
-import React, { useState } from "react";
-import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { Plus, MapPin, Table as TableIcon, Layers } from "lucide-react";
-import {
-  useLocations,
-  useDeleteLocation,
-} from "@/features/mission-control/locations/hooks/use-locations";
-import type { Location } from "@/features/mission-control/locations/hooks/use-locations";
-import { LocationTable } from "@/features/mission-control/locations/components/LocationTable";
-import { LocationEditor } from "@/features/mission-control/locations/components/LocationEditor";
+import { Card } from "@asym/ui/components/shadcn/card";
 import {
   Map,
   MapMarker,
   MarkerContent,
   MapControls,
 } from "@asym/ui/components/shadcn/map";
+import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from "@asym/ui/components/shadcn/tabs";
-import { Card } from "@asym/ui/components/shadcn/card";
+import { Plus, MapPin, Table as TableIcon, Layers } from "lucide-react";
+import React, { useState } from "react";
 import { toast } from "sonner";
+
+import type { Location } from "@/features/mission-control/locations/hooks/use-locations";
+
+import { LocationEditor } from "@/features/mission-control/locations/components/LocationEditor";
+import { LocationTable } from "@/features/mission-control/locations/components/LocationTable";
+import {
+  useLocations,
+  useDeleteLocation,
+} from "@/features/mission-control/locations/hooks/use-locations";
+
+type MapClickEvent = {
+  lngLat: {
+    lng: number;
+    lat: number;
+  };
+};
 
 export default function LocationsPage() {
   const { data: locations, isLoading } = useLocations();
@@ -34,7 +43,7 @@ export default function LocationsPage() {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
 
-  const handleMapClick = (e: any) => {
+  const handleMapClick = (e: MapClickEvent) => {
     if (isAdding) {
       const { lng, lat } = e.lngLat;
       setSelectedLocation({ lat, lng, type: "custom", status: "draft" });
@@ -56,6 +65,8 @@ export default function LocationsPage() {
     }
   };
 
+  const editorKey = `${selectedLocation?.id ?? "new"}-${selectedLocation?.lat ?? ""}-${selectedLocation?.lng ?? ""}-${isEditorOpen ? "open" : "closed"}`;
+
   const actions = (
     <Button
       onClick={() => setIsAdding(!isAdding)}
@@ -72,7 +83,6 @@ export default function LocationsPage() {
 
   return (
     <PageShell
-      badge="Strategic Map"
       title="Where We Work"
       description="Manage global ministry footprints and projects."
       actions={actions}
@@ -155,6 +165,7 @@ export default function LocationsPage() {
       </Tabs>
 
       <LocationEditor
+        key={editorKey}
         location={selectedLocation}
         isOpen={isEditorOpen}
         onOpenChange={setIsEditorOpen}

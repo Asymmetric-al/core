@@ -1,15 +1,14 @@
 "use client";
 
-import { type ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal } from "lucide-react";
-
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { formatCurrency } from "@asym/lib/utils";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,11 +17,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
-import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
-import { formatCurrency } from "@asym/lib/utils";
 import { cn } from "@asym/ui/lib/utils";
-import type { Contact } from "./types";
+import { type ColumnDef } from "@tanstack/react-table";
+import { MoreHorizontal } from "lucide-react";
+
 import { STAGE_COLORS } from "./types";
+
+import type { Contact } from "./types";
 
 interface ColumnOptions {
   onViewContact: (contact: Contact) => void;

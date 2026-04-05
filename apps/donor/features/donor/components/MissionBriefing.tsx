@@ -1,9 +1,9 @@
 "use client";
 
-import React from "react";
+import { motion } from "@asym/lib/motion";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { MapPin, Activity, Info } from "lucide-react";
-import { motion } from "motion/react";
+import React from "react";
 
 interface BriefingItem {
   id: string;

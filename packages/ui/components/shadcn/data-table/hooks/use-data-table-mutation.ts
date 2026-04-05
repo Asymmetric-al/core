@@ -1,15 +1,13 @@
 "use client";
 
-/**
- * Data-table mutations: TanStack Query + Supabase (`useDataTableMutation`) or TanStack DB collections
- * (`useCollectionMutation`). For Query mutations, `queryKey` must match `@asym/database/query-keys`
- * (`supabaseTableQueryKeys`) for the same table so query-db collections and realtime invalidation stay aligned.
- */
-import * as React from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createBrowserClient } from "@asym/database/supabase";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import * as React from "react";
 
 type MutationType = "insert" | "update" | "delete" | "upsert";
+type OptimisticContext<TData> = {
+  previousData: TData[] | undefined;
+};
 
 interface OptimisticMutationConfig<TData, TVariables> {
   tableName: string;
@@ -17,15 +15,21 @@ interface OptimisticMutationConfig<TData, TVariables> {
   type: MutationType;
   getId: (data: TData | TVariables) => string;
   onMutate?: (variables: TVariables) => Promise<void> | void;
-  onSuccess?: (data: TData, variables: TVariables) => Promise<void> | void;
+  onSuccess?: (
+    data: TData,
+    variables: TVariables,
+    context: OptimisticContext<TData> | undefined,
+  ) => Promise<void> | void;
   onError?: (
     error: Error,
     variables: TVariables,
-    context: unknown,
+    context: OptimisticContext<TData> | undefined,
   ) => Promise<void> | void;
   onSettled?: (
     data: TData | undefined,
     error: Error | null,
+    variables: TVariables,
+    context: OptimisticContext<TData> | undefined,
   ) => Promise<void> | void;
   select?: string;
   matchColumn?: string;
@@ -66,7 +70,7 @@ export function useDataTableMutation<
     TData,
     Error,
     TVariables,
-    { previousData: TData[] | undefined }
+    OptimisticContext<TData>
   >({
     mutationFn: async (variables) => {
       let result;
@@ -166,12 +170,12 @@ export function useDataTableMutation<
       }
       await onError?.(error, variables, context);
     },
-    onSuccess: async (data, variables) => {
-      await onSuccess?.(data, variables);
+    onSuccess: async (data, variables, context) => {
+      await onSuccess?.(data, variables, context);
     },
-    onSettled: async (data, error) => {
+    onSettled: async (data, error, variables, context) => {
       queryClient.invalidateQueries({ queryKey });
-      await onSettled?.(data, error);
+      await onSettled?.(data, error, variables, context);
     },
   });
 
@@ -316,29 +320,17 @@ export function useDataTableBulkMutation<
   };
 }
 
-type PersistenceTransaction = {
-  isPersisted: { promise: Promise<unknown> };
-};
-
 interface CollectionMutationConfig<TData> {
   collection: {
-    insert: (data: Partial<TData>) => PersistenceTransaction;
-    update: (
-      id: string,
-      updater: (draft: TData) => void,
-    ) => PersistenceTransaction;
-    delete: (id: string) => PersistenceTransaction;
+    insert: (data: Partial<TData>) => void;
+    update: (id: string, updater: (draft: TData) => void) => void;
+    delete: (id: string) => void;
   };
   getId: (data: TData | Partial<TData>) => string;
   onMutate?: () => void;
   onError?: (error: Error) => void;
 }
 
-/**
- * Wraps TanStack DB collection `insert` / `update` / `delete` and awaits `tx.isPersisted.promise`.
- * Each returned async method **rethrows** after calling `onError`, so callers must **`await`**
- * or **`.catch()`**; fire-and-forget calls can cause **unhandled promise rejections**.
- */
 export function useCollectionMutation<TData extends Record<string, unknown>>({
   collection,
   getId,
@@ -346,47 +338,38 @@ export function useCollectionMutation<TData extends Record<string, unknown>>({
   onError,
 }: CollectionMutationConfig<TData>) {
   const insert = React.useCallback(
-    async (data: Partial<TData>): Promise<void> => {
+    (data: Partial<TData>) => {
       try {
         onMutate?.();
-        const tx = collection.insert(data);
-        await tx.isPersisted.promise;
+        collection.insert(data);
       } catch (error) {
         onError?.(error as Error);
-        throw error;
       }
     },
     [collection, onMutate, onError],
   );
 
   const update = React.useCallback(
-    async (
-      data: Partial<TData>,
-      updater: (draft: TData) => void,
-    ): Promise<void> => {
+    (data: Partial<TData>, updater: (draft: TData) => void) => {
       try {
         onMutate?.();
         const id = getId(data);
-        const tx = collection.update(id, updater);
-        await tx.isPersisted.promise;
+        collection.update(id, updater);
       } catch (error) {
         onError?.(error as Error);
-        throw error;
       }
     },
     [collection, getId, onMutate, onError],
   );
 
   const remove = React.useCallback(
-    async (data: TData | string): Promise<void> => {
+    (data: TData | string) => {
       try {
         onMutate?.();
         const id = typeof data === "string" ? data : getId(data);
-        const tx = collection.delete(id);
-        await tx.isPersisted.promise;
+        collection.delete(id);
       } catch (error) {
         onError?.(error as Error);
-        throw error;
       }
     },
     [collection, getId, onMutate, onError],

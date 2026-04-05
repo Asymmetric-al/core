@@ -1,9 +1,9 @@
 "use client";
 
-import type { Table } from "@tanstack/react-table";
 import { Settings2 } from "lucide-react";
 
 import { cn } from "@asym/ui/lib/utils";
+
 import { Button } from "../button";
 import {
   DropdownMenu,
@@ -13,6 +13,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../dropdown-menu";
+
+import type { Table } from "@tanstack/react-table";
 
 interface DataTableViewOptionsProps<TData> {
   table: Table<TData>;

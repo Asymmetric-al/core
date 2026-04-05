@@ -1,62 +1,71 @@
 "use client";
 
-import React from "react";
-import * as TabsPrimitive from "@radix-ui/react-tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@asym/ui/components/shadcn/tabs";
 import { cn } from "@asym/ui/lib/utils";
 
+import type { ReactNode } from "react";
+
 interface TabsClientProps {
-  storyContent: React.ReactNode;
-  updatesContent: React.ReactNode;
+  storyContent: ReactNode;
+  updatesContent: ReactNode;
 }
 
 export function TabsClient({ storyContent, updatesContent }: TabsClientProps) {
   return (
-    <TabsPrimitive.Root defaultValue="story" className="w-full">
-      <TabsPrimitive.List className="flex items-center border-b border-slate-200 mb-8 gap-8">
-        <TabsPrimitive.Trigger
+    <Tabs defaultValue="story" className="w-full">
+      <TabsList
+        aria-label="Worker profile sections"
+        className="mb-8 flex h-auto items-center justify-start gap-8 rounded-none border-b border-border bg-transparent p-0 text-inherit"
+      >
+        <TabsTrigger
           value="story"
           className={cn(
-            "relative pb-3 text-base font-semibold text-slate-500 transition-colors",
-            "hover:text-slate-700 focus:outline-none focus-visible:text-slate-900",
-            "data-[state=active]:text-slate-900",
+            "relative h-auto flex-none rounded-none border-0 bg-transparent px-0 pt-0 pb-3 text-base font-semibold text-muted-foreground shadow-none transition-colors",
+            "hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:text-foreground",
+            "data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none",
             "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5",
             "after:bg-transparent after:transition-colors",
-            "data-[state=active]:after:bg-slate-900",
+            "data-[state=active]:after:bg-foreground",
           )}
         >
           Our Story
-        </TabsPrimitive.Trigger>
-        <TabsPrimitive.Trigger
+        </TabsTrigger>
+        <TabsTrigger
           value="updates"
           className={cn(
-            "relative pb-3 text-base font-semibold text-slate-500 transition-colors flex items-center gap-2",
-            "hover:text-slate-700 focus:outline-none focus-visible:text-slate-900",
-            "data-[state=active]:text-slate-900",
+            "relative h-auto flex-none items-center gap-2 rounded-none border-0 bg-transparent px-0 pt-0 pb-3 text-base font-semibold text-muted-foreground shadow-none transition-colors",
+            "hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:text-foreground",
+            "data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none",
             "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5",
             "after:bg-transparent after:transition-colors",
-            "data-[state=active]:after:bg-slate-900",
+            "data-[state=active]:after:bg-foreground",
           )}
         >
           Field Journal
-          <span className="inline-flex items-center justify-center rounded-full bg-emerald-100 text-emerald-700 h-5 px-2 text-[10px] font-bold">
+          <span className="inline-flex h-5 items-center justify-center rounded-full bg-accent px-2 text-xs font-bold text-accent-foreground">
             New
           </span>
-        </TabsPrimitive.Trigger>
-      </TabsPrimitive.List>
+        </TabsTrigger>
+      </TabsList>
 
-      <TabsPrimitive.Content
+      <TabsContent
         value="story"
         className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
       >
         {storyContent}
-      </TabsPrimitive.Content>
+      </TabsContent>
 
-      <TabsPrimitive.Content
+      <TabsContent
         value="updates"
         className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
       >
         {updatesContent}
-      </TabsPrimitive.Content>
-    </TabsPrimitive.Root>
+      </TabsContent>
+    </Tabs>
   );
 }

@@ -1,8 +1,9 @@
 "use client";
 
-import * as React from "react";
 import { type LucideIcon } from "lucide-react";
-import { motion } from "motion/react";
+import { LazyMotion, domAnimation, m } from "motion/react";
+import * as React from "react";
+
 import { cn } from "@asym/ui/lib/utils";
 
 export interface AppIconProps extends React.ComponentPropsWithoutRef<"svg"> {
@@ -41,20 +42,22 @@ export const AppIcon = React.memo(function AppIcon({
   // Active route animation: subtle scale and opacity entrance
   // This ensures no layout shift while providing a visual cue for the active state
   return (
-    <motion.span
-      initial={{ scale: 0.8, opacity: 0.5 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{
-        type: "spring",
-        stiffness: 260,
-        damping: 20,
-      }}
-      className={cn(
-        "inline-flex shrink-0 items-center justify-center",
-        className,
-      )}
-    >
-      <Icon size={size} strokeWidth={strokeWidth} {...props} />
-    </motion.span>
+    <LazyMotion features={domAnimation}>
+      <m.span
+        initial={{ scale: 0.8, opacity: 0.5 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{
+          type: "spring",
+          stiffness: 260,
+          damping: 20,
+        }}
+        className={cn(
+          "inline-flex shrink-0 items-center justify-center",
+          className,
+        )}
+      >
+        <Icon size={size} strokeWidth={strokeWidth} {...props} />
+      </m.span>
+    </LazyMotion>
   );
 });

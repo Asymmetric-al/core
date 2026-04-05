@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, use, useSyncExternalStore } from "react";
-import { CheckCircle2, PenTool, Download, ShieldCheck } from "lucide-react";
+import { motion } from "@asym/lib/motion";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Dialog,
@@ -10,9 +9,10 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@asym/ui/components/shadcn/dialog";
-import { motion } from "motion/react";
 import { cn } from "@asym/ui/lib/utils";
+import { CheckCircle2, PenTool, Download, ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import React, { useState, use, useSyncExternalStore } from "react";
 
 function useHydrationSafeDate() {
   const subscribe = () => () => {};
@@ -124,7 +124,8 @@ export default function SignStudioPublicSigningPage({
             {/* Signature Field */}
             <div className="mt-12 border-t border-slate-200 pt-12 flex justify-between items-end">
               <div className="relative">
-                <div
+                <button
+                  type="button"
                   onClick={() => setIsSignatureModalOpen(true)}
                   className={cn(
                     "w-64 h-16 border-2 rounded-lg flex items-center justify-center cursor-pointer transition-all relative overflow-hidden group",
@@ -150,7 +151,7 @@ export default function SignStudioPublicSigningPage({
                       <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-900 rotate-45" />
                     </div>
                   )}
-                </div>
+                </button>
                 <p className="text-xs text-slate-400 mt-2 font-medium uppercase tracking-wider">
                   Signature
                 </p>

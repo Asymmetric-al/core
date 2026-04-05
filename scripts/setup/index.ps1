@@ -24,6 +24,25 @@ function Require-Command {
   return $true
 }
 
+function Write-SupabaseCliGuidance {
+  $supabaseCommand = Get-Command 'supabase' -ErrorAction SilentlyContinue
+  if ($supabaseCommand) {
+    $version = ((& supabase --version 2>$null) -join '').Trim()
+    if ([string]::IsNullOrWhiteSpace($version)) {
+      Write-Log 'Found global Supabase CLI'
+    } else {
+      Write-Log "Found global Supabase CLI ($version)"
+    }
+    return
+  }
+
+  Write-Log 'Supabase CLI not found globally. Repo fallback will use pinned CLI via: bun run supabase -- <command>'
+  Write-Log 'Recommended global install for faster startup (Windows):'
+  Write-Log '  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git'
+  Write-Log '  scoop install supabase'
+  Write-Log 'Docs: https://supabase.com/docs/guides/local-development/cli/getting-started'
+}
+
 function Get-RepoRoot {
   $root = Get-Item -LiteralPath (Join-Path $PSScriptRoot '..')
   return $root.FullName
@@ -114,18 +133,41 @@ $ok = $true
 $ok = (Require-Command 'bun' 'Install Bun for Windows and ensure it is on PATH: https://bun.sh/docs/installation#windows') -and $ok
 $ok = (Require-Command 'git' 'Install Git for Windows and ensure it is on PATH: https://git-scm.com/download/win') -and $ok
 if (-not $ok) { exit 1 }
+Write-SupabaseCliGuidance
 
-Ensure-EnvLocal
+$existingSupabaseUrl = Trim-EnvValue ((Get-Item -Path 'Env:NEXT_PUBLIC_SUPABASE_URL' -ErrorAction SilentlyContinue).Value)
+$existingSupabaseAnonKey = Trim-EnvValue ((Get-Item -Path 'Env:NEXT_PUBLIC_SUPABASE_ANON_KEY' -ErrorAction SilentlyContinue).Value)
 
-Import-DotEnv '.env.local'
+$hasSupabaseUrl = -not [string]::IsNullOrWhiteSpace($existingSupabaseUrl)
+$hasSupabaseAnonKey = -not [string]::IsNullOrWhiteSpace($existingSupabaseAnonKey)
+
+if ($hasSupabaseUrl -and $hasSupabaseAnonKey) {
+  Write-Log 'Using Supabase vars from process environment'
+} elseif (Test-Path -LiteralPath '.env.local') {
+  Write-Log '.env.local already exists'
+  Import-DotEnv '.env.local'
+} elseif ($hasSupabaseUrl -or $hasSupabaseAnonKey) {
+  Write-Log 'Detected partial Supabase env vars in process environment'
+} else {
+  Ensure-EnvLocal
+  Import-DotEnv '.env.local'
+}
+
+if ($hasSupabaseUrl) {
+  Set-Item -Path 'Env:NEXT_PUBLIC_SUPABASE_URL' -Value $existingSupabaseUrl
+}
+
+if ($hasSupabaseAnonKey) {
+  Set-Item -Path 'Env:NEXT_PUBLIC_SUPABASE_ANON_KEY' -Value $existingSupabaseAnonKey
+}
 
 $missing = $false
 $missing = -not (Test-RequiredEnv 'NEXT_PUBLIC_SUPABASE_URL' 'https://your-project.supabase.co') -or $missing
 $missing = -not (Test-RequiredEnv 'NEXT_PUBLIC_SUPABASE_ANON_KEY' 'your-anon-key') -or $missing
 
 if ($missing) {
-  Write-Fail 'Missing required env vars in .env.local. This is expected on first run.'
-  Write-Log 'Edit .env.local and set:'
+  Write-Fail 'Missing required env vars. Set them in process env or .env.local.'
+  Write-Log 'Set these values:'
   Write-Log '  - NEXT_PUBLIC_SUPABASE_URL'
   Write-Log '  - NEXT_PUBLIC_SUPABASE_ANON_KEY'
   Write-Log 'Then re-run ./scripts/setup.ps1'

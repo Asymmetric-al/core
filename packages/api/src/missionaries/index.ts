@@ -1,10 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
 import {
   getAuthContext,
   requireAuth,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
+import { type NextRequest, NextResponse } from "next/server";
+
+import { toErrorResponse } from "../shared/http-errors";
 
 export async function GET(request: NextRequest) {
   try {
@@ -34,10 +36,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ missionaries: data });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Internal error";
-    return NextResponse.json(
-      { error: message },
-      { status: message.includes("Unauthorized") ? 401 : 500 },
-    );
+    return toErrorResponse(e);
   }
 }

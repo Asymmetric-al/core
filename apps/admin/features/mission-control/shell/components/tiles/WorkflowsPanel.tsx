@@ -1,14 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import { WORKFLOWS } from "@asym/lib/mission-control/tiles";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
+import Link from "next/link";
+
 import { ArrowRight } from "../icons";
 
 export function WorkflowsPanel() {

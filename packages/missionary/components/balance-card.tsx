@@ -1,12 +1,12 @@
-import * as React from "react";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
-import { Button } from "@asym/ui/components/shadcn/button";
 import { Wallet } from "lucide-react";
+import * as React from "react";
 
 interface BalanceCardProps {
   currentBalance: number;

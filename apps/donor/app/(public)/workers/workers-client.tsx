@@ -1,8 +1,16 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import Link from "next/link";
-import Image from "next/image";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+  DropdownMenuCheckboxItem,
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { Input } from "@asym/ui/components/shadcn/input";
 import {
   Search,
   MapPin,
@@ -14,18 +22,10 @@ import {
   Activity,
   ArrowRight,
 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useState, useMemo } from "react";
 
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Input } from "@asym/ui/components/shadcn/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-  DropdownMenuCheckboxItem,
-} from "@asym/ui/components/shadcn/dropdown-menu";
 import { QuickGiveInput } from "@/features/giving/components/QuickGiveInput";
 import { getFieldWorkers, type FieldWorker } from "@/lib/mock-data";
 
@@ -45,7 +45,7 @@ function WorkerCard({ worker }: { worker: FieldWorker }) {
           src={worker.image}
           alt=""
           fill
-          className="object-cover transition-transform duration-700 group-hover:scale-105 opacity-90 group-hover:opacity-100"
+          className="object-cover transition-transform duration-700 group-hover:scale-[1.02] opacity-90 group-hover:opacity-100"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
 
@@ -79,7 +79,7 @@ function WorkerCard({ worker }: { worker: FieldWorker }) {
             </Link>
           </h2>
 
-          <div className="relative z-30" onClick={(e) => e.stopPropagation()}>
+          <div className="relative z-30">
             <QuickGiveInput workerId={worker.id} />
           </div>
         </div>

@@ -1,6 +1,14 @@
 "use client";
 
-import React from "react";
+import { DEMO_PROFILE_ID } from "@asym/auth/constants";
+import { useAuth } from "@asym/lib/hooks";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -8,14 +16,6 @@ import {
   CardTitle,
   CardDescription,
 } from "@asym/ui/components/shadcn/card";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
-import { PageHeader } from "@/components/page-header";
 import {
   ArrowUpRight,
   TrendingUp,
@@ -24,11 +24,14 @@ import {
   ArrowRight,
   Activity,
 } from "lucide-react";
+import React from "react";
+
 import { GivingBreakdownChart } from "./giving-breakdown-chart";
 import { MetricTiles } from "./metric-tiles";
-import { useAuth } from "@asym/lib/hooks";
+import { PageHeader } from "./page-header";
 
-const DEMO_MISSIONARY_ID = "b378164f-8a6a-42c8-883f-59815d01e48c";
+/** Same as demo profile id so metrics API finds the seeded missionary row. */
+const DEMO_MISSIONARY_ID = DEMO_PROFILE_ID;
 
 const MOCK_TASKS = [
   {
@@ -86,21 +89,13 @@ interface DashboardHomeProps {
   missionaryId?: string;
 }
 
-export const DashboardHome: React.FC<DashboardHomeProps> = ({
-  setActiveTab,
+function DashboardHomeContent({
   missionaryId,
-}) => {
-  const { user, loading } = useAuth();
-
-  let effectiveMissionaryId: string;
-  if (missionaryId) {
-    effectiveMissionaryId = missionaryId;
-  } else if (!loading && user?.id) {
-    effectiveMissionaryId = user.id;
-  } else {
-    effectiveMissionaryId = DEMO_MISSIONARY_ID;
-  }
-
+  setActiveTab,
+}: {
+  missionaryId: string;
+  setActiveTab?: (tab: string) => void;
+}) {
   const alerts = [
     { id: 1, text: "3 recurring gifts failed this week", severity: "high" },
     {
@@ -125,7 +120,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
         </Button>
       </PageHeader>
 
-      <MetricTiles missionaryId={effectiveMissionaryId} />
+      <MetricTiles missionaryId={missionaryId} />
 
       <Card className="border-zinc-200 shadow-sm bg-white overflow-hidden rounded-xl">
         <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-0.5 border-b border-zinc-50 space-y-2 sm:space-y-0 px-3 sm:px-4 pt-2.5">
@@ -149,7 +144,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
           )}
         </CardHeader>
         <CardContent className="pt-2 pb-1 px-0.5 sm:px-2 md:px-4">
-          <GivingBreakdownChart missionaryId={effectiveMissionaryId} />
+          <GivingBreakdownChart missionaryId={missionaryId} />
         </CardContent>
       </Card>
 
@@ -371,4 +366,34 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
       </div>
     </div>
   );
+}
+
+function DashboardHomeWithAuth({ setActiveTab }: DashboardHomeProps) {
+  const { user, loading } = useAuth();
+
+  const resolvedMissionaryId =
+    !loading && user?.id ? user.id : DEMO_MISSIONARY_ID;
+
+  return (
+    <DashboardHomeContent
+      missionaryId={resolvedMissionaryId}
+      setActiveTab={setActiveTab}
+    />
+  );
+}
+
+export const DashboardHome: React.FC<DashboardHomeProps> = ({
+  setActiveTab,
+  missionaryId,
+}) => {
+  if (missionaryId) {
+    return (
+      <DashboardHomeContent
+        missionaryId={missionaryId}
+        setActiveTab={setActiveTab}
+      />
+    );
+  }
+
+  return <DashboardHomeWithAuth setActiveTab={setActiveTab} />;
 };

@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useMC } from "@asym/lib/mission-control/context";
 import { TILES } from "@asym/lib/mission-control/tiles";
-import { getIcon } from "../icons";
 import { Button } from "@asym/ui/components/shadcn/button";
+import Link from "next/link";
+
+import { getIcon } from "../icons";
 
 const ROLE_QUICK_ACTIONS: Record<
   string,

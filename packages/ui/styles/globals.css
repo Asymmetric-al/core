@@ -3,7 +3,6 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
 
 /* Tailwind v4 content sources - tells Tailwind where to scan for classes */
 @source "../**/*.{js,ts,jsx,tsx,mdx}";
@@ -245,6 +244,20 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
+    position: relative;
+    isolation: isolate;
+  }
+
+  /* Accessibility baseline: respect reduced-motion preference. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 
   * {

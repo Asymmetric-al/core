@@ -1,0 +1,8 @@
+# dependencies
+/node_modules
+
+# claude
+.claude
+
+# misc
+.DS_Store

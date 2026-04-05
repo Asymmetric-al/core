@@ -1,14 +1,15 @@
 "use client";
 
-import * as React from "react";
-import type { Row, Table } from "@tanstack/react-table";
-import Image from "next/image";
 import { MoreHorizontal, ChevronRight } from "lucide-react";
+import Image from "next/image";
+import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
+
+import { Badge } from "../badge";
+import { Button } from "../button";
 import { Card, CardContent } from "../card";
 import { Checkbox } from "../checkbox";
-import { Button } from "../button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +17,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../dropdown-menu";
-import { Badge } from "../badge";
+
+import type { Row, Table } from "@tanstack/react-table";
 
 interface DataTableCardViewProps<TData> {
   rows: Row<TData>[];
@@ -63,9 +65,7 @@ export function DataTableCardView<TData>({
       {rows.map((row) => {
         if (renderCard) {
           return (
-            <div key={row.id} className="relative">
-              {renderCard(row)}
-            </div>
+            <DataTableCustomCard key={row.id} row={row} render={renderCard} />
           );
         }
 
@@ -86,6 +86,16 @@ export function DataTableCardView<TData>({
       })}
     </div>
   );
+}
+
+function DataTableCustomCard<TData>({
+  row,
+  render,
+}: {
+  row: Row<TData>;
+  render: (row: Row<TData>) => React.ReactNode;
+}) {
+  return <div className="relative">{render(row)}</div>;
 }
 
 interface DataTableCardItemProps<TData> {
@@ -128,6 +138,21 @@ function DataTableCardItem<TData>({
     : "";
   const badgeValue = badgeField ? String(original[badgeField] ?? "") : "";
   const avatarValue = avatarField ? String(original[avatarField] ?? "") : "";
+  const isRowClickable = Boolean(onRowClick);
+
+  const handleCardKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!onRowClick) {
+      return;
+    }
+    if (event.target !== event.currentTarget) {
+      return;
+    }
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onRowClick(row);
+    }
+  };
 
   return (
     <Card
@@ -136,18 +161,22 @@ function DataTableCardItem<TData>({
         "hover:shadow-md hover:border-primary/20",
         "active:scale-[0.99]",
         isSelected && "border-primary bg-primary/5",
-        onRowClick && "cursor-pointer",
+        isRowClickable && "cursor-pointer",
       )}
       onClick={() => onRowClick?.(row)}
+      onKeyDown={handleCardKeyDown}
+      role={isRowClickable ? "button" : undefined}
+      tabIndex={isRowClickable ? 0 : undefined}
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           {enableRowSelection && (
-            <div className="pt-0.5" onClick={(e) => e.stopPropagation()}>
+            <div className="pt-0.5">
               <Checkbox
                 checked={isSelected}
                 onCheckedChange={(checked) => row.toggleSelected(!!checked)}
                 aria-label="Select row"
+                onClick={(e) => e.stopPropagation()}
               />
             </div>
           )}
@@ -159,6 +188,7 @@ function DataTableCardItem<TData>({
                   src={avatarValue}
                   alt=""
                   fill
+                  sizes="40px"
                   className="object-cover"
                   unoptimized
                 />

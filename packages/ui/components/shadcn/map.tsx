@@ -6,11 +6,13 @@ import { useTheme } from "next-themes";
 import {
   createContext,
   useContext,
+  useLayoutEffect,
   useEffect,
   useMemo,
   useRef,
   useState,
   useCallback,
+  type MutableRefObject,
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
@@ -91,30 +93,58 @@ export function Map({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<maplibregl.Map | null>(null);
   const hasInitializedRef = useRef(false);
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const [mapInstance, setMapInstance] = useState<maplibregl.Map | null>(null);
+  const onLoadRef = useRef(onLoad);
+  const onClickRef = useRef(onClick);
+  const [mapState, setMapState] = useState<MapContextValue>({
+    map: null,
+    isLoaded: false,
+  });
   const { resolvedTheme } = useTheme();
 
   const lightStyle = styles?.light ?? STYLES.light;
   const darkStyle = styles?.dark ?? STYLES.dark;
+  const mapLoaded = mapState.isLoaded;
+
+  const markMapReady = useCallback(() => {
+    setMapState((previous) => {
+      const currentMap = mapInstanceRef.current;
+      if (previous.isLoaded && previous.map === currentMap) {
+        return previous;
+      }
+      return {
+        map: currentMap,
+        isLoaded: true,
+      };
+    });
+  }, []);
+
+  const resetMapState = useCallback(() => {
+    setMapState({ map: null, isLoaded: false });
+  }, []);
+
+  useEffect(() => {
+    onLoadRef.current = onLoad;
+  }, [onLoad]);
+
+  useEffect(() => {
+    onClickRef.current = onClick;
+  }, [onClick]);
 
   useEffect(() => {
     if (hasInitializedRef.current || !containerRef.current) return;
-
     const currentTheme = resolvedTheme === "dark" ? "dark" : "light";
-    const styleUrl = currentTheme === "dark" ? darkStyle : lightStyle;
-
-    const mapCenter: [number, number] = initialViewState
+    const initialStyle = currentTheme === "dark" ? darkStyle : lightStyle;
+    const initialCenter: [number, number] = initialViewState
       ? [initialViewState.longitude, initialViewState.latitude]
       : (center ?? [0, 20]);
-    const mapZoom = initialViewState?.zoom ?? zoom ?? 2;
+    const initialZoom = initialViewState?.zoom ?? zoom ?? 2;
 
     try {
       const map = new maplibregl.Map({
         container: containerRef.current,
-        style: styleUrl,
-        center: mapCenter,
-        zoom: mapZoom,
+        style: initialStyle,
+        center: initialCenter,
+        zoom: initialZoom,
         attributionControl: false,
       });
 
@@ -123,9 +153,8 @@ export function Map({
 
       const onMapLoad = () => {
         if (!mapInstanceRef.current) return;
-        setMapInstance(mapInstanceRef.current);
-        setMapLoaded(true);
-        onLoad?.(map);
+        markMapReady();
+        onLoadRef.current?.(map);
       };
 
       if (map.loaded()) {
@@ -136,15 +165,13 @@ export function Map({
 
       map.on("error", (e) => {
         console.error("MapLibre error:", e);
-        setMapLoaded(true);
+        markMapReady();
       });
 
-      if (onClick) {
-        map.on("click", onClick);
-      }
+      map.on("click", (e) => onClickRef.current?.(e));
     } catch (error) {
       console.error("Failed to initialize map:", error);
-      setMapLoaded(true);
+      markMapReady();
     }
 
     return () => {
@@ -153,11 +180,18 @@ export function Map({
         mapInstanceRef.current = null;
       }
       hasInitializedRef.current = false;
-      setMapLoaded(false);
-      setMapInstance(null);
+      resetMapState();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [
+    center,
+    darkStyle,
+    initialViewState,
+    lightStyle,
+    markMapReady,
+    resetMapState,
+    resolvedTheme,
+    zoom,
+  ]);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -183,13 +217,8 @@ export function Map({
     }
   }, [center, zoom, mapLoaded]);
 
-  const contextValue = useMemo(
-    () => ({ map: mapInstance, isLoaded: mapLoaded }),
-    [mapInstance, mapLoaded],
-  );
-
   return (
-    <MapContext.Provider value={contextValue}>
+    <MapContext.Provider value={mapState}>
       <div
         ref={containerRef}
         className={cn(
@@ -205,7 +234,7 @@ export function Map({
 }
 
 type MarkerContextValue = {
-  marker: maplibregl.Marker | null;
+  markerRef: MutableRefObject<maplibregl.Marker | null>;
   element: HTMLDivElement | null;
 };
 
@@ -233,43 +262,70 @@ export function MapMarker({
   draggable = false,
 }: MapMarkerProps) {
   const { map, isLoaded } = useMap();
-  const [marker, setMarker] = useState<maplibregl.Marker | null>(null);
-  const [element, setElement] = useState<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!isLoaded || !map) return;
-
-    const el = document.createElement("div");
-    el.className = "map-marker-container";
-    if (onClick) {
-      el.style.cursor = "pointer";
-      el.addEventListener("click", (e) => {
-        e.stopPropagation();
-        onClick();
-      });
+  const markerRef = useRef<maplibregl.Marker | null>(null);
+  const initialLngLatRef = useRef<[number, number]>([longitude, latitude]);
+  const onClickRef = useRef(onClick);
+  const markerElement = useMemo<HTMLDivElement | null>(() => {
+    if (typeof document === "undefined") {
+      return null;
     }
 
-    const m = new maplibregl.Marker({ element: el, draggable })
-      .setLngLat([longitude, latitude])
-      .addTo(map);
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMarker(m);
-    setElement(el);
-
-    return () => {
-      m.remove();
-      setMarker(null);
-      setElement(null);
-    };
-  }, [map, isLoaded, longitude, latitude, draggable, onClick]);
+    const element = document.createElement("div");
+    element.className = "map-marker-container";
+    return element;
+  }, []);
 
   useEffect(() => {
-    marker?.setLngLat([longitude, latitude]);
-  }, [marker, longitude, latitude]);
+    onClickRef.current = onClick;
+    if (markerElement) {
+      markerElement.style.cursor = onClick ? "pointer" : "";
+    }
+  }, [markerElement, onClick]);
+
+  useLayoutEffect(() => {
+    if (!isLoaded || !map || !markerElement) return;
+
+    const handleMarkerClick = (event: MouseEvent) => {
+      event.stopPropagation();
+      onClickRef.current?.();
+    };
+
+    markerElement.addEventListener("click", handleMarkerClick);
+
+    const marker = new maplibregl.Marker({
+      element: markerElement,
+      draggable,
+    })
+      .setLngLat(initialLngLatRef.current)
+      .addTo(map);
+
+    markerRef.current = marker;
+
+    return () => {
+      markerElement.removeEventListener("click", handleMarkerClick);
+      marker.remove();
+      if (markerRef.current === marker) {
+        markerRef.current = null;
+      }
+    };
+  }, [draggable, isLoaded, map, markerElement]);
+
+  useEffect(() => {
+    const marker = markerRef.current;
+    if (!marker) return;
+    marker.setLngLat([longitude, latitude]);
+  }, [longitude, latitude]);
+
+  const markerContext = useMemo<MarkerContextValue>(
+    () => ({
+      markerRef,
+      element: markerElement,
+    }),
+    [markerElement],
+  );
 
   return (
-    <MarkerContext.Provider value={{ marker, element }}>
+    <MarkerContext.Provider value={markerContext}>
       {children}
     </MarkerContext.Provider>
   );
@@ -308,15 +364,17 @@ export function MarkerPopup({
   className?: string;
   offset?: number;
 }) {
-  const { marker } = useMarkerContext();
-  const [container, setContainer] = useState<HTMLDivElement | null>(null);
+  const { markerRef } = useMarkerContext();
+  const container = useMemo<HTMLDivElement | null>(() => {
+    if (typeof document === "undefined") {
+      return null;
+    }
+    return document.createElement("div");
+  }, []);
 
   useEffect(() => {
-    if (!marker) return;
-
-    const el = document.createElement("div");
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setContainer(el);
+    const marker = markerRef.current;
+    if (!marker || !container) return;
 
     const popup = new maplibregl.Popup({
       offset,
@@ -324,15 +382,14 @@ export function MarkerPopup({
       className: "custom-maplibre-popup",
     })
       .setMaxWidth("none")
-      .setDOMContent(el);
+      .setDOMContent(container);
 
     marker.setPopup(popup);
 
     return () => {
       popup.remove();
-      setContainer(null);
     };
-  }, [marker, offset]);
+  }, [container, markerRef, offset]);
 
   if (!container) return null;
   return createPortal(
@@ -531,9 +588,12 @@ export function MapControls({
   const handleFullscreen = useCallback(() => {
     const el = map?.getContainer();
     if (!el) return;
-    document.fullscreenElement
-      ? document.exitFullscreen()
-      : el.requestFullscreen();
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+      return;
+    }
+
+    el.requestFullscreen();
   }, [map]);
 
   if (!isLoaded) return null;

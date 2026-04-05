@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
 import { Check, ChevronsUpDown, X } from "lucide-react";
+import { useState, useMemo, useCallback, useId } from "react";
+
 import { cn } from "@asym/ui/lib/utils";
+
 import { Badge } from "../../badge";
 import { Button } from "../../button";
 import {
@@ -13,11 +15,8 @@ import {
   CommandItem,
   CommandList,
 } from "../../command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "../../popover";
+import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
+
 import type {
   FilterFieldDefinition,
   FilterOperator,
@@ -39,6 +38,7 @@ export function FilterSelectInput({
   className,
 }: FilterSelectInputProps) {
   const [open, setOpen] = useState(false);
+  const listboxId = useId();
 
   const options = useMemo(() => field.options ?? [], [field.options]);
 
@@ -53,6 +53,7 @@ export function FilterSelectInput({
           variant="outline"
           role="combobox"
           aria-expanded={open}
+          aria-controls={listboxId}
           className={cn(
             "h-8 w-[180px] justify-between px-2 text-sm font-normal",
             !selectedOption && "text-muted-foreground",
@@ -77,7 +78,7 @@ export function FilterSelectInput({
       <PopoverContent className="w-[200px] p-0" align="start">
         <Command>
           <CommandInput placeholder="Search..." className="h-8" />
-          <CommandList>
+          <CommandList id={listboxId}>
             <CommandEmpty>No options found.</CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
@@ -121,6 +122,7 @@ export function FilterMultiSelectInput({
   className,
 }: FilterSelectInputProps) {
   const [open, setOpen] = useState(false);
+  const listboxId = useId();
 
   const options = useMemo(() => field.options ?? [], [field.options]);
   const selectedValues = useMemo(() => (value as string[]) ?? [], [value]);
@@ -154,6 +156,7 @@ export function FilterMultiSelectInput({
           variant="outline"
           role="combobox"
           aria-expanded={open}
+          aria-controls={listboxId}
           className={cn(
             "h-auto min-h-8 w-[240px] justify-between px-2 text-sm font-normal",
             !selectedOptions.length && "text-muted-foreground",
@@ -197,7 +200,7 @@ export function FilterMultiSelectInput({
       <PopoverContent className="w-[240px] p-0" align="start">
         <Command>
           <CommandInput placeholder="Search..." className="h-8" />
-          <CommandList>
+          <CommandList id={listboxId}>
             <CommandEmpty>No options found.</CommandEmpty>
             <CommandGroup>
               {options.map((option) => {

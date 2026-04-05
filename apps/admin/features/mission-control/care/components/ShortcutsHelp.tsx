@@ -1,6 +1,7 @@
+import { Keyboard, Command } from "lucide-react";
 import React from "react";
-import { Dialog, DialogHeader, DialogTitle, cn } from "./UI";
-import { Keyboard, Command, ArrowRight } from "lucide-react";
+
+import { Dialog, DialogHeader, DialogTitle } from "./UI";
 
 interface ShortcutsHelpProps {
   open: boolean;
@@ -20,7 +21,7 @@ const ShortcutRow = ({
     </span>
     <div className="flex items-center gap-1.5">
       {keys.map((key, i) => (
-        <React.Fragment key={i}>
+        <React.Fragment key={`${description}-${key}`}>
           <kbd className="min-w-[28px] h-7 px-2 flex items-center justify-center bg-white border-2 border-stone-100 rounded-xl text-[10px] font-black text-stone-500 shadow-sm font-sans uppercase">
             {key === "cmd" ? <Command className="h-3 w-3" /> : key}
           </kbd>

@@ -1,41 +1,37 @@
 "use client";
 
-import * as React from "react";
-import { useState, useCallback, useEffect } from "react";
-import Image from "next/image";
-import { toast } from "sonner";
-
-import { motion, AnimatePresence, LayoutGroup } from "motion/react";
+import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { ImageUpload } from "@asym/ui/components/shadcn/image-upload";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { Textarea } from "@asym/ui/components/shadcn/textarea";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
 import { Label } from "@asym/ui/components/shadcn/label";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import {
   Tabs,
   TabsList,
   TabsTrigger,
   TabsContent,
 } from "@asym/ui/components/shadcn/tabs";
-import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
-import { PageHeader } from "@/components/page-header";
+import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@asym/ui/components/shadcn/tooltip";
-import { ImageUpload } from "@asym/ui/components/shadcn/image-upload";
+import { cn } from "@asym/ui/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 import {
   Camera,
   Upload,
@@ -62,7 +58,14 @@ import {
   Info,
   RotateCcw,
 } from "lucide-react";
-import { cn } from "@asym/ui/lib/utils";
+import Image from "next/image";
+import * as React from "react";
+import { useState, useCallback, useEffect } from "react";
+import { toast } from "sonner";
+
+import { hasProfileChanges } from "./profile-dirty-state";
+
+import { PageHeader } from "@/components/page-header";
 import { QuickGive } from "@/features/giving/components/quick-give";
 
 const fadeInUp = {
@@ -149,6 +152,41 @@ const initialProfile: ProfileData = {
   coverUrl: "",
 };
 
+type JsonObject = Record<string, unknown>;
+
+function asObject(value: unknown): JsonObject | null {
+  return typeof value === "object" && value !== null
+    ? (value as JsonObject)
+    : null;
+}
+
+function asString(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
+function mapApiProfileToProfileData(apiProfile: unknown): ProfileData {
+  const profile = asObject(apiProfile);
+  const missionary = asObject(profile?.missionary);
+  const socialLinks = asObject(missionary?.social_links);
+
+  return {
+    firstName: asString(profile?.first_name),
+    lastName: asString(profile?.last_name),
+    email: asString(profile?.email),
+    phone: asString(missionary?.phone),
+    location: asString(missionary?.location),
+    ministryFocus: asString(missionary?.tagline),
+    bio: asString(missionary?.bio),
+    facebook: asString(socialLinks?.facebook),
+    instagram: asString(socialLinks?.instagram),
+    twitter: asString(socialLinks?.twitter),
+    youtube: asString(socialLinks?.youtube),
+    website: asString(socialLinks?.website),
+    avatarUrl: asString(profile?.avatar_url),
+    coverUrl: asString(missionary?.cover_url),
+  };
+}
+
 function countWords(text: string): number {
   return text
     .trim()
@@ -172,8 +210,8 @@ function ProfileSkeleton() {
 
       <div className="grid gap-6 lg:grid-cols-12">
         <div className="lg:col-span-7 space-y-6">
-          {[1, 2, 3].map((i) => (
-            <Card key={`skeleton-card-${i}`} className="rounded-2xl">
+          {["skeleton-a", "skeleton-b", "skeleton-c"].map((skeletonId) => (
+            <Card key={skeletonId} className="rounded-2xl">
               <CardHeader className="border-b border-zinc-100 px-6 py-4">
                 <Skeleton className="h-4 w-32" />
               </CardHeader>
@@ -275,7 +313,7 @@ function SocialIcon({ platform, url }: { platform: string; url: string }) {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.8 }}
       whileHover={{ scale: 1.1, y: -1 }}
-      whileTap={{ scale: 0.95 }}
+      whileTap={{ scale: 0.98 }}
       transition={springTransition}
     >
       <Icon className="h-4 w-4 text-zinc-400 hover:text-zinc-600 transition-colors" />
@@ -286,24 +324,16 @@ function SocialIcon({ platform, url }: { platform: string; url: string }) {
 function AvatarUploadArea({
   avatarUrl,
   initials,
-  isUploading,
-  onUploadClick,
 }: {
   avatarUrl: string;
   initials: string;
-  isUploading: boolean;
-  onUploadClick: () => void;
 }) {
   return (
-    <motion.button
-      type="button"
-      onClick={onUploadClick}
-      disabled={isUploading}
-      className="relative group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 rounded-full"
+    <motion.div
+      className="relative group cursor-pointer rounded-full"
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.97 }}
       transition={springTransition}
-      aria-label="Upload profile picture"
     >
       <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-white shadow-lg">
         <AvatarImage src={avatarUrl} />
@@ -324,19 +354,6 @@ function AvatarUploadArea({
         </motion.div>
       </motion.div>
 
-      <AnimatePresence>
-        {isUploading && (
-          <motion.div
-            className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 text-white animate-spin" />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <motion.div
         className="absolute -bottom-1 -right-1 h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-zinc-900 text-white flex items-center justify-center shadow-lg border-2 border-white"
         whileHover={{ scale: 1.1 }}
@@ -344,26 +361,15 @@ function AvatarUploadArea({
       >
         <Camera className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
       </motion.div>
-    </motion.button>
+    </motion.div>
   );
 }
 
-function CoverUploadArea({
-  coverUrl,
-  isUploading,
-  onUploadClick,
-}: {
-  coverUrl: string;
-  isUploading: boolean;
-  onUploadClick: () => void;
-}) {
+function CoverUploadArea({ coverUrl }: { coverUrl: string }) {
   return (
-    <motion.button
-      type="button"
-      onClick={onUploadClick}
-      disabled={isUploading}
+    <motion.div
       className={cn(
-        "w-full aspect-[3/1] rounded-xl sm:rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all relative overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2",
+        "w-full aspect-[3/1] rounded-xl sm:rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all relative overflow-hidden cursor-pointer",
         coverUrl
           ? "border-transparent"
           : "border-zinc-200 bg-zinc-50 hover:bg-zinc-100 hover:border-zinc-300",
@@ -371,7 +377,6 @@ function CoverUploadArea({
       whileHover={{ scale: 1.005 }}
       whileTap={{ scale: 0.995 }}
       transition={smoothTransition}
-      aria-label="Upload cover photo"
     >
       {coverUrl ? (
         <>
@@ -403,11 +408,7 @@ function CoverUploadArea({
           transition={smoothTransition}
         >
           <motion.div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-white shadow-sm border border-zinc-100 flex items-center justify-center mb-2 sm:mb-3">
-            {isUploading ? (
-              <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 text-zinc-400 animate-spin" />
-            ) : (
-              <ImageIcon className="h-5 w-5 sm:h-6 sm:w-6 text-zinc-300" />
-            )}
+            <ImageIcon className="h-5 w-5 sm:h-6 sm:w-6 text-zinc-300" />
           </motion.div>
           <p className="text-xs sm:text-sm font-medium text-zinc-700">
             Click to upload cover photo
@@ -417,7 +418,7 @@ function CoverUploadArea({
           </p>
         </motion.div>
       )}
-    </motion.button>
+    </motion.div>
   );
 }
 
@@ -486,6 +487,14 @@ function MotionCard({
 }
 
 type PreviewMode = "mobile" | "desktop";
+type ProfilePageUiState = {
+  isSaving: boolean;
+  previewMode: PreviewMode;
+  saveSuccess: boolean;
+  copiedLink: boolean;
+  fetchError: string | null;
+  validationErrors: ValidationErrors;
+};
 
 const MOBILE_PREVIEW_WIDTH = 320;
 const MOBILE_PREVIEW_HEIGHT = 568;
@@ -584,18 +593,868 @@ function DesktopPreviewFrame({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function ProfilePage() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isUploading] = useState(false);
-  const [isUploadingCover] = useState(false);
-  const [previewMode, setPreviewMode] = useState<PreviewMode>("mobile");
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
-  const [copiedLink, setCopiedLink] = useState(false);
-  const [fetchError, setFetchError] = useState<string | null>(null);
-  const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
-    {},
+type ProfileHeaderActionsProps = {
+  copiedLink: boolean;
+  profile: ProfileData;
+  hasChanges: boolean;
+  isSaving: boolean;
+  saveSuccess: boolean;
+  handleCopyLink: () => void | Promise<void>;
+  handleDiscard: () => void;
+  handleSave: () => void | Promise<void>;
+};
+
+function ProfileHeaderActions({
+  copiedLink,
+  profile,
+  hasChanges,
+  isSaving,
+  saveSuccess,
+  handleCopyLink,
+  handleDiscard,
+  handleSave,
+}: ProfileHeaderActionsProps) {
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopyLink}
+              className="h-9 px-3 text-xs font-medium"
+            >
+              <AnimatePresence mode="wait">
+                {copiedLink ? (
+                  <motion.div
+                    key="check"
+                    initial={{ scale: 0.95, rotate: -90, opacity: 0 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    exit={{ scale: 0.95, rotate: 90, opacity: 0 }}
+                    transition={springTransition}
+                  >
+                    <Check className="h-4 w-4 text-emerald-600" />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="copy"
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0.95, opacity: 0 }}
+                    transition={springTransition}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </Button>
+          </motion.div>
+        </TooltipTrigger>
+        <TooltipContent>Copy profile link</TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 px-3 text-xs font-medium"
+              asChild
+            >
+              <a
+                href={`/workers/${profile.firstName?.toLowerCase()}-${profile.lastName?.toLowerCase()}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Eye className="mr-1.5 h-4 w-4" />
+                <span className="hidden sm:inline">View Public Page</span>
+                <span className="sm:hidden">View</span>
+                <ExternalLink className="ml-1 h-3 w-3 opacity-50" />
+              </a>
+            </Button>
+          </motion.div>
+        </TooltipTrigger>
+        <TooltipContent>View your public profile</TooltipContent>
+      </Tooltip>
+
+      <AnimatePresence>
+        {hasChanges && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, x: -8 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            exit={{ opacity: 0, scale: 0.9, x: -8 }}
+            transition={springTransition}
+          >
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDiscard}
+              className="h-9 px-3 text-xs font-medium text-zinc-500 hover:text-zinc-900"
+            >
+              <RotateCcw className="mr-1.5 h-4 w-4" />
+              Discard
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.div
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        layout
+      >
+        <Button
+          onClick={handleSave}
+          disabled={isSaving || !hasChanges}
+          size="sm"
+          className={cn(
+            "h-9 px-4 text-xs font-medium min-w-[100px] transition-colors duration-200",
+            saveSuccess && "bg-emerald-600 hover:bg-emerald-600",
+          )}
+        >
+          <AnimatePresence mode="wait">
+            {isSaving ? (
+              <motion.div
+                key="saving"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+              >
+                <Loader2 className="h-4 w-4 animate-spin" />
+              </motion.div>
+            ) : saveSuccess ? (
+              <motion.div
+                key="success"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                className="flex items-center"
+                transition={springTransition}
+              >
+                <CheckCircle2 className="mr-1.5 h-4 w-4" />
+                Saved!
+              </motion.div>
+            ) : (
+              <motion.div
+                key="save"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center"
+                transition={{ duration: 0.15 }}
+              >
+                <Save className="mr-1.5 h-4 w-4" />
+                Save Changes
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </Button>
+      </motion.div>
+    </div>
+  );
+}
+
+type ProfileFormColumnProps = {
+  profile: ProfileData;
+  validationErrors: ValidationErrors;
+  bioWordCount: number;
+  initials: string;
+  updateProfile: (field: keyof ProfileData, value: string) => void;
+  handleSave: () => void | Promise<void>;
+};
+
+function ProfileFormColumn({
+  profile,
+  validationErrors,
+  bioWordCount,
+  initials,
+  updateProfile,
+  handleSave,
+}: ProfileFormColumnProps) {
+  return (
+    <motion.div className="lg:col-span-7 space-y-6" variants={staggerContainer}>
+      <MotionCard>
+        <CardHeader className="border-b border-zinc-100 px-4 sm:px-6 py-4">
+          <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
+            <User className="h-4 w-4" />
+            Personal Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-6">
+          <motion.div
+            className="space-y-5"
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+          >
+            <div className="grid sm:grid-cols-2 gap-4">
+              <FormField label="First Name" error={validationErrors.firstName}>
+                <Input
+                  value={profile.firstName}
+                  onChange={(e) => updateProfile("firstName", e.target.value)}
+                  className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
+                  placeholder="Your first name"
+                />
+              </FormField>
+              <FormField label="Last Name" error={validationErrors.lastName}>
+                <Input
+                  value={profile.lastName}
+                  onChange={(e) => updateProfile("lastName", e.target.value)}
+                  className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
+                  placeholder="Your last name"
+                />
+              </FormField>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-4">
+              <FormField label="Location" icon={MapPin}>
+                <Input
+                  value={profile.location}
+                  onChange={(e) => updateProfile("location", e.target.value)}
+                  placeholder="City, Country"
+                  className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
+                />
+              </FormField>
+              <FormField
+                label="Phone"
+                icon={PhoneIcon}
+                error={validationErrors.phone}
+              >
+                <Input
+                  value={profile.phone}
+                  onChange={(e) => updateProfile("phone", e.target.value)}
+                  placeholder="+1 (555) 000-0000"
+                  className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
+                />
+              </FormField>
+            </div>
+
+            <FormField
+              label="Tagline"
+              error={validationErrors.ministryFocus}
+              helperText={
+                <p className="text-[11px] text-zinc-400 flex items-start gap-1.5">
+                  <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                  <span>
+                    A brief description of your work that appears next to your
+                    name on the giving page and directory.
+                    <span
+                      className={cn(
+                        "ml-1 font-medium",
+                        profile.ministryFocus.length > TAGLINE_MAX_LENGTH - 10
+                          ? "text-amber-500"
+                          : "",
+                      )}
+                    >
+                      ({profile.ministryFocus.length}/{TAGLINE_MAX_LENGTH})
+                    </span>
+                  </span>
+                </p>
+              }
+            >
+              <Input
+                value={profile.ministryFocus}
+                onChange={(e) => updateProfile("ministryFocus", e.target.value)}
+                placeholder="e.g., Church planting in Southeast Asia"
+                maxLength={TAGLINE_MAX_LENGTH}
+                className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
+              />
+            </FormField>
+
+            <FormField
+              label="About You"
+              error={validationErrors.bio}
+              helperText={
+                <div className="space-y-1">
+                  <p className="text-[11px] text-zinc-400 flex items-start gap-1.5">
+                    <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                    <span>
+                      Share your story, calling, and ministry work. This appears
+                      on your public profile page. Include what you do, where
+                      you serve, and how supporters can pray for you.
+                    </span>
+                  </p>
+                  <p
+                    className={cn(
+                      "text-[11px] font-medium text-right",
+                      bioWordCount < BIO_MIN_WORDS
+                        ? "text-zinc-400"
+                        : bioWordCount > BIO_MAX_WORDS
+                          ? "text-amber-500"
+                          : "text-emerald-600",
+                    )}
+                  >
+                    {bioWordCount} / {BIO_MIN_WORDS}–{BIO_MAX_WORDS} words
+                  </p>
+                </div>
+              }
+            >
+              <Textarea
+                value={profile.bio}
+                onChange={(e) => updateProfile("bio", e.target.value)}
+                placeholder="Tell supporters about yourself, your ministry, and how they can partner with you..."
+                className="min-h-[180px] resize-none transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
+                maxLength={BIO_MAX_CHARS}
+              />
+            </FormField>
+          </motion.div>
+        </CardContent>
+      </MotionCard>
+
+      <MotionCard>
+        <CardHeader className="border-b border-zinc-100 px-4 sm:px-6 py-4">
+          <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
+            <ImageIcon className="h-4 w-4" />
+            Profile Photos
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-6 space-y-6">
+          <motion.div
+            className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6"
+            variants={fadeInUp}
+          >
+            <ImageUpload
+              value={profile.avatarUrl}
+              onChange={(url) => {
+                updateProfile("avatarUrl", url);
+                handleSave();
+              }}
+              path="avatars"
+              aspect={1}
+              triggerAriaLabel="Upload profile picture"
+            >
+              <AvatarUploadArea
+                avatarUrl={profile.avatarUrl}
+                initials={initials}
+              />
+            </ImageUpload>
+            <div className="space-y-2 text-center sm:text-left">
+              <p className="text-sm font-medium text-zinc-900">
+                Profile Picture
+              </p>
+              <p className="text-xs text-zinc-500 max-w-[220px]">
+                Square image, at least 400x400px. JPG or PNG, max 5MB.
+              </p>
+              <ImageUpload
+                value={profile.avatarUrl}
+                onChange={(url) => {
+                  updateProfile("avatarUrl", url);
+                  handleSave();
+                }}
+                path="avatars"
+              >
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs"
+                >
+                  <Upload className="mr-1.5 h-3.5 w-3.5" />
+                  Upload Photo
+                </Button>
+              </ImageUpload>
+            </div>
+          </motion.div>
+
+          <motion.div className="space-y-2" variants={fadeInUp}>
+            <Label className="text-xs font-medium text-zinc-500">
+              Cover Photo
+            </Label>
+            <ImageUpload
+              value={profile.coverUrl}
+              onChange={(url) => {
+                updateProfile("coverUrl", url);
+                handleSave();
+              }}
+              path="covers"
+              aspect={3 / 1}
+              triggerAriaLabel="Upload cover photo"
+            >
+              <CoverUploadArea coverUrl={profile.coverUrl} />
+            </ImageUpload>
+            <p className="text-[11px] text-zinc-400">
+              This image appears at the top of your public profile. Max 10MB.
+            </p>
+          </motion.div>
+        </CardContent>
+      </MotionCard>
+
+      <MotionCard>
+        <CardHeader className="border-b border-zinc-100 px-4 sm:px-6 py-4">
+          <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
+            <Globe className="h-4 w-4" />
+            Social Links
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-6">
+          <motion.div
+            className="space-y-4"
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+          >
+            <div className="grid sm:grid-cols-2 gap-4">
+              <FormField label="Instagram" icon={Instagram}>
+                <Input
+                  value={profile.instagram}
+                  onChange={(e) => updateProfile("instagram", e.target.value)}
+                  placeholder="@yourhandle"
+                  className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
+                />
+              </FormField>
+              <FormField label="Facebook" icon={Facebook}>
+                <Input
+                  value={profile.facebook}
+                  onChange={(e) => updateProfile("facebook", e.target.value)}
+                  placeholder="facebook.com/yourpage"
+                  className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
+                />
+              </FormField>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <FormField label="Twitter / X" icon={Twitter}>
+                <Input
+                  value={profile.twitter}
+                  onChange={(e) => updateProfile("twitter", e.target.value)}
+                  placeholder="@yourhandle"
+                  className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
+                />
+              </FormField>
+              <FormField label="YouTube" icon={Youtube}>
+                <Input
+                  value={profile.youtube}
+                  onChange={(e) => updateProfile("youtube", e.target.value)}
+                  placeholder="youtube.com/@channel"
+                  className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
+                />
+              </FormField>
+            </div>
+            <FormField
+              label="Website"
+              icon={LinkIcon}
+              error={validationErrors.website}
+            >
+              <Input
+                value={profile.website}
+                onChange={(e) => updateProfile("website", e.target.value)}
+                placeholder="https://yourwebsite.com"
+                className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
+              />
+            </FormField>
+          </motion.div>
+        </CardContent>
+      </MotionCard>
+    </motion.div>
+  );
+}
+
+type ProfilePreviewColumnProps = {
+  profile: ProfileData;
+  previewMode: PreviewMode;
+  initials: string;
+  setPreviewMode: (value: React.SetStateAction<PreviewMode>) => void;
+};
+
+type ProfilePreviewFrameProps = {
+  profile: ProfileData;
+  initials: string;
+};
+
+function MobileProfilePreview({ profile, initials }: ProfilePreviewFrameProps) {
+  return (
+    <MobilePreviewFrame>
+      <motion.div
+        key="mobile-preview"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={gentleTransition}
+        className="border-[12px] border-zinc-900 rounded-[3rem] overflow-hidden shadow-2xl bg-white relative"
+        style={{
+          width: MOBILE_PREVIEW_WIDTH,
+          height: MOBILE_PREVIEW_HEIGHT,
+        }}
+      >
+        <div className="absolute top-0 left-0 right-0 h-[120px]">
+          <motion.img
+            key={profile.coverUrl || "placeholder"}
+            src={profile.coverUrl || PLACEHOLDER_COVER}
+            alt="Cover"
+            className="w-full h-full object-cover"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.25 }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-white/60 via-transparent to-transparent" />
+        </div>
+
+        <div className="absolute top-[72px] left-0 right-0 flex justify-center">
+          <motion.div
+            className="h-[72px] w-[72px] rounded-full border-[3px] border-white bg-white overflow-hidden shadow-lg ring-4 ring-white/50"
+            layout
+            transition={springTransition}
+          >
+            <Avatar className="h-full w-full">
+              <AvatarImage src={profile.avatarUrl || PLACEHOLDER_AVATAR} />
+              <AvatarFallback className="bg-zinc-100 font-semibold text-base">
+                {initials || "U"}
+              </AvatarFallback>
+            </Avatar>
+          </motion.div>
+        </div>
+
+        <div className="absolute top-[152px] left-0 right-0 bottom-0 px-5 text-center flex flex-col overflow-hidden">
+          <div className="flex-shrink-0">
+            <div className="flex items-center justify-center gap-1.5">
+              <h2 className="text-lg font-bold text-zinc-900 tracking-tight">
+                {profile.firstName || "First"} {profile.lastName || "Last"}
+              </h2>
+              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-[8px] font-bold uppercase tracking-wider">
+                <Check className="h-2 w-2" /> Verified
+              </div>
+            </div>
+            <div className="flex items-center justify-center gap-1 text-[10px] text-zinc-500 mt-0.5">
+              <MapPin className="h-2.5 w-2.5" />
+              <span>{profile.location || "Location"}</span>
+            </div>
+          </div>
+
+          <div className="mt-4 flex justify-center flex-shrink-0">
+            <QuickGive workerId="preview" size="sm" />
+          </div>
+
+          <div className="mt-6 flex-1 flex flex-col min-h-0">
+            <Tabs defaultValue="story" className="w-full flex-1 flex flex-col">
+              <TabsList className="w-full justify-center border-b border-zinc-100 bg-transparent h-auto p-0 mb-4 gap-4">
+                <TabsTrigger
+                  value="story"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:shadow-none px-0 py-1.5 font-semibold text-zinc-400 data-[state=active]:text-zinc-900 transition-all text-[10px]"
+                >
+                  Our Story
+                </TabsTrigger>
+                <TabsTrigger
+                  value="updates"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:shadow-none px-0 py-1.5 font-semibold text-zinc-400 data-[state=active]:text-zinc-900 transition-all text-[10px]"
+                >
+                  Field Journal
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent
+                value="story"
+                className="outline-none flex-1 overflow-y-auto text-left pb-4"
+              >
+                <div className="space-y-3">
+                  <p className="text-[11px] font-semibold text-zinc-900 leading-relaxed italic border-l-2 border-emerald-500 pl-3">
+                    &quot;
+                    {profile.ministryFocus || "Your tagline will appear here"}
+                    &quot;
+                  </p>
+                  <div className="text-[10px] text-zinc-500 leading-relaxed whitespace-pre-wrap">
+                    {profile.bio ||
+                      "Your bio will appear here. Share your story, calling, and ministry work with potential supporters."}
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent
+                value="updates"
+                className="outline-none flex-1 overflow-y-auto pb-4"
+              >
+                <div className="space-y-4 py-2">
+                  <div className="p-3 rounded-xl border border-zinc-100 bg-zinc-50/50 text-left">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="h-5 w-5 rounded-full bg-zinc-200" />
+                      <div className="flex-1">
+                        <div className="h-2 w-16 bg-zinc-200 rounded mb-1" />
+                        <div className="h-1.5 w-10 bg-zinc-100 rounded" />
+                      </div>
+                    </div>
+                    <div className="h-2 w-full bg-zinc-100 rounded mb-1.5" />
+                    <div className="h-2 w-2/3 bg-zinc-100 rounded" />
+                  </div>
+                  <p className="text-[10px] text-zinc-400 text-center italic">
+                    Updates from your feed will appear here
+                  </p>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          <div className="flex justify-center gap-3 py-3 mt-auto bg-white border-t border-zinc-50">
+            <AnimatePresence>
+              {profile.instagram && (
+                <SocialIcon
+                  key="mobile-instagram"
+                  platform="instagram"
+                  url={profile.instagram}
+                />
+              )}
+              {profile.facebook && (
+                <SocialIcon
+                  key="mobile-facebook"
+                  platform="facebook"
+                  url={profile.facebook}
+                />
+              )}
+              {profile.twitter && (
+                <SocialIcon
+                  key="mobile-twitter"
+                  platform="twitter"
+                  url={profile.twitter}
+                />
+              )}
+              {profile.youtube && (
+                <SocialIcon
+                  key="mobile-youtube"
+                  platform="youtube"
+                  url={profile.youtube}
+                />
+              )}
+              {profile.website && (
+                <SocialIcon
+                  key="mobile-website"
+                  platform="website"
+                  url={profile.website}
+                />
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+
+        <div className="absolute top-0 left-0 right-0 h-6 flex justify-center pt-0.5 pointer-events-none">
+          <div className="bg-zinc-900 h-4 w-24 rounded-full" />
+        </div>
+        <div className="absolute bottom-1 left-0 right-0 flex justify-center pointer-events-none">
+          <div className="bg-zinc-200 h-1 w-28 rounded-full" />
+        </div>
+      </motion.div>
+    </MobilePreviewFrame>
+  );
+}
+
+function DesktopProfilePreview({
+  profile,
+  initials,
+}: ProfilePreviewFrameProps) {
+  return (
+    <DesktopPreviewFrame>
+      <motion.div
+        key="desktop-preview"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={gentleTransition}
+        className="border border-zinc-200 rounded-xl overflow-hidden shadow-lg bg-white"
+        style={{
+          width: DESKTOP_PREVIEW_WIDTH,
+          height: DESKTOP_PREVIEW_HEIGHT,
+        }}
+      >
+        <div className="h-[24px] bg-zinc-100 border-b border-zinc-200 flex items-center px-3 gap-1.5">
+          <div className="h-2 w-2 rounded-full bg-zinc-300" />
+          <div className="h-2 w-2 rounded-full bg-zinc-300" />
+          <div className="h-2 w-2 rounded-full bg-zinc-300" />
+        </div>
+
+        <div
+          className="relative"
+          style={{ height: DESKTOP_PREVIEW_HEIGHT - 24 }}
+        >
+          <div className="h-[72px]">
+            <Image
+              src={profile.coverUrl || PLACEHOLDER_COVER}
+              alt="Cover"
+              width={400}
+              height={72}
+              unoptimized
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-x-0 top-0 h-[72px] bg-gradient-to-t from-white/40 via-transparent to-transparent" />
+          </div>
+
+          <div className="px-5 pb-4">
+            <div className="flex items-end gap-3 -mt-6">
+              <Avatar className="h-12 w-12 border-2 border-white shadow-md ring-2 ring-white/50">
+                <AvatarImage src={profile.avatarUrl || PLACEHOLDER_AVATAR} />
+                <AvatarFallback className="bg-zinc-100 text-sm font-semibold">
+                  {initials || "U"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 pb-0.5 min-w-0">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <h2 className="text-base font-bold text-zinc-900 tracking-tight truncate">
+                    {profile.firstName || "First"} {profile.lastName || "Last"}
+                  </h2>
+                  <div className="flex-shrink-0 flex items-center gap-1 px-1 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-[6px] font-bold uppercase tracking-wider">
+                    <Check className="h-2 w-2" />
+                  </div>
+                </div>
+                <p className="text-[10px] text-zinc-500 flex items-center gap-0.5">
+                  <MapPin className="h-2.5 w-2.5 flex-shrink-0" />
+                  <span className="truncate">
+                    {profile.location || "Location"}
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <QuickGive workerId="preview" size="xs" />
+              <div className="flex gap-2 flex-shrink-0">
+                <AnimatePresence>
+                  {profile.instagram && (
+                    <SocialIcon
+                      key="desktop-instagram"
+                      platform="instagram"
+                      url={profile.instagram}
+                    />
+                  )}
+                  {profile.facebook && (
+                    <SocialIcon
+                      key="desktop-facebook"
+                      platform="facebook"
+                      url={profile.facebook}
+                    />
+                  )}
+                  {profile.twitter && (
+                    <SocialIcon
+                      key="desktop-twitter"
+                      platform="twitter"
+                      url={profile.twitter}
+                    />
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+
+            <p className="text-[10px] font-semibold text-zinc-600 mt-3 line-clamp-1 leading-relaxed italic border-l border-emerald-500 pl-2">
+              &quot;{profile.ministryFocus || "Your tagline will appear here"}
+              &quot;
+            </p>
+            <p className="text-[10px] text-zinc-400 mt-2 line-clamp-3 leading-relaxed whitespace-pre-wrap">
+              {profile.bio ||
+                "Your bio will appear here. Share your story with supporters."}
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    </DesktopPreviewFrame>
+  );
+}
+
+function ProfilePreviewColumn({
+  profile,
+  previewMode,
+  initials,
+  setPreviewMode,
+}: ProfilePreviewColumnProps) {
+  return (
+    <motion.div
+      className="lg:col-span-5"
+      variants={fadeInUp}
+      transition={{ ...gentleTransition, delay: 0.15 }}
+    >
+      <div className="sticky top-24 pb-6">
+        <div className="flex items-center justify-between mb-3 px-1">
+          <span className="text-xs font-medium text-zinc-500">
+            Live Preview
+          </span>
+          <PreviewToggle value={previewMode} onChange={setPreviewMode} />
+        </div>
+
+        <AnimatePresence mode="wait">
+          {previewMode === "mobile" ? (
+            <MobileProfilePreview profile={profile} initials={initials} />
+          ) : (
+            <DesktopProfilePreview profile={profile} initials={initials} />
+          )}
+        </AnimatePresence>
+
+        <motion.p
+          className="text-[10px] text-zinc-400 text-center mt-3 flex items-center justify-center gap-1"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          Updates as you type
+        </motion.p>
+      </div>
+    </motion.div>
+  );
+}
+
+function useProfilePageView() {
+  const [uiState, setUiState] = useState<ProfilePageUiState>({
+    isSaving: false,
+    previewMode: "mobile",
+    saveSuccess: false,
+    copiedLink: false,
+    fetchError: null,
+    validationErrors: {},
+  });
+  const {
+    isSaving,
+    previewMode,
+    saveSuccess,
+    copiedLink,
+    fetchError,
+    validationErrors,
+  } = uiState;
+
+  const setUiField = useCallback(
+    <K extends keyof ProfilePageUiState>(
+      key: K,
+      value: React.SetStateAction<ProfilePageUiState[K]>,
+    ) => {
+      setUiState((prev) => ({
+        ...prev,
+        [key]:
+          typeof value === "function"
+            ? (
+                value as (
+                  prevValue: ProfilePageUiState[K],
+                ) => ProfilePageUiState[K]
+              )(prev[key])
+            : value,
+      }));
+    },
+    [],
+  );
+
+  const setIsSaving = useCallback(
+    (value: React.SetStateAction<boolean>) => setUiField("isSaving", value),
+    [setUiField],
+  );
+  const setPreviewMode = useCallback(
+    (value: React.SetStateAction<PreviewMode>) =>
+      setUiField("previewMode", value),
+    [setUiField],
+  );
+  const setSaveSuccess = useCallback(
+    (value: React.SetStateAction<boolean>) => setUiField("saveSuccess", value),
+    [setUiField],
+  );
+  const setCopiedLink = useCallback(
+    (value: React.SetStateAction<boolean>) => setUiField("copiedLink", value),
+    [setUiField],
+  );
+  const setFetchError = useCallback(
+    (value: React.SetStateAction<string | null>) =>
+      setUiField("fetchError", value),
+    [setUiField],
+  );
+  const setValidationErrors = useCallback(
+    (value: React.SetStateAction<ValidationErrors>) =>
+      setUiField("validationErrors", value),
+    [setUiField],
   );
 
   const [profile, setProfile] = useState<ProfileData>(initialProfile);
@@ -605,57 +1464,63 @@ export default function ProfilePage() {
   const initials =
     (profile.firstName?.[0] || "") + (profile.lastName?.[0] || "");
   const bioWordCount = countWords(profile.bio);
+  const hasChanges = hasProfileChanges(profile, originalProfile);
 
-  useEffect(() => {
-    async function fetchProfile() {
+  const profileQuery = useQuery<ProfileData | null>({
+    queryKey: ["profile"],
+    queryFn: async () => {
+      const res = await fetch("/api/profile");
+      let data: unknown = null;
       try {
-        setFetchError(null);
-        const res = await fetch("/api/profile");
-        if (!res.ok) {
-          const data = await res.json();
-          throw new Error(data.error || "Failed to load profile");
-        }
-        const data = await res.json();
-        if (data.profile) {
-          const p = data.profile;
-          const m = p.missionary || {};
-          const social = m.social_links || {};
-          const profileData: ProfileData = {
-            firstName: p.first_name || "",
-            lastName: p.last_name || "",
-            email: p.email || "",
-            phone: m.phone || "",
-            location: m.location || "",
-            ministryFocus: m.tagline || "",
-            bio: m.bio || "",
-            facebook: social.facebook || "",
-            instagram: social.instagram || "",
-            twitter: social.twitter || "",
-            youtube: social.youtube || "",
-            website: social.website || "",
-            avatarUrl: p.avatar_url || "",
-            coverUrl: m.cover_url || "",
-          };
-          setProfile(profileData);
-          setOriginalProfile(profileData);
-        }
-      } catch (error) {
-        console.error("Failed to fetch profile:", error);
-        const message =
-          error instanceof Error ? error.message : "Failed to load profile";
-        setFetchError(message);
-        toast.error(message);
-      } finally {
-        setIsLoading(false);
+        data = await res.json();
+      } catch {
+        // Leave as null; we'll surface a generic error.
       }
-    }
-    fetchProfile();
-  }, []);
+
+      const payload = asObject(data);
+
+      if (!res.ok) {
+        const message = asString(payload?.error);
+        throw new Error(message || "Failed to load profile");
+      }
+
+      return payload && "profile" in payload
+        ? mapApiProfileToProfileData(payload.profile)
+        : null;
+    },
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const hasInitializedProfile = React.useRef(false);
+
+  const initializeProfileFromQuery = useCallback(
+    (nextProfile: ProfileData) => {
+      setFetchError(null);
+      setProfile(nextProfile);
+      setOriginalProfile(nextProfile);
+      hasInitializedProfile.current = true;
+    },
+    [setFetchError],
+  );
 
   useEffect(() => {
-    const changed = JSON.stringify(profile) !== JSON.stringify(originalProfile);
-    setHasChanges(changed);
-  }, [profile, originalProfile]);
+    if (hasInitializedProfile.current) return;
+    if (!profileQuery.data) return;
+    initializeProfileFromQuery(profileQuery.data);
+  }, [profileQuery.data, initializeProfileFromQuery]);
+
+  useEffect(() => {
+    if (!profileQuery.error) return;
+    const message =
+      profileQuery.error instanceof Error
+        ? profileQuery.error.message
+        : "Failed to load profile";
+    setFetchError(message);
+    toast.error(message);
+  }, [profileQuery.error, setFetchError]);
+
+  const isLoading = profileQuery.isPending && !hasInitializedProfile.current;
 
   const validateProfile = useCallback((): boolean => {
     const errors: ValidationErrors = {};
@@ -699,7 +1564,7 @@ export default function ProfilePage() {
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
-  }, [profile]);
+  }, [profile, setValidationErrors]);
 
   const updateProfile = useCallback(
     (field: keyof ProfileData, value: string) => {
@@ -708,7 +1573,7 @@ export default function ProfilePage() {
         setValidationErrors((prev) => ({ ...prev, [field]: undefined }));
       }
     },
-    [validationErrors],
+    [validationErrors, setValidationErrors],
   );
 
   const handleSave = async () => {
@@ -760,7 +1625,6 @@ export default function ProfilePage() {
 
   const handleDiscard = () => {
     setProfile(originalProfile);
-    setHasChanges(false);
     setValidationErrors({});
     toast.info("Changes discarded");
   };
@@ -787,7 +1651,7 @@ export default function ProfilePage() {
       >
         <motion.div
           className="h-12 w-12 rounded-full bg-red-50 flex items-center justify-center"
-          initial={{ scale: 0 }}
+          initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1 }}
           transition={{ ...springTransition, delay: 0.1 }}
         >
@@ -815,790 +1679,46 @@ export default function ProfilePage() {
               title="Profile"
               description="Update your information and how you appear to supporters."
             >
-              <div className="flex items-center gap-2 flex-wrap">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleCopyLink}
-                        className="h-9 px-3 text-xs font-medium"
-                      >
-                        <AnimatePresence mode="wait">
-                          {copiedLink ? (
-                            <motion.div
-                              key="check"
-                              initial={{ scale: 0, rotate: -90 }}
-                              animate={{ scale: 1, rotate: 0 }}
-                              exit={{ scale: 0, rotate: 90 }}
-                              transition={springTransition}
-                            >
-                              <Check className="h-4 w-4 text-emerald-600" />
-                            </motion.div>
-                          ) : (
-                            <motion.div
-                              key="copy"
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              exit={{ scale: 0 }}
-                              transition={springTransition}
-                            >
-                              <Copy className="h-4 w-4" />
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </Button>
-                    </motion.div>
-                  </TooltipTrigger>
-                  <TooltipContent>Copy profile link</TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-9 px-3 text-xs font-medium"
-                        asChild
-                      >
-                        <a
-                          href={`/workers/${profile.firstName?.toLowerCase()}-${profile.lastName?.toLowerCase()}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <Eye className="mr-1.5 h-4 w-4" />
-                          <span className="hidden sm:inline">
-                            View Public Page
-                          </span>
-                          <span className="sm:hidden">View</span>
-                          <ExternalLink className="ml-1 h-3 w-3 opacity-50" />
-                        </a>
-                      </Button>
-                    </motion.div>
-                  </TooltipTrigger>
-                  <TooltipContent>View your public profile</TooltipContent>
-                </Tooltip>
-
-                <AnimatePresence>
-                  {hasChanges && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9, x: -8 }}
-                      animate={{ opacity: 1, scale: 1, x: 0 }}
-                      exit={{ opacity: 0, scale: 0.9, x: -8 }}
-                      transition={springTransition}
-                    >
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleDiscard}
-                        className="h-9 px-3 text-xs font-medium text-zinc-500 hover:text-zinc-900"
-                      >
-                        <RotateCcw className="mr-1.5 h-4 w-4" />
-                        Discard
-                      </Button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  layout
-                >
-                  <Button
-                    onClick={handleSave}
-                    disabled={isSaving || !hasChanges}
-                    size="sm"
-                    className={cn(
-                      "h-9 px-4 text-xs font-medium min-w-[100px] transition-colors duration-200",
-                      saveSuccess && "bg-emerald-600 hover:bg-emerald-600",
-                    )}
-                  >
-                    <AnimatePresence mode="wait">
-                      {isSaving ? (
-                        <motion.div
-                          key="saving"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 0.15 }}
-                        >
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        </motion.div>
-                      ) : saveSuccess ? (
-                        <motion.div
-                          key="success"
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.8 }}
-                          className="flex items-center"
-                          transition={springTransition}
-                        >
-                          <CheckCircle2 className="mr-1.5 h-4 w-4" />
-                          Saved!
-                        </motion.div>
-                      ) : (
-                        <motion.div
-                          key="save"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          className="flex items-center"
-                          transition={{ duration: 0.15 }}
-                        >
-                          <Save className="mr-1.5 h-4 w-4" />
-                          Save Changes
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </Button>
-                </motion.div>
-              </div>
+              <ProfileHeaderActions
+                copiedLink={copiedLink}
+                profile={profile}
+                hasChanges={hasChanges}
+                isSaving={isSaving}
+                saveSuccess={saveSuccess}
+                handleCopyLink={handleCopyLink}
+                handleDiscard={handleDiscard}
+                handleSave={handleSave}
+              />
             </PageHeader>
           </motion.div>
 
           <div className="grid gap-6 lg:grid-cols-12">
-            <motion.div
-              className="lg:col-span-7 space-y-6"
-              variants={staggerContainer}
-            >
-              <MotionCard>
-                <CardHeader className="border-b border-zinc-100 px-4 sm:px-6 py-4">
-                  <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Personal Details
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 sm:p-6">
-                  <motion.div
-                    className="space-y-5"
-                    variants={staggerContainer}
-                    initial="initial"
-                    animate="animate"
-                  >
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <FormField
-                        label="First Name"
-                        error={validationErrors.firstName}
-                      >
-                        <Input
-                          value={profile.firstName}
-                          onChange={(e) =>
-                            updateProfile("firstName", e.target.value)
-                          }
-                          className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
-                          placeholder="Your first name"
-                        />
-                      </FormField>
-                      <FormField
-                        label="Last Name"
-                        error={validationErrors.lastName}
-                      >
-                        <Input
-                          value={profile.lastName}
-                          onChange={(e) =>
-                            updateProfile("lastName", e.target.value)
-                          }
-                          className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
-                          placeholder="Your last name"
-                        />
-                      </FormField>
-                    </div>
+            <ProfileFormColumn
+              profile={profile}
+              validationErrors={validationErrors}
+              bioWordCount={bioWordCount}
+              initials={initials}
+              updateProfile={updateProfile}
+              handleSave={handleSave}
+            />
 
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <FormField label="Location" icon={MapPin}>
-                        <Input
-                          value={profile.location}
-                          onChange={(e) =>
-                            updateProfile("location", e.target.value)
-                          }
-                          placeholder="City, Country"
-                          className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
-                        />
-                      </FormField>
-                      <FormField
-                        label="Phone"
-                        icon={PhoneIcon}
-                        error={validationErrors.phone}
-                      >
-                        <Input
-                          value={profile.phone}
-                          onChange={(e) =>
-                            updateProfile("phone", e.target.value)
-                          }
-                          placeholder="+1 (555) 000-0000"
-                          className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
-                        />
-                      </FormField>
-                    </div>
-
-                    <FormField
-                      label="Tagline"
-                      error={validationErrors.ministryFocus}
-                      helperText={
-                        <p className="text-[11px] text-zinc-400 flex items-start gap-1.5">
-                          <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                          <span>
-                            A brief description of your work that appears next
-                            to your name on the giving page and directory.
-                            <span
-                              className={cn(
-                                "ml-1 font-medium",
-                                profile.ministryFocus.length >
-                                  TAGLINE_MAX_LENGTH - 10
-                                  ? "text-amber-500"
-                                  : "",
-                              )}
-                            >
-                              ({profile.ministryFocus.length}/
-                              {TAGLINE_MAX_LENGTH})
-                            </span>
-                          </span>
-                        </p>
-                      }
-                    >
-                      <Input
-                        value={profile.ministryFocus}
-                        onChange={(e) =>
-                          updateProfile("ministryFocus", e.target.value)
-                        }
-                        placeholder="e.g., Church planting in Southeast Asia"
-                        maxLength={TAGLINE_MAX_LENGTH}
-                        className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
-                      />
-                    </FormField>
-
-                    <FormField
-                      label="About You"
-                      error={validationErrors.bio}
-                      helperText={
-                        <div className="space-y-1">
-                          <p className="text-[11px] text-zinc-400 flex items-start gap-1.5">
-                            <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                            <span>
-                              Share your story, calling, and ministry work. This
-                              appears on your public profile page. Include what
-                              you do, where you serve, and how supporters can
-                              pray for you.
-                            </span>
-                          </p>
-                          <p
-                            className={cn(
-                              "text-[11px] font-medium text-right",
-                              bioWordCount < BIO_MIN_WORDS
-                                ? "text-zinc-400"
-                                : bioWordCount > BIO_MAX_WORDS
-                                  ? "text-amber-500"
-                                  : "text-emerald-600",
-                            )}
-                          >
-                            {bioWordCount} / {BIO_MIN_WORDS}–{BIO_MAX_WORDS}{" "}
-                            words
-                          </p>
-                        </div>
-                      }
-                    >
-                      <Textarea
-                        value={profile.bio}
-                        onChange={(e) => updateProfile("bio", e.target.value)}
-                        placeholder="Tell supporters about yourself, your ministry, and how they can partner with you..."
-                        className="min-h-[180px] resize-none transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
-                        maxLength={BIO_MAX_CHARS}
-                      />
-                    </FormField>
-                  </motion.div>
-                </CardContent>
-              </MotionCard>
-
-              <MotionCard>
-                <CardHeader className="border-b border-zinc-100 px-4 sm:px-6 py-4">
-                  <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
-                    <ImageIcon className="h-4 w-4" />
-                    Profile Photos
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 sm:p-6 space-y-6">
-                  <motion.div
-                    className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6"
-                    variants={fadeInUp}
-                  >
-                    <ImageUpload
-                      value={profile.avatarUrl}
-                      onChange={(url) => {
-                        updateProfile("avatarUrl", url);
-                        handleSave(); // Save to DB immediately when avatar changes
-                      }}
-                      path="avatars"
-                      aspect={1}
-                    >
-                      <AvatarUploadArea
-                        avatarUrl={profile.avatarUrl}
-                        initials={initials}
-                        isUploading={isUploading}
-                        onUploadClick={() => {}} // Handled by ImageUpload wrapper
-                      />
-                    </ImageUpload>
-                    <div className="space-y-2 text-center sm:text-left">
-                      <p className="text-sm font-medium text-zinc-900">
-                        Profile Picture
-                      </p>
-                      <p className="text-xs text-zinc-500 max-w-[220px]">
-                        Square image, at least 400x400px. JPG or PNG, max 5MB.
-                      </p>
-                      <ImageUpload
-                        value={profile.avatarUrl}
-                        onChange={(url) => {
-                          updateProfile("avatarUrl", url);
-                          handleSave();
-                        }}
-                        path="avatars"
-                      >
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-8 text-xs"
-                        >
-                          <Upload className="mr-1.5 h-3.5 w-3.5" />
-                          Upload Photo
-                        </Button>
-                      </ImageUpload>
-                    </div>
-                  </motion.div>
-
-                  <motion.div className="space-y-2" variants={fadeInUp}>
-                    <Label className="text-xs font-medium text-zinc-500">
-                      Cover Photo
-                    </Label>
-                    <ImageUpload
-                      value={profile.coverUrl}
-                      onChange={(url) => {
-                        updateProfile("coverUrl", url);
-                        handleSave();
-                      }}
-                      path="covers"
-                      aspect={3 / 1}
-                    >
-                      <CoverUploadArea
-                        coverUrl={profile.coverUrl}
-                        isUploading={isUploadingCover}
-                        onUploadClick={() => {}} // Handled by ImageUpload wrapper
-                      />
-                    </ImageUpload>
-                    <p className="text-[11px] text-zinc-400">
-                      This image appears at the top of your public profile. Max
-                      10MB.
-                    </p>
-                  </motion.div>
-                </CardContent>
-              </MotionCard>
-
-              <MotionCard>
-                <CardHeader className="border-b border-zinc-100 px-4 sm:px-6 py-4">
-                  <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
-                    <Globe className="h-4 w-4" />
-                    Social Links
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 sm:p-6">
-                  <motion.div
-                    className="space-y-4"
-                    variants={staggerContainer}
-                    initial="initial"
-                    animate="animate"
-                  >
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <FormField label="Instagram" icon={Instagram}>
-                        <Input
-                          value={profile.instagram}
-                          onChange={(e) =>
-                            updateProfile("instagram", e.target.value)
-                          }
-                          placeholder="@yourhandle"
-                          className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
-                        />
-                      </FormField>
-                      <FormField label="Facebook" icon={Facebook}>
-                        <Input
-                          value={profile.facebook}
-                          onChange={(e) =>
-                            updateProfile("facebook", e.target.value)
-                          }
-                          placeholder="facebook.com/yourpage"
-                          className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
-                        />
-                      </FormField>
-                    </div>
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <FormField label="Twitter / X" icon={Twitter}>
-                        <Input
-                          value={profile.twitter}
-                          onChange={(e) =>
-                            updateProfile("twitter", e.target.value)
-                          }
-                          placeholder="@yourhandle"
-                          className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
-                        />
-                      </FormField>
-                      <FormField label="YouTube" icon={Youtube}>
-                        <Input
-                          value={profile.youtube}
-                          onChange={(e) =>
-                            updateProfile("youtube", e.target.value)
-                          }
-                          placeholder="youtube.com/@channel"
-                          className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
-                        />
-                      </FormField>
-                    </div>
-                    <FormField
-                      label="Website"
-                      icon={LinkIcon}
-                      error={validationErrors.website}
-                    >
-                      <Input
-                        value={profile.website}
-                        onChange={(e) =>
-                          updateProfile("website", e.target.value)
-                        }
-                        placeholder="https://yourwebsite.com"
-                        className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
-                      />
-                    </FormField>
-                  </motion.div>
-                </CardContent>
-              </MotionCard>
-            </motion.div>
-
-            <motion.div
-              className="lg:col-span-5"
-              variants={fadeInUp}
-              transition={{ ...gentleTransition, delay: 0.15 }}
-            >
-              <div className="sticky top-24 pb-6">
-                <div className="flex items-center justify-between mb-3 px-1">
-                  <span className="text-xs font-medium text-zinc-500">
-                    Live Preview
-                  </span>
-                  <PreviewToggle
-                    value={previewMode}
-                    onChange={setPreviewMode}
-                  />
-                </div>
-
-                <AnimatePresence mode="wait">
-                  {previewMode === "mobile" ? (
-                    <MobilePreviewFrame>
-                      <motion.div
-                        key="mobile-preview"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={gentleTransition}
-                        className="border-[12px] border-zinc-900 rounded-[3rem] overflow-hidden shadow-2xl bg-white relative"
-                        style={{
-                          width: MOBILE_PREVIEW_WIDTH,
-                          height: MOBILE_PREVIEW_HEIGHT,
-                        }}
-                      >
-                        <div className="absolute top-0 left-0 right-0 h-[120px]">
-                          <motion.img
-                            key={profile.coverUrl || "placeholder"}
-                            src={profile.coverUrl || PLACEHOLDER_COVER}
-                            alt="Cover"
-                            className="w-full h-full object-cover"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.25 }}
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-white/60 via-transparent to-transparent" />
-                        </div>
-
-                        <div className="absolute top-[72px] left-0 right-0 flex justify-center">
-                          <motion.div
-                            className="h-[72px] w-[72px] rounded-full border-[3px] border-white bg-white overflow-hidden shadow-lg ring-4 ring-white/50"
-                            layout
-                            transition={springTransition}
-                          >
-                            <Avatar className="h-full w-full">
-                              <AvatarImage
-                                src={profile.avatarUrl || PLACEHOLDER_AVATAR}
-                              />
-                              <AvatarFallback className="bg-zinc-100 font-semibold text-base">
-                                {initials || "U"}
-                              </AvatarFallback>
-                            </Avatar>
-                          </motion.div>
-                        </div>
-
-                        <div className="absolute top-[152px] left-0 right-0 bottom-0 px-5 text-center flex flex-col overflow-hidden">
-                          <div className="flex-shrink-0">
-                            <div className="flex items-center justify-center gap-1.5">
-                              <h2 className="text-lg font-bold text-zinc-900 tracking-tight">
-                                {profile.firstName || "First"}{" "}
-                                {profile.lastName || "Last"}
-                              </h2>
-                              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-[8px] font-bold uppercase tracking-wider">
-                                <Check className="h-2 w-2" /> Verified
-                              </div>
-                            </div>
-                            <div className="flex items-center justify-center gap-1 text-[10px] text-zinc-500 mt-0.5">
-                              <MapPin className="h-2.5 w-2.5" />
-                              <span>{profile.location || "Location"}</span>
-                            </div>
-                          </div>
-
-                          <div className="mt-4 flex justify-center flex-shrink-0">
-                            <QuickGive workerId="preview" size="sm" />
-                          </div>
-
-                          <div className="mt-6 flex-1 flex flex-col min-h-0">
-                            <Tabs
-                              defaultValue="story"
-                              className="w-full flex-1 flex flex-col"
-                            >
-                              <TabsList className="w-full justify-center border-b border-zinc-100 bg-transparent h-auto p-0 mb-4 gap-4">
-                                <TabsTrigger
-                                  value="story"
-                                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:shadow-none px-0 py-1.5 font-semibold text-zinc-400 data-[state=active]:text-zinc-900 transition-all text-[10px]"
-                                >
-                                  Our Story
-                                </TabsTrigger>
-                                <TabsTrigger
-                                  value="updates"
-                                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:shadow-none px-0 py-1.5 font-semibold text-zinc-400 data-[state=active]:text-zinc-900 transition-all text-[10px]"
-                                >
-                                  Field Journal
-                                </TabsTrigger>
-                              </TabsList>
-
-                              <TabsContent
-                                value="story"
-                                className="outline-none flex-1 overflow-y-auto text-left pb-4"
-                              >
-                                <div className="space-y-3">
-                                  <p className="text-[11px] font-semibold text-zinc-900 leading-relaxed italic border-l-2 border-emerald-500 pl-3">
-                                    &quot;
-                                    {profile.ministryFocus ||
-                                      "Your tagline will appear here"}
-                                    &quot;
-                                  </p>
-                                  <div className="text-[10px] text-zinc-500 leading-relaxed whitespace-pre-wrap">
-                                    {profile.bio ||
-                                      "Your bio will appear here. Share your story, calling, and ministry work with potential supporters."}
-                                  </div>
-                                </div>
-                              </TabsContent>
-
-                              <TabsContent
-                                value="updates"
-                                className="outline-none flex-1 overflow-y-auto pb-4"
-                              >
-                                <div className="space-y-4 py-2">
-                                  <div className="p-3 rounded-xl border border-zinc-100 bg-zinc-50/50 text-left">
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <div className="h-5 w-5 rounded-full bg-zinc-200" />
-                                      <div className="flex-1">
-                                        <div className="h-2 w-16 bg-zinc-200 rounded mb-1" />
-                                        <div className="h-1.5 w-10 bg-zinc-100 rounded" />
-                                      </div>
-                                    </div>
-                                    <div className="h-2 w-full bg-zinc-100 rounded mb-1.5" />
-                                    <div className="h-2 w-2/3 bg-zinc-100 rounded" />
-                                  </div>
-                                  <p className="text-[10px] text-zinc-400 text-center italic">
-                                    Updates from your feed will appear here
-                                  </p>
-                                </div>
-                              </TabsContent>
-                            </Tabs>
-                          </div>
-
-                          <div className="flex justify-center gap-3 py-3 mt-auto bg-white border-t border-zinc-50">
-                            <AnimatePresence>
-                              {profile.instagram && (
-                                <SocialIcon
-                                  key="mobile-instagram"
-                                  platform="instagram"
-                                  url={profile.instagram}
-                                />
-                              )}
-                              {profile.facebook && (
-                                <SocialIcon
-                                  key="mobile-facebook"
-                                  platform="facebook"
-                                  url={profile.facebook}
-                                />
-                              )}
-                              {profile.twitter && (
-                                <SocialIcon
-                                  key="mobile-twitter"
-                                  platform="twitter"
-                                  url={profile.twitter}
-                                />
-                              )}
-                              {profile.youtube && (
-                                <SocialIcon
-                                  key="mobile-youtube"
-                                  platform="youtube"
-                                  url={profile.youtube}
-                                />
-                              )}
-                              {profile.website && (
-                                <SocialIcon
-                                  key="mobile-website"
-                                  platform="website"
-                                  url={profile.website}
-                                />
-                              )}
-                            </AnimatePresence>
-                          </div>
-                        </div>
-
-                        <div className="absolute top-0 left-0 right-0 h-6 flex justify-center pt-0.5 pointer-events-none">
-                          <div className="bg-zinc-900 h-4 w-24 rounded-full" />
-                        </div>
-                        <div className="absolute bottom-1 left-0 right-0 flex justify-center pointer-events-none">
-                          <div className="bg-zinc-200 h-1 w-28 rounded-full" />
-                        </div>
-                      </motion.div>
-                    </MobilePreviewFrame>
-                  ) : (
-                    <DesktopPreviewFrame>
-                      <motion.div
-                        key="desktop-preview"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={gentleTransition}
-                        className="border border-zinc-200 rounded-xl overflow-hidden shadow-lg bg-white"
-                        style={{
-                          width: DESKTOP_PREVIEW_WIDTH,
-                          height: DESKTOP_PREVIEW_HEIGHT,
-                        }}
-                      >
-                        <div className="h-[24px] bg-zinc-100 border-b border-zinc-200 flex items-center px-3 gap-1.5">
-                          <div className="h-2 w-2 rounded-full bg-zinc-300" />
-                          <div className="h-2 w-2 rounded-full bg-zinc-300" />
-                          <div className="h-2 w-2 rounded-full bg-zinc-300" />
-                        </div>
-
-                        <div
-                          className="relative"
-                          style={{ height: DESKTOP_PREVIEW_HEIGHT - 24 }}
-                        >
-                          <div className="h-[72px]">
-                            <Image
-                              src={profile.coverUrl || PLACEHOLDER_COVER}
-                              alt="Cover"
-                              width={400}
-                              height={72}
-                              unoptimized
-                              className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-x-0 top-0 h-[72px] bg-gradient-to-t from-white/40 via-transparent to-transparent" />
-                          </div>
-
-                          <div className="px-5 pb-4">
-                            <div className="flex items-end gap-3 -mt-6">
-                              <Avatar className="h-12 w-12 border-2 border-white shadow-md ring-2 ring-white/50">
-                                <AvatarImage
-                                  src={profile.avatarUrl || PLACEHOLDER_AVATAR}
-                                />
-                                <AvatarFallback className="bg-zinc-100 text-sm font-semibold">
-                                  {initials || "U"}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1 pb-0.5 min-w-0">
-                                <div className="flex items-center gap-1.5 min-w-0">
-                                  <h2 className="text-base font-bold text-zinc-900 tracking-tight truncate">
-                                    {profile.firstName || "First"}{" "}
-                                    {profile.lastName || "Last"}
-                                  </h2>
-                                  <div className="flex-shrink-0 flex items-center gap-1 px-1 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-[6px] font-bold uppercase tracking-wider">
-                                    <Check className="h-2 w-2" />
-                                  </div>
-                                </div>
-                                <p className="text-[10px] text-zinc-500 flex items-center gap-0.5">
-                                  <MapPin className="h-2.5 w-2.5 flex-shrink-0" />
-                                  <span className="truncate">
-                                    {profile.location || "Location"}
-                                  </span>
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="mt-3 flex items-center justify-between gap-3">
-                              <QuickGive workerId="preview" size="xs" />
-                              <div className="flex gap-2 flex-shrink-0">
-                                <AnimatePresence>
-                                  {profile.instagram && (
-                                    <SocialIcon
-                                      key="desktop-instagram"
-                                      platform="instagram"
-                                      url={profile.instagram}
-                                    />
-                                  )}
-                                  {profile.facebook && (
-                                    <SocialIcon
-                                      key="desktop-facebook"
-                                      platform="facebook"
-                                      url={profile.facebook}
-                                    />
-                                  )}
-                                  {profile.twitter && (
-                                    <SocialIcon
-                                      key="desktop-twitter"
-                                      platform="twitter"
-                                      url={profile.twitter}
-                                    />
-                                  )}
-                                </AnimatePresence>
-                              </div>
-                            </div>
-
-                            <p className="text-[10px] font-semibold text-zinc-600 mt-3 line-clamp-1 leading-relaxed italic border-l border-emerald-500 pl-2">
-                              &quot;
-                              {profile.ministryFocus ||
-                                "Your tagline will appear here"}
-                              &quot;
-                            </p>
-                            <p className="text-[10px] text-zinc-400 mt-2 line-clamp-3 leading-relaxed whitespace-pre-wrap">
-                              {profile.bio ||
-                                "Your bio will appear here. Share your story with supporters."}
-                            </p>
-                          </div>
-                        </div>
-                      </motion.div>
-                    </DesktopPreviewFrame>
-                  )}
-                </AnimatePresence>
-
-                <motion.p
-                  className="text-[10px] text-zinc-400 text-center mt-3 flex items-center justify-center gap-1"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                  </span>
-                  Updates as you type
-                </motion.p>
-              </div>
-            </motion.div>
+            <ProfilePreviewColumn
+              profile={profile}
+              previewMode={previewMode}
+              initials={initials}
+              setPreviewMode={setPreviewMode}
+            />
           </div>
         </motion.div>
       </LayoutGroup>
     </TooltipProvider>
   );
+}
+
+function ProfilePageView() {
+  return useProfilePageView();
+}
+
+export default function ProfilePage() {
+  return <ProfilePageView />;
 }

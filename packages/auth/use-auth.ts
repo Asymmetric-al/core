@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { createBrowserClient } from "@asym/database/supabase";
-import type { User } from "@supabase/supabase-js";
+import { useState, useEffect } from "react";
+
+import { signOutOnServer } from "./client-signout";
+
 import type { Profile } from "@asym/database/types";
+import type { User } from "@supabase/supabase-js";
 
 interface AuthState {
   user: User | null;
@@ -61,8 +64,17 @@ export function useAuth() {
   }, []);
 
   const signOut = async () => {
+    const serverSignOut = await signOutOnServer();
+    if (!serverSignOut.ok) {
+      window.alert(
+        serverSignOut.message ?? "Unable to sign out. Please try again.",
+      );
+    }
+
     const supabase = createBrowserClient();
-    await supabase.auth.signOut();
+    void supabase.auth.signOut().catch((error) => {
+      console.warn("[auth] browser signout cleanup failed", error);
+    });
     window.location.href = "/login";
   };
 

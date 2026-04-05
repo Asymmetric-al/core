@@ -1,6 +1,9 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "@asym/lib/motion";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Plus,
   Minus,
@@ -14,11 +17,10 @@ import {
   MessageCircle,
   Sparkles,
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
-import { Input } from "@asym/ui/components/shadcn/input";
-import { Button } from "@asym/ui/components/shadcn/button";
 import Link from "next/link";
-import { cn } from "@asym/ui/lib/utils";
+import React, { useState, useMemo } from "react";
+
+import type { LucideIcon } from "lucide-react";
 
 type Category = "General" | "Financials" | "Donations" | "Partners" | "Account";
 
@@ -123,7 +125,7 @@ const CategoryButton = ({
   active: boolean;
   onClick: () => void;
   label: string;
-  icon: any;
+  icon: LucideIcon;
 }) => (
   <button
     onClick={onClick}
@@ -204,7 +206,10 @@ const AccordionItem = ({
                 <p>
                   {item.answer.split("**").map((part, i) =>
                     i % 2 === 1 ? (
-                      <strong key={i} className="font-semibold text-slate-800">
+                      <strong
+                        key={`${item.question}-highlight-${part}`}
+                        className="font-semibold text-slate-800"
+                      >
                         {part}
                       </strong>
                     ) : (
@@ -334,7 +339,7 @@ export function FAQPageClient() {
             {filteredData.length > 0 ? (
               filteredData.map((item, idx) => (
                 <AccordionItem
-                  key={`${item.category}-${idx}`}
+                  key={`${item.category}-${item.question}`}
                   item={item}
                   isOpen={openIndex === idx}
                   onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
@@ -395,7 +400,7 @@ export function FAQPageClient() {
 
           <div className="flex flex-col sm:flex-row gap-4 relative z-10 w-full md:w-auto">
             <Button
-              className="h-14 px-8 bg-white text-slate-950 hover:bg-slate-100 font-bold text-base rounded-full shadow-lg transition-transform hover:scale-105"
+              className="h-14 px-8 bg-white text-slate-950 hover:bg-slate-100 font-bold text-base rounded-full shadow-lg transition-transform hover:scale-[1.02]"
               asChild
             >
               <Link href="/contact">
@@ -404,7 +409,7 @@ export function FAQPageClient() {
             </Button>
             <Button
               variant="outline"
-              className="h-14 px-8 border-white/20 text-white hover:bg-white/10 hover:text-white font-semibold text-base rounded-full backdrop-blur-sm transition-transform hover:scale-105"
+              className="h-14 px-8 border-white/20 text-white hover:bg-white/10 hover:text-white font-semibold text-base rounded-full backdrop-blur-sm transition-transform hover:scale-[1.02]"
             >
               <MessageCircle className="mr-2 h-5 w-5" /> Chat with Us
             </Button>

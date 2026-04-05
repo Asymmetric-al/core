@@ -1,9 +1,11 @@
 "use client";
 
 import * as React from "react";
+
 import { cn } from "@asym/ui/lib/utils";
-import { Input } from "../input";
+
 import { Checkbox } from "../checkbox";
+import { Input } from "../input";
 import {
   Select,
   SelectContent,
@@ -11,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../select";
+
 import type { DataGridCellType, DataGridColumnOption } from "./types";
 
 interface DataGridCellProps {
@@ -89,6 +92,14 @@ export function DataGridCell({
         <div
           className={cn(cellClassName, "cursor-pointer")}
           onClick={onStartEdit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onStartEdit();
+            }
+          }}
+          role="button"
+          tabIndex={0}
         >
           {selectedOption?.label ?? String(value ?? "")}
         </div>
@@ -129,6 +140,14 @@ export function DataGridCell({
         className={cn(cellClassName, "cursor-cell truncate")}
         onDoubleClick={onStartEdit}
         onClick={isSelected ? onStartEdit : undefined}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onStartEdit();
+          }
+        }}
+        role="button"
+        tabIndex={0}
       >
         {cellType === "number" && typeof value === "number"
           ? value.toLocaleString()

@@ -1,8 +1,59 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from "react";
-import Image from "next/image";
-import Link from "next/link";
+import { TimeAgo, useLastSynced } from "@asym/lib/hooks";
+import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
+import {
+  BrandAvatar,
+  BrandLogo,
+  brandConfig,
+} from "@asym/ui/components/brand-logo";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@asym/ui/components/shadcn/alert-dialog";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { Label } from "@asym/ui/components/shadcn/label";
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@asym/ui/components/shadcn/radio-group";
+import {
+  isPostContentEmpty,
+  PostContent,
+} from "@asym/ui/components/shadcn/rich-text-editor";
+import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
+import { Separator } from "@asym/ui/components/shadcn/separator";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@asym/ui/components/shadcn/sheet";
+import { Switch } from "@asym/ui/components/shadcn/switch";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@asym/ui/components/shadcn/tabs";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Send,
   Globe,
@@ -22,62 +73,15 @@ import {
   ExternalLink,
   Save,
   Bell,
-  UserPlus,
   Check,
 } from "lucide-react";
-import { motion, AnimatePresence, LayoutGroup } from "motion/react";
-import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Switch } from "@asym/ui/components/shadcn/switch";
-import { Label } from "@asym/ui/components/shadcn/label";
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from "@asym/ui/components/shadcn/tabs";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@asym/ui/components/shadcn/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
-} from "@asym/ui/components/shadcn/sheet";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@asym/ui/components/shadcn/alert-dialog";
-import { Separator } from "@asym/ui/components/shadcn/separator";
-import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
-import {
-  RadioGroup,
-  RadioGroupItem,
-} from "@asym/ui/components/shadcn/radio-group";
-import { cn } from "@asym/ui/lib/utils";
-import { toast } from "sonner";
 import dynamic from "next/dynamic";
+import Image from "next/image";
+import Link from "next/link";
+import React, { useCallback, useReducer, useState } from "react";
+import { toast } from "sonner";
+
 import { PageHeader } from "@/components/page-header";
-import { TimeAgo, useLastSynced } from "@asym/lib/hooks";
-import {
-  BrandAvatar,
-  BrandLogo,
-  brandConfig,
-} from "@asym/ui/components/brand-logo";
 
 type OrgPostVisibility = "all_donors" | "followers_only";
 type Visibility = "public" | "partners" | "private";
@@ -486,9 +490,10 @@ function PostCard({
             transition={{ delay: 0.1 }}
             className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-4"
           >
-            <div
-              className="prose prose-sm sm:prose-base max-w-none text-foreground/80 leading-relaxed prose-headings:font-bold prose-headings:text-foreground prose-headings:tracking-tight prose-strong:font-bold prose-strong:text-foreground prose-a:text-primary prose-a:font-bold prose-a:no-underline hover:prose-a:underline"
-              dangerouslySetInnerHTML={{ __html: post.content }}
+            <PostContent
+              value={post.content}
+              richTextClassName="text-foreground/80 leading-relaxed"
+              htmlClassName="prose prose-sm sm:prose-base max-w-none text-foreground/80 leading-relaxed prose-headings:font-bold prose-headings:text-foreground prose-headings:tracking-tight prose-strong:font-bold prose-strong:text-foreground prose-a:text-primary prose-a:font-bold prose-a:no-underline hover:prose-a:underline"
             />
             {post.media && post.media.length > 0 && (
               <motion.div
@@ -497,9 +502,9 @@ function PostCard({
                 transition={{ delay: 0.15 }}
                 className="flex gap-2 flex-wrap"
               >
-                {post.media.slice(0, 4).map((item, idx) => (
+                {post.media.slice(0, 4).map((item) => (
                   <div
-                    key={idx}
+                    key={`${post.id}-${item.type}-${item.url}`}
                     className="relative h-24 w-24 sm:h-32 sm:w-32 rounded-xl overflow-hidden border shadow-sm"
                   >
                     <Image
@@ -577,9 +582,10 @@ function DraftCard({
                 Saved <TimeAgo date={draft.created_at} />
               </span>
             </div>
-            <div
-              className="prose prose-sm max-w-none line-clamp-2 opacity-60 text-foreground"
-              dangerouslySetInnerHTML={{ __html: draft.content }}
+            <PostContent
+              value={draft.content}
+              richTextClassName="line-clamp-2 opacity-60 text-foreground/80 text-sm"
+              htmlClassName="prose prose-sm max-w-none line-clamp-2 opacity-60 text-foreground"
             />
           </div>
           <div className="flex flex-row sm:flex-col gap-2 shrink-0 w-full sm:w-auto">
@@ -618,6 +624,331 @@ function DraftCard({
   );
 }
 
+type ComposeMediaItem = { url: string; type: string };
+
+interface ComposeCardState {
+  postContent: string;
+  postType: string;
+  visibility: Visibility;
+  isPublishing: boolean;
+  selectedMedia: ComposeMediaItem[];
+  isUploading: boolean;
+}
+
+type ComposeCardAction =
+  | { type: "set-content"; value: string }
+  | { type: "set-post-type"; value: string }
+  | { type: "set-visibility"; value: Visibility }
+  | { type: "set-publishing"; value: boolean }
+  | { type: "set-uploading"; value: boolean }
+  | { type: "add-media"; item: ComposeMediaItem }
+  | { type: "remove-media"; item: ComposeMediaItem }
+  | { type: "reset-editor" };
+
+const POST_TYPE_OPTIONS = [
+  "Announcement",
+  "Newsletter",
+  "Update",
+  "Prayer Request",
+];
+
+const dedupeComposeMedia = (media: ComposeMediaItem[] | undefined) =>
+  media?.filter(
+    (mediaItem, mediaIndex, allMedia) =>
+      allMedia.findIndex(
+        (candidate) =>
+          candidate.url === mediaItem.url && candidate.type === mediaItem.type,
+      ) === mediaIndex,
+  ) || [];
+
+const buildInitialComposeState = (
+  sourcePost: OrgPost | null,
+): ComposeCardState => ({
+  postContent: sourcePost?.content || "",
+  postType: sourcePost?.post_type || "Announcement",
+  visibility: sourcePost?.visibility || "public",
+  isPublishing: false,
+  selectedMedia: dedupeComposeMedia(sourcePost?.media),
+  isUploading: false,
+});
+
+function composeCardReducer(
+  state: ComposeCardState,
+  action: ComposeCardAction,
+): ComposeCardState {
+  switch (action.type) {
+    case "set-content":
+      return { ...state, postContent: action.value };
+    case "set-post-type":
+      return { ...state, postType: action.value };
+    case "set-visibility":
+      return { ...state, visibility: action.value };
+    case "set-publishing":
+      return { ...state, isPublishing: action.value };
+    case "set-uploading":
+      return { ...state, isUploading: action.value };
+    case "add-media":
+      if (
+        state.selectedMedia.some(
+          (mediaItem) =>
+            mediaItem.url === action.item.url &&
+            mediaItem.type === action.item.type,
+        )
+      ) {
+        return state;
+      }
+      return {
+        ...state,
+        selectedMedia: [...state.selectedMedia, action.item],
+      };
+    case "remove-media":
+      return {
+        ...state,
+        selectedMedia: state.selectedMedia.filter(
+          (mediaItem) =>
+            mediaItem.url !== action.item.url ||
+            mediaItem.type !== action.item.type,
+        ),
+      };
+    case "reset-editor":
+      return {
+        ...state,
+        postContent: "",
+        selectedMedia: [],
+        isPublishing: false,
+      };
+    default:
+      return state;
+  }
+}
+
+function ComposeCardTypeSelector({
+  postType,
+  editingPost,
+  onSetType,
+  onCancelEdit,
+}: {
+  postType: string;
+  editingPost: OrgPost | null;
+  onSetType: (type: string) => void;
+  onCancelEdit: () => void;
+}) {
+  return (
+    <div className="flex gap-2 sm:gap-3 flex-wrap items-center mb-4 sm:mb-6">
+      {POST_TYPE_OPTIONS.map((type, i) => (
+        <motion.div
+          key={type}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 + i * 0.05 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <Button
+            variant={postType === type ? "default" : "outline"}
+            onClick={() => onSetType(type)}
+            className={cn(
+              "px-3 sm:px-5 py-2 h-8 sm:h-9 text-[9px] sm:text-[10px] uppercase tracking-wider font-semibold rounded-xl",
+              postType === type && "shadow-md",
+            )}
+          >
+            {type}
+          </Button>
+        </motion.div>
+      ))}
+      <AnimatePresence>
+        {editingPost && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onCancelEdit}
+              className="ml-auto text-destructive font-semibold text-[10px] uppercase tracking-wider hover:bg-destructive/10 rounded-xl"
+            >
+              Cancel Edit
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function ComposeCardActions({
+  selectedMedia,
+  isUploading,
+  isPublishing,
+  visibility,
+  isDisabled,
+  onAddMedia,
+  onRemoveMedia,
+  onSetVisibility,
+  onSaveDraft,
+  onPublish,
+}: {
+  selectedMedia: ComposeMediaItem[];
+  isUploading: boolean;
+  isPublishing: boolean;
+  visibility: Visibility;
+  isDisabled: boolean;
+  onAddMedia: () => void;
+  onRemoveMedia: (item: ComposeMediaItem) => void;
+  onSetVisibility: (visibility: Visibility) => void;
+  onSaveDraft: () => void;
+  onPublish: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-3 w-full">
+      <AnimatePresence>
+        {selectedMedia.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="flex gap-2 sm:gap-3 overflow-x-auto no-scrollbar pb-2"
+          >
+            {selectedMedia.map((item) => (
+              <motion.div
+                key={`${item.type}-${item.url}`}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={springTransition}
+                className="relative group/img shrink-0"
+              >
+                <Image
+                  src={item.url}
+                  alt="Attached media"
+                  width={64}
+                  height={64}
+                  unoptimized
+                  className="h-14 w-14 sm:h-16 sm:w-16 object-cover rounded-lg border shadow-sm"
+                />
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => onRemoveMedia(item)}
+                  className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover/img:opacity-100 transition-opacity shadow-sm"
+                >
+                  <X className="h-3 w-3" />
+                </motion.button>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="flex flex-wrap items-center gap-2 w-full">
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={isUploading}
+            onClick={onAddMedia}
+            className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-all"
+          >
+            {isUploading ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <ImageIcon className="h-3 w-3" />
+            )}
+            <span className="hidden sm:inline">Media</span>
+          </Button>
+        </motion.div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-all"
+              >
+                {visibility === "public" ? (
+                  <Globe className="h-3 w-3" />
+                ) : visibility === "partners" ? (
+                  <Users className="h-3 w-3" />
+                ) : (
+                  <Lock className="h-3 w-3" />
+                )}
+                <span className="hidden sm:inline capitalize">
+                  {visibility === "partners" ? "Partners" : visibility}
+                </span>
+                <ChevronDown className="h-2.5 w-2.5 opacity-40" />
+              </Button>
+            </motion.div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="start"
+            className="rounded-xl border shadow-lg p-1.5 min-w-[160px]"
+          >
+            <DropdownMenuItem
+              onClick={() => onSetVisibility("public")}
+              className="font-medium text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
+            >
+              <Globe className="h-3.5 w-3.5 text-muted-foreground" /> Public
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onSetVisibility("partners")}
+              className="font-medium text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
+            >
+              <Users className="h-3.5 w-3.5 text-muted-foreground" /> Partners
+              Only
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onSetVisibility("private")}
+              className="font-medium text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
+            >
+              <Lock className="h-3.5 w-3.5 text-muted-foreground" /> Private
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <div className="flex-1" />
+
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Button
+            onClick={onSaveDraft}
+            variant="outline"
+            size="sm"
+            disabled={isDisabled}
+            className="h-8 px-2.5 sm:px-4 text-[9px] uppercase tracking-wider rounded-lg font-semibold"
+          >
+            {isPublishing ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Save className="h-3 w-3 sm:mr-1.5" />
+            )}
+            <span className="hidden sm:inline">Draft</span>
+          </Button>
+        </motion.div>
+
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Button
+            onClick={onPublish}
+            size="sm"
+            disabled={isDisabled}
+            className="h-8 px-3 sm:px-5 text-[9px] uppercase tracking-wider rounded-lg shadow-sm font-semibold"
+          >
+            {isPublishing ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Send className="h-3 w-3 sm:mr-1.5" />
+            )}
+            <span className="hidden sm:inline">Publish</span>
+          </Button>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
 function ComposeCard({
   onSave,
   editingPost,
@@ -627,24 +958,24 @@ function ComposeCard({
   editingPost: OrgPost | null;
   onCancelEdit: () => void;
 }) {
-  const [postContent, setPostContent] = useState(editingPost?.content || "");
-  const [postType, setPostType] = useState(
-    editingPost?.post_type || "Announcement",
+  const [composeState, dispatchCompose] = useReducer(
+    composeCardReducer,
+    editingPost,
+    buildInitialComposeState,
   );
-  const [visibility, setVisibility] = useState<Visibility>(
-    editingPost?.visibility || "public",
-  );
-  const [isPublishing, setIsPublishing] = useState(false);
-  const [selectedMedia, setSelectedMedia] = useState<
-    { url: string; type: string }[]
-  >(editingPost?.media || []);
-  const [isUploading, setIsUploading] = useState(false);
+  const {
+    postContent,
+    postType,
+    visibility,
+    isPublishing,
+    selectedMedia,
+    isUploading,
+  } = composeState;
 
   const handlePublish = async () => {
-    const plainText = postContent.replace(/<[^>]*>?/gm, "").trim();
-    if (!plainText && !postContent.includes("<img")) return;
+    if (isPostContentEmpty(postContent)) return;
 
-    setIsPublishing(true);
+    dispatchCompose({ type: "set-publishing", value: true });
     await new Promise((resolve) => setTimeout(resolve, 800));
 
     onSave({
@@ -658,16 +989,13 @@ function ComposeCard({
     toast.success(
       editingPost ? "Update saved!" : "Organization update published!",
     );
-    setPostContent("");
-    setSelectedMedia([]);
-    setIsPublishing(false);
+    dispatchCompose({ type: "reset-editor" });
   };
 
   const handleSaveDraft = async () => {
-    const plainText = postContent.replace(/<[^>]*>?/gm, "").trim();
-    if (!plainText && !postContent.includes("<img")) return;
+    if (isPostContentEmpty(postContent)) return;
 
-    setIsPublishing(true);
+    dispatchCompose({ type: "set-publishing", value: true });
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     onSave({
@@ -679,13 +1007,11 @@ function ComposeCard({
     });
 
     toast.success("Draft saved!");
-    setPostContent("");
-    setSelectedMedia([]);
-    setIsPublishing(false);
+    dispatchCompose({ type: "reset-editor" });
   };
 
   const handleAddMedia = async () => {
-    setIsUploading(true);
+    dispatchCompose({ type: "set-uploading", value: true });
     await new Promise((resolve) => setTimeout(resolve, 1000));
     const demoImages = [
       "https://images.unsplash.com/photo-1509099836639-18ba1795216d?w=800&q=80",
@@ -694,18 +1020,18 @@ function ComposeCard({
     const randomImage =
       demoImages[Math.floor(Math.random() * demoImages.length)] ??
       demoImages[0]!;
-    setSelectedMedia((prev) => [...prev, { url: randomImage, type: "image" }]);
-    setIsUploading(false);
+    dispatchCompose({
+      type: "add-media",
+      item: { url: randomImage, type: "image" },
+    });
+    dispatchCompose({ type: "set-uploading", value: false });
     toast.success("Image added");
   };
 
   const isDisabled =
     isPublishing ||
     isUploading ||
-    ((!postContent ||
-      postContent === "<p></p>" ||
-      postContent === "<p><br></p>") &&
-      selectedMedia.length === 0);
+    (isPostContentEmpty(postContent) && selectedMedia.length === 0);
 
   return (
     <MotionCard
@@ -715,51 +1041,14 @@ function ComposeCard({
       className="overflow-hidden border shadow-md rounded-2xl sm:rounded-3xl bg-card"
     >
       <div className="p-4 sm:p-6">
-        <div className="flex gap-2 sm:gap-3 flex-wrap items-center mb-4 sm:mb-6">
-          {["Announcement", "Newsletter", "Update", "Prayer Request"].map(
-            (type, i) => (
-              <motion.div
-                key={type}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 + i * 0.05 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Button
-                  variant={postType === type ? "default" : "outline"}
-                  onClick={() => setPostType(type)}
-                  className={cn(
-                    "px-3 sm:px-5 py-2 h-8 sm:h-9 text-[9px] sm:text-[10px] uppercase tracking-wider font-semibold rounded-xl",
-                    postType === type && "shadow-md",
-                  )}
-                >
-                  {type}
-                </Button>
-              </motion.div>
-            ),
-          )}
-          <AnimatePresence>
-            {editingPost && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onCancelEdit}
-                  className="ml-auto text-destructive font-semibold text-[10px] uppercase tracking-wider hover:bg-destructive/10 rounded-xl"
-                >
-                  Cancel Edit
-                </Button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+        <ComposeCardTypeSelector
+          postType={postType}
+          editingPost={editingPost}
+          onSetType={(type) =>
+            dispatchCompose({ type: "set-post-type", value: type })
+          }
+          onCancelEdit={onCancelEdit}
+        />
 
         <div className="flex gap-3 sm:gap-4">
           <motion.div
@@ -778,174 +1067,34 @@ function ComposeCard({
           >
             <RichTextEditor
               value={postContent}
-              onChange={setPostContent}
+              onChange={(value) =>
+                dispatchCompose({ type: "set-content", value })
+              }
               placeholder={`Write your ${postType.toLowerCase()}...`}
               className=""
               contentClassName="py-3 sm:py-4 px-3 sm:px-4 text-sm sm:text-base text-foreground placeholder:text-muted-foreground min-h-[100px] sm:min-h-[140px] leading-relaxed"
               toolbarPosition="bottom"
               proseInvert={false}
               actions={
-                <div className="flex flex-col gap-3 w-full">
-                  <AnimatePresence>
-                    {selectedMedia.length > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="flex gap-2 sm:gap-3 overflow-x-auto no-scrollbar pb-2"
-                      >
-                        {selectedMedia.map((item, idx) => (
-                          <motion.div
-                            key={idx}
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.8 }}
-                            transition={springTransition}
-                            className="relative group/img shrink-0"
-                          >
-                            <Image
-                              src={item.url}
-                              alt={`Attached media ${idx + 1}`}
-                              width={64}
-                              height={64}
-                              unoptimized
-                              className="h-14 w-14 sm:h-16 sm:w-16 object-cover rounded-lg border shadow-sm"
-                            />
-                            <motion.button
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              onClick={() =>
-                                setSelectedMedia((prev) =>
-                                  prev.filter((_, i) => i !== idx),
-                                )
-                              }
-                              className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover/img:opacity-100 transition-opacity shadow-sm"
-                            >
-                              <X className="h-3 w-3" />
-                            </motion.button>
-                          </motion.div>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                  <div className="flex flex-wrap items-center gap-2 w-full">
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={isUploading}
-                        onClick={handleAddMedia}
-                        className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-all"
-                      >
-                        {isUploading ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                        ) : (
-                          <ImageIcon className="h-3 w-3" />
-                        )}
-                        <span className="hidden sm:inline">Media</span>
-                      </Button>
-                    </motion.div>
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <motion.div
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-all"
-                          >
-                            {visibility === "public" ? (
-                              <Globe className="h-3 w-3" />
-                            ) : visibility === "partners" ? (
-                              <Users className="h-3 w-3" />
-                            ) : (
-                              <Lock className="h-3 w-3" />
-                            )}
-                            <span className="hidden sm:inline capitalize">
-                              {visibility === "partners"
-                                ? "Partners"
-                                : visibility}
-                            </span>
-                            <ChevronDown className="h-2.5 w-2.5 opacity-40" />
-                          </Button>
-                        </motion.div>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="start"
-                        className="rounded-xl border shadow-lg p-1.5 min-w-[160px]"
-                      >
-                        <DropdownMenuItem
-                          onClick={() => setVisibility("public")}
-                          className="font-medium text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
-                        >
-                          <Globe className="h-3.5 w-3.5 text-muted-foreground" />{" "}
-                          Public
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => setVisibility("partners")}
-                          className="font-medium text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
-                        >
-                          <Users className="h-3.5 w-3.5 text-muted-foreground" />{" "}
-                          Partners Only
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => setVisibility("private")}
-                          className="font-medium text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
-                        >
-                          <Lock className="h-3.5 w-3.5 text-muted-foreground" />{" "}
-                          Private
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-
-                    <div className="flex-1" />
-
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Button
-                        onClick={handleSaveDraft}
-                        variant="outline"
-                        size="sm"
-                        disabled={isDisabled}
-                        className="h-8 px-2.5 sm:px-4 text-[9px] uppercase tracking-wider rounded-lg font-semibold"
-                      >
-                        {isPublishing ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                        ) : (
-                          <Save className="h-3 w-3 sm:mr-1.5" />
-                        )}
-                        <span className="hidden sm:inline">Draft</span>
-                      </Button>
-                    </motion.div>
-
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Button
-                        onClick={handlePublish}
-                        size="sm"
-                        disabled={isDisabled}
-                        className="h-8 px-3 sm:px-5 text-[9px] uppercase tracking-wider rounded-lg shadow-sm font-semibold"
-                      >
-                        {isPublishing ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                        ) : (
-                          <Send className="h-3 w-3 sm:mr-1.5" />
-                        )}
-                        <span className="hidden sm:inline">Publish</span>
-                      </Button>
-                    </motion.div>
-                  </div>
-                </div>
+                <ComposeCardActions
+                  selectedMedia={selectedMedia}
+                  isUploading={isUploading}
+                  isPublishing={isPublishing}
+                  visibility={visibility}
+                  isDisabled={isDisabled}
+                  onAddMedia={handleAddMedia}
+                  onRemoveMedia={(item) =>
+                    dispatchCompose({ type: "remove-media", item })
+                  }
+                  onSetVisibility={(nextVisibility) =>
+                    dispatchCompose({
+                      type: "set-visibility",
+                      value: nextVisibility,
+                    })
+                  }
+                  onSaveDraft={handleSaveDraft}
+                  onPublish={handlePublish}
+                />
               }
             />
           </motion.div>
@@ -1024,15 +1173,237 @@ function EmptyState({
   );
 }
 
+interface OrgUpdatesUiState {
+  activeTab: PostStatus;
+  editingPost: OrgPost | null;
+  deleteDialogOpen: boolean;
+  postToDelete: string | null;
+  settingsOpen: boolean;
+}
+
+type OrgUpdatesUiAction =
+  | { type: "set_active_tab"; value: PostStatus }
+  | { type: "set_editing_post"; value: OrgPost | null }
+  | { type: "open_delete_dialog"; postId: string }
+  | { type: "close_delete_dialog" }
+  | { type: "set_settings_open"; value: boolean };
+
+const INITIAL_ORG_UPDATES_UI_STATE: OrgUpdatesUiState = {
+  activeTab: "published",
+  editingPost: null,
+  deleteDialogOpen: false,
+  postToDelete: null,
+  settingsOpen: false,
+};
+
+function orgUpdatesUiReducer(
+  state: OrgUpdatesUiState,
+  action: OrgUpdatesUiAction,
+): OrgUpdatesUiState {
+  switch (action.type) {
+    case "set_active_tab":
+      return { ...state, activeTab: action.value };
+    case "set_editing_post":
+      return { ...state, editingPost: action.value };
+    case "open_delete_dialog":
+      return {
+        ...state,
+        postToDelete: action.postId,
+        deleteDialogOpen: true,
+      };
+    case "close_delete_dialog":
+      return {
+        ...state,
+        deleteDialogOpen: false,
+        postToDelete: null,
+      };
+    case "set_settings_open":
+      return { ...state, settingsOpen: action.value };
+    default:
+      return state;
+  }
+}
+
+function OrgUpdatesHeaderSection({
+  onOpenSettings,
+}: {
+  onOpenSettings: () => void;
+}) {
+  return (
+    <PageHeader
+      title={`${brandConfig.name} Updates`}
+      description="Share announcements and updates with your supporters."
+    >
+      <Link href="/mc/feed">
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-9 gap-2 rounded-xl font-medium"
+        >
+          <Eye className="h-4 w-4" />
+          <span className="hidden sm:inline">Moderation</span>
+        </Button>
+      </Link>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={onOpenSettings}
+        className="h-9 gap-2 rounded-xl font-medium"
+      >
+        <Settings className="h-4 w-4" />
+        <span className="hidden sm:inline">Settings</span>
+      </Button>
+    </PageHeader>
+  );
+}
+
+function OrgUpdatesTabsSection({
+  activeTab,
+  drafts,
+  posts,
+  isLoading,
+  lastSynced,
+  onTabChange,
+  onEdit,
+  onDelete,
+  onTogglePin,
+}: {
+  activeTab: PostStatus;
+  drafts: OrgPost[];
+  posts: OrgPost[];
+  isLoading: boolean;
+  lastSynced: string | null;
+  onTabChange: (value: PostStatus) => void;
+  onEdit: (post: OrgPost) => void;
+  onDelete: (postId: string) => void;
+  onTogglePin: (postId: string) => void;
+}) {
+  return (
+    <Tabs
+      defaultValue="published"
+      value={activeTab}
+      onValueChange={(value) => onTabChange(value as PostStatus)}
+      className="w-full"
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35 }}
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3 sm:gap-0"
+      >
+        <TabsList className="bg-muted/50 p-1 rounded-xl h-auto border backdrop-blur-sm">
+          <TabsTrigger
+            value="published"
+            className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all"
+          >
+            Published
+          </TabsTrigger>
+          <TabsTrigger
+            value="draft"
+            className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all flex items-center gap-2"
+          >
+            Drafts
+            <AnimatePresence>
+              {drafts.length > 0 && (
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  transition={springTransition}
+                >
+                  <Badge className="bg-primary text-primary-foreground border-none h-4 px-1 text-[8px] font-semibold">
+                    {drafts.length}
+                  </Badge>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </TabsTrigger>
+        </TabsList>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
+        >
+          <Clock className="h-3.5 w-3.5" />
+          {lastSynced ? `Last synced: ${lastSynced}` : "Syncing..."}
+        </motion.div>
+      </motion.div>
+
+      <TabsContent value="published" className="mt-0">
+        <LayoutGroup>
+          <motion.div layout className="space-y-6 sm:space-y-8">
+            <AnimatePresence mode="popLayout">
+              {isLoading ? (
+                <LoadingState />
+              ) : posts.length > 0 ? (
+                posts.map((post, index) => (
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    index={index}
+                    onEdit={() => onEdit(post)}
+                    onDelete={() => onDelete(post.id)}
+                    onTogglePin={() => onTogglePin(post.id)}
+                  />
+                ))
+              ) : (
+                <EmptyState
+                  icon={Send}
+                  title="No organization updates yet"
+                  description="Create your first update to reach all supporters."
+                />
+              )}
+            </AnimatePresence>
+          </motion.div>
+        </LayoutGroup>
+      </TabsContent>
+
+      <TabsContent value="draft" className="mt-0">
+        <LayoutGroup>
+          <motion.div layout className="space-y-4 sm:space-y-6">
+            <AnimatePresence mode="popLayout">
+              {drafts.length > 0 ? (
+                drafts.map((draft, index) => (
+                  <DraftCard
+                    key={draft.id}
+                    draft={draft}
+                    index={index}
+                    onEdit={() => onEdit(draft)}
+                    onDelete={() => onDelete(draft.id)}
+                  />
+                ))
+              ) : (
+                <EmptyState
+                  icon={Save}
+                  title="No drafts yet"
+                  description="Drafts let you perfect updates before sharing."
+                />
+              )}
+            </AnimatePresence>
+          </motion.div>
+        </LayoutGroup>
+      </TabsContent>
+    </Tabs>
+  );
+}
+
 export default function OrgUpdatesPage() {
   const [posts, setPosts] = useState<OrgPost[]>(MOCK_ORG_POSTS);
   const [drafts, setDrafts] = useState<OrgPost[]>(MOCK_DRAFTS);
-  const [activeTab, setActiveTab] = useState<PostStatus>("published");
-  const [isLoading, setIsLoading] = useState(false);
-  const [editingPost, setEditingPost] = useState<OrgPost | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [postToDelete, setPostToDelete] = useState<string | null>(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [ui, dispatchUi] = useReducer(
+    orgUpdatesUiReducer,
+    INITIAL_ORG_UPDATES_UI_STATE,
+  );
+  const {
+    activeTab,
+    editingPost,
+    deleteDialogOpen,
+    postToDelete,
+    settingsOpen,
+  } = ui;
+  const isLoading = false;
   const lastSynced = useLastSynced();
 
   const handleSavePost = useCallback(
@@ -1077,20 +1448,19 @@ export default function OrgUpdatesPage() {
           setPosts((prev) => [newPost, ...prev]);
         }
       }
-      setEditingPost(null);
+      dispatchUi({ type: "set_editing_post", value: null });
     },
     [editingPost],
   );
 
   const handleEdit = (post: OrgPost) => {
-    setEditingPost(post);
+    dispatchUi({ type: "set_editing_post", value: post });
     window.scrollTo({ top: 0, behavior: "smooth" });
     toast.info("Editing post...");
   };
 
   const handleDelete = (postId: string) => {
-    setPostToDelete(postId);
-    setDeleteDialogOpen(true);
+    dispatchUi({ type: "open_delete_dialog", postId });
   };
 
   const confirmDelete = () => {
@@ -1099,8 +1469,7 @@ export default function OrgUpdatesPage() {
       setDrafts((prev) => prev.filter((p) => p.id !== postToDelete));
       toast.success("Post deleted");
     }
-    setDeleteDialogOpen(false);
-    setPostToDelete(null);
+    dispatchUi({ type: "close_delete_dialog" });
   };
 
   const handleTogglePin = (postId: string) => {
@@ -1118,150 +1487,49 @@ export default function OrgUpdatesPage() {
       transition={{ duration: 0.3 }}
       className="max-w-[1200px] mx-auto pb-20"
     >
-      <PageHeader
-        title={`${brandConfig.name} Updates`}
-        description="Share announcements and updates with your supporters."
-      >
-        <Link href="/mc/feed">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9 gap-2 rounded-xl font-medium"
-          >
-            <Eye className="h-4 w-4" />
-            <span className="hidden sm:inline">Moderation</span>
-          </Button>
-        </Link>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setSettingsOpen(true)}
-          className="h-9 gap-2 rounded-xl font-medium"
-        >
-          <Settings className="h-4 w-4" />
-          <span className="hidden sm:inline">Settings</span>
-        </Button>
-      </PageHeader>
+      <OrgUpdatesHeaderSection
+        onOpenSettings={() =>
+          dispatchUi({ type: "set_settings_open", value: true })
+        }
+      />
 
       <div className="space-y-6 sm:space-y-8 lg:space-y-10">
         <ComposeCard
           onSave={handleSavePost}
           editingPost={editingPost}
-          onCancelEdit={() => setEditingPost(null)}
+          onCancelEdit={() =>
+            dispatchUi({ type: "set_editing_post", value: null })
+          }
         />
 
-        <Tabs
-          defaultValue="published"
-          value={activeTab}
-          onValueChange={(v) => setActiveTab(v as PostStatus)}
-          className="w-full"
-        >
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35 }}
-            className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3 sm:gap-0"
-          >
-            <TabsList className="bg-muted/50 p-1 rounded-xl h-auto border backdrop-blur-sm">
-              <TabsTrigger
-                value="published"
-                className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all"
-              >
-                Published
-              </TabsTrigger>
-              <TabsTrigger
-                value="draft"
-                className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all flex items-center gap-2"
-              >
-                Drafts
-                <AnimatePresence>
-                  {drafts.length > 0 && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      exit={{ scale: 0 }}
-                      transition={springTransition}
-                    >
-                      <Badge className="bg-primary text-primary-foreground border-none h-4 px-1 text-[8px] font-semibold">
-                        {drafts.length}
-                      </Badge>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </TabsTrigger>
-            </TabsList>
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
-            >
-              <Clock className="h-3.5 w-3.5" />
-              {lastSynced ? `Last synced: ${lastSynced}` : "Syncing..."}
-            </motion.div>
-          </motion.div>
-
-          <TabsContent value="published" className="mt-0">
-            <LayoutGroup>
-              <motion.div layout className="space-y-6 sm:space-y-8">
-                <AnimatePresence mode="popLayout">
-                  {isLoading ? (
-                    <LoadingState />
-                  ) : posts.length > 0 ? (
-                    posts.map((post, index) => (
-                      <PostCard
-                        key={post.id}
-                        post={post}
-                        index={index}
-                        onEdit={() => handleEdit(post)}
-                        onDelete={() => handleDelete(post.id)}
-                        onTogglePin={() => handleTogglePin(post.id)}
-                      />
-                    ))
-                  ) : (
-                    <EmptyState
-                      icon={Send}
-                      title="No organization updates yet"
-                      description="Create your first update to reach all supporters."
-                    />
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            </LayoutGroup>
-          </TabsContent>
-
-          <TabsContent value="draft" className="mt-0">
-            <LayoutGroup>
-              <motion.div layout className="space-y-4 sm:space-y-6">
-                <AnimatePresence mode="popLayout">
-                  {drafts.length > 0 ? (
-                    drafts.map((draft, index) => (
-                      <DraftCard
-                        key={draft.id}
-                        draft={draft}
-                        index={index}
-                        onEdit={() => handleEdit(draft)}
-                        onDelete={() => handleDelete(draft.id)}
-                      />
-                    ))
-                  ) : (
-                    <EmptyState
-                      icon={Save}
-                      title="No drafts yet"
-                      description="Drafts let you perfect updates before sharing."
-                    />
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            </LayoutGroup>
-          </TabsContent>
-        </Tabs>
+        <OrgUpdatesTabsSection
+          activeTab={activeTab}
+          drafts={drafts}
+          posts={posts}
+          isLoading={isLoading}
+          lastSynced={lastSynced}
+          onTabChange={(value) => dispatchUi({ type: "set_active_tab", value })}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onTogglePin={handleTogglePin}
+        />
       </div>
 
-      <FeedSettingsSheet open={settingsOpen} onOpenChange={setSettingsOpen} />
+      <FeedSettingsSheet
+        open={settingsOpen}
+        onOpenChange={(open) =>
+          dispatchUi({ type: "set_settings_open", value: open })
+        }
+      />
 
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            dispatchUi({ type: "close_delete_dialog" });
+          }
+        }}
+      >
         <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Update?</AlertDialogTitle>

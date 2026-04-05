@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     display_name TEXT,
     phone TEXT,
     avatar_url TEXT,
-    role TEXT DEFAULT 'donor', -- 'admin', 'missionary', 'donor'
+    role TEXT NOT NULL DEFAULT 'donor' CHECK (role IN ('admin', 'staff', 'super_admin', 'missionary', 'donor', 'finance', 'fundraising', 'mobilizers', 'member_care', 'events', 'delivery', 'ticketing', 'machinery')),
     tenant_id UUID REFERENCES public.tenants(id),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -130,6 +130,7 @@ CREATE TABLE IF NOT EXISTS public.posts (
     status TEXT DEFAULT 'published',
     like_count INTEGER DEFAULT 0,
     prayer_count INTEGER DEFAULT 0,
+    fires_count INTEGER DEFAULT 0,
     comment_count INTEGER DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -404,6 +405,30 @@ BEGIN
 END;
 $function$;
 
+CREATE OR REPLACE FUNCTION public.increment_post_fire_count(post_id UUID)
+RETURNS void
+LANGUAGE plpgsql
+AS $function$
+BEGIN
+  UPDATE public.posts
+  SET fires_count = COALESCE(fires_count, 0) + 1,
+      updated_at = NOW()
+  WHERE id = post_id;
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.decrement_post_fire_count(post_id UUID)
+RETURNS void
+LANGUAGE plpgsql
+AS $function$
+BEGIN
+  UPDATE public.posts
+  SET fires_count = GREATEST(COALESCE(fires_count, 0) - 1, 0),
+      updated_at = NOW()
+  WHERE id = post_id;
+END;
+$function$;
+
 CREATE OR REPLACE FUNCTION public.increment_post_comment_count(post_id UUID)
 RETURNS void
 LANGUAGE plpgsql
@@ -411,6 +436,18 @@ AS $function$
 BEGIN
   UPDATE public.posts
   SET comment_count = COALESCE(comment_count, 0) + 1,
+      updated_at = NOW()
+  WHERE id = post_id;
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.decrement_post_comment_count(post_id UUID)
+RETURNS void
+LANGUAGE plpgsql
+AS $function$
+BEGIN
+  UPDATE public.posts
+  SET comment_count = GREATEST(COALESCE(comment_count, 0) - 1, 0),
       updated_at = NOW()
   WHERE id = post_id;
 END;
@@ -492,7 +529,7 @@ BEGIN
       TRIM(CONCAT(new.raw_user_meta_data->>'first_name', ' ', new.raw_user_meta_data->>'last_name'))
     ),
     new.raw_user_meta_data->>'avatar_url',
-    COALESCE(new.raw_user_meta_data->>'role', 'donor'),
+    'donor',
     COALESCE((new.raw_app_meta_data->>'tenant_id')::uuid, '00000000-0000-0000-0000-000000000001'::uuid)
   );
   RETURN new;

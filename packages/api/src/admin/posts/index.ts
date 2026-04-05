@@ -1,10 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
 import {
   getAuthContext,
   requireRole,
   type AuthenticatedContext,
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
+import { type NextRequest, NextResponse } from "next/server";
+
+import { toErrorResponse } from "../../shared/http-errors";
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,7 +16,7 @@ export async function GET(request: NextRequest) {
     }
 
     const auth = await getAuthContext();
-    requireRole(auth, ["admin", "super_admin"]);
+    requireRole(auth, ["staff", "admin", "super_admin"]);
     const ctx = auth as AuthenticatedContext;
 
     const { searchParams } = new URL(request.url);
@@ -84,64 +86,11 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Internal error";
-    return NextResponse.json(
-      { error: message },
-      { status: message.includes("Forbidden") ? 403 : 500 },
-    );
+    return toErrorResponse(e);
   }
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
-    }
-
-    const auth = await getAuthContext();
-    requireRole(auth, ["admin", "super_admin"]);
-    const ctx = auth as AuthenticatedContext;
-
-    const body = await request.json();
-    const {
-      content,
-      media = [],
-      status = "published",
-      visibility = "public",
-      post_type = "Announcement",
-    } = body;
-
-    if (!content?.trim()) {
-      return NextResponse.json(
-        { error: "Content is required" },
-        { status: 400 },
-      );
-    }
-
-    const { data: post, error } = await supabaseAdmin
-      .from("posts")
-      .insert({
-        tenant_id: ctx.tenantId,
-        missionary_id: null,
-        content: content.trim(),
-        media,
-        status,
-        visibility,
-        post_type,
-      })
-      .select("*")
-      .single();
-
-    if (error)
-      return NextResponse.json({ error: error.message }, { status: 500 });
-
-    return NextResponse.json({ post }, { status: 201 });
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "Internal error";
-    return NextResponse.json(
-      { error: message },
-      { status: message.includes("Forbidden") ? 403 : 500 },
-    );
-  }
+/** Read-only demo: admin post creation disabled. */
+export async function POST(_request: NextRequest) {
+  return NextResponse.json({ error: "Read-only demo" }, { status: 403 });
 }

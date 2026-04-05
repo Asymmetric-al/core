@@ -1,9 +1,5 @@
-/* eslint-disable react-hooks/incompatible-library -- TanStack Table API is intentionally non-memoizable */
 "use client";
 
-import * as React from "react";
-import type { Context, InitialQueryBuilder, QueryBuilder } from "@tanstack/db";
-import { useQueryClient } from "@tanstack/react-query";
 import { useLiveQuery } from "@tanstack/react-db";
 import {
   type ColumnFiltersState,
@@ -21,75 +17,31 @@ import {
   type ColumnDef,
   type TableOptions,
 } from "@tanstack/react-table";
-import { Checkbox } from "../../checkbox";
+import * as React from "react";
+
+import { createEmptyFilterState, createAdvancedFilterFn } from "../filters";
+
 import type {
   AdvancedFilterState,
   FilterFieldDefinition,
 } from "../filters/types";
-import { createEmptyFilterState, createAdvancedFilterFn } from "../filters";
 
-type LiveQueryBuilder<TContext extends Context> = (
-  q: InitialQueryBuilder,
-) => QueryBuilder<TContext>;
-
-type RefetchableLiveQueryCollection = {
-  utils?: {
-    refetch?: () => Promise<void>;
-    lastError?: unknown;
+type LiveQueryBuilder<TData> = (q: {
+  from: (arg: Record<string, unknown>) => {
+    where: (fn: (args: unknown) => boolean) => unknown;
+    join: (
+      collection: Record<string, unknown>,
+      fn: (args: unknown) => boolean,
+    ) => unknown;
+    select: (fn: (args: unknown) => TData) => unknown;
+    orderBy: (fn: (args: unknown) => unknown, dir?: "asc" | "desc") => unknown;
   };
-  preload?: () => Promise<void>;
-};
+}) => unknown;
 
-export function resolveLiveQueryError(
-  isError: boolean,
-  status: string,
-  collection: RefetchableLiveQueryCollection | undefined,
-): Error | null {
-  if (!isError) return null;
-  const last = collection?.utils?.lastError;
-  if (last instanceof Error) return last;
-  if (last != null && typeof last === "object" && "message" in last) {
-    return new Error(String((last as { message: unknown }).message));
-  }
-  if (last != null) return new Error(String(last));
-  return new Error(`Live query error (${String(status)})`);
-}
-
-export async function refetchLiveQuerySource({
-  collection,
-  invalidateQuery,
-}: {
-  collection?: RefetchableLiveQueryCollection;
-  invalidateQuery?: () => Promise<void>;
-}): Promise<void> {
-  const collectionRefetch = collection?.utils?.refetch;
-  if (typeof collectionRefetch === "function") {
-    await collectionRefetch();
-    return;
-  }
-
-  if (invalidateQuery) {
-    await invalidateQuery();
-    return;
-  }
-
-  const preload = collection?.preload;
-  if (typeof preload === "function") {
-    await preload();
-  }
-}
-
-interface UseDataTableWithLiveQueryOptions<
-  TData,
-  TValue,
-  TContext extends Context = Context,
-> {
+interface UseDataTableWithLiveQueryOptions<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
-  queryBuilder: LiveQueryBuilder<TContext>;
-  /** When set, `refetch()` invalidates these keys (must match query-db `queryKey` for source collections). */
+  queryBuilder: LiveQueryBuilder<TData>;
   queryKey?: string[];
-  /** Dependencies forwarded to `useLiveQuery` so the query re-runs when inputs change. */
-  liveQueryDeps?: unknown[];
   advancedFilterFields?: FilterFieldDefinition[];
   initialState?: {
     pagination?: PaginationState;
@@ -117,8 +69,6 @@ interface UseDataTableWithLiveQueryReturn<TData> {
   data: TData[];
   isLoading: boolean;
   error: Error | null;
-  /** TanStack DB collection status string (e.g. ready, error). */
-  liveQueryStatus: string;
   rowSelection: RowSelectionState;
   setRowSelection: React.Dispatch<React.SetStateAction<RowSelectionState>>;
   sorting: SortingState;
@@ -134,18 +84,12 @@ interface UseDataTableWithLiveQueryReturn<TData> {
   totalRows: number;
   selectedRows: TData[];
   clearSelection: () => void;
-  refetch: () => Promise<void>;
+  refetch: () => void;
 }
 
-export function useDataTableWithLiveQuery<
-  TData,
-  TValue = unknown,
-  TContext extends Context = Context,
->({
+export function useDataTableWithLiveQuery<TData, TValue = unknown>({
   columns,
   queryBuilder,
-  queryKey,
-  liveQueryDeps,
   initialState = {},
   enableRowSelection = true,
   enableMultiRowSelection = true,
@@ -160,10 +104,8 @@ export function useDataTableWithLiveQuery<
   onAdvancedFilterChange,
 }: UseDataTableWithLiveQueryOptions<
   TData,
-  TValue,
-  TContext
+  TValue
 >): UseDataTableWithLiveQueryReturn<TData> {
-  const queryClient = useQueryClient();
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>(
     initialState.rowSelection ?? {},
   );
@@ -183,26 +125,22 @@ export function useDataTableWithLiveQuery<
       initialState.advancedFilter ?? createEmptyFilterState(),
     );
 
-  const { data, isLoading, isError, status, collection } = useLiveQuery(
-    queryBuilder as never,
-    liveQueryDeps ?? [],
+  const liveQueryResult = useLiveQuery(
+    queryBuilder as unknown as Parameters<typeof useLiveQuery>[0],
   );
 
   const rawData = React.useMemo(() => {
-    if (data === undefined || data === null) return [] as TData[];
+    const data = liveQueryResult?.data;
     if (Array.isArray(data)) return data as TData[];
-    return [data] as TData[];
-  }, [data]);
+    if (data) return [data] as TData[];
+    return [] as TData[];
+  }, [liveQueryResult?.data]);
 
-  const error = React.useMemo(
-    () =>
-      resolveLiveQueryError(
-        isError,
-        String(status),
-        collection as RefetchableLiveQueryCollection,
-      ),
-    [isError, status, collection],
-  );
+  const isLoading =
+    (liveQueryResult as { status?: string })?.status === "pending";
+  const error = (liveQueryResult as { isError?: boolean })?.isError
+    ? new Error("Query error")
+    : null;
 
   const advancedFilterFn = React.useMemo(() => {
     if (advancedFilter.conditions.length === 0) return null;
@@ -235,42 +173,9 @@ export function useDataTableWithLiveQuery<
     onAdvancedFilterChange?.(advancedFilter);
   }, [advancedFilter, onAdvancedFilterChange]);
 
-  const selectColumn = React.useMemo<ColumnDef<TData, unknown>>(
-    () => ({
-      id: "select",
-      header: ({ table }) =>
-        React.createElement(Checkbox, {
-          checked:
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate"),
-          onCheckedChange: (value) => table.toggleAllPageRowsSelected(!!value),
-          "aria-label": "Select all",
-          className: "translate-y-0.5",
-        }),
-      cell: ({ row }) =>
-        React.createElement(Checkbox, {
-          checked: row.getIsSelected(),
-          onCheckedChange: (value) => row.toggleSelected(!!value),
-          "aria-label": "Select row",
-          className: "translate-y-0.5",
-        }),
-      enableSorting: false,
-      enableHiding: false,
-      size: 40,
-    }),
-    [],
-  );
-
-  const tableColumns = React.useMemo(() => {
-    if (enableRowSelection) {
-      return [selectColumn, ...columns];
-    }
-    return columns;
-  }, [columns, enableRowSelection, selectColumn]);
-
   const tableOptions: TableOptions<TData> = {
     data: filteredData,
-    columns: tableColumns,
+    columns,
     state: {
       sorting,
       columnVisibility,
@@ -307,24 +212,13 @@ export function useDataTableWithLiveQuery<
     setRowSelection({});
   }, []);
 
-  const refetch = React.useCallback(async () => {
-    await refetchLiveQuerySource({
-      collection: collection as RefetchableLiveQueryCollection | undefined,
-      invalidateQuery:
-        queryKey && queryKey.length > 0
-          ? async () => {
-              await queryClient.invalidateQueries({ queryKey });
-            }
-          : undefined,
-    });
-  }, [queryClient, queryKey, collection]);
+  const refetch = React.useCallback(() => {}, []);
 
   return {
     table,
     data: filteredData,
     isLoading,
-    error,
-    liveQueryStatus: String(status),
+    error: error as Error | null,
     rowSelection,
     setRowSelection,
     sorting,
@@ -342,4 +236,36 @@ export function useDataTableWithLiveQuery<
     clearSelection,
     refetch,
   };
+}
+
+interface UseDataTableWithSupabaseOptions<TData, TValue> {
+  columns: ColumnDef<TData, TValue>[];
+  tableName: string;
+  select?: string;
+  initialState?: {
+    pagination?: PaginationState;
+    sorting?: SortingState;
+    columnFilters?: ColumnFiltersState;
+    columnVisibility?: VisibilityState;
+    rowSelection?: RowSelectionState;
+    advancedFilter?: AdvancedFilterState;
+  };
+  advancedFilterFields?: FilterFieldDefinition[];
+  enableRowSelection?: boolean;
+  enableSorting?: boolean;
+  enableFiltering?: boolean;
+  enablePagination?: boolean;
+  pageSize?: number;
+  getRowId?: (row: TData) => string;
+  realtimeEnabled?: boolean;
+  realtimeEvent?: "INSERT" | "UPDATE" | "DELETE" | "*";
+}
+
+export function useDataTableWithSupabase<TData, TValue = unknown>(
+  _options: UseDataTableWithSupabaseOptions<TData, TValue>,
+) {
+  console.warn(
+    "useDataTableWithSupabase is deprecated. Use useDataTableWithLiveQuery with TanStack DB collections instead.",
+  );
+  return null;
 }

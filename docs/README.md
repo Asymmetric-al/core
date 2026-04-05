@@ -17,6 +17,7 @@ Organized documentation for developers working on this project:
 
 #### **Development**
 
+- **[TypeScript 6 / 7 readiness](./guides/typescript-6-readiness.md)** - Prep policy for future TypeScript upgrades (not the upgrade itself)
 - **[Getting Started](./guides/development/getting-started.md)** - Development setup, workflow, and best practices
 - **[Contributing Guide](./guides/development/contributing.md)** - How to contribute to the project
 - **[Mock Data Guide](./guides/development/mock-data.md)** - Working with mock data and seeding
@@ -29,7 +30,7 @@ Organized documentation for developers working on this project:
 - **[PDF Studio](./guides/features/pdf-studio.md)** - Document/PDF editor for receipts and statements
 - **[Care Hub](./guides/features/care-hub.md)** - Member care and personnel management
 - **[Teams & Permissions](./guides/features/teams-and-permissions.md)** - Access control and team management
-- **[SendGrid Integration](./guides/features/sendgrid-integration.md)** - Email delivery service integration
+- **[Resend Integration](./guides/features/resend-integration.md)** - Email delivery service integration
 
 #### **UI & Design**
 
@@ -53,7 +54,7 @@ AI-generated documentation following the naming convention `YYYY-MM-DD-HH-MM_{sh
 
 Configuration and rules for AI coding assistants:
 
-- **`rules/`** - AI agent rules (general, frontend, backend, testing)
+- **`rules/`** - AI agent rules (general, frontend, backend, testing, TypeScript future-proofing)
 - **`skills/`** - AI agent skills for specific technologies
 - **`stack-registry.md`** - Technology stack registry
 - **`working-set.md`** - Current work context
@@ -80,7 +81,7 @@ Configuration and rules for AI coding assistants:
 ### For Feature Setup
 
 1. **Email/PDF Studio:** See **[Email Studio](./guides/features/email-studio.md)** or **[PDF Studio](./guides/features/pdf-studio.md)**
-2. **SendGrid:** See **[SendGrid Integration](./guides/features/sendgrid-integration.md)**
+2. **Resend:** See **[Resend Integration](./guides/features/resend-integration.md)**
 3. **Teams:** See **[Teams & Permissions](./guides/features/teams-and-permissions.md)**
 
 ---

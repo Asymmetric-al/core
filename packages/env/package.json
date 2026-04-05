@@ -1,0 +1,21 @@
+{
+  "name": "@asym/env",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@t3-oss/env-nextjs": "^0.13.10",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@asym/typescript-config": "workspace:*"
+  }
+}

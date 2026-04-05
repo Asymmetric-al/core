@@ -1,7 +1,22 @@
 "use client";
 
-import * as React from "react";
-import { motion } from "motion/react";
+import { motion } from "@asym/lib/motion";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { cn } from "@asym/ui/lib/utils";
 import {
   MoreHorizontal,
   Pencil,
@@ -11,30 +26,16 @@ import {
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@asym/ui/lib/utils";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@asym/ui/components/shadcn/dropdown-menu";
-import type { Task } from "@/lib/missionary/types";
+import * as React from "react";
+
 import {
   TASK_TYPE_CONFIG,
   PRIORITY_CONFIG,
-  STATUS_CONFIG,
   getDueDateStatus,
   smoothTransition,
 } from "./task-config";
+
+import type { Task } from "../../types";
 
 interface TaskRowProps {
   task: Task;
@@ -53,7 +54,6 @@ export function TaskRow({
 }: TaskRowProps) {
   const typeConfig = TASK_TYPE_CONFIG[task.task_type];
   const priorityConfig = PRIORITY_CONFIG[task.priority];
-  STATUS_CONFIG[task.status];
   const dueDateStatus = getDueDateStatus(task.due_date);
   const isCompleted = task.status === "completed";
   const Icon = typeConfig.icon;

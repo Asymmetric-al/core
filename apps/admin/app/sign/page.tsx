@@ -1,7 +1,7 @@
 "use client";
 
-import { TilePage } from "@/features/mission-control/components/tiles/tile-page";
 import { getTileById } from "@asym/lib/mission-control/tiles";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -9,17 +9,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
-import { Button } from "@asym/ui/components/shadcn/button";
-import Link from "next/link";
-import {
-  PenTool,
-  FileText,
-  Send,
-  CheckCircle,
-  Search,
-  Download,
-} from "lucide-react";
 import { Input } from "@asym/ui/components/shadcn/input";
+import { FileText, Send, CheckCircle, Search, Download } from "lucide-react";
+import Link from "next/link";
+
+import { TilePage } from "@/features/mission-control/components/tiles/tile-page";
 
 export default function SignStudioPage() {
   const tile = getTileById("sign")!;

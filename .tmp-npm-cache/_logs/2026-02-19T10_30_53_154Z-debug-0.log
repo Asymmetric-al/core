@@ -1,0 +1,31 @@
+0 verbose cli C:\Program Files\nodejs\node.exe C:\Program Files\nodejs\node_modules\npm\bin\npm-cli.js
+1 info using npm@11.6.2
+2 info using node@v24.11.1
+3 silly config load:file:C:\Program Files\nodejs\node_modules\npm\npmrc
+4 silly config load:file:C:\Users\Conrad\.cursor\projects\core\core\.npmrc
+5 silly config load:file:C:\Users\Conrad\.npmrc
+6 silly config load:file:C:\Users\Conrad\AppData\Roaming\npm\etc\npmrc
+7 verbose title npm view @vitest/coverage-v8@2.1.9
+8 verbose argv "--cache" "C:\\Users\\Conrad\\.cursor\\projects\\core\\core\\.tmp-npm-cache" "--prefer-online" "view" "@vitest/coverage-v8@2.1.9" "--json"
+9 verbose logfile logs-max:10 dir:C:\Users\Conrad\.cursor\projects\core\core\.tmp-npm-cache\_logs\2026-02-19T10_30_53_154Z-
+10 verbose logfile C:\Users\Conrad\.cursor\projects\core\core\.tmp-npm-cache\_logs\2026-02-19T10_30_53_154Z-debug-0.log
+11 silly logfile done cleaning log files
+12 http fetch GET https://registry.npmjs.org/npm attempt 1 failed with ECONNREFUSED
+13 verbose stack Error: request to https://registry.npmjs.org/@vitest%2fcoverage-v8 failed: cache mode is 'only-if-cached' but no cached response is available.
+13 verbose stack     at cacheFetch (C:\Program Files\nodejs\node_modules\npm\node_modules\make-fetch-happen\lib\cache\index.js:12:13)
+13 verbose stack     at async fetch (C:\Program Files\nodejs\node_modules\npm\node_modules\make-fetch-happen\lib\fetch.js:98:7)
+13 verbose stack     at async RegistryFetcher.packument (C:\Program Files\nodejs\node_modules\npm\node_modules\pacote\lib\registry.js:90:19)
+13 verbose stack     at async #getData (C:\Program Files\nodejs\node_modules\npm\lib\commands\view.js:135:20)
+13 verbose stack     at async #viewPackage (C:\Program Files\nodejs\node_modules\npm\lib\commands\view.js:112:28)
+13 verbose stack     at async View.exec (C:\Program Files\nodejs\node_modules\npm\lib\commands\view.js:70:5)
+13 verbose stack     at async Npm.exec (C:\Program Files\nodejs\node_modules\npm\lib\npm.js:208:9)
+13 verbose stack     at async module.exports (C:\Program Files\nodejs\node_modules\npm\lib\cli\entry.js:67:5)
+14 error code ENOTCACHED
+15 error request to https://registry.npmjs.org/@vitest%2fcoverage-v8 failed: cache mode is 'only-if-cached' but no cached response is available.
+16 verbose cwd C:\Users\Conrad\.cursor\projects\core\core
+17 verbose os Windows_NT 10.0.26200
+18 verbose node v24.11.1
+19 verbose npm  v11.6.2
+20 verbose exit 1
+21 verbose code 1
+22 error A complete log of this run can be found in: C:\Users\Conrad\.cursor\projects\core\core\.tmp-npm-cache\_logs\2026-02-19T10_30_53_154Z-debug-0.log

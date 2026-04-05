@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import type { ColumnFiltersState } from "@tanstack/react-table";
+
 import {
   type AdvancedFilterState,
   type FilterCondition,
@@ -11,6 +11,8 @@ import {
   serializeFilter,
   deserializeFilter,
 } from "./types";
+
+import type { ColumnFiltersState } from "@tanstack/react-table";
 
 export interface UseAdvancedFilterOptions {
   fields: FilterFieldDefinition[];

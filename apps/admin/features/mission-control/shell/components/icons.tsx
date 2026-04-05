@@ -1,7 +1,5 @@
-/* eslint-disable react-hooks/static-components */
 "use client";
 
-import React, { lazy, Suspense, useMemo } from "react";
 import {
   type LucideProps,
   type LucideIcon,
@@ -60,6 +58,7 @@ import {
   Printer,
 } from "lucide-react";
 import dynamicIconImports from "lucide-react/dynamicIconImports";
+import React, { lazy, Suspense, useMemo } from "react";
 
 // Helper to convert PascalCase to kebab-case for lucide-react/dynamicIconImports
 function pascalToKebab(str: string): string {
@@ -70,6 +69,17 @@ interface DynamicIconProps extends Omit<LucideProps, "ref" | "name"> {
   name: string | LucideIcon;
   fallback?: React.ReactNode;
 }
+
+type DynamicImportName = keyof typeof dynamicIconImports;
+const LAZY_ICON_MAP = new Map<
+  DynamicImportName,
+  React.LazyExoticComponent<React.ComponentType<LucideProps>>
+>(
+  (Object.keys(dynamicIconImports) as DynamicImportName[]).map((iconName) => [
+    iconName,
+    lazy(dynamicIconImports[iconName]),
+  ]),
+);
 
 export function DynamicIcon({ name, fallback, ...props }: DynamicIconProps) {
   const kebabName = useMemo(() => {
@@ -85,11 +95,9 @@ export function DynamicIcon({ name, fallback, ...props }: DynamicIconProps) {
       return converted as keyof typeof dynamicIconImports;
     return null;
   }, [name]);
-
-  const LucideIcon = useMemo(() => {
-    if (!kebabName) return null;
-    return lazy(dynamicIconImports[kebabName]);
-  }, [kebabName]);
+  const lazyIconComponent = kebabName
+    ? (LAZY_ICON_MAP.get(kebabName) ?? null)
+    : null;
 
   // If name is already an icon component, render it directly
   if (typeof name === "function") {
@@ -97,9 +105,11 @@ export function DynamicIcon({ name, fallback, ...props }: DynamicIconProps) {
     return <IconComponent {...props} />;
   }
 
-  if (!LucideIcon) {
+  if (!lazyIconComponent) {
     return <Settings {...props} />;
   }
+
+  const lazyIconElement = React.createElement(lazyIconComponent, props);
 
   return (
     <Suspense
@@ -109,7 +119,7 @@ export function DynamicIcon({ name, fallback, ...props }: DynamicIconProps) {
         )
       }
     >
-      <LucideIcon {...props} />
+      {lazyIconElement}
     </Suspense>
   );
 }

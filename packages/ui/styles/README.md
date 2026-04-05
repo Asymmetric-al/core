@@ -1,84 +1,32 @@
 # @asym/ui Styles
 
-This directory contains the shared theme and styles for the @asym/ui package.
+This directory contains the shared Tailwind v4 CSS-first design token stylesheet for the `@asym/ui` package.
 
 ## Files
 
-### `theme.css`
-
-The core Maia theme (Soft & Rounded) with Zinc aesthetic. This file contains:
-
-- **CSS Variables**: All color tokens, spacing, and design system variables
-- **Light Theme**: Default light mode colors using OKLCH color space
-- **Dark Theme**: Dark mode colors with `.dark` class
-- **Responsive Breakpoints**: Adaptive spacing and sizing for mobile, tablet, and desktop
-- **Base Styles**: Scrollbar styling, focus states, and touch target sizing
-- **Utility Classes**: Container and responsive utilities
+| File          | Purpose                                                                                                                                 |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `globals.css` | Single source of truth for all design tokens, Maia theme, Zinc palette, `@theme inline` mappings, base styles, and responsive utilities |
 
 ## Usage in Apps
 
-### Tailwind CSS v4 (Current)
-
-Import the theme in your app's `globals.css`:
-
 ```css
-@import "tailwindcss";
-@import "@asym/ui/styles/theme.css";
+/* app/globals.css */
+@import "@asym/ui/styles/globals.css";
+
+/* Add app-specific @source directives below */
+@source "../../**/*.{js,ts,jsx,tsx,mdx}";
 ```
 
-### Tailwind CSS v3 (Legacy)
+## Token Categories
 
-If using Tailwind v3, you'll need to convert the CSS variables to a `tailwind.config.js` preset.
+- **Colors**: semantic (`--primary`, `--background`, etc.), card/popover, sidebar, charts - all OKLCH, Zinc palette
+- **Radius**: `--radius` base (1rem) + sm/md/lg/xl/2xl variants
+- **Fonts**: `--font-sans` (Inter), `--font-mono` (Geist Mono)
+- **Spacing**: `--space-*` scale + responsive gap/container/touch-target variables
+- **Dark mode**: `.dark` class toggles all color tokens; `color-scheme` is set automatically
 
-## Theme Colors
+## Rules
 
-The theme uses OKLCH color space for perceptually uniform colors:
-
-- **Primary**: Deep zinc (265° hue)
-- **Secondary**: Light zinc
-- **Muted**: Subtle zinc
-- **Accent**: Soft zinc
-- **Destructive**: Warm red (25° hue)
-- **Charts**: 5 distinct colors for data visualization
-
-## Responsive System
-
-The theme includes a comprehensive responsive design system:
-
-- **Breakpoints**: sm (640px), md (768px), lg (1024px), xl (1280px), 2xl (1536px)
-- **Container**: Max-width 1600px with responsive padding
-- **Spacing**: Adaptive gaps and section spacing
-- **Touch Targets**: 44px minimum (Apple HIG), 48px recommended (Material Design)
-
-## Border Radius
-
-The theme uses a soft, rounded aesthetic:
-
-- **Base**: `--radius: 1rem` (16px)
-- **Variants**: sm, md, lg, xl, 2xl (calculated from base)
-
-## Customization
-
-To customize the theme in your app:
-
-1. Override CSS variables in your app's `globals.css`
-2. Add app-specific utilities in `@layer utilities`
-3. Extend the theme with additional colors or spacing
-
-Example:
-
-```css
-@import "@asym/ui/styles/theme.css";
-
-:root {
-  /* Override primary color */
-  --primary: oklch(0.3 0.1 220);
-}
-
-@layer utilities {
-  .app-specific-class {
-    /* Your custom utilities */
-  }
-}
-```
-
+- Apps **may** add `@source` directives and layout utilities in `@layer utilities`
+- Apps **may NOT** add theme primitives (colors, radii, fonts, spacing scale) - edit `globals.css` instead and follow the process in `packages/ui/README.md`

@@ -1,8 +1,10 @@
 "use client";
 
-import * as React from "react";
 import { AlertCircle, Inbox, RefreshCcw } from "lucide-react";
+import * as React from "react";
+
 import { cn } from "@asym/ui/lib/utils";
+
 import { Button } from "../button";
 import { DataTable } from "../data-table";
 import { DataTableSkeleton } from "./data-table-skeleton";
@@ -13,8 +15,9 @@ import {
   EmptyDescription,
   EmptyMedia,
 } from "../empty";
-import type { ColumnDef } from "@tanstack/react-table";
+
 import type { DataTableFilterField, DataTableConfig } from "./types";
+import type { ColumnDef } from "@tanstack/react-table";
 
 interface DataTableWrapperProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];

@@ -35,3 +35,17 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated and auxiliary agent artifacts
+.tmp
+.agent
+.agents
+.next-docs
+.nia-sync
+.traycer
+~
+vendor/payload-upstream
+
+# keep command docs but skip bundled skill libraries
+.cursor/skills
+.cursor/mcp.json

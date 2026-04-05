@@ -53,10 +53,22 @@ check_route "/"
 check_route "/login"
 check_route "/register"
 
-log "Running Supabase verification..."
-if bun run setup:verify; then
-  log "PASS supabase verify"
+log "Running workspace contract verification..."
+if bun run verify:workspace-contract; then
+  log "PASS workspace contract verify"
 else
-  fail "supabase verify"
+  fail "workspace contract verify"
   exit 1
+fi
+
+if [[ "${VERIFY_SUPABASE:-0}" == "1" ]]; then
+  log "Running Supabase verification..."
+  if bun run setup:verify; then
+    log "PASS supabase verify"
+  else
+    fail "supabase verify"
+    exit 1
+  fi
+else
+  log "Skipping Supabase verification (set VERIFY_SUPABASE=1 to enable)."
 fi

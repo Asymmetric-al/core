@@ -1,26 +1,20 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
 import { Trash2Icon } from "lucide-react";
+import { useCallback, useMemo } from "react";
+
 import { cn } from "@asym/ui/lib/utils";
-import { Button } from "../../button";
+
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../select";
+  FilterSelectInput,
+  FilterMultiSelectInput,
+} from "./filter-select-inputs";
 import {
   FilterTextInput,
   FilterNumberInput,
   FilterCurrencyInput,
   FilterDateInput,
 } from "./filter-value-inputs";
-import {
-  FilterSelectInput,
-  FilterMultiSelectInput,
-} from "./filter-select-inputs";
 import {
   type FilterCondition,
   type FilterFieldDefinition,
@@ -31,6 +25,14 @@ import {
   VALUE_LESS_OPERATORS,
   getDefaultValue,
 } from "./types";
+import { Button } from "../../button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../select";
 
 interface FilterRowProps {
   condition: FilterCondition;

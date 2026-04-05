@@ -76,7 +76,7 @@ export const DEFAULT_TASK_TAGS: TaskTag[] = [
   {
     id: "corporate-partner",
     label: "Corporate Partner",
-    color: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+    color: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
     category: "donor-relations",
   },
   {
@@ -283,7 +283,7 @@ export const DEFAULT_TASK_TAGS: TaskTag[] = [
   {
     id: "annual-report",
     label: "Annual Report",
-    color: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+    color: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
     category: "communications",
   },
 
@@ -297,7 +297,7 @@ export const DEFAULT_TASK_TAGS: TaskTag[] = [
   {
     id: "legal",
     label: "Legal",
-    color: "bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300",
+    color: "bg-zinc-200 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-300",
     category: "administrative",
   },
   {
@@ -378,7 +378,7 @@ export const DEFAULT_TASK_TAGS: TaskTag[] = [
   {
     id: "board",
     label: "Board",
-    color: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+    color: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
     category: "reporting",
   },
   {
@@ -466,7 +466,7 @@ export const DEFAULT_TASK_TAGS: TaskTag[] = [
   {
     id: "shipping",
     label: "Shipping",
-    color: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+    color: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
     category: "logistics",
   },
 

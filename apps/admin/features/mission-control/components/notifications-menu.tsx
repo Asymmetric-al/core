@@ -1,7 +1,5 @@
 "use client";
 
-import { memo, useMemo } from "react";
-import { Bell } from "lucide-react";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   DropdownMenu,
@@ -11,6 +9,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
+import { Bell } from "lucide-react";
+import { memo } from "react";
 
 interface Notification {
   id: string;
@@ -61,7 +61,7 @@ const NotificationItem = memo(function NotificationItem({
 });
 
 export const NotificationsMenu = memo(function NotificationsMenu() {
-  const notifications = useMemo(() => STUB_NOTIFICATIONS, []);
+  const notifications = STUB_NOTIFICATIONS;
 
   return (
     <DropdownMenu>
@@ -69,7 +69,7 @@ export const NotificationsMenu = memo(function NotificationsMenu() {
         <Button variant="ghost" size="icon" className="relative h-8 w-8">
           <Bell className="h-4 w-4" />
           <span className="absolute right-1 top-1 flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75 [@media(prefers-reduced-motion:reduce)]:animate-none" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
           </span>
         </Button>

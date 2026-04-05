@@ -1,11 +1,8 @@
-import * as React from "react";
-import { Phone, Mail, CheckSquare, UserPlus, Heart, Users } from "lucide-react";
 import { format, isToday, isPast, isTomorrow, isThisWeek } from "date-fns";
-import type {
-  TaskType,
-  TaskStatus,
-  TaskPriority,
-} from "@/lib/missionary/types";
+import { Phone, Mail, CheckSquare, UserPlus, Heart, Users } from "lucide-react";
+
+import type { TaskType, TaskStatus, TaskPriority } from "../../types";
+import type * as React from "react";
 
 export const springTransition = {
   type: "spring" as const,

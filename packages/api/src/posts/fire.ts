@@ -1,81 +1,84 @@
-import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@asym/database/supabase/server";
+import { type NextRequest, NextResponse } from "next/server";
+
+import {
+  revalidatePostReactionTags,
+  resolveReactionRouteContext,
+} from "./reaction-route-utils";
+import { ApiHttpError, toErrorResponse } from "../shared/http-errors";
 
 export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ postId: string }> },
 ) {
-  const supabase = await createClient();
-  const { postId } = await params;
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const supabase = await createClient();
+    const { postId, userId, tenantId } = await resolveReactionRouteContext(
+      supabase,
+      params,
+    );
 
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+    const { data, error } = await supabase.rpc("atomic_fire_post", {
+      p_post_id: postId,
+      p_user_id: userId,
+      p_tenant_id: tenantId,
+    });
 
-  const { error: fireError } = await supabase
-    .from("post_fires")
-    .insert({ post_id: postId, user_id: user.id });
-
-  if (fireError) {
-    if (fireError.code === "23505") {
-      return NextResponse.json({ error: "Already fired" }, { status: 409 });
+    if (error) {
+      if (error.code === "P0002") {
+        throw new ApiHttpError(404, "Post not found");
+      }
+      throw new ApiHttpError(500, "Failed to register fire reaction");
     }
-    return NextResponse.json({ error: fireError.message }, { status: 500 });
+
+    const result = (data ?? null) as { applied?: boolean } | null;
+    if (result?.applied) {
+      revalidatePostReactionTags({ postId, tenantId });
+    }
+
+    return NextResponse.json({
+      success: true,
+      applied: Boolean(result?.applied),
+    });
+  } catch (error) {
+    return toErrorResponse(error, "Failed to fire post");
   }
-
-  const { data: postData } = await supabase
-    .from("posts")
-    .select("fires_count")
-    .eq("id", postId)
-    .single();
-  const currentCount = postData?.fires_count ?? 0;
-
-  await supabase
-    .from("posts")
-    .update({ fires_count: currentCount + 1 })
-    .eq("id", postId);
-
-  return NextResponse.json({ success: true });
 }
 
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ postId: string }> },
 ) {
-  const supabase = await createClient();
-  const { postId } = await params;
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const supabase = await createClient();
+    const { postId, userId, tenantId } = await resolveReactionRouteContext(
+      supabase,
+      params,
+    );
 
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { data, error } = await supabase.rpc("atomic_unfire_post", {
+      p_post_id: postId,
+      p_user_id: userId,
+      p_tenant_id: tenantId,
+    });
+
+    if (error) {
+      if (error.code === "P0002") {
+        throw new ApiHttpError(404, "Post not found");
+      }
+      throw new ApiHttpError(500, "Failed to remove fire reaction");
+    }
+
+    const result = (data ?? null) as { applied?: boolean } | null;
+    if (result?.applied) {
+      revalidatePostReactionTags({ postId, tenantId });
+    }
+
+    return NextResponse.json({
+      success: true,
+      applied: Boolean(result?.applied),
+    });
+  } catch (error) {
+    return toErrorResponse(error, "Failed to remove fire reaction");
   }
-
-  const { error } = await supabase
-    .from("post_fires")
-    .delete()
-    .eq("post_id", postId)
-    .eq("user_id", user.id);
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  const { data: postData } = await supabase
-    .from("posts")
-    .select("fires_count")
-    .eq("id", postId)
-    .single();
-  const currentCount = postData?.fires_count ?? 0;
-
-  await supabase
-    .from("posts")
-    .update({ fires_count: Math.max(0, currentCount - 1) })
-    .eq("id", postId);
-
-  return NextResponse.json({ success: true });
 }

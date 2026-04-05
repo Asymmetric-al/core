@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, memo } from "react";
-import { Building2, ChevronsUpDown, Check } from "lucide-react";
+import { useMC } from "@asym/lib/mission-control/context";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Command,
@@ -17,7 +16,9 @@ import {
   PopoverTrigger,
 } from "@asym/ui/components/shadcn/popover";
 import { cn } from "@asym/ui/lib/utils";
-import { useMC } from "@asym/lib/mission-control/context";
+import { Building2, ChevronsUpDown, Check } from "lucide-react";
+import { useState, useCallback, memo, useId } from "react";
+
 import type { Tenant } from "@asym/lib/mission-control/types";
 
 const STUB_TENANTS: Tenant[] = [
@@ -30,10 +31,11 @@ const STUB_TENANTS: Tenant[] = [
 
 export const TenantSwitcher = memo(function TenantSwitcher() {
   const [open, setOpen] = useState(false);
+  const listboxId = useId();
   const { tenant } = useMC();
   const [selectedTenant, setSelectedTenant] = useState(tenant);
 
-  const tenants = useMemo(() => STUB_TENANTS, []);
+  const tenants = STUB_TENANTS;
 
   const handleSelect = useCallback((t: Tenant) => {
     setSelectedTenant(t);
@@ -47,6 +49,7 @@ export const TenantSwitcher = memo(function TenantSwitcher() {
           variant="outline"
           role="combobox"
           aria-expanded={open}
+          aria-controls={listboxId}
           className="h-9 w-48 justify-between"
         >
           <div className="flex items-center gap-2 truncate">
@@ -61,7 +64,7 @@ export const TenantSwitcher = memo(function TenantSwitcher() {
       <PopoverContent className="w-48 p-0">
         <Command>
           <CommandInput placeholder="Search tenant..." />
-          <CommandList>
+          <CommandList id={listboxId}>
             <CommandEmpty>No tenant found.</CommandEmpty>
             <CommandGroup>
               {tenants.map((t) => (

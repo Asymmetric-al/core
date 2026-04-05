@@ -1,7 +1,24 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import Image from "next/image";
+import { motion, AnimatePresence } from "@asym/lib/motion";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { PostContent } from "@asym/ui/components/shadcn/rich-text-editor";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Heart,
   MessageCircle,
@@ -20,24 +37,8 @@ import {
   BookmarkCheck,
   CornerDownRight,
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Input } from "@asym/ui/components/shadcn/input";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-} from "@asym/ui/components/shadcn/dropdown-menu";
-import { cn } from "@asym/ui/lib/utils";
+import Image from "next/image";
+import React, { useState, useMemo } from "react";
 
 // --- Types ---
 type ContentType = "Update" | "Prayer" | "Story" | "Video";
@@ -366,7 +367,7 @@ const PostActions = ({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             {typeof navigator !== "undefined" &&
-              typeof (navigator as any).share === "function" && (
+              typeof navigator.share === "function" && (
                 <DropdownMenuItem onClick={handleNativeShare}>
                   <Share2 className="mr-2 h-4 w-4" /> Share via...
                 </DropdownMenuItem>
@@ -548,7 +549,6 @@ const CommentsSection = ({
               <div className="ml-12 mt-3 pl-3">
                 <div className="relative group">
                   <Input
-                    autoFocus
                     placeholder={`Reply to ${comment.author}...`}
                     className="pr-10 bg-white border-zinc-200 h-9 text-xs shadow-sm pl-3 rounded-lg"
                     value={replyText}
@@ -626,7 +626,7 @@ const PostCard: React.FC<{
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="relative group cursor-pointer">
-            <Avatar className="h-10 w-10 border border-zinc-100 shadow-sm transition-transform group-hover:scale-105">
+            <Avatar className="h-10 w-10 border border-zinc-100 shadow-sm transition-transform group-hover:scale-[1.02]">
               <AvatarImage src={post.workerAvatar} />
               <AvatarFallback className="bg-zinc-100 font-bold text-zinc-600 uppercase">
                 {post.workerName[0]}
@@ -714,9 +714,10 @@ const PostCard: React.FC<{
           </div>
         )}
 
-        <div
-          className="prose prose-zinc prose-sm sm:prose-base max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-p:leading-relaxed prose-p:text-zinc-600 prose-p:font-medium prose-blockquote:border-l-4 prose-blockquote:border-zinc-900 prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:font-bold prose-blockquote:text-zinc-800 prose-a:text-zinc-900 prose-a:underline hover:prose-a:opacity-70 prose-img:rounded-xl uppercase tracking-tight"
-          dangerouslySetInnerHTML={{ __html: post.content }}
+        <PostContent
+          value={post.content}
+          richTextClassName="prose prose-zinc prose-sm sm:prose-base max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-p:leading-relaxed prose-p:text-zinc-600 prose-p:font-medium prose-blockquote:border-l-4 prose-blockquote:border-zinc-900 prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:font-bold prose-blockquote:text-zinc-800 prose-a:text-zinc-900 prose-a:underline hover:prose-a:opacity-70 prose-img:rounded-xl uppercase tracking-tight"
+          htmlClassName="prose prose-zinc prose-sm sm:prose-base max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-p:leading-relaxed prose-p:text-zinc-600 prose-p:font-medium prose-blockquote:border-l-4 prose-blockquote:border-zinc-900 prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:font-bold prose-blockquote:text-zinc-800 prose-a:text-zinc-900 prose-a:underline hover:prose-a:opacity-70 prose-img:rounded-xl uppercase tracking-tight"
         />
       </div>
 

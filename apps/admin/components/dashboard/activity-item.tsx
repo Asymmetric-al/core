@@ -1,10 +1,10 @@
 "use client";
 
-import { memo } from "react";
 import { Avatar, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { ChevronRightIcon } from "lucide-react";
 import { cn } from "@asym/ui/lib/utils";
+import { ChevronRightIcon } from "lucide-react";
+import { memo } from "react";
 
 export interface ActivityItemProps {
   initials: string;
@@ -34,8 +34,12 @@ export const ActivityItem = memo(function ActivityItem({
   onClick,
 }: ActivityItemProps) {
   return (
-    <div
-      className="group flex cursor-pointer items-center gap-3 px-6 py-2.5 transition-colors hover:bg-zinc-50"
+    <button
+      type="button"
+      className={cn(
+        "group flex w-full items-center gap-3 px-6 py-2.5 text-left transition-colors",
+        onClick ? "cursor-pointer hover:bg-zinc-50" : "cursor-default",
+      )}
       onClick={onClick}
     >
       <Avatar className="size-8 border border-zinc-200">
@@ -61,6 +65,6 @@ export const ActivityItem = memo(function ActivityItem({
         </p>
       </div>
       <ChevronRightIcon className="size-4 text-zinc-400 transition-colors group-hover:text-zinc-600" />
-    </div>
+    </button>
   );
 });

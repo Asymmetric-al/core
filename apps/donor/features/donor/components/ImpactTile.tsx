@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { cn } from "@asym/ui/lib/utils";
-import type { LucideIcon } from "lucide-react";
+import React from "react";
+
 import type { WorkerFeed } from "@/lib/mock-data";
+import type { LucideIcon } from "lucide-react";
 
 interface ImpactTileProps {
   title: string;
@@ -47,7 +48,7 @@ export function ImpactTile({
         <div className="flex justify-between items-start mb-3 sm:mb-4">
           <div
             className={cn(
-              "p-1.5 sm:p-2 rounded-lg border shadow-sm transition-transform group-hover:scale-105",
+              "p-1.5 sm:p-2 rounded-lg border shadow-sm transition-transform group-hover:scale-[1.02]",
               bgClass,
               colorClass,
               "border-current/10",

@@ -150,6 +150,7 @@ const legalLinks = [
   { label: "Privacy Policy", href: "/privacy" },
   { label: "Terms of Service", href: "/terms" },
   { label: "Cookie Policy", href: "/cookies" },
+  { label: "Source & License", href: "/help/about" },
 ];
 
 export function Footer() {
@@ -214,7 +215,7 @@ export function Footer() {
                 </a>
               ))}
             </div>
-            <p className="text-xs text-slate-300">
+            <p className="text-xs text-slate-400">
               © 2025 GiveHope. <br className="sm:hidden" />
               Registered 501(c)(3) nonprofit.
             </p>
@@ -226,18 +227,18 @@ export function Footer() {
             href="https://asymmetric.al/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-300 hover:text-white transition-colors touch-target"
+            className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors touch-target"
           >
             Made with{" "}
             <HeartIcon className="h-3 w-3 text-rose-500 fill-current" /> by
             Asymmetric.al
           </a>
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-8 text-[10px] font-bold uppercase tracking-widest text-slate-300">
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-8 text-[10px] font-bold uppercase tracking-widest text-slate-400">
             {legalLinks.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
-                className="text-slate-300 hover:text-white transition-colors touch-target"
+                className="hover:text-white transition-colors touch-target"
               >
                 {link.label}
               </Link>

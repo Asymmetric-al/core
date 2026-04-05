@@ -1,6 +1,22 @@
 "use client";
 
-import * as React from "react";
+import { AnimatePresence, motion } from "@asym/lib/motion";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { cn } from "@asym/ui/lib/utils";
 import { format, isPast, isToday, isTomorrow } from "date-fns";
 import {
   MoreHorizontal,
@@ -9,25 +25,11 @@ import {
   Trash2,
   Calendar as CalendarIcon,
 } from "lucide-react";
-import { cn } from "@asym/ui/lib/utils";
-import type { Task } from "@/lib/missionary/types";
+import * as React from "react";
+
 import { TASK_TYPE_CONFIG, PRIORITY_CONFIG } from "./task-config";
-import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
-import { Button } from "@asym/ui/components/shadcn/button";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@asym/ui/components/shadcn/dropdown-menu";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { motion, AnimatePresence } from "motion/react";
+
+import type { Task } from "../../types";
 
 interface TaskTableProps {
   tasks: Task[];

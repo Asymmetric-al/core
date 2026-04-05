@@ -85,10 +85,10 @@ export default function ContributionsClient() {
 }
 
 function ContributionsClientBody() {
-  const { data, isLoading, error, refetch, table } =
+  const { data, isLoading, error, refetch } =
     useDataTableWithLiveQuery<ContributionLiveRow>({
       columns,
-      queryBuilder: buildContributionsLiveQuery,
+      queryBuilder: buildContributionsLiveQuery as never,
       queryKey: contributionsLiveQueryKey,
       getRowId: (row) => row.id,
     });
@@ -283,7 +283,6 @@ function ContributionsClientBody() {
           <DataTable
             columns={columns}
             data={data}
-            table={table}
             filterFields={filterFields}
             searchKey="donorName"
             searchPlaceholder="Search by donor name or email..."

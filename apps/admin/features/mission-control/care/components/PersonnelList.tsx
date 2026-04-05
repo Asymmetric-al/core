@@ -1,28 +1,22 @@
 "use client";
 
-import React from "react";
-import Link from "next/link";
-import { type ColumnDef } from "@tanstack/react-table";
-import {
-  ChevronRight,
-  Globe,
-  ShieldAlert,
-  HeartPulse,
-  User,
-} from "lucide-react";
-
-import type { CarePersonnel } from "../types";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
-import { DataTableWrapper } from "@asym/ui/components/shadcn/data-table/data-table-wrapper";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
 import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table/data-table-column-header";
+import { DataTableWrapper } from "@asym/ui/components/shadcn/data-table/data-table-wrapper";
 import { type DataTableFilterField } from "@asym/ui/components/shadcn/data-table/types";
 import { cn } from "@asym/ui/lib/utils";
+import { type ColumnDef } from "@tanstack/react-table";
+import { ChevronRight, Globe, ShieldAlert, HeartPulse } from "lucide-react";
+import Link from "next/link";
+import React from "react";
+
+import type { CarePersonnel } from "../types";
 
 interface PersonnelListProps {
   data: CarePersonnel[];

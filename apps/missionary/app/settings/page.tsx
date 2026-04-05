@@ -1,6 +1,7 @@
 "use client";
 
-import * as React from "react";
+import { siteConfig } from "@asym/config/site-client";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -8,11 +9,9 @@ import {
   CardTitle,
   CardDescription,
 } from "@asym/ui/components/shadcn/card";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Switch } from "@asym/ui/components/shadcn/switch";
-import { Label } from "@asym/ui/components/shadcn/label";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { PageHeader } from "@/components/page-header";
+import { Label } from "@asym/ui/components/shadcn/label";
+import { Switch } from "@asym/ui/components/shadcn/switch";
 import {
   Mail,
   Gift,
@@ -28,7 +27,9 @@ import {
   Sparkles,
   ExternalLink,
 } from "lucide-react";
-import { siteConfig } from "@asym/config/site";
+import * as React from "react";
+
+import { PageHeader } from "@/components/page-header";
 
 interface NotificationSetting {
   id: string;

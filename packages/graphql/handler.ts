@@ -1,5 +1,3 @@
-import { createSchema, createYoga } from "graphql-yoga";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   getAuthContext,
   requireAuth,
@@ -7,13 +5,36 @@ import {
   type AuthContext,
   type AuthenticatedContext,
 } from "@asym/auth/context";
-import { createAuditLogger } from "@asym/lib/audit/logger";
 import { getAdminClient } from "@asym/database/supabase/admin";
+import {
+  fetchUserPostInteractions,
+  toUserPostInteractionSets,
+} from "@asym/database/supabase/post-interactions";
+import { createSchema, createYoga } from "graphql-yoga";
+import { revalidateTag } from "next/cache";
+
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 interface GraphQLContext {
   auth: AuthContext;
   request: Request;
   supabaseAdmin: SupabaseClient;
+}
+
+function revalidatePostTags(postId: string, tenantId: string) {
+  revalidateTag(`posts:tenant:${tenantId}`, "max");
+  revalidateTag(`post:${postId}`, "max");
+}
+
+function resolveRequiredIdempotencyKeyFromHeaders(headers: Headers): string {
+  const headerValue =
+    headers.get("idempotency-key") ?? headers.get("x-idempotency-key");
+  const idempotencyKey = headerValue?.trim() ?? "";
+  if (idempotencyKey.length > 0) {
+    return idempotencyKey;
+  }
+
+  throw new Error("Missing required idempotency-key header");
 }
 
 const typeDefs = /* GraphQL */ `
@@ -29,6 +50,7 @@ const typeDefs = /* GraphQL */ `
 
   enum DonationStatus {
     pending
+    processing
     completed
     failed
     refunded
@@ -263,29 +285,18 @@ const resolvers = {
         .range(offset, offset + limit - 1);
 
       const postIds = (posts || []).map((p: { id: string }) => p.id);
-      const { data: likes } = await ctx.supabaseAdmin
-        .from("post_likes")
-        .select("post_id")
-        .in("post_id", postIds)
-        .eq("user_id", auth.userId);
-
-      const { data: prayers } = await ctx.supabaseAdmin
-        .from("post_prayers")
-        .select("post_id")
-        .in("post_id", postIds)
-        .eq("user_id", auth.userId);
-
-      const likedSet = new Set(
-        (likes || []).map((l: { post_id: string }) => l.post_id),
+      const interactionRows = await fetchUserPostInteractions(
+        ctx.supabaseAdmin,
+        auth.userId,
+        postIds,
       );
-      const prayedSet = new Set(
-        (prayers || []).map((p: { post_id: string }) => p.post_id),
-      );
+      const { likedPostIds, prayedPostIds } =
+        toUserPostInteractionSets(interactionRows);
 
       return (posts || []).map((post: Record<string, unknown>) => ({
         ...mapPost(post),
-        userLiked: likedSet.has(post.id as string),
-        userPrayed: prayedSet.has(post.id as string),
+        userLiked: likedPostIds.has(post.id as string),
+        userPrayed: prayedPostIds.has(post.id as string),
       }));
     },
 
@@ -304,24 +315,18 @@ const resolvers = {
 
       if (!post) return null;
 
-      const { data: like } = await ctx.supabaseAdmin
-        .from("post_likes")
-        .select("id")
-        .eq("post_id", args.id)
-        .eq("user_id", auth.userId)
-        .single();
-
-      const { data: prayer } = await ctx.supabaseAdmin
-        .from("post_prayers")
-        .select("id")
-        .eq("post_id", args.id)
-        .eq("user_id", auth.userId)
-        .single();
+      const interactionRows = await fetchUserPostInteractions(
+        ctx.supabaseAdmin,
+        auth.userId,
+        [args.id],
+      );
+      const { likedPostIds, prayedPostIds } =
+        toUserPostInteractionSets(interactionRows);
 
       return {
         ...mapPost(post),
-        userLiked: !!like,
-        userPrayed: !!prayer,
+        userLiked: likedPostIds.has(args.id),
+        userPrayed: prayedPostIds.has(args.id),
       };
     },
 
@@ -335,12 +340,20 @@ const resolvers = {
       const limit = args.limit || 20;
       const offset = args.offset || 0;
 
+      const { data: donor } = await ctx.supabaseAdmin
+        .from("donors")
+        .select("id")
+        .eq("profile_id", auth.profileId)
+        .eq("tenant_id", auth.tenantId)
+        .single();
+      if (!donor?.id) return [];
+
       const { data } = await ctx.supabaseAdmin
         .from("donations")
         .select(
           "*, donor:profiles!donor_id(*), missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))",
         )
-        .eq("donor_id", auth.profileId)
+        .eq("donor_id", donor.id)
         .eq("tenant_id", auth.tenantId)
         .order("created_at", { ascending: false })
         .range(offset, offset + limit - 1);
@@ -411,7 +424,6 @@ const resolvers = {
     ) => {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
-      const audit = createAuditLogger(auth, ctx.request);
 
       const updates: Record<string, unknown> = {
         updated_at: new Date().toISOString(),
@@ -421,17 +433,31 @@ const resolvers = {
       if (args.input.avatarUrl !== undefined)
         updates.avatar_url = args.input.avatarUrl;
 
+      const { error: rpcError } = await ctx.supabaseAdmin.rpc(
+        "atomic_update_profile_with_audit",
+        {
+          p_profile_id: auth.profileId,
+          p_tenant_id: auth.tenantId,
+          p_actor_user_id: auth.userId,
+          p_updates: updates,
+          p_ip_address: ctx.request.headers.get("x-forwarded-for"),
+          p_user_agent: ctx.request.headers.get("user-agent"),
+        },
+      );
+      if (rpcError) {
+        if (rpcError.code === "P0002") throw new Error("Profile not found");
+        throw new Error(rpcError.message);
+      }
+
       const { data, error } = await ctx.supabaseAdmin
         .from("profiles")
-        .update(updates)
+        .select()
         .eq("id", auth.profileId)
         .eq("tenant_id", auth.tenantId)
-        .select()
         .single();
+      if (error || !data)
+        throw new Error(error?.message ?? "Profile not found");
 
-      if (error) throw new Error(error.message);
-
-      await audit.log("profile_updated", "profile", auth.profileId, args.input);
       return mapProfile(data);
     },
 
@@ -452,7 +478,6 @@ const resolvers = {
     ) => {
       requireRole(ctx.auth, ["missionary"]);
       const auth = ctx.auth as AuthenticatedContext;
-      const audit = createAuditLogger(auth, ctx.request);
 
       const { data: missionary } = await ctx.supabaseAdmin
         .from("missionaries")
@@ -463,22 +488,34 @@ const resolvers = {
 
       if (!missionary) throw new Error("Missionary profile not found");
 
+      const { data: rpcData, error: rpcError } = await ctx.supabaseAdmin.rpc(
+        "atomic_create_post_with_audit",
+        {
+          p_tenant_id: auth.tenantId,
+          p_missionary_id: missionary.id,
+          p_content: args.input.content,
+          p_media: args.input.media || [],
+          p_actor_user_id: auth.userId,
+          p_ip_address: ctx.request.headers.get("x-forwarded-for"),
+          p_user_agent: ctx.request.headers.get("user-agent"),
+        },
+      );
+      if (rpcError) throw new Error(rpcError.message);
+
+      const rpcResult = (rpcData ?? null) as { post_id?: string } | null;
+      if (!rpcResult?.post_id) throw new Error("Failed to create post");
+
       const { data: post, error } = await ctx.supabaseAdmin
         .from("posts")
-        .insert({
-          tenant_id: auth.tenantId,
-          missionary_id: missionary.id,
-          content: args.input.content,
-          media: args.input.media || [],
-        })
         .select(
           "*, missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))",
         )
+        .eq("id", rpcResult.post_id)
         .single();
 
-      if (error) throw new Error(error.message);
+      if (error || !post) throw new Error(error?.message ?? "Post not found");
 
-      await audit.logPost(post.id, "post_created");
+      revalidatePostTags(post.id, auth.tenantId);
       return { ...mapPost(post), userLiked: false, userPrayed: false };
     },
 
@@ -489,7 +526,6 @@ const resolvers = {
     ) => {
       requireRole(ctx.auth, ["missionary", "admin", "staff", "super_admin"]);
       const auth = ctx.auth as AuthenticatedContext;
-      const audit = createAuditLogger(auth, ctx.request);
 
       const { data: post } = await ctx.supabaseAdmin
         .from("posts")
@@ -509,15 +545,21 @@ const resolvers = {
         throw new Error("Not authorized to delete this post");
       }
 
-      const { error } = await ctx.supabaseAdmin
-        .from("posts")
-        .delete()
-        .eq("id", args.id)
-        .eq("tenant_id", auth.tenantId);
-
+      const { error } = await ctx.supabaseAdmin.rpc(
+        "atomic_delete_post_with_audit",
+        {
+          p_post_id: args.id,
+          p_tenant_id: auth.tenantId,
+          p_actor_user_id: auth.userId,
+          p_audit_action: "post_deleted",
+          p_details: {},
+          p_ip_address: ctx.request.headers.get("x-forwarded-for"),
+          p_user_agent: ctx.request.headers.get("user-agent"),
+        },
+      );
       if (error) throw new Error(error.message);
 
-      await audit.logPost(args.id, "post_deleted");
+      revalidatePostTags(args.id, auth.tenantId);
       return true;
     },
 
@@ -529,24 +571,22 @@ const resolvers = {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
 
-      const { data: post } = await ctx.supabaseAdmin
-        .from("posts")
-        .select("id")
-        .eq("id", args.postId)
-        .eq("tenant_id", auth.tenantId)
-        .single();
-
-      if (!post) throw new Error("Post not found");
-
-      await ctx.supabaseAdmin
-        .from("post_likes")
-        .upsert(
-          { post_id: args.postId, user_id: auth.userId },
-          { onConflict: "post_id,user_id" },
-        );
-      await ctx.supabaseAdmin.rpc("increment_post_like_count", {
-        post_id: args.postId,
+      const { data, error } = await ctx.supabaseAdmin.rpc("atomic_like_post", {
+        p_post_id: args.postId,
+        p_user_id: auth.userId,
+        p_tenant_id: auth.tenantId,
       });
+
+      if (error) {
+        if (error.code === "P0002") throw new Error("Post not found");
+        throw new Error(error.message);
+      }
+
+      const result = (data ?? null) as { applied?: boolean } | null;
+      if (result?.applied) {
+        revalidatePostTags(args.postId, auth.tenantId);
+      }
+
       return true;
     },
 
@@ -558,16 +598,25 @@ const resolvers = {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
 
-      const { error } = await ctx.supabaseAdmin
-        .from("post_likes")
-        .delete()
-        .eq("post_id", args.postId)
-        .eq("user_id", auth.userId);
+      const { data, error } = await ctx.supabaseAdmin.rpc(
+        "atomic_unlike_post",
+        {
+          p_post_id: args.postId,
+          p_user_id: auth.userId,
+          p_tenant_id: auth.tenantId,
+        },
+      );
 
-      if (!error)
-        await ctx.supabaseAdmin.rpc("decrement_post_like_count", {
-          post_id: args.postId,
-        });
+      if (error) {
+        if (error.code === "P0002") throw new Error("Post not found");
+        throw new Error(error.message);
+      }
+
+      const result = (data ?? null) as { applied?: boolean } | null;
+      if (result?.applied) {
+        revalidatePostTags(args.postId, auth.tenantId);
+      }
+
       return true;
     },
 
@@ -579,24 +628,25 @@ const resolvers = {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
 
-      const { data: post } = await ctx.supabaseAdmin
-        .from("posts")
-        .select("id")
-        .eq("id", args.postId)
-        .eq("tenant_id", auth.tenantId)
-        .single();
+      const { data, error } = await ctx.supabaseAdmin.rpc(
+        "atomic_pray_for_post",
+        {
+          p_post_id: args.postId,
+          p_user_id: auth.userId,
+          p_tenant_id: auth.tenantId,
+        },
+      );
 
-      if (!post) throw new Error("Post not found");
+      if (error) {
+        if (error.code === "P0002") throw new Error("Post not found");
+        throw new Error(error.message);
+      }
 
-      await ctx.supabaseAdmin
-        .from("post_prayers")
-        .upsert(
-          { post_id: args.postId, user_id: auth.userId },
-          { onConflict: "post_id,user_id" },
-        );
-      await ctx.supabaseAdmin.rpc("increment_post_prayer_count", {
-        post_id: args.postId,
-      });
+      const result = (data ?? null) as { applied?: boolean } | null;
+      if (result?.applied) {
+        revalidatePostTags(args.postId, auth.tenantId);
+      }
+
       return true;
     },
 
@@ -608,16 +658,25 @@ const resolvers = {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
 
-      const { error } = await ctx.supabaseAdmin
-        .from("post_prayers")
-        .delete()
-        .eq("post_id", args.postId)
-        .eq("user_id", auth.userId);
+      const { data, error } = await ctx.supabaseAdmin.rpc(
+        "atomic_unpray_for_post",
+        {
+          p_post_id: args.postId,
+          p_user_id: auth.userId,
+          p_tenant_id: auth.tenantId,
+        },
+      );
 
-      if (!error)
-        await ctx.supabaseAdmin.rpc("decrement_post_prayer_count", {
-          post_id: args.postId,
-        });
+      if (error) {
+        if (error.code === "P0002") throw new Error("Post not found");
+        throw new Error(error.message);
+      }
+
+      const result = (data ?? null) as { applied?: boolean } | null;
+      if (result?.applied) {
+        revalidatePostTags(args.postId, auth.tenantId);
+      }
+
       return true;
     },
 
@@ -629,30 +688,36 @@ const resolvers = {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
 
-      const { data: post } = await ctx.supabaseAdmin
-        .from("posts")
-        .select("id")
-        .eq("id", args.postId)
-        .eq("tenant_id", auth.tenantId)
-        .single();
+      const { data: rpcData, error: rpcError } = await ctx.supabaseAdmin.rpc(
+        "atomic_add_post_comment",
+        {
+          p_post_id: args.postId,
+          p_user_id: auth.userId,
+          p_tenant_id: auth.tenantId,
+          p_content: args.content,
+        },
+      );
 
-      if (!post) throw new Error("Post not found");
+      if (rpcError) {
+        if (rpcError.code === "P0002") throw new Error("Post not found");
+        throw new Error(rpcError.message);
+      }
+
+      const rpcResult = (rpcData ?? null) as { comment_id?: string } | null;
+      if (!rpcResult?.comment_id) {
+        throw new Error("Failed to create comment");
+      }
 
       const { data: comment, error } = await ctx.supabaseAdmin
         .from("post_comments")
-        .insert({
-          post_id: args.postId,
-          user_id: auth.userId,
-          content: args.content,
-        })
         .select("*, author:profiles!user_id(*)")
+        .eq("id", rpcResult.comment_id)
         .single();
 
-      if (error) throw new Error(error.message);
+      if (error || !comment)
+        throw new Error(error?.message ?? "Comment not found");
 
-      await ctx.supabaseAdmin.rpc("increment_post_comment_count", {
-        post_id: args.postId,
-      });
+      revalidatePostTags(args.postId, auth.tenantId);
       return mapComment(comment);
     },
 
@@ -665,38 +730,46 @@ const resolvers = {
     ) => {
       requireRole(ctx.auth, ["donor", "admin", "staff", "super_admin"]);
       const auth = ctx.auth as AuthenticatedContext;
-      const audit = createAuditLogger(auth, ctx.request);
+      const idempotencyKey = resolveRequiredIdempotencyKeyFromHeaders(
+        ctx.request.headers,
+      );
 
-      const { data: missionary } = await ctx.supabaseAdmin
-        .from("missionaries")
-        .select("id")
-        .eq("id", args.input.missionaryId)
-        .eq("tenant_id", auth.tenantId)
-        .single();
+      const { data: beginRaw, error: beginError } = await ctx.supabaseAdmin.rpc(
+        "begin_donation_saga",
+        {
+          p_tenant_id: auth.tenantId,
+          p_profile_id: auth.profileId,
+          p_actor_user_id: auth.userId,
+          p_missionary_id: args.input.missionaryId,
+          p_amount: args.input.amount,
+          p_currency: (args.input.currency || "usd").toLowerCase(),
+          p_fund_id: null,
+          p_idempotency_key: idempotencyKey,
+          p_ip_address: ctx.request.headers.get("x-forwarded-for"),
+          p_user_agent: ctx.request.headers.get("user-agent"),
+        },
+      );
+      if (beginError) {
+        if (beginError.code === "P0002")
+          throw new Error("Missionary not found");
+        throw new Error(beginError.message);
+      }
 
-      if (!missionary) throw new Error("Missionary not found");
+      const beginResult = (beginRaw ?? null) as { donation_id?: string } | null;
+      if (!beginResult?.donation_id) {
+        throw new Error("Failed to create donation");
+      }
 
       const { data: donation, error } = await ctx.supabaseAdmin
         .from("donations")
-        .insert({
-          tenant_id: auth.tenantId,
-          donor_id: auth.profileId,
-          missionary_id: args.input.missionaryId,
-          amount: args.input.amount,
-          currency: args.input.currency || "usd",
-          status: "pending",
-        })
         .select(
           "*, donor:profiles!donor_id(*), missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))",
         )
+        .eq("id", beginResult.donation_id)
         .single();
+      if (error || !donation)
+        throw new Error(error?.message ?? "Donation not found");
 
-      if (error) throw new Error(error.message);
-
-      await audit.logDonation(donation.id, "donation_created", {
-        amount: args.input.amount,
-        missionaryId: args.input.missionaryId,
-      });
       return mapDonation(donation);
     },
 
@@ -709,7 +782,6 @@ const resolvers = {
     ) => {
       requireRole(ctx.auth, ["missionary"]);
       const auth = ctx.auth as AuthenticatedContext;
-      const audit = createAuditLogger(auth, ctx.request);
 
       const updates: Record<string, unknown> = {
         updated_at: new Date().toISOString(),
@@ -720,17 +792,31 @@ const resolvers = {
       if (args.input.fundingGoal !== undefined)
         updates.funding_goal = args.input.fundingGoal;
 
+      const { error: rpcError } = await ctx.supabaseAdmin.rpc(
+        "atomic_update_missionary_with_audit",
+        {
+          p_profile_id: auth.profileId,
+          p_tenant_id: auth.tenantId,
+          p_actor_user_id: auth.userId,
+          p_updates: updates,
+          p_ip_address: ctx.request.headers.get("x-forwarded-for"),
+          p_user_agent: ctx.request.headers.get("user-agent"),
+        },
+      );
+      if (rpcError) {
+        if (rpcError.code === "P0002") throw new Error("Missionary not found");
+        throw new Error(rpcError.message);
+      }
+
       const { data, error } = await ctx.supabaseAdmin
         .from("missionaries")
-        .update(updates)
+        .select("*, profile:profiles!profile_id(*)")
         .eq("profile_id", auth.profileId)
         .eq("tenant_id", auth.tenantId)
-        .select("*, profile:profiles!profile_id(*)")
         .single();
+      if (error || !data)
+        throw new Error(error?.message ?? "Missionary not found");
 
-      if (error) throw new Error(error.message);
-
-      await audit.log("update", "missionary", data.id, args.input);
       return mapMissionary(data);
     },
 
@@ -746,30 +832,31 @@ const resolvers = {
     ) => {
       requireRole(ctx.auth, ["admin", "staff", "super_admin"]);
       const auth = ctx.auth as AuthenticatedContext;
-      const audit = createAuditLogger(auth, ctx.request);
 
-      const { data: targetProfile } = await ctx.supabaseAdmin
-        .from("profiles")
-        .select("id, role")
-        .eq("id", args.input.userId)
-        .eq("tenant_id", auth.tenantId)
-        .single();
-
-      if (!targetProfile) throw new Error("User not found");
-
-      const oldRole = targetProfile.role;
+      const { error: rpcError } = await ctx.supabaseAdmin.rpc(
+        "atomic_update_user_role_with_audit",
+        {
+          p_profile_id: args.input.userId,
+          p_tenant_id: auth.tenantId,
+          p_actor_user_id: auth.userId,
+          p_new_role: args.input.role,
+          p_ip_address: ctx.request.headers.get("x-forwarded-for"),
+          p_user_agent: ctx.request.headers.get("user-agent"),
+        },
+      );
+      if (rpcError) {
+        if (rpcError.code === "P0002") throw new Error("User not found");
+        throw new Error(rpcError.message);
+      }
 
       const { data, error } = await ctx.supabaseAdmin
         .from("profiles")
-        .update({ role: args.input.role, updated_at: new Date().toISOString() })
+        .select()
         .eq("id", args.input.userId)
         .eq("tenant_id", auth.tenantId)
-        .select()
         .single();
+      if (error || !data) throw new Error(error?.message ?? "User not found");
 
-      if (error) throw new Error(error.message);
-
-      await audit.logRoleChange(args.input.userId, oldRole, args.input.role);
       return mapProfile(data);
     },
   },

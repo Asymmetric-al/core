@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
-import { pageMetadata } from "@asym/lib/seo";
-import { BreadcrumbJsonLd } from "@asym/lib/seo";
+import { pageMetadata, BreadcrumbJsonLd } from "@asym/lib/seo";
+
 import { WaysToGiveClient } from "./ways-to-give-client";
+
+import type { Metadata } from "next";
 
 export const metadata: Metadata = pageMetadata.waysToGive;
 

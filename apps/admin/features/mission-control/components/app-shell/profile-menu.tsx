@@ -1,9 +1,9 @@
 "use client";
 
-import { memo, useCallback, useMemo } from "react";
-import { LogOut, Settings, User, ChevronDown } from "lucide-react";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { useMC, useRole } from "@asym/lib/mission-control/context";
+import { ROLE_LABELS } from "@asym/lib/mission-control/roles";
 import { Avatar, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,8 +17,9 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@asym/ui/components/shadcn/dropdown-menu";
-import { useMC, useRole } from "@asym/lib/mission-control/context";
-import { ROLE_LABELS } from "@asym/lib/mission-control/roles";
+import { LogOut, Settings, User, ChevronDown } from "lucide-react";
+import { memo, useCallback, useMemo } from "react";
+
 import type { Role } from "@asym/lib/mission-control/types";
 
 export const ProfileMenu = memo(function ProfileMenu() {

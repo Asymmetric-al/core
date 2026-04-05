@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+
 import { BREAKPOINTS, type Breakpoint, getBreakpoint } from "../lib/responsive";
 
 export function useIsMobile() {
@@ -135,4 +136,3 @@ export function useResponsive(): ResponsiveState {
 }
 
 export const useMobile = useIsMobile;
-

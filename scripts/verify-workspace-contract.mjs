@@ -1,0 +1,169 @@
+import fs from "fs/promises";
+
+import { globSync } from "glob";
+import ts from "typescript";
+
+const rootPkg = JSON.parse(await fs.readFile("package.json", "utf8"));
+const requiredGlobs = ["apps/*", "packages/*", "packages/env", "tooling/*"];
+const globs = Array.isArray(rootPkg.workspaces) ? rootPkg.workspaces : [];
+const violations = [];
+
+function getScriptKind(filePath) {
+  if (filePath.endsWith(".tsx")) {
+    return ts.ScriptKind.TSX;
+  }
+
+  if (filePath.endsWith(".jsx")) {
+    return ts.ScriptKind.JSX;
+  }
+
+  if (filePath.endsWith(".js") || filePath.endsWith(".mjs")) {
+    return ts.ScriptKind.JS;
+  }
+
+  return ts.ScriptKind.TS;
+}
+
+function getExportedConstNames(content, filePath) {
+  const sourceFile = ts.createSourceFile(
+    filePath,
+    content,
+    ts.ScriptTarget.Latest,
+    true,
+    getScriptKind(filePath),
+  );
+  const exportedConstNames = [];
+
+  for (const statement of sourceFile.statements) {
+    if (!ts.isVariableStatement(statement)) {
+      continue;
+    }
+
+    const hasExportModifier = statement.modifiers?.some(
+      (modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword,
+    );
+
+    if (!hasExportModifier) {
+      continue;
+    }
+
+    const isConstDeclaration =
+      (statement.declarationList.flags & ts.NodeFlags.Const) !== 0;
+    if (!isConstDeclaration) {
+      continue;
+    }
+
+    for (const declaration of statement.declarationList.declarations) {
+      if (ts.isIdentifier(declaration.name)) {
+        exportedConstNames.push(declaration.name.text);
+      }
+    }
+  }
+
+  return exportedConstNames;
+}
+
+function verifyAsymDeps(pkg, pkgPath) {
+  for (const [depType, deps] of Object.entries({
+    dependencies: pkg.dependencies,
+    devDependencies: pkg.devDependencies,
+    peerDependencies: pkg.peerDependencies,
+  })) {
+    if (!deps) {
+      continue;
+    }
+    for (const [name, version] of Object.entries(deps)) {
+      if (name.startsWith("@asym/") && version !== "workspace:*") {
+        violations.push(
+          `${pkgPath}:1: ${depType}.${name}: '${version}' != 'workspace:*'`,
+        );
+      }
+    }
+  }
+}
+
+const missingGlobs = requiredGlobs.filter((g) => !globs.includes(g));
+
+if (!Array.isArray(rootPkg.workspaces)) {
+  violations.push(
+    `package.json:workspaces must be an array containing ${JSON.stringify(requiredGlobs)}; got ${JSON.stringify(rootPkg.workspaces)}`,
+  );
+}
+
+if (missingGlobs.length) {
+  violations.push(
+    `package.json:workspaces must contain required entries: ${JSON.stringify(requiredGlobs)}`,
+  );
+  if (missingGlobs.length) {
+    violations.push(
+      `package.json:workspaces missing required globs: ${missingGlobs.join(", ")}`,
+    );
+  }
+}
+
+verifyAsymDeps(rootPkg, "package.json");
+
+for (const requiredGlob of requiredGlobs.filter((g) => g.includes("*"))) {
+  const pkgPaths = globSync(`${requiredGlob}/package.json`);
+  if (pkgPaths.length === 0) {
+    violations.push(
+      `workspace '${requiredGlob}' has no packages; expected at least one package.json matching '${requiredGlob}/package.json'`,
+    );
+  }
+}
+
+for (const requiredPath of requiredGlobs.filter((g) => !g.includes("*"))) {
+  const pkgPath = `${requiredPath}/package.json`;
+  try {
+    await fs.access(pkgPath);
+  } catch {
+    violations.push(
+      `workspace '${requiredPath}' is missing package.json; expected '${pkgPath}' to exist`,
+    );
+  }
+}
+
+for (const g of globs) {
+  const pkgPaths = globSync(`${g}/package.json`);
+  for (const pkgPath of pkgPaths) {
+    const pkg = JSON.parse(await fs.readFile(pkgPath, "utf8"));
+    if (!pkg.name?.startsWith("@asym/")) {
+      violations.push(`${pkgPath}:1: invalid name '${pkg.name || "missing"}'`);
+    }
+    verifyAsymDeps(pkg, pkgPath);
+  }
+}
+
+const disallowedRouteSegmentConfigKeys = [
+  "runtime",
+  "dynamic",
+  "dynamicParams",
+  "revalidate",
+  "fetchCache",
+  "preferredRegion",
+  "maxDuration",
+];
+const appSegmentConfigFilePaths = [
+  ...new Set(
+    globSync("apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}"),
+  ),
+];
+
+for (const filePath of appSegmentConfigFilePaths) {
+  const content = await fs.readFile(filePath, "utf8");
+  const exportedConstNames = new Set(getExportedConstNames(content, filePath));
+
+  for (const key of disallowedRouteSegmentConfigKeys) {
+    if (exportedConstNames.has(key)) {
+      violations.push(
+        `${filePath}: disallowed route segment config export "${key}" while cacheComponents is enabled`,
+      );
+    }
+  }
+}
+
+if (violations.length) {
+  console.error(violations.join("\n"));
+  process.exit(1);
+}
+console.log("Workspace contract verified.");

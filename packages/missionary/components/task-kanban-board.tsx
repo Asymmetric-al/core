@@ -1,11 +1,14 @@
 "use client";
 
-import * as React from "react";
-import type {
-  DragStartEvent,
-  DragOverEvent,
-  DragEndEvent,
-} from "@dnd-kit/core";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Card, CardContent } from "@asym/ui/components/shadcn/card";
+import { cn } from "@asym/ui/lib/utils";
 import {
   DndContext,
   DragOverlay,
@@ -23,6 +26,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { format } from "date-fns";
 import {
   GripVertical,
   Plus,
@@ -33,18 +37,14 @@ import {
   PauseCircle,
   MoreHorizontal,
 } from "lucide-react";
-import { format } from "date-fns";
+import * as React from "react";
 
-import { Card, CardContent } from "@asym/ui/components/shadcn/card";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
-import { cn } from "@asym/ui/lib/utils";
-import type { Task, TaskStatus } from "@/lib/missionary/types";
+import type { Task, TaskStatus } from "../types";
+import type {
+  DragStartEvent,
+  DragOverEvent,
+  DragEndEvent,
+} from "@dnd-kit/core";
 
 const COLUMNS: {
   id: TaskStatus;
@@ -77,6 +77,13 @@ const COLUMNS: {
     color: "text-emerald-600 bg-emerald-50",
   },
 ];
+
+const PRIORITY_COLOR: Record<Task["priority"], string> = {
+  high: "text-rose-600 bg-rose-50 border-rose-100",
+  medium: "text-amber-600 bg-amber-50 border-amber-100",
+  low: "text-sky-600 bg-sky-50 border-sky-100",
+  none: "text-zinc-500 bg-zinc-100 border-zinc-200",
+};
 
 interface TaskKanbanBoardProps {
   tasks: Task[];
@@ -113,17 +120,29 @@ export function TaskKanbanBoard({
   );
 
   const tasksByStatus = React.useMemo(() => {
-    const grouped = COLUMNS.reduce(
-      (acc, col) => {
-        acc[col.id] = tasks
-          .filter((t) => t.status === col.id)
-          .sort((a, b) => a.sort_key - b.sort_key);
-        return acc;
-      },
-      {} as Record<TaskStatus, Task[]>,
-    );
+    const grouped: Record<TaskStatus, Task[]> = {
+      not_started: [],
+      in_progress: [],
+      waiting: [],
+      completed: [],
+      deferred: [],
+    };
+
+    for (const task of tasks) {
+      grouped[task.status].push(task);
+    }
+
+    for (const status of Object.keys(grouped) as TaskStatus[]) {
+      grouped[status].sort((a, b) => a.sort_key - b.sort_key);
+    }
+
     return grouped;
   }, [tasks]);
+
+  const getTasksForStatus = React.useCallback(
+    (status: TaskStatus) => tasksByStatus[status] ?? [],
+    [tasksByStatus],
+  );
 
   function handleDragStart(event: DragStartEvent) {
     const { active } = event;
@@ -164,19 +183,21 @@ export function TaskKanbanBoard({
 
     if (isOverColumn) {
       overStatus = overId as TaskStatus;
-      overIndex = tasksByStatus[overStatus].length;
+      overIndex = getTasksForStatus(overStatus).length;
     } else {
       const overTask = tasks.find((t) => t.id === overId);
       if (overTask) {
         overStatus = overTask.status;
-        overIndex = tasksByStatus[overStatus].findIndex((t) => t.id === overId);
+        overIndex = getTasksForStatus(overStatus).findIndex(
+          (t) => t.id === overId,
+        );
       }
     }
 
     if (!overStatus) return;
 
     // If dropped in same column and same index, do nothing
-    const activeIndex = tasksByStatus[activeTask.status].findIndex(
+    const activeIndex = getTasksForStatus(activeTask.status).findIndex(
       (t) => t.id === activeId,
     );
     if (activeTask.status === overStatus && activeIndex === overIndex) return;
@@ -200,7 +221,7 @@ export function TaskKanbanBoard({
             title={column.label}
             icon={column.icon}
             color={column.color}
-            tasks={tasksByStatus[column.id]}
+            tasks={getTasksForStatus(column.id)}
             onEditTask={onEditTask}
             onCompleteTask={onCompleteTask}
             onDeleteTask={onDeleteTask}
@@ -330,12 +351,7 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete }: KanbanCardProps) {
     transition,
   };
 
-  const priorityColor = {
-    high: "text-rose-600 bg-rose-50 border-rose-100",
-    medium: "text-amber-600 bg-amber-50 border-amber-100",
-    low: "text-sky-600 bg-sky-50 border-sky-100",
-    none: "text-zinc-500 bg-zinc-100 border-zinc-200",
-  }[task.priority];
+  const priorityColor = PRIORITY_COLOR[task.priority] ?? PRIORITY_COLOR.none;
 
   if (isDragging) {
     return (

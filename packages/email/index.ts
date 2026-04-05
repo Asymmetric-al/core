@@ -1,58 +1,41 @@
 /**
- * Email Service Module Exports
+ * Email service exports.
  *
- * Central export point for the SendGrid email integration.
- * Import from '@asym/email' in your code.
- *
- * ## Quick Start
- *
- * ```ts
- * import {
- *   validateSendGridApiKey,
- *   sendEmail,
- *   sendTestEmail,
- *   createSendGridClient,
- *   SENDGRID_ERROR_CODES,
- * } from '@asym/email'
- *
- * // Validate API key
- * const result = await validateSendGridApiKey('SG.xxxxx')
- *
- * // Send email
- * const sendResult = await sendEmail('SG.xxxxx', {
- *   to: { email: 'user@example.com' },
- *   from: { email: 'hello@yourapp.com', name: 'Your App' },
- *   subject: 'Hello!',
- *   html: '<p>Hello, world!</p>',
- * })
- *
- * // Or use client pattern
- * const client = createSendGridClient('SG.xxxxx')
- * await client.sendEmail({ ... })
- * ```
- *
- * @module lib/email
+ * Central export point for the Resend integration.
  */
 
 export {
-  validateSendGridApiKey,
-  sendEmail,
-  sendTestEmail,
-  createSendGridClient,
-  type SendGridValidationResult,
-  type SendEmailOptions,
-} from "./sendgrid";
+  getFirstBlockingDeliverabilityWarning,
+  toTestSendBlockingErrorCode,
+} from "./deliverability-warnings";
 
 export {
-  SENDGRID_API_BASE,
-  SENDGRID_ENDPOINTS,
-  SENDGRID_REQUIRED_SCOPES,
-  SENDGRID_OPTIONAL_SCOPES,
-  SENDGRID_ERROR_CODES,
+  validateResendApiKey,
+  createResendValidationSnapshot,
+  parseResendValidationSnapshot,
+  isResendValidationSendReady,
+  sendEmail,
+  sendTestEmail,
+  verifyResendWebhookSignature,
+  getReceivedEmail,
+  listReceivedEmailAttachments,
+  createResendClient,
+  type ResendValidationResult,
+  type SendEmailOptions,
+} from "./resend";
+
+export type { ResendValidationSnapshot, TestSendEmailResponse } from "./types";
+
+export {
+  RESEND_API_BASE,
+  RESEND_ENDPOINTS,
+  RESEND_REQUIRED_PERMISSIONS,
+  RESEND_OPTIONAL_PERMISSIONS,
+  RESEND_ERROR_CODES,
   HTTP_STATUS,
   RETRY_CONFIG,
   RATE_LIMIT_CONFIG,
   DELIVERABILITY_HELP_URLS,
-  type SendGridErrorCode,
+  type ResendErrorCode,
   type HttpStatusCode,
 } from "./constants";

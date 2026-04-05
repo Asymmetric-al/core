@@ -29,6 +29,10 @@ export {
   useSupabaseRealtime,
   useDataTableWithRealtime,
   createRealtimeSubscription,
+  useDataTableVirtualization,
+  resolveVirtualizationConfig,
+  getVirtualPadding,
+  DEFAULT_VIRTUALIZATION_DEFAULTS,
 } from "./hooks";
 
 export type {
@@ -39,6 +43,12 @@ export type {
   UseDataTableKeyboardReturn,
   ColumnResizingOptions,
   UseColumnResizingReturn,
+  VirtualizationLegacyConfig,
+  VirtualizationDefaults,
+  ResolvedVirtualizationConfig,
+  VirtualizationPadding,
+  UseDataTableVirtualizationOptions,
+  UseDataTableVirtualizationReturn,
 } from "./hooks";
 
 export {
@@ -58,6 +68,7 @@ export type {
   DataTableFilterField,
   DataTableAdvancedFilterField,
   DataTableRowAction,
+  VirtualizationConfig,
   DataTableConfig,
   DataTableUrlStateConfig,
   DataTableState,

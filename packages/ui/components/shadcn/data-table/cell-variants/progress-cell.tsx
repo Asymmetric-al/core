@@ -1,8 +1,11 @@
 "use client";
 
 import { useMemo } from "react";
+
 import { cn } from "@asym/ui/lib/utils";
+
 import { Progress } from "../../progress";
+
 import type { ProgressCellProps } from "./types";
 
 const sizeClasses = {

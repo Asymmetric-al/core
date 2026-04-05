@@ -1,11 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { useMC } from "@asym/lib/mission-control/context";
 import { TILES } from "@asym/lib/mission-control/tiles";
-import { TileCard } from "./TileCard";
-import { QuickActionsRow } from "./QuickActionsRow";
-import { WorkflowsPanel } from "./WorkflowsPanel";
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Dialog,
@@ -15,8 +12,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@asym/ui/components/shadcn/dialog";
+import { useState } from "react";
+
+import { QuickActionsRow } from "./QuickActionsRow";
+import { TileCard } from "./TileCard";
+import { WorkflowsPanel } from "./WorkflowsPanel";
 import { getIcon } from "../icons";
-import { Badge } from "@asym/ui/components/shadcn/badge";
 
 export function MissionControlHome() {
   const { role } = useMC();

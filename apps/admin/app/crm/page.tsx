@@ -1,26 +1,19 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import {
-  Plus,
-  List,
-  Columns,
-  X,
-  User,
-  MessageSquare,
-  Paperclip,
-  History,
-  FileText,
-  MoreHorizontal,
-} from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Badge } from "@asym/ui/components/shadcn/badge";
+import { motion, AnimatePresence } from "@asym/lib/motion";
+import { formatCurrency } from "@asym/lib/utils";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  DataTableResponsive,
+  type DataTableFilterField,
+} from "@asym/ui/components/shadcn/data-table";
+import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 import { Sheet, SheetContent } from "@asym/ui/components/shadcn/sheet";
 import {
@@ -29,18 +22,25 @@ import {
   TabsList,
   TabsTrigger,
 } from "@asym/ui/components/shadcn/tabs";
-import { formatCurrency } from "@asym/lib/utils";
 import { cn } from "@asym/ui/lib/utils";
 import {
-  DataTable,
-  DataTableResponsive,
-  type DataTableFilterField,
-} from "@asym/ui/components/shadcn/data-table";
+  Plus,
+  List,
+  Columns,
+  X,
+  User,
+  Paperclip,
+  History,
+  FileText,
+  MoreHorizontal,
+} from "lucide-react";
+import React, { useState, useMemo } from "react";
+
+import { getColumns } from "./columns";
+import { MOCK_CONTACTS } from "./data";
+import { STAGES, STAGE_COLORS } from "./types";
 
 import type { Contact } from "./types";
-import { STAGES, STAGE_COLORS } from "./types";
-import { MOCK_CONTACTS } from "./data";
-import { getColumns } from "./columns";
 
 const filterFields: DataTableFilterField<Contact>[] = [
   {
@@ -285,25 +285,25 @@ function DetailDrawer({
               >
                 <div className="space-y-6">
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
                       Email
-                    </label>
+                    </p>
                     <p className="text-sm font-bold text-foreground truncate hover:text-primary cursor-pointer">
                       {contact.email}
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
                       Phone
-                    </label>
+                    </p>
                     <p className="text-sm font-bold text-foreground">
                       {contact.phone}
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
                       City
-                    </label>
+                    </p>
                     <p className="text-sm font-bold text-foreground">
                       {contact.city}
                     </p>
@@ -311,17 +311,17 @@ function DetailDrawer({
                 </div>
                 <div className="space-y-6">
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
                       Owner
-                    </label>
+                    </p>
                     <p className="text-sm font-bold text-foreground">
                       {contact.owner}
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
                       Tags
-                    </label>
+                    </p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {contact.tags.map((t) => (
                         <Badge
@@ -376,10 +376,11 @@ function KanbanView({
             {contacts
               .filter((c) => c.stage === stage)
               .map((c) => (
-                <div
+                <button
                   key={c.id}
+                  type="button"
                   onClick={() => onSelectContact(c)}
-                  className="bg-card p-3 rounded-lg border border-border shadow-sm hover:shadow-md transition-all cursor-pointer space-y-3"
+                  className="w-full bg-card p-3 rounded-lg border border-border shadow-sm hover:shadow-md transition-all cursor-pointer space-y-3 text-left"
                 >
                   <div className="flex justify-between items-start">
                     <span className="font-bold text-foreground text-xs truncate leading-none">
@@ -406,7 +407,7 @@ function KanbanView({
                       </AvatarFallback>
                     </Avatar>
                   </div>
-                </div>
+                </button>
               ))}
           </div>
         </div>
@@ -425,135 +426,144 @@ export default function MissionControlCRM() {
   );
 
   return (
-    <div className="flex flex-col h-[calc(100vh-10rem)] bg-background overflow-hidden border border-border rounded-xl">
-      <header className="h-14 bg-card border-b border-border flex items-center justify-between px-4 shrink-0 z-20 shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm font-bold text-foreground">
-            <div className="p-1.5 rounded-md bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900">
-              <User className="h-4 w-4" />
+    <>
+      <PageShell
+        title="People CRM"
+        description="Manage contacts, donors, and partner relationships."
+        actions={
+          <div className="flex items-center gap-3">
+            <div className="flex bg-zinc-100 p-0.5 rounded-lg border border-zinc-200">
+              <button
+                onClick={() => setView("table")}
+                className={cn(
+                  "p-1.5 rounded-md transition-all",
+                  view === "table"
+                    ? "bg-white shadow-sm text-foreground"
+                    : "text-muted-foreground",
+                )}
+              >
+                <List className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setView("kanban")}
+                className={cn(
+                  "p-1.5 rounded-md transition-all",
+                  view === "kanban"
+                    ? "bg-white shadow-sm text-foreground"
+                    : "text-muted-foreground",
+                )}
+              >
+                <Columns className="h-4 w-4" />
+              </button>
             </div>
-            <span className="uppercase tracking-widest text-[11px]">
-              People CRM
-            </span>
+            <Button className="h-11 px-6 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-zinc-200 gap-2">
+              <Plus className="h-3.5 w-3.5" /> New Person
+            </Button>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className="flex bg-muted p-0.5 rounded-lg border border-border">
-            <button
-              onClick={() => setView("table")}
-              className={cn(
-                "p-1.5 rounded-md transition-all",
-                view === "table"
-                  ? "bg-card shadow-sm text-foreground"
-                  : "text-muted-foreground",
-              )}
-            >
-              <List className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => setView("kanban")}
-              className={cn(
-                "p-1.5 rounded-md transition-all",
-                view === "kanban"
-                  ? "bg-card shadow-sm text-foreground"
-                  : "text-muted-foreground",
-              )}
-            >
-              <Columns className="h-4 w-4" />
-            </button>
-          </div>
-          <Button
-            size="sm"
-            className="h-8 px-4 font-bold uppercase tracking-wider text-[10px]"
-          >
-            <Plus className="h-3.5 w-3.5 mr-1.5" /> New Person
-          </Button>
-        </div>
-      </header>
-
-      <div className="flex-1 overflow-hidden p-0 relative">
-        {view === "table" ? (
-          <div className="h-full p-4 md:p-6 overflow-auto">
-            <DataTableResponsive
-              columns={columns}
-              data={MOCK_CONTACTS}
-              filterFields={filterFields}
-              searchKey="name"
-              searchPlaceholder="Search contacts..."
-              config={{
-                enableRowSelection: true,
-                enableColumnVisibility: true,
-                enablePagination: true,
-                enableFilters: true,
-                enableSorting: true,
-              }}
-              initialState={{
-                columnVisibility: {
-                  email: false,
-                  city: false,
-                  lastActivity: false,
-                },
-              }}
-              mobileCardConfig={{
-                primaryField: "name",
-                secondaryField: "company",
-                badgeField: "stage",
-                renderCard: (row) => {
-                  const contact = row.original;
-                  return (
-                    <div
-                      onClick={() => setSelectedContact(contact)}
-                      className="p-4 cursor-pointer space-y-3"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10 border border-border">
-                            <AvatarImage src={contact.avatar} />
-                            <AvatarFallback className="text-xs font-semibold bg-primary text-primary-foreground">
-                              {contact.name[0]}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="font-semibold text-sm text-foreground">
-                              {contact.name}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {contact.company}
-                            </div>
-                          </div>
-                        </div>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "text-[9px] uppercase font-semibold tracking-wide px-2 py-0.5 shadow-none rounded-lg border-transparent",
-                            STAGE_COLORS[contact.stage],
-                          )}
+        }
+      >
+        <div className="flex flex-col min-h-[400px] overflow-hidden">
+          <AnimatePresence mode="wait">
+            {view === "table" ? (
+              <motion.div
+                key="table"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="h-full"
+              >
+                <DataTableResponsive
+                  columns={columns}
+                  data={MOCK_CONTACTS}
+                  filterFields={filterFields}
+                  searchKey="name"
+                  searchPlaceholder="Search contacts..."
+                  config={{
+                    enableRowSelection: true,
+                    enableColumnVisibility: true,
+                    enablePagination: true,
+                    enableFilters: true,
+                    enableSorting: true,
+                  }}
+                  initialState={{
+                    columnVisibility: {
+                      email: false,
+                      city: false,
+                      lastActivity: false,
+                    },
+                  }}
+                  mobileCardConfig={{
+                    primaryField: "name",
+                    secondaryField: "company",
+                    badgeField: "stage",
+                    renderCard: (row) => {
+                      const contact = row.original;
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedContact(contact)}
+                          className="w-full p-4 cursor-pointer space-y-3 text-left"
                         >
-                          {contact.stage}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          {contact.title}
-                        </span>
-                        <span className="font-bold tabular-nums">
-                          {formatCurrency(contact.value)}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                },
-              }}
-            />
-          </div>
-        ) : (
-          <KanbanView
-            contacts={MOCK_CONTACTS}
-            onSelectContact={setSelectedContact}
-          />
-        )}
-      </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-10 w-10 border border-border">
+                                <AvatarImage src={contact.avatar} />
+                                <AvatarFallback className="text-xs font-semibold bg-primary text-primary-foreground">
+                                  {contact.name[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <div className="font-semibold text-sm text-foreground">
+                                  {contact.name}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {contact.company}
+                                </div>
+                              </div>
+                            </div>
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                "text-[9px] uppercase font-semibold tracking-wide px-2 py-0.5 shadow-none rounded-lg border-transparent",
+                                STAGE_COLORS[contact.stage],
+                              )}
+                            >
+                              {contact.stage}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">
+                              {contact.title}
+                            </span>
+                            <span className="font-bold tabular-nums">
+                              {formatCurrency(contact.value)}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    },
+                  }}
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="kanban"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="h-full"
+              >
+                <KanbanView
+                  contacts={MOCK_CONTACTS}
+                  onSelectContact={setSelectedContact}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </PageShell>
 
       {selectedContact && (
         <DetailDrawer
@@ -561,6 +571,6 @@ export default function MissionControlCRM() {
           onClose={() => setSelectedContact(null)}
         />
       )}
-    </div>
+    </>
   );
 }

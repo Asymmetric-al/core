@@ -1,14 +1,19 @@
 "use client";
 
-import React from "react";
-import { useCarePersonnel } from "@/features/mission-control/care/hooks/use-care";
-import { PersonnelList } from "@/features/mission-control/care/components/PersonnelList";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { Plus, Download, Filter } from "lucide-react";
-import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
-import { Card, CardContent, CardHeader, CardTitle } from "@asym/ui/components/shadcn/card";
-import { PageShell } from "@asym/ui/components/shadcn/page-shell";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@asym/ui/components/shadcn/card";
 import { FilterBar } from "@asym/ui/components/shadcn/filter-bar";
+import { PageShell } from "@asym/ui/components/shadcn/page-shell";
+import { Plus, Download, Filter } from "lucide-react";
+import React from "react";
+
+import { PersonnelList } from "@/features/mission-control/care/components/PersonnelList";
+import { useCarePersonnel } from "@/features/mission-control/care/hooks/use-care";
 
 export default function CareDirectoryPage() {
   const { data: personnel, isLoading } = useCarePersonnel();
@@ -30,7 +35,6 @@ export default function CareDirectoryPage() {
 
   return (
     <PageShell
-      badge="Care Protocol"
       title="Personnel Directory"
       description="Manage and monitor all global team members."
       actions={actions}

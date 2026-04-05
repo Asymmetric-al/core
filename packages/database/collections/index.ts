@@ -10,4 +10,3 @@ export {
   fundsCollection,
   followsCollection,
 } from "./client-db";
-

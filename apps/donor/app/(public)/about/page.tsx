@@ -1,6 +1,4 @@
-import type { Metadata } from "next";
-import { pageMetadata } from "@asym/lib/seo";
-import { BreadcrumbJsonLd } from "@asym/lib/seo";
+import { pageMetadata, BreadcrumbJsonLd } from "@asym/lib/seo";
 import {
   AboutHero,
   AboutBelief,
@@ -8,6 +6,8 @@ import {
   AboutLeadership,
   AboutCTA,
 } from "@asym/ui/components/public/about-sections";
+
+import type { Metadata } from "next";
 
 export const metadata: Metadata = pageMetadata.about;
 

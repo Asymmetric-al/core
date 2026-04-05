@@ -1,8 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Fragment } from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -12,6 +9,9 @@ import {
   BreadcrumbSeparator,
 } from "@asym/ui/components/shadcn/breadcrumb";
 import { cn } from "@asym/ui/lib/utils";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Fragment } from "react";
 
 interface BreadcrumbItemData {
   label: string;
@@ -101,8 +101,8 @@ export function DashboardFooter({
       {showBreadcrumbs && breadcrumbs.length > 0 && (
         <Breadcrumb>
           <BreadcrumbList className="gap-1 sm:gap-1.5 text-xs">
-            {breadcrumbs.map((item, index) => (
-              <Fragment key={index}>
+            {breadcrumbs.map((item) => (
+              <Fragment key={item.href ?? `${pathname}-${item.label}`}>
                 <BreadcrumbItem className="gap-1">
                   {item.href ? (
                     <BreadcrumbLink asChild>
@@ -119,7 +119,7 @@ export function DashboardFooter({
                     </BreadcrumbPage>
                   )}
                 </BreadcrumbItem>
-                {index < breadcrumbs.length - 1 && (
+                {item !== breadcrumbs[breadcrumbs.length - 1] && (
                   <BreadcrumbSeparator className="[&>svg]:size-3 text-muted-foreground/50" />
                 )}
               </Fragment>

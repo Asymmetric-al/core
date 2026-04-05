@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useMemo, useTransition } from "react";
 import { parseAsInteger, parseAsString, useQueryStates } from "nuqs";
+import { useCallback, useMemo, useTransition } from "react";
+
 import type {
   ColumnFiltersState,
   PaginationState,

@@ -1,7 +1,18 @@
+import { fileURLToPath } from "node:url";
+
 import type { NextConfig } from "next";
+
+const WORKSPACE_ROOT = fileURLToPath(new URL("../..", import.meta.url));
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  cacheComponents: true,
+  reactCompiler: {
+    compilationMode: "annotation",
+  },
+  turbopack: {
+    root: WORKSPACE_ROOT,
+  },
   transpilePackages: [
     "@asym/api",
     "@asym/ui",
@@ -20,6 +31,10 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
       {
         protocol: "https",
         hostname: "res.cloudinary.com",

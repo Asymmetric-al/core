@@ -1,9 +1,10 @@
 "use client";
 
-import Link from "next/link";
-import type { LucideIcon } from "lucide-react";
-import { ArrowUpRight } from "lucide-react";
 import { cn } from "@asym/ui/lib/utils";
+import { ArrowUpRight } from "lucide-react";
+import Link from "next/link";
+
+import type { LucideIcon } from "lucide-react";
 
 interface DashboardTileProps {
   name: string;

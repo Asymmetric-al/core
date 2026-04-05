@@ -1,7 +1,5 @@
 "use client";
-"use no memo";
 
-import * as React from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -10,6 +8,7 @@ import {
   type RowSelectionState,
   type PaginationState,
   type Row,
+  type Table as TanStackTable,
   flexRender,
   getCoreRowModel,
   getFacetedRowModel,
@@ -20,8 +19,12 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Inbox, LayoutGrid, LayoutList } from "lucide-react";
+import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
+
+import { Button } from "../button";
+import { Checkbox } from "../checkbox";
 import {
   Table,
   TableBody,
@@ -30,20 +33,24 @@ import {
   TableHeader,
   TableRow,
 } from "../table";
-import { Button } from "../button";
-import { Checkbox } from "../checkbox";
-import { DataTableToolbarResponsive } from "./data-table-toolbar-responsive";
-import { DataTablePagination } from "./data-table-pagination";
+import { DataTableCardView } from "./data-table-card-view";
 import { DataTableFloatingBar } from "./data-table-floating-bar";
+import { DataTablePagination } from "./data-table-pagination";
 import {
   DataTableSkeleton,
   DataTableLoadingOverlay,
 } from "./data-table-skeleton";
-import { DataTableCardView } from "./data-table-card-view";
-import { useDataTableKeyboard, getKeyboardNavigationStyles } from "./hooks";
-import type { DataTableFilterField, DataTableConfig } from "./types";
-import type { AdvancedFilterState, FilterFieldDefinition } from "./filters";
+import { DataTableToolbarResponsive } from "./data-table-toolbar-responsive";
 import { createEmptyFilterState, createAdvancedFilterFn } from "./filters";
+import {
+  useDataTableKeyboard,
+  getKeyboardNavigationStyles,
+  useDataTableVirtualization,
+} from "./hooks";
+
+import type { AdvancedFilterState, FilterFieldDefinition } from "./filters";
+import type { UseDataTableKeyboardReturn } from "./hooks";
+import type { DataTableFilterField, DataTableConfig } from "./types";
 
 type ViewMode = "table" | "card";
 
@@ -60,7 +67,16 @@ interface DataTableResponsiveProps<TData, TValue> {
     mobileBreakpoint?: number;
   };
   isLoading?: boolean;
+  /**
+   * Total pages for manual server-side pagination when total rows are unknown.
+   * Ignored when `rowCount` is provided.
+   */
   pageCount?: number;
+  /**
+   * Authoritative total rows for manual server-side pagination.
+   * Takes precedence over `pageCount` and is used to derive page count.
+   */
+  rowCount?: number;
   onPaginationChange?: (pagination: PaginationState) => void;
   onSortingChange?: (sorting: SortingState) => void;
   onFiltersChange?: (filters: ColumnFiltersState) => void;
@@ -103,16 +119,334 @@ interface DataTableResponsiveProps<TData, TValue> {
   };
 }
 
+const EMPTY_FILTER_FIELDS: DataTableFilterField<unknown>[] = [];
+const EMPTY_ADVANCED_FILTER_FIELDS: FilterFieldDefinition[] = [];
+const EMPTY_DATA_TABLE_CONFIG: DataTableConfig = {};
+const EMPTY_DATA_TABLE_INITIAL_STATE: NonNullable<
+  DataTableResponsiveProps<unknown, unknown>["initialState"]
+> = {};
+
+function DataTableViewModeToggle({
+  viewMode,
+  onViewModeChange,
+}: {
+  viewMode: ViewMode;
+  onViewModeChange: (mode: ViewMode) => void;
+}) {
+  return (
+    <div className="flex items-center border rounded-xl p-0.5">
+      <Button
+        variant={viewMode === "table" ? "secondary" : "ghost"}
+        size="icon"
+        className="size-8 rounded-lg"
+        onClick={() => onViewModeChange("table")}
+      >
+        <LayoutList className="size-4" />
+      </Button>
+      <Button
+        variant={viewMode === "card" ? "secondary" : "ghost"}
+        size="icon"
+        className="size-8 rounded-lg"
+        onClick={() => onViewModeChange("card")}
+      >
+        <LayoutGrid className="size-4" />
+      </Button>
+    </div>
+  );
+}
+
+function DataTableResponsiveToolbar<TData>({
+  enableFilters,
+  toolbar,
+  table,
+  filterFields,
+  advancedFilterFields,
+  advancedFilter,
+  onAdvancedFilterChange,
+  searchKey,
+  searchPlaceholder,
+  enableColumnVisibility,
+  enableAdvancedFilters,
+  enableExport,
+  onExport,
+  onRefresh,
+  isLoading,
+  enableViewToggle,
+  isMobile,
+  viewMode,
+  onViewModeChange,
+}: {
+  enableFilters: boolean;
+  toolbar?: React.ReactNode;
+  table: TanStackTable<TData>;
+  filterFields: DataTableFilterField<TData>[];
+  advancedFilterFields: FilterFieldDefinition[];
+  advancedFilter: AdvancedFilterState;
+  onAdvancedFilterChange: (filter: AdvancedFilterState) => void;
+  searchKey?: string;
+  searchPlaceholder?: string;
+  enableColumnVisibility: boolean;
+  enableAdvancedFilters: boolean;
+  enableExport: boolean;
+  onExport?: () => void;
+  onRefresh?: () => void;
+  isLoading: boolean;
+  enableViewToggle: boolean;
+  isMobile: boolean;
+  viewMode: ViewMode;
+  onViewModeChange: (mode: ViewMode) => void;
+}) {
+  if (!enableFilters) return null;
+
+  return (
+    toolbar ?? (
+      <DataTableToolbarResponsive
+        table={table}
+        filterFields={filterFields}
+        advancedFilterFields={advancedFilterFields}
+        advancedFilter={advancedFilter}
+        onAdvancedFilterChange={onAdvancedFilterChange}
+        searchKey={searchKey}
+        searchPlaceholder={searchPlaceholder}
+        enableColumnVisibility={enableColumnVisibility && !isMobile}
+        enableAdvancedFilter={enableAdvancedFilters}
+        enableExport={enableExport}
+        onExport={onExport}
+        onRefresh={onRefresh}
+        isLoading={isLoading}
+      >
+        {enableViewToggle && !isMobile && (
+          <DataTableViewModeToggle
+            viewMode={viewMode}
+            onViewModeChange={onViewModeChange}
+          />
+        )}
+      </DataTableToolbarResponsive>
+    )
+  );
+}
+
+function DataTableResponsiveTableView<TData>({
+  table,
+  tableColumnsLength,
+  keyboard,
+  keyboardStyles,
+  onRowClick,
+  tableClassName,
+  emptyState,
+  defaultEmptyState,
+  virtualization,
+  enableVirtualization,
+  virtualRowHeight,
+  virtualOverscan,
+  virtualContainerHeight,
+}: {
+  table: TanStackTable<TData>;
+  tableColumnsLength: number;
+  keyboard: UseDataTableKeyboardReturn;
+  keyboardStyles: ReturnType<typeof getKeyboardNavigationStyles>;
+  onRowClick?: (row: Row<TData>) => void;
+  tableClassName?: string;
+  emptyState?: React.ReactNode;
+  defaultEmptyState: React.ReactNode;
+  virtualization?: DataTableConfig["virtualization"];
+  enableVirtualization: boolean;
+  virtualRowHeight: number;
+  virtualOverscan: number;
+  virtualContainerHeight: number | string;
+}) {
+  const tableContainerRef = React.useRef<HTMLDivElement>(null);
+  const rows = table.getRowModel().rows;
+  const getVirtualRowKey = React.useCallback(
+    (index: number) => rows[index]?.id ?? index,
+    [rows],
+  );
+  const tableVirtualizationConfig = React.useMemo(
+    () => ({
+      ...virtualization,
+      getItemKey: virtualization?.getItemKey ?? getVirtualRowKey,
+    }),
+    [virtualization, getVirtualRowKey],
+  );
+  const {
+    config: resolvedVirtualization,
+    virtualItems: virtualRows,
+    paddingTop: virtualPaddingTop,
+    paddingBottom: virtualPaddingBottom,
+    isEnabled: isVirtualized,
+  } = useDataTableVirtualization({
+    count: rows.length,
+    scrollElementRef: tableContainerRef,
+    virtualization: tableVirtualizationConfig,
+    legacy: {
+      enabled: enableVirtualization,
+      estimateSize: virtualRowHeight,
+      overscan: virtualOverscan,
+      containerHeight: virtualContainerHeight,
+    },
+    defaults: {
+      enabled: false,
+      estimateSize: 56,
+      overscan: 8,
+      containerHeight: 640,
+    },
+  });
+
+  const renderDataRow = (row: Row<TData>, rowIndex: number) => {
+    const rowProps = keyboard.getRowProps(rowIndex);
+    return (
+      <TableRow
+        key={row.id}
+        data-state={row.getIsSelected() && "selected"}
+        className={cn(
+          "hover:bg-muted/30 transition-colors border-border",
+          "data-[state=selected]:bg-muted/50",
+          onRowClick && "cursor-pointer",
+          rowProps["data-focused"] && keyboardStyles.focusedRow,
+        )}
+        tabIndex={rowProps.tabIndex}
+        onKeyDown={rowProps.onKeyDown}
+        onFocus={rowProps.onFocus}
+        onBlur={rowProps.onBlur}
+        onClick={() => onRowClick?.(row)}
+      >
+        {row.getVisibleCells().map((cell, cellIndex) => {
+          const meta = cell.column.columnDef.meta;
+          const isSticky = meta?.sticky;
+          const cellProps = keyboard.getCellProps(rowIndex, cellIndex);
+          return (
+            <TableCell
+              key={cell.id}
+              className={cn(
+                "py-3 px-4",
+                meta?.cellClassName,
+                isSticky === "left" && "sticky left-0 z-10 bg-card",
+                isSticky === "right" && "sticky right-0 z-10 bg-card",
+                cellProps["data-cell-focused"] && keyboardStyles.focusedCell,
+              )}
+              tabIndex={cellProps.tabIndex}
+            >
+              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            </TableCell>
+          );
+        })}
+      </TableRow>
+    );
+  };
+
+  return (
+    <div
+      ref={keyboard.containerRef as React.RefObject<HTMLDivElement>}
+      className={cn(
+        "rounded-2xl border border-border bg-card overflow-hidden shadow-sm",
+        tableClassName,
+      )}
+    >
+      <div
+        ref={tableContainerRef}
+        className={cn("overflow-x-auto", isVirtualized && "overflow-y-auto")}
+        style={
+          isVirtualized
+            ? { maxHeight: resolvedVirtualization.containerHeight }
+            : undefined
+        }
+      >
+        <Table>
+          <TableHeader className="bg-muted/30">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow
+                key={headerGroup.id}
+                className="hover:bg-transparent border-border"
+              >
+                {headerGroup.headers.map((header) => {
+                  const meta = header.column.columnDef.meta;
+                  const isSticky = meta?.sticky;
+                  return (
+                    <TableHead
+                      key={header.id}
+                      className={cn(
+                        "h-11 px-4 text-xs font-semibold text-muted-foreground whitespace-nowrap",
+                        meta?.headerClassName,
+                        isSticky === "left" && "sticky left-0 z-10 bg-muted/30",
+                        isSticky === "right" &&
+                          "sticky right-0 z-10 bg-muted/30",
+                      )}
+                      style={{
+                        width:
+                          header.getSize() !== 150
+                            ? header.getSize()
+                            : undefined,
+                      }}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {rows.length ? (
+              isVirtualized ? (
+                <>
+                  {virtualPaddingTop > 0 && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={tableColumnsLength}
+                        className="p-0"
+                        style={{ height: virtualPaddingTop }}
+                      />
+                    </TableRow>
+                  )}
+                  {virtualRows.map((virtualRow) => {
+                    const row = rows[virtualRow.index];
+                    return renderDataRow(row as Row<TData>, virtualRow.index);
+                  })}
+                  {virtualPaddingBottom > 0 && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={tableColumnsLength}
+                        className="p-0"
+                        style={{ height: virtualPaddingBottom }}
+                      />
+                    </TableRow>
+                  )}
+                </>
+              ) : (
+                rows.map((row, rowIndex) =>
+                  renderDataRow(row as Row<TData>, rowIndex),
+                )
+              )
+            ) : (
+              <TableRow>
+                <TableCell colSpan={tableColumnsLength} className="h-64">
+                  {emptyState ?? defaultEmptyState}
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
+
 export function DataTableResponsive<TData, TValue>({
   columns,
   data,
-  filterFields = [],
-  advancedFilterFields = [],
+  filterFields = EMPTY_FILTER_FIELDS as DataTableFilterField<TData>[],
+  advancedFilterFields = EMPTY_ADVANCED_FILTER_FIELDS,
   searchKey,
   searchPlaceholder,
-  config = {},
+  config = EMPTY_DATA_TABLE_CONFIG,
   isLoading = false,
   pageCount,
+  rowCount,
   onPaginationChange,
   onSortingChange,
   onFiltersChange,
@@ -128,7 +462,9 @@ export function DataTableResponsive<TData, TValue>({
   tableClassName,
   emptyState,
   toolbar,
-  initialState = {},
+  initialState = EMPTY_DATA_TABLE_INITIAL_STATE as NonNullable<
+    DataTableResponsiveProps<TData, TValue>["initialState"]
+  >,
 }: DataTableResponsiveProps<TData, TValue>) {
   const {
     enableRowSelection = true,
@@ -145,6 +481,10 @@ export function DataTableResponsive<TData, TValue>({
     manualPagination = false,
     manualSorting = false,
     manualFiltering = false,
+    enableVirtualization = false,
+    virtualRowHeight = 56,
+    virtualOverscan = 8,
+    virtualContainerHeight = 640,
   } = config;
 
   const [viewMode, setViewMode] = React.useState<ViewMode>(defaultViewMode);
@@ -239,11 +579,27 @@ export function DataTableResponsive<TData, TValue>({
     );
   }, [data, advancedFilterFn]);
 
-  // eslint-disable-next-line react-hooks/incompatible-library -- "use no memo" directive applied
+  const resolvedRowCount = rowCount ?? undefined;
+  const resolvedPageCount =
+    rowCount == null ? (pageCount ?? undefined) : undefined;
+
+  React.useEffect(() => {
+    if (
+      process.env.NODE_ENV !== "production" &&
+      rowCount != null &&
+      pageCount != null
+    ) {
+      console.warn(
+        "[asym/ui] DataTableResponsive received both rowCount and pageCount. pageCount is ignored because rowCount is authoritative. Pass only one of these props.",
+      );
+    }
+  }, [pageCount, rowCount]);
+
   const table = useReactTable({
     data: filteredData,
     columns: tableColumns,
-    pageCount: pageCount ?? undefined,
+    rowCount: resolvedRowCount,
+    pageCount: resolvedPageCount,
     state: {
       sorting,
       columnVisibility,
@@ -333,162 +689,47 @@ export function DataTableResponsive<TData, TValue>({
 
   return (
     <div className={cn("w-full space-y-4", className)}>
-      {enableFilters &&
-        (toolbar ?? (
-          <DataTableToolbarResponsive
-            table={table}
-            filterFields={filterFields}
-            advancedFilterFields={advancedFilterFields}
-            advancedFilter={advancedFilter}
-            onAdvancedFilterChange={handleAdvancedFilterChange}
-            searchKey={searchKey}
-            searchPlaceholder={searchPlaceholder}
-            enableColumnVisibility={enableColumnVisibility && !isMobile}
-            enableAdvancedFilter={enableAdvancedFilters}
-            enableExport={enableExport}
-            onExport={onExport}
-            onRefresh={onRefresh}
-            isLoading={isLoading}
-          >
-            {enableViewToggle && !isMobile && (
-              <div className="flex items-center border rounded-xl p-0.5">
-                <Button
-                  variant={viewMode === "table" ? "secondary" : "ghost"}
-                  size="icon"
-                  className="size-8 rounded-lg"
-                  onClick={() => setViewMode("table")}
-                >
-                  <LayoutList className="size-4" />
-                </Button>
-                <Button
-                  variant={viewMode === "card" ? "secondary" : "ghost"}
-                  size="icon"
-                  className="size-8 rounded-lg"
-                  onClick={() => setViewMode("card")}
-                >
-                  <LayoutGrid className="size-4" />
-                </Button>
-              </div>
-            )}
-          </DataTableToolbarResponsive>
-        ))}
+      <DataTableResponsiveToolbar
+        enableFilters={enableFilters}
+        toolbar={toolbar}
+        table={table}
+        filterFields={filterFields}
+        advancedFilterFields={advancedFilterFields}
+        advancedFilter={advancedFilter}
+        onAdvancedFilterChange={handleAdvancedFilterChange}
+        searchKey={searchKey}
+        searchPlaceholder={searchPlaceholder}
+        enableColumnVisibility={enableColumnVisibility}
+        enableAdvancedFilters={enableAdvancedFilters}
+        enableExport={enableExport}
+        onExport={onExport}
+        onRefresh={onRefresh}
+        isLoading={isLoading}
+        enableViewToggle={enableViewToggle}
+        isMobile={isMobile}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+      />
 
       <div className="relative">
         <DataTableLoadingOverlay isLoading={isLoading} />
 
         {showTable && (
-          <div
-            ref={keyboard.containerRef as React.RefObject<HTMLDivElement>}
-            className={cn(
-              "rounded-2xl border border-border bg-card overflow-hidden shadow-sm",
-              tableClassName,
-            )}
-          >
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader className="bg-muted/30">
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow
-                      key={headerGroup.id}
-                      className="hover:bg-transparent border-border"
-                    >
-                      {headerGroup.headers.map((header) => {
-                        const meta = header.column.columnDef.meta;
-                        const isSticky = meta?.sticky;
-                        return (
-                          <TableHead
-                            key={header.id}
-                            className={cn(
-                              "h-11 px-4 text-xs font-semibold text-muted-foreground whitespace-nowrap",
-                              meta?.headerClassName,
-                              isSticky === "left" &&
-                                "sticky left-0 z-10 bg-muted/30",
-                              isSticky === "right" &&
-                                "sticky right-0 z-10 bg-muted/30",
-                            )}
-                            style={{
-                              width:
-                                header.getSize() !== 150
-                                  ? header.getSize()
-                                  : undefined,
-                            }}
-                          >
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext(),
-                                )}
-                          </TableHead>
-                        );
-                      })}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map((row, rowIndex) => {
-                      const rowProps = keyboard.getRowProps(rowIndex);
-                      return (
-                        <TableRow
-                          key={row.id}
-                          data-state={row.getIsSelected() && "selected"}
-                          className={cn(
-                            "hover:bg-muted/30 transition-colors border-border",
-                            "data-[state=selected]:bg-muted/50",
-                            onRowClick && "cursor-pointer",
-                            rowProps["data-focused"] &&
-                              keyboardStyles.focusedRow,
-                          )}
-                          tabIndex={rowProps.tabIndex}
-                          onKeyDown={rowProps.onKeyDown}
-                          onFocus={rowProps.onFocus}
-                          onBlur={rowProps.onBlur}
-                          onClick={() => onRowClick?.(row)}
-                        >
-                          {row.getVisibleCells().map((cell, cellIndex) => {
-                            const meta = cell.column.columnDef.meta;
-                            const isSticky = meta?.sticky;
-                            const cellProps = keyboard.getCellProps(
-                              rowIndex,
-                              cellIndex,
-                            );
-                            return (
-                              <TableCell
-                                key={cell.id}
-                                className={cn(
-                                  "py-3 px-4",
-                                  meta?.cellClassName,
-                                  isSticky === "left" &&
-                                    "sticky left-0 z-10 bg-card",
-                                  isSticky === "right" &&
-                                    "sticky right-0 z-10 bg-card",
-                                  cellProps["data-cell-focused"] &&
-                                    keyboardStyles.focusedCell,
-                                )}
-                                tabIndex={cellProps.tabIndex}
-                              >
-                                {flexRender(
-                                  cell.column.columnDef.cell,
-                                  cell.getContext(),
-                                )}
-                              </TableCell>
-                            );
-                          })}
-                        </TableRow>
-                      );
-                    })
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={tableColumns.length} className="h-64">
-                        {emptyState ?? defaultEmptyState}
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
+          <DataTableResponsiveTableView
+            table={table}
+            tableColumnsLength={tableColumns.length}
+            keyboard={keyboard}
+            keyboardStyles={keyboardStyles}
+            onRowClick={onRowClick}
+            tableClassName={tableClassName}
+            emptyState={emptyState}
+            defaultEmptyState={defaultEmptyState}
+            virtualization={config.virtualization}
+            enableVirtualization={enableVirtualization}
+            virtualRowHeight={virtualRowHeight}
+            virtualOverscan={virtualOverscan}
+            virtualContainerHeight={virtualContainerHeight}
+          />
         )}
 
         {showCards && (

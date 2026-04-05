@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
 import { createBrowserClient } from "@asym/database/supabase";
+import { useQuery } from "@tanstack/react-query";
 
 export type LocationType = "missionary" | "project" | "custom";
 export type LocationStatus = "draft" | "published";

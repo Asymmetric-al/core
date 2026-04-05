@@ -8,17 +8,19 @@ The "Give Hope" tenant name that appears in some demo defaults is a test fronten
 Follow the canonical Quickstart in `README.md`:
 
 ```bash
-./scripts/setup
+bun run setup
 # set these required values in .env.local:
 # NEXT_PUBLIC_SUPABASE_URL
 # NEXT_PUBLIC_SUPABASE_ANON_KEY
 bun run dev
-./scripts/verify
+bun run verify
 ```
+
+For deterministic build workflows (strict local vs CI-equivalent), see `docs/guides/development/build-runbook.md`.
 
 ## Supabase Cloud
 
-This repo uses a hosted Supabase project (no local Docker). Contributors do not use the Supabase CLI or push schema/seed from this repo. The cloud database is managed outside this codebase.
+Most contributor development uses a hosted Supabase project (no local DB required). If you need a fully local DB for development/testing, this repo also supports the Supabase CLI (Docker) and deterministic demo seed (see `README.md` "Supabase Demo Seed").
 
 - **Required env vars**: Only `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 - **Access**: Ask a maintainer for the shared dev project URL + anon key.
@@ -59,7 +61,7 @@ This table mirrors `.env.example`. Internal-only vars (for example `NODE_ENV`, `
 | `DEMO_MISSIONARY_EMAIL`               | Optional                                       | Demo missionary email             | empty                                                     | Demo missionary login disabled.                  |
 | `DEMO_DONOR_EMAIL`                    | Optional                                       | Demo donor email                  | empty                                                     | Demo donor login disabled.                       |
 | `DEMO_PASSWORD`                       | Optional                                       | Demo account password (shared)    | empty                                                     | Demo login disabled.                             |
-| `PLAYWRIGHT_BASE_URL`                 | Optional                                       | Base URL for Playwright           | `http://localhost:3000`                                   | Uses default if unset.                           |
+| `PLAYWRIGHT_BASE_URL`                 | Optional                                       | Base URL for Playwright           | `http://127.0.0.1:3005`                                   | Uses default if unset.                           |
 | `VERIFY_E2E_PROJECTS`                 | Optional                                       | Run all Playwright projects       | `all`                                                     | Only Chromium project runs.                      |
 
 ## Troubleshooting
@@ -72,21 +74,26 @@ This table mirrors `.env.example`. Internal-only vars (for example `NODE_ENV`, `
 
 ## Common Commands
 
-| Command                               | Description                            |
-| ------------------------------------- | -------------------------------------- |
-| `./scripts/setup`                     | Initial setup (install deps)           |
-| `./scripts/verify`                    | Validate env vars + basic connectivity |
-| `turbo run dev`                       | Start all apps in dev mode             |
-| `turbo run dev --filter=admin`        | Start admin app only                   |
-| `turbo run lint`                      | Lint all apps and packages             |
-| `turbo run typecheck`                 | Type-check all apps and packages       |
-| `turbo run build`                     | Build all apps and packages            |
-| `turbo run build --filter=missionary` | Build missionary app only              |
-| `bun run test:e2e`                    | Run Playwright E2E tests               |
+| Command                  | Description                              |
+| ------------------------ | ---------------------------------------- |
+| `bun run setup`          | Initial setup (env + deps + verify)      |
+| `bun run verify`         | Validate dev server + basic connectivity |
+| `bun run dev`            | Start all apps in dev mode               |
+| `bun run dev:admin`      | Start admin app only                     |
+| `bun run dev:donor`      | Start donor app only                     |
+| `bun run dev:missionary` | Start missionary app only                |
+| `bun run lint`           | Lint all apps and packages               |
+| `bun run typecheck`      | Type-check all apps and packages         |
+| `bun run build`          | Build all apps and packages              |
+| `bun run test:e2e`       | Run Playwright E2E tests                 |
+
+Build troubleshooting and CI-parity commands are documented in `docs/guides/development/build-runbook.md`.
+Internal package `build` tasks are source-first TypeScript validation (`tsc --noEmit`), while app builds compile through Next.js.
+If you see Next.js lockfile/workspace-root warnings, follow `Multiple lockfile warnings during Next.js build` in the runbook.
 
 ## Project Structure
 
-This is a **Turborepo monorepo** with three Next.js applications and six shared packages:
+This is a **Turborepo monorepo** with three Next.js applications and seven shared packages:
 
 ```
 core/
@@ -136,6 +143,10 @@ core/
 │   │   ├── collections/     # TanStack DB collections
 │   │   └── package.json
 │   │
+│   ├── env/                  # @asym/env - Environment schema
+│   │   ├── src/schema.ts    # createEnv + zod validation contract
+│   │   └── package.json
+│   │
 │   ├── auth/                 # @asym/auth - Authentication
 │   ├── config/               # @asym/config - Configuration
 │   └── email/                # @asym/email - Email services
@@ -161,6 +172,7 @@ import { cn, formatCurrency, useIsMobile } from "@asym/lib";
 import { createClient } from "@asym/database/supabase/client";
 import { useAuth } from "@asym/auth";
 import { SITE_CONFIG } from "@asym/config";
+import { env } from "@asym/env";
 ```
 
 ### 2. App-Specific Feature Module Structure
@@ -195,6 +207,9 @@ import { useAuth } from "@asym/auth";
 
 // Config from @asym/config package
 import { SITE_CONFIG, NAVIGATION } from "@asym/config";
+
+// Environment from @asym/env package
+import { env } from "@asym/env";
 
 // App-specific feature components (within an app)
 import { TilePage, SidebarNav } from "@/features/mission-control";
@@ -354,11 +369,14 @@ import {
 ### Run tests before committing
 
 ```bash
-# From root - runs for all apps and packages
-turbo run typecheck && turbo run lint
+# From repo root - PR-readiness (matches blocking CI)
+bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit
 
-# For a specific app
-turbo run typecheck --filter=admin && turbo run lint --filter=admin
+# Optional (non-blocking in CI, but recommended for flow changes)
+bun run test:e2e
+
+# For a specific app (examples)
+bun run typecheck:admin && bun run lint:admin && bun run build:admin
 ```
 
 ### Check responsive behavior
@@ -371,7 +389,7 @@ turbo run typecheck --filter=admin && turbo run lint --filter=admin
 
 ```bash
 # Test with curl (adjust port if needed)
-# Admin app runs on :3000, missionary on :3001, donor on :3002
+# Dev ports (default): donor :3000, admin :3030, missionary :4000
 curl http://localhost:3000/api/missionaries | jq
 ```
 
@@ -379,13 +397,13 @@ curl http://localhost:3000/api/missionaries | jq
 
 ```bash
 # Start only the admin app
-turbo run dev --filter=admin
+bun run dev:admin
 
 # Build only the missionary app
-turbo run build --filter=missionary
+bun run build:missionary
 
 # Lint only the donor app
-turbo run lint --filter=donor
+bun run lint:donor
 ```
 
 ### Work on a specific package

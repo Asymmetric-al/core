@@ -1,17 +1,16 @@
-import React, { useState, useEffect, useRef } from "react";
-import Image, { type ImageLoader } from "next/image";
 import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-import { X, ChevronLeft, ChevronRight, ChevronDown, Check } from "lucide-react";
 import {
   format,
   isSameDay,
   startOfMonth,
-  subMonths,
   addMonths,
   getDay,
   getDaysInMonth,
 } from "date-fns";
+import { X, ChevronLeft, ChevronRight, ChevronDown, Check } from "lucide-react";
+import Image, { type ImageLoader } from "next/image";
+import React, { useState, useEffect, useRef } from "react";
+import { twMerge } from "tailwind-merge";
 
 const passthroughImageLoader: ImageLoader = ({ src }) => src;
 
@@ -179,8 +178,9 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
           className="absolute z-50 mt-1.5 max-h-60 w-full overflow-auto rounded-xl border border-border bg-popover text-popover-foreground shadow-lg animate-in fade-in-0 zoom-in-95 origin-top p-1"
         >
           {options.map((option) => (
-            <div
+            <button
               key={option.value}
+              type="button"
               data-slot="select-item"
               onClick={() => {
                 onChange(option.value);
@@ -199,7 +199,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                   <Check className="h-4 w-4" />
                 </span>
               )}
-            </div>
+            </button>
           ))}
         </div>
       )}
@@ -415,6 +415,15 @@ export const Dialog: React.FC<DialogProps> = ({
       )}
       onClick={(e) => {
         if (e.target === e.currentTarget) onOpenChange(false);
+      }}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.target !== e.currentTarget) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpenChange(false);
+        }
       }}
     >
       <div
@@ -717,10 +726,11 @@ export const Calendar: React.FC<CalendarProps> = ({
   defaultMonth = new Date(),
   disabled,
 }) => {
-  const [viewDate, setViewDate] = useState(defaultMonth);
+  const [monthOffset, setMonthOffset] = useState(0);
+  const viewDate = addMonths(startOfMonth(defaultMonth), monthOffset);
 
-  const handlePrevMonth = () => setViewDate(subMonths(viewDate, 1));
-  const handleNextMonth = () => setViewDate(addMonths(viewDate, 1));
+  const handlePrevMonth = () => setMonthOffset((offset) => offset - 1);
+  const handleNextMonth = () => setMonthOffset((offset) => offset + 1);
 
   const firstDay = startOfMonth(viewDate);
   const startDay = getDay(firstDay);
@@ -776,17 +786,21 @@ export const Calendar: React.FC<CalendarProps> = ({
       </div>
 
       <div className="grid grid-cols-7 gap-1 w-full text-center text-[10px] mb-2 text-muted-foreground uppercase tracking-wider font-bold">
-        {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d, i) => (
-          <div key={i} className="py-1">
-            {d}
+        {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((dayLabel) => (
+          <div key={dayLabel} className="py-1">
+            {dayLabel}
           </div>
         ))}
       </div>
 
       <div className="grid grid-cols-7 gap-1 w-full">
-        {Array.from({ length: startDay }).map((_, i) => (
-          <div key={`empty-${i}`} />
-        ))}
+        {Array.from({ length: startDay }, (_, emptyDay) => emptyDay + 1).map(
+          (emptyDay) => (
+            <div
+              key={`empty-${viewDate.getFullYear()}-${viewDate.getMonth()}-${emptyDay}`}
+            />
+          ),
+        )}
         {Array.from({ length: daysInMonth }).map((_, i) => {
           const day = i + 1;
           const current = new Date(

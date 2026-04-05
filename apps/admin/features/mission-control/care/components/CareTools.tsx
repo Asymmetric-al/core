@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useCallback } from "react";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   CommandDialog,
   CommandEmpty,
@@ -9,21 +10,11 @@ import {
   CommandItem,
   CommandList,
 } from "@asym/ui/components/shadcn/command";
-import {
-  Search,
-  User,
-  Heart,
-  Settings,
-  Zap,
-  Calendar,
-  ShieldCheck,
-  MessageSquare,
-} from "lucide-react";
+import { Search, Heart, Settings, Zap, MessageSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
+import React, { useCallback } from "react";
+
 import type { CarePersonnel } from "../types";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { cn } from "@asym/ui/lib/utils";
 
 interface CareToolsProps {
   personnel: CarePersonnel[];

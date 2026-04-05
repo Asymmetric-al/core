@@ -1,9 +1,7 @@
 "use client";
 
-import React from "react";
-import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { Button } from "@asym/ui/components/shadcn/button";
-import Link from "next/link";
+import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import {
   CreditCard,
   TrendingUp,
@@ -13,6 +11,8 @@ import {
   Briefcase,
   ArrowRight,
 } from "lucide-react";
+import Link from "next/link";
+import React from "react";
 
 export function WaysToGiveClient() {
   return (

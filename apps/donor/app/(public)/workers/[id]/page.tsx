@@ -1,19 +1,17 @@
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
-import { Suspense } from "react";
-import { getFieldWorkerById, getFieldWorkers } from "@/lib/mock-data";
-import { createWorkerMetadata } from "@asym/lib/seo";
-import { WorkerJsonLd, BreadcrumbJsonLd } from "@asym/lib/seo";
+import { SafeHtml } from "@asym/lib/components/safe-html";
+import {
+  createWorkerMetadata,
+  WorkerJsonLd,
+  BreadcrumbJsonLd,
+} from "@asym/lib/seo";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { Button } from "@asym/ui/components/shadcn/button";
+import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import {
   MapPin,
   ArrowLeft,
@@ -23,8 +21,18 @@ import {
   MessageCircle,
   Share2,
 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { connection } from "next/server";
+import { Suspense } from "react";
+
 import { GivingWidget } from "./giving-widget";
 import { TabsClient } from "./tabs-client";
+
+import type { Metadata } from "next";
+
+import { getFieldWorkerById, getFieldWorkers } from "@/lib/mock-data";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -95,12 +103,7 @@ const PUBLIC_UPDATES = [
   },
 ];
 
-function UpdateCard({
-  update,
-}: {
-  update: (typeof PUBLIC_UPDATES)[0];
-  workerTitle: string;
-}) {
+function UpdateCard({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) {
   return (
     <article className="group relative pl-8 pb-12 last:pb-0">
       <div
@@ -135,9 +138,9 @@ function UpdateCard({
               </h4>
             )}
 
-            <div
+            <SafeHtml
               className="prose prose-slate prose-sm max-w-none text-slate-600 mb-4 leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: update.content }}
+              html={update.content}
             />
 
             {update.image && (
@@ -146,7 +149,7 @@ function UpdateCard({
                   src={update.image}
                   alt={`Visual from ${update.title}`}
                   fill
-                  className="object-cover hover:scale-105 transition-transform duration-700"
+                  className="object-cover hover:scale-[1.02] transition-transform duration-700"
                   sizes="(max-width: 768px) 100vw, 500px"
                   loading="lazy"
                 />
@@ -240,11 +243,7 @@ function UpdatesContent({ workerTitle }: { workerTitle: string }) {
 
       <div className="space-y-2">
         {PUBLIC_UPDATES.map((update) => (
-          <UpdateCard
-            key={update.id}
-            update={update}
-            workerTitle={workerTitle}
-          />
+          <UpdateCard key={update.id} update={update} />
         ))}
       </div>
 
@@ -271,8 +270,11 @@ function GivingWidgetSkeleton() {
         <div className="h-12 bg-slate-100 rounded-2xl" />
         <div className="h-14 bg-slate-200 rounded-xl" />
         <div className="grid grid-cols-4 gap-2">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-10 bg-slate-100 rounded-xl" />
+          {[1, 2, 3, 4].map((slot) => (
+            <div
+              key={`amount-slot-${slot}`}
+              className="h-10 bg-slate-100 rounded-xl"
+            />
           ))}
         </div>
         <div className="h-14 bg-slate-900 rounded-2xl" />
@@ -282,6 +284,7 @@ function GivingWidgetSkeleton() {
 }
 
 export default async function WorkerProfilePage({ params }: PageProps) {
+  await connection();
   const { id } = await params;
   const worker = getFieldWorkerById(id);
 
@@ -334,7 +337,7 @@ export default async function WorkerProfilePage({ params }: PageProps) {
                     src={worker.image}
                     alt={`${worker.title} - Missionary serving in ${worker.location}`}
                     fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
                     sizes="(max-width: 768px) 100vw, 800px"
                     priority
                     quality={85}

@@ -1,4 +1,0 @@
-{
-  "extends": ["@asym/eslint-config/next.js"]
-}
-

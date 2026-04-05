@@ -1,12 +1,19 @@
-import type { Metadata, Viewport } from "next";
-import { Inter, Syne, Geist_Mono } from "next/font/google";
-import { Suspense } from "react";
-import "./globals.css";
-import { ThemeProvider } from "@/components/providers/theme-provider";
-import { Toaster } from "@asym/ui/components/shadcn/sonner";
-import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { TanStackDBProvider } from "@asym/database/providers";
+import "@asym/env";
 import { siteConfig } from "@asym/config/site";
+import { QueryProvider } from "@asym/database/providers";
+import { getSupabasePublicConfig } from "@asym/database/supabase/config";
+import { MotionProvider } from "@asym/lib/motion";
+import { Toaster } from "@asym/ui/components/shadcn/sonner";
+import { Inter, Geist_Mono, Syne } from "next/font/google";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { Suspense } from "react";
+
+import type { Metadata, Viewport } from "next";
+
+import { OpenPolicyProvider } from "@/components/providers/openpolicy-provider";
+import { ThemeProvider } from "@/components/providers/theme-provider";
+
+import "./globals.css";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -30,6 +37,21 @@ const geistMono = Geist_Mono({
   display: "swap",
   preload: false,
 });
+
+function getSupabaseOrigin() {
+  const { url } = getSupabasePublicConfig();
+  if (!url) {
+    return null;
+  }
+
+  try {
+    return new URL(url).origin;
+  } catch {
+    return null;
+  }
+}
+
+const supabaseOrigin = getSupabaseOrigin();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -113,14 +135,12 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://images.unsplash.com" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
-        <link
-          rel="preconnect"
-          href="https://kzeybagjclwsxpkjshqa.supabase.co"
-        />
-        <link
-          rel="dns-prefetch"
-          href="https://kzeybagjclwsxpkjshqa.supabase.co"
-        />
+        {supabaseOrigin ? (
+          <>
+            <link rel="preconnect" href={supabaseOrigin} />
+            <link rel="dns-prefetch" href={supabaseOrigin} />
+          </>
+        ) : null}
         <link
           rel="preconnect"
           href="https://fonts.gstatic.com"
@@ -144,11 +164,15 @@ export default function RootLayout({
           storageKey="donor-theme"
           disableTransitionOnChange
         >
-          <TanStackDBProvider>
-            <Suspense fallback={null}>
-              <NuqsAdapter>{children}</NuqsAdapter>
-            </Suspense>
-          </TanStackDBProvider>
+          <QueryProvider>
+            <MotionProvider>
+              <Suspense fallback={null}>
+                <NuqsAdapter>
+                  <OpenPolicyProvider>{children}</OpenPolicyProvider>
+                </NuqsAdapter>
+              </Suspense>
+            </MotionProvider>
+          </QueryProvider>
         </ThemeProvider>
         <Toaster />
       </body>

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useCallback, useMemo, useSyncExternalStore } from "react";
 import {
   BookmarkIcon,
   MoreHorizontalIcon,
@@ -9,16 +8,19 @@ import {
   PencilIcon,
   CheckIcon,
 } from "lucide-react";
-import { cn } from "@asym/ui/lib/utils";
-import { Button } from "../../button";
-import { Input } from "../../input";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "../../dropdown-menu";
+  useState,
+  useCallback,
+  useMemo,
+  useSyncExternalStore,
+  useEffect,
+  useRef,
+} from "react";
+
+import { cn } from "@asym/ui/lib/utils";
+
+import { countActiveFilters, createEmptyFilterState } from "./types";
+import { Button } from "../../button";
 import {
   Dialog,
   DialogContent,
@@ -28,11 +30,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../../dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../../dropdown-menu";
+import { Input } from "../../input";
+import { Label } from "../../label";
 import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
 import { Textarea } from "../../textarea";
-import { Label } from "../../label";
+
 import type { AdvancedFilterState, SavedFilter } from "./types";
-import { countActiveFilters, createEmptyFilterState } from "./types";
 
 interface SavedFiltersProps {
   savedFilters: SavedFilter[];
@@ -59,6 +69,12 @@ export function SavedFilters({
   const [editingFilter, setEditingFilter] = useState<SavedFilter | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const editNameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!editingFilter) return;
+    editNameInputRef.current?.focus();
+  }, [editingFilter]);
 
   const activeCount = countActiveFilters(currentFilter);
   savedFilters.find((f) => f.isDefault);
@@ -186,10 +202,10 @@ export function SavedFilters({
                     {editingFilter?.id === filter.id ? (
                       <div className="flex-1 flex items-center gap-1">
                         <Input
+                          ref={editNameInputRef}
                           value={name}
                           onChange={(e) => setName(e.target.value)}
                           className="h-7 text-sm"
-                          autoFocus
                         />
                         <Button
                           variant="ghost"

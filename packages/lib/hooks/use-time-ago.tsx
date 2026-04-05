@@ -1,16 +1,19 @@
 "use client";
 
-import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
+import { useCallback, useMemo, useSyncExternalStore } from "react";
 
 export interface TimeAgoOptions {
   updateInterval?: number;
   shortFormat?: boolean;
 }
 
-function calculateTimeAgo(dateString: string, shortFormat = false): string {
+function calculateTimeAgo(
+  dateString: string,
+  shortFormat = false,
+  nowMs = Date.now(),
+): string {
   const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
+  const diffMs = nowMs - date.getTime();
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMins / 60);
   const diffDays = Math.floor(diffHours / 24);
@@ -44,6 +47,28 @@ export function formatDate(
 
 const emptySubscribe = () => () => {};
 
+function useNow(updateInterval?: number): number {
+  const intervalMs = updateInterval && updateInterval > 0 ? updateInterval : 0;
+
+  const subscribe = useCallback(
+    (onStoreChange: () => void) => {
+      if (intervalMs <= 0) {
+        return () => {};
+      }
+
+      const timer = window.setInterval(onStoreChange, intervalMs);
+      return () => window.clearInterval(timer);
+    },
+    [intervalMs],
+  );
+
+  return useSyncExternalStore(
+    subscribe,
+    () => Date.now(),
+    () => 0,
+  );
+}
+
 function useIsClient(): boolean {
   return useSyncExternalStore(
     emptySubscribe,
@@ -58,31 +83,15 @@ export function useTimeAgo(
 ): string {
   const { updateInterval, shortFormat = false } = options ?? {};
   const isClient = useIsClient();
-  const [timeAgo, setTimeAgo] = useState<string>(() =>
-    formatDate(dateString, { month: "short", day: "numeric" }),
-  );
+  const now = useNow(updateInterval);
 
-  const update = useCallback(() => {
-    setTimeAgo(calculateTimeAgo(dateString, shortFormat));
-  }, [dateString, shortFormat]);
-
-  useEffect(() => {
-    if (!isClient) return;
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- Required for hydration-safe time calculation
-    update();
-
-    if (updateInterval && updateInterval > 0) {
-      const interval = setInterval(update, updateInterval);
-      return () => clearInterval(interval);
+  return useMemo(() => {
+    if (!isClient) {
+      return formatDate(dateString, { month: "short", day: "numeric" });
     }
-  }, [update, updateInterval, isClient]);
 
-  if (!isClient) {
-    return formatDate(dateString, { month: "short", day: "numeric" });
-  }
-
-  return timeAgo;
+    return calculateTimeAgo(dateString, shortFormat, now);
+  }, [dateString, isClient, now, shortFormat]);
 }
 
 export interface TimeAgoProps {
@@ -104,15 +113,15 @@ export function TimeAgo({
 
 export function useLastSynced(): string {
   const isClient = useIsClient();
-  const [lastSynced, setLastSynced] = useState<string>("");
 
-  useEffect(() => {
-    if (!isClient) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- Required for hydration-safe time display
-    setLastSynced(
-      new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    );
+  return useMemo(() => {
+    if (!isClient) {
+      return "";
+    }
+
+    return new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   }, [isClient]);
-
-  return lastSynced;
 }

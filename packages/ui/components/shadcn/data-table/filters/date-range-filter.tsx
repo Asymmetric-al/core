@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
 import {
   startOfDay,
   endOfDay,
@@ -20,14 +19,13 @@ import {
   format,
 } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import { useState, useMemo, useCallback } from "react";
+
 import { cn } from "@asym/ui/lib/utils";
+
 import { Button } from "../../button";
 import { Calendar } from "../../calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "../../popover";
+import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
 import {
   Select,
   SelectContent,
@@ -35,8 +33,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../select";
-import type { DateRange } from "react-day-picker";
+
 import type { DateRangePreset } from "./types";
+import type { DateRange } from "react-day-picker";
 
 export const DATE_RANGE_PRESETS: DateRangePreset[] = [
   {

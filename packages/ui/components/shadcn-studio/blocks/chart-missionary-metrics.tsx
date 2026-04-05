@@ -8,8 +8,7 @@ import {
   UsersIcon,
   TrendingUpIcon,
 } from "lucide-react";
-
-import { Bar, BarChart, Label, Pie, PieChart } from "recharts";
+import dynamic from "next/dynamic";
 
 import { Avatar, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
 import {
@@ -25,6 +24,50 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@asym/ui/components/shadcn/chart";
+
+import type { FC } from "react";
+
+type RechartsComponent = FC<Record<string, unknown>>;
+
+const Bar = dynamic(
+  () =>
+    import("recharts").then((mod) => mod.Bar as unknown as RechartsComponent),
+  {
+    ssr: false,
+  },
+);
+const BarChart = dynamic(
+  () =>
+    import("recharts").then(
+      (mod) => mod.BarChart as unknown as RechartsComponent,
+    ),
+  {
+    ssr: false,
+  },
+);
+const Label = dynamic(
+  () =>
+    import("recharts").then((mod) => mod.Label as unknown as RechartsComponent),
+  {
+    ssr: false,
+  },
+);
+const Pie = dynamic(
+  () =>
+    import("recharts").then((mod) => mod.Pie as unknown as RechartsComponent),
+  {
+    ssr: false,
+  },
+);
+const PieChart = dynamic(
+  () =>
+    import("recharts").then(
+      (mod) => mod.PieChart as unknown as RechartsComponent,
+    ),
+  {
+    ssr: false,
+  },
+);
 
 const supportGoalPercentage = 85;
 const totalBars = 24;
@@ -118,9 +161,9 @@ const MissionaryMetricsCard = ({ className }: { className?: string }) => {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              {MetricsData.map((metric, index) => (
+              {MetricsData.map((metric) => (
                 <div
-                  key={index}
+                  key={metric.title}
                   className="flex items-center gap-3 rounded-md border px-4 py-2"
                 >
                   <Avatar className="size-8.5 rounded-sm">
@@ -166,8 +209,15 @@ const MissionaryMetricsCard = ({ className }: { className?: string }) => {
                     paddingAngle={2}
                   >
                     <Label
-                      content={({ viewBox }) => {
-                        if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                      content={({
+                        viewBox,
+                      }: {
+                        viewBox?: { cx?: number; cy?: number };
+                      }) => {
+                        if (
+                          typeof viewBox?.cx === "number" &&
+                          typeof viewBox?.cy === "number"
+                        ) {
                           return (
                             <text
                               x={viewBox.cx}

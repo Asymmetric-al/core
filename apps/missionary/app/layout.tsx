@@ -1,13 +1,23 @@
-import type { Metadata, Viewport } from "next";
-import { Inter, Syne, Geist_Mono } from "next/font/google";
-import { Suspense } from "react";
-import "./globals.css";
-import { ThemeProvider } from "@/lib/theme-provider";
-import { Toaster } from "@asym/ui/components/shadcn/sonner";
-import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { QueryProvider } from "@asym/database/providers";
+import "@asym/env";
+import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
+import { getProtectedAppRedirectPath } from "@asym/auth/redirects";
 import { siteConfig } from "@asym/config/site";
+import { QueryProvider } from "@asym/database/providers";
+import { getSupabasePublicConfig } from "@asym/database/supabase/config";
+import { MotionProvider } from "@asym/lib/motion";
+import { Toaster } from "@asym/ui/components/shadcn/sonner";
+import { Inter, Geist_Mono, Syne } from "next/font/google";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { Suspense } from "react";
+
+import type { Metadata, Viewport } from "next";
+
+import { MISSIONARY_ALLOWED_ROLES } from "@/app/access";
 import { AppShell } from "@/components/app-shell";
+import { ThemeProvider } from "@/lib/theme-provider";
+import "./globals.css";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -31,6 +41,61 @@ const geistMono = Geist_Mono({
   display: "swap",
   preload: false,
 });
+
+function getSupabaseOrigin() {
+  const { url } = getSupabasePublicConfig();
+  if (!url) {
+    return null;
+  }
+
+  try {
+    return new URL(url).origin;
+  } catch {
+    return null;
+  }
+}
+
+const supabaseOrigin = getSupabaseOrigin();
+
+const MISSIONARY_PUBLIC_PATH_PREFIXES = [
+  "/login",
+  "/register",
+  "/auth/callback",
+  "/forgot-password",
+  "/no-access",
+  "/api/",
+] as const;
+
+function isPublicPath(pathname: string) {
+  return MISSIONARY_PUBLIC_PATH_PREFIXES.some((prefix) =>
+    prefix.endsWith("/")
+      ? pathname.startsWith(prefix)
+      : pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
+async function MissionaryRoleGate({ children }: { children: React.ReactNode }) {
+  const pathname = (await headers()).get("x-asym-pathname") ?? "/";
+  if (isPublicPath(pathname)) {
+    return <>{children}</>;
+  }
+
+  const authContext = await getAuthContext();
+  const authRedirectPath = getProtectedAppRedirectPath(
+    authContext,
+    `/login?next=${encodeURIComponent(pathname)}`,
+  );
+
+  if (authRedirectPath) {
+    redirect(authRedirectPath);
+  }
+
+  if (!hasAnyContextRole(authContext, [...MISSIONARY_ALLOWED_ROLES])) {
+    redirect("/no-access");
+  }
+
+  return <>{children}</>;
+}
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -67,25 +132,17 @@ export default function RootLayout({
   return (
     <html lang={siteConfig.language} suppressHydrationWarning>
       <head>
-        <link
-          rel="preconnect"
-          href="https://kzeybagjclwsxpkjshqa.supabase.co"
-        />
-        <link
-          rel="dns-prefetch"
-          href="https://kzeybagjclwsxpkjshqa.supabase.co"
-        />
+        {supabaseOrigin ? (
+          <>
+            <link rel="preconnect" href={supabaseOrigin} />
+            <link rel="dns-prefetch" href={supabaseOrigin} />
+          </>
+        ) : null}
         <link
           rel="preconnect"
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
-
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <link rel="manifest" href="/manifest.webmanifest" />
-        <meta name="theme-color" content="#ffffff" />
       </head>
       <body
         className={`${inter.variable} ${geistMono.variable} ${syne.variable} font-sans antialiased`}
@@ -99,11 +156,15 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <QueryProvider>
-            <Suspense fallback={null}>
-              <NuqsAdapter>
-                <AppShell role="missionary">{children}</AppShell>
-              </NuqsAdapter>
-            </Suspense>
+            <MotionProvider>
+              <Suspense fallback={null}>
+                <NuqsAdapter>
+                  <MissionaryRoleGate>
+                    <AppShell role="missionary">{children}</AppShell>
+                  </MissionaryRoleGate>
+                </NuqsAdapter>
+              </Suspense>
+            </MotionProvider>
           </QueryProvider>
         </ThemeProvider>
         <Toaster />

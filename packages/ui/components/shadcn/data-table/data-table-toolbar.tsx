@@ -1,15 +1,17 @@
 "use client";
 
-import * as React from "react";
-import type { Table } from "@tanstack/react-table";
 import { Search, X } from "lucide-react";
+import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
+
 import { Button } from "../button";
 import { Input } from "../input";
-import { DataTableViewOptions } from "./data-table-view-options";
 import { DataTableFacetedFilter } from "./data-table-faceted-filter";
+import { DataTableViewOptions } from "./data-table-view-options";
+
 import type { DataTableFilterField } from "./types";
+import type { Table } from "@tanstack/react-table";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -21,9 +23,11 @@ interface DataTableToolbarProps<TData> {
   children?: React.ReactNode;
 }
 
+const EMPTY_FILTER_FIELDS: DataTableFilterField<unknown>[] = [];
+
 export function DataTableToolbar<TData>({
   table,
-  filterFields = [],
+  filterFields = EMPTY_FILTER_FIELDS as DataTableFilterField<TData>[],
   searchKey,
   searchPlaceholder = "Search...",
   enableColumnVisibility = true,

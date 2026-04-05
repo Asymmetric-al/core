@@ -1,9 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
-import Image from "next/image";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ImagePlus, X } from "lucide-react";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Dialog,
   DialogContent,
@@ -11,9 +8,13 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@asym/ui/components/shadcn/dialog";
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { Spinner } from "@asym/ui/components/shadcn/spinner";
+import { Textarea } from "@asym/ui/components/shadcn/textarea";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { ImagePlus, X } from "lucide-react";
+import Image from "next/image";
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import type { MediaItem } from "@asym/database/types";
 
 interface NewPostDialogProps {
@@ -26,7 +27,21 @@ export function NewPostDialog({ open, onOpenChange }: NewPostDialogProps) {
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const previewUrlsRef = useRef<Set<string>>(new Set());
   const queryClient = useQueryClient();
+
+  const revokeAllPreviewUrls = useCallback(() => {
+    previewUrlsRef.current.forEach((previewUrl) => {
+      URL.revokeObjectURL(previewUrl);
+    });
+    previewUrlsRef.current.clear();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      revokeAllPreviewUrls();
+    };
+  }, [revokeAllPreviewUrls]);
 
   const createPost = useMutation({
     mutationFn: async (data: { content: string; media: MediaItem[] }) => {
@@ -45,6 +60,7 @@ export function NewPostDialog({ open, onOpenChange }: NewPostDialogProps) {
   });
 
   const handleClose = () => {
+    revokeAllPreviewUrls();
     setContent("");
     setMedia([]);
     setPreviews([]);
@@ -59,6 +75,7 @@ export function NewPostDialog({ open, onOpenChange }: NewPostDialogProps) {
       const isVideo = file.type.startsWith("video/");
       const url = URL.createObjectURL(file);
 
+      previewUrlsRef.current.add(url);
       setPreviews((prev) => [...prev, url]);
       setMedia((prev) => [...prev, { url, type: isVideo ? "video" : "image" }]);
     });
@@ -72,6 +89,7 @@ export function NewPostDialog({ open, onOpenChange }: NewPostDialogProps) {
     const preview = previews[index];
     if (preview) {
       URL.revokeObjectURL(preview);
+      previewUrlsRef.current.delete(preview);
     }
     setPreviews((prev) => prev.filter((_, i) => i !== index));
     setMedia((prev) => prev.filter((_, i) => i !== index));
@@ -102,7 +120,7 @@ export function NewPostDialog({ open, onOpenChange }: NewPostDialogProps) {
             <div className="grid grid-cols-2 gap-2">
               {previews.map((preview, index) => (
                 <div
-                  key={index}
+                  key={preview}
                   className="relative aspect-square overflow-hidden rounded-lg"
                 >
                   {media[index]?.type === "video" ? (
@@ -117,6 +135,7 @@ export function NewPostDialog({ open, onOpenChange }: NewPostDialogProps) {
                       alt={`Preview ${index + 1}`}
                       fill
                       className="object-cover"
+                      sizes="(max-width: 768px) 50vw, 240px"
                     />
                   )}
                   <Button

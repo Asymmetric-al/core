@@ -1,16 +1,20 @@
 "use client";
 
-import { Moon, Sun, Bell } from "lucide-react";
-import { useTheme } from "next-themes";
-import { SidebarTrigger } from "@asym/ui/components/shadcn/sidebar";
+import { signOutOnServer } from "@asym/auth/client-signout";
+import { createBrowserClient } from "@asym/database/supabase";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { Separator } from "@asym/ui/components/shadcn/separator";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
+import { Separator } from "@asym/ui/components/shadcn/separator";
+import { SidebarTrigger } from "@asym/ui/components/shadcn/sidebar";
+import { Moon, Sun, Bell, LifeBuoy, LogOut } from "lucide-react";
+import Link from "next/link";
+import { useTheme } from "next-themes";
+import { useTransition } from "react";
 
 interface AppHeaderProps {
   title?: string;
@@ -18,6 +22,26 @@ interface AppHeaderProps {
 
 export function AppHeader({ title }: AppHeaderProps) {
   const { setTheme } = useTheme();
+  const [isSigningOut, startSigningOut] = useTransition();
+
+  const handleSignOut = () => {
+    startSigningOut(() => {
+      void (async () => {
+        const serverSignOut = await signOutOnServer();
+        if (!serverSignOut.ok) {
+          window.alert(
+            serverSignOut.message ?? "Unable to sign out. Please try again.",
+          );
+        }
+
+        const supabase = createBrowserClient();
+        void supabase.auth.signOut().catch((error) => {
+          console.warn("[auth] browser signout cleanup failed", error);
+        });
+        window.location.href = "/login";
+      })();
+    });
+  };
 
   return (
     <header className="sticky top-0 z-50 flex h-12 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-3 sm:px-4 lg:px-6">
@@ -47,6 +71,23 @@ export function AppHeader({ title }: AppHeaderProps) {
               size="icon"
               className="h-8 w-8 touch-target"
             >
+              <LifeBuoy className="h-4 w-4" />
+              <span className="sr-only">Help</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Link href="/help/about">About</Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 touch-target"
+            >
               <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
               <span className="sr-only">Toggle theme</span>
@@ -64,6 +105,17 @@ export function AppHeader({ title }: AppHeaderProps) {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <Button
+          variant="ghost"
+          size="sm"
+          data-testid="auth-signout"
+          className="h-8 px-2 text-xs"
+          onClick={handleSignOut}
+          disabled={isSigningOut}
+        >
+          <LogOut className="mr-1 h-3.5 w-3.5" />
+          {isSigningOut ? "Signing out…" : "Sign out"}
+        </Button>
       </div>
     </header>
   );

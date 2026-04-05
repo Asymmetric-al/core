@@ -1,5 +1,3 @@
-import type { ReactNode } from "react";
-
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -9,8 +7,9 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@asym/ui/components/shadcn/navigation-menu";
-
 import { cn } from "@asym/ui/lib/utils";
+
+import type { ReactNode } from "react";
 
 export type NavigationItem = {
   title: string;

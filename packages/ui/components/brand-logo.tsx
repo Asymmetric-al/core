@@ -1,7 +1,9 @@
 "use client";
+"use memo";
+
+import { brandConfig } from "@asym/config/site-client";
 
 import { cn } from "@asym/ui/lib/utils";
-import { brandConfig } from "@asym/config/site";
 
 interface BrandLogoProps {
   size?: "sm" | "md" | "lg";

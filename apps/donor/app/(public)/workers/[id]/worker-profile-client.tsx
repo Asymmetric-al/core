@@ -1,11 +1,24 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { cn } from "@asym/ui/lib/utils";
+import { SafeHtml } from "@asym/lib/components/safe-html";
+import { motion } from "@asym/lib/motion";
 import { formatCurrency } from "@asym/lib/utils";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
+import { Card, CardContent } from "@asym/ui/components/shadcn/card";
+import { Progress } from "@asym/ui/components/shadcn/progress";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@asym/ui/components/shadcn/tabs";
+import { cn } from "@asym/ui/lib/utils";
 import {
   MapPin,
   ArrowLeft,
@@ -15,21 +28,10 @@ import {
   ShieldCheck,
   Rss,
 } from "lucide-react";
-import { Card, CardContent } from "@asym/ui/components/shadcn/card";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
-import { Progress } from "@asym/ui/components/shadcn/progress";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@asym/ui/components/shadcn/tabs";
-import { motion } from "motion/react";
+import Image from "next/image";
+import Link from "next/link";
+import React, { useState } from "react";
+
 import type { FieldWorker } from "@/lib/mock-data";
 
 const PUBLIC_UPDATES = [
@@ -69,12 +71,7 @@ const PUBLIC_UPDATES = [
   },
 ];
 
-const UpdateCard = ({
-  update,
-}: {
-  update: (typeof PUBLIC_UPDATES)[0];
-  worker: FieldWorker;
-}) => (
+const UpdateCard = ({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) => (
   <div className="group relative pl-8 pb-12 last:pb-0">
     <div className="absolute left-[11px] top-3 bottom-0 w-px bg-slate-100 group-last:hidden" />
     <div className="absolute left-0 top-3 h-6 w-6 rounded-full border-4 border-white bg-slate-100 flex items-center justify-center z-10 group-hover:bg-blue-100 group-hover:scale-110 transition-all duration-300">
@@ -102,9 +99,9 @@ const UpdateCard = ({
             </h4>
           )}
 
-          <div
+          <SafeHtml
             className="prose prose-slate prose-sm max-w-none text-slate-600 mb-4 leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: update.content }}
+            html={update.content}
           />
 
           {update.image && (
@@ -113,7 +110,7 @@ const UpdateCard = ({
                 src={update.image}
                 alt="Update visual"
                 fill
-                className="object-cover hover:scale-105 transition-transform duration-700"
+                className="object-cover hover:scale-[1.02] transition-transform duration-700"
                 sizes="(max-width: 768px) 100vw, 500px"
               />
             </div>
@@ -136,6 +133,130 @@ const UpdateCard = ({
 );
 
 const GivingAmounts = [50, 100, 200, 500];
+
+function WorkerProfileHeaderSection({ worker }: { worker: FieldWorker }) {
+  return (
+    <div className="space-y-6">
+      <div className="rounded-3xl overflow-hidden shadow-sm border border-slate-100 bg-white aspect-video relative group">
+        <Image
+          src={worker.image}
+          alt={`${worker.title} - Missionary in ${worker.location}`}
+          fill
+          className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+          sizes="(max-width: 768px) 100vw, 800px"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
+        <div className="absolute bottom-6 left-6 text-white flex items-center gap-2">
+          <MapPin className="h-4 w-4 text-emerald-400" />
+          <span className="font-semibold tracking-wide drop-shadow-sm">
+            {worker.location}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-6 items-start">
+        <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-white shadow-lg -mt-12 sm:-mt-16 bg-white relative z-10">
+          <AvatarImage src={worker.image} className="object-cover" />
+          <AvatarFallback>{worker.title.substring(0, 2)}</AvatarFallback>
+        </Avatar>
+
+        <div className="space-y-2 flex-1 pt-2">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
+              {worker.title}
+            </h1>
+            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-[11px] font-bold uppercase tracking-wider">
+              <ShieldCheck className="h-3.5 w-3.5" /> Verified
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-slate-500 font-medium text-sm">
+            <span>{worker.category}</span>
+            <span className="w-1 h-1 rounded-full bg-slate-300" />
+            <span>Partner since 2019</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WorkerStoryTabContent({ worker }: { worker: FieldWorker }) {
+  return (
+    <div className="prose prose-lg prose-slate max-w-none text-slate-600 leading-relaxed font-light">
+      <p className="font-medium text-xl text-slate-900 leading-relaxed mb-8 border-l-4 border-emerald-500 pl-6 italic">
+        &quot;{worker.description}&quot;
+      </p>
+      <h3>The Mission</h3>
+      <p>
+        We are committed to long-term sustainable change. By partnering with
+        local leaders and utilizing indigenous resources, we ensure that every
+        project has community buy-in and lasting impact. Your support
+        doesn&apos;t just provide temporary relief; it builds a foundation for
+        the future.
+      </p>
+      <p>
+        From organizing community health workshops to overseeing construction
+        projects, our days are filled with the hard but rewarding work of
+        transformation. We believe that true change happens in the context of
+        relationship.
+      </p>
+
+      <div className="my-8 grid grid-cols-1 sm:grid-cols-2 gap-4 not-prose">
+        <div className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm">
+          <h4 className="font-bold text-slate-900 mb-2">Direct Impact</h4>
+          <p className="text-sm text-slate-500">
+            100% of your program donation goes directly to the field account
+            after processing fees.
+          </p>
+        </div>
+        <div className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm">
+          <h4 className="font-bold text-slate-900 mb-2">Accountability</h4>
+          <p className="text-sm text-slate-500">
+            We conduct quarterly site visits and financial audits to ensure
+            integrity.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WorkerUpdatesTabContent({ workerTitle }: { workerTitle: string }) {
+  return (
+    <>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h3 className="text-xl font-bold text-slate-900">
+            Latest from the Field
+          </h3>
+          <p className="text-slate-500 text-sm mt-1 flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            Updates posted directly by {workerTitle}
+          </p>
+        </div>
+        <Button variant="outline" size="sm" className="hidden sm:flex">
+          <Rss className="mr-2 h-4 w-4" /> Subscribe
+        </Button>
+      </div>
+
+      <div className="space-y-2">
+        {PUBLIC_UPDATES.map((update) => (
+          <UpdateCard key={update.id} update={update} />
+        ))}
+      </div>
+
+      <div className="pt-8 text-center">
+        <Button variant="ghost" className="text-slate-500 hover:text-slate-900">
+          Load older updates
+        </Button>
+      </div>
+    </>
+  );
+}
 
 interface WorkerProfileClientProps {
   worker: FieldWorker;
@@ -187,50 +308,7 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
             transition={{ duration: 0.5 }}
             className="lg:col-span-7 xl:col-span-8 space-y-12"
           >
-            <div className="space-y-6">
-              <div className="rounded-3xl overflow-hidden shadow-sm border border-slate-100 bg-white aspect-video relative group">
-                <Image
-                  src={worker.image}
-                  alt={`${worker.title} - Missionary in ${worker.location}`}
-                  fill
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
-                  sizes="(max-width: 768px) 100vw, 800px"
-                  priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
-                <div className="absolute bottom-6 left-6 text-white flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-emerald-400" />
-                  <span className="font-semibold tracking-wide drop-shadow-sm">
-                    {worker.location}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-6 items-start">
-                <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-white shadow-lg -mt-12 sm:-mt-16 bg-white relative z-10">
-                  <AvatarImage src={worker.image} className="object-cover" />
-                  <AvatarFallback>
-                    {worker.title.substring(0, 2)}
-                  </AvatarFallback>
-                </Avatar>
-
-                <div className="space-y-2 flex-1 pt-2">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
-                      {worker.title}
-                    </h1>
-                    <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-[11px] font-bold uppercase tracking-wider">
-                      <ShieldCheck className="h-3.5 w-3.5" /> Verified
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-slate-500 font-medium text-sm">
-                    <span>{worker.category}</span>
-                    <span className="w-1 h-1 rounded-full bg-slate-300" />
-                    <span>Partner since 2019</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <WorkerProfileHeaderSection worker={worker} />
 
             <Tabs defaultValue="story" className="w-full">
               <TabsList className="w-full justify-start border-b border-slate-200 bg-transparent h-auto p-0 mb-8 gap-8">
@@ -255,92 +333,14 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                 value="story"
                 className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
               >
-                <div className="prose prose-lg prose-slate max-w-none text-slate-600 leading-relaxed font-light">
-                  <p className="font-medium text-xl text-slate-900 leading-relaxed mb-8 border-l-4 border-emerald-500 pl-6 italic">
-                    &quot;{worker.description}&quot;
-                  </p>
-                  <h3>The Mission</h3>
-                  <p>
-                    We are committed to long-term sustainable change. By
-                    partnering with local leaders and utilizing indigenous
-                    resources, we ensure that every project has community buy-in
-                    and lasting impact. Your support doesn&apos;t just provide
-                    temporary relief; it builds a foundation for the future.
-                  </p>
-                  <p>
-                    From organizing community health workshops to overseeing
-                    construction projects, our days are filled with the hard but
-                    rewarding work of transformation. We believe that true
-                    change happens in the context of relationship.
-                  </p>
-
-                  <div className="my-8 grid grid-cols-1 sm:grid-cols-2 gap-4 not-prose">
-                    <div className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm">
-                      <h4 className="font-bold text-slate-900 mb-2">
-                        Direct Impact
-                      </h4>
-                      <p className="text-sm text-slate-500">
-                        100% of your program donation goes directly to the field
-                        account after processing fees.
-                      </p>
-                    </div>
-                    <div className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm">
-                      <h4 className="font-bold text-slate-900 mb-2">
-                        Accountability
-                      </h4>
-                      <p className="text-sm text-slate-500">
-                        We conduct quarterly site visits and financial audits to
-                        ensure integrity.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                <WorkerStoryTabContent worker={worker} />
               </TabsContent>
 
               <TabsContent
                 value="updates"
                 className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
               >
-                <div className="flex items-center justify-between mb-8">
-                  <div>
-                    <h3 className="text-xl font-bold text-slate-900">
-                      Latest from the Field
-                    </h3>
-                    <p className="text-slate-500 text-sm mt-1 flex items-center gap-2">
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                      </span>
-                      Updates posted directly by {worker.title}
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="hidden sm:flex"
-                  >
-                    <Rss className="mr-2 h-4 w-4" /> Subscribe
-                  </Button>
-                </div>
-
-                <div className="space-y-2">
-                  {PUBLIC_UPDATES.map((update) => (
-                    <UpdateCard
-                      key={update.id}
-                      update={update}
-                      worker={worker}
-                    />
-                  ))}
-                </div>
-
-                <div className="pt-8 text-center">
-                  <Button
-                    variant="ghost"
-                    className="text-slate-500 hover:text-slate-900"
-                  >
-                    Load older updates
-                  </Button>
-                </div>
+                <WorkerUpdatesTabContent workerTitle={worker.title} />
               </TabsContent>
             </Tabs>
           </motion.div>
@@ -396,9 +396,6 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                           ? "border-blue-600 ring-4 ring-blue-50/50"
                           : "border-slate-200 hover:border-slate-300",
                       )}
-                      onClick={() =>
-                        document.getElementById("custom-amount-input")?.focus()
-                      }
                     >
                       <span
                         className={cn(
@@ -433,7 +430,7 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                           key={amt}
                           onClick={() => handleAmountClick(amt)}
                           className={cn(
-                            "py-2.5 rounded-xl border text-sm font-bold transition-all active:scale-95",
+                            "py-2.5 rounded-xl border text-sm font-bold transition-all active:scale-[0.98]",
                             amount === amt && !customAmount
                               ? "border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-100"
                               : "border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-slate-900 hover:bg-slate-50",
@@ -464,7 +461,7 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
 
                   <Button
                     size="lg"
-                    className="w-full h-14 text-lg font-bold bg-slate-900 hover:bg-slate-800 shadow-xl shadow-slate-900/20 rounded-2xl transition-all hover:scale-[1.02] active:scale-95"
+                    className="w-full h-14 text-lg font-bold bg-slate-900 hover:bg-slate-800 shadow-xl shadow-slate-900/20 rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98]"
                     asChild
                   >
                     <Link

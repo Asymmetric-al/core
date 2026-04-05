@@ -1,11 +1,13 @@
 "use client";
 
-import * as React from "react";
 import { Search, X } from "lucide-react";
+import * as React from "react";
+
 import { cn } from "@asym/ui/lib/utils";
-import { Input } from "./input";
-import { Button } from "./button";
+
 import { Badge } from "./badge";
+import { Button } from "./button";
+import { Input } from "./input";
 
 interface FilterBarProps {
   search?: {
@@ -23,10 +25,12 @@ interface FilterBarProps {
   className?: string;
 }
 
+const EMPTY_ACTIVE_FILTERS: { label: string; onRemove: () => void }[] = [];
+
 export function FilterBar({
   search,
   filters,
-  activeFilters = [],
+  activeFilters = EMPTY_ACTIVE_FILTERS,
   onReset,
   actions,
   className,
@@ -61,14 +65,15 @@ export function FilterBar({
 
       {(activeFilters.length > 0 || onReset) && (
         <div className="flex flex-wrap items-center gap-2">
-          {activeFilters.map((filter, index) => (
+          {activeFilters.map((filter) => (
             <Badge
-              key={index}
+              key={filter.label}
               variant="secondary"
               className="h-7 px-3 rounded-lg bg-zinc-100 text-zinc-600 border-none font-bold uppercase tracking-widest text-[9px] hover:bg-zinc-200 transition-colors cursor-default"
             >
               {filter.label}
               <button
+                type="button"
                 onClick={filter.onRemove}
                 className="ml-2 hover:text-zinc-900 transition-colors"
               >

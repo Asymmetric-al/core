@@ -4,8 +4,9 @@
  * Uses centralized mock data with type mapping for the care module.
  */
 
-import { MISSIONARIES, ACTIVITIES } from "@/lib/mock-data";
 import type { CarePersonnel, ActivityLogEntry } from "./types";
+
+import { MISSIONARIES, ACTIVITIES } from "@/lib/mock-data";
 
 function mapHealthStatus(status: string): "Healthy" | "At Risk" | "Crisis" {
   switch (status) {

@@ -1,4 +1,3 @@
-import type { NavItem, Role } from "@asym/config/navigation";
 import {
   LayoutDashboard,
   Globe,
@@ -15,6 +14,8 @@ import {
   Heart,
   CalendarDays,
 } from "lucide-react";
+
+import type { NavItem, Role } from "@asym/config/navigation";
 
 export const NAV_ITEMS: NavItem[] = [
   {

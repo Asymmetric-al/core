@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState, useEffect } from "react";
+
 import type { ColumnSizingState, Table, Header } from "@tanstack/react-table";
 
 export interface ColumnResizingOptions {
@@ -139,8 +140,8 @@ export function useColumnResizing<TData>(
 
         document.addEventListener("mousemove", handleMove);
         document.addEventListener("mouseup", handleEnd);
-        document.addEventListener("touchmove", handleMove);
-        document.addEventListener("touchend", handleEnd);
+        document.addEventListener("touchmove", handleMove, { passive: true });
+        document.addEventListener("touchend", handleEnd, { passive: true });
       };
     },
     [enabled, minColumnSize, maxColumnSize],
@@ -166,6 +167,8 @@ export function ColumnResizeHandle({
     <div
       onMouseDown={onResize}
       onTouchStart={onResize}
+      role="separator"
+      aria-orientation="vertical"
       className={
         className ??
         "absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none bg-transparent hover:bg-primary/50 active:bg-primary transition-colors"

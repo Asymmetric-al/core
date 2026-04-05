@@ -2,11 +2,57 @@
   "name": "@asym/eslint-config",
   "version": "0.1.0",
   "private": true,
-  "description": "Shared ESLint configuration for Asymmetric.al monorepo",
+  "description": "Shared ESLint configuration for Asymmetric.al monorepo (legacy base.js is deprecated; use flat config exports)",
   "main": "base.js",
-  "files": ["base.js"],
+  "exports": {
+    "./base.mjs": "./base.mjs",
+    "./nextjs.mjs": "./nextjs.mjs",
+    "./library.mjs": "./library.mjs",
+    "./base.js": "./base.js"
+  },
+  "files": [
+    "base.js",
+    "base.mjs",
+    "nextjs.mjs",
+    "library.mjs"
+  ],
+  "peerDependencies": {
+    "@typescript-eslint/eslint-plugin": "*",
+    "@typescript-eslint/parser": "*",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "*",
+    "eslint-plugin-import-x": "*",
+    "eslint-plugin-react-hooks": "*",
+    "eslint-plugin-unused-imports": "*",
+    "typescript": "*"
+  },
+  "peerDependenciesMeta": {
+    "@typescript-eslint/eslint-plugin": {
+      "optional": true
+    },
+    "@typescript-eslint/parser": {
+      "optional": true
+    },
+    "eslint": {
+      "optional": true
+    },
+    "eslint-config-next": {
+      "optional": true
+    },
+    "eslint-plugin-import-x": {
+      "optional": true
+    },
+    "eslint-plugin-react-hooks": {
+      "optional": true
+    },
+    "eslint-plugin-unused-imports": {
+      "optional": true
+    },
+    "typescript": {
+      "optional": true
+    }
+  },
   "dependencies": {
     "eslint-config-next": "^16.1.0"
   }
 }
-

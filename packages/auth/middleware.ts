@@ -1,109 +1,180 @@
+import {
+  getSupabasePublicConfig,
+  type SupabasePublicConfig,
+} from "@asym/database/supabase/config";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+
+import { safeNextParam } from "./demo-login";
+
+import type { UserRole } from "@asym/database/types";
 
 export interface AuthMiddlewareOptions {
   publicRoutes?: string[];
   authRoutes?: string[];
+  protectedRoutePrefixes?: string[];
   loginPath?: string;
   redirectAuthenticatedTo?: string;
+  unauthorizedRedirectTo?: string;
+  allowedRoles?: UserRole[];
   allowApi?: boolean;
+  resolveSession?: (
+    request: NextRequest,
+  ) => Promise<{ userId: string | null; role: UserRole | null }>;
 }
 
-const DEFAULT_AUTH_ROUTES = ["/login", "/register"];
+const DEFAULT_AUTH_ROUTES = ["/login", "/register"] as const;
 
-function matchesRoute(pathname: string, route: string) {
+function matchesRoutePrefix(pathname: string, route: string) {
   return pathname === route || pathname.startsWith(`${route}/`);
 }
 
+function isPublicRoute(pathname: string, publicRoutes: string[]) {
+  return publicRoutes.some((route) => matchesRoutePrefix(pathname, route));
+}
+
+function isProtectedRoute(pathname: string, prefixes: string[]) {
+  return prefixes.some((prefix) => matchesRoutePrefix(pathname, prefix));
+}
+
+function withPathHeader(request: NextRequest, pathname: string) {
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-asym-pathname", pathname);
+  return NextResponse.next({
+    request: { headers: requestHeaders },
+  });
+}
+
+/**
+ * Use only the request's nextUrl.origin for redirects to prevent open redirect.
+ * Do not trust Origin, Referer, or X-Forwarded-* headers for redirect targets.
+ */
+function buildRedirectUrl(
+  request: NextRequest,
+  path: string,
+  next?: string | null,
+) {
+  const url = new URL(path, request.nextUrl.origin);
+  if (next) {
+    url.searchParams.set("next", next);
+  }
+  return url;
+}
+
+function logMissingSupabaseConfig(
+  pathname: string,
+  config: SupabasePublicConfig,
+) {
+  const missing: string[] = [];
+  if (!config.url) missing.push("NEXT_PUBLIC_SUPABASE_URL");
+  if (!config.key) {
+    missing.push(
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY|NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    );
+  }
+  const missingHint =
+    missing.length > 0 ? ` Missing: ${missing.join(", ")}.` : "";
+  console.error(
+    `[auth] Supabase auth config missing in proxy.${missingHint} Failing closed for protected path "${pathname}".`,
+  );
+}
+
+/**
+ * Shared auth proxy middleware for all app surfaces.
+ *
+ * Cookie/session implications:
+ * - Uses Supabase SSR `getAll/setAll` bridging so refreshed auth cookies are
+ *   written back to the response.
+ * - Validates session via `auth.getUser()` on each matched protected request
+ *   so revoked sessions are rejected and cookies stay in sync.
+ */
 export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
   const publicRoutes = options.publicRoutes ?? [];
-  const authRoutes = options.authRoutes ?? DEFAULT_AUTH_ROUTES;
+  const authRoutes = options.authRoutes ?? [...DEFAULT_AUTH_ROUTES];
+  const protectedRoutePrefixes = options.protectedRoutePrefixes ?? ["/"];
   const loginPath = options.loginPath ?? "/login";
-  const redirectAuthenticatedTo = options.redirectAuthenticatedTo ?? "/";
   const allowApi = options.allowApi ?? true;
 
   return async function authMiddleware(request: NextRequest) {
-    let supabaseResponse = NextResponse.next({ request });
     const pathname = request.nextUrl.pathname;
 
-    if (allowApi && pathname.startsWith("/api")) {
-      return supabaseResponse;
+    if (allowApi && pathname.startsWith("/api/")) {
+      return withPathHeader(request, pathname);
     }
 
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll();
-          },
-          setAll(
-            cookiesToSet: {
-              name: string;
-              value: string;
-              options?: Record<string, unknown>;
-            }[],
-          ) {
-            try {
-              cookiesToSet.forEach(({ name, value }) =>
-                request.cookies.set(name, value),
-              );
-              supabaseResponse = NextResponse.next({ request });
-              cookiesToSet.forEach(({ name, value, options }) =>
-                supabaseResponse.cookies.set(
-                  name,
-                  value,
-                  options as Record<string, unknown>,
-                ),
-              );
-            } catch {}
-          },
+    const config = getSupabasePublicConfig();
+    const { url, key } = config;
+    const isAuthRoute = authRoutes.some((route) =>
+      matchesRoutePrefix(pathname, route),
+    );
+    const isExplicitlyPublic =
+      isAuthRoute || isPublicRoute(pathname, publicRoutes);
+    const requiresAuthentication =
+      !isExplicitlyPublic && isProtectedRoute(pathname, protectedRoutePrefixes);
+
+    if (!url || !key) {
+      if (requiresAuthentication) {
+        logMissingSupabaseConfig(pathname, config);
+        const next = safeNextParam(
+          `${request.nextUrl.pathname}${request.nextUrl.search || ""}`,
+        );
+        const redirectUrl = buildRedirectUrl(request, loginPath, next);
+        redirectUrl.searchParams.set("error", "auth_misconfigured");
+        return NextResponse.redirect(redirectUrl);
+      }
+
+      return withPathHeader(request, pathname);
+    }
+
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-asym-pathname", pathname);
+    const requestWithHeaders = NextResponse.next({
+      request: { headers: requestHeaders },
+    });
+    const supabaseResponse = requestWithHeaders;
+
+    const supabase = createServerClient(url, key, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(
+          cookiesToSet: {
+            name: string;
+            value: string;
+            options?: Record<string, unknown>;
+          }[],
+        ) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            request.cookies.set(name, value);
+            supabaseResponse.cookies.set(
+              name,
+              value,
+              options as Record<string, unknown>,
+            );
+          });
         },
       },
-    );
-
-    const isPublicRoute = publicRoutes.some((route) =>
-      matchesRoute(pathname, route),
-    );
-    const isAuthRoute = authRoutes.some((route) =>
-      matchesRoute(pathname, route),
-    );
+    });
 
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    let role: string | null = null;
-    if (user && isAuthRoute) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("user_id", user.id)
-        .single();
-      role = profile?.role ?? null;
+    const userId = user?.id ?? null;
+
+    if (isPublicRoute(pathname, publicRoutes) && !isAuthRoute) {
+      return supabaseResponse;
     }
 
-    if (!user && !isPublicRoute && !isAuthRoute) {
-      const url = request.nextUrl.clone();
-      url.pathname = loginPath;
-      url.searchParams.set("next", pathname);
-      return NextResponse.redirect(url);
+    if (isAuthRoute) {
+      return supabaseResponse;
     }
 
-    if (user && isAuthRoute) {
-      const url = request.nextUrl.clone();
-      if (role) {
-        if (role === "admin" || role === "staff") {
-          url.pathname = "/mc";
-        } else if (role === "missionary") {
-          url.pathname = "/";
-        } else {
-          url.pathname = "/donor-dashboard";
-        }
-      } else {
-        url.pathname = redirectAuthenticatedTo;
-      }
-      return NextResponse.redirect(url);
+    if (isProtectedRoute(pathname, protectedRoutePrefixes) && !userId) {
+      const next = safeNextParam(
+        `${request.nextUrl.pathname}${request.nextUrl.search || ""}`,
+      );
+      return NextResponse.redirect(buildRedirectUrl(request, loginPath, next));
     }
 
     return supabaseResponse;

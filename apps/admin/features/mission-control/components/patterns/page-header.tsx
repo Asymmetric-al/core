@@ -1,8 +1,10 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { ChevronRight } from "../icons";
 import Link from "next/link";
+
+import { ChevronRight } from "../icons";
+
+import type { ReactNode } from "react";
 
 interface BreadcrumbItem {
   label: string;
@@ -29,8 +31,11 @@ export function PageHeader({
           <Link href="/mc" className="hover:text-foreground">
             Mission Control
           </Link>
-          {breadcrumbs.map((item, index) => (
-            <span key={index} className="flex items-center gap-1">
+          {breadcrumbs.map((item) => (
+            <span
+              key={`${item.href ?? "current"}-${item.label}`}
+              className="flex items-center gap-1"
+            >
               <ChevronRight className="h-3.5 w-3.5" />
               {item.href ? (
                 <Link href={item.href} className="hover:text-foreground">

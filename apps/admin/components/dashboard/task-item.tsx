@@ -1,9 +1,9 @@
 "use client";
 
-import { memo } from "react";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { MoreHorizontalIcon, ClockIcon } from "lucide-react";
 import { cn } from "@asym/ui/lib/utils";
+import { MoreHorizontalIcon, ClockIcon } from "lucide-react";
+import { memo } from "react";
 
 export interface TaskItemProps {
   title: string;

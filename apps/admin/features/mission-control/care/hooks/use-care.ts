@@ -1,11 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type {
-  CarePersonnel,
-  ActivityLogEntry,
-  CareThread,
-  CarePlan,
-} from "../types";
+
 import { MOCK_PERSONNEL, MOCK_ACTIVITY } from "../constants";
+
+import type { CarePersonnel, ActivityLogEntry } from "../types";
 
 // Simulated API calls
 const fetchPersonnel = async (): Promise<CarePersonnel[]> => {

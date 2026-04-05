@@ -1,5 +1,5 @@
 {
-  "extends": "@asym/typescript-config/base.json",
+  "extends": "@asym/typescript-config/library.json",
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "."
@@ -7,4 +7,3 @@
   "include": ["./**/*.ts", "./**/*.tsx"],
   "exclude": ["node_modules", "dist"]
 }
-

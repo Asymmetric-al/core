@@ -1,26 +1,6 @@
 "use client";
 
 import {
-  useRef,
-  useCallback,
-  useState,
-  forwardRef,
-  useImperativeHandle,
-  useMemo,
-  useEffect,
-  useId,
-  useSyncExternalStore,
-} from "react";
-import dynamic from "next/dynamic";
-import type { EditorRef, EmailEditorProps } from "react-email-editor";
-import type {
-  UnlayerDesignJSON,
-  UnlayerExportHTML,
-  UnlayerOptions,
-  UnlayerMergeTags,
-  UnlayerAppearance,
-} from "@asym/email/email-studio-types";
-import {
   getEmailStudioConfig,
   getUnlayerAccountConfig,
   DEFAULT_APPEARANCE,
@@ -33,9 +13,30 @@ import {
   DEFAULT_PDF_MERGE_TAGS,
   type PDFStudioFullConfig,
 } from "@asym/config/pdf-studio";
-import { cn } from "@asym/ui/lib/utils";
 import { Mail, FileText, Loader2 } from "lucide-react";
+import dynamic from "next/dynamic";
+import {
+  useRef,
+  useCallback,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+  useMemo,
+  useId,
+  useSyncExternalStore,
+} from "react";
+
 import { Progress } from "@asym/ui/components/shadcn/progress";
+import { cn } from "@asym/ui/lib/utils";
+
+import type {
+  UnlayerDesignJSON,
+  UnlayerExportHTML,
+  UnlayerOptions,
+  UnlayerMergeTags,
+  UnlayerAppearance,
+} from "@asym/email/email-studio-types";
+import type { EditorRef, EmailEditorProps } from "react-email-editor";
 
 type StudioConfig = EmailStudioFullConfig | PDFStudioFullConfig;
 
@@ -166,7 +167,6 @@ export const UnlayerEditor = forwardRef<
   const [loadingState, setLoadingState] = useState<
     "mounting" | "loading" | "ready"
   >("mounting");
-  const [loadingProgress, setLoadingProgress] = useState(0);
   const designLoadedRef = useRef(false);
   const isMounted = useSyncExternalStore(
     emptySubscribe,
@@ -186,15 +186,13 @@ export const UnlayerEditor = forwardRef<
 
   const accountConfig = useMemo(() => getUnlayerAccountConfig(), []);
 
-  const defaultAppearance = useMemo(
-    () => (isDocumentMode ? DEFAULT_PDF_APPEARANCE : DEFAULT_APPEARANCE),
-    [isDocumentMode],
-  );
+  const defaultAppearance = isDocumentMode
+    ? DEFAULT_PDF_APPEARANCE
+    : DEFAULT_APPEARANCE;
 
-  const defaultMergeTags = useMemo(
-    () => (isDocumentMode ? DEFAULT_PDF_MERGE_TAGS : DEFAULT_MERGE_TAGS),
-    [isDocumentMode],
-  );
+  const defaultMergeTags = isDocumentMode
+    ? DEFAULT_PDF_MERGE_TAGS
+    : DEFAULT_MERGE_TAGS;
 
   const resolvedProjectId = useMemo(() => {
     if (projectIdProp && projectIdProp > 0) return projectIdProp;
@@ -230,22 +228,8 @@ export const UnlayerEditor = forwardRef<
     [mergeTags, studioConfig.mergeTags, defaultMergeTags],
   );
 
-  useEffect(() => {
-    if (loadingState === "mounting") {
-      const timer = setTimeout(() => {
-        setLoadingProgress(20);
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-    if (loadingState === "loading") {
-      const interval = setInterval(() => {
-        setLoadingProgress((prev) => Math.min(prev + 10, 90));
-      }, 200);
-      return () => clearInterval(interval);
-    }
-  }, [loadingState]);
-
-  const progress = loadingState === "ready" ? 100 : loadingProgress;
+  const progress =
+    loadingState === "ready" ? 100 : loadingState === "loading" ? 70 : 20;
 
   const LoadingIcon = isDocumentMode ? FileText : Mail;
   const loadingLabel = isDocumentMode ? "document" : "email";

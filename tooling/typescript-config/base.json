@@ -2,6 +2,8 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "display": "Base",
   "compilerOptions": {
+    "libReplacement": true,
+    "noUncheckedSideEffectImports": false,
     "target": "ES2022",
     "lib": ["ES2022"],
     "module": "ESNext",
@@ -27,4 +29,3 @@
   },
   "exclude": ["node_modules", "dist", ".next", ".turbo"]
 }
-

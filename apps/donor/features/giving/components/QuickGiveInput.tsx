@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "motion/react";
-import { ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "@asym/lib/motion";
 import { cn } from "@asym/ui/lib/utils";
+import { ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import React, { useState, useRef, useEffect } from "react";
 
 interface QuickGiveInputProps {
   workerId: string;

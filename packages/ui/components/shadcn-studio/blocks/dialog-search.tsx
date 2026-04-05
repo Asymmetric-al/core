@@ -1,9 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import type { ReactNode } from "react";
-import Image from "next/image";
-
 import {
   UsersIcon,
   ShoppingCartIcon,
@@ -13,9 +9,15 @@ import {
   Undo2Icon,
   MoreVerticalIcon,
 } from "lucide-react";
+import Image from "next/image";
+import { useRef, useState } from "react";
 
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
 import {
   CommandDialog,
   CommandEmpty,
@@ -26,6 +28,8 @@ import {
   CommandSeparator,
 } from "@asym/ui/components/shadcn/command";
 
+import type { ReactNode } from "react";
+
 type Props = {
   trigger: ReactNode;
   defaultOpen?: boolean;
@@ -33,12 +37,25 @@ type Props = {
 };
 
 const SearchDialog = ({ defaultOpen = false, trigger, className }: Props) => {
-  const [open, setOpen] = useState(defaultOpen);
+  const initialOpenRef = useRef(defaultOpen);
+  const [open, setOpen] = useState(initialOpenRef.current);
   const [search, setSearch] = useState("");
 
   return (
     <div className={className}>
-      <div onClick={() => setOpen(true)}>{trigger}</div>
+      <div
+        onClick={() => setOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setOpen(true);
+          }
+        }}
+        role="button"
+        tabIndex={0}
+      >
+        {trigger}
+      </div>
       <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput
           placeholder="Search here..."

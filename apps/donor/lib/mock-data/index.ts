@@ -67,9 +67,9 @@ export {
   getFeedItemsByWorker,
 } from "./activities";
 
-import { MISSIONARIES } from "./users";
-import { PROJECTS, getDonationsByDonor, getPledgesByDonor } from "./donations";
 import { POSTS, FEED_ITEMS } from "./activities";
+import { PROJECTS, getDonationsByDonor, getPledgesByDonor } from "./donations";
+import { MISSIONARIES } from "./users";
 
 export interface FieldWorker {
   id: string;

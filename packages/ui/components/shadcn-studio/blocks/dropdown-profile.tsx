@@ -1,18 +1,21 @@
 "use client";
 
-import type { ReactNode } from "react";
-import Link from "next/link";
-
 import {
   UserIcon,
   SettingsIcon,
   UsersIcon,
   SquarePenIcon,
   CirclePlusIcon,
+  InfoIcon,
   LogOutIcon,
 } from "lucide-react";
+import Link from "next/link";
 
-import { Avatar, AvatarImage, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
+import {
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
+} from "@asym/ui/components/shadcn/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +25,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
+
+import type { ReactNode } from "react";
 
 type Props = {
   trigger: ReactNode;
@@ -128,6 +133,20 @@ const ProfileDropdown = ({
             <Link href="/mc/admin/teams">
               <CirclePlusIcon className="text-muted-foreground size-4" />
               <span>Add team account</span>
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuGroup>
+          <DropdownMenuItem
+            asChild
+            className="px-3 py-1.5 text-sm cursor-pointer"
+          >
+            <Link href="/help/about">
+              <InfoIcon className="text-muted-foreground size-4" />
+              <span>About</span>
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>

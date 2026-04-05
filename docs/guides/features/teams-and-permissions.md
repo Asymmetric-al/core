@@ -1,51 +1,90 @@
 # Teams & Permissions (Mission Control)
 
-The Mission Control Dashboard features a professional-grade organizational management layer, allowing for granular control over user access and team collaboration.
+This guide documents the current state of the Mission Control teams surface and how it relates to the newer membership-based authorization foundation.
 
-## 🚀 Key Features
+## What exists today
 
-### 1. Granular Permission Matrix
+- Route: `/system-admin/teams` inside `apps/admin`
+- Entry point: `apps/admin/app/system-admin/teams/page.tsx`
+- Shared UI surface: `apps/admin/app/admin/teams/teams-sections.tsx`
+- Admin hub entry page: `apps/admin/app/system-admin/page.tsx`
 
-The permission system provides precise control over every module in Mission Control (CRM, Care, Contributions, etc.) using four distinct levels:
+The page presents a polished team-management experience with:
 
-- **None**: No access to the module.
-- **View**: Read-only access to module data.
-- **Manage**: Ability to edit and create records within the module.
-- **Admin**: Full administrative control over the module, including setting configurations.
+- A teams table with permission previews
+- A slide-over management surface with `Permissions`, `Members`, and `Settings` tabs
+- A system-users panel for invite/change-role style actions
 
-### 2. Tab Integration
+## Important implementation constraint
 
-Permissions are tightly integrated with the `tiles` configuration. Every "tab" or "module" in the dashboard can be precisely controlled per team, ensuring that users only see and interact with the tools they are authorized to use.
+The current Teams UI is a **frontend prototype**, not a persisted admin system yet.
 
-### 3. Visual Indicators
+Technically:
 
-- **ShieldCheck Icon**: Indicates Admin-level access.
-- **Lock Icon**: Indicates restricted or "None" access.
-- **Color-coded Badges**: Module previews in the team list show active permissions at a glance.
+- Team and member data currently come from in-file constants: `TEAMS` and `MEMBERS`
+- Permission edits in the sheet are not written to Supabase or Payload
+- Create-team, invite-user, and save actions are present as UI affordances only
 
-### 4. Advanced Team Management UI
+Plain language:
 
-The Teams page (`/mc/admin/teams`) uses a modern, high-fidelity interface:
+- The screen shows the intended product shape
+- It does **not** yet save real team changes or enforce per-team permissions by itself
 
-- **Drill-Down Sheets**: Clicking "Manage" on a team opens a slide-over with a triple-tab surface:
-  - **Permissions**: Configure the granular permission matrix for all modules.
-  - **Members**: Manage team members, view roles, and handle invitations.
-  - **Settings**: General team configuration and metadata.
-- **Focused Profile Dropdown**: The profile dropdown has been refined (`w-64`) to focus on essential administrative routes.
+## How the UI is wired
 
-## 🛠️ Implementation Details
+`apps/admin/app/admin/teams/teams-sections.tsx` uses the shared tile registry from `@asym/config/tiles` to render module-level permission previews. That means the UI stays aligned with the current Mission Control navigation model, even though the permission choices are still mock data.
 
-### Files
+The permission levels shown in the UI are:
 
-- **Teams Page**: `src/app/(admin)/mc/admin/teams/page.tsx`
-- **Admin Hub**: `src/app/(admin)/mc/admin/page.tsx`
-- **Profile Dropdown**: `src/components/shadcn-studio/blocks/dropdown-profile.tsx`
-- **Tile Config**: `src/config/tiles.ts`
+- `None`
+- `View`
+- `Manage`
+- `Admin`
 
-### UI Components
+These levels are currently presentation-only. They are not yet mapped to persisted backend capabilities.
 
-The system leverages **Shadcn/UI** components for a "Vega Style" aesthetic, utilizing high-contrast **Slate/Zinc** scales for a premium feel.
+## Backend authorization foundation
 
----
+The real authorization work that landed in this branch lives below the UI layer:
 
-Built with ❤️ for Mission Control.
+1. **BFF route/API checks** remain the primary enforcement path.
+2. **Postgres RLS** provides tenant-scoped backup enforcement for selected platform tables.
+3. Memberships are stored in `authz.memberships` as row-per-role assignments.
+
+Key implementation files:
+
+- `supabase/migrations/20260226113000_authz_memberships_foundation.sql`
+- `packages/auth/permissions.ts`
+- `packages/auth/middleware.ts`
+- `docs/guides/architecture/authz-memberships.md`
+
+## Current role model
+
+Membership rows support these roles:
+
+- `donor`
+- `missionary`
+- `staff`
+
+Staff rows also require a `staff_role`:
+
+- `finance`
+- `mobilizer`
+- `development`
+- `hr`
+- `member_care`
+
+For the current MVP, all staff sub-roles still resolve to full Mission Control dashboard access. The code keeps the capability map explicit so staff permissions can be narrowed later without rewriting every route guard.
+
+## What this means for contributors
+
+If you are changing the Teams screen:
+
+- Treat it as a product/UI surface first
+- Do not claim persistence or enforcement unless you also wire writes into the authz model
+- Update this guide and `docs/guides/architecture/authz-memberships.md` together if the UI starts managing real memberships
+
+If you are changing authorization:
+
+- Update `packages/auth/permissions.ts` and middleware/server checks first
+- Treat the Teams UI as a separate follow-up unless the PR explicitly connects it to real data

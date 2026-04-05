@@ -1,4 +1,3 @@
-import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard,
   Globe,
@@ -14,6 +13,7 @@ import {
   Settings,
   Heart,
   CalendarDays,
+  type LucideIcon,
 } from "lucide-react";
 
 export type Role =

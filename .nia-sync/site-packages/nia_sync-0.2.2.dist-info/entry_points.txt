@@ -1,0 +1,2 @@
+[console_scripts]
+nia = main:app

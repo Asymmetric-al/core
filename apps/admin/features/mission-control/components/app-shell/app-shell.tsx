@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, type ReactNode } from "react";
+
 import { SidebarNav } from "./sidebar-nav";
 import { TopBar } from "./top-bar";
 

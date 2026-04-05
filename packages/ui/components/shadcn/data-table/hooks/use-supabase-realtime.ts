@@ -1,18 +1,11 @@
 "use client";
 
-import * as React from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { createBrowserClient } from "@asym/database/supabase";
-import type { RealtimeChannel, SupabaseClient } from "@supabase/supabase-js";
+import { useQueryClient } from "@tanstack/react-query";
+import * as React from "react";
 
-let browserSupabaseClient: SupabaseClient | null = null;
-
-function getBrowserSupabaseClient(): SupabaseClient {
-  if (!browserSupabaseClient) {
-    browserSupabaseClient = createBrowserClient();
-  }
-  return browserSupabaseClient;
-}
+import type { RealtimeChannel } from "@supabase/supabase-js";
+import type { ColumnDef } from "@tanstack/react-table";
 
 type RealtimeEvent = "INSERT" | "UPDATE" | "DELETE" | "*";
 
@@ -20,52 +13,6 @@ interface RealtimePayload {
   eventType: "INSERT" | "UPDATE" | "DELETE";
   new: Record<string, unknown>;
   old: Record<string, unknown>;
-}
-
-type DirectWriteCollection<TData extends Record<string, unknown>> = {
-  utils?: {
-    writeInsert?: (data: TData | TData[]) => void;
-    writeUpdate?: (data: Partial<TData> | Array<Partial<TData>>) => void;
-    writeDelete?: (keys: string | string[]) => void;
-  };
-};
-
-export function syncRealtimePayloadToCollection<
-  TData extends Record<string, unknown>,
->({
-  payload,
-  collection,
-  getKey,
-  toRow,
-}: {
-  payload: RealtimePayload;
-  collection?: DirectWriteCollection<TData>;
-  getKey: (row: TData) => string;
-  toRow: (data: Record<string, unknown> | null) => TData | null;
-}): boolean {
-  const utils = collection?.utils;
-  if (!utils) return false;
-
-  switch (payload.eventType) {
-    case "INSERT": {
-      const row = toRow(payload.new);
-      if (!row || typeof utils.writeInsert !== "function") return false;
-      utils.writeInsert(row);
-      return true;
-    }
-    case "UPDATE": {
-      const partial = toRow(payload.new);
-      if (!partial || typeof utils.writeUpdate !== "function") return false;
-      utils.writeUpdate(partial as Partial<TData>);
-      return true;
-    }
-    case "DELETE": {
-      const oldRow = toRow(payload.old);
-      if (!oldRow || typeof utils.writeDelete !== "function") return false;
-      utils.writeDelete(getKey(oldRow));
-      return true;
-    }
-  }
 }
 
 interface UseSupabaseRealtimeOptions<TData> {
@@ -101,7 +48,7 @@ export function useSupabaseRealtime<TData extends Record<string, unknown>>({
   transform,
 }: UseSupabaseRealtimeOptions<TData>): UseSupabaseRealtimeReturn {
   const queryClient = useQueryClient();
-  const supabase = React.useMemo(() => getBrowserSupabaseClient(), []);
+  const supabase = createBrowserClient();
   const channelRef = React.useRef<RealtimeChannel | null>(null);
   const [isConnected, setIsConnected] = React.useState(false);
   const [error, setError] = React.useState<Error | null>(null);
@@ -245,7 +192,7 @@ export function useSupabaseRealtime<TData extends Record<string, unknown>>({
 interface UseDataTableWithRealtimeOptions<TData, TValue> {
   tableName: string;
   queryKey: string[];
-  columns: import("@tanstack/react-table").ColumnDef<TData, TValue>[];
+  columns: ColumnDef<TData, TValue>[];
   select?: string;
   filter?: string;
   realtimeEvents?: RealtimeEvent[];
@@ -304,7 +251,7 @@ export function createRealtimeSubscription({
   filter,
   events = ["*"],
 }: CreateRealtimeCollectionOptions) {
-  const supabase = getBrowserSupabaseClient();
+  const supabase = createBrowserClient();
 
   return {
     subscribe: (

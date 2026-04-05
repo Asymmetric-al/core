@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import { createClient } from "@asym/database/supabase/server";
+import { NextResponse } from "next/server";
 
 const DEFAULT_TENANT_ID = "00000000-0000-0000-0000-000000000001";
 

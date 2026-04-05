@@ -1,14 +1,16 @@
 "use client";
 
-import type { ReactNode } from "react";
-
-import Image from "next/image";
 import { ImageIcon } from "lucide-react";
+import Image from "next/image";
 
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Separator } from "@asym/ui/components/shadcn/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@asym/ui/components/shadcn/avatar";
 import {
   Sheet,
   SheetContent,
@@ -17,6 +19,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@asym/ui/components/shadcn/sheet";
+
+import type { ReactNode } from "react";
 
 type Props = {
   trigger: ReactNode;
