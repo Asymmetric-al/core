@@ -50,6 +50,7 @@ import { useState, useMemo, useCallback } from "react";
 import * as React from "react";
 
 import { MissionaryTasksListBoneyardFixture } from "./boneyard-fixture";
+import { taskMatchesClientSearch } from "./task-search-match";
 
 import type {
   Task,
@@ -764,12 +765,7 @@ function TasksPageView() {
 
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
-      result = result.filter(
-        (t) =>
-          t.title.toLowerCase().includes(search) ||
-          t.description?.toLowerCase().includes(search) ||
-          t.donor?.name.toLowerCase().includes(search),
-      );
+      result = result.filter((t) => taskMatchesClientSearch(t, search));
     }
 
     if (typeFilter !== "all") {
