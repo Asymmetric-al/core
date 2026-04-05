@@ -94,6 +94,12 @@
     "setup:verify": "node scripts/setup-verify.mjs",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "clean:cache": "rm -rf .turbo node_modules/.cache",
+    "boneyard:admin": "cd apps/admin && bunx boneyard-js build http://localhost:3030/__boneyard__/contributions",
+    "boneyard:missionary": "cd apps/missionary && bunx boneyard-js build http://localhost:4000/__boneyard__/tasks",
+    "boneyard:all": "bun run boneyard:admin && bun run boneyard:missionary",
+    "boneyard:admin:force": "cd apps/admin && bunx boneyard-js build http://localhost:3030/__boneyard__/contributions --force",
+    "boneyard:missionary:force": "cd apps/missionary && bunx boneyard-js build http://localhost:4000/__boneyard__/tasks --force",
+    "boneyard:force": "bun run boneyard:admin:force && bun run boneyard:missionary:force",
     "prepare": "husky"
   },
   "dependencies": {

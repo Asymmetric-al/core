@@ -17,6 +17,7 @@ import { redirect } from "next/navigation";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Suspense } from "react";
 
+import { BoneyardRegistry } from "./_providers/boneyard-registry";
 import { MCShell } from "./mc-shell";
 
 import type { Metadata, Viewport } from "next";
@@ -69,6 +70,7 @@ const ADMIN_PUBLIC_PATH_PREFIXES = [
   "/forgot-password",
   "/no-access",
   "/api/",
+  "/__boneyard__/",
 ] as const;
 
 type AdminShellProfile = {
@@ -247,6 +249,7 @@ export default function RootLayout({
           storageKey="admin-theme"
           disableTransitionOnChange
         >
+          <BoneyardRegistry />
           <QueryProvider>
             <MotionProvider>
               <Suspense fallback={null}>
