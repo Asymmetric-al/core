@@ -73,12 +73,7 @@ export function ContributionDetailSheet({
 }: ContributionDetailSheetProps) {
   if (!contribution) return null;
 
-  const {
-    donorName,
-    donorEmail,
-    donorAvatar,
-    isAnonymous,
-  } = contribution;
+  const { donorName, donorEmail, donorAvatar, isAnonymous } = contribution;
   const date = new Date(contribution.date);
   const donorDisplayName = isAnonymous ? "Anonymous" : (donorName ?? "Unknown");
 
