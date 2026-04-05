@@ -4,10 +4,10 @@
 
 Two workflow files run on every PR to `develop`, `main`, and `epic`, and on every push to `main`, `develop`, and `epic`:
 
-| Workflow          | File                                   | Branches                                  | Jobs                                                            | Target time               |
-| ----------------- | -------------------------------------- | ----------------------------------------- | --------------------------------------------------------------- | ------------------------- |
-| Fast checks       | `.github/workflows/ci.yml`             | PRs + pushes on `develop`, `main`, `epic` | `format → lint → typecheck → build → test-unit → test-unit-cms` | < 4 min with remote cache |
-| Integration + E2E | `.github/workflows/ci-integration.yml` | PRs + pushes on `develop`, `main`         | `migrate → smoke → test-e2e`                                    | ~5 min                    |
+| Workflow          | File                                   | Branches                                  | Jobs                                            | Target time               |
+| ----------------- | -------------------------------------- | ----------------------------------------- | ----------------------------------------------- | ------------------------- |
+| Fast checks       | `.github/workflows/ci.yml`             | PRs + pushes on `develop`, `main`, `epic` | `format → lint → typecheck → build → test-unit` | < 4 min with remote cache |
+| Integration + E2E | `.github/workflows/ci-integration.yml` | PRs + pushes on `develop`, `main`         | `migrate → smoke → test-e2e`                    | ~5 min                    |
 
 Current workflow semantics:
 
@@ -82,11 +82,7 @@ This check runs unit tests and fails if blocked warning patterns are present in 
 - _Why it exists:_ Validates pure logic, utilities, and shared package behaviour without a browser or network.
 - _Debug locally:_ Run `bun run test:unit` to execute unit tests and generate coverage output in `coverage/`. For watch mode: `bunx vitest`.
 
-### `test-unit-cms`
-
-- _What it checks:_ Runs `bun run test:unit:cms` (focused Vitest gate on `tests/unit/cms/**/*.test.ts`).
-- _Why it exists:_ Keeps tenant isolation + public CMS contract regressions visible as an explicit blocking check.
-- _Debug locally:_ Run `bun run test:unit:cms`.
+Optional focused CMS unit coverage (not a `ci.yml` job today): `bun run test:unit:cms`.
 
 ---
 
@@ -128,7 +124,6 @@ These are the fast checks that match the repository's default "must stay green" 
 - `CI / typecheck`
 - `CI / build`
 - `CI / test-unit`
-- `CI / test-unit-cms`
 
 ### Integration checks by branch
 
@@ -141,7 +136,7 @@ These are the fast checks that match the repository's default "must stay green" 
 1. Go to _Settings → Branches → Branch protection rules_.
 2. Add a rule for each protected branch you care about (`main`, `develop`, and optionally `epic` if you want fast checks enforced there too).
 3. Enable **Require status checks to pass before merging**.
-4. Add the six fast checks listed above everywhere.
+4. Add the five fast checks listed above everywhere.
 5. For `main`, also consider requiring the integration workflow's gate job so E2E failures cannot be ignored.
 6. For `develop`, leave `CI Integration / test-e2e` optional if you want the current "signal, not blocker" behavior to remain intact.
 
@@ -150,5 +145,5 @@ These are the fast checks that match the repository's default "must stay green" 
 ## Turborepo cache
 
 - **Remote cache (preferred):** All `ci.yml` jobs set `TURBO_TOKEN` (secret) and `TURBO_TEAM` (variable). When both are present, Turborepo uses Vercel's remote cache — unchanged tasks are skipped entirely. To verify: look for `"Remote cache hit"` in the CI job logs.
-- **Local fallback:** Each job also caches `.turbo/` and app-level Next build cache directories (`apps/*/.next/cache`) via `actions/cache@v4`, keyed on `turbo-${{ runner.os }}-${{ github.sha }}` with a restore prefix of `turbo-${{ runner.os }}-`. This aligns with Next.js CI cache guidance and improves repeat build performance when remote cache is unavailable.
+- **Local fallback:** Each `ci.yml` job also caches `.turbo/` via `actions/cache@v4`, keyed on `turbo-${{ runner.os }}-${{ github.sha }}` with a restore prefix of `turbo-${{ runner.os }}-`. Remote cache hits still skip work when `TURBO_TOKEN` and `TURBO_TEAM` are configured.
 - **See also:** `file:.github/SECRETS.md` for how to configure `TURBO_TOKEN` and `TURBO_TEAM`.

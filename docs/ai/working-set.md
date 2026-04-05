@@ -1,5 +1,25 @@
 # Working Set
 
+## 2026-04-05 (Turborepo 2.9.x monorepo upgrade + turbo.json audit)
+
+- Date: 2026-04-05
+- Repo: Asymmetric-al/core
+- Goal: Upgrade `turbo` from 2.8.x to latest safe 2.9.x, align `turbo.json` with official 2.9 caching/env semantics, and fix small CI doc drift without changing CI job structure or integration/E2E flows.
+- Primary area:
+  - `package.json` (turbo devDependency pin)
+  - `turbo.json` (global hash inputs, task graph, env hashing)
+  - `bun.lock`
+  - `docs/ci.md`, `openspec/project.md` (version baseline / accuracy vs `.github/workflows/ci.yml`)
+- Constraints:
+  - Bun only (`bun`, `bunx`); preserve `scripts/run-with-ci-env.mjs` contract and Windows-safe `node scripts/verify/data-boundary-check.mjs`.
+  - Do not change Next 16.2.1, app ports, `turbopack.root` pattern, or `ci-integration.yml` donor dev startup.
+  - No new CI skip layers (`turbo query affected`, turbo-ignore); no remote cache signature mode.
+  - Nia unavailable this session; use official Turborepo docs + repo file evidence.
+- Evidence sources used:
+  - [Turborepo 2.9 blog](https://turborepo.dev/blog/2-9)
+  - [Turborepo configuration reference](https://turborepo.dev/docs/reference/configuration)
+  - `package.json`, `turbo.json`, `.github/workflows/ci.yml`, `scripts/verify/ci-preflight.mjs`
+
 ## 2026-04-02 (PR #144 follow-up: hydration-safe Resend label + auth invariant tests)
 
 - Date: 2026-04-02

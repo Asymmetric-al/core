@@ -23,7 +23,7 @@ and UI.
 ## Technical Baseline
 
 - Package manager and runtime: Bun
-- Task runner: Turborepo
+- Task runner: Turborepo (`turbo` 2.9.x)
 - Framework: Next.js `16.2.1` across all Next.js workspaces
 - React: `19.2.x`
 - TypeScript: `5.9.x`
