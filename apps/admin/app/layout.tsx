@@ -70,7 +70,7 @@ const ADMIN_PUBLIC_PATH_PREFIXES = [
   "/forgot-password",
   "/no-access",
   "/api/",
-  "/__boneyard__/",
+  "/boneyard/",
 ] as const;
 
 type AdminShellProfile = {

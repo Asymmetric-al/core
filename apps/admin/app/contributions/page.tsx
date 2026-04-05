@@ -2,7 +2,7 @@
 
 import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
 import { PageShell } from "@asym/ui/components/shadcn/page-shell";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ContributionsBoneyardFallback } from "./boneyard-fallback";
 import { ContributionDetailSheet } from "./contribution-detail-sheet";
@@ -12,10 +12,18 @@ import { ContributionsMainBody, ContributionsPageActions } from "./main-body";
 import type { Contribution } from "./types";
 
 export default function ContributionsPage() {
+  const [isPagePending, setIsPagePending] = useState(true);
   const [data] = useState<Contribution[]>(mockContributions);
-  const [isLoading] = useState(false);
   const [selectedContribution, setSelectedContribution] =
     useState<Contribution | null>(null);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setIsPagePending(false);
+    }, 250);
+
+    return () => window.clearTimeout(timer);
+  }, []);
 
   return (
     <PageShell
@@ -25,7 +33,7 @@ export default function ContributionsPage() {
     >
       <BoneyardSkeleton
         name="admin-contributions-content"
-        loading={isLoading}
+        loading={isPagePending}
         fallback={<ContributionsBoneyardFallback />}
         fixture={
           <ContributionsMainBody
@@ -41,7 +49,7 @@ export default function ContributionsPage() {
       >
         <ContributionsMainBody
           data={data}
-          isLoading={isLoading}
+          isLoading={isPagePending}
           onSelectContribution={setSelectedContribution}
         />
       </BoneyardSkeleton>

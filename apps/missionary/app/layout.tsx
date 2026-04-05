@@ -65,7 +65,7 @@ const MISSIONARY_PUBLIC_PATH_PREFIXES = [
   "/forgot-password",
   "/no-access",
   "/api/",
-  "/__boneyard__/",
+  "/boneyard/",
 ] as const;
 
 function isPublicPath(pathname: string) {

@@ -18,10 +18,10 @@
 
 ## Where files live
 
-| App                    | Config                                 | Generated output         | Capture URL (public fixture route)                 |
-| ---------------------- | -------------------------------------- | ------------------------ | -------------------------------------------------- |
-| `@asym/admin`          | `apps/admin/boneyard.config.json`      | `apps/admin/bones/`      | `http://localhost:3030/__boneyard__/contributions` |
-| `@asym/missionary-app` | `apps/missionary/boneyard.config.json` | `apps/missionary/bones/` | `http://localhost:4000/__boneyard__/tasks`         |
+| App                    | Config                                 | Generated output         | Capture URL (public fixture route)             |
+| ---------------------- | -------------------------------------- | ------------------------ | ---------------------------------------------- |
+| `@asym/admin`          | `apps/admin/boneyard.config.json`      | `apps/admin/bones/`      | `http://localhost:3030/boneyard/contributions` |
+| `@asym/missionary-app` | `apps/missionary/boneyard.config.json` | `apps/missionary/bones/` | `http://localhost:4000/boneyard/tasks`         |
 
 `boneyard.config.json` is read from **current working directory**; scripts `cd` into each app so `out` resolves to that app’s `./bones`.
 
@@ -32,11 +32,11 @@ Use **`{app}-{area}-{section}`** so names are unique within an app crawl (duplic
 - Good: `admin-contributions-content`, `missionary-tasks-list`
 - Bad: `table`, `list`, `card`
 
-## Public capture routes (`/__boneyard__/*`)
+## Public capture routes (`/boneyard/*`)
 
-Protected apps redirect unauthenticated users. Capture runs in Playwright **without** your session cookies, so pilot screens use **dedicated public routes** under `/__boneyard__/…` that render the same skeleton + fixture. Those path prefixes are allowlisted in each app’s layout public-path list.
+Protected apps redirect unauthenticated users. Capture runs in Playwright **without** your session cookies, so pilot screens use **dedicated public routes** under `/boneyard/...` that render the same skeleton + fixture. Those path prefixes are allowlisted in each app’s layout public-path list.
 
-Missionary **`/__boneyard__` routes** render inside a minimal padded shell (not full `AppShell`) so viewport width is closer to the real main content column.
+Missionary **`/boneyard` routes** render inside a minimal padded shell (not full `AppShell`) so viewport width is closer to the real main content column.
 
 ## `data-no-skeleton` and exclusions
 
