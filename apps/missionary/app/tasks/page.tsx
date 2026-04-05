@@ -552,6 +552,7 @@ function TasksContent({
             excludeTags: ["footer"],
           }}
         >
+          {/* Overlay uses captured bones + fixture; keep children minimal to avoid duplicating the full task list. */}
           <div />
         </BoneyardSkeleton>
       ) : viewMode === "board" ? (

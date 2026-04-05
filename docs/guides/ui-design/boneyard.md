@@ -38,6 +38,10 @@ Protected apps redirect unauthenticated users. Capture runs in Playwright **with
 
 Missionary **`/boneyard` routes** render inside a minimal padded shell (not full `AppShell`) so viewport width is closer to the real main content column.
 
+### Security and data
+
+`/boneyard/*` is **intentionally public**: admin and missionary layouts allowlist this prefix so capture tooling can load pages without a session. Do **not** wire real donor or task APIs, PII, or privileged server loaders into these routes—use **synthetic fixtures only**. In review, flag any change that pulls production data into `app/boneyard/**`.
+
 ## `data-no-skeleton` and exclusions
 
 The attribute is **not** honored unless listed in `snapshotConfig.excludeSelectors` (e.g. `'[data-no-skeleton]'`). This repo also excludes `svg` / `svg.lucide` on pilots to reduce icon noise.
@@ -57,3 +61,8 @@ The attribute is **not** honored unless listed in `snapshotConfig.excludeSelecto
 - [ ] Capture scripts use explicit URLs with correct port.
 - [ ] After global style changes, ran `--force` if skeletons look wrong.
 - [ ] Did not import `bones/registry` from a server-only module.
+- [ ] `/boneyard/*` pages use fixture data only (no real PII or authenticated data paths).
+
+## Playwright smoke (`tests/e2e/boneyard-smoke.spec.ts`)
+
+Run with `-c playwright.admin.config.ts` or `-c playwright.missionary.config.ts` (projects `admin-boneyard` / `missionary-boneyard`). Alternatively set `PLAYWRIGHT_BONEYARD_TARGET=admin` or `missionary` when using another config whose `baseURL` port does not distinguish the app.

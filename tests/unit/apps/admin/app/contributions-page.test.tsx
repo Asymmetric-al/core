@@ -1,49 +1,141 @@
-import { describe, expect, it, vi } from "vitest";
+/** @vitest-environment jsdom */
 
-vi.hoisted(() => {
+import React from "react";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const { useAdminContributionsMock } = vi.hoisted(() => {
   process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://127.0.0.1:54321";
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "test-anon-key";
+
+  return {
+    useAdminContributionsMock: vi.fn(),
+  };
 });
 
+vi.mock(
+  "../../../../../apps/admin/app/contributions/use-admin-contributions",
+  async (importOriginal) => {
+    const actual =
+      await importOriginal<
+        typeof import("../../../../../apps/admin/app/contributions/use-admin-contributions")
+      >();
+
+    return {
+      ...actual,
+      useAdminContributions: useAdminContributionsMock,
+    };
+  },
+);
+
 import ContributionsPage from "../../../../../apps/admin/app/contributions/page";
-import { fetchAdminContributions } from "../../../../../apps/admin/app/contributions/use-admin-contributions";
+import { loadMockAdminContributions } from "../../../../../apps/admin/app/contributions/use-admin-contributions";
 import { mockContributions } from "../../../../../apps/admin/app/contributions/data";
 
+function mockQuery(partial: Record<string, unknown>) {
+  return {
+    isError: false,
+    isPending: false,
+    data: undefined as typeof mockContributions | undefined,
+    error: null as Error | null,
+    refetch: vi.fn().mockResolvedValue({}),
+    ...partial,
+  };
+}
+
 describe("apps/admin/app/contributions/page", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
+  beforeEach(() => {
+    useAdminContributionsMock.mockReset();
+
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn().mockImplementation((query: string) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })),
+    );
+
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+  });
+
   it("exports a client component (function) that renders the contributions UI", () => {
     expect(typeof ContributionsPage).toBe("function");
   });
 
-  it("contains the Boneyard integration and no longer uses a timeout gate", async () => {
-    const source = await import("node:fs/promises").then((fs) =>
-      fs.readFile("apps/admin/app/contributions/page.tsx", "utf8"),
+  it("shows load failed and retry when the query is in error state", () => {
+    useAdminContributionsMock.mockReturnValue(
+      mockQuery({
+        isError: true,
+        isPending: false,
+        data: undefined,
+        error: new Error("Upstream unavailable"),
+      }),
     );
 
-    expect(source).toContain('name="admin-contributions-content"');
-    expect(source).toContain("useAdminContributions");
-    expect(source).not.toContain("setTimeout");
-    expect(source).not.toContain("const [isLoading] = useState(false);");
+    render(<ContributionsPage />);
+
+    expect(screen.getByRole("heading", { name: "Load failed" })).toBeTruthy();
+    expect(screen.getByText("Upstream unavailable")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /retry/i })).toBeTruthy();
+    expect(screen.queryByText("Sarah Mitchell")).toBeNull();
   });
 
-  it("loads mock contributions through an async query-backed fetcher", async () => {
-    vi.useFakeTimers();
+  it("renders contribution rows when the query succeeds", () => {
+    const rows = loadMockAdminContributions();
+    useAdminContributionsMock.mockReturnValue(
+      mockQuery({
+        isError: false,
+        isPending: false,
+        data: rows,
+        error: null,
+      }),
+    );
 
-    try {
-      let settled = false;
-      const fetchPromise = fetchAdminContributions({ delayMs: 25 }).then(
-        (data) => {
-          settled = true;
-          return data;
-        },
-      );
+    render(<ContributionsPage />);
 
-      await Promise.resolve();
-      expect(settled).toBe(false);
+    expect(screen.getByText(rows[0]!.donor.name)).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Load failed" })).toBeNull();
+  });
 
-      await vi.advanceTimersByTimeAsync(25);
-      await expect(fetchPromise).resolves.toEqual(mockContributions);
-    } finally {
-      vi.useRealTimers();
-    }
+  it("does not show load failed while the query is pending", () => {
+    useAdminContributionsMock.mockReturnValue(
+      mockQuery({
+        isError: false,
+        isPending: true,
+        data: undefined,
+        error: null,
+      }),
+    );
+
+    const { container } = render(<ContributionsPage />);
+
+    expect(screen.queryByRole("heading", { name: "Load failed" })).toBeNull();
+    expect(
+      container.querySelector('[data-boneyard="admin-contributions-content"]'),
+    ).toBeTruthy();
+  });
+
+  it("loadMockAdminContributions returns cloned fixture rows", () => {
+    const data = loadMockAdminContributions();
+    expect(data).toEqual(mockContributions);
+    expect(data[0]).not.toBe(mockContributions[0]);
+    expect(data[0]!.donor).not.toBe(mockContributions[0]!.donor);
   });
 });

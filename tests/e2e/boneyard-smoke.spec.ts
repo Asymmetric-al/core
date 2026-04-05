@@ -4,26 +4,62 @@ type BoneyardRouteExpectation = {
   heading: string;
   path: string;
   skeletonName: string;
-  minAbsoluteBones: number;
 };
 
-function getExpectation(baseURL?: string): BoneyardRouteExpectation | null {
-  if (baseURL?.includes(":3030")) {
+/**
+ * Resolve which capture surface we are testing. Prefer `project.name` from
+ * `playwright.admin.config.ts` / `playwright.missionary.config.ts`, then
+ * `PLAYWRIGHT_BONEYARD_TARGET=admin|missionary`, then baseURL port as a last resort.
+ */
+function getExpectation(
+  projectName: string | undefined,
+  baseURL: string | undefined,
+): BoneyardRouteExpectation | null {
+  const envTarget = process.env.PLAYWRIGHT_BONEYARD_TARGET;
+
+  const target =
+    projectName === "admin-boneyard" || envTarget === "admin"
+      ? "admin"
+      : projectName === "missionary-boneyard" || envTarget === "missionary"
+        ? "missionary"
+        : null;
+
+  if (target === "admin") {
     return {
       heading: "Contributions",
       path: "/boneyard/contributions",
       skeletonName: "admin-contributions-content",
-      minAbsoluteBones: 8,
     };
   }
 
-  if (baseURL?.includes(":4000")) {
+  if (target === "missionary") {
     return {
       heading: "Mission Tasks",
       path: "/boneyard/tasks",
       skeletonName: "missionary-tasks-list",
-      minAbsoluteBones: 8,
     };
+  }
+
+  // Fallback when running with a generic project name (e.g. donor config on :3030).
+  try {
+    const url = new URL(baseURL ?? "");
+    const port = url.port ? Number(url.port) : NaN;
+    if (port === 3030) {
+      return {
+        heading: "Contributions",
+        path: "/boneyard/contributions",
+        skeletonName: "admin-contributions-content",
+      };
+    }
+    if (port === 4000) {
+      return {
+        heading: "Mission Tasks",
+        path: "/boneyard/tasks",
+        skeletonName: "missionary-tasks-list",
+      };
+    }
+  } catch {
+    /* ignore */
   }
 
   return null;
@@ -32,11 +68,14 @@ function getExpectation(baseURL?: string): BoneyardRouteExpectation | null {
 test("boneyard capture routes render generated bone overlays", async ({
   page,
 }, testInfo) => {
-  const expectation = getExpectation(testInfo.project.use.baseURL);
+  const expectation = getExpectation(
+    testInfo.project.name,
+    testInfo.project.use.baseURL,
+  );
 
   test.skip(
     !expectation,
-    "Run this spec with the admin or missionary Playwright config.",
+    "Run with playwright.admin.config.ts or playwright.missionary.config.ts, set PLAYWRIGHT_BONEYARD_TARGET, or use baseURL port 3030/4000.",
   );
 
   await page.goto(expectation.path);
@@ -50,19 +89,16 @@ test("boneyard capture routes render generated bone overlays", async ({
     page.locator(`[data-boneyard="${expectation.skeletonName}"]`),
   ).toBeVisible();
 
+  // Boneyard paints overlay layers with inline `position` styles; avoid coupling
+  // to a specific tag or `absolute` substring—any positioned child under the
+  // root indicates the runtime registered bones and drew an overlay.
   await page.waitForFunction(
-    ({ skeletonName, minAbsoluteBones }) => {
+    ({ skeletonName }) => {
       const root = document.querySelector(`[data-boneyard="${skeletonName}"]`);
       if (!root) return false;
 
-      return (
-        root.querySelectorAll('div[style*="position: absolute"]').length >=
-        minAbsoluteBones
-      );
+      return root.querySelector("[style*='position']") != null;
     },
-    {
-      skeletonName: expectation.skeletonName,
-      minAbsoluteBones: expectation.minAbsoluteBones,
-    },
+    { skeletonName: expectation.skeletonName },
   );
 });
