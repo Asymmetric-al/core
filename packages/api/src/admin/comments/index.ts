@@ -30,31 +30,25 @@ export async function GET(request: NextRequest) {
         `
         *,
         author:profiles!user_id(id, first_name, last_name, avatar_url, full_name),
-        post:posts!post_id(id, content, missionary_id, tenant_id)
+        post:posts!post_id!inner(id, content, missionary_id, tenant_id)
       `,
       )
-      .order("created_at", { ascending: false })
-      .range(offset, offset + limit - 1);
+      .eq("posts.tenant_id", ctx.tenantId);
 
     if (postId) {
       query = query.eq("post_id", postId);
     }
+
+    query = query
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
 
     const { data: comments, error } = await query;
 
     if (error)
       return NextResponse.json({ error: error.message }, { status: 500 });
 
-    const filteredComments = (comments || []).filter((comment) => {
-      const post = comment.post as { tenant_id?: string } | null;
-      return (
-        post !== null &&
-        typeof post.tenant_id === "string" &&
-        post.tenant_id === ctx.tenantId
-      );
-    });
-
-    return NextResponse.json({ comments: filteredComments });
+    return NextResponse.json({ comments: comments ?? [] });
   } catch (e) {
     return toErrorResponse(e);
   }
