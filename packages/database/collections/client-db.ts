@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment -- TODO(tanstack-db): query-db-collection vs @tanstack/db Collection types drift */
 // @ts-nocheck
 "use client";
 
@@ -9,7 +10,7 @@ import {
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
 import { z } from "zod";
 
-import { getQueryClient } from "../providers/query-provider";
+import { getQueryClient } from "../providers/query-client";
 import { createClient } from "../supabase/client";
 
 import type { Post, Follow, PostComment } from "../types/database";
