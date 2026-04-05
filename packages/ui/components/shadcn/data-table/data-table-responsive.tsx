@@ -48,10 +48,14 @@ import {
   getKeyboardNavigationStyles,
   useDataTableVirtualization,
 } from "./hooks";
-import { useDataTableState } from "./hooks/use-data-table-state";
+import {
+  useDataTableStateCore,
+  useDataTableStateWithUrl,
+} from "./hooks/use-data-table-state";
 
 import type { AdvancedFilterState, FilterFieldDefinition } from "./filters";
 import type { UseDataTableKeyboardReturn } from "./hooks";
+import type { UseDataTableStateReturn } from "./hooks/use-data-table-state";
 import type {
   DataTableControlledState,
   DataTableFilterField,
@@ -67,7 +71,13 @@ interface DataTableResponsiveProps<TData, TValue> {
   data: TData[];
   filterFields?: DataTableFilterField<TData>[];
   advancedFilterFields?: FilterFieldDefinition[];
+  /**
+   * TanStack column id for toolbar search.
+   * @deprecated Use `searchColumnId`.
+   */
   searchKey?: string;
+  /** TanStack column id for toolbar search (preferred). */
+  searchColumnId?: string;
   searchPlaceholder?: string;
   config?: DataTableConfig & {
     enableViewToggle?: boolean;
@@ -390,7 +400,7 @@ function DataTableResponsiveTableView<TData>({
             : undefined
         }
       >
-        <Table role="grid" aria-rowcount={rows.length}>
+        <Table role="grid">
           <TableHeader className="bg-muted/30">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
@@ -489,25 +499,25 @@ function DataTableResponsiveTableView<TData>({
   );
 }
 
-export function DataTableResponsive<TData, TValue>({
+type DataTableResponsiveBodyProps<TData, TValue> = Omit<
+  DataTableResponsiveProps<TData, TValue>,
+  "urlState"
+>;
+
+function DataTableResponsiveInner<TData, TValue>({
+  tableState,
   columns,
   data,
   filterFields = EMPTY_FILTER_FIELDS as DataTableFilterField<TData>[],
   advancedFilterFields = EMPTY_ADVANCED_FILTER_FIELDS,
   searchKey,
+  searchColumnId,
   searchPlaceholder,
   config = EMPTY_DATA_TABLE_CONFIG,
   isLoading = false,
   pageCount,
   rowCount,
   getRowId,
-  state,
-  urlState,
-  onPaginationChange,
-  onSortingChange,
-  onFiltersChange,
-  onColumnVisibilityChange,
-  onRowSelectionChange,
   onAdvancedFilterChange,
   onRefresh,
   onExport,
@@ -523,7 +533,11 @@ export function DataTableResponsive<TData, TValue>({
   initialState = EMPTY_DATA_TABLE_INITIAL_STATE as NonNullable<
     DataTableResponsiveProps<TData, TValue>["initialState"]
   >,
-}: DataTableResponsiveProps<TData, TValue>) {
+}: DataTableResponsiveBodyProps<TData, TValue> & {
+  tableState: UseDataTableStateReturn;
+}) {
+  const toolbarSearchColumnId = searchColumnId ?? searchKey;
+
   const {
     enableRowSelection = true,
     enableColumnVisibility = true,
@@ -549,32 +563,8 @@ export function DataTableResponsive<TData, TValue>({
 
   const [viewMode, setViewMode] = React.useState<ViewMode>(defaultViewMode);
   const [isMobile, setIsMobile] = React.useState(false);
-  const urlStateConfig = React.useMemo<
-    DataTableUrlStateConfig | undefined
-  >(() => {
-    if (!urlState || urlState === true) {
-      return urlState === true ? { searchColumnKey: searchKey } : undefined;
-    }
-    return {
-      ...urlState,
-      searchColumnKey: urlState.searchColumnKey ?? searchKey,
-      defaultPageSize:
-        urlState.defaultPageSize ?? initialState.pagination?.pageSize ?? 10,
-    };
-  }, [initialState.pagination?.pageSize, searchKey, urlState]);
   const resolvedEnableVirtualization =
     enableVirtualization ?? configVirtualizationEnabled;
-  const tableState = useDataTableState({
-    initialState,
-    controlledState: state,
-    urlState: urlStateConfig,
-    onSortingChange,
-    onFiltersChange,
-    onColumnVisibilityChange,
-    onRowSelectionChange,
-    onPaginationChange,
-    searchKey,
-  });
   const [advancedFilter, setAdvancedFilter] =
     React.useState<AdvancedFilterState>(
       initialState.advancedFilter ?? createEmptyFilterState(),
@@ -747,7 +737,7 @@ export function DataTableResponsive<TData, TValue>({
         advancedFilterFields={advancedFilterFields}
         advancedFilter={advancedFilter}
         onAdvancedFilterChange={handleAdvancedFilterChange}
-        searchKey={searchKey}
+        searchKey={toolbarSearchColumnId}
         searchPlaceholder={searchPlaceholder}
         enableColumnVisibility={enableColumnVisibility}
         enableAdvancedFilters={enableAdvancedFilters}
@@ -811,4 +801,83 @@ export function DataTableResponsive<TData, TValue>({
       )}
     </div>
   );
+}
+
+function DataTableResponsiveBody<TData, TValue>({
+  ...props
+}: DataTableResponsiveBodyProps<TData, TValue>) {
+  const tableState = useDataTableStateCore({
+    initialState: props.initialState,
+    controlledState: props.state,
+    onSortingChange: props.onSortingChange,
+    onFiltersChange: props.onFiltersChange,
+    onColumnVisibilityChange: props.onColumnVisibilityChange,
+    onRowSelectionChange: props.onRowSelectionChange,
+    onPaginationChange: props.onPaginationChange,
+    searchKey: props.searchKey,
+    searchColumnId: props.searchColumnId,
+  });
+
+  return <DataTableResponsiveInner {...props} tableState={tableState} />;
+}
+
+function DataTableResponsiveWithUrl<TData, TValue>({
+  urlState,
+  ...props
+}: DataTableResponsiveBodyProps<TData, TValue> & {
+  urlState: DataTableUrlStateConfig;
+}) {
+  const tableState = useDataTableStateWithUrl({
+    initialState: props.initialState,
+    controlledState: props.state,
+    onSortingChange: props.onSortingChange,
+    onFiltersChange: props.onFiltersChange,
+    onColumnVisibilityChange: props.onColumnVisibilityChange,
+    onRowSelectionChange: props.onRowSelectionChange,
+    onPaginationChange: props.onPaginationChange,
+    searchKey: props.searchKey,
+    searchColumnId: props.searchColumnId,
+    urlState,
+  });
+
+  return <DataTableResponsiveInner {...props} tableState={tableState} />;
+}
+
+export function DataTableResponsive<TData, TValue>({
+  urlState,
+  searchKey,
+  searchColumnId,
+  initialState = EMPTY_DATA_TABLE_INITIAL_STATE as NonNullable<
+    DataTableResponsiveProps<TData, TValue>["initialState"]
+  >,
+  ...rest
+}: DataTableResponsiveProps<TData, TValue>) {
+  const urlStateConfig = React.useMemo<
+    DataTableUrlStateConfig | undefined
+  >(() => {
+    if (!urlState || urlState === true) {
+      return urlState === true
+        ? { searchColumnKey: searchColumnId ?? searchKey }
+        : undefined;
+    }
+    return {
+      ...urlState,
+      searchColumnKey: urlState.searchColumnKey ?? searchColumnId ?? searchKey,
+      defaultPageSize:
+        urlState.defaultPageSize ?? initialState.pagination?.pageSize ?? 10,
+    };
+  }, [initialState.pagination?.pageSize, searchColumnId, searchKey, urlState]);
+
+  const shared = {
+    searchKey,
+    searchColumnId,
+    initialState,
+    ...rest,
+  };
+
+  if (urlStateConfig) {
+    return <DataTableResponsiveWithUrl {...shared} urlState={urlStateConfig} />;
+  }
+
+  return <DataTableResponsiveBody {...shared} />;
 }

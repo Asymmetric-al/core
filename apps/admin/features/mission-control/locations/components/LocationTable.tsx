@@ -163,7 +163,7 @@ export function LocationTable({
       data={data}
       isLoading={isLoading}
       getRowId={getRowId}
-      searchKey="title"
+      searchColumnId="title"
       searchPlaceholder="Search locations..."
       config={{
         enableRowSelection: false,

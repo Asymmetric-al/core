@@ -40,8 +40,13 @@ import {
   DataTableLoadingOverlay,
 } from "./data-table-skeleton";
 import { DataTableToolbar } from "./data-table-toolbar";
-import { useDataTableState, useDataTableVirtualization } from "./hooks";
+import {
+  useDataTableStateCore,
+  useDataTableStateWithUrl,
+  useDataTableVirtualization,
+} from "./hooks";
 
+import type { UseDataTableStateReturn } from "./hooks/use-data-table-state";
 import type {
   DataTableControlledState,
   DataTableFilterField,
@@ -54,7 +59,13 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   filterFields?: DataTableFilterField<TData>[];
+  /**
+   * TanStack column id for toolbar search.
+   * @deprecated Use `searchColumnId`.
+   */
   searchKey?: string;
+  /** TanStack column id for toolbar search (preferred). */
+  searchColumnId?: string;
   searchPlaceholder?: string;
   config?: DataTableConfig;
   isLoading?: boolean;
@@ -103,11 +114,19 @@ const EMPTY_DATA_TABLE_INITIAL_STATE: NonNullable<
   DataTableProps<unknown, unknown>["initialState"]
 > = {};
 
-export function DataTable<TData, TValue>({
+type DataTableBodyProps<TData, TValue> = Omit<
+  DataTableProps<TData, TValue>,
+  "urlState"
+> & {
+  urlState?: DataTableUrlStateConfig;
+};
+
+function DataTableBody<TData, TValue>({
   columns,
   data,
   filterFields = EMPTY_FILTER_FIELDS as DataTableFilterField<TData>[],
   searchKey,
+  searchColumnId,
   searchPlaceholder,
   config = EMPTY_DATA_TABLE_CONFIG,
   isLoading = false,
@@ -123,7 +142,6 @@ export function DataTable<TData, TValue>({
   onRowClick,
   state,
   getRowId,
-  urlState,
   className,
   tableClassName,
   emptyState,
@@ -131,7 +149,153 @@ export function DataTable<TData, TValue>({
   initialState = EMPTY_DATA_TABLE_INITIAL_STATE as NonNullable<
     DataTableProps<TData, TValue>["initialState"]
   >,
-}: DataTableProps<TData, TValue>) {
+}: DataTableBodyProps<TData, TValue>) {
+  const toolbarSearchColumnId = searchColumnId ?? searchKey;
+
+  const tableState = useDataTableStateCore({
+    initialState,
+    controlledState: state,
+    onSortingChange,
+    onFiltersChange,
+    onPaginationChange,
+    onRowSelectionChange,
+    onColumnVisibilityChange,
+    searchKey,
+    searchColumnId,
+  });
+
+  return (
+    <DataTableBodyWithTableState
+      columns={columns}
+      data={data}
+      filterFields={filterFields}
+      toolbarSearchColumnId={toolbarSearchColumnId}
+      searchPlaceholder={searchPlaceholder}
+      config={config}
+      isLoading={isLoading}
+      pageCount={pageCount}
+      rowCount={rowCount}
+      actionBarActions={actionBarActions}
+      rowActions={rowActions}
+      onRowClick={onRowClick}
+      getRowId={getRowId}
+      className={className}
+      tableClassName={tableClassName}
+      emptyState={emptyState}
+      toolbar={toolbar}
+      tableState={tableState}
+    />
+  );
+}
+
+function DataTableBodyWithUrl<TData, TValue>({
+  columns,
+  data,
+  filterFields = EMPTY_FILTER_FIELDS as DataTableFilterField<TData>[],
+  searchKey,
+  searchColumnId,
+  searchPlaceholder,
+  config = EMPTY_DATA_TABLE_CONFIG,
+  isLoading = false,
+  pageCount,
+  rowCount,
+  onPaginationChange,
+  onSortingChange,
+  onFiltersChange,
+  onRowSelectionChange,
+  onColumnVisibilityChange,
+  actionBarActions,
+  rowActions,
+  onRowClick,
+  state,
+  getRowId,
+  className,
+  tableClassName,
+  emptyState,
+  toolbar,
+  initialState = EMPTY_DATA_TABLE_INITIAL_STATE as NonNullable<
+    DataTableProps<TData, TValue>["initialState"]
+  >,
+  urlState,
+}: DataTableBodyProps<TData, TValue> & { urlState: DataTableUrlStateConfig }) {
+  const toolbarSearchColumnId = searchColumnId ?? searchKey;
+
+  const tableState = useDataTableStateWithUrl({
+    initialState,
+    controlledState: state,
+    onSortingChange,
+    onFiltersChange,
+    onPaginationChange,
+    onRowSelectionChange,
+    onColumnVisibilityChange,
+    searchKey,
+    searchColumnId,
+    urlState,
+  });
+
+  return (
+    <DataTableBodyWithTableState
+      columns={columns}
+      data={data}
+      filterFields={filterFields}
+      toolbarSearchColumnId={toolbarSearchColumnId}
+      searchPlaceholder={searchPlaceholder}
+      config={config}
+      isLoading={isLoading}
+      pageCount={pageCount}
+      rowCount={rowCount}
+      actionBarActions={actionBarActions}
+      rowActions={rowActions}
+      onRowClick={onRowClick}
+      getRowId={getRowId}
+      className={className}
+      tableClassName={tableClassName}
+      emptyState={emptyState}
+      toolbar={toolbar}
+      tableState={tableState}
+    />
+  );
+}
+
+function DataTableBodyWithTableState<TData, TValue>({
+  columns,
+  data,
+  filterFields,
+  toolbarSearchColumnId,
+  searchPlaceholder,
+  config,
+  isLoading,
+  pageCount,
+  rowCount,
+  actionBarActions,
+  rowActions,
+  onRowClick,
+  getRowId,
+  className,
+  tableClassName,
+  emptyState,
+  toolbar,
+  tableState,
+}: {
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+  filterFields: DataTableFilterField<TData>[];
+  toolbarSearchColumnId?: string;
+  searchPlaceholder?: string;
+  config: DataTableConfig;
+  isLoading: boolean;
+  pageCount?: number;
+  rowCount?: number;
+  actionBarActions?: DataTableProps<TData, TValue>["actionBarActions"];
+  rowActions?: DataTableInteractiveRowAction<TData>[];
+  onRowClick?: (row: Row<TData>) => void;
+  getRowId?: TableOptions<TData>["getRowId"];
+  className?: string;
+  tableClassName?: string;
+  emptyState?: React.ReactNode;
+  toolbar?: React.ReactNode;
+  tableState: UseDataTableStateReturn;
+}) {
   const {
     enableRowSelection = true,
     enableColumnVisibility = true,
@@ -144,21 +308,6 @@ export function DataTable<TData, TValue>({
     manualSorting = false,
     manualFiltering = false,
   } = config;
-
-  const resolvedUrlState =
-    urlState === true ? ({} as DataTableUrlStateConfig) : urlState || undefined;
-
-  const tableState = useDataTableState({
-    initialState,
-    controlledState: state,
-    onSortingChange,
-    onFiltersChange,
-    onPaginationChange,
-    onRowSelectionChange,
-    onColumnVisibilityChange,
-    searchKey,
-    urlState: resolvedUrlState,
-  });
 
   const selectColumn = React.useMemo<ColumnDef<TData, unknown>>(
     () => ({
@@ -348,7 +497,7 @@ export function DataTable<TData, TValue>({
           <DataTableToolbar
             table={table}
             filterFields={filterFields}
-            searchKey={searchKey}
+            searchKey={toolbarSearchColumnId}
             searchPlaceholder={searchPlaceholder}
             enableColumnVisibility={enableColumnVisibility}
           />
@@ -461,6 +610,20 @@ export function DataTable<TData, TValue>({
       )}
     </div>
   );
+}
+
+export function DataTable<TData, TValue>({
+  urlState,
+  ...rest
+}: DataTableProps<TData, TValue>) {
+  const resolvedUrlState =
+    urlState === true ? ({} as DataTableUrlStateConfig) : urlState || undefined;
+
+  if (resolvedUrlState) {
+    return <DataTableBodyWithUrl {...rest} urlState={resolvedUrlState} />;
+  }
+
+  return <DataTableBody {...rest} />;
 }
 
 export { DataTable as default };

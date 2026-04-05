@@ -38,8 +38,15 @@ export interface UseDataTableStateOptions {
   onFiltersChange?: (filters: ColumnFiltersState) => void;
   onColumnVisibilityChange?: (visibility: VisibilityState) => void;
   onRowSelectionChange?: (selection: RowSelectionState) => void;
+  /** When set, URL sync runs only if you use `useDataTableStateWithUrl` (nuqs). */
   urlState?: DataTableUrlStateConfig;
+  /**
+   * Column id used with the search/filter toolbar (TanStack column id).
+   * @deprecated Use `searchColumnId` instead.
+   */
   searchKey?: string;
+  /** Column id for toolbar search / URL↔filter bridge (preferred over `searchKey`). */
+  searchColumnId?: string;
 }
 
 export interface UseDataTableStateReturn {
@@ -71,13 +78,37 @@ export interface UseDataTableStateReturn {
   isUrlStatePending: boolean;
 }
 
+export type UseDataTableStateCoreOptions = Omit<
+  UseDataTableStateOptions,
+  "urlState"
+>;
+
+export type UseDataTableStateWithUrlOptions = Omit<
+  UseDataTableStateOptions,
+  "urlState"
+> & {
+  urlState: DataTableUrlStateConfig;
+};
+
 function resolveUpdater<T>(updater: Updater<T>, currentValue: T): T {
   return typeof updater === "function"
     ? (updater as (value: T) => T)(currentValue)
     : updater;
 }
 
-export function useDataTableState({
+function useEffectiveSearchColumnKey(
+  urlState: DataTableUrlStateConfig | undefined,
+  searchColumnId: string | undefined,
+  searchKey: string | undefined,
+): string | undefined {
+  return urlState?.searchColumnKey ?? searchColumnId ?? searchKey;
+}
+
+/**
+ * Table state without nuqs / URL sync. Use from a component that does not call
+ * `useDataTableUrlState`, so query hooks stay inactive when URL state is off.
+ */
+export function useDataTableStateCore({
   initialState,
   state,
   controlledState,
@@ -86,11 +117,10 @@ export function useDataTableState({
   onFiltersChange,
   onColumnVisibilityChange,
   onRowSelectionChange,
-  urlState,
-  searchKey,
-}: UseDataTableStateOptions): UseDataTableStateReturn {
+  searchKey: _searchKey,
+  searchColumnId: _searchColumnId,
+}: UseDataTableStateCoreOptions): UseDataTableStateReturn {
   const resolvedControlledState = state ?? controlledState;
-  const effectiveSearchColumnKey = urlState?.searchColumnKey ?? searchKey;
   const [internalRowSelection, setInternalRowSelection] =
     React.useState<RowSelectionState>(initialState?.rowSelection ?? {});
   const [internalColumnVisibility, setInternalColumnVisibility] =
@@ -108,162 +138,69 @@ export function useDataTableState({
       },
     );
 
-  const urlTableState = useDataTableUrlState({
-    defaultPageSize:
-      urlState?.defaultPageSize ?? initialState?.pagination?.pageSize ?? 10,
-    pageIndexKey: urlState?.pageIndexKey,
-    pageSizeKey: urlState?.pageSizeKey,
-    sortKey: urlState?.sortKey,
-    filterKey: urlState?.filterKey,
-    searchKey: urlState?.searchKey,
-    visibilityKey: urlState?.visibilityKey,
-    debounceMs: urlState?.debounceMs,
-    shallow: urlState?.shallow,
-    scroll: urlState?.scroll,
-    history: urlState?.history,
-    clearOnDefault: urlState?.clearOnDefault,
-  });
-
-  const urlStateEnabled = Boolean(urlState);
-
-  const sorting =
-    resolvedControlledState?.sorting ??
-    (urlStateEnabled ? urlTableState.sorting : internalSorting);
-  const pagination =
-    resolvedControlledState?.pagination ??
-    (urlStateEnabled ? urlTableState.pagination : internalPagination);
+  const sorting = resolvedControlledState?.sorting ?? internalSorting;
+  const pagination = resolvedControlledState?.pagination ?? internalPagination;
   const columnVisibility =
-    resolvedControlledState?.columnVisibility ??
-    (urlStateEnabled
-      ? urlTableState.columnVisibility
-      : internalColumnVisibility);
+    resolvedControlledState?.columnVisibility ?? internalColumnVisibility;
   const columnFilters =
-    resolvedControlledState?.columnFilters ??
-    (urlStateEnabled
-      ? mergeSearchColumnFilter(
-          urlTableState.columnFilters,
-          urlTableState.globalFilter,
-          effectiveSearchColumnKey,
-        )
-      : internalColumnFilters);
+    resolvedControlledState?.columnFilters ?? internalColumnFilters;
   const rowSelection =
     resolvedControlledState?.rowSelection ?? internalRowSelection;
 
   const setSorting = React.useCallback(
     (updater: Updater<SortingState>) => {
       const nextSorting = resolveUpdater(updater, sorting);
-
-      if (resolvedControlledState?.sorting === undefined && !urlStateEnabled) {
+      if (resolvedControlledState?.sorting === undefined) {
         setInternalSorting(nextSorting);
       }
-
-      if (urlStateEnabled) {
-        urlTableState.setSorting(nextSorting);
-      }
-
       onSortingChange?.(nextSorting);
     },
-    [
-      resolvedControlledState?.sorting,
-      onSortingChange,
-      sorting,
-      urlStateEnabled,
-      urlTableState,
-    ],
+    [resolvedControlledState?.sorting, onSortingChange, sorting],
   );
 
   const setPagination = React.useCallback(
     (updater: Updater<PaginationState>) => {
       const nextPagination = resolveUpdater(updater, pagination);
-
-      if (
-        resolvedControlledState?.pagination === undefined &&
-        !urlStateEnabled
-      ) {
+      if (resolvedControlledState?.pagination === undefined) {
         setInternalPagination(nextPagination);
       }
-
-      if (urlStateEnabled) {
-        urlTableState.setPagination(nextPagination);
-      }
-
       onPaginationChange?.(nextPagination);
     },
-    [
-      resolvedControlledState?.pagination,
-      onPaginationChange,
-      pagination,
-      urlStateEnabled,
-      urlTableState,
-    ],
+    [resolvedControlledState?.pagination, onPaginationChange, pagination],
   );
 
   const setColumnFilters = React.useCallback(
     (updater: Updater<ColumnFiltersState>) => {
       const nextFilters = resolveUpdater(updater, columnFilters);
-
-      if (
-        resolvedControlledState?.columnFilters === undefined &&
-        !urlStateEnabled
-      ) {
+      if (resolvedControlledState?.columnFilters === undefined) {
         setInternalColumnFilters(nextFilters);
       }
-
-      if (urlStateEnabled) {
-        const { searchValue, remainingFilters } = splitSearchColumnFilter(
-          nextFilters,
-          effectiveSearchColumnKey,
-        );
-        urlTableState.setColumnFilters(remainingFilters);
-        urlTableState.setGlobalFilter(searchValue);
-      }
-
       onFiltersChange?.(nextFilters);
     },
-    [
-      columnFilters,
-      resolvedControlledState?.columnFilters,
-      onFiltersChange,
-      effectiveSearchColumnKey,
-      urlStateEnabled,
-      urlTableState,
-    ],
+    [columnFilters, resolvedControlledState?.columnFilters, onFiltersChange],
   );
 
   const setColumnVisibility = React.useCallback(
     (updater: Updater<VisibilityState>) => {
       const nextVisibility = resolveUpdater(updater, columnVisibility);
-
-      if (
-        resolvedControlledState?.columnVisibility === undefined &&
-        !urlStateEnabled
-      ) {
+      if (resolvedControlledState?.columnVisibility === undefined) {
         setInternalColumnVisibility(nextVisibility);
       }
-
-      if (urlStateEnabled) {
-        urlTableState.setColumnVisibility(nextVisibility);
-      }
-
       onColumnVisibilityChange?.(nextVisibility);
     },
     [
       columnVisibility,
       resolvedControlledState?.columnVisibility,
       onColumnVisibilityChange,
-      urlStateEnabled,
-      urlTableState,
     ],
   );
 
   const setRowSelection = React.useCallback(
     (updater: Updater<RowSelectionState>) => {
       const nextSelection = resolveUpdater(updater, rowSelection);
-
       if (resolvedControlledState?.rowSelection === undefined) {
         setInternalRowSelection(nextSelection);
       }
-
       onRowSelectionChange?.(nextSelection);
     },
     [resolvedControlledState?.rowSelection, onRowSelectionChange, rowSelection],
@@ -283,7 +220,6 @@ export function useDataTableState({
           return String(id);
         }
       }
-
       return String(index);
     },
     [],
@@ -315,6 +251,165 @@ export function useDataTableState({
       onPaginationChange: setPagination,
     },
     getRowId,
-    isUrlStatePending: urlStateEnabled ? urlTableState.isPending : false,
+    isUrlStatePending: false,
+  };
+}
+
+/**
+ * Table state with nuqs URL sync. Only mount from a dedicated component so
+ * `useDataTableUrlState` runs when (and only when) URL state is enabled.
+ */
+export function useDataTableStateWithUrl({
+  initialState,
+  state,
+  controlledState,
+  onPaginationChange,
+  onSortingChange,
+  onFiltersChange,
+  onColumnVisibilityChange,
+  onRowSelectionChange,
+  urlState,
+  searchKey,
+  searchColumnId,
+}: UseDataTableStateWithUrlOptions): UseDataTableStateReturn {
+  const resolvedControlledState = state ?? controlledState;
+  const effectiveSearchColumnKey = useEffectiveSearchColumnKey(
+    urlState,
+    searchColumnId,
+    searchKey,
+  );
+
+  const [internalRowSelection, setInternalRowSelection] =
+    React.useState<RowSelectionState>(initialState?.rowSelection ?? {});
+
+  const urlTableState = useDataTableUrlState({
+    defaultPageSize:
+      urlState.defaultPageSize ?? initialState?.pagination?.pageSize ?? 10,
+    pageIndexKey: urlState.pageIndexKey,
+    pageSizeKey: urlState.pageSizeKey,
+    sortKey: urlState.sortKey,
+    filterKey: urlState.filterKey,
+    searchKey: urlState.searchKey,
+    visibilityKey: urlState.visibilityKey,
+    debounceMs: urlState.debounceMs,
+    shallow: urlState.shallow,
+    scroll: urlState.scroll,
+    history: urlState.history,
+    clearOnDefault: urlState.clearOnDefault,
+  });
+
+  const sorting = resolvedControlledState?.sorting ?? urlTableState.sorting;
+  const pagination =
+    resolvedControlledState?.pagination ?? urlTableState.pagination;
+  const columnVisibility =
+    resolvedControlledState?.columnVisibility ?? urlTableState.columnVisibility;
+  const columnFilters =
+    resolvedControlledState?.columnFilters ??
+    mergeSearchColumnFilter(
+      urlTableState.columnFilters,
+      urlTableState.globalFilter,
+      effectiveSearchColumnKey,
+    );
+  const rowSelection =
+    resolvedControlledState?.rowSelection ?? internalRowSelection;
+
+  const setSorting = React.useCallback(
+    (updater: Updater<SortingState>) => {
+      const nextSorting = resolveUpdater(updater, sorting);
+      urlTableState.setSorting(nextSorting);
+      onSortingChange?.(nextSorting);
+    },
+    [onSortingChange, sorting, urlTableState],
+  );
+
+  const setPagination = React.useCallback(
+    (updater: Updater<PaginationState>) => {
+      const nextPagination = resolveUpdater(updater, pagination);
+      urlTableState.setPagination(nextPagination);
+      onPaginationChange?.(nextPagination);
+    },
+    [onPaginationChange, pagination, urlTableState],
+  );
+
+  const setColumnFilters = React.useCallback(
+    (updater: Updater<ColumnFiltersState>) => {
+      const nextFilters = resolveUpdater(updater, columnFilters);
+      const { searchValue, remainingFilters } = splitSearchColumnFilter(
+        nextFilters,
+        effectiveSearchColumnKey,
+      );
+      urlTableState.setColumnFilters(remainingFilters);
+      urlTableState.setGlobalFilter(searchValue);
+      onFiltersChange?.(nextFilters);
+    },
+    [columnFilters, onFiltersChange, effectiveSearchColumnKey, urlTableState],
+  );
+
+  const setColumnVisibility = React.useCallback(
+    (updater: Updater<VisibilityState>) => {
+      const nextVisibility = resolveUpdater(updater, columnVisibility);
+      urlTableState.setColumnVisibility(nextVisibility);
+      onColumnVisibilityChange?.(nextVisibility);
+    },
+    [columnVisibility, onColumnVisibilityChange, urlTableState],
+  );
+
+  const setRowSelection = React.useCallback(
+    (updater: Updater<RowSelectionState>) => {
+      const nextSelection = resolveUpdater(updater, rowSelection);
+      if (resolvedControlledState?.rowSelection === undefined) {
+        setInternalRowSelection(nextSelection);
+      }
+      onRowSelectionChange?.(nextSelection);
+    },
+    [resolvedControlledState?.rowSelection, onRowSelectionChange, rowSelection],
+  );
+
+  const getRowId = React.useCallback(
+    <TData>(originalRow: TData, index: number) => {
+      if (typeof originalRow === "object" && originalRow !== null) {
+        const candidate = originalRow as Record<string, unknown>;
+        const id =
+          candidate.id ??
+          candidate.uuid ??
+          candidate._id ??
+          candidate.key ??
+          candidate.slug;
+        if (typeof id === "string" || typeof id === "number") {
+          return String(id);
+        }
+      }
+      return String(index);
+    },
+    [],
+  );
+
+  return {
+    sorting,
+    columnFilters,
+    columnVisibility,
+    rowSelection,
+    pagination,
+    setSorting,
+    setColumnFilters,
+    setColumnVisibility,
+    setRowSelection,
+    setPagination,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+      pagination,
+    },
+    handlers: {
+      onSortingChange: setSorting,
+      onColumnFiltersChange: setColumnFilters,
+      onColumnVisibilityChange: setColumnVisibility,
+      onRowSelectionChange: setRowSelection,
+      onPaginationChange: setPagination,
+    },
+    getRowId,
+    isUrlStatePending: urlTableState.isPending,
   };
 }

@@ -238,7 +238,7 @@ export function TasksTableSection({
         <DataTableWrapper
           columns={columns}
           data={data}
-          searchKey="title"
+          searchColumnId="title"
           getRowId={(task) => task.id}
           config={{
             enableRowSelection: true,

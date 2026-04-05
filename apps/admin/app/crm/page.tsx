@@ -477,7 +477,7 @@ export default function MissionControlCRM() {
                   columns={columns}
                   data={MOCK_CONTACTS}
                   filterFields={filterFields}
-                  searchKey="name"
+                  searchColumnId="name"
                   searchPlaceholder="Search contacts..."
                   getRowId={(contact) => contact.id}
                   config={{

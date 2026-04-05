@@ -44,6 +44,8 @@ export type {
   UseDataTableKeyboardReturn,
   UseDataTableStateOptions,
   UseDataTableStateReturn,
+  UseDataTableStateCoreOptions,
+  UseDataTableStateWithUrlOptions,
   ColumnResizingOptions,
   UseColumnResizingReturn,
   VirtualizationLegacyConfig,

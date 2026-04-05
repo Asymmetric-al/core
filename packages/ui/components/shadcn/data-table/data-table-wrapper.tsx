@@ -29,7 +29,12 @@ interface DataTableWrapperProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   filterFields?: DataTableFilterField<TData>[];
+  /**
+   * TanStack column id for toolbar search.
+   * @deprecated Use `searchColumnId`.
+   */
   searchKey?: string;
+  searchColumnId?: string;
   searchPlaceholder?: string;
   config?: DataTableConfig;
   isLoading?: boolean;
@@ -57,6 +62,7 @@ export function DataTableWrapper<TData, TValue>({
   data,
   filterFields,
   searchKey,
+  searchColumnId,
   searchPlaceholder,
   config,
   isLoading,
@@ -114,6 +120,13 @@ export function DataTableWrapper<TData, TValue>({
     );
   }
 
+  const responsiveConfig = {
+    enableViewToggle: false,
+    defaultViewMode: "table" as const,
+    mobileBreakpoint: 0,
+    ...config,
+  };
+
   const customEmptyState = emptyState ? (
     <Empty className="py-20">
       <EmptyHeader>
@@ -137,8 +150,9 @@ export function DataTableWrapper<TData, TValue>({
         data={data}
         filterFields={filterFields}
         searchKey={searchKey}
+        searchColumnId={searchColumnId}
         searchPlaceholder={searchPlaceholder}
-        config={config}
+        config={responsiveConfig}
         isLoading={isLoading}
         getRowId={getRowId}
         state={state}

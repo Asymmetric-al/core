@@ -169,7 +169,7 @@ export function PersonnelList({ data, isLoading }: PersonnelListProps) {
         data={data}
         isLoading={isLoading}
         filterFields={filterFields}
-        searchKey="name"
+        searchColumnId="name"
         searchPlaceholder="Find personnel..."
         getRowId={(personnel) => personnel.id}
         config={{
