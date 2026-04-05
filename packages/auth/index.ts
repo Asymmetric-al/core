@@ -2,6 +2,7 @@ export * from "./context";
 export * from "./e2e-auth";
 export * from "./middleware";
 export * from "./permissions";
+export * from "./redirects";
 export * from "./use-auth";
 export * from "./client-signout";
 export * from "./roles";

@@ -1,6 +1,5 @@
 "use client";
 
-import { SafeHtml } from "@asym/lib/components/safe-html";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import {
   Avatar,
@@ -16,6 +15,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@asym/ui/components/shadcn/carousel";
+import { PostContent } from "@asym/ui/components/shadcn/rich-text-editor";
 import { cn } from "@asym/ui/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { MessageCircle } from "lucide-react";
@@ -403,9 +403,10 @@ export function FeedPost({ post, onLike, onPrayer }: FeedPostProps) {
           </div>
 
           <div className="space-y-2">
-            <SafeHtml
-              className="prose prose-sm dark:prose-invert max-w-none text-foreground/90 leading-relaxed"
-              html={post.content}
+            <PostContent
+              value={post.content}
+              richTextClassName="prose prose-sm dark:prose-invert max-w-none text-foreground/90 leading-relaxed"
+              htmlClassName="prose prose-sm dark:prose-invert max-w-none text-foreground/90 leading-relaxed"
             />
           </div>
 

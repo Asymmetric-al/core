@@ -85,6 +85,7 @@ export interface TenantEmailSettings {
 
   // Webhook config
   webhook_url: string | null;
+  validation_snapshot: ResendValidationSnapshot | null;
 
   // Rate limits
   daily_send_limit: number;
@@ -117,6 +118,7 @@ export interface TenantEmailSettingsUpdate {
   dmarc_policy?: DMARCPolicy | null;
   deliverability_score?: number | null;
   webhook_url?: string | null;
+  validation_snapshot?: ResendValidationSnapshot | null;
   daily_send_limit?: number;
   sends_today?: number;
   limit_reset_at?: string | null;
@@ -514,10 +516,23 @@ export interface DeliverabilityWarning {
   helpUrl?: string;
 }
 
+export interface ResendValidationSnapshot {
+  senderIdentities: SenderIdentity[];
+  domainAuthentication: DomainAuthentication[];
+  warnings: DeliverabilityWarning[];
+  deliverabilityScore: number;
+  validatedAt: string;
+  domainAuthenticated: boolean;
+  dkimVerified: boolean;
+  spfVerified: boolean;
+}
+
 export interface ConnectResendResponse {
   success: boolean;
+  sendReady: boolean;
   connectionId?: string;
   apiKeyHint?: string | null;
+  validatedAt?: string;
   account?: ResendAccountInfo;
   senderIdentities?: SenderIdentity[];
   domainAuthentication?: DomainAuthentication[];
@@ -530,7 +545,9 @@ export interface ConnectResendResponse {
 export interface ResendConnectionStateResponse {
   success: boolean;
   connected: boolean;
+  sendReady: boolean;
   apiKeyHint?: string | null;
+  validatedAt?: string;
   defaultFromEmail?: string | null;
   defaultFromName?: string | null;
   replyToEmail?: string | null;
@@ -540,6 +557,16 @@ export interface ResendConnectionStateResponse {
   warnings?: DeliverabilityWarning[];
   persisted?: boolean;
   error?: string;
+}
+
+export interface TestSendEmailResponse {
+  success: boolean;
+  messageId?: string;
+  correlationId?: string;
+  code?: string;
+  error?: string;
+  auditLogged?: boolean;
+  warning?: string;
 }
 
 // Send Email

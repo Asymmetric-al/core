@@ -13,12 +13,14 @@ import {
   RESEND_ERROR_CODES,
   RETRY_CONFIG,
 } from "./constants";
+import { getFirstBlockingDeliverabilityWarning } from "./deliverability-warnings";
 
 import type {
   DeliverabilityWarning,
   DomainAuthentication,
   EmailRecipient,
   EmailSendResult,
+  ResendValidationSnapshot,
   ResendReceivedAttachment,
   ResendReceivedEmail,
   ResendWebhookEnvelope,
@@ -27,6 +29,7 @@ import type {
 } from "./types";
 
 type JsonRecord = Record<string, unknown>;
+type DomainRecord = NonNullable<DomainAuthentication["records"]>[number];
 
 interface ResendErrorDetails {
   name?: string;
@@ -60,6 +63,10 @@ export interface ResendValidationResult {
   warnings?: DeliverabilityWarning[];
 }
 
+export interface ResendValidationOptions {
+  defaultFromEmail?: string;
+}
+
 export interface SendEmailOptions {
   to: EmailRecipient | EmailRecipient[];
   from: { email: string; name?: string };
@@ -72,13 +79,20 @@ export interface SendEmailOptions {
   customArgs?: Record<string, string>;
 }
 
+export interface SendTestEmailOptions {
+  idempotencyKey?: string;
+}
+
 export interface ResendClient {
-  validateKey: () => Promise<ResendValidationResult>;
+  validateKey: (
+    options?: ResendValidationOptions,
+  ) => Promise<ResendValidationResult>;
   sendEmail: (options: SendEmailOptions) => Promise<EmailSendResult>;
   sendTestEmail: (
     toEmail: string,
     fromEmail: string,
     fromName: string,
+    options?: SendTestEmailOptions,
   ) => Promise<EmailSendResult>;
   verifyWebhookSignature: (options: Omit<VerifyWebhookOptions, "apiKey">) => {
     success: boolean;
@@ -120,6 +134,10 @@ function asNumber(value: unknown): number | null {
     }
   }
   return null;
+}
+
+function asBoolean(value: unknown): boolean | null {
+  return typeof value === "boolean" ? value : null;
 }
 
 function extractRows(value: unknown): JsonRecord[] {
@@ -297,12 +315,15 @@ function mapDomainAuthentication(
   domain: JsonRecord,
   index: number,
 ): DomainAuthentication | null {
-  const name = asString(domain.name);
+  const name = asString(domain.name) || asString(domain.domain);
   if (!name) {
     return null;
   }
 
-  const status = asString(domain.status) ?? "unknown";
+  const explicitValid = asBoolean(domain.valid);
+  const status =
+    asString(domain.status) ??
+    (explicitValid === true ? "verified" : "unknown");
   const records = extractRows(domain.records).map((record) => ({
     type: asString(record.type) ?? undefined,
     name: asString(record.name) ?? "",
@@ -314,10 +335,10 @@ function mapDomainAuthentication(
   }));
 
   return {
-    id: index + 1,
+    id: asNumber(domain.id) ?? index + 1,
     domain: name,
     subdomain: asString(domain.subdomain),
-    valid: status === "verified",
+    valid: explicitValid ?? status === "verified",
     status,
     region: asString(domain.region),
     createdAt: asString(domain.created_at) ?? undefined,
@@ -343,12 +364,39 @@ function mapSenderIdentity(
   const replyTo = asString(domain.default_reply_to_email);
 
   return {
-    id: index + 1,
+    id: asNumber(domain.id) ?? index + 1,
     nickname: `${domainName} sender`,
     from_email: fromEmail,
     from_name: fromName,
     reply_to_email: replyTo,
     verified: true,
+  };
+}
+
+function mapPersistedSenderIdentity(
+  value: unknown,
+  index: number,
+): SenderIdentity | null {
+  if (!isJsonRecord(value)) {
+    return null;
+  }
+
+  const fromEmail = asString(value.from_email);
+  const fromName = asString(value.from_name);
+  const nickname = asString(value.nickname);
+  const verified = asBoolean(value.verified) ?? false;
+
+  if (!fromEmail || !fromName || !nickname) {
+    return null;
+  }
+
+  return {
+    id: asNumber(value.id) ?? index + 1,
+    nickname,
+    from_email: fromEmail,
+    from_name: fromName,
+    reply_to_email: asString(value.reply_to_email) || null,
+    verified,
   };
 }
 
@@ -375,8 +423,261 @@ function parsePermissions(value: unknown): string[] | undefined {
   return permissions.length > 0 ? permissions : undefined;
 }
 
+function normalizeDomainToken(value: string): string {
+  return value.trim().toLowerCase().replace(/\.+$/, "");
+}
+
+function getEmailDomain(email: string): string | null {
+  const trimmed = email.trim().toLowerCase();
+  const atIndex = trimmed.lastIndexOf("@");
+
+  if (atIndex <= 0 || atIndex === trimmed.length - 1) {
+    return null;
+  }
+
+  return normalizeDomainToken(trimmed.slice(atIndex + 1));
+}
+
+function getVerifiedDomainNames(
+  domains: DomainAuthentication[],
+): readonly string[] {
+  return [
+    ...new Set(
+      domains
+        .filter((domain) => domain.valid)
+        .map((domain) => normalizeDomainToken(domain.domain)),
+    ),
+  ];
+}
+
+function getSenderDomainMismatchWarning(
+  defaultFromEmail: string | undefined,
+  verifiedDomainNames: readonly string[],
+): DeliverabilityWarning | null {
+  if (!defaultFromEmail) {
+    return null;
+  }
+
+  const senderDomain = getEmailDomain(defaultFromEmail);
+  if (!senderDomain) {
+    return null;
+  }
+
+  if (verifiedDomainNames.includes(senderDomain)) {
+    return null;
+  }
+
+  const verifiedDomainHint =
+    verifiedDomainNames.length > 0
+      ? `Use an address on ${verifiedDomainNames.slice(0, 2).join(" or ")}.`
+      : "Verify the sender domain in Resend before attempting to send email.";
+
+  return {
+    code: "DEFAULT_FROM_EMAIL_DOMAIN_NOT_VERIFIED",
+    severity: "error",
+    message: `${defaultFromEmail} does not use one of your exact verified Resend domains. ${verifiedDomainHint}`,
+    helpUrl: DELIVERABILITY_HELP_URLS.DOMAIN_MISMATCH,
+  };
+}
+
+function normalizeRecordField(value?: string | null): string {
+  return value?.trim().toLowerCase() ?? "";
+}
+
+function isVerifiedDomainRecord(record: DomainRecord): boolean {
+  return normalizeRecordField(record.status) === "verified";
+}
+
+function isTxtDomainRecord(record: DomainRecord): boolean {
+  return normalizeRecordField(record.type) === "txt";
+}
+
+function isVerifiedDkimRecord(record: DomainRecord): boolean {
+  const recordLabel = normalizeRecordField(record.record);
+  const recordName = normalizeRecordField(record.name);
+  const recordValue = normalizeRecordField(record.value);
+
+  if (recordLabel === "dkim") {
+    return true;
+  }
+
+  if (!isTxtDomainRecord(record)) {
+    return false;
+  }
+
+  return recordName.includes("_domainkey") || recordValue.includes("v=dkim1");
+}
+
+function isVerifiedSpfRecord(record: DomainRecord): boolean {
+  const recordLabel = normalizeRecordField(record.record);
+  const recordValue = normalizeRecordField(record.value);
+
+  if (recordLabel === "spf" && (!record.type || isTxtDomainRecord(record))) {
+    return true;
+  }
+
+  return isTxtDomainRecord(record) && recordValue.includes("v=spf1");
+}
+
+function hasVerifiedDomainRecord(
+  domains: DomainAuthentication[],
+  predicate: (record: DomainRecord) => boolean,
+): boolean {
+  return domains.some((domain) =>
+    (domain.records ?? []).some(
+      (record) => isVerifiedDomainRecord(record) && predicate(record),
+    ),
+  );
+}
+
+export function createResendValidationSnapshot(
+  validation: Pick<
+    ResendValidationResult,
+    | "senderIdentities"
+    | "domainAuthentication"
+    | "warnings"
+    | "deliverabilityScore"
+  >,
+  validatedAt: string = new Date().toISOString(),
+): ResendValidationSnapshot {
+  const senderIdentities = validation.senderIdentities ?? [];
+  const domainAuthentication = validation.domainAuthentication ?? [];
+  const warnings = validation.warnings ?? [];
+  const deliverabilityScore = validation.deliverabilityScore ?? 0;
+  const domainAuthenticated = domainAuthentication.some(
+    (domain) => domain.valid,
+  );
+
+  return {
+    senderIdentities,
+    domainAuthentication,
+    warnings,
+    deliverabilityScore,
+    validatedAt,
+    domainAuthenticated,
+    dkimVerified: hasVerifiedDomainRecord(
+      domainAuthentication,
+      isVerifiedDkimRecord,
+    ),
+    spfVerified: hasVerifiedDomainRecord(
+      domainAuthentication,
+      isVerifiedSpfRecord,
+    ),
+  };
+}
+
+function mapDeliverabilityWarning(
+  value: unknown,
+): DeliverabilityWarning | null {
+  if (!isJsonRecord(value)) {
+    return null;
+  }
+
+  const code = asString(value.code);
+  const message = asString(value.message);
+  const severity = asString(value.severity);
+  if (
+    !code ||
+    !message ||
+    (severity !== "info" && severity !== "warning" && severity !== "error")
+  ) {
+    return null;
+  }
+
+  return {
+    code,
+    message,
+    severity,
+    helpUrl: asString(value.helpUrl) || undefined,
+  };
+}
+
+export function parseResendValidationSnapshot(
+  value: unknown,
+): ResendValidationSnapshot | null {
+  if (!isJsonRecord(value)) {
+    return null;
+  }
+
+  const senderIdentities = extractRows(value.senderIdentities)
+    .map((sender, index) => mapPersistedSenderIdentity(sender, index))
+    .filter((sender): sender is SenderIdentity => Boolean(sender));
+  const domainAuthentication = extractRows(value.domainAuthentication)
+    .map((domain, index) => mapDomainAuthentication(domain, index))
+    .filter((domain): domain is DomainAuthentication => Boolean(domain));
+  const warnings = Array.isArray(value.warnings)
+    ? value.warnings
+        .map((warning) => mapDeliverabilityWarning(warning))
+        .filter((warning): warning is DeliverabilityWarning => Boolean(warning))
+    : [];
+  const deliverabilityScore = asNumber(value.deliverabilityScore);
+  const validatedAt = asString(value.validatedAt);
+  const domainAuthenticated = asBoolean(value.domainAuthenticated);
+  const dkimVerified = asBoolean(value.dkimVerified);
+  const spfVerified = asBoolean(value.spfVerified);
+
+  if (
+    deliverabilityScore === null ||
+    !validatedAt ||
+    domainAuthenticated === null ||
+    dkimVerified === null ||
+    spfVerified === null
+  ) {
+    return null;
+  }
+
+  return {
+    senderIdentities,
+    domainAuthentication,
+    warnings,
+    deliverabilityScore,
+    validatedAt,
+    domainAuthenticated,
+    dkimVerified,
+    spfVerified,
+  };
+}
+
+export function isResendValidationSendReady(
+  snapshot: Pick<ResendValidationSnapshot, "domainAuthenticated" | "warnings">,
+): boolean {
+  return (
+    snapshot.domainAuthenticated &&
+    !getFirstBlockingDeliverabilityWarning(snapshot.warnings)
+  );
+}
+
+async function enrichDomainRowsWithDetails(
+  resend: Resend,
+  domainRows: JsonRecord[],
+): Promise<JsonRecord[]> {
+  return Promise.all(
+    domainRows.map(async (domainRow) => {
+      const domainId = asString(domainRow.id);
+      if (!domainId) {
+        return domainRow;
+      }
+
+      try {
+        const domainResponse = await resend.domains.get(domainId);
+        if (domainResponse.error || !isJsonRecord(domainResponse.data)) {
+          return domainRow;
+        }
+
+        return {
+          ...domainRow,
+          ...domainResponse.data,
+        };
+      } catch {
+        return domainRow;
+      }
+    }),
+  );
+}
+
 export async function validateResendApiKey(
   apiKey: string,
+  options: ResendValidationOptions = {},
 ): Promise<ResendValidationResult> {
   if (!apiKey || typeof apiKey !== "string") {
     return {
@@ -410,7 +711,10 @@ export async function validateResendApiKey(
       };
     }
 
-    const domainRows = extractRows(domainsResponse.data);
+    const domainRows = await enrichDomainRowsWithDetails(
+      resend,
+      extractRows(domainsResponse.data),
+    );
     const domainAuthentication = domainRows
       .map((domain, index) => mapDomainAuthentication(domain, index))
       .filter((domain): domain is DomainAuthentication => Boolean(domain));
@@ -421,6 +725,7 @@ export async function validateResendApiKey(
     const verifiedDomains = domainAuthentication.filter(
       (domain) => domain.valid,
     );
+    const verifiedDomainNames = getVerifiedDomainNames(domainAuthentication);
 
     if (domainAuthentication.length === 0) {
       warnings.push({
@@ -438,6 +743,14 @@ export async function validateResendApiKey(
         severity: "warning",
         helpUrl: DELIVERABILITY_HELP_URLS.DOMAIN_AUTHENTICATION,
       });
+    }
+
+    const senderDomainMismatchWarning = getSenderDomainMismatchWarning(
+      options.defaultFromEmail,
+      verifiedDomainNames,
+    );
+    if (senderDomainMismatchWarning) {
+      warnings.push(senderDomainMismatchWarning);
     }
 
     // Metadata scope lookup is optional. We do not infer permissions when this fails.
@@ -602,6 +915,7 @@ export async function sendTestEmail(
   toEmail: string,
   fromEmail: string,
   fromName: string,
+  options: SendTestEmailOptions = {},
 ): Promise<EmailSendResult> {
   return sendEmail(apiKey, {
     to: { email: toEmail },
@@ -617,7 +931,8 @@ export async function sendTestEmail(
         </p>
       </div>
     `,
-    idempotencyKey: `test-connection/${crypto.randomUUID()}`,
+    idempotencyKey:
+      options.idempotencyKey ?? `test-connection/${crypto.randomUUID()}`,
     tags: [
       { name: "email_type", value: "connection_test" },
       { name: "source", value: "admin_integration" },
@@ -733,16 +1048,19 @@ export async function listReceivedEmailAttachments(
 
 export function createResendClient(apiKey: string): ResendClient {
   return {
-    validateKey: (): Promise<ResendValidationResult> =>
-      validateResendApiKey(apiKey),
+    validateKey: (
+      options?: ResendValidationOptions,
+    ): Promise<ResendValidationResult> =>
+      validateResendApiKey(apiKey, options ?? {}),
     sendEmail: (options: SendEmailOptions): Promise<EmailSendResult> =>
       sendEmail(apiKey, options),
     sendTestEmail: (
       toEmail: string,
       fromEmail: string,
       fromName: string,
+      options?: SendTestEmailOptions,
     ): Promise<EmailSendResult> =>
-      sendTestEmail(apiKey, toEmail, fromEmail, fromName),
+      sendTestEmail(apiKey, toEmail, fromEmail, fromName, options),
     verifyWebhookSignature: (options: Omit<VerifyWebhookOptions, "apiKey">) =>
       verifyResendWebhookSignature({
         ...options,

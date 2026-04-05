@@ -3,6 +3,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 import Underline from "@tiptap/extension-underline";
 import StarterKit from "@tiptap/starter-kit";
 
+import { isAllowedPostLinkHref } from "./helpers";
 import { ResizableImageExtension } from "./image-view";
 
 export interface CreateDefaultExtensionsOptions {
@@ -38,6 +39,7 @@ export function createDefaultExtensions(
     }),
     Link.configure({
       openOnClick: false,
+      isAllowedUri: (url) => isAllowedPostLinkHref(url),
       HTMLAttributes: {
         class: "text-primary underline cursor-pointer",
       },

@@ -1,5 +1,281 @@
 # Working Set
 
+## 2026-04-02 (PR #144 follow-up: hydration-safe Resend label + auth invariant tests)
+
+- Date: 2026-04-02
+- Repo: Asymmetric-al/core
+- Goal: Remove the App Router hydration risk in the Resend `validatedAt` label and add direct regression coverage for the “session exists but profile is unusable” redirect invariant without changing auth or Resend route semantics.
+- Primary area:
+  - `apps/admin/app/settings/integrations/resend/{resend-sections,validated-at}.ts*`
+  - `packages/auth/{redirects,index,package}.ts`
+  - `apps/donor/app/(dashboard)/donor-dashboard/layout.tsx`
+  - `apps/missionary/app/layout.tsx`
+  - `tests/unit/{apps/admin/resend-validated-at,auth/redirects}.test.ts`
+- Constraints:
+  - Keep `validatedAt` payloads unchanged and make the first render deterministic across server/client environments.
+  - Preserve the current redirect URLs and public-path handling; only centralize the duplicated “login vs. no-access” split.
+  - Avoid brittle Next runtime mocking; prefer pure helper coverage for the auth invariant.
+  - Keep diffs surgical and avoid touching unrelated worktree changes.
+- Evidence sources used:
+  - `.next-docs/01-app/01-getting-started/05-server-and-client-components.mdx`
+  - `docs/ai/rules/testing.md`
+  - `apps/admin/app/settings/integrations/resend/resend-sections.tsx`
+  - `apps/donor/app/(dashboard)/donor-dashboard/layout.tsx`
+  - `apps/missionary/app/layout.tsx`
+  - `packages/auth/context.ts`
+- Notes:
+  - Nia is not available in this session, so repo-scoped direct file reads and targeted verification are being used instead.
+  - The Resend label should prefer a deterministic UTC display over locale-sensitive formatting during initial render.
+  - The auth invariant already exists in `getAuthContext`; this follow-up only centralizes and tests the redirect decision.
+
+## 2026-04-02 (PR #144 follow-up: auth redirect split + smoke restoration)
+
+- Date: 2026-04-02
+- Repo: Asymmetric-al/core
+- Goal: Land the narrow PR #144 follow-up fixes for session-without-profile auth redirects, restored smoke coverage, `.tsx` API-route boundary scanning, and a minimal Resend freshness signal without changing route semantics or broadening scope.
+- Primary area:
+  - `apps/donor/app/(dashboard)/donor-dashboard/layout.tsx`
+  - `apps/missionary/app/layout.tsx`
+  - `package.json`
+  - `tests/e2e/{demo-auth-preflight,usability-smoke,upload-crop,donate}.spec.ts`
+  - `tests/e2e/helpers/demo-auth.ts`
+  - `scripts/verify/data-boundary-check.mjs`
+  - `tests/unit/{script-verifiers,packages/api/email/connect}.test.ts`
+  - `packages/api/src/email/connect.ts`
+  - `packages/email/types.ts`
+  - `apps/admin/app/settings/integrations/resend/{page,resend-sections}.tsx`
+  - `docs/guides/features/resend-integration.md`
+- Constraints:
+  - Preserve existing login redirect URLs and missionary public-path handling.
+  - Treat `userId != null && !isAuthenticated` as “session exists, profile unusable” and send that branch to `/no-access`, not login.
+  - Restore the smoke entrypoint through `node scripts/run-with-ci-env.mjs --` and keep Chromium + single-worker stability flags.
+  - Extend the data-boundary verifier to `.tsx` API routes without changing banned imports or exception policy.
+  - Keep the Resend freshness improvement small and snapshot-backed; do not reintroduce live provider validation on `GET /api/email/connect`.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/ai/rules/{backend,testing}.md`
+  - `docs/ai/skills/nextjs-app-router/SKILL.md`
+  - `.next-docs/01-app/03-api-reference/03-file-conventions/layout.mdx`
+  - `.next-docs/01-app/02-guides/testing/playwright.mdx`
+  - `packages/auth/context.ts`
+  - `apps/donor/app/(dashboard)/donor-dashboard/layout.tsx`
+  - `apps/missionary/app/layout.tsx`
+  - `scripts/verify/data-boundary-check.mjs`
+  - `tests/unit/script-verifiers.test.ts`
+  - `packages/api/src/email/connect.ts`
+  - `packages/email/types.ts`
+  - `apps/admin/app/settings/integrations/resend/{page,resend-sections}.tsx`
+  - `docs/guides/features/resend-integration.md`
+- Notes:
+  - Nia is not available in this session, so repo-scoped direct file reads and targeted searches are being used instead.
+  - CI workflows do not currently invoke `test:e2e:smoke`, so the safest coverage fix is to restore the root smoke script itself instead of adding a new CI-only entrypoint.
+  - The repo currently has only `.ts` files under `apps/*/app/api`, so `.tsx` support is the only concrete verifier extension needed right now.
+
+## 2026-04-02 (PR #144 follow-up: Resend deliverability cleanup)
+
+- Date: 2026-04-02
+- Repo: Asymmetric-al/core
+- Goal: Land the small complexity-review follow-up on the Resend integration by centralizing blocking deliverability warning detection, documenting `validation_snapshot` as the canonical connection-state read source, and broadening DKIM/SPF verification heuristics without changing the existing route contracts.
+- Primary area:
+  - `packages/email/{resend,index,types}.ts`
+  - `packages/api/src/email/{connect,test-send,settings-store}.ts`
+  - `tests/unit/packages/{email/resend,api/email/{connect,test-send}}.test.ts`
+- Constraints:
+  - Keep HTTP behavior stable for the admin email routes, especially the current `422` blocking-warning contract.
+  - Keep diffs surgical and avoid schema changes or broader Resend/UI refactors.
+  - Use one shared implementation of “first blocking deliverability warning”.
+  - Treat `validation_snapshot` as the canonical rich-state read path; scalar columns remain synchronized persistence/compat fields.
+- Evidence sources used:
+  - `docs/ai/rules/{backend,testing}.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `.agents/skills/{test-driven-development,clean-code}/SKILL.md`
+  - `packages/email/{resend,index,types}.ts`
+  - `packages/api/src/email/{connect,test-send,settings-store}.ts`
+  - `tests/unit/packages/{email/resend,api/email/{connect,test-send}}.test.ts`
+  - Resend docs for domain-authentication context (`https://resend.com/docs/dashboard/domains/dmarc`)
+- Notes:
+  - Nia is not available in this session, so repo-scoped direct file reads and targeted searches are being used instead.
+  - The current branch already widened `test-send` warning-code mapping; this follow-up should preserve the established route contract unless a test proves it wrong.
+  - DKIM/SPF detection currently relies too heavily on the display label in `record.record`; the new heuristics should also recognize host/value evidence like `_domainkey` and `v=spf1`.
+
+## 2026-04-02 (PR #144 follow-up: Resend edge cases + cropper race)
+
+- Date: 2026-04-02
+- Repo: Asymmetric-al/core
+- Goal: Land the narrow PR #144 follow-up fixes for Resend test harness/import stability, blocking-warning code mapping, backward-compatible persisted sender parsing, and the image cropper preload race without expanding scope.
+- Primary area:
+  - `packages/api/src/email/{connect,test-send}.ts`
+  - `packages/email/{index,resend}.ts`
+  - `packages/ui/components/shadcn/{image-cropper,image-cropper-helpers}.ts*`
+  - `tests/unit/packages/api/email/{connect,test-send}.test.ts`
+  - `tests/unit/packages/email/resend.test.ts`
+  - `tests/unit/packages/ui/components/shadcn/image-cropper-helpers.test.ts`
+- Constraints:
+  - Keep the fix surgical and compatible with the existing PR #144 branch shape.
+  - Prefer import/mocking changes over broader Vitest config churn for the email test harness issue.
+  - Preserve the current `422` contract for deliverability-blocked test sends while returning a more accurate shared error code.
+  - Treat missing persisted `verified` flags as `false` instead of dropping sender rows.
+  - Eliminate false negative cropper load failures without regressing the original image-load fallback behavior.
+- Evidence sources used:
+  - `.next-docs/01-app/02-guides/testing/playwright.mdx`
+  - `docs/ai/rules/{backend,frontend,testing}.md`
+  - `packages/api/src/email/{connect,test-send}.ts`
+  - `packages/email/{index,resend,constants}.ts`
+  - `packages/ui/components/shadcn/{image-cropper,image-cropper-helpers}.ts`
+  - `tests/unit/packages/api/email/{connect,test-send}.test.ts`
+  - `tests/unit/packages/email/resend.test.ts`
+  - `tests/unit/packages/ui/components/shadcn/image-cropper-helpers.test.ts`
+- Notes:
+  - The current clone does not reproduce the Vitest suite-load failure, so the import-path fix should stay narrow: remove the `@asym/email/resend` dependency from `connect.ts` and let the existing `@asym/email` mock own the module boundary.
+  - `test-send.ts` currently hardcodes `domain_not_authenticated` for every blocking warning; this needs an explicit mapping plus a generic fallback.
+  - `ImageCropper` already clears `imageError` on `onMediaLoaded`, but preload failure can still win the race if it resolves later; the fix needs stale-attempt and cropper-loaded guards before surfacing a fatal error.
+
+## 2026-04-02 (post-validation cleanup: Resend defaults, audit logging, mobile nav, missionary metadata)
+
+- Date: 2026-04-02
+- Repo: Asymmetric-al/core
+- Goal: Close the remaining validation findings after the Resend/profile/Playwright hardening pass by preserving disconnected Resend sender defaults on refresh, surfacing audit-log failures for test sends, removing incorrect mobile navigation menu roles, and replacing missing missionary metadata assets with proper Next.js file conventions.
+- Primary area:
+  - `packages/api/src/email/{connect,test-send,settings-store}.ts`
+  - `packages/email/types.ts`
+  - `apps/admin/app/settings/integrations/resend/page.tsx`
+  - `packages/ui/components/public/navbar-client.tsx`
+  - `apps/missionary/app/{layout,icon.svg,apple-icon.tsx,manifest.ts}`
+  - `tests/unit/packages/api/email/{connect,test-send}.test.ts`
+  - `tests/e2e/accessibility.spec.ts`
+- Constraints:
+  - Keep `GET /api/email/connect` storage-backed and truthful for disconnected rows that still have preserved sender defaults.
+  - Do not turn a successfully delivered test email into a hard failure only because audit logging failed; surface the warning explicitly instead.
+  - Keep mobile site navigation as plain navigation semantics, not ARIA application-menu semantics.
+  - Follow Next.js 16 metadata file conventions for missionary icons/manifest instead of manual `<head>` links to missing assets.
+- Evidence sources used:
+  - `.next-docs/01-app/03-api-reference/03-file-conventions/01-metadata/{app-icons,manifest}.mdx`
+  - `.next-docs/01-app/03-api-reference/03-file-conventions/public-folder.mdx`
+  - `docs/ai/rules/{general,frontend,backend,testing}.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `packages/api/src/email/{connect,test-send,settings-store}.ts`
+  - `apps/admin/app/settings/integrations/resend/page.tsx`
+  - `packages/ui/components/public/navbar-client.tsx`
+  - `apps/missionary/app/layout.tsx`
+- Notes:
+  - `disconnectTenantEmailSettings` already preserves `default_from_*` and `reply_to_email`; the GET route must return them so the admin form does not erase them on refresh.
+  - Audit logging for test sends currently ignores Supabase insert errors; the route should return success plus an explicit audit warning, and the admin UI should surface that state.
+  - The current mobile drawer uses `role="menu"` / `role="menuitem"` on ordinary links, which implies unsupported keyboard behavior and should be removed.
+  - Missionary layout currently references `/icon.svg`, `/apple-touch-icon.png`, and `/manifest.webmanifest` that do not exist; replace with `app/icon.svg`, `app/apple-icon.tsx`, and `app/manifest.ts`.
+
+## 2026-04-02 (Resend snapshot + Playwright/profile stabilization)
+
+- Date: 2026-04-02
+- Repo: Asymmetric-al/core
+- Goal: Finish the merge-risk follow-up pass by making persisted Resend connection state truthful after refresh, deriving deliverability booleans from record-level evidence, reducing local Playwright flake, removing missionary profile dirty-check stringify work, normalizing the demo-auth smoke contract, and hardening test-send idempotency keys.
+- Primary area:
+  - `packages/email/{resend,types,index}.ts`
+  - `packages/api/src/email/{connect,settings-store,test-send}.ts`
+  - `apps/admin/app/settings/integrations/resend/{page,resend-sections}.tsx`
+  - `apps/missionary/app/profile/{page,profile-dirty-state}.ts`
+  - `playwright{,.admin,.missionary}.config.ts`
+  - `tests/e2e/{helpers/demo-auth,usability-smoke,demo-auth-preflight}.ts`
+  - `tests/unit/{packages/api/email,packages/email,apps/missionary/app,e2e}/*.test.ts`
+  - `supabase/{schema.sql,migrations/20260402100000_resend_validation_snapshot.sql}`
+- Constraints:
+  - Keep `GET /api/email/connect` storage-backed only; no Resend API calls on page-load hydration.
+  - Treat legacy connected rows without a persisted validation snapshot as degraded and requiring reconnect, not as send-ready.
+  - Keep local Playwright defaults conservative (`localhost`, single worker unless overridden, no `fullyParallel` local overload).
+  - Replace the missionary profile dirty-state stringify check with an explicit field comparator.
+  - Keep the smoke-suite role parsing backward-compatible without changing the production demo-auth payload shape.
+- Evidence sources used:
+  - `supabase/AGENTS.md`
+  - `.next-docs/01-app/02-guides/testing/playwright.mdx`
+  - `docs/ai/rules/{general,frontend,backend,testing}.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - official Resend API docs for domain details/records
+  - `packages/{api,email}/src/email/*.ts`
+  - `apps/admin/app/settings/integrations/resend/*.tsx`
+  - `apps/missionary/app/profile/page.tsx`
+  - `playwright*.config.ts`
+- Notes:
+  - Added a persisted `validation_snapshot` column for `tenant_email_settings` and wired `sendReady` through both Resend connection response types.
+  - `validateResendApiKey` now enriches domain rows with per-domain detail fetches on validation paths only, so DKIM/SPF booleans are derived from record-level evidence instead of guessing.
+  - Legacy stored Resend connections now hydrate as connected-but-not-send-ready with a reconnect warning instead of a misleading empty success state.
+  - Missionary profile dirty-state is now a computed explicit field comparison; no `JSON.stringify` comparison runs on each keystroke.
+  - Final verification for this pass is green:
+    - scoped lint/typecheck for `@asym/admin`, `@asym/api`, `@asym/email`, `@asym/ui`, `@asym/missionary-app`
+    - targeted Vitest for Resend, missionary dirty-state, and demo-auth helper coverage
+    - `bun run test:e2e:smoke`
+    - `bun run test:e2e:auth:admin`
+    - `bun run ci:preflight`
+
+## 2026-04-02 (post-migration bugfix hardening)
+
+- Date: 2026-04-02
+- Repo: Asymmetric-al/core
+- Goal: Fix the follow-up regressions found during code review after the TanStack/admin/E2E hardening pass: composed upload-trigger handlers, reachable cropper image-error state, restored missionary elevated-role access, cheaper Resend settings hydration, safer Playwright cookie handling, consistent test-send idempotency, and the Resend API-key mask rendering bug.
+- Primary area:
+  - `packages/ui/components/shadcn/{image-upload,image-upload-helpers,image-cropper,image-cropper-helpers}.ts*`
+  - `apps/missionary/app/{layout,access}.ts*`
+  - `packages/api/src/email/{connect,test-send}.ts`
+  - `packages/email/resend.ts`
+  - `apps/admin/app/settings/integrations/resend/resend-sections.tsx`
+  - `tests/e2e/usability-smoke.spec.ts`
+  - `tests/unit/{apps/missionary/app/access,packages/api/email/{connect,test-send},packages/email/resend,packages/ui/components/shadcn/{image-upload-helpers,image-cropper-helpers}}.test.ts`
+- Constraints:
+  - Keep diffs surgical and aligned with current Next.js 16.2.1 / Playwright guidance.
+  - Preserve the existing shared upload and cropper APIs for callers.
+  - Move Resend provider validation off the settings GET path; keep validation on connect and test-send.
+  - Use Playwright's built-in cookie synchronization instead of hand-parsing `Set-Cookie`.
+  - Keep missionary support/admin access aligned with the current auth role model.
+- Evidence sources used:
+  - `.next-docs/01-app/02-guides/testing/playwright.mdx`
+  - `.next-docs/01-app/03-api-reference/05-config/01-next-config-js/allowedDevOrigins.mdx`
+  - Context7 official docs for Playwright API request cookie sharing and `react-easy-crop` media callbacks
+  - `docs/ai/rules/{general,frontend,backend,testing}.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `packages/{api,email,ui,auth}/**`
+  - `tests/e2e/{usability-smoke,auth-demo-admin,auth-demo-donor,auth-demo-missionary}.spec.ts`
+- Notes:
+  - Added pure helpers so the risky behavior changes are unit-testable under the repo's node-based Vitest setup.
+  - `GET /api/email/connect` now hydrates from persisted storage only and no longer hits Resend on page load.
+  - `sendTestEmail` now accepts an optional idempotency key so the outbound send and `email_send_logs` row use the same value.
+  - Donor smoke initially hit a transient Turbopack dev panic, but the rerun passed once Next invalidated the corrupted cache.
+  - Final verification for this pass is green: targeted unit tests, scoped lint/typecheck, donor/admin/missionary E2E auth-smoke coverage, repo `check`, repo `build`, and `format:check`.
+
+## 2026-04-01 (E2E harness stabilization on epic)
+
+- Date: 2026-04-01
+- Repo: Asymmetric-al/core
+- Goal: Repair the repo-advertised validation surface on `epic` so smoke/auth E2E and cross-platform verification actually exercise the current Next.js 16.2.1 branch instead of failing from stale harness drift.
+- Primary area:
+  - `package.json`
+  - `playwright.config.ts`
+  - `playwright.admin.config.ts`
+  - `playwright.missionary.config.ts`
+  - `apps/{admin,donor,missionary}/package.json`
+  - `scripts/run-with-ci-env.mjs`
+  - `scripts/verify/data-boundary-check.{mjs,sh}`
+  - `tests/e2e/{demo-auth-preflight,usability-smoke}.spec.ts`
+  - `tests/unit/script-verifiers.test.ts`
+  - `packages/database/collections/client-db.ts`
+- Constraints:
+  - Keep Next.js 16.2.1 and align local Playwright defaults with the current dev-origin guidance.
+  - Prefer `localhost` for local dev/E2E unless explicitly opting into another origin.
+  - Make smoke/auth commands validate real configured Supabase env when `.env.local` exists, but preserve safe CI defaults when it does not.
+  - Fix the harness with minimal, surgical diffs and add targeted regression tests where behavior is easy to lock down.
+  - Use repo-local evidence because Nia is unavailable in this session.
+- Evidence sources used:
+  - `.next-docs/01-app/03-api-reference/05-config/01-next-config-js/allowedDevOrigins.mdx`
+  - `.next-docs/01-app/02-guides/testing/playwright.mdx`
+  - `.agents/skills/{test-driven-development,playwright-skill,clean-code}/SKILL.md`
+  - `package.json`
+  - `playwright{,.admin,.missionary}.config.ts`
+  - `scripts/run-with-ci-env.mjs`
+  - `apps/{admin,donor,missionary}/package.json`
+  - `tests/e2e/README.md`
+  - `packages/database/collections/client-db.ts`
+- Notes:
+  - `test:e2e:smoke` currently references two missing specs (`demo-auth-preflight.spec.ts` and `usability-smoke.spec.ts`) and app-local `dev:playwright` scripts that do not exist.
+  - `test:e2e:auth:admin` currently fails because the CI env wrapper injects placeholder Supabase values instead of loading local configured env first.
+  - `verify:data-boundary` currently shells to `bash`, which fails on this Windows machine.
+
 ## 2026-04-01 (post-pull epic merge verification)
 
 - Date: 2026-04-01
@@ -38,6 +314,74 @@
     - `bun run build`
     - Playwright smoke on admin login, tasks create, locations create, and Resend settings page
   - Remaining known caveat from verification: the Resend settings screen in this hosted environment still reports `EMAIL_SETTINGS_STORAGE_UNAVAILABLE`, so connect is session-only until the hosted DB gets the tenant email settings migration.
+
+## 2026-04-01 (final smoke/auth hardening)
+
+- Date: 2026-04-01
+- Repo: Asymmetric-al/core
+- Goal: Finish the last merge-risk validation gaps by making the root smoke suite deterministic, fixing upload-trigger accessibility semantics, and aligning missionary auth gating with the shared role model.
+- Primary area:
+  - `package.json`
+  - `tests/e2e/usability-smoke.spec.ts`
+  - `tests/e2e/upload-crop.spec.ts`
+  - `packages/ui/components/shadcn/{image-upload,image-cropper}.tsx`
+  - `apps/donor/app/(dashboard)/donor-dashboard/settings/page.tsx`
+  - `apps/missionary/{app/layout.tsx,app/profile/page.tsx}`
+- Constraints:
+  - Keep smoke intentionally small and single-worker stable on a local Next.js dev server.
+  - Preserve button semantics for custom shadcn `Button` children while making non-button upload triggers keyboard-accessible.
+  - Use the shared auth context in app layouts instead of duplicating profile-role reads.
+- Evidence sources used:
+  - `tests/e2e/{upload-crop,auth-demo-missionary,auth-login-screen-donor,donate}.spec.ts`
+  - `packages/ui/components/shadcn/{button,dialog,image-upload,image-cropper}.tsx`
+  - `apps/donor/app/(dashboard)/donor-dashboard/settings/page.tsx`
+  - `apps/missionary/{app/layout.tsx,proxy.ts}`
+  - `.next-docs/01-app/02-guides/testing/playwright.mdx`
+- Notes:
+  - Replaced the missing/bloated smoke invocation with a dedicated `tests/e2e/usability-smoke.spec.ts` and `--workers=1`.
+  - `ImageUpload` now preserves visible names for shadcn `Button` triggers, avoids nested interactive wrappers, and adds explicit labels for non-button avatar/cover affordances.
+  - `ImageCropper` now has explicit dialog title/description markup for Radix accessibility.
+  - `apps/missionary/app/layout.tsx` now uses `getAuthContext` + `hasAnyContextRole`, matching donor/admin behavior and the missionary proxy role policy.
+  - Additional verification after the main fix pass:
+    - `bun run test:e2e` now passes reliably with the new local worker cap (`64 passed, 4 skipped`).
+    - `bun run test:a11y` passes on both Chromium and mobile-chrome.
+    - `bun run ci:preflight` passes after formatting and cleaning generated skill temp artifacts.
+  - Live admin browser verification succeeded for task creation and location creation.
+  - Live Resend connect succeeded (`POST /api/email/connect` returned `200`), but live test-send failed with `403` because `globalfellowship.org` is not verified on the supplied Resend account. This is an operational/domain-verification issue, not a branch code regression.
+
+## 2026-04-01 (Resend sender verification + donor homepage a11y hardening)
+
+- Date: 2026-04-01
+- Repo: Asymmetric-al/core
+- Goal: Fail fast when the admin Resend integration is configured with a `from` address that does not match a verified Resend domain, and remove the donor homepage CTA contrast flake while making the a11y suite assert a stable final UI state.
+- Primary area:
+  - `packages/email/{constants,resend,index,types}.ts`
+  - `packages/api/src/email/{connect,test-send}.ts`
+  - `apps/admin/app/settings/integrations/resend/{page,resend-sections}.tsx`
+  - `packages/ui/components/public/{home-hero-animated,home-sections,navbar,navbar-client}.tsx`
+  - `tests/unit/packages/{email,api/email}/*.test.ts`
+  - `tests/e2e/accessibility.spec.ts`
+  - `docs/guides/features/resend-integration.md`
+- Constraints:
+  - Use official Resend behavior: the sender address must use the exact verified domain/subdomain, not just any related parent domain.
+  - Keep route handlers thin; business/provider validation stays in `packages/*`.
+  - Keep the admin Resend UI informative: show why sending is blocked and disable the test-send action when configuration is not send-ready.
+  - Keep homepage CTA styling within the existing Maia/slate public-site language; do not add a parallel button system.
+  - Make the a11y suite wait for a settled page before scanning and fail on real contrast defects.
+- Evidence sources used:
+  - `.next-docs/01-app/02-guides/testing/playwright.mdx`
+  - `.next-docs/01-app/03-api-reference/03-file-conventions/route.mdx`
+  - `docs/ai/rules/{frontend,backend,testing}.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - Context7 official Resend docs / knowledge base for domain mismatch and domain verification
+  - `packages/api/src/email/{connect,test-send,settings-store}.ts`
+  - `packages/email/{resend,constants,types}.ts`
+  - `packages/ui/components/public/{home-hero-animated,home-sections,navbar,navbar-client}.tsx`
+  - `tests/e2e/accessibility.spec.ts`
+- Notes:
+  - The current admin connect path validates the API key but does not block a `defaultFromEmail` on an unverified domain, which leads to a late `403` at test-send time.
+  - The donor homepage contrast issue appears on the hero CTA and is amplified by custom button color overrides layered on top of the shared default button variant.
+  - Isolated homepage scans can pass, but the full a11y suite still catches a serious contrast violation under its current timing; the fix needs both stable scans and non-conflicting CTA classes.
 
 ## 2026-03-31 (admin TanStack Form migration)
 

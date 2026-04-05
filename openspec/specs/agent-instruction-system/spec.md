@@ -1,0 +1,114 @@
+# Agent Instruction System Specification
+
+## Purpose
+
+Define the durable workflow contract for AI agents working in this repository,
+including how they gather project intent, choose authoritative context, use
+conditional tool layers, and verify instruction-system changes safely.
+
+## Requirements
+
+### Requirement: OpenSpec Owns Durable Project Intent
+
+The repository SHALL use OpenSpec as the durable source of truth for project
+context and intended long-lived behavior.
+
+#### Scenario: Non-trivial project work starts
+
+- WHEN an agent begins non-trivial feature work, behavior changes, or multi-step
+  planning
+- THEN it reads `openspec/project.md`
+- AND it reads the relevant specs in `openspec/specs/**`
+- AND it reads any active change in `openspec/changes/**` before implementation
+
+#### Scenario: Behavior is changing without an active change
+
+- WHEN an agent needs to change durable behavior or workflow expectations
+- THEN it creates or updates an OpenSpec change before major implementation
+
+### Requirement: AGENTS Remains the Always-On Router
+
+The repository SHALL keep `AGENTS.md` as the always-on routing layer for
+project work, while preserving generated Next.js-managed content.
+
+#### Scenario: Repo-wide routing is needed
+
+- WHEN an agent needs to resolve instruction precedence or choose which local
+  rulebook or skill to load
+- THEN it uses `AGENTS.md` as the primary routing entrypoint
+- AND it preserves the Next.js-managed block and compressed docs index
+
+#### Scenario: Tool-specific helper files are present
+
+- WHEN `cursor.md`, `.cursor/rules/*`, `.cursor/commands/*`,
+  `.github/copilot-instructions.md`, or `.github/instructions/*.instructions.md`
+  exist
+- THEN they stay aligned with `AGENTS.md`
+- AND they do not replace the root routing layer
+
+### Requirement: Framework and Runtime Truth Beat Memory
+
+The repository SHALL require agents to prefer version-matched framework docs and
+runtime facts over model memory for fast-moving or runtime-sensitive work.
+
+#### Scenario: Next.js work is requested
+
+- WHEN an agent works on Next.js behavior, APIs, routing, caching, or runtime
+  debugging
+- THEN it reads the relevant docs in `node_modules/next/dist/docs/`
+- OR it uses `.next-docs/` if local docs are unavailable
+
+#### Scenario: Runtime state is needed
+
+- WHEN a dev server or MCP runtime can answer a question about routes, errors,
+  metadata, or logs
+- THEN the agent checks MCP tools, lock files, or runtime logs before guessing
+
+### Requirement: Repo and Dependency Research Is Grounded
+
+The repository SHALL ground repo and dependency research in current evidence.
+
+#### Scenario: Nia is available
+
+- WHEN Nia is exposed in the current client
+- THEN the agent uses repo-scoped, preambled Nia queries for repo research and
+  fresh dependency context
+
+#### Scenario: Nia is unavailable in-session
+
+- WHEN the workspace is known to use Nia but the active client does not expose
+  it
+- THEN the agent falls back to direct repo reads plus official docs
+- AND it states that fallback explicitly
+
+### Requirement: Conditional Capability Layers Stay Subordinate
+
+Installed provider plugins, Codex surfaces, and MCP helpers SHALL remain
+subordinate to OpenSpec, repo-local instructions, canonical repo-local skills,
+and local framework docs. They MAY improve workflow when available.
+
+#### Scenario: Provider-specific workflow is needed
+
+- WHEN a provider plugin or Codex capability is installed and directly relevant
+- THEN the agent may use it for the provider-specific portion of the task
+- BUT it still follows OpenSpec and repo-local guidance first
+
+#### Scenario: A capability is unverified
+
+- WHEN the agent cannot verify that a plugin, automation, skill, or MCP helper
+  is available in the current workspace
+- THEN it uses conditional wording
+- AND it does not hard-wire the missing capability into repo instructions
+
+### Requirement: Instruction-System Changes Are Verified Safely
+
+Instruction-system changes SHALL validate paths, commands, and generated marker
+regions, while avoiding unrelated code changes.
+
+#### Scenario: Instruction files change
+
+- WHEN an instruction-system pull request changes AGENTS, Cursor, Copilot, or
+  OpenSpec files
+- THEN verification confirms path accuracy, command accuracy, marker integrity,
+  and the changed-files-only boundary
+- AND no product code, tests, or database files are modified

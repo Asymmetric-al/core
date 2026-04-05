@@ -7,6 +7,9 @@ export type { EditorToolbarProps, ToolbarTool } from "./toolbar";
 export { RichTextViewer } from "./rich-text-viewer";
 export type { RichTextViewerProps } from "./rich-text-viewer";
 
+export { PostContent } from "./post-content";
+export type { PostContentProps } from "./post-content";
+
 export { useEditorContext, useOptionalEditorContext } from "./editor-context";
 
 export {

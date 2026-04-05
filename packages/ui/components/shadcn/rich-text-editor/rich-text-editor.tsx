@@ -66,6 +66,12 @@ export const EditorRoot = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
     React.useEffect(() => {
       if (!editor) return;
 
+      editor.setEditable(!disabled);
+    }, [disabled, editor]);
+
+    React.useEffect(() => {
+      if (!editor) return;
+
       if (!value) {
         editor.commands.clearContent();
         return;
@@ -78,7 +84,7 @@ export const EditorRoot = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
         if (JSON.stringify(parsed) !== JSON.stringify(current)) {
           editor.commands.setContent(parsed);
         }
-      } else if (parsed !== editor.getText()) {
+      } else if (parsed !== editor.getHTML() && parsed !== editor.getText()) {
         editor.commands.setContent(parsed);
       }
     }, [value, editor]);

@@ -3,13 +3,14 @@
 import { BubbleMenu } from "@tiptap/react/menus";
 import { ExternalLink, Pencil, Trash2, Check, X } from "lucide-react";
 import * as React from "react";
+import { toast } from "sonner";
 
 import { cn } from "@asym/ui/lib/utils";
 
 import { Button } from "../button";
 import { Input } from "../input";
 import { useEditorContext } from "./editor-context";
-import { getUrlFromString } from "./helpers";
+import { getUrlFromString, normalizePostLinkHref } from "./helpers";
 
 export function LinkBubbleMenu() {
   const { editor } = useEditorContext();
@@ -27,20 +28,25 @@ export function LinkBubbleMenu() {
 
   const handleSave = () => {
     const parsed = getUrlFromString(url);
-    if (parsed) {
-      editor
-        .chain()
-        .focus()
-        .extendMarkRange("link")
-        .setLink({ href: parsed })
-        .run();
+    if (!parsed) {
+      toast.error("Please enter a valid URL");
+      inputRef.current?.focus();
+      return;
     }
+
+    editor
+      .chain()
+      .focus()
+      .extendMarkRange("link")
+      .setMark("link", { href: parsed })
+      .run();
+
     setIsEditing(false);
     setUrl("");
   };
 
   const handleRemove = () => {
-    editor.chain().focus().extendMarkRange("link").unsetLink().run();
+    editor.chain().focus().extendMarkRange("link").unsetMark("link").run();
     setIsEditing(false);
     setUrl("");
   };
@@ -93,18 +99,30 @@ function PreviewView({
   onEdit: () => void;
   onRemove: () => void;
 }) {
+  const safeHref = normalizePostLinkHref(href);
+
   return (
     <>
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-primary hover:bg-muted truncate max-w-[220px]"
-        title={href}
-      >
-        <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-        <span className="truncate">{href}</span>
-      </a>
+      {safeHref ? (
+        <a
+          href={safeHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-primary hover:bg-muted truncate max-w-[220px]"
+          title={safeHref}
+        >
+          <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">{safeHref}</span>
+        </a>
+      ) : (
+        <div
+          className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-muted-foreground truncate max-w-[220px]"
+          title={href}
+        >
+          <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">{href}</span>
+        </div>
+      )}
       <div className="h-4 w-px bg-border" />
       <Button
         variant="ghost"

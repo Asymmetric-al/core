@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Underline from "@tiptap/extension-underline";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -9,7 +8,9 @@ import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
 
-import { parseContent } from "./helpers";
+import { isAllowedPostLinkHref, parseContent } from "./helpers";
+import { ResizableImageExtension } from "./image-view";
+import "./tiptap.css";
 
 export interface RichTextViewerProps {
   /** Stored value — JSON string or legacy plain text / HTML. */
@@ -32,6 +33,7 @@ const viewerExtensions = [
   }),
   Link.configure({
     openOnClick: true,
+    isAllowedUri: (url) => isAllowedPostLinkHref(url),
     HTMLAttributes: {
       class: "text-primary underline cursor-pointer",
       target: "_blank",
@@ -39,10 +41,9 @@ const viewerExtensions = [
     },
   }),
   Underline,
-  Image.configure({
-    HTMLAttributes: {
-      class: "rounded-lg max-w-full h-auto shadow-md",
-    },
+  ResizableImageExtension.configure({
+    inline: false,
+    allowBase64: false,
   }),
 ];
 

@@ -1,4 +1,5 @@
-import { createClient } from "@asym/database/supabase/server";
+import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
+import { getProtectedAppRedirectPath } from "@asym/auth/redirects";
 import { Footer } from "@asym/ui/components/public/footer";
 import { Navbar } from "@asym/ui/components/public/navbar";
 import { redirect } from "next/navigation";
@@ -18,29 +19,24 @@ export const metadata: Metadata = {
   },
 };
 
-const DONOR_ALLOWED_ROLES = new Set(["donor"]);
+const DONOR_ALLOWED_ROLES = ["donor", "super_admin"] as const;
 
 export default async function DonorDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const authContext = await getAuthContext();
+  const authRedirectPath = getProtectedAppRedirectPath(
+    authContext,
+    "/login?next=/donor-dashboard",
+  );
 
-  if (!user) {
-    redirect("/login?next=/donor-dashboard");
+  if (authRedirectPath) {
+    redirect(authRedirectPath);
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (!profile?.role || !DONOR_ALLOWED_ROLES.has(profile.role)) {
+  if (!hasAnyContextRole(authContext, [...DONOR_ALLOWED_ROLES])) {
     redirect("/no-access");
   }
 

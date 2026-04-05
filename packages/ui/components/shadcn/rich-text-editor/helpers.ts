@@ -1,5 +1,12 @@
 import type { JSONContent } from "@tiptap/react";
 
+import {
+  isAllowedPostLinkHref,
+  normalizePostLinkHref,
+} from "@asym/lib/posts/link-policy";
+
+export { isAllowedPostLinkHref, normalizePostLinkHref };
+
 /**
  * Normalise user input into a full URL.
  * - Already valid → return as-is
@@ -7,19 +14,11 @@ import type { JSONContent } from "@tiptap/react";
  * - Otherwise → null
  */
 export function getUrlFromString(str: string): string | null {
-  if (isValidUrl(str)) return str;
-  try {
-    if (str.includes(".") && !str.includes(" ")) {
-      return new URL(`https://${str}`).toString();
-    }
-  } catch {
-    // invalid URL
-  }
-  return null;
+  return normalizePostLinkHref(str);
 }
 
 export function isValidUrl(url: string): boolean {
-  return /^https?:\/\/\S+$/.test(url);
+  return isAllowedPostLinkHref(url);
 }
 
 /**

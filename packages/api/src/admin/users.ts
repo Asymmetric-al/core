@@ -1,13 +1,24 @@
 import { type NextRequest, NextResponse } from "next/server";
 
+import { adminUsersListQuerySchema } from "../schemas/admin";
 import { withOperation } from "../shared/with-operation";
 
 export const GET = withOperation(
   async ({ supabaseAdmin, auth: ctx, request }) => {
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get("limit") || "50");
-    const offset = parseInt(searchParams.get("offset") || "0");
-    const role = searchParams.get("role");
+    const parsed = adminUsersListQuerySchema.safeParse({
+      limit: searchParams.get("limit") ?? "50",
+      offset: searchParams.get("offset") ?? "0",
+      role: searchParams.get("role")?.trim() || undefined,
+    });
+    if (!parsed.success) {
+      const first = parsed.error.issues[0];
+      return NextResponse.json(
+        { error: first?.message ?? "Invalid query parameters" },
+        { status: 400 },
+      );
+    }
+    const { limit, offset, role } = parsed.data;
 
     let query = supabaseAdmin
       .from("profiles")
