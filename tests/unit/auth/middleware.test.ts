@@ -6,7 +6,6 @@ const mockSupabaseConfig = {
   key: null as string | null,
   keyType: null as "anon" | "publishable" | null,
 };
-let mockUserId: string | null = null;
 let configReadCount = 0;
 
 const { supabaseSessionRef } = vi.hoisted(() => ({
@@ -63,7 +62,6 @@ function mockNoConfig() {
   mockSupabaseConfig.url = null;
   mockSupabaseConfig.key = null;
   mockSupabaseConfig.keyType = null;
-  mockUserId = null;
   supabaseSessionRef.userId = null;
 }
 
@@ -71,7 +69,6 @@ function mockConfigWithUser(userId: string | null = "user_123") {
   mockSupabaseConfig.url = "https://example.supabase.co";
   mockSupabaseConfig.key = "anon-key";
   mockSupabaseConfig.keyType = "anon";
-  mockUserId = userId;
   supabaseSessionRef.userId = userId;
 }
 
