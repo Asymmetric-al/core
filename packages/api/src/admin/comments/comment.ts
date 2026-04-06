@@ -18,6 +18,7 @@ export async function PATCH(
 
     const auth = await getAuthContext();
     requireRole(auth, ["staff", "admin", "super_admin"]);
+    const ctx = auth as AuthenticatedContext;
     const { commentId } = await params;
 
     const body = await request.json();
@@ -30,6 +31,15 @@ export async function PATCH(
       .single();
 
     if (!existingComment) {
+      return NextResponse.json({ error: "Comment not found" }, { status: 404 });
+    }
+
+    const postRow = existingComment.post as { tenant_id?: string } | null;
+    if (
+      !postRow ||
+      typeof postRow.tenant_id !== "string" ||
+      postRow.tenant_id !== ctx.tenantId
+    ) {
       return NextResponse.json({ error: "Comment not found" }, { status: 404 });
     }
 
