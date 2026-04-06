@@ -13,6 +13,9 @@ node_modules
 .next/
 /out/
 
+# Payload CMS (admin app) — generated; run `bun run --cwd apps/admin cms:importmap` / Payload CLI locally
+apps/admin/payload-types.ts
+
 # production
 /build
 

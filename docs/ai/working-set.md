@@ -1,5 +1,13 @@
 # Working Set
 
+## 2026-04-07 (Post-Turbo-2.9 verification matrix re-run)
+
+- Date: 2026-04-07
+- Repo: Asymmetric-al/core
+- Goal: Repeat full merge-safety + `ci:preflight` + verify/build/unit/E2E/turbo diagnostics per repo harness; fix regressions only if gates fail.
+- Same constraints as 2026-04-06 hardening (Bun, no gate weakening, localhost-first Playwright).
+- Outcome (2026-04-07 run): all listed gates green; `build:strict` fails admin without `PAYLOAD_SECRET` (expected); `bunx turbo run build --filter=@asym/admin` without `run-with-ci-env` same; use `node scripts/run-with-ci-env.mjs -- turbo run build --filter=@asym/admin` or set `PAYLOAD_SECRET`. `test:perf` needs free port 3005 (kill stray `next dev`). `turbo query affected` warns without `TURBO_SCM_BASE`. CMS E2E: admin dev logs Postgres `ECONNREFUSED` to local `:54322` when Supabase not running; assertions still passed.
+
 ## 2026-04-06 (Post-Turborepo-2.9 merge hardening: full gate + test matrix)
 
 - Date: 2026-04-06
