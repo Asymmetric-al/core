@@ -2,8 +2,13 @@ import { getAdminClient } from "@asym/database/supabase/admin";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { createServerClient } from "@supabase/ssr";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
+import {
+  getE2EAuthCookieNameForProxyHost,
+  isE2EAuthBypassEnabled,
+  parseE2EAuthCookieValue,
+} from "./e2e-auth";
 import {
   derivePrimaryRole,
   hasAnyRole,
@@ -139,6 +144,26 @@ export async function getAuthContext(request?: Request): Promise<AuthContext> {
   } = await supabase.auth.getUser(bearerToken ?? undefined);
 
   if (userError || !user) {
+    if (isE2EAuthBypassEnabled()) {
+      const cookieStore = await cookies();
+      const host = (await headers()).get("host");
+      const e2eCookieName = getE2EAuthCookieNameForProxyHost(host);
+      const e2eSession = e2eCookieName
+        ? parseE2EAuthCookieValue(cookieStore.get(e2eCookieName)?.value)
+        : null;
+      if (e2eSession) {
+        const role = e2eSession.role;
+        return {
+          userId: e2eSession.userId,
+          tenantId: e2eSession.tenantId,
+          role,
+          profileRole: role,
+          memberships: [],
+          profileId: null,
+          isAuthenticated: true,
+        };
+      }
+    }
     return createUnauthenticatedContext();
   }
 

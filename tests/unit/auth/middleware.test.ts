@@ -38,15 +38,29 @@ const { createAuthMiddleware } =
 
 const originalE2EAuthBypass = process.env.E2E_AUTH_BYPASS;
 
-function createRequest(pathname: string) {
+function createRequest(
+  pathname: string,
+  cookieMap?: Record<string, string>,
+  hostHeader?: string,
+) {
   const nextUrl = new URL(`https://example.org${pathname}`);
   (nextUrl as URL & { clone: () => URL }).clone = () =>
     new URL(nextUrl.toString());
 
+  const headers = new Headers();
+  if (hostHeader) {
+    headers.set("host", hostHeader);
+  }
+
   return {
     nextUrl,
+    headers,
     cookies: {
-      get: vi.fn(() => undefined),
+      get: vi.fn((name: string) =>
+        cookieMap && name in cookieMap
+          ? { name, value: cookieMap[name] }
+          : undefined,
+      ),
       getAll: vi.fn(() => []),
       set: vi.fn(),
     },
@@ -161,6 +175,36 @@ describe("createAuthMiddleware", () => {
     });
 
     const response = await middleware(createRequest("/web-studio"));
+
+    expect(response.status).toBe(200);
+  });
+
+  it("honors E2E auth cookie on protected routes outside production", async () => {
+    mockConfigWithUser(null);
+    const { createE2EAuthCookieValue, E2E_AUTH_COOKIE_NAMES } =
+      await import("../../../packages/auth/e2e-auth");
+    const cookieValue = createE2EAuthCookieValue({
+      userId: "e2e-donor-user",
+      role: "donor",
+      tenantId: null,
+    });
+
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/auth/callback"],
+      protectedRoutePrefixes: ["/donor-dashboard"],
+      loginPath: "/login",
+      allowedRoles: ["donor", "super_admin"],
+    });
+
+    const response = await middleware(
+      createRequest(
+        "/donor-dashboard/settings",
+        {
+          [E2E_AUTH_COOKIE_NAMES.donor]: cookieValue,
+        },
+        "localhost:3005",
+      ),
+    );
 
     expect(response.status).toBe(200);
   });

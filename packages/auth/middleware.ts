@@ -6,6 +6,11 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { safeNextParam } from "./demo-login";
+import {
+  getE2EAuthCookieNameForProxyHost,
+  isE2EAuthBypassEnabled,
+  parseE2EAuthCookieValue,
+} from "./e2e-auth";
 
 import type { UserRole } from "@asym/database/types";
 
@@ -88,12 +93,23 @@ function logMissingSupabaseConfig(
  * - Validates session via `auth.getUser()` on each matched protected request
  *   so revoked sessions are rejected and cookies stay in sync.
  */
+function isRoleAllowedForApp(
+  role: UserRole,
+  allowedRoles: UserRole[] | undefined,
+) {
+  if (!allowedRoles || allowedRoles.length === 0) {
+    return true;
+  }
+  return allowedRoles.includes(role);
+}
+
 export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
   const publicRoutes = options.publicRoutes ?? [];
   const authRoutes = options.authRoutes ?? [...DEFAULT_AUTH_ROUTES];
   const protectedRoutePrefixes = options.protectedRoutePrefixes ?? ["/"];
   const loginPath = options.loginPath ?? "/login";
   const allowApi = options.allowApi ?? true;
+  const allowedRoles = options.allowedRoles;
 
   return async function authMiddleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
@@ -160,7 +176,28 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    const userId = user?.id ?? null;
+    let userId = user?.id ?? null;
+
+    // Playwright + demo-account set per-app `asym_e2e_auth_*` cookies while
+    // Supabase has no user (see `E2E_AUTH_COOKIE_NAMES`).
+    // Proxy may not see `E2E_AUTH_BYPASS`; also allow outside production so
+    // `next dev` matches server components (see `getAuthContext` E2E branch).
+    if (
+      !userId &&
+      (isE2EAuthBypassEnabled() || process.env.NODE_ENV !== "production") &&
+      isProtectedRoute(pathname, protectedRoutePrefixes)
+    ) {
+      const e2eCookieName = getE2EAuthCookieNameForProxyHost(
+        request.headers.get("host"),
+      );
+      const rawCookie = e2eCookieName
+        ? request.cookies.get(e2eCookieName)?.value
+        : undefined;
+      const e2eSession = parseE2EAuthCookieValue(rawCookie);
+      if (e2eSession && isRoleAllowedForApp(e2eSession.role, allowedRoles)) {
+        userId = e2eSession.userId;
+      }
+    }
 
     if (isPublicRoute(pathname, publicRoutes) && !isAuthRoute) {
       return supabaseResponse;

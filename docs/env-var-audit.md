@@ -65,6 +65,7 @@
 ### Playwright config
 
 - `playwright.config.ts` reads `CI`, `PLAYWRIGHT_BASE_URL`, and `PLAYWRIGHT_PORT` at config evaluation time.
+- **`E2E_AUTH_BYPASS` + per-app E2E cookies:** When bypass is enabled (Playwright sets this alongside `ASYM_USE_CI_ENV_DEFAULTS`), `POST /api/auth/demo-account` issues an httpOnly cookie named by app surface (`asym_e2e_auth_donor` / `asym_e2e_auth_admin` / `asym_e2e_auth_missionary`, derived from the request `Host` port) instead of a Supabase session. `packages/auth/context.ts` (`getAuthContext`) and `packages/auth/middleware.ts` read the cookie that matches the current host so donor Playwright sessions do not authenticate the admin app on another localhost port. Optional **`ASYM_E2E_AUTH_SURFACE`** (`donor` \| `admin` \| `missionary`) is a fallback when the URL has no port (e.g. some unit tests). Production: bypass is off when `NODE_ENV === "production"`.
 
 ### Fork PR safety
 

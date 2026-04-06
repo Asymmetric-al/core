@@ -1,5 +1,15 @@
 # Working Set
 
+## 2026-04-06 (Post-Turborepo-2.9 merge hardening: full gate + test matrix)
+
+- Date: 2026-04-06
+- Repo: Asymmetric-al/core
+- Goal: Merge-ready verification after Turbo 2.9.x: merge safety, `bun install --frozen-lockfile`, `ci:preflight`, `verify*`, build matrix, unit + E2E + a11y, turbo diagnostics; fix any regressions without weakening gates.
+- Primary area: repo-wide scripts, `turbo.json`, docs drift, Playwright/E2E if failures are real bugs
+- Constraints: Bun only; preserve `run-with-ci-env.mjs`, localhost-first Playwright, no broad eslint/tsconfig/turbo env weakening; fix root causes.
+- Evidence: `scripts/verify/ci-preflight.mjs`, `.husky/pre-push`, `.github/workflows/ci.yml`, `playwright.config.ts`, `vitest.config.ts`
+- Outcome: Fixed E2E smoke by honoring demo E2E cookies in `getAuthContext` + proxy; per-app cookie names (`asym_e2e_auth_*`) + host port mapping so donor sessions do not authenticate admin; Web `btoa`/`atob` cookie encoding for Edge proxy; CMS specs use `localhost:3030`; tenant isolation spec expects 404 for unknown CMS slug. Removed stray untracked `apps/admin/payload-types.ts` that failed `verify:eslint`.
+
 ## 2026-04-05 (Turborepo 2.9.x monorepo upgrade + turbo.json audit)
 
 - Date: 2026-04-05
