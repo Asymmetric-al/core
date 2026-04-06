@@ -31,19 +31,11 @@ export interface AuthMiddlewareOptions {
 const DEFAULT_AUTH_ROUTES = ["/login", "/register"] as const;
 
 function isPublicRoute(pathname: string, publicRoutes: string[]) {
-  return isListedRouteMatch(
-    pathname,
-    publicRoutes,
-    matchesListedRoute,
-  );
+  return isListedRouteMatch(pathname, publicRoutes, matchesListedRoute);
 }
 
 function isProtectedRoute(pathname: string, prefixes: string[]) {
-  return isListedRouteMatch(
-    pathname,
-    prefixes,
-    matchesProtectedPrefix,
-  );
+  return isListedRouteMatch(pathname, prefixes, matchesProtectedPrefix);
 }
 
 function withPathHeader(request: NextRequest, pathname: string) {
