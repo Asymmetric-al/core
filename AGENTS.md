@@ -231,7 +231,7 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 - **Vercel React + Next performance patterns:** `docs/ai/skills/vercel-react-best-practices/SKILL.md`
 - **React View Transitions + Next.js route / shared-element continuity:** `docs/ai/skills/vercel-react-view-transitions/SKILL.md`
 - **Discover/install agent skills (skills.sh, repo canonical skills):** `docs/ai/skills/find-skills/SKILL.md`
-- **Commit message creation:** inactive. Do not route commit work through `docs/ai/skills/commit/SKILL.md`; the file is retained for reference only until it is removed.
+- **Commit message creation:** `docs/ai/skills/commit/SKILL.md`
 
 **GitHub `AL-###` issue/PR workflow:** there are no `SKILL.md` files under `docs/ai/skills/` for those flows today; follow `docs/ai/rules/general.md`. Deprecated stubs live under `skills/*/DEPRECATED.md` only.
 
