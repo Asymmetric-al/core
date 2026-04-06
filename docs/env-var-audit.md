@@ -56,7 +56,11 @@
 
 ### Turbo build env inputs
 
-- `turbo.json` `build` task declares env inputs: `NODE_ENV`, `NEXT_PUBLIC_*`, `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_*`; these affect the Turbo cache key.
+- `turbo.json` `build` task `env` keys are limited to variables that can affect **compiled** Next.js / workspace output or Payload CMS build-time behavior. They hash into the Turborepo cache key ([task `env`](https://turborepo.dev/docs/reference/configuration#env)).
+- **Included (current root `turbo.json`):** `NODE_ENV`, `NEXT_PUBLIC_*`, `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION`, `SUPABASE_*`, `PAYLOAD_SECRET`, `DATABASE_URL`, `PAYLOAD_DATABASE_URI`, `SKIP_ENV_VALIDATION`, `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, `RESEND_ENCRYPTION_KEY`, `SENTRY_DSN`, `CLOUDINARY_API_SECRET`, `ALLOW_DEMO_ACCOUNTS`, `DEMO_ONLY_LOGIN`.
+- **Not in `build.env` (runtime / API only; use `NEXT_PUBLIC_*` or route code instead of build hash):** `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `CRON_SECRET` — changing them should not bust the Turborepo `build` cache for unchanged source.
+- **Excluded on purpose:** Playwright / E2E / demo-credentials / generic CI flags (`PLAYWRIGHT_*`, `E2E_*`, `DEMO_*`, `CI`, `ASYM_USE_CI_ENV_DEFAULTS`) — those are test or dev-server concerns; listing them under `build` `env` caused unrelated cache invalidation and did not match this audit’s split between “build hash” vs “tests”.
+- **Redundancy note:** `NEXT_PUBLIC_SUPABASE_*` and other public client vars are covered by the `NEXT_PUBLIC_*` wildcard; `SUPABASE_SERVICE_ROLE_KEY` and `SUPABASE_DB_URL` are covered by `SUPABASE_*`.
 
 ### Playwright config
 
@@ -71,7 +75,7 @@
 
 - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are required by `packages/env/src/schema.ts` (non-optional `z.string().url()` / `z.string().min(1)`); they throw at app startup unless `SKIP_ENV_VALIDATION=1` is set.
 - Env vars referenced in build/test steps that could affect CI if unset:
-  - Build: `NODE_ENV`, `NEXT_PUBLIC_*`, `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_*` (`turbo.json` build env array).
-  - Tests: `DATABASE_URL` (integration jobs), `CI`, `PLAYWRIGHT_BASE_URL`, `PLAYWRIGHT_PORT` (`.github/workflows/ci-integration.yml`, `playwright.config.ts`).
+  - Build (Turborepo hash / `turbo.json` `build.env`): see **Turbo build env inputs** above; matches `NEXT_PUBLIC_*` plus server/CMS/email/payment secrets that may be read during `next build` or package `tsc` graph analysis.
+  - Tests: `DATABASE_URL` (integration jobs), `CI`, `PLAYWRIGHT_BASE_URL`, `PLAYWRIGHT_PORT` (`.github/workflows/ci-integration.yml`, `playwright.config.ts`) — not part of `build.env` in `turbo.json`.
 - Sensitive-looking env vars (names indicate secrets/keys): `STRIPE_SECRET_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_URL`, `CLOUDINARY_API_SECRET`, `CRON_SECRET`, `TURBO_TOKEN` (secret), and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (client-safe key but still a key).
 - No untracked or ignored env files were inspected; only tracked references were used for this audit.

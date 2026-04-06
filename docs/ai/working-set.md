@@ -19,6 +19,7 @@
   - [Turborepo 2.9 blog](https://turborepo.dev/blog/2-9)
   - [Turborepo configuration reference](https://turborepo.dev/docs/reference/configuration)
   - `package.json`, `turbo.json`, `.github/workflows/ci.yml`, `scripts/verify/ci-preflight.mjs`
+- Follow-up (same goal): narrowed `turbo.json` `build.env` to build-affecting vars only; dropped E2E/Playwright/DEMO/CI keys and runtime-only Stripe/CRON from build hash; synced `docs/env-var-audit.md` Turbo section.
 
 ## 2026-04-02 (PR #144 follow-up: hydration-safe Resend label + auth invariant tests)
 
