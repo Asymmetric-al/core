@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  createResendValidationSnapshot,
+  isResendValidationSendReady,
+  parseResendValidationSnapshot,
   sendEmail,
   validateResendApiKey,
   verifyResendWebhookSignature,
@@ -79,6 +82,191 @@ describe("@asym/email resend service", () => {
     expect(result.valid).toBe(false);
     expect(result.errorCode).toBe("invalid_api_key");
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("creates a persisted validation snapshot from record-level evidence", () => {
+    const snapshot = createResendValidationSnapshot(
+      {
+        senderIdentities: [
+          {
+            id: 1,
+            nickname: "default",
+            from_email: "from@example.com",
+            from_name: "From Team",
+            reply_to_email: null,
+            verified: true,
+          },
+        ],
+        domainAuthentication: [
+          {
+            id: 1,
+            domain: "example.com",
+            subdomain: null,
+            valid: true,
+            records: [
+              {
+                record: "SPF",
+                type: "TXT",
+                name: "send",
+                value: '"v=spf1 include:amazonses.com ~all"',
+                status: "verified",
+              },
+              {
+                record: "DKIM",
+                type: "TXT",
+                name: "resend._domainkey",
+                value: "p=abc123",
+                status: "verified",
+              },
+            ],
+          },
+        ],
+        deliverabilityScore: 100,
+        warnings: [],
+      },
+      "2026-04-02T12:00:00.000Z",
+    );
+
+    expect(snapshot.domainAuthenticated).toBe(true);
+    expect(snapshot.dkimVerified).toBe(true);
+    expect(snapshot.spfVerified).toBe(true);
+    expect(snapshot.validatedAt).toBe("2026-04-02T12:00:00.000Z");
+    expect(isResendValidationSendReady(snapshot)).toBe(true);
+  });
+
+  it("detects DKIM and SPF from verified record hints even when labels are absent", () => {
+    const snapshot = createResendValidationSnapshot(
+      {
+        senderIdentities: [],
+        domainAuthentication: [
+          {
+            id: 1,
+            domain: "example.com",
+            subdomain: null,
+            valid: true,
+            records: [
+              {
+                type: "TXT",
+                name: "resend._domainkey",
+                value: "p=abc123",
+                status: "verified",
+              },
+              {
+                type: "TXT",
+                name: "send",
+                value: "v=spf1 include:spf.resend.com ~all",
+                status: "verified",
+              },
+            ],
+          },
+        ],
+        deliverabilityScore: 100,
+        warnings: [],
+      },
+      "2026-04-02T12:00:00.000Z",
+    );
+
+    expect(snapshot.dkimVerified).toBe(true);
+    expect(snapshot.spfVerified).toBe(true);
+  });
+
+  it("parses only valid persisted validation snapshots", () => {
+    expect(parseResendValidationSnapshot(null)).toBeNull();
+    expect(
+      parseResendValidationSnapshot({
+        senderIdentities: [],
+        domainAuthentication: [],
+        warnings: [],
+        deliverabilityScore: 88,
+        validatedAt: "2026-04-02T12:00:00.000Z",
+        domainAuthenticated: false,
+        dkimVerified: false,
+        spfVerified: false,
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        deliverabilityScore: 88,
+        validatedAt: "2026-04-02T12:00:00.000Z",
+      }),
+    );
+  });
+
+  it("defaults persisted sender verification to false when older snapshots omit the flag", () => {
+    const snapshot = parseResendValidationSnapshot({
+      senderIdentities: [
+        {
+          id: 1,
+          nickname: "default",
+          from_email: "from@example.com",
+          from_name: "From Team",
+          reply_to_email: null,
+        },
+      ],
+      domainAuthentication: [],
+      warnings: [],
+      deliverabilityScore: 88,
+      validatedAt: "2026-04-02T12:00:00.000Z",
+      domainAuthenticated: false,
+      dkimVerified: false,
+      spfVerified: false,
+    });
+
+    expect(snapshot?.senderIdentities).toEqual([
+      expect.objectContaining({
+        from_email: "from@example.com",
+        verified: false,
+      }),
+    ]);
+  });
+
+  it("surfaces a blocking warning when the default sender domain is not verified", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+    fetchSpy
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            data: [{ name: "asymmetric.al", status: "verified" }],
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            id: "d_1",
+            name: "asymmetric.al",
+            status: "verified",
+            records: [],
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ data: [] }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+
+    const result = await validateResendApiKey("re_test_key", {
+      defaultFromEmail: "conrad@globalfellowship.org",
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "DEFAULT_FROM_EMAIL_DOMAIN_NOT_VERIFIED",
+          severity: "error",
+        }),
+      ]),
+    );
   });
 
   it("returns structured webhook verification failure for missing secret", () => {

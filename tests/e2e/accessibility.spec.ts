@@ -1,9 +1,15 @@
-import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { test, expect, type Page } from "@playwright/test";
 
 async function gotoHealthyHomepage(page: Page) {
   await page.goto("/");
   await page.waitForLoadState("domcontentloaded");
+  await page.waitForLoadState("networkidle");
+  await page.evaluate(async () => {
+    if ("fonts" in document) {
+      await document.fonts.ready;
+    }
+  });
   await expect(page.locator("#__next_error__")).toHaveCount(0);
   await expect(page.locator("#hero-heading")).toBeVisible();
 }
@@ -16,6 +22,13 @@ async function gotoStableRoute(page: Page, path: string) {
     await page.goto(path);
     await page.waitForLoadState("domcontentloaded");
   }
+
+  await page.waitForLoadState("networkidle");
+  await page.evaluate(async () => {
+    if ("fonts" in document) {
+      await document.fonts.ready;
+    }
+  });
 
   await expect(page.getByRole("heading", { name: "404" })).toHaveCount(0);
   await expect(page.locator("#__next_error__")).toHaveCount(0);
@@ -115,6 +128,28 @@ test.describe("Accessibility Tests", () => {
       );
     }
 
-    expect(contrastViolations.length).toBeLessThanOrEqual(3);
+    expect(contrastViolations).toHaveLength(0);
+  });
+
+  test("Mobile navigation should use plain navigation semantics", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await gotoHealthyHomepage(page);
+
+    await page.getByRole("button", { name: "Open menu" }).click();
+    await expect(page.locator("#mobile-menu")).toBeVisible();
+    await expect(page.locator('#mobile-menu [role="menu"]')).toHaveCount(0);
+    await expect(page.locator('#mobile-menu [role="menuitem"]')).toHaveCount(0);
+
+    const accessibilityScanResults = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa"])
+      .analyze();
+
+    const criticalViolations = accessibilityScanResults.violations.filter(
+      (v) => v.impact === "critical" || v.impact === "serious",
+    );
+
+    expect(criticalViolations).toHaveLength(0);
   });
 });

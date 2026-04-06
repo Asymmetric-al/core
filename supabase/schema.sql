@@ -223,6 +223,7 @@ CREATE TABLE IF NOT EXISTS public.tenant_email_settings (
     resend_api_key_hint TEXT,
     webhook_url TEXT,
     webhook_signing_secret_hint TEXT,
+    validation_snapshot JSONB,
     domain_authenticated BOOLEAN NOT NULL DEFAULT FALSE,
     dkim_verified BOOLEAN NOT NULL DEFAULT FALSE,
     spf_verified BOOLEAN NOT NULL DEFAULT FALSE,

@@ -47,8 +47,34 @@ The admin integration UI now uses:
 `POST /api/email/connect` validates the API key with Resend and persists tenant
 settings in `tenant_email_settings`. API keys are stored encrypted.
 
+The connect flow now fails fast when `defaultFromEmail` does not use one of the
+account's exact verified Resend domains or subdomains. This prevents a
+"connected but unsendable" state where the first failure would otherwise happen
+later during `POST /api/email/test-send` or production delivery.
+
+Successful connects also persist a sanitized validation snapshot
+(`senderIdentities`, `domainAuthentication`, warnings, score, and derived
+deliverability booleans). `GET /api/email/connect` now hydrates directly from
+that stored snapshot instead of revalidating against Resend on every page load.
+Legacy connected rows without a snapshot are treated conservatively:
+`connected = true`, `sendReady = false`, and the admin UI asks the tenant to
+reconnect once to refresh sender/domain metadata.
+
+Deploy note: apply
+`supabase/migrations/20260402100000_resend_validation_snapshot.sql` before, or
+in the same rollout as, any app version that reads or writes
+`tenant_email_settings.validation_snapshot`.
+
+When a tenant disconnects Resend, the stored default sender fields remain
+available so the admin form can preserve the last known `from` address, sender
+name, and reply-to email for the next reconnect flow.
+
 `POST /api/email/test-send` can use either the explicit key sent by the client
-or the tenant's stored encrypted key.
+or the tenant's stored encrypted key. It also re-checks that the chosen sender
+address still matches a verified domain before attempting the provider send. If
+delivery succeeds but `email_send_logs` cannot be written, the route now returns
+success with an explicit audit warning instead of silently dropping the audit
+trail.
 
 `POST /api/email/webhooks/resend` verifies Svix signatures before branching by
 event type and persisting event/suppression/inbound metadata.
@@ -78,6 +104,7 @@ Use this map when extending behavior:
 - Persistence/schema/types:
   - `supabase/schema.sql`
   - `supabase/migrations/20260223120000_resend_email_foundation.sql`
+  - `supabase/migrations/20260402100000_resend_validation_snapshot.sql`
   - `packages/database/types/database.ts`
 - Regression tests:
   - `tests/unit/packages/api/email/webhooks-resend.test.ts`

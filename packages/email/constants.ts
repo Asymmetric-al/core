@@ -43,6 +43,8 @@ export const RESEND_ERROR_CODES = {
   SERVER_ERROR: "server_error",
   SENDER_NOT_VERIFIED: "sender_not_verified",
   DOMAIN_NOT_AUTHENTICATED: "domain_not_authenticated",
+  DEFAULT_FROM_EMAIL_DOMAIN_NOT_VERIFIED:
+    "default_from_email_domain_not_verified",
   INVALID_EMAIL: "invalid_email",
   SUPPRESSED: "suppressed",
   WEBHOOK_SIGNATURE_INVALID: "webhook_signature_invalid",
@@ -98,6 +100,8 @@ export const DELIVERABILITY_HELP_URLS = {
   SENDER_VERIFICATION: "https://resend.com/docs/dashboard/domains/introduction",
   DOMAIN_AUTHENTICATION:
     "https://resend.com/docs/dashboard/domains/introduction",
+  DOMAIN_MISMATCH:
+    "https://resend.com/docs/knowledge-base/403-error-domain-mismatch",
   WEBHOOKS: "https://resend.com/docs/dashboard/webhooks/introduction",
   INBOUND: "https://resend.com/docs/dashboard/emails/receiving-emails",
   DMARC: "https://resend.com/docs/knowledge-base/what-is-dmarc",
