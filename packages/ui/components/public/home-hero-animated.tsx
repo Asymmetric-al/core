@@ -11,7 +11,7 @@ import { Button } from "@asym/ui/components/shadcn/button";
 
 import type { LucideIcon } from "lucide-react";
 
-export type HomeHeroStat = {
+type HomeHeroStat = {
   label: string;
   val: string;
   Icon: LucideIcon;
