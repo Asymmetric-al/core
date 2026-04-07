@@ -7,6 +7,7 @@
     ".": "./index.ts",
     "./context": "./context.ts",
     "./permissions": "./permissions.ts",
+    "./redirects": "./redirects.ts",
     "./use-auth": "./use-auth.ts",
     "./client-signout": "./client-signout.ts",
     "./middleware": "./middleware.ts",

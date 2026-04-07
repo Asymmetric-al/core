@@ -9,25 +9,27 @@ import Link from "next/link";
 
 import { Button } from "@asym/ui/components/shadcn/button";
 
-import type { LucideIcon } from "lucide-react";
+const heroStatIcons = {
+  activity: Activity,
+  users: Users,
+} as const;
 
-type HomeHeroStat = {
+type HomeHeroIcon = keyof typeof heroStatIcons;
+
+export type HomeHeroStat = {
   label: string;
   val: string;
-  Icon: LucideIcon;
+  icon: HomeHeroIcon;
 };
-
-const heroStats: readonly HomeHeroStat[] = [
-  { label: "Deployed", val: "$26.4M", Icon: Activity },
-  { label: "Partners", val: "42.1k", Icon: Users },
-];
 
 export function HomeHeroAnimated({
   heroImageSrc,
   blurDataURL,
+  stats,
 }: {
   heroImageSrc: string;
   blurDataURL: string;
+  stats: readonly HomeHeroStat[];
 }) {
   const reduceMotion = useReducedMotion();
 
@@ -83,7 +85,8 @@ export function HomeHeroAnimated({
             >
               <Button
                 size="lg"
-                className="bg-white text-slate-950 hover:bg-zinc-200 hover:text-slate-900 border-none h-12 px-8 text-sm font-bold font-syne rounded-full shadow-lg transition-transform duration-200 ease-out hover:scale-[1.02] active:scale-[0.98] group"
+                variant="ghost"
+                className="h-12 rounded-full border border-white/15 bg-white px-8 text-sm font-bold font-syne text-slate-950 shadow-lg transition-transform duration-200 ease-out hover:scale-[1.02] hover:bg-zinc-100 hover:text-slate-950 active:scale-[0.98] group"
                 asChild
               >
                 <Link href="/workers">
@@ -116,26 +119,30 @@ export function HomeHeroAnimated({
           className="absolute bottom-24 right-6 hidden xl:flex flex-col gap-4"
           aria-hidden="true"
         >
-          {heroStats.map((stat, i) => (
-            <m.div
-              key={stat.label}
-              {...propsHeroEntrance(
-                reduceMotion,
-                STAGGER_TIGHT * 3 + i * STAGGER_TIGHT,
-              )}
-              className="bg-white/5 backdrop-blur-2xl border border-white/10 p-4 rounded-2xl flex items-center gap-4 w-56"
-            >
-              <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center text-white">
-                <stat.Icon className="h-3 w-3" />
-              </div>
-              <div>
-                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">
-                  {stat.label}
-                </p>
-                <p className="text-xl font-bold font-syne">{stat.val}</p>
-              </div>
-            </m.div>
-          ))}
+          {stats.map((stat, i) => {
+            const Icon = heroStatIcons[stat.icon];
+
+            return (
+              <m.div
+                key={stat.label}
+                {...propsHeroEntrance(
+                  reduceMotion,
+                  STAGGER_TIGHT * 3 + i * STAGGER_TIGHT,
+                )}
+                className="bg-white/5 backdrop-blur-2xl border border-white/10 p-4 rounded-2xl flex items-center gap-4 w-56"
+              >
+                <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center text-white">
+                  <Icon className="h-3 w-3" />
+                </div>
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">
+                    {stat.label}
+                  </p>
+                  <p className="text-xl font-bold font-syne">{stat.val}</p>
+                </div>
+              </m.div>
+            );
+          })}
         </div>
 
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white/30 flex flex-col items-center gap-3 text-[10px] font-bold tracking-[0.3em] uppercase">

@@ -22,8 +22,15 @@ Use turbo filters when working on one app:
 ## Where Next.js docs live
 
 - Primary source: nearest matching `node_modules/next/dist/docs/` for the app being changed.
-- Current state: all app workspaces use `next@16.1.1`.
+- Current state: all app workspaces use `next@16.2.1`.
 - If multiple Next.js versions are introduced later, use the docs path that matches the app's installed version.
+
+## OpenSpec workflow
+
+- Read `openspec/project.md` plus the relevant files under `openspec/specs/` and `openspec/changes/` before non-trivial feature, behavior, or multi-step project work.
+- Use `bunx @fission-ai/openspec@latest <command>` as the repo-safe default for OpenSpec CLI work. If `openspec` is already on `PATH`, that is equivalent. If Bun is unavailable, use `npx -y @fission-ai/openspec@latest <command>`.
+- Use `bunx @fission-ai/openspec@latest list`, `show`, `view`, and `validate` when working from an active change.
+- Keep OpenSpec focused on durable project context and intended behavior; keep `AGENTS.md` as the always-on routing layer.
 
 ## Fallback docs generation (`.next-docs`)
 

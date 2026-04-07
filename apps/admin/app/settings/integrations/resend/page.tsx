@@ -18,6 +18,7 @@ import type {
   DomainAuthentication,
   ResendConnectionStateResponse,
   SenderIdentity,
+  TestSendEmailResponse,
 } from "@asym/email/types";
 
 import { fetchWithSupabaseAuth } from "@/lib/authenticated-fetch";
@@ -27,8 +28,11 @@ type TestEmailStatus = "idle" | "sending" | "success" | "error";
 
 interface ConnectionState {
   status: ConnectionStatus;
+  sendReady: boolean;
+  hasValidationMetadata: boolean;
   persisted: boolean;
   apiKeyHint?: string;
+  validatedAt?: string;
   senderIdentities: SenderIdentity[];
   domainAuthentication: DomainAuthentication[];
   deliverabilityScore: number;
@@ -43,6 +47,8 @@ export default function ResendSettingsPage() {
   const [testError, setTestError] = useState<string | null>(null);
   const [connection, setConnection] = useState<ConnectionState>({
     status: "disconnected",
+    sendReady: false,
+    hasValidationMetadata: false,
     persisted: true,
     senderIdentities: [],
     domainAuthentication: [],
@@ -76,6 +82,7 @@ export default function ResendSettingsPage() {
             ...prev,
             status: "error",
             error: errorMessage,
+            warnings: data.warnings || [],
           }));
           toast.error("Connection failed", { description: errorMessage });
           return;
@@ -83,8 +90,14 @@ export default function ResendSettingsPage() {
 
         setConnection({
           status: "connected",
+          sendReady: data.sendReady,
+          hasValidationMetadata:
+            data.senderIdentities !== undefined ||
+            data.domainAuthentication !== undefined ||
+            data.deliverabilityScore !== undefined,
           persisted: data.persisted ?? true,
           apiKeyHint: data.apiKeyHint ?? value.apiKey.slice(-4),
+          validatedAt: data.validatedAt,
           senderIdentities: data.senderIdentities || [],
           domainAuthentication: data.domainAuthentication || [],
           deliverabilityScore: data.deliverabilityScore || 0,
@@ -136,10 +149,7 @@ export default function ResendSettingsPage() {
           }),
         });
 
-        const data = (await response.json()) as {
-          success: boolean;
-          error?: string;
-        };
+        const data = (await response.json()) as TestSendEmailResponse;
 
         if (!data.success) {
           const errorMessage = data.error || "Failed to send test email";
@@ -149,6 +159,15 @@ export default function ResendSettingsPage() {
         }
 
         setTestStatus("success");
+        if (data.auditLogged === false) {
+          toast.warning("Test email sent, but audit logging failed", {
+            description:
+              data.warning ||
+              `Check ${value.testEmail} for the test email, then review server logs for the audit logging failure.`,
+          });
+          return;
+        }
+
         toast.success("Test email sent!", {
           description: `Check ${value.testEmail} for the test email`,
         });
@@ -197,7 +216,10 @@ export default function ResendSettingsPage() {
         if (!data.connected) {
           setConnection({
             status: "disconnected",
+            sendReady: data.sendReady,
+            hasValidationMetadata: false,
             persisted: data.persisted ?? true,
+            validatedAt: undefined,
             senderIdentities: [],
             domainAuthentication: [],
             deliverabilityScore: 0,
@@ -209,8 +231,14 @@ export default function ResendSettingsPage() {
 
         setConnection({
           status: "connected",
+          sendReady: data.sendReady,
+          hasValidationMetadata:
+            data.senderIdentities !== undefined ||
+            data.domainAuthentication !== undefined ||
+            data.deliverabilityScore !== undefined,
           persisted: data.persisted ?? true,
           apiKeyHint: data.apiKeyHint ?? undefined,
+          validatedAt: data.validatedAt,
           senderIdentities: data.senderIdentities || [],
           domainAuthentication: data.domainAuthentication || [],
           deliverabilityScore: data.deliverabilityScore || 0,
@@ -262,7 +290,10 @@ export default function ResendSettingsPage() {
 
       setConnection({
         status: "disconnected",
+        sendReady: false,
+        hasValidationMetadata: false,
         persisted: data.persisted ?? connection.persisted,
+        validatedAt: undefined,
         senderIdentities: [],
         domainAuthentication: [],
         deliverabilityScore: 0,
@@ -297,12 +328,15 @@ export default function ResendSettingsPage() {
     );
   }
 
+  const canSendTestEmail = connection.sendReady;
+
   return (
     <div className="container max-w-4xl space-y-8 py-8">
       <ResendPageHeader isConnected={connection.status === "connected"} />
 
       {connection.status === "connected" ? (
         <ResendConnectedView
+          canSendTestEmail={canSendTestEmail}
           connection={connection}
           onDisconnect={handleDisconnect}
           onOpenTestDialog={() => handleTestDialogOpenChange(true)}

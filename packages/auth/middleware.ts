@@ -7,10 +7,10 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { safeNextParam } from "./demo-login";
 import {
-  E2E_AUTH_COOKIE_NAME,
-  isE2EAuthBypassEnabled,
-  parseE2EAuthCookieValue,
-} from "./e2e-auth";
+  isListedRouteMatch,
+  matchesListedRoute,
+  matchesProtectedPrefix,
+} from "./route-matching";
 
 import type { UserRole } from "@asym/database/types";
 
@@ -30,27 +30,15 @@ export interface AuthMiddlewareOptions {
 
 const DEFAULT_AUTH_ROUTES = ["/login", "/register"] as const;
 
-function matchesRoutePrefix(pathname: string, route: string) {
-  return pathname === route || pathname.startsWith(`${route}/`);
-}
-
 function isPublicRoute(pathname: string, publicRoutes: string[]) {
-  return publicRoutes.some((route) => matchesRoutePrefix(pathname, route));
+  return isListedRouteMatch(pathname, publicRoutes, matchesListedRoute);
 }
 
 function isProtectedRoute(pathname: string, prefixes: string[]) {
-  return prefixes.some((prefix) => matchesRoutePrefix(pathname, prefix));
+  return isListedRouteMatch(pathname, prefixes, matchesProtectedPrefix);
 }
 
 function withPathHeader(request: NextRequest, pathname: string) {
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-asym-pathname", pathname);
-  return NextResponse.next({
-    request: { headers: requestHeaders },
-  });
-}
-
-function nextResponseWithPathHeader(request: NextRequest, pathname: string) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-asym-pathname", pathname);
   return NextResponse.next({
@@ -118,21 +106,12 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     const config = getSupabasePublicConfig();
     const { url, key } = config;
     const isAuthRoute = authRoutes.some((route) =>
-      matchesRoutePrefix(pathname, route),
+      matchesListedRoute(pathname, route),
     );
     const isExplicitlyPublic =
       isAuthRoute || isPublicRoute(pathname, publicRoutes);
     const requiresAuthentication =
       !isExplicitlyPublic && isProtectedRoute(pathname, protectedRoutePrefixes);
-    const e2eSession = isE2EAuthBypassEnabled()
-      ? parseE2EAuthCookieValue(
-          request.cookies.get(E2E_AUTH_COOKIE_NAME)?.value,
-        )
-      : null;
-
-    if (e2eSession) {
-      return withPathHeader(request, pathname);
-    }
 
     if (!url || !key) {
       if (requiresAuthentication) {
@@ -148,7 +127,12 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       return withPathHeader(request, pathname);
     }
 
-    let supabaseResponse = nextResponseWithPathHeader(request, pathname);
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-asym-pathname", pathname);
+    const requestWithHeaders = NextResponse.next({
+      request: { headers: requestHeaders },
+    });
+    const supabaseResponse = requestWithHeaders;
 
     const supabase = createServerClient(url, key, {
       cookies: {
@@ -162,11 +146,8 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
             options?: Record<string, unknown>;
           }[],
         ) {
-          cookiesToSet.forEach(({ name, value }) => {
-            request.cookies.set(name, value);
-          });
-          supabaseResponse = nextResponseWithPathHeader(request, pathname);
           cookiesToSet.forEach(({ name, value, options }) => {
+            request.cookies.set(name, value);
             supabaseResponse.cookies.set(
               name,
               value,

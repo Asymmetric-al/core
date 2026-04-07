@@ -1,5 +1,5 @@
-import { getAuthContext } from "@asym/auth/context";
-import { canAccessDashboard } from "@asym/auth/permissions";
+import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
+import { getProtectedAppRedirectPath } from "@asym/auth/redirects";
 import { Footer } from "@asym/ui/components/public/footer";
 import { Navbar } from "@asym/ui/components/public/navbar";
 import { redirect } from "next/navigation";
@@ -19,18 +19,24 @@ export const metadata: Metadata = {
   },
 };
 
+const DONOR_ALLOWED_ROLES = ["donor", "super_admin"] as const;
+
 export default async function DonorDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const auth = await getAuthContext();
+  const authContext = await getAuthContext();
+  const authRedirectPath = getProtectedAppRedirectPath(
+    authContext,
+    "/login?next=/donor-dashboard",
+  );
 
-  if (!auth.isAuthenticated || !auth.userId) {
-    redirect("/login?next=/donor-dashboard");
+  if (authRedirectPath) {
+    redirect(authRedirectPath);
   }
 
-  if (!canAccessDashboard(auth, "donor_portal")) {
+  if (!hasAnyContextRole(authContext, [...DONOR_ALLOWED_ROLES])) {
     redirect("/no-access");
   }
 

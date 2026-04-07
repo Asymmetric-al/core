@@ -3,7 +3,14 @@ import {
   requireRole,
   type AuthenticatedContext,
 } from "@asym/auth/context";
-import { RESEND_ERROR_CODES, validateResendApiKey } from "@asym/email";
+import {
+  createResendValidationSnapshot,
+  getFirstBlockingDeliverabilityWarning,
+  isResendValidationSendReady,
+  parseResendValidationSnapshot,
+  RESEND_ERROR_CODES,
+  validateResendApiKey,
+} from "@asym/email";
 import {
   type ConnectResendRequest,
   type ConnectResendResponse,
@@ -13,7 +20,7 @@ import {
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { decryptResendApiKey, encryptResendApiKey } from "./crypto";
+import { encryptResendApiKey } from "./crypto";
 import {
   disconnectTenantEmailSettings,
   isTenantEmailSettingsStorageUnavailable,
@@ -79,6 +86,15 @@ function getStorageUnavailableWarning(): DeliverabilityWarning {
   };
 }
 
+function getRevalidationRequiredWarning(): DeliverabilityWarning {
+  return {
+    code: "RESEND_CONNECTION_REQUIRES_REVALIDATION",
+    severity: "warning",
+    message:
+      "This Resend connection was saved before validation metadata was persisted. Reconnect once to refresh verified domains, sender suggestions, and send readiness.",
+  };
+}
+
 export async function GET(request: NextRequest) {
   try {
     const ctx = await requireAdminContext(request);
@@ -95,6 +111,7 @@ export async function GET(request: NextRequest) {
         {
           success: true,
           connected: false,
+          sendReady: false,
           persisted: false,
           warnings: [getStorageUnavailableWarning()],
         } satisfies ResendConnectionStateResponse,
@@ -102,59 +119,68 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (!storedSettings || !storedSettings.is_connected) {
+    if (!storedSettings) {
       return NextResponse.json(
         {
           success: true,
           connected: false,
+          sendReady: false,
           persisted: true,
         } satisfies ResendConnectionStateResponse,
         { status: 200 },
       );
     }
 
-    let senderIdentities: ConnectResendResponse["senderIdentities"] = [];
-    let domainAuthentication: ConnectResendResponse["domainAuthentication"] =
-      [];
-    let deliverabilityScore = storedSettings.deliverability_score ?? 0;
-    let warnings: ConnectResendResponse["warnings"] = [];
-    let connected = true;
-    let error: string | undefined;
-
-    if (storedSettings.resend_api_key_encrypted) {
-      const decryptedApiKey = decryptResendApiKey(
-        storedSettings.resend_api_key_encrypted,
+    if (!storedSettings.is_connected) {
+      return NextResponse.json(
+        {
+          success: true,
+          connected: false,
+          sendReady: false,
+          defaultFromEmail: storedSettings.default_from_email,
+          defaultFromName: storedSettings.default_from_name,
+          replyToEmail: storedSettings.reply_to_email,
+          persisted: true,
+        } satisfies ResendConnectionStateResponse,
+        { status: 200 },
       );
-      const validation = await validateResendApiKey(decryptedApiKey);
+    }
 
-      if (validation.valid) {
-        senderIdentities = validation.senderIdentities ?? [];
-        domainAuthentication = validation.domainAuthentication ?? [];
-        deliverabilityScore =
-          validation.deliverabilityScore ?? deliverabilityScore;
-        warnings = validation.warnings ?? [];
-      } else {
-        connected = false;
-        error = validation.error ?? "Stored Resend API key is no longer valid.";
-      }
-    } else {
-      connected = false;
-      error = "No encrypted API key is stored for this tenant.";
+    const validationSnapshot = parseResendValidationSnapshot(
+      storedSettings.validation_snapshot,
+    );
+
+    if (!validationSnapshot) {
+      return NextResponse.json(
+        {
+          success: true,
+          connected: true,
+          sendReady: false,
+          apiKeyHint: storedSettings.resend_api_key_hint,
+          defaultFromEmail: storedSettings.default_from_email,
+          defaultFromName: storedSettings.default_from_name,
+          replyToEmail: storedSettings.reply_to_email,
+          warnings: [getRevalidationRequiredWarning()],
+          persisted: true,
+        } satisfies ResendConnectionStateResponse,
+        { status: 200 },
+      );
     }
 
     return NextResponse.json(
       {
         success: true,
-        connected,
+        connected: true,
+        sendReady: isResendValidationSendReady(validationSnapshot),
         apiKeyHint: storedSettings.resend_api_key_hint,
+        validatedAt: validationSnapshot.validatedAt,
         defaultFromEmail: storedSettings.default_from_email,
         defaultFromName: storedSettings.default_from_name,
         replyToEmail: storedSettings.reply_to_email,
-        senderIdentities,
-        domainAuthentication,
-        deliverabilityScore,
-        warnings,
-        error,
+        senderIdentities: validationSnapshot.senderIdentities,
+        domainAuthentication: validationSnapshot.domainAuthentication,
+        deliverabilityScore: validationSnapshot.deliverabilityScore,
+        warnings: validationSnapshot.warnings,
         persisted: true,
       } satisfies ResendConnectionStateResponse,
       { status: 200 },
@@ -171,20 +197,39 @@ export async function POST(request: NextRequest) {
     const body = connectResendSchema.parse(
       await ensureJsonBody(request),
     ) as ConnectResendRequest;
-    const validation = await validateResendApiKey(body.apiKey);
+    const validation = await validateResendApiKey(body.apiKey, {
+      defaultFromEmail: body.defaultFromEmail,
+    });
 
     if (!validation.valid) {
       return NextResponse.json(
         {
           success: false,
+          sendReady: false,
           error: validation.error ?? "Failed to validate Resend API key",
         } satisfies ConnectResendResponse,
         { status: statusFromResendCode(validation.errorCode) },
       );
     }
 
+    const blockingWarning = getFirstBlockingDeliverabilityWarning(
+      validation.warnings,
+    );
+    if (blockingWarning) {
+      return NextResponse.json(
+        {
+          success: false,
+          sendReady: false,
+          error: blockingWarning.message,
+          warnings: validation.warnings,
+        } satisfies ConnectResendResponse,
+        { status: 422 },
+      );
+    }
+
+    const validationSnapshot = createResendValidationSnapshot(validation);
     let persisted = true;
-    let warnings = validation.warnings ?? [];
+    let warnings = validationSnapshot.warnings;
 
     try {
       await upsertTenantEmailSettings({
@@ -194,19 +239,11 @@ export async function POST(request: NextRequest) {
         replyToEmail: body.replyToEmail,
         encryptedApiKey: encryptResendApiKey(body.apiKey),
         apiKeyHint: getApiKeyHint(body.apiKey),
-        domainAuthenticated:
-          (validation.domainAuthentication ?? []).filter(
-            (domain) => domain.valid,
-          ).length > 0,
-        dkimVerified:
-          (validation.domainAuthentication ?? []).filter(
-            (domain) => domain.valid,
-          ).length > 0,
-        spfVerified:
-          (validation.domainAuthentication ?? []).filter(
-            (domain) => domain.valid,
-          ).length > 0,
-        deliverabilityScore: validation.deliverabilityScore ?? 0,
+        domainAuthenticated: validationSnapshot.domainAuthenticated,
+        dkimVerified: validationSnapshot.dkimVerified,
+        spfVerified: validationSnapshot.spfVerified,
+        deliverabilityScore: validationSnapshot.deliverabilityScore,
+        validationSnapshot,
       });
     } catch (error) {
       if (!isTenantEmailSettingsStorageUnavailable(error)) {
@@ -220,11 +257,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
+        sendReady: isResendValidationSendReady({
+          ...validationSnapshot,
+          warnings,
+        }),
         connectionId: persisted ? `${ctx.tenantId}:resend` : undefined,
         apiKeyHint: getApiKeyHint(body.apiKey),
-        senderIdentities: validation.senderIdentities ?? [],
-        domainAuthentication: validation.domainAuthentication ?? [],
-        deliverabilityScore: validation.deliverabilityScore ?? 0,
+        validatedAt: validationSnapshot.validatedAt,
+        senderIdentities: validationSnapshot.senderIdentities,
+        domainAuthentication: validationSnapshot.domainAuthentication,
+        deliverabilityScore: validationSnapshot.deliverabilityScore,
         warnings,
         persisted,
       } satisfies ConnectResendResponse,
@@ -254,6 +296,7 @@ export async function DELETE(request: NextRequest) {
       {
         success: true,
         connected: false,
+        sendReady: false,
         persisted,
       } satisfies ResendConnectionStateResponse,
       { status: 200 },

@@ -1,125 +1,72 @@
 # 1-start-project
 
 **Name:** `1-start-project`  
-**Purpose:** Kick off work for one or more `AL-###` Linear **projects** by creating a feature branch + draft PR, capturing the Linear project overview, and starting a consistent artifact trail + progress log back to Linear.
+**Purpose:** Start OpenSpec-backed work for a project, ticket, or change by creating or reusing an `openspec/changes/<change-id>/` folder, capturing the initial proposal scope, and aligning branch naming with the change.
 
-**Applies when:** Beginning work on one or more `AL-###` projects.  
-**Do not use when:** You already have an active branch + PR for the project (use `/2-implement-project`).
+**Applies when:** Beginning non-trivial work that should leave durable planning artifacts behind.
+**Do not use when:** The change already exists and you are ready to flesh out design and tasks (use `/2-implement-project`).
 
 ---
 
 ## Rules
 
-- Base branch: `epic`.
-- PR base: `epic`.
-- Branch format: `al-123-short-kebab-title` (first project key is primary).
-- PR title format: `AL-123: <project title>`.
-- PR body must include `fixes AL-###` for each project.
-- Artifacts are mandatory and live in-repo under a project dossier folder (see Workflow).
-- Linear must be updated continuously:
-  - Branch name
-  - PR link
-  - Dossier folder path
-  - Every major prompt/run output (Cursor plan, Nia plan, Traycer handoff, etc.)
-- Nia index selection requires a repo-local registry file:
-  - Canonical path: `core/.cursor/nia/index-registry.md`
-  - This is the authoritative map from “project concerns” → “Nia data_sources to attach”.
-- Branch-aware required test gates (merge policy):
-  - `epic`: `ci-gate`
-  - `develop`: `ci-gate` + `integration-gate`
-  - `main`: `ci-gate` + `integration-gate` + `e2e-gate`
+- OpenSpec is the primary artifact location:
+  - `openspec/project.md`
+  - `openspec/specs/**`
+  - `openspec/changes/<change-id>/**`
+- Do **not** create ad hoc planning dossiers outside OpenSpec in this repo.
+- If a ticket key such as `AL-123` exists, include it in the branch name when practical.
+- If a provider tracker such as Linear is available, update it conditionally. Do not assume it is always installed.
+- Use `AGENTS.md` plus the relevant `docs/ai/rules/*` files before drafting the change.
 
 ---
 
 ## Workflow
 
-1. **Pre-flight:** Ensure clean working tree and up-to-date `epic`.
-   - Run: `git status`, `git checkout epic`, `git pull origin epic`.
-   - If working tree is dirty, stop and commit/stash first.
+1. **Pre-flight**
+   - Run `git status --short`.
+   - Read `openspec/project.md`.
+   - Run `bunx @fission-ai/openspec@latest list` to inspect active changes.
 
-2. **Validate project keys:** Each key must match `^AL-\d+$`.
+2. **Choose the change ID**
+   - Prefer an existing change if one already covers the work.
+   - Otherwise create a kebab-case change ID based on the intent.
+   - If an `AL-###` ticket exists, include it when it helps disambiguate the change.
 
-3. **Fetch project details (Linear MCP):**
-   - Capture: title, overview/brief, goals, acceptance criteria (if present), links, and any attachments.
+3. **Create or update the change folder**
+   - Path: `openspec/changes/<change-id>/`
+   - Minimum artifacts:
+     - `proposal.md`
+     - `tasks.md`
+     - `specs/<area>/spec.md`
+   - Add `design.md` immediately if the technical approach is already clear.
 
-4. **Ensure Nia index registry exists (repo-global):**
-   - Check for `core/.cursor/nia/index-registry.md`.
-   - If missing, create it using the template in **Snippets → Nia index registry template**.
-   - Do **not** invent indexes. Populate it from your Nia workspace resource list (Nia UI or MCP `manage_resource(list)`).
+4. **Draft the proposal**
+   - Capture the why, the intended behavior, and explicit out-of-scope items.
+   - Point to repo evidence, current rulebooks, and any relevant external tracker.
 
-5. **Create a local “project dossier” folder in-repo (for artifacts):**
-   - First, search the repo for an existing convention (`docs/`, `documentation/`, `specs/`, etc.) and use it.
-   - If no convention exists, create: `docs/projects/<AL-###>/`
-   - Create (or update) these files:
-     - `linear-overview.md` (paste Linear project overview + links)
-     - `worklog.md` (append-only running log: date/time + what happened)
-     - `artifacts.md` (index of produced artifacts + where to find them)
+5. **Open a working branch**
+   - Start from the appropriate repo base branch for the task.
+   - Branch format:
+     - `al-123-short-title` when a ticket is primary
+     - otherwise a concise branch based on the change ID
 
-6. **Create branch:** Derive from the primary project title.
-   - If branch exists locally/remotely, stop and ask whether to reuse it.
-
-7. **Push branch:** `git push -u origin <branch>`.
-
-8. **Create draft PR (GitHub):**
-   - Ensure the PR body includes the required `fixes AL-###` lines.
-   - Include an **Artifacts** section pointing to the dossier folder path.
-
-9. **Update the Linear project (Linear MCP):**
-   - Set status to “In Progress” (or your equivalent).
-   - Add a comment that includes:
-     - Branch name
-     - PR link
-     - Dossier folder path
-     - Next step: `/2-implement-project`
+6. **Update external tracking only if available**
+   - If Linear or another tracker is installed, post:
+     - branch name
+     - change path
+     - next step: `/2-implement-project`
+   - If no tracker is available, note that the work is local-only and continue.
 
 ---
 
 ## Checklists
 
-### Pre-flight checklist
+### Start checklist
 
-- [ ] On `epic` and up-to-date
-- [ ] Working tree clean
-- [ ] `AL-###` keys validated
-- [ ] Nia index registry exists (repo-global)
-
-### PR checklist
-
-- [ ] PR targets `epic`
-- [ ] PR title is `AL-123: ...`
-- [ ] PR body includes `fixes AL-###` lines
-- [ ] PR body includes dossier path under an **Artifacts** section
-
----
-
-## Snippets
-
-### Nia index registry template (`core/.cursor/nia/index-registry.md`)
-
-> Purpose: Maintain a durable list of Nia indexes/sources so agents can reliably choose `data_sources` for `nia_research`.
-
-```md
-# Nia Index Registry (Authoritative)
-
-This file maps project concerns to Nia sources/indexes so agents can select `data_sources` deterministically.
-
-## How to update
-
-- Populate from Nia workspace resources (Nia UI or MCP `manage_resource(action="list")`).
-- Do NOT invent sources. If unsure, leave blank and add a TODO.
-
-## Registry
-
-| Tag             | Source Name (human)       | Source ID / Identifier (machine) | Type          | What it contains      | When to attach             | Notes |
-| --------------- | ------------------------- | -------------------------------- | ------------- | --------------------- | -------------------------- | ----- |
-| repo:asymmetric | Asymmetric.al repo        | <FILL_ME>                        | repository    | Core codebase         | Always                     |       |
-| docs:stack      | Stack / architecture docs | <FILL_ME>                        | documentation | Tech plan / decisions | When changing architecture |       |
-| docs:testing    | Testing & CI docs         | <FILL_ME>                        | documentation | CI + test conventions | When adding tests / CI     |       |
-| ...             | ...                       | ...                              | ...           | ...                   | ...                        | ...   |
-
-## Selection rules (for agents)
-
-1. Always attach `repo:asymmetric` (or the closest equivalent in this registry).
-2. Attach only 3–7 additional sources unless the project clearly requires more.
-3. Every attached source must have a one-line justification in the dossier.
-```
+- [ ] Working tree status checked
+- [ ] `openspec/project.md` read
+- [ ] Existing changes inspected with `bunx @fission-ai/openspec@latest list`
+- [ ] `openspec/changes/<change-id>/` created or reused
+- [ ] Proposal drafted with clear scope
+- [ ] Branch name aligned with the change or ticket

@@ -1,0 +1,10 @@
+project:
+  name: asymmetric-al-core
+  description: >
+    OpenSpec metadata for the Asymmetric.al core monorepo instruction system.
+guidance:
+  keep_repo_owned_instructions: true
+  note: >
+    This repo hand-maintains AGENTS.md, Cursor rules and commands, and Copilot
+    instruction files. Review any OpenSpec-generated instruction diffs manually
+    before applying them.

@@ -1,13 +1,24 @@
 import { getAdminClient } from "@asym/database/supabase/admin";
+import { type ResendValidationSnapshot } from "@asym/email/types";
 
 import { ApiHttpError } from "../shared/http-errors";
 
 const TENANT_EMAIL_SETTINGS_TABLE = "tenant_email_settings";
 
+/**
+ * Canonical persisted Resend connection row.
+ *
+ * Reads that need rich connection state for the admin UI should prefer
+ * `validation_snapshot` once it is present and parseable. The scalar
+ * deliverability columns are still persisted for compatibility and reporting,
+ * but writers must keep them synchronized with the snapshot so they do not
+ * drift.
+ */
 export interface TenantEmailSettingsRow {
   id: string;
   tenant_id: string;
   is_connected: boolean;
+  connection_verified_at: string | null;
   default_from_email: string | null;
   default_from_name: string | null;
   reply_to_email: string | null;
@@ -18,6 +29,7 @@ export interface TenantEmailSettingsRow {
   spf_verified: boolean;
   deliverability_score: number | null;
   webhook_url: string | null;
+  validation_snapshot: ResendValidationSnapshot | null;
   updated_at: string;
 }
 
@@ -89,6 +101,7 @@ export async function readTenantEmailSettings(
         "id",
         "tenant_id",
         "is_connected",
+        "connection_verified_at",
         "default_from_email",
         "default_from_name",
         "reply_to_email",
@@ -99,6 +112,7 @@ export async function readTenantEmailSettings(
         "spf_verified",
         "deliverability_score",
         "webhook_url",
+        "validation_snapshot",
         "updated_at",
       ].join(", "),
     )
@@ -127,9 +141,17 @@ interface UpsertTenantEmailSettingsInput {
   dkimVerified: boolean;
   spfVerified: boolean;
   deliverabilityScore: number;
+  validationSnapshot: ResendValidationSnapshot;
   webhookUrl?: string | null;
 }
 
+/**
+ * Canonical write path for tenant Resend settings.
+ *
+ * Callers should persist both the snapshot and the synchronized scalar
+ * deliverability columns through this function so the connection UI, reporting,
+ * and legacy consumers all read consistent state.
+ */
 export async function upsertTenantEmailSettings(
   input: UpsertTenantEmailSettingsInput,
 ): Promise<TenantEmailSettingsRow> {
@@ -152,6 +174,7 @@ export async function upsertTenantEmailSettings(
         spf_verified: input.spfVerified,
         deliverability_score: input.deliverabilityScore,
         webhook_url: input.webhookUrl ?? null,
+        validation_snapshot: input.validationSnapshot,
         updated_at: new Date().toISOString(),
       },
       {
@@ -163,6 +186,7 @@ export async function upsertTenantEmailSettings(
         "id",
         "tenant_id",
         "is_connected",
+        "connection_verified_at",
         "default_from_email",
         "default_from_name",
         "reply_to_email",
@@ -173,6 +197,7 @@ export async function upsertTenantEmailSettings(
         "spf_verified",
         "deliverability_score",
         "webhook_url",
+        "validation_snapshot",
         "updated_at",
       ].join(", "),
     )
@@ -205,6 +230,7 @@ export async function disconnectTenantEmailSettings(
       dkim_verified: false,
       spf_verified: false,
       deliverability_score: null,
+      validation_snapshot: null,
       updated_at: new Date().toISOString(),
     })
     .eq("tenant_id", tenantId)
@@ -213,6 +239,7 @@ export async function disconnectTenantEmailSettings(
         "id",
         "tenant_id",
         "is_connected",
+        "connection_verified_at",
         "default_from_email",
         "default_from_name",
         "reply_to_email",
@@ -223,6 +250,7 @@ export async function disconnectTenantEmailSettings(
         "spf_verified",
         "deliverability_score",
         "webhook_url",
+        "validation_snapshot",
         "updated_at",
       ].join(", "),
     )
