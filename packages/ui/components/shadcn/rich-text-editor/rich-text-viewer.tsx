@@ -21,6 +21,8 @@ export interface RichTextViewerProps {
 const viewerExtensions = [
   StarterKit.configure({
     heading: { levels: [1, 2] },
+    link: false,
+    underline: false,
     bulletList: {
       HTMLAttributes: { class: "list-disc pl-4 space-y-1" },
     },

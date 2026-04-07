@@ -19,7 +19,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.next({ request });
   }
 
-  const supabaseResponse = NextResponse.next({ request });
+  let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(url, key, {
     cookies: {
@@ -34,8 +34,11 @@ export async function updateSession(request: NextRequest) {
         }[],
       ) {
         try {
-          cookiesToSet.forEach(({ name, value, options }) => {
+          cookiesToSet.forEach(({ name, value }) => {
             request.cookies.set(name, value);
+          });
+          supabaseResponse = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) => {
             supabaseResponse.cookies.set(
               name,
               value,

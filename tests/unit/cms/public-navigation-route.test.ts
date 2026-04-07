@@ -9,6 +9,15 @@ const { getPayloadClientMock, resolveTenantFromRequestMock } = vi.hoisted(
 
 vi.mock("../../../apps/admin/src/cms/get-payload", () => ({
   getPayloadClient: getPayloadClientMock,
+  isPayloadClientInitializationError: (error: unknown) =>
+    Boolean(
+      error &&
+      typeof error === "object" &&
+      "name" in error &&
+      error.name === "PayloadClientInitializationError" &&
+      "statusCode" in error &&
+      error.statusCode === 503,
+    ),
 }));
 
 vi.mock("../../../apps/admin/src/cms/public/resolve-tenant", () => ({
@@ -123,6 +132,28 @@ describe("public navigation route", () => {
 
     expect(response.status).toBe(500);
     expect(body).toEqual({ error: "Failed to fetch navigation content" });
+    expect(consoleErrorSpy).toHaveBeenCalled();
+    consoleErrorSpy.mockRestore();
+  });
+
+  it("returns 503 when payload client initialization fails", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+
+    getPayloadClientMock.mockRejectedValue(
+      Object.assign(new Error("client init failed"), {
+        name: "PayloadClientInitializationError",
+        statusCode: 503,
+      }),
+    );
+
+    const response = await GET(createRequest());
+    const body = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(body).toEqual({ error: "Failed to fetch navigation content" });
+    expect(resolveTenantFromRequestMock).not.toHaveBeenCalled();
     expect(consoleErrorSpy).toHaveBeenCalled();
     consoleErrorSpy.mockRestore();
   });

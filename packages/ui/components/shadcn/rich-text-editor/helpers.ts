@@ -1,9 +1,9 @@
-import type { JSONContent } from "@tiptap/react";
-
 import {
   isAllowedPostLinkHref,
   normalizePostLinkHref,
 } from "@asym/lib/posts/link-policy";
+
+import type { JSONContent } from "@tiptap/react";
 
 export { isAllowedPostLinkHref, normalizePostLinkHref };
 

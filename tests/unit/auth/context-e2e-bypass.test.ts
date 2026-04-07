@@ -7,6 +7,8 @@ import {
 
 const originalBypass = process.env.E2E_AUTH_BYPASS;
 const originalNodeEnv = process.env.NODE_ENV;
+const originalSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const originalSupabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 vi.mock("next/headers", () => ({
   cookies: vi.fn(),
@@ -16,11 +18,15 @@ describe("getAuthContext E2E bypass", () => {
   beforeEach(() => {
     process.env.E2E_AUTH_BYPASS = "true";
     process.env.NODE_ENV = "development";
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "example-anon-key";
   });
 
   afterEach(() => {
     process.env.E2E_AUTH_BYPASS = originalBypass;
     process.env.NODE_ENV = originalNodeEnv;
+    process.env.NEXT_PUBLIC_SUPABASE_URL = originalSupabaseUrl;
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = originalSupabaseAnon;
     vi.resetModules();
   });
 

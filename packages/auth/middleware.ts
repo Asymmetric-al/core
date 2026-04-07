@@ -11,6 +11,11 @@ import {
   isE2EAuthBypassEnabled,
   parseE2EAuthCookieValue,
 } from "./e2e-auth";
+import {
+  isListedRouteMatch,
+  matchesListedRoute,
+  matchesProtectedPrefix,
+} from "./route-matching";
 
 import type { UserRole } from "@asym/database/types";
 
@@ -30,16 +35,12 @@ export interface AuthMiddlewareOptions {
 
 const DEFAULT_AUTH_ROUTES = ["/login", "/register"] as const;
 
-function matchesRoutePrefix(pathname: string, route: string) {
-  return pathname === route || pathname.startsWith(`${route}/`);
-}
-
 function isPublicRoute(pathname: string, publicRoutes: string[]) {
-  return publicRoutes.some((route) => matchesRoutePrefix(pathname, route));
+  return isListedRouteMatch(pathname, publicRoutes, matchesListedRoute);
 }
 
 function isProtectedRoute(pathname: string, prefixes: string[]) {
-  return prefixes.some((prefix) => matchesRoutePrefix(pathname, prefix));
+  return isListedRouteMatch(pathname, prefixes, matchesProtectedPrefix);
 }
 
 function withPathHeader(request: NextRequest, pathname: string) {
@@ -110,7 +111,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     const config = getSupabasePublicConfig();
     const { url, key } = config;
     const isAuthRoute = authRoutes.some((route) =>
-      matchesRoutePrefix(pathname, route),
+      matchesListedRoute(pathname, route),
     );
     const isExplicitlyPublic =
       isAuthRoute || isPublicRoute(pathname, publicRoutes);

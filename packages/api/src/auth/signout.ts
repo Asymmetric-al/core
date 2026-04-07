@@ -1,3 +1,4 @@
+import { E2E_AUTH_COOKIE_NAME, isE2EAuthBypassEnabled } from "@asym/auth";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
@@ -86,16 +87,45 @@ function parseOrigin(value: string | null) {
   }
 }
 
+const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
+
+function isEquivalentLoopbackOrigin(
+  requestOrigin: string,
+  headerOrigin: string | null,
+) {
+  if (!headerOrigin) return false;
+
+  try {
+    const requestUrl = new URL(requestOrigin);
+    const headerUrl = new URL(headerOrigin);
+
+    return (
+      requestUrl.protocol === headerUrl.protocol &&
+      requestUrl.port === headerUrl.port &&
+      LOOPBACK_HOSTS.has(requestUrl.hostname) &&
+      LOOPBACK_HOSTS.has(headerUrl.hostname)
+    );
+  } catch {
+    return false;
+  }
+}
+
 function isAllowedSignoutRequest(request: Request) {
   const requestOrigin = new URL(request.url).origin;
   const originHeader = parseOrigin(request.headers.get("origin"));
   if (originHeader) {
-    return originHeader === requestOrigin;
+    return (
+      originHeader === requestOrigin ||
+      isEquivalentLoopbackOrigin(requestOrigin, originHeader)
+    );
   }
 
   const refererHeader = parseOrigin(request.headers.get("referer"));
   if (refererHeader) {
-    return refererHeader === requestOrigin;
+    return (
+      refererHeader === requestOrigin ||
+      isEquivalentLoopbackOrigin(requestOrigin, refererHeader)
+    );
   }
 
   // Some same-origin browser requests may omit origin/referer in strict contexts.
@@ -118,6 +148,17 @@ export async function POST(request: Request) {
       { ok: false, error: "Invalid sign-out request origin." },
       { status: 403 },
     );
+  }
+
+  if (isE2EAuthBypassEnabled()) {
+    const response = noStoreJson({ ok: true });
+    response.cookies.set(E2E_AUTH_COOKIE_NAME, "", {
+      httpOnly: true,
+      maxAge: 0,
+      path: "/",
+      sameSite: "lax",
+    });
+    return response;
   }
 
   const { supabase, pendingCookies } = createAuthClient(request);

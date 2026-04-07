@@ -101,6 +101,7 @@ describe("apps/admin/app/tasks/task-form-model", () => {
   });
 
   it("builds a save payload with formatted dates and assignee metadata", () => {
+    const dueDate = new Date(2026, 3, 1, 0, 0, 0, 0);
     const payload = toTaskSavePayload({
       taskId: "task-1",
       staffMembers: STAFF_MEMBERS,
@@ -110,7 +111,7 @@ describe("apps/admin/app/tasks/task-form-model", () => {
         type: "call",
         priority: "urgent",
         status: "todo",
-        dueDate: new Date("2026-04-01T00:00:00.000Z"),
+        dueDate,
         dueTime: "09:15",
         assignedTo: "staff-1",
         linkedEntity: LINKED_ENTITY,

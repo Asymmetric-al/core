@@ -81,8 +81,8 @@
         "clsx": "^2.1.1",
         "date-fns": "^4.1.0",
         "lucide-animated": "^1.0.0",
-        "lucide-react": "^0.554.0",
-        "motion": "^12.23.26",
+        "lucide-react": "^0.575.0",
+        "motion": "^12.34.2",
         "next": "16.2.1",
         "next-themes": "^0.4.6",
         "nuqs": "^2.8.6",
@@ -98,8 +98,8 @@
         "@asym/eslint-config": "workspace:*",
         "@asym/typescript-config": "workspace:*",
         "@types/node": "^22.10.5",
-        "@types/react": "^19.0.6",
-        "@types/react-dom": "^19.0.2",
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
         "eslint": "^9.39.2",
         "postcss": "^8.4.49",
         "tailwindcss": "^4.1.0",
@@ -123,20 +123,20 @@
         "@openpolicy/react": "0.0.17",
         "@openpolicy/sdk": "0.0.17",
         "@radix-ui/react-tabs": "^1.1.13",
-        "@stripe/react-stripe-js": "^3.1.1",
-        "@stripe/stripe-js": "^5.3.0",
+        "@stripe/react-stripe-js": "^3.10.0",
+        "@stripe/stripe-js": "^5.10.0",
         "@tanstack/react-query": "^5.90.21",
         "@tanstack/react-table": "^8.21.3",
         "date-fns": "^4.1.0",
-        "lucide-react": "^0.554.0",
-        "motion": "^12.23.26",
+        "lucide-react": "^0.575.0",
+        "motion": "^12.34.2",
         "next": "16.2.1",
         "next-themes": "^0.4.6",
         "nuqs": "^2.8.6",
         "react": "19.2.3",
         "react-dom": "19.2.3",
         "recharts": "^2.15.4",
-        "stripe": "^17.4.0",
+        "stripe": "^17.7.0",
       },
       "devDependencies": {
         "@asym/eslint-config": "workspace:*",
@@ -146,8 +146,8 @@
         "@openpolicy/renderers": "0.0.14",
         "@types/node": "^22.10.5",
         "@types/pdfkit": "0.17.5",
-        "@types/react": "^19.0.6",
-        "@types/react-dom": "^19.0.2",
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
         "eslint": "^9.39.2",
         "postcss": "^8.4.49",
         "tailwindcss": "^4.1.0",
@@ -174,8 +174,8 @@
         "@dnd-kit/utilities": "^3.2.2",
         "@tanstack/react-query": "^5.90.21",
         "date-fns": "^4.1.0",
-        "lucide-react": "^0.554.0",
-        "motion": "^12.23.26",
+        "lucide-react": "^0.575.0",
+        "motion": "^12.34.2",
         "next": "16.2.1",
         "next-themes": "^0.4.6",
         "nuqs": "^2.8.6",
@@ -189,8 +189,8 @@
         "@asym/eslint-config": "workspace:*",
         "@asym/typescript-config": "workspace:*",
         "@types/node": "^22.10.5",
-        "@types/react": "^19.0.6",
-        "@types/react-dom": "^19.0.2",
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
         "eslint": "^9.39.2",
         "postcss": "^8.4.49",
         "tailwindcss": "^4.1.0",
@@ -205,9 +205,9 @@
         "@asym/database": "workspace:*",
         "@asym/env": "workspace:*",
         "@asym/lib": "workspace:*",
-        "@supabase/ssr": "^0.5.2",
+        "@supabase/ssr": "^0.8.0",
         "next": "16.2.1",
-        "stripe": "^17.4.0",
+        "stripe": "^17.7.0",
         "zod": "^4.3.6",
       },
       "devDependencies": {
@@ -222,13 +222,13 @@
         "@asym/database": "workspace:*",
         "@asym/env": "workspace:*",
         "@supabase/ssr": "^0.8.0",
-        "@supabase/supabase-js": "^2.47.10",
+        "@supabase/supabase-js": "^2.89.0",
         "next": "16.2.1",
         "react": "^19.0.0",
       },
       "devDependencies": {
         "@asym/typescript-config": "workspace:*",
-        "@types/react": "^19.0.6",
+        "@types/react": "^19.2.14",
         "typescript": "^5.7.3",
       },
     },
@@ -237,7 +237,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@asym/env": "workspace:*",
-        "lucide-react": "^0.468.0",
+        "lucide-react": "^0.575.0",
       },
       "devDependencies": {
         "@asym/typescript-config": "workspace:*",
@@ -249,8 +249,8 @@
       "version": "0.1.0",
       "dependencies": {
         "@asym/env": "workspace:*",
-        "@supabase/ssr": "^0.5.2",
-        "@supabase/supabase-js": "^2.47.10",
+        "@supabase/ssr": "^0.8.0",
+        "@supabase/supabase-js": "^2.89.0",
         "@tanstack/db": "^0.5.28",
         "@tanstack/query-db-collection": "^1.0.25",
         "@tanstack/react-db": "^0.1.72",
@@ -294,9 +294,9 @@
         "@asym/auth": "workspace:*",
         "@asym/database": "workspace:*",
         "@asym/lib": "workspace:*",
-        "@supabase/supabase-js": "^2.47.10",
-        "graphql": "^16.12.0",
-        "graphql-yoga": "^5.18.0",
+        "@supabase/supabase-js": "^2.89.0",
+        "graphql": "16.12.0",
+        "graphql-yoga": "5.18.0",
       },
       "devDependencies": {
         "@asym/typescript-config": "workspace:*",
@@ -311,12 +311,12 @@
         "@asym/database": "workspace:*",
         "@asym/env": "workspace:*",
         "@sentry/nextjs": "^10.32.1",
-        "@stripe/stripe-js": "^5.3.0",
+        "@stripe/stripe-js": "^5.10.0",
         "@supabase/supabase-js": "^2.89.0",
         "clsx": "^2.1.1",
         "html-react-parser": "^5.2.17",
         "isomorphic-dompurify": "^2.36.0",
-        "lucide-react": "^0.554.0",
+        "lucide-react": "^0.575.0",
         "motion": "^12.34.2",
         "next": "16.2.1",
         "react": "19.2.3",
@@ -341,8 +341,8 @@
         "@dnd-kit/sortable": "^10.0.0",
         "@dnd-kit/utilities": "^3.2.2",
         "date-fns": "^4.1.0",
-        "lucide-react": "^0.554.0",
-        "motion": "^12.23.26",
+        "lucide-react": "^0.575.0",
+        "motion": "^12.34.2",
         "next": "16.2.1",
         "react": "19.2.3",
         "react-dom": "19.2.3",
@@ -352,8 +352,8 @@
       },
       "devDependencies": {
         "@asym/typescript-config": "workspace:*",
-        "@types/react": "^19.0.6",
-        "@types/react-dom": "^19.0.2",
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
         "typescript": "^5.7.3",
       },
     },
@@ -393,18 +393,19 @@
         "@radix-ui/react-toggle-group": "^1.1.11",
         "@radix-ui/react-tooltip": "^1.2.8",
         "@radix-ui/react-visually-hidden": "^1.2.4",
-        "@supabase/supabase-js": "^2.47.10",
+        "@supabase/supabase-js": "^2.89.0",
         "@tanstack/react-db": "^0.1.72",
         "@tanstack/react-form": "1.28.6",
         "@tanstack/react-query": "^5.90.21",
         "@tanstack/react-table": "^8.21.3",
         "@tanstack/react-virtual": "^3.13.19",
-        "@tiptap/extension-image": "^3.14.0",
-        "@tiptap/extension-link": "^3.14.0",
-        "@tiptap/extension-placeholder": "^3.14.0",
-        "@tiptap/extension-underline": "^3.14.0",
-        "@tiptap/react": "^3.14.0",
-        "@tiptap/starter-kit": "^3.14.0",
+        "@tiptap/extension-image": "^3.20.1",
+        "@tiptap/extension-link": "^3.20.1",
+        "@tiptap/extension-placeholder": "^3.20.1",
+        "@tiptap/extension-underline": "^3.20.1",
+        "@tiptap/pm": "^3.20.1",
+        "@tiptap/react": "^3.20.1",
+        "@tiptap/starter-kit": "^3.20.1",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "cmdk": "^1.1.1",
@@ -413,7 +414,7 @@
         "input-otp": "^1.4.2",
         "lucide-react": "^0.575.0",
         "maplibre-gl": "^5.15.0",
-        "motion": "^12.23.26",
+        "motion": "^12.34.2",
         "next": "16.2.1",
         "next-themes": "^0.4.6",
         "nuqs": "^2.8.6",
@@ -428,8 +429,8 @@
       "devDependencies": {
         "@asym/eslint-config": "workspace:*",
         "@asym/typescript-config": "workspace:*",
-        "@types/react": "^19.0.6",
-        "@types/react-dom": "^19.0.2",
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
         "eslint": "^9.39.2",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
@@ -445,7 +446,7 @@
       "name": "@asym/eslint-config",
       "version": "0.1.0",
       "dependencies": {
-        "eslint-config-next": "^16.1.0",
+        "eslint-config-next": "16.2.1",
       },
       "peerDependencies": {
         "@typescript-eslint/eslint-plugin": "*",
@@ -1436,8 +1437,6 @@
 
     "@types/connect": ["@types/connect@3.4.38", "", { "dependencies": { "@types/node": "*" } }, "sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug=="],
 
-    "@types/cookie": ["@types/cookie@0.6.0", "", {}, "sha512-4Kh9a6B2bQciAhf7FSuMRRkUWecJgJu9nPnx3yzpsfXX/c50REIqpHY4C82bXP90qrLtXtkDxTZosYO3UpOwlA=="],
-
     "@types/d3-array": ["@types/d3-array@3.2.2", "", {}, "sha512-hOLWVbm7uRza0BYXpIIW5pxfrKe0W+D5lrFiAEYR+pb6w3N2SwSMaJbXdUfSEv+dT4MfHBLtn5js0LAWaO6otw=="],
 
     "@types/d3-color": ["@types/d3-color@3.1.3", "", {}, "sha512-iO90scth9WAbmgv7ogoq57O9YpKmFBbmoEoCHDB2xMBY0+/KVrqAaCDyCE16dUspeOvIxFFRI+0sEtqDqy2b4A=="],
@@ -1504,7 +1503,7 @@
 
     "@types/phoenix": ["@types/phoenix@1.6.7", "", {}, "sha512-oN9ive//QSBkf19rfDv45M7eZPi0eEXylht2OLEXicu5b4KoQ1OzXIw+xDSGWxSxe1JmepRR/ZH283vsu518/Q=="],
 
-    "@types/react": ["@types/react@19.2.7", "", { "dependencies": { "csstype": "^3.2.2" } }, "sha512-MWtvHrGZLFttgeEj28VXHxpmwYbor/ATPYbBfSFZEIRK0ecCFLl2Qo55z52Hss+UV9CRN7trSeq1zbgx7YDWWg=="],
+    "@types/react": ["@types/react@19.2.14", "", { "dependencies": { "csstype": "^3.2.2" } }, "sha512-ilcTH/UniCkMdtexkoCN0bI7pMcJDvmQFPvuPvmEaYA/NSfFTAgdUSLAoVjaRJm7+6PvcM+q1zYOwS4wTYMF9w=="],
 
     "@types/react-dom": ["@types/react-dom@19.2.3", "", { "peerDependencies": { "@types/react": "^19.2.0" } }, "sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ=="],
 
@@ -2568,7 +2567,7 @@
 
     "lucide-animated": ["lucide-animated@1.0.0", "", { "peerDependencies": { "motion": ">=11.0.0", "react": ">=18.0.0" } }, "sha512-7KP+/B/wGwVizVCKMOHDgYFhiwRFim+eE/TFBZg03ZbcB/kwgoJvGDz+0Ya32+Tt6rpt7S1enLIWC7ela256Eg=="],
 
-    "lucide-react": ["lucide-react@0.554.0", "", { "peerDependencies": { "react": "^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-St+z29uthEJVx0Is7ellNkgTEhaeSoA42I7JjOCBCrc5X6LYMGSv0P/2uS5HDLTExP5tpiqRD2PyUEOS6s9UXA=="],
+    "lucide-react": ["lucide-react@0.575.0", "", { "peerDependencies": { "react": "^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-VuXgKZrk0uiDlWjGGXmKV6MSk9Yy4l10qgVvzGn2AWBx1Ylt0iBexKOAoA6I7JO3m+M9oeovJd3yYENfkUbOeg=="],
 
     "magic-string": ["magic-string@0.30.21", "", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.5" } }, "sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ=="],
 
@@ -3526,19 +3525,11 @@
 
     "@asym/admin/@types/node": ["@types/node@22.19.7", "", { "dependencies": { "undici-types": "~6.21.0" } }, "sha512-MciR4AKGHWl7xwxkBa6xUGxQJ4VBOmPTF7sL+iGzuahOFaO0jHCsuEfS80pan1ef4gWId1oWOweIhrDEYLuaOw=="],
 
-    "@asym/api/@supabase/ssr": ["@supabase/ssr@0.5.2", "", { "dependencies": { "@types/cookie": "^0.6.0", "cookie": "^0.7.0" }, "peerDependencies": { "@supabase/supabase-js": "^2.43.4" } }, "sha512-n3plRhr2Bs8Xun1o4S3k1CDv17iH5QY9YcoEvXX3bxV1/5XSasA0mNXYycFmADIdtdE6BG9MRjP5CGIs8qxC8A=="],
-
-    "@asym/config/lucide-react": ["lucide-react@0.468.0", "", { "peerDependencies": { "react": "^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0-rc" } }, "sha512-6koYRhnM2N0GGZIdXzSeiNwguv1gt/FAjZOiPl76roBi3xKEXa4WmfpxgQwTTL4KipXjefrnf3oV4IsYhi4JFA=="],
-
-    "@asym/database/@supabase/ssr": ["@supabase/ssr@0.5.2", "", { "dependencies": { "@types/cookie": "^0.6.0", "cookie": "^0.7.0" }, "peerDependencies": { "@supabase/supabase-js": "^2.43.4" } }, "sha512-n3plRhr2Bs8Xun1o4S3k1CDv17iH5QY9YcoEvXX3bxV1/5XSasA0mNXYycFmADIdtdE6BG9MRjP5CGIs8qxC8A=="],
-
     "@asym/donor/@types/node": ["@types/node@22.19.7", "", { "dependencies": { "undici-types": "~6.21.0" } }, "sha512-MciR4AKGHWl7xwxkBa6xUGxQJ4VBOmPTF7sL+iGzuahOFaO0jHCsuEfS80pan1ef4gWId1oWOweIhrDEYLuaOw=="],
 
     "@asym/graphql/graphql-yoga": ["graphql-yoga@5.18.0", "", { "dependencies": { "@envelop/core": "^5.3.0", "@envelop/instrumentation": "^1.0.0", "@graphql-tools/executor": "^1.5.0", "@graphql-tools/schema": "^10.0.11", "@graphql-tools/utils": "^10.11.0", "@graphql-yoga/logger": "^2.0.1", "@graphql-yoga/subscription": "^5.0.5", "@whatwg-node/fetch": "^0.10.6", "@whatwg-node/promise-helpers": "^1.3.2", "@whatwg-node/server": "^0.10.14", "lru-cache": "^10.0.0", "tslib": "^2.8.1" }, "peerDependencies": { "graphql": "^15.2.0 || ^16.0.0" } }, "sha512-xFt1DVXS1BZ3AvjnawAGc5OYieSe56WuQuyk3iEpBwJ3QDZJWQGLmU9z/L5NUZ+pUcyprsz/bOwkYIV96fXt/g=="],
 
     "@asym/missionary-app/@types/node": ["@types/node@22.19.7", "", { "dependencies": { "undici-types": "~6.21.0" } }, "sha512-MciR4AKGHWl7xwxkBa6xUGxQJ4VBOmPTF7sL+iGzuahOFaO0jHCsuEfS80pan1ef4gWId1oWOweIhrDEYLuaOw=="],
-
-    "@asym/ui/lucide-react": ["lucide-react@0.575.0", "", { "peerDependencies": { "react": "^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-VuXgKZrk0uiDlWjGGXmKV6MSk9Yy4l10qgVvzGn2AWBx1Ylt0iBexKOAoA6I7JO3m+M9oeovJd3yYENfkUbOeg=="],
 
     "@babel/core/semver": ["semver@6.3.1", "", { "bin": { "semver": "bin/semver.js" } }, "sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA=="],
 
@@ -4005,10 +3996,6 @@
     "yargs/yargs-parser": ["yargs-parser@18.1.3", "", { "dependencies": { "camelcase": "^5.0.0", "decamelize": "^1.2.0" } }, "sha512-o50j0JeToy/4K6OZcaQmW6lyXXKhq7csREXcDwk2omFPJEwUNOVtJKvmDr9EI1fAJZUyZcRF7kxGBWmRXudrCQ=="],
 
     "@apidevtools/json-schema-ref-parser/js-yaml/argparse": ["argparse@2.0.1", "", {}, "sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q=="],
-
-    "@asym/api/@supabase/ssr/cookie": ["cookie@0.7.2", "", {}, "sha512-yki5XnKuf750l50uGTllt6kKILY4nQ1eNIQatoXEByZ5dWgnKqbnqmTrBE5B4N7lrMJKQ2ytWMiTO2o0v6Ew/w=="],
-
-    "@asym/database/@supabase/ssr/cookie": ["cookie@0.7.2", "", {}, "sha512-yki5XnKuf750l50uGTllt6kKILY4nQ1eNIQatoXEByZ5dWgnKqbnqmTrBE5B4N7lrMJKQ2ytWMiTO2o0v6Ew/w=="],
 
     "@esbuild-kit/core-utils/esbuild/@esbuild/android-arm": ["@esbuild/android-arm@0.18.20", "", { "os": "android", "cpu": "arm" }, "sha512-fyi7TDI/ijKKNZTUJAQqiG5T7YjJXgnzkURqmGj13C6dCqckZBLdl4h7bkhHt/t0WP+zO9/zwroDvANaOqO5Sw=="],
 
