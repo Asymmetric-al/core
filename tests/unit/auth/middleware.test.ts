@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  createE2EAuthCookieValue,
+  E2E_AUTH_COOKIE_NAME,
+} from "../../../packages/auth/e2e-auth";
+
 // Stable object identity for hoisted mock factory (reassigning `let` can desync the mock).
 const mockSupabaseConfig = {
   url: null as string | null,
@@ -41,7 +46,13 @@ vi.mock("@supabase/ssr", () => ({
 const { createAuthMiddleware } =
   await import("../../../packages/auth/middleware");
 
-function createRequest(pathname: string) {
+const originalE2EAuthBypass = process.env.E2E_AUTH_BYPASS;
+const originalNodeEnv = process.env.NODE_ENV;
+
+function createRequest(
+  pathname: string,
+  cookieGetImpl?: (name: string) => { value: string } | undefined,
+) {
   const nextUrl = new URL(`https://example.org${pathname}`);
   (nextUrl as URL & { clone: () => URL }).clone = () =>
     new URL(nextUrl.toString());
@@ -49,7 +60,7 @@ function createRequest(pathname: string) {
   return {
     nextUrl,
     cookies: {
-      get: vi.fn(() => undefined),
+      get: vi.fn((name: string) => cookieGetImpl?.(name)),
       getAll: vi.fn(() => []),
       set: vi.fn(),
     },
@@ -72,6 +83,8 @@ function mockConfigWithUser(userId: string | null = "user_123") {
 
 describe("createAuthMiddleware", () => {
   beforeEach(() => {
+    process.env.E2E_AUTH_BYPASS = originalE2EAuthBypass;
+    process.env.NODE_ENV = originalNodeEnv;
     mockNoConfig();
   });
 
@@ -158,5 +171,29 @@ describe("createAuthMiddleware", () => {
       expect(location).toMatch(/^https:\/\/example\.org\/login/);
       expect(location).not.toMatch(/^https:\/\/evil\.com/);
     }
+  });
+
+  it("allows protected routes when E2E bypass cookie is present (no Supabase user)", async () => {
+    process.env.E2E_AUTH_BYPASS = "true";
+    process.env.NODE_ENV = "development";
+    mockConfigWithUser(null);
+    const e2eValue = createE2EAuthCookieValue({
+      userId: "e2e-donor-user",
+      role: "donor",
+      tenantId: null,
+    });
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register"],
+      protectedRoutePrefixes: ["/donor-dashboard"],
+      loginPath: "/login",
+    });
+
+    const response = await middleware(
+      createRequest("/donor-dashboard/settings", (name) =>
+        name === E2E_AUTH_COOKIE_NAME ? { value: e2eValue } : undefined,
+      ),
+    );
+
+    expect(response.status).toBe(200);
   });
 });

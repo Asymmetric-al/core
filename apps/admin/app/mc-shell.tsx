@@ -37,6 +37,7 @@ import SearchDialog from "@asym/ui/components/shadcn-studio/blocks/dialog-search
 import LanguageDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-language";
 import NotificationDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-notification";
 import ProfileDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-profile";
+import { RouteMainViewTransitionBoundary } from "@asym/ui/components/view-transitions";
 import { cn } from "@asym/ui/lib/utils";
 import {
   Activity,
@@ -439,7 +440,9 @@ function ApplicationShell({ children }: { children: ReactNode }) {
         >
           <AppHeader />
         </ClientOnly>
-        <main className="flex-1 overflow-auto">{children}</main>
+        <RouteMainViewTransitionBoundary className="flex-1 overflow-auto">
+          {children}
+        </RouteMainViewTransitionBoundary>
       </div>
     </SidebarProvider>
   );

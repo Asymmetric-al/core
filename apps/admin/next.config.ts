@@ -34,6 +34,7 @@ const nextConfig: NextConfig = {
     return webpackConfig;
   },
   experimental: {
+    viewTransition: true,
     optimizePackageImports: [
       "@asym/ui",
       "lucide-react",

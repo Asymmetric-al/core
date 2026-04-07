@@ -2,6 +2,10 @@
 
 import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
 import {
+  MISSIONARY_SETTINGS_HEADER_VT_NAME,
+  MISSIONARY_SHELL_AVATAR_VT_NAME,
+} from "@asym/lib/view-transitions";
+import {
   Avatar,
   AvatarFallback,
   AvatarImage,
@@ -30,6 +34,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@asym/ui/components/shadcn/tooltip";
+import { SharedNamedViewTransition } from "@asym/ui/components/view-transitions";
 import { cn } from "@asym/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -335,12 +340,14 @@ function AvatarUploadArea({
       whileTap={{ scale: 0.97 }}
       transition={springTransition}
     >
-      <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-white shadow-lg">
-        <AvatarImage src={avatarUrl} />
-        <AvatarFallback className="bg-zinc-900 text-lg sm:text-xl font-bold text-white uppercase">
-          {initials || "U"}
-        </AvatarFallback>
-      </Avatar>
+      <SharedNamedViewTransition name={MISSIONARY_SHELL_AVATAR_VT_NAME}>
+        <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-white shadow-lg">
+          <AvatarImage src={avatarUrl} />
+          <AvatarFallback className="bg-zinc-900 text-lg sm:text-xl font-bold text-white uppercase">
+            {initials || "U"}
+          </AvatarFallback>
+        </Avatar>
+      </SharedNamedViewTransition>
 
       <motion.div
         className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center"
@@ -1677,6 +1684,7 @@ function useProfilePageView() {
           <motion.div variants={fadeInUp} transition={gentleTransition}>
             <PageHeader
               title="Profile"
+              titleViewTransitionName={MISSIONARY_SETTINGS_HEADER_VT_NAME}
               description="Update your information and how you appear to supporters."
             >
               <ProfileHeaderActions
