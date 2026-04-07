@@ -206,6 +206,8 @@ export function DataTableResponsiveTableView<TData>({
     },
   });
 
+  const actionsColumnCount = rowActions && rowActions.length > 0 ? 1 : 0;
+
   const renderDataRow = (row: Row<TData>, rowIndex: number) => {
     const rowProps = keyboard.getRowProps(rowIndex);
     return (
@@ -262,6 +264,11 @@ export function DataTableResponsiveTableView<TData>({
                   onClick={(event) => {
                     event.stopPropagation();
                     action.onClick(row.original);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.stopPropagation();
+                    }
                   }}
                 >
                   {action.icon && <action.icon className="size-4" />}
@@ -350,7 +357,7 @@ export function DataTableResponsiveTableView<TData>({
                   {virtualPaddingTop > 0 && (
                     <TableRow>
                       <TableCell
-                        colSpan={tableColumnsLength}
+                        colSpan={tableColumnsLength + actionsColumnCount}
                         className="p-0"
                         style={{ height: virtualPaddingTop }}
                       />
@@ -363,7 +370,7 @@ export function DataTableResponsiveTableView<TData>({
                   {virtualPaddingBottom > 0 && (
                     <TableRow>
                       <TableCell
-                        colSpan={tableColumnsLength}
+                        colSpan={tableColumnsLength + actionsColumnCount}
                         className="p-0"
                         style={{ height: virtualPaddingBottom }}
                       />
@@ -378,7 +385,7 @@ export function DataTableResponsiveTableView<TData>({
             ) : (
               <TableRow role="row">
                 <TableCell
-                  colSpan={tableColumnsLength + (rowActions ? 1 : 0)}
+                  colSpan={tableColumnsLength + actionsColumnCount}
                   className="h-64"
                   role="gridcell"
                 >

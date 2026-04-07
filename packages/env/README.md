@@ -36,13 +36,15 @@ Cloudinary server/client keys are conditionally required only when Cloudinary is
 
 ## Migration Policy
 
-| Change                    | Required updates                                                                      | Notes                                                      |
-| ------------------------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| Add env var               | Update `.env.example`, add schema entry, add `runtimeEnv` mapping, update README/docs | Choose `server` vs `client` based on `NEXT_PUBLIC_` prefix |
-| Change validation         | Update `packages/env/src/schema.ts` and docs                                          | Keep changes backwards-compatible when possible            |
-| Remove env var            | Remove from `.env.example`, schema, and `runtimeEnv`; document migration              | Coordinate app/package cleanup before removal              |
-| Make optional -> required | Update schema + required list + contributor docs                                      | Treat as breaking for local setup/CI expectations          |
-| Make required -> optional | Update schema + required list + docs                                                  | Confirm fallback behavior in consuming code                |
+| Change      | Required updates                                                                      | Notes                                                      |
+| ----------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Add env var | Update `.env.example`, add schema entry, add `runtimeEnv` mapping, update README/docs | Choose `server` vs `client` based on `NEXT_PUBLIC_` prefix |
+
+Optional client flags include `NEXT_PUBLIC_VIEW_TRANSITIONS_ENABLED` (experimental React View Transitions; default off).
+| Change validation | Update `packages/env/src/schema.ts` and docs | Keep changes backwards-compatible when possible |
+| Remove env var | Remove from `.env.example`, schema, and `runtimeEnv`; document migration | Coordinate app/package cleanup before removal |
+| Make optional -> required | Update schema + required list + contributor docs | Treat as breaking for local setup/CI expectations |
+| Make required -> optional | Update schema + required list + docs | Confirm fallback behavior in consuming code |
 
 ## Add a New Env Var
 

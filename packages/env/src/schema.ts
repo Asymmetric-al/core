@@ -151,6 +151,8 @@ export const env = createEnv({
       "NEXT_PUBLIC_CLOUDINARY_API_KEY",
     ),
     NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
+    /** Opt-in experimental React View Transitions (see `experimental.viewTransition` in Next config). */
+    NEXT_PUBLIC_VIEW_TRANSITIONS_ENABLED: optionalBoolean,
   },
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
@@ -221,6 +223,8 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
     NEXT_PUBLIC_CLOUDINARY_API_KEY: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
+    NEXT_PUBLIC_VIEW_TRANSITIONS_ENABLED:
+      process.env.NEXT_PUBLIC_VIEW_TRANSITIONS_ENABLED,
   },
   skipValidation:
     process.env.SKIP_ENV_VALIDATION === "1" ||

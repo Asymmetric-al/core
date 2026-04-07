@@ -37,7 +37,8 @@
     "./mission-control/tiles": "./mission-control/tiles.ts",
     "./mission-control/nav": "./mission-control/nav.ts",
     "./mission-control/roles": "./mission-control/roles.ts",
-    "./mission-control/types": "./mission-control/types.ts"
+    "./mission-control/types": "./mission-control/types.ts",
+    "./view-transitions": "./view-transitions/index.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
@@ -49,12 +50,12 @@
     "@asym/database": "workspace:*",
     "@asym/env": "workspace:*",
     "@sentry/nextjs": "^10.32.1",
-    "@stripe/stripe-js": "^5.3.0",
+    "@stripe/stripe-js": "^5.10.0",
     "@supabase/supabase-js": "^2.89.0",
     "clsx": "^2.1.1",
     "html-react-parser": "^5.2.17",
     "isomorphic-dompurify": "^2.36.0",
-    "lucide-react": "^0.554.0",
+    "lucide-react": "^0.575.0",
     "motion": "^12.34.2",
     "next": "16.2.1",
     "react": "19.2.3",

@@ -413,6 +413,8 @@ export function DataTableBodyWithTableState<TData, TValue>({
     },
   });
 
+  const rowActionsColumnCount = rowActions?.length ? 1 : 0;
+
   const renderRowActionsCell = (row: Row<TData>) => {
     if (!rowActions?.length) {
       return null;
@@ -436,6 +438,7 @@ export function DataTableBodyWithTableState<TData, TValue>({
       tabIndex={onRowClick ? 0 : undefined}
       onClick={() => onRowClick?.(row)}
       onKeyDown={(event) => {
+        if (event.target !== event.currentTarget) return;
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
           onRowClick?.(row);
@@ -537,6 +540,11 @@ export function DataTableBodyWithTableState<TData, TValue>({
                         </TableHead>
                       );
                     })}
+                    {rowActionsColumnCount > 0 && (
+                      <TableHead className="h-12 px-4 text-right text-xs font-semibold text-muted-foreground">
+                        Actions
+                      </TableHead>
+                    )}
                   </TableRow>
                 ))}
               </TableHeader>
@@ -547,7 +555,9 @@ export function DataTableBodyWithTableState<TData, TValue>({
                       {virtualPaddingTop > 0 && (
                         <TableRow>
                           <TableCell
-                            colSpan={tableColumns.length}
+                            colSpan={
+                              tableColumns.length + rowActionsColumnCount
+                            }
                             className="p-0"
                             style={{ height: virtualPaddingTop }}
                           />
@@ -560,7 +570,9 @@ export function DataTableBodyWithTableState<TData, TValue>({
                       {virtualPaddingBottom > 0 && (
                         <TableRow>
                           <TableCell
-                            colSpan={tableColumns.length}
+                            colSpan={
+                              tableColumns.length + rowActionsColumnCount
+                            }
                             className="p-0"
                             style={{ height: virtualPaddingBottom }}
                           />
@@ -572,7 +584,10 @@ export function DataTableBodyWithTableState<TData, TValue>({
                   )
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={tableColumns.length} className="h-64">
+                    <TableCell
+                      colSpan={tableColumns.length + rowActionsColumnCount}
+                      className="h-64"
+                    >
                       {emptyState ?? defaultEmptyState}
                     </TableCell>
                   </TableRow>

@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "@asym/lib/motion";
 import { transitionStandard } from "@asym/lib/motion-presets";
+import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
@@ -30,30 +31,33 @@ export function PageShell({
   contentClassName,
 }: PageShellProps) {
   const reduceMotion = useReducedMotion();
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
 
-  const headerMotion = reduceMotion
-    ? {
-        initial: { opacity: 1, y: 0 },
-        animate: { opacity: 1, y: 0 },
-        transition: { duration: 0 },
-      }
-    : {
-        initial: { opacity: 0, y: -8 },
-        animate: { opacity: 1, y: 0 },
-        transition: transitionStandard,
-      };
+  const headerMotion =
+    reduceMotion || withinRouteVt
+      ? {
+          initial: { opacity: 1, y: 0 },
+          animate: { opacity: 1, y: 0 },
+          transition: { duration: 0 },
+        }
+      : {
+          initial: { opacity: 0, y: -8 },
+          animate: { opacity: 1, y: 0 },
+          transition: transitionStandard,
+        };
 
-  const actionsMotion = reduceMotion
-    ? {
-        initial: { opacity: 1, x: 0 },
-        animate: { opacity: 1, x: 0 },
-        transition: { duration: 0 },
-      }
-    : {
-        initial: { opacity: 0, x: 12 },
-        animate: { opacity: 1, x: 0 },
-        transition: { ...transitionStandard, delay: 0.08 },
-      };
+  const actionsMotion =
+    reduceMotion || withinRouteVt
+      ? {
+          initial: { opacity: 1, x: 0 },
+          animate: { opacity: 1, x: 0 },
+          transition: { duration: 0 },
+        }
+      : {
+          initial: { opacity: 0, x: 12 },
+          animate: { opacity: 1, x: 0 },
+          transition: { ...transitionStandard, delay: 0.08 },
+        };
 
   return (
     <div

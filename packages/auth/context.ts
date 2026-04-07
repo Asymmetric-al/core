@@ -132,6 +132,24 @@ function createUnauthenticatedContext(): AuthContext {
 
 export async function getAuthContext(request?: Request): Promise<AuthContext> {
   const bearerToken = getBearerToken(request);
+
+  if (!bearerToken && isE2EAuthBypassEnabled()) {
+    const cookieStore = await cookies();
+    const raw = cookieStore.get(E2E_AUTH_COOKIE_NAME)?.value;
+    const e2eSession = parseE2EAuthCookieValue(raw);
+    if (e2eSession) {
+      return {
+        userId: e2eSession.userId,
+        tenantId: e2eSession.tenantId,
+        role: e2eSession.role,
+        profileRole: e2eSession.role,
+        memberships: [],
+        profileId: null,
+        isAuthenticated: true,
+      };
+    }
+  }
+
   const supabase = await createAuthContextClient(request);
 
   if (!supabase) {
