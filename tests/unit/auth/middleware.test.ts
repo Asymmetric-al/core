@@ -41,8 +41,6 @@ vi.mock("@supabase/ssr", () => ({
 const { createAuthMiddleware } =
   await import("../../../packages/auth/middleware");
 
-const originalE2EAuthBypass = process.env.E2E_AUTH_BYPASS;
-
 function createRequest(pathname: string) {
   const nextUrl = new URL(`https://example.org${pathname}`);
   (nextUrl as URL & { clone: () => URL }).clone = () =>
@@ -74,7 +72,6 @@ function mockConfigWithUser(userId: string | null = "user_123") {
 
 describe("createAuthMiddleware", () => {
   beforeEach(() => {
-    process.env.E2E_AUTH_BYPASS = originalE2EAuthBypass;
     mockNoConfig();
   });
 

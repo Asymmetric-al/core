@@ -1,6 +1,9 @@
 import { NextResponse, connection, type NextRequest } from "next/server";
 
-import { getPayloadClient } from "../../../../../src/cms/get-payload";
+import {
+  getPayloadClient,
+  isPayloadClientInitializationError,
+} from "../../../../../src/cms/get-payload";
 import { resolveTenantFromRequest } from "../../../../../src/cms/public/resolve-tenant";
 
 async function ensureRequestTimeExecution() {
@@ -43,6 +46,15 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (isPayloadClientInitializationError(error)) {
+      console.error(error.message);
+
+      return NextResponse.json(
+        { error: "Failed to fetch navigation content" },
+        { status: error.statusCode },
+      );
+    }
+
     console.error("Failed to fetch CMS navigation.", error);
 
     return NextResponse.json(
