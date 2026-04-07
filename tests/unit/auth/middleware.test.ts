@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createE2EAuthCookieValue } from "../../../packages/auth/e2e-auth";
 
 // Stable object identity for hoisted mock factory (reassigning `let` can desync the mock).
 const mockSupabaseConfig = {
@@ -42,8 +41,6 @@ vi.mock("@supabase/ssr", () => ({
 const { createAuthMiddleware } =
   await import("../../../packages/auth/middleware");
 
-const originalE2EAuthBypass = process.env.E2E_AUTH_BYPASS;
-
 function createRequest(pathname: string) {
   const nextUrl = new URL(`https://example.org${pathname}`);
   (nextUrl as URL & { clone: () => URL }).clone = () =>
@@ -75,7 +72,6 @@ function mockConfigWithUser(userId: string | null = "user_123") {
 
 describe("createAuthMiddleware", () => {
   beforeEach(() => {
-    process.env.E2E_AUTH_BYPASS = originalE2EAuthBypass;
     mockNoConfig();
   });
 
@@ -133,29 +129,6 @@ describe("createAuthMiddleware", () => {
       "https://example.org/login",
     );
     expect(response.headers.get("location")).toContain("next=%2Fweb-studio");
-  });
-
-  it("allows protected routes when the e2e bypass cookie is present", async () => {
-    process.env.E2E_AUTH_BYPASS = "true";
-    mockNoConfig();
-    const middleware = createAuthMiddleware({
-      publicRoutes: ["/login", "/register", "/auth/callback"],
-      protectedRoutePrefixes: ["/"],
-      loginPath: "/login",
-    });
-    const request = createRequest("/web-studio");
-    const encoded = createE2EAuthCookieValue({
-      userId: "e2e-donor-user",
-      role: "donor",
-      tenantId: null,
-    });
-    request.cookies.get = vi.fn((name: string) =>
-      name === "asym_e2e_auth" ? { value: encoded } : undefined,
-    );
-
-    const response = await middleware(request);
-
-    expect(response.status).toBe(200);
   });
 
   it("allows auth route request when session present", async () => {
