@@ -19,6 +19,8 @@ interface DataTableToolbarProps<TData> {
   searchKey?: string;
   searchPlaceholder?: string;
   enableColumnVisibility?: boolean;
+  /** When true, search and filter controls are non-interactive (e.g. nuqs URL sync in flight). */
+  urlStatePending?: boolean;
   className?: string;
   children?: React.ReactNode;
 }
@@ -31,6 +33,7 @@ export function DataTableToolbar<TData>({
   searchKey,
   searchPlaceholder = "Search...",
   enableColumnVisibility = true,
+  urlStatePending = false,
   className,
   children,
 }: DataTableToolbarProps<TData>) {
@@ -50,6 +53,8 @@ export function DataTableToolbar<TData>({
               onChange={(event) =>
                 table.getColumn(searchKey)?.setFilterValue(event.target.value)
               }
+              disabled={urlStatePending}
+              aria-busy={urlStatePending || undefined}
               className="h-10 pl-10 rounded-xl bg-background border-border"
             />
           </div>
@@ -65,6 +70,7 @@ export function DataTableToolbar<TData>({
                 column={column}
                 title={field.label}
                 options={field.options}
+                disabled={urlStatePending}
               />
             );
           })}
@@ -73,6 +79,7 @@ export function DataTableToolbar<TData>({
               aria-label="Reset filters"
               variant="ghost"
               onClick={() => table.resetColumnFilters()}
+              disabled={urlStatePending}
               className="h-9 px-3 rounded-xl text-muted-foreground hover:text-foreground"
             >
               Reset
@@ -82,7 +89,9 @@ export function DataTableToolbar<TData>({
         </div>
         <div className="flex items-center gap-2 ml-auto">
           {children}
-          {enableColumnVisibility && <DataTableViewOptions table={table} />}
+          {enableColumnVisibility && (
+            <DataTableViewOptions table={table} disabled={urlStatePending} />
+          )}
         </div>
       </div>
     </div>

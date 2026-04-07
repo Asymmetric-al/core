@@ -219,8 +219,9 @@ export default function ContributionsPage() {
             columns={columns}
             data={data}
             filterFields={filterFields}
-            searchKey="donor"
+            searchColumnId="donor"
             searchPlaceholder="Search by donor name or email..."
+            getRowId={(contribution) => contribution.id}
             isLoading={isLoading}
             config={{
               enableRowSelection: true,

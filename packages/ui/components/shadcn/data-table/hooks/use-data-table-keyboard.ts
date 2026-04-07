@@ -27,6 +27,7 @@ export interface UseDataTableKeyboardReturn {
   getRowProps: (rowIndex: number) => {
     tabIndex: number;
     "data-focused": boolean;
+    ref: (el: HTMLElement | null) => void;
     onKeyDown: (e: React.KeyboardEvent) => void;
     onFocus: () => void;
     onBlur: () => void;

@@ -11,21 +11,12 @@ const mockSupabaseConfig = {
   key: null as string | null,
   keyType: null as "anon" | "publishable" | null,
 };
-let configReadCount = 0;
-
 const { supabaseSessionRef } = vi.hoisted(() => ({
   supabaseSessionRef: { userId: null as string | null },
 }));
 
 vi.mock("@asym/database/supabase/config", () => ({
-  getSupabasePublicConfig: () => {
-    configReadCount++;
-    return {
-      url: mockSupabaseConfig.url,
-      key: mockSupabaseConfig.key,
-      keyType: mockSupabaseConfig.keyType,
-    };
-  },
+  getSupabasePublicConfig: () => mockSupabaseConfig,
 }));
 
 vi.mock("@supabase/ssr", () => ({
@@ -49,10 +40,7 @@ const { createAuthMiddleware } =
 const originalE2EAuthBypass = process.env.E2E_AUTH_BYPASS;
 const originalNodeEnv = process.env.NODE_ENV;
 
-function createRequest(
-  pathname: string,
-  cookieGetImpl?: (name: string) => { value: string } | undefined,
-) {
+function createRequest(pathname: string, cookieMap?: Record<string, string>) {
   const nextUrl = new URL(`https://example.org${pathname}`);
   (nextUrl as URL & { clone: () => URL }).clone = () =>
     new URL(nextUrl.toString());
@@ -60,7 +48,9 @@ function createRequest(
   return {
     nextUrl,
     cookies: {
-      get: vi.fn((name: string) => cookieGetImpl?.(name)),
+      get: vi.fn((name: string) =>
+        cookieMap?.[name] ? { name, value: cookieMap[name] } : undefined,
+      ),
       getAll: vi.fn(() => []),
       set: vi.fn(),
     },
@@ -144,6 +134,51 @@ describe("createAuthMiddleware", () => {
     expect(response.headers.get("location")).toContain("next=%2Fweb-studio");
   });
 
+  it("accepts E2E auth cookie when bypass is enabled and role is allowed", async () => {
+    process.env.E2E_AUTH_BYPASS = "1";
+    mockConfigWithUser(null);
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/auth/callback"],
+      protectedRoutePrefixes: ["/donor-dashboard"],
+      loginPath: "/login",
+      allowedRoles: ["donor", "super_admin"],
+    });
+    const cookieValue = createE2EAuthCookieValue({
+      userId: "e2e-donor-user",
+      role: "donor",
+      tenantId: null,
+    });
+    const response = await middleware(
+      createRequest("/donor-dashboard/settings", {
+        [E2E_AUTH_COOKIE_NAME]: cookieValue,
+      }),
+    );
+    expect(response.status).toBe(200);
+  });
+
+  it("rejects E2E auth cookie when role is not allowed", async () => {
+    process.env.E2E_AUTH_BYPASS = "1";
+    mockConfigWithUser(null);
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/auth/callback"],
+      protectedRoutePrefixes: ["/donor-dashboard"],
+      loginPath: "/login",
+      allowedRoles: ["donor", "super_admin"],
+    });
+    const cookieValue = createE2EAuthCookieValue({
+      userId: "e2e-admin-user",
+      role: "admin",
+      tenantId: null,
+    });
+    const response = await middleware(
+      createRequest("/donor-dashboard/settings", {
+        [E2E_AUTH_COOKIE_NAME]: cookieValue,
+      }),
+    );
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/login");
+  });
+
   it("allows auth route request when session present", async () => {
     mockConfigWithUser();
     const middleware = createAuthMiddleware({
@@ -189,9 +224,9 @@ describe("createAuthMiddleware", () => {
     });
 
     const response = await middleware(
-      createRequest("/donor-dashboard/settings", (name) =>
-        name === E2E_AUTH_COOKIE_NAME ? { value: e2eValue } : undefined,
-      ),
+      createRequest("/donor-dashboard/settings", {
+        [E2E_AUTH_COOKIE_NAME]: e2eValue,
+      }),
     );
 
     expect(response.status).toBe(200);

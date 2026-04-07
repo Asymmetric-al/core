@@ -1,763 +1,99 @@
 "use client";
 
-import {
-  type ColumnDef,
-  type ColumnFiltersState,
-  type SortingState,
-  type VisibilityState,
-  type RowSelectionState,
-  type PaginationState,
-  type Row,
-  type Table as TanStackTable,
-  flexRender,
-  getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import { Inbox, LayoutGrid, LayoutList } from "lucide-react";
 import * as React from "react";
 
-import { cn } from "@asym/ui/lib/utils";
-
-import { Button } from "../button";
-import { Checkbox } from "../checkbox";
+import { DataTableResponsiveInner } from "./data-table-responsive-inner";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../table";
-import { DataTableCardView } from "./data-table-card-view";
-import { DataTableFloatingBar } from "./data-table-floating-bar";
-import { DataTablePagination } from "./data-table-pagination";
+  EMPTY_RESPONSIVE_INITIAL_STATE,
+  type DataTableResponsiveProps,
+} from "./data-table-responsive-types";
 import {
-  DataTableSkeleton,
-  DataTableLoadingOverlay,
-} from "./data-table-skeleton";
-import { DataTableToolbarResponsive } from "./data-table-toolbar-responsive";
-import { createEmptyFilterState, createAdvancedFilterFn } from "./filters";
-import {
-  useDataTableKeyboard,
-  getKeyboardNavigationStyles,
-  useDataTableVirtualization,
-} from "./hooks";
+  useDataTableStateCore,
+  useDataTableStateWithUrl,
+} from "./hooks/use-data-table-state";
 
-import type { AdvancedFilterState, FilterFieldDefinition } from "./filters";
-import type { UseDataTableKeyboardReturn } from "./hooks";
-import type { DataTableFilterField, DataTableConfig } from "./types";
+import type { DataTableUrlStateConfig } from "./types";
 
-type ViewMode = "table" | "card";
+type DataTableResponsiveBodyProps<TData, TValue> = Omit<
+  DataTableResponsiveProps<TData, TValue>,
+  "urlState"
+>;
 
-interface DataTableResponsiveProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
-  filterFields?: DataTableFilterField<TData>[];
-  advancedFilterFields?: FilterFieldDefinition[];
-  searchKey?: string;
-  searchPlaceholder?: string;
-  config?: DataTableConfig & {
-    enableViewToggle?: boolean;
-    defaultViewMode?: ViewMode;
-    mobileBreakpoint?: number;
-  };
-  isLoading?: boolean;
-  /**
-   * Total pages for manual server-side pagination when total rows are unknown.
-   * Ignored when `rowCount` is provided.
-   */
-  pageCount?: number;
-  /**
-   * Authoritative total rows for manual server-side pagination.
-   * Takes precedence over `pageCount` and is used to derive page count.
-   */
-  rowCount?: number;
-  onPaginationChange?: (pagination: PaginationState) => void;
-  onSortingChange?: (sorting: SortingState) => void;
-  onFiltersChange?: (filters: ColumnFiltersState) => void;
-  onRowSelectionChange?: (selection: RowSelectionState) => void;
-  onAdvancedFilterChange?: (filter: AdvancedFilterState) => void;
-  onRefresh?: () => void;
-  onExport?: () => void;
-  onRowClick?: (row: Row<TData>) => void;
-  floatingBarActions?: {
-    label: string;
-    icon?: React.ComponentType<{ className?: string }>;
-    onClick: (rows: TData[]) => void;
-    variant?: "default" | "destructive";
-  }[];
-  rowActions?: {
-    label: string;
-    icon?: React.ComponentType<{ className?: string }>;
-    onClick: (row: TData) => void;
-    variant?: "default" | "destructive";
-  }[];
-  mobileCardConfig?: {
-    primaryField?: string;
-    secondaryField?: string;
-    tertiaryField?: string;
-    badgeField?: string;
-    avatarField?: string;
-    renderCard?: (row: Row<TData>) => React.ReactNode;
-  };
-  className?: string;
-  tableClassName?: string;
-  emptyState?: React.ReactNode;
-  toolbar?: React.ReactNode;
-  initialState?: {
-    pagination?: PaginationState;
-    sorting?: SortingState;
-    columnFilters?: ColumnFiltersState;
-    columnVisibility?: VisibilityState;
-    rowSelection?: RowSelectionState;
-    advancedFilter?: AdvancedFilterState;
-  };
-}
-
-const EMPTY_FILTER_FIELDS: DataTableFilterField<unknown>[] = [];
-const EMPTY_ADVANCED_FILTER_FIELDS: FilterFieldDefinition[] = [];
-const EMPTY_DATA_TABLE_CONFIG: DataTableConfig = {};
-const EMPTY_DATA_TABLE_INITIAL_STATE: NonNullable<
-  DataTableResponsiveProps<unknown, unknown>["initialState"]
-> = {};
-
-function DataTableViewModeToggle({
-  viewMode,
-  onViewModeChange,
-}: {
-  viewMode: ViewMode;
-  onViewModeChange: (mode: ViewMode) => void;
-}) {
-  return (
-    <div className="flex items-center border rounded-xl p-0.5">
-      <Button
-        variant={viewMode === "table" ? "secondary" : "ghost"}
-        size="icon"
-        className="size-8 rounded-lg"
-        onClick={() => onViewModeChange("table")}
-      >
-        <LayoutList className="size-4" />
-      </Button>
-      <Button
-        variant={viewMode === "card" ? "secondary" : "ghost"}
-        size="icon"
-        className="size-8 rounded-lg"
-        onClick={() => onViewModeChange("card")}
-      >
-        <LayoutGrid className="size-4" />
-      </Button>
-    </div>
-  );
-}
-
-function DataTableResponsiveToolbar<TData>({
-  enableFilters,
-  toolbar,
-  table,
-  filterFields,
-  advancedFilterFields,
-  advancedFilter,
-  onAdvancedFilterChange,
-  searchKey,
-  searchPlaceholder,
-  enableColumnVisibility,
-  enableAdvancedFilters,
-  enableExport,
-  onExport,
-  onRefresh,
-  isLoading,
-  enableViewToggle,
-  isMobile,
-  viewMode,
-  onViewModeChange,
-}: {
-  enableFilters: boolean;
-  toolbar?: React.ReactNode;
-  table: TanStackTable<TData>;
-  filterFields: DataTableFilterField<TData>[];
-  advancedFilterFields: FilterFieldDefinition[];
-  advancedFilter: AdvancedFilterState;
-  onAdvancedFilterChange: (filter: AdvancedFilterState) => void;
-  searchKey?: string;
-  searchPlaceholder?: string;
-  enableColumnVisibility: boolean;
-  enableAdvancedFilters: boolean;
-  enableExport: boolean;
-  onExport?: () => void;
-  onRefresh?: () => void;
-  isLoading: boolean;
-  enableViewToggle: boolean;
-  isMobile: boolean;
-  viewMode: ViewMode;
-  onViewModeChange: (mode: ViewMode) => void;
-}) {
-  if (!enableFilters) return null;
-
-  return (
-    toolbar ?? (
-      <DataTableToolbarResponsive
-        table={table}
-        filterFields={filterFields}
-        advancedFilterFields={advancedFilterFields}
-        advancedFilter={advancedFilter}
-        onAdvancedFilterChange={onAdvancedFilterChange}
-        searchKey={searchKey}
-        searchPlaceholder={searchPlaceholder}
-        enableColumnVisibility={enableColumnVisibility && !isMobile}
-        enableAdvancedFilter={enableAdvancedFilters}
-        enableExport={enableExport}
-        onExport={onExport}
-        onRefresh={onRefresh}
-        isLoading={isLoading}
-      >
-        {enableViewToggle && !isMobile && (
-          <DataTableViewModeToggle
-            viewMode={viewMode}
-            onViewModeChange={onViewModeChange}
-          />
-        )}
-      </DataTableToolbarResponsive>
-    )
-  );
-}
-
-function DataTableResponsiveTableView<TData>({
-  table,
-  tableColumnsLength,
-  keyboard,
-  keyboardStyles,
-  onRowClick,
-  tableClassName,
-  emptyState,
-  defaultEmptyState,
-  virtualization,
-  enableVirtualization,
-  virtualRowHeight,
-  virtualOverscan,
-  virtualContainerHeight,
-}: {
-  table: TanStackTable<TData>;
-  tableColumnsLength: number;
-  keyboard: UseDataTableKeyboardReturn;
-  keyboardStyles: ReturnType<typeof getKeyboardNavigationStyles>;
-  onRowClick?: (row: Row<TData>) => void;
-  tableClassName?: string;
-  emptyState?: React.ReactNode;
-  defaultEmptyState: React.ReactNode;
-  virtualization?: DataTableConfig["virtualization"];
-  enableVirtualization: boolean;
-  virtualRowHeight: number;
-  virtualOverscan: number;
-  virtualContainerHeight: number | string;
-}) {
-  const tableContainerRef = React.useRef<HTMLDivElement>(null);
-  const rows = table.getRowModel().rows;
-  const getVirtualRowKey = React.useCallback(
-    (index: number) => rows[index]?.id ?? index,
-    [rows],
-  );
-  const tableVirtualizationConfig = React.useMemo(
-    () => ({
-      ...virtualization,
-      getItemKey: virtualization?.getItemKey ?? getVirtualRowKey,
-    }),
-    [virtualization, getVirtualRowKey],
-  );
-  const {
-    config: resolvedVirtualization,
-    virtualItems: virtualRows,
-    paddingTop: virtualPaddingTop,
-    paddingBottom: virtualPaddingBottom,
-    isEnabled: isVirtualized,
-  } = useDataTableVirtualization({
-    count: rows.length,
-    scrollElementRef: tableContainerRef,
-    virtualization: tableVirtualizationConfig,
-    legacy: {
-      enabled: enableVirtualization,
-      estimateSize: virtualRowHeight,
-      overscan: virtualOverscan,
-      containerHeight: virtualContainerHeight,
-    },
-    defaults: {
-      enabled: false,
-      estimateSize: 56,
-      overscan: 8,
-      containerHeight: 640,
-    },
+function DataTableResponsiveBody<TData, TValue>({
+  ...props
+}: DataTableResponsiveBodyProps<TData, TValue>) {
+  const tableState = useDataTableStateCore({
+    initialState: props.initialState,
+    controlledState: props.state,
+    onSortingChange: props.onSortingChange,
+    onFiltersChange: props.onFiltersChange,
+    onColumnVisibilityChange: props.onColumnVisibilityChange,
+    onRowSelectionChange: props.onRowSelectionChange,
+    onPaginationChange: props.onPaginationChange,
   });
 
-  const renderDataRow = (row: Row<TData>, rowIndex: number) => {
-    const rowProps = keyboard.getRowProps(rowIndex);
-    return (
-      <TableRow
-        key={row.id}
-        data-state={row.getIsSelected() && "selected"}
-        className={cn(
-          "hover:bg-muted/30 transition-colors border-border",
-          "data-[state=selected]:bg-muted/50",
-          onRowClick && "cursor-pointer",
-          rowProps["data-focused"] && keyboardStyles.focusedRow,
-        )}
-        tabIndex={rowProps.tabIndex}
-        onKeyDown={rowProps.onKeyDown}
-        onFocus={rowProps.onFocus}
-        onBlur={rowProps.onBlur}
-        onClick={() => onRowClick?.(row)}
-      >
-        {row.getVisibleCells().map((cell, cellIndex) => {
-          const meta = cell.column.columnDef.meta;
-          const isSticky = meta?.sticky;
-          const cellProps = keyboard.getCellProps(rowIndex, cellIndex);
-          return (
-            <TableCell
-              key={cell.id}
-              className={cn(
-                "py-3 px-4",
-                meta?.cellClassName,
-                isSticky === "left" && "sticky left-0 z-10 bg-card",
-                isSticky === "right" && "sticky right-0 z-10 bg-card",
-                cellProps["data-cell-focused"] && keyboardStyles.focusedCell,
-              )}
-              tabIndex={cellProps.tabIndex}
-            >
-              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-            </TableCell>
-          );
-        })}
-      </TableRow>
-    );
-  };
+  return <DataTableResponsiveInner {...props} tableState={tableState} />;
+}
 
-  return (
-    <div
-      ref={keyboard.containerRef as React.RefObject<HTMLDivElement>}
-      className={cn(
-        "rounded-2xl border border-border bg-card overflow-hidden shadow-sm",
-        tableClassName,
-      )}
-    >
-      <div
-        ref={tableContainerRef}
-        className={cn("overflow-x-auto", isVirtualized && "overflow-y-auto")}
-        style={
-          isVirtualized
-            ? { maxHeight: resolvedVirtualization.containerHeight }
-            : undefined
-        }
-      >
-        <Table>
-          <TableHeader className="bg-muted/30">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow
-                key={headerGroup.id}
-                className="hover:bg-transparent border-border"
-              >
-                {headerGroup.headers.map((header) => {
-                  const meta = header.column.columnDef.meta;
-                  const isSticky = meta?.sticky;
-                  return (
-                    <TableHead
-                      key={header.id}
-                      className={cn(
-                        "h-11 px-4 text-xs font-semibold text-muted-foreground whitespace-nowrap",
-                        meta?.headerClassName,
-                        isSticky === "left" && "sticky left-0 z-10 bg-muted/30",
-                        isSticky === "right" &&
-                          "sticky right-0 z-10 bg-muted/30",
-                      )}
-                      style={{
-                        width:
-                          header.getSize() !== 150
-                            ? header.getSize()
-                            : undefined,
-                      }}
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {rows.length ? (
-              isVirtualized ? (
-                <>
-                  {virtualPaddingTop > 0 && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={tableColumnsLength}
-                        className="p-0"
-                        style={{ height: virtualPaddingTop }}
-                      />
-                    </TableRow>
-                  )}
-                  {virtualRows.map((virtualRow) => {
-                    const row = rows[virtualRow.index];
-                    return renderDataRow(row as Row<TData>, virtualRow.index);
-                  })}
-                  {virtualPaddingBottom > 0 && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={tableColumnsLength}
-                        className="p-0"
-                        style={{ height: virtualPaddingBottom }}
-                      />
-                    </TableRow>
-                  )}
-                </>
-              ) : (
-                rows.map((row, rowIndex) =>
-                  renderDataRow(row as Row<TData>, rowIndex),
-                )
-              )
-            ) : (
-              <TableRow>
-                <TableCell colSpan={tableColumnsLength} className="h-64">
-                  {emptyState ?? defaultEmptyState}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
-  );
+function DataTableResponsiveWithUrl<TData, TValue>({
+  urlState,
+  ...props
+}: DataTableResponsiveBodyProps<TData, TValue> & {
+  urlState: DataTableUrlStateConfig;
+}) {
+  const tableState = useDataTableStateWithUrl({
+    initialState: props.initialState,
+    controlledState: props.state,
+    onSortingChange: props.onSortingChange,
+    onFiltersChange: props.onFiltersChange,
+    onColumnVisibilityChange: props.onColumnVisibilityChange,
+    onRowSelectionChange: props.onRowSelectionChange,
+    onPaginationChange: props.onPaginationChange,
+    searchKey: props.searchKey,
+    searchColumnId: props.searchColumnId,
+    urlState,
+  });
+
+  return <DataTableResponsiveInner {...props} tableState={tableState} />;
 }
 
 export function DataTableResponsive<TData, TValue>({
-  columns,
-  data,
-  filterFields = EMPTY_FILTER_FIELDS as DataTableFilterField<TData>[],
-  advancedFilterFields = EMPTY_ADVANCED_FILTER_FIELDS,
+  urlState,
   searchKey,
-  searchPlaceholder,
-  config = EMPTY_DATA_TABLE_CONFIG,
-  isLoading = false,
-  pageCount,
-  rowCount,
-  onPaginationChange,
-  onSortingChange,
-  onFiltersChange,
-  onRowSelectionChange,
-  onAdvancedFilterChange,
-  onRefresh,
-  onExport,
-  onRowClick,
-  floatingBarActions,
-  rowActions,
-  mobileCardConfig,
-  className,
-  tableClassName,
-  emptyState,
-  toolbar,
-  initialState = EMPTY_DATA_TABLE_INITIAL_STATE as NonNullable<
+  searchColumnId,
+  initialState = EMPTY_RESPONSIVE_INITIAL_STATE as NonNullable<
     DataTableResponsiveProps<TData, TValue>["initialState"]
   >,
+  ...rest
 }: DataTableResponsiveProps<TData, TValue>) {
-  const {
-    enableRowSelection = true,
-    enableColumnVisibility = true,
-    enablePagination = true,
-    enableFilters = true,
-    enableAdvancedFilters = false,
-    enableSorting = true,
-    enableExport = false,
-    enableKeyboardNavigation = true,
-    enableViewToggle = true,
-    defaultViewMode = "table",
-    mobileBreakpoint = 768,
-    manualPagination = false,
-    manualSorting = false,
-    manualFiltering = false,
-    enableVirtualization = false,
-    virtualRowHeight = 56,
-    virtualOverscan = 8,
-    virtualContainerHeight = 640,
-  } = config;
-
-  const [viewMode, setViewMode] = React.useState<ViewMode>(defaultViewMode);
-  const [isMobile, setIsMobile] = React.useState(false);
-  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>(
-    initialState.rowSelection ?? {},
-  );
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>(initialState.columnVisibility ?? {});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    initialState.columnFilters ?? [],
-  );
-  const [sorting, setSorting] = React.useState<SortingState>(
-    initialState.sorting ?? [],
-  );
-  const [pagination, setPagination] = React.useState<PaginationState>(
-    initialState.pagination ?? {
-      pageIndex: 0,
-      pageSize: 10,
-    },
-  );
-  const [advancedFilter, setAdvancedFilter] =
-    React.useState<AdvancedFilterState>(
-      initialState.advancedFilter ?? createEmptyFilterState(),
-    );
-
-  React.useEffect(() => {
-    const checkMobile = () => {
-      const mobile = window.innerWidth < mobileBreakpoint;
-      setIsMobile(mobile);
-      if (mobile && viewMode === "table") {
-        setViewMode("card");
-      }
+  const urlStateConfig = React.useMemo<
+    DataTableUrlStateConfig | undefined
+  >(() => {
+    if (!urlState || urlState === true) {
+      return urlState === true
+        ? { searchColumnKey: searchColumnId ?? searchKey }
+        : undefined;
+    }
+    return {
+      ...urlState,
+      searchColumnKey: urlState.searchColumnKey ?? searchColumnId ?? searchKey,
+      defaultPageSize:
+        urlState.defaultPageSize ?? initialState.pagination?.pageSize ?? 10,
     };
+  }, [initialState.pagination?.pageSize, searchColumnId, searchKey, urlState]);
 
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, [mobileBreakpoint, viewMode]);
+  const shared = {
+    searchKey,
+    searchColumnId,
+    initialState,
+    ...rest,
+  };
 
-  const selectColumn = React.useMemo<ColumnDef<TData, unknown>>(
-    () => ({
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-          className="translate-y-0.5"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-          className="translate-y-0.5"
-          onClick={(e) => e.stopPropagation()}
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-      size: 48,
-    }),
-    [],
-  );
-
-  const tableColumns = React.useMemo(() => {
-    if (enableRowSelection) {
-      return [selectColumn, ...columns];
-    }
-    return columns;
-  }, [columns, enableRowSelection, selectColumn]);
-
-  const advancedFilterFn = React.useMemo(() => {
-    if (!enableAdvancedFilters || advancedFilter.conditions.length === 0) {
-      return undefined;
-    }
-    return createAdvancedFilterFn<TData>(advancedFilter);
-  }, [enableAdvancedFilters, advancedFilter]);
-
-  const filteredData = React.useMemo(() => {
-    if (!advancedFilterFn) return data;
-    return data.filter((row) =>
-      advancedFilterFn(row, (r, columnId) => {
-        const original = r as Record<string, unknown>;
-        return original[columnId];
-      }),
-    );
-  }, [data, advancedFilterFn]);
-
-  const resolvedRowCount = rowCount ?? undefined;
-  const resolvedPageCount =
-    rowCount == null ? (pageCount ?? undefined) : undefined;
-
-  React.useEffect(() => {
-    if (
-      process.env.NODE_ENV !== "production" &&
-      rowCount != null &&
-      pageCount != null
-    ) {
-      console.warn(
-        "[asym/ui] DataTableResponsive received both rowCount and pageCount. pageCount is ignored because rowCount is authoritative. Pass only one of these props.",
-      );
-    }
-  }, [pageCount, rowCount]);
-
-  const table = useReactTable({
-    data: filteredData,
-    columns: tableColumns,
-    rowCount: resolvedRowCount,
-    pageCount: resolvedPageCount,
-    state: {
-      sorting,
-      columnVisibility,
-      rowSelection,
-      columnFilters,
-      pagination,
-    },
-    enableRowSelection,
-    enableSorting,
-    manualPagination,
-    manualSorting,
-    manualFiltering,
-    onRowSelectionChange: (updater) => {
-      const newSelection =
-        typeof updater === "function" ? updater(rowSelection) : updater;
-      setRowSelection(newSelection);
-      onRowSelectionChange?.(newSelection);
-    },
-    onSortingChange: (updater) => {
-      const newSorting =
-        typeof updater === "function" ? updater(sorting) : updater;
-      setSorting(newSorting);
-      onSortingChange?.(newSorting);
-    },
-    onColumnFiltersChange: (updater) => {
-      const newFilters =
-        typeof updater === "function" ? updater(columnFilters) : updater;
-      setColumnFilters(newFilters);
-      onFiltersChange?.(newFilters);
-    },
-    onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: (updater) => {
-      const newPagination =
-        typeof updater === "function" ? updater(pagination) : updater;
-      setPagination(newPagination);
-      onPaginationChange?.(newPagination);
-    },
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: manualFiltering ? undefined : getFilteredRowModel(),
-    getPaginationRowModel: manualPagination
-      ? undefined
-      : getPaginationRowModel(),
-    getSortedRowModel: manualSorting ? undefined : getSortedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-  });
-
-  const keyboard = useDataTableKeyboard(table, {
-    enabled: enableKeyboardNavigation && viewMode === "table",
-    onEnterRow: (row) => {
-      if (onRowClick) {
-        onRowClick(row as Row<TData>);
-      }
-    },
-    enableRowSelection,
-  });
-
-  const keyboardStyles = getKeyboardNavigationStyles();
-
-  const handleAdvancedFilterChange = React.useCallback(
-    (filter: AdvancedFilterState) => {
-      setAdvancedFilter(filter);
-      onAdvancedFilterChange?.(filter);
-    },
-    [onAdvancedFilterChange],
-  );
-
-  if (isLoading && data.length === 0) {
-    return <DataTableSkeleton columnCount={columns.length} />;
+  if (urlStateConfig) {
+    return <DataTableResponsiveWithUrl {...shared} urlState={urlStateConfig} />;
   }
 
-  const defaultEmptyState = (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="rounded-2xl bg-muted/50 p-4 mb-4">
-        <Inbox className="size-10 text-muted-foreground" />
-      </div>
-      <h3 className="text-lg font-semibold">No results found</h3>
-      <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-        Try adjusting your search or filter criteria to find what you&apos;re
-        looking for.
-      </p>
-    </div>
-  );
-
-  const showTable = viewMode === "table" && !isMobile;
-  const showCards = viewMode === "card" || isMobile;
-
-  return (
-    <div className={cn("w-full space-y-4", className)}>
-      <DataTableResponsiveToolbar
-        enableFilters={enableFilters}
-        toolbar={toolbar}
-        table={table}
-        filterFields={filterFields}
-        advancedFilterFields={advancedFilterFields}
-        advancedFilter={advancedFilter}
-        onAdvancedFilterChange={handleAdvancedFilterChange}
-        searchKey={searchKey}
-        searchPlaceholder={searchPlaceholder}
-        enableColumnVisibility={enableColumnVisibility}
-        enableAdvancedFilters={enableAdvancedFilters}
-        enableExport={enableExport}
-        onExport={onExport}
-        onRefresh={onRefresh}
-        isLoading={isLoading}
-        enableViewToggle={enableViewToggle}
-        isMobile={isMobile}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
-      />
-
-      <div className="relative">
-        <DataTableLoadingOverlay isLoading={isLoading} />
-
-        {showTable && (
-          <DataTableResponsiveTableView
-            table={table}
-            tableColumnsLength={tableColumns.length}
-            keyboard={keyboard}
-            keyboardStyles={keyboardStyles}
-            onRowClick={onRowClick}
-            tableClassName={tableClassName}
-            emptyState={emptyState}
-            defaultEmptyState={defaultEmptyState}
-            virtualization={config.virtualization}
-            enableVirtualization={enableVirtualization}
-            virtualRowHeight={virtualRowHeight}
-            virtualOverscan={virtualOverscan}
-            virtualContainerHeight={virtualContainerHeight}
-          />
-        )}
-
-        {showCards && (
-          <DataTableCardView
-            rows={table.getRowModel().rows}
-            primaryField={mobileCardConfig?.primaryField}
-            secondaryField={mobileCardConfig?.secondaryField}
-            tertiaryField={mobileCardConfig?.tertiaryField}
-            badgeField={mobileCardConfig?.badgeField}
-            avatarField={mobileCardConfig?.avatarField}
-            enableRowSelection={enableRowSelection}
-            onRowClick={onRowClick}
-            rowActions={rowActions}
-            renderCard={mobileCardConfig?.renderCard}
-          />
-        )}
-      </div>
-
-      {enablePagination && (
-        <DataTablePagination
-          table={table}
-          showSelectedCount={enableRowSelection}
-        />
-      )}
-
-      {enableRowSelection && (
-        <DataTableFloatingBar table={table} actions={floatingBarActions} />
-      )}
-    </div>
-  );
+  return <DataTableResponsiveBody {...shared} />;
 }
+
+export type { DataTableResponsiveProps };

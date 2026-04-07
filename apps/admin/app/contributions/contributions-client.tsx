@@ -277,7 +277,7 @@ export function ContributionsClient({
           columns={columns}
           data={data}
           filterFields={filterFields}
-          searchKey="donor"
+          searchColumnId="donor"
           searchPlaceholder="Search by donor name or email..."
           isLoading={isLoading}
           config={{
