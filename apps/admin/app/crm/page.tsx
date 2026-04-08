@@ -3,6 +3,10 @@
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { formatCurrency } from "@asym/lib/utils";
 import {
+  crmRecordAvatarTransitionName,
+  crmRecordTitleTransitionName,
+} from "@asym/lib/view-transitions";
+import {
   Avatar,
   AvatarFallback,
   AvatarImage,
@@ -22,6 +26,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@asym/ui/components/shadcn/tabs";
+import { SharedNamedViewTransition } from "@asym/ui/components/view-transitions";
 import { cn } from "@asym/ui/lib/utils";
 import {
   Plus,
@@ -127,16 +132,24 @@ function DetailDrawer({
         <ScrollArea className="flex-1">
           <div className="p-6 space-y-8">
             <div className="flex gap-6 items-start">
-              <Avatar className="h-20 w-20 border-4 border-background shadow-sm">
-                <AvatarImage src={contact.avatar} />
-                <AvatarFallback className="bg-muted text-muted-foreground font-bold text-xl">
-                  {contact.name[0]}
-                </AvatarFallback>
-              </Avatar>
+              <SharedNamedViewTransition
+                name={crmRecordAvatarTransitionName(contact.id)}
+              >
+                <Avatar className="h-20 w-20 border-4 border-background shadow-sm">
+                  <AvatarImage src={contact.avatar} />
+                  <AvatarFallback className="bg-muted text-muted-foreground font-bold text-xl">
+                    {contact.name[0]}
+                  </AvatarFallback>
+                </Avatar>
+              </SharedNamedViewTransition>
               <div className="space-y-1 pt-1">
-                <h2 className="text-2xl font-bold text-foreground tracking-tight">
-                  {contact.name}
-                </h2>
+                <SharedNamedViewTransition
+                  name={crmRecordTitleTransitionName(contact.id)}
+                >
+                  <h2 className="text-2xl font-bold text-foreground tracking-tight">
+                    {contact.name}
+                  </h2>
+                </SharedNamedViewTransition>
                 <p className="text-sm text-muted-foreground font-medium">
                   {contact.title} at{" "}
                   <span className="text-foreground">{contact.company}</span>
@@ -383,9 +396,13 @@ function KanbanView({
                   className="w-full bg-card p-3 rounded-lg border border-border shadow-sm hover:shadow-md transition-all cursor-pointer space-y-3 text-left"
                 >
                   <div className="flex justify-between items-start">
-                    <span className="font-bold text-foreground text-xs truncate leading-none">
-                      {c.name}
-                    </span>
+                    <SharedNamedViewTransition
+                      name={crmRecordTitleTransitionName(c.id)}
+                    >
+                      <span className="font-bold text-foreground text-xs truncate leading-none inline-block max-w-[85%]">
+                        {c.name}
+                      </span>
+                    </SharedNamedViewTransition>
                     <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
                   </div>
                   <div className="flex items-center gap-2">
@@ -400,12 +417,16 @@ function KanbanView({
                     <span className="text-[10px] font-bold text-foreground tabular-nums">
                       {formatCurrency(c.value)}
                     </span>
-                    <Avatar className="h-4 w-4">
-                      <AvatarImage src={c.avatar} />
-                      <AvatarFallback className="text-[8px] font-bold">
-                        {c.name[0]}
-                      </AvatarFallback>
-                    </Avatar>
+                    <SharedNamedViewTransition
+                      name={crmRecordAvatarTransitionName(c.id)}
+                    >
+                      <Avatar className="h-4 w-4">
+                        <AvatarImage src={c.avatar} />
+                        <AvatarFallback className="text-[8px] font-bold">
+                          {c.name[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                    </SharedNamedViewTransition>
                   </div>
                 </button>
               ))}
@@ -477,16 +498,19 @@ export default function MissionControlCRM() {
                   columns={columns}
                   data={MOCK_CONTACTS}
                   filterFields={filterFields}
-                  searchKey="name"
+                  searchColumnId="name"
                   searchPlaceholder="Search contacts..."
+                  getRowId={(contact) => contact.id}
                   config={{
                     enableRowSelection: true,
                     enableColumnVisibility: true,
                     enablePagination: true,
                     enableFilters: true,
                     enableSorting: true,
+                    enableKeyboardNavigation: true,
                   }}
                   initialState={{
+                    pagination: { pageIndex: 0, pageSize: 5 },
                     columnVisibility: {
                       email: false,
                       city: false,
@@ -507,16 +531,26 @@ export default function MissionControlCRM() {
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <Avatar className="h-10 w-10 border border-border">
-                                <AvatarImage src={contact.avatar} />
-                                <AvatarFallback className="text-xs font-semibold bg-primary text-primary-foreground">
-                                  {contact.name[0]}
-                                </AvatarFallback>
-                              </Avatar>
+                              <SharedNamedViewTransition
+                                name={crmRecordAvatarTransitionName(contact.id)}
+                              >
+                                <Avatar className="h-10 w-10 border border-border">
+                                  <AvatarImage src={contact.avatar} />
+                                  <AvatarFallback className="text-xs font-semibold bg-primary text-primary-foreground">
+                                    {contact.name[0]}
+                                  </AvatarFallback>
+                                </Avatar>
+                              </SharedNamedViewTransition>
                               <div>
-                                <div className="font-semibold text-sm text-foreground">
-                                  {contact.name}
-                                </div>
+                                <SharedNamedViewTransition
+                                  name={crmRecordTitleTransitionName(
+                                    contact.id,
+                                  )}
+                                >
+                                  <div className="font-semibold text-sm text-foreground">
+                                    {contact.name}
+                                  </div>
+                                </SharedNamedViewTransition>
                                 <div className="text-xs text-muted-foreground">
                                   {contact.company}
                                 </div>

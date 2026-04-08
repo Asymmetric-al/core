@@ -1,3 +1,6 @@
+"use client";
+
+import { SharedNamedViewTransition } from "@asym/ui/components/view-transitions";
 import { cn } from "@asym/ui/lib/utils";
 
 interface PageHeaderProps {
@@ -5,6 +8,8 @@ interface PageHeaderProps {
   description?: string;
   children?: React.ReactNode;
   className?: string;
+  /** When set, wraps the title in a named shared View Transition (list ↔ detail continuity). */
+  titleViewTransitionName?: string;
 }
 
 export function PageHeader({
@@ -12,7 +17,16 @@ export function PageHeader({
   description,
   children,
   className,
+  titleViewTransitionName,
 }: PageHeaderProps) {
+  const titleNode = titleViewTransitionName ? (
+    <SharedNamedViewTransition name={titleViewTransitionName}>
+      <span className="inline-block">{title}</span>
+    </SharedNamedViewTransition>
+  ) : (
+    title
+  );
+
   return (
     <div
       className={cn(
@@ -22,7 +36,7 @@ export function PageHeader({
     >
       <div className="space-y-0.5 sm:space-y-1 min-w-0">
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-zinc-900 truncate">
-          {title}
+          {titleNode}
         </h1>
         {description && (
           <p className="text-xs sm:text-sm text-zinc-500 truncate-2 sm:truncate-none">

@@ -3,10 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const {
   mockedCreateServerClient,
   mockedGetUser,
+  mockedGetSession,
   mockedGetSupabasePublicConfig,
 } = vi.hoisted(() => ({
   mockedCreateServerClient: vi.fn(),
   mockedGetUser: vi.fn(),
+  mockedGetSession: vi.fn(),
   mockedGetSupabasePublicConfig: vi.fn(),
 }));
 
@@ -43,6 +45,7 @@ describe("apps/donor/proxy (auth middleware)", () => {
     mockedCreateServerClient.mockReturnValue({
       auth: {
         getUser: mockedGetUser,
+        getSession: mockedGetSession,
       },
     });
   });

@@ -13,6 +13,9 @@ node_modules
 .next/
 /out/
 
+# Payload CMS generated types (optional local artifact; bare eslint-disable breaks verify:eslint)
+apps/admin/payload-types.ts
+
 # production
 /build
 

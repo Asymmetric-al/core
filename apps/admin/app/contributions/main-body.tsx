@@ -198,7 +198,9 @@ export function ContributionsMainBody({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10 border border-border">
-                        <AvatarImage src={donor.avatar} alt={donor.name} />
+                        {!contribution.isAnonymous && donor.avatar ? (
+                          <AvatarImage src={donor.avatar} alt={donor.name} />
+                        ) : null}
                         <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium">
                           {contribution.isAnonymous
                             ? "?"

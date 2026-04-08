@@ -73,10 +73,13 @@ test("boneyard capture routes render generated bone overlays", async ({
     testInfo.project.use.baseURL,
   );
 
-  test.skip(
-    !expectation,
-    "Run with playwright.admin.config.ts or playwright.missionary.config.ts, set PLAYWRIGHT_BONEYARD_TARGET, or use baseURL port 3030/4000.",
-  );
+  if (!expectation) {
+    test.skip(
+      true,
+      "Run with playwright.admin.config.ts or playwright.missionary.config.ts, set PLAYWRIGHT_BONEYARD_TARGET, or use baseURL port 3030/4000.",
+    );
+    return;
+  }
 
   await page.goto(expectation.path);
   await page.waitForLoadState("domcontentloaded");

@@ -53,6 +53,10 @@ export default function RootLayout({
 - Prefer `rowCount` for server pagination totals; TanStack Table derives `pageCount` from `rowCount` + page size.
 - Use `pageCount` only when `rowCount` is unavailable.
 - Shared `DataTable`/`DataTableResponsive` treat `rowCount` as authoritative. If both are passed, `pageCount` is ignored and a dev warning is logged.
+- Only control the table state your screen actually needs outside the table. Leave noisy internal state internal unless another system depends on it.
+- Prefer `initialState` when the screen only needs defaults and not external ownership.
+- Pass a stable `getRowId` whenever rows have durable IDs. Row selection, action targeting, and virtualization all depend on stable row identities.
+- Use `urlState` only on screens that intentionally deep-link page, sort, filter, search, or column-visibility state.
 
 ```tsx
 const query = useQuery({
@@ -144,6 +148,39 @@ Use `virtualization` for new code. Legacy fields are still accepted for compatib
 />
 ```
 
+### Shared table state ownership
+
+Shared table primitives now follow one contract:
+
+- `DataTable` and `DataTableResponsive` accept:
+  - `state` for selectively controlled `sorting`, `columnFilters`, `pagination`, `rowSelection`, and `columnVisibility`
+  - `initialState` for uncontrolled defaults
+  - `urlState` for opt-in query-string ownership
+  - `getRowId` for stable row identity
+- **`searchColumnId` (preferred)** is the TanStack **column id** used for the toolbar search input. The legacy prop **`searchKey`** means the same thing and is deprecated.
+- **`DataTableUrlStateConfig.searchKey`** is unrelated: it names the **URL query parameter** for search when using `nuqs` (defaults to `q` inside `useDataTableUrlState`). Use **`searchColumnKey`** (or `searchColumnId` on the table) to choose which column receives that search value.
+- **Hooks:** `useDataTableStateCore` holds local table state only (no URL). `useDataTableStateWithUrl` wires `nuqs` and must run inside a component that is mounted only when URL sync is enabled (the table components branch internally for this). **`useDataTableState`** is a deprecated alias for **`useDataTableStateCore`** only; it cannot enable URL sync by itself (Rules of Hooks forbid branching on `urlState` inside one hook).
+- **Default row id:** `getDefaultDataTableRowId` matches the fallback used when no `getRowId` is passed to the table.
+- **`DataTableWrapper`** delegates to `DataTableResponsive` but merges defaults first: `enableViewToggle: false`, `defaultViewMode: "table"`, and `mobileBreakpoint: 0` so the wrapper stays **table-only** and does not auto-switch to card on narrow viewports. Pass `config` to override (spread order is defaults then `...config`).
+- **Remounting:** switching `urlState` from off to on (or the reverse) swaps the inner implementation component and **resets** uncontrolled table state for that mount. Avoid hot-toggling `urlState` if you need to preserve in-memory table state.
+- **Pending URL transitions (`nuqs`):** When URL sync is on, `useDataTableStateWithUrl` exposes **`isUrlStatePending`** (mirrors `useDataTableUrlState`’s transition pending flag). `DataTable` / `DataTableResponsive` pass this through as **`urlStatePending`** to **`DataTableToolbar`**, **`DataTableToolbarResponsive`**, and **`DataTablePagination`**. While pending, search inputs, faceted filters, column visibility, reset/export/refresh actions, and pagination controls are **disabled**, and busy regions use **`aria-busy`** where appropriate. That reduces races (e.g. typing or paging ahead of the query string catching up) without changing committed URL semantics.
+
+```tsx
+<DataTableResponsive
+  columns={columns}
+  data={rows}
+  getRowId={(row) => row.id}
+  searchColumnId="name"
+  state={{ sorting, pagination }}
+  onSortingChange={setSorting}
+  onPaginationChange={setPagination}
+  urlState={{
+    history: "replace",
+    searchColumnKey: "name",
+  }}
+/>
+```
+
 ### List Usage
 
 For non-table lists, use the same shared hook and point it at the real scroll container:
@@ -189,9 +226,12 @@ This preserves count consistency without requiring route-level SQL transactions 
 
 - [ ] Query keys include table/list state that impacts data.
 - [ ] Table manual mode aligns with API behavior.
+- [ ] Only externally controlled state slices are hoisted.
+- [ ] Stable `getRowId` is provided for durable records.
 - [ ] DB collection schemas are validated with Zod.
 - [ ] New virtualization uses `virtualization` object config.
 - [ ] `getItemKey` is stable and uses row/item IDs.
 - [ ] Mutations trigger correct cache invalidation path (Query + Next cache tags).
 - [ ] Counter RPC mutation flows include compensating writes on partial failure.
+- [ ] URL-backed tables: expect toolbar/pagination to disable while `isUrlStatePending` is true.
 - [ ] Lint/typecheck/unit tests pass on affected workspaces.

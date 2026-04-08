@@ -12,7 +12,7 @@ import { AppShell } from "@/components/app-shell";
  */
 export function MissionaryLayoutShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  if (pathname.startsWith("/boneyard")) {
+  if (pathname === "/boneyard" || pathname.startsWith("/boneyard/")) {
     return (
       <div className="min-h-svh bg-background p-4 sm:p-6 lg:p-8 pb-20">
         {children}

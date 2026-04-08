@@ -19,11 +19,13 @@ import type { Table } from "@tanstack/react-table";
 interface DataTableViewOptionsProps<TData> {
   table: Table<TData>;
   className?: string;
+  disabled?: boolean;
 }
 
 export function DataTableViewOptions<TData>({
   table,
   className,
+  disabled = false,
 }: DataTableViewOptionsProps<TData>) {
   const columns = table
     .getAllColumns()
@@ -39,6 +41,7 @@ export function DataTableViewOptions<TData>({
           aria-label="Toggle columns"
           variant="outline"
           size="sm"
+          disabled={disabled}
           className={cn(
             "ml-auto hidden h-9 lg:flex gap-2 rounded-xl",
             className,

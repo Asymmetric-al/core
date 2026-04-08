@@ -1,13 +1,11 @@
 import { expect, test, type Page } from "@playwright/test";
 
 import { getDemoRoleMap } from "./helpers/demo-auth";
+import { installDemoSessionInBrowser } from "./helpers/install-demo-session";
 
 async function installDemoDonorSession(page: Page) {
-  const response = await page.request.post("/api/auth/demo-account", {
-    data: { role: "donor" },
-  });
-
-  expect(response.ok()).toBeTruthy();
+  const { ok, status } = await installDemoSessionInBrowser(page, "donor");
+  expect(ok, `donor demo session failed (${status})`).toBeTruthy();
 }
 
 test.describe("Donor usability smoke", () => {

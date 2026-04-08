@@ -44,7 +44,8 @@ function withPlaywrightEnvDefaults(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   const nextEnv = withCiEquivalentEnvDefaults(env);
 
   if (nextEnv.ASYM_USE_CI_ENV_DEFAULTS === "1" && !nextEnv.E2E_AUTH_BYPASS) {
-    nextEnv.E2E_AUTH_BYPASS = "1";
+    // Must match @asym/env optionalBoolean ("true"|"false"), not "1".
+    nextEnv.E2E_AUTH_BYPASS = "true";
   }
 
   return nextEnv;
@@ -169,6 +170,10 @@ const donorServer = {
   command: `node -e "try{require('fs').rmSync('apps/donor/.next/dev/lock',{force:true})}catch{}" && bun run --cwd apps/donor dev:playwright -- --port ${port} --hostname ${DEFAULT_LOCAL_HOSTNAME}`,
   env: {
     ...resolvedEnv,
+    // Match admin Playwright server: bypass must be on in dev or middleware/RSC
+    // ignore the E2E cookie even when tests run without run-with-ci-env.mjs.
+    // @asym/env only accepts "true"|"false" for E2E_AUTH_BYPASS (not "1").
+    E2E_AUTH_BYPASS: resolvedEnv.E2E_AUTH_BYPASS || "true",
     NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnonKey,
     NEXT_PUBLIC_SUPABASE_URL: supabaseURL,
     DEMO_ADMIN_EMAIL: resolvedEnv.DEMO_ADMIN_EMAIL || "",
