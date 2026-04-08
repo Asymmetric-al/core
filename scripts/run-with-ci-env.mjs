@@ -6,6 +6,8 @@ import { fileURLToPath } from "node:url";
 const DEFAULT_ENV = {
   ASYM_USE_CI_ENV_DEFAULTS: "1",
   SKIP_ENV_VALIDATION: "1",
+  /** Lets POST /api/auth/demo-account set the E2E cookie without real Supabase sign-in. */
+  E2E_AUTH_BYPASS: "true",
   NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
   NEXT_PUBLIC_SUPABASE_ANON_KEY: "example-anon-key",
   PAYLOAD_SECRET: "ci-placeholder-payload-secret",

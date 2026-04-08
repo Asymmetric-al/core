@@ -62,6 +62,8 @@ Use legacy fields only when touching old call sites gradually. New call sites sh
 - Keep TanStack Table row model as source of truth.
 - Virtualize row rendering only.
 - Use row ID as item key (not array index).
+- Prefer `getRowId` on shared table surfaces so selection state, URL state, and virtual keys survive sort/filter/pagination changes.
+- Keep row focus and row actions independent from the virtualizer; virtualization should not own selection or action targeting.
 
 ```tsx
 const getRowKey = React.useCallback(
@@ -87,6 +89,7 @@ const getRowKey = React.useCallback(
 - Stabilize `getItemKey` with `useCallback`.
 - Keep `estimateSize` realistic to reduce jump during first measurements.
 - Use `overscan` in moderate range (usually `6-12`).
+- Keep sticky headers outside the virtualized row window.
 - Disable complex entrance animations when virtualized.
 - Avoid per-row infinite animations in virtualized branches; reserve richer motion for non-virtualized rendering paths.
 - Avoid creating new `columns` arrays and render callbacks on every render.
@@ -105,6 +108,7 @@ const getRowKey = React.useCallback(
 - [ ] Smooth scroll with no blank gaps on large datasets
 - [ ] Selection/hover state remains correct while scrolling
 - [ ] Row actions still target correct item IDs
+- [ ] Keyboard focus remains visible and lands on the correct row after arrow/page navigation
 - [ ] Filters/sort/search still produce accurate list contents
 - [ ] Empty/loading/error states are unaffected
 - [ ] Lint/typecheck/unit tests pass for touched workspaces

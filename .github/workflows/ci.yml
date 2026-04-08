@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  workflow_dispatch:
   pull_request:
     branches: [develop, main, epic]
   push:
@@ -103,6 +104,9 @@ jobs:
     env:
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
       TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+      # Required by @asym/env when any test imports packages that load env (e.g. auth context).
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: example-anon-key
     steps:
       - uses: actions/checkout@v4
       - name: Install system dependencies (canvas)

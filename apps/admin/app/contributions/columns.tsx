@@ -1,6 +1,23 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
+import { formatCurrency, getInitials } from "@asym/lib/utils";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@asym/ui/components/shadcn/avatar";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table/data-table-column-header";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@asym/ui/components/shadcn/dropdown-menu";
+import { cn } from "@asym/ui/lib/utils";
 import {
   CircleCheck,
   XCircle,
@@ -18,30 +35,14 @@ import {
   Copy,
   RefreshCcw,
 } from "lucide-react";
-import { formatCurrency, getInitials } from "@asym/lib/utils";
-import { cn } from "@asym/ui/lib/utils";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@asym/ui/components/shadcn/dropdown-menu";
-import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table/data-table-column-header";
+
 import type {
   Contribution,
   ContributionStatus,
   PaymentMethod,
   ContributionSource,
 } from "./types";
+import type { ColumnDef } from "@tanstack/react-table";
 
 const statusConfig: Record<
   ContributionStatus,
@@ -56,6 +57,11 @@ const statusConfig: Record<
     icon: Clock,
     className:
       "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800",
+  },
+  processing: {
+    icon: Clock,
+    className:
+      "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/50 dark:text-sky-400 dark:border-sky-800",
   },
   failed: {
     icon: XCircle,
@@ -72,6 +78,7 @@ const statusConfig: Record<
 const statusLabels: Record<ContributionStatus, string> = {
   completed: "Completed",
   pending: "Pending",
+  processing: "Processing",
   failed: "Failed",
   refunded: "Refunded",
 };
@@ -132,7 +139,7 @@ export const columns: ColumnDef<Contribution>[] = [
       const searchValue = String(value).toLowerCase();
       return (
         (row.original.donorName ?? "").toLowerCase().includes(searchValue) ||
-        row.original.donorEmail.toLowerCase().includes(searchValue)
+        (row.original.donorEmail ?? "").toLowerCase().includes(searchValue)
       );
     },
   },
@@ -176,7 +183,10 @@ export const columns: ColumnDef<Contribution>[] = [
       <DataTableColumnHeader column={column} title="Status" />
     ),
     cell: ({ row }) => {
-      const status = row.getValue("status") as ContributionStatus;
+      const raw = row.getValue("status") as string;
+      const status = (
+        statusConfig[raw as ContributionStatus] ? raw : "pending"
+      ) as ContributionStatus;
       const config = statusConfig[status];
       const Icon = config.icon;
 

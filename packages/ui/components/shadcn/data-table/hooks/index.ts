@@ -55,3 +55,16 @@ export type {
   UseDataTableVirtualizationOptions,
   UseDataTableVirtualizationReturn,
 } from "./use-data-table-virtualization";
+
+export {
+  useDataTableState,
+  useDataTableStateCore,
+  useDataTableStateWithUrl,
+  getDefaultDataTableRowId,
+} from "./use-data-table-state";
+export type {
+  UseDataTableStateOptions,
+  UseDataTableStateReturn,
+  UseDataTableStateCoreOptions,
+  UseDataTableStateWithUrlOptions,
+} from "./use-data-table-state";

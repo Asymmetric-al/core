@@ -24,6 +24,7 @@ import type { Contribution, ContributionStatus } from "./types";
 const statusDotColor: Record<ContributionStatus, string> = {
   completed: "bg-emerald-500",
   pending: "bg-amber-500",
+  processing: "bg-sky-500",
   failed: "bg-destructive",
   refunded: "bg-muted-foreground",
 };

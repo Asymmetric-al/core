@@ -26,8 +26,10 @@ import {
   Clock,
   XCircle,
   RotateCcw,
+  Loader2,
 } from "lucide-react";
 import { startTransition, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { columns } from "./columns";
 import {
@@ -48,6 +50,7 @@ import type { DataTableFilterField } from "@asym/ui/components/shadcn/data-table
 const statusIcons = {
   completed: CircleCheck,
   pending: Clock,
+  processing: Loader2,
   failed: XCircle,
   refunded: RotateCcw,
 };
@@ -126,22 +129,16 @@ function ContributionsClientBody() {
     { id: "source", label: "Source", options: sourceOptions },
   ];
 
-  const handleBulkDelete = (rows: Contribution[]) => {
-    console.log(
-      "Delete rows:",
-      rows.map((r) => r.id),
-    );
+  const handleBulkDelete = (_rows: Contribution[]) => {
+    toast.info("Bulk delete is not available yet.");
   };
 
-  const handleBulkReceipt = (rows: Contribution[]) => {
-    console.log(
-      "Send receipts to:",
-      rows.map((r) => r.id),
-    );
+  const handleBulkReceipt = (_rows: Contribution[]) => {
+    toast.info("Send receipts is not available yet.");
   };
 
   const handleExport = () => {
-    console.log("Exporting contributions...");
+    toast.info("Export is not available yet.");
   };
 
   return (
@@ -268,13 +265,20 @@ function ContributionsClientBody() {
                     "border-emerald-200 text-emerald-700 dark:border-emerald-800 dark:text-emerald-400",
                   status === "pending" &&
                     "border-amber-200 text-amber-700 dark:border-amber-800 dark:text-amber-400",
+                  status === "processing" &&
+                    "border-sky-200 text-sky-700 dark:border-sky-800 dark:text-sky-400",
                   status === "failed" &&
                     "border-red-200 text-red-700 dark:border-red-800 dark:text-red-400",
                   status === "refunded" &&
                     "border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-400",
                 )}
               >
-                <Icon className="h-3.5 w-3.5" />
+                <Icon
+                  className={cn(
+                    "h-3.5 w-3.5",
+                    status === "processing" && "animate-spin",
+                  )}
+                />
                 {status.charAt(0).toUpperCase() + status.slice(1)}: {count}
               </Badge>
             );
@@ -286,9 +290,29 @@ function ContributionsClientBody() {
             columns={columns}
             data={data}
             filterFields={filterFields}
-            searchKey="donorName"
+            searchColumnId="donorName"
             searchPlaceholder="Search by donor name or email..."
             isLoading={isLoading}
+            config={{
+              enableRowSelection: true,
+              enableColumnVisibility: true,
+              enablePagination: true,
+              enableFilters: true,
+              enableSorting: true,
+            }}
+            actionBarActions={[
+              {
+                label: "Send Receipts",
+                icon: Receipt,
+                onClick: handleBulkReceipt,
+              },
+              {
+                label: "Delete",
+                icon: Trash2,
+                onClick: handleBulkDelete,
+                variant: "destructive",
+              },
+            ]}
             emptyState={
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <div className="rounded-2xl bg-muted/50 p-4 mb-4">
@@ -318,26 +342,6 @@ function ContributionsClientBody() {
                 </div>
               </div>
             }
-            config={{
-              enableRowSelection: true,
-              enableColumnVisibility: true,
-              enablePagination: true,
-              enableFilters: true,
-              enableSorting: true,
-            }}
-            actionBarActions={[
-              {
-                label: "Send Receipts",
-                icon: Receipt,
-                onClick: handleBulkReceipt,
-              },
-              {
-                label: "Delete",
-                icon: Trash2,
-                onClick: handleBulkDelete,
-                variant: "destructive",
-              },
-            ]}
           />
         </div>
       </div>

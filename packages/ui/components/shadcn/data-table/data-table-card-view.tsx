@@ -17,7 +17,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../dropdown-menu";
+import { getDataTableRowActionKey } from "./data-table-row-action-key";
 
+import type { DataTableInteractiveRowAction } from "./types";
 import type { Row, Table } from "@tanstack/react-table";
 
 interface DataTableCardViewProps<TData> {
@@ -29,12 +31,7 @@ interface DataTableCardViewProps<TData> {
   avatarField?: string;
   enableRowSelection?: boolean;
   onRowClick?: (row: Row<TData>) => void;
-  rowActions?: {
-    label: string;
-    icon?: React.ComponentType<{ className?: string }>;
-    onClick: (row: TData) => void;
-    variant?: "default" | "destructive";
-  }[];
+  rowActions?: DataTableInteractiveRowAction<TData>[];
   renderCard?: (row: Row<TData>) => React.ReactNode;
   className?: string;
 }
@@ -107,12 +104,7 @@ interface DataTableCardItemProps<TData> {
   avatarField?: string;
   enableRowSelection?: boolean;
   onRowClick?: (row: Row<TData>) => void;
-  rowActions?: {
-    label: string;
-    icon?: React.ComponentType<{ className?: string }>;
-    onClick: (row: TData) => void;
-    variant?: "default" | "destructive";
-  }[];
+  rowActions?: DataTableInteractiveRowAction<TData>[];
 }
 
 function DataTableCardItem<TData>({
@@ -234,7 +226,9 @@ function DataTableCardItem<TData>({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="rounded-xl">
                       {rowActions.map((action, index) => (
-                        <React.Fragment key={action.label}>
+                        <React.Fragment
+                          key={getDataTableRowActionKey(action, index)}
+                        >
                           {action.variant === "destructive" && index > 0 && (
                             <DropdownMenuSeparator />
                           )}
@@ -284,12 +278,7 @@ interface DataTableMobileViewProps<TData> {
   badgeField?: string;
   avatarField?: string;
   onRowClick?: (row: Row<TData>) => void;
-  rowActions?: {
-    label: string;
-    icon?: React.ComponentType<{ className?: string }>;
-    onClick: (row: TData) => void;
-    variant?: "default" | "destructive";
-  }[];
+  rowActions?: DataTableInteractiveRowAction<TData>[];
   renderCard?: (row: Row<TData>) => React.ReactNode;
   className?: string;
 }

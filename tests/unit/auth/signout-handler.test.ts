@@ -51,6 +51,30 @@ describe("api/auth/signout", () => {
     expect(response.headers.get("cache-control")).toBe("no-store");
   });
 
+  it("accepts loopback same-port requests across localhost and 127.0.0.1", async () => {
+    const { POST } = await import("../../../packages/api/src/auth/signout");
+    global.fetch = vi.fn(async (input: RequestInfo | URL) => {
+      const url = typeof input === "string" ? input : input.toString();
+      if (url.includes("/auth/v1/logout")) {
+        return new Response("", { status: 204 });
+      }
+      throw new Error(`Unexpected fetch URL: ${url}`);
+    });
+
+    const request = new Request("http://localhost:3005/api/auth/signout", {
+      method: "POST",
+      headers: {
+        origin: "http://127.0.0.1:3005",
+        cookie: "sb-uljrxxfqekbbeajaztet-auth-token=demo-token",
+      },
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true });
+    expect(response.headers.get("cache-control")).toBe("no-store");
+  });
+
   it("returns ok true on valid same-origin request", async () => {
     const { POST } = await import("../../../packages/api/src/auth/signout");
     global.fetch = vi.fn(async (input: RequestInfo | URL) => {
@@ -88,5 +112,24 @@ describe("api/auth/signout", () => {
     const response = await POST(request);
     expect(response.status).toBe(503);
     expect(response.headers.get("cache-control")).toBe("no-store");
+  });
+
+  it("clears the e2e bypass cookie when bypass mode is enabled", async () => {
+    const { POST } = await import("../../../packages/api/src/auth/signout");
+    process.env.E2E_AUTH_BYPASS = "true";
+
+    const request = new Request("http://localhost/api/auth/signout", {
+      method: "POST",
+      headers: {
+        origin: "http://localhost",
+        cookie: "asym_e2e_auth=test-cookie",
+      },
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true });
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.headers.get("set-cookie")).toContain("asym_e2e_auth=");
   });
 });

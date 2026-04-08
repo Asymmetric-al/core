@@ -33,6 +33,10 @@ export {
   resolveVirtualizationConfig,
   getVirtualPadding,
   DEFAULT_VIRTUALIZATION_DEFAULTS,
+  useDataTableState,
+  useDataTableStateCore,
+  useDataTableStateWithUrl,
+  getDefaultDataTableRowId,
 } from "./hooks";
 
 export type {
@@ -41,6 +45,10 @@ export type {
   KeyboardNavigationOptions,
   KeyboardNavigationState,
   UseDataTableKeyboardReturn,
+  UseDataTableStateOptions,
+  UseDataTableStateReturn,
+  UseDataTableStateCoreOptions,
+  UseDataTableStateWithUrlOptions,
   ColumnResizingOptions,
   UseColumnResizingReturn,
   VirtualizationLegacyConfig,
@@ -67,7 +75,9 @@ export type {
   DataTableFilterOption,
   DataTableFilterField,
   DataTableAdvancedFilterField,
+  DataTableRowMutationAction,
   DataTableRowAction,
+  DataTableInteractiveRowAction,
   VirtualizationConfig,
   DataTableConfig,
   DataTableUrlStateConfig,

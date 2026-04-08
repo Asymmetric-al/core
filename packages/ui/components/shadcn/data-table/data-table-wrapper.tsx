@@ -6,7 +6,7 @@ import * as React from "react";
 import { cn } from "@asym/ui/lib/utils";
 
 import { Button } from "../button";
-import { DataTable } from "../data-table";
+import { DataTableResponsive } from "../data-table";
 import { DataTableSkeleton } from "./data-table-skeleton";
 import {
   Empty,
@@ -16,20 +16,36 @@ import {
   EmptyMedia,
 } from "../empty";
 
-import type { DataTableFilterField, DataTableConfig } from "./types";
+import type {
+  DataTableConfig,
+  DataTableControlledState,
+  DataTableFilterField,
+  DataTableInteractiveRowAction,
+  DataTableUrlStateConfig,
+} from "./types";
 import type { ColumnDef } from "@tanstack/react-table";
 
 interface DataTableWrapperProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   filterFields?: DataTableFilterField<TData>[];
+  /**
+   * TanStack column id for toolbar search.
+   * @deprecated Use `searchColumnId`.
+   */
   searchKey?: string;
+  searchColumnId?: string;
   searchPlaceholder?: string;
   config?: DataTableConfig;
   isLoading?: boolean;
+  getRowId?: (originalRow: TData, index: number) => string;
+  state?: DataTableControlledState;
+  urlState?: DataTableUrlStateConfig;
   isError?: boolean;
   error?: string | Error;
   onRetry?: () => void;
+  onRowClick?: (row: TData) => void;
+  rowActions?: DataTableInteractiveRowAction<TData>[];
   emptyState?: {
     title?: string;
     description?: string;
@@ -46,12 +62,18 @@ export function DataTableWrapper<TData, TValue>({
   data,
   filterFields,
   searchKey,
+  searchColumnId,
   searchPlaceholder,
   config,
   isLoading,
+  getRowId,
+  state,
+  urlState,
   isError,
   error,
   onRetry,
+  onRowClick,
+  rowActions,
   emptyState,
   className,
   tableClassName,
@@ -98,6 +120,13 @@ export function DataTableWrapper<TData, TValue>({
     );
   }
 
+  const responsiveConfig = {
+    enableViewToggle: false,
+    defaultViewMode: "table" as const,
+    mobileBreakpoint: 0,
+    ...config,
+  };
+
   const customEmptyState = emptyState ? (
     <Empty className="py-20">
       <EmptyHeader>
@@ -116,16 +145,22 @@ export function DataTableWrapper<TData, TValue>({
 
   return (
     <div className={className}>
-      <DataTable
+      <DataTableResponsive
         columns={columns}
         data={data}
         filterFields={filterFields}
         searchKey={searchKey}
+        searchColumnId={searchColumnId}
         searchPlaceholder={searchPlaceholder}
-        config={config}
+        config={responsiveConfig}
         isLoading={isLoading}
+        getRowId={getRowId}
+        state={state}
+        urlState={urlState}
+        onRowClick={onRowClick ? (row) => onRowClick(row.original) : undefined}
+        rowActions={rowActions}
         emptyState={customEmptyState}
-        className={tableClassName}
+        tableClassName={tableClassName}
         toolbar={toolbar}
       />
     </div>

@@ -9,6 +9,15 @@ const { getPayloadClientMock, resolveTenantFromRequestMock } = vi.hoisted(
 
 vi.mock("../../../apps/admin/src/cms/get-payload", () => ({
   getPayloadClient: getPayloadClientMock,
+  isPayloadClientInitializationError: (error: unknown) =>
+    Boolean(
+      error &&
+      typeof error === "object" &&
+      "name" in error &&
+      error.name === "PayloadClientInitializationError" &&
+      "statusCode" in error &&
+      error.statusCode === 503,
+    ),
 }));
 
 vi.mock("../../../apps/admin/src/cms/public/resolve-tenant", () => ({
@@ -178,19 +187,24 @@ describe("public pages route", () => {
     consoleErrorSpy.mockRestore();
   });
 
-  it("returns 500 when payload client initialization fails", async () => {
+  it("returns 503 when payload client initialization fails", async () => {
     const consoleErrorSpy = vi
       .spyOn(console, "error")
       .mockImplementation(() => undefined);
 
-    getPayloadClientMock.mockRejectedValue(new Error("client init failed"));
+    getPayloadClientMock.mockRejectedValue(
+      Object.assign(new Error("client init failed"), {
+        name: "PayloadClientInitializationError",
+        statusCode: 503,
+      }),
+    );
 
     const response = await GET(createRequest(), {
       params: Promise.resolve({ slug: ["home"] }),
     });
     const body = await response.json();
 
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(503);
     expect(body).toEqual({ error: "Failed to fetch page content" });
     expect(resolveTenantFromRequestMock).not.toHaveBeenCalled();
     expect(consoleErrorSpy).toHaveBeenCalled();

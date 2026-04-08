@@ -1,6 +1,7 @@
 export type ContributionStatus =
   | "completed"
   | "pending"
+  | "processing"
   | "failed"
   | "refunded";
 
