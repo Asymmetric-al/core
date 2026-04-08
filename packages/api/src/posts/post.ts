@@ -8,10 +8,10 @@ import { revalidateTag } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 
+import { normalizeStoredPostContent } from "./content";
 import { postIdParamSchema } from "../schemas/posts";
 import { CACHE_TAGS } from "../shared/cache-tags";
 import { findProfileByUserId } from "../shared/queries";
-import { normalizeStoredPostContent } from "./content";
 
 function revalidatePostTags(postId: string, tenantId: string) {
   revalidateTag(CACHE_TAGS.tenantPosts(tenantId), "max");

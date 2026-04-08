@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getQueryClient } from "../../packages/database/providers/query-provider";
+import { getQueryClient } from "../../packages/database/providers/query-client";
 
 type RetryFunction = (failureCount: number, error: unknown) => boolean;
 

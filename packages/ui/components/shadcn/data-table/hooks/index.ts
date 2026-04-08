@@ -27,10 +27,7 @@ export type {
   UseColumnResizingReturn,
 } from "./use-column-resizing";
 
-export {
-  useDataTableWithLiveQuery,
-  useDataTableWithSupabase,
-} from "./use-data-table-live-query";
+export { useDataTableWithLiveQuery } from "./use-data-table-live-query";
 
 export {
   useDataTableMutation,

@@ -14,7 +14,14 @@ const runPlaywright = () =>
     const args =
       projects === "all"
         ? ["run", "test:e2e"]
-        : ["run", "test:e2e", "--project=chromium"];
+        : [
+            "run",
+            "test:e2e",
+            "--project=chromium",
+            "--project=mobile-chrome",
+            "--project=chromium-donor",
+            "--project=chromium-admin",
+          ];
     const child = spawn("bun", args, {
       stdio: ["inherit", "pipe", "pipe"],
       env: process.env,
