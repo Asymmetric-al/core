@@ -17,7 +17,7 @@ import { DollarSign, Download, Plus, Trash2, Receipt } from "lucide-react";
 import { useMemo } from "react";
 import { toast } from "sonner";
 
-import { getColumns } from "./columns";
+import { columns as contributionColumns } from "./columns";
 import {
   contributionStatusOptions,
   contributionTypeOptions,
@@ -33,11 +33,11 @@ const smoothTransition = {
 };
 
 const statusDotColor: Record<string, string> = {
-  Succeeded: "bg-emerald-500",
-  Pending: "bg-amber-500",
-  Failed: "bg-destructive",
-  Refunded: "bg-muted-foreground",
-  Disputed: "bg-orange-500",
+  completed: "bg-emerald-500",
+  pending: "bg-amber-500",
+  processing: "bg-sky-500",
+  failed: "bg-destructive",
+  refunded: "bg-muted-foreground",
 };
 
 function StatCard({
@@ -81,12 +81,15 @@ export function ContributionsMainBody({
 }) {
   const stats = useMemo(() => {
     const totalAmount = data.reduce(
-      (sum, c) => (c.status === "Succeeded" ? sum + c.amount : sum),
+      (sum, c) => (c.status === "completed" ? sum + c.amount : sum),
       0,
     );
-    const totalCount = data.filter((c) => c.status === "Succeeded").length;
+    const totalCount = data.filter((c) => c.status === "completed").length;
     const pendingAmount = data.reduce(
-      (sum, c) => (c.status === "Pending" ? sum + c.amount : sum),
+      (sum, c) =>
+        c.status === "pending" || c.status === "processing"
+          ? sum + c.amount
+          : sum,
       0,
     );
     const avgAmount = totalCount > 0 ? totalAmount / totalCount : 0;
@@ -99,11 +102,6 @@ export function ContributionsMainBody({
       recurringCount,
     };
   }, [data]);
-
-  const columns = useMemo(
-    () => getColumns({ onViewContribution: onSelectContribution }),
-    [onSelectContribution],
-  );
 
   const filterFields: DataTableFilterField<Contribution>[] = [
     { id: "status", label: "Status", options: contributionStatusOptions },
@@ -147,10 +145,10 @@ export function ContributionsMainBody({
         transition={{ ...smoothTransition, delay: 0.3 }}
       >
         <DataTableResponsive
-          columns={columns}
+          columns={contributionColumns}
           data={data}
           filterFields={filterFields}
-          searchKey="donor"
+          searchKey="donorName"
           searchPlaceholder="Search by donor name or email..."
           isLoading={isLoading}
           config={{
@@ -183,12 +181,14 @@ export function ContributionsMainBody({
             },
           ]}
           mobileCardConfig={{
-            primaryField: "donor",
+            primaryField: "donorName",
             secondaryField: "fundName",
             badgeField: "status",
             renderCard: (row) => {
               const contribution = row.original;
-              const donor = contribution.donor;
+              const donorName =
+                contribution.donorName ?? contribution.donorEmail ?? "";
+              const donorAvatar = contribution.donorAvatar ?? undefined;
               return (
                 <button
                   type="button"
@@ -198,18 +198,18 @@ export function ContributionsMainBody({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10 border border-border">
-                        {!contribution.isAnonymous && donor.avatar ? (
-                          <AvatarImage src={donor.avatar} alt={donor.name} />
+                        {!contribution.isAnonymous && donorAvatar ? (
+                          <AvatarImage src={donorAvatar} alt={donorName} />
                         ) : null}
                         <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium">
                           {contribution.isAnonymous
                             ? "?"
-                            : getInitials(donor.name)}
+                            : getInitials(donorName)}
                         </AvatarFallback>
                       </Avatar>
                       <div>
                         <div className="text-sm font-bold text-foreground">
-                          {contribution.isAnonymous ? "Anonymous" : donor.name}
+                          {contribution.isAnonymous ? "Anonymous" : donorName}
                         </div>
                         <div className="text-xs text-muted-foreground font-medium">
                           {contribution.fundName}
