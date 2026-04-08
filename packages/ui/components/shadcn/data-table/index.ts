@@ -23,7 +23,6 @@ export {
   ColumnResizeHandle,
   getColumnResizingTableOptions,
   useDataTableWithLiveQuery,
-  useDataTableWithSupabase,
   useDataTableMutation,
   useDataTableBulkMutation,
   useCollectionMutation,

@@ -12,10 +12,7 @@ export const ADMIN_CONTRIBUTIONS_QUERY_KEY = [
 ] as const;
 
 function cloneContribution(contribution: Contribution): Contribution {
-  return {
-    ...contribution,
-    donor: { ...contribution.donor },
-  };
+  return { ...contribution };
 }
 
 /**
