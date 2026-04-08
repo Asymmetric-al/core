@@ -68,7 +68,9 @@ describe("apps/admin/app/contributions/page", () => {
     render(<ContributionsPage />);
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "Contributions" })).toBeTruthy();
+      expect(
+        screen.getByRole("heading", { name: "Contributions" }),
+      ).toBeTruthy();
     });
 
     expect(screen.getByTestId("mc-contributions-live")).toBeTruthy();
