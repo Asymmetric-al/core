@@ -2,7 +2,6 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
 const srcPath = fileURLToPath(new URL("./src", import.meta.url));
-
 export default defineConfig({
   resolve: {
     alias: {
@@ -15,6 +14,7 @@ export default defineConfig({
       "tests/unit/**/*.test.tsx",
       "packages/api/tests/unit/**/*.test.ts",
       "packages/api/tests/unit/**/*.test.tsx",
+      "packages/auth/**/*.test.ts",
     ],
     environment: "node",
     clearMocks: true,
