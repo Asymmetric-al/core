@@ -162,6 +162,19 @@ for (const filePath of appSegmentConfigFilePaths) {
   }
 }
 
+const disallowedPrivateCaptureRoutePaths = [
+  ...new Set(globSync("apps/*/app/**/__*__/**/page.{ts,tsx,js,jsx,mts,mjs}")),
+];
+
+for (const filePath of disallowedPrivateCaptureRoutePaths) {
+  const normalized = filePath.replace(/\\/g, "/");
+  if (normalized.includes("/__boneyard__/")) {
+    violations.push(
+      `${filePath}: private capture routes are not routable in Next.js App Router; move this page to a public segment like app/boneyard/...`,
+    );
+  }
+}
+
 if (violations.length) {
   console.error(violations.join("\n"));
   process.exit(1);

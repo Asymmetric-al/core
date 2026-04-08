@@ -57,7 +57,7 @@ export default defineConfig({
     screenshot: "only-on-failure",
     video: "retain-on-failure",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [{ name: "admin-boneyard", use: { ...devices["Desktop Chrome"] } }],
   webServer: isLocalBaseUrl
     ? {
         command:

@@ -38,6 +38,7 @@
     "@tanstack/react-form": "1.28.6",
     "@tanstack/react-query": "^5.90.21",
     "@tanstack/react-table": "^8.21.3",
+    "boneyard-js": "^1.6.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "lucide-animated": "^1.0.0",

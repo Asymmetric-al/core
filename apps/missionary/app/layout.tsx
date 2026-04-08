@@ -14,8 +14,9 @@ import { Suspense } from "react";
 
 import type { Metadata, Viewport } from "next";
 
+import { BoneyardRegistry } from "@/app/_providers/boneyard-registry";
+import { MissionaryLayoutShell } from "@/app/_providers/missionary-layout-shell";
 import { MISSIONARY_ALLOWED_ROLES } from "@/app/access";
-import { AppShell } from "@/components/app-shell";
 import { ThemeProvider } from "@/lib/theme-provider";
 import "./globals.css";
 
@@ -64,6 +65,7 @@ const MISSIONARY_PUBLIC_PATH_PREFIXES = [
   "/forgot-password",
   "/no-access",
   "/api/",
+  "/boneyard/",
 ] as const;
 
 function isPublicPath(pathname: string) {
@@ -155,12 +157,13 @@ export default function RootLayout({
           storageKey="missionary-theme"
           disableTransitionOnChange
         >
+          <BoneyardRegistry />
           <QueryProvider>
             <MotionProvider>
               <Suspense fallback={null}>
                 <NuqsAdapter>
                   <MissionaryRoleGate>
-                    <AppShell role="missionary">{children}</AppShell>
+                    <MissionaryLayoutShell>{children}</MissionaryLayoutShell>
                   </MissionaryRoleGate>
                 </NuqsAdapter>
               </Suspense>

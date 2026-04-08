@@ -179,11 +179,19 @@ async function verifyLegacyEslintrcFiles() {
   }
 }
 
+function isPayloadGeneratedTypesFile(filePath) {
+  return path.basename(filePath) === "payload-types.ts";
+}
+
 async function verifyDisableCommentFormat() {
   const files = await walkFiles(ROOT);
 
   for (const filePath of files) {
     if (!SOURCE_EXTENSIONS.has(path.extname(filePath))) {
+      continue;
+    }
+
+    if (isPayloadGeneratedTypesFile(filePath)) {
       continue;
     }
 
