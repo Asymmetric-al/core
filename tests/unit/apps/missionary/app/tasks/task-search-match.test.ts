@@ -43,4 +43,31 @@ describe("taskMatchesClientSearch", () => {
     };
     expect(taskMatchesClientSearch(task, "jordan")).toBe(true);
   });
+
+  it("does not throw when description is null/undefined and search is non-empty", () => {
+    const noDesc: Task = { ...baseTask, title: "x", description: null };
+    expect(() => taskMatchesClientSearch(noDesc, "hello")).not.toThrow();
+    expect(taskMatchesClientSearch(noDesc, "hello")).toBe(false);
+
+    const undefDesc: Task = { ...baseTask, title: "x", description: undefined };
+    expect(() => taskMatchesClientSearch(undefDesc, "hello")).not.toThrow();
+  });
+
+  it("matches description text when present", () => {
+    const task: Task = {
+      ...baseTask,
+      description: "Follow up about quarterly report",
+    };
+    expect(taskMatchesClientSearch(task, "quarterly")).toBe(true);
+  });
+
+  it("treats donor with missing name as empty string for search", () => {
+    const task: Task = {
+      ...baseTask,
+      title: "Task only",
+      donor: { id: "d1", name: "" },
+    };
+    expect(() => taskMatchesClientSearch(task, "findme")).not.toThrow();
+    expect(taskMatchesClientSearch(task, "task")).toBe(true);
+  });
 });

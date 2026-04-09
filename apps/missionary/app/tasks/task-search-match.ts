@@ -7,7 +7,7 @@ export function taskMatchesClientSearch(
 ): boolean {
   return (
     task.title.toLowerCase().includes(searchLower) ||
-    Boolean(task.description?.toLowerCase().includes(searchLower)) ||
+    (task.description ?? "").toLowerCase().includes(searchLower) ||
     (task.donor?.name ?? "").toLowerCase().includes(searchLower)
   );
 }
