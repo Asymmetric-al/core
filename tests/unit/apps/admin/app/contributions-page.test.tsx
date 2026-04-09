@@ -4,22 +4,20 @@ import React from "react";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@asym/ui/components/shadcn/data-table", async (importOriginal) => {
-  const mod =
-    await importOriginal<
-      typeof import("@asym/ui/components/shadcn/data-table")
-    >();
+const mockUseAdminContributions = vi.fn(() => ({
+  data: [],
+  isPending: false,
+  isError: false,
+  error: null as Error | null,
+  refetch: vi.fn(),
+}));
 
-  return {
-    ...mod,
-    useDataTableWithLiveQuery: () => ({
-      data: [],
-      isLoading: false,
-      error: null,
-      refetch: vi.fn(),
-    }),
-  };
-});
+vi.mock(
+  "../../../../../apps/admin/app/contributions/use-admin-contributions",
+  () => ({
+    useAdminContributions: () => mockUseAdminContributions(),
+  }),
+);
 
 vi.mock("sonner", () => ({
   toast: { info: vi.fn(), error: vi.fn(), success: vi.fn() },
@@ -30,11 +28,21 @@ import ContributionsPage from "../../../../../apps/admin/app/contributions/page"
 describe("apps/admin/app/contributions/page", () => {
   afterEach(() => {
     cleanup();
+    vi.clearAllMocks();
   });
 
   beforeEach(() => {
     process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://127.0.0.1:54321";
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "test-anon-key";
+    delete process.env.NEXT_PUBLIC_ADMIN_CONTRIBUTIONS_USE_MOCK;
+
+    mockUseAdminContributions.mockReturnValue({
+      data: [],
+      isPending: false,
+      isError: false,
+      error: null,
+      refetch: vi.fn(),
+    });
 
     vi.stubGlobal(
       "matchMedia",
@@ -60,11 +68,11 @@ describe("apps/admin/app/contributions/page", () => {
     );
   });
 
-  it("exports a client component (function) that renders the contributions UI", () => {
+  it("exports a client component (function)", () => {
     expect(typeof ContributionsPage).toBe("function");
   });
 
-  it("renders the live-query contributions shell after mount", async () => {
+  it("renders contributions shell when query succeeds with empty data", async () => {
     render(<ContributionsPage />);
 
     await waitFor(() => {
@@ -73,7 +81,26 @@ describe("apps/admin/app/contributions/page", () => {
       ).toBeTruthy();
     });
 
-    expect(screen.getByTestId("mc-contributions-live")).toBeTruthy();
     expect(screen.getByText("No contributions found")).toBeTruthy();
+  });
+
+  it("shows error UI with retry when query is in error state (no table fallback)", async () => {
+    mockUseAdminContributions.mockReturnValue({
+      data: undefined,
+      isPending: false,
+      isError: true,
+      error: new Error("Network down"),
+      refetch: vi.fn(),
+    });
+
+    render(<ContributionsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Load failed")).toBeTruthy();
+    });
+
+    expect(screen.getByText("Network down")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /retry/i })).toBeTruthy();
+    expect(screen.queryByText("No contributions found")).toBeNull();
   });
 });
