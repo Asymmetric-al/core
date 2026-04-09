@@ -32,6 +32,10 @@ Each app’s config in this repo lists its named skeleton(s) explicitly.
 
 Next.js **Turbopack dev** can **navigate / hot-reload** between viewport resizes. For `@asym/donor`, the root scripts use **`--breakpoints 1280`** and `apps/donor/boneyard.config.json` sets **`"breakpoints": [1280]`** so capture is stable. Add more widths after verifying dev capture stays stable, or capture from a production build if you need full responsive bones.
 
+### Donor dashboard bootstrap query
+
+`/donor-dashboard` uses TanStack Query for a short bootstrap delay before Boneyard hands off to real content. The bootstrap **`queryFn` resolves (never rejects) when the request is aborted** (unmount, refetch, strict-mode double-invoke) so **`isError` is not shown** for benign cancellations. Real network loaders should use normal throw-on-failure semantics.
+
 ## Where files live
 
 | App                    | Config                                 | Generated output         | Capture URL (public fixture route)               |

@@ -11,6 +11,9 @@ export const DONOR_DASHBOARD_BOOTSTRAP_KEY = [
 /**
  * Short async gate so Boneyard can show a real loading phase without setTimeout in the page.
  * Replace with real dashboard data fetches when wired.
+ *
+ * On `AbortSignal` (TanStack Query cancellation: unmount, refetch, strict mode), we **resolve**
+ * instead of rejecting so the client does not surface a bogus "Load failed" state.
  */
 export function fetchDonorDashboardBootstrap({
   delayMs = 0,
@@ -24,22 +27,23 @@ export function fetchDonorDashboardBootstrap({
   }
 
   if (signal?.aborted) {
-    const err = new Error("Donor dashboard bootstrap aborted");
-    err.name = "AbortError";
-    return Promise.reject(err);
+    return Promise.resolve();
   }
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const id = globalThis.setTimeout(() => {
-      signal?.removeEventListener("abort", onAbort);
+      cleanup();
       resolve();
     }, delayMs);
 
-    const onAbort = () => {
+    const cleanup = () => {
       globalThis.clearTimeout(id);
-      const err = new Error("Donor dashboard bootstrap aborted");
-      err.name = "AbortError";
-      reject(err);
+      signal?.removeEventListener("abort", onAbort);
+    };
+
+    const onAbort = () => {
+      cleanup();
+      resolve();
     };
 
     signal?.addEventListener("abort", onAbort, { once: true });
