@@ -131,30 +131,64 @@ function createUnauthenticatedContext(): AuthContext {
   };
 }
 
-export async function getAuthContext(request?: Request): Promise<AuthContext> {
-  const bearerToken = getBearerToken(request);
+/**
+ * E2E bypass identity is only used when there is no valid Supabase session.
+ * Otherwise a stale asym_e2e_auth cookie could override the real user in dev
+ * (NODE_ENV !== production) whenever E2E_AUTH_BYPASS is enabled.
+ */
+async function getE2EAuthBypassContext(): Promise<AuthContext | null> {
+  if (!isE2EAuthBypassEnabled()) {
+    return null;
+  }
+  const cookieStore = await cookies();
+  const host = (await headers()).get("host");
+  const e2eCookieName = getE2EAuthCookieNameForProxyHost(host);
+  let e2eSession = e2eCookieName
+    ? parseE2EAuthCookieValue(cookieStore.get(e2eCookieName)?.value)
+    : null;
+  if (!e2eSession) {
+    e2eSession = parseE2EAuthCookieValue(
+      cookieStore.get(E2E_AUTH_COOKIE_NAME)?.value,
+    );
+  }
+  if (!e2eSession) {
+    return null;
+  }
+  const profileRole = e2eSession.role;
+  const role = derivePrimaryRole({
+    profileRole,
+    memberships: [],
+  });
+  return {
+    userId: e2eSession.userId,
+    tenantId: e2eSession.tenantId,
+    role,
+    profileRole,
+    memberships: [],
+    profileId: null,
+    isAuthenticated: true,
+  };
+}
 
-  if (!bearerToken && isE2EAuthBypassEnabled()) {
-    const cookieStore = await cookies();
-    const raw = cookieStore.get(E2E_AUTH_COOKIE_NAME)?.value;
-    const e2eSession = parseE2EAuthCookieValue(raw);
-    if (e2eSession) {
-      return {
-        userId: e2eSession.userId,
-        tenantId: e2eSession.tenantId,
-        role: e2eSession.role,
-        profileRole: e2eSession.role,
-        memberships: [],
-        profileId: null,
-        isAuthenticated: true,
-      };
+async function resolveUnauthenticatedOrE2EContext(
+  bearerToken: string | null,
+): Promise<AuthContext> {
+  if (!bearerToken) {
+    const e2e = await getE2EAuthBypassContext();
+    if (e2e) {
+      return e2e;
     }
   }
+  return createUnauthenticatedContext();
+}
+
+export async function getAuthContext(request?: Request): Promise<AuthContext> {
+  const bearerToken = getBearerToken(request);
 
   const supabase = await createAuthContextClient(request);
 
   if (!supabase) {
-    return createUnauthenticatedContext();
+    return resolveUnauthenticatedOrE2EContext(bearerToken);
   }
 
   const {
@@ -163,36 +197,7 @@ export async function getAuthContext(request?: Request): Promise<AuthContext> {
   } = await supabase.auth.getUser(bearerToken ?? undefined);
 
   if (userError || !user) {
-    if (!bearerToken && isE2EAuthBypassEnabled()) {
-      const cookieStore = await cookies();
-      const host = (await headers()).get("host");
-      const e2eCookieName = getE2EAuthCookieNameForProxyHost(host);
-      let e2eSession = e2eCookieName
-        ? parseE2EAuthCookieValue(cookieStore.get(e2eCookieName)?.value)
-        : null;
-      if (!e2eSession) {
-        e2eSession = parseE2EAuthCookieValue(
-          cookieStore.get(E2E_AUTH_COOKIE_NAME)?.value,
-        );
-      }
-      if (e2eSession) {
-        const profileRole = e2eSession.role;
-        const role = derivePrimaryRole({
-          profileRole,
-          memberships: [],
-        });
-        return {
-          userId: e2eSession.userId,
-          tenantId: e2eSession.tenantId,
-          role,
-          profileRole,
-          memberships: [],
-          profileId: null,
-          isAuthenticated: true,
-        };
-      }
-    }
-    return createUnauthenticatedContext();
+    return resolveUnauthenticatedOrE2EContext(bearerToken);
   }
 
   const adminClient = getAdminClient().client;
