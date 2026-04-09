@@ -7,13 +7,14 @@ node_modules
 /coverage
 /playwright-report/
 /test-results/
+.auth/
 /apps/donor/generated/
 
 # next.js
 .next/
 /out/
 
-# Payload CMS (admin app) — generated; run `bun run --cwd apps/admin cms:importmap` / Payload CLI locally
+# Payload CMS (admin app) — generated types (optional local artifact; bare eslint-disable breaks verify:eslint). Regenerate via `bun run --cwd apps/admin cms:importmap` / Payload CLI locally.
 apps/admin/payload-types.ts
 
 # production

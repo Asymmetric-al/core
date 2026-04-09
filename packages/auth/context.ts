@@ -5,6 +5,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { cookies, headers } from "next/headers";
 
 import {
+  E2E_AUTH_COOKIE_NAME,
   getE2EAuthCookieNameForProxyHost,
   isE2EAuthBypassEnabled,
   parseE2EAuthCookieValue,
@@ -132,6 +133,24 @@ function createUnauthenticatedContext(): AuthContext {
 
 export async function getAuthContext(request?: Request): Promise<AuthContext> {
   const bearerToken = getBearerToken(request);
+
+  if (!bearerToken && isE2EAuthBypassEnabled()) {
+    const cookieStore = await cookies();
+    const raw = cookieStore.get(E2E_AUTH_COOKIE_NAME)?.value;
+    const e2eSession = parseE2EAuthCookieValue(raw);
+    if (e2eSession) {
+      return {
+        userId: e2eSession.userId,
+        tenantId: e2eSession.tenantId,
+        role: e2eSession.role,
+        profileRole: e2eSession.role,
+        memberships: [],
+        profileId: null,
+        isAuthenticated: true,
+      };
+    }
+  }
+
   const supabase = await createAuthContextClient(request);
 
   if (!supabase) {
@@ -144,20 +163,29 @@ export async function getAuthContext(request?: Request): Promise<AuthContext> {
   } = await supabase.auth.getUser(bearerToken ?? undefined);
 
   if (userError || !user) {
-    if (isE2EAuthBypassEnabled()) {
+    if (!bearerToken && isE2EAuthBypassEnabled()) {
       const cookieStore = await cookies();
       const host = (await headers()).get("host");
       const e2eCookieName = getE2EAuthCookieNameForProxyHost(host);
-      const e2eSession = e2eCookieName
+      let e2eSession = e2eCookieName
         ? parseE2EAuthCookieValue(cookieStore.get(e2eCookieName)?.value)
         : null;
+      if (!e2eSession) {
+        e2eSession = parseE2EAuthCookieValue(
+          cookieStore.get(E2E_AUTH_COOKIE_NAME)?.value,
+        );
+      }
       if (e2eSession) {
-        const role = e2eSession.role;
+        const profileRole = e2eSession.role;
+        const role = derivePrimaryRole({
+          profileRole,
+          memberships: [],
+        });
         return {
           userId: e2eSession.userId,
           tenantId: e2eSession.tenantId,
           role,
-          profileRole: role,
+          profileRole,
           memberships: [],
           profileId: null,
           isAuthenticated: true,

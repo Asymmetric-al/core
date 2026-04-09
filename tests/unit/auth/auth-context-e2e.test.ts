@@ -40,13 +40,13 @@ import {
   E2E_AUTH_COOKIE_NAMES,
   createE2EAuthCookieValue,
 } from "../../../packages/auth/e2e-auth";
+import { getAuthContext } from "../../../packages/auth/context";
 
 describe("getAuthContext E2E cookie", () => {
   const originalBypass = process.env.E2E_AUTH_BYPASS;
   const originalNodeEnv = process.env.NODE_ENV;
 
   beforeEach(() => {
-    vi.resetModules();
     mockGetUser.mockReset();
     mockCookieGet.mockReset();
     process.env.E2E_AUTH_BYPASS = originalBypass;
@@ -68,7 +68,6 @@ describe("getAuthContext E2E cookie", () => {
         : undefined,
     );
 
-    const { getAuthContext } = await import("../../../packages/auth/context");
     const ctx = await getAuthContext();
 
     expect(ctx.isAuthenticated).toBe(true);

@@ -1,9 +1,51 @@
 #!/usr/bin/env node
 
+import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
+import { readFileSync, statSync } from "node:fs";
+import path from "node:path";
+
+const repoRoot = fileURLToPath(new URL("../", import.meta.url));
+const gitSafeEnv = Object.fromEntries(
+  Object.entries(process.env).filter(([key]) => !key.startsWith("GIT_")),
+);
+const dotGitPath = path.join(repoRoot, ".git");
+
+function resolveGitDir() {
+  let resolvedGitDir = dotGitPath;
+
+  try {
+    if (statSync(dotGitPath).isDirectory()) {
+      return dotGitPath;
+    }
+
+    resolvedGitDir = path.resolve(
+      repoRoot,
+      readFileSync(dotGitPath, "utf8")
+        .trim()
+        .replace(/^gitdir:\s*/i, ""),
+    );
+
+    return resolvedGitDir;
+  } catch (error) {
+    console.error(`repoRoot: ${repoRoot}`);
+    console.error(`resolvedGitDir: ${resolvedGitDir}`);
+    console.error(
+      "hint: ensure .git points to a readable gitdir and run the verifier from the repo root.",
+    );
+    throw error;
+  }
+}
+
+const gitDir = resolveGitDir();
+const gitArgs = [`--git-dir=${gitDir}`, `--work-tree=${repoRoot}`];
 
 function run(command, args) {
-  const result = spawnSync(command, args, { stdio: "inherit" });
+  const result = spawnSync(command, args, {
+    cwd: repoRoot,
+    env: gitSafeEnv,
+    stdio: "inherit",
+  });
 
   if (result.error) {
     throw result.error;
@@ -19,6 +61,7 @@ run(process.execPath, ["scripts/sync-agent-skills.mjs"]);
 const diffResult = spawnSync(
   "git",
   [
+    ...gitArgs,
     "diff",
     "--exit-code",
     "--ignore-cr-at-eol",
@@ -26,7 +69,7 @@ const diffResult = spawnSync(
     ".agents/skills",
     ".cursor/skills",
   ],
-  { stdio: "inherit" },
+  { cwd: repoRoot, env: gitSafeEnv, stdio: "inherit" },
 );
 
 if (diffResult.error) {
@@ -43,6 +86,7 @@ if (diffResult.status !== 0) {
 const untrackedResult = spawnSync(
   "git",
   [
+    ...gitArgs,
     "ls-files",
     "--others",
     "--exclude-standard",
@@ -50,7 +94,12 @@ const untrackedResult = spawnSync(
     ".agents/skills",
     ".cursor/skills",
   ],
-  { encoding: "utf8", stdio: ["inherit", "pipe", "inherit"] },
+  {
+    cwd: repoRoot,
+    encoding: "utf8",
+    env: gitSafeEnv,
+    stdio: ["inherit", "pipe", "inherit"],
+  },
 );
 
 if (untrackedResult.error) {

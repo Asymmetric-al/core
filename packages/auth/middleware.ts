@@ -7,10 +7,16 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { safeNextParam } from "./demo-login";
 import {
+  E2E_AUTH_COOKIE_NAME,
   getE2EAuthCookieNameForProxyHost,
   isE2EAuthBypassEnabled,
   parseE2EAuthCookieValue,
 } from "./e2e-auth";
+import {
+  isListedRouteMatch,
+  matchesListedRoute,
+  matchesProtectedPrefix,
+} from "./route-matching";
 
 import type { UserRole } from "@asym/database/types";
 
@@ -30,16 +36,12 @@ export interface AuthMiddlewareOptions {
 
 const DEFAULT_AUTH_ROUTES = ["/login", "/register"] as const;
 
-function matchesRoutePrefix(pathname: string, route: string) {
-  return pathname === route || pathname.startsWith(`${route}/`);
-}
-
 function isPublicRoute(pathname: string, publicRoutes: string[]) {
-  return publicRoutes.some((route) => matchesRoutePrefix(pathname, route));
+  return isListedRouteMatch(pathname, publicRoutes, matchesListedRoute);
 }
 
 function isProtectedRoute(pathname: string, prefixes: string[]) {
-  return prefixes.some((prefix) => matchesRoutePrefix(pathname, prefix));
+  return isListedRouteMatch(pathname, prefixes, matchesProtectedPrefix);
 }
 
 function withPathHeader(request: NextRequest, pathname: string) {
@@ -121,7 +123,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     const config = getSupabasePublicConfig();
     const { url, key } = config;
     const isAuthRoute = authRoutes.some((route) =>
-      matchesRoutePrefix(pathname, route),
+      matchesListedRoute(pathname, route),
     );
     const isExplicitlyPublic =
       isAuthRoute || isPublicRoute(pathname, publicRoutes);
@@ -181,7 +183,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     // Playwright + demo-account set per-app `asym_e2e_auth_*` cookies while
     // Supabase has no user (see `E2E_AUTH_COOKIE_NAMES`).
     // Proxy may not see `E2E_AUTH_BYPASS`; also allow outside production so
-    // `next dev` matches server components (see `getAuthContext` E2E branch).
+    // local `next dev` can mirror tests that use surface cookies.
     if (
       !userId &&
       (isE2EAuthBypassEnabled() || process.env.NODE_ENV !== "production") &&
@@ -196,6 +198,22 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       const e2eSession = parseE2EAuthCookieValue(rawCookie);
       if (e2eSession && isRoleAllowedForApp(e2eSession.role, allowedRoles)) {
         userId = e2eSession.userId;
+      }
+    }
+
+    if (
+      !userId &&
+      isE2EAuthBypassEnabled() &&
+      isProtectedRoute(pathname, protectedRoutePrefixes)
+    ) {
+      const legacySession = parseE2EAuthCookieValue(
+        request.cookies.get(E2E_AUTH_COOKIE_NAME)?.value,
+      );
+      if (
+        legacySession &&
+        isRoleAllowedForApp(legacySession.role, allowedRoles)
+      ) {
+        userId = legacySession.userId;
       }
     }
 

@@ -1,11 +1,15 @@
 import fs from "fs";
 import path from "path";
 
-import { test, expect } from "@playwright/test";
-
-import type { APIRequestContext } from "@playwright/test";
+import {
+  test,
+  expect,
+  type APIRequestContext,
+  type Page,
+} from "@playwright/test";
 
 import { getDemoRoleMap } from "./helpers/demo-auth";
+import { installDemoSessionInBrowser } from "./helpers/install-demo-session";
 
 const TEST_IMAGE_PATH = path.join(__dirname, "fixtures", "test-image.png");
 const AUTH_OPTIONAL_SUITES = new Set(["Backend Image Processing"]);
@@ -14,15 +18,13 @@ type DemoAuthState = { available: true } | { available: false; reason: string };
 
 let demoAuthState: DemoAuthState | null = null;
 
-async function gotoDonorSettings(page: import("@playwright/test").Page) {
+async function gotoDonorSettings(page: Page) {
   await page.goto("/donor-dashboard/settings");
   await expect(page.getByText("Public Avatar")).toBeVisible();
   await expect(page.getByRole("button", { name: /upload new/i })).toBeVisible();
 }
 
-async function openAvatarCropper(
-  page: import("@playwright/test").Page,
-): Promise<boolean> {
+async function openAvatarCropper(page: Page): Promise<boolean> {
   if (!fs.existsSync(TEST_IMAGE_PATH)) {
     return false;
   }
@@ -77,17 +79,10 @@ test.beforeEach(async ({ page }, testInfo) => {
     test.skip(true, authState.reason);
   }
 
-  // Most tests in this file hit authenticated routes. Make the auth state
-  // deterministic by calling the demo endpoint and installing its cookie.
-  const res = await page.request.post("/api/auth/demo-account", {
-    data: { role: "donor" },
-  });
-  if (!res.ok()) {
-    const body = await res.text().catch(() => "");
-    test.skip(
-      true,
-      `Demo auth unavailable (${res.status()}): ${body || "no body"}`,
-    );
+  // Same-origin fetch + credentials so Set-Cookie applies to the browser context.
+  const { ok, status } = await installDemoSessionInBrowser(page, "donor");
+  if (!ok) {
+    test.skip(true, `Demo donor session install failed (${status})`);
   }
 });
 

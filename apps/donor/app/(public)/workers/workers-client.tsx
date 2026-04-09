@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  workerHeroImageTransitionName,
+  workerTitleTransitionName,
+} from "@asym/lib/view-transitions";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
@@ -11,6 +15,7 @@ import {
   DropdownMenuCheckboxItem,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { Input } from "@asym/ui/components/shadcn/input";
+import { SharedNamedViewTransition } from "@asym/ui/components/view-transitions";
 import {
   Search,
   MapPin,
@@ -41,13 +46,17 @@ function WorkerCard({ worker }: { worker: FieldWorker }) {
           <span className="sr-only">View {worker.title}&apos;s profile</span>
         </Link>
 
-        <Image
-          src={worker.image}
-          alt=""
-          fill
-          className="object-cover transition-transform duration-700 group-hover:scale-[1.02] opacity-90 group-hover:opacity-100"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-        />
+        <SharedNamedViewTransition
+          name={workerHeroImageTransitionName(worker.id)}
+        >
+          <Image
+            src={worker.image}
+            alt=""
+            fill
+            className="object-cover transition-transform duration-700 group-hover:scale-[1.02] opacity-90 group-hover:opacity-100"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          />
+        </SharedNamedViewTransition>
 
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-90 group-hover:opacity-80 transition-opacity duration-500 pointer-events-none" />
 
@@ -71,10 +80,14 @@ function WorkerCard({ worker }: { worker: FieldWorker }) {
               href={`/workers/${worker.id}`}
               className="group/name inline-flex items-center gap-2 cursor-pointer hover:text-emerald-300 transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 rounded-sm"
             >
-              <span className="relative">
-                {worker.title}
-                <span className="absolute -bottom-0.5 left-0 w-0 h-[2px] bg-emerald-400 transition-all duration-300 ease-out group-hover/name:w-full" />
-              </span>
+              <SharedNamedViewTransition
+                name={workerTitleTransitionName(worker.id)}
+              >
+                <span className="relative inline-block">
+                  {worker.title}
+                  <span className="absolute -bottom-0.5 left-0 w-0 h-[2px] bg-emerald-400 transition-all duration-300 ease-out group-hover/name:w-full" />
+                </span>
+              </SharedNamedViewTransition>
               <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400 opacity-0 -translate-x-2 transition-all duration-300 ease-out group-hover/name:opacity-100 group-hover/name:translate-x-0" />
             </Link>
           </h2>

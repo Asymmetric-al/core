@@ -26,6 +26,8 @@ interface DataTablePaginationProps<TData> {
   pageSizes?: readonly number[];
   showSelectedCount?: boolean;
   className?: string;
+  /** When true, pagination controls are disabled during URL query transitions (nuqs). */
+  urlStatePending?: boolean;
 }
 
 export function DataTablePagination<TData>({
@@ -33,6 +35,7 @@ export function DataTablePagination<TData>({
   pageSizes = DEFAULT_PAGE_SIZES,
   showSelectedCount = true,
   className,
+  urlStatePending = false,
 }: DataTablePaginationProps<TData>) {
   return (
     <div
@@ -40,6 +43,7 @@ export function DataTablePagination<TData>({
         "flex flex-col sm:flex-row items-center justify-between gap-4 py-4",
         className,
       )}
+      aria-busy={urlStatePending || undefined}
     >
       <div className="flex items-center gap-4 text-sm text-muted-foreground">
         {showSelectedCount && (
@@ -57,6 +61,7 @@ export function DataTablePagination<TData>({
             onValueChange={(value) => {
               table.setPageSize(Number(value));
             }}
+            disabled={urlStatePending}
           >
             <SelectTrigger className="h-9 w-[72px] rounded-xl">
               <SelectValue placeholder={table.getState().pagination.pageSize} />
@@ -84,7 +89,7 @@ export function DataTablePagination<TData>({
             variant="outline"
             className="hidden size-9 p-0 lg:flex rounded-xl"
             onClick={() => table.setPageIndex(0)}
-            disabled={!table.getCanPreviousPage()}
+            disabled={urlStatePending || !table.getCanPreviousPage()}
           >
             <ChevronsLeft className="size-4" aria-hidden="true" />
           </Button>
@@ -93,7 +98,7 @@ export function DataTablePagination<TData>({
             variant="outline"
             className="size-9 p-0 rounded-xl"
             onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+            disabled={urlStatePending || !table.getCanPreviousPage()}
           >
             <ChevronLeft className="size-4" aria-hidden="true" />
           </Button>
@@ -102,7 +107,7 @@ export function DataTablePagination<TData>({
             variant="outline"
             className="size-9 p-0 rounded-xl"
             onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            disabled={urlStatePending || !table.getCanNextPage()}
           >
             <ChevronRight className="size-4" aria-hidden="true" />
           </Button>
@@ -111,7 +116,7 @@ export function DataTablePagination<TData>({
             variant="outline"
             className="hidden size-9 p-0 lg:flex rounded-xl"
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-            disabled={!table.getCanNextPage()}
+            disabled={urlStatePending || !table.getCanNextPage()}
           >
             <ChevronsRight className="size-4" aria-hidden="true" />
           </Button>

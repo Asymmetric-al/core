@@ -1,6 +1,7 @@
 "use client";
 
 import { useLiveQuery } from "@tanstack/react-db";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   type ColumnFiltersState,
   type SortingState,
@@ -90,6 +91,7 @@ interface UseDataTableWithLiveQueryReturn<TData> {
 export function useDataTableWithLiveQuery<TData, TValue = unknown>({
   columns,
   queryBuilder,
+  queryKey,
   initialState = {},
   enableRowSelection = true,
   enableMultiRowSelection = true,
@@ -106,6 +108,8 @@ export function useDataTableWithLiveQuery<TData, TValue = unknown>({
   TData,
   TValue
 >): UseDataTableWithLiveQueryReturn<TData> {
+  const queryClient = useQueryClient();
+
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>(
     initialState.rowSelection ?? {},
   );
@@ -212,7 +216,11 @@ export function useDataTableWithLiveQuery<TData, TValue = unknown>({
     setRowSelection({});
   }, []);
 
-  const refetch = React.useCallback(() => {}, []);
+  const refetch = React.useCallback(() => {
+    if (queryKey?.length) {
+      void queryClient.invalidateQueries({ queryKey });
+    }
+  }, [queryClient, queryKey]);
 
   return {
     table,

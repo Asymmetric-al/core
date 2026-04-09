@@ -5,7 +5,12 @@ import type {
   Table,
   ColumnSizingState,
   VisibilityState,
+  ColumnFiltersState,
+  PaginationState,
+  RowSelectionState,
+  SortingState,
 } from "@tanstack/react-table";
+import type * as React from "react";
 
 export type DataTableFilterVariant =
   | "text"
@@ -51,9 +56,25 @@ export interface DataTableAdvancedFilterField<
   isMulti?: boolean;
 }
 
-export interface DataTableRowAction<TData> {
+/** Legacy row mutation descriptor (not the toolbar row-actions menu). */
+export interface DataTableRowMutationAction<TData> {
   row: Row<TData>;
   type: "update" | "delete";
+}
+
+/**
+ * @deprecated Use `DataTableRowMutationAction` — distinct from `DataTableInteractiveRowAction`.
+ */
+export type DataTableRowAction<TData> = DataTableRowMutationAction<TData>;
+
+/** Toolbar / menu actions on a row (table buttons, dropdown, cards). */
+export interface DataTableInteractiveRowAction<TData> {
+  /** Optional stable key when multiple actions share the same label. */
+  id?: string;
+  label: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  onClick: (row: TData) => void;
+  variant?: "default" | "destructive";
 }
 
 export interface VirtualizationConfig {
@@ -74,16 +95,13 @@ export interface DataTableConfig {
   enableMultiSort?: boolean;
   enableColumnResizing?: boolean;
   enableColumnPinning?: boolean;
-  enableGlobalFilter?: boolean;
   enableColumnVisibility?: boolean;
   enablePagination?: boolean;
   enableFilters?: boolean;
   enableAdvancedFilters?: boolean;
   enableSorting?: boolean;
-  enableFullscreen?: boolean;
   enableKeyboardNavigation?: boolean;
   enableExport?: boolean;
-  enableUrlState?: boolean;
   manualPagination?: boolean;
   manualSorting?: boolean;
   manualFiltering?: boolean;
@@ -97,6 +115,14 @@ export interface DataTableConfig {
   columnResizingPersistKey?: string;
 }
 
+export interface DataTableControlledState {
+  sorting?: SortingState;
+  columnFilters?: ColumnFiltersState;
+  columnVisibility?: VisibilityState;
+  rowSelection?: RowSelectionState;
+  pagination?: PaginationState;
+}
+
 export interface DataTableUrlStateConfig {
   pageIndexKey?: string;
   pageSizeKey?: string;
@@ -104,6 +130,13 @@ export interface DataTableUrlStateConfig {
   filterKey?: string;
   searchKey?: string;
   visibilityKey?: string;
+  defaultPageSize?: number;
+  debounceMs?: number;
+  shallow?: boolean;
+  scroll?: boolean;
+  history?: "push" | "replace";
+  clearOnDefault?: boolean;
+  searchColumnKey?: string;
 }
 
 export interface DataTableState {
@@ -138,4 +171,8 @@ export type {
   Table,
   ColumnSizingState,
   VisibilityState,
+  ColumnFiltersState,
+  PaginationState,
+  RowSelectionState,
+  SortingState,
 };

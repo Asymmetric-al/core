@@ -1,9 +1,9 @@
 export type ContributionStatus =
-  | "Succeeded"
-  | "Pending"
-  | "Failed"
-  | "Refunded"
-  | "Disputed";
+  | "completed"
+  | "pending"
+  | "processing"
+  | "failed"
+  | "refunded";
 
 export type ContributionType = "One-time" | "Recurring" | "Pledge" | "In-kind";
 
@@ -23,27 +23,23 @@ export type ContributionSource =
   | "Phone"
   | "Import";
 
-export interface Donor {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-}
-
 export interface Contribution {
   id: string;
-  donor: Donor;
+  donorId: string;
+  donorName: string | null;
+  donorEmail: string;
+  donorAvatar?: string | null;
   amount: number;
   date: string;
   status: ContributionStatus;
   type: ContributionType;
   paymentMethod: PaymentMethod;
   source: ContributionSource;
-  fundCode: string;
-  fundName: string;
-  missionaryId?: string;
+  fundCode: string | null;
+  fundName: string | null;
+  missionaryId?: string | null;
   missionaryName?: string;
-  transactionId: string;
+  transactionId: string | null;
   notes?: string;
   isAnonymous: boolean;
   receiptSent: boolean;

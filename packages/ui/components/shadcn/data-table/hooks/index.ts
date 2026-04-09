@@ -27,10 +27,7 @@ export type {
   UseColumnResizingReturn,
 } from "./use-column-resizing";
 
-export {
-  useDataTableWithLiveQuery,
-  useDataTableWithSupabase,
-} from "./use-data-table-live-query";
+export { useDataTableWithLiveQuery } from "./use-data-table-live-query";
 
 export {
   useDataTableMutation,
@@ -58,3 +55,16 @@ export type {
   UseDataTableVirtualizationOptions,
   UseDataTableVirtualizationReturn,
 } from "./use-data-table-virtualization";
+
+export {
+  useDataTableState,
+  useDataTableStateCore,
+  useDataTableStateWithUrl,
+  getDefaultDataTableRowId,
+} from "./use-data-table-state";
+export type {
+  UseDataTableStateOptions,
+  UseDataTableStateReturn,
+  UseDataTableStateCoreOptions,
+  UseDataTableStateWithUrlOptions,
+} from "./use-data-table-state";
