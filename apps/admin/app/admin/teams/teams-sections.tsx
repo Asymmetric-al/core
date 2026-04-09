@@ -217,50 +217,39 @@ function getPermissionColor(level: string) {
   }
 }
 
-export function TeamsPageHeader() {
+/** Primary action for Mission Control PageShell header (Create Team dialog). */
+export function TeamsPageActions() {
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight text-zinc-900">
-          Manage Teams
-        </h2>
-        <p className="text-zinc-500 mt-1">
-          Organize users and departments with shared, granular permissions.
-        </p>
-      </div>
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button className="bg-zinc-900 text-white shadow-xl hover:bg-zinc-800">
-            <Plus className="mr-2 h-4 w-4" /> Create Team
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Create New Team</DialogTitle>
-            <DialogDescription>
-              Set up a new organizational unit. You can invite members after
-              creation.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Team Name</Label>
-              <Input id="name" placeholder="e.g. Marketing, Crisis Response" />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="description">Description</Label>
-              <Input
-                id="description"
-                placeholder="Brief purpose of this team"
-              />
-            </div>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button className="h-11 rounded-xl bg-zinc-900 font-black uppercase tracking-widest text-[10px] text-white shadow-xl hover:bg-zinc-800">
+          <Plus className="mr-2 h-4 w-4" />
+          Create Team
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Create New Team</DialogTitle>
+          <DialogDescription>
+            Set up a new organizational unit. You can invite members after
+            creation.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Label htmlFor="name">Team Name</Label>
+            <Input id="name" placeholder="e.g. Marketing, Crisis Response" />
           </div>
-          <DialogFooter>
-            <Button type="submit">Create Team</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+          <div className="grid gap-2">
+            <Label htmlFor="description">Description</Label>
+            <Input id="description" placeholder="Brief purpose of this team" />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button type="submit">Create Team</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

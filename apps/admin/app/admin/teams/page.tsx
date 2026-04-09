@@ -1,10 +1,11 @@
 "use client";
 
 import { useTeams, useTeamMembers } from "@asym/database/hooks";
+import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import { useMemo, useState } from "react";
 
 import {
-  TeamsPageHeader,
+  TeamsPageActions,
   TeamsTableCard,
   SystemUsersCard,
   type Team,
@@ -32,9 +33,12 @@ export default function TeamsPage() {
   }, [searchTerm, teams]);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-20">
-      <TeamsPageHeader />
-
+    <PageShell
+      title="Manage Teams"
+      description="Organize users and departments with shared, granular permissions."
+      actions={<TeamsPageActions />}
+      contentClassName="space-y-8 animate-in fade-in duration-500"
+    >
       <div className="grid gap-6">
         <TeamsTableCard
           teams={filteredTeams}
@@ -47,6 +51,6 @@ export default function TeamsPage() {
         />
         <SystemUsersCard members={members} />
       </div>
-    </div>
+    </PageShell>
   );
 }

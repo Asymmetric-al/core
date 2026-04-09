@@ -45,7 +45,7 @@ export function AdminDashboardStatsSection({
       id: "month-revenue",
       label: "Revenue This Month",
       value: formatCurrency(stats.revenueThisMonth),
-      hint: "Sum of settled donation amounts",
+      hint: "Sum of settled donations",
     },
     {
       id: "active-funds",
