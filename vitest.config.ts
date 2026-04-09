@@ -3,7 +3,6 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
 const srcPath = fileURLToPath(new URL("./src", import.meta.url));
-
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -17,6 +16,7 @@ export default defineConfig({
       "tests/unit/**/*.test.tsx",
       "packages/api/tests/unit/**/*.test.ts",
       "packages/api/tests/unit/**/*.test.tsx",
+      "packages/auth/**/*.test.ts",
     ],
     environment: "node",
     clearMocks: true,
