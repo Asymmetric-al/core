@@ -55,7 +55,7 @@ export function FilterSelectInput({
           aria-expanded={open}
           aria-controls={listboxId}
           className={cn(
-            "h-8 w-[180px] justify-between px-2 text-sm font-normal",
+            "h-9 w-[180px] justify-between rounded-xl border-border/70 bg-background px-3 text-sm font-normal shadow-sm hover:bg-muted/40 data-[state=open]:border-border data-[state=open]:bg-muted/50",
             !selectedOption && "text-muted-foreground",
             className,
           )}
@@ -75,12 +75,22 @@ export function FilterSelectInput({
           <ChevronsUpDown className="ml-2 size-3.5 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0" align="start">
-        <Command>
-          <CommandInput placeholder="Search..." className="h-8" />
+      <PopoverContent
+        className="w-[220px] overflow-hidden rounded-2xl border border-border/60 bg-popover p-0 shadow-xl"
+        align="start"
+        sideOffset={8}
+      >
+        <Command className="rounded-[inherit] bg-transparent">
+          <CommandInput
+            placeholder="Search..."
+            className="h-full bg-transparent text-sm"
+            wrapperClassName="m-2 mb-0 rounded-xl border border-border/70 bg-background px-3 shadow-xs focus-within:border-ring/50 focus-within:ring-2 focus-within:ring-ring/20"
+          />
           <CommandList id={listboxId}>
-            <CommandEmpty>No options found.</CommandEmpty>
-            <CommandGroup>
+            <CommandEmpty className="py-8 text-xs text-muted-foreground">
+              No options found.
+            </CommandEmpty>
+            <CommandGroup className="p-2">
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
@@ -89,6 +99,7 @@ export function FilterSelectInput({
                     onChange(option.value === value ? "" : option.value);
                     setOpen(false);
                   }}
+                  className="rounded-xl px-3 py-2.5 text-sm font-medium"
                 >
                   <Check
                     className={cn(
@@ -101,7 +112,7 @@ export function FilterSelectInput({
                   )}
                   <span>{option.label}</span>
                   {option.count !== undefined && (
-                    <span className="ml-auto text-xs text-muted-foreground">
+                    <span className="ml-auto min-w-6 text-right font-mono text-[11px] font-medium text-muted-foreground/80">
                       {option.count}
                     </span>
                   )}
@@ -158,7 +169,7 @@ export function FilterMultiSelectInput({
           aria-expanded={open}
           aria-controls={listboxId}
           className={cn(
-            "h-auto min-h-8 w-[240px] justify-between px-2 text-sm font-normal",
+            "h-auto min-h-9 w-[240px] justify-between rounded-xl border-border/70 bg-background px-3 text-sm font-normal shadow-sm hover:bg-muted/40 data-[state=open]:border-border data-[state=open]:bg-muted/50",
             !selectedOptions.length && "text-muted-foreground",
             className,
           )}
@@ -197,12 +208,22 @@ export function FilterMultiSelectInput({
           <ChevronsUpDown className="ml-2 size-3.5 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[240px] p-0" align="start">
-        <Command>
-          <CommandInput placeholder="Search..." className="h-8" />
+      <PopoverContent
+        className="w-[260px] overflow-hidden rounded-2xl border border-border/60 bg-popover p-0 shadow-xl"
+        align="start"
+        sideOffset={8}
+      >
+        <Command className="rounded-[inherit] bg-transparent">
+          <CommandInput
+            placeholder="Search..."
+            className="h-full bg-transparent text-sm"
+            wrapperClassName="m-2 mb-0 rounded-xl border border-border/70 bg-background px-3 shadow-xs focus-within:border-ring/50 focus-within:ring-2 focus-within:ring-ring/20"
+          />
           <CommandList id={listboxId}>
-            <CommandEmpty>No options found.</CommandEmpty>
-            <CommandGroup>
+            <CommandEmpty className="py-8 text-xs text-muted-foreground">
+              No options found.
+            </CommandEmpty>
+            <CommandGroup className="p-2">
               {options.map((option) => {
                 const isSelected = selectedValues.includes(option.value);
                 return (
@@ -210,13 +231,14 @@ export function FilterMultiSelectInput({
                     key={option.value}
                     value={option.value}
                     onSelect={() => toggleOption(option.value)}
+                    className="rounded-xl px-3 py-2.5 text-sm font-medium"
                   >
                     <div
                       className={cn(
-                        "mr-2 flex size-4 items-center justify-center rounded-sm border border-primary",
+                        "mr-2 flex size-4 items-center justify-center rounded-full border border-border/70 transition-colors",
                         isSelected
-                          ? "bg-primary text-primary-foreground"
-                          : "opacity-50",
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "bg-background",
                       )}
                     >
                       {isSelected && <Check className="size-3" />}
@@ -226,7 +248,7 @@ export function FilterMultiSelectInput({
                     )}
                     <span>{option.label}</span>
                     {option.count !== undefined && (
-                      <span className="ml-auto text-xs text-muted-foreground">
+                      <span className="ml-auto min-w-6 text-right font-mono text-[11px] font-medium text-muted-foreground/80">
                         {option.count}
                       </span>
                     )}
@@ -237,12 +259,12 @@ export function FilterMultiSelectInput({
           </CommandList>
         </Command>
         {selectedValues.length > 0 && (
-          <div className="border-t p-1">
+          <div className="border-t border-border/60 p-2 pt-1">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onChange([])}
-              className="w-full h-7 text-xs"
+              className="h-8 w-full rounded-xl text-xs font-medium"
             >
               Clear all
             </Button>

@@ -224,12 +224,14 @@ export function TasksFilterSection({
 interface TasksTableSectionProps {
   columns: ColumnDef<Task>[];
   data: Task[];
+  isLoading?: boolean;
   onCreateTask: () => void;
 }
 
 export function TasksTableSection({
   columns,
   data,
+  isLoading,
   onCreateTask,
 }: TasksTableSectionProps) {
   return (
@@ -238,6 +240,7 @@ export function TasksTableSection({
         <DataTableWrapper
           columns={columns}
           data={data}
+          isLoading={isLoading}
           searchColumnId="title"
           getRowId={(task) => task.id}
           config={{

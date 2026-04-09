@@ -1,5 +1,6 @@
 "use client";
 
+import { useAdminContributionsInfiniteGrid } from "@asym/database/hooks";
 import { formatCurrency } from "@asym/lib/utils";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -9,10 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
-import {
-  DataTable,
-  useDataTableWithLiveQuery,
-} from "@asym/ui/components/shadcn/data-table";
+import { DataTableResponsive } from "@asym/ui/components/shadcn/data-table";
 import { cn } from "@asym/ui/lib/utils";
 import {
   DollarSign,
@@ -26,23 +24,18 @@ import {
   Clock,
   XCircle,
   RotateCcw,
-  Loader2,
 } from "lucide-react";
-import { startTransition, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { columns } from "./columns";
+import { getContributionColumns } from "./columns";
+import { ContributionDetailSheet } from "./contribution-detail-sheet";
 import {
   contributionStatusOptions,
   contributionTypeOptions,
   paymentMethodOptions,
   sourceOptions,
 } from "./data";
-import {
-  buildContributionsLiveQuery,
-  contributionsLiveQueryKey,
-  type ContributionLiveRow,
-} from "./live-query";
 
 import type { Contribution } from "./types";
 import type { DataTableFilterField } from "@asym/ui/components/shadcn/data-table/types";
@@ -50,67 +43,56 @@ import type { DataTableFilterField } from "@asym/ui/components/shadcn/data-table
 const statusIcons = {
   completed: CircleCheck,
   pending: Clock,
-  processing: Loader2,
   failed: XCircle,
   refunded: RotateCcw,
-};
+} as const;
 
 export default function ContributionsClient() {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    startTransition(() => {
-      setIsMounted(true);
-    });
-  }, []);
-
-  if (!isMounted) {
-    return (
-      <div className="container-responsive section-gap animate-in fade-in duration-500">
-        <div className="flex flex-col gap-6 lg:gap-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-                Contributions
-              </h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Track and manage all donations and contributions
-              </p>
-            </div>
-          </div>
-          <div className="rounded-2xl border border-border bg-card p-10 text-sm text-muted-foreground">
-            Loading contributions…
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return <ContributionsClientBody />;
 }
 
 function ContributionsClientBody() {
-  const { data, isLoading, error, refetch } =
-    useDataTableWithLiveQuery<ContributionLiveRow>({
-      columns,
-      queryBuilder: buildContributionsLiveQuery as never,
-      queryKey: contributionsLiveQueryKey,
-      getRowId: (row) => row.id,
-    });
+  const [selectedContribution, setSelectedContribution] =
+    useState<Contribution | null>(null);
+  const {
+    columnFilters,
+    hasMore,
+    isFetchingMore,
+    isLoading,
+    loadMore,
+    onFiltersChange,
+    onRefresh,
+    onSortingChange,
+    rows,
+    sorting,
+    summary,
+    tableError,
+  } = useAdminContributionsInfiniteGrid();
 
   const stats = useMemo(() => {
-    const totalAmount = data.reduce(
-      (sum, c) => (c.status === "completed" ? sum + c.amount : sum),
-      0,
-    );
-    const totalCount = data.filter((c) => c.status === "completed").length;
-    const pendingCount = data.filter((c) => c.status === "pending").length;
-    const pendingAmount = data.reduce(
-      (sum, c) => (c.status === "pending" ? sum + c.amount : sum),
-      0,
-    );
-    const avgAmount = totalCount > 0 ? totalAmount / totalCount : 0;
-    const recurringCount = data.filter((c) => c.type === "Recurring").length;
+    const totalAmount =
+      summary?.totalReceived ??
+      rows.reduce(
+        (sum, c) => (c.status === "completed" ? sum + c.amountGross : sum),
+        0,
+      );
+    const totalCount =
+      summary?.successfulCount ??
+      rows.filter((c) => c.status === "completed").length;
+    const pendingCount =
+      summary?.pendingCount ??
+      rows.filter((c) => c.status === "pending").length;
+    const pendingAmount =
+      summary?.pendingAmount ??
+      rows.reduce(
+        (sum, c) => (c.status === "pending" ? sum + c.amountGross : sum),
+        0,
+      );
+    const avgAmount =
+      summary?.averageGift ?? (totalCount > 0 ? totalAmount / totalCount : 0);
+    const recurringCount =
+      summary?.recurringCount ??
+      rows.filter((c) => c.type === "Recurring").length;
 
     return {
       totalAmount,
@@ -120,7 +102,7 @@ function ContributionsClientBody() {
       avgAmount,
       recurringCount,
     };
-  }, [data]);
+  }, [rows, summary]);
 
   const filterFields: DataTableFilterField<Contribution>[] = [
     { id: "status", label: "Status", options: contributionStatusOptions },
@@ -128,6 +110,13 @@ function ContributionsClientBody() {
     { id: "paymentMethod", label: "Payment", options: paymentMethodOptions },
     { id: "source", label: "Source", options: sourceOptions },
   ];
+  const columns = useMemo(
+    () =>
+      getContributionColumns({
+        onViewContribution: setSelectedContribution,
+      }),
+    [],
+  );
 
   const handleBulkDelete = (_rows: Contribution[]) => {
     toast.info("Bulk delete is not available yet.");
@@ -253,7 +242,9 @@ function ContributionsClientBody() {
 
         <div className="flex flex-wrap gap-2">
           {Object.entries(statusIcons).map(([status, Icon]) => {
-            const count = data.filter((c) => c.status === status).length;
+            const count = rows.filter(
+              (contribution) => contribution.status === status,
+            ).length;
             if (count === 0) return null;
             return (
               <Badge
@@ -265,20 +256,13 @@ function ContributionsClientBody() {
                     "border-emerald-200 text-emerald-700 dark:border-emerald-800 dark:text-emerald-400",
                   status === "pending" &&
                     "border-amber-200 text-amber-700 dark:border-amber-800 dark:text-amber-400",
-                  status === "processing" &&
-                    "border-sky-200 text-sky-700 dark:border-sky-800 dark:text-sky-400",
                   status === "failed" &&
                     "border-red-200 text-red-700 dark:border-red-800 dark:text-red-400",
                   status === "refunded" &&
                     "border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-400",
                 )}
               >
-                <Icon
-                  className={cn(
-                    "h-3.5 w-3.5",
-                    status === "processing" && "animate-spin",
-                  )}
-                />
+                <Icon className="h-3.5 w-3.5" />
                 {status.charAt(0).toUpperCase() + status.slice(1)}: {count}
               </Badge>
             );
@@ -286,21 +270,88 @@ function ContributionsClientBody() {
         </div>
 
         <div data-testid="mc-contributions-live">
-          <DataTable
+          <DataTableResponsive
             columns={columns}
-            data={data}
+            data={rows}
             filterFields={filterFields}
             searchColumnId="donorName"
-            searchPlaceholder="Search by donor name or email..."
+            searchPlaceholder="Search donor, entity, or email..."
             isLoading={isLoading}
+            onFiltersChange={onFiltersChange}
+            onSortingChange={onSortingChange}
+            onRefresh={() => void onRefresh()}
+            onRowClick={(row) => setSelectedContribution(row.original)}
+            infiniteScroll={{
+              hasMore,
+              isFetchingMore,
+              onLoadMore: loadMore,
+              threshold: 10,
+              loadingContent: "Loading more contributions...",
+            }}
+            emptyState={
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="rounded-2xl bg-muted/50 p-4 mb-4">
+                  <DollarSign className="size-10 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-semibold">
+                  No contributions found
+                </h3>
+                {tableError ? (
+                  <p className="text-sm text-destructive mt-1 max-w-xl">
+                    {tableError.message}
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+                    Get started by recording your first contribution or
+                    importing from another source.
+                  </p>
+                )}
+                <div className="mt-6 flex gap-3">
+                  {tableError && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => void onRefresh()}
+                    >
+                      Retry
+                    </Button>
+                  )}
+                  <Button size="sm">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Contribution
+                  </Button>
+                </div>
+              </div>
+            }
             config={{
               enableRowSelection: true,
               enableColumnVisibility: true,
-              enablePagination: true,
+              enablePagination: false,
               enableFilters: true,
               enableSorting: true,
+              enableViewToggle: false,
+              mobileBreakpoint: 0,
+              manualFiltering: true,
+              manualSorting: true,
+              stickyHeader: true,
+              virtualization: {
+                enabled: true,
+                estimateSize: 72,
+                overscan: 10,
+                containerHeight: 720,
+              },
             }}
-            actionBarActions={[
+            initialState={{
+              sorting,
+              columnFilters,
+              columnVisibility: {
+                amountNet: false,
+                donorType: false,
+                entryMethod: false,
+                transactionId: false,
+              },
+            }}
+            floatingBarActions={[
               {
                 label: "Send Receipts",
                 icon: Receipt,
@@ -313,38 +364,13 @@ function ContributionsClientBody() {
                 variant: "destructive",
               },
             ]}
-            emptyState={
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="rounded-2xl bg-muted/50 p-4 mb-4">
-                  <DollarSign className="size-10 text-muted-foreground" />
-                </div>
-                <h3 className="text-lg font-semibold">
-                  No contributions found
-                </h3>
-                <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-                  Get started by recording your first contribution or importing
-                  from another source.
-                </p>
-                <div className="mt-6 flex gap-3">
-                  {error && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => void refetch()}
-                    >
-                      Retry
-                    </Button>
-                  )}
-                  <Button size="sm">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Contribution
-                  </Button>
-                </div>
-              </div>
-            }
           />
         </div>
       </div>
+      <ContributionDetailSheet
+        contribution={selectedContribution}
+        onClose={() => setSelectedContribution(null)}
+      />
     </div>
   );
 }

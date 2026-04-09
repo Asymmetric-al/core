@@ -4,7 +4,7 @@ This guide defines the repo-standard virtualization contract for tables, grids, 
 
 ## Scope
 
-- Works with `@tanstack/react-virtual@^3.13.19`
+- Works with `@tanstack/react-virtual@^3.13.23`
 - Uses shared hook in `@asym/ui`:
   - `useDataTableVirtualization`
   - `resolveVirtualizationConfig`
@@ -64,6 +64,7 @@ Use legacy fields only when touching old call sites gradually. New call sites sh
 - Use row ID as item key (not array index).
 - Prefer `getRowId` on shared table surfaces so selection state, URL state, and virtual keys survive sort/filter/pagination changes.
 - Keep row focus and row actions independent from the virtualizer; virtualization should not own selection or action targeting.
+- Prefer `DataTableResponsive` for table-like lists that previously used custom virtualized cards.
 
 ```tsx
 const getRowKey = React.useCallback(

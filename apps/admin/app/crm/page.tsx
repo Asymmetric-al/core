@@ -1,5 +1,6 @@
 "use client";
 
+import { useCrmContacts } from "@asym/database/hooks";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { formatCurrency } from "@asym/lib/utils";
 import {
@@ -42,7 +43,6 @@ import {
 import React, { useState, useMemo } from "react";
 
 import { getColumns } from "./columns";
-import { MOCK_CONTACTS } from "./data";
 import { STAGES, STAGE_COLORS } from "./types";
 
 import type { Contact } from "./types";
@@ -440,6 +440,8 @@ function KanbanView({
 export default function MissionControlCRM() {
   const [view, setView] = useState<"table" | "kanban">("table");
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const contactsQuery = useCrmContacts();
+  const contacts = contactsQuery.data ?? [];
 
   const columns = useMemo(
     () => getColumns({ onViewContact: setSelectedContact }),
@@ -449,7 +451,7 @@ export default function MissionControlCRM() {
   return (
     <>
       <PageShell
-        title="People CRM"
+        title="CRM"
         description="Manage contacts, donors, and partner relationships."
         actions={
           <div className="flex items-center gap-3">
@@ -478,7 +480,7 @@ export default function MissionControlCRM() {
               </button>
             </div>
             <Button className="h-11 px-6 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-zinc-200 gap-2">
-              <Plus className="h-3.5 w-3.5" /> New Person
+              <Plus className="h-3.5 w-3.5" /> New Record
             </Button>
           </div>
         }
@@ -496,7 +498,8 @@ export default function MissionControlCRM() {
               >
                 <DataTableResponsive
                   columns={columns}
-                  data={MOCK_CONTACTS}
+                  data={contacts}
+                  isLoading={contactsQuery.isLoading}
                   filterFields={filterFields}
                   searchColumnId="name"
                   searchPlaceholder="Search contacts..."
@@ -590,7 +593,7 @@ export default function MissionControlCRM() {
                 className="h-full"
               >
                 <KanbanView
-                  contacts={MOCK_CONTACTS}
+                  contacts={contacts}
                   onSelectContact={setSelectedContact}
                 />
               </motion.div>

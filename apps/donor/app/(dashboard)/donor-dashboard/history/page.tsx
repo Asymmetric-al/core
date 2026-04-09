@@ -1,20 +1,14 @@
 "use client";
 
-import { motion } from "@asym/lib/motion";
+import { useDonorHistoryTransactions } from "@asym/database/hooks";
 import { formatCurrency } from "@asym/lib/utils";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
-import { useDataTableVirtualization } from "@asym/ui/components/shadcn/data-table";
+import { DataTableResponsive } from "@asym/ui/components/shadcn/data-table";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -28,22 +22,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
-import { cn } from "@asym/ui/lib/utils";
 import {
   Calendar,
   FileText,
   CheckCircle2,
   DollarSign,
   TrendingUp,
-  MoreHorizontal,
   DownloadCloud,
-  ExternalLink,
   SlidersHorizontal,
-  XCircle,
-  Clock,
   Search,
 } from "lucide-react";
 import React, { useEffect, useMemo, useReducer, useState } from "react";
+
+import { columns } from "./columns";
 
 // --- Types ---
 interface Transaction {
@@ -217,32 +208,6 @@ const DEFAULT_HISTORY_FILTERS: HistoryFiltersState = {
 };
 
 // --- Helpers ---
-const getStatusColor = (status: Transaction["status"]) => {
-  switch (status) {
-    case "Succeeded":
-      return "bg-emerald-50 text-emerald-700 border-emerald-200";
-    case "Processing":
-      return "bg-blue-50 text-blue-700 border-blue-200";
-    case "Failed":
-      return "bg-red-50 text-red-700 border-red-200";
-    default:
-      return "bg-zinc-50 text-zinc-700 border-zinc-200";
-  }
-};
-
-const getStatusIcon = (status: Transaction["status"]) => {
-  switch (status) {
-    case "Succeeded":
-      return <CheckCircle2 className="w-3.5 h-3.5" />;
-    case "Processing":
-      return <Clock className="w-3.5 h-3.5" />;
-    case "Failed":
-      return <XCircle className="w-3.5 h-3.5" />;
-    default:
-      return null;
-  }
-};
-
 function historyFiltersReducer(
   state: HistoryFiltersState,
   action: HistoryFiltersAction,
@@ -315,16 +280,6 @@ function MonthlyGivingChart({
     </ResponsiveContainer>
   );
 }
-
-const HISTORY_CONTAINER_VARIANTS = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
-};
-
-const HISTORY_ITEM_VARIANTS = {
-  hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0 },
-};
 
 function HistoryPageHeader({
   yearFilter,
@@ -564,229 +519,41 @@ function HistoryFiltersToolbar({
 
 function HistoryTransactionsCard({
   filteredTransactions,
+  isLoading,
 }: {
   filteredTransactions: Transaction[];
+  isLoading?: boolean;
 }) {
-  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
-  const getVirtualItemKey = React.useCallback(
-    (index: number) => filteredTransactions[index]?.id ?? index,
-    [filteredTransactions],
-  );
-  const {
-    config: resolvedVirtualization,
-    virtualizer,
-    virtualItems,
-    totalSize,
-    isEnabled: isVirtualized,
-  } = useDataTableVirtualization({
-    count: filteredTransactions.length,
-    scrollElementRef: scrollContainerRef,
-    virtualization: {
-      enabled: true,
-      estimateSize: 84,
-      overscan: 8,
-      containerHeight: 640,
-      getItemKey: getVirtualItemKey,
-    },
-    defaults: {
-      enabled: false,
-      estimateSize: 84,
-      overscan: 8,
-      containerHeight: 640,
-    },
-  });
-
-  const renderTransactionContent = (tx: Transaction) => (
-    <>
-      <div className="flex justify-between md:hidden mb-3">
-        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-          {new Date(tx.date).toLocaleDateString()}
-        </span>
-        <Badge
-          variant="outline"
-          className={cn(
-            "text-[9px] h-5 uppercase font-black tracking-widest rounded-md border-transparent",
-            getStatusColor(tx.status),
-          )}
-        >
-          {getStatusIcon(tx.status)}
-          <span className="ml-1">{tx.status}</span>
-        </Badge>
-      </div>
-
-      <div className="hidden md:block col-span-2 px-4 text-[11px] font-bold text-zinc-500 uppercase">
-        {new Date(tx.date).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        })}
-      </div>
-
-      <div className="md:col-span-4 md:px-0 mb-3 md:mb-0">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-9 w-9 border border-zinc-100 shadow-sm">
-            <AvatarImage src={tx.recipientAvatar} alt={tx.recipient} />
-            <AvatarFallback className="bg-zinc-100 text-zinc-400 font-bold text-xs uppercase">
-              {tx.recipient[0]}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <div className="text-sm font-bold text-zinc-900 leading-none mb-1 uppercase tracking-tight">
-              {tx.recipient}
-            </div>
-            <div className="text-[9px] font-bold text-zinc-400 flex items-center gap-1.5 uppercase tracking-widest">
-              <span className="bg-zinc-100 px-1.5 py-0.5 rounded text-zinc-500">
-                {tx.type}
-              </span>
-              <span className="text-zinc-200">•</span>
-              <span>
-                {tx.method} ••{tx.last4}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex justify-between items-center md:block md:col-span-2 md:px-0">
-        <span className="text-[10px] font-black text-zinc-300 md:hidden uppercase tracking-widest">
-          Amount
-        </span>
-        <span className="text-sm font-bold text-zinc-900 tabular-nums">
-          {formatCurrency(tx.amount)}
-        </span>
-      </div>
-
-      <div className="hidden md:flex col-span-2 items-center">
-        <Badge
-          variant="outline"
-          className={cn(
-            "pl-1.5 pr-2.5 h-6 gap-1.5 font-black uppercase text-[9px] tracking-widest rounded-md border-transparent",
-            getStatusColor(tx.status),
-          )}
-        >
-          {getStatusIcon(tx.status)}
-          {tx.status}
-        </Badge>
-      </div>
-
-      <div className="md:col-span-2 flex justify-end md:px-4 mt-4 md:mt-0 border-t md:border-none pt-4 md:pt-0 gap-2">
-        {tx.status === "Succeeded" && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-md"
-          >
-            <DownloadCloud className="w-3.5 h-3.5 mr-1.5" /> Receipt
-          </Button>
-        )}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-zinc-300 hover:text-zinc-900"
-            >
-              <MoreHorizontal className="w-4 h-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem className="text-[10px] font-bold uppercase tracking-widest">
-              View Details
-            </DropdownMenuItem>
-            <DropdownMenuItem className="text-[10px] font-bold uppercase tracking-widest">
-              Manage Recurring
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-[10px] font-bold uppercase tracking-widest">
-              <ExternalLink className="w-3 h-3 mr-2" /> Open Statement
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </>
-  );
-
   return (
     <Card className="border-zinc-100 shadow-sm overflow-hidden flex-1 flex flex-col rounded-xl text-left bg-white">
-      <div className="hidden md:grid grid-cols-12 gap-4 p-4 bg-zinc-50 border-b border-zinc-100 text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-        <div className="col-span-2">Date</div>
-        <div className="col-span-4">Recipient</div>
-        <div className="col-span-2">Amount</div>
-        <div className="col-span-2">Status</div>
-        <div className="col-span-2 text-right">Receipt</div>
-      </div>
-
-      <div
-        ref={scrollContainerRef}
-        className="flex-1 min-h-[400px] overflow-y-auto"
-        style={
-          isVirtualized
-            ? { maxHeight: resolvedVirtualization.containerHeight }
-            : undefined
-        }
-      >
-        {filteredTransactions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-zinc-400">
-            <div className="w-16 h-16 bg-zinc-50 rounded-full flex items-center justify-center mb-4">
-              <Search className="h-8 w-8 text-zinc-200" />
-            </div>
+      <DataTableResponsive
+        columns={columns}
+        data={filteredTransactions}
+        isLoading={isLoading}
+        config={{
+          enableRowSelection: false,
+          enableColumnVisibility: true,
+          enablePagination: true,
+          enableFilters: false,
+          enableSorting: true,
+          virtualization: {
+            enabled: true,
+            estimateSize: 84,
+            overscan: 8,
+            containerHeight: 640,
+          },
+        }}
+        emptyState={
+          <div className="flex flex-col items-center justify-center py-12 text-center">
             <p className="font-bold text-zinc-900 uppercase tracking-tighter">
               No transactions found
             </p>
-            <p className="text-[10px] font-bold uppercase tracking-widest">
-              Try adjusting your filters.
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-1">
+              Try adjusting the current filters.
             </p>
           </div>
-        ) : isVirtualized ? (
-          <div
-            style={{
-              height: totalSize,
-              position: "relative",
-            }}
-          >
-            {virtualItems.map((virtualItem) => {
-              const tx = filteredTransactions[virtualItem.index];
-              if (!tx) return null;
-
-              return (
-                <div
-                  key={tx.id}
-                  className="absolute left-0 top-0 w-full"
-                  style={{
-                    transform: `translateY(${virtualItem.start}px)`,
-                  }}
-                >
-                  <div
-                    data-index={virtualItem.index}
-                    ref={virtualizer.measureElement}
-                    className="group bg-white hover:bg-zinc-50/50 transition-colors p-4 md:p-0 md:h-16 md:grid md:grid-cols-12 md:gap-4 md:items-center relative border-b border-zinc-50"
-                  >
-                    {renderTransactionContent(tx)}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <motion.div
-            variants={HISTORY_CONTAINER_VARIANTS}
-            initial="hidden"
-            animate="visible"
-            className="divide-y divide-zinc-50"
-          >
-            {filteredTransactions.map((tx, index) => (
-              <motion.div
-                key={tx.id}
-                variants={HISTORY_ITEM_VARIANTS}
-                transition={{ delay: index * 0.02 }}
-                className="group bg-white hover:bg-zinc-50/50 transition-colors p-4 md:p-0 md:h-16 md:grid md:grid-cols-12 md:gap-4 md:items-center relative"
-              >
-                {renderTransactionContent(tx)}
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
-      </div>
+        }
+      />
     </Card>
   );
 }
@@ -800,7 +567,9 @@ export default function DonorHistoryPage() {
   const [rechartsModule, setRechartsModule] = useState<RechartsModule | null>(
     null,
   );
+  const transactionsQuery = useDonorHistoryTransactions();
   const { searchTerm, statusFilter, typeFilter, yearFilter } = filters;
+  const transactions = transactionsQuery.data ?? TRANSACTIONS;
 
   useEffect(() => {
     let isMounted = true;
@@ -828,18 +597,21 @@ export default function DonorHistoryPage() {
 
   const filteredTransactions = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
-    return TRANSACTIONS.filter((t) => {
-      const matchesSearch =
-        normalizedSearch.length === 0 ||
-        t.recipient.toLowerCase().includes(normalizedSearch) ||
-        t.id.toLowerCase().includes(normalizedSearch);
-      const matchesYear =
-        new Date(t.date).getFullYear().toString() === yearFilter;
-      const matchesType = typeFilter === "All" || t.type === typeFilter;
-      const matchesStatus = statusFilter === "All" || t.status === statusFilter;
-      return matchesSearch && matchesYear && matchesType && matchesStatus;
-    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [searchTerm, yearFilter, typeFilter, statusFilter]);
+    return transactions
+      .filter((t) => {
+        const matchesSearch =
+          normalizedSearch.length === 0 ||
+          t.recipient.toLowerCase().includes(normalizedSearch) ||
+          t.id.toLowerCase().includes(normalizedSearch);
+        const matchesYear =
+          new Date(t.date).getFullYear().toString() === yearFilter;
+        const matchesType = typeFilter === "All" || t.type === typeFilter;
+        const matchesStatus =
+          statusFilter === "All" || t.status === statusFilter;
+        return matchesSearch && matchesYear && matchesType && matchesStatus;
+      })
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [searchTerm, transactions, yearFilter, typeFilter, statusFilter]);
 
   const totalGiven = useMemo(
     () =>
@@ -888,6 +660,7 @@ export default function DonorHistoryPage() {
           />
           <HistoryTransactionsCard
             filteredTransactions={filteredTransactions}
+            isLoading={transactionsQuery.isLoading}
           />
         </div>
       </div>

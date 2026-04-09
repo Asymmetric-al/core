@@ -6,7 +6,6 @@ export const mockContributions: Contribution[] = [];
 export const contributionStatusOptions = [
   { label: "Completed", value: "completed" },
   { label: "Pending", value: "pending" },
-  { label: "Processing", value: "processing" },
   { label: "Failed", value: "failed" },
   { label: "Refunded", value: "refunded" },
 ];
