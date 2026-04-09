@@ -8,6 +8,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { safeNextParam } from "./demo-login";
 import {
   E2E_AUTH_COOKIE_NAME,
+  getE2EAuthCookieNameForProxyHost,
   isE2EAuthBypassEnabled,
   parseE2EAuthCookieValue,
 } from "./e2e-auth";
@@ -94,6 +95,16 @@ function logMissingSupabaseConfig(
  * - Validates session via `auth.getUser()` on each matched protected request
  *   so revoked sessions are rejected and cookies stay in sync.
  */
+function isRoleAllowedForApp(
+  role: UserRole,
+  allowedRoles: UserRole[] | undefined,
+) {
+  if (!allowedRoles || allowedRoles.length === 0) {
+    return true;
+  }
+  return allowedRoles.includes(role);
+}
+
 export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
   const publicRoutes = options.publicRoutes ?? [];
   const authRoutes = options.authRoutes ?? [...DEFAULT_AUTH_ROUTES];
@@ -167,19 +178,44 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    const supabaseUserId = user?.id ?? null;
+    let userId = user?.id ?? null;
 
-    const e2eSession =
-      isE2EAuthBypassEnabled() && !supabaseUserId
-        ? parseE2EAuthCookieValue(
-            request.cookies.get(E2E_AUTH_COOKIE_NAME)?.value,
-          )
-        : null;
-    const userId = supabaseUserId ?? e2eSession?.userId ?? null;
-    const e2eRoleAllowed =
-      !e2eSession ||
-      !allowedRoles?.length ||
-      allowedRoles.includes(e2eSession.role);
+    // Playwright + demo-account set per-app `asym_e2e_auth_*` cookies while
+    // Supabase has no user (see `E2E_AUTH_COOKIE_NAMES`).
+    // Proxy may not see `E2E_AUTH_BYPASS`; also allow outside production so
+    // local `next dev` can mirror tests that use surface cookies.
+    if (
+      !userId &&
+      (isE2EAuthBypassEnabled() || process.env.NODE_ENV !== "production") &&
+      isProtectedRoute(pathname, protectedRoutePrefixes)
+    ) {
+      const e2eCookieName = getE2EAuthCookieNameForProxyHost(
+        request.headers.get("host"),
+      );
+      const rawCookie = e2eCookieName
+        ? request.cookies.get(e2eCookieName)?.value
+        : undefined;
+      const e2eSession = parseE2EAuthCookieValue(rawCookie);
+      if (e2eSession && isRoleAllowedForApp(e2eSession.role, allowedRoles)) {
+        userId = e2eSession.userId;
+      }
+    }
+
+    if (
+      !userId &&
+      isE2EAuthBypassEnabled() &&
+      isProtectedRoute(pathname, protectedRoutePrefixes)
+    ) {
+      const legacySession = parseE2EAuthCookieValue(
+        request.cookies.get(E2E_AUTH_COOKIE_NAME)?.value,
+      );
+      if (
+        legacySession &&
+        isRoleAllowedForApp(legacySession.role, allowedRoles)
+      ) {
+        userId = legacySession.userId;
+      }
+    }
 
     if (isPublicRoute(pathname, publicRoutes) && !isAuthRoute) {
       return supabaseResponse;
@@ -189,10 +225,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       return supabaseResponse;
     }
 
-    if (
-      isProtectedRoute(pathname, protectedRoutePrefixes) &&
-      (!userId || (e2eSession && !e2eRoleAllowed))
-    ) {
+    if (isProtectedRoute(pathname, protectedRoutePrefixes) && !userId) {
       const next = safeNextParam(
         `${request.nextUrl.pathname}${request.nextUrl.search || ""}`,
       );

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState, startTransition } from "react";
 import { createBrowserClient } from "@asym/database/supabase";
+import { useEffect, useMemo, useState, startTransition } from "react";
+
 import { useAuth } from "./use-auth";
 
 /** Resolves the `donors.id` row for the signed-in user via `profiles.id` → `donors.profile_id`. */

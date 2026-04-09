@@ -1,6 +1,5 @@
 "use client";
 
-import { eq, type InitialQueryBuilder } from "@tanstack/db";
 import {
   donationsCollection,
   donorsCollection,
@@ -8,6 +7,8 @@ import {
   profilesCollection,
 } from "@asym/database/collections";
 import { supabaseTableQueryKeys } from "@asym/database/query-keys";
+import { eq, type InitialQueryBuilder } from "@tanstack/db";
+
 import type { Contribution } from "./types";
 
 export type ContributionLiveRow = Contribution;
