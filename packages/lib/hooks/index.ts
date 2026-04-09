@@ -1,4 +1,5 @@
 export { useAuth } from "./use-auth";
+export { useDonorRecord } from "./use-donor-record";
 export {
   useMobile,
   useIsMobile,

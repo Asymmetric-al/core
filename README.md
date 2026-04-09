@@ -12,6 +12,7 @@ bun run setup
 # NEXT_PUBLIC_SUPABASE_ANON_KEY
 bun run dev
 bun run verify
+# `bun run verify` wraps the bash smoke script; on Windows without shims, use Git Bash / WSL: `bash scripts/verify/index.sh`
 ```
 
 **Required:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
@@ -307,6 +308,8 @@ Common commands:
 - `bun run format` (fix), `bun run format:check` (verify), `bun run lint`, and `bun run typecheck`
 - `bun run build` (CI-equivalent defaults), `bun run build:strict` (real env), `bun run test:unit`
 - `bun run test:e2e` (CI-equivalent defaults), `bun run test:e2e:strict` (real env), `bun run test:e2e:ui`
+- `bun run verify` for localhost smoke (on Windows use Git Bash / WSL: `bash scripts/verify/index.sh`)
+- `bun run verify:e2e` to re-run Playwright and validate the JSON report
 - PR-readiness (matches blocking CI): `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
 
 ### Git Hooks Setup

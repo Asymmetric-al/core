@@ -36,9 +36,13 @@ import type {
   UnlayerMergeTags,
   UnlayerAppearance,
 } from "@asym/email/email-studio-types";
-import type { EditorRef, EmailEditorProps, Editor } from "react-email-editor";
+import type { EditorRef, EmailEditorProps } from "react-email-editor";
 
 type StudioConfig = EmailStudioFullConfig | PDFStudioFullConfig;
+
+type UnlayerEditorInstance = Parameters<
+  NonNullable<EmailEditorProps["onReady"]>
+>[0];
 
 const EmailEditor = dynamic(() => import("react-email-editor"), {
   ssr: false,
@@ -245,9 +249,10 @@ export const UnlayerEditor = forwardRef<
           mergeTags: options?.mergeTags,
         };
 
-        unlayer.exportHtml((data: UnlayerExportHTML) => {
-          resolve(data);
-          onExport?.(data);
+        unlayer.exportHtml((data) => {
+          const payload = data as unknown as UnlayerExportHTML;
+          resolve(payload);
+          onExport?.(payload);
         }, exportOptions);
       });
     },
@@ -306,9 +311,10 @@ export const UnlayerEditor = forwardRef<
 
     return new Promise((resolve) => {
       unlayer.exportHtml(
-        (data: UnlayerExportHTML) => {
-          onSave?.({ design: data.design, html: data.html });
-          resolve(data.design);
+        (data) => {
+          const payload = data as unknown as UnlayerExportHTML;
+          onSave?.({ design: payload.design, html: payload.html });
+          resolve(payload.design);
         },
         {
           minify: studioConfig.export.minifyHtml,
@@ -382,7 +388,7 @@ export const UnlayerEditor = forwardRef<
   }, [onLoad]);
 
   const handleEditorReady: EmailEditorProps["onReady"] = useCallback(
-    (unlayer: Editor) => {
+    (unlayer: UnlayerEditorInstance) => {
       if (!designLoadedRef.current) {
         const designToLoad = initialDesign || DEFAULT_BLANK_DESIGN;
         unlayer.loadDesign(designToLoad as never);

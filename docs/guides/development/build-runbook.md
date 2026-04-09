@@ -106,6 +106,13 @@ bunx turbo run typecheck --filter=@asym/admin --filter=@asym/donor --filter=@asy
 bunx turbo run build --filter=@asym/admin --filter=@asym/donor --filter=@asym/missionary-app
 ```
 
+> **Note for `@asym/admin` builds:** `apps/admin` uses Payload CMS and requires `PAYLOAD_SECRET` at
+> build time. Running `bunx turbo run build --filter=@asym/admin` directly (without the
+> `run-with-ci-env.mjs` wrapper or a real `.env.local`) will fail with
+> _"PAYLOAD_SECRET must be configured outside local development"_.
+> Use `bun run build:admin` (wrapped) or `bun run build:admin:strict` (with real env) instead.
+> This is expected behavior, not a Turborepo regression.
+
 ## Known failure modes and fixes
 
 ### Missing required env vars

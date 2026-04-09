@@ -12,6 +12,11 @@ const mockedGetSupabasePublicConfig = vi.hoisted(() => vi.fn());
 
 vi.mock("next/headers", () => ({
   cookies: vi.fn(),
+  headers: vi.fn(() =>
+    Promise.resolve({
+      get: () => null,
+    }),
+  ),
 }));
 
 vi.mock("@supabase/ssr", () => ({
@@ -48,7 +53,7 @@ describe("getAuthContext E2E bypass", () => {
     vi.clearAllMocks();
   });
 
-  it("returns authenticated context from asym_e2e_auth cookie without Supabase", async () => {
+  it("returns authenticated context from asym_e2e_auth cookie when Supabase returns no user", async () => {
     mockedCreateServerClient.mockReturnValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({ data: { user: null } }),

@@ -1,6 +1,6 @@
 import {
   createE2EAuthCookieValue,
-  E2E_AUTH_COOKIE_NAME,
+  getE2EAuthCookieNameForRequest,
   isE2EAuthBypassEnabled,
 } from "@asym/auth";
 import { APP_ROLES, type AppRole } from "@asym/auth/roles";
@@ -209,21 +209,24 @@ export async function POST(request: Request) {
       const response = NextResponse.json({ ok: true, role, bypass: true });
       const secure = new URL(request.url).protocol === "https:";
 
-      response.cookies.set(
-        E2E_AUTH_COOKIE_NAME,
-        createE2EAuthCookieValue({
-          userId: `e2e-${role}-user`,
-          role: e2eRole,
-          tenantId: null,
-        }),
-        {
-          httpOnly: true,
-          maxAge: 60 * 60,
-          path: "/",
-          sameSite: "lax",
-          secure,
-        },
-      );
+      const cookieName = getE2EAuthCookieNameForRequest(request);
+      if (cookieName) {
+        response.cookies.set(
+          cookieName,
+          createE2EAuthCookieValue({
+            userId: `e2e-${role}-user`,
+            role: e2eRole,
+            tenantId: null,
+          }),
+          {
+            httpOnly: true,
+            maxAge: 60 * 60,
+            path: "/",
+            sameSite: "lax",
+            secure,
+          },
+        );
+      }
 
       return response;
     }
