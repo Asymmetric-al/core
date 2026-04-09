@@ -199,6 +199,11 @@ jobs:
           CI: "1"
           PLAYWRIGHT_BONEYARD_TARGET: "missionary"
         run: bun run test:e2e:boneyard:missionary
+      - name: Boneyard smoke (donor app)
+        env:
+          CI: "1"
+          PLAYWRIGHT_BONEYARD_TARGET: "donor"
+        run: bun run test:e2e:boneyard:donor
       - name: Run Playwright CMS E2E
         env:
           CI: "1"

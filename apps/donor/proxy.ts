@@ -17,6 +17,7 @@ export const proxy = createAuthMiddleware({
     "/sitemap.xml",
     "/robots.txt",
     "/no-access",
+    "/boneyard/",
   ],
   protectedRoutePrefixes: ["/donor-dashboard"],
   loginPath: "/login",

@@ -1,15 +1,18 @@
 import { expect, test } from "@playwright/test";
 
 type BoneyardRouteExpectation = {
-  heading: string;
   path: string;
   skeletonName: string;
+  /** Prefer role=heading when the page has a stable title */
+  heading?: string;
+  /** Fallback visible copy when the hero title is dynamic (e.g. time-based greeting) */
+  visibleText?: string;
 };
 
 /**
  * Resolve which capture surface we are testing. Prefer `project.name` from
  * `playwright.admin.config.ts` / `playwright.missionary.config.ts`, then
- * `PLAYWRIGHT_BONEYARD_TARGET=admin|missionary`, then baseURL port as a last resort.
+ * `PLAYWRIGHT_BONEYARD_TARGET=admin|missionary|donor`, then baseURL port as a last resort.
  */
 function getExpectation(
   projectName: string | undefined,
@@ -22,7 +25,9 @@ function getExpectation(
       ? "admin"
       : projectName === "missionary-boneyard" || envTarget === "missionary"
         ? "missionary"
-        : null;
+        : projectName === "donor-boneyard" || envTarget === "donor"
+          ? "donor"
+          : null;
 
   if (target === "admin") {
     return {
@@ -37,6 +42,14 @@ function getExpectation(
       heading: "Mission Tasks",
       path: "/boneyard/tasks",
       skeletonName: "missionary-tasks-list",
+    };
+  }
+
+  if (target === "donor") {
+    return {
+      heading: "Donor dashboard",
+      path: "/boneyard/donor-dashboard",
+      skeletonName: "donor-dashboard-main",
     };
   }
 
@@ -58,6 +71,13 @@ function getExpectation(
         skeletonName: "missionary-tasks-list",
       };
     }
+    if (port === 3000) {
+      return {
+        heading: "Donor dashboard",
+        path: "/boneyard/donor-dashboard",
+        skeletonName: "donor-dashboard-main",
+      };
+    }
   } catch {
     /* ignore */
   }
@@ -76,7 +96,7 @@ test("boneyard capture routes render generated bone overlays", async ({
   if (!expectation) {
     test.skip(
       true,
-      "Run with playwright.admin.config.ts or playwright.missionary.config.ts, set PLAYWRIGHT_BONEYARD_TARGET, or use baseURL port 3030/4000.",
+      "Run with playwright.admin/missionary/donor.config.ts, set PLAYWRIGHT_BONEYARD_TARGET, or use baseURL port 3030/4000/3000.",
     );
     return;
   }
@@ -84,9 +104,13 @@ test("boneyard capture routes render generated bone overlays", async ({
   await page.goto(expectation.path);
   await page.waitForLoadState("domcontentloaded");
 
-  await expect(
-    page.getByRole("heading", { name: expectation.heading }),
-  ).toBeVisible();
+  if (expectation.heading) {
+    await expect(
+      page.getByRole("heading", { name: expectation.heading }),
+    ).toBeVisible();
+  } else if (expectation.visibleText) {
+    await expect(page.getByText(expectation.visibleText)).toBeVisible();
+  }
   await expect(page.getByText("This page could not be found.")).toHaveCount(0);
   // Wrapper may be `visibility:hidden` while the overlay measures (boneyard-js 1.7+);
   // assert DOM presence, then wait for painted bone layers below.
