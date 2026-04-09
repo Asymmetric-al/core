@@ -1,5 +1,10 @@
 # Boneyard (boneyard-js) in Core
 
+## Version and upstream
+
+- **npm:** track **`boneyard-js@^1.7.1`** (see [0xGF/boneyard releases](https://github.com/0xGF/boneyard/releases); v1.7.1 adds Preact, RN polish, guided crawling in config, CLI auth diagnostics, etc.).
+- **Monorepo:** `@asym/ui` re-exports the React `Skeleton` as `BoneyardSkeleton` from `boneyard-js/react` but does **not** list `boneyard-js` as a runtime `dependency`. It is an **optional** `peerDependency` plus a **`devDependency`** for `@asym/ui`’s own typecheck. Apps that render Boneyard at runtime (**`@asym/admin`**, **`@asym/missionary-app`**) declare **`boneyard-js`** in their `dependencies` so install graphs stay explicit and **`@asym/donor`** does not pull Playwright transitively unless you add it there intentionally.
+
 ## Triggers
 
 - You are adding or maintaining **pixel-matched** loading UI for complex client surfaces (tables, dense cards).

@@ -84,7 +84,7 @@
         "@tanstack/react-form": "1.28.6",
         "@tanstack/react-query": "^5.90.21",
         "@tanstack/react-table": "^8.21.3",
-        "boneyard-js": "^1.6.1",
+        "boneyard-js": "^1.7.1",
         "clsx": "^2.1.1",
         "date-fns": "^4.1.0",
         "lucide-animated": "^1.0.0",
@@ -180,7 +180,7 @@
         "@dnd-kit/sortable": "^10.0.0",
         "@dnd-kit/utilities": "^3.2.2",
         "@tanstack/react-query": "^5.90.21",
-        "boneyard-js": "^1.6.1",
+        "boneyard-js": "^1.7.1",
         "date-fns": "^4.1.0",
         "lucide-react": "^0.575.0",
         "motion": "^12.34.2",
@@ -414,7 +414,6 @@
         "@tiptap/pm": "^3.20.1",
         "@tiptap/react": "^3.20.1",
         "@tiptap/starter-kit": "^3.20.1",
-        "boneyard-js": "^1.6.1",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "cmdk": "^1.1.1",
@@ -440,16 +439,21 @@
         "@asym/typescript-config": "workspace:*",
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
+        "boneyard-js": "^1.7.1",
         "eslint": "^9.39.2",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
         "typescript": "^5.7.3",
       },
       "peerDependencies": {
+        "boneyard-js": "^1.7.1",
         "react": "^18.0.0 || ^19.0.0",
         "react-dom": "^18.0.0 || ^19.0.0",
         "tailwindcss": "^4",
       },
+      "optionalPeers": [
+        "boneyard-js",
+      ],
     },
     "tooling/eslint-config": {
       "name": "@asym/eslint-config",
@@ -570,7 +574,7 @@
 
     "@bramus/specificity": ["@bramus/specificity@2.4.2", "", { "dependencies": { "css-tree": "^3.0.0" }, "bin": { "specificity": "bin/cli.js" } }, "sha512-ctxtJ/eA+t+6q2++vj5j7FYX3nRu311q1wfYH3xjlLOsczhlhxAg2FWNUXhpGvAw3BWo1xBcvOV6/YLc2r5FJw=="],
 
-    "@chenglou/pretext": ["@chenglou/pretext@0.0.3", "", {}, "sha512-RQmqMqUAPRCyv4R3LlRi/ao6KbNWYclqLA+V1HS7sWgyUUbjn3JmmlfXZSY/BjM4rbmIaMSyIVisYocYGYftiQ=="],
+    "@chenglou/pretext": ["@chenglou/pretext@0.0.5", "", {}, "sha512-A8GZN10REdFGsyuiUgLV8jjPDDFMg5GmgxGWV0I3igxBOnzj+jgz2VMmVD7g+SFyoctfeqHFxbNatKSzVRWtRg=="],
 
     "@csstools/color-helpers": ["@csstools/color-helpers@5.1.0", "", {}, "sha512-S11EXWJyy0Mz5SYvRmY8nJYTFFd1LCNV+7cXyAgQtOOuzb4EsgfqDufL+9esx72/eLhsRdGZwaldu/h+E4t4BA=="],
 
@@ -1802,7 +1806,7 @@
 
     "body-scroll-lock": ["body-scroll-lock@4.0.0-beta.0", "", {}, "sha512-a7tP5+0Mw3YlUJcGAKUqIBkYYGlYxk2fnCasq/FUph1hadxlTRjF+gAcZksxANnaMnALjxEddmSi/H3OR8ugcQ=="],
 
-    "boneyard-js": ["boneyard-js@1.7.0", "", { "dependencies": { "playwright": "^1.58.2" }, "optionalDependencies": { "@chenglou/pretext": "^0.0.3" }, "peerDependencies": { "@angular/core": ">=14", "react": ">=18", "react-native": ">=0.71", "svelte": ">=5.29", "vite": ">=5", "vue": ">=3" }, "optionalPeers": ["@angular/core", "react", "react-native", "svelte", "vite", "vue"], "bin": { "boneyard-js": "bin/cli.js" } }, "sha512-yhTr0KR14VdZplkrZfePOm1kF6MpXbuYRuSPx4XgPw19W3z7dRYPhBwf3GinEr1mJ42gURZwN/QKxBPpkVRPNg=="],
+    "boneyard-js": ["boneyard-js@1.7.1", "", { "dependencies": { "playwright": "^1.58.2" }, "optionalDependencies": { "@chenglou/pretext": "^0.0.5" }, "peerDependencies": { "@angular/core": ">=14", "preact": ">=10", "react": ">=18", "react-native": ">=0.71", "svelte": ">=5.29", "vite": ">=5", "vue": ">=3" }, "optionalPeers": ["@angular/core", "preact", "react", "react-native", "svelte", "vite", "vue"], "bin": { "boneyard-js": "bin/cli.js" } }, "sha512-LIWTVWPRf1uIgqGrK9Fio+saQtaqykGqp7yMNcicCkHpSS1YjBt6zRPKWR+lfrdziAXEGVBqtuSa5GWbV1H4mg=="],
 
     "brace-expansion": ["brace-expansion@1.1.13", "", { "dependencies": { "balanced-match": "^1.0.0", "concat-map": "0.0.1" } }, "sha512-9ZLprWS6EENmhEOpjCYW2c8VkmOvckIJZfkr7rBW6dObmfgJ/L1GpSYW5Hpo9lDz4D1+n0Ckz8rU7FwHDQiG/w=="],
 

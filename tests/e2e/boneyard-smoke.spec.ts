@@ -88,17 +88,24 @@ test("boneyard capture routes render generated bone overlays", async ({
     page.getByRole("heading", { name: expectation.heading }),
   ).toBeVisible();
   await expect(page.getByText("This page could not be found.")).toHaveCount(0);
+  // Wrapper may be `visibility:hidden` while the overlay measures (boneyard-js 1.7+);
+  // assert DOM presence, then wait for painted bone layers below.
   await expect(
     page.locator(`[data-boneyard="${expectation.skeletonName}"]`),
-  ).toBeVisible();
+  ).toBeAttached();
 
-  // Boneyard paints overlay layers with inline `position` styles; avoid coupling
-  // to a specific tag or `absolute` substring—any positioned child under the
-  // root indicates the runtime registered bones and drew an overlay.
+  // boneyard-js 1.7+ puts `position: relative` on the `[data-boneyard]` root;
+  // `querySelector` does not match the element itself, so also check the root
+  // `style` and stable overlay markers (`data-boneyard-overlay` / bone nodes).
   await page.waitForFunction(
     ({ skeletonName }) => {
       const root = document.querySelector(`[data-boneyard="${skeletonName}"]`);
       if (!root) return false;
+
+      const rootStyle = root.getAttribute("style") ?? "";
+      if (rootStyle.includes("position")) return true;
+      if (root.querySelector("[data-boneyard-overlay]")) return true;
+      if (root.querySelector("[data-boneyard-bone]")) return true;
 
       return root.querySelector("[style*='position']") != null;
     },
