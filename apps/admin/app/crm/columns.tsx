@@ -24,194 +24,313 @@ import {
 import { SharedNamedViewTransition } from "@asym/ui/components/view-transitions";
 import { cn } from "@asym/ui/lib/utils";
 import { type ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
 
-import { STAGE_COLORS } from "./types";
+import { PORTAL_BADGE_CLASS, type CrmGridRow } from "./types";
 
-import type { Contact } from "./types";
+import type { DataTableFilterOption } from "@asym/ui/components/shadcn/data-table";
 
-interface ColumnOptions {
-  onViewContact: (contact: Contact) => void;
+function formatShortDate(value: string | null | undefined) {
+  if (!value) return "—";
+  try {
+    return format(new Date(value), "MMM d, yyyy");
+  } catch {
+    return "—";
+  }
 }
 
-export function getColumns({
-  onViewContact,
-}: ColumnOptions): ColumnDef<Contact>[] {
+interface ColumnOptions {
+  onViewRecord: (row: CrmGridRow) => void;
+  tagOptions: DataTableFilterOption[];
+}
+
+export function getCrmColumns({
+  onViewRecord,
+  tagOptions,
+}: ColumnOptions): ColumnDef<CrmGridRow>[] {
   return [
     {
-      accessorKey: "name",
+      id: "displayName",
+      accessorFn: (row) => row.displayName ?? "",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Name" />
+        <DataTableColumnHeader column={column} title="Name / Entity" />
       ),
       cell: ({ row }) => {
-        const contact = row.original;
+        const record = row.original;
+        const name = record.displayName || "Unnamed";
+        const initial = name.trim()[0] ?? "?";
         return (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 min-w-[200px]">
             <SharedNamedViewTransition
-              name={crmRecordAvatarTransitionName(contact.id)}
+              name={crmRecordAvatarTransitionName(record.id)}
             >
               <Avatar className="h-9 w-9 border border-border">
-                <AvatarImage src={contact.avatar} />
+                <AvatarImage src={record.avatarUrl ?? undefined} />
                 <AvatarFallback className="text-[10px] font-semibold bg-primary text-primary-foreground">
-                  {contact.name[0]}
+                  {initial}
                 </AvatarFallback>
               </Avatar>
             </SharedNamedViewTransition>
-            <div className="flex flex-col">
+            <div className="flex flex-col min-w-0">
               <SharedNamedViewTransition
-                name={crmRecordTitleTransitionName(contact.id)}
+                name={crmRecordTitleTransitionName(record.id)}
               >
-                <button
-                  onClick={() => onViewContact(contact)}
-                  className="font-semibold text-sm text-foreground leading-none hover:text-primary hover:underline decoration-primary/30 underline-offset-4 transition-all text-left"
-                >
-                  {contact.name}
-                </button>
+                <span className="font-semibold text-sm text-foreground leading-none truncate">
+                  {name}
+                </span>
               </SharedNamedViewTransition>
-              <span className="text-xs text-muted-foreground mt-0.5">
-                {contact.title}
-              </span>
+              {record.primaryOrganization ? (
+                <span className="text-xs text-muted-foreground mt-0.5 truncate">
+                  {record.primaryOrganization}
+                </span>
+              ) : null}
             </div>
           </div>
         );
       },
       meta: {
-        label: "Name",
+        label: "Name / Entity",
       },
     },
     {
-      accessorKey: "company",
+      accessorKey: "recordType",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Company" />
+        <DataTableColumnHeader column={column} title="Record type" />
       ),
       cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground font-medium">
-          {row.getValue("company")}
+        <span className="text-sm text-muted-foreground capitalize">
+          {row.original.recordType ?? "—"}
         </span>
       ),
-      meta: {
-        label: "Company",
-      },
-    },
-    {
-      accessorKey: "email",
-      header: "Email",
-      cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground">
-          {row.getValue("email")}
-        </span>
-      ),
-      enableHiding: true,
-      meta: {
-        label: "Email",
-      },
-    },
-    {
-      accessorKey: "stage",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Stage" />
-      ),
-      cell: ({ row }) => {
-        const stage = row.getValue("stage") as string;
-        return (
-          <Badge
-            variant="outline"
-            className={cn(
-              "text-[9px] uppercase font-semibold tracking-wide px-2.5 py-0.5 h-6 shadow-none rounded-lg border-transparent",
-              STAGE_COLORS[stage as keyof typeof STAGE_COLORS],
-            )}
-          >
-            {stage}
-          </Badge>
-        );
-      },
       filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id));
+        const v = row.getValue(id) as string | null;
+        return Array.isArray(value) && v ? value.includes(v) : true;
       },
       meta: {
-        label: "Stage",
+        label: "Record type",
         filterVariant: "select",
         filterOptions: [
-          { label: "New", value: "New" },
-          { label: "Contacted", value: "Contacted" },
-          { label: "Meeting", value: "Meeting" },
-          { label: "Proposal", value: "Proposal" },
-          { label: "Won", value: "Won" },
+          { label: "Individual", value: "individual" },
+          { label: "Organization", value: "Organization" },
+          { label: "Church", value: "Church" },
         ],
       },
     },
     {
-      accessorKey: "value",
-      header: ({ column }) => (
-        <div className="text-right">
-          <DataTableColumnHeader
-            column={column}
-            title="Value"
-            className="justify-end"
-          />
-        </div>
-      ),
-      cell: ({ row }) => (
-        <div className="text-right font-mono font-bold text-foreground tabular-nums">
-          {formatCurrency(row.getValue("value"))}
-        </div>
-      ),
-      meta: {
-        label: "Value",
-      },
-    },
-    {
-      accessorKey: "owner",
+      accessorKey: "assignedMissionaryName",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Owner" />
       ),
       cell: ({ row }) => (
         <span className="text-sm text-muted-foreground">
-          {row.getValue("owner")}
+          {row.original.assignedMissionaryName ?? "—"}
         </span>
       ),
-      filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id));
-      },
       meta: {
         label: "Owner",
+      },
+    },
+    {
+      accessorKey: "primaryContactLine",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Primary contact" />
+      ),
+      cell: ({ row }) => (
+        <span className="text-sm text-muted-foreground line-clamp-2 max-w-[200px]">
+          {row.original.primaryContactLine ?? "—"}
+        </span>
+      ),
+      meta: {
+        label: "Primary contact",
+      },
+    },
+    {
+      accessorKey: "location",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Location" />
+      ),
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground line-clamp-2 max-w-[160px]">
+          {row.original.location ?? "—"}
+        </span>
+      ),
+      meta: {
+        label: "Location",
+      },
+    },
+    {
+      accessorKey: "lifecycleStatus",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Status" />
+      ),
+      cell: ({ row }) => (
+        <Badge variant="outline" className="text-[9px] font-semibold uppercase">
+          {row.original.lifecycleStatus ?? "—"}
+        </Badge>
+      ),
+      filterFn: (row, id, value) => {
+        const v = row.getValue(id) as string | null;
+        return Array.isArray(value) && v ? value.includes(v) : true;
+      },
+      meta: {
+        label: "Relationship status",
         filterVariant: "select",
         filterOptions: [
-          { label: "Me", value: "Me" },
-          { label: "Sarah", value: "Sarah" },
+          { label: "Active", value: "active" },
+          { label: "Inactive", value: "inactive" },
         ],
       },
     },
     {
-      accessorKey: "city",
-      header: "City",
+      accessorKey: "lastGiftAt",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Last gift" />
+      ),
       cell: ({ row }) => (
-        <span className="text-xs text-muted-foreground uppercase tracking-wider">
-          {row.getValue("city")}
+        <span className="text-xs text-muted-foreground tabular-nums">
+          {formatShortDate(row.original.lastGiftAt)}
         </span>
       ),
-      enableHiding: true,
       meta: {
-        label: "City",
+        label: "Last gift",
       },
     },
     {
-      accessorKey: "lastActivity",
-      header: "Last Activity",
+      accessorKey: "lifetimeGiving",
+      header: ({ column }) => (
+        <div className="text-right">
+          <DataTableColumnHeader
+            column={column}
+            title="Lifetime giving"
+            className="justify-end"
+          />
+        </div>
+      ),
       cell: ({ row }) => (
-        <span className="text-xs text-muted-foreground">
-          {row.getValue("lastActivity")}
+        <div className="text-right font-mono text-sm font-semibold tabular-nums text-foreground">
+          {formatCurrency(row.original.lifetimeGiving)}
+        </div>
+      ),
+      meta: {
+        label: "Lifetime giving",
+      },
+    },
+    {
+      accessorKey: "fundsGivenToSummary",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Funds" />
+      ),
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground line-clamp-2 max-w-[180px]">
+          {row.original.fundsGivenToSummary ?? "—"}
         </span>
       ),
-      enableHiding: true,
+      enableSorting: false,
       meta: {
-        label: "Last Activity",
+        label: "Funds given to",
+      },
+    },
+    {
+      accessorKey: "lastTouchAt",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Last touch" />
+      ),
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground tabular-nums">
+          {formatShortDate(row.original.lastTouchAt)}
+        </span>
+      ),
+      meta: {
+        label: "Last touch",
+      },
+    },
+    {
+      accessorKey: "nextTaskSummary",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Next task" />
+      ),
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground">
+          {row.original.nextTaskSummary ?? "—"}
+        </span>
+      ),
+      enableSorting: false,
+      meta: {
+        label: "Next task",
+      },
+    },
+    {
+      accessorKey: "portalAccessLabel",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Portal" />
+      ),
+      cell: ({ row }) => {
+        const label = row.original.portalAccessLabel;
+        return (
+          <Badge
+            variant="outline"
+            className={cn(
+              "text-[9px] font-semibold uppercase border shadow-none",
+              PORTAL_BADGE_CLASS[label],
+            )}
+          >
+            {label === "linked" ? "Linked" : "No portal"}
+          </Badge>
+        );
+      },
+      filterFn: (row, id, value) => {
+        const v = row.getValue(id) as string;
+        return Array.isArray(value) ? value.includes(v) : true;
+      },
+      meta: {
+        label: "Portal / auth",
+        filterVariant: "select",
+        filterOptions: [
+          { label: "Portal linked", value: "linked" },
+          { label: "No portal", value: "none" },
+        ],
+      },
+    },
+    {
+      accessorKey: "tags",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Tags" />
+      ),
+      cell: ({ row }) => (
+        <div className="flex flex-wrap gap-1 max-w-[200px]">
+          {(row.original.tags ?? []).length === 0 ? (
+            <span className="text-xs text-muted-foreground">—</span>
+          ) : (
+            row.original.tags.map((t) => (
+              <Badge
+                key={t}
+                variant="secondary"
+                className="text-[9px] px-1.5 h-5 font-medium"
+              >
+                {t}
+              </Badge>
+            ))
+          )}
+        </div>
+      ),
+      filterFn: (row, _id, value) => {
+        const tags = row.original.tags ?? [];
+        if (!Array.isArray(value) || value.length === 0) return true;
+        return value.some((v: string) => tags.includes(v));
+      },
+      enableSorting: false,
+      meta: {
+        label: "Tags",
+        filterVariant: "select",
+        filterOptions: tagOptions,
       },
     },
     {
       id: "actions",
+      header: "",
       cell: ({ row }) => {
-        const contact = row.original;
+        const record = row.original;
         return (
           <div className="flex justify-end">
             <DropdownMenu>
@@ -226,29 +345,32 @@ export function getColumns({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 rounded-xl">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem
-                  onClick={() => navigator.clipboard.writeText(contact.email)}
-                  className="rounded-lg"
-                >
-                  Copy Email
-                </DropdownMenuItem>
+                {record.email ? (
+                  <DropdownMenuItem
+                    onClick={() =>
+                      void navigator.clipboard.writeText(record.email ?? "")
+                    }
+                    className="rounded-lg"
+                  >
+                    Copy email
+                  </DropdownMenuItem>
+                ) : null}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => onViewContact(contact)}
+                  onClick={() => onViewRecord(record)}
                   className="rounded-lg"
                 >
-                  View Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem className="rounded-lg">
-                  Log Activity
-                </DropdownMenuItem>
-                <DropdownMenuItem className="rounded-lg">
-                  Schedule Meeting
+                  Open details
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         );
+      },
+      enableHiding: false,
+      enableSorting: false,
+      meta: {
+        label: "Actions",
       },
     },
   ];

@@ -20,6 +20,8 @@ export const supabaseTableQueryKeys = {
 export const adminSurfaceQueryKeys = {
   contributions: ["admin", "contributions"] as const,
   crmContacts: ["admin", "crm", "contacts"] as const,
+  crmRecords: ["admin", "crm", "records", "infinite"] as const,
+  crmRecordsInfinite: ["admin", "crm", "records", "infinite"] as const,
   tasks: ["admin", "tasks"] as const,
   taskStaff: ["admin", "tasks", "staff"] as const,
   taskLinkedEntities: ["admin", "tasks", "linked-entities"] as const,

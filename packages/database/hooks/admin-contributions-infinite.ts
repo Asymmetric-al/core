@@ -371,8 +371,14 @@ export function useAdminContributionsInfiniteGrid() {
     });
   }, [infiniteQuery.data?.pages]);
 
+  const contributionsLoadedCollectionRef = React.useRef(loadedCollection);
   React.useEffect(() => {
-    const currentRows = loadedRowsQuery.data ?? [];
+    const collectionSwapped =
+      contributionsLoadedCollectionRef.current !== loadedCollection;
+    contributionsLoadedCollectionRef.current = loadedCollection;
+
+    const rawLiveRows = loadedRowsQuery.data ?? [];
+    const currentRows = collectionSwapped ? [] : rawLiveRows;
     const currentById = new Map(currentRows.map((row) => [row.id, row]));
     const nextIds = new Set(flattenedRows.map((row) => row.id));
 

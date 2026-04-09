@@ -26,7 +26,7 @@ describe("admin TanStack surface migrations", () => {
   it("loads CRM contacts from shared package hooks instead of app-local mock data", () => {
     const source = readRepoFile("apps/admin/app/crm/page.tsx");
 
-    expect(source).toMatch(/useCrmContacts/);
+    expect(source).toMatch(/useAdminCrmRecordsInfiniteGrid/);
     expect(source).not.toMatch(/MOCK_CONTACTS/);
   });
 

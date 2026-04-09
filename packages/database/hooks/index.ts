@@ -12,6 +12,7 @@ export {
 } from "./hooks";
 export { useContributionsLiveRows } from "./admin-contributions";
 export { useAdminContributionsInfiniteGrid } from "./admin-contributions-infinite";
+export { useAdminCrmRecordsInfiniteGrid } from "./admin-crm-infinite";
 export { useDonorHistoryTransactions } from "./donor-history";
 export {
   useCrmContacts,
@@ -63,6 +64,7 @@ export type {
   LocationStatus,
   LocationType,
 } from "./admin-locations";
+export type { CrmGridRow } from "@asym/database/types";
 export type {
   ActivityType,
   GiftType,
