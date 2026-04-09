@@ -615,7 +615,7 @@ export default function MissionControlCRM() {
           </div>
         }
       >
-        <div className="flex flex-col min-h-[400px] overflow-hidden">
+        <div className="flex flex-col min-h-[400px]">
           <AnimatePresence mode="wait">
             {view === "table" ? (
               <motion.div

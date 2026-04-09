@@ -697,7 +697,7 @@ export function TeamsTableCard({
   );
 
   return (
-    <Card className="border-zinc-200 shadow-sm overflow-hidden">
+    <Card className="border-zinc-200 shadow-sm">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-zinc-50/50 border-b border-zinc-100 py-4">
         <div>
           <CardTitle className="text-lg font-bold">

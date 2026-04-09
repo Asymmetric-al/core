@@ -1182,7 +1182,7 @@ function EventsAttendeesTab() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.2 }}
       >
-        <Card className="border-zinc-200 shadow-sm overflow-hidden">
+        <Card className="border-zinc-200 shadow-sm">
           <div className="p-4 border-b border-zinc-100 bg-zinc-50/50 flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="relative w-full md:w-96">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />

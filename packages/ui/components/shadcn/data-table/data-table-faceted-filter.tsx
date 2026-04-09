@@ -90,11 +90,11 @@ export function DataTableFacetedFilter<TData, TValue>({
       >
         <Command className="rounded-[inherit] bg-transparent">
           <CommandInput
+            popoverChrome
             placeholder={
               title ? `Search ${title.toLowerCase()}...` : "Search..."
             }
-            className="h-full bg-transparent text-sm"
-            wrapperClassName="m-2 mb-0 rounded-xl border border-border/70 bg-background px-3 shadow-xs focus-within:border-ring/50 focus-within:ring-2 focus-within:ring-ring/20"
+            className="text-sm"
           />
           <CommandList>
             <CommandEmpty className="py-8 text-xs text-muted-foreground">

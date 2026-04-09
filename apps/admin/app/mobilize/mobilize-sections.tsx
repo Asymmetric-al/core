@@ -373,7 +373,7 @@ export function MobilizePipelineTable({
   );
 
   return (
-    <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden flex flex-col">
+    <div className="bg-white rounded-xl border border-zinc-200 shadow-sm flex flex-col">
       <div className="p-3 border-b border-zinc-100 flex flex-col lg:flex-row justify-between items-center gap-3 bg-zinc-50/50">
         <Tabs
           value={activeTab}
