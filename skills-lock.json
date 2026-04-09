@@ -4,7 +4,17 @@
     "components-build": {
       "source": "nolly-studio/components-build-skill",
       "sourceType": "github",
-      "computedHash": "ef827017f8483932b644935f8b69a7a5a8a862b5f2a818b9e688503e0ffede0c"
+      "computedHash": "563d4c630fcb2d640e04556ee364cf69d89bd01ed5251dcb6319b672c42b0a8b"
+    },
+    "supabase": {
+      "source": "supabase/agent-skills",
+      "sourceType": "github",
+      "computedHash": "cb675a889c60172febe84740e7c22b600c8241c390deaff3d368c408f10dffdf"
+    },
+    "supabase-postgres-best-practices": {
+      "source": "supabase/agent-skills",
+      "sourceType": "github",
+      "computedHash": "f4cd7570115d97af6bcb2946eb891a958c8d04a43b479871c9ccadbc670ad058"
     }
   }
 }
