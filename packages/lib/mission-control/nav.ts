@@ -115,7 +115,7 @@ export const NAV_ITEMS: NavItem[] = [
   },
   {
     id: "events",
-    title: "Events",
+    title: "Event Hub",
     href: "/events",
     icon: CalendarDays,
     roles: ["events", "admin"],

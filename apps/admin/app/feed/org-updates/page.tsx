@@ -28,6 +28,7 @@ import {
   DropdownMenuSeparator,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { Label } from "@asym/ui/components/shadcn/label";
+import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import {
   RadioGroup,
   RadioGroupItem,
@@ -80,8 +81,6 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useCallback, useReducer, useState } from "react";
 import { toast } from "sonner";
-
-import { PageHeader } from "@/components/page-header";
 
 type OrgPostVisibility = "all_donors" | "followers_only";
 type Visibility = "public" | "partners" | "private";
@@ -1224,39 +1223,6 @@ function orgUpdatesUiReducer(
   }
 }
 
-function OrgUpdatesHeaderSection({
-  onOpenSettings,
-}: {
-  onOpenSettings: () => void;
-}) {
-  return (
-    <PageHeader
-      title={`${brandConfig.name} Updates`}
-      description="Share announcements and updates with your supporters."
-    >
-      <Link href="/mc/feed">
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-9 gap-2 rounded-xl font-medium"
-        >
-          <Eye className="h-4 w-4" />
-          <span className="hidden sm:inline">Moderation</span>
-        </Button>
-      </Link>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={onOpenSettings}
-        className="h-9 gap-2 rounded-xl font-medium"
-      >
-        <Settings className="h-4 w-4" />
-        <span className="hidden sm:inline">Settings</span>
-      </Button>
-    </PageHeader>
-  );
-}
-
 function OrgUpdatesTabsSection({
   activeTab,
   drafts,
@@ -1485,15 +1451,37 @@ export default function OrgUpdatesPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="max-w-[1200px] mx-auto pb-20"
+      className="max-w-[1200px] mx-auto"
     >
-      <OrgUpdatesHeaderSection
-        onOpenSettings={() =>
-          dispatchUi({ type: "set_settings_open", value: true })
+      <PageShell
+        title={`${brandConfig.name} Updates`}
+        description="Share announcements and updates with your supporters."
+        actions={
+          <>
+            <Button
+              variant="outline"
+              className="h-11 rounded-xl border-zinc-200 bg-white font-bold uppercase tracking-widest text-[10px] shadow-sm hover:bg-zinc-50"
+              asChild
+            >
+              <Link href="/feed">
+                <Eye className="mr-2 h-4 w-4" />
+                Moderation
+              </Link>
+            </Button>
+            <Button
+              variant="outline"
+              className="h-11 rounded-xl border-zinc-200 bg-white font-bold uppercase tracking-widest text-[10px] shadow-sm hover:bg-zinc-50"
+              onClick={() =>
+                dispatchUi({ type: "set_settings_open", value: true })
+              }
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
+            </Button>
+          </>
         }
-      />
-
-      <div className="space-y-6 sm:space-y-8 lg:space-y-10">
+        contentClassName="space-y-6 sm:space-y-8 lg:space-y-10"
+      >
         <ComposeCard
           onSave={handleSavePost}
           editingPost={editingPost}
@@ -1513,7 +1501,7 @@ export default function OrgUpdatesPage() {
           onDelete={handleDelete}
           onTogglePin={handleTogglePin}
         />
-      </div>
+      </PageShell>
 
       <FeedSettingsSheet
         open={settingsOpen}

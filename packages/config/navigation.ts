@@ -132,7 +132,7 @@ export const navigation: NavItem[] = [
   },
   {
     id: "events",
-    title: "Events",
+    title: "Event Hub",
     href: "/events",
     icon: CalendarDays,
     roles: ["events", "admin"],

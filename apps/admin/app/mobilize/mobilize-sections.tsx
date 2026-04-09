@@ -245,7 +245,7 @@ export function MobilizeStatsRow({ stats }: { stats: MobilizeStats }) {
         whileHover={{ y: -2 }}
       >
         <StatCard
-          title="Ready / Deployed"
+          title="Ready"
           value={stats.ready}
           icon={Plane}
           color="text-emerald-600"

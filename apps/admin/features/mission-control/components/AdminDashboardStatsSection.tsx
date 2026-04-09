@@ -56,19 +56,24 @@ export function AdminDashboardStatsSection({
   ];
 
   return (
-    <section className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+    <section className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5 md:gap-2">
       {cards.map((card) => (
-        <Card key={card.id} className="border-zinc-200 shadow-sm bg-white">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-semibold text-muted-foreground">
+        <Card
+          key={card.id}
+          className="gap-1 border-zinc-200 bg-white px-3 py-2.5 shadow-sm"
+        >
+          <CardHeader className="space-y-0 p-0">
+            <CardTitle className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground leading-tight">
               {card.label}
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold tracking-tight text-foreground">
+          <CardContent className="space-y-0.5 p-0 pt-1.5">
+            <p className="text-lg font-bold tabular-nums leading-none tracking-tight text-foreground">
               {card.value}
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">{card.hint}</p>
+            <p className="line-clamp-2 text-[10px] leading-snug text-muted-foreground">
+              {card.hint}
+            </p>
           </CardContent>
         </Card>
       ))}

@@ -601,19 +601,6 @@ const MOCK_ATTENDEES: Attendee[] = [
 
 // --- Helper Functions ---
 
-const formatDateRange = (start: string, end: string) => {
-  const s = new Date(start);
-  const e = new Date(end);
-  if (s.toDateString() === e.toDateString()) {
-    return s.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  }
-  return `${s.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${e.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
-};
-
 const getStatusColor = (status: SpeakerStatus) => {
   switch (status) {
     case "Confirmed":
@@ -1230,29 +1217,19 @@ export default function EventsPage() {
   const [activeView, setActiveView] = useState<EventsView>("dashboard");
   const [event, _setEvent] = useState<ConferenceEvent>(INITIAL_EVENTS[0]!);
 
-  const locationDesc =
-    event.venues[0] != null
-      ? `${event.venues[0].city}, ${event.venues[0].state}`
-      : "";
-  const description =
-    [locationDesc, formatDateRange(event.startDate, event.endDate)]
-      .filter(Boolean)
-      .join(" • ") || undefined;
-
   return (
     <PageShell
-      title={event.name}
-      description={description}
+      title="Events"
+      description="Plan events, sessions, speakers, registrations, and logistics."
       actions={
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-3">
           <Button
             variant="outline"
-            size="sm"
-            className="rounded-xl border-zinc-200 font-bold uppercase tracking-widest text-[10px] bg-white hover:bg-zinc-50 shadow-sm"
+            className="h-11 rounded-xl border-zinc-200 bg-white font-bold uppercase tracking-widest text-[10px] shadow-sm hover:bg-zinc-50"
           >
             <Eye className="mr-2 h-4 w-4" /> Preview Site
           </Button>
-          <Button className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-black uppercase tracking-widest text-[10px] shadow-xl">
+          <Button className="h-11 rounded-xl bg-zinc-900 font-black uppercase tracking-widest text-[10px] text-white shadow-xl hover:bg-zinc-800">
             <Plus className="mr-2 h-4 w-4" /> New Event
           </Button>
         </div>

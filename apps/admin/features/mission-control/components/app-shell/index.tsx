@@ -27,7 +27,7 @@ import {
   Zap,
   MessageSquare,
   Calendar,
-  Share2,
+  Rocket,
   FileText,
   FileSignature,
   PieChart,
@@ -56,12 +56,12 @@ const navigation = [
   { name: "Admin", href: "/admin", icon: ShieldCheck },
   { name: "Automations", href: "/automations", icon: Zap },
   { name: "Member Care", href: "/care", icon: MessageSquare },
-  { name: "Events", href: "/events", icon: Calendar },
-  { name: "Mobilize", href: "/mobilize", icon: Share2 },
+  { name: "Event Hub", href: "/events", icon: Calendar },
+  { name: "Mobilize", href: "/mobilize", icon: Rocket },
   { name: "Reports", href: "/reports", icon: PieChart },
-  { name: "Sign", href: "/sign", icon: FileSignature },
-  { name: "PDF", href: "/pdf", icon: FileText },
-  { name: "Support", href: "/support", icon: LifeBuoy },
+  { name: "Sign Studio", href: "/sign", icon: FileSignature },
+  { name: "PDF Studio", href: "/pdf", icon: FileText },
+  { name: "Support Hub", href: "/support", icon: LifeBuoy },
 ];
 
 interface AppShellProps {

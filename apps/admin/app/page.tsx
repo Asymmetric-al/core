@@ -25,9 +25,9 @@ export default async function MissionControlDashboard() {
   }
 
   return (
-    <>
-      <AdminDashboardStatsSection stats={stats} />
-      <DashboardHome missionaryId={dashboardMissionaryId ?? undefined} />
-    </>
+    <DashboardHome
+      missionaryId={dashboardMissionaryId ?? undefined}
+      belowHeaderSlot={<AdminDashboardStatsSection stats={stats} />}
+    />
   );
 }
