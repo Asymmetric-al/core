@@ -4,19 +4,17 @@
 
 ```
 supabase-postgres-best-practices/
-  SKILL.md       # Main skill file - read this first
+  SKILL.md       # Main skill file — read this first
   AGENTS.md      # This navigation guide
-  CLAUDE.md      # Symlink to AGENTS.md
+  CLAUDE.md      # Claude Code stub (content: AGENTS.md)
   references/    # Detailed reference files
 ```
 
 ## Usage
 
-1. Read `SKILL.md` for the main skill instructions
-2. Browse `references/` for detailed documentation on specific topics
-3. Reference files are loaded on-demand - read only what you need
-
-Comprehensive performance optimization guide for Postgres, maintained by Supabase. Contains rules across 8 categories, prioritized by impact to guide automated query optimization and schema design.
+1. Read `SKILL.md` for the main skill instructions.
+2. Browse `references/` for detailed documentation on specific topics.
+3. Reference files are loaded on demand — read only what you need.
 
 ## When to Apply
 
@@ -48,7 +46,7 @@ Read individual rule files for detailed explanations and SQL examples:
 
 ```
 references/query-missing-indexes.md
-references/schema-partial-indexes.md
+references/query-partial-indexes.md
 references/_sections.md
 ```
 
