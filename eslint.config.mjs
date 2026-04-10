@@ -143,7 +143,19 @@ const eslintConfig = defineConfig([
     },
   },
   {
-    ignores: ["out/**", "**/out/**", "next-env.d.ts"],
+    ignores: [
+      ".next/**",
+      "**/.next/**",
+      "out/**",
+      "**/out/**",
+      "build/**",
+      "**/build/**",
+      "playwright-report/**",
+      "test-results/**",
+      "scripts/**",
+      "next-env.d.ts",
+      "eslint.config.mjs",
+    ],
   },
 ]);
 

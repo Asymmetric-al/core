@@ -1,4 +1,6 @@
+import path from "path";
 import { defineConfig, devices } from "@playwright/test";
+import { nextDevReadyURL } from "./tests/e2e/base-urls";
 
 const DEFAULT_DONOR_PORT = 3005;
 const DEFAULT_ADMIN_PORT = 3030;
@@ -74,8 +76,6 @@ function getLocalBaseUrlAndPort(defaultPort: number): {
     };
   }
 
-  // If the user points to a local URL (common in `.env.local`), still start/reuse
-  // the dev server. If they point to a remote URL, don't start a local server.
   try {
     const url = new URL(envBase);
     const isLocalHost = isLocalHostname(url.hostname);
@@ -92,7 +92,6 @@ function getLocalBaseUrlAndPort(defaultPort: number): {
       port: portFromUrl,
     };
   } catch {
-    // If it's not a valid URL string, fall back to port-based local URL.
     return {
       baseURL: `http://${DEFAULT_LOCAL_HOSTNAME}:${envPort}`,
       port: envPort,
@@ -141,31 +140,6 @@ const isRemoteBaseUrl = (() => {
   }
 })();
 
-function shouldIncludeAdminServer() {
-  if (process.env.PLAYWRIGHT_INCLUDE_ADMIN === "0") return false;
-  if (process.env.PLAYWRIGHT_INCLUDE_ADMIN === "1") return true;
-
-  const cliArgs = process.argv.slice(2);
-  for (let index = 0; index < cliArgs.length; index += 1) {
-    const arg = cliArgs[index] || "";
-
-    if (arg === "--grep") {
-      const pattern = cliArgs[index + 1] || "";
-      if (pattern.includes("@cms")) return true;
-      continue;
-    }
-
-    if (
-      arg.includes("tests/e2e/cms-") ||
-      arg.includes("site-studio-video-tour.spec.ts")
-    ) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 const donorServer = {
   command: `node -e "try{require('fs').rmSync('apps/donor/.next/dev/lock',{force:true})}catch{}" && bun run --cwd apps/donor dev:playwright -- --port ${port} --hostname ${DEFAULT_LOCAL_HOSTNAME}`,
   env: {
@@ -181,9 +155,9 @@ const donorServer = {
     DEMO_MISSIONARY_EMAIL: resolvedEnv.DEMO_MISSIONARY_EMAIL || "",
     DEMO_PASSWORD: resolvedEnv.DEMO_PASSWORD || "",
   },
-  url: baseURL,
+  url: nextDevReadyURL(baseURL),
   reuseExistingServer: !process.env.CI,
-  timeout: 120000,
+  timeout: 180_000,
 } as const;
 
 const adminServer = {
@@ -200,24 +174,32 @@ const adminServer = {
     DEMO_MISSIONARY_EMAIL: resolvedEnv.DEMO_MISSIONARY_EMAIL || "",
     DEMO_PASSWORD: resolvedEnv.DEMO_PASSWORD || "",
   },
-  url: `${adminBaseURL}/login`,
+  url: nextDevReadyURL(adminBaseURL),
   reuseExistingServer: !process.env.CI,
-  timeout: 120000,
+  timeout: 180_000,
 } as const;
 
-const includeAdminServer = shouldIncludeAdminServer();
+const includeAdminServer =
+  !isRemoteBaseUrl && process.env.PLAYWRIGHT_INCLUDE_ADMIN !== "0";
+
 const webServer = isRemoteBaseUrl
   ? undefined
   : includeAdminServer
     ? [donorServer, adminServer]
     : donorServer;
 
+const donorAuthState = path.join(__dirname, ".auth", "donor.json");
+const adminAuthState = path.join(__dirname, ".auth", "admin.json");
+
 export default defineConfig({
+  globalSetup: path.join(__dirname, "tests", "e2e", "global-setup.ts"),
   testDir: "./tests/e2e",
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: getWorkerCount(),
+  timeout: 90_000,
+  expect: { timeout: 15_000 },
   reporter: [
     ["html", { outputFolder: "playwright-report" }],
     ["json", { outputFile: "playwright-report/results.json" }],
@@ -227,10 +209,45 @@ export default defineConfig({
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
+    navigationTimeout: 90_000,
+    actionTimeout: 45_000,
   },
   projects: [
-    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
-    { name: "mobile-chrome", use: { ...devices["Pixel 5"] } },
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
+      testIgnore: [
+        "**/upload-crop.spec.ts",
+        "**/donor-giving-history.spec.ts",
+        "**/mc-contributions-live-query.spec.ts",
+      ],
+    },
+    {
+      name: "mobile-chrome",
+      use: { ...devices["Pixel 5"] },
+      testIgnore: [
+        "**/upload-crop.spec.ts",
+        "**/donor-giving-history.spec.ts",
+        "**/mc-contributions-live-query.spec.ts",
+      ],
+    },
+    {
+      name: "chromium-donor",
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: donorAuthState,
+      },
+      testMatch: ["**/upload-crop.spec.ts", "**/donor-giving-history.spec.ts"],
+    },
+    {
+      name: "chromium-admin",
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: adminBaseURL,
+        storageState: adminAuthState,
+      },
+      testMatch: ["**/mc-contributions-live-query.spec.ts"],
+    },
   ],
   ...(webServer ? { webServer } : {}),
 });

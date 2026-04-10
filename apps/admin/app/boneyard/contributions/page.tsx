@@ -3,7 +3,7 @@
 import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
 import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 
-import { mockContributions } from "../../contributions/data";
+import { boneyardContributionsFixture } from "../../contributions/data";
 import {
   ContributionsMainBody,
   ContributionsPageActions,
@@ -16,7 +16,7 @@ import {
 export default function BoneyardContributionsCapturePage() {
   const skeletonContent = (
     <ContributionsMainBody
-      data={mockContributions}
+      data={boneyardContributionsFixture}
       isLoading={false}
       onSelectContribution={() => {}}
     />

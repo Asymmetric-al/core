@@ -31,13 +31,13 @@ describe("e2e auth helpers", () => {
 
   it("returns null for malformed payloads", () => {
     expect(parseE2EAuthCookieValue("bad-value")).toBeNull();
-    expect(
-      parseE2EAuthCookieValue(
-        Buffer.from(
-          JSON.stringify({ userId: "user", role: "not-a-role" }),
-        ).toString("base64url"),
-      ),
-    ).toBeNull();
+    const invalidRolePayload = btoa(
+      JSON.stringify({ userId: "user", role: "not-a-role" }),
+    )
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+    expect(parseE2EAuthCookieValue(invalidRolePayload)).toBeNull();
   });
 
   it("enables bypass only outside production", () => {

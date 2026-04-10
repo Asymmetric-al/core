@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import type { APIRequestContext, BrowserContext } from "@playwright/test";
 
 const adminBaseURL =
-  process.env.PLAYWRIGHT_ADMIN_BASE_URL || "http://127.0.0.1:3030";
+  process.env.PLAYWRIGHT_ADMIN_BASE_URL || "http://localhost:3030";
 
 test.use({ video: "on" });
 

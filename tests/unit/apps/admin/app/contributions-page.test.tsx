@@ -29,8 +29,11 @@ vi.mock(
 );
 
 import ContributionsPage from "../../../../../apps/admin/app/contributions/page";
+import {
+  boneyardContributionsFixture,
+  mockContributions,
+} from "../../../../../apps/admin/app/contributions/data";
 import { loadMockAdminContributions } from "../../../../../apps/admin/app/contributions/use-admin-contributions";
-import { mockContributions } from "../../../../../apps/admin/app/contributions/data";
 
 function mockQuery(partial: Record<string, unknown>) {
   return {
@@ -98,7 +101,7 @@ describe("apps/admin/app/contributions/page", () => {
   });
 
   it("renders contribution rows when the query succeeds", () => {
-    const rows = loadMockAdminContributions();
+    const rows = boneyardContributionsFixture;
     useAdminContributionsMock.mockReturnValue(
       mockQuery({
         isError: false,
@@ -110,7 +113,7 @@ describe("apps/admin/app/contributions/page", () => {
 
     render(<ContributionsPage />);
 
-    expect(screen.getByText(rows[0]!.donor.name)).toBeTruthy();
+    expect(screen.getByText(rows[0]!.donorName!)).toBeTruthy();
     expect(screen.queryByRole("heading", { name: "Load failed" })).toBeNull();
   });
 
@@ -132,10 +135,11 @@ describe("apps/admin/app/contributions/page", () => {
     ).toBeTruthy();
   });
 
-  it("loadMockAdminContributions returns cloned fixture rows", () => {
+  it("loadMockAdminContributions returns shallow-cloned rows from mockContributions", () => {
     const data = loadMockAdminContributions();
     expect(data).toEqual(mockContributions);
-    expect(data[0]).not.toBe(mockContributions[0]);
-    expect(data[0]!.donor).not.toBe(mockContributions[0]!.donor);
+    for (let i = 0; i < data.length; i++) {
+      expect(data[i]).not.toBe(mockContributions[i]);
+    }
   });
 });

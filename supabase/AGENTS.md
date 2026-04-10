@@ -3,6 +3,12 @@
 **Name:** `supabase-workflow-rules`
 **Purpose:** Guardrails for schema migrations, demo seed data, and read-only demo posture in this repo.
 
+## Agent skills (Supabase)
+
+When changing schema, RLS, Auth-related SQL, Storage policies, or Supabase CLI/MCP behavior, load **`docs/ai/skills/supabase/SKILL.md`** (platform-wide Supabase guidance). For Postgres performance and RLS cost, use **`docs/ai/skills/supabase-postgres-best-practices/SKILL.md`**. For Next.js App Router + Supabase Auth only, use **`docs/ai/skills/nextjs-supabase-auth/SKILL.md`**.
+
+To refresh the vendored Supabase skills from [supabase/agent-skills](https://skills.sh/supabase/agent-skills): `npx skills add supabase/agent-skills -y`, then `bun run skills:refresh-upstream`, then `bun run skills:sync` and `bun run skills:verify`.
+
 ## Triggers
 
 Use this doc when a task touches:

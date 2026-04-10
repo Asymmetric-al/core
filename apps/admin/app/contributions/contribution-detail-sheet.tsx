@@ -22,11 +22,11 @@ import type { Contribution, ContributionStatus } from "./types";
 /* ------------------------------------------------------------------ */
 
 const statusDotColor: Record<ContributionStatus, string> = {
-  Succeeded: "bg-emerald-500",
-  Pending: "bg-amber-500",
-  Failed: "bg-destructive",
-  Refunded: "bg-muted-foreground",
-  Disputed: "bg-orange-500",
+  completed: "bg-emerald-500",
+  pending: "bg-amber-500",
+  processing: "bg-sky-500",
+  failed: "bg-destructive",
+  refunded: "bg-muted-foreground",
 };
 
 /* ------------------------------------------------------------------ */
@@ -74,12 +74,18 @@ export function ContributionDetailSheet({
 }: ContributionDetailSheetProps) {
   if (!contribution) return null;
 
-  const { donor, isAnonymous } = contribution;
+  const { donorName, donorEmail, donorAvatar, isAnonymous } = contribution;
   const date = new Date(contribution.date);
+  const donorDisplayName = isAnonymous ? "Anonymous" : (donorName ?? "Unknown");
 
   const handleCopyTxn = async () => {
+    const tid = contribution.transactionId;
+    if (!tid) {
+      toast.error("No transaction ID to copy");
+      return;
+    }
     try {
-      await navigator.clipboard.writeText(contribution.transactionId);
+      await navigator.clipboard.writeText(tid);
       toast.success("Transaction ID copied to clipboard");
     } catch {
       toast.error("Could not copy to clipboard");
@@ -111,18 +117,21 @@ export function ContributionDetailSheet({
             {/* ---- Donor + Status ---- */}
             <div className="flex items-start gap-4">
               <Avatar className="h-16 w-16 border-4 border-background shadow-sm">
-                <AvatarImage src={donor.avatar} alt={donor.name} />
+                <AvatarImage
+                  src={donorAvatar ?? undefined}
+                  alt={donorDisplayName}
+                />
                 <AvatarFallback className="bg-muted text-muted-foreground font-bold text-xl">
-                  {isAnonymous ? "?" : getInitials(donor.name)}
+                  {isAnonymous ? "?" : getInitials(donorDisplayName)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 space-y-1 pt-1">
                 <h2 className="text-2xl font-bold text-foreground tracking-tight">
-                  {isAnonymous ? "Anonymous Donor" : donor.name}
+                  {isAnonymous ? "Anonymous Donor" : donorDisplayName}
                 </h2>
-                {!isAnonymous && donor.email && (
+                {!isAnonymous && donorEmail && (
                   <p className="text-sm text-muted-foreground font-medium">
-                    {donor.email}
+                    {donorEmail}
                   </p>
                 )}
                 <div className="flex items-center gap-2 pt-2">
@@ -263,7 +272,7 @@ export function ContributionDetailSheet({
                     Send Receipt
                   </Button>
                 )}
-                {contribution.status === "Failed" && (
+                {contribution.status === "failed" && (
                   <Button
                     variant="outline"
                     size="sm"

@@ -6,6 +6,8 @@ test.describe("@cms CMS tenant isolation", () => {
   }) => {
     await page.goto("/tenant-content-that-does-not-exist");
 
-    await expect(page).toHaveURL(/\/login/);
+    // Catch-all CMS route returns 404 when no published page exists (see
+    // `app/(public)/[...cmsSlug]/page.tsx`); that still satisfies isolation.
+    await expect(page.getByRole("heading", { name: "404" })).toBeVisible();
   });
 });

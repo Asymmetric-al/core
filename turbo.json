@@ -1,31 +1,12 @@
 {
   "$schema": "https://turbo.build/schema.v2.json",
-  "globalDependencies": ["**/.env.*local", "**/.env"],
   "globalEnv": [
     "NODE_ENV",
     "VERCEL",
     "VERCEL_ENV",
     "VERCEL_TARGET_ENV",
     "VERCEL_URL",
-    "VERCEL_GIT_COMMIT_SHA",
-    "NEXT_PUBLIC_SUPABASE_URL",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-    "SUPABASE_SERVICE_ROLE_KEY",
-    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
-    "STRIPE_SECRET_KEY",
-    "STRIPE_WEBHOOK_SECRET",
-    "NEXT_PUBLIC_SENTRY_DSN",
-    "SENTRY_DSN",
-    "NEXT_PUBLIC_CLOUDINARY_ENABLED",
-    "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME",
-    "NEXT_PUBLIC_CLOUDINARY_API_KEY",
-    "CLOUDINARY_API_SECRET",
-    "NEXT_PUBLIC_SITE_URL",
-    "NEXT_PUBLIC_APP_URL",
-    "NEXT_PUBLIC_MAIN_DOMAIN",
-    "ALLOW_DEMO_ACCOUNTS",
-    "CRON_SECRET",
-    "PAYLOAD_SECRET"
+    "VERCEL_GIT_COMMIT_SHA"
   ],
   "tasks": {
     "transit": {
@@ -46,33 +27,61 @@
         "NEXT_PUBLIC_*",
         "GOOGLE_SITE_VERIFICATION",
         "BING_SITE_VERIFICATION",
-        "NEXT_PUBLIC_SUPABASE_URL",
-        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-        "SUPABASE_SERVICE_ROLE_KEY",
         "SUPABASE_*",
         "PAYLOAD_SECRET",
+        "DATABASE_URL",
+        "PAYLOAD_DATABASE_URI",
+        "SKIP_ENV_VALIDATION",
         "RESEND_API_KEY",
         "RESEND_WEBHOOK_SECRET",
-        "RESEND_ENCRYPTION_KEY"
+        "RESEND_ENCRYPTION_KEY",
+        "SENTRY_DSN",
+        "CLOUDINARY_API_SECRET",
+        "ALLOW_DEMO_ACCOUNTS",
+        "DEMO_ONLY_LOGIN"
       ],
       "inputs": ["$TURBO_DEFAULT$", ".env", ".env.*"]
     },
     "lint": {
       "dependsOn": ["transit"],
-      "outputs": []
+      "outputs": [],
+      "passThroughEnv": [
+        "CI",
+        "NODE_OPTIONS",
+        "FORCE_COLOR",
+        "NO_COLOR",
+        "TERM"
+      ]
     },
     "typecheck": {
       "dependsOn": ["transit"],
-      "outputs": ["tsconfig.tsbuildinfo", "*.tsbuildinfo", "**/*.tsbuildinfo"]
+      "outputs": ["tsconfig.tsbuildinfo", "*.tsbuildinfo", "**/*.tsbuildinfo"],
+      "passThroughEnv": ["CI", "NODE_OPTIONS", "FORCE_COLOR", "NO_COLOR"]
     },
     "test": {
       "dependsOn": ["transit"],
       "outputs": ["coverage/**"],
-      "cache": false
+      "cache": false,
+      "passThroughEnv": [
+        "CI",
+        "NODE_OPTIONS",
+        "VITEST_*",
+        "DEBUG",
+        "FORCE_COLOR",
+        "NO_COLOR"
+      ]
     },
     "test:unit": {
       "dependsOn": ["transit"],
-      "outputs": ["coverage/**"]
+      "outputs": ["coverage/**"],
+      "passThroughEnv": [
+        "CI",
+        "NODE_OPTIONS",
+        "VITEST_*",
+        "DEBUG",
+        "FORCE_COLOR",
+        "NO_COLOR"
+      ]
     },
     "dev": {
       "cache": false,
