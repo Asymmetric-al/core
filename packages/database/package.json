@@ -59,7 +59,7 @@
     "@asym/env": "workspace:*",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.89.0",
-    "@tanstack/db": "^0.5.28",
+    "@tanstack/db": "0.6.4",
     "@tanstack/query-db-collection": "^1.0.25",
     "@tanstack/react-db": "^0.1.72",
     "@tanstack/react-query": "^5.90.21",

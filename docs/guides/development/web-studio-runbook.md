@@ -17,14 +17,14 @@
 
 Minimum for Payload + admin (from `.env.local` symlinked per app if needed):
 
-| Variable | Purpose |
-|----------|---------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anon key |
-| `PAYLOAD_SECRET` | Payload signing (**required** in prod; dev/test may use defaults — see `payload.config.ts`) |
-| `PAYLOAD_DATABASE_URI` or `SUPABASE_DB_URL` | Postgres for Payload `cms` schema |
-| `NEXT_PUBLIC_DONOR_URL` | Origin for preview links from admin (optional; defaults in preview helper) |
-| `CMS_BASE_URL` | On **donor**: admin origin for public CMS fetches |
+| Variable                                    | Purpose                                                                                     |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`                  | Supabase project URL                                                                        |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`             | Anon key                                                                                    |
+| `PAYLOAD_SECRET`                            | Payload signing (**required** in prod; dev/test may use defaults — see `payload.config.ts`) |
+| `PAYLOAD_DATABASE_URI` or `SUPABASE_DB_URL` | Postgres for Payload `cms` schema                                                           |
+| `NEXT_PUBLIC_DONOR_URL`                     | Origin for preview links from admin (optional; defaults in preview helper)                  |
+| `CMS_BASE_URL`                              | On **donor**: admin origin for public CMS fetches                                           |
 
 **Per-collection rollback** (optional, default = native on):
 
@@ -86,19 +86,31 @@ Unauthenticated visit to `/web-studio` should redirect to login.
 
 ## 8. Test commands (copy/paste)
 
-| Command | When |
-|---------|------|
-| `NODE_ENV=test bun run cms:importmap` | After component path changes |
-| `bun run lint:admin` | Before PR |
-| `bun run typecheck:admin` | Before PR |
-| `bun run test:unit:cms` | CMS unit tests |
-| `bun run test:unit` | Full unit suite |
-| `node scripts/run-with-ci-env.mjs -- bunx turbo run build --filter=@asym/admin` | Strict admin build |
-| `bun run test:e2e:cms` | Full CMS Playwright — needs **DB + ports 3005/3030 free** |
-| `bun run test:e2e:smoke:cms` | Smaller CMS smoke set |
-| `bun run verify:data-boundary` | After adding `apps/*/app/api/**` routes |
+| Command                                                                         | When                                                      |
+| ------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `NODE_ENV=test bun run cms:importmap`                                           | After component path changes                              |
+| `bun run lint:admin`                                                            | Before PR                                                 |
+| `bun run typecheck:admin`                                                       | Before PR                                                 |
+| `bun run test:unit:cms`                                                         | CMS unit tests                                            |
+| `bun run test:unit`                                                             | Full unit suite                                           |
+| `node scripts/run-with-ci-env.mjs -- bunx turbo run build --filter=@asym/admin` | Strict admin build                                        |
+| `bun run test:e2e:cms`                                                          | Full CMS Playwright — needs **DB + ports 3005/3030 free** |
+| `bun run test:e2e:smoke:cms`                                                    | Smaller CMS smoke set                                     |
+| `bun run verify:data-boundary`                                                  | After adding `apps/*/app/api/**` routes                   |
 
 **E2E failure modes:** port in use (`EADDRINUSE`); admin dev never becomes ready without Postgres for Payload — free ports and run `supabase start` or valid `PAYLOAD_DATABASE_URI`.
+
+### E2E + Payload Postgres (hosted Supabase)
+
+- **Docker is required** for `supabase start` locally (`npx supabase start` talks to Docker). Sandboxes without Docker cannot bring up `127.0.0.1:54322` automatically.
+- **IPv4-only runners** often cannot open Supabase **direct** DB URLs (`db.<ref>.supabase.co` resolves to **IPv6**). Use a **Supavisor session pooler** connection string in `PAYLOAD_DATABASE_URI` (see root `.env.example` notes).
+- **`test:e2e:smoke:cms` / `test:e2e:cms`:** Web Studio specs skip when Payload cannot reach Postgres (see `tests/e2e/cms-skip-if-no-payload.ts`). With a working `PAYLOAD_DATABASE_URI`, those tests should **run** (not skip) and assert the native shell.
+
+### Admin dev: Contributions live query + stderr noise
+
+- **`QueryBuilderError: … alias "donation"`** was caused by **two physical copies** of `@tanstack/db` in `node_modules` (different `CollectionImpl` classes). The repo runs **`node scripts/dedupe-tanstack-db.mjs` on `postinstall`** to symlink nested copies to the workspace root package. Re-run `bun install` if the error returns after a bad install.
+- `useDataTableWithLiveQuery` must pass a **callback** `(q) => …` into `useLiveQuery` (see `packages/ui/components/shadcn/data-table/hooks/use-data-table-live-query.ts`).
+- **`TypeError: controller[kState].transformAlgorithm is not a function`** still appears in **Next dev / Turbopack** stderr in some runs; **admin E2E passed** with it present. Treat as **dev noise** unless it reproduces on `next start` / production builds.
 
 ---
 
@@ -118,10 +130,10 @@ Route files under `apps/admin/app/api/**/*.ts` must be **thin re-exports** to `@
 
 ## 11. Common failures
 
-| Symptom | Likely cause |
-|---------|----------------|
-| `PAYLOAD_SECRET must be configured` | Set secret or `NODE_ENV=test` for importmap |
-| Import map wrong paths | Re-run `cms:importmap` + check postprocess script |
-| 404 on public CMS | Tenant not resolved or no published doc |
-| Wizard POST 403 | Not staff / wrong session |
-| `verify:data-boundary` fails | Direct `@asym/database` import in `app/api` |
+| Symptom                             | Likely cause                                      |
+| ----------------------------------- | ------------------------------------------------- |
+| `PAYLOAD_SECRET must be configured` | Set secret or `NODE_ENV=test` for importmap       |
+| Import map wrong paths              | Re-run `cms:importmap` + check postprocess script |
+| 404 on public CMS                   | Tenant not resolved or no published doc           |
+| Wizard POST 403                     | Not staff / wrong session                         |
+| `verify:data-boundary` fails        | Direct `@asym/database` import in `app/api`       |

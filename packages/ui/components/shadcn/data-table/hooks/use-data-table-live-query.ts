@@ -26,22 +26,13 @@ import type {
   AdvancedFilterState,
   FilterFieldDefinition,
 } from "../filters/types";
+import type { InitialQueryBuilder, QueryBuilder } from "@tanstack/db";
 
-type LiveQueryBuilder<TData> = (q: {
-  from: (arg: Record<string, unknown>) => {
-    where: (fn: (args: unknown) => boolean) => unknown;
-    join: (
-      collection: Record<string, unknown>,
-      fn: (args: unknown) => boolean,
-    ) => unknown;
-    select: (fn: (args: unknown) => TData) => unknown;
-    orderBy: (fn: (args: unknown) => unknown, dir?: "asc" | "desc") => unknown;
-  };
-}) => unknown;
+type LiveQueryFn = (q: InitialQueryBuilder) => QueryBuilder<never>;
 
 interface UseDataTableWithLiveQueryOptions<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
-  queryBuilder: LiveQueryBuilder<TData>;
+  queryBuilder: LiveQueryFn;
   queryKey?: string[];
   advancedFilterFields?: FilterFieldDefinition[];
   initialState?: {
@@ -129,8 +120,15 @@ export function useDataTableWithLiveQuery<TData, TValue = unknown>({
       initialState.advancedFilter ?? createEmptyFilterState(),
     );
 
+  // `useLiveQuery` must receive a **callback** `(q) => …` that returns a QueryBuilder.
+  // Passing the builder function object directly is interpreted as a config object and
+  // breaks TanStack DB (e.g. `QueryBuilderError` for alias `donation` on Contributions).
+  // `useLiveQuery` has many overloads; `Parameters<typeof useLiveQuery>[0]` is a wide union
+  // and breaks overload resolution — the runtime API is the query-fn + deps form.
   const liveQueryResult = useLiveQuery(
-    queryBuilder as unknown as Parameters<typeof useLiveQuery>[0],
+    queryBuilder as Parameters<typeof useLiveQuery>[0] &
+      ((q: InitialQueryBuilder) => QueryBuilder<never>),
+    queryKey ?? [],
   );
 
   const rawData = React.useMemo(() => {
