@@ -164,9 +164,11 @@ patterns grow.
    `getAdminClient()` inside read-model functions.
 4. Convert admin dashboard root page to a Server Component wrapper that fetches
    stats and renders existing client dashboard UI unchanged.
-5. Convert contributions page to a server-wrapper + client-component split:
-   - server page fetches read-model data
-   - client component keeps existing DataTable interactions
+5. Admin org-wide **Contributions** (`/contributions`) evolved after this note: the
+   route is a **client page** (`page.tsx`) using `ContributionsMainBody`,
+   `useAdminContributions` (TanStack Query, mock data until a real API exists), and
+   optional Boneyard loading. The earlier `contributions-client.tsx` split was
+   removed as unused dead code.
 6. Skip speculative missionary-detail wiring because no dedicated
    `apps/admin/app/missionaries/[id]/page.tsx` route exists yet.
 
@@ -182,7 +184,8 @@ patterns grow.
 - `apps/admin/app/page.tsx`
 - `apps/admin/features/mission-control/components/AdminDashboardStatsSection.tsx`
 - `apps/admin/app/contributions/page.tsx`
-- `apps/admin/app/contributions/contributions-client.tsx`
+- `apps/admin/app/contributions/main-body.tsx`
+- `apps/admin/app/contributions/use-admin-contributions.ts`
 - `tests/unit/packages/api/reads/*.test.ts`
 
 ### Date

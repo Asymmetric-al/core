@@ -3,6 +3,52 @@ import type { Contribution } from "./types";
 /** Live-query page reads from TanStack DB; keep empty for typing / fallbacks. */
 export const mockContributions: Contribution[] = [];
 
+const fixtureNow = new Date().toISOString();
+
+/** Synthetic rows for Boneyard capture, unit tests, and skeleton fixtures only. */
+export const boneyardContributionsFixture: Contribution[] = [
+  {
+    id: "by-c1",
+    donorId: "by-d1",
+    donorName: "Sarah Mitchell",
+    donorEmail: "sarah.mitchell@example.com",
+    donorAvatar: null,
+    amount: 250,
+    date: fixtureNow,
+    status: "completed",
+    type: "One-time",
+    paymentMethod: "Credit Card",
+    source: "Online",
+    fundCode: "GEN",
+    fundName: "General Fund",
+    transactionId: "pi_fixture_1",
+    isAnonymous: false,
+    receiptSent: true,
+    createdAt: fixtureNow,
+    updatedAt: fixtureNow,
+  },
+  {
+    id: "by-c2",
+    donorId: "by-d2",
+    donorName: "James Chen",
+    donorEmail: "james.chen@example.com",
+    donorAvatar: null,
+    amount: 100,
+    date: fixtureNow,
+    status: "pending",
+    type: "Recurring",
+    paymentMethod: "Bank Transfer",
+    source: "Mobile",
+    fundCode: "OUT",
+    fundName: "Outreach",
+    transactionId: null,
+    isAnonymous: false,
+    receiptSent: false,
+    createdAt: fixtureNow,
+    updatedAt: fixtureNow,
+  },
+];
+
 export const contributionStatusOptions = [
   { label: "Completed", value: "completed" },
   { label: "Pending", value: "pending" },
