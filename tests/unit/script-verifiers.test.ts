@@ -261,6 +261,27 @@ describe("verify-workspace-contract", () => {
       runNodeScript(tempRoot, "scripts/verify-workspace-contract.mjs"),
     ).toThrow(/disallowed route segment config export "revalidate"/);
   });
+
+  it("fails when boneyard capture pages are placed in private route folders", async () => {
+    const tempRoot = await createWorkspaceContractRepo();
+    const pagePath = path.join(
+      tempRoot,
+      "apps/demo/app/__boneyard__/example/page.tsx",
+    );
+    await mkdir(path.dirname(pagePath), { recursive: true });
+    await writeFile(
+      pagePath,
+      [
+        "export default function Page() {",
+        "  return <div>Boneyard fixture</div>;",
+        "}",
+      ].join("\n"),
+    );
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/verify-workspace-contract.mjs"),
+    ).toThrow(/private capture routes are not routable/);
+  });
 });
 
 describe("verify-skills-sync", () => {

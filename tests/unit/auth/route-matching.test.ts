@@ -34,4 +34,14 @@ describe("matchesListedRoute", () => {
     expect(matchesListedRoute("/workers/1", "/workers")).toBe(true);
     expect(matchesListedRoute("/workers", "/workers")).toBe(true);
   });
+
+  it("public boneyard capture paths: use `/boneyard` not `/boneyard/` in proxy publicRoutes", () => {
+    expect(matchesListedRoute("/boneyard/contributions", "/boneyard")).toBe(
+      true,
+    );
+    expect(matchesListedRoute("/boneyard/tasks", "/boneyard")).toBe(true);
+    expect(matchesListedRoute("/boneyard/contributions", "/boneyard/")).toBe(
+      false,
+    );
+  });
 });
