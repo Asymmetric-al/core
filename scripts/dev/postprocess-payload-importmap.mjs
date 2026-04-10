@@ -1,18 +1,28 @@
 import { access, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const importMapPath = path.resolve(
-  process.cwd(),
-  "app/(payload)/admin/importMap.js",
-);
+const importMapCandidates = [
+  path.resolve(process.cwd(), "app/(payload)/web-studio/importMap.js"),
+  path.resolve(process.cwd(), "app/(payload)/admin/importMap.js"),
+];
 
 const lintHeader =
   "/* eslint-disable import-x/no-duplicates, import-x/order -- TODO(AL-000): auto-generated Payload import map */";
 const typedExport =
   "/** @type {Record<string, unknown>} */\nexport const importMap =";
 
-async function ensureImportMapExists() {
-  await access(importMapPath);
+async function resolveImportMapPath() {
+  for (const candidate of importMapCandidates) {
+    try {
+      await access(candidate);
+      return candidate;
+    } catch {
+      /* try next */
+    }
+  }
+  throw new Error(
+    `Payload import map not found. Tried:\n${importMapCandidates.join("\n")}`,
+  );
 }
 
 function ensureLintHeader(content) {
@@ -35,7 +45,7 @@ function ensureTypedExport(content) {
 }
 
 async function run() {
-  await ensureImportMapExists();
+  const importMapPath = await resolveImportMapPath();
 
   const current = await readFile(importMapPath, "utf8");
   const withHeader = ensureLintHeader(current);

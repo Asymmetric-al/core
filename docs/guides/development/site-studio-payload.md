@@ -6,6 +6,7 @@ This guide explains how to run and validate the Site Studio integration that liv
 
 - Payload admin UI mounted at `/web-studio` in Mission Control
 - Payload admin theming bridged to shared Maia + Zinc design tokens from `@asym/ui`
+- **Web Studio Phase 1 (Pages reference slice):** Mission Control–native shell + list/edit views for the `pages` collection, backed by Payload list query, table columns, preferences, and document form runtime (Lexical unchanged). Rollback: set `CMS_WEB_STUDIO_NATIVE_PAGES=false` (see below).
 - CMS tables in Postgres `cms` schema
 - Tenant-aware collection access controls
 - Public read endpoints under `/api/cms/public/*`
@@ -21,9 +22,18 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 PAYLOAD_SECRET=local-payload-secret
 PAYLOAD_DATABASE_URI=postgresql://postgres:postgres@127.0.0.1:54322/postgres
 CMS_BASE_URL=http://127.0.0.1:3030
+# Optional: donor origin for “Preview” links from Pages (defaults to http://127.0.0.1:3000)
+NEXT_PUBLIC_DONOR_URL=http://127.0.0.1:3000
+# Optional: disable native Pages list/edit UI (stock Payload views)
+# CMS_WEB_STUDIO_NATIVE_PAGES=false
 ```
 
 `PAYLOAD_DATABASE_URI` can point at local Supabase Postgres or a hosted Postgres test database.
+
+### Form stack note (Phase 1)
+
+- **Payload document editing** (Pages body, drafts, publish, preview wiring): keep Payload’s document form context and hooks — do **not** put the main document fields on TanStack Form.
+- **Mission Control-only dialogs/settings** in this workstream: use **TanStack Form + Zod** via `@asym/ui` (`useAsymForm`), not React Hook Form. If an older doc mentions RHF for this workstream, treat **this guide + the Phase 1 prompt** as source of truth.
 
 ## Local startup workflow
 
@@ -46,7 +56,9 @@ bun run cms:migrate:status
 bun run cms:importmap
 ```
 
-`cms:importmap` now runs Payload generation plus post-processing to keep the generated file lint/type-safe automatically.
+`cms:importmap` runs Payload generation and post-processes `apps/admin/app/(payload)/web-studio/importMap.js` (and legacy `admin/importMap.js` if present) for eslint + typed export consistency.
+
+**CI / agents:** if `PAYLOAD_SECRET` is missing, run with `NODE_ENV=test` so local dev defaults apply, e.g. `NODE_ENV=test bun run cms:importmap`.
 
 ## Design-system alignment checks (Maia + Zinc)
 
@@ -70,6 +82,7 @@ bun run dev:donor
 
 - Open `http://127.0.0.1:3030/web-studio` and confirm unauthenticated users are redirected to `/login`.
 - Sign in as staff/admin and confirm Payload admin loads.
+- Open `/web-studio/collections/pages` and confirm the **Mission Control shell** (`data-testid="web-studio-native-shell"`) wraps the Pages list.
 - Confirm collection lists are tenant-filtered for non-super-admin users.
 - Call:
   - `GET /api/cms/public/pages/<slug>?tenant=<tenant-slug>`

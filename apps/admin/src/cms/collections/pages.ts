@@ -1,3 +1,5 @@
+import { pagesGeneratePreviewURL } from "../../cms-ui/web-studio/adapters/preview-url";
+import { isNativePagesWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
 import {
   tenantScopedCreateAccess,
   tenantScopedDeleteAccess,
@@ -9,11 +11,32 @@ import { applyTenantFromContext } from "../hooks/tenant";
 
 import type { CollectionConfig } from "payload";
 
+const nativePagesAdmin = isNativePagesWebStudioEnabled()
+  ? {
+      components: {
+        views: {
+          list: {
+            Component:
+              "/src/cms-ui/web-studio/pages/list/PagesNativeListView.tsx#PagesNativeListView",
+          },
+          edit: {
+            default: {
+              Component:
+                "/src/cms-ui/web-studio/pages/document/PagesNativeEditView.tsx#PagesNativeEditView",
+            },
+          },
+        },
+      },
+    }
+  : {};
+
 export const Pages: CollectionConfig = {
   slug: "pages",
   admin: {
     defaultColumns: ["title", "slug", "tenant", "updatedAt"],
     useAsTitle: "title",
+    preview: pagesGeneratePreviewURL,
+    ...nativePagesAdmin,
   },
   access: {
     read: tenantScopedReadAccess("tenant"),
@@ -30,6 +53,7 @@ export const Pages: CollectionConfig = {
     drafts: {
       autosave: {
         interval: 300,
+        showSaveDraftButton: true,
       },
     },
   },

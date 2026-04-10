@@ -153,6 +153,8 @@ export const env = createEnv({
     NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
     /** Opt-in experimental React View Transitions (see `experimental.viewTransition` in Next config). */
     NEXT_PUBLIC_VIEW_TRANSITIONS_ENABLED: optionalBoolean,
+    /** Donor app origin for CMS page preview links from admin Web Studio (default dev: http://127.0.0.1:3000). */
+    NEXT_PUBLIC_DONOR_URL: z.string().url().optional(),
   },
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
@@ -225,6 +227,7 @@ export const env = createEnv({
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     NEXT_PUBLIC_VIEW_TRANSITIONS_ENABLED:
       process.env.NEXT_PUBLIC_VIEW_TRANSITIONS_ENABLED,
+    NEXT_PUBLIC_DONOR_URL: process.env.NEXT_PUBLIC_DONOR_URL,
   },
   skipValidation:
     process.env.SKIP_ENV_VALIDATION === "1" ||

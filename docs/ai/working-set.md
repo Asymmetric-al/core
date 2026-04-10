@@ -1,5 +1,12 @@
 # Working Set
 
+## 2026-04-10 (Web Studio Phase 1 — Pages native slice)
+
+- Repo: Asymmetric-al/core
+- Goal: Mission Control–native Web Studio shell + `Pages` list/edit via Payload `views.list` / `views.edit.default`, preview URL helper, preference-backed UI state, env kill-switch; keep Payload document form + Lexical.
+- Key paths: `apps/admin/src/cms-ui/web-studio/`, `apps/admin/src/cms/collections/pages.ts`, `scripts/dev/postprocess-payload-importmap.mjs`, `docs/guides/architecture/web-studio-phase1.md`
+- Rollback: `CMS_WEB_STUDIO_NATIVE_PAGES=false` + `NODE_ENV=test bun run cms:importmap`
+
 ## 2026-04-07 (Post-Turbo-2.9 verification matrix re-run)
 
 - Date: 2026-04-07

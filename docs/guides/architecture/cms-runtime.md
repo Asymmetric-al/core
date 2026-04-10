@@ -10,6 +10,10 @@ Payload runs in `apps/admin` and is exposed through:
 
 This keeps CMS management inside Mission Control and avoids running multiple Payload runtimes.
 
+### Web Studio (Phase 1 — Pages slice)
+
+Mission Control–native **shell + Pages list/edit** live under `apps/admin/src/cms-ui/web-studio/`, registered from `Pages.admin.components.views` when `CMS_WEB_STUDIO_NATIVE_PAGES` is enabled. Payload remains authoritative for schema, access, list state, and the document form (including Lexical). See **`docs/guides/architecture/web-studio-phase1.md`** for rollback, preview URL behavior, and extension notes.
+
 ## Data model boundaries
 
 - Existing platform tables remain in `public`.

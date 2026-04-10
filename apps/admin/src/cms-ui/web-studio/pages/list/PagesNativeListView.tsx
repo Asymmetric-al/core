@@ -1,0 +1,278 @@
+"use client";
+
+
+import { Button } from "@asym/ui/components/shadcn/button";
+import { FilterBar } from "@asym/ui/components/shadcn/filter-bar";
+import { PageShell } from "@asym/ui/components/shadcn/page-shell";
+import { cn } from "@asym/ui/lib/utils";
+import {
+  ListControls,
+  PageControls,
+  SelectionProvider,
+  Table,
+  TableColumnsProvider,
+  useConfig,
+  useListQuery,
+  usePreferences,
+  useTableColumns,
+} from "@payloadcms/ui";
+import { Plus } from "lucide-react";
+import Link from "next/link";
+import { formatAdminURL } from "payload/shared";
+import { useEffect, useMemo, useState } from "react";
+
+import { WEB_STUDIO_PREF_KEYS } from "../../preferences/keys";
+import { StudioLayout } from "../../shell/studio-layout";
+
+import type {
+  QueryPreset,
+  ResolvedFilterOptions,
+  SanitizedCollectionPermission,
+  ViewTypes,
+} from "payload";
+import type { ComponentProps } from "react";
+
+type TableColumnsProviderProps = ComponentProps<typeof TableColumnsProvider>;
+
+export type PagesNativeListViewProps = {
+  AfterList?: React.ReactNode;
+  AfterListTable?: React.ReactNode;
+  beforeActions?: React.ReactNode[];
+  BeforeList?: React.ReactNode;
+  BeforeListTable?: React.ReactNode;
+  collectionSlug: string;
+  columnState: TableColumnsProviderProps["columnState"];
+  Description?: React.ReactNode;
+  disableBulkDelete?: boolean;
+  disableBulkEdit?: boolean;
+  disableQueryPresets?: boolean;
+  enableRowSelections?: boolean;
+  hasCreatePermission: boolean;
+  hasDeletePermission?: boolean;
+  hasTrashPermission?: boolean;
+  listMenuItems?: React.ReactNode[];
+  newDocumentURL: string;
+  queryPreset?: QueryPreset;
+  queryPresetPermissions?: SanitizedCollectionPermission;
+  renderedFilters?: Map<string, React.ReactNode>;
+  resolvedFilterOptions?: Map<string, ResolvedFilterOptions>;
+  Table?: React.ReactNode | React.ReactNode[];
+  viewType: ViewTypes;
+};
+
+export function PagesNativeListView(props: PagesNativeListViewProps) {
+  const {
+    AfterList,
+    AfterListTable,
+    beforeActions,
+    BeforeList,
+    BeforeListTable,
+    collectionSlug,
+    columnState,
+    Description: _Description,
+    disableBulkDelete: _disableBulkDelete,
+    disableBulkEdit: _disableBulkEdit,
+    disableQueryPresets,
+    enableRowSelections: _enableRowSelections,
+    hasCreatePermission,
+    hasDeletePermission: _hasDeletePermission,
+    hasTrashPermission: _hasTrashPermission,
+    listMenuItems,
+    newDocumentURL,
+    queryPreset,
+    queryPresetPermissions,
+    renderedFilters,
+    resolvedFilterOptions,
+    Table: InitialTable,
+    viewType: _viewType,
+  } = props;
+
+  const { getPreference, setPreference } = usePreferences();
+  const [filterExpanded, setFilterExpanded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const pref = await getPreference<{ filterExpanded?: boolean }>(
+          WEB_STUDIO_PREF_KEYS.pagesListUi,
+        );
+        if (!cancelled && pref && typeof pref.filterExpanded === "boolean") {
+          setFilterExpanded(pref.filterExpanded);
+        }
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [getPreference]);
+
+  const persistFilterExpanded = async (next: boolean) => {
+    setFilterExpanded(next);
+    try {
+      await setPreference(WEB_STUDIO_PREF_KEYS.pagesListUi, {
+        filterExpanded: next,
+      });
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const {
+    config: {
+      routes: { admin: adminRoute },
+    },
+    getEntityConfig,
+  } = useConfig();
+  const collectionConfig = getEntityConfig({ collectionSlug });
+
+  const title = useMemo(
+    () =>
+      collectionConfig?.labels?.plural
+        ? typeof collectionConfig.labels.plural === "string"
+          ? collectionConfig.labels.plural
+          : String(collectionConfig.labels.plural)
+        : "Pages",
+    [collectionConfig?.labels?.plural],
+  );
+
+  const listHref = formatAdminURL({
+    adminRoute,
+    path: `/collections/${collectionSlug}`,
+  });
+
+  const { data, handleSearchChange, query } = useListQuery();
+
+  const docs = data?.docs ?? [];
+  const totalDocs = data?.totalDocs ?? 0;
+
+  const tableSection = (
+    <TableColumnsProvider collectionSlug={collectionSlug} columnState={columnState}>
+      <SelectionProvider docs={docs} totalDocs={totalDocs}>
+        <PagesNativeTableBridge InitialTable={InitialTable} />
+        <div className="mt-6 border-border border-t pt-4">
+          <PageControls collectionConfig={collectionConfig} />
+        </div>
+      </SelectionProvider>
+    </TableColumnsProvider>
+  );
+
+  return (
+    <StudioLayout sectionLabel={title}>
+      <div className="px-4 py-6 sm:px-6 lg:px-8">
+        <PageShell
+          title={title}
+          description="Tenant-scoped site pages. Search, filter, and open a document to edit."
+          className="gap-8 p-0 pb-12"
+          headerClassName="border-0 pb-6"
+          actions={
+            hasCreatePermission && newDocumentURL ? (
+              <Button size="sm" className="font-semibold uppercase tracking-wide" asChild>
+                <Link href={newDocumentURL}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  New page
+                </Link>
+              </Button>
+            ) : null
+          }
+        >
+          <FilterBar
+            className="mb-6"
+            search={{
+              value: query?.search ?? "",
+              onChange: (value) => void handleSearchChange?.(value),
+              placeholder: `Search ${title.toLowerCase()}…`,
+            }}
+            filters={
+              <Button
+                type="button"
+                variant={filterExpanded ? "secondary" : "outline"}
+                size="sm"
+                className="font-semibold text-[10px] uppercase tracking-wider"
+                onClick={() => void persistFilterExpanded(!filterExpanded)}
+              >
+                Columns &amp; filters
+              </Button>
+            }
+            activeFilters={
+              filterExpanded
+                ? [
+                    {
+                      label: "Columns & filters",
+                      onRemove: () => void persistFilterExpanded(false),
+                    },
+                  ]
+                : []
+            }
+            onReset={() => {
+              void handleSearchChange?.("");
+              void persistFilterExpanded(false);
+            }}
+          />
+
+          <div className="rounded-xl border border-border bg-card shadow-sm">
+            <div
+              className={cn(
+                "border-border border-b px-4 py-3",
+                !filterExpanded && "hidden",
+              )}
+            >
+              <ListControls
+                beforeActions={beforeActions}
+                collectionConfig={collectionConfig}
+                collectionSlug={collectionSlug}
+                disableQueryPresets={
+                  collectionConfig?.enableQueryPresets !== true ||
+                  disableQueryPresets
+                }
+                listMenuItems={listMenuItems}
+                queryPreset={queryPreset}
+                queryPresetPermissions={queryPresetPermissions}
+                renderedFilters={renderedFilters}
+                resolvedFilterOptions={resolvedFilterOptions}
+              />
+            </div>
+
+            <div className="px-2 py-4 sm:px-4">
+              {BeforeList}
+              {BeforeListTable}
+              {tableSection}
+              {AfterListTable}
+              {AfterList}
+            </div>
+          </div>
+
+          <p className="mt-6 text-muted-foreground text-xs">
+            Tip: Column visibility and ordering persist via Payload list preferences.{" "}
+            <Link className="font-semibold text-primary underline-offset-4 hover:underline" href={listHref}>
+              Open stock list view
+            </Link>{" "}
+            if you need the default Payload chrome.
+          </p>
+        </PageShell>
+      </div>
+    </StudioLayout>
+  );
+}
+
+function PagesNativeTableBridge({
+  InitialTable,
+}: {
+  InitialTable: PagesNativeListViewProps["Table"];
+}) {
+  const { columns } = useTableColumns();
+  const { data } = useListQuery();
+  const rows = data?.docs ?? [];
+
+  if (!InitialTable) {
+    return (
+      <div className="payload-table-native">
+        <Table columns={columns} data={rows} />
+      </div>
+    );
+  }
+
+  return <>{InitialTable}</>;
+}
