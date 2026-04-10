@@ -62,6 +62,7 @@
     "verify:e2e:loop": "bun scripts/verify-e2e-loop.mjs",
     "verify:t1": "bun run verify:workspace-contract",
     "verify:supabase-money": "bun run setup:verify && bun run verify:money-units",
+    "verify:supabase-env": "node scripts/supabase-env-smoke.mjs",
     "supabase": "node scripts/supabase-cli.mjs",
     "verify:eslint": "node scripts/verify-eslint-config.mjs",
     "tsconfig:future-audit": "node scripts/tsconfig-future-audit.mjs",
