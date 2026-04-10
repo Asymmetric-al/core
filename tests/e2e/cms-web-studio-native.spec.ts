@@ -1,11 +1,20 @@
 import { expect, test } from "@playwright/test";
 
+import {
+  attachPayloadDbConsoleListener,
+  waitForWebStudioShellOrSkip,
+} from "./cms-skip-if-no-payload";
+
 const adminBaseURL =
   process.env.PLAYWRIGHT_ADMIN_BASE_URL || "http://localhost:3030";
 
 test.describe("@cms Web Studio native shell", () => {
   async function signInAsAdmin(page: import("@playwright/test").Page) {
-    const availability = await page.request.get("/api/auth/demo-account");
+    const sawPayloadDbFailure = attachPayloadDbConsoleListener(page);
+
+    const availability = await page.request.get(
+      `${adminBaseURL}/api/auth/demo-account`,
+    );
     test.skip(!availability.ok(), "Demo availability endpoint is unavailable.");
 
     const payload = (await availability.json()) as {
@@ -20,6 +29,7 @@ test.describe("@cms Web Studio native shell", () => {
     );
     await page.getByRole("button", { name: "Demo Access" }).click();
     await page.waitForURL(/\/web-studio\/collections\/pages/);
+    await waitForWebStudioShellOrSkip(page, sawPayloadDbFailure);
   }
 
   test("authenticated staff sees Mission Control shell on Pages list", async ({
@@ -52,6 +62,7 @@ test.describe("@cms Web Studio native shell", () => {
     for (const route of editorialRoutes) {
       await page.goto(`${adminBaseURL}${route.href}`);
       await page.waitForURL(new RegExp(route.href.replace(/\//g, "\\/")));
+      await waitForWebStudioShellOrSkip(page);
       await expect(page.getByTestId("web-studio-native-shell")).toBeVisible();
       await expect(page.getByRole("heading", { name: route.heading }).first()).toBeVisible();
     }
