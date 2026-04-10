@@ -1,3 +1,11 @@
+/**
+ * Payload `config.endpoints` handler: **POST** `/api/web-studio/create-from-template`
+ *
+ * Instantiates **draft** CMS documents from `page-templates` while reusing Payload `req`
+ * (staff auth, tenant access, audit hooks). Validates canonical IDs against Supabase when needed.
+ *
+ * @see docs/guides/architecture/web-studio-living-spec.md
+ */
 import { findMissionaryById } from "@asym/api/missionaries/queries";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { defaultRichTextValue } from "@payloadcms/richtext-lexical";
@@ -110,7 +118,7 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
       typeof template.tenant === "string"
         ? template.tenant
         : template.tenant && typeof template.tenant === "object" && "id" in template.tenant
-          ? String((template.tenant as { id: string }).id)
+          ? String((template.tenant as { id: string | number }).id)
           : null;
 
     if (
@@ -156,7 +164,7 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
           layout: defaultLayout,
           content: defaultRichTextValue,
           legacyContentFallback: true,
-        },
+        } as never,
         draft: true,
         req,
       });
@@ -287,7 +295,7 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
             typeof template.defaultSummary === "string" ? template.defaultSummary : undefined,
           pageType: MISSIONARY_GIVING_PAGE_TYPE,
           layout: defaultLayout,
-        },
+        } as never,
         draft: true,
         req,
       });
@@ -367,7 +375,7 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
             typeof fund.description === "string" ? fund.description : template.defaultSummary,
           pageType: PROJECT_PAGE_TYPE,
           layout: defaultLayout,
-        },
+        } as never,
         draft: true,
         req,
       });
@@ -395,7 +403,7 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
           excerpt:
             typeof template.defaultSummary === "string" ? template.defaultSummary : undefined,
           content: defaultRichTextValue,
-        },
+        } as never,
         draft: true,
         req,
       });

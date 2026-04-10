@@ -2,6 +2,8 @@
 
 This guide explains how to run and validate the Site Studio integration that lives inside `apps/admin`.
 
+**Canonical architecture & inventory:** [`web-studio-living-spec.md`](../architecture/web-studio-living-spec.md) · **Runbook:** [`web-studio-runbook.md`](./web-studio-runbook.md) · **Handoff:** [`web-studio-handoff.md`](./web-studio-handoff.md)
+
 ## What is included
 
 - Payload admin UI mounted at `/web-studio` in Mission Control
@@ -18,13 +20,10 @@ This guide explains how to run and validate the Site Studio integration that liv
 - Public read endpoints under `/api/cms/public/*`
 - Donor-side CMS consumption fallback for unmatched public routes
 
-### Current parity boundary (Phase 2)
+### Current parity boundary (Phase 2+)
 
-- Native by default:
-  - collection list views for the editorial collections above
-  - default document edit views for the editorial collections above
-  - shared Web Studio shell, nav, breadcrumbs, collection-aware preferences, and recent docs
-- Still stock Payload in this phase:
+- Native by default for editorial collections (including Phase 3: `page-templates`, `missionary-giving-pages`, `project-pages`) — see the **living spec** for the full list.
+- Still stock Payload for most:
   - nested `versions`, `version`, `api`, and `live preview` document subviews
   - `tenants` and `cms-users`
 
@@ -48,6 +47,9 @@ NEXT_PUBLIC_DONOR_URL=http://127.0.0.1:3000
 # CMS_WEB_STUDIO_NATIVE_MISSIONARY_PROFILES=false
 # CMS_WEB_STUDIO_NATIVE_MINISTRY_UPDATES=false
 # CMS_WEB_STUDIO_NATIVE_MEDIA=false
+# CMS_WEB_STUDIO_NATIVE_PAGE_TEMPLATES=false
+# CMS_WEB_STUDIO_NATIVE_MISSIONARY_GIVING_PAGES=false
+# CMS_WEB_STUDIO_NATIVE_PROJECT_PAGES=false
 ```
 
 `PAYLOAD_DATABASE_URI` can point at local Supabase Postgres or a hosted Postgres test database.
@@ -143,8 +145,10 @@ Output is written under `site-studio-review/<date>/cloud-agent/`:
 ### Public endpoints (tenant-aware, no auth)
 
 - `GET /api/cms/public/pages/<slug>`
-  - Success: `{ tenant: { id, slug }, page }`
+  - Success: `{ tenant: { id, slug }, page }` (`page` is serialized for stable additive fields — see `serializePublished-page.ts`)
   - Errors: `404 { error: "Tenant not found" }` or `404 { error: "Page not found" }`
+- `GET /api/cms/public/missionary-pages/<id>` — published `missionary-giving-pages` by `missionaryId`
+- `GET /api/cms/public/project-pages/<slug>` — published `project-pages` by slug
 - `GET /api/cms/public/navigation`
   - Success: `{ tenant: { id, slug }, navigation }`
 - `GET /api/cms/public/updates?limit=5`
@@ -161,8 +165,10 @@ Tenant resolution priority:
 
 - `GET/POST/PATCH/PUT/DELETE /api/*` (Payload REST)
 - `POST /api/graphql` (Payload GraphQL)
+- `POST /api/web-studio/create-from-template` (Payload custom endpoint — template instantiation)
+- `GET /api/admin/missionaries`, `GET /api/admin/funds` (thin re-exports to `@asym/api` — Web Studio wizards)
 
-These are guarded by Mission Control auth middleware and require `staff`, `admin`, or `super_admin`.
+These are guarded by Mission Control auth middleware and require `staff`, `admin`, or `super_admin` (except Payload’s own auth rules where applicable).
 
 ## Rollback notes
 
@@ -176,6 +182,9 @@ CMS_WEB_STUDIO_NATIVE_NAVIGATION=false
 CMS_WEB_STUDIO_NATIVE_MISSIONARY_PROFILES=false
 CMS_WEB_STUDIO_NATIVE_MINISTRY_UPDATES=false
 CMS_WEB_STUDIO_NATIVE_MEDIA=false
+CMS_WEB_STUDIO_NATIVE_PAGE_TEMPLATES=false
+CMS_WEB_STUDIO_NATIVE_MISSIONARY_GIVING_PAGES=false
+CMS_WEB_STUDIO_NATIVE_PROJECT_PAGES=false
 NODE_ENV=test bun run cms:importmap
 ```
 

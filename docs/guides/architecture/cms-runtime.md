@@ -1,5 +1,7 @@
 # CMS runtime architecture
 
+**Canonical Web Studio narrative (phases 1–3+, diagrams, stack map):** [`web-studio-living-spec.md`](./web-studio-living-spec.md)
+
 ## Runtime placement
 
 Payload runs in `apps/admin` and is exposed through:

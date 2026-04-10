@@ -67,7 +67,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
 
     return NextResponse.json({
-      page: serializePublishedPageLike(doc as Record<string, unknown>),
+      page: serializePublishedPageLike(doc as unknown as Record<string, unknown>),
       tenant: {
         id: tenant.id,
         slug: tenant.slug ?? null,

@@ -1,5 +1,7 @@
 # Web Studio Phase 3 — missionary/project pages, templates, and public compatibility
 
+**Superseded for “current system” truth by:** [`web-studio-living-spec.md`](./web-studio-living-spec.md) (this file remains as Phase 3 history).
+
 ## What shipped
 
 - **Hybrid content model (documented choice):** separate Payload collections for `missionary-giving-pages`, `project-pages`, and `page-templates`, while `pages` keeps standard URLs and gains optional `pageType`, `template` relationship, `layout` blocks, and legacy `content` + `legacyContentFallback` for rollout-safe rendering.
@@ -35,4 +37,4 @@
 - `GET /api/admin/missionaries` — tenant-scoped missionary list for wizards/hub
 - `GET /api/admin/funds` — tenant-scoped fund list for project wizard
 
-These reuse `getAuthContext` + `getAdminClient` and are independent of the public CMS surface.
+These are thin re-exports to `@asym/api` handlers built with `withOperation` (staff/admin/super_admin roles) and are independent of the public CMS surface. See `docs/guides/architecture/data-access-boundary.md`.

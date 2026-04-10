@@ -1,5 +1,17 @@
 # Working Set
 
+## 2026-04-10 (Web Studio Phase 5 — living documentation + handoff)
+
+- Repo: Asymmetric-al/core
+- Goal: Centralize Web Studio truth in `docs/guides/architecture/web-studio-living-spec.md`; add runbook, human + AI handoffs; link/update `cms-runtime.md`, `site-studio-payload.md`, phase snapshots; add `apps/admin/src/cms-ui/web-studio/README.md` and minimal module headers.
+- Key paths:
+  - `docs/guides/architecture/web-studio-living-spec.md`
+  - `docs/guides/development/web-studio-runbook.md`
+  - `docs/guides/development/web-studio-handoff.md`
+  - `docs/ai/web-studio-handoff.md`
+  - `apps/admin/src/cms-ui/web-studio/README.md`
+- Rollback: doc-only; revert commits if needed.
+
 ## 2026-04-10 (Web Studio Phase 3 — templates, wizards, public expansion)
 
 - Repo: Asymmetric-al/core

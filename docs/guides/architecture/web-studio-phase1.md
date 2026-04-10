@@ -1,5 +1,7 @@
 # Web Studio Phase 1 — architecture handoff
 
+**Superseded for “current system” truth by:** [`web-studio-living-spec.md`](./web-studio-living-spec.md) (this file remains as Phase 1 history).
+
 ## Goal
 
 Ship a **Mission Control–owned shell and list/edit chrome** around the **Payload-owned document runtime** for the **`pages`** collection only, without changing public CMS contracts or donor rendering.

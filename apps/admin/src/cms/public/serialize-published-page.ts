@@ -1,3 +1,7 @@
+/**
+ * Normalizes Payload documents for **public** `pages` JSON responses.
+ * Additive fields (`layout`, `pageType`, …) must stay backward compatible for `apps/donor/lib/cms/client.ts`.
+ */
 export type PublicCmsPagePayload = {
   id: string;
   title: string;
