@@ -5,6 +5,6 @@ import { NativeCollectionEditView } from "../../collections/shared/document-work
 import type { DocumentViewClientProps } from "payload";
 
 
-export function PagesNativeEditView(props: DocumentViewClientProps) {
-  return <NativeCollectionEditView {...props} studioCollection="pages" />;
+export function MediaNativeEditView(props: DocumentViewClientProps) {
+  return <NativeCollectionEditView {...props} studioCollection="media" />;
 }

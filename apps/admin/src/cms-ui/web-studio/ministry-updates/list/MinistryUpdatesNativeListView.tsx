@@ -4,11 +4,18 @@ import { NativeCollectionListView } from "../../collections/shared/list-workspac
 
 import type { NativeCollectionListViewProps } from "../../collections/shared/list-workspace/NativeCollectionListView";
 
-export type PagesNativeListViewProps = Omit<
+export type MinistryUpdatesNativeListViewProps = Omit<
   NativeCollectionListViewProps,
   "collectionSlug"
 >;
 
-export function PagesNativeListView(props: PagesNativeListViewProps) {
-  return <NativeCollectionListView {...props} collectionSlug="pages" />;
+export function MinistryUpdatesNativeListView(
+  props: MinistryUpdatesNativeListViewProps,
+) {
+  return (
+    <NativeCollectionListView
+      {...props}
+      collectionSlug="ministry-updates"
+    />
+  );
 }

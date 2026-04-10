@@ -4,6 +4,8 @@
 
 Ship a **Mission Control–owned shell and list/edit chrome** around the **Payload-owned document runtime** for the **`pages`** collection only, without changing public CMS contracts or donor rendering.
 
+This document now also acts as the handoff baseline for **Phase 2**, where the shared shell/list/document workspace abstractions were extracted and reused across the current editorial collections.
+
 ## Boundaries
 
 | Layer | Owner | Notes |
@@ -34,11 +36,28 @@ Redeploy. `Pages` falls back to **stock** Payload list/edit; `admin.preview` rem
 - Preference keys: `apps/admin/src/cms-ui/web-studio/preferences/keys.ts`
 - Import map post-process: `scripts/dev/postprocess-payload-importmap.mjs` (supports `web-studio/importMap.js`)
 
+## Phase 2 update
+
+- Shared collection metadata now lives in `apps/admin/src/cms-ui/web-studio/collections/config.ts`.
+- Shared list workspace now lives in `apps/admin/src/cms-ui/web-studio/collections/shared/list-workspace/NativeCollectionListView.tsx`.
+- Shared document workspace now lives in `apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx`.
+- Native default list/edit routes now cover:
+  - `pages`
+  - `navigation`
+  - `missionary-profiles`
+  - `ministry-updates`
+  - `media`
+- `Tenants` and `CmsUsers` remain outside the editorial shell and continue to use stock/admin-only Payload surfaces.
+- Preview URL support is collection-specific:
+  - `pages`: donor public page route
+  - `ministry-updates`: donor homepage/update stream context only
+  - `navigation`, `missionary-profiles`, `media`: no public preview path registered
+- Versions/API/live-preview nested subviews still rely on stock Payload nested routes in this phase. The native document workspace exposes links into those routes rather than wrapping unstable internal server views directly.
+
 ## Phase 2 / 3 setup (intentional gaps)
 
-- Reuse `StudioLayout` + preference key pattern for additional collections.
-- Extract shared “native list” / “native edit” wrappers once a second collection needs the same framing.
-- Live preview iframe + draft token flow is **out of scope** for Phase 1; preview links target the **public donor URL** only.
+- Reuse `StudioLayout` + collection config + shared list/document workspaces for additional collections.
+- Live preview iframe + draft token flow remains a follow-up item; current Phase 2 keeps stock nested live-preview routes where supported and avoids undocumented internal view imports.
 
 ## Tests
 

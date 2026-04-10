@@ -1,11 +1,16 @@
 # Working Set
 
-## 2026-04-10 (Web Studio Phase 1 — Pages native slice)
+## 2026-04-10 (Web Studio Phase 2 — shared editorial workspaces)
 
 - Repo: Asymmetric-al/core
-- Goal: Mission Control–native Web Studio shell + `Pages` list/edit via Payload `views.list` / `views.edit.default`, preview URL helper, preference-backed UI state, env kill-switch; keep Payload document form + Lexical.
-- Key paths: `apps/admin/src/cms-ui/web-studio/`, `apps/admin/src/cms/collections/pages.ts`, `scripts/dev/postprocess-payload-importmap.mjs`, `docs/guides/architecture/web-studio-phase1.md`
-- Rollback: `CMS_WEB_STUDIO_NATIVE_PAGES=false` + `NODE_ENV=test bun run cms:importmap`
+- Goal: Generalize the Phase 1 Pages slice into shared native Web Studio list/document workspaces and register current editorial collections (`pages`, `navigation`, `missionary-profiles`, `ministry-updates`, `media`) onto them while keeping Payload document/runtime ownership.
+- Key paths:
+  - `apps/admin/src/cms-ui/web-studio/collections/**`
+  - `apps/admin/src/cms-ui/web-studio/shell/*`
+  - `apps/admin/src/cms/collections/{pages,navigation,missionary-profiles,ministry-updates,media}.ts`
+  - `docs/guides/architecture/web-studio-phase2.md`
+- Rollback: collection-scoped env flags (`CMS_WEB_STUDIO_NATIVE_*`) + `NODE_ENV=test bun run cms:importmap`
+- Known safe boundary: default list/edit routes are native; nested document subviews (`api`, `versions`, `version`, `live preview`) still rely on stock Payload routing until a safer public wrapper surface exists.
 
 ## 2026-04-07 (Post-Turbo-2.9 verification matrix re-run)
 

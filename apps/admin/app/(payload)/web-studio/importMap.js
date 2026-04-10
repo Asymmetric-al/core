@@ -24,6 +24,14 @@ import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { PagesNativeEditView as PagesNativeEditView_d2240ecf8805c7d12a67f984df1014cc } from '../../../src/cms-ui/web-studio/pages/document/PagesNativeEditView.tsx'
 import { PagesNativeListView as PagesNativeListView_dab9c45d6a71ea658c503a573240982c } from '../../../src/cms-ui/web-studio/pages/list/PagesNativeListView.tsx'
+import { NavigationNativeEditView as NavigationNativeEditView_89733a0d11a108be918b6cb74b6e73aa } from '../../../src/cms-ui/web-studio/navigation/document/NavigationNativeEditView.tsx'
+import { NavigationNativeListView as NavigationNativeListView_2a580cedc1cf71d6ae56d8fa0fc5ec54 } from '../../../src/cms-ui/web-studio/navigation/list/NavigationNativeListView.tsx'
+import { MissionaryProfilesNativeEditView as MissionaryProfilesNativeEditView_b032f05f7b7b0c88f3b1b93bca43a08b } from '../../../src/cms-ui/web-studio/missionary-profiles/document/MissionaryProfilesNativeEditView.tsx'
+import { MissionaryProfilesNativeListView as MissionaryProfilesNativeListView_b8dc187b9406e8cface2d31cc33b69b2 } from '../../../src/cms-ui/web-studio/missionary-profiles/list/MissionaryProfilesNativeListView.tsx'
+import { MinistryUpdatesNativeEditView as MinistryUpdatesNativeEditView_2988c36246e97a895fa609e04a1355de } from '../../../src/cms-ui/web-studio/ministry-updates/document/MinistryUpdatesNativeEditView.tsx'
+import { MinistryUpdatesNativeListView as MinistryUpdatesNativeListView_8fd8e6daa3d919ce9acb742ac58c8b1f } from '../../../src/cms-ui/web-studio/ministry-updates/list/MinistryUpdatesNativeListView.tsx'
+import { MediaNativeEditView as MediaNativeEditView_c2a21fd99963fde6d38b86e944a3a05e } from '../../../src/cms-ui/web-studio/media/document/MediaNativeEditView.tsx'
+import { MediaNativeListView as MediaNativeListView_88d2de41d45d5c84317084fa2fc7dd66 } from '../../../src/cms-ui/web-studio/media/list/MediaNativeListView.tsx'
 import { Header as Header_f8a8df1408c7374206a6393fbb1e2413 } from '../../../src/cms-ui/root/Header.tsx'
 import { Icon as Icon_3e1d8f39fad9bddd5123caa2cad407ff } from '../../../src/cms-ui/brand/Icon.tsx'
 import { Logo as Logo_37789914a9261410f4d39d03c1022d2c } from '../../../src/cms-ui/brand/Logo.tsx'
@@ -57,6 +65,14 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "/src/cms-ui/web-studio/pages/document/PagesNativeEditView.tsx#PagesNativeEditView": PagesNativeEditView_d2240ecf8805c7d12a67f984df1014cc,
   "/src/cms-ui/web-studio/pages/list/PagesNativeListView.tsx#PagesNativeListView": PagesNativeListView_dab9c45d6a71ea658c503a573240982c,
+  "/src/cms-ui/web-studio/navigation/document/NavigationNativeEditView.tsx#NavigationNativeEditView": NavigationNativeEditView_89733a0d11a108be918b6cb74b6e73aa,
+  "/src/cms-ui/web-studio/navigation/list/NavigationNativeListView.tsx#NavigationNativeListView": NavigationNativeListView_2a580cedc1cf71d6ae56d8fa0fc5ec54,
+  "/src/cms-ui/web-studio/missionary-profiles/document/MissionaryProfilesNativeEditView.tsx#MissionaryProfilesNativeEditView": MissionaryProfilesNativeEditView_b032f05f7b7b0c88f3b1b93bca43a08b,
+  "/src/cms-ui/web-studio/missionary-profiles/list/MissionaryProfilesNativeListView.tsx#MissionaryProfilesNativeListView": MissionaryProfilesNativeListView_b8dc187b9406e8cface2d31cc33b69b2,
+  "/src/cms-ui/web-studio/ministry-updates/document/MinistryUpdatesNativeEditView.tsx#MinistryUpdatesNativeEditView": MinistryUpdatesNativeEditView_2988c36246e97a895fa609e04a1355de,
+  "/src/cms-ui/web-studio/ministry-updates/list/MinistryUpdatesNativeListView.tsx#MinistryUpdatesNativeListView": MinistryUpdatesNativeListView_8fd8e6daa3d919ce9acb742ac58c8b1f,
+  "/src/cms-ui/web-studio/media/document/MediaNativeEditView.tsx#MediaNativeEditView": MediaNativeEditView_c2a21fd99963fde6d38b86e944a3a05e,
+  "/src/cms-ui/web-studio/media/list/MediaNativeListView.tsx#MediaNativeListView": MediaNativeListView_88d2de41d45d5c84317084fa2fc7dd66,
   "/src/cms-ui/root/Header.tsx#Header": Header_f8a8df1408c7374206a6393fbb1e2413,
   "/src/cms-ui/brand/Icon.tsx#Icon": Icon_3e1d8f39fad9bddd5123caa2cad407ff,
   "/src/cms-ui/brand/Logo.tsx#Logo": Logo_37789914a9261410f4d39d03c1022d2c,

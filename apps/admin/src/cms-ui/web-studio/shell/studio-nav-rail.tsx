@@ -3,11 +3,12 @@
 import { Button } from "@asym/ui/components/shadcn/button";
 import { cn } from "@asym/ui/lib/utils";
 import { usePreferences } from "@payloadcms/ui";
-import { FileText, LayoutDashboard, PanelLeftClose, PanelLeft } from "lucide-react";
+import { Clock3, LayoutDashboard, PanelLeftClose, PanelLeft } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { getEnabledWebStudioCollections } from "../collections/config";
 import { WEB_STUDIO_PREF_KEYS } from "../preferences/keys";
 
 export function StudioNavRail({ className }: { className?: string }) {
@@ -15,6 +16,9 @@ export function StudioNavRail({ className }: { className?: string }) {
   const { getPreference, setPreference } = usePreferences();
   const [collapsed, setCollapsed] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [recentDocs, setRecentDocs] = useState<
+    Array<{ href: string; id: string; title: string; updatedAt?: string }>
+  >([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,9 +54,47 @@ export function StudioNavRail({ className }: { className?: string }) {
     }
   };
 
-  const pagesActive =
-    pathname === "/web-studio/collections/pages" ||
-    pathname.startsWith("/web-studio/collections/pages/");
+  const enabledCollections = getEnabledWebStudioCollections();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void (async () => {
+      const entries = await Promise.all(
+        enabledCollections.map(async (collection) => {
+          try {
+            return (
+              (await getPreference<
+                Array<{
+                  href: string;
+                  id: string;
+                  title: string;
+                  updatedAt?: string;
+                }>
+              >(collection.preferences.recentDocs)) ?? []
+            );
+          } catch {
+            return [];
+          }
+        }),
+      );
+
+      if (!cancelled) {
+        setRecentDocs(
+          entries
+            .flat()
+            .sort((a, b) =>
+              (b.updatedAt ?? "").localeCompare(a.updatedAt ?? ""),
+            )
+            .slice(0, 6),
+        );
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [enabledCollections, getPreference]);
 
   return (
     <aside
@@ -89,20 +131,30 @@ export function StudioNavRail({ className }: { className?: string }) {
         </Button>
       </div>
       <nav className="flex flex-col gap-1 p-2">
-        <Button
-          variant={pagesActive ? "secondary" : "ghost"}
-          size="sm"
-          className={cn(
-            "justify-start gap-2 font-semibold text-xs",
-            collapsed && "justify-center px-0",
-          )}
-          asChild
-        >
-          <Link href="/web-studio/collections/pages" title="Pages">
-            <FileText className="h-4 w-4 shrink-0" />
-            {!collapsed ? <span>Pages</span> : null}
-          </Link>
-        </Button>
+        {enabledCollections.map((collection) => {
+          const isActive =
+            pathname === collection.listPath ||
+            pathname.startsWith(`${collection.listPath}/`);
+          const Icon = collection.icon;
+
+          return (
+            <Button
+              key={collection.slug}
+              variant={isActive ? "secondary" : "ghost"}
+              size="sm"
+              className={cn(
+                "justify-start gap-2 font-semibold text-xs",
+                collapsed && "justify-center px-0",
+              )}
+              asChild
+            >
+              <Link href={collection.listPath} title={collection.titlePlural}>
+                <Icon className="h-4 w-4 shrink-0" />
+                {!collapsed ? <span>{collection.titlePlural}</span> : null}
+              </Link>
+            </Button>
+          );
+        })}
         <Button
           variant="ghost"
           size="sm"
@@ -118,6 +170,29 @@ export function StudioNavRail({ className }: { className?: string }) {
           </Link>
         </Button>
       </nav>
+      {!collapsed && recentDocs.length > 0 ? (
+        <div className="border-border border-t px-2 py-3">
+          <div className="mb-2 flex items-center gap-2 px-2 text-muted-foreground text-[10px] font-semibold uppercase tracking-widest">
+            <Clock3 className="h-3.5 w-3.5" />
+            Recent
+          </div>
+          <div className="flex flex-col gap-1">
+            {recentDocs.map((doc) => (
+              <Button
+                key={`${doc.id}-${doc.href}`}
+                variant="ghost"
+                size="sm"
+                className="justify-start overflow-hidden text-left text-xs"
+                asChild
+              >
+                <Link href={doc.href} title={doc.title}>
+                  <span className="truncate">{doc.title}</span>
+                </Link>
+              </Button>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </aside>
   );
 }

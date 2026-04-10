@@ -4,11 +4,11 @@ import { NativeCollectionListView } from "../../collections/shared/list-workspac
 
 import type { NativeCollectionListViewProps } from "../../collections/shared/list-workspace/NativeCollectionListView";
 
-export type PagesNativeListViewProps = Omit<
+export type MediaNativeListViewProps = Omit<
   NativeCollectionListViewProps,
   "collectionSlug"
 >;
 
-export function PagesNativeListView(props: PagesNativeListViewProps) {
-  return <NativeCollectionListView {...props} collectionSlug="pages" />;
+export function MediaNativeListView(props: MediaNativeListViewProps) {
+  return <NativeCollectionListView {...props} collectionSlug="media" />;
 }

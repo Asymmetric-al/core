@@ -14,6 +14,8 @@ import { useAuth } from "@payloadcms/ui";
 import { ChevronLeft, Search } from "lucide-react";
 import Link from "next/link";
 
+import { getEnabledWebStudioCollections } from "../collections/config";
+
 type StudioTopBarProps = {
   sectionLabel?: string;
   currentLabel?: string;
@@ -26,6 +28,10 @@ export function StudioTopBar({
   className,
 }: StudioTopBarProps) {
   const { user } = useAuth();
+  const enabledCollections = getEnabledWebStudioCollections();
+  const sectionHref =
+    enabledCollections.find((entry) => entry.sectionLabel === sectionLabel)?.listPath ??
+    "/web-studio";
   const display =
     user && typeof user === "object" && "email" in user && user.email
       ? String(user.email)
@@ -61,7 +67,7 @@ export function StudioTopBar({
                 <BreadcrumbItem>
                   {currentLabel ? (
                     <BreadcrumbLink asChild>
-                      <Link href="/web-studio/collections/pages">
+                      <Link href={sectionHref}>
                         {sectionLabel}
                       </Link>
                     </BreadcrumbLink>
