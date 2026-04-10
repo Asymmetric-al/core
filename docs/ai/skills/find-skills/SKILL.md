@@ -35,6 +35,8 @@ The Skills CLI (`npx skills`) is the package manager for the open agent skills e
 
 Before searching the public index, check **`docs/ai/skills/`** and **`AGENTS.md` → Skill Routing**. Canonical skills there are mirrored to `.cursor/skills/` and `.agents/skills/` with `bun run skills:sync` (CI: `bun run skills:verify`).
 
+**Example — Supabase:** platform work is covered by `docs/ai/skills/supabase/SKILL.md` and Postgres tuning by `docs/ai/skills/supabase-postgres-best-practices/SKILL.md`. Install or refresh from [supabase/agent-skills](https://skills.sh/supabase/agent-skills) with `npx skills add supabase/agent-skills -y`, then `bun run skills:refresh-upstream`, `bun run skills:sync`, and `bun run skills:verify`. **`skills-lock.json`** records CLI pins; use `npx skills experimental_install -y` to restore from the lockfile.
+
 **Example — Tiptap:** rich text work is covered by `docs/ai/skills/tiptap/SKILL.md`. To compare against upstream: `npx skills add ueberdosis/tiptap` (see also [Tiptap agent skill](https://tiptap.dev/docs/resources/agent-skill)).
 
 ## How to Help Users Find Skills

@@ -30,6 +30,7 @@ Use this skill when:
 Do not use this skill when:
 
 - The task is primarily query/index/schema optimization (use `supabase-postgres-best-practices`)
+- The task spans broader Supabase surface area beyond Next.js auth wiring (use `docs/ai/skills/supabase/SKILL.md`)
 - The task is UI-only and does not change auth behavior
 
 ## Core Rules
