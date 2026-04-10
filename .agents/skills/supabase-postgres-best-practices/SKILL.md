@@ -1,30 +1,41 @@
 ---
 name: supabase-postgres-best-practices
 description: Postgres performance optimization and best practices from Supabase. Use this skill when writing, reviewing, or optimizing Postgres queries, schema designs, or database configurations.
-metadata:
-  owner: "skills-steward"
-  last_updated: 2026-02-18
-  status: "active"
-  upstream:
-    url: "https://skills.sh/supabase/agent-skills/supabase-postgres-best-practices"
-    repo: "supabase/agent-skills"
-    path: "skills/supabase-postgres-best-practices/SKILL.md"
-    license: "MIT"
 license: MIT
+metadata:
+  owner: skills-steward
+  last_updated: 2026-04-09
+  status: active
+  author: supabase
+  version: "1.1.1"
+  organization: Supabase
+  date: January 2026
+  abstract: Comprehensive Postgres performance optimization guide for developers using Supabase and Postgres. Contains performance rules across 8 categories, prioritized by impact from critical (query performance, connection management) to incremental (advanced features). Each rule includes detailed explanations, incorrect vs. correct SQL examples, query plan analysis, and specific performance metrics to guide automated optimization and code generation.
+  upstream:
+    url: https://skills.sh/supabase/agent-skills/supabase-postgres-best-practices
+    repo: supabase/agent-skills
+    path: skills/supabase-postgres-best-practices/SKILL.md
 ---
 
 # Supabase Postgres Best Practices
 
-Comprehensive performance optimization guidance for Postgres, maintained by Supabase and adapted for this repo's AI workflow.
+Comprehensive performance optimization guide for Postgres, maintained by Supabase. Contains rules across 8 categories, prioritized by impact to guide automated query optimization and schema design.
+
+## This repository (Asymmetric-al/core)
+
+- Auth flows in Next.js without heavy SQL work: `docs/ai/skills/nextjs-supabase-auth/SKILL.md`
+- Broader Supabase product surface (CLI, MCP, Storage, etc.): `docs/ai/skills/supabase/SKILL.md`
+- Migration and seed workflow: `supabase/AGENTS.md`
 
 ## When to Apply
 
-Use this skill when:
+Reference these guidelines when:
 
 - Writing SQL queries or designing schemas
 - Implementing indexes or query optimization
 - Reviewing database performance issues
 - Configuring connection pooling or scaling
+- Optimizing for Postgres-specific features
 - Working with Row-Level Security (RLS)
 - Reviewing migrations under `supabase/migrations/*.sql`
 
@@ -46,7 +57,7 @@ Do not use this skill when:
 | 7        | Monitoring & Diagnostics | LOW-MEDIUM  | `monitor-`  |
 | 8        | Advanced Features        | LOW         | `advanced-` |
 
-## Workflow
+## Workflow (this repo)
 
 1. Identify the hot path (query latency, lock contention, scan volume, or RLS overhead).
 2. Inspect indexing and query-shape problems first (`query-*`, `schema-*`).
@@ -54,6 +65,25 @@ Do not use this skill when:
 4. Prefer schema and access-pattern fixes before low-level micro-optimizations.
 5. Verify with realistic query plans and app behavior.
 6. If behavior changes, update relevant backend docs and migration notes.
+
+## How to Use
+
+Read individual rule files for detailed explanations and SQL examples:
+
+```
+references/query-missing-indexes.md
+references/query-partial-indexes.md
+references/_sections.md
+```
+
+Each rule file contains:
+
+- Brief explanation of why it matters
+- Incorrect SQL example with explanation
+- Correct SQL example with explanation
+- Optional EXPLAIN output or metrics
+- Additional context and references
+- Supabase-specific notes (when applicable)
 
 ## Checklist
 
@@ -65,4 +95,9 @@ Do not use this skill when:
 
 ## References
 
-- `references/upstream.md` for attribution and source mapping
+- https://www.postgresql.org/docs/current/
+- https://supabase.com/docs
+- https://wiki.postgresql.org/wiki/Performance_Optimization
+- https://supabase.com/docs/guides/database/overview
+- https://supabase.com/docs/guides/auth/row-level-security
+- `references/upstream.md` for vendor refresh steps

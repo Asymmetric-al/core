@@ -10,17 +10,19 @@ function readRepoFile(path: string) {
 }
 
 describe("admin TanStack surface migrations", () => {
-  it("routes contributions through shared database hooks", () => {
+  it("routes contributions through shared database hooks and responsive table", () => {
     const liveQuerySource = readRepoFile(
       "apps/admin/app/contributions/live-query.ts",
     );
-    const clientSource = readRepoFile(
-      "apps/admin/app/contributions/contributions-client.tsx",
+    const mainBodySource = readRepoFile(
+      "apps/admin/app/contributions/main-body.tsx",
     );
+    const pageSource = readRepoFile("apps/admin/app/contributions/page.tsx");
 
     expect(liveQuerySource).toMatch(/@asym\/database\/hooks/);
-    expect(clientSource).toMatch(/useAdminContributionsInfiniteGrid/);
-    expect(clientSource).toMatch(/DataTableResponsive/);
+    expect(mainBodySource).toMatch(/DataTableResponsive/);
+    expect(pageSource).toMatch(/useAdminContributions/);
+    expect(pageSource).toMatch(/mc-contributions-live/);
   });
 
   it("loads CRM contacts from shared package hooks instead of app-local mock data", () => {

@@ -189,6 +189,16 @@ jobs:
           CI: "1"
           PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
         run: bun run test:e2e --project=chromium
+      - name: Boneyard smoke (admin app)
+        env:
+          CI: "1"
+          PLAYWRIGHT_BONEYARD_TARGET: "admin"
+        run: bun run test:e2e:boneyard:admin
+      - name: Boneyard smoke (missionary app)
+        env:
+          CI: "1"
+          PLAYWRIGHT_BONEYARD_TARGET: "missionary"
+        run: bun run test:e2e:boneyard:missionary
       - name: Run Playwright CMS E2E
         env:
           CI: "1"

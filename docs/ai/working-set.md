@@ -59,6 +59,45 @@
   - Foundation pass completed: shared `data-grid` exports are now public, the admin app no longer owns `@tanstack/db` directly, and shared TanStack package versions are aligned and typechecked.
   - The next pass is to standardize shared domain collections/hooks in `packages/database` before refactoring app surfaces to consume them.
 
+## 2026-04-07 (Post-Turbo-2.9 verification matrix re-run)
+
+- Date: 2026-04-07
+- Repo: Asymmetric-al/core
+- Goal: Repeat full merge-safety + `ci:preflight` + verify/build/unit/E2E/turbo diagnostics per repo harness; fix regressions only if gates fail.
+- Same constraints as 2026-04-06 hardening (Bun, no gate weakening, localhost-first Playwright).
+- Outcome (2026-04-07 run): all listed gates green; `build:strict` fails admin without `PAYLOAD_SECRET` (expected); `bunx turbo run build --filter=@asym/admin` without `run-with-ci-env` same; use `node scripts/run-with-ci-env.mjs -- turbo run build --filter=@asym/admin` or set `PAYLOAD_SECRET`. `test:perf` needs free port 3005 (kill stray `next dev`). `turbo query affected` warns without `TURBO_SCM_BASE`. CMS E2E: admin dev logs Postgres `ECONNREFUSED` to local `:54322` when Supabase not running; assertions still passed.
+
+## 2026-04-06 (Post-Turborepo-2.9 merge hardening: full gate + test matrix)
+
+- Date: 2026-04-06
+- Repo: Asymmetric-al/core
+- Goal: Merge-ready verification after Turbo 2.9.x: merge safety, `bun install --frozen-lockfile`, `ci:preflight`, `verify*`, build matrix, unit + E2E + a11y, turbo diagnostics; fix any regressions without weakening gates.
+- Primary area: repo-wide scripts, `turbo.json`, docs drift, Playwright/E2E if failures are real bugs
+- Constraints: Bun only; preserve `run-with-ci-env.mjs`, localhost-first Playwright, no broad eslint/tsconfig/turbo env weakening; fix root causes.
+- Evidence: `scripts/verify/ci-preflight.mjs`, `.husky/pre-push`, `.github/workflows/ci.yml`, `playwright.config.ts`, `vitest.config.ts`
+- Outcome: Fixed E2E smoke by honoring demo E2E cookies in `getAuthContext` + proxy; per-app cookie names (`asym_e2e_auth_*`) + host port mapping so donor sessions do not authenticate admin; Web `btoa`/`atob` cookie encoding for Edge proxy; CMS specs use `localhost:3030`; tenant isolation spec expects 404 for unknown CMS slug. Removed stray untracked `apps/admin/payload-types.ts` that failed `verify:eslint`.
+
+## 2026-04-05 (Turborepo 2.9.x monorepo upgrade + turbo.json audit)
+
+- Date: 2026-04-05
+- Repo: Asymmetric-al/core
+- Goal: Upgrade `turbo` from 2.8.x to latest safe 2.9.x, align `turbo.json` with official 2.9 caching/env semantics, and fix small CI doc drift without changing CI job structure or integration/E2E flows.
+- Primary area:
+  - `package.json` (turbo devDependency pin)
+  - `turbo.json` (global hash inputs, task graph, env hashing)
+  - `bun.lock`
+  - `docs/ci.md`, `openspec/project.md` (version baseline / accuracy vs `.github/workflows/ci.yml`)
+- Constraints:
+  - Bun only (`bun`, `bunx`); preserve `scripts/run-with-ci-env.mjs` contract and Windows-safe `node scripts/verify/data-boundary-check.mjs`.
+  - Do not change Next 16.2.1, app ports, `turbopack.root` pattern, or `ci-integration.yml` donor dev startup.
+  - No new CI skip layers (`turbo query affected`, turbo-ignore); no remote cache signature mode.
+  - Nia unavailable this session; use official Turborepo docs + repo file evidence.
+- Evidence sources used:
+  - [Turborepo 2.9 blog](https://turborepo.dev/blog/2-9)
+  - [Turborepo configuration reference](https://turborepo.dev/docs/reference/configuration)
+  - `package.json`, `turbo.json`, `.github/workflows/ci.yml`, `scripts/verify/ci-preflight.mjs`
+- Follow-up (same goal): narrowed `turbo.json` `build.env` to build-affecting vars only; dropped E2E/Playwright/DEMO/CI keys and runtime-only Stripe/CRON from build hash; synced `docs/env-var-audit.md` Turbo section.
+
 ## 2026-04-02 (PR #144 follow-up: hydration-safe Resend label + auth invariant tests)
 
 - Date: 2026-04-02
