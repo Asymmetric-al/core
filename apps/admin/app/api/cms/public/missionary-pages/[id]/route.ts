@@ -1,5 +1,6 @@
 import { NextResponse, connection, type NextRequest } from "next/server";
 
+import { MISSIONARY_GIVING_PAGES_SLUG } from "../../../../../../src/cms/constants";
 import {
   getPayloadClient,
   isPayloadClientInitializationError,
@@ -7,25 +8,12 @@ import {
 import { resolveTenantFromRequest } from "../../../../../../src/cms/public/resolve-tenant";
 import { serializePublishedPageLike } from "../../../../../../src/cms/public/serialize-published-page";
 
+
 type RouteContext = {
   params: Promise<{
-    slug?: string[];
+    id: string;
   }>;
 };
-
-function normalizeCmsSlug(segments: string[] | undefined) {
-  const normalizedSegments = (segments ?? [])
-    .map((segment) => {
-      try {
-        return decodeURIComponent(segment).trim();
-      } catch {
-        return segment.trim();
-      }
-    })
-    .filter(Boolean);
-
-  return normalizedSegments.join("/") || "home";
-}
 
 async function ensureRequestTimeExecution() {
   if (process.env.NODE_ENV === "test") {
@@ -46,43 +34,40 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
     }
 
-    const { slug } = await context.params;
-    const pageSlug = normalizeCmsSlug(slug);
+    const { id: rawId } = await context.params;
+    let missionaryId = rawId?.trim() ?? "";
+    try {
+      missionaryId = decodeURIComponent(missionaryId);
+    } catch {
+      /* keep raw */
+    }
+
+    if (!missionaryId) {
+      return NextResponse.json({ error: "Missionary id required" }, { status: 400 });
+    }
 
     const pageQuery = await payload.find({
-      collection: "pages",
+      collection: MISSIONARY_GIVING_PAGES_SLUG,
       limit: 1,
       overrideAccess: true,
       pagination: false,
       sort: "-updatedAt",
       where: {
         and: [
-          {
-            tenant: {
-              equals: tenant.id,
-            },
-          },
-          {
-            slug: {
-              equals: pageSlug,
-            },
-          },
-          {
-            _status: {
-              equals: "published",
-            },
-          },
+          { tenant: { equals: tenant.id } },
+          { missionaryId: { equals: missionaryId } },
+          { _status: { equals: "published" } },
         ],
       },
     });
 
-    const page = pageQuery.docs[0];
-    if (!page) {
+    const doc = pageQuery.docs[0];
+    if (!doc) {
       return NextResponse.json({ error: "Page not found" }, { status: 404 });
     }
 
     return NextResponse.json({
-      page: serializePublishedPageLike(page as Record<string, unknown>),
+      page: serializePublishedPageLike(doc as Record<string, unknown>),
       tenant: {
         id: tenant.id,
         slug: tenant.slug ?? null,
@@ -98,7 +83,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       );
     }
 
-    console.error("Failed to fetch published CMS page.", error);
+    console.error("Failed to fetch published missionary giving page.", error);
 
     return NextResponse.json(
       { error: "Failed to fetch page content" },

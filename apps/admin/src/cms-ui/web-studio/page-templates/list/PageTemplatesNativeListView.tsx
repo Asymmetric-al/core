@@ -4,19 +4,15 @@ import { NativeCollectionListView } from "../../collections/shared/list-workspac
 
 import type { NativeCollectionListViewProps } from "../../collections/shared/list-workspace/NativeCollectionListView";
 
-export type MinistryUpdatesNativeListViewProps = Omit<
+export type PageTemplatesNativeListViewProps = Omit<
   NativeCollectionListViewProps,
   "collectionSlug"
 >;
 
-export function MinistryUpdatesNativeListView(
-  props: MinistryUpdatesNativeListViewProps,
+export function PageTemplatesNativeListView(
+  props: PageTemplatesNativeListViewProps,
 ) {
   return (
-    <NativeCollectionListView
-      {...props}
-      collectionSlug="ministry-updates"
-      createHrefOverride="/web-studio/templates?pageType=ministry_update"
-    />
+    <NativeCollectionListView {...props} collectionSlug="page-templates" />
   );
 }

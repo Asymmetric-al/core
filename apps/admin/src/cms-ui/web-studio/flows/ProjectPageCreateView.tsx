@@ -1,0 +1,187 @@
+"use client";
+
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Label } from "@asym/ui/components/shadcn/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@asym/ui/components/shadcn/select";
+import { useConfig } from "@payloadcms/ui";
+import { useForm } from "@tanstack/react-form";
+import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { formatAdminURL } from "payload/shared";
+import { useMemo, useState } from "react";
+
+import { buildWebStudioCreateFromTemplateUrl } from "./web-studio-create-api";
+import { StudioLayout } from "../shell/studio-layout";
+
+
+type FundRow = {
+  id: string;
+  name?: string | null;
+};
+
+export function ProjectPageCreateView() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const templateId = searchParams.get("template") ?? "";
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const {
+    config: { routes },
+  } = useConfig();
+
+  const createUrl = useMemo(
+    () =>
+      buildWebStudioCreateFromTemplateUrl({
+        apiRoute: routes.api,
+      }),
+    [routes.api],
+  );
+
+  const fundsQuery = useQuery({
+    queryKey: ["web-studio", "admin-funds"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/funds?limit=200", {
+        credentials: "include",
+      });
+      if (!res.ok) {
+        throw new Error("Failed to load funds");
+      }
+      const json = (await res.json()) as { funds?: FundRow[] };
+      return json.funds ?? [];
+    },
+  });
+
+  const form = useForm({
+    defaultValues: {
+      fundId: "",
+    },
+    onSubmit: async ({ value }) => {
+      setSubmitError(null);
+      if (!templateId) {
+        setSubmitError("Pick a template from the gallery first.");
+        return;
+      }
+      if (!value.fundId) {
+        setSubmitError("Select a fund.");
+        return;
+      }
+
+      const res = await fetch(createUrl, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          targetCollection: "project-pages",
+          templateId,
+          fundId: value.fundId,
+        }),
+      });
+
+      const body = (await res.json().catch(() => ({}))) as {
+        id?: string;
+        collectionSlug?: string;
+        error?: string;
+        existingId?: string;
+      };
+
+      if (res.status === 409 && body.existingId) {
+        const editPath = formatAdminURL({
+          adminRoute: routes.admin,
+          path: `/collections/project-pages/${body.existingId}`,
+        });
+        router.push(editPath);
+        return;
+      }
+
+      if (!res.ok) {
+        setSubmitError(body.error ?? "Create failed");
+        return;
+      }
+
+      if (body.id && body.collectionSlug) {
+        const editPath = formatAdminURL({
+          adminRoute: routes.admin,
+          path: `/collections/${body.collectionSlug}/${body.id}`,
+        });
+        router.push(editPath);
+      }
+    },
+  });
+
+  return (
+    <StudioLayout sectionLabel="Project Pages" currentLabel="New project page">
+      <div className="mx-auto max-w-lg px-4 py-8 sm:px-6">
+        <h1 className="font-semibold text-xl tracking-tight">Fund-backed project page</h1>
+        <p className="mt-2 text-muted-foreground text-sm">
+          Project pages anchor to a canonical fund ID. Title, slug, and summary are prefilled from
+          the fund record when available.
+        </p>
+
+        {!templateId ? (
+          <p className="mt-4 text-muted-foreground text-sm">
+            Choose a template from the{" "}
+            <Link className="text-primary underline" href="/web-studio/templates">
+              gallery
+            </Link>
+            .
+          </p>
+        ) : null}
+
+        <form
+          className="mt-8 flex flex-col gap-6"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void form.handleSubmit();
+          }}
+        >
+          <form.Field name="fundId">
+            {(field) => (
+              <div className="flex flex-col gap-2">
+                <Label>Fund</Label>
+                <Select
+                  value={field.state.value || undefined}
+                  onValueChange={(v) => field.handleChange(v)}
+                  disabled={fundsQuery.isPending || fundsQuery.isError}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select fund" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(fundsQuery.data ?? []).map((f) => (
+                      <SelectItem key={f.id} value={f.id}>
+                        {f.name?.trim() || f.id}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </form.Field>
+
+          {fundsQuery.isError ? (
+            <p className="text-destructive text-sm">
+              {(fundsQuery.error as Error).message}
+            </p>
+          ) : null}
+
+          {submitError ? (
+            <p className="text-destructive text-sm" role="alert">
+              {submitError}
+            </p>
+          ) : null}
+
+          <Button type="submit" disabled={!templateId}>
+            Create draft
+          </Button>
+        </form>
+      </div>
+    </StudioLayout>
+  );
+}

@@ -6,6 +6,11 @@ export type CmsPage = {
   slug: string;
   summary?: string | null;
   content?: unknown;
+  layout?: unknown;
+  pageType?: string | null;
+  missionaryId?: string | null;
+  fundId?: string | null;
+  legacyContentFallback?: boolean | null;
   updatedAt?: string;
 };
 
@@ -87,4 +92,31 @@ export async function fetchPublishedCmsUpdates(
   }>(`/api/cms/public/updates?limit=${limit}`, hostOverride);
 
   return payload?.updates ?? [];
+}
+
+export async function fetchPublishedMissionaryGivingPage(
+  missionaryId: string,
+  hostOverride?: string,
+) {
+  const encoded = encodeURIComponent(missionaryId.trim());
+  const payload = await fetchCmsJSON<{ page: CmsPage }>(
+    `/api/cms/public/missionary-pages/${encoded}`,
+    hostOverride,
+  );
+
+  return payload?.page ?? null;
+}
+
+export async function fetchPublishedProjectPage(
+  slug: string,
+  hostOverride?: string,
+) {
+  const segments = slug.split("/").map((s) => s.trim()).filter(Boolean);
+  const encoded = segments.map((s) => encodeURIComponent(s)).join("/");
+  const payload = await fetchCmsJSON<{ page: CmsPage }>(
+    `/api/cms/public/project-pages/${encoded}`,
+    hostOverride,
+  );
+
+  return payload?.page ?? null;
 }

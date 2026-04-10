@@ -3,7 +3,14 @@
 import { Button } from "@asym/ui/components/shadcn/button";
 import { cn } from "@asym/ui/lib/utils";
 import { usePreferences } from "@payloadcms/ui";
-import { Clock3, LayoutDashboard, PanelLeftClose, PanelLeft } from "lucide-react";
+import {
+  Clock3,
+  LayoutDashboard,
+  PanelLeftClose,
+  PanelLeft,
+  Sparkles,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -131,6 +138,34 @@ export function StudioNavRail({ className }: { className?: string }) {
         </Button>
       </div>
       <nav className="flex flex-col gap-1 p-2">
+        <Button
+          variant={pathname.startsWith("/web-studio/templates") ? "secondary" : "ghost"}
+          size="sm"
+          className={cn(
+            "justify-start gap-2 font-semibold text-xs",
+            collapsed && "justify-center px-0",
+          )}
+          asChild
+        >
+          <Link href="/web-studio/templates" title="Templates">
+            <Sparkles className="h-4 w-4 shrink-0" />
+            {!collapsed ? <span>Templates</span> : null}
+          </Link>
+        </Button>
+        <Button
+          variant={pathname.startsWith("/web-studio/missionaries") ? "secondary" : "ghost"}
+          size="sm"
+          className={cn(
+            "justify-start gap-2 font-semibold text-xs",
+            collapsed && "justify-center px-0",
+          )}
+          asChild
+        >
+          <Link href="/web-studio/missionaries" title="Missionaries">
+            <Users className="h-4 w-4 shrink-0" />
+            {!collapsed ? <span>Missionaries</span> : null}
+          </Link>
+        </Button>
         {enabledCollections.map((collection) => {
           const isActive =
             pathname === collection.listPath ||

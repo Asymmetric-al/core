@@ -24,6 +24,12 @@ import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { PagesNativeEditView as PagesNativeEditView_d2240ecf8805c7d12a67f984df1014cc } from '../../../src/cms-ui/web-studio/pages/document/PagesNativeEditView.tsx'
 import { PagesNativeListView as PagesNativeListView_dab9c45d6a71ea658c503a573240982c } from '../../../src/cms-ui/web-studio/pages/list/PagesNativeListView.tsx'
+import { PageTemplatesNativeEditView as PageTemplatesNativeEditView_84d26b7ab75fcdc7408c195c58424a29 } from '../../../src/cms-ui/web-studio/page-templates/document/PageTemplatesNativeEditView.tsx'
+import { PageTemplatesNativeListView as PageTemplatesNativeListView_e95bd28ce8d6da532d7ff2d818d9c42f } from '../../../src/cms-ui/web-studio/page-templates/list/PageTemplatesNativeListView.tsx'
+import { MissionaryGivingPagesNativeEditView as MissionaryGivingPagesNativeEditView_19739b4172f6fb48f13053fa282ad7c8 } from '../../../src/cms-ui/web-studio/missionary-giving-pages/document/MissionaryGivingPagesNativeEditView.tsx'
+import { MissionaryGivingPagesNativeListView as MissionaryGivingPagesNativeListView_5d19d7eaa982bbdd573e1959d386d198 } from '../../../src/cms-ui/web-studio/missionary-giving-pages/list/MissionaryGivingPagesNativeListView.tsx'
+import { ProjectPagesNativeEditView as ProjectPagesNativeEditView_4e33fe2c932ea64c5dec3a2eb647e157 } from '../../../src/cms-ui/web-studio/project-pages/document/ProjectPagesNativeEditView.tsx'
+import { ProjectPagesNativeListView as ProjectPagesNativeListView_2274f73ac126e7283c3deebcd3aaa6ea } from '../../../src/cms-ui/web-studio/project-pages/list/ProjectPagesNativeListView.tsx'
 import { NavigationNativeEditView as NavigationNativeEditView_89733a0d11a108be918b6cb74b6e73aa } from '../../../src/cms-ui/web-studio/navigation/document/NavigationNativeEditView.tsx'
 import { NavigationNativeListView as NavigationNativeListView_2a580cedc1cf71d6ae56d8fa0fc5ec54 } from '../../../src/cms-ui/web-studio/navigation/list/NavigationNativeListView.tsx'
 import { MissionaryProfilesNativeEditView as MissionaryProfilesNativeEditView_b032f05f7b7b0c88f3b1b93bca43a08b } from '../../../src/cms-ui/web-studio/missionary-profiles/document/MissionaryProfilesNativeEditView.tsx'
@@ -36,6 +42,12 @@ import { Header as Header_f8a8df1408c7374206a6393fbb1e2413 } from '../../../src/
 import { Icon as Icon_3e1d8f39fad9bddd5123caa2cad407ff } from '../../../src/cms-ui/brand/Icon.tsx'
 import { Logo as Logo_37789914a9261410f4d39d03c1022d2c } from '../../../src/cms-ui/brand/Logo.tsx'
 import { Nav as Nav_9db371ba9624687ac38a56dac5ca6a99 } from '../../../src/cms-ui/root/Nav.tsx'
+import { TemplateGalleryView as TemplateGalleryView_768d43e7a4e2dc95766864a09f585d0f } from '../../../src/cms-ui/web-studio/flows/TemplateGalleryView.tsx'
+import { MissionariesHubView as MissionariesHubView_649f31520254a31e388b194848dba548 } from '../../../src/cms-ui/web-studio/flows/MissionariesHubView.tsx'
+import { MissionaryGivingCreateView as MissionaryGivingCreateView_542909ad000c3c81038dd240f9785f00 } from '../../../src/cms-ui/web-studio/flows/MissionaryGivingCreateView.tsx'
+import { StandardPageFromTemplateView as StandardPageFromTemplateView_49a7f949c7c0ce9ac71739fa03761464 } from '../../../src/cms-ui/web-studio/flows/StandardPageFromTemplateView.tsx'
+import { ProjectPageCreateView as ProjectPageCreateView_94786e79bca1b62db27cfe5aaeb47d59 } from '../../../src/cms-ui/web-studio/flows/ProjectPageCreateView.tsx'
+import { MinistryUpdateCreateView as MinistryUpdateCreateView_d83db835455a052213c8588bac1de0d2 } from '../../../src/cms-ui/web-studio/flows/MinistryUpdateCreateView.tsx'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 /** @type {Record<string, unknown>} */
@@ -65,6 +77,12 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "/src/cms-ui/web-studio/pages/document/PagesNativeEditView.tsx#PagesNativeEditView": PagesNativeEditView_d2240ecf8805c7d12a67f984df1014cc,
   "/src/cms-ui/web-studio/pages/list/PagesNativeListView.tsx#PagesNativeListView": PagesNativeListView_dab9c45d6a71ea658c503a573240982c,
+  "/src/cms-ui/web-studio/page-templates/document/PageTemplatesNativeEditView.tsx#PageTemplatesNativeEditView": PageTemplatesNativeEditView_84d26b7ab75fcdc7408c195c58424a29,
+  "/src/cms-ui/web-studio/page-templates/list/PageTemplatesNativeListView.tsx#PageTemplatesNativeListView": PageTemplatesNativeListView_e95bd28ce8d6da532d7ff2d818d9c42f,
+  "/src/cms-ui/web-studio/missionary-giving-pages/document/MissionaryGivingPagesNativeEditView.tsx#MissionaryGivingPagesNativeEditView": MissionaryGivingPagesNativeEditView_19739b4172f6fb48f13053fa282ad7c8,
+  "/src/cms-ui/web-studio/missionary-giving-pages/list/MissionaryGivingPagesNativeListView.tsx#MissionaryGivingPagesNativeListView": MissionaryGivingPagesNativeListView_5d19d7eaa982bbdd573e1959d386d198,
+  "/src/cms-ui/web-studio/project-pages/document/ProjectPagesNativeEditView.tsx#ProjectPagesNativeEditView": ProjectPagesNativeEditView_4e33fe2c932ea64c5dec3a2eb647e157,
+  "/src/cms-ui/web-studio/project-pages/list/ProjectPagesNativeListView.tsx#ProjectPagesNativeListView": ProjectPagesNativeListView_2274f73ac126e7283c3deebcd3aaa6ea,
   "/src/cms-ui/web-studio/navigation/document/NavigationNativeEditView.tsx#NavigationNativeEditView": NavigationNativeEditView_89733a0d11a108be918b6cb74b6e73aa,
   "/src/cms-ui/web-studio/navigation/list/NavigationNativeListView.tsx#NavigationNativeListView": NavigationNativeListView_2a580cedc1cf71d6ae56d8fa0fc5ec54,
   "/src/cms-ui/web-studio/missionary-profiles/document/MissionaryProfilesNativeEditView.tsx#MissionaryProfilesNativeEditView": MissionaryProfilesNativeEditView_b032f05f7b7b0c88f3b1b93bca43a08b,
@@ -77,5 +95,11 @@ export const importMap = {
   "/src/cms-ui/brand/Icon.tsx#Icon": Icon_3e1d8f39fad9bddd5123caa2cad407ff,
   "/src/cms-ui/brand/Logo.tsx#Logo": Logo_37789914a9261410f4d39d03c1022d2c,
   "/src/cms-ui/root/Nav.tsx#Nav": Nav_9db371ba9624687ac38a56dac5ca6a99,
+  "/src/cms-ui/web-studio/flows/TemplateGalleryView.tsx#TemplateGalleryView": TemplateGalleryView_768d43e7a4e2dc95766864a09f585d0f,
+  "/src/cms-ui/web-studio/flows/MissionariesHubView.tsx#MissionariesHubView": MissionariesHubView_649f31520254a31e388b194848dba548,
+  "/src/cms-ui/web-studio/flows/MissionaryGivingCreateView.tsx#MissionaryGivingCreateView": MissionaryGivingCreateView_542909ad000c3c81038dd240f9785f00,
+  "/src/cms-ui/web-studio/flows/StandardPageFromTemplateView.tsx#StandardPageFromTemplateView": StandardPageFromTemplateView_49a7f949c7c0ce9ac71739fa03761464,
+  "/src/cms-ui/web-studio/flows/ProjectPageCreateView.tsx#ProjectPageCreateView": ProjectPageCreateView_94786e79bca1b62db27cfe5aaeb47d59,
+  "/src/cms-ui/web-studio/flows/MinistryUpdateCreateView.tsx#MinistryUpdateCreateView": MinistryUpdateCreateView_d83db835455a052213c8588bac1de0d2,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }
