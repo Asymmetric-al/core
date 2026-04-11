@@ -70,6 +70,47 @@ const bodySchema = z.discriminatedUnion("targetCollection", [
 
 type ParsedBody = z.infer<typeof bodySchema>;
 type TenantCtx = ReturnType<typeof getTenantContext>;
+type PageCreateData = Pick<
+  Page,
+  | "tenant"
+  | "title"
+  | "slug"
+  | "summary"
+  | "pageType"
+  | "template"
+  | "layout"
+  | "content"
+  | "legacyContentFallback"
+>;
+type MissionaryGivingPageCreateData = Pick<
+  MissionaryGivingPage,
+  | "tenant"
+  | "missionaryId"
+  | "missionaryProfile"
+  | "templateKey"
+  | "template"
+  | "title"
+  | "slug"
+  | "summary"
+  | "pageType"
+  | "layout"
+>;
+type ProjectPageCreateData = Pick<
+  ProjectPage,
+  | "tenant"
+  | "fundId"
+  | "templateKey"
+  | "template"
+  | "title"
+  | "slug"
+  | "summary"
+  | "pageType"
+  | "layout"
+>;
+type MinistryUpdateCreateData = Pick<
+  MinistryUpdate,
+  "tenant" | "missionary" | "title" | "slug" | "excerpt" | "content"
+>;
 
 function jsonResponse(body: unknown, status = 200) {
   return Response.json(body, { status });
@@ -190,6 +231,7 @@ async function resolveRequestedTenantId(
 
 async function createPageFromTemplate(
   req: PayloadRequest,
+  tenantId: string,
   parsed: Extract<ParsedBody, { targetCollection: "pages" }>,
   template: PageTemplate,
   defaultLayout: NonNullable<Page["layout"]>,
@@ -211,7 +253,8 @@ async function createPageFromTemplate(
     );
   }
 
-  const data: Omit<Page, "id" | "tenant" | "updatedAt" | "createdAt"> = {
+  const data: PageCreateData = {
+    tenant: Number(tenantId),
     title: parsed.title,
     slug: slugifySegment(parsed.slug),
     summary:
@@ -357,10 +400,8 @@ async function createMissionaryGivingPageFromTemplate(
       ? matchedProfile.id
       : undefined;
 
-  const data: Omit<
-    MissionaryGivingPage,
-    "id" | "tenant" | "updatedAt" | "createdAt"
-  > = {
+  const data: MissionaryGivingPageCreateData = {
+    tenant: Number(tenantId),
     missionaryId: parsed.missionaryId,
     missionaryProfile:
       missionaryProfileId === undefined || missionaryProfileId === null
@@ -486,7 +527,8 @@ async function createProjectPageFromTemplate(
     slugifySegment(`${titleBase}-${parsed.fundId.slice(0, 8)}`) ||
     slugifySegment(parsed.fundId);
 
-  const data: Omit<ProjectPage, "id" | "tenant" | "updatedAt" | "createdAt"> = {
+  const data: ProjectPageCreateData = {
+    tenant: Number(tenantId),
     fundId: parsed.fundId,
     templateKey,
     template: Number(parsed.templateId),
@@ -573,10 +615,8 @@ async function createMinistryUpdateFromTemplate(
     return jsonResponse({ error: "Missionary profile not found" }, 404);
   }
 
-  const data: Omit<
-    MinistryUpdate,
-    "id" | "tenant" | "updatedAt" | "createdAt"
-  > = {
+  const data: MinistryUpdateCreateData = {
+    tenant: Number(tenantId),
     missionary: Number(parsed.missionaryProfileId),
     title: parsed.title,
     slug: slugifySegment(parsed.slug),
@@ -650,6 +690,7 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
     if (parsed.targetCollection === "pages") {
       return createPageFromTemplate(
         req,
+        tenantId,
         parsed,
         template,
         defaultLayout,

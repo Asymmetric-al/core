@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
-import { useAuth, useConfig } from "@payloadcms/ui";
+import { useConfig } from "@payloadcms/ui";
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
@@ -45,7 +45,6 @@ export function MinistryUpdateCreateView() {
   const router = useRouter();
   const templateId = searchParams.get("template") ?? "";
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const { user } = useAuth();
 
   const {
     config: { routes, serverURL },
