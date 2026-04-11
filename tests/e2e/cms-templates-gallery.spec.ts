@@ -1,12 +1,10 @@
 import { expect, test } from "@playwright/test";
 
+import { adminBaseURL } from "./base-urls";
 import {
   attachPayloadDbConsoleListener,
   waitForWebStudioShellOrSkip,
 } from "./cms-skip-if-no-payload";
-
-const adminBaseURL =
-  process.env.PLAYWRIGHT_ADMIN_BASE_URL || "http://localhost:3030";
 
 test.describe("@cms Web Studio templates gallery", () => {
   async function signInAsAdmin(page: import("@playwright/test").Page) {
