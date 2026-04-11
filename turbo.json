@@ -1,5 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.v2.json",
+  "envMode": "loose",
   "globalEnv": [
     "NODE_ENV",
     "VERCEL",

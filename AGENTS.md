@@ -304,6 +304,7 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 
 - Package manager/runtime: Bun (`bun`, `bunx`)
 - Task runner: Turborepo (`turbo`)
+- **Turbo + env:** Root `turbo.json` uses **`"envMode": "loose"`** so `turbo run dev` forwards your shell and dotenv vars to Next.js. Turbo 2’s default **strict** mode only passes variables declared under each task’s `env` / `globalEnv`, which hid `SUPABASE_DB_URL`, `PAYLOAD_DATABASE_URI`, demo secrets, etc., from `next dev` even when `.env.local` existed.
 - Next.js app paths:
   - `apps/admin` (`@asym/admin`)
   - `apps/donor` (`@asym/donor`)
