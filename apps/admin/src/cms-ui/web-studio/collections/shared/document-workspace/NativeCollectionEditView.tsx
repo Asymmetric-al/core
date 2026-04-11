@@ -21,7 +21,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { NativeDocumentWorkspaceSettingsDialog } from "./NativeDocumentWorkspaceSettingsDialog";
-import { resolveDonorOrigin } from "../../../adapters/preview-url";
+import { resolveDonorPublicOrigin } from "../../../adapters/preview-url";
 import { StudioLayout } from "../../../shell/studio-layout";
 import { getWebStudioCollectionConfig } from "../../config";
 
@@ -177,7 +177,7 @@ export function NativeCollectionEditView({
       return;
     }
 
-    const nextUrl = `${resolveDonorOrigin()}${path}`;
+    const nextUrl = `${resolveDonorPublicOrigin()}${path}`;
     if (previewURL !== nextUrl) {
       setPreviewURL(nextUrl);
     }
