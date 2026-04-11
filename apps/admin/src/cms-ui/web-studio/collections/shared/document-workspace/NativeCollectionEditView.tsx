@@ -106,6 +106,7 @@ export function NativeCollectionEditView({
           id: identifier,
           title: titleValue,
           href: `${studioConfig.listPath}/${identifier}`,
+          updatedAt: new Date().toISOString(),
         },
         ...existing.filter((entry) => entry.id !== identifier),
       ].slice(0, 6);
