@@ -1,6 +1,7 @@
 "use client";
 
 import { useMC } from "@asym/lib/mission-control/context";
+import { resolveMissionControlHref } from "@asym/lib/mission-control/routes";
 import { TILES } from "@asym/lib/mission-control/tiles";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
@@ -67,7 +68,9 @@ export const GlobalSearch = memo(function GlobalSearch() {
               return (
                 <CommandItem
                   key={tile.id}
-                  onSelect={() => handleSelect(`/mc${tile.route}`)}
+                  onSelect={() =>
+                    handleSelect(resolveMissionControlHref(tile.route))
+                  }
                 >
                   <Icon className="mr-2 h-4 w-4" />
                   <span>{tile.title}</span>
@@ -82,7 +85,9 @@ export const GlobalSearch = memo(function GlobalSearch() {
                 return (
                   <CommandItem
                     key={`${tile.id}-${action.label}`}
-                    onSelect={() => handleSelect(`/mc${action.href}`)}
+                    onSelect={() =>
+                      handleSelect(resolveMissionControlHref(action.href))
+                    }
                   >
                     <Icon className="mr-2 h-4 w-4" />
                     <span>{action.label}</span>

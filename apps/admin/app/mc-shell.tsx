@@ -44,17 +44,18 @@ import {
   BarChart3,
   Bell,
   Calendar,
+  CheckSquare,
   ChevronRight,
   DollarSign,
   FileText,
   Globe,
   Heart,
   Languages,
-  LayoutGrid,
   LifeBuoy,
   LogOut,
   Mail,
   PenTool,
+  Rocket,
   Search,
   Shield,
   Sparkles,
@@ -83,36 +84,34 @@ interface NavItem {
 const mainNav: NavItem[] = [{ title: "Dashboard", href: "/", icon: BarChart3 }];
 
 const moduleNav: NavItem[] = [
-  { title: "Contributions", href: "/contributions", icon: DollarSign },
   { title: "CRM", href: "/crm", icon: Users },
-  { title: "Member Care", href: "/care", icon: Heart },
-  { title: "Events", href: "/events", icon: Calendar },
+  { title: "Contributions", href: "/contributions", icon: DollarSign },
   { title: "Reports", href: "/reports", icon: BarChart3 },
   {
     title: "Ministry Updates",
     href: "/feed",
     icon: Activity,
     items: [
-      { title: "Content Moderation", href: "/feed" },
+      { title: "Moderation", href: "/feed" },
       { title: "Org Updates", href: "/feed/org-updates" },
     ],
   },
-  { title: "Tasks", href: "/tasks", icon: Sparkles },
-  { title: "Mobilize", href: "/mobilize", icon: LayoutGrid },
+  { title: "Member Care", href: "/care", icon: Heart },
+  { title: "Mobilize", href: "/mobilize", icon: Rocket },
 ];
 
 const toolNav: NavItem[] = [
-  { title: "Email Studio", href: "/email", icon: Mail },
   { title: "Web Studio", href: "/web-studio", icon: Globe },
-  { title: "Sign", href: "/sign", icon: PenTool },
-  { title: "PDF", href: "/pdf", icon: FileText },
+  { title: "Email Studio", href: "/email", icon: Mail },
+  { title: "PDF Studio", href: "/pdf", icon: FileText },
+  { title: "Tasks", href: "/tasks", icon: CheckSquare },
+  { title: "Support Hub", href: "/support", icon: LifeBuoy },
+  { title: "Event Hub", href: "/events", icon: Calendar },
+  { title: "Sign Studio", href: "/sign", icon: PenTool },
   { title: "Automations", href: "/automations", icon: Sparkles },
 ];
 
-const systemNav: NavItem[] = [
-  { title: "Admin", href: "/admin", icon: Shield },
-  { title: "Support", href: "/support", icon: LifeBuoy },
-];
+const systemNav: NavItem[] = [{ title: "Admin", href: "/admin", icon: Shield }];
 
 /* ------------------------------------------------------------------ */
 /*  Nav section component                                              */

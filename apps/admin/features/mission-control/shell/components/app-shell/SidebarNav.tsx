@@ -6,6 +6,7 @@ import {
   getMainNavItems,
   getToolsNavItems,
 } from "@asym/lib/mission-control/nav";
+import { resolveMissionControlHref } from "@asym/lib/mission-control/routes";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 import {
@@ -39,9 +40,10 @@ const NavLink = memo(function NavLink({
   isActive,
   collapsed,
 }: NavLinkProps) {
+  const href = resolveMissionControlHref(item.href);
   const linkContent = (
     <Link
-      href={item.href}
+      href={href}
       className={cn(
         "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
         isActive
@@ -127,7 +129,10 @@ const SidebarHeader = memo(function SidebarHeader({
       )}
     >
       {!collapsed ? (
-        <Link href="/mc" className="flex items-center gap-3">
+        <Link
+          href={resolveMissionControlHref("/mc")}
+          className="flex items-center gap-3"
+        >
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-white shadow-sm ring-1 ring-slate-900/5">
             <LayoutDashboard className="h-5 w-5" />
           </div>
@@ -184,8 +189,9 @@ export const SidebarNav = memo(function SidebarNav() {
 
   const checkActive = useCallback(
     (href: string) => {
-      if (href === "/mc") return pathname === "/mc" || pathname === "/mc/";
-      return pathname.startsWith(href);
+      const resolvedHref = resolveMissionControlHref(href);
+      if (resolvedHref === "/") return pathname === "/";
+      return pathname.startsWith(resolvedHref);
     },
     [pathname],
   );

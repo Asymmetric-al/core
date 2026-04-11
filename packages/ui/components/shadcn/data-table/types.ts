@@ -102,6 +102,7 @@ export interface DataTableConfig {
   enableSorting?: boolean;
   enableKeyboardNavigation?: boolean;
   enableExport?: boolean;
+  stickyHeader?: boolean;
   manualPagination?: boolean;
   manualSorting?: boolean;
   manualFiltering?: boolean;

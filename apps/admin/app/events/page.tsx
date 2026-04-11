@@ -1,5 +1,6 @@
 "use client";
 
+import { useEventAttendees } from "@asym/database/hooks";
 import { motion } from "@asym/lib/motion";
 import { formatCurrency, getInitials } from "@asym/lib/utils";
 import {
@@ -16,19 +17,13 @@ import {
   CardTitle,
   CardFooter,
 } from "@asym/ui/components/shadcn/card";
+import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
+import { DataTableWrapper } from "@asym/ui/components/shadcn/data-table/data-table-wrapper";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import { Progress } from "@asym/ui/components/shadcn/progress";
 import { Separator } from "@asym/ui/components/shadcn/separator";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@asym/ui/components/shadcn/table";
 import {
   Tabs,
   TabsList,
@@ -36,6 +31,7 @@ import {
   TabsContent,
 } from "@asym/ui/components/shadcn/tabs";
 import { cn } from "@asym/ui/lib/utils";
+import { type ColumnDef } from "@tanstack/react-table";
 import {
   Users,
   DollarSign,
@@ -605,19 +601,6 @@ const MOCK_ATTENDEES: Attendee[] = [
 
 // --- Helper Functions ---
 
-const formatDateRange = (start: string, end: string) => {
-  const s = new Date(start);
-  const e = new Date(end);
-  if (s.toDateString() === e.toDateString()) {
-    return s.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  }
-  return `${s.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${e.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
-};
-
 const getStatusColor = (status: SpeakerStatus) => {
   switch (status) {
     case "Confirmed":
@@ -1079,7 +1062,106 @@ function EventsSpeakersTab({
   );
 }
 
-function EventsAttendeesTab({ attendees }: { attendees: Attendee[] }) {
+function EventsAttendeesTab() {
+  const attendeesQuery = useEventAttendees();
+  const attendees = attendeesQuery.data ?? MOCK_ATTENDEES;
+  const columns = React.useMemo<ColumnDef<Attendee>[]>(
+    () => [
+      {
+        accessorKey: "name",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Attendee" />
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center gap-3 py-1">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={row.original.avatar} />
+              <AvatarFallback className="text-[10px] bg-zinc-100 font-bold">
+                {getInitials(row.original.name)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="text-left">
+              <div className="text-sm font-bold text-zinc-900">
+                {row.original.name}{" "}
+                {row.original.isVip && (
+                  <Badge className="ml-1 h-4 bg-amber-100 text-amber-700 hover:bg-amber-100 text-[8px] uppercase tracking-tighter px-1 border-none shadow-none">
+                    VIP
+                  </Badge>
+                )}
+              </div>
+              <div className="text-[10px] text-zinc-500 font-medium">
+                {row.original.email}
+              </div>
+            </div>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "ticketType",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Type" />
+        ),
+      },
+      {
+        accessorKey: "status",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Status" />
+        ),
+        cell: ({ row }) => (
+          <Badge
+            variant="outline"
+            className={cn(
+              "text-[10px] font-bold h-5 shadow-none",
+              row.original.status === "Checked In"
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                : row.original.status === "Registered"
+                  ? "bg-blue-50 text-blue-700 border-blue-200"
+                  : "bg-zinc-100 text-zinc-500",
+            )}
+          >
+            {row.original.status}
+          </Badge>
+        ),
+      },
+      {
+        accessorKey: "paymentStatus",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Payment" />
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center gap-1.5">
+            <div
+              className={cn(
+                "h-1.5 w-1.5 rounded-full",
+                row.original.paymentStatus === "Paid"
+                  ? "bg-emerald-500"
+                  : "bg-amber-500",
+              )}
+            />
+            <span className="text-xs font-medium text-zinc-700">
+              {row.original.paymentStatus}
+            </span>
+          </div>
+        ),
+      },
+      {
+        id: "actions",
+        cell: () => (
+          <div className="flex justify-end pr-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-zinc-400"
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [],
+  );
+
   return (
     <TabsContent value="attendees" className="mt-8">
       <motion.div
@@ -1087,7 +1169,7 @@ function EventsAttendeesTab({ attendees }: { attendees: Attendee[] }) {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.2 }}
       >
-        <Card className="border-zinc-200 shadow-sm overflow-hidden">
+        <Card className="border-zinc-200 shadow-sm">
           <div className="p-4 border-b border-zinc-100 bg-zinc-50/50 flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="relative w-full md:w-96">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
@@ -1108,98 +1190,23 @@ function EventsAttendeesTab({ attendees }: { attendees: Attendee[] }) {
               </Button>
             </div>
           </div>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-zinc-50/80">
-                <TableRow>
-                  <TableHead className="w-12 pl-4">
-                    <input type="checkbox" className="rounded" />
-                  </TableHead>
-                  <TableHead>Attendee</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Payment</TableHead>
-                  <TableHead className="text-right pr-4"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {attendees.map((attendee) => (
-                  <TableRow key={attendee.id} className="hover:bg-zinc-50/50">
-                    <TableCell className="pl-4">
-                      <input type="checkbox" className="rounded" />
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3 py-1">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={attendee.avatar} />
-                          <AvatarFallback className="text-[10px] bg-zinc-100 font-bold">
-                            {getInitials(attendee.name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="text-left">
-                          <div className="text-sm font-bold text-zinc-900">
-                            {attendee.name}{" "}
-                            {attendee.isVip && (
-                              <Badge className="ml-1 h-4 bg-amber-100 text-amber-700 hover:bg-amber-100 text-[8px] uppercase tracking-tighter px-1 border-none shadow-none">
-                                VIP
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="text-[10px] text-zinc-500 font-medium">
-                            {attendee.email}
-                          </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-xs font-medium text-zinc-600">
-                        {attendee.ticketType}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          "text-[10px] font-bold h-5 shadow-none",
-                          attendee.status === "Checked In"
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                            : attendee.status === "Registered"
-                              ? "bg-blue-50 text-blue-700 border-blue-200"
-                              : "bg-zinc-100 text-zinc-500",
-                        )}
-                      >
-                        {attendee.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1.5">
-                        <div
-                          className={cn(
-                            "h-1.5 w-1.5 rounded-full",
-                            attendee.paymentStatus === "Paid"
-                              ? "bg-emerald-500"
-                              : "bg-amber-500",
-                          )}
-                        />
-                        <span className="text-xs font-medium text-zinc-700">
-                          {attendee.paymentStatus}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right pr-4">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-zinc-400"
-                      >
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <DataTableWrapper
+            columns={columns}
+            data={attendees}
+            isLoading={attendeesQuery.isLoading}
+            config={{
+              enableRowSelection: false,
+              enableColumnVisibility: false,
+              enablePagination: true,
+              enableFilters: false,
+              enableSorting: true,
+            }}
+            emptyState={{
+              title: "No attendees found",
+              description:
+                "No attendee records match the current event filters.",
+            }}
+          />
         </Card>
       </motion.div>
     </TabsContent>
@@ -1210,29 +1217,19 @@ export default function EventsPage() {
   const [activeView, setActiveView] = useState<EventsView>("dashboard");
   const [event, _setEvent] = useState<ConferenceEvent>(INITIAL_EVENTS[0]!);
 
-  const locationDesc =
-    event.venues[0] != null
-      ? `${event.venues[0].city}, ${event.venues[0].state}`
-      : "";
-  const description =
-    [locationDesc, formatDateRange(event.startDate, event.endDate)]
-      .filter(Boolean)
-      .join(" • ") || undefined;
-
   return (
     <PageShell
-      title={event.name}
-      description={description}
+      title="Events"
+      description="Plan events, sessions, speakers, registrations, and logistics."
       actions={
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-3">
           <Button
             variant="outline"
-            size="sm"
-            className="rounded-xl border-zinc-200 font-bold uppercase tracking-widest text-[10px] bg-white hover:bg-zinc-50 shadow-sm"
+            className="h-11 rounded-xl border-zinc-200 bg-white font-bold uppercase tracking-widest text-[10px] shadow-sm hover:bg-zinc-50"
           >
             <Eye className="mr-2 h-4 w-4" /> Preview Site
           </Button>
-          <Button className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-black uppercase tracking-widest text-[10px] shadow-xl">
+          <Button className="h-11 rounded-xl bg-zinc-900 font-black uppercase tracking-widest text-[10px] text-white shadow-xl hover:bg-zinc-800">
             <Plus className="mr-2 h-4 w-4" /> New Event
           </Button>
         </div>
@@ -1278,7 +1275,7 @@ export default function EventsPage() {
           <EventsOverviewTab event={event} />
           <EventsConfigTab event={event} />
           <EventsSpeakersTab event={event} speakers={MOCK_SPEAKERS} />
-          <EventsAttendeesTab attendees={MOCK_ATTENDEES} />
+          <EventsAttendeesTab />
         </Tabs>
       </div>
     </PageShell>

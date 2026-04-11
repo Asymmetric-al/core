@@ -42,7 +42,7 @@ type LiveQueryBuilder<TData> = (q: {
 interface UseDataTableWithLiveQueryOptions<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   queryBuilder: LiveQueryBuilder<TData>;
-  queryKey?: string[];
+  queryKey?: readonly string[];
   advancedFilterFields?: FilterFieldDefinition[];
   initialState?: {
     pagination?: PaginationState;
@@ -109,7 +109,6 @@ export function useDataTableWithLiveQuery<TData, TValue = unknown>({
   TValue
 >): UseDataTableWithLiveQueryReturn<TData> {
   const queryClient = useQueryClient();
-
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>(
     initialState.rowSelection ?? {},
   );
@@ -142,9 +141,18 @@ export function useDataTableWithLiveQuery<TData, TValue = unknown>({
 
   const isLoading =
     (liveQueryResult as { status?: string })?.status === "pending";
-  const error = (liveQueryResult as { isError?: boolean })?.isError
-    ? new Error("Query error")
-    : null;
+  const error = React.useMemo(() => {
+    if (!(liveQueryResult as { isError?: boolean })?.isError) {
+      return null;
+    }
+
+    const queryError = (liveQueryResult as { error?: unknown })?.error;
+    if (queryError instanceof Error) {
+      return queryError;
+    }
+
+    return new Error(queryError ? String(queryError) : "Query error");
+  }, [liveQueryResult]);
 
   const advancedFilterFn = React.useMemo(() => {
     if (advancedFilter.conditions.length === 0) return null;
@@ -218,7 +226,7 @@ export function useDataTableWithLiveQuery<TData, TValue = unknown>({
 
   const refetch = React.useCallback(() => {
     if (queryKey?.length) {
-      void queryClient.invalidateQueries({ queryKey });
+      void queryClient.invalidateQueries({ queryKey: [...queryKey] });
     }
   }, [queryClient, queryKey]);
 
