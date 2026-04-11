@@ -29,7 +29,7 @@ export function TilePage({ tile, children }: TilePageProps) {
         actions={
           <div className="flex gap-2">
             {tile.quickActions.slice(0, 2).map((action) => (
-              <Link key={action.label} href={`/mc${action.href}`}>
+              <Link key={action.label} href={action.href}>
                 <Button size="sm">
                   {action.icon && (
                     <DynamicIcon name={action.icon} className="mr-2 h-4 w-4" />
@@ -57,7 +57,7 @@ export function TilePage({ tile, children }: TilePageProps) {
             </CardHeader>
             <CardContent className="flex flex-col gap-2">
               {tile.quickActions.map((action) => (
-                <Link key={action.label} href={`/mc${action.href}`}>
+                <Link key={action.label} href={action.href}>
                   <Button
                     variant="outline"
                     size="sm"
