@@ -45,7 +45,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       tenant: {
-        id: tenant.id,
         slug: tenant.slug ?? null,
       },
       updates: updatesQuery.docs,

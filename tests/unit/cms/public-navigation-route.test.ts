@@ -82,7 +82,7 @@ describe("public navigation route", () => {
     expect(response.status).toBe(200);
     expect(body).toEqual({
       navigation: { id: "nav_1", label: "Main Navigation" },
-      tenant: { id: "tenant_1", slug: "alpha" },
+      tenant: { slug: "alpha" },
     });
     expect(find).toHaveBeenCalledWith({
       collection: "navigation",
@@ -112,7 +112,7 @@ describe("public navigation route", () => {
     expect(response.status).toBe(200);
     expect(body).toEqual({
       navigation: null,
-      tenant: { id: "tenant_1", slug: "alpha" },
+      tenant: { slug: "alpha" },
     });
   });
 

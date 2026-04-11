@@ -145,14 +145,14 @@ Output is written under `site-studio-review/<date>/cloud-agent/`:
 ### Public endpoints (tenant-aware, no auth)
 
 - `GET /api/cms/public/pages/<slug>`
-  - Success: `{ tenant: { id, slug }, page }` (`page` is serialized for stable additive fields — see `serializePublished-page.ts`)
+  - Success: `{ tenant: { slug }, page }` (`page` is serialized for stable additive fields — see `serializePublished-page.ts`)
   - Errors: `404 { error: "Tenant not found" }` or `404 { error: "Page not found" }`
 - `GET /api/cms/public/missionary-pages/<id>` — published `missionary-giving-pages` by `missionaryId`
 - `GET /api/cms/public/project-pages/<slug>` — published `project-pages` by slug
 - `GET /api/cms/public/navigation`
-  - Success: `{ tenant: { id, slug }, navigation }`
+  - Success: `{ tenant: { slug }, navigation }`
 - `GET /api/cms/public/updates?limit=5`
-  - Success: `{ tenant: { id, slug }, updates: [] }`
+  - Success: `{ tenant: { slug }, updates: [] }`
   - `limit` is clamped to `1..20`
 
 Tenant resolution priority:

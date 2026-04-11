@@ -65,7 +65,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
         doc as unknown as Record<string, unknown>,
       ),
       tenant: {
-        id: tenant.id,
         slug: tenant.slug ?? null,
       },
     });

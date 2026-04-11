@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
-import { useConfig } from "@payloadcms/ui";
+import { useAuth, useConfig } from "@payloadcms/ui";
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
@@ -19,6 +19,11 @@ import { formatAdminURL } from "payload/shared";
 import { useMemo, useState } from "react";
 import { z } from "zod";
 
+import {
+  TENANT_REQUIRED_MESSAGE,
+  TenantSelectField,
+  useSuperAdminTenantOptions,
+} from "./tenant-picker";
 import { buildWebStudioCreateFromTemplateUrl } from "./web-studio-create-api";
 import { StudioLayout } from "../shell/studio-layout";
 
@@ -32,6 +37,7 @@ const formSchema = z.object({
   missionaryProfileId: z.string().min(1, "Profile is required"),
   title: z.string().min(1, "Title is required"),
   slug: z.string().min(1, "Slug is required"),
+  tenantId: z.string().optional(),
 });
 
 export function MinistryUpdateCreateView() {
@@ -39,6 +45,7 @@ export function MinistryUpdateCreateView() {
   const router = useRouter();
   const templateId = searchParams.get("template") ?? "";
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const {
     config: { routes, serverURL },
@@ -51,6 +58,7 @@ export function MinistryUpdateCreateView() {
       }),
     [routes.api],
   );
+  const { isSuperAdmin, tenantsQuery } = useSuperAdminTenantOptions();
 
   const profilesUrl = useMemo(
     () =>
@@ -78,6 +86,7 @@ export function MinistryUpdateCreateView() {
       missionaryProfileId: "",
       title: "",
       slug: "",
+      tenantId: "",
     },
     onSubmit: async ({ value }) => {
       setSubmitError(null);
@@ -91,6 +100,10 @@ export function MinistryUpdateCreateView() {
         setSubmitError("Pick a ministry update template from the gallery.");
         return;
       }
+      if (isSuperAdmin && !parsed.data.tenantId) {
+        setSubmitError(TENANT_REQUIRED_MESSAGE);
+        return;
+      }
 
       const res = await fetch(createUrl, {
         method: "POST",
@@ -102,6 +115,7 @@ export function MinistryUpdateCreateView() {
           missionaryProfileId: parsed.data.missionaryProfileId,
           title: parsed.data.title,
           slug: parsed.data.slug,
+          ...(isSuperAdmin ? { tenantId: parsed.data.tenantId } : {}),
         }),
       });
 
@@ -160,6 +174,20 @@ export function MinistryUpdateCreateView() {
             void form.handleSubmit();
           }}
         >
+          {isSuperAdmin ? (
+            <form.Field name="tenantId">
+              {(field) => (
+                <TenantSelectField
+                  label="Tenant"
+                  field={field}
+                  options={tenantsQuery.data ?? []}
+                  disabled={tenantsQuery.isPending || tenantsQuery.isError}
+                  placeholder="Select tenant"
+                />
+              )}
+            </form.Field>
+          ) : null}
+
           <form.Field name="missionaryProfileId">
             {(field) => (
               <div className="flex flex-col gap-2">
@@ -214,6 +242,11 @@ export function MinistryUpdateCreateView() {
           {profilesQuery.isError ? (
             <p className="text-destructive text-sm">
               {(profilesQuery.error as Error).message}
+            </p>
+          ) : null}
+          {tenantsQuery.isError && isSuperAdmin ? (
+            <p className="text-destructive text-sm">
+              {(tenantsQuery.error as Error).message}
             </p>
           ) : null}
 

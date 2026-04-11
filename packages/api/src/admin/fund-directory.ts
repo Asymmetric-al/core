@@ -5,8 +5,12 @@ import { withOperation } from "../shared/with-operation";
 export const GET = withOperation(
   async ({ supabaseAdmin, auth: ctx, request }) => {
     const { searchParams } = new URL(request.url);
-    const limit = Number.parseInt(searchParams.get("limit") || "50", 10);
-    const offset = Number.parseInt(searchParams.get("offset") || "0", 10);
+    const rawLimit = Number.parseInt(searchParams.get("limit") || "50", 10);
+    const rawOffset = Number.parseInt(searchParams.get("offset") || "0", 10);
+    const limit = Number.isNaN(rawLimit)
+      ? 50
+      : Math.min(Math.max(rawLimit, 1), 200);
+    const offset = Number.isNaN(rawOffset) ? 0 : Math.max(rawOffset, 0);
 
     let query = supabaseAdmin
       .from("funds")

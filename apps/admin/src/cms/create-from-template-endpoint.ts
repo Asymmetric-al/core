@@ -34,6 +34,7 @@ import type {
   Page,
   PageTemplate,
   ProjectPage,
+  Tenant,
 } from "../../payload-types";
 import type { Endpoint, PayloadRequest } from "payload";
 
@@ -43,16 +44,19 @@ const bodySchema = z.discriminatedUnion("targetCollection", [
     templateId: z.string().min(1),
     title: z.string().min(1),
     slug: z.string().min(1),
+    tenantId: z.string().optional(),
   }),
   z.object({
     targetCollection: z.literal(MISSIONARY_GIVING_PAGES_SLUG),
     templateId: z.string().min(1),
     missionaryId: z.string().uuid(),
+    tenantId: z.string().optional(),
   }),
   z.object({
     targetCollection: z.literal(PROJECT_PAGES_SLUG),
     templateId: z.string().min(1),
     fundId: z.string().uuid(),
+    tenantId: z.string().optional(),
   }),
   z.object({
     targetCollection: z.literal("ministry-updates"),
@@ -60,6 +64,7 @@ const bodySchema = z.discriminatedUnion("targetCollection", [
     missionaryProfileId: z.string().min(1),
     title: z.string().min(1),
     slug: z.string().min(1),
+    tenantId: z.string().optional(),
   }),
 ]);
 
@@ -121,9 +126,70 @@ function readTemplateKey(template: PageTemplate): string {
     : "template";
 }
 
-async function createPageFromTemplate(
+function readTenantIdFromDoc(doc: {
+  tenant?: number | Tenant | null;
+}): string | null {
+  if (typeof doc.tenant === "number") {
+    return String(doc.tenant);
+  }
+  if (doc.tenant && typeof doc.tenant === "object" && "id" in doc.tenant) {
+    return String(doc.tenant.id);
+  }
+  return null;
+}
+
+async function resolveRequestedTenantId(
   req: PayloadRequest,
   ctx: TenantCtx,
+  parsed: ParsedBody,
+): Promise<{ ok: true; tenantId: string } | { ok: false; response: Response }> {
+  if (!isSuperAdmin(ctx)) {
+    if (!ctx.tenantId) {
+      return {
+        ok: false,
+        response: jsonResponse({ error: "Tenant context required" }, 400),
+      };
+    }
+
+    if (parsed.tenantId && parsed.tenantId !== ctx.tenantId) {
+      return {
+        ok: false,
+        response: jsonResponse({ error: "Tenant mismatch" }, 403),
+      };
+    }
+
+    return { ok: true, tenantId: ctx.tenantId };
+  }
+
+  if (!parsed.tenantId) {
+    return {
+      ok: false,
+      response: jsonResponse(
+        { error: "Super-admin must choose a tenant" },
+        400,
+      ),
+    };
+  }
+
+  const tenant = await req.payload.findByID({
+    collection: "tenants",
+    id: parsed.tenantId,
+    depth: 0,
+    req,
+  });
+
+  if (!tenant) {
+    return {
+      ok: false,
+      response: jsonResponse({ error: "Tenant not found" }, 404),
+    };
+  }
+
+  return { ok: true, tenantId: String(tenant.id) };
+}
+
+async function createPageFromTemplate(
+  req: PayloadRequest,
   parsed: Extract<ParsedBody, { targetCollection: "pages" }>,
   template: PageTemplate,
   defaultLayout: NonNullable<Page["layout"]>,
@@ -174,7 +240,7 @@ async function createPageFromTemplate(
 
 async function createMissionaryGivingPageFromTemplate(
   req: PayloadRequest,
-  ctx: TenantCtx,
+  tenantId: string,
   parsed: Extract<
     ParsedBody,
     { targetCollection: typeof MISSIONARY_GIVING_PAGES_SLUG }
@@ -185,6 +251,10 @@ async function createMissionaryGivingPageFromTemplate(
   templateKey: string,
 ): Promise<Response> {
   const { payload } = req;
+
+  if (templateTenant && templateTenant !== tenantId) {
+    return jsonResponse({ error: "Template is not in your tenant" }, 403);
+  }
 
   if (template.pageType !== MISSIONARY_GIVING_PAGE_TYPE) {
     return jsonResponse(
@@ -201,12 +271,10 @@ async function createMissionaryGivingPageFromTemplate(
     );
   }
 
-  if (!isSuperAdmin(ctx) && ctx.tenantId) {
-    const { data: missionaryRow, error: missionaryError } =
-      await findMissionaryById(supabase, parsed.missionaryId, ctx.tenantId);
-    if (missionaryError || !missionaryRow?.id) {
-      return jsonResponse({ error: "Missionary not found for tenant" }, 404);
-    }
+  const { data: missionaryRowForTenant, error: missionaryError } =
+    await findMissionaryById(supabase, parsed.missionaryId, tenantId);
+  if (missionaryError || !missionaryRowForTenant?.id) {
+    return jsonResponse({ error: "Missionary not found for tenant" }, 404);
   }
 
   const dup = await payload.find({
@@ -217,11 +285,7 @@ async function createMissionaryGivingPageFromTemplate(
     where: {
       and: [
         { missionaryId: { equals: parsed.missionaryId } },
-        ...(templateTenant
-          ? [{ tenant: { equals: templateTenant } }]
-          : !isSuperAdmin(ctx) && ctx.tenantId
-            ? [{ tenant: { equals: ctx.tenantId } }]
-            : []),
+        { tenant: { equals: tenantId } },
       ],
     },
   });
@@ -240,13 +304,11 @@ async function createMissionaryGivingPageFromTemplate(
     .select("id, profile_id")
     .eq("id", parsed.missionaryId);
 
-  const scopedMissionaryRowQuery =
-    !isSuperAdmin(ctx) && ctx.tenantId
-      ? missionaryRowQuery.eq("tenant_id", ctx.tenantId)
-      : missionaryRowQuery;
+  const scopedMissionaryRowQuery = missionaryRowQuery.eq("tenant_id", tenantId);
 
-  const { data: missionaryRow, error: missionaryRowError } =
-    await scopedMissionaryRowQuery.single();
+  const missionaryLookupResult = await scopedMissionaryRowQuery.single();
+  const missionaryRow = missionaryLookupResult?.data;
+  const missionaryRowError = missionaryLookupResult?.error;
 
   if (missionaryRowError || !missionaryRow?.id) {
     return jsonResponse({ error: "Missionary not found" }, 404);
@@ -272,26 +334,18 @@ async function createMissionaryGivingPageFromTemplate(
     slugifySegment(`${display}-${parsed.missionaryId.slice(0, 8)}`) ||
     slugifySegment(`give-${parsed.missionaryId}`);
 
-  const tenantForProfile =
-    templateTenant ?? (!isSuperAdmin(ctx) ? ctx.tenantId : null);
-
-  const profileMatch =
-    tenantForProfile || isSuperAdmin(ctx)
-      ? await payload.find({
-          collection: "missionary-profiles",
-          limit: 1,
-          pagination: false,
-          req,
-          where: {
-            and: [
-              ...(tenantForProfile
-                ? [{ tenant: { equals: tenantForProfile } }]
-                : []),
-              { supabaseMissionaryId: { equals: parsed.missionaryId } },
-            ],
-          },
-        })
-      : { docs: [] as Array<{ id?: string | number }> };
+  const profileMatch = await payload.find({
+    collection: "missionary-profiles",
+    limit: 1,
+    pagination: false,
+    req,
+    where: {
+      and: [
+        { tenant: { equals: tenantId } },
+        { supabaseMissionaryId: { equals: parsed.missionaryId } },
+      ],
+    },
+  });
 
   const matchedProfile = profileMatch.docs[0] as
     | { id?: string | number }
@@ -341,11 +395,7 @@ async function createMissionaryGivingPageFromTemplate(
       where: {
         and: [
           { missionaryId: { equals: parsed.missionaryId } },
-          ...(templateTenant
-            ? [{ tenant: { equals: templateTenant } }]
-            : !isSuperAdmin(ctx) && ctx.tenantId
-              ? [{ tenant: { equals: ctx.tenantId } }]
-              : []),
+          { tenant: { equals: tenantId } },
         ],
       },
     });
@@ -369,7 +419,7 @@ async function createMissionaryGivingPageFromTemplate(
 
 async function createProjectPageFromTemplate(
   req: PayloadRequest,
-  ctx: TenantCtx,
+  tenantId: string,
   parsed: Extract<ParsedBody, { targetCollection: typeof PROJECT_PAGES_SLUG }>,
   template: PageTemplate,
   templateTenant: string | null,
@@ -377,6 +427,10 @@ async function createProjectPageFromTemplate(
   templateKey: string,
 ): Promise<Response> {
   const { payload } = req;
+
+  if (templateTenant && templateTenant !== tenantId) {
+    return jsonResponse({ error: "Template is not in your tenant" }, 403);
+  }
 
   if (template.pageType !== PROJECT_PAGE_TYPE) {
     return jsonResponse({ error: "Template page type must be project" }, 400);
@@ -395,10 +449,7 @@ async function createProjectPageFromTemplate(
     .select("id, name, description, missionary_id")
     .eq("id", parsed.fundId);
 
-  const scopedFundQuery =
-    !isSuperAdmin(ctx) && ctx.tenantId
-      ? fundQuery.eq("tenant_id", ctx.tenantId)
-      : fundQuery;
+  const scopedFundQuery = fundQuery.eq("tenant_id", tenantId);
 
   const { data: fund, error: fundError } = await scopedFundQuery.single();
   if (fundError || !fund?.id) {
@@ -413,11 +464,7 @@ async function createProjectPageFromTemplate(
     where: {
       and: [
         { fundId: { equals: parsed.fundId } },
-        ...(templateTenant
-          ? [{ tenant: { equals: templateTenant } }]
-          : !isSuperAdmin(ctx) && ctx.tenantId
-            ? [{ tenant: { equals: ctx.tenantId } }]
-            : []),
+        { tenant: { equals: tenantId } },
       ],
     },
   });
@@ -470,11 +517,7 @@ async function createProjectPageFromTemplate(
       where: {
         and: [
           { fundId: { equals: parsed.fundId } },
-          ...(templateTenant
-            ? [{ tenant: { equals: templateTenant } }]
-            : !isSuperAdmin(ctx) && ctx.tenantId
-              ? [{ tenant: { equals: ctx.tenantId } }]
-              : []),
+          { tenant: { equals: tenantId } },
         ],
       },
     });
@@ -498,11 +541,16 @@ async function createProjectPageFromTemplate(
 
 async function createMinistryUpdateFromTemplate(
   req: PayloadRequest,
-  ctx: TenantCtx,
+  tenantId: string,
   parsed: Extract<ParsedBody, { targetCollection: "ministry-updates" }>,
   template: PageTemplate,
+  templateTenant: string | null,
 ): Promise<Response> {
   const { payload } = req;
+
+  if (templateTenant && templateTenant !== tenantId) {
+    return jsonResponse({ error: "Template is not in your tenant" }, 403);
+  }
 
   if (template.pageType !== MINISTRY_UPDATE_TEMPLATE_PAGE_TYPE) {
     return jsonResponse(
@@ -514,27 +562,15 @@ async function createMinistryUpdateFromTemplate(
     );
   }
 
-  if (!isSuperAdmin(ctx) && ctx.tenantId) {
-    const profileCheck = await payload.findByID({
-      collection: "missionary-profiles",
-      id: parsed.missionaryProfileId,
-      depth: 0,
-      req,
-    });
-    const profileTenant =
-      typeof profileCheck?.tenant === "string"
-        ? profileCheck.tenant
-        : profileCheck?.tenant &&
-            typeof profileCheck.tenant === "object" &&
-            "id" in profileCheck.tenant
-          ? String((profileCheck.tenant as { id: string | number }).id)
-          : null;
-    if (!profileCheck || profileTenant !== ctx.tenantId) {
-      return jsonResponse(
-        { error: "Missionary profile not found in your tenant" },
-        403,
-      );
-    }
+  const profileCheck = await payload.findByID({
+    collection: "missionary-profiles",
+    id: parsed.missionaryProfileId,
+    depth: 0,
+    req,
+  });
+  const profileTenant = profileCheck ? readTenantIdFromDoc(profileCheck) : null;
+  if (!profileCheck || profileTenant !== tenantId) {
+    return jsonResponse({ error: "Missionary profile not found" }, 404);
   }
 
   const data: Omit<
@@ -597,12 +633,14 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
 
     const templateTenant = readTemplateTenant(template);
 
-    if (
-      !isSuperAdmin(ctx) &&
-      templateTenant &&
-      ctx.tenantId &&
-      templateTenant !== ctx.tenantId
-    ) {
+    const tenantResolution = await resolveRequestedTenantId(req, ctx, parsed);
+    if (!tenantResolution.ok) {
+      return tenantResolution.response;
+    }
+
+    const { tenantId } = tenantResolution;
+
+    if (templateTenant && templateTenant !== tenantId) {
       return jsonResponse({ error: "Template is not in your tenant" }, 403);
     }
 
@@ -612,7 +650,6 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
     if (parsed.targetCollection === "pages") {
       return createPageFromTemplate(
         req,
-        ctx,
         parsed,
         template,
         defaultLayout,
@@ -623,7 +660,7 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
     if (parsed.targetCollection === MISSIONARY_GIVING_PAGES_SLUG) {
       return createMissionaryGivingPageFromTemplate(
         req,
-        ctx,
+        tenantId,
         parsed,
         template,
         templateTenant,
@@ -635,7 +672,7 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
     if (parsed.targetCollection === PROJECT_PAGES_SLUG) {
       return createProjectPageFromTemplate(
         req,
-        ctx,
+        tenantId,
         parsed,
         template,
         templateTenant,
@@ -645,7 +682,13 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
     }
 
     if (parsed.targetCollection === "ministry-updates") {
-      return createMinistryUpdateFromTemplate(req, ctx, parsed, template);
+      return createMinistryUpdateFromTemplate(
+        req,
+        tenantId,
+        parsed,
+        template,
+        templateTenant,
+      );
     }
 
     return jsonResponse({ error: "Unsupported target" }, 400);

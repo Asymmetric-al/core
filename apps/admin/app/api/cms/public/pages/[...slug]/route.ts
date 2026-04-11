@@ -79,7 +79,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
         page as unknown as Record<string, unknown>,
       ),
       tenant: {
-        id: tenant.id,
         slug: tenant.slug ?? null,
       },
     });

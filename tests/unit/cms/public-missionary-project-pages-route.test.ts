@@ -86,7 +86,7 @@ describe("public missionary giving page route", () => {
       title: "Give",
       missionaryId: "m1",
     });
-    expect(body.tenant.id).toBe("t1");
+    expect(body.tenant).toEqual({ slug: "demo" });
     expect(find).toHaveBeenCalledWith(
       expect.objectContaining({
         collection: "missionary-giving-pages",
