@@ -235,8 +235,11 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
       const { data: missionaryRow, error: missionaryRowError } =
         await scopedMissionaryRowQuery.single();
 
-      if (missionaryRowError || !missionaryRow?.id || !missionaryRow.profile_id) {
+      if (missionaryRowError || !missionaryRow?.id) {
         return jsonResponse({ error: "Missionary not found" }, 404);
+      }
+      if (!missionaryRow.profile_id) {
+        return jsonResponse({ error: "Missionary has no linked profile" }, 422);
       }
 
       const { data: profileRow } = await supabase
@@ -282,23 +285,54 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
           ? matchedProfile.id
           : undefined;
 
-      const doc = await payload.create({
-        collection: MISSIONARY_GIVING_PAGES_SLUG,
-        data: {
-          missionaryId: parsed.missionaryId,
-          missionaryProfile: missionaryProfileId ?? undefined,
-          templateKey,
-          template: parsed.templateId,
-          title: titleBase,
-          slug: slugBase || slugifySegment("give"),
-          summary:
-            typeof template.defaultSummary === "string" ? template.defaultSummary : undefined,
-          pageType: MISSIONARY_GIVING_PAGE_TYPE,
-          layout: defaultLayout,
-        } as never,
-        draft: true,
-        req,
-      });
+      let doc: { id: string | number };
+      try {
+        doc = await payload.create({
+          collection: MISSIONARY_GIVING_PAGES_SLUG,
+          data: {
+            missionaryId: parsed.missionaryId,
+            missionaryProfile: missionaryProfileId ?? undefined,
+            templateKey,
+            template: parsed.templateId,
+            title: titleBase,
+            slug: slugBase || slugifySegment("give"),
+            summary:
+              typeof template.defaultSummary === "string" ? template.defaultSummary : undefined,
+            pageType: MISSIONARY_GIVING_PAGE_TYPE,
+            layout: defaultLayout,
+          } as never,
+          draft: true,
+          req,
+        });
+      } catch {
+        // TOCTOU guard: re-check for duplicate created by a concurrent request
+        const race = await payload.find({
+          collection: MISSIONARY_GIVING_PAGES_SLUG,
+          limit: 1,
+          pagination: false,
+          req,
+          where: {
+            and: [
+              { missionaryId: { equals: parsed.missionaryId } },
+              ...(templateTenant
+                ? [{ tenant: { equals: templateTenant } }]
+                : !isSuperAdmin(ctx) && ctx.tenantId
+                  ? [{ tenant: { equals: ctx.tenantId } }]
+                  : []),
+            ],
+          },
+        });
+        if (race.docs[0]) {
+          return jsonResponse(
+            {
+              error: "A missionary giving page already exists for this missionary",
+              existingId: String(race.docs[0].id),
+            },
+            409,
+          );
+        }
+        throw new Error("Failed to create missionary giving page");
+      }
 
       return jsonResponse({
         id: String(doc.id),
@@ -365,22 +399,53 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
         slugifySegment(`${titleBase}-${parsed.fundId.slice(0, 8)}`) ||
         slugifySegment(parsed.fundId);
 
-      const doc = await payload.create({
-        collection: PROJECT_PAGES_SLUG,
-        data: {
-          fundId: parsed.fundId,
-          templateKey,
-          template: parsed.templateId,
-          title: titleBase,
-          slug: slugBase || slugifySegment(parsed.fundId),
-          summary:
-            typeof fund.description === "string" ? fund.description : template.defaultSummary,
-          pageType: PROJECT_PAGE_TYPE,
-          layout: defaultLayout,
-        } as never,
-        draft: true,
-        req,
-      });
+      let doc: { id: string | number };
+      try {
+        doc = await payload.create({
+          collection: PROJECT_PAGES_SLUG,
+          data: {
+            fundId: parsed.fundId,
+            templateKey,
+            template: parsed.templateId,
+            title: titleBase,
+            slug: slugBase || slugifySegment(parsed.fundId),
+            summary:
+              typeof fund.description === "string" ? fund.description : template.defaultSummary,
+            pageType: PROJECT_PAGE_TYPE,
+            layout: defaultLayout,
+          } as never,
+          draft: true,
+          req,
+        });
+      } catch {
+        // TOCTOU guard: re-check for duplicate created by a concurrent request
+        const race = await payload.find({
+          collection: PROJECT_PAGES_SLUG,
+          limit: 1,
+          pagination: false,
+          req,
+          where: {
+            and: [
+              { fundId: { equals: parsed.fundId } },
+              ...(templateTenant
+                ? [{ tenant: { equals: templateTenant } }]
+                : !isSuperAdmin(ctx) && ctx.tenantId
+                  ? [{ tenant: { equals: ctx.tenantId } }]
+                  : []),
+            ],
+          },
+        });
+        if (race.docs[0]) {
+          return jsonResponse(
+            {
+              error: "A project page already exists for this fund",
+              existingId: String(race.docs[0].id),
+            },
+            409,
+          );
+        }
+        throw new Error("Failed to create project page");
+      }
 
       return jsonResponse({
         id: String(doc.id),
@@ -394,6 +459,26 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
           { error: "Template page type must be ministry_update for ministry updates" },
           400,
         );
+      }
+
+      if (!isSuperAdmin(ctx) && ctx.tenantId) {
+        const profileCheck = await payload.findByID({
+          collection: "missionary-profiles",
+          id: parsed.missionaryProfileId,
+          depth: 0,
+          req,
+        });
+        const profileTenant =
+          typeof profileCheck?.tenant === "string"
+            ? profileCheck.tenant
+            : profileCheck?.tenant &&
+                typeof profileCheck.tenant === "object" &&
+                "id" in profileCheck.tenant
+              ? String((profileCheck.tenant as { id: string | number }).id)
+              : null;
+        if (!profileCheck || profileTenant !== ctx.tenantId) {
+          return jsonResponse({ error: "Missionary profile not found in your tenant" }, 403);
+        }
       }
 
       const doc = await payload.create({
