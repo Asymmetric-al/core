@@ -10,7 +10,11 @@ import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 import { Separator } from "@asym/ui/components/shadcn/separator";
-import { Sheet, SheetContent } from "@asym/ui/components/shadcn/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+} from "@asym/ui/components/shadcn/sheet";
 import { cn } from "@asym/ui/lib/utils";
 import { Copy, DollarSign, Mail, Receipt, RefreshCcw, X } from "lucide-react";
 import { toast } from "sonner";
@@ -24,7 +28,6 @@ import type { Contribution, ContributionStatus } from "./types";
 const statusDotColor: Record<ContributionStatus, string> = {
   completed: "bg-emerald-500",
   pending: "bg-amber-500",
-  processing: "bg-sky-500",
   failed: "bg-destructive",
   refunded: "bg-muted-foreground",
 };
@@ -97,10 +100,10 @@ export function ContributionDetailSheet({
       <SheetContent className="w-full sm:max-w-lg p-0 gap-0 border-l border-border bg-background shadow-2xl overflow-hidden flex flex-col h-full text-left">
         {/* ---- Header ---- */}
         <div className="h-14 bg-card border-b border-border flex items-center justify-between px-4 shrink-0 z-10">
-          <div className="flex items-center gap-2 text-sm font-bold text-foreground uppercase tracking-wider">
-            <DollarSign className="size-4 text-muted-foreground" />
-            <span>Contribution Details</span>
-          </div>
+          <SheetTitle className="m-0 flex items-center gap-2 text-sm font-bold text-foreground uppercase tracking-wider">
+            <DollarSign className="size-4 text-muted-foreground" aria-hidden />
+            Contribution Details
+          </SheetTitle>
           <Button
             variant="ghost"
             size="icon"
@@ -126,9 +129,9 @@ export function ContributionDetailSheet({
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 space-y-1 pt-1">
-                <h2 className="text-2xl font-bold text-foreground tracking-tight">
+                <h3 className="text-2xl font-bold text-foreground tracking-tight">
                   {isAnonymous ? "Anonymous Donor" : donorDisplayName}
-                </h2>
+                </h3>
                 {!isAnonymous && donorEmail && (
                   <p className="text-sm text-muted-foreground font-medium">
                     {donorEmail}

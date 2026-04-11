@@ -151,7 +151,7 @@ export default function LocationsPage() {
         </TabsContent>
 
         <TabsContent value="table" className="m-0">
-          <Card className="rounded-[2.5rem] overflow-hidden border-zinc-100 shadow-2xl shadow-zinc-100">
+          <Card className="rounded-[2.5rem] border-zinc-100 shadow-2xl shadow-zinc-100">
             <div className="p-8">
               <LocationTable
                 data={locations || []}

@@ -78,7 +78,7 @@ export function PageShell({
           </h1>
 
           {description && (
-            <p className="text-muted-foreground text-sm font-bold uppercase tracking-widest leading-relaxed max-w-2xl">
+            <p className="text-muted-foreground text-sm font-medium leading-relaxed max-w-2xl">
               {description}
             </p>
           )}

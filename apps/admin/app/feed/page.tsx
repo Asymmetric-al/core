@@ -2115,7 +2115,7 @@ export default function ContentModerationPage() {
 
   return (
     <PageShell
-      title="Ministry Updates"
+      title="Moderation"
       description="Review flagged content, moderate posts, and manage comments."
       actions={
         <>

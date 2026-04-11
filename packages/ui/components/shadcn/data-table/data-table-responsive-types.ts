@@ -52,6 +52,17 @@ export interface DataTableResponsiveProps<TData, TValue> {
   onRefresh?: () => void;
   onExport?: () => void;
   onRowClick?: (row: Row<TData>) => void;
+  /**
+   * Cursor-style loading: fires `onLoadMore` when the user scrolls near the end
+   * of the table body (virtualized or not).
+   */
+  infiniteScroll?: {
+    hasMore: boolean;
+    isFetchingMore: boolean;
+    onLoadMore: () => void;
+    threshold?: number;
+    loadingContent?: React.ReactNode;
+  };
   enableVirtualization?: boolean;
   floatingBarActions?: {
     label: string;

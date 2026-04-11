@@ -14,10 +14,10 @@ import {
 } from "@asym/ui/components/shadcn/data-table";
 import { cn } from "@asym/ui/lib/utils";
 import { DollarSign, Download, Plus, Trash2, Receipt } from "lucide-react";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 
-import { columns as contributionColumns } from "./columns";
+import { getContributionColumns } from "./columns";
 import {
   contributionStatusOptions,
   contributionTypeOptions,
@@ -25,19 +25,25 @@ import {
   sourceOptions,
 } from "./data";
 
-import type { Contribution } from "./types";
+import type { Contribution, ContributionStatus } from "./types";
 
 const smoothTransition = {
   duration: 0.25,
   ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
 };
 
-const statusDotColor: Record<string, string> = {
+const statusDotColor: Record<ContributionStatus, string> = {
   completed: "bg-emerald-500",
   pending: "bg-amber-500",
-  processing: "bg-sky-500",
   failed: "bg-destructive",
   refunded: "bg-muted-foreground",
+};
+
+const statusShortLabel: Record<ContributionStatus, string> = {
+  completed: "Completed",
+  pending: "Pending",
+  failed: "Failed",
+  refunded: "Refunded",
 };
 
 function StatCard({
@@ -79,6 +85,21 @@ export function ContributionsMainBody({
   isLoading: boolean;
   onSelectContribution: (c: Contribution) => void;
 }) {
+  const handleViewContribution = useCallback(
+    (c: Contribution) => {
+      onSelectContribution(c);
+    },
+    [onSelectContribution],
+  );
+
+  const columns = useMemo(
+    () =>
+      getContributionColumns({
+        onViewContribution: handleViewContribution,
+      }),
+    [handleViewContribution],
+  );
+
   const stats = useMemo(() => {
     const totalAmount = data.reduce(
       (sum, c) => (c.status === "completed" ? sum + c.amount : sum),
@@ -86,10 +107,7 @@ export function ContributionsMainBody({
     );
     const totalCount = data.filter((c) => c.status === "completed").length;
     const pendingAmount = data.reduce(
-      (sum, c) =>
-        c.status === "pending" || c.status === "processing"
-          ? sum + c.amount
-          : sum,
+      (sum, c) => (c.status === "pending" ? sum + c.amount : sum),
       0,
     );
     const avgAmount = totalCount > 0 ? totalAmount / totalCount : 0;
@@ -145,7 +163,7 @@ export function ContributionsMainBody({
         transition={{ ...smoothTransition, delay: 0.3 }}
       >
         <DataTableResponsive
-          columns={contributionColumns}
+          columns={columns}
           data={data}
           filterFields={filterFields}
           searchKey="donorName"
@@ -186,9 +204,12 @@ export function ContributionsMainBody({
             badgeField: "status",
             renderCard: (row) => {
               const contribution = row.original;
-              const donorName =
-                contribution.donorName ?? contribution.donorEmail ?? "";
-              const donorAvatar = contribution.donorAvatar ?? undefined;
+              const donorLabel =
+                contribution.isAnonymous === true
+                  ? "Anonymous"
+                  : (contribution.donorName ?? contribution.donorEmail);
+              const avatarSrc = contribution.donorAvatar ?? undefined;
+
               return (
                 <button
                   type="button"
@@ -198,18 +219,18 @@ export function ContributionsMainBody({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10 border border-border">
-                        {!contribution.isAnonymous && donorAvatar ? (
-                          <AvatarImage src={donorAvatar} alt={donorName} />
+                        {!contribution.isAnonymous && avatarSrc ? (
+                          <AvatarImage src={avatarSrc} alt={donorLabel} />
                         ) : null}
                         <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium">
                           {contribution.isAnonymous
                             ? "?"
-                            : getInitials(donorName)}
+                            : getInitials(donorLabel)}
                         </AvatarFallback>
                       </Avatar>
                       <div>
                         <div className="text-sm font-bold text-foreground">
-                          {contribution.isAnonymous ? "Anonymous" : donorName}
+                          {donorLabel}
                         </div>
                         <div className="text-xs text-muted-foreground font-medium">
                           {contribution.fundName}
@@ -225,7 +246,7 @@ export function ContributionsMainBody({
                         )}
                       />
                       <span className="text-[10px] font-bold uppercase tracking-wider text-foreground">
-                        {contribution.status}
+                        {statusShortLabel[contribution.status]}
                       </span>
                     </div>
                   </div>
