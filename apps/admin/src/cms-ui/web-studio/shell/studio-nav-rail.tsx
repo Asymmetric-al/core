@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { getEnabledWebStudioCollections } from "../collections/config";
 import { WEB_STUDIO_PREF_KEYS } from "../preferences/keys";
@@ -59,7 +59,7 @@ export function StudioNavRail({ className }: { className?: string }) {
     }
   };
 
-  const enabledCollections = getEnabledWebStudioCollections();
+  const enabledCollections = useMemo(() => getEnabledWebStudioCollections(), []);
 
   useEffect(() => {
     let cancelled = false;
