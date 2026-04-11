@@ -120,7 +120,9 @@ export function NativeCollectionEditView({
     return () => {
       cancelled = true;
     };
-  }, [getPreference, studioConfig.preferences.workspace]);
+    // `studioCollection`: re-hydrate when navigating between native collections even if the
+    // workspace preference key string were unchanged (defensive); ESLint allows this here.
+  }, [getPreference, studioCollection, studioConfig.preferences.workspace]);
 
   useEffect(() => {
     const identifier =
