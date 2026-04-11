@@ -33,6 +33,7 @@
     "@payloadcms/db-postgres": "^3.77.0",
     "@payloadcms/next": "^3.77.0",
     "@payloadcms/richtext-lexical": "^3.77.0",
+    "@payloadcms/ui": "^3.77.0",
     "@radix-ui/react-visually-hidden": "^1.2.4",
     "@supabase/ssr": "^0.8.0",
     "@tanstack/db": "^0.5.16",
@@ -51,6 +52,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "^2.15.4",
+    "sharp": "^0.34.5",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
     "zod": "^4.3.6"
