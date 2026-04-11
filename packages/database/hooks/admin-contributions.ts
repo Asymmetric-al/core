@@ -170,7 +170,10 @@ export function useContributionsLiveRows() {
         amount: donation.amount,
         date: donation.created_at,
         status: normalizeContributionStatus(donation.status),
-        type: normalizeContributionType(donation.donation_type, donation.is_recurring),
+        type: normalizeContributionType(
+          donation.donation_type,
+          donation.is_recurring,
+        ),
         paymentMethod: "Other",
         source: "Online",
         fundCode: fund?.id ?? null,
