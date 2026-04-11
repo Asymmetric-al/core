@@ -1,12 +1,10 @@
 import { expect, test } from "@playwright/test";
 
+import { adminBaseURL } from "./base-urls";
 import {
   attachPayloadDbConsoleListener,
   waitForWebStudioShellOrSkip,
 } from "./cms-skip-if-no-payload";
-
-const adminBaseURL =
-  process.env.PLAYWRIGHT_ADMIN_BASE_URL || "http://localhost:3030";
 
 test.describe("@cms Web Studio native shell", () => {
   async function signInAsAdmin(page: import("@playwright/test").Page) {
@@ -64,7 +62,9 @@ test.describe("@cms Web Studio native shell", () => {
       await page.waitForURL(new RegExp(route.href.replace(/\//g, "\\/")));
       await waitForWebStudioShellOrSkip(page);
       await expect(page.getByTestId("web-studio-native-shell")).toBeVisible();
-      await expect(page.getByRole("heading", { name: route.heading }).first()).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: route.heading }).first(),
+      ).toBeVisible();
     }
   });
 });
