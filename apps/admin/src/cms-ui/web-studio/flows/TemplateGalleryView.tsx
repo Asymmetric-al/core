@@ -19,7 +19,6 @@ import { useMemo } from "react";
 import { PAGE_TEMPLATES_SLUG } from "../../../cms/constants";
 import { StudioLayout } from "../shell/studio-layout";
 
-
 type TemplateDoc = {
   id: string | number;
   name?: string;
@@ -41,7 +40,9 @@ function wizardHrefForPageType(
   pageType: string | undefined,
   missionaryId: string | null,
 ) {
-  const m = missionaryId ? `&missionaryId=${encodeURIComponent(missionaryId)}` : "";
+  const m = missionaryId
+    ? `&missionaryId=${encodeURIComponent(missionaryId)}`
+    : "";
   switch (pageType) {
     case "missionary_giving":
       return `/web-studio/pages/give?template=${encodeURIComponent(templateId)}${m}`;
@@ -92,10 +93,13 @@ export function TemplateGalleryView() {
     <StudioLayout sectionLabel="Templates" currentLabel="Gallery">
       <div className="px-4 py-6 sm:px-6 lg:px-8">
         <div className="mb-8 max-w-3xl">
-          <h1 className="font-semibold text-2xl tracking-tight">Template gallery</h1>
+          <h1 className="font-semibold text-2xl tracking-tight">
+            Template gallery
+          </h1>
           <p className="mt-2 text-muted-foreground text-sm">
-            Choose a published template to start a draft. Standard pages, missionary giving
-            pages, project pages, and ministry update starters each have their own create flow.
+            Choose a published template to start a draft. Standard pages,
+            missionary giving pages, project pages, and ministry update starters
+            each have their own create flow.
           </p>
           {pageTypeFilter ? (
             <p className="mt-2 text-muted-foreground text-xs">
@@ -113,7 +117,8 @@ export function TemplateGalleryView() {
 
         {templatesQuery.isError ? (
           <p className="text-destructive text-sm">
-            {(templatesQuery.error as Error)?.message ?? "Could not load templates."}
+            {(templatesQuery.error as Error)?.message ??
+              "Could not load templates."}
           </p>
         ) : null}
 
@@ -138,9 +143,14 @@ export function TemplateGalleryView() {
                   <Card key={id} className="border-border">
                     <CardHeader>
                       <div className="flex flex-wrap items-center gap-2">
-                        <CardTitle className="text-base">{template.name ?? id}</CardTitle>
+                        <CardTitle className="text-base">
+                          {template.name ?? id}
+                        </CardTitle>
                         {template.pageType ? (
-                          <Badge variant="outline" className="text-[10px] uppercase">
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] uppercase"
+                          >
                             {template.pageType}
                           </Badge>
                         ) : null}
@@ -154,10 +164,17 @@ export function TemplateGalleryView() {
                     <CardContent className="flex flex-col gap-2">
                       {template.templateKey ? (
                         <p className="text-muted-foreground text-xs">
-                          Key: <span className="font-mono">{template.templateKey}</span>
+                          Key:{" "}
+                          <span className="font-mono">
+                            {template.templateKey}
+                          </span>
                         </p>
                       ) : null}
-                      <Button size="sm" className="w-full font-semibold uppercase" asChild>
+                      <Button
+                        size="sm"
+                        className="w-full font-semibold uppercase"
+                        asChild
+                      >
                         <Link href={href}>Start from template</Link>
                       </Button>
                     </CardContent>
@@ -168,8 +185,8 @@ export function TemplateGalleryView() {
 
         {!templatesQuery.isPending && filtered.length === 0 ? (
           <p className="text-muted-foreground text-sm">
-            No templates match this filter. Create templates in the Page Templates collection or
-            adjust the query string.
+            No templates match this filter. Create templates in the Page
+            Templates collection or adjust the query string.
           </p>
         ) : null}
       </div>

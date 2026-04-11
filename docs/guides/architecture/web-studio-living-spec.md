@@ -22,16 +22,16 @@
 
 ## 2. Technical system summary
 
-| Concern | Implementation |
-|--------|------------------|
-| **Runtime** | Single Payload instance in `apps/admin`; Postgres `cms` schema via `@payloadcms/db-postgres`. |
-| **Admin route** | `routes.admin: /web-studio` in `apps/admin/payload.config.ts`; Next catch-all `apps/admin/app/(payload)/web-studio/[[...segments]]/page.tsx`. |
-| **Payload REST/GraphQL** | `apps/admin/app/(payload)/api/[...slug]/route.ts`, `.../api/graphql/route.ts` — same origin as admin app. |
-| **Public read API** | `apps/admin/app/api/cms/public/**` — **not** the `(payload)` group; tenant resolution + published-only queries. |
-| **Custom views** | `buildConfig.admin.components.views` for top-level flows; per-collection `admin.components.views` for list/edit overrides. |
-| **Custom endpoint** | `POST /api/web-studio/create-from-template` via `config.endpoints` → `apps/admin/src/cms/create-from-template-endpoint.ts`. |
-| **Access** | `apps/admin/src/cms/access/*` + tenant hooks on collections; public routes use `overrideAccess: true` with explicit `where` (tenant + published). |
-| **Preferences** | Payload preferences API; keys in `apps/admin/src/cms-ui/web-studio/preferences/keys.ts`. |
+| Concern                  | Implementation                                                                                                                                    |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Runtime**              | Single Payload instance in `apps/admin`; Postgres `cms` schema via `@payloadcms/db-postgres`.                                                     |
+| **Admin route**          | `routes.admin: /web-studio` in `apps/admin/payload.config.ts`; Next catch-all `apps/admin/app/(payload)/web-studio/[[...segments]]/page.tsx`.     |
+| **Payload REST/GraphQL** | `apps/admin/app/(payload)/api/[...slug]/route.ts`, `.../api/graphql/route.ts` — same origin as admin app.                                         |
+| **Public read API**      | `apps/admin/app/api/cms/public/**` — **not** the `(payload)` group; tenant resolution + published-only queries.                                   |
+| **Custom views**         | `buildConfig.admin.components.views` for top-level flows; per-collection `admin.components.views` for list/edit overrides.                        |
+| **Custom endpoint**      | `POST /api/web-studio/create-from-template` via `config.endpoints` → `apps/admin/src/cms/create-from-template-endpoint.ts`.                       |
+| **Access**               | `apps/admin/src/cms/access/*` + tenant hooks on collections; public routes use `overrideAccess: true` with explicit `where` (tenant + published). |
+| **Preferences**          | Payload preferences API; keys in `apps/admin/src/cms-ui/web-studio/preferences/keys.ts`.                                                          |
 
 ---
 
@@ -39,23 +39,23 @@
 
 Legend: **shipped** | **partial** | **fallback-backed** | **not started** | **deferred**
 
-| Area | State | Notes |
-|------|--------|------|
-| Shell, nav, recent docs, prefs | **shipped** | `apps/admin/src/cms-ui/web-studio/shell/*` |
-| Native list + default edit: `pages`, `navigation`, `missionary-profiles`, `ministry-updates`, `media` | **shipped** | Env can disable per collection → **fallback-backed** |
-| Native list + edit: `page-templates`, `missionary-giving-pages`, `project-pages` | **shipped** | Same flags: `CMS_WEB_STUDIO_NATIVE_*` |
-| Template gallery `/web-studio/templates` | **shipped** | Draft templates included in gallery fetch (`draft=true` query) |
-| Wizards: standard / give / project / ministry update starter | **shipped** | `apps/admin/src/cms-ui/web-studio/flows/*` |
-| `create-from-template` endpoint | **shipped** | Staff auth + tenant checks; Supabase validation for missionary/fund |
-| Staff directory APIs | **shipped** | Thin routes → `@asym/api/admin/missionary-directory`, `fund-directory` (data boundary) |
-| Public: pages, navigation, updates | **shipped** | Existing contracts |
-| Public: missionary-pages, project-pages | **shipped** | Additive routes |
-| Serialized `pages` public JSON | **shipped** | `serializePublishedPageLike` — extra fields, backward compatible |
-| Nested Payload subviews (versions, live preview UI) | **partial** | Stock Payload; links from native chrome |
-| Donor consumption of new public routes | **partial** | `fetchPublishedMissionaryGivingPage` / `fetchPublishedProjectPage` in `client.ts`; **Inference:** worker/project pages may not all be wired yet |
-| E2E coverage for every Phase 3 click path | **partial** | Unit tests extended; full Playwright needs DB + ports (Phase 4 notes) |
-| TipTap inside Web Studio CMS fields | **not started** | Payload editor is Lexical |
-| TanStack DB in Web Studio | **not started** | **Confirmed:** `@tanstack/db` not imported under `cms-ui/web-studio/`; used elsewhere (e.g. contributions live query) |
+| Area                                                                                                  | State           | Notes                                                                                                                                           |
+| ----------------------------------------------------------------------------------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Shell, nav, recent docs, prefs                                                                        | **shipped**     | `apps/admin/src/cms-ui/web-studio/shell/*`                                                                                                      |
+| Native list + default edit: `pages`, `navigation`, `missionary-profiles`, `ministry-updates`, `media` | **shipped**     | Env can disable per collection → **fallback-backed**                                                                                            |
+| Native list + edit: `page-templates`, `missionary-giving-pages`, `project-pages`                      | **shipped**     | Same flags: `CMS_WEB_STUDIO_NATIVE_*`                                                                                                           |
+| Template gallery `/web-studio/templates`                                                              | **shipped**     | Draft templates included in gallery fetch (`draft=true` query)                                                                                  |
+| Wizards: standard / give / project / ministry update starter                                          | **shipped**     | `apps/admin/src/cms-ui/web-studio/flows/*`                                                                                                      |
+| `create-from-template` endpoint                                                                       | **shipped**     | Staff auth + tenant checks; Supabase validation for missionary/fund                                                                             |
+| Staff directory APIs                                                                                  | **shipped**     | Thin routes → `@asym/api/admin/missionary-directory`, `fund-directory` (data boundary)                                                          |
+| Public: pages, navigation, updates                                                                    | **shipped**     | Existing contracts                                                                                                                              |
+| Public: missionary-pages, project-pages                                                               | **shipped**     | Additive routes                                                                                                                                 |
+| Serialized `pages` public JSON                                                                        | **shipped**     | `serializePublishedPageLike` — extra fields, backward compatible                                                                                |
+| Nested Payload subviews (versions, live preview UI)                                                   | **partial**     | Stock Payload; links from native chrome                                                                                                         |
+| Donor consumption of new public routes                                                                | **partial**     | `fetchPublishedMissionaryGivingPage` / `fetchPublishedProjectPage` in `client.ts`; **Inference:** worker/project pages may not all be wired yet |
+| E2E coverage for every Phase 3 click path                                                             | **partial**     | Unit tests extended; full Playwright needs DB + ports (Phase 4 notes)                                                                           |
+| TipTap inside Web Studio CMS fields                                                                   | **not started** | Payload editor is Lexical                                                                                                                       |
+| TanStack DB in Web Studio                                                                             | **not started** | **Confirmed:** `@tanstack/db` not imported under `cms-ui/web-studio/`; used elsewhere (e.g. contributions live query)                           |
 
 ---
 
@@ -88,16 +88,16 @@ flowchart LR
   admin --> API
 ```
 
-| Location | Role |
-|----------|------|
-| `apps/admin` | Payload config, collections, Web Studio UI, public `/api/cms/public/*`, staff `/api/admin/*` re-exports |
-| `apps/donor` | `lib/cms/client.ts` — consumer of public CMS; `CMS_BASE_URL`, forwarded host |
-| `apps/missionary-app` | No direct Web Studio; may share `@asym/*` packages |
-| `packages/ui` | shadcn + Maia/Zinc; `useAsymForm`, shared components |
-| `packages/api` | Business DB logic; `admin/missionary-directory`, `admin/fund-directory` |
-| `packages/auth` | `getAuthContext`, roles for staff routes / CMS users |
-| `packages/database` | Supabase clients; Payload uses `PAYLOAD_DATABASE_URI` / pool |
-| `packages/env` | `NEXT_PUBLIC_DONOR_URL` etc. |
+| Location              | Role                                                                                                    |
+| --------------------- | ------------------------------------------------------------------------------------------------------- |
+| `apps/admin`          | Payload config, collections, Web Studio UI, public `/api/cms/public/*`, staff `/api/admin/*` re-exports |
+| `apps/donor`          | `lib/cms/client.ts` — consumer of public CMS; `CMS_BASE_URL`, forwarded host                            |
+| `apps/missionary-app` | No direct Web Studio; may share `@asym/*` packages                                                      |
+| `packages/ui`         | shadcn + Maia/Zinc; `useAsymForm`, shared components                                                    |
+| `packages/api`        | Business DB logic; `admin/missionary-directory`, `admin/fund-directory`                                 |
+| `packages/auth`       | `getAuthContext`, roles for staff routes / CMS users                                                    |
+| `packages/database`   | Supabase clients; Payload uses `PAYLOAD_DATABASE_URI` / pool                                            |
+| `packages/env`        | `NEXT_PUBLIC_DONOR_URL` etc.                                                                            |
 
 ---
 
@@ -105,39 +105,39 @@ flowchart LR
 
 ### Admin (authenticated)
 
-| Path pattern | Owner | Source |
-|--------------|--------|--------|
-| `/web-studio` | Payload + Next | `(payload)/web-studio/[[...segments]]` |
-| `/web-studio/collections/:slug` | Native list or stock | Collection `admin.components.views.list` |
-| `/web-studio/collections/:slug/:id` | Native edit or stock | `views.edit.default` |
-| `/web-studio/templates` | Custom view | `payload.config.ts` `admin.components.views` |
-| `/web-studio/missionaries` | Custom view | same |
-| `/web-studio/pages/give` | Custom view | same |
-| `/web-studio/projects/new` | Custom view | same |
-| `/web-studio/pages/new-from-template` | Custom view | same |
-| `/web-studio/ministry-updates/new` | Custom view | same |
-| `/api/*` (Payload) | Payload REST | `(payload)/api/[...slug]` |
-| `/api/graphql` | Payload | `(payload)/api/graphql` |
-| `POST /api/web-studio/create-from-template` | Custom | `config.endpoints` |
+| Path pattern                                | Owner                | Source                                       |
+| ------------------------------------------- | -------------------- | -------------------------------------------- |
+| `/web-studio`                               | Payload + Next       | `(payload)/web-studio/[[...segments]]`       |
+| `/web-studio/collections/:slug`             | Native list or stock | Collection `admin.components.views.list`     |
+| `/web-studio/collections/:slug/:id`         | Native edit or stock | `views.edit.default`                         |
+| `/web-studio/templates`                     | Custom view          | `payload.config.ts` `admin.components.views` |
+| `/web-studio/missionaries`                  | Custom view          | same                                         |
+| `/web-studio/pages/give`                    | Custom view          | same                                         |
+| `/web-studio/projects/new`                  | Custom view          | same                                         |
+| `/web-studio/pages/new-from-template`       | Custom view          | same                                         |
+| `/web-studio/ministry-updates/new`          | Custom view          | same                                         |
+| `/api/*` (Payload)                          | Payload REST         | `(payload)/api/[...slug]`                    |
+| `/api/graphql`                              | Payload              | `(payload)/api/graphql`                      |
+| `POST /api/web-studio/create-from-template` | Custom               | `config.endpoints`                           |
 
 ### Public (unauthenticated, tenant-scoped)
 
-| Method | Path | Handler |
-|--------|------|---------|
-| GET | `/api/cms/public/pages/[...slug]` | `apps/admin/app/api/cms/public/pages/[...slug]/route.ts` |
-| GET | `/api/cms/public/navigation` | `navigation/route.ts` |
-| GET | `/api/cms/public/updates` | `updates/route.ts` |
-| GET | `/api/cms/public/missionary-pages/[id]` | `missionary-pages/[id]/route.ts` |
-| GET | `/api/cms/public/project-pages/[slug]` | `project-pages/[slug]/route.ts` |
+| Method | Path                                    | Handler                                                  |
+| ------ | --------------------------------------- | -------------------------------------------------------- |
+| GET    | `/api/cms/public/pages/[...slug]`       | `apps/admin/app/api/cms/public/pages/[...slug]/route.ts` |
+| GET    | `/api/cms/public/navigation`            | `navigation/route.ts`                                    |
+| GET    | `/api/cms/public/updates`               | `updates/route.ts`                                       |
+| GET    | `/api/cms/public/missionary-pages/[id]` | `missionary-pages/[id]/route.ts`                         |
+| GET    | `/api/cms/public/project-pages/[slug]`  | `project-pages/[slug]/route.ts`                          |
 
 Tenant order: `resolveTenantFromRequest` — **query `?tenant=` → forwarded host / host → subdomain** (see `apps/admin/src/cms/public/resolve-tenant.ts`).
 
 ### Staff Next API (Mission Control auth, not Payload)
 
-| Method | Path | Implementation |
-|--------|------|----------------|
-| GET | `/api/admin/missionaries` | `apps/admin/app/api/admin/missionaries/route.ts` → `@asym/api/admin/missionary-directory` |
-| GET | `/api/admin/funds` | `apps/admin/app/api/admin/funds/route.ts` → `@asym/api/admin/fund-directory` |
+| Method | Path                      | Implementation                                                                            |
+| ------ | ------------------------- | ----------------------------------------------------------------------------------------- |
+| GET    | `/api/admin/missionaries` | `apps/admin/app/api/admin/missionaries/route.ts` → `@asym/api/admin/missionary-directory` |
+| GET    | `/api/admin/funds`        | `apps/admin/app/api/admin/funds/route.ts` → `@asym/api/admin/fund-directory`              |
 
 ### Feature flags (fallback)
 
@@ -147,28 +147,28 @@ Tenant order: `resolveTenantFromRequest` — **query `?tenant=` → forwarded ho
 
 ## 6. UI ownership model
 
-| Responsibility | Owner |
-|----------------|--------|
-| Outer layout, studio nav, breadcrumbs, “Mission Control” rhythm | Mission Control (`StudioLayout`, shell) |
-| Collection table chrome, filter bar integration, “New” CTA | Mission Control native list |
-| Document header actions row, inspector panel, preview button wiring | Mission Control (`NativeCollectionEditView`) |
-| Field rendering, validation, dirty state, Lexical | Payload |
-| Save / draft / publish / unpublish | Payload controls |
-| Versions / API / live preview **tabs** | Payload (default) |
-| Wizard forms (template flows) | Mission Control + TanStack Form |
-| Workspace settings dialogs | `useAsymForm` + Zod (`NativeDocumentWorkspaceSettingsDialog`) |
-| Preferences persistence | Payload preferences |
+| Responsibility                                                      | Owner                                                         |
+| ------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Outer layout, studio nav, breadcrumbs, “Mission Control” rhythm     | Mission Control (`StudioLayout`, shell)                       |
+| Collection table chrome, filter bar integration, “New” CTA          | Mission Control native list                                   |
+| Document header actions row, inspector panel, preview button wiring | Mission Control (`NativeCollectionEditView`)                  |
+| Field rendering, validation, dirty state, Lexical                   | Payload                                                       |
+| Save / draft / publish / unpublish                                  | Payload controls                                              |
+| Versions / API / live preview **tabs**                              | Payload (default)                                             |
+| Wizard forms (template flows)                                       | Mission Control + TanStack Form                               |
+| Workspace settings dialogs                                          | `useAsymForm` + Zod (`NativeDocumentWorkspaceSettingsDialog`) |
+| Preferences persistence                                             | Payload preferences                                           |
 
 ---
 
 ## 7. Form architecture
 
-| Use case | Stack |
-|----------|--------|
-| Main document body | Payload document context — **no** TanStack Form for the primary Payload fields |
-| Template / wizard screens | `@tanstack/react-form` + Zod in `flows/*.tsx` |
+| Use case                       | Stack                                                                          |
+| ------------------------------ | ------------------------------------------------------------------------------ |
+| Main document body             | Payload document context — **no** TanStack Form for the primary Payload fields |
+| Template / wizard screens      | `@tanstack/react-form` + Zod in `flows/*.tsx`                                  |
 | Workspace / inspector settings | `useAsymForm` from `@asym/ui/components/shadcn/form` (TanStack Form–based API) |
-| Simple search in list | Native controlled inputs + Payload list hooks |
+| Simple search in list          | Native controlled inputs + Payload list hooks                                  |
 
 **Why:** Payload owns field semantics and draft lifecycle; TanStack Form is for **isolated** Mission Control UI that must not fight Payload’s form engine.
 
@@ -176,13 +176,13 @@ Tenant order: `resolveTenantFromRequest` — **query `?tenant=` → forwarded ho
 
 ## 8. Rich text / editor architecture (**confirmed**)
 
-| Topic | Fact |
-|-------|------|
-| Global Payload editor | `lexicalEditor()` in `apps/admin/payload.config.ts` |
-| Package | `@payloadcms/richtext-lexical@^3.77.0` |
-| TipTap in Web Studio tree | **Not used** — no imports under `cms-ui/web-studio/` |
-| TipTap in monorepo | Root `package.json` / skills support **other** surfaces; **not** the Payload admin editor path |
-| Rich text in `layout` blocks | Block fields of type `richText` use the same Lexical editor |
+| Topic                        | Fact                                                                                           |
+| ---------------------------- | ---------------------------------------------------------------------------------------------- |
+| Global Payload editor        | `lexicalEditor()` in `apps/admin/payload.config.ts`                                            |
+| Package                      | `@payloadcms/richtext-lexical@^3.77.0`                                                         |
+| TipTap in Web Studio tree    | **Not used** — no imports under `cms-ui/web-studio/`                                           |
+| TipTap in monorepo           | Root `package.json` / skills support **other** surfaces; **not** the Payload admin editor path |
+| Rich text in `layout` blocks | Block fields of type `richText` use the same Lexical editor                                    |
 
 **Deferred:** migrating editors (Lexical → TipTap or other) was explicitly out of scope for Web Studio phases.
 
@@ -190,17 +190,17 @@ Tenant order: `resolveTenantFromRequest` — **query `?tenant=` → forwarded ho
 
 ## 9. Content model inventory
 
-| Collection slug | Purpose | Tenant | Drafts / versions | Preview (admin) | Public |
-|-----------------|---------|--------|-------------------|-----------------|--------|
-| `pages` | Standard site pages + optional `layout` blocks | `tenant` rel | Yes | `pagesGeneratePreviewURL` | `GET .../public/pages/*` |
-| `navigation` | Nav trees | `tenant` | No | — | `GET .../navigation` |
-| `missionary-profiles` | CMS-facing profiles | `tenant` | No | — | — |
-| `ministry-updates` | Articles | `tenant` | Yes | collection config | `GET .../updates` |
-| `media` | Uploads | `tenant` | No | — | — |
-| `page-templates` | Editorial templates | `tenant` | Yes | — | — |
-| `missionary-giving-pages` | Giving landings; `missionaryId` UUID | `tenant` | Yes | same helper family as pages | `GET .../missionary-pages/:id` |
-| `project-pages` | Fund landings; `fundId` UUID | `tenant` | Yes | same | `GET .../project-pages/:slug` |
-| `tenants`, `cms-users` | Ops / auth | — | — | — | — |
+| Collection slug           | Purpose                                        | Tenant       | Drafts / versions | Preview (admin)             | Public                         |
+| ------------------------- | ---------------------------------------------- | ------------ | ----------------- | --------------------------- | ------------------------------ |
+| `pages`                   | Standard site pages + optional `layout` blocks | `tenant` rel | Yes               | `pagesGeneratePreviewURL`   | `GET .../public/pages/*`       |
+| `navigation`              | Nav trees                                      | `tenant`     | No                | —                           | `GET .../navigation`           |
+| `missionary-profiles`     | CMS-facing profiles                            | `tenant`     | No                | —                           | —                              |
+| `ministry-updates`        | Articles                                       | `tenant`     | Yes               | collection config           | `GET .../updates`              |
+| `media`                   | Uploads                                        | `tenant`     | No                | —                           | —                              |
+| `page-templates`          | Editorial templates                            | `tenant`     | Yes               | —                           | —                              |
+| `missionary-giving-pages` | Giving landings; `missionaryId` UUID           | `tenant`     | Yes               | same helper family as pages | `GET .../missionary-pages/:id` |
+| `project-pages`           | Fund landings; `fundId` UUID                   | `tenant`     | Yes               | same                        | `GET .../project-pages/:slug`  |
+| `tenants`, `cms-users`    | Ops / auth                                     | —            | —                 | —                           | —                              |
 
 **Inference:** public donor rendering of layout blocks vs legacy `content` is app-specific; Payload stores both during rollout (`legacyContentFallback` on pages).
 
@@ -216,16 +216,16 @@ Tenant order: `resolveTenantFromRequest` — **query `?tenant=` → forwarded ho
 
 ## 11. Internal adapter and service map
 
-| Concern | Path |
-|---------|------|
-| Preview URL builder | `apps/admin/src/cms-ui/web-studio/adapters/preview-url.ts` |
-| Feature flags | `apps/admin/src/cms-ui/web-studio/feature-flags.ts` |
-| Collection registry | `.../collections/config.ts` |
-| List/edit shared | `.../collections/shared/list-workspace/NativeCollectionListView.tsx`, `.../document-workspace/NativeCollectionEditView.tsx` |
-| Template instantiate | `apps/admin/src/cms/create-from-template-endpoint.ts` |
-| Public page shape | `apps/admin/src/cms/public/serialize-published-page.ts` |
-| Tenant resolution | `apps/admin/src/cms/public/resolve-tenant.ts` |
-| Import map postprocess | `scripts/dev/postprocess-payload-importmap.mjs` |
+| Concern                | Path                                                                                                                        |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Preview URL builder    | `apps/admin/src/cms-ui/web-studio/adapters/preview-url.ts`                                                                  |
+| Feature flags          | `apps/admin/src/cms-ui/web-studio/feature-flags.ts`                                                                         |
+| Collection registry    | `.../collections/config.ts`                                                                                                 |
+| List/edit shared       | `.../collections/shared/list-workspace/NativeCollectionListView.tsx`, `.../document-workspace/NativeCollectionEditView.tsx` |
+| Template instantiate   | `apps/admin/src/cms/create-from-template-endpoint.ts`                                                                       |
+| Public page shape      | `apps/admin/src/cms/public/serialize-published-page.ts`                                                                     |
+| Tenant resolution      | `apps/admin/src/cms/public/resolve-tenant.ts`                                                                               |
+| Import map postprocess | `scripts/dev/postprocess-payload-importmap.mjs`                                                                             |
 
 ---
 
@@ -249,12 +249,12 @@ Tenant order: `resolveTenantFromRequest` — **query `?tenant=` → forwarded ho
 
 ## 14. Preview, live preview, versions
 
-| Topic | State |
-|-------|--------|
-| Preview button | Native chrome opens donor URLs where `admin.preview` / config supplies `GeneratePreviewURL` |
-| Live preview | Payload context (`useLivePreviewContext`) in native edit view; **nested** live preview UI may still be stock |
-| Versions | Payload versions enabled on draft collections; restore flows stock unless wrapped |
-| Drafts / autosave | Per collection `versions.drafts` in configs |
+| Topic             | State                                                                                                        |
+| ----------------- | ------------------------------------------------------------------------------------------------------------ |
+| Preview button    | Native chrome opens donor URLs where `admin.preview` / config supplies `GeneratePreviewURL`                  |
+| Live preview      | Payload context (`useLivePreviewContext`) in native edit view; **nested** live preview UI may still be stock |
+| Versions          | Payload versions enabled on draft collections; restore flows stock unless wrapped                            |
+| Drafts / autosave | Per collection `versions.drafts` in configs                                                                  |
 
 ---
 
@@ -266,50 +266,50 @@ Handled inside Payload’s default edit view and field components. **Risk:** rep
 
 ## 16. Supabase and database integration
 
-| Topic | Detail |
-|-------|--------|
-| **Env** | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `PAYLOAD_SECRET`, `PAYLOAD_DATABASE_URI` (or `SUPABASE_DB_URL`), optional `NEXT_PUBLIC_DONOR_URL`, `CMS_BASE_URL` on donor |
-| **Schemas** | `public.*` = platform data; `cms.*` = Payload tables |
-| **Migrations** | SQL via `supabase/migrations/*`; Payload schema via `bun run cms:migrate` |
-| **Pooling** | Use Supabase pooler guidance for serverless; local dev often direct `127.0.0.1:54322` |
-| **Staff APIs** | `withOperation` in `@asym/api` — service role admin client; **never** bypass `apps/*/app/api` data-boundary (thin re-exports only) |
+| Topic          | Detail                                                                                                                                                                                  |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Env**        | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `PAYLOAD_SECRET`, `PAYLOAD_DATABASE_URI` (or `SUPABASE_DB_URL`), optional `NEXT_PUBLIC_DONOR_URL`, `CMS_BASE_URL` on donor |
+| **Schemas**    | `public.*` = platform data; `cms.*` = Payload tables                                                                                                                                    |
+| **Migrations** | SQL via `supabase/migrations/*`; Payload schema via `bun run cms:migrate`                                                                                                               |
+| **Pooling**    | Use Supabase pooler guidance for serverless; local dev often direct `127.0.0.1:54322`                                                                                                   |
+| **Staff APIs** | `withOperation` in `@asym/api` — service role admin client; **never** bypass `apps/*/app/api` data-boundary (thin re-exports only)                                                      |
 
 ---
 
 ## 17. Package version inventory (**from `apps/admin/package.json`**)
 
-| Package | Version |
-|---------|---------|
-| `payload` | ^3.77.0 |
-| `@payloadcms/next` | ^3.77.0 |
-| `@payloadcms/db-postgres` | ^3.77.0 |
-| `@payloadcms/richtext-lexical` | ^3.77.0 |
-| `next` | 16.2.1 |
-| `react` / `react-dom` | 19.2.3 |
-| `@base-ui/react` | 1.3.0 |
-| `@tanstack/react-form` | 1.28.6 |
-| `@tanstack/react-query` | ^5.90.21 |
-| `@tanstack/react-table` | ^8.21.3 |
-| `@tanstack/db` | ^0.5.16 |
-| `@supabase/ssr` | ^0.8.0 |
+| Package                        | Version  |
+| ------------------------------ | -------- |
+| `payload`                      | ^3.77.0  |
+| `@payloadcms/next`             | ^3.77.0  |
+| `@payloadcms/db-postgres`      | ^3.77.0  |
+| `@payloadcms/richtext-lexical` | ^3.77.0  |
+| `next`                         | 16.2.1   |
+| `react` / `react-dom`          | 19.2.3   |
+| `@base-ui/react`               | 1.3.0    |
+| `@tanstack/react-form`         | 1.28.6   |
+| `@tanstack/react-query`        | ^5.90.21 |
+| `@tanstack/react-table`        | ^8.21.3  |
+| `@tanstack/db`                 | ^0.5.16  |
+| `@supabase/ssr`                | ^0.8.0   |
 
 ---
 
 ## 18. Tech stack usage map (Web Studio paths)
 
-| Tech | Web Studio status |
-|------|-------------------|
-| Payload CMS | **actively used** |
-| Lexical (via Payload) | **actively used** for rich text |
-| TipTap | **not used** in Web Studio / Payload admin fields |
-| TanStack Form | **actively used** (wizards + `useAsymForm` dialogs) |
-| TanStack Query | **actively used** (e.g. template gallery fetch) |
-| TanStack Table | **actively used** via Payload list + `@asym/ui` data table patterns |
-| TanStack DB | **not used** under `apps/admin/src/cms-ui/web-studio/`; installed in admin for **other** features |
-| Base UI | **actively used** (per repo rules; primitives) |
-| shadcn / `@asym/ui` | **actively used** |
-| Supabase Auth | **actively used** for Mission Control session → CMS access |
-| Postgres / `cms` schema | **actively used** |
+| Tech                    | Web Studio status                                                                                 |
+| ----------------------- | ------------------------------------------------------------------------------------------------- |
+| Payload CMS             | **actively used**                                                                                 |
+| Lexical (via Payload)   | **actively used** for rich text                                                                   |
+| TipTap                  | **not used** in Web Studio / Payload admin fields                                                 |
+| TanStack Form           | **actively used** (wizards + `useAsymForm` dialogs)                                               |
+| TanStack Query          | **actively used** (e.g. template gallery fetch)                                                   |
+| TanStack Table          | **actively used** via Payload list + `@asym/ui` data table patterns                               |
+| TanStack DB             | **not used** under `apps/admin/src/cms-ui/web-studio/`; installed in admin for **other** features |
+| Base UI                 | **actively used** (per repo rules; primitives)                                                    |
+| shadcn / `@asym/ui`     | **actively used**                                                                                 |
+| Supabase Auth           | **actively used** for Mission Control session → CMS access                                        |
+| Postgres / `cms` schema | **actively used**                                                                                 |
 
 ---
 
@@ -335,16 +335,16 @@ Handled inside Payload’s default edit view and field components. **Risk:** rep
 
 ## 21. Decision log (major)
 
-| Decision | Rationale |
-|----------|-----------|
-| Payload stays in `apps/admin` | Single runtime; no second CMS |
-| Custom views vs fork | Upgrade-safe, supported extension points |
-| Mission Control shell owns list/default edit | Product UX; Payload owns fields |
-| TanStack Form only outside Payload document body | Avoid duplicate form engines |
-| Lexical as editor | Payload 3 default path in this repo |
-| Separate collections for templates / giving / project | Clear access, previews, public routes |
-| `create-from-template` as Payload endpoint | Same `req`, access control, audit hooks |
-| Thin Next routes for staff DB reads | `data-access-boundary.md` compliance |
+| Decision                                              | Rationale                                |
+| ----------------------------------------------------- | ---------------------------------------- |
+| Payload stays in `apps/admin`                         | Single runtime; no second CMS            |
+| Custom views vs fork                                  | Upgrade-safe, supported extension points |
+| Mission Control shell owns list/default edit          | Product UX; Payload owns fields          |
+| TanStack Form only outside Payload document body      | Avoid duplicate form engines             |
+| Lexical as editor                                     | Payload 3 default path in this repo      |
+| Separate collections for templates / giving / project | Clear access, previews, public routes    |
+| `create-from-template` as Payload endpoint            | Same `req`, access control, audit hooks  |
+| Thin Next routes for staff DB reads                   | `data-access-boundary.md` compliance     |
 
 ---
 
@@ -371,16 +371,16 @@ Handled inside Payload’s default edit view and field components. **Risk:** rep
 
 ## 24. Glossary
 
-| Term | Meaning |
-|------|---------|
-| **Web Studio** | Mission Control native UI + Payload runtime under `/web-studio` |
-| **Payload runtime** | Schema, access, Local API, REST, GraphQL, document forms |
-| **Document view** | Payload screen for one document (`edit`, `versions`, …) |
-| **Live preview** | Payload feature: iframe / URL sync with draft data |
-| **Tenant** | Organization scope for content; FK on documents |
-| **Public CMS route** | Unauthenticated GET on `apps/admin` used by donor |
-| **Template** | `page-templates` document with `defaultLayout` + `pageType` |
-| **Published-only** | Public routes exclude drafts (`_status: published`) |
+| Term                 | Meaning                                                         |
+| -------------------- | --------------------------------------------------------------- |
+| **Web Studio**       | Mission Control native UI + Payload runtime under `/web-studio` |
+| **Payload runtime**  | Schema, access, Local API, REST, GraphQL, document forms        |
+| **Document view**    | Payload screen for one document (`edit`, `versions`, …)         |
+| **Live preview**     | Payload feature: iframe / URL sync with draft data              |
+| **Tenant**           | Organization scope for content; FK on documents                 |
+| **Public CMS route** | Unauthenticated GET on `apps/admin` used by donor               |
+| **Template**         | `page-templates` document with `defaultLayout` + `pageType`     |
+| **Published-only**   | Public routes exclude drafts (`_status: published`)             |
 
 ---
 

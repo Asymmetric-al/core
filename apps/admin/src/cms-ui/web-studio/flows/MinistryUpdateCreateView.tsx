@@ -22,7 +22,6 @@ import { z } from "zod";
 import { buildWebStudioCreateFromTemplateUrl } from "./web-studio-create-api";
 import { StudioLayout } from "../shell/studio-layout";
 
-
 type ProfileDoc = {
   id: string | number;
   fullName?: string;
@@ -128,18 +127,26 @@ export function MinistryUpdateCreateView() {
   });
 
   return (
-    <StudioLayout sectionLabel="Ministry Updates" currentLabel="New from template">
+    <StudioLayout
+      sectionLabel="Ministry Updates"
+      currentLabel="New from template"
+    >
       <div className="mx-auto max-w-lg px-4 py-8 sm:px-6">
-        <h1 className="font-semibold text-xl tracking-tight">Ministry update starter</h1>
+        <h1 className="font-semibold text-xl tracking-tight">
+          Ministry update starter
+        </h1>
         <p className="mt-2 text-muted-foreground text-sm">
-          Creates a draft ministry update with empty rich text, linked to the selected missionary
-          profile.
+          Creates a draft ministry update with empty rich text, linked to the
+          selected missionary profile.
         </p>
 
         {!templateId ? (
           <p className="mt-4 text-muted-foreground text-sm">
             Choose a template from the{" "}
-            <Link className="text-primary underline" href="/web-studio/templates">
+            <Link
+              className="text-primary underline"
+              href="/web-studio/templates"
+            >
               gallery
             </Link>
             .

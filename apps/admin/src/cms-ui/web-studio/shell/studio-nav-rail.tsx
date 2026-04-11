@@ -128,7 +128,11 @@ export function StudioNavRail({ className }: { className?: string }) {
           className="h-8 w-8 shrink-0"
           onClick={() => void persistCollapsed(!collapsed)}
           aria-pressed={collapsed}
-          aria-label={collapsed ? "Expand studio navigation" : "Collapse studio navigation"}
+          aria-label={
+            collapsed
+              ? "Expand studio navigation"
+              : "Collapse studio navigation"
+          }
         >
           {collapsed ? (
             <PanelLeft className="h-4 w-4" />
@@ -139,7 +143,9 @@ export function StudioNavRail({ className }: { className?: string }) {
       </div>
       <nav className="flex flex-col gap-1 p-2">
         <Button
-          variant={pathname.startsWith("/web-studio/templates") ? "secondary" : "ghost"}
+          variant={
+            pathname.startsWith("/web-studio/templates") ? "secondary" : "ghost"
+          }
           size="sm"
           className={cn(
             "justify-start gap-2 font-semibold text-xs",
@@ -153,7 +159,11 @@ export function StudioNavRail({ className }: { className?: string }) {
           </Link>
         </Button>
         <Button
-          variant={pathname.startsWith("/web-studio/missionaries") ? "secondary" : "ghost"}
+          variant={
+            pathname.startsWith("/web-studio/missionaries")
+              ? "secondary"
+              : "ghost"
+          }
           size="sm"
           className={cn(
             "justify-start gap-2 font-semibold text-xs",

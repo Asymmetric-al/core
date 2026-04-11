@@ -44,7 +44,10 @@ export const GET = withOperation(
         .in("id", profileIds);
 
       if (profileError) {
-        return NextResponse.json({ error: profileError.message }, { status: 500 });
+        return NextResponse.json(
+          { error: profileError.message },
+          { status: 500 },
+        );
       }
 
       profilesById = Object.fromEntries(

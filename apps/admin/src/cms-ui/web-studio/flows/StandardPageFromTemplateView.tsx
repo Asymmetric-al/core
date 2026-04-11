@@ -14,7 +14,6 @@ import { z } from "zod";
 import { buildWebStudioCreateFromTemplateUrl } from "./web-studio-create-api";
 import { StudioLayout } from "../shell/studio-layout";
 
-
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
   slug: z.string().min(1, "Slug is required"),
@@ -54,7 +53,9 @@ export function StandardPageFromTemplateView() {
       }
 
       if (!templateId) {
-        setSubmitError("Missing template. Open this screen from the template gallery.");
+        setSubmitError(
+          "Missing template. Open this screen from the template gallery.",
+        );
         return;
       }
 
@@ -95,10 +96,12 @@ export function StandardPageFromTemplateView() {
   return (
     <StudioLayout sectionLabel="Pages" currentLabel="New from template">
       <div className="mx-auto max-w-lg px-4 py-8 sm:px-6">
-        <h1 className="font-semibold text-xl tracking-tight">Create standard page</h1>
+        <h1 className="font-semibold text-xl tracking-tight">
+          Create standard page
+        </h1>
         <p className="mt-2 text-muted-foreground text-sm">
-          Draft is created with the template&apos;s default layout blocks. You can edit all fields
-          after save opens the document workspace.
+          Draft is created with the template&apos;s default layout blocks. You
+          can edit all fields after save opens the document workspace.
         </p>
         {!templateId ? (
           <p className="mt-4 text-destructive text-sm">

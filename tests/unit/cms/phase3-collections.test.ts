@@ -52,7 +52,11 @@ describe("Phase 3 CMS collections", () => {
   });
 
   it("requires tenant on builder collections", () => {
-    for (const collection of [MissionaryGivingPages, ProjectPages, PageTemplates]) {
+    for (const collection of [
+      MissionaryGivingPages,
+      ProjectPages,
+      PageTemplates,
+    ]) {
       const tenantField = getField(collection, "tenant");
       expect(tenantField.type).toBe("relationship");
       expect(tenantField.required).toBe(true);
@@ -88,16 +92,16 @@ describe("Phase 3 CMS collections", () => {
     expect(ProjectPages.admin?.components?.views?.list?.Component).toContain(
       "ProjectPagesNativeListView",
     );
-    expect(ProjectPages.admin?.components?.views?.edit?.default?.Component).toContain(
-      "ProjectPagesNativeEditView",
-    );
+    expect(
+      ProjectPages.admin?.components?.views?.edit?.default?.Component,
+    ).toContain("ProjectPagesNativeEditView");
 
     expect(PageTemplates.admin?.components?.views?.list?.Component).toContain(
       "PageTemplatesNativeListView",
     );
-    expect(PageTemplates.admin?.components?.views?.edit?.default?.Component).toContain(
-      "PageTemplatesNativeEditView",
-    );
+    expect(
+      PageTemplates.admin?.components?.views?.edit?.default?.Component,
+    ).toContain("PageTemplatesNativeEditView");
   });
 
   it("wires preview for page-builder collections that ship to donor", () => {

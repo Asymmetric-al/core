@@ -4,7 +4,9 @@ type BuildCreateUrlArgs = {
   apiRoute: string;
 };
 
-export function buildWebStudioCreateFromTemplateUrl({ apiRoute }: BuildCreateUrlArgs) {
+export function buildWebStudioCreateFromTemplateUrl({
+  apiRoute,
+}: BuildCreateUrlArgs) {
   return formatAdminURL({
     apiRoute,
     path: "/web-studio/create-from-template",

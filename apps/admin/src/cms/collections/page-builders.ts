@@ -298,7 +298,9 @@ export function createTemplateLayoutField(name = "defaultLayout"): Field {
   return createPageLayoutField(name);
 }
 
-export function createLegacyRichTextField(name = "legacyContentFallback"): Field {
+export function createLegacyRichTextField(
+  name = "legacyContentFallback",
+): Field {
   return {
     name,
     type: "checkbox",

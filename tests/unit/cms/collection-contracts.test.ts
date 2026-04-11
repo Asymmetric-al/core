@@ -102,9 +102,9 @@ describe("CMS collection contracts", () => {
     expect(Pages.versions?.drafts?.autosave?.interval).toBe(300);
     expect(MinistryUpdates.versions?.drafts?.autosave?.interval).toBe(300);
     expect(Pages.versions?.drafts?.autosave?.showSaveDraftButton).toBe(true);
-    expect(MinistryUpdates.versions?.drafts?.autosave?.showSaveDraftButton).toBe(
-      true,
-    );
+    expect(
+      MinistryUpdates.versions?.drafts?.autosave?.showSaveDraftButton,
+    ).toBe(true);
 
     expect(Navigation.versions).toBeUndefined();
     expect(MissionaryProfiles.versions).toBeUndefined();
@@ -216,9 +216,9 @@ describe("CMS collection contracts", () => {
       MissionaryProfiles.admin?.components?.views?.edit?.default?.Component,
     ).toContain("MissionaryProfilesNativeEditView");
 
-    expect(
-      MinistryUpdates.admin?.components?.views?.list?.Component,
-    ).toContain("MinistryUpdatesNativeListView");
+    expect(MinistryUpdates.admin?.components?.views?.list?.Component).toContain(
+      "MinistryUpdatesNativeListView",
+    );
     expect(
       MinistryUpdates.admin?.components?.views?.edit?.default?.Component,
     ).toContain("MinistryUpdatesNativeEditView");

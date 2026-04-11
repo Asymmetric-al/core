@@ -52,7 +52,8 @@ export default buildConfig({
       header: ["/src/cms-ui/root/Header.tsx#Header"],
       views: {
         webStudioTemplates: {
-          Component: "/src/cms-ui/web-studio/flows/TemplateGalleryView.tsx#TemplateGalleryView",
+          Component:
+            "/src/cms-ui/web-studio/flows/TemplateGalleryView.tsx#TemplateGalleryView",
           path: "/templates",
         },
         webStudioMissionaries: {

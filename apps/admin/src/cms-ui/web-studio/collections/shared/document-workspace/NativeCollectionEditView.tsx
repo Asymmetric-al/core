@@ -27,7 +27,6 @@ import { getWebStudioCollectionConfig } from "../../config";
 import type { WebStudioCollectionSlug } from "../../config";
 import type { DocumentViewClientProps } from "payload";
 
-
 const DEFAULT_DONOR_ORIGIN = "http://127.0.0.1:3000";
 
 function resolveDonorOrigin(): string {
@@ -83,9 +82,7 @@ export function NativeCollectionEditView({
 
         setWorkspace({
           inspectorOpen:
-            typeof pref.inspectorOpen === "boolean"
-              ? pref.inspectorOpen
-              : true,
+            typeof pref.inspectorOpen === "boolean" ? pref.inspectorOpen : true,
           showSlugChip:
             typeof pref.showSlugChip === "boolean" ? pref.showSlugChip : true,
         });
@@ -178,7 +175,8 @@ export function NativeCollectionEditView({
   }, [data?._status]);
 
   const readOnly = !hasSavePermission;
-  const heading = title || `Untitled ${studioConfig.titleSingular.toLowerCase()}`;
+  const heading =
+    title || `Untitled ${studioConfig.titleSingular.toLowerCase()}`;
   const previewSupported = Boolean(studioConfig.previewPathForData);
   const documentId =
     typeof data?.id === "string" || typeof data?.id === "number"
@@ -195,9 +193,10 @@ export function NativeCollectionEditView({
         showSaveDraft: false,
         showUnpublish: false,
       };
-  const apiHref = collectionSlug && documentId
-    ? `${studioConfig.listPath}/${documentId}/api`
-    : null;
+  const apiHref =
+    collectionSlug && documentId
+      ? `${studioConfig.listPath}/${documentId}/api`
+      : null;
   const versionsHref =
     studioConfig.hasVersions && collectionSlug && documentId
       ? `${studioConfig.listPath}/${documentId}/versions`
@@ -267,7 +266,8 @@ export function NativeCollectionEditView({
     inspectorItems.push({
       icon: <ImageIcon className="h-3.5 w-3.5" />,
       label: "Asset",
-      value: typeof data?.filename === "string" ? data.filename : "Upload pending",
+      value:
+        typeof data?.filename === "string" ? data.filename : "Upload pending",
     });
   }
 
@@ -295,157 +295,169 @@ export function NativeCollectionEditView({
         sectionLabel={studioConfig.sectionLabel}
         currentLabel={heading}
       >
-      <div className="border-border border-b bg-card/40 px-4 py-4 sm:px-6">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-          <div className="min-w-0 space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="truncate font-black text-2xl text-foreground tracking-tight uppercase sm:text-3xl">
-                {heading}
-              </h1>
-              {workspace.showSlugChip && slugOrIdentifier ? (
-                <Badge
-                  variant="secondary"
-                  className="font-mono text-[10px] uppercase"
-                >
-                  {slugOrIdentifier}
+        <div className="border-border border-b bg-card/40 px-4 py-4 sm:px-6">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div className="min-w-0 space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="truncate font-black text-2xl text-foreground tracking-tight uppercase sm:text-3xl">
+                  {heading}
+                </h1>
+                {workspace.showSlugChip && slugOrIdentifier ? (
+                  <Badge
+                    variant="secondary"
+                    className="font-mono text-[10px] uppercase"
+                  >
+                    {slugOrIdentifier}
+                  </Badge>
+                ) : null}
+                <Badge variant="outline" className="text-[10px] uppercase">
+                  {statusLabel}
                 </Badge>
-              ) : null}
-              <Badge variant="outline" className="text-[10px] uppercase">
-                {statusLabel}
-              </Badge>
-            </div>
-            <p className="text-muted-foreground text-xs">
-              {readOnly
-                ? `You can view this ${studioConfig.titleSingular.toLowerCase()} but do not have save access.`
-                : studioConfig.editDescription}
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {previewSupported ? <PreviewButton /> : null}
-            {hasSavePermission ? (
-              actionMode.showSaveDraft ? <SaveDraftButton /> : <SaveButton />
-            ) : null}
-            {hasPublishPermission && actionMode.showPublish ? <PublishButton /> : null}
-            {hasPublishPermission && actionMode.showUnpublish ? (
-              <UnpublishButton />
-            ) : null}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="font-semibold"
-              onClick={() => setSettingsOpen(true)}
-            >
-              <Settings2 className="mr-2 h-4 w-4" />
-              Workspace
-            </Button>
-            {collectionSlug ? (
-              <Button variant="ghost" size="sm" asChild>
-                <Link href={`/web-studio/collections/${collectionSlug}`}>
-                  Back to list
-                </Link>
-              </Button>
-            ) : null}
-            {versionsHref ? (
-              <Button variant="ghost" size="sm" asChild>
-                <Link href={versionsHref}>Versions</Link>
-              </Button>
-            ) : null}
-            {apiHref ? (
-              <Button variant="ghost" size="sm" asChild>
-                <Link href={apiHref}>API</Link>
-              </Button>
-            ) : null}
-            {livePreviewHref ? (
-              <Button variant="ghost" size="sm" asChild>
-                <Link href={livePreviewHref}>Live preview</Link>
-              </Button>
-            ) : null}
-          </div>
-        </div>
-      </div>
-
-      <NativeDocumentWorkspaceSettingsDialog
-        open={settingsOpen}
-        onOpenChange={setSettingsOpen}
-        preferenceKey={studioConfig.preferences.workspace}
-        sectionLabel={studioConfig.sectionLabel}
-      />
-
-      <div
-        className={cn(
-          "px-2 py-6 sm:px-4 lg:px-6",
-          workspace.inspectorOpen &&
-            "lg:grid lg:grid-cols-[minmax(0,1fr)_min(320px,32%)] lg:gap-6",
-        )}
-      >
-        <div className="payload-native-edit min-w-0 rounded-xl border border-border bg-card shadow-sm">
-          <DefaultEditView
-            {...props}
-            BeforeDocumentControls={undefined}
-            PreviewButton={null}
-            PublishButton={null}
-            SaveButton={null}
-            SaveDraftButton={null}
-            Status={null}
-            UnpublishButton={null}
-          />
-        </div>
-        {workspace.inspectorOpen ? (
-          <aside className="mt-6 hidden rounded-xl border border-border bg-muted/30 p-4 text-muted-foreground text-xs lg:mt-0 lg:block">
-            <p className="mb-2 font-bold text-foreground uppercase tracking-wide">
-              Inspector
-            </p>
-            <p>
-              Document fields remain on Payload&apos;s document form engine while
-              Web Studio owns the surrounding workspace and action framing.
-            </p>
-            {mediaPreviewUrl ? (
-              <div className="mt-4 overflow-hidden rounded-lg border border-border bg-background">
-                <Image
-                  alt={typeof data?.alt === "string" ? data.alt : heading}
-                  className="h-40 w-full object-cover"
-                  height={160}
-                  src={mediaPreviewUrl}
-                  unoptimized
-                  width={640}
-                />
               </div>
-            ) : null}
-            <ul className="mt-4 space-y-2">
-              {inspectorItems.map((item) => (
-                <li
-                  key={`${item.label}-${item.value}`}
-                  className="flex items-center justify-between gap-3 rounded-md bg-background/80 px-3 py-2"
-                >
-                  <span className="flex items-center gap-2 text-foreground">
-                    {item.icon}
-                    {item.label}
-                  </span>
-                  <span className="max-w-[11rem] truncate text-right">
-                    {item.value}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            {docPermissions ? (
-              <ul className="mt-3 list-disc space-y-1 pl-4">
-                <li>Read: {docPermissions.read ? "yes" : "no"}</li>
-                <li>Update: {docPermissions.update ? "yes" : "no"}</li>
-                <li>Publish: {hasPublishPermission ? "yes" : "no"}</li>
-              </ul>
-            ) : null}
-            {previewSupported && previewURL ? (
-              <Button variant="outline" size="sm" className="mt-4 w-full" asChild>
-                <a href={previewURL} target="_blank" rel="noreferrer">
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  Open preview
-                </a>
+              <p className="text-muted-foreground text-xs">
+                {readOnly
+                  ? `You can view this ${studioConfig.titleSingular.toLowerCase()} but do not have save access.`
+                  : studioConfig.editDescription}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {previewSupported ? <PreviewButton /> : null}
+              {hasSavePermission ? (
+                actionMode.showSaveDraft ? (
+                  <SaveDraftButton />
+                ) : (
+                  <SaveButton />
+                )
+              ) : null}
+              {hasPublishPermission && actionMode.showPublish ? (
+                <PublishButton />
+              ) : null}
+              {hasPublishPermission && actionMode.showUnpublish ? (
+                <UnpublishButton />
+              ) : null}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="font-semibold"
+                onClick={() => setSettingsOpen(true)}
+              >
+                <Settings2 className="mr-2 h-4 w-4" />
+                Workspace
               </Button>
-            ) : null}
-          </aside>
-        ) : null}
-      </div>
+              {collectionSlug ? (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href={`/web-studio/collections/${collectionSlug}`}>
+                    Back to list
+                  </Link>
+                </Button>
+              ) : null}
+              {versionsHref ? (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href={versionsHref}>Versions</Link>
+                </Button>
+              ) : null}
+              {apiHref ? (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href={apiHref}>API</Link>
+                </Button>
+              ) : null}
+              {livePreviewHref ? (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href={livePreviewHref}>Live preview</Link>
+                </Button>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
+        <NativeDocumentWorkspaceSettingsDialog
+          open={settingsOpen}
+          onOpenChange={setSettingsOpen}
+          preferenceKey={studioConfig.preferences.workspace}
+          sectionLabel={studioConfig.sectionLabel}
+        />
+
+        <div
+          className={cn(
+            "px-2 py-6 sm:px-4 lg:px-6",
+            workspace.inspectorOpen &&
+              "lg:grid lg:grid-cols-[minmax(0,1fr)_min(320px,32%)] lg:gap-6",
+          )}
+        >
+          <div className="payload-native-edit min-w-0 rounded-xl border border-border bg-card shadow-sm">
+            <DefaultEditView
+              {...props}
+              BeforeDocumentControls={undefined}
+              PreviewButton={null}
+              PublishButton={null}
+              SaveButton={null}
+              SaveDraftButton={null}
+              Status={null}
+              UnpublishButton={null}
+            />
+          </div>
+          {workspace.inspectorOpen ? (
+            <aside className="mt-6 hidden rounded-xl border border-border bg-muted/30 p-4 text-muted-foreground text-xs lg:mt-0 lg:block">
+              <p className="mb-2 font-bold text-foreground uppercase tracking-wide">
+                Inspector
+              </p>
+              <p>
+                Document fields remain on Payload&apos;s document form engine
+                while Web Studio owns the surrounding workspace and action
+                framing.
+              </p>
+              {mediaPreviewUrl ? (
+                <div className="mt-4 overflow-hidden rounded-lg border border-border bg-background">
+                  <Image
+                    alt={typeof data?.alt === "string" ? data.alt : heading}
+                    className="h-40 w-full object-cover"
+                    height={160}
+                    src={mediaPreviewUrl}
+                    unoptimized
+                    width={640}
+                  />
+                </div>
+              ) : null}
+              <ul className="mt-4 space-y-2">
+                {inspectorItems.map((item) => (
+                  <li
+                    key={`${item.label}-${item.value}`}
+                    className="flex items-center justify-between gap-3 rounded-md bg-background/80 px-3 py-2"
+                  >
+                    <span className="flex items-center gap-2 text-foreground">
+                      {item.icon}
+                      {item.label}
+                    </span>
+                    <span className="max-w-[11rem] truncate text-right">
+                      {item.value}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              {docPermissions ? (
+                <ul className="mt-3 list-disc space-y-1 pl-4">
+                  <li>Read: {docPermissions.read ? "yes" : "no"}</li>
+                  <li>Update: {docPermissions.update ? "yes" : "no"}</li>
+                  <li>Publish: {hasPublishPermission ? "yes" : "no"}</li>
+                </ul>
+              ) : null}
+              {previewSupported && previewURL ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-4 w-full"
+                  asChild
+                >
+                  <a href={previewURL} target="_blank" rel="noreferrer">
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    Open preview
+                  </a>
+                </Button>
+              ) : null}
+            </aside>
+          ) : null}
+        </div>
       </StudioLayout>
     </div>
   );

@@ -30,8 +30,8 @@ export function StudioTopBar({
   const { user } = useAuth();
   const enabledCollections = getEnabledWebStudioCollections();
   const sectionHref =
-    enabledCollections.find((entry) => entry.sectionLabel === sectionLabel)?.listPath ??
-    "/web-studio";
+    enabledCollections.find((entry) => entry.sectionLabel === sectionLabel)
+      ?.listPath ?? "/web-studio";
   const display =
     user && typeof user === "object" && "email" in user && user.email
       ? String(user.email)
@@ -67,9 +67,7 @@ export function StudioTopBar({
                 <BreadcrumbItem>
                   {currentLabel ? (
                     <BreadcrumbLink asChild>
-                      <Link href={sectionHref}>
-                        {sectionLabel}
-                      </Link>
+                      <Link href={sectionHref}>{sectionLabel}</Link>
                     </BreadcrumbLink>
                   ) : (
                     <BreadcrumbPage>{sectionLabel}</BreadcrumbPage>

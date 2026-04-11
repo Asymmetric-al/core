@@ -20,7 +20,6 @@ import { useMemo, useState } from "react";
 import { buildWebStudioCreateFromTemplateUrl } from "./web-studio-create-api";
 import { StudioLayout } from "../shell/studio-layout";
 
-
 type FundRow = {
   id: string;
   name?: string | null;
@@ -118,16 +117,21 @@ export function ProjectPageCreateView() {
   return (
     <StudioLayout sectionLabel="Project Pages" currentLabel="New project page">
       <div className="mx-auto max-w-lg px-4 py-8 sm:px-6">
-        <h1 className="font-semibold text-xl tracking-tight">Fund-backed project page</h1>
+        <h1 className="font-semibold text-xl tracking-tight">
+          Fund-backed project page
+        </h1>
         <p className="mt-2 text-muted-foreground text-sm">
-          Project pages anchor to a canonical fund ID. Title, slug, and summary are prefilled from
-          the fund record when available.
+          Project pages anchor to a canonical fund ID. Title, slug, and summary
+          are prefilled from the fund record when available.
         </p>
 
         {!templateId ? (
           <p className="mt-4 text-muted-foreground text-sm">
             Choose a template from the{" "}
-            <Link className="text-primary underline" href="/web-studio/templates">
+            <Link
+              className="text-primary underline"
+              href="/web-studio/templates"
+            >
               gallery
             </Link>
             .

@@ -76,10 +76,7 @@ export function QuickActionsRow() {
         if (!action) return null;
         const Icon = action.icon ? getIcon(action.icon) : null;
         return (
-          <Link
-            key={`${action.tile.id}-${action.label}`}
-            href={action.href}
-          >
+          <Link key={`${action.tile.id}-${action.label}`} href={action.href}>
             <Button
               variant="secondary"
               size="sm"

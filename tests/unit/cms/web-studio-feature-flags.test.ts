@@ -27,7 +27,9 @@ describe("Web Studio feature flags", () => {
     delete process.env.CMS_WEB_STUDIO_NATIVE_PROJECT_PAGES;
     delete process.env.CMS_WEB_STUDIO_NATIVE_PAGE_TEMPLATES;
 
-    expect(isNativeCollectionWebStudioEnabled("missionary-giving-pages")).toBe(true);
+    expect(isNativeCollectionWebStudioEnabled("missionary-giving-pages")).toBe(
+      true,
+    );
     expect(isNativeCollectionWebStudioEnabled("project-pages")).toBe(true);
     expect(isNativeCollectionWebStudioEnabled("page-templates")).toBe(true);
   });

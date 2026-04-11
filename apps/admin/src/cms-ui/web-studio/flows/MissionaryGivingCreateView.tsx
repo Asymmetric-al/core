@@ -20,7 +20,6 @@ import { useEffect, useMemo, useState } from "react";
 import { buildWebStudioCreateFromTemplateUrl } from "./web-studio-create-api";
 import { StudioLayout } from "../shell/studio-layout";
 
-
 type MissionaryRow = {
   id: string;
   profile?: { full_name?: string | null; display_name?: string | null } | null;
@@ -123,18 +122,26 @@ export function MissionaryGivingCreateView() {
   }, [form, preselectedMissionaryId]);
 
   return (
-    <StudioLayout sectionLabel="Missionary Pages" currentLabel="New giving page">
+    <StudioLayout
+      sectionLabel="Missionary Pages"
+      currentLabel="New giving page"
+    >
       <div className="mx-auto max-w-lg px-4 py-8 sm:px-6">
-        <h1 className="font-semibold text-xl tracking-tight">Missionary giving page</h1>
+        <h1 className="font-semibold text-xl tracking-tight">
+          Missionary giving page
+        </h1>
         <p className="mt-2 text-muted-foreground text-sm">
-          Canonical missionary ID is stored on the document. Title and slug are prefilled from
-          Supabase profile data when possible.
+          Canonical missionary ID is stored on the document. Title and slug are
+          prefilled from Supabase profile data when possible.
         </p>
 
         {!templateId ? (
           <p className="mt-4 text-muted-foreground text-sm">
             Choose a template from the{" "}
-            <Link className="text-primary underline" href="/web-studio/templates">
+            <Link
+              className="text-primary underline"
+              href="/web-studio/templates"
+            >
               gallery
             </Link>
             .
@@ -155,7 +162,9 @@ export function MissionaryGivingCreateView() {
                 <Select
                   value={field.state.value || undefined}
                   onValueChange={(v) => field.handleChange(v)}
-                  disabled={missionariesQuery.isPending || missionariesQuery.isError}
+                  disabled={
+                    missionariesQuery.isPending || missionariesQuery.isError
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select missionary" />

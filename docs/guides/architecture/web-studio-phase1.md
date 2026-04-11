@@ -10,13 +10,13 @@ This document now also acts as the handoff baseline for **Phase 2**, where the s
 
 ## Boundaries
 
-| Layer | Owner | Notes |
-| ----- | ----- | ----- |
-| Outer shell (top bar, breadcrumbs, left rail, MC navigation exit) | Mission Control (`apps/admin/src/cms-ui/web-studio/shell/*`) | Rendered inside Payload `(payload)` layout; `MCShell` still bypasses `/web-studio` at the Next root — do not double-wrap. |
-| List query, pagination, column prefs, access | Payload | Custom list view composes `ListControls`, `PageControls`, `Table`, `TableColumnsProvider`, `SelectionProvider`, `useListQuery`. |
-| Document form, drafts, autosave, publish, Lexical | Payload | Custom edit view wraps `DefaultEditView` and relocates **Preview / Save draft / Publish** to a MC header band using stock `@payloadcms/ui` buttons. |
-| Preview URL for Pages | `Pages.admin.preview` → `pagesGeneratePreviewURL` | Opens **published** donor route matching `[...cmsSlug]` (`buildDonorPreviewPathForPageSlug`). Set `NEXT_PUBLIC_DONOR_URL` when donor is not on `127.0.0.1:3000`. |
-| Non-Payload settings UI | TanStack Form + Zod | Example: `PagesWorkspaceSettingsDialog` → Payload `usePreferences`. |
+| Layer                                                             | Owner                                                        | Notes                                                                                                                                                            |
+| ----------------------------------------------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Outer shell (top bar, breadcrumbs, left rail, MC navigation exit) | Mission Control (`apps/admin/src/cms-ui/web-studio/shell/*`) | Rendered inside Payload `(payload)` layout; `MCShell` still bypasses `/web-studio` at the Next root — do not double-wrap.                                        |
+| List query, pagination, column prefs, access                      | Payload                                                      | Custom list view composes `ListControls`, `PageControls`, `Table`, `TableColumnsProvider`, `SelectionProvider`, `useListQuery`.                                  |
+| Document form, drafts, autosave, publish, Lexical                 | Payload                                                      | Custom edit view wraps `DefaultEditView` and relocates **Preview / Save draft / Publish** to a MC header band using stock `@payloadcms/ui` buttons.              |
+| Preview URL for Pages                                             | `Pages.admin.preview` → `pagesGeneratePreviewURL`            | Opens **published** donor route matching `[...cmsSlug]` (`buildDonorPreviewPathForPageSlug`). Set `NEXT_PUBLIC_DONOR_URL` when donor is not on `127.0.0.1:3000`. |
+| Non-Payload settings UI                                           | TanStack Form + Zod                                          | Example: `PagesWorkspaceSettingsDialog` → Payload `usePreferences`.                                                                                              |
 
 ## Kill switch (rollback)
 

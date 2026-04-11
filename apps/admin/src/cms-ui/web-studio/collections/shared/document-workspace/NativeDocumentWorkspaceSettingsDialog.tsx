@@ -83,9 +83,8 @@ function WorkspaceSettingsInner({
 
     void (async () => {
       try {
-        const pref = await getPreference<Partial<WorkspaceValues>>(
-          preferenceKey,
-        );
+        const pref =
+          await getPreference<Partial<WorkspaceValues>>(preferenceKey);
 
         if (cancelled) {
           return;

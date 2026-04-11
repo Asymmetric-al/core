@@ -10,15 +10,15 @@ Mission Control–native UI that wraps **Payload CMS** (mounted at `/web-studio`
 
 ## Directory map
 
-| Path | Role |
-|------|------|
-| `shell/` | `StudioLayout`, nav rail, top bar |
-| `collections/config.ts` | Per-collection labels, paths, preview hints, preference keys |
-| `collections/shared/` | `NativeCollectionListView`, `NativeCollectionEditView`, workspace dialogs |
-| `flows/` | TanStack Form wizards + template gallery (top-level Payload admin views) |
-| `adapters/` | Preview URL helpers (`preview-url.ts`) |
-| `feature-flags.ts` | `CMS_WEB_STUDIO_NATIVE_*` kill switches |
-| `preferences/keys.ts` | Payload preference key strings |
+| Path                    | Role                                                                      |
+| ----------------------- | ------------------------------------------------------------------------- |
+| `shell/`                | `StudioLayout`, nav rail, top bar                                         |
+| `collections/config.ts` | Per-collection labels, paths, preview hints, preference keys              |
+| `collections/shared/`   | `NativeCollectionListView`, `NativeCollectionEditView`, workspace dialogs |
+| `flows/`                | TanStack Form wizards + template gallery (top-level Payload admin views)  |
+| `adapters/`             | Preview URL helpers (`preview-url.ts`)                                    |
+| `feature-flags.ts`      | `CMS_WEB_STUDIO_NATIVE_*` kill switches                                   |
+| `preferences/keys.ts`   | Payload preference key strings                                            |
 
 ## Rules of engagement
 

@@ -55,11 +55,7 @@ export function TileCard({ tile }: TileCardProps) {
           <div className="mt-auto pt-5 border-t border-zinc-50 pointer-events-auto group-hover:border-zinc-100 transition-colors">
             <div className="flex flex-wrap gap-2">
               {tile.quickActions.slice(0, 3).map((action) => (
-                <Link
-                  key={action.label}
-                  href={action.href}
-                  className="w-full"
-                >
+                <Link key={action.label} href={action.href} className="w-full">
                   <Button
                     variant="ghost"
                     size="sm"

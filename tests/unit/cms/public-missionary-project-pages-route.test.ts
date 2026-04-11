@@ -28,12 +28,10 @@ let missionaryGET: (request: unknown, context: unknown) => Promise<Response>;
 let projectGET: (request: unknown, context: unknown) => Promise<Response>;
 
 beforeAll(async () => {
-  const missionaryModule = await import(
-    "../../../apps/admin/app/api/cms/public/missionary-pages/[id]/route"
-  );
-  const projectModule = await import(
-    "../../../apps/admin/app/api/cms/public/project-pages/[slug]/route"
-  );
+  const missionaryModule =
+    await import("../../../apps/admin/app/api/cms/public/missionary-pages/[id]/route");
+  const projectModule =
+    await import("../../../apps/admin/app/api/cms/public/project-pages/[slug]/route");
   missionaryGET = missionaryModule.GET;
   projectGET = projectModule.GET;
 });
@@ -47,7 +45,11 @@ describe("public missionary giving page route", () => {
     getPayloadClientMock.mockResolvedValue({});
     resolveTenantFromRequestMock.mockResolvedValue(null);
     const res = await missionaryGET(
-      { nextUrl: new URL("http://localhost:3030/api/cms/public/missionary-pages/x") } as never,
+      {
+        nextUrl: new URL(
+          "http://localhost:3030/api/cms/public/missionary-pages/x",
+        ),
+      } as never,
       { params: Promise.resolve({ id: "x" }) },
     );
     expect(res.status).toBe(404);

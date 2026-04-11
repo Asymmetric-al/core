@@ -31,7 +31,9 @@ export type WebStudioCollectionConfig = {
   hasVersions: boolean;
   listPath: string;
   previewMode: "none" | "public-link";
-  previewPathForData?: (data: Record<string, unknown> | undefined) => string | null;
+  previewPathForData?: (
+    data: Record<string, unknown> | undefined,
+  ) => string | null;
   preferences: (typeof WEB_STUDIO_COLLECTION_PREFERENCE_MAP)[WebStudioCollectionSlug];
   sectionLabel: string;
   slug: WebStudioCollectionSlug;
@@ -76,7 +78,9 @@ export const WEB_STUDIO_COLLECTION_CONFIGS: Record<
     previewPathForData: (data) => {
       const missionaryId =
         typeof data?.missionaryId === "string" ? data.missionaryId : "";
-      return missionaryId ? `/workers/${encodeURIComponent(missionaryId)}` : null;
+      return missionaryId
+        ? `/workers/${encodeURIComponent(missionaryId)}`
+        : null;
     },
     preferences:
       WEB_STUDIO_COLLECTION_PREFERENCE_MAP["missionary-giving-pages"],
@@ -207,7 +211,9 @@ export function getWebStudioCollectionConfig(
 }
 
 export function getEnabledWebStudioCollections() {
-  return (Object.keys(WEB_STUDIO_COLLECTION_CONFIGS) as WebStudioCollectionSlug[])
+  return (
+    Object.keys(WEB_STUDIO_COLLECTION_CONFIGS) as WebStudioCollectionSlug[]
+  )
     .filter((slug) => isNativeCollectionWebStudioEnabled(slug))
     .map((slug) => WEB_STUDIO_COLLECTION_CONFIGS[slug]);
 }
