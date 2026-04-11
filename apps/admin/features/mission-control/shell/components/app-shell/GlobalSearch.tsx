@@ -67,7 +67,7 @@ export const GlobalSearch = memo(function GlobalSearch() {
               return (
                 <CommandItem
                   key={tile.id}
-                  onSelect={() => handleSelect(`/mc${tile.route}`)}
+                  onSelect={() => handleSelect(tile.route)}
                 >
                   <Icon className="mr-2 h-4 w-4" />
                   <span>{tile.title}</span>
@@ -82,7 +82,7 @@ export const GlobalSearch = memo(function GlobalSearch() {
                 return (
                   <CommandItem
                     key={`${tile.id}-${action.label}`}
-                    onSelect={() => handleSelect(`/mc${action.href}`)}
+                    onSelect={() => handleSelect(action.href)}
                   >
                     <Icon className="mr-2 h-4 w-4" />
                     <span>{action.label}</span>
