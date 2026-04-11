@@ -18,7 +18,7 @@ import {
 import { ExternalLink, ImageIcon, Link2, Settings2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { NativeDocumentWorkspaceSettingsDialog } from "./NativeDocumentWorkspaceSettingsDialog";
 import { resolveDonorOrigin } from "../../../adapters/resolve-donor-origin";
@@ -55,6 +55,36 @@ export function NativeCollectionEditView({
     showSlugChip: true,
   });
   const [settingsOpen, setSettingsOpen] = useState(false);
+
+  const handleSettingsOpenChange = useCallback(
+    (open: boolean) => {
+      setSettingsOpen(open);
+      if (!open) {
+        void (async () => {
+          try {
+            const pref = await getPreference<{
+              inspectorOpen?: boolean;
+              showSlugChip?: boolean;
+            }>(studioConfig.preferences.workspace);
+            if (!pref) return;
+            setWorkspace({
+              inspectorOpen:
+                typeof pref.inspectorOpen === "boolean"
+                  ? pref.inspectorOpen
+                  : true,
+              showSlugChip:
+                typeof pref.showSlugChip === "boolean"
+                  ? pref.showSlugChip
+                  : true,
+            });
+          } catch {
+            /* ignore */
+          }
+        })();
+      }
+    },
+    [getPreference, studioConfig.preferences.workspace],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -364,7 +394,7 @@ export function NativeCollectionEditView({
 
         <NativeDocumentWorkspaceSettingsDialog
           open={settingsOpen}
-          onOpenChange={setSettingsOpen}
+          onOpenChange={handleSettingsOpenChange}
           preferenceKey={studioConfig.preferences.workspace}
           sectionLabel={studioConfig.sectionLabel}
         />
