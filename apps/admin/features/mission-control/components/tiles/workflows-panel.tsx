@@ -28,7 +28,7 @@ export function WorkflowsPanel() {
         {WORKFLOWS.map((workflow) => (
           <Link
             key={workflow.id}
-            href={`/mc${workflow.route}`}
+            href={workflow.route}
             className="group block"
           >
             <Card className="h-full overflow-hidden rounded-3xl border border-zinc-200/60 bg-white shadow-sm transition-all duration-300 hover:border-zinc-300 hover:shadow-xl hover:shadow-zinc-200/40 hover:-translate-y-1">
