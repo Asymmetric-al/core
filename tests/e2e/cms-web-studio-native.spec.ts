@@ -53,7 +53,9 @@ test.describe("@cms Web Studio native shell", () => {
       await page.goto(`${adminBaseURL}${route.href}`);
       await page.waitForURL(new RegExp(route.href.replace(/\//g, "\\/")));
       await expect(page.getByTestId("web-studio-native-shell")).toBeVisible();
-      await expect(page.getByRole("heading", { name: route.heading }).first()).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: route.heading }).first(),
+      ).toBeVisible();
     }
   });
 });

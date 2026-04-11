@@ -1,4 +1,10 @@
-import { ImageIcon, FileText, LayoutList, Newspaper, UserRound } from "lucide-react";
+import {
+  ImageIcon,
+  FileText,
+  LayoutList,
+  Newspaper,
+  UserRound,
+} from "lucide-react";
 
 import { buildDonorPreviewPathForPageSlug } from "../adapters/preview-url";
 import { isNativeCollectionWebStudioEnabled } from "../feature-flags";
@@ -19,7 +25,9 @@ export type WebStudioCollectionConfig = {
   hasVersions: boolean;
   listPath: string;
   previewMode: "none" | "public-link";
-  previewPathForData?: (data: Record<string, unknown> | undefined) => string | null;
+  previewPathForData?: (
+    data: Record<string, unknown> | undefined,
+  ) => string | null;
   preferences: (typeof WEB_STUDIO_COLLECTION_PREFERENCE_MAP)[WebStudioCollectionSlug];
   sectionLabel: string;
   slug: WebStudioCollectionSlug;
@@ -130,7 +138,9 @@ export function getWebStudioCollectionConfig(
 }
 
 export function getEnabledWebStudioCollections() {
-  return (Object.keys(WEB_STUDIO_COLLECTION_CONFIGS) as WebStudioCollectionSlug[])
+  return (
+    Object.keys(WEB_STUDIO_COLLECTION_CONFIGS) as WebStudioCollectionSlug[]
+  )
     .filter((slug) => isNativeCollectionWebStudioEnabled(slug))
     .map((slug) => WEB_STUDIO_COLLECTION_CONFIGS[slug]);
 }

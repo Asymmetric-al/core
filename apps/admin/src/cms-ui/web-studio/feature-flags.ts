@@ -28,7 +28,8 @@ export function isNativeCollectionWebStudioEnabled(
 ): boolean {
   const envMap = {
     media: process.env.CMS_WEB_STUDIO_NATIVE_MEDIA,
-    "missionary-profiles": process.env.CMS_WEB_STUDIO_NATIVE_MISSIONARY_PROFILES,
+    "missionary-profiles":
+      process.env.CMS_WEB_STUDIO_NATIVE_MISSIONARY_PROFILES,
     "ministry-updates": process.env.CMS_WEB_STUDIO_NATIVE_MINISTRY_UPDATES,
     navigation: process.env.CMS_WEB_STUDIO_NATIVE_NAVIGATION,
     pages: process.env.CMS_WEB_STUDIO_NATIVE_PAGES,

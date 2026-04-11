@@ -3,7 +3,12 @@
 import { Button } from "@asym/ui/components/shadcn/button";
 import { cn } from "@asym/ui/lib/utils";
 import { usePreferences } from "@payloadcms/ui";
-import { Clock3, LayoutDashboard, PanelLeftClose, PanelLeft } from "lucide-react";
+import {
+  Clock3,
+  LayoutDashboard,
+  PanelLeftClose,
+  PanelLeft,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -121,7 +126,11 @@ export function StudioNavRail({ className }: { className?: string }) {
           className="h-8 w-8 shrink-0"
           onClick={() => void persistCollapsed(!collapsed)}
           aria-pressed={collapsed}
-          aria-label={collapsed ? "Expand studio navigation" : "Collapse studio navigation"}
+          aria-label={
+            collapsed
+              ? "Expand studio navigation"
+              : "Collapse studio navigation"
+          }
         >
           {collapsed ? (
             <PanelLeft className="h-4 w-4" />

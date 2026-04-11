@@ -1,6 +1,5 @@
 "use client";
 
-
 import { Button } from "@asym/ui/components/shadcn/button";
 import { FilterBar } from "@asym/ui/components/shadcn/filter-bar";
 import { PageShell } from "@asym/ui/components/shadcn/page-shell";
@@ -20,7 +19,6 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 import { formatAdminURL } from "payload/shared";
 import { useEffect, useMemo, useState } from "react";
-
 
 import { StudioLayout } from "../../../shell/studio-layout";
 import { getWebStudioCollectionConfig } from "../../config";

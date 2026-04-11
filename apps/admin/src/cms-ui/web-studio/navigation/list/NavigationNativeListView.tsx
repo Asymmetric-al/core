@@ -9,8 +9,6 @@ export type NavigationNativeListViewProps = Omit<
   "collectionSlug"
 >;
 
-export function NavigationNativeListView(
-  props: NavigationNativeListViewProps,
-) {
+export function NavigationNativeListView(props: NavigationNativeListViewProps) {
   return <NativeCollectionListView {...props} collectionSlug="navigation" />;
 }

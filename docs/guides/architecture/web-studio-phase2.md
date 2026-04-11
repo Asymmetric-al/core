@@ -22,13 +22,13 @@ keeping Payload as the runtime and schema owner.
 
 ## Parity matrix
 
-| Collection | Native list | Native default edit | Preview link | Draft/publish actions | Versions/API/live preview |
-| ---------- | ----------- | ------------------- | ------------ | --------------------- | ------------------------- |
-| Pages | Yes | Yes | Public donor page URL | Yes | Stock Payload nested subviews |
-| Navigation | Yes | Yes | No public preview route | No drafts | Stock Payload nested subviews (API only practical) |
-| MissionaryProfiles | Yes | Yes | No public preview route | No drafts | Stock Payload nested subviews |
-| MinistryUpdates | Yes | Yes | Public donor home/update-adjacent surface only | Yes | Stock Payload nested subviews |
-| Media | Yes | Yes | No public preview route | No drafts | Stock Payload nested subviews |
+| Collection         | Native list | Native default edit | Preview link                                   | Draft/publish actions | Versions/API/live preview                          |
+| ------------------ | ----------- | ------------------- | ---------------------------------------------- | --------------------- | -------------------------------------------------- |
+| Pages              | Yes         | Yes                 | Public donor page URL                          | Yes                   | Stock Payload nested subviews                      |
+| Navigation         | Yes         | Yes                 | No public preview route                        | No drafts             | Stock Payload nested subviews (API only practical) |
+| MissionaryProfiles | Yes         | Yes                 | No public preview route                        | No drafts             | Stock Payload nested subviews                      |
+| MinistryUpdates    | Yes         | Yes                 | Public donor home/update-adjacent surface only | Yes                   | Stock Payload nested subviews                      |
+| Media              | Yes         | Yes                 | No public preview route                        | No drafts             | Stock Payload nested subviews                      |
 
 ## Why nested subviews remain stock
 
