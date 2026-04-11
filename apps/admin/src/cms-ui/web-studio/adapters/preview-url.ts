@@ -1,6 +1,6 @@
-import type { GeneratePreviewURL } from "payload";
+import { resolveDonorOrigin } from "./resolve-donor-origin";
 
-const DEFAULT_DONOR_ORIGIN = "http://127.0.0.1:3000";
+import type { GeneratePreviewURL } from "payload";
 
 function normalizeSlugPath(slug: string) {
   const trimmed = slug.trim();
@@ -19,16 +19,6 @@ function normalizeSlugPath(slug: string) {
 export function buildDonorPreviewPathForPageSlug(slug: string): string {
   const path = normalizeSlugPath(slug);
   return path ? `/${path}` : "/";
-}
-
-function resolveDonorOrigin(): string {
-  if (process.env.NEXT_PUBLIC_DONOR_URL) {
-    return process.env.NEXT_PUBLIC_DONOR_URL.replace(/\/$/, "");
-  }
-  if (process.env.DONOR_APP_URL) {
-    return process.env.DONOR_APP_URL.replace(/\/$/, "");
-  }
-  return DEFAULT_DONOR_ORIGIN;
 }
 
 /**

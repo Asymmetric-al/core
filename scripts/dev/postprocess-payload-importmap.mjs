@@ -1,6 +1,11 @@
 import { access, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
+/**
+ * Payload may emit an import map under `web-studio/` (current) or `admin/` (legacy).
+ * Long-term we ship a single canonical map per admin app; post-process every file
+ * that exists so eslint + typed export stay consistent after `cms:importmap`.
+ */
 const importMapCandidates = [
   path.resolve(process.cwd(), "app/(payload)/web-studio/importMap.js"),
   path.resolve(process.cwd(), "app/(payload)/admin/importMap.js"),
@@ -11,18 +16,17 @@ const lintHeader =
 const typedExport =
   "/** @type {Record<string, unknown>} */\nexport const importMap =";
 
-async function resolveImportMapPath() {
+async function listExistingImportMaps() {
+  const found = [];
   for (const candidate of importMapCandidates) {
     try {
       await access(candidate);
-      return candidate;
+      found.push(candidate);
     } catch {
-      /* try next */
+      /* absent */
     }
   }
-  throw new Error(
-    `Payload import map not found. Tried:\n${importMapCandidates.join("\n")}`,
-  );
+  return found;
 }
 
 function ensureLintHeader(content) {
@@ -44,9 +48,7 @@ function ensureTypedExport(content) {
   );
 }
 
-async function run() {
-  const importMapPath = await resolveImportMapPath();
-
+async function postProcessFile(importMapPath) {
   const current = await readFile(importMapPath, "utf8");
   const withHeader = ensureLintHeader(current);
   const withTypedExport = ensureTypedExport(withHeader);
@@ -55,7 +57,20 @@ async function run() {
     await writeFile(importMapPath, withTypedExport, "utf8");
     console.log(`Post-processed Payload import map at ${importMapPath}`);
   } else {
-    console.log("Payload import map already post-processed.");
+    console.log(`Payload import map already post-processed: ${importMapPath}`);
+  }
+}
+
+async function run() {
+  const paths = await listExistingImportMaps();
+  if (paths.length === 0) {
+    throw new Error(
+      `Payload import map not found. Tried:\n${importMapCandidates.join("\n")}`,
+    );
+  }
+
+  for (const p of paths) {
+    await postProcessFile(p);
   }
 }
 

@@ -21,22 +21,12 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { NativeDocumentWorkspaceSettingsDialog } from "./NativeDocumentWorkspaceSettingsDialog";
+import { resolveDonorOrigin } from "../../../adapters/resolve-donor-origin";
 import { StudioLayout } from "../../../shell/studio-layout";
 import { getWebStudioCollectionConfig } from "../../config";
 
 import type { WebStudioCollectionSlug } from "../../config";
 import type { DocumentViewClientProps } from "payload";
-
-const DEFAULT_DONOR_ORIGIN = "http://127.0.0.1:3000";
-
-function resolveDonorOrigin(): string {
-  const fromEnv = process.env.NEXT_PUBLIC_DONOR_URL;
-  if (fromEnv) {
-    return fromEnv.replace(/\/$/, "");
-  }
-
-  return DEFAULT_DONOR_ORIGIN;
-}
 
 export type NativeCollectionEditViewProps = DocumentViewClientProps & {
   studioCollection: WebStudioCollectionSlug;
