@@ -394,7 +394,9 @@ Docker and Supabase CLI must be installed and running before starting local Supa
 
 ### Environment variables
 
-The `.env.local` file at the repo root must be symlinked into each app directory for Next.js to pick it up:
+Keep secrets in **repo-root** `.env.local` (gitignored). Each app’s `next.config.ts` calls **`loadEnvConfig` from `@next/env`** on the monorepo root so Payload and Next see `SUPABASE_DB_URL`, `PAYLOAD_DATABASE_URI`, etc., without copying files.
+
+Optional (older pattern): symlink root `.env.local` into each app if you rely on tooling that only reads `apps/<app>/.env.local`:
 
 ```
 ln -sf ../../.env.local apps/donor/.env.local
