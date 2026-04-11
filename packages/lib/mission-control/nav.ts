@@ -37,7 +37,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     id: "web-studio",
     title: "Web Studio",
-    href: "/mc/web-studio",
+    href: "/web-studio",
     icon: Globe,
     roles: ["fundraising", "staff", "admin"],
     section: "main",
