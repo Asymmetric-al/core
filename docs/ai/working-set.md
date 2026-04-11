@@ -1148,3 +1148,48 @@
   - scoped lint/typecheck for touched packages/apps
   - `bun run test:unit`
   - Playwright session guard spec for donor/admin/missionary.
+
+## 2026-04-11 (TanStack DB + Virtual latest-version upgrade planning)
+
+- Date: 2026-04-11
+- Repo: Asymmetric-al/core
+- Goal: Verify the latest TanStack DB/Virtual/CLI versions and produce a concrete, repo-specific full-upgrade plan.
+- Primary area:
+  - `packages/database/package.json`
+  - `packages/ui/package.json`
+  - `docs/guides/development/tanstack-{integration,virtual-foundation,surface-inventory}.md`
+- Constraints:
+  - Nia MCP is unavailable in this session, so use repo-scoped `rg` and package registry checks (`npm view`) as evidence.
+  - Treat official TanStack docs and npm package registry as the version truth for planning.
+  - Produce phased rollout guidance with verification checkpoints and rollback guardrails.
+- Evidence sources used:
+  - `docs/ai/stack-registry.md`
+  - `docs/ai/working-set.md`
+  - `package.json` files under `packages/database` and `packages/ui`
+  - `npm view @tanstack/* version` checks (DB, react-db, query-db-collection, react-virtual, virtual-core, CLI)
+  - TanStack docs pages under `https://tanstack.com/db/latest` and `https://tanstack.com/virtual/latest`
+- Notes:
+  - Current repo already sits on the TanStack DB `0.6.x` line; target is patch alignment and coordinated Virtual/CLI bumps.
+
+## 2026-04-11 (TanStack DB/Virtual upgrade implementation)
+
+- Date: 2026-04-11
+- Repo: Asymmetric-al/core
+- Goal: Execute the TanStack DB + Virtual upgrade plan end-to-end, including dependency bumps, docs refresh, and verification.
+- Primary area:
+  - `package.json` (root)
+  - `packages/database/package.json`
+  - `packages/ui/package.json`
+  - `docs/guides/development/tanstack-integration.md`
+  - `docs/guides/development/tanstack-virtual-foundation.md`
+- Constraints:
+  - Nia MCP remains unavailable in-session; use repo-scoped file search and primary-source package/doc checks.
+  - Verify latest package versions from npm dist-tags before editing.
+  - Run at least scoped lint + typecheck + unit coverage to validate upgrade safety.
+- Evidence sources used:
+  - `npm view @tanstack/{db,react-db,query-db-collection,react-virtual,virtual-core,cli} version dist-tags`
+  - `https://tanstack.com/db/latest`
+  - `https://tanstack.com/virtual/latest`
+  - `rg` scans for TanStack usage in `packages/database` and `packages/ui`
+- Notes:
+  - `tanstack search-docs` currently fails in this environment (`fetch failed`), so docs verification uses direct official URLs + npm registry checks.
