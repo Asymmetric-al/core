@@ -7,6 +7,22 @@ It contains three Next.js App Router applications plus shared workspace
 packages for API access, auth, database access, email, environment handling,
 and UI.
 
+## Product And Platform Intent (OpenSpec)
+
+Durable big-picture context for **what we build** and **why** lives in four
+top-level specs (OpenSpec discovers `openspec/specs/<id>/spec.md`):
+
+| Spec | Path |
+| ---- | ---- |
+| Product intent (goals, scope, long-horizon success) | `openspec/specs/platform-product-intent/spec.md` |
+| Surfaces (admin, donor, missionary, public UX intent) | `openspec/specs/platform-surfaces/spec.md` |
+| Principles (decision criteria) | `openspec/specs/platform-principles/spec.md` |
+| System boundaries (packages, data, auth, payments, runtime) | `openspec/specs/platform-boundaries/spec.md` |
+
+Structural detail (directory trees, diagrams, route tables) remains in
+`docs/guides/architecture/overview.md`. Keep OpenSpec intent and architecture
+docs aligned when behavior or naming changes.
+
 ## Monorepo Layout
 
 - `apps/admin` (`@asym/admin`) — admin and mission-control surface
