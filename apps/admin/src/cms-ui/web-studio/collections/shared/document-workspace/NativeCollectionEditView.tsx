@@ -21,12 +21,18 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { NativeDocumentWorkspaceSettingsDialog } from "./NativeDocumentWorkspaceSettingsDialog";
-import { resolveDonorOrigin } from "../../../adapters/resolve-donor-origin";
+import { resolveDonorOrigin } from "../../../adapters/preview-url";
 import { StudioLayout } from "../../../shell/studio-layout";
 import { getWebStudioCollectionConfig } from "../../config";
 
 import type { WebStudioCollectionSlug } from "../../config";
 import type { DocumentViewClientProps } from "payload";
+
+function warnPreferenceDev(context: string, error: unknown) {
+  if (process.env.NODE_ENV === "development") {
+    console.warn(`[Web Studio] ${context}`, error);
+  }
+}
 
 export type NativeCollectionEditViewProps = DocumentViewClientProps & {
   studioCollection: WebStudioCollectionSlug;
@@ -106,8 +112,8 @@ export function NativeCollectionEditView({
           showSlugChip:
             typeof pref.showSlugChip === "boolean" ? pref.showSlugChip : true,
         });
-      } catch {
-        /* ignore */
+      } catch (error) {
+        warnPreferenceDev("workspace preference read failed", error);
       }
     })();
 
@@ -130,7 +136,10 @@ export function NativeCollectionEditView({
       const existing =
         (await getPreference<Array<Record<string, string>>>(
           studioConfig.preferences.recentDocs,
-        ).catch(() => [])) ?? [];
+        ).catch((error) => {
+          warnPreferenceDev("recent docs preference read failed", error);
+          return [];
+        })) ?? [];
       const next = [
         {
           id: identifier,
@@ -142,7 +151,9 @@ export function NativeCollectionEditView({
       ].slice(0, 6);
 
       await setPreference(studioConfig.preferences.recentDocs, next).catch(
-        () => undefined,
+        (error) => {
+          warnPreferenceDev("recent docs preference write failed", error);
+        },
       );
     })();
   }, [

@@ -2,6 +2,8 @@ import { resolveDonorOrigin } from "./resolve-donor-origin";
 
 import type { GeneratePreviewURL } from "payload";
 
+export { resolveDonorOrigin };
+
 function normalizeSlugPath(slug: string) {
   const trimmed = slug.trim();
   if (!trimmed || trimmed === "home") {

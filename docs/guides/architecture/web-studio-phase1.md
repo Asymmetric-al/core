@@ -14,7 +14,7 @@ This document now also acts as the handoff baseline for **Phase 2**, where the s
 | List query, pagination, column prefs, access                      | Payload                                                      | Custom list view composes `ListControls`, `PageControls`, `Table`, `TableColumnsProvider`, `SelectionProvider`, `useListQuery`.                                  |
 | Document form, drafts, autosave, publish, Lexical                 | Payload                                                      | Custom edit view wraps `DefaultEditView` and relocates **Preview / Save draft / Publish** to a MC header band using stock `@payloadcms/ui` buttons.              |
 | Preview URL for Pages                                             | `Pages.admin.preview` → `pagesGeneratePreviewURL`            | Opens **published** donor route matching `[...cmsSlug]` (`buildDonorPreviewPathForPageSlug`). Set `NEXT_PUBLIC_DONOR_URL` when donor is not on `127.0.0.1:3000`. |
-| Non-Payload settings UI                                           | TanStack Form + Zod                                          | Example: `PagesWorkspaceSettingsDialog` → Payload `usePreferences`.                                                                                              |
+| Non-Payload settings UI                                           | TanStack Form + Zod                                          | Example: `NativeDocumentWorkspaceSettingsDialog` → Payload `usePreferences`.                                                                                     |
 
 ## Kill switch (rollback)
 

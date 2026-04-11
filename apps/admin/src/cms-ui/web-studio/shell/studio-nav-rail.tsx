@@ -25,6 +25,15 @@ export function StudioNavRail({ className }: { className?: string }) {
     Array<{ href: string; id: string; title: string; updatedAt?: string }>
   >([]);
 
+  /** Snapshot of collection rollout flags — stable string when env is unchanged (avoids new array ref every render). */
+  const webStudioNativeRolloutKey = [
+    process.env.CMS_WEB_STUDIO_NATIVE_MEDIA ?? "",
+    process.env.CMS_WEB_STUDIO_NATIVE_MISSIONARY_PROFILES ?? "",
+    process.env.CMS_WEB_STUDIO_NATIVE_MINISTRY_UPDATES ?? "",
+    process.env.CMS_WEB_STUDIO_NATIVE_NAVIGATION ?? "",
+    process.env.CMS_WEB_STUDIO_NATIVE_PAGES ?? "",
+  ].join("|");
+
   useEffect(() => {
     let cancelled = false;
     void (async () => {
@@ -59,7 +68,15 @@ export function StudioNavRail({ className }: { className?: string }) {
     }
   };
 
-  const enabledCollections = useMemo(() => getEnabledWebStudioCollections(), []);
+  const enabledCollections = useMemo(() => {
+    void webStudioNativeRolloutKey;
+    return getEnabledWebStudioCollections();
+  }, [webStudioNativeRolloutKey]);
+
+  const recentDocsPreferenceKeys = useMemo(
+    () => enabledCollections.map((c) => c.preferences.recentDocs).join("\0"),
+    [enabledCollections],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -99,7 +116,7 @@ export function StudioNavRail({ className }: { className?: string }) {
     return () => {
       cancelled = true;
     };
-  }, [enabledCollections, getPreference]);
+  }, [enabledCollections, getPreference, recentDocsPreferenceKeys]);
 
   return (
     <aside
