@@ -1,11 +1,8 @@
-import {
-  resolveDonorOrigin,
-  resolveDonorPublicOrigin,
-} from "./resolve-donor-origin";
+import { resolveDonorOrigin } from "./resolve-donor-origin";
 
 import type { GeneratePreviewURL } from "payload";
 
-export { resolveDonorOrigin, resolveDonorPublicOrigin };
+export { resolveDonorOrigin };
 
 function normalizeSlugPath(slug: string) {
   const trimmed = slug.trim();

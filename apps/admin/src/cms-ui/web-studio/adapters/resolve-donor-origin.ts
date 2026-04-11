@@ -5,25 +5,9 @@ function stripTrailingSlash(origin: string) {
 }
 
 /**
- * Client-safe donor origin for Web Studio (browser bundle).
+ * Donor app origin for Web Studio preview (Payload `GeneratePreviewURL`, native live preview, etc.).
  *
- * Precedence: `NEXT_PUBLIC_DONOR_URL` → default dev origin.
- * Do not read `DONOR_APP_URL` here; it is server-only and is not inlined for clients.
- */
-export function resolveDonorPublicOrigin(): string {
-  const fromPublic = process.env.NEXT_PUBLIC_DONOR_URL;
-  if (fromPublic) {
-    return stripTrailingSlash(fromPublic);
-  }
-  return DEFAULT_DONOR_ORIGIN;
-}
-
-/**
- * Donor app origin for server-side preview (Payload `GeneratePreviewURL`, etc.).
- *
- * Precedence (single source of truth): `NEXT_PUBLIC_DONOR_URL` → `DONOR_APP_URL` → default.
- * Matches public origin when `NEXT_PUBLIC_DONOR_URL` is set; otherwise falls back to
- * server-only `DONOR_APP_URL` so preview links work in CI/server without duplicating the public var.
+ * Precedence: `NEXT_PUBLIC_DONOR_URL` → `DONOR_APP_URL` → dev default.
  */
 export function resolveDonorOrigin(): string {
   const fromPublic = process.env.NEXT_PUBLIC_DONOR_URL;
