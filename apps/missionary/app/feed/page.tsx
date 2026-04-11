@@ -1920,13 +1920,13 @@ function PostComposerCard({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex-1 min-w-0 rounded-xl sm:rounded-2xl border border-border overflow-hidden focus-within:ring-2 focus-within:ring-ring/20 focus-within:border-ring transition-all"
+            className="flex-1 min-w-0 transition-all"
           >
             <RichTextEditor
               value={postContent}
               onChange={setPostContent}
               placeholder={`What's happening? Share a ${postType.toLowerCase()}...`}
-              className=""
+              className="rounded-xl sm:rounded-2xl"
               contentClassName="py-3 sm:py-4 px-3 sm:px-4 text-sm sm:text-base text-foreground placeholder:text-muted-foreground min-h-[100px] sm:min-h-[140px] leading-relaxed"
               toolbarPosition="bottom"
               proseInvert={false}

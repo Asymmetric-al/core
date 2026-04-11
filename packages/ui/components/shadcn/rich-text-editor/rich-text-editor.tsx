@@ -95,7 +95,7 @@ export const EditorRoot = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
           ref={ref}
           className={cn(
             "relative w-full overflow-hidden flex flex-col border border-input rounded-lg",
-            "ring-offset-background focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+            "focus-within:outline-none focus-within:ring-2 focus-within:ring-inset focus-within:ring-ring",
             disabled && "opacity-50 cursor-not-allowed",
             className,
           )}

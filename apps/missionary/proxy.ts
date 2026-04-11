@@ -19,6 +19,7 @@ const authProxy = createAuthMiddleware({
     "/sitemap.xml",
     "/robots.txt",
     "/no-access",
+    "/boneyard",
   ],
   protectedRoutePrefixes: ["/"],
   loginPath: "/login",

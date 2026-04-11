@@ -1,5 +1,6 @@
 "use client";
 
+import { useMobilizeCandidates } from "@asym/database/hooks";
 import { motion } from "@asym/lib/motion";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { PageShell } from "@asym/ui/components/shadcn/page-shell";
@@ -7,7 +8,6 @@ import { Plus } from "lucide-react";
 import React, { useMemo, useState } from "react";
 
 import {
-  MOCK_CANDIDATES,
   type Candidate,
   type MobilizeTab,
   MobilizeAddCandidateSheet,
@@ -23,9 +23,14 @@ export default function Mobilize() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<MobilizeTab>("all");
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
+  const candidatesQuery = useMobilizeCandidates();
+  const allCandidates = useMemo(
+    () => candidatesQuery.data ?? [],
+    [candidatesQuery.data],
+  );
 
   const filteredCandidates = useMemo(() => {
-    return MOCK_CANDIDATES.filter((candidate) => {
+    return allCandidates.filter((candidate) => {
       const normalizedSearch = searchTerm.toLowerCase();
       const matchesSearch =
         candidate.name.toLowerCase().includes(normalizedSearch) ||
@@ -34,25 +39,25 @@ export default function Mobilize() {
         activeTab === "all" || candidate.stage.toLowerCase() === activeTab;
       return matchesSearch && matchesTab;
     });
-  }, [activeTab, searchTerm]);
+  }, [activeTab, allCandidates, searchTerm]);
 
   const stats = useMemo(() => {
     return {
-      applied: MOCK_CANDIDATES.filter(
+      applied: allCandidates.filter(
         (candidate) => candidate.stage === "Applied",
       ).length,
-      vetting: MOCK_CANDIDATES.filter(
+      vetting: allCandidates.filter(
         (candidate) => candidate.stage === "Vetting",
       ).length,
-      training: MOCK_CANDIDATES.filter(
+      training: allCandidates.filter(
         (candidate) => candidate.stage === "Training",
       ).length,
-      ready: MOCK_CANDIDATES.filter(
+      ready: allCandidates.filter(
         (candidate) =>
           candidate.stage === "Ready" || candidate.stage === "Deployed",
       ).length,
     };
-  }, []);
+  }, [allCandidates]);
 
   return (
     <PageShell
@@ -78,6 +83,7 @@ export default function Mobilize() {
           activeTab={activeTab}
           searchTerm={searchTerm}
           candidates={filteredCandidates}
+          isLoading={candidatesQuery.isLoading}
           onTabChange={setActiveTab}
           onSearchTermChange={setSearchTerm}
           onSelectCandidate={setSelectedCandidate}

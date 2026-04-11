@@ -1,17 +1,17 @@
 # TanStack Integration Guide
 
-This guide documents the project-standard integration for TanStack Query v5, Table v8, DB, and Virtual v3 in this Next.js 16.1.1 monorepo.
+This guide documents the project-standard integration for TanStack Query v5, Table v8, DB, and Virtual v3 in this Next.js 16.2.1 monorepo.
 
 ## Version Matrix
 
 | Package                         | Version    | Primary workspace(s)               | Role                      |
 | ------------------------------- | ---------- | ---------------------------------- | ------------------------- |
-| `@tanstack/react-query`         | `^5.90.21` | `packages/database`, apps          | Query state and caching   |
+| `@tanstack/react-query`         | `^5.96.2`  | `packages/database`, apps          | Query state and caching   |
 | `@tanstack/react-table`         | `^8.21.3`  | `packages/ui`, apps                | Headless table state      |
-| `@tanstack/react-db`            | `^0.1.72`  | `packages/database`, `packages/ui` | React DB bindings         |
-| `@tanstack/query-db-collection` | `^1.0.25`  | `packages/database`                | Query-backed collections  |
-| `@tanstack/db`                  | `^0.5.28`  | `packages/database`                | DB runtime                |
-| `@tanstack/react-virtual`       | `^3.13.19` | `packages/ui`                      | Row/list virtualization   |
+| `@tanstack/react-db`            | `^0.1.80`  | `packages/database`, `packages/ui` | React DB bindings         |
+| `@tanstack/query-db-collection` | `^1.0.33`  | `packages/database`                | Query-backed collections  |
+| `@tanstack/db`                  | `^0.6.2`   | `packages/database`                | DB runtime                |
+| `@tanstack/react-virtual`       | `^3.13.23` | `packages/ui`                      | Row/list virtualization   |
 | `zod`                           | `^4.3.6`   | apps + shared packages             | Runtime schema validation |
 
 ## Architecture Boundaries
@@ -27,6 +27,15 @@ This guide documents the project-standard integration for TanStack Query v5, Tab
 
 4. **Rendering layer (App/UI components)**  
    Components read from Query/DB state and opt into virtualization through the shared API.
+
+## Collection Ownership
+
+- **Real Supabase table collections** live in `packages/database/collections/client-db.ts`.
+- **Route-backed admin collections** live in `packages/database/collections/admin-locations.ts`.
+- **Mock/demo collections that still need TanStack DB semantics** live in:
+  - `packages/database/collections/admin-workspace.ts`
+  - `packages/database/collections/donor-history.ts`
+- **App code should import hooks from `@asym/database/hooks`** instead of reading app-local mock arrays or stitching browser fetches inline.
 
 ## Provider Standard
 
@@ -181,9 +190,14 @@ Shared table primitives now follow one contract:
 />
 ```
 
+`DataGrid` is a first-class shared export:
+
+- `@asym/ui/components/shadcn/data-grid`
+- `@asym/ui/components/shadcn/data-grid/types`
+
 ### List Usage
 
-For non-table lists, use the same shared hook and point it at the real scroll container:
+For non-table lists, use the same shared hook and point it at the real scroll container. If a surface is fundamentally tabular, prefer `DataTableResponsive` over a bespoke virtualized list.
 
 ```tsx
 const viewportRef = React.useRef<HTMLElement | null>(null);
