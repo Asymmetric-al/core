@@ -1,23 +1,13 @@
 import { type Page, test } from "@playwright/test";
 
+import { textMatchesPayloadDbFailure } from "./lib/payload-db-failure";
+
 const SKIP_REASON =
   "Payload cannot reach Postgres. Use a Supavisor session pooler URL in PAYLOAD_DATABASE_URI on IPv4-only hosts, or run `supabase start` for 127.0.0.1:54322.";
 
 type PayloadDbGetter = () => boolean;
 
 const payloadDbGetterByPage = new WeakMap<Page, PayloadDbGetter>();
-
-/** Substrings seen in Next / Payload error surfaces when Postgres is unreachable. */
-const PAYLOAD_DB_FAILURE_MARKERS = [
-  "cannot connect to Postgres",
-  "payloadInitError",
-  "ECONNREFUSED",
-  "ENETUNREACH",
-] as const;
-
-function textMatchesPayloadDbFailure(text: string): boolean {
-  return PAYLOAD_DB_FAILURE_MARKERS.some((m) => text.includes(m));
-}
 
 export function attachPayloadDbConsoleListener(page: Page): PayloadDbGetter {
   const existing = payloadDbGetterByPage.get(page);
