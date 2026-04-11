@@ -24,6 +24,21 @@ const dirname = path.dirname(filename);
 const defaultLocalDatabaseUrl =
   "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
 
+const payloadConnectionString =
+  process.env.PAYLOAD_DATABASE_URI ??
+  process.env.SUPABASE_DB_URL ??
+  defaultLocalDatabaseUrl;
+
+if (
+  process.env.NODE_ENV === "development" &&
+  !process.env.PAYLOAD_DATABASE_URI &&
+  !process.env.SUPABASE_DB_URL
+) {
+  console.warn(
+    "[payload] No PAYLOAD_DATABASE_URI or SUPABASE_DB_URL — using default local Postgres at 127.0.0.1:54322. Web Studio needs a reachable DB (supabase start, or set PAYLOAD_DATABASE_URI).",
+  );
+}
+
 function resolvePayloadSecret() {
   if (process.env.PAYLOAD_SECRET) {
     return process.env.PAYLOAD_SECRET;
@@ -52,7 +67,8 @@ export default buildConfig({
       header: ["/src/cms-ui/root/Header.tsx#Header"],
       views: {
         webStudioTemplates: {
-          Component: "/src/cms-ui/web-studio/flows/TemplateGalleryView.tsx#TemplateGalleryView",
+          Component:
+            "/src/cms-ui/web-studio/flows/TemplateGalleryView.tsx#TemplateGalleryView",
           path: "/templates",
         },
         webStudioMissionaries: {
@@ -103,10 +119,7 @@ export default buildConfig({
   db: postgresAdapter({
     schemaName: "cms",
     pool: {
-      connectionString:
-        process.env.PAYLOAD_DATABASE_URI ??
-        process.env.SUPABASE_DB_URL ??
-        defaultLocalDatabaseUrl,
+      connectionString: payloadConnectionString,
     },
   }),
   editor: lexicalEditor(),
