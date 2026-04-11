@@ -52,7 +52,7 @@ const navigation = [
   { name: "CRM", href: "/mc/crm", icon: Users },
   { name: "Tasks", href: "/mc/tasks", icon: CheckSquare },
   { name: "Email Studio", href: "/mc/email", icon: Mail },
-  { name: "Web Studio", href: "/mc/web-studio", icon: Globe },
+  { name: "Web Studio", href: "/web-studio", icon: Globe },
   { name: "Admin", href: "/mc/admin", icon: ShieldCheck },
   { name: "Automations", href: "/mc/automations", icon: Zap },
   { name: "Member Care", href: "/mc/care", icon: MessageSquare },
