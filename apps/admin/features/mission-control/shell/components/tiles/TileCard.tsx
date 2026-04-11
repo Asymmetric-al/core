@@ -1,6 +1,7 @@
 "use client";
 "use no memo";
 
+import { resolveMissionControlHref } from "@asym/lib/mission-control/routes";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
@@ -28,7 +29,7 @@ export function TileCard({ tile }: TileCardProps) {
             <DynamicIcon name={tile.icon} className="h-6 w-6" />
           </div>
           <Link
-            href={`/mc${tile.route}`}
+            href={resolveMissionControlHref(tile.route)}
             className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-50 text-zinc-400 opacity-0 transition-all duration-200 hover:bg-zinc-100 hover:text-zinc-900 group-hover:opacity-100 pointer-events-auto"
           >
             <ChevronRight className="h-4 w-4" />
@@ -57,7 +58,7 @@ export function TileCard({ tile }: TileCardProps) {
               {tile.quickActions.slice(0, 3).map((action) => (
                 <Link
                   key={action.label}
-                  href={`/mc${action.href}`}
+                  href={resolveMissionControlHref(action.href)}
                   className="w-full"
                 >
                   <Button
@@ -80,7 +81,7 @@ export function TileCard({ tile }: TileCardProps) {
         )}
       </CardContent>
       <Link
-        href={`/mc${tile.route}`}
+        href={resolveMissionControlHref(tile.route)}
         className="absolute inset-0 z-0"
         aria-label={`Open ${tile.title}`}
       >

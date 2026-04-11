@@ -1,5 +1,6 @@
 "use client";
 
+import { resolveMissionControlHref } from "@asym/lib/mission-control/routes";
 import Link from "next/link";
 
 import { ChevronRight } from "../icons";
@@ -28,7 +29,10 @@ export function PageHeader({
     <div className="border-b border-border bg-background px-6 py-4 lg:px-8">
       {breadcrumbs && breadcrumbs.length > 0 && (
         <nav className="mb-2 flex items-center gap-1 text-sm text-muted-foreground">
-          <Link href="/mc" className="hover:text-foreground">
+          <Link
+            href={resolveMissionControlHref("/mc")}
+            className="hover:text-foreground"
+          >
             Mission Control
           </Link>
           {breadcrumbs.map((item) => (

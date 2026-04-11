@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "@asym/lib/motion";
 import { TaskDialog } from "@asym/missionary/components/task-dialog";
 import { TaskKanbanBoard } from "@asym/missionary/components/task-kanban-board";
 import { TaskRow } from "@asym/missionary/components/task-row";
+import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,6 +48,8 @@ import {
 } from "lucide-react";
 import { useState, useMemo, useCallback } from "react";
 import * as React from "react";
+
+import { MissionaryTasksListBoneyardFixture } from "./boneyard-fixture";
 
 import type {
   Task,
@@ -539,7 +542,19 @@ function TasksContent({
           </Button>
         </div>
       ) : loading && displayedTasks.length === 0 ? (
-        <TaskListSkeleton />
+        <BoneyardSkeleton
+          name="missionary-tasks-list"
+          loading={true}
+          fallback={<TaskListSkeleton />}
+          fixture={<MissionaryTasksListBoneyardFixture />}
+          snapshotConfig={{
+            excludeSelectors: ["[data-no-skeleton]", "svg.lucide", "svg"],
+            excludeTags: ["footer"],
+          }}
+        >
+          {/* Overlay uses captured bones + fixture; keep children minimal to avoid duplicating the full task list. */}
+          <div />
+        </BoneyardSkeleton>
       ) : viewMode === "board" ? (
         <motion.div
           key="board-view"
@@ -753,7 +768,7 @@ function TasksPageView() {
         (t) =>
           t.title.toLowerCase().includes(search) ||
           t.description?.toLowerCase().includes(search) ||
-          t.donor?.name.toLowerCase().includes(search),
+          (t.donor?.name ?? "").toLowerCase().includes(search),
       );
     }
 

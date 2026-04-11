@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment -- TODO(tanstack-db): query-db-collection vs @tanstack/db Collection types drift */
-// @ts-nocheck
 "use client";
 
 import { useLiveQuery, eq } from "@tanstack/react-db";
