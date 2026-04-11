@@ -78,7 +78,7 @@ export function QuickActionsRow() {
         return (
           <Link
             key={`${action.tile.id}-${action.label}`}
-            href={`/mc${action.href}`}
+            href={action.href}
           >
             <Button
               variant="secondary"
