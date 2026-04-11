@@ -1,18 +1,11 @@
-import { NextResponse, connection, type NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
-import {
-  getPayloadClient,
-  isPayloadClientInitializationError,
-} from "../../../../../src/cms/get-payload";
+import { getPayloadClient } from "../../../../../src/cms/get-payload";
 import { resolveTenantFromRequest } from "../../../../../src/cms/public/resolve-tenant";
-
-async function ensureRequestTimeExecution() {
-  if (process.env.NODE_ENV === "test") {
-    return;
-  }
-
-  await connection();
-}
+import {
+  ensureRequestTimeExecution,
+  publicCmsRouteErrorResponse,
+} from "../../../../../src/cms/public/route-helpers";
 
 export async function GET(request: NextRequest) {
   await ensureRequestTimeExecution();
@@ -46,20 +39,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    if (isPayloadClientInitializationError(error)) {
-      console.error(error.message);
-
-      return NextResponse.json(
-        { error: "Failed to fetch navigation content" },
-        { status: error.statusCode },
-      );
-    }
-
-    console.error("Failed to fetch CMS navigation.", error);
-
-    return NextResponse.json(
-      { error: "Failed to fetch navigation content" },
-      { status: 500 },
-    );
+    return publicCmsRouteErrorResponse(error, {
+      clientMessage: "Failed to fetch navigation content",
+      logMessage: "Failed to fetch CMS navigation.",
+    });
   }
 }

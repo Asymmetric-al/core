@@ -1,27 +1,19 @@
-import { NextResponse, connection, type NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 import { MISSIONARY_GIVING_PAGES_SLUG } from "../../../../../../src/cms/constants";
-import {
-  getPayloadClient,
-  isPayloadClientInitializationError,
-} from "../../../../../../src/cms/get-payload";
+import { getPayloadClient } from "../../../../../../src/cms/get-payload";
 import { resolveTenantFromRequest } from "../../../../../../src/cms/public/resolve-tenant";
+import {
+  ensureRequestTimeExecution,
+  publicCmsRouteErrorResponse,
+} from "../../../../../../src/cms/public/route-helpers";
 import { serializePublishedPageLike } from "../../../../../../src/cms/public/serialize-published-page";
-
 
 type RouteContext = {
   params: Promise<{
     id: string;
   }>;
 };
-
-async function ensureRequestTimeExecution() {
-  if (process.env.NODE_ENV === "test") {
-    return;
-  }
-
-  await connection();
-}
 
 export async function GET(request: NextRequest, context: RouteContext) {
   await ensureRequestTimeExecution();
@@ -43,7 +35,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
 
     if (!missionaryId) {
-      return NextResponse.json({ error: "Missionary id required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missionary id required" },
+        { status: 400 },
+      );
     }
 
     const pageQuery = await payload.find({
@@ -67,27 +62,18 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
 
     return NextResponse.json({
-      page: serializePublishedPageLike(doc as unknown as Record<string, unknown>),
+      page: serializePublishedPageLike(
+        doc as unknown as Record<string, unknown>,
+      ),
       tenant: {
         id: tenant.id,
         slug: tenant.slug ?? null,
       },
     });
   } catch (error) {
-    if (isPayloadClientInitializationError(error)) {
-      console.error(error.message);
-
-      return NextResponse.json(
-        { error: "Failed to fetch page content" },
-        { status: error.statusCode },
-      );
-    }
-
-    console.error("Failed to fetch published missionary giving page.", error);
-
-    return NextResponse.json(
-      { error: "Failed to fetch page content" },
-      { status: 500 },
-    );
+    return publicCmsRouteErrorResponse(error, {
+      clientMessage: "Failed to fetch page content",
+      logMessage: "Failed to fetch published missionary giving page.",
+    });
   }
 }
