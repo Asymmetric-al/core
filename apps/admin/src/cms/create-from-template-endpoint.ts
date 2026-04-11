@@ -270,7 +270,7 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
                   ...(tenantForProfile
                     ? [{ tenant: { equals: tenantForProfile } }]
                     : []),
-                  { slug: { equals: parsed.missionaryId } },
+                  { supabaseMissionaryId: { equals: parsed.missionaryId } },
                 ],
               },
             })
@@ -361,7 +361,9 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
         typeof fund.name === "string" && fund.name.trim().length > 0
           ? fund.name
           : "Project page";
-      const slugBase = slugifySegment(titleBase);
+      const slugBase =
+        slugifySegment(`${titleBase}-${parsed.fundId.slice(0, 8)}`) ||
+        slugifySegment(parsed.fundId);
 
       const doc = await payload.create({
         collection: PROJECT_PAGES_SLUG,
