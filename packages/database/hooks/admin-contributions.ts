@@ -91,6 +91,7 @@ function normalizeContributionType(
   isRecurring: boolean | null,
 ): ContributionLiveRow["type"] {
   if (isRecurring === true) return "Recurring";
+  if (isRecurring === false) return "One-time";
   const t = donationType?.toLowerCase().trim() ?? "";
   if (t === "pledge") return "Pledge";
   if (t === "in-kind" || t === "in_kind" || t === "inkind") return "In-kind";
