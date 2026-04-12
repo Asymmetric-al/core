@@ -6,10 +6,29 @@ This guide explains how to run and validate the Site Studio integration that liv
 
 - Payload admin UI mounted at `/web-studio` in Mission Control
 - Payload admin theming bridged to shared Maia + Zinc design tokens from `@asym/ui`
+- **Web Studio Phase 2 editorial shell:** Mission Control–native list/edit workspaces for:
+  - `pages`
+  - `navigation`
+  - `missionary-profiles`
+  - `ministry-updates`
+  - `media`
+- Collection-specific native rollout flags (see rollback section) so each collection can fall back to stock Payload independently
 - CMS tables in Postgres `cms` schema
 - Tenant-aware collection access controls
 - Public read endpoints under `/api/cms/public/*`
 - Donor-side CMS consumption fallback for unmatched public routes
+
+### Current parity boundary (Phase 2)
+
+- Native by default:
+  - collection list views for the editorial collections above
+  - default document edit views for the editorial collections above
+  - shared Web Studio shell, nav, breadcrumbs, collection-aware preferences, and recent docs
+- Still stock Payload in this phase:
+  - nested `versions`, `version`, `api`, and `live preview` document subviews
+  - `tenants` and `cms-users`
+
+This is intentional: the default document body remains Payload-owned and stable, while nested subviews still use stock Payload routes/tabs until dedicated wrappers are added safely.
 
 ## Required environment variables
 
@@ -21,9 +40,24 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 PAYLOAD_SECRET=local-payload-secret
 PAYLOAD_DATABASE_URI=postgresql://postgres:postgres@127.0.0.1:54322/postgres
 CMS_BASE_URL=http://127.0.0.1:3030
+# Optional: donor origin for “Preview” links from Pages (defaults to http://127.0.0.1:3000)
+NEXT_PUBLIC_DONOR_URL=http://127.0.0.1:3000
+# Optional: server-only donor origin (same resolution order as preview-url; use when NEXT_PUBLIC_* is unset in CI)
+# DONOR_APP_URL=http://127.0.0.1:3000
+# Optional: disable native collection UIs (stock Payload views)
+# CMS_WEB_STUDIO_NATIVE_PAGES=false
+# CMS_WEB_STUDIO_NATIVE_NAVIGATION=false
+# CMS_WEB_STUDIO_NATIVE_MISSIONARY_PROFILES=false
+# CMS_WEB_STUDIO_NATIVE_MINISTRY_UPDATES=false
+# CMS_WEB_STUDIO_NATIVE_MEDIA=false
 ```
 
 `PAYLOAD_DATABASE_URI` can point at local Supabase Postgres or a hosted Postgres test database.
+
+### Form stack note
+
+- **Payload document editing** (collection edit bodies, drafts, publish, upload, relationship wiring): keep Payload’s document form context and hooks — do **not** put the main document fields on TanStack Form.
+- **Mission Control-only dialogs/settings** in this workstream: use **TanStack Form + Zod** via `@asym/ui` (`useAsymForm`), not React Hook Form. If an older doc mentions RHF for this workstream, treat **this guide + the Phase 1 prompt** as source of truth.
 
 ## Local startup workflow
 
@@ -46,7 +80,15 @@ bun run cms:migrate:status
 bun run cms:importmap
 ```
 
-`cms:importmap` now runs Payload generation plus post-processing to keep the generated file lint/type-safe automatically.
+`cms:importmap` runs Payload generation and post-processes **every** existing Payload import map under `apps/admin/app/(payload)/` — today `web-studio/importMap.js` and, if present, legacy `admin/importMap.js` — for eslint + typed export consistency.
+
+### CMS smoke E2E and native shell
+
+`bun run test:e2e:smoke:cms` sets **`CMS_WEB_STUDIO_NATIVE_PAGES=true`** for the Playwright process so native Web Studio assertions in `tests/e2e/cms-web-studio-native.spec.ts` match the intended rollout (native editorial shell on by default).
+
+If you run that spec locally with **`CMS_WEB_STUDIO_NATIVE_PAGES=false`** (or `0`), the native-shell tests **skip** because stock Payload views replace the Mission Control shell for Pages (and the spec targets native-only UI).
+
+**CI / agents:** if `PAYLOAD_SECRET` is missing, run with `NODE_ENV=test` so local dev defaults apply, e.g. `NODE_ENV=test bun run cms:importmap`.
 
 ## Design-system alignment checks (Maia + Zinc)
 
@@ -70,6 +112,12 @@ bun run dev:donor
 
 - Open `http://127.0.0.1:3030/web-studio` and confirm unauthenticated users are redirected to `/login`.
 - Sign in as staff/admin and confirm Payload admin loads.
+- Open each of the following and confirm the **Mission Control shell** (`data-testid="web-studio-native-shell"`) wraps the list:
+  - `/web-studio/collections/pages`
+  - `/web-studio/collections/navigation`
+  - `/web-studio/collections/missionary-profiles`
+  - `/web-studio/collections/ministry-updates`
+  - `/web-studio/collections/media`
 - Confirm collection lists are tenant-filtered for non-super-admin users.
 - Call:
   - `GET /api/cms/public/pages/<slug>?tenant=<tenant-slug>`
@@ -125,6 +173,21 @@ Tenant resolution priority:
 These are guarded by Mission Control auth middleware and require `staff`, `admin`, or `super_admin`.
 
 ## Rollback notes
+
+### Collection-level Web Studio rollback
+
+Each editorial collection can be disabled independently:
+
+```bash
+CMS_WEB_STUDIO_NATIVE_PAGES=false
+CMS_WEB_STUDIO_NATIVE_NAVIGATION=false
+CMS_WEB_STUDIO_NATIVE_MISSIONARY_PROFILES=false
+CMS_WEB_STUDIO_NATIVE_MINISTRY_UPDATES=false
+CMS_WEB_STUDIO_NATIVE_MEDIA=false
+NODE_ENV=test bun run cms:importmap
+```
+
+Then redeploy. Disabled collections fall back to stock Payload list/edit views while the rest of Web Studio remains native.
 
 If a deployment must be rolled back:
 

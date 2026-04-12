@@ -10,6 +10,29 @@ Payload runs in `apps/admin` and is exposed through:
 
 This keeps CMS management inside Mission Control and avoids running multiple Payload runtimes.
 
+### Web Studio (Phase 2 — current editorial collections)
+
+Mission Control–native Web Studio shell + shared list/document workspaces now cover the current editorial collection set under `apps/admin/src/cms-ui/web-studio/`:
+
+- `pages`
+- `navigation`
+- `missionary-profiles`
+- `ministry-updates`
+- `media`
+
+Registration is collection-scoped via `admin.components.views` in each collection config and guarded by env rollout flags:
+
+- `CMS_WEB_STUDIO_NATIVE_PAGES`
+- `CMS_WEB_STUDIO_NATIVE_NAVIGATION`
+- `CMS_WEB_STUDIO_NATIVE_MISSIONARY_PROFILES`
+- `CMS_WEB_STUDIO_NATIVE_MINISTRY_UPDATES`
+- `CMS_WEB_STUDIO_NATIVE_MEDIA`
+
+Payload remains authoritative for schema, access, list state, and the document form runtime (including Lexical, relationships, arrays, and uploads). The native shell currently owns the **default** list/edit surfaces; nested document subviews such as versions/API/live-preview still use stock Payload routing/components unless a collection-specific wrapper is added later. See:
+
+- `docs/guides/architecture/web-studio-phase1.md`
+- `docs/guides/architecture/web-studio-phase2.md`
+
 ## Data model boundaries
 
 - Existing platform tables remain in `public`.
