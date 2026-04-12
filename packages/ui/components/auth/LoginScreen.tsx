@@ -174,39 +174,32 @@ export function LoginScreen({
     [email, password, router, setError, setIsSubmitting, targetPath],
   );
 
-  return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-muted px-4 py-8">
-      <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-background via-muted to-muted" />
-      <div className="relative z-10 w-full max-w-md">
-        {demoOnly ? (
-          <DemoOnlyLoginCard
-            title={title}
-            subtitle={subtitle}
-            buttonLabel="Demo Access"
-            isLoading={isDemoSubmitting}
-            error={error}
-            onDemoLogin={handleDemoLogin}
-          />
-        ) : (
-          <FullLoginCard
-            title={title}
-            subtitle={subtitle}
-            email={email}
-            password={password}
-            isLoading={isSubmitting}
-            error={error}
-            demoEnabled={isDemoEnabled}
-            demoLoading={isDemoSubmitting}
-            registerHref={registerHref}
-            forgotPasswordHref={forgotPasswordHref}
-            showRegisterLink={showRegisterLink}
-            onEmailChange={setEmail}
-            onPasswordChange={setPassword}
-            onSubmit={handleFullLogin}
-            onDemoLogin={handleDemoLogin}
-          />
-        )}
-      </div>
-    </main>
+  return demoOnly ? (
+    <DemoOnlyLoginCard
+      title={title}
+      subtitle={subtitle}
+      buttonLabel="Demo Access"
+      isLoading={isDemoSubmitting}
+      error={error}
+      onDemoLogin={handleDemoLogin}
+    />
+  ) : (
+    <FullLoginCard
+      title={title}
+      subtitle={subtitle}
+      email={email}
+      password={password}
+      isLoading={isSubmitting}
+      error={error}
+      demoEnabled={isDemoEnabled}
+      demoLoading={isDemoSubmitting}
+      registerHref={registerHref}
+      forgotPasswordHref={forgotPasswordHref}
+      showRegisterLink={showRegisterLink}
+      onEmailChange={setEmail}
+      onPasswordChange={setPassword}
+      onSubmit={handleFullLogin}
+      onDemoLogin={handleDemoLogin}
+    />
   );
 }

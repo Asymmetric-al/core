@@ -5,6 +5,7 @@ import {
 import { createClient } from "@asym/database/supabase/server";
 import { serverEnv } from "@asym/env";
 import { LoginScreen } from "@asym/ui/components/auth/LoginScreen";
+import { LoginScreenLayout } from "@asym/ui/components/auth/LoginScreenLayout";
 import { redirect } from "next/navigation";
 
 import type { Metadata } from "next";
@@ -34,14 +35,16 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   }
 
   return (
-    <LoginScreen
-      appId="admin"
-      nextPath={nextPath}
-      demoOnly={serverEnv.DEMO_ONLY_LOGIN === true}
-      title="Sign In"
-      subtitle="Access the admin portal"
-      registerHref="/register"
-      forgotPasswordHref="/forgot-password"
-    />
+    <LoginScreenLayout>
+      <LoginScreen
+        appId="admin"
+        nextPath={nextPath}
+        demoOnly={serverEnv.DEMO_ONLY_LOGIN === true}
+        title="Sign In"
+        subtitle="Access the admin portal"
+        registerHref="/register"
+        forgotPasswordHref="/forgot-password"
+      />
+    </LoginScreenLayout>
   );
 }
