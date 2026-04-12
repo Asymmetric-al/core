@@ -1,5 +1,16 @@
 # Working Set
 
+## 2026-04-12 (Mission Control member care port — phase 5 person detail shell)
+
+- Date: 2026-04-12
+- Repo: Asymmetric-al/core
+- Goal: Complete person-detail shell tab coverage (overview, care thread, care plan, activity, secure notes) and route rich text through shared TipTap wrappers.
+- Primary area:
+  - `apps/admin/features/mission-control/care/components/PersonnelProfile.tsx`
+- Constraints:
+  - Use existing shared `@asym/ui` rich text editor/viewer components (no app-local editor).
+  - Keep shell/tabs styling aligned with existing Mission Control surface.
+
 ## 2026-04-12 (Mission Control member care port — phase 4 roster completion)
 
 - Date: 2026-04-12
