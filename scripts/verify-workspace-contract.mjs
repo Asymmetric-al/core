@@ -94,11 +94,9 @@ if (missingGlobs.length) {
   violations.push(
     `package.json:workspaces must contain required entries: ${JSON.stringify(requiredGlobs)}`,
   );
-  if (missingGlobs.length) {
-    violations.push(
-      `package.json:workspaces missing required globs: ${missingGlobs.join(", ")}`,
-    );
-  }
+  violations.push(
+    `package.json:workspaces missing required globs: ${missingGlobs.join(", ")}`,
+  );
 }
 
 verifyAsymDeps(rootPkg, "package.json");
