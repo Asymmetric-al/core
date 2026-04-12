@@ -42,7 +42,8 @@
     "./health/db": "./src/health/db.ts",
     "./email/connect": "./src/email/connect.ts",
     "./email/test-send": "./src/email/test-send.ts",
-    "./email/webhooks/resend": "./src/email/webhooks/resend.ts"
+    "./email/webhooks/resend": "./src/email/webhooks/resend.ts",
+    "./reads/member-care": "./src/reads/member-care.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

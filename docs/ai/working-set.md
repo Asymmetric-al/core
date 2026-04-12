@@ -1,5 +1,60 @@
 # Working Set
 
+## 2026-04-12 (Mission Control member care port — phase 3 overview completion)
+
+- Date: 2026-04-12
+- Repo: Asymmetric-al/core
+- Goal: Complete the overview slice by removing remaining placeholder assumptions in dashboard cards/panels and tightening read-model field mapping quality for activities and health signals.
+- Primary area:
+  - `apps/admin/features/mission-control/care/components/CareDashboard.tsx`
+  - `apps/admin/features/mission-control/care/member-care.derived.ts`
+  - `packages/api/src/reads/member-care.ts`
+  - `tests/unit/apps/admin/features/mission-control/care/member-care-derived.test.ts`
+- Constraints:
+  - Keep the existing `/care` route and shell unchanged.
+  - Reuse shared selector math for overview cards and side panels.
+
+## 2026-04-12 (Mission Control member care port — phase 2 read-model wiring)
+
+- Date: 2026-04-12
+- Repo: Asymmetric-al/core
+- Goal: Introduce tenant-scoped member-care read-model functions in `@asym/api` and wire admin care hooks to those read APIs via thin route handlers.
+- Primary area:
+  - `packages/api/src/reads/member-care.ts`
+  - `packages/api/package.json` export map
+  - `apps/admin/app/api/admin/member-care/**/route.ts`
+  - `apps/admin/features/mission-control/care/hooks/use-care.ts`
+- Constraints:
+  - Keep route handlers thin and business DB access in `packages/api/src/*`.
+  - Preserve existing `/care` route ownership and client surface while swapping data source.
+  - Nia MCP remains unavailable in this runtime; used repo-scoped `rg` + direct file reads.
+
+## 2026-04-11 (Mission Control member care port — phase 1 derivations)
+
+- Date: 2026-04-11
+- Repo: Asymmetric-al/core
+- Goal: Start the Shepherd-to-Core member care port by extracting reusable, tested derivation utilities and wiring the existing dashboard preview cards to those selectors.
+- Target paths discovered before implementation:
+  - `apps/admin/app/care/page.tsx`
+  - `apps/admin/app/care/directory/page.tsx`
+  - `apps/admin/app/care/directory/[id]/page.tsx`
+  - `apps/admin/features/mission-control/care/components/{CareDashboard,PersonnelList,PersonnelProfile,TimezoneScheduler}.tsx`
+  - `apps/admin/features/mission-control/care/hooks/use-care.ts`
+  - `apps/admin/features/mission-control/care/{types,constants,utils}.ts`
+  - `packages/ui/components/shadcn/rich-text-editor/{rich-text-editor,rich-text-viewer}.tsx`
+  - `packages/api/src/reads/*` (read-model pattern review target)
+  - `packages/database/hooks/admin-workspace.ts` and `packages/database/collections/admin-workspace.ts`
+- Constraints:
+  - Preserve Mission Control route ownership and shell.
+  - Keep app UI on shared `@asym/ui` primitives and existing tokens.
+  - Centralize dashboard/notification derivation math in one module.
+  - Nia MCP is not available in this runtime; fallback is repo-scoped `rg` + direct file reads.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/ai/rules/{general,frontend,backend,testing}.md`
+  - `docs/ai/skills/{nextjs-app-router,tiptap,tanstack-table,supabase}/SKILL.md`
+  - `.next-docs/01-app/01-getting-started/{05-server-and-client-components,07-fetching-data}.mdx`
+
 ## 2026-04-08 (Mission Control contributions infinite grid)
 
 - Date: 2026-04-08
