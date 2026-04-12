@@ -96,7 +96,7 @@ async function MissionaryRoleGate({ children }: { children: React.ReactNode }) {
     redirect("/no-access");
   }
 
-  return <>{children}</>;
+  return <MissionaryLayoutShell>{children}</MissionaryLayoutShell>;
 }
 
 export const metadata: Metadata = {
@@ -162,9 +162,7 @@ export default function RootLayout({
             <MotionProvider>
               <Suspense fallback={null}>
                 <NuqsAdapter>
-                  <MissionaryRoleGate>
-                    <MissionaryLayoutShell>{children}</MissionaryLayoutShell>
-                  </MissionaryRoleGate>
+                  <MissionaryRoleGate>{children}</MissionaryRoleGate>
                 </NuqsAdapter>
               </Suspense>
             </MotionProvider>
