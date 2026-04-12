@@ -1,5 +1,17 @@
 # Working Set
 
+## 2026-04-12 (Mission Control member care port — phase 4 roster completion)
+
+- Date: 2026-04-12
+- Repo: Asymmetric-al/core
+- Goal: Complete roster UX with stronger TanStack Table filtering/search semantics, explicit care-priority visibility, and last-contact age indicators while preserving current route ownership.
+- Primary area:
+  - `apps/admin/features/mission-control/care/components/PersonnelList.tsx`
+  - `apps/admin/app/care/directory/[id]/page.tsx`
+- Constraints:
+  - Keep using shared `@asym/ui` table primitives and avoid premature virtualization.
+  - Align links with canonical `/care/*` routes.
+
 ## 2026-04-12 (Mission Control member care port — phase 3 overview completion)
 
 - Date: 2026-04-12

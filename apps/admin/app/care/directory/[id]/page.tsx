@@ -48,7 +48,7 @@ export default function CareProfilePage() {
     <div className="p-6 space-y-6 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
         <Link
-          href="/mc/care/directory"
+          href="/care/directory"
           className="flex items-center gap-2 text-sm font-bold text-zinc-500 hover:text-zinc-900 transition-colors group"
         >
           <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />

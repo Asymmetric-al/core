@@ -23,6 +23,24 @@ interface PersonnelListProps {
   isLoading?: boolean;
 }
 
+function getLastContactAgeDays(lastCheckIn: string): number {
+  const timestamp = Date.parse(lastCheckIn);
+  if (Number.isNaN(timestamp)) return 0;
+
+  const millisecondsPerDay = 24 * 60 * 60 * 1000;
+  return Math.max(0, Math.floor((Date.now() - timestamp) / millisecondsPerDay));
+}
+
+function getPriorityLabel(
+  person: CarePersonnel,
+): "Critical" | "High" | "Medium" | "Low" {
+  if (person.manualAttention || person.status === "Crisis") return "Critical";
+  if (person.status === "At Risk") return "High";
+  if (person.careGaps.length > 0 || person.status === "Needs Attention")
+    return "Medium";
+  return "Low";
+}
+
 const columns: ColumnDef<CarePersonnel>[] = [
   {
     accessorKey: "name",
@@ -69,6 +87,37 @@ const columns: ColumnDef<CarePersonnel>[] = [
     },
   },
   {
+    id: "priority",
+    accessorFn: (row) => getPriorityLabel(row),
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Priority" />
+    ),
+    cell: ({ row }) => {
+      const priority = getPriorityLabel(row.original);
+
+      return (
+        <Badge
+          variant="outline"
+          className={cn(
+            "text-[10px] font-black h-5 uppercase tracking-widest px-2.5 rounded-full border-none shadow-none",
+            priority === "Critical"
+              ? "bg-destructive text-destructive-foreground"
+              : priority === "High"
+                ? "bg-amber-500/10 text-amber-600"
+                : priority === "Medium"
+                  ? "bg-sky-500/10 text-sky-600"
+                  : "bg-muted text-muted-foreground",
+          )}
+        >
+          {priority}
+        </Badge>
+      );
+    },
+    meta: {
+      label: "Priority",
+    },
+  },
+  {
     accessorKey: "status",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Wellness" />
@@ -100,6 +149,30 @@ const columns: ColumnDef<CarePersonnel>[] = [
     },
   },
   {
+    id: "lastContactAgeDays",
+    accessorFn: (row) => getLastContactAgeDays(row.lastCheckIn),
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Contact Age" />
+    ),
+    cell: ({ row }) => {
+      const days = getLastContactAgeDays(row.original.lastCheckIn);
+
+      return (
+        <span
+          className={cn(
+            "text-[11px] font-bold uppercase tracking-wider tabular-nums",
+            days > 30 ? "text-destructive" : "text-muted-foreground",
+          )}
+        >
+          {days}d
+        </span>
+      );
+    },
+    meta: {
+      label: "Contact Age",
+    },
+  },
+  {
     accessorKey: "lastCheckIn",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Last Update" />
@@ -121,7 +194,7 @@ const columns: ColumnDef<CarePersonnel>[] = [
     id: "actions",
     cell: ({ row }) => (
       <div className="flex justify-end pr-4">
-        <Link href={`/mc/care/directory/${row.original.id}`}>
+        <Link href={`/care/directory/${row.original.id}`}>
           <Button
             variant="ghost"
             size="icon"
@@ -142,6 +215,7 @@ const filterFields: DataTableFilterField<CarePersonnel>[] = [
     variant: "select",
     options: [
       { label: "Healthy", value: "Healthy" },
+      { label: "Needs Attention", value: "Needs Attention" },
       { label: "At Risk", value: "At Risk" },
       { label: "Crisis", value: "Crisis" },
     ],
@@ -157,6 +231,17 @@ const filterFields: DataTableFilterField<CarePersonnel>[] = [
       { label: "Latin America", value: "Latin America" },
       { label: "Middle East", value: "Middle East" },
       { label: "North America", value: "North America" },
+    ],
+  },
+  {
+    id: "priority",
+    label: "Priority",
+    variant: "select",
+    options: [
+      { label: "Critical", value: "Critical" },
+      { label: "High", value: "High" },
+      { label: "Medium", value: "Medium" },
+      { label: "Low", value: "Low" },
     ],
   },
 ];
