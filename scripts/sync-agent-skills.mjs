@@ -86,7 +86,11 @@ async function writeCanonicalManifest(targetRoot, canonicalSkills) {
   };
 
   await mkdir(targetRoot, { recursive: true });
-  await writeFile(manifestPath, JSON.stringify(manifest, null, 2) + "\n", "utf8");
+  await writeFile(
+    manifestPath,
+    JSON.stringify(manifest, null, 2) + "\n",
+    "utf8",
+  );
 }
 
 async function pruneStaleCanonicalSkills(targetRoot, canonicalSkills) {
