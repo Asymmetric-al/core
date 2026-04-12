@@ -32,7 +32,12 @@ const personnel: CarePersonnel[] = [
     initials: "MP",
     role: "Role",
     region: "Latin America",
-    healthSignals: { emotional: 50, spiritual: 50, physical: 50, financial: 50 },
+    healthSignals: {
+      emotional: 50,
+      spiritual: 50,
+      physical: 50,
+      financial: 50,
+    },
     careGaps: [],
     manualAttention: true,
   },
@@ -46,7 +51,12 @@ const personnel: CarePersonnel[] = [
     initials: "RF",
     role: "Role",
     region: "Africa",
-    healthSignals: { emotional: 60, spiritual: 60, physical: 60, financial: 60 },
+    healthSignals: {
+      emotional: 60,
+      spiritual: 60,
+      physical: 60,
+      financial: 60,
+    },
     careGaps: [],
   },
   {
@@ -59,7 +69,12 @@ const personnel: CarePersonnel[] = [
     initials: "NM",
     role: "Role",
     region: "SE Asia",
-    healthSignals: { emotional: 70, spiritual: 70, physical: 70, financial: 70 },
+    healthSignals: {
+      emotional: 70,
+      spiritual: 70,
+      physical: 70,
+      financial: 70,
+    },
     careGaps: [],
   },
 ];
