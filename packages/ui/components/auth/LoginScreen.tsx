@@ -175,7 +175,7 @@ export function LoginScreen({
   );
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-muted px-4 py-8">
+    <main className="relative flex min-h-[calc(100svh-3rem)] items-center justify-center overflow-hidden bg-muted px-4 py-8">
       <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-background via-muted to-muted" />
       <div className="relative z-10 w-full max-w-md">
         {demoOnly ? (
