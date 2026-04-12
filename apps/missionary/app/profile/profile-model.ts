@@ -8,6 +8,14 @@ export const PLACEHOLDER_AVATAR =
 export const PLACEHOLDER_COVER =
   "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=400&fit=crop";
 
+/** Live preview frame sizes (scaled to container in profile preview column). */
+export const MOBILE_PREVIEW_WIDTH = 320;
+export const MOBILE_PREVIEW_HEIGHT = 568;
+export const DESKTOP_PREVIEW_WIDTH = 400;
+export const DESKTOP_PREVIEW_HEIGHT = 300;
+
+export type PreviewMode = "mobile" | "desktop";
+
 export interface ProfileData {
   firstName: string;
   lastName: string;
