@@ -8,7 +8,7 @@ A high-performance Next.js 16.2.1 (App Router) Turborepo monorepo for mission-fo
 2. **Run setup** (creates `.env.local` on first run if needed, installs dependencies, checks that committed skill mirrors match `docs/ai/skills/`, then runs repo setup checks):
    - macOS / Linux / Git Bash: `bun run setup`
    - Windows PowerShell: see [Windows](#windows) below (`.\scripts\setup.ps1`).
-3. **Fill required Supabase values** in `.env.local` if the first run stopped with “missing required env vars”, then run setup again.
+3. **Fill required Supabase values** in `.env.local` if the first run stopped with "missing required env vars", then run setup again.
 4. **Start dev:** `bun run dev` (or an app-specific script from `package.json`).
 5. **Optional smoke check:** `bun run verify` (uses Bash; on Windows without a Bash shim, run `bash scripts/verify/index.sh` from Git Bash or WSL).
 
@@ -184,11 +184,11 @@ This repository includes comprehensive AI agent guidance under `docs/ai/`:
 
 **Skill scripts (root `package.json`):**
 
-| Command | What it does |
-| --- | --- |
-| `bun run skills:sync` | Copies canonical `docs/ai/skills/*` into `.agents/skills/` and `.cursor/skills/`, prunes stale canonical copies from mirrors, and overlays extra packs from `.agents/skills` into `.cursor/skills` where configured. Run after you edit skills under `docs/ai/skills/`. |
-| `bun run skills:verify` | Fails if mirrors drift from canonical sources or the git tree is dirty after sync (same check used in CI and in `bun run setup` / `scripts/setup.ps1`). |
-| `bun run skills:refresh-upstream` | Copies **vendored** upstream skills from `.agents/skills/` into `docs/ai/skills/` for the pinned set (`supabase`, `supabase-postgres-best-practices`). Use this after refreshing those packages with the Skills CLI (see below). |
+| Command                           | What it does                                                                                                                                                                                                                                                            |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bun run skills:sync`             | Copies canonical `docs/ai/skills/*` into `.agents/skills/` and `.cursor/skills/`, prunes stale canonical copies from mirrors, and overlays extra packs from `.agents/skills` into `.cursor/skills` where configured. Run after you edit skills under `docs/ai/skills/`. |
+| `bun run skills:verify`           | Fails if mirrors drift from canonical sources or the git tree is dirty after sync (same check used in CI and in `bun run setup` / `scripts/setup.ps1`).                                                                                                                 |
+| `bun run skills:refresh-upstream` | Copies **vendored** upstream skills from `.agents/skills/` into `docs/ai/skills/` for the pinned set (`supabase`, `supabase-postgres-best-practices`). Use this after refreshing those packages with the Skills CLI (see below).                                        |
 
 When you add or change a skill **only** under `docs/ai/skills/`:
 
