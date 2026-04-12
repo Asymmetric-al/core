@@ -182,15 +182,15 @@ if (-not $SkipInstall) {
   Write-Log 'Skipping dependency install (-SkipInstall set)'
 }
 
-Write-Log 'Running setup verification...'
-& bun run setup:verify
+Write-Log 'Verifying repo skill mirrors...'
+& bun run skills:verify
 $code = $LASTEXITCODE
 if ($code -ne 0) {
   exit $code
 }
 
-Write-Log 'Verifying repo skill mirrors...'
-& bun run skills:verify
+Write-Log 'Running setup verification...'
+& bun run setup:verify
 $code = $LASTEXITCODE
 if ($code -eq 0) {
   Write-Log 'Setup complete'

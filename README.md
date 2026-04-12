@@ -4,19 +4,15 @@ A high-performance Next.js 16.2.1 (App Router) Turborepo monorepo for mission-fo
 
 ## Quickstart
 
-```bash
-bun run setup
-# first run creates .env.local with placeholders
-# fill these required values, then re-run `bun run setup`:
-# NEXT_PUBLIC_SUPABASE_URL
-# NEXT_PUBLIC_SUPABASE_ANON_KEY
-# setup now also runs `bun run skills:verify` after dependencies install
-# after pulling skill changes, run `bun run skills:verify`
-# if it reports drift, run `bun run skills:sync` and commit the mirror updates
-bun run dev
-bun run verify
-# `bun run verify` wraps the bash smoke script; on Windows without shims, use Git Bash / WSL: `bash scripts/verify/index.sh`
-```
+1. **Install prerequisites:** [Bun](https://bun.sh) and Git on your PATH.
+2. **Run setup** (creates `.env.local` on first run if needed, installs dependencies, checks that committed skill mirrors match `docs/ai/skills/`, then runs repo setup checks):
+   - macOS / Linux / Git Bash: `bun run setup`
+   - Windows PowerShell: see [Windows](#windows) below (`.\scripts\setup.ps1`).
+3. **Fill required Supabase values** in `.env.local` if the first run stopped with “missing required env vars”, then run setup again.
+4. **Start dev:** `bun run dev` (or an app-specific script from `package.json`).
+5. **Optional smoke check:** `bun run verify` (uses Bash; on Windows without a Bash shim, run `bash scripts/verify/index.sh` from Git Bash or WSL).
+
+**After `git pull` when skill files changed:** run `bun run skills:verify`. If it reports drift between `docs/ai/skills/` and the mirrors under `.agents/skills/` and `.cursor/skills/`, run `bun run skills:sync` and commit the updated mirror files so CI and teammates stay aligned.
 
 **Required:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 **Optional:** All other entries in `.env.example` (Stripe, demo accounts, Unlayer, etc.)
@@ -54,7 +50,7 @@ pwsh -File .\scripts\setup.ps1
 First run creates `.env.local`. Fill these required values, then re-run the setup:
 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
-Windows setup also runs `bun run skills:verify` after dependency install. After pulling repo skill updates, run `bun run skills:verify`; if it reports mirror drift, run `bun run skills:sync` and commit the updated mirrors.
+The script order matches `bun run setup` on Unix: install dependencies (unless `-SkipInstall`), run `bun run skills:verify`, then `bun run setup:verify`. After pulling changes that touch skills, run `bun run skills:verify`; if it reports mirror drift, run `bun run skills:sync` and commit the updated mirrors.
 
 Skip dependency install if you already ran it:
 
@@ -180,18 +176,20 @@ This repository includes comprehensive AI agent guidance under `docs/ai/`:
 - **Working set:** `docs/ai/working-set.md` - living task context (keep updated)
 - **Monorepo architecture:** `docs/ai/monorepo-architecture.md` - workspace structure
 - **Rulebooks:** `docs/ai/rules/*` - domain-specific guidelines (frontend, backend, testing, etc.)
-- **Skills:** `docs/ai/skills/*` - reusable workflow patterns
+- **Skills:** `docs/ai/skills/*` - reusable workflow patterns (repo-owned, versioned)
 
 **Important:** `docs/ai/` is the canonical source. The `rules/` and `skills/` directories at the repository root contain deprecation shims only.
 
-For Cursor-ready runtime skill loading, sync canonical skills into runtime folders after skill updates:
+**Repo-owned skills (how it fits together):** Edit and review skills under `docs/ai/skills/<name>/SKILL.md`. `AGENTS.md` points agents at those paths for routing. The same content is copied into **committed mirrors** at `.agents/skills/` (Codex-style discovery) and `.cursor/skills/` (Cursor) by the sync script so tools can surface them without a personal global install. CI runs `bun run skills:verify` to ensure mirrors match the canonical tree.
+
+When you add or change a skill under `docs/ai/skills/`:
 
 ```bash
 bun run skills:sync
+bun run skills:verify
 ```
 
-- Canonical source: `docs/ai/skills/*`
-- Runtime mirrors: `.agents/skills/*` and `.cursor/skills/*`
+Commit both the canonical files and any mirror updates. Optional: `bun run skills:refresh-upstream` refreshes select vendored skills from upstream packages (see `scripts/refresh-upstream-skills.mjs`).
 
 ### Package Manager
 
