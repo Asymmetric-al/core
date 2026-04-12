@@ -1,6 +1,14 @@
 #!/usr/bin/env node
 
-import { cp, mkdir, readdir, realpath } from "node:fs/promises";
+import {
+  cp,
+  mkdir,
+  readFile,
+  readdir,
+  realpath,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -13,6 +21,8 @@ const targetRoots = [
   path.join(repoRoot, ".agents", "skills"),
   path.join(repoRoot, ".cursor", "skills"),
 ];
+const CANONICAL_MANIFEST_FILENAME = ".repo-canonical-skills.json";
+const CANONICAL_MANIFEST_VERSION = 1;
 
 async function overlayDirectory(sourceDir, targetDir) {
   await mkdir(targetDir, { recursive: true });
@@ -24,6 +34,72 @@ async function overlayDirectory(sourceDir, targetDir) {
       recursive: true,
       force: true,
     });
+  }
+}
+
+function getCanonicalManifestPath(targetRoot) {
+  return path.join(targetRoot, CANONICAL_MANIFEST_FILENAME);
+}
+
+async function readCanonicalManifest(targetRoot) {
+  const manifestPath = getCanonicalManifestPath(targetRoot);
+
+  try {
+    const raw = await readFile(manifestPath, "utf8");
+    const parsed = JSON.parse(raw);
+    const canonicalSkills = Array.isArray(parsed?.canonicalSkills)
+      ? parsed.canonicalSkills.filter((skill) => typeof skill === "string")
+      : [];
+
+    return {
+      version:
+        typeof parsed?.version === "number"
+          ? parsed.version
+          : CANONICAL_MANIFEST_VERSION,
+      canonicalSkills: canonicalSkills.sort(),
+    };
+  } catch (error) {
+    const errorCode =
+      typeof error === "object" && error !== null && "code" in error
+        ? String(error.code)
+        : "";
+
+    if (errorCode === "ENOENT") {
+      return {
+        version: CANONICAL_MANIFEST_VERSION,
+        canonicalSkills: [],
+      };
+    }
+
+    throw new Error(
+      `Unable to read canonical skill manifest: ${path.relative(repoRoot, manifestPath)}`,
+      { cause: error },
+    );
+  }
+}
+
+async function writeCanonicalManifest(targetRoot, canonicalSkills) {
+  const manifestPath = getCanonicalManifestPath(targetRoot);
+  const manifest = {
+    version: CANONICAL_MANIFEST_VERSION,
+    canonicalSkills: [...canonicalSkills].sort(),
+  };
+
+  await mkdir(targetRoot, { recursive: true });
+  await writeFile(manifestPath, JSON.stringify(manifest, null, 2) + "\n", "utf8");
+}
+
+async function pruneStaleCanonicalSkills(targetRoot, canonicalSkills) {
+  const previous = await readCanonicalManifest(targetRoot);
+  const currentSkillSet = new Set(canonicalSkills);
+  const staleSkills = previous.canonicalSkills.filter(
+    (skillName) => !currentSkillSet.has(skillName),
+  );
+
+  for (const skillName of staleSkills) {
+    const targetDir = path.join(targetRoot, skillName);
+    await rm(targetDir, { recursive: true, force: true });
+    console.log(`pruned ${path.relative(repoRoot, targetDir)}`);
   }
 }
 
@@ -156,8 +232,16 @@ async function listAgentSkillsForMirror() {
 async function main() {
   const canonicalSkills = await listCanonicalSkillsForSync();
 
+  for (const targetRoot of targetRoots) {
+    await pruneStaleCanonicalSkills(targetRoot, canonicalSkills);
+  }
+
   for (const skillName of canonicalSkills) {
     await syncCanonicalSkill(skillName);
+  }
+
+  for (const targetRoot of targetRoots) {
+    await writeCanonicalManifest(targetRoot, canonicalSkills);
   }
 
   const agentToCursorMirrorSkills = await listAgentSkillsForMirror();

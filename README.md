@@ -1,6 +1,6 @@
 # Asymmetric.al - Kingdom Impact Platform
 
-A high-performance Next.js 16.1 (App Router) Turborepo monorepo for mission-focused organizations, with three apps (`apps/admin`, `apps/donor`, `apps/missionary`) and shared workspace packages (`packages/*`).
+A high-performance Next.js 16.2.1 (App Router) Turborepo monorepo for mission-focused organizations, with three apps (`apps/admin`, `apps/donor`, `apps/missionary`) and shared workspace packages (`packages/*`).
 
 ## Quickstart
 
@@ -10,6 +10,9 @@ bun run setup
 # fill these required values, then re-run `bun run setup`:
 # NEXT_PUBLIC_SUPABASE_URL
 # NEXT_PUBLIC_SUPABASE_ANON_KEY
+# setup now also runs `bun run skills:verify` after dependencies install
+# after pulling skill changes, run `bun run skills:verify`
+# if it reports drift, run `bun run skills:sync` and commit the mirror updates
 bun run dev
 bun run verify
 # `bun run verify` wraps the bash smoke script; on Windows without shims, use Git Bash / WSL: `bash scripts/verify/index.sh`
@@ -51,6 +54,8 @@ pwsh -File .\scripts\setup.ps1
 First run creates `.env.local`. Fill these required values, then re-run the setup:
 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
+Windows setup also runs `bun run skills:verify` after dependency install. After pulling repo skill updates, run `bun run skills:verify`; if it reports mirror drift, run `bun run skills:sync` and commit the updated mirrors.
+
 Skip dependency install if you already ran it:
 
 ```powershell
@@ -68,7 +73,7 @@ Invoke-ScriptAnalyzer -Path .\scripts\setup.ps1, .\scripts\lib\*.ps1
 
 ## Architecture & Tech Stack
 
-- **Framework**: Next.js 16.1 (App Router, Turbopack) - _Optimized for Performance_
+- **Framework**: Next.js 16.2.1 (App Router, Turbopack) - _Optimized for Performance_
 - **UI System**: Tailwind CSS 4 + shadcn/ui (Maia Theme) + Base UI
 - **Theme**: Light Zinc Aesthetic (Zinc/Zinc), Shadcn/UI Maia Theme
 - **Database**: Supabase (PostgreSQL)
@@ -418,7 +423,7 @@ Notes:
 ## Key Conventions
 
 1. **RSC First**: Keep components as React Server Components unless interactivity is required.
-2. **Next.js 16.1 Compliance**: Always `await` dynamic `params` and `searchParams` in routes and layouts.
+2. **Next.js 16.2.1 Compliance**: Always `await` dynamic `params` and `searchParams` in routes and layouts.
 3. **Zinc and Shadcn/ui Maia Aesthetic**: Use `zinc-900` for primary actions and `zinc-500` for secondary text.
 4. **Responsive Integrity**: Test all UI changes on both 375px (Mobile) and 1440px (Desktop) viewports.
 

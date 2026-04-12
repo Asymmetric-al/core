@@ -7,6 +7,15 @@
 - Cursor and OpenAI Codex should use this root `AGENTS.md` as the canonical rules file.
 - `CLAUDE.md` imports `@AGENTS.md` so Claude Code follows the same rules without duplication.
 
+## Repo-owned skills and mirrors
+
+- Repo-owned skills are authored canonically under `docs/ai/skills/*/SKILL.md`.
+- Runtime mirrors are committed under `.agents/skills/*` and `.cursor/skills/*`.
+- Keep `AGENTS.md` as the routing layer. It should point at canonical files in `docs/ai/skills/*`, not at tool-specific mirrors.
+- For Codex desktop, `.agents/skills/*` is the closest repo-level match to Codex's documented skill discovery behavior.
+- For Cursor Agent Window, committed `.cursor/skills/*` improves visible availability, while `AGENTS.md` still provides the strongest always-on routing contract.
+- After pulling skill changes, run `bun run skills:verify`; if it reports drift, run `bun run skills:sync` and commit the refreshed mirrors.
+
 ## Monorepo scoping (pick the right app first)
 
 - Admin app: `apps/admin` (`@asym/admin`)
