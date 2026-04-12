@@ -69,7 +69,7 @@ export const siteConfigShared = {
       register: "/",
     },
     dashboards: {
-      admin: "/mc",
+      admin: "/",
       missionary: "/",
       donor: "/donor-dashboard",
     },
@@ -108,7 +108,7 @@ export const siteConfigShared = {
       {
         title: "Platform",
         links: [
-          { label: "Mission Control", href: "/mc", badge: "Admin" },
+          { label: "Mission Control", href: "/", badge: "Admin" },
           {
             label: "Missionary Dashboard",
             href: "/",

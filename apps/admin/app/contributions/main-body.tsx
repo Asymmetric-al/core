@@ -14,10 +14,10 @@ import {
 } from "@asym/ui/components/shadcn/data-table";
 import { cn } from "@asym/ui/lib/utils";
 import { DollarSign, Download, Plus, Trash2, Receipt } from "lucide-react";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 
-import { columns } from "./columns";
+import { getContributionColumns } from "./columns";
 import {
   contributionStatusOptions,
   contributionTypeOptions,
@@ -35,7 +35,6 @@ const smoothTransition = {
 const statusDotColor: Record<ContributionStatus, string> = {
   completed: "bg-emerald-500",
   pending: "bg-amber-500",
-  processing: "bg-sky-500",
   failed: "bg-destructive",
   refunded: "bg-muted-foreground",
 };
@@ -43,7 +42,6 @@ const statusDotColor: Record<ContributionStatus, string> = {
 const statusShortLabel: Record<ContributionStatus, string> = {
   completed: "Completed",
   pending: "Pending",
-  processing: "Processing",
   failed: "Failed",
   refunded: "Refunded",
 };
@@ -87,6 +85,21 @@ export function ContributionsMainBody({
   isLoading: boolean;
   onSelectContribution: (c: Contribution) => void;
 }) {
+  const handleViewContribution = useCallback(
+    (c: Contribution) => {
+      onSelectContribution(c);
+    },
+    [onSelectContribution],
+  );
+
+  const columns = useMemo(
+    () =>
+      getContributionColumns({
+        onViewContribution: handleViewContribution,
+      }),
+    [handleViewContribution],
+  );
+
   const stats = useMemo(() => {
     const totalAmount = data.reduce(
       (sum, c) => (c.status === "completed" ? sum + c.amount : sum),

@@ -16,6 +16,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@asym/ui/components/shadcn/card";
+import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import {
   ArrowUpRight,
   TrendingUp,
@@ -28,7 +29,6 @@ import React from "react";
 
 import { GivingBreakdownChart } from "./giving-breakdown-chart";
 import { MetricTiles } from "./metric-tiles";
-import { PageHeader } from "./page-header";
 
 /** Same as demo profile id so metrics API finds the seeded missionary row. */
 const DEMO_MISSIONARY_ID = DEMO_PROFILE_ID;
@@ -87,14 +87,18 @@ const MOCK_POSTS = [
 interface DashboardHomeProps {
   setActiveTab?: (tab: string) => void;
   missionaryId?: string;
+  /** Inserted directly under the page header (e.g. tenant stats on Mission Control home). */
+  belowHeaderSlot?: React.ReactNode;
 }
 
 function DashboardHomeContent({
   missionaryId,
   setActiveTab,
+  belowHeaderSlot,
 }: {
   missionaryId: string;
   setActiveTab?: (tab: string) => void;
+  belowHeaderSlot?: React.ReactNode;
 }) {
   const alerts = [
     { id: 1, text: "3 recurring gifts failed this week", severity: "high" },
@@ -106,20 +110,20 @@ function DashboardHomeContent({
   ];
 
   return (
-    <div className="section-gap animate-in fade-in duration-500">
-      <PageHeader
-        title="Dashboard"
-        description="Your ministry support at a glance."
-      >
+    <PageShell
+      title="Dashboard"
+      description="Your ministry at a glance"
+      actions={
         <Button
           variant="outline"
-          size="sm"
-          className="h-8 sm:h-9 px-3 sm:px-4 text-xs font-medium"
+          className="h-11 rounded-xl border-zinc-200 bg-white font-bold uppercase tracking-widest text-[10px] shadow-sm hover:bg-zinc-50"
         >
           Download Report
         </Button>
-      </PageHeader>
-
+      }
+      contentClassName="section-gap animate-in fade-in duration-500"
+    >
+      {belowHeaderSlot}
       <MetricTiles missionaryId={missionaryId} />
 
       <Card className="border-zinc-200 shadow-sm bg-white overflow-hidden rounded-xl">
@@ -272,7 +276,7 @@ function DashboardHomeContent({
           </Card>
         </div>
 
-        <div className="lg:col-span-5 space-y-3 sm:space-y-4">
+        <div className="lg:col-span-5">
           <Card className="flex flex-col h-auto border-zinc-200 shadow-sm bg-white overflow-hidden rounded-xl">
             <CardHeader className="pb-1.5 border-b border-zinc-50 bg-zinc-50/10 space-y-0 pt-2.5 px-3 sm:px-4">
               <div className="flex items-center justify-between">
@@ -345,30 +349,16 @@ function DashboardHomeContent({
               </div>
             </CardContent>
           </Card>
-
-          <Card className="bg-white border-zinc-200 shadow-sm rounded-xl p-3 sm:p-3.5">
-            <h4 className="text-[8px] font-black text-zinc-900 uppercase tracking-[0.2em] mb-1 leading-none">
-              Ministry Tip
-            </h4>
-            <p className="text-[9px] sm:text-[10px] text-zinc-600 leading-tight font-medium">
-              &ldquo;Missionaries who send updates twice a month see 15% higher
-              donor retention.&rdquo;
-            </p>
-            <Button
-              variant="link"
-              className="p-0 h-auto text-[8px] font-black text-zinc-900 mt-1.5 hover:no-underline flex items-center gap-1 group uppercase tracking-wider"
-            >
-              Best practices{" "}
-              <ArrowRight className="h-2 w-2 group-hover:translate-x-0.5 transition-transform" />
-            </Button>
-          </Card>
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }
 
-function DashboardHomeWithAuth({ setActiveTab }: DashboardHomeProps) {
+function DashboardHomeWithAuth({
+  setActiveTab,
+  belowHeaderSlot,
+}: DashboardHomeProps) {
   const { user, loading } = useAuth();
 
   const resolvedMissionaryId =
@@ -378,6 +368,7 @@ function DashboardHomeWithAuth({ setActiveTab }: DashboardHomeProps) {
     <DashboardHomeContent
       missionaryId={resolvedMissionaryId}
       setActiveTab={setActiveTab}
+      belowHeaderSlot={belowHeaderSlot}
     />
   );
 }
@@ -385,15 +376,22 @@ function DashboardHomeWithAuth({ setActiveTab }: DashboardHomeProps) {
 export const DashboardHome: React.FC<DashboardHomeProps> = ({
   setActiveTab,
   missionaryId,
+  belowHeaderSlot,
 }) => {
   if (missionaryId) {
     return (
       <DashboardHomeContent
         missionaryId={missionaryId}
         setActiveTab={setActiveTab}
+        belowHeaderSlot={belowHeaderSlot}
       />
     );
   }
 
-  return <DashboardHomeWithAuth setActiveTab={setActiveTab} />;
+  return (
+    <DashboardHomeWithAuth
+      setActiveTab={setActiveTab}
+      belowHeaderSlot={belowHeaderSlot}
+    />
+  );
 };

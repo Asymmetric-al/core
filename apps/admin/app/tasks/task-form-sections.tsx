@@ -398,7 +398,10 @@ function TaskLinkedRecordSection({
                   className="w-[400px] rounded-2xl p-0"
                 >
                   <Command className="rounded-2xl">
-                    <CommandInput placeholder="Search records..." />
+                    <CommandInput
+                      popoverChrome
+                      placeholder="Search records..."
+                    />
                     <CommandList>
                       <CommandEmpty>No records found.</CommandEmpty>
                       <CommandGroup heading="Donors">
@@ -688,6 +691,7 @@ function TaskTagsSection({
                 >
                   <Command className="rounded-2xl" shouldFilter={false}>
                     <CommandInput
+                      popoverChrome
                       onValueChange={onTagSearchValueChange}
                       placeholder="Search or create tags..."
                       value={tagSearchValue}

@@ -1,3 +1,4 @@
+export type { CrmGridRow, AdminCrmListResponse } from "./crm-grid";
 export type {
   Membership,
   MembershipRole,

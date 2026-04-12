@@ -63,7 +63,7 @@ export const TenantSwitcher = memo(function TenantSwitcher() {
       </PopoverTrigger>
       <PopoverContent className="w-48 p-0">
         <Command>
-          <CommandInput placeholder="Search tenant..." />
+          <CommandInput popoverChrome placeholder="Search tenant..." />
           <CommandList id={listboxId}>
             <CommandEmpty>No tenant found.</CommandEmpty>
             <CommandGroup>

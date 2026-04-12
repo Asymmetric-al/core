@@ -10,6 +10,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
+import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
+import { DataTableWrapper } from "@asym/ui/components/shadcn/data-table/data-table-wrapper";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Progress } from "@asym/ui/components/shadcn/progress";
 import {
@@ -20,16 +22,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@asym/ui/components/shadcn/sheet";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@asym/ui/components/shadcn/table";
 import { Tabs, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
 import { cn } from "@asym/ui/lib/utils";
+import { type ColumnDef } from "@tanstack/react-table";
 import {
   Calendar,
   Filter,
@@ -44,6 +39,7 @@ import {
   UserCheck,
   Users,
 } from "lucide-react";
+import * as React from "react";
 
 import type { LucideIcon } from "lucide-react";
 
@@ -249,7 +245,7 @@ export function MobilizeStatsRow({ stats }: { stats: MobilizeStats }) {
         whileHover={{ y: -2 }}
       >
         <StatCard
-          title="Ready / Deployed"
+          title="Ready"
           value={stats.ready}
           icon={Plane}
           color="text-emerald-600"
@@ -263,6 +259,7 @@ interface MobilizePipelineTableProps {
   activeTab: MobilizeTab;
   searchTerm: string;
   candidates: Candidate[];
+  isLoading?: boolean;
   onTabChange: (tab: MobilizeTab) => void;
   onSearchTermChange: (value: string) => void;
   onSelectCandidate: (candidate: Candidate) => void;
@@ -272,12 +269,111 @@ export function MobilizePipelineTable({
   activeTab,
   searchTerm,
   candidates,
+  isLoading,
   onTabChange,
   onSearchTermChange,
   onSelectCandidate,
 }: MobilizePipelineTableProps) {
+  const columns = React.useMemo<ColumnDef<Candidate>[]>(
+    () => [
+      {
+        accessorKey: "name",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Candidate" />
+        ),
+        cell: ({ row }) => (
+          <button
+            type="button"
+            onClick={() => onSelectCandidate(row.original)}
+            className="flex w-full items-center gap-2.5 py-1 text-left"
+          >
+            <Avatar className="h-8 w-8 bg-zinc-100 border border-zinc-200 rounded-lg">
+              <AvatarFallback className="text-[10px] font-bold text-zinc-600">
+                {row.original.name.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="text-left">
+              <div className="text-xs font-bold text-zinc-900 leading-tight">
+                {row.original.name}
+              </div>
+              <div className="text-[10px] text-zinc-500 leading-tight">
+                {row.original.email}
+              </div>
+            </div>
+          </button>
+        ),
+      },
+      {
+        accessorKey: "role",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Role" />
+        ),
+        cell: ({ row }) => (
+          <div className="flex flex-col text-left">
+            <span className="text-xs font-semibold text-zinc-700 leading-tight">
+              {row.original.role}
+            </span>
+            <span className="text-[10px] text-zinc-500 flex items-center gap-1 mt-0.5">
+              <MapPin className="h-3 w-3" /> {row.original.location}
+            </span>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "stage",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Stage" />
+        ),
+        cell: ({ row }) => (
+          <Badge
+            variant="outline"
+            className={cn(
+              "text-[10px] font-bold border shadow-none px-1.5 py-0 rounded-md uppercase tracking-wider",
+              STAGE_COLORS[row.original.stage],
+            )}
+          >
+            {row.original.stage}
+          </Badge>
+        ),
+      },
+      {
+        accessorKey: "readiness",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Readiness" />
+        ),
+        cell: ({ row }) => (
+          <div className="w-24 space-y-1">
+            <div className="flex justify-between text-[8px] uppercase font-bold text-zinc-400">
+              <span>{row.original.readiness}%</span>
+            </div>
+            <Progress
+              value={row.original.readiness}
+              className="h-1 rounded-full"
+            />
+          </div>
+        ),
+      },
+      {
+        id: "actions",
+        cell: ({ row }) => (
+          <div className="flex justify-end pr-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-lg"
+              onClick={() => onSelectCandidate(row.original)}
+            >
+              <MoreHorizontal className="h-4 w-4 text-zinc-400" />
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [onSelectCandidate],
+  );
+
   return (
-    <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden flex flex-col">
+    <div className="bg-white rounded-xl border border-zinc-200 shadow-sm flex flex-col">
       <div className="p-3 border-b border-zinc-100 flex flex-col lg:flex-row justify-between items-center gap-3 bg-zinc-50/50">
         <Tabs
           value={activeTab}
@@ -342,111 +438,23 @@ export function MobilizePipelineTable({
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader className="bg-zinc-50">
-            <TableRow className="h-10 hover:bg-transparent">
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10 px-4">
-                Candidate
-              </TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10 px-4">
-                Role
-              </TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10 px-4">
-                Stage
-              </TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10 px-4">
-                Readiness
-              </TableHead>
-              <TableHead className="text-right text-[10px] font-bold uppercase tracking-wider h-10 px-4">
-                Actions
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {candidates.map((candidate) => (
-              <TableRow
-                key={candidate.id}
-                className="hover:bg-zinc-50/50 cursor-pointer h-12"
-                onClick={() => onSelectCandidate(candidate)}
-              >
-                <TableCell className="px-4 py-2">
-                  <div className="flex items-center gap-2.5">
-                    <Avatar className="h-8 w-8 bg-zinc-100 border border-zinc-200 rounded-lg">
-                      <AvatarFallback className="text-[10px] font-bold text-zinc-600">
-                        {candidate.name.substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="text-left">
-                      <div className="text-xs font-bold text-zinc-900 leading-tight">
-                        {candidate.name}
-                      </div>
-                      <div className="text-[10px] text-zinc-500 leading-tight">
-                        {candidate.email}
-                      </div>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell className="px-4 py-2">
-                  <div className="flex flex-col text-left">
-                    <span className="text-xs font-semibold text-zinc-700 leading-tight">
-                      {candidate.role}
-                    </span>
-                    <span className="text-[10px] text-zinc-500 flex items-center gap-1 mt-0.5">
-                      <MapPin className="h-3 w-3" /> {candidate.location}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="px-4 py-2">
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "text-[10px] font-bold border shadow-none px-1.5 py-0 rounded-md uppercase tracking-wider",
-                      STAGE_COLORS[candidate.stage],
-                    )}
-                  >
-                    {candidate.stage}
-                  </Badge>
-                </TableCell>
-                <TableCell className="px-4 py-2">
-                  <div className="w-24 space-y-1">
-                    <div className="flex justify-between text-[8px] uppercase font-bold text-zinc-400">
-                      <span>{candidate.readiness}%</span>
-                    </div>
-                    <Progress
-                      value={candidate.readiness}
-                      className="h-1 rounded-full"
-                    />
-                  </div>
-                </TableCell>
-                <TableCell className="text-right px-4 py-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-lg"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onSelectCandidate(candidate);
-                    }}
-                  >
-                    <MoreHorizontal className="h-4 w-4 text-zinc-400" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-            {candidates.length === 0 && (
-              <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="h-32 text-center text-zinc-500"
-                >
-                  No candidates found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <DataTableWrapper
+        columns={columns}
+        data={candidates}
+        isLoading={isLoading}
+        config={{
+          enableRowSelection: false,
+          enableColumnVisibility: false,
+          enablePagination: true,
+          enableFilters: false,
+          enableSorting: true,
+        }}
+        emptyState={{
+          title: "No candidates found",
+          description:
+            "Adjust the current search or stage filter to find candidates.",
+        }}
+      />
     </div>
   );
 }
