@@ -1,7 +1,7 @@
 "use client";
 "use no memo";
 
-import { TimeAgo, useLastSynced } from "@asym/lib/hooks";
+import { TimeAgo } from "@asym/lib/hooks";
 import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
 import {
   Avatar,
@@ -61,14 +61,10 @@ import {
   Check,
   CornerDownRight,
   ShieldCheck,
-  ShieldAlert,
-  ShieldHalf,
-  Shield,
   Settings,
   Pin,
   Trash2,
   Save,
-  Clock,
   ExternalLink,
   Image as ImageIcon,
 } from "lucide-react";
@@ -77,6 +73,25 @@ import Image from "next/image";
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
+import {
+  appendCommentToThread,
+  buildSecurityDialogState,
+  createLocalCommentId,
+  removeCommentFromThread,
+  SECURITY_OPTIONS,
+} from "./feed-model";
+import { EmptyState, LastSyncedDisplay, LoadingState } from "./feed-support-ui";
+
+import type {
+  FeedComment,
+  FollowerRequest,
+  Post,
+  PostStatus,
+  SecurityDialogState,
+  SecurityLevel,
+  WorkerFeedUiState,
+  Visibility,
+} from "./feed-model";
 import type { MediaItem } from "@asym/database/types";
 
 import { PageHeader } from "@/components/page-header";
@@ -118,205 +133,6 @@ const smoothTransition = {
   duration: 0.25,
   ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
 };
-
-type Visibility = "public" | "partners" | "private";
-type SecurityLevel = "high" | "medium" | "low";
-type AccessLevel = "view" | "comment";
-type PostStatus = "published" | "draft";
-
-type SecurityDialogState = {
-  level: SecurityLevel;
-  publicMirror: boolean;
-  autoApproval: boolean;
-};
-
-type SecurityOption = {
-  level: SecurityLevel;
-  icon: React.ElementType;
-  title: string;
-  description: string;
-  features: string[];
-  color: string;
-  bgColor: string;
-  borderColor: string;
-  ringColor: string;
-};
-
-type WorkerFeedUiState = {
-  postType: string;
-  postContent: string;
-  activeTab: PostStatus;
-  isLoading: boolean;
-  isSaving: boolean;
-  editingPostId: string | null;
-  lastSaved: Date | null;
-  expandedComments: string | null;
-  postPrivacy: Visibility;
-  selectedMedia: MediaItem[];
-  isUploading: boolean;
-  securityLevel: SecurityLevel;
-  isLoadingRequests: boolean;
-};
-
-const buildSecurityDialogState = (
-  level: SecurityLevel,
-): SecurityDialogState => ({
-  level,
-  publicMirror: level === "low",
-  autoApproval: level !== "high",
-});
-
-const SECURITY_OPTIONS: SecurityOption[] = [
-  {
-    level: "high",
-    icon: ShieldAlert,
-    title: "High Security",
-    description:
-      "Manual approval required for all followers. Full control over who sees your updates.",
-    features: [
-      "Manual follower approval",
-      "Granular permissions",
-      "Activity logging",
-    ],
-    color: "text-rose-600",
-    bgColor: "bg-rose-50",
-    borderColor: "border-rose-200",
-    ringColor: "ring-rose-500/20",
-  },
-  {
-    level: "medium",
-    icon: ShieldHalf,
-    title: "Balanced",
-    description:
-      "Auto-approve donors while maintaining control over non-donor followers.",
-    features: [
-      "Auto-approve donors",
-      "Review non-donors",
-      "Partner visibility",
-    ],
-    color: "text-amber-600",
-    bgColor: "bg-amber-50",
-    borderColor: "border-amber-200",
-    ringColor: "ring-amber-500/20",
-  },
-  {
-    level: "low",
-    icon: Shield,
-    title: "Open Access",
-    description:
-      "Public feed visible on your giving page. Maximum reach for your updates.",
-    features: ["Public visibility", "Auto-sync to page", "Maximum engagement"],
-    color: "text-emerald-600",
-    bgColor: "bg-emerald-50",
-    borderColor: "border-emerald-200",
-    ringColor: "ring-emerald-500/20",
-  },
-];
-
-interface FollowerRequest {
-  id: string;
-  donor_id: string;
-  name: string;
-  avatar_url: string | null;
-  is_donor: boolean;
-  access_level: AccessLevel;
-  status: "pending" | "approved" | "rejected";
-  created_at: string;
-  initials: string;
-}
-
-interface Post {
-  id: string;
-  post_type: string;
-  content: string;
-  created_at: string;
-  likes_count?: number;
-  prayers_count?: number;
-  fires_count?: number;
-  comments?: FeedComment[];
-  media?: MediaItem[];
-  isPinned?: boolean;
-  visibility: Visibility;
-  status: PostStatus;
-  user_liked?: boolean;
-  user_prayed?: boolean;
-  user_fired?: boolean;
-  author?: {
-    id: string;
-    first_name: string;
-    last_name: string;
-    avatar_url: string;
-  };
-}
-
-interface FeedCommentAuthor {
-  full_name?: string;
-  avatar_url?: string | null;
-}
-
-interface FeedComment {
-  id: string;
-  content: string;
-  created_at: string;
-  avatar?: string | null;
-  author?: FeedCommentAuthor;
-  isWorker?: boolean;
-  replies?: FeedComment[];
-}
-
-function createLocalCommentId() {
-  if (
-    typeof crypto !== "undefined" &&
-    typeof crypto.randomUUID === "function"
-  ) {
-    return crypto.randomUUID();
-  }
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function appendCommentToThread(
-  comments: FeedComment[],
-  nextComment: FeedComment,
-  parentId?: string,
-): FeedComment[] {
-  if (!parentId) {
-    return [...comments, nextComment];
-  }
-
-  return comments.map((comment) =>
-    comment.id === parentId
-      ? { ...comment, replies: [...(comment.replies || []), nextComment] }
-      : comment,
-  );
-}
-
-function removeCommentFromThread(
-  comments: FeedComment[],
-  commentId: string,
-  parentId?: string,
-): FeedComment[] {
-  if (parentId) {
-    return comments.map((comment) =>
-      comment.id === parentId
-        ? {
-            ...comment,
-            replies: (comment.replies || []).filter(
-              (reply) => reply.id !== commentId,
-            ),
-          }
-        : comment,
-    );
-  }
-
-  return comments
-    .filter((comment) => comment.id !== commentId)
-    .map((comment) => ({
-      ...comment,
-      replies: (comment.replies || []).filter(
-        (reply) => reply.id !== commentId,
-      ),
-    }));
-}
 
 const MotionCard = motion.create(Card);
 
@@ -1207,90 +1023,6 @@ function PostCard({
           </AnimatePresence>
         </CardContent>
       </MotionCard>
-    </motion.div>
-  );
-}
-
-function LastSyncedDisplay() {
-  const lastSynced = useLastSynced();
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: 0.4 }}
-      className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
-    >
-      <Clock className="h-3.5 w-3.5" />
-      {lastSynced ? `Last synced: ${lastSynced}` : "Syncing..."}
-    </motion.div>
-  );
-}
-
-function LoadingState() {
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="flex flex-col items-center justify-center py-16 sm:py-24 gap-4"
-    >
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-      >
-        <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground/30" />
-      </motion.div>
-      <motion.p
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="font-bold text-xs uppercase tracking-wider text-muted-foreground/50"
-      >
-        Loading Ministry Updates...
-      </motion.p>
-    </motion.div>
-  );
-}
-
-function EmptyState({
-  icon: Icon,
-  title,
-  description,
-}: {
-  icon: React.ElementType;
-  title: string;
-  description: string;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={smoothTransition}
-      className="text-center py-20 sm:py-32 bg-muted/20 rounded-2xl sm:rounded-3xl border-2 border-dashed border-border"
-    >
-      <motion.div
-        initial={{ scale: 0.8 }}
-        animate={{ scale: 1 }}
-        transition={springTransition}
-        className="w-16 h-16 sm:w-20 sm:h-20 bg-card rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-md"
-      >
-        <Icon className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground/30" />
-      </motion.div>
-      <motion.h3
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="font-bold text-lg sm:text-2xl text-foreground tracking-tight"
-      >
-        {title}
-      </motion.h3>
-      <motion.p
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15 }}
-        className="text-muted-foreground font-medium mt-2 text-sm sm:text-base"
-      >
-        {description}
-      </motion.p>
     </motion.div>
   );
 }
