@@ -80,7 +80,7 @@ async function createWorkspaceContractRepo() {
       "",
       "| App | Route family | Runtime policy | Reason |",
       "| --- | --- | --- | --- |",
-      '| demo | `/api/example` | Node.js (no `runtime` segment export) | Fixture |',
+      "| demo | `/api/example` | Node.js (no `runtime` segment export) | Fixture |",
     ].join("\n"),
   );
 
@@ -313,7 +313,7 @@ describe("verify-workspace-contract", () => {
         "",
         "| App | Route family | Runtime policy | Reason |",
         "| --- | --- | --- | --- |",
-        '| demo | `/api/other` | Node.js (no `runtime` segment export) | Fixture |',
+        "| demo | `/api/other` | Node.js (no `runtime` segment export) | Fixture |",
       ].join("\n"),
     );
 
