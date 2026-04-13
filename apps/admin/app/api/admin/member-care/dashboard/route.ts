@@ -9,7 +9,9 @@ export async function GET() {
   }
 
   try {
-    const snapshot = await readMemberCareDashboardSnapshot(auth.context.tenantId);
+    const snapshot = await readMemberCareDashboardSnapshot(
+      auth.context.tenantId,
+    );
     return Response.json(snapshot);
   } catch (error) {
     return toApiErrorResponse(error, "Failed to load member care dashboard.");

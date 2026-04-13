@@ -10,7 +10,9 @@ type AuthResult =
   | { ok: true; context: MemberCareContext }
   | { ok: false; response: Response };
 
-type JsonResult = { ok: true; body: unknown } | { ok: false; response: Response };
+type JsonResult =
+  | { ok: true; body: unknown }
+  | { ok: false; response: Response };
 
 export async function requireMemberCareAccess(): Promise<AuthResult> {
   const auth = await getAuthContext();
