@@ -19,7 +19,7 @@
     "build": "node scripts/run-with-ci-env.mjs -- turbo run build",
     "build:strict": "turbo run build",
     "build:admin": "node scripts/run-with-ci-env.mjs -- turbo run build --filter=@asym/admin",
-    "build:admin:strict": "turbo run build --filter=@asym/admin",
+    "build:admin:strict": "node scripts/run-with-ci-env.mjs -- turbo run build --filter=@asym/admin",
     "build:missionary": "node scripts/run-with-ci-env.mjs -- turbo run build --filter=@asym/missionary-app",
     "build:missionary:strict": "turbo run build --filter=@asym/missionary-app",
     "build:donor": "node scripts/run-with-ci-env.mjs -- turbo run build --filter=@asym/donor",
