@@ -1,19 +1,11 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment -- TODO(tanstack-db): query-db-collection vs @tanstack/db Collection types drift */
-// @ts-nocheck
 "use client";
 
-import {
-  createCollection,
-  type InferSchemaOutput,
-  type StandardSchema,
-} from "@tanstack/db";
+import { createCollection } from "@tanstack/db";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
 import { z } from "zod";
 
 import { getQueryClient } from "../providers/query-client";
 import { createClient } from "../supabase/client";
-
-import type { Post, Follow, PostComment } from "../types/database";
 
 type SupabaseClient = ReturnType<typeof createClient>;
 
@@ -24,17 +16,8 @@ interface TableQueryOptions {
   };
 }
 
-type SchemaOutput<TSchema extends StandardSchema<unknown>> =
-  InferSchemaOutput<TSchema>;
-
-interface ReadOnlyCollectionConfig<TSchema extends StandardSchema<unknown>> {
-  id: string;
-  queryKey: readonly string[];
-  tableName: string;
-  getKey: (item: SchemaOutput<TSchema>) => string;
-  queryOptions?: TableQueryOptions;
-  schema: TSchema;
-}
+type SchemaOutput<TSchema extends z.ZodObject<z.ZodRawShape>> =
+  z.output<TSchema>;
 
 function getSupabase(): SupabaseClient {
   // Delegate client lifecycle to the shared browser factory.
@@ -42,7 +25,7 @@ function getSupabase(): SupabaseClient {
   return createClient();
 }
 
-async function fetchTableRows<TItem extends object>(
+async function fetchTableRows<TItem extends Record<string, unknown>>(
   tableName: string,
   queryOptions?: TableQueryOptions,
 ): Promise<TItem[]> {
@@ -57,28 +40,6 @@ async function fetchTableRows<TItem extends object>(
     throw error;
   }
   return (data ?? []) as TItem[];
-}
-
-function createReadOnlyCollection<TSchema extends StandardSchema<unknown>>({
-  id,
-  queryKey,
-  tableName,
-  getKey,
-  queryOptions,
-  schema,
-}: ReadOnlyCollectionConfig<TSchema>) {
-  type TItem = SchemaOutput<TSchema>;
-
-  return createCollection(
-    queryCollectionOptions({
-      id,
-      queryKey: [...queryKey],
-      queryClient: getQueryClient(),
-      schema,
-      getKey,
-      queryFn: () => fetchTableRows<TItem>(tableName, queryOptions),
-    }),
-  );
 }
 
 const mediaItemSchema = z.object({
@@ -216,6 +177,54 @@ const donorSchema = z.object({
   updated_at: z.string().min(1),
 });
 
+const donorActivitySchema = z.object({
+  id: z.string().min(1),
+  donor_id: z.string().nullable(),
+  type: z.string().min(1),
+  title: z.string().min(1),
+  description: z.string().nullable(),
+  date: z.string().nullable(),
+  amount: z.number().nullable(),
+  status: z.string().nullable(),
+  gift_type: z.string().nullable(),
+  note: z.string().nullable(),
+  created_at: z.string().min(1),
+  updated_at: z.string().min(1),
+});
+
+const donorPledgeSchema = z.object({
+  id: z.string().min(1),
+  tenant_id: z.string().nullable(),
+  donor_id: z.string().nullable(),
+  missionary_id: z.string().nullable(),
+  fund_id: z.string().nullable(),
+  amount: z.number(),
+  currency: z.string(),
+  frequency: z.string().nullable(),
+  status: z.string(),
+  start_date: z.string().nullable(),
+  end_date: z.string().nullable(),
+  next_payment_date: z.string().nullable(),
+  stripe_subscription_id: z.string().nullable(),
+  billing_day_of_month: z.number().int().nullable(),
+  billing_timezone: z.string().nullable(),
+  stripe_payment_method_id: z.string().nullable(),
+  retry_count: z.number().int(),
+  last_charge_at: z.string().nullable(),
+  last_charge_attempt: z.string().nullable(),
+  failed_charge_count: z.number().int(),
+  pause_reason: z.string().nullable(),
+  paused_at: z.string().nullable(),
+  next_charge_at: z.string().nullable(),
+  total_paid: z.number(),
+  total_expected: z.number(),
+  payments_completed: z.number().int().nullable(),
+  payments_remaining: z.number().int().nullable(),
+  payment_method: z.string().nullable(),
+  created_at: z.string().min(1),
+  updated_at: z.string().min(1),
+});
+
 const donationSchema = z.object({
   id: z.string().min(1),
   tenant_id: z.string().nullable(),
@@ -265,33 +274,44 @@ const fundSchema = z.object({
 });
 
 function createProfilesCollection() {
-  return createReadOnlyCollection({
-    id: "profiles",
-    queryKey: ["profiles"],
-    tableName: "profiles",
-    schema: profileSchema,
-    getKey: (item) => item.id,
-  });
+  return createCollection(
+    queryCollectionOptions({
+      id: "profiles",
+      queryKey: ["profiles"],
+      queryClient: getQueryClient(),
+      schema: profileSchema,
+      getKey: (item) => item.id,
+      queryFn: () =>
+        fetchTableRows<SchemaOutput<typeof profileSchema>>("profiles"),
+    }),
+  );
 }
 
 function createMissionariesCollection() {
-  return createReadOnlyCollection({
-    id: "missionaries",
-    queryKey: ["missionaries"],
-    tableName: "missionaries",
-    schema: missionarySchema,
-    getKey: (item) => item.id,
-  });
+  return createCollection(
+    queryCollectionOptions({
+      id: "missionaries",
+      queryKey: ["missionaries"],
+      queryClient: getQueryClient(),
+      schema: missionarySchema,
+      getKey: (item) => item.id,
+      queryFn: () =>
+        fetchTableRows<SchemaOutput<typeof missionarySchema>>("missionaries"),
+    }),
+  );
 }
 
 function createDonorsCollection() {
-  return createReadOnlyCollection({
-    id: "donors",
-    queryKey: ["donors"],
-    tableName: "donors",
-    schema: donorSchema,
-    getKey: (item) => item.id,
-  });
+  return createCollection(
+    queryCollectionOptions({
+      id: "donors",
+      queryKey: ["donors"],
+      queryClient: getQueryClient(),
+      schema: donorSchema,
+      getKey: (item) => item.id,
+      queryFn: () => fetchTableRows<SchemaOutput<typeof donorSchema>>("donors"),
+    }),
+  );
 }
 
 function createPostsCollection() {
@@ -303,7 +323,7 @@ function createPostsCollection() {
       schema: postSchema,
       getKey: (item) => item.id,
       queryFn: () =>
-        fetchTableRows<Post>("posts", {
+        fetchTableRows<SchemaOutput<typeof postSchema>>("posts", {
           orderBy: { column: "created_at", ascending: false },
         }),
       onInsert: async ({ transaction }) => {
@@ -353,9 +373,12 @@ function createPostCommentsCollection() {
       schema: postCommentSchema,
       getKey: (item) => item.id,
       queryFn: () =>
-        fetchTableRows<PostComment>("post_comments", {
-          orderBy: { column: "created_at", ascending: true },
-        }),
+        fetchTableRows<SchemaOutput<typeof postCommentSchema>>(
+          "post_comments",
+          {
+            orderBy: { column: "created_at", ascending: true },
+          },
+        ),
       onInsert: async ({ transaction }) => {
         const items = transaction.mutations.map(
           (mutation) => mutation.modified,
@@ -372,26 +395,70 @@ function createPostCommentsCollection() {
 }
 
 function createDonationsCollection() {
-  return createReadOnlyCollection({
-    id: "donations",
-    queryKey: ["donations"],
-    tableName: "donations",
-    schema: donationSchema,
-    getKey: (item) => item.id,
-    queryOptions: {
-      orderBy: { column: "created_at", ascending: false },
-    },
-  });
+  return createCollection(
+    queryCollectionOptions({
+      id: "donations",
+      queryKey: ["donations"],
+      queryClient: getQueryClient(),
+      schema: donationSchema,
+      getKey: (item) => item.id,
+      queryFn: () =>
+        fetchTableRows<SchemaOutput<typeof donationSchema>>("donations", {
+          orderBy: { column: "created_at", ascending: false },
+        }),
+    }),
+  );
+}
+
+function createDonorActivitiesCollection() {
+  return createCollection(
+    queryCollectionOptions({
+      id: "donor_activities",
+      queryKey: ["donor_activities"],
+      queryClient: getQueryClient(),
+      schema: donorActivitySchema,
+      getKey: (item) => item.id,
+      queryFn: () =>
+        fetchTableRows<SchemaOutput<typeof donorActivitySchema>>(
+          "donor_activities",
+          {
+            orderBy: { column: "date", ascending: false },
+          },
+        ),
+    }),
+  );
+}
+
+function createDonorPledgesCollection() {
+  return createCollection(
+    queryCollectionOptions({
+      id: "donor_pledges",
+      queryKey: ["donor_pledges"],
+      queryClient: getQueryClient(),
+      schema: donorPledgeSchema,
+      getKey: (item) => item.id,
+      queryFn: () =>
+        fetchTableRows<SchemaOutput<typeof donorPledgeSchema>>(
+          "donor_pledges",
+          {
+            orderBy: { column: "start_date", ascending: false },
+          },
+        ),
+    }),
+  );
 }
 
 function createFundsCollection() {
-  return createReadOnlyCollection({
-    id: "funds",
-    queryKey: ["funds"],
-    tableName: "funds",
-    schema: fundSchema,
-    getKey: (item) => item.id,
-  });
+  return createCollection(
+    queryCollectionOptions({
+      id: "funds",
+      queryKey: ["funds"],
+      queryClient: getQueryClient(),
+      schema: fundSchema,
+      getKey: (item) => item.id,
+      queryFn: () => fetchTableRows<SchemaOutput<typeof fundSchema>>("funds"),
+    }),
+  );
 }
 
 function createFollowsCollection() {
@@ -402,7 +469,8 @@ function createFollowsCollection() {
       queryClient: getQueryClient(),
       schema: followSchema,
       getKey: (item) => item.id,
-      queryFn: () => fetchTableRows<Follow>("follows"),
+      queryFn: () =>
+        fetchTableRows<SchemaOutput<typeof followSchema>>("follows"),
       onInsert: async ({ transaction }) => {
         const items = transaction.mutations.map(
           (mutation) => mutation.modified,
@@ -447,6 +515,12 @@ export const missionariesCollection = defineLazyCollection(
   createMissionariesCollection,
 );
 export const donorsCollection = defineLazyCollection(createDonorsCollection);
+export const donorActivitiesCollection = defineLazyCollection(
+  createDonorActivitiesCollection,
+);
+export const donorPledgesCollection = defineLazyCollection(
+  createDonorPledgesCollection,
+);
 export const postsCollection = defineLazyCollection(createPostsCollection);
 export const postCommentsCollection = defineLazyCollection(
   createPostCommentsCollection,

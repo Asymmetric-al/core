@@ -17,11 +17,13 @@ Do not use this skill when the UI is not a TanStack Table-based surface.
 ## Repo-specific standards
 
 - Table package: `@tanstack/react-table@^8.21.3`
-- Query package: `@tanstack/react-query@^5.90.21`
+- Query package: `@tanstack/react-query@^5.96.2`
 - Virtual package: `@tanstack/react-virtual@^3.13.19`
 - Shared virtualization API:
   - `VirtualizationConfig` in `packages/ui/components/shadcn/data-table/types.ts`
   - `useDataTableVirtualization` in `packages/ui/components/shadcn/data-table/hooks/use-data-table-virtualization.ts`
+- Shared grid export:
+  - `@asym/ui/components/shadcn/data-grid`
 
 ## Workflow Steps
 
@@ -39,6 +41,7 @@ Do not use this skill when the UI is not a TanStack Table-based surface.
 - In Query v5, prefer `placeholderData: keepPreviousData` for page/sort transitions.
 - Use stable item keys for virtualization (`row.id`, not array index).
 - Prefer shared `virtualization` object config over legacy fields.
+- If a surface is fundamentally tabular, prefer `DataTableResponsive` over a bespoke virtualized list.
 
 ## Checklists
 

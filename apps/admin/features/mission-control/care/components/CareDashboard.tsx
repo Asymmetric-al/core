@@ -119,7 +119,7 @@ export function CareDashboard({
 
       <div className="grid-12">
         {/* Personnel List (Main) */}
-        <Card className="lg:col-span-8 border-border/50 shadow-sm overflow-hidden flex flex-col">
+        <Card className="lg:col-span-8 border-border/50 shadow-sm flex flex-col">
           <CardHeader className="border-b border-border/30 bg-muted/5">
             <div className="flex items-center justify-between gap-4">
               <div>

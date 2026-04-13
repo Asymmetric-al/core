@@ -1,8 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { getAdminClientMock, findMissionaryByIdMock } = vi.hoisted(() => ({
+const { getAdminClientMock } = vi.hoisted(() => ({
   getAdminClientMock: vi.fn(),
-  findMissionaryByIdMock: vi.fn(),
 }));
 
 vi.mock("@asym/database/supabase/admin", () => ({
@@ -10,7 +9,7 @@ vi.mock("@asym/database/supabase/admin", () => ({
 }));
 
 vi.mock("@asym/api/missionaries/queries", () => ({
-  findMissionaryById: findMissionaryByIdMock,
+  findMissionaryById: vi.fn(),
 }));
 
 let handler: (req: unknown) => Promise<Response>;
@@ -132,10 +131,6 @@ describe("webStudioCreateFromTemplateEndpoint", () => {
   });
 
   it("rejects super-admin missionary giving create when template tenant differs from requested tenant", async () => {
-    findMissionaryByIdMock.mockResolvedValue({
-      data: { id: "00000000-0000-4000-8000-000000000111" },
-      error: null,
-    });
     const req = makeReq({
       user: { id: "u1", role: "super_admin", tenantId: null },
       body: {
@@ -164,9 +159,9 @@ describe("webStudioCreateFromTemplateEndpoint", () => {
     });
 
     const res = await handler(req);
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(403);
     expect(await res.json()).toEqual({
-      error: "Missionary not found",
+      error: "Template is not in your tenant",
     });
   });
 });

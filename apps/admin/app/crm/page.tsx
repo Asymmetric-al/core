@@ -1,5 +1,6 @@
 "use client";
 
+import { useAdminCrmRecordsInfiniteGrid } from "@asym/database/hooks";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { formatCurrency } from "@asym/lib/utils";
 import {
@@ -19,7 +20,12 @@ import {
 } from "@asym/ui/components/shadcn/data-table";
 import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
-import { Sheet, SheetContent } from "@asym/ui/components/shadcn/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+} from "@asym/ui/components/shadcn/sheet";
 import {
   Tabs,
   TabsContent,
@@ -38,44 +44,22 @@ import {
   History,
   FileText,
   MoreHorizontal,
+  Receipt,
+  Trash2,
 } from "lucide-react";
 import React, { useState, useMemo } from "react";
+import { toast } from "sonner";
 
-import { getColumns } from "./columns";
-import { MOCK_CONTACTS } from "./data";
-import { STAGES, STAGE_COLORS } from "./types";
+import { getCrmColumns } from "./columns";
+import { PORTAL_BADGE_CLASS, toCrmRecord } from "./types";
 
-import type { Contact } from "./types";
-
-const filterFields: DataTableFilterField<Contact>[] = [
-  {
-    id: "stage",
-    label: "Stage",
-    variant: "select",
-    options: [
-      { label: "New", value: "New" },
-      { label: "Contacted", value: "Contacted" },
-      { label: "Meeting", value: "Meeting" },
-      { label: "Proposal", value: "Proposal" },
-      { label: "Won", value: "Won" },
-    ],
-  },
-  {
-    id: "owner",
-    label: "Owner",
-    variant: "select",
-    options: [
-      { label: "Me", value: "Me" },
-      { label: "Sarah", value: "Sarah" },
-    ],
-  },
-];
+import type { CrmGridRow, CrmRecord } from "./types";
 
 function DetailDrawer({
   contact,
   onClose,
 }: {
-  contact: Contact;
+  contact: CrmRecord;
   onClose: () => void;
 }) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -89,20 +73,30 @@ function DetailDrawer({
     setIsAnalyzing(true);
     await new Promise((r) => setTimeout(r, 1000));
     setSummary({
-      category: "Active Partner",
-      focus: "Sustainable infrastructure and water projects.",
-      nextMove: "Share the Chiang Mai impact video.",
+      category: "Constituent",
+      focus: contact.notesPreview ?? "No notes on file yet.",
+      nextMove: "Review giving history and schedule a touchpoint.",
     });
     setIsAnalyzing(false);
   };
 
+  const display = contact.displayName || "Unnamed record";
+
   return (
     <Sheet open={!!contact} onOpenChange={(open) => !open && onClose()}>
       <SheetContent className="w-full sm:max-w-2xl p-0 gap-0 border-l border-border bg-background shadow-2xl overflow-hidden flex flex-col h-full text-left">
+        <SheetTitle className="sr-only">
+          {display} — CRM record details
+        </SheetTitle>
+        <SheetDescription className="sr-only">
+          Constituent summary, activity, and properties for this CRM record.
+        </SheetDescription>
         <div className="h-14 bg-card border-b border-border flex items-center justify-between px-4 shrink-0 z-10">
           <div className="flex items-center gap-2 text-sm font-bold text-foreground uppercase tracking-wider">
             <User className="h-4 w-4 text-muted-foreground" />
-            <span>Contact Details</span>
+            <span className="truncate max-w-[200px] sm:max-w-md">
+              {display}
+            </span>
           </div>
           <div className="flex items-center gap-1">
             <Button
@@ -136,39 +130,65 @@ function DetailDrawer({
                 name={crmRecordAvatarTransitionName(contact.id)}
               >
                 <Avatar className="h-20 w-20 border-4 border-background shadow-sm">
-                  <AvatarImage src={contact.avatar} />
+                  <AvatarImage src={contact.avatarUrl ?? undefined} />
                   <AvatarFallback className="bg-muted text-muted-foreground font-bold text-xl">
-                    {contact.name[0]}
+                    {display[0] ?? "?"}
                   </AvatarFallback>
                 </Avatar>
               </SharedNamedViewTransition>
-              <div className="space-y-1 pt-1">
+              <div className="space-y-1 pt-1 min-w-0">
                 <SharedNamedViewTransition
                   name={crmRecordTitleTransitionName(contact.id)}
                 >
                   <h2 className="text-2xl font-bold text-foreground tracking-tight">
-                    {contact.name}
+                    {display}
                   </h2>
                 </SharedNamedViewTransition>
                 <p className="text-sm text-muted-foreground font-medium">
-                  {contact.title} at{" "}
-                  <span className="text-foreground">{contact.company}</span>
+                  {contact.title ? (
+                    <>
+                      {contact.title}
+                      {contact.primaryOrganization ? (
+                        <>
+                          {" "}
+                          at{" "}
+                          <span className="text-foreground">
+                            {contact.primaryOrganization}
+                          </span>
+                        </>
+                      ) : null}
+                    </>
+                  ) : contact.primaryOrganization ? (
+                    <span className="text-foreground">
+                      {contact.primaryOrganization}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">No title set</span>
+                  )}
                 </p>
-                <div className="flex gap-2 pt-2">
+                <div className="flex flex-wrap gap-2 pt-2">
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] font-bold uppercase"
+                  >
+                    {contact.lifecycleStatus ?? "Unknown status"}
+                  </Badge>
                   <Badge
                     variant="outline"
                     className={cn(
-                      "h-5 text-[10px] font-bold uppercase tracking-wider border shadow-none",
-                      STAGE_COLORS[contact.stage],
+                      "text-[10px] font-bold uppercase border shadow-none",
+                      PORTAL_BADGE_CLASS[contact.portalAccessLabel],
                     )}
                   >
-                    {contact.stage}
+                    {contact.portalAccessLabel === "linked"
+                      ? "Portal linked"
+                      : "No portal"}
                   </Badge>
                   <Badge
                     variant="secondary"
                     className="h-5 text-[10px] font-bold uppercase tracking-wider border-none bg-muted text-muted-foreground"
                   >
-                    {formatCurrency(contact.value)}
+                    {formatCurrency(contact.lifetimeGiving)}
                   </Badge>
                 </div>
               </div>
@@ -196,7 +216,7 @@ function DetailDrawer({
                     </div>
                     <div>
                       <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
-                        Ministry Focus
+                        Notes
                       </span>
                       <p className="text-xs text-muted-foreground leading-relaxed font-medium">
                         {summary.focus}
@@ -204,7 +224,7 @@ function DetailDrawer({
                     </div>
                     <div>
                       <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
-                        Next Step
+                        Next step
                       </span>
                       <p className="text-xs text-foreground font-bold">
                         {summary.nextMove}
@@ -264,31 +284,38 @@ function DetailDrawer({
                 </div>
 
                 <div className="space-y-6 pl-4 border-l border-border ml-2">
-                  {contact.activities.map((act) => (
-                    <div key={act.id} className="relative group">
-                      <div className="absolute -left-[21px] top-0 h-4 w-4 rounded-full border-2 border-background bg-muted z-10 transition-colors group-hover:bg-foreground" />
-                      <div className="pb-4 space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-foreground">
-                            {act.title}
-                          </span>
-                          <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
-                            {new Date(act.date).toLocaleDateString()}
-                          </span>
+                  {contact.activities.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      No timeline entries yet. Activity from donations and tasks
+                      will appear here as the CRM read model expands.
+                    </p>
+                  ) : (
+                    contact.activities.map((act) => (
+                      <div key={act.id} className="relative group">
+                        <div className="absolute -left-[21px] top-0 h-4 w-4 rounded-full border-2 border-background bg-muted z-10 transition-colors group-hover:bg-foreground" />
+                        <div className="pb-4 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-foreground">
+                              {act.title}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
+                              {new Date(act.date).toLocaleDateString()}
+                            </span>
+                          </div>
+                          {act.description && (
+                            <p className="text-xs text-muted-foreground leading-relaxed bg-card p-3 rounded-lg border border-border shadow-sm">
+                              {act.description}
+                            </p>
+                          )}
+                          {act.amount && (
+                            <p className="text-xs font-bold text-emerald-600">
+                              +{formatCurrency(act.amount)} gift received
+                            </p>
+                          )}
                         </div>
-                        {act.description && (
-                          <p className="text-xs text-muted-foreground leading-relaxed bg-card p-3 rounded-lg border border-border shadow-sm">
-                            {act.description}
-                          </p>
-                        )}
-                        {act.amount && (
-                          <p className="text-xs font-bold text-emerald-600">
-                            +{formatCurrency(act.amount)} Gift Received
-                          </p>
-                        )}
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </TabsContent>
 
@@ -302,7 +329,7 @@ function DetailDrawer({
                       Email
                     </p>
                     <p className="text-sm font-bold text-foreground truncate hover:text-primary cursor-pointer">
-                      {contact.email}
+                      {contact.email ?? "—"}
                     </p>
                   </div>
                   <div className="space-y-1">
@@ -310,25 +337,25 @@ function DetailDrawer({
                       Phone
                     </p>
                     <p className="text-sm font-bold text-foreground">
-                      {contact.phone}
+                      {contact.phone ?? "—"}
                     </p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
-                      City
+                      Location
                     </p>
                     <p className="text-sm font-bold text-foreground">
-                      {contact.city}
+                      {contact.location ?? "—"}
                     </p>
                   </div>
                 </div>
                 <div className="space-y-6">
                   <div className="space-y-1">
                     <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
-                      Owner
+                      Assigned missionary
                     </p>
                     <p className="text-sm font-bold text-foreground">
-                      {contact.owner}
+                      {contact.assignedMissionaryName ?? "—"}
                     </p>
                   </div>
                   <div className="space-y-1">
@@ -336,15 +363,19 @@ function DetailDrawer({
                       Tags
                     </p>
                     <div className="flex flex-wrap gap-1 mt-1">
-                      {contact.tags.map((t) => (
-                        <Badge
-                          key={t}
-                          variant="secondary"
-                          className="text-[9px] px-1.5 h-4 bg-muted text-muted-foreground border-none shadow-none"
-                        >
-                          {t}
-                        </Badge>
-                      ))}
+                      {(contact.tags ?? []).length === 0 ? (
+                        <span className="text-sm text-muted-foreground">—</span>
+                      ) : (
+                        contact.tags.map((t) => (
+                          <Badge
+                            key={t}
+                            variant="secondary"
+                            className="text-[9px] px-1.5 h-4 bg-muted text-muted-foreground border-none shadow-none"
+                          >
+                            {t}
+                          </Badge>
+                        ))
+                      )}
                     </div>
                   </div>
                 </div>
@@ -358,78 +389,100 @@ function DetailDrawer({
 }
 
 function KanbanView({
-  contacts,
-  onSelectContact,
+  rows,
+  onSelectRow,
 }: {
-  contacts: Contact[];
-  onSelectContact: (c: Contact) => void;
+  rows: CrmGridRow[];
+  onSelectRow: (row: CrmGridRow) => void;
 }) {
+  const columns = useMemo(() => {
+    const set = new Set<string>();
+    for (const r of rows) {
+      set.add(r.lifecycleStatus ?? "Unknown");
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [rows]);
+
+  if (rows.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground text-sm">
+        Load records in table view first, or adjust filters — nothing to show on
+        the board yet.
+      </div>
+    );
+  }
+
   return (
     <div className="h-full overflow-x-auto flex p-4 md:p-6 gap-4 items-start">
-      {STAGES.map((stage) => (
+      {columns.map((status) => (
         <div
-          key={stage}
+          key={status}
           className="flex-shrink-0 w-80 flex flex-col h-full bg-muted/30 rounded-xl border border-border/50 overflow-hidden"
         >
           <div className="p-3 bg-muted/50 border-b border-border flex items-center justify-between">
             <Badge
               variant="secondary"
-              className={cn(
-                "px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.15em] rounded shadow-none border",
-                STAGE_COLORS[stage],
-              )}
+              className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.15em] rounded shadow-none border"
             >
-              {stage}
+              {status}
             </Badge>
             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-              {contacts.filter((c) => c.stage === stage).length}
+              {
+                rows.filter((r) => (r.lifecycleStatus ?? "Unknown") === status)
+                  .length
+              }
             </span>
           </div>
           <div className="flex-1 overflow-y-auto p-2 space-y-2">
-            {contacts
-              .filter((c) => c.stage === stage)
-              .map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => onSelectContact(c)}
-                  className="w-full bg-card p-3 rounded-lg border border-border shadow-sm hover:shadow-md transition-all cursor-pointer space-y-3 text-left"
-                >
-                  <div className="flex justify-between items-start">
-                    <SharedNamedViewTransition
-                      name={crmRecordTitleTransitionName(c.id)}
-                    >
-                      <span className="font-bold text-foreground text-xs truncate leading-none inline-block max-w-[85%]">
-                        {c.name}
-                      </span>
-                    </SharedNamedViewTransition>
-                    <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-4 w-4 rounded bg-muted flex items-center justify-center text-[8px] font-bold text-muted-foreground border border-border">
-                      {c.company[0]}
+            {rows
+              .filter((r) => (r.lifecycleStatus ?? "Unknown") === status)
+              .map((c) => {
+                const name = c.displayName || "Unnamed";
+                const org = c.primaryOrganization ?? "";
+                const orgInitial = org.trim()[0] ?? "?";
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => onSelectRow(c)}
+                    className="w-full bg-card p-3 rounded-lg border border-border shadow-sm hover:shadow-md transition-all cursor-pointer space-y-3 text-left"
+                  >
+                    <div className="flex justify-between items-start">
+                      <SharedNamedViewTransition
+                        name={crmRecordTitleTransitionName(c.id)}
+                      >
+                        <span className="font-bold text-foreground text-xs truncate leading-none inline-block max-w-[85%]">
+                          {name}
+                        </span>
+                      </SharedNamedViewTransition>
+                      <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
                     </div>
-                    <span className="text-[10px] text-muted-foreground font-medium truncate">
-                      {c.company}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between pt-2 border-t border-muted">
-                    <span className="text-[10px] font-bold text-foreground tabular-nums">
-                      {formatCurrency(c.value)}
-                    </span>
-                    <SharedNamedViewTransition
-                      name={crmRecordAvatarTransitionName(c.id)}
-                    >
-                      <Avatar className="h-4 w-4">
-                        <AvatarImage src={c.avatar} />
-                        <AvatarFallback className="text-[8px] font-bold">
-                          {c.name[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                    </SharedNamedViewTransition>
-                  </div>
-                </button>
-              ))}
+                    <div className="flex items-center gap-2">
+                      <div className="h-4 w-4 rounded bg-muted flex items-center justify-center text-[8px] font-bold text-muted-foreground border border-border">
+                        {orgInitial}
+                      </div>
+                      <span className="text-[10px] text-muted-foreground font-medium truncate">
+                        {org || "—"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between pt-2 border-t border-muted">
+                      <span className="text-[10px] font-bold text-foreground tabular-nums">
+                        {formatCurrency(c.lifetimeGiving)}
+                      </span>
+                      <SharedNamedViewTransition
+                        name={crmRecordAvatarTransitionName(c.id)}
+                      >
+                        <Avatar className="h-4 w-4">
+                          <AvatarImage src={c.avatarUrl ?? undefined} />
+                          <AvatarFallback className="text-[8px] font-bold">
+                            {name[0] ?? "?"}
+                          </AvatarFallback>
+                        </Avatar>
+                      </SharedNamedViewTransition>
+                    </div>
+                  </button>
+                );
+              })}
           </div>
         </div>
       ))}
@@ -439,51 +492,130 @@ function KanbanView({
 
 export default function MissionControlCRM() {
   const [view, setView] = useState<"table" | "kanban">("table");
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<CrmRecord | null>(null);
+
+  const {
+    columnFilters,
+    hasMore,
+    isFetchingMore,
+    isLoading,
+    loadMore,
+    onFiltersChange,
+    onRefresh,
+    onSortingChange,
+    rows,
+    sorting,
+    tableError,
+  } = useAdminCrmRecordsInfiniteGrid();
+
+  const tagOptions = useMemo(() => {
+    const s = new Set<string>();
+    for (const r of rows) {
+      for (const t of r.tags ?? []) {
+        s.add(t);
+      }
+    }
+    return Array.from(s)
+      .sort()
+      .map((t) => ({ label: t, value: t }));
+  }, [rows]);
+
+  const filterFields = useMemo((): DataTableFilterField<CrmGridRow>[] => {
+    return [
+      {
+        id: "recordType",
+        label: "Record type",
+        options: [
+          { label: "Individual", value: "individual" },
+          { label: "Organization", value: "Organization" },
+          { label: "Church", value: "Church" },
+        ],
+      },
+      {
+        id: "lifecycleStatus",
+        label: "Status",
+        options: [
+          { label: "Active", value: "active" },
+          { label: "Inactive", value: "inactive" },
+        ],
+      },
+      {
+        id: "portalAccessLabel",
+        label: "Portal",
+        options: [
+          { label: "Portal linked", value: "linked" },
+          { label: "No portal", value: "none" },
+        ],
+      },
+      ...(tagOptions.length > 0
+        ? [
+            {
+              id: "tags",
+              label: "Tags",
+              options: tagOptions,
+            } as DataTableFilterField<CrmGridRow>,
+          ]
+        : []),
+    ];
+  }, [tagOptions]);
 
   const columns = useMemo(
-    () => getColumns({ onViewContact: setSelectedContact }),
-    [],
+    () =>
+      getCrmColumns({
+        onViewRecord: (r) => setSelectedRecord(toCrmRecord(r)),
+        tagOptions,
+      }),
+    [tagOptions],
   );
+
+  const handleBulkArchive = (_selected: CrmGridRow[]) => {
+    toast.info("Bulk archive is not available yet.");
+  };
+
+  const handleBulkExport = (_selected: CrmGridRow[]) => {
+    toast.info("Export is not available yet.");
+  };
 
   return (
     <>
       <PageShell
-        title="People CRM"
+        title="CRM"
         description="Manage contacts, donors, and partner relationships."
         actions={
           <div className="flex items-center gap-3">
-            <div className="flex bg-zinc-100 p-0.5 rounded-lg border border-zinc-200">
+            <div className="flex bg-muted p-0.5 rounded-lg border border-border">
               <button
+                type="button"
                 onClick={() => setView("table")}
                 className={cn(
                   "p-1.5 rounded-md transition-all",
                   view === "table"
-                    ? "bg-white shadow-sm text-foreground"
+                    ? "bg-card shadow-sm text-foreground"
                     : "text-muted-foreground",
                 )}
               >
                 <List className="h-4 w-4" />
               </button>
               <button
+                type="button"
                 onClick={() => setView("kanban")}
                 className={cn(
                   "p-1.5 rounded-md transition-all",
                   view === "kanban"
-                    ? "bg-white shadow-sm text-foreground"
+                    ? "bg-card shadow-sm text-foreground"
                     : "text-muted-foreground",
                 )}
               >
                 <Columns className="h-4 w-4" />
               </button>
             </div>
-            <Button className="h-11 px-6 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-zinc-200 gap-2">
-              <Plus className="h-3.5 w-3.5" /> New Person
+            <Button className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-black uppercase tracking-widest text-[10px] shadow-md gap-2">
+              <Plus className="h-3.5 w-3.5" /> New Record
             </Button>
           </div>
         }
       >
-        <div className="flex flex-col min-h-[400px] overflow-hidden">
+        <div className="flex flex-col min-h-[400px]">
           <AnimatePresence mode="wait">
             {view === "table" ? (
               <motion.div
@@ -496,82 +628,145 @@ export default function MissionControlCRM() {
               >
                 <DataTableResponsive
                   columns={columns}
-                  data={MOCK_CONTACTS}
+                  data={rows}
+                  isLoading={isLoading}
                   filterFields={filterFields}
-                  searchColumnId="name"
-                  searchPlaceholder="Search contacts..."
-                  getRowId={(contact) => contact.id}
+                  searchColumnId="displayName"
+                  searchPlaceholder="Search name, email, or organization..."
+                  getRowId={(row) => row.id}
+                  onFiltersChange={onFiltersChange}
+                  onSortingChange={onSortingChange}
+                  onRefresh={() => void onRefresh()}
+                  onRowClick={(row) =>
+                    setSelectedRecord(toCrmRecord(row.original))
+                  }
+                  infiniteScroll={{
+                    hasMore,
+                    isFetchingMore,
+                    onLoadMore: loadMore,
+                    threshold: 10,
+                    loadingContent: "Loading more records...",
+                  }}
+                  emptyState={
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                      <div className="rounded-2xl bg-muted/50 p-4 mb-4">
+                        <User className="size-10 text-muted-foreground" />
+                      </div>
+                      <h3 className="text-lg font-semibold">No CRM records</h3>
+                      {tableError ? (
+                        <p className="text-sm text-destructive mt-1 max-w-xl">
+                          {tableError.message}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+                          No donors match the current filters for your
+                          workspace.
+                        </p>
+                      )}
+                      <div className="mt-6 flex gap-3">
+                        {tableError && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => void onRefresh()}
+                          >
+                            Retry
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  }
                   config={{
                     enableRowSelection: true,
                     enableColumnVisibility: true,
-                    enablePagination: true,
+                    enablePagination: false,
                     enableFilters: true,
                     enableSorting: true,
-                    enableKeyboardNavigation: true,
-                  }}
-                  initialState={{
-                    pagination: { pageIndex: 0, pageSize: 5 },
-                    columnVisibility: {
-                      email: false,
-                      city: false,
-                      lastActivity: false,
+                    enableViewToggle: false,
+                    mobileBreakpoint: 0,
+                    manualFiltering: true,
+                    manualSorting: true,
+                    stickyHeader: true,
+                    virtualization: {
+                      enabled: true,
+                      estimateSize: 72,
+                      overscan: 10,
+                      containerHeight: 720,
                     },
                   }}
+                  initialState={{
+                    sorting,
+                    columnFilters,
+                    columnVisibility: {
+                      primaryContactLine: false,
+                      fundsGivenToSummary: false,
+                      nextTaskSummary: false,
+                    },
+                  }}
+                  floatingBarActions={[
+                    {
+                      label: "Export",
+                      icon: Receipt,
+                      onClick: handleBulkExport,
+                    },
+                    {
+                      label: "Archive",
+                      icon: Trash2,
+                      onClick: handleBulkArchive,
+                      variant: "destructive",
+                    },
+                  ]}
                   mobileCardConfig={{
-                    primaryField: "name",
-                    secondaryField: "company",
-                    badgeField: "stage",
+                    primaryField: "displayName",
+                    secondaryField: "primaryOrganization",
+                    badgeField: "lifecycleStatus",
                     renderCard: (row) => {
-                      const contact = row.original;
+                      const c = row.original;
+                      const name = c.displayName || "Unnamed";
                       return (
                         <button
                           type="button"
-                          onClick={() => setSelectedContact(contact)}
+                          onClick={() => setSelectedRecord(toCrmRecord(c))}
                           className="w-full p-4 cursor-pointer space-y-3 text-left"
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <SharedNamedViewTransition
-                                name={crmRecordAvatarTransitionName(contact.id)}
+                                name={crmRecordAvatarTransitionName(c.id)}
                               >
                                 <Avatar className="h-10 w-10 border border-border">
-                                  <AvatarImage src={contact.avatar} />
+                                  <AvatarImage src={c.avatarUrl ?? undefined} />
                                   <AvatarFallback className="text-xs font-semibold bg-primary text-primary-foreground">
-                                    {contact.name[0]}
+                                    {name[0] ?? "?"}
                                   </AvatarFallback>
                                 </Avatar>
                               </SharedNamedViewTransition>
                               <div>
                                 <SharedNamedViewTransition
-                                  name={crmRecordTitleTransitionName(
-                                    contact.id,
-                                  )}
+                                  name={crmRecordTitleTransitionName(c.id)}
                                 >
                                   <div className="font-semibold text-sm text-foreground">
-                                    {contact.name}
+                                    {name}
                                   </div>
                                 </SharedNamedViewTransition>
                                 <div className="text-xs text-muted-foreground">
-                                  {contact.company}
+                                  {c.primaryOrganization ?? "—"}
                                 </div>
                               </div>
                             </div>
                             <Badge
                               variant="outline"
-                              className={cn(
-                                "text-[9px] uppercase font-semibold tracking-wide px-2 py-0.5 shadow-none rounded-lg border-transparent",
-                                STAGE_COLORS[contact.stage],
-                              )}
+                              className="text-[9px] uppercase"
                             >
-                              {contact.stage}
+                              {c.lifecycleStatus ?? "—"}
                             </Badge>
                           </div>
                           <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">
-                              {contact.title}
+                            <span className="text-muted-foreground line-clamp-1">
+                              {c.recordType ?? "—"}
                             </span>
                             <span className="font-bold tabular-nums">
-                              {formatCurrency(contact.value)}
+                              {formatCurrency(c.lifetimeGiving)}
                             </span>
                           </div>
                         </button>
@@ -590,8 +785,8 @@ export default function MissionControlCRM() {
                 className="h-full"
               >
                 <KanbanView
-                  contacts={MOCK_CONTACTS}
-                  onSelectContact={setSelectedContact}
+                  rows={rows}
+                  onSelectRow={(r) => setSelectedRecord(toCrmRecord(r))}
                 />
               </motion.div>
             )}
@@ -599,10 +794,10 @@ export default function MissionControlCRM() {
         </div>
       </PageShell>
 
-      {selectedContact && (
+      {selectedRecord && (
         <DetailDrawer
-          contact={selectedContact}
-          onClose={() => setSelectedContact(null)}
+          contact={selectedRecord}
+          onClose={() => setSelectedRecord(null)}
         />
       )}
     </>

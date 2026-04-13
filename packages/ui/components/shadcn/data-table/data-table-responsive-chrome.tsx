@@ -27,7 +27,10 @@ import {
   type UseDataTableKeyboardReturn,
 } from "./hooks";
 
-import type { ViewMode } from "./data-table-responsive-types";
+import type {
+  DataTableResponsiveProps,
+  ViewMode,
+} from "./data-table-responsive-types";
 import type { AdvancedFilterState, FilterFieldDefinition } from "./filters";
 import type {
   DataTableConfig,
@@ -153,6 +156,8 @@ export function DataTableResponsiveTableView<TData>({
   virtualOverscan,
   virtualContainerHeight,
   rowActions,
+  infiniteScroll,
+  stickyHeader = false,
 }: {
   table: TanStackTable<TData>;
   tableColumnsLength: number;
@@ -168,8 +173,11 @@ export function DataTableResponsiveTableView<TData>({
   virtualOverscan: number;
   virtualContainerHeight: number | string;
   rowActions?: DataTableInteractiveRowAction<TData>[];
+  infiniteScroll?: DataTableResponsiveProps<TData, unknown>["infiniteScroll"];
+  stickyHeader?: boolean;
 }) {
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
+  const lastLoadTriggerRef = React.useRef<string | null>(null);
   const rows = table.getRowModel().rows;
   const getVirtualRowKey = React.useCallback(
     (index: number) => rows[index]?.id ?? index,
@@ -206,16 +214,94 @@ export function DataTableResponsiveTableView<TData>({
     },
   });
 
+  const infiniteThreshold = infiniteScroll?.threshold ?? 8;
+
+  React.useEffect(() => {
+    if (
+      !infiniteScroll ||
+      !infiniteScroll.hasMore ||
+      infiniteScroll.isFetchingMore ||
+      rows.length === 0
+    ) {
+      return;
+    }
+
+    if (isVirtualized) {
+      const lastVisibleIndex = virtualRows[virtualRows.length - 1]?.index ?? -1;
+      if (lastVisibleIndex < rows.length - 1 - infiniteThreshold) {
+        return;
+      }
+
+      const triggerKey = `${rows.length}:${lastVisibleIndex}`;
+      if (lastLoadTriggerRef.current === triggerKey) {
+        return;
+      }
+
+      lastLoadTriggerRef.current = triggerKey;
+      infiniteScroll.onLoadMore();
+    }
+  }, [
+    infiniteScroll,
+    infiniteThreshold,
+    isVirtualized,
+    rows.length,
+    virtualRows,
+  ]);
+
+  React.useEffect(() => {
+    if (
+      !infiniteScroll ||
+      !infiniteScroll.hasMore ||
+      infiniteScroll.isFetchingMore ||
+      rows.length === 0 ||
+      isVirtualized
+    ) {
+      return;
+    }
+
+    const el = tableContainerRef.current;
+    if (!el) {
+      return;
+    }
+
+    const onScroll = () => {
+      if (
+        !infiniteScroll?.hasMore ||
+        infiniteScroll.isFetchingMore ||
+        rows.length === 0
+      ) {
+        return;
+      }
+      const { scrollTop, scrollHeight, clientHeight } = el;
+      const nearBottom = scrollHeight - scrollTop - clientHeight < 120;
+      if (!nearBottom) {
+        return;
+      }
+      const triggerKey = `ns:${rows.length}:${Math.round(scrollTop)}`;
+      if (lastLoadTriggerRef.current === triggerKey) {
+        return;
+      }
+      lastLoadTriggerRef.current = triggerKey;
+      infiniteScroll.onLoadMore();
+    };
+
+    onScroll();
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [infiniteScroll, isVirtualized, rows.length]);
+
   const actionsColumnCount = rowActions && rowActions.length > 0 ? 1 : 0;
 
   const renderDataRow = (row: Row<TData>, rowIndex: number) => {
     const rowProps = keyboard.getRowProps(rowIndex);
+    const isSelected = row.getIsSelected();
+    const isRowFocused = Boolean(rowProps["data-focused"]);
     return (
       <TableRow
         key={row.id}
         data-state={row.getIsSelected() && "selected"}
         className={cn(
-          "hover:bg-muted/30 transition-colors border-border",
+          "group hover:bg-muted/30 transition-colors border-border",
           "data-[state=selected]:bg-muted/50",
           onRowClick && "cursor-pointer",
           rowProps["data-focused"] && keyboardStyles.focusedRow,
@@ -231,6 +317,20 @@ export function DataTableResponsiveTableView<TData>({
         {row.getVisibleCells().map((cell, cellIndex) => {
           const meta = cell.column.columnDef.meta;
           const isSticky = meta?.sticky;
+          const stickyStateClass = isSticky
+            ? cn(
+                "relative transition-colors",
+                isSelected
+                  ? "bg-muted/50"
+                  : isRowFocused
+                    ? "bg-muted/30"
+                    : "bg-card group-hover:bg-muted/30",
+                isSticky === "left" &&
+                  "sticky left-0 z-10 shadow-[1px_0_0_0_var(--color-border)]",
+                isSticky === "right" &&
+                  "sticky right-0 z-10 shadow-[-1px_0_0_0_var(--color-border)]",
+              )
+            : undefined;
           const cellProps = keyboard.getCellProps(rowIndex, cellIndex);
           return (
             <TableCell
@@ -238,8 +338,7 @@ export function DataTableResponsiveTableView<TData>({
               className={cn(
                 "py-3 px-4",
                 meta?.cellClassName,
-                isSticky === "left" && "sticky left-0 z-10 bg-card",
-                isSticky === "right" && "sticky right-0 z-10 bg-card",
+                stickyStateClass,
                 cellProps["data-cell-focused"] && keyboardStyles.focusedCell,
               )}
               tabIndex={cellProps.tabIndex}
@@ -317,10 +416,12 @@ export function DataTableResponsiveTableView<TData>({
                       key={header.id}
                       className={cn(
                         "h-11 px-4 text-xs font-semibold text-muted-foreground whitespace-nowrap",
+                        stickyHeader && "sticky top-0 z-20 bg-muted/30",
                         meta?.headerClassName,
-                        isSticky === "left" && "sticky left-0 z-10 bg-muted/30",
+                        isSticky === "left" &&
+                          "sticky left-0 z-30 bg-muted/30 shadow-[1px_0_0_0_var(--color-border)]",
                         isSticky === "right" &&
-                          "sticky right-0 z-10 bg-muted/30",
+                          "sticky right-0 z-30 bg-muted/30 shadow-[-1px_0_0_0_var(--color-border)]",
                       )}
                       style={{
                         width:
@@ -396,6 +497,11 @@ export function DataTableResponsiveTableView<TData>({
           </TableBody>
         </Table>
       </div>
+      {infiniteScroll?.isFetchingMore ? (
+        <div className="flex items-center justify-center border-t border-border/60 bg-card px-4 py-3 text-xs font-medium text-muted-foreground">
+          {infiniteScroll.loadingContent ?? "Loading more..."}
+        </div>
+      ) : null}
     </div>
   );
 }

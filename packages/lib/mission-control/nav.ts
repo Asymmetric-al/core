@@ -21,7 +21,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     id: "home",
     title: "Mission Control",
-    href: "/mc",
+    href: "/",
     icon: LayoutDashboard,
     roles: [
       "finance",
@@ -45,7 +45,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     id: "crm",
     title: "People & Churches",
-    href: "/mc/crm",
+    href: "/crm",
     icon: Users,
     roles: [
       "fundraising",
@@ -60,7 +60,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     id: "contributions",
     title: "Contributions",
-    href: "/mc/contributions",
+    href: "/contributions",
     icon: DollarSign,
     roles: ["finance", "events", "admin"],
     section: "main",
@@ -68,7 +68,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     id: "email",
     title: "Email Studio",
-    href: "/mc/email",
+    href: "/email",
     icon: Mail,
     roles: ["fundraising", "admin"],
     section: "main",
@@ -76,7 +76,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     id: "pdf",
     title: "PDF Studio",
-    href: "/mc/pdf",
+    href: "/pdf",
     icon: FileText,
     roles: ["finance", "admin"],
     section: "main",
@@ -84,7 +84,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     id: "sign",
     title: "Sign Studio",
-    href: "/mc/sign",
+    href: "/sign",
     icon: PenTool,
     roles: ["mobilizers", "events", "admin"],
     section: "main",
@@ -92,7 +92,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     id: "mobilize",
     title: "Mobilize",
-    href: "/mc/mobilize",
+    href: "/mobilize",
     icon: Rocket,
     roles: ["mobilizers", "admin"],
     section: "main",
@@ -100,7 +100,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     id: "support",
     title: "Support Hub",
-    href: "/mc/support",
+    href: "/support",
     icon: HelpCircle,
     roles: ["member_care", "admin"],
     section: "main",
@@ -108,15 +108,15 @@ export const NAV_ITEMS: NavItem[] = [
   {
     id: "care",
     title: "Member Care",
-    href: "/mc/care",
+    href: "/care",
     icon: Heart,
     roles: ["member_care", "admin"],
     section: "main",
   },
   {
     id: "events",
-    title: "Events",
-    href: "/mc/events",
+    title: "Event Hub",
+    href: "/events",
     icon: CalendarDays,
     roles: ["events", "admin"],
     section: "main",
@@ -124,7 +124,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     id: "reports",
     title: "Report Studio",
-    href: "/mc/reports",
+    href: "/reports",
     icon: BarChart3,
     roles: ["finance", "fundraising", "member_care", "events", "admin"],
     section: "tools",
@@ -132,7 +132,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     id: "automations",
     title: "Automations",
-    href: "/mc/automations",
+    href: "/automations",
     icon: Zap,
     roles: ["mobilizers", "admin"],
     section: "tools",
@@ -140,7 +140,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     id: "admin",
     title: "Admin",
-    href: "/mc/admin",
+    href: "/admin",
     icon: Settings,
     roles: ["finance", "admin"],
     section: "tools",

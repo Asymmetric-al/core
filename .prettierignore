@@ -36,6 +36,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Payload CMS generated types (do not format; may differ from Prettier output)
+apps/admin/payload-types.ts
+
 # generated and auxiliary agent artifacts
 .tmp
 .agent

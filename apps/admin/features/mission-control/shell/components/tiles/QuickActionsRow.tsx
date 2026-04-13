@@ -1,6 +1,7 @@
 "use client";
 
 import { useMC } from "@asym/lib/mission-control/context";
+import { resolveMissionControlHref } from "@asym/lib/mission-control/routes";
 import { TILES } from "@asym/lib/mission-control/tiles";
 import { Button } from "@asym/ui/components/shadcn/button";
 import Link from "next/link";
@@ -76,7 +77,10 @@ export function QuickActionsRow() {
         if (!action) return null;
         const Icon = action.icon ? getIcon(action.icon) : null;
         return (
-          <Link key={`${action.tile.id}-${action.label}`} href={action.href}>
+          <Link
+            key={`${action.tile.id}-${action.label}`}
+            href={resolveMissionControlHref(action.href)}
+          >
             <Button
               variant="secondary"
               size="sm"

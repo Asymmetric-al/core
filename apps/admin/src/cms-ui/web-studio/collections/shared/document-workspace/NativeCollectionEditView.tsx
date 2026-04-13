@@ -18,24 +18,20 @@ import {
 import { ExternalLink, ImageIcon, Link2, Settings2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { NativeDocumentWorkspaceSettingsDialog } from "./NativeDocumentWorkspaceSettingsDialog";
+import { resolveDonorOrigin } from "../../../adapters/preview-url";
 import { StudioLayout } from "../../../shell/studio-layout";
 import { getWebStudioCollectionConfig } from "../../config";
 
 import type { WebStudioCollectionSlug } from "../../config";
 import type { DocumentViewClientProps } from "payload";
 
-const DEFAULT_DONOR_ORIGIN = "http://127.0.0.1:3000";
-
-function resolveDonorOrigin(): string {
-  const fromEnv = process.env.NEXT_PUBLIC_DONOR_URL;
-  if (fromEnv) {
-    return fromEnv.replace(/\/$/, "");
+function warnPreferenceDev(context: string, error: unknown) {
+  if (process.env.NODE_ENV === "development") {
+    console.warn(`[Web Studio] ${context}`, error);
   }
-
-  return DEFAULT_DONOR_ORIGIN;
 }
 
 export type NativeCollectionEditViewProps = DocumentViewClientProps & {
@@ -66,6 +62,36 @@ export function NativeCollectionEditView({
   });
   const [settingsOpen, setSettingsOpen] = useState(false);
 
+  const handleSettingsOpenChange = useCallback(
+    (open: boolean) => {
+      setSettingsOpen(open);
+      if (!open) {
+        void (async () => {
+          try {
+            const pref = await getPreference<{
+              inspectorOpen?: boolean;
+              showSlugChip?: boolean;
+            }>(studioConfig.preferences.workspace);
+            if (!pref) return;
+            setWorkspace({
+              inspectorOpen:
+                typeof pref.inspectorOpen === "boolean"
+                  ? pref.inspectorOpen
+                  : true,
+              showSlugChip:
+                typeof pref.showSlugChip === "boolean"
+                  ? pref.showSlugChip
+                  : true,
+            });
+          } catch {
+            /* ignore */
+          }
+        })();
+      }
+    },
+    [getPreference, studioConfig.preferences.workspace],
+  );
+
   useEffect(() => {
     let cancelled = false;
 
@@ -86,15 +112,17 @@ export function NativeCollectionEditView({
           showSlugChip:
             typeof pref.showSlugChip === "boolean" ? pref.showSlugChip : true,
         });
-      } catch {
-        /* ignore */
+      } catch (error) {
+        warnPreferenceDev("workspace preference read failed", error);
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [getPreference, studioConfig.preferences.workspace]);
+    // `studioCollection`: re-hydrate when navigating between native collections even if the
+    // workspace preference key string were unchanged (defensive); ESLint allows this here.
+  }, [getPreference, studioCollection, studioConfig.preferences.workspace]);
 
   useEffect(() => {
     const identifier =
@@ -110,18 +138,26 @@ export function NativeCollectionEditView({
       const existing =
         (await getPreference<Array<Record<string, string>>>(
           studioConfig.preferences.recentDocs,
-        ).catch(() => [])) ?? [];
+        ).catch((error: unknown) => {
+          warnPreferenceDev("recent docs preference read failed", error);
+          return [];
+        })) ?? [];
       const next = [
         {
           id: identifier,
           title: titleValue,
           href: `${studioConfig.listPath}/${identifier}`,
+          updatedAt: new Date().toISOString(),
         },
-        ...existing.filter((entry) => entry.id !== identifier),
+        ...existing.filter(
+          (entry: Record<string, string>) => entry.id !== identifier,
+        ),
       ].slice(0, 6);
 
       await setPreference(studioConfig.preferences.recentDocs, next).catch(
-        () => undefined,
+        (error: unknown) => {
+          warnPreferenceDev("recent docs preference write failed", error);
+        },
       );
     })();
   }, [
@@ -373,7 +409,7 @@ export function NativeCollectionEditView({
 
         <NativeDocumentWorkspaceSettingsDialog
           open={settingsOpen}
-          onOpenChange={setSettingsOpen}
+          onOpenChange={handleSettingsOpenChange}
           preferenceKey={studioConfig.preferences.workspace}
           sectionLabel={studioConfig.sectionLabel}
         />

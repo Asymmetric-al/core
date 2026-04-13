@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { getEnabledWebStudioCollections } from "../collections/config";
 import { WEB_STUDIO_PREF_KEYS } from "../preferences/keys";
@@ -26,6 +26,18 @@ export function StudioNavRail({ className }: { className?: string }) {
   const [recentDocs, setRecentDocs] = useState<
     Array<{ href: string; id: string; title: string; updatedAt?: string }>
   >([]);
+
+  /** Snapshot of collection rollout flags — stable string when env is unchanged (avoids new array ref every render). */
+  const webStudioNativeRolloutKey = [
+    process.env.CMS_WEB_STUDIO_NATIVE_MEDIA ?? "",
+    process.env.CMS_WEB_STUDIO_NATIVE_MISSIONARY_PROFILES ?? "",
+    process.env.CMS_WEB_STUDIO_NATIVE_MINISTRY_UPDATES ?? "",
+    process.env.CMS_WEB_STUDIO_NATIVE_NAVIGATION ?? "",
+    process.env.CMS_WEB_STUDIO_NATIVE_PAGES ?? "",
+    process.env.CMS_WEB_STUDIO_NATIVE_PAGE_TEMPLATES ?? "",
+    process.env.CMS_WEB_STUDIO_NATIVE_MISSIONARY_GIVING_PAGES ?? "",
+    process.env.CMS_WEB_STUDIO_NATIVE_PROJECT_PAGES ?? "",
+  ].join("|");
 
   useEffect(() => {
     let cancelled = false;
@@ -61,7 +73,15 @@ export function StudioNavRail({ className }: { className?: string }) {
     }
   };
 
-  const enabledCollections = getEnabledWebStudioCollections();
+  const enabledCollections = useMemo(() => {
+    void webStudioNativeRolloutKey;
+    return getEnabledWebStudioCollections();
+  }, [webStudioNativeRolloutKey]);
+
+  const recentDocsPreferenceKeys = useMemo(
+    () => enabledCollections.map((c) => c.preferences.recentDocs).join("\0"),
+    [enabledCollections],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -90,7 +110,7 @@ export function StudioNavRail({ className }: { className?: string }) {
         setRecentDocs(
           entries
             .flat()
-            .sort((a, b) =>
+            .sort((a: { updatedAt?: string }, b: { updatedAt?: string }) =>
               (b.updatedAt ?? "").localeCompare(a.updatedAt ?? ""),
             )
             .slice(0, 6),
@@ -101,7 +121,7 @@ export function StudioNavRail({ className }: { className?: string }) {
     return () => {
       cancelled = true;
     };
-  }, [enabledCollections, getPreference]);
+  }, [enabledCollections, getPreference, recentDocsPreferenceKeys]);
 
   return (
     <aside

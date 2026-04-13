@@ -27,7 +27,7 @@ import {
   Zap,
   MessageSquare,
   Calendar,
-  Share2,
+  Rocket,
   FileText,
   FileSignature,
   PieChart,
@@ -47,21 +47,21 @@ import { useState } from "react";
 // import { DashboardFooter } from "@/components/dashboard-footer";
 
 const navigation = [
-  { name: "Overview", href: "/mc", icon: LayoutDashboard },
-  { name: "Contributions", href: "/mc/contributions", icon: DollarSign },
-  { name: "CRM", href: "/mc/crm", icon: Users },
-  { name: "Tasks", href: "/mc/tasks", icon: CheckSquare },
-  { name: "Email Studio", href: "/mc/email", icon: Mail },
+  { name: "Overview", href: "/", icon: LayoutDashboard },
+  { name: "Contributions", href: "/contributions", icon: DollarSign },
+  { name: "CRM", href: "/crm", icon: Users },
+  { name: "Tasks", href: "/tasks", icon: CheckSquare },
+  { name: "Email Studio", href: "/email", icon: Mail },
   { name: "Web Studio", href: "/web-studio", icon: Globe },
-  { name: "Admin", href: "/mc/admin", icon: ShieldCheck },
-  { name: "Automations", href: "/mc/automations", icon: Zap },
-  { name: "Member Care", href: "/mc/care", icon: MessageSquare },
-  { name: "Events", href: "/mc/events", icon: Calendar },
-  { name: "Mobilize", href: "/mc/mobilize", icon: Share2 },
-  { name: "Reports", href: "/mc/reports", icon: PieChart },
-  { name: "Sign", href: "/mc/sign", icon: FileSignature },
-  { name: "PDF", href: "/mc/pdf", icon: FileText },
-  { name: "Support", href: "/mc/support", icon: LifeBuoy },
+  { name: "Admin", href: "/admin", icon: ShieldCheck },
+  { name: "Automations", href: "/automations", icon: Zap },
+  { name: "Member Care", href: "/care", icon: MessageSquare },
+  { name: "Event Hub", href: "/events", icon: Calendar },
+  { name: "Mobilize", href: "/mobilize", icon: Rocket },
+  { name: "Reports", href: "/reports", icon: PieChart },
+  { name: "Sign Studio", href: "/sign", icon: FileSignature },
+  { name: "PDF Studio", href: "/pdf", icon: FileText },
+  { name: "Support Hub", href: "/support", icon: LifeBuoy },
 ];
 
 interface AppShellProps {
@@ -193,10 +193,7 @@ export function AppShell({
             </Sheet>
 
             <nav className="hidden sm:flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">
-              <Link
-                href="/mc"
-                className="hover:text-zinc-900 transition-colors"
-              >
+              <Link href="/" className="hover:text-zinc-900 transition-colors">
                 Mission Control
               </Link>
               {breadcrumbs?.map((crumb) => (

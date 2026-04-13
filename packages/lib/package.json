@@ -37,6 +37,7 @@
     "./mission-control/bootstrap": "./mission-control/bootstrap.ts",
     "./mission-control/tiles": "./mission-control/tiles.ts",
     "./mission-control/nav": "./mission-control/nav.ts",
+    "./mission-control/routes": "./mission-control/routes.ts",
     "./mission-control/roles": "./mission-control/roles.ts",
     "./mission-control/types": "./mission-control/types.ts",
     "./view-transitions": "./view-transitions/index.ts",

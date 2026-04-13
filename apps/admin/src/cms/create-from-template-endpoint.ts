@@ -29,13 +29,13 @@ import {
 } from "./constants";
 
 import type {
-  MinistryUpdate,
-  MissionaryGivingPage,
-  Page,
-  PageTemplate,
-  ProjectPage,
-  Tenant,
-} from "../../payload-types";
+  CmsLayoutBlocks,
+  MinistryUpdateCreateFields,
+  MissionaryGivingPageCreateFields,
+  PageCreateFields,
+  PageTemplateForCreate,
+  ProjectPageCreateFields,
+} from "./create-from-template-payload-shapes";
 import type { Endpoint, PayloadRequest } from "payload";
 
 const bodySchema = z.discriminatedUnion("targetCollection", [
@@ -70,47 +70,10 @@ const bodySchema = z.discriminatedUnion("targetCollection", [
 
 type ParsedBody = z.infer<typeof bodySchema>;
 type TenantCtx = ReturnType<typeof getTenantContext>;
-type PageCreateData = Pick<
-  Page,
-  | "tenant"
-  | "title"
-  | "slug"
-  | "summary"
-  | "pageType"
-  | "template"
-  | "layout"
-  | "content"
-  | "legacyContentFallback"
->;
-type MissionaryGivingPageCreateData = Pick<
-  MissionaryGivingPage,
-  | "tenant"
-  | "missionaryId"
-  | "missionaryProfile"
-  | "templateKey"
-  | "template"
-  | "title"
-  | "slug"
-  | "summary"
-  | "pageType"
-  | "layout"
->;
-type ProjectPageCreateData = Pick<
-  ProjectPage,
-  | "tenant"
-  | "fundId"
-  | "templateKey"
-  | "template"
-  | "title"
-  | "slug"
-  | "summary"
-  | "pageType"
-  | "layout"
->;
-type MinistryUpdateCreateData = Pick<
-  MinistryUpdate,
-  "tenant" | "missionary" | "title" | "slug" | "excerpt" | "content"
->;
+type PageCreateData = PageCreateFields;
+type MissionaryGivingPageCreateData = MissionaryGivingPageCreateFields;
+type ProjectPageCreateData = ProjectPageCreateFields;
+type MinistryUpdateCreateData = MinistryUpdateCreateFields;
 
 function jsonResponse(body: unknown, status = 200) {
   return Response.json(body, { status });
@@ -143,32 +106,34 @@ function slugifySegment(input: string) {
     .slice(0, 80);
 }
 
-function readTemplateTenant(template: PageTemplate): string | null {
-  return typeof template.tenant === "string"
-    ? template.tenant
-    : template.tenant &&
-        typeof template.tenant === "object" &&
-        "id" in template.tenant
-      ? String((template.tenant as { id: string | number }).id)
-      : null;
+function readTemplateTenant(template: PageTemplateForCreate): string | null {
+  const t = template.tenant;
+  if (typeof t === "string") {
+    return t;
+  }
+  if (typeof t === "number") {
+    return String(t);
+  }
+  if (t && typeof t === "object" && "id" in t) {
+    return String((t as { id: string | number }).id);
+  }
+  return null;
 }
 
-function readDefaultLayout(
-  template: PageTemplate,
-): NonNullable<Page["layout"]> {
+function readDefaultLayout(template: PageTemplateForCreate): CmsLayoutBlocks {
   return "defaultLayout" in template && Array.isArray(template.defaultLayout)
-    ? template.defaultLayout
+    ? (template.defaultLayout as CmsLayoutBlocks)
     : [];
 }
 
-function readTemplateKey(template: PageTemplate): string {
+function readTemplateKey(template: PageTemplateForCreate): string {
   return typeof template.templateKey === "string"
     ? template.templateKey
     : "template";
 }
 
 function readTenantIdFromDoc(doc: {
-  tenant?: number | Tenant | null;
+  tenant?: number | { id: string | number } | null;
 }): string | null {
   if (typeof doc.tenant === "number") {
     return String(doc.tenant);
@@ -233,8 +198,8 @@ async function createPageFromTemplate(
   req: PayloadRequest,
   tenantId: string,
   parsed: Extract<ParsedBody, { targetCollection: "pages" }>,
-  template: PageTemplate,
-  defaultLayout: NonNullable<Page["layout"]>,
+  template: PageTemplateForCreate,
+  defaultLayout: CmsLayoutBlocks,
   _templateKey: string,
 ): Promise<Response> {
   const { payload } = req;
@@ -264,7 +229,7 @@ async function createPageFromTemplate(
     pageType,
     template: Number(parsed.templateId),
     layout: defaultLayout,
-    content: defaultRichTextValue as Page["content"],
+    content: defaultRichTextValue,
     legacyContentFallback: true,
   };
 
@@ -288,9 +253,9 @@ async function createMissionaryGivingPageFromTemplate(
     ParsedBody,
     { targetCollection: typeof MISSIONARY_GIVING_PAGES_SLUG }
   >,
-  template: PageTemplate,
+  template: PageTemplateForCreate,
   templateTenant: string | null,
-  defaultLayout: NonNullable<MissionaryGivingPage["layout"]>,
+  defaultLayout: CmsLayoutBlocks,
   templateKey: string,
 ): Promise<Response> {
   const { payload } = req;
@@ -462,9 +427,9 @@ async function createProjectPageFromTemplate(
   req: PayloadRequest,
   tenantId: string,
   parsed: Extract<ParsedBody, { targetCollection: typeof PROJECT_PAGES_SLUG }>,
-  template: PageTemplate,
+  template: PageTemplateForCreate,
   templateTenant: string | null,
-  defaultLayout: NonNullable<ProjectPage["layout"]>,
+  defaultLayout: CmsLayoutBlocks,
   templateKey: string,
 ): Promise<Response> {
   const { payload } = req;
@@ -537,7 +502,9 @@ async function createProjectPageFromTemplate(
     summary:
       typeof fund.description === "string"
         ? fund.description
-        : template.defaultSummary,
+        : typeof template.defaultSummary === "string"
+          ? template.defaultSummary
+          : undefined,
     pageType: PROJECT_PAGE_TYPE,
     layout: defaultLayout,
   };
@@ -585,7 +552,7 @@ async function createMinistryUpdateFromTemplate(
   req: PayloadRequest,
   tenantId: string,
   parsed: Extract<ParsedBody, { targetCollection: "ministry-updates" }>,
-  template: PageTemplate,
+  template: PageTemplateForCreate,
   templateTenant: string | null,
 ): Promise<Response> {
   const { payload } = req;
@@ -610,7 +577,11 @@ async function createMinistryUpdateFromTemplate(
     depth: 0,
     req,
   });
-  const profileTenant = profileCheck ? readTenantIdFromDoc(profileCheck) : null;
+  const profileTenant = profileCheck
+    ? readTenantIdFromDoc(
+        profileCheck as { tenant?: number | { id: string | number } | null },
+      )
+    : null;
   if (!profileCheck || profileTenant !== tenantId) {
     return jsonResponse({ error: "Missionary profile not found" }, 404);
   }
@@ -624,7 +595,7 @@ async function createMinistryUpdateFromTemplate(
       typeof template.defaultSummary === "string"
         ? template.defaultSummary
         : undefined,
-    content: defaultRichTextValue as MinistryUpdate["content"],
+    content: defaultRichTextValue,
   };
 
   const doc = await payload.create({
@@ -671,7 +642,9 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
       return jsonResponse({ error: "Template not found" }, 404);
     }
 
-    const templateTenant = readTemplateTenant(template);
+    const templateDoc = template as unknown as PageTemplateForCreate;
+
+    const templateTenant = readTemplateTenant(templateDoc);
 
     const tenantResolution = await resolveRequestedTenantId(req, ctx, parsed);
     if (!tenantResolution.ok) {
@@ -684,15 +657,15 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
       return jsonResponse({ error: "Template is not in your tenant" }, 403);
     }
 
-    const defaultLayout = readDefaultLayout(template);
-    const templateKey = readTemplateKey(template);
+    const defaultLayout = readDefaultLayout(templateDoc);
+    const templateKey = readTemplateKey(templateDoc);
 
     if (parsed.targetCollection === "pages") {
       return createPageFromTemplate(
         req,
         tenantId,
         parsed,
-        template,
+        templateDoc,
         defaultLayout,
         templateKey,
       );
@@ -703,7 +676,7 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
         req,
         tenantId,
         parsed,
-        template,
+        templateDoc,
         templateTenant,
         defaultLayout,
         templateKey,
@@ -715,7 +688,7 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
         req,
         tenantId,
         parsed,
-        template,
+        templateDoc,
         templateTenant,
         defaultLayout,
         templateKey,
@@ -727,7 +700,7 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
         req,
         tenantId,
         parsed,
-        template,
+        templateDoc,
         templateTenant,
       );
     }

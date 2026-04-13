@@ -129,6 +129,10 @@ function createAuthClient(request: Request) {
 }
 
 function isDemoEndpointEnabled() {
+  // Use `process.env.NODE_ENV` here (not `runtimeEnvFlags.NODE_ENV` from `@asym/env`).
+  // `runtimeEnvFlags` snapshots NODE_ENV when the env module first loads; under Vitest
+  // that is typically `"test"`, which would incorrectly keep demo routes enabled when
+  // tests simulate `NODE_ENV=production`.
   // Read `ALLOW_DEMO_ACCOUNTS` from `process.env`, not `serverEnv`: `@asym/env` parses
   // once at module load; Vitest mutates `process.env` per test after imports.
   if (

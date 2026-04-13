@@ -112,6 +112,8 @@ export const env = createEnv({
     BING_SITE_VERIFICATION: z.string().optional(),
     PAYLOAD_SECRET: z.string().optional(),
     PAYLOAD_DATABASE_URI: z.string().optional(),
+    /** Server-only donor origin for CMS preview links (fallback after `NEXT_PUBLIC_DONOR_URL`). */
+    DONOR_APP_URL: z.string().url().optional(),
     CMS_BASE_URL: z.string().url().optional(),
     APP_VERSION: z.string().optional(),
     GIT_REF: z.string().optional(),
@@ -190,6 +192,7 @@ export const env = createEnv({
     BING_SITE_VERIFICATION: process.env.BING_SITE_VERIFICATION,
     PAYLOAD_SECRET: process.env.PAYLOAD_SECRET,
     PAYLOAD_DATABASE_URI: process.env.PAYLOAD_DATABASE_URI,
+    DONOR_APP_URL: process.env.DONOR_APP_URL,
     CMS_BASE_URL: process.env.CMS_BASE_URL,
     APP_VERSION: process.env.APP_VERSION,
     GIT_REF: process.env.GIT_REF,

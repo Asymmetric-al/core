@@ -30,6 +30,7 @@ export * from "./context-menu";
 export * from "./dialog";
 export * from "./drawer";
 export * from "./dropdown-menu";
+export * from "./data-grid";
 export * from "./empty";
 export * from "./field";
 export * from "./form";
