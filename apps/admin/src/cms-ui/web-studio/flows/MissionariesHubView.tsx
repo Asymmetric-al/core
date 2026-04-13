@@ -38,10 +38,12 @@ export function MissionariesHubView() {
     <StudioLayout sectionLabel="Missionaries" currentLabel="Directory">
       <div className="px-4 py-6 sm:px-6 lg:px-8">
         <div className="mb-6 max-w-2xl">
-          <h1 className="font-semibold text-2xl tracking-tight">Missionary directory</h1>
+          <h1 className="font-semibold text-2xl tracking-tight">
+            Missionary directory
+          </h1>
           <p className="mt-2 text-muted-foreground text-sm">
-            Canonical missionary records from Supabase. Use “Create giving page” to open the
-            template flow with this missionary pre-selected.
+            Canonical missionary records from Supabase. Use “Create giving page”
+            to open the template flow with this missionary pre-selected.
           </p>
         </div>
 
@@ -63,7 +65,10 @@ export function MissionariesHubView() {
             <TableBody>
               {missionariesQuery.isPending ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-muted-foreground text-sm">
+                  <TableCell
+                    colSpan={3}
+                    className="text-muted-foreground text-sm"
+                  >
                     Loading…
                   </TableCell>
                 </TableRow>

@@ -13,9 +13,6 @@ export function MissionaryProfilesNativeListView(
   props: MissionaryProfilesNativeListViewProps,
 ) {
   return (
-    <NativeCollectionListView
-      {...props}
-      collectionSlug="missionary-profiles"
-    />
+    <NativeCollectionListView {...props} collectionSlug="missionary-profiles" />
   );
 }

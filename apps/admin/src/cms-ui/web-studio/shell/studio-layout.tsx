@@ -1,6 +1,5 @@
 "use client";
 
-
 import { cn } from "@asym/ui/lib/utils";
 
 import { StudioNavRail } from "./studio-nav-rail";
@@ -31,10 +30,7 @@ export function StudioLayout({
         className,
       )}
     >
-      <StudioTopBar
-        sectionLabel={sectionLabel}
-        currentLabel={currentLabel}
-      />
+      <StudioTopBar sectionLabel={sectionLabel} currentLabel={currentLabel} />
       <div className="flex min-h-0 flex-1">
         <StudioNavRail />
         <main className="min-h-0 flex-1 overflow-auto border-border border-t bg-background">

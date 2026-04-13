@@ -1,4 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@asym/database/supabase/admin", () => ({
+  getAdminClient: vi.fn(() => ({ client: null, error: null })),
+}));
 
 import { requireAuth, requireRole } from "./context";
 

@@ -26,14 +26,16 @@ import type {
   AdvancedFilterState,
   FilterFieldDefinition,
 } from "../filters/types";
-import type { InitialQueryBuilder, QueryBuilder } from "@tanstack/db";
+import type { Context, InitialQueryBuilder, QueryBuilder } from "@tanstack/db";
 
-type LiveQueryFn = (q: InitialQueryBuilder) => QueryBuilder<never>;
-
-interface UseDataTableWithLiveQueryOptions<TData, TValue> {
+interface UseDataTableWithLiveQueryOptions<
+  TData,
+  TValue,
+  TContext extends Context,
+> {
   columns: ColumnDef<TData, TValue>[];
-  queryBuilder: LiveQueryFn;
-  queryKey?: string[];
+  queryBuilder: (q: InitialQueryBuilder) => QueryBuilder<TContext>;
+  queryKey?: readonly string[];
   advancedFilterFields?: FilterFieldDefinition[];
   initialState?: {
     pagination?: PaginationState;
@@ -79,7 +81,11 @@ interface UseDataTableWithLiveQueryReturn<TData> {
   refetch: () => void;
 }
 
-export function useDataTableWithLiveQuery<TData, TValue = unknown>({
+export function useDataTableWithLiveQuery<
+  TData,
+  TValue = unknown,
+  TContext extends Context = Context,
+>({
   columns,
   queryBuilder,
   queryKey,
@@ -97,10 +103,10 @@ export function useDataTableWithLiveQuery<TData, TValue = unknown>({
   onAdvancedFilterChange,
 }: UseDataTableWithLiveQueryOptions<
   TData,
-  TValue
+  TValue,
+  TContext
 >): UseDataTableWithLiveQueryReturn<TData> {
   const queryClient = useQueryClient();
-
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>(
     initialState.rowSelection ?? {},
   );
@@ -120,16 +126,10 @@ export function useDataTableWithLiveQuery<TData, TValue = unknown>({
       initialState.advancedFilter ?? createEmptyFilterState(),
     );
 
-  // `useLiveQuery` must receive a **callback** `(q) => …` that returns a QueryBuilder.
-  // Passing the builder function object directly is interpreted as a config object and
-  // breaks TanStack DB (e.g. `QueryBuilderError` for alias `donation` on Contributions).
-  // `useLiveQuery` has many overloads; `Parameters<typeof useLiveQuery>[0]` is a wide union
-  // and breaks overload resolution — the runtime API is the query-fn + deps form.
-  const liveQueryResult = useLiveQuery(
-    queryBuilder as Parameters<typeof useLiveQuery>[0] &
-      ((q: InitialQueryBuilder) => QueryBuilder<never>),
-    queryKey ?? [],
-  );
+  // `readonly string[]` from `queryKey` is not inferred as `unknown[]`; without a mutable
+  // dependency array TypeScript falls through to later `useLiveQuery` overloads and errors.
+  const deps: unknown[] = queryKey?.length ? [...queryKey] : [];
+  const liveQueryResult = useLiveQuery(queryBuilder, deps);
 
   const rawData = React.useMemo(() => {
     const data = liveQueryResult?.data;
@@ -140,9 +140,18 @@ export function useDataTableWithLiveQuery<TData, TValue = unknown>({
 
   const isLoading =
     (liveQueryResult as { status?: string })?.status === "pending";
-  const error = (liveQueryResult as { isError?: boolean })?.isError
-    ? new Error("Query error")
-    : null;
+  const error = React.useMemo(() => {
+    if (!(liveQueryResult as { isError?: boolean })?.isError) {
+      return null;
+    }
+
+    const queryError = (liveQueryResult as { error?: unknown })?.error;
+    if (queryError instanceof Error) {
+      return queryError;
+    }
+
+    return new Error(queryError ? String(queryError) : "Query error");
+  }, [liveQueryResult]);
 
   const advancedFilterFn = React.useMemo(() => {
     if (advancedFilter.conditions.length === 0) return null;
@@ -216,7 +225,7 @@ export function useDataTableWithLiveQuery<TData, TValue = unknown>({
 
   const refetch = React.useCallback(() => {
     if (queryKey?.length) {
-      void queryClient.invalidateQueries({ queryKey });
+      void queryClient.invalidateQueries({ queryKey: [...queryKey] });
     }
   }, [queryClient, queryKey]);
 

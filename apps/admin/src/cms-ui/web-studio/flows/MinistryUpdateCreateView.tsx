@@ -19,9 +19,13 @@ import { formatAdminURL } from "payload/shared";
 import { useMemo, useState } from "react";
 import { z } from "zod";
 
+import {
+  TENANT_REQUIRED_MESSAGE,
+  TenantSelectField,
+  useSuperAdminTenantOptions,
+} from "./tenant-picker";
 import { buildWebStudioCreateFromTemplateUrl } from "./web-studio-create-api";
 import { StudioLayout } from "../shell/studio-layout";
-
 
 type ProfileDoc = {
   id: string | number;
@@ -33,6 +37,7 @@ const formSchema = z.object({
   missionaryProfileId: z.string().min(1, "Profile is required"),
   title: z.string().min(1, "Title is required"),
   slug: z.string().min(1, "Slug is required"),
+  tenantId: z.string().optional(),
 });
 
 export function MinistryUpdateCreateView() {
@@ -52,6 +57,7 @@ export function MinistryUpdateCreateView() {
       }),
     [routes.api],
   );
+  const { isSuperAdmin, tenantsQuery } = useSuperAdminTenantOptions();
 
   const profilesUrl = useMemo(
     () =>
@@ -79,6 +85,7 @@ export function MinistryUpdateCreateView() {
       missionaryProfileId: "",
       title: "",
       slug: "",
+      tenantId: "",
     },
     onSubmit: async ({ value }) => {
       setSubmitError(null);
@@ -92,6 +99,10 @@ export function MinistryUpdateCreateView() {
         setSubmitError("Pick a ministry update template from the gallery.");
         return;
       }
+      if (isSuperAdmin && !parsed.data.tenantId) {
+        setSubmitError(TENANT_REQUIRED_MESSAGE);
+        return;
+      }
 
       const res = await fetch(createUrl, {
         method: "POST",
@@ -103,6 +114,7 @@ export function MinistryUpdateCreateView() {
           missionaryProfileId: parsed.data.missionaryProfileId,
           title: parsed.data.title,
           slug: parsed.data.slug,
+          ...(isSuperAdmin ? { tenantId: parsed.data.tenantId } : {}),
         }),
       });
 
@@ -128,18 +140,26 @@ export function MinistryUpdateCreateView() {
   });
 
   return (
-    <StudioLayout sectionLabel="Ministry Updates" currentLabel="New from template">
+    <StudioLayout
+      sectionLabel="Ministry Updates"
+      currentLabel="New from template"
+    >
       <div className="mx-auto max-w-lg px-4 py-8 sm:px-6">
-        <h1 className="font-semibold text-xl tracking-tight">Ministry update starter</h1>
+        <h1 className="font-semibold text-xl tracking-tight">
+          Ministry update starter
+        </h1>
         <p className="mt-2 text-muted-foreground text-sm">
-          Creates a draft ministry update with empty rich text, linked to the selected missionary
-          profile.
+          Creates a draft ministry update with empty rich text, linked to the
+          selected missionary profile.
         </p>
 
         {!templateId ? (
           <p className="mt-4 text-muted-foreground text-sm">
             Choose a template from the{" "}
-            <Link className="text-primary underline" href="/web-studio/templates">
+            <Link
+              className="text-primary underline"
+              href="/web-studio/templates"
+            >
               gallery
             </Link>
             .
@@ -153,6 +173,20 @@ export function MinistryUpdateCreateView() {
             void form.handleSubmit();
           }}
         >
+          {isSuperAdmin ? (
+            <form.Field name="tenantId">
+              {(field) => (
+                <TenantSelectField
+                  label="Tenant"
+                  field={field}
+                  options={tenantsQuery.data ?? []}
+                  disabled={tenantsQuery.isPending || tenantsQuery.isError}
+                  placeholder="Select tenant"
+                />
+              )}
+            </form.Field>
+          ) : null}
+
           <form.Field name="missionaryProfileId">
             {(field) => (
               <div className="flex flex-col gap-2">
@@ -207,6 +241,11 @@ export function MinistryUpdateCreateView() {
           {profilesQuery.isError ? (
             <p className="text-destructive text-sm">
               {(profilesQuery.error as Error).message}
+            </p>
+          ) : null}
+          {tenantsQuery.isError && isSuperAdmin ? (
+            <p className="text-destructive text-sm">
+              {(tenantsQuery.error as Error).message}
             </p>
           ) : null}
 

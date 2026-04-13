@@ -26,6 +26,65 @@
   - `docs/guides/architecture/{cms-runtime,web-studio-phase3}.md`
 - Rollback: collection env flags + remove endpoint registration if needed; regenerate import map after view component path changes.
 
+## 2026-04-08 (Mission Control contributions infinite grid)
+
+- Date: 2026-04-08
+- Repo: Asymmetric-al/core
+- Goal: Rebuild the Mission Control Contributions table into a production-grade infinite virtual admin grid using TanStack Table, Query, DB, and Virtual without replacing the rest of the page chrome.
+- Primary area:
+  - `apps/admin/app/contributions/**`
+  - `apps/admin/app/api/admin/contributions/**`
+  - `packages/api/src/admin/contributions/**`
+  - `packages/database/hooks/admin-contributions-infinite.ts`
+  - `packages/ui/components/shadcn/data-table/data-table-responsive.tsx`
+  - `supabase/migrations/20260408224500_admin_contributions_summary.sql`
+- Constraints:
+  - Keep client boundaries small and preserve the existing page shell, stats cards, and detail sheet.
+  - Keep all business data access in `packages/api/src/*` with thin app route re-exports only.
+  - Use server-aware search/filter/sort and keyset pagination for the list endpoint.
+  - Use TanStack DB only where it adds value: the loaded-row client working set and future patch/realtime extension point.
+  - Match the Maia theme and reuse shared UI primitives from `packages/ui`.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/ai/rules/{frontend,backend}.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `.next-docs/01-app/01-getting-started/{05-server-and-client-components,06-cache-components,07-fetching-data,15-route-handlers}.mdx`
+  - Nia repo search for current Contributions implementation and shared grid/data patterns
+  - TanStack CLI docs for infinite queries, query collections, virtualizer guidance, and CLI MCP migration
+  - Base UI docs via Nia confirming no first-class table/grid primitive
+  - shadcn CLI docs for current table component guidance
+- Notes:
+  - Current branch still has unrelated Mission Control nav/route work in progress; do not overwrite those files casually.
+  - Existing Playwright global setup for admin auth is still blocked by the duplicated Password label locator and can fail unrelated to Contributions.
+
+## 2026-04-08 (TanStack surface migration)
+
+- Date: 2026-04-08
+- Repo: Asymmetric-al/core
+- Goal: Standardize all in-scope tables, grids, and table-like virtualized list surfaces onto the shared TanStack Table + Query + DB + Virtual architecture without regressing the existing Mission Control route fixes on this branch.
+- Primary area:
+  - `packages/database/{collections,hooks,providers,query-keys}.ts*`
+  - `packages/ui/components/shadcn/{data-table,data-grid}/**`
+  - `apps/admin/app/{contributions,crm,tasks,events,mobilize,admin/teams}/**`
+  - `apps/admin/features/mission-control/{locations,care}/**`
+  - `apps/donor/app/(dashboard)/donor-dashboard/history/**`
+  - `apps/missionary/app/donors/page.tsx`
+- Constraints:
+  - Keep shared UI ownership in `packages/ui` and shared data ownership in `packages/database`.
+  - Use current TanStack guidance via official CLI docs plus NIA-indexed upstream repos (`tanstack/query`, `tanstack/table`, `tanstack/db`).
+  - Keep virtualization on the shared `virtualization` config path; legacy fields are compatibility-only.
+  - Remove app-local or ad hoc fetch/join logic where a shared collection/hook can own the data contract instead.
+  - Avoid undoing unrelated branch work, especially the current `/contributions` route and nav normalization changes.
+- Evidence sources used:
+  - `docs/guides/development/{tanstack-integration,tanstack-virtual-foundation,tanstack-surface-inventory}.md`
+  - `packages/database/{collections/client-db,hooks/hooks,query-keys}.ts`
+  - `packages/ui/components/shadcn/{data-table,data-grid}/**`
+  - NIA repo search against `tanstack/query`, `tanstack/table`, and `tanstack/db`
+  - official `@tanstack/cli` `search-docs` / `doc` output for Query/Table/CLI migration notes
+- Notes:
+  - Foundation pass completed: shared `data-grid` exports are now public, the admin app no longer owns `@tanstack/db` directly, and shared TanStack package versions are aligned and typechecked.
+  - The next pass is to standardize shared domain collections/hooks in `packages/database` before refactoring app surfaces to consume them.
+
 ## 2026-04-10 (Web Studio Phase 2 — shared editorial workspaces)
 
 - Repo: Asymmetric-al/core

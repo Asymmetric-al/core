@@ -41,6 +41,8 @@ PAYLOAD_DATABASE_URI=postgresql://postgres:postgres@127.0.0.1:54322/postgres
 CMS_BASE_URL=http://127.0.0.1:3030
 # Optional: donor origin for “Preview” links from Pages (defaults to http://127.0.0.1:3000)
 NEXT_PUBLIC_DONOR_URL=http://127.0.0.1:3000
+# Optional: server-only donor origin (same resolution order as preview-url; use when NEXT_PUBLIC_* is unset in CI)
+# DONOR_APP_URL=http://127.0.0.1:3000
 # Optional: disable native collection UIs (stock Payload views)
 # CMS_WEB_STUDIO_NATIVE_PAGES=false
 # CMS_WEB_STUDIO_NATIVE_NAVIGATION=false
@@ -80,7 +82,13 @@ bun run cms:migrate:status
 bun run cms:importmap
 ```
 
-`cms:importmap` runs Payload generation and post-processes `apps/admin/app/(payload)/web-studio/importMap.js` (and legacy `admin/importMap.js` if present) for eslint + typed export consistency.
+`cms:importmap` runs Payload generation and post-processes **every** existing Payload import map under `apps/admin/app/(payload)/` — today `web-studio/importMap.js` and, if present, legacy `admin/importMap.js` — for eslint + typed export consistency.
+
+### CMS smoke E2E and native shell
+
+`bun run test:e2e:smoke:cms` sets **`CMS_WEB_STUDIO_NATIVE_PAGES=true`** for the Playwright process so native Web Studio assertions in `tests/e2e/cms-web-studio-native.spec.ts` match the intended rollout (native editorial shell on by default).
+
+If you run that spec locally with **`CMS_WEB_STUDIO_NATIVE_PAGES=false`** (or `0`), the native-shell tests **skip** because stock Payload views replace the Mission Control shell for Pages (and the spec targets native-only UI).
 
 **CI / agents:** if `PAYLOAD_SECRET` is missing, run with `NODE_ENV=test` so local dev defaults apply, e.g. `NODE_ENV=test bun run cms:importmap`.
 
@@ -145,14 +153,14 @@ Output is written under `site-studio-review/<date>/cloud-agent/`:
 ### Public endpoints (tenant-aware, no auth)
 
 - `GET /api/cms/public/pages/<slug>`
-  - Success: `{ tenant: { id, slug }, page }` (`page` is serialized for stable additive fields — see `serializePublished-page.ts`)
+  - Success: `{ tenant: { slug }, page }` (`page` is serialized for stable additive fields — see `serializePublished-page.ts`)
   - Errors: `404 { error: "Tenant not found" }` or `404 { error: "Page not found" }`
 - `GET /api/cms/public/missionary-pages/<id>` — published `missionary-giving-pages` by `missionaryId`
 - `GET /api/cms/public/project-pages/<slug>` — published `project-pages` by slug
 - `GET /api/cms/public/navigation`
-  - Success: `{ tenant: { id, slug }, navigation }`
+  - Success: `{ tenant: { slug }, navigation }`
 - `GET /api/cms/public/updates?limit=5`
-  - Success: `{ tenant: { id, slug }, updates: [] }`
+  - Success: `{ tenant: { slug }, updates: [] }`
   - `limit` is clamped to `1..20`
 
 Tenant resolution priority:

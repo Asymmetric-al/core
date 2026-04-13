@@ -92,13 +92,13 @@ Payload remains authoritative for schema, access, list state, and the document f
 
 ### Public, tenant-scoped read APIs
 
-| Method | Endpoint                          | Tenant resolution                                      | Source file                                              | Response contract                                                             |
-| ------ | --------------------------------- | ------------------------------------------------------ | -------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `GET`  | `/api/cms/public/pages/:slug*`    | `?tenant=`, host domain match, then subdomain fallback | `apps/admin/app/api/cms/public/pages/[...slug]/route.ts` | `{ tenant: { id, slug }, page }` on success, `404` with `{ error }` otherwise |
-| `GET`  | `/api/cms/public/missionary-pages/:id` | same | `apps/admin/app/api/cms/public/missionary-pages/[id]/route.ts` | `{ tenant, page }` for published `missionary-giving-pages` matched by `missionaryId` |
-| `GET`  | `/api/cms/public/project-pages/:slug` | same | `apps/admin/app/api/cms/public/project-pages/[slug]/route.ts` | `{ tenant, page }` for published `project-pages` matched by `slug` |
-| `GET`  | `/api/cms/public/navigation`      | `?tenant=`, host domain match, then subdomain fallback | `apps/admin/app/api/cms/public/navigation/route.ts`      | `{ tenant: { id, slug }, navigation }` where `navigation` can be `null`       |
-| `GET`  | `/api/cms/public/updates?limit=5` | `?tenant=`, host domain match, then subdomain fallback | `apps/admin/app/api/cms/public/updates/route.ts`         | `{ tenant: { id, slug }, updates: [] }` with `limit` clamped to `1..20`       |
+| Method | Endpoint                               | Tenant resolution                                      | Source file                                                    | Response contract                                                                    |
+| ------ | -------------------------------------- | ------------------------------------------------------ | -------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `GET`  | `/api/cms/public/pages/:slug*`         | `?tenant=`, host domain match, then subdomain fallback | `apps/admin/app/api/cms/public/pages/[...slug]/route.ts`       | `{ tenant: { slug }, page }` on success, `404` with `{ error }` otherwise            |
+| `GET`  | `/api/cms/public/missionary-pages/:id` | same                                                   | `apps/admin/app/api/cms/public/missionary-pages/[id]/route.ts` | `{ tenant, page }` for published `missionary-giving-pages` matched by `missionaryId` |
+| `GET`  | `/api/cms/public/project-pages/:slug`  | same                                                   | `apps/admin/app/api/cms/public/project-pages/[slug]/route.ts`  | `{ tenant, page }` for published `project-pages` matched by `slug`                   |
+| `GET`  | `/api/cms/public/navigation`           | `?tenant=`, host domain match, then subdomain fallback | `apps/admin/app/api/cms/public/navigation/route.ts`            | `{ tenant: { slug }, navigation }` where `navigation` can be `null`                  |
+| `GET`  | `/api/cms/public/updates?limit=5`      | `?tenant=`, host domain match, then subdomain fallback | `apps/admin/app/api/cms/public/updates/route.ts`               | `{ tenant: { slug }, updates: [] }` with `limit` clamped to `1..20`                  |
 
 ### Consumer contract in donor app
 

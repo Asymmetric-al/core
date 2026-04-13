@@ -15,21 +15,21 @@
 
 ## Key paths
 
-| Area | Path |
-|------|------|
-| Payload config | `apps/admin/payload.config.ts` |
-| Collections | `apps/admin/src/cms/collections/*.ts` |
-| Shared page builder helpers | `apps/admin/src/cms/collections/page-builders.ts` |
-| Create-from-template | `apps/admin/src/cms/create-from-template-endpoint.ts` |
-| Web Studio UI root | `apps/admin/src/cms-ui/web-studio/` |
-| Native list | `.../collections/shared/list-workspace/NativeCollectionListView.tsx` |
-| Native edit | `.../collections/shared/document-workspace/NativeCollectionEditView.tsx` |
-| Feature flags | `.../web-studio/feature-flags.ts` |
-| Preview URL | `.../web-studio/adapters/preview-url.ts` |
-| Public serialize | `apps/admin/src/cms/public/serialize-published-page.ts` |
-| Tenant resolve | `apps/admin/src/cms/public/resolve-tenant.ts` |
-| Donor CMS client | `apps/donor/lib/cms/client.ts` |
-| Staff APIs | `packages/api/src/admin/missionary-directory.ts`, `fund-directory.ts` |
+| Area                        | Path                                                                     |
+| --------------------------- | ------------------------------------------------------------------------ |
+| Payload config              | `apps/admin/payload.config.ts`                                           |
+| Collections                 | `apps/admin/src/cms/collections/*.ts`                                    |
+| Shared page builder helpers | `apps/admin/src/cms/collections/page-builders.ts`                        |
+| Create-from-template        | `apps/admin/src/cms/create-from-template-endpoint.ts`                    |
+| Web Studio UI root          | `apps/admin/src/cms-ui/web-studio/`                                      |
+| Native list                 | `.../collections/shared/list-workspace/NativeCollectionListView.tsx`     |
+| Native edit                 | `.../collections/shared/document-workspace/NativeCollectionEditView.tsx` |
+| Feature flags               | `.../web-studio/feature-flags.ts`                                        |
+| Preview URL                 | `.../web-studio/adapters/preview-url.ts`                                 |
+| Public serialize            | `apps/admin/src/cms/public/serialize-published-page.ts`                  |
+| Tenant resolve              | `apps/admin/src/cms/public/resolve-tenant.ts`                            |
+| Donor CMS client            | `apps/donor/lib/cms/client.ts`                                           |
+| Staff APIs                  | `packages/api/src/admin/missionary-directory.ts`, `fund-directory.ts`    |
 
 ---
 

@@ -79,20 +79,69 @@ function CommandDialog({
   );
 }
 
+type CommandInputProps = React.ComponentProps<typeof CommandPrimitive.Input> & {
+  wrapperClassName?: string;
+  iconClassName?: string;
+  /**
+   * Popover filter layout: border + radius live on the native `<input>` so the
+   * stroke is one box (no wrapper/input stacking or stadium-border glitches).
+   */
+  popoverChrome?: boolean;
+};
+
 function CommandInput({
   className,
+  wrapperClassName,
+  iconClassName,
+  popoverChrome,
   ...props
-}: React.ComponentProps<typeof CommandPrimitive.Input>) {
+}: CommandInputProps) {
+  if (popoverChrome) {
+    return (
+      <div
+        data-slot="command-input-wrapper"
+        className={cn("relative m-2 mb-0 max-w-full", wrapperClassName)}
+      >
+        <SearchIcon
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute left-3 top-1/2 z-10 size-4 -translate-y-1/2 text-muted-foreground/60",
+            iconClassName,
+          )}
+        />
+        <CommandPrimitive.Input
+          data-slot="command-input"
+          className={cn(
+            "placeholder:text-muted-foreground box-border h-10 w-full rounded-xl border-2 border-solid border-border/70 bg-background py-0 pl-9 pr-3 text-sm shadow-none outline-none ring-0 transition-colors",
+            "hover:border-border/85 disabled:cursor-not-allowed disabled:opacity-50",
+            "focus:border-ring focus:outline-none focus-visible:outline-none focus-visible:ring-0",
+            className,
+          )}
+          {...props}
+        />
+      </div>
+    );
+  }
+
   return (
     <div
       data-slot="command-input-wrapper"
-      className="flex h-9 items-center gap-2 border-b px-3"
+      className={cn(
+        "flex h-10 items-center gap-2 px-3",
+        !wrapperClassName && "border-b border-border/60",
+        wrapperClassName,
+      )}
     >
-      <SearchIcon className="size-4 shrink-0 opacity-50" />
+      <SearchIcon
+        className={cn(
+          "size-4 shrink-0 text-muted-foreground/60",
+          iconClassName,
+        )}
+      />
       <CommandPrimitive.Input
         data-slot="command-input"
         className={cn(
-          "placeholder:text-muted-foreground flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
+          "placeholder:text-muted-foreground flex h-full w-full rounded-none border-0 bg-transparent py-0 text-sm shadow-none outline-none ring-0 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:outline-none focus-visible:ring-0",
           className,
         )}
         {...props}

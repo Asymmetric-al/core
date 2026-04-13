@@ -57,16 +57,15 @@ if (service) {
     `OK: database (PostgREST) — campaigns head count=${count ?? "unknown"}`,
   );
 } else {
-  const { error } = await anonClient
-    .from("campaigns")
-    .select("id")
-    .limit(1);
+  const { error } = await anonClient.from("campaigns").select("id").limit(1);
   if (error) {
     fail(
       `PostgREST anon query failed: ${error.message}. Set SUPABASE_SERVICE_ROLE_KEY for a definitive DB check, or verify RLS allows read.`,
     );
   }
-  console.log("OK: database (PostgREST) — anon can query campaigns (or empty set)");
+  console.log(
+    "OK: database (PostgREST) — anon can query campaigns (or empty set)",
+  );
 }
 
 // Auth API (GoTrue) — proves URL + anon key work with the Auth stack.
@@ -78,9 +77,7 @@ const healthRes = await fetch(`${url}/auth/v1/health`, {
 });
 if (!healthRes.ok) {
   const body = await healthRes.text();
-  fail(
-    `Auth health check HTTP ${healthRes.status}: ${body.slice(0, 200)}`,
-  );
+  fail(`Auth health check HTTP ${healthRes.status}: ${body.slice(0, 200)}`);
 }
 const healthJson = await healthRes.json().catch(() => ({}));
 console.log(

@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
-import { useConfig } from "@payloadcms/ui";
+import { useAuth, useConfig } from "@payloadcms/ui";
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
@@ -17,9 +17,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { formatAdminURL } from "payload/shared";
 import { useMemo, useState } from "react";
 
+import {
+  TENANT_REQUIRED_MESSAGE,
+  TenantSelectField,
+  buildTenantsQuery,
+  isSuperAdminUser,
+} from "./tenant-picker";
 import { buildWebStudioCreateFromTemplateUrl } from "./web-studio-create-api";
 import { StudioLayout } from "../shell/studio-layout";
-
 
 type FundRow = {
   id: string;
@@ -31,10 +36,12 @@ export function ProjectPageCreateView() {
   const router = useRouter();
   const templateId = searchParams.get("template") ?? "";
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const {
-    config: { routes },
+    config: { routes, serverURL },
   } = useConfig();
+  const isSuperAdmin = isSuperAdminUser(user);
 
   const createUrl = useMemo(
     () =>
@@ -57,10 +64,14 @@ export function ProjectPageCreateView() {
       return json.funds ?? [];
     },
   });
+  const tenantsQuery = useQuery(
+    buildTenantsQuery({ isSuperAdmin, apiRoute: routes.api, serverURL }),
+  );
 
   const form = useForm({
     defaultValues: {
       fundId: "",
+      tenantId: "",
     },
     onSubmit: async ({ value }) => {
       setSubmitError(null);
@@ -72,6 +83,10 @@ export function ProjectPageCreateView() {
         setSubmitError("Select a fund.");
         return;
       }
+      if (isSuperAdmin && !value.tenantId) {
+        setSubmitError(TENANT_REQUIRED_MESSAGE);
+        return;
+      }
 
       const res = await fetch(createUrl, {
         method: "POST",
@@ -81,6 +96,7 @@ export function ProjectPageCreateView() {
           targetCollection: "project-pages",
           templateId,
           fundId: value.fundId,
+          ...(isSuperAdmin ? { tenantId: value.tenantId } : {}),
         }),
       });
 
@@ -118,16 +134,21 @@ export function ProjectPageCreateView() {
   return (
     <StudioLayout sectionLabel="Project Pages" currentLabel="New project page">
       <div className="mx-auto max-w-lg px-4 py-8 sm:px-6">
-        <h1 className="font-semibold text-xl tracking-tight">Fund-backed project page</h1>
+        <h1 className="font-semibold text-xl tracking-tight">
+          Fund-backed project page
+        </h1>
         <p className="mt-2 text-muted-foreground text-sm">
-          Project pages anchor to a canonical fund ID. Title, slug, and summary are prefilled from
-          the fund record when available.
+          Project pages anchor to a canonical fund ID. Title, slug, and summary
+          are prefilled from the fund record when available.
         </p>
 
         {!templateId ? (
           <p className="mt-4 text-muted-foreground text-sm">
             Choose a template from the{" "}
-            <Link className="text-primary underline" href="/web-studio/templates">
+            <Link
+              className="text-primary underline"
+              href="/web-studio/templates"
+            >
               gallery
             </Link>
             .
@@ -141,6 +162,20 @@ export function ProjectPageCreateView() {
             void form.handleSubmit();
           }}
         >
+          {isSuperAdmin ? (
+            <form.Field name="tenantId">
+              {(field) => (
+                <TenantSelectField
+                  label="Tenant"
+                  field={field}
+                  options={tenantsQuery.data ?? []}
+                  disabled={tenantsQuery.isPending || tenantsQuery.isError}
+                  placeholder="Select tenant"
+                />
+              )}
+            </form.Field>
+          ) : null}
+
           <form.Field name="fundId">
             {(field) => (
               <div className="flex flex-col gap-2">
@@ -168,6 +203,12 @@ export function ProjectPageCreateView() {
           {fundsQuery.isError ? (
             <p className="text-destructive text-sm">
               {(fundsQuery.error as Error).message}
+            </p>
+          ) : null}
+
+          {tenantsQuery.isError ? (
+            <p className="text-destructive text-sm">
+              {(tenantsQuery.error as Error).message}
             </p>
           ) : null}
 

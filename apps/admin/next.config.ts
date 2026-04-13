@@ -12,6 +12,13 @@ loadEnvConfig(WORKSPACE_ROOT);
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   cacheComponents: true,
+  async redirects() {
+    return [
+      { source: "/mc", destination: "/", permanent: false },
+      { source: "/mc/", destination: "/", permanent: false },
+      { source: "/mc/:path*", destination: "/:path*", permanent: false },
+    ];
+  },
   reactCompiler: {
     compilationMode: "annotation",
   },

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 import { adminBaseURL } from "./base-urls";
 import {
@@ -6,8 +6,21 @@ import {
   waitForWebStudioShellOrSkip,
 } from "./cms-skip-if-no-payload";
 
+const nativePagesUiDisabled =
+  process.env.CMS_WEB_STUDIO_NATIVE_PAGES === "false" ||
+  process.env.CMS_WEB_STUDIO_NATIVE_PAGES === "0";
+
 test.describe("@cms Web Studio native shell", () => {
-  async function signInAsAdmin(page: import("@playwright/test").Page) {
+  test.beforeEach(({}, testInfo) => {
+    if (nativePagesUiDisabled) {
+      testInfo.skip(
+        true,
+        "CMS_WEB_STUDIO_NATIVE_PAGES disables native Pages UI; shell assertions do not apply. Smoke script sets CMS_WEB_STUDIO_NATIVE_PAGES=true — see docs/guides/development/site-studio-payload.md.",
+      );
+    }
+  });
+
+  async function signInAsAdmin(page: Page) {
     const sawPayloadDbFailure = attachPayloadDbConsoleListener(page);
 
     const availability = await page.request.get(

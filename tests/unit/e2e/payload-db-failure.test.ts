@@ -8,9 +8,7 @@ import {
 describe("textMatchesPayloadDbFailure", () => {
   it("matches each documented marker substring", () => {
     for (const marker of PAYLOAD_DB_FAILURE_MARKERS) {
-      expect(textMatchesPayloadDbFailure(`prefix ${marker} suffix`)).toBe(
-        true,
-      );
+      expect(textMatchesPayloadDbFailure(`prefix ${marker} suffix`)).toBe(true);
     }
   });
 

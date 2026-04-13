@@ -1,11 +1,15 @@
 "use client";
 
+import {
+  useTaskLinkedEntities,
+  useTaskStaff,
+  useTasksRows,
+} from "@asym/database/hooks";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import { Plus } from "lucide-react";
-import { useState, useMemo, useCallback, useReducer } from "react";
+import { useMemo, useCallback, useReducer } from "react";
 
-import { MOCK_TASKS, MOCK_STAFF, MOCK_LINKED_ENTITIES } from "./data";
 import { getTaskColumns } from "./task-columns";
 import { TaskDrawer } from "./task-drawer";
 import { TaskForm } from "./task-form";
@@ -70,11 +74,13 @@ function tasksUiReducer(
 }
 
 export function TasksPageContent() {
-  const [tasks, setTasks] = useState<Task[]>(MOCK_TASKS);
   const [uiState, dispatchUi] = useReducer(
     tasksUiReducer,
     INITIAL_TASKS_UI_STATE,
   );
+  const tasksQuery = useTasksRows();
+  const staffQuery = useTaskStaff();
+  const linkedEntitiesQuery = useTaskLinkedEntities();
   const {
     selectedTask,
     editingTask,
@@ -83,6 +89,17 @@ export function TasksPageContent() {
     showCompleted,
     searchTerm,
   } = uiState;
+  const tasks = useMemo(
+    () => (tasksQuery.data ?? []) as Task[],
+    [tasksQuery.data],
+  );
+  const staffMembers = staffQuery.data ?? [];
+  const linkedEntities = linkedEntitiesQuery.data ?? [];
+  const isLoading =
+    tasksQuery.isLoading ||
+    staffQuery.isLoading ||
+    linkedEntitiesQuery.isLoading;
+  const tasksCollection = tasksQuery.collection;
 
   const stats = useMemo(() => {
     const today = new Date();
@@ -142,62 +159,88 @@ export function TasksPageContent() {
     return filtered;
   }, [tasks, activeTab, showCompleted, searchTerm]);
 
-  const handleToggleComplete = useCallback((task: Task) => {
-    setTasks((prev) =>
-      prev.map((t) => {
-        if (t.id === task.id) {
-          const newStatus: TaskStatus =
-            t.status === "completed" ? "todo" : "completed";
-          return {
-            ...t,
-            status: newStatus,
-            completed_at:
-              newStatus === "completed" ? new Date().toISOString() : undefined,
+  const handleToggleComplete = useCallback(
+    (task: Task) => {
+      if (!tasksCollection) {
+        return;
+      }
+
+      const newStatus: TaskStatus =
+        task.status === "completed" ? "todo" : "completed";
+      const timestamp = new Date().toISOString();
+      const tx = tasksCollection.update(task.id, (draft) => {
+        draft.status = newStatus;
+        draft.completed_at = newStatus === "completed" ? timestamp : undefined;
+        draft.updated_at = timestamp;
+      });
+
+      void tx.isPersisted.promise;
+    },
+    [tasksCollection],
+  );
+
+  const handleUpdateTask = useCallback(
+    (updatedTask: Task) => {
+      if (!tasksCollection) {
+        return;
+      }
+
+      const tx = tasksCollection.update(updatedTask.id, (draft) => {
+        Object.assign(draft, updatedTask);
+      });
+
+      void tx.isPersisted.promise;
+      dispatchUi({ type: "set-selected-task", task: updatedTask });
+    },
+    [tasksCollection],
+  );
+
+  const handleDeleteTask = useCallback(
+    (taskId: string) => {
+      if (!tasksCollection) {
+        return;
+      }
+
+      const tx = tasksCollection.delete(taskId);
+      void tx.isPersisted.promise;
+      dispatchUi({ type: "set-selected-task", task: null });
+    },
+    [tasksCollection],
+  );
+
+  const handleSaveTask = useCallback(
+    (taskData: Partial<Task>) => {
+      if (!tasksCollection) {
+        return;
+      }
+
+      if (taskData.id) {
+        const tx = tasksCollection.update(taskData.id, (draft) => {
+          Object.assign(draft, taskData, {
             updated_at: new Date().toISOString(),
-          };
-        }
-        return t;
-      }),
-    );
-  }, []);
+          });
+        });
 
-  const handleUpdateTask = useCallback((updatedTask: Task) => {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)),
-    );
-    dispatchUi({ type: "set-selected-task", task: updatedTask });
-  }, []);
-
-  const handleDeleteTask = useCallback((taskId: string) => {
-    setTasks((prev) => prev.filter((t) => t.id !== taskId));
-    dispatchUi({ type: "set-selected-task", task: null });
-  }, []);
-
-  const handleSaveTask = useCallback((taskData: Partial<Task>) => {
-    if (taskData.id) {
-      setTasks((prev) =>
-        prev.map((t) =>
-          t.id === taskData.id
-            ? { ...t, ...taskData, updated_at: new Date().toISOString() }
-            : t,
-        ),
-      );
-    } else {
-      const newTask: Task = {
-        ...(taskData as Task),
-        id: `task-${Date.now()}`,
-        tenant_id: "tenant-1",
-        created_by: "staff-1",
-        reminders: taskData.reminders || [],
-        comments: [],
-        tags: taskData.tags || [],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      setTasks((prev) => [newTask, ...prev]);
-    }
-    dispatchUi({ type: "close-modal" });
-  }, []);
+        void tx.isPersisted.promise;
+      } else {
+        const newTask: Task = {
+          ...(taskData as Task),
+          id: crypto.randomUUID(),
+          tenant_id: "tenant-1",
+          created_by: "staff-1",
+          reminders: taskData.reminders || [],
+          comments: [],
+          tags: taskData.tags || [],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        const tx = tasksCollection.insert(newTask);
+        void tx.isPersisted.promise;
+      }
+      dispatchUi({ type: "close-modal" });
+    },
+    [tasksCollection],
+  );
 
   const handleViewTask = useCallback((task: Task) => {
     dispatchUi({ type: "set-selected-task", task });
@@ -265,14 +308,15 @@ export function TasksPageContent() {
         <TasksTableSection
           columns={columns}
           data={filteredTasks}
+          isLoading={isLoading}
           onCreateTask={() => dispatchUi({ type: "open-create-modal" })}
         />
       </div>
 
       <TaskDrawer
         task={selectedTask}
-        staffMembers={MOCK_STAFF}
-        linkedEntities={MOCK_LINKED_ENTITIES}
+        staffMembers={staffMembers}
+        linkedEntities={linkedEntities}
         onClose={() => dispatchUi({ type: "set-selected-task", task: null })}
         onUpdate={handleUpdateTask}
         onDelete={handleDeleteTask}
@@ -281,8 +325,8 @@ export function TasksPageContent() {
       <TaskForm
         open={isModalOpen}
         task={editingTask}
-        staffMembers={MOCK_STAFF}
-        linkedEntities={MOCK_LINKED_ENTITIES}
+        staffMembers={staffMembers}
+        linkedEntities={linkedEntities}
         onClose={() => dispatchUi({ type: "close-modal" })}
         onSave={handleSaveTask}
       />

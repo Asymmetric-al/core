@@ -1,10 +1,11 @@
-import { NextResponse, connection, type NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
-import {
-  getPayloadClient,
-  isPayloadClientInitializationError,
-} from "../../../../../../src/cms/get-payload";
+import { getPayloadClient } from "../../../../../../src/cms/get-payload";
 import { resolveTenantFromRequest } from "../../../../../../src/cms/public/resolve-tenant";
+import {
+  ensureRequestTimeExecution,
+  publicCmsRouteErrorResponse,
+} from "../../../../../../src/cms/public/route-helpers";
 import { serializePublishedPageLike } from "../../../../../../src/cms/public/serialize-published-page";
 
 type RouteContext = {
@@ -25,14 +26,6 @@ function normalizeCmsSlug(segments: string[] | undefined) {
     .filter(Boolean);
 
   return normalizedSegments.join("/") || "home";
-}
-
-async function ensureRequestTimeExecution() {
-  if (process.env.NODE_ENV === "test") {
-    return;
-  }
-
-  await connection();
 }
 
 export async function GET(request: NextRequest, context: RouteContext) {
@@ -82,27 +75,17 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
 
     return NextResponse.json({
-      page: serializePublishedPageLike(page as unknown as Record<string, unknown>),
+      page: serializePublishedPageLike(
+        page as unknown as Record<string, unknown>,
+      ),
       tenant: {
-        id: tenant.id,
         slug: tenant.slug ?? null,
       },
     });
   } catch (error) {
-    if (isPayloadClientInitializationError(error)) {
-      console.error(error.message);
-
-      return NextResponse.json(
-        { error: "Failed to fetch page content" },
-        { status: error.statusCode },
-      );
-    }
-
-    console.error("Failed to fetch published CMS page.", error);
-
-    return NextResponse.json(
-      { error: "Failed to fetch page content" },
-      { status: 500 },
-    );
+    return publicCmsRouteErrorResponse(error, {
+      clientMessage: "Failed to fetch page content",
+      logMessage: "Failed to fetch published CMS page.",
+    });
   }
 }

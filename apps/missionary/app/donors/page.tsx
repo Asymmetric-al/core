@@ -1,9 +1,11 @@
 "use client";
 "use no memo";
 
+import { useMissionaryDonorRows } from "@asym/database/hooks";
+import { invalidateSupabaseTableQuery } from "@asym/database/query-keys";
 import { createBrowserClient } from "@asym/database/supabase";
 import { useAuth, useTasks } from "@asym/lib/hooks";
-import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
+import { motion, AnimatePresence } from "@asym/lib/motion";
 import { AddPartnerDialog } from "@asym/missionary/components/add-partner-dialog";
 import { TaskDialog } from "@asym/missionary/components/task-dialog";
 import {
@@ -15,7 +17,11 @@ import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
-import { useDataTableVirtualization } from "@asym/ui/components/shadcn/data-table";
+import {
+  type ColumnDef,
+  DataTableColumnHeader,
+  DataTableResponsive,
+} from "@asym/ui/components/shadcn/data-table";
 import {
   Dialog,
   DialogContent,
@@ -44,6 +50,7 @@ import {
 } from "@asym/ui/components/shadcn/tabs";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { cn } from "@asym/ui/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
 import { format, formatDistanceToNow, differenceInMonths } from "date-fns";
 import {
   Search,
@@ -64,13 +71,11 @@ import {
   ArrowUpRight,
   ArrowDownUp,
   Calendar,
-  History,
   Briefcase,
   Clock,
   AlertCircle,
   RefreshCw,
   MoreHorizontal,
-  ChevronRight,
   Tag,
   X,
   Check,
@@ -919,11 +924,12 @@ function DonorTasks({
 
 function useDonorsPageLayout() {
   const { profile, loading: authLoading } = useAuth();
+  const queryClient = useQueryClient();
   const supabase = React.useMemo(
     () => (typeof window === "undefined" ? null : createBrowserClient()),
     [],
   );
-  const [donors, setDonors] = React.useState<Donor[]>([]);
+  const donorsQuery = useMissionaryDonorRows(profile?.id);
   const [selectedDonorId, setSelectedDonorId] = React.useState<string | null>(
     null,
   );
@@ -933,8 +939,6 @@ function useDonorsPageLayout() {
   const [pledgeFilter, setPledgeFilter] = React.useState<string>("All");
   const [sortBy, setSortBy] = React.useState<SortOption>("last_gift");
   const [sortAsc, setSortAsc] = React.useState(false);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
   const [activeTab, setActiveTab] = React.useState("overview");
   const [noteInput, setNoteInput] = React.useState("");
   const [isNoteDialogOpen, setIsNoteDialogOpen] = React.useState(false);
@@ -946,102 +950,23 @@ function useDonorsPageLayout() {
   const [activityType, setActivityType] = React.useState<
     "note" | "call" | "meeting" | "email"
   >("note");
-
-  const fetchDonors = React.useCallback(async () => {
-    if (!profile?.id || !supabase) {
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const { data: donorsData, error: donorsError } = await supabase
-        .from("donors")
-        .select("*")
-        .eq("missionary_id", profile.id)
-        .order("name", { ascending: true });
-
-      if (donorsError) throw donorsError;
-
-      const donorIds = (donorsData || []).map((d) => d.id);
-
-      const { data: activitiesData, error: activitiesError } = await supabase
-        .from("donor_activities")
-        .select("*")
-        .in("donor_id", donorIds)
-        .order("date", { ascending: false });
-
-      if (activitiesError) throw activitiesError;
-
-      const { data: pledgesData, error: pledgesError } = await supabase
-        .from("donor_pledges")
-        .select("*")
-        .in("donor_id", donorIds)
-        .order("start_date", { ascending: false });
-
-      if (pledgesError) throw pledgesError;
-
-      const activitiesByDonor = (activitiesData || []).reduce(
-        (acc, activity) => {
-          if (!acc[activity.donor_id]) acc[activity.donor_id] = [];
-          acc[activity.donor_id].push(activity);
-          return acc;
-        },
-        {} as Record<string, Activity[]>,
-      );
-
-      const pledgesByDonor = (pledgesData || []).reduce(
-        (acc, pledge) => {
-          if (!acc[pledge.donor_id]) acc[pledge.donor_id] = [];
-          acc[pledge.donor_id].push(pledge);
-          return acc;
-        },
-        {} as Record<string, RecurringDonation[]>,
-      );
-
-      const formattedDonors: Donor[] = (donorsData || []).map((d) => ({
-        ...d,
-        initials: d.name
-          ? d.name
-              .split(" ")
-              .map((n: string) => n[0])
-              .join("")
-              .toUpperCase()
-              .slice(0, 2)
-          : "??",
-        activities: activitiesByDonor[d.id] || [],
-        recurring_donations: pledgesByDonor[d.id] || [],
-        address: d.address || {},
-        work_address: d.work_address || {},
-        tags: d.tags || [],
-        total_given: Number(d.total_given) || 0,
-        last_gift_amount: d.last_gift_amount
-          ? Number(d.last_gift_amount)
-          : null,
-        score: Number(d.score) || 0,
-      }));
-
-      setDonors(formattedDonors);
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to load donors";
-      setError(errorMessage);
-      toast.error("Failed to load donors");
-      console.error("Donors fetch error:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [profile?.id, supabase]);
-
-  React.useEffect(() => {
-    if (!authLoading && profile?.id) {
-      fetchDonors();
-    } else if (!authLoading) {
-      setLoading(false);
-    }
-  }, [fetchDonors, authLoading, profile?.id]);
+  const donors = React.useMemo(
+    () => (donorsQuery.data ?? []) as Donor[],
+    [donorsQuery.data],
+  );
+  const error =
+    donorsQuery.error instanceof Error
+      ? donorsQuery.error.message
+      : donorsQuery.error
+        ? String(donorsQuery.error)
+        : null;
+  const handleRefreshDonors = React.useCallback(() => {
+    void Promise.all([
+      invalidateSupabaseTableQuery(queryClient, "donors"),
+      invalidateSupabaseTableQuery(queryClient, "donor_activities"),
+      invalidateSupabaseTableQuery(queryClient, "donor_pledges"),
+    ]);
+  }, [queryClient]);
 
   const filteredDonors = React.useMemo(() => {
     const result = donors.filter((donor) => {
@@ -1103,37 +1028,108 @@ function useDonorsPageLayout() {
     sortAsc,
   ]);
 
-  const donorListViewportRef = React.useRef<HTMLDivElement | null>(null);
-  const getDonorVirtualItemKey = React.useCallback(
-    (index: number) => filteredDonors[index]?.id ?? index,
-    [filteredDonors],
-  );
-  const {
-    virtualizer: donorListVirtualizer,
-    virtualItems: virtualDonorItems,
-    totalSize: virtualDonorListSize,
-    isEnabled: isDonorListVirtualized,
-  } = useDataTableVirtualization({
-    count: filteredDonors.length,
-    scrollElementRef: donorListViewportRef,
-    virtualization: {
-      enabled: true,
-      estimateSize: 88,
-      overscan: 10,
-      containerHeight: 640,
-      getItemKey: getDonorVirtualItemKey,
-    },
-    defaults: {
-      enabled: false,
-      estimateSize: 88,
-      overscan: 10,
-      containerHeight: 640,
-    },
-  });
-
   const selectedDonor = React.useMemo(
     () => donors.find((d) => d.id === selectedDonorId) || null,
     [donors, selectedDonorId],
+  );
+
+  const donorColumns = React.useMemo<ColumnDef<Donor>[]>(
+    () => [
+      {
+        accessorKey: "name",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Partner" />
+        ),
+        cell: ({ row }) => {
+          const donor = row.original;
+          const isSelected = selectedDonorId === donor.id;
+
+          return (
+            <div className="flex items-center gap-3 py-1">
+              <div className="relative shrink-0">
+                <Avatar
+                  className={cn(
+                    "h-10 w-10 border-2",
+                    isSelected ? "border-zinc-700" : "border-white shadow-sm",
+                  )}
+                >
+                  <AvatarImage src={donor.avatar_url} />
+                  <AvatarFallback
+                    className={cn(
+                      "text-xs font-bold",
+                      isSelected
+                        ? "bg-zinc-800 text-zinc-300"
+                        : "bg-zinc-100 text-zinc-500",
+                    )}
+                  >
+                    {donor.initials}
+                  </AvatarFallback>
+                </Avatar>
+                <div
+                  className={cn(
+                    "absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2",
+                    isSelected ? "border-zinc-900" : "border-white",
+                    getStatusColor(donor.status),
+                  )}
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className="font-bold text-sm truncate text-zinc-900">
+                    {donor.name}
+                  </span>
+                  {donor.has_active_pledge && (
+                    <div
+                      className="h-2 w-2 rounded-full shrink-0 ml-1 bg-emerald-500"
+                      title="Active recurring donation"
+                    />
+                  )}
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] truncate max-w-[100px] font-medium uppercase tracking-wider text-zinc-400">
+                    {donor.location || "Unknown"}
+                  </span>
+                  <span className="text-xs font-black text-zinc-900">
+                    {formatCurrency(donor.total_given)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "status",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Status" />
+        ),
+        cell: ({ row }) => getStatusBadge(row.original.status),
+      },
+      {
+        accessorKey: "total_given",
+        header: ({ column }) => (
+          <div className="text-right">
+            <DataTableColumnHeader
+              className="justify-end"
+              column={column}
+              title="Given"
+            />
+          </div>
+        ),
+        cell: ({ row }) => (
+          <div className="text-right font-black text-zinc-900 tabular-nums">
+            {formatCurrency(row.original.total_given)}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "frequency",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Frequency" />
+        ),
+      },
+    ],
+    [selectedDonorId],
   );
 
   React.useEffect(() => {
@@ -1174,14 +1170,14 @@ function useDonorsPageLayout() {
       toast.success("Activity logged successfully");
       setNoteInput("");
       setIsNoteDialogOpen(false);
-      fetchDonors();
+      handleRefreshDonors();
     } catch (err) {
       toast.error("Failed to add activity");
       console.error(err);
     } finally {
       setIsSavingNote(false);
     }
-  }, [selectedDonor, noteInput, activityType, supabase, fetchDonors]);
+  }, [selectedDonor, noteInput, activityType, supabase, handleRefreshDonors]);
 
   const handleSaveTags = React.useCallback(async () => {
     if (!selectedDonor || !supabase) return;
@@ -1195,20 +1191,16 @@ function useDonorsPageLayout() {
 
       if (updateError) throw updateError;
 
-      setDonors((prev) =>
-        prev.map((d) =>
-          d.id === selectedDonor.id ? { ...d, tags: selectedTags } : d,
-        ),
-      );
       toast.success("Tags updated successfully");
       setIsTagDialogOpen(false);
+      handleRefreshDonors();
     } catch (err) {
       toast.error("Failed to update tags");
       console.error(err);
     } finally {
       setIsSavingTags(false);
     }
-  }, [selectedDonor, selectedTags, supabase]);
+  }, [selectedDonor, selectedTags, supabase, handleRefreshDonors]);
 
   const toggleTag = React.useCallback((tagId: string) => {
     setSelectedTags((prev) =>
@@ -1256,7 +1248,7 @@ function useDonorsPageLayout() {
     setSearchTerm("");
   }, []);
 
-  const isLoading = authLoading || loading;
+  const isLoading = authLoading || donorsQuery.isLoading;
 
   const activeCount = donors.filter((d) => d.status === "Active").length;
   const atRiskCount = donors.filter((d) => d.status === "At Risk").length;
@@ -1300,6 +1292,80 @@ function useDonorsPageLayout() {
     pledgeFilter !== "All" ||
     searchTerm.length > 0;
 
+  const givingHistoryRows = React.useMemo(
+    () =>
+      (selectedDonor?.activities ?? []).filter(
+        (activity) => activity.type === "gift",
+      ),
+    [selectedDonor],
+  );
+
+  const givingHistoryColumns = React.useMemo<ColumnDef<Activity>[]>(
+    () => [
+      {
+        accessorKey: "date",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Date" />
+        ),
+        cell: ({ row }) => format(new Date(row.original.date), "MMM d, yyyy"),
+      },
+      {
+        accessorKey: "title",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Type" />
+        ),
+      },
+      {
+        accessorKey: "gift_type",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Method" />
+        ),
+        cell: ({ row }) => (
+          <span className="flex items-center gap-1.5 text-zinc-500">
+            {row.original.gift_type && getGiftTypeIcon(row.original.gift_type)}
+            {row.original.gift_type || "Online"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "amount",
+        header: ({ column }) => (
+          <div className="text-right">
+            <DataTableColumnHeader
+              className="justify-end"
+              column={column}
+              title="Amount"
+            />
+          </div>
+        ),
+        cell: ({ row }) => (
+          <div className="text-right font-bold text-zinc-900">
+            {formatCurrency(row.original.amount || 0)}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "status",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Status" />
+        ),
+        cell: ({ row }) => (
+          <Badge
+            className={cn(
+              "font-black rounded-full text-[9px] uppercase tracking-widest border-0",
+              row.original.status === "Failed"
+                ? "bg-rose-50 text-rose-600"
+                : "bg-emerald-50 text-emerald-700",
+            )}
+          >
+            {row.original.status || "Succeeded"}
+          </Badge>
+        ),
+      },
+    ],
+    [],
+  );
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -1324,7 +1390,7 @@ function useDonorsPageLayout() {
         {profile?.id && (
           <AddPartnerDialog
             missionaryId={profile.id}
-            onSuccess={fetchDonors}
+            onSuccess={handleRefreshDonors}
             trigger={
               <motion.div
                 whileHover={{ scale: 1.02 }}
@@ -1639,9 +1705,9 @@ function useDonorsPageLayout() {
             </div>
 
             <div className="flex-1 min-h-0">
-              <ScrollArea className="h-full" viewportRef={donorListViewportRef}>
+              <ScrollArea className="h-full">
                 {error ? (
-                  <ErrorState message={error} onRetry={fetchDonors} />
+                  <ErrorState message={error} onRetry={handleRefreshDonors} />
                 ) : isLoading ? (
                   <DonorListSkeleton />
                 ) : filteredDonors.length === 0 ? (
@@ -1682,269 +1748,42 @@ function useDonorsPageLayout() {
                       </motion.div>
                     )}
                   </motion.div>
-                ) : isDonorListVirtualized ? (
-                  <div
-                    className="p-2"
-                    style={{
-                      height: virtualDonorListSize,
-                      position: "relative",
-                    }}
-                  >
-                    {virtualDonorItems.map((virtualItem) => {
-                      const donor = filteredDonors[virtualItem.index];
-                      if (!donor) return null;
-
-                      return (
-                        <div
-                          key={donor.id}
-                          data-index={virtualItem.index}
-                          ref={donorListVirtualizer.measureElement}
-                          className="absolute left-0 top-0 w-full px-2 pb-1"
-                          style={{
-                            transform: `translateY(${virtualItem.start}px)`,
-                          }}
-                        >
-                          <div
-                            onClick={() => setSelectedDonorId(donor.id)}
-                            className={cn(
-                              "group flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-colors border",
-                              selectedDonorId === donor.id
-                                ? "bg-zinc-900 border-zinc-900"
-                                : "bg-white border-transparent hover:bg-zinc-50 hover:border-zinc-200",
-                            )}
-                          >
-                            <div className="relative shrink-0">
-                              <Avatar
-                                className={cn(
-                                  "h-10 w-10 border-2",
-                                  selectedDonorId === donor.id
-                                    ? "border-zinc-700"
-                                    : "border-white shadow-sm",
-                                )}
-                              >
-                                <AvatarImage src={donor.avatar_url} />
-                                <AvatarFallback
-                                  className={cn(
-                                    "text-xs font-bold",
-                                    selectedDonorId === donor.id
-                                      ? "bg-zinc-800 text-zinc-300"
-                                      : "bg-zinc-100 text-zinc-500",
-                                  )}
-                                >
-                                  {donor.initials}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div
-                                className={cn(
-                                  "absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2",
-                                  selectedDonorId === donor.id
-                                    ? "border-zinc-900"
-                                    : "border-white",
-                                  getStatusColor(donor.status),
-                                )}
-                              />
-                            </div>
-
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-0.5">
-                                <span
-                                  className={cn(
-                                    "font-bold text-sm truncate",
-                                    selectedDonorId === donor.id
-                                      ? "text-white"
-                                      : "text-zinc-900",
-                                  )}
-                                >
-                                  {donor.name}
-                                </span>
-                                {donor.has_active_pledge && (
-                                  <div
-                                    className={cn(
-                                      "h-2 w-2 rounded-full shrink-0 ml-1",
-                                      selectedDonorId === donor.id
-                                        ? "bg-emerald-400"
-                                        : "bg-emerald-500",
-                                    )}
-                                    title="Active recurring donation"
-                                  />
-                                )}
-                              </div>
-                              <div className="flex items-center justify-between">
-                                <span
-                                  className={cn(
-                                    "text-[10px] truncate max-w-[100px] font-medium uppercase tracking-wider",
-                                    selectedDonorId === donor.id
-                                      ? "text-zinc-400"
-                                      : "text-zinc-400",
-                                  )}
-                                >
-                                  {donor.location || "Unknown"}
-                                </span>
-                                <span
-                                  className={cn(
-                                    "text-xs font-black",
-                                    selectedDonorId === donor.id
-                                      ? "text-zinc-300"
-                                      : "text-zinc-900",
-                                  )}
-                                >
-                                  {formatCurrency(donor.total_given)}
-                                </span>
-                              </div>
-                            </div>
-                            <div>
-                              <ChevronRight
-                                className={cn(
-                                  "h-4 w-4 shrink-0",
-                                  selectedDonorId === donor.id
-                                    ? "text-zinc-500"
-                                    : "text-zinc-300",
-                                )}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
                 ) : (
-                  <LayoutGroup>
-                    <motion.div
-                      variants={staggerContainer}
-                      initial="initial"
-                      animate="animate"
-                      className="p-2 space-y-1"
-                    >
-                      <AnimatePresence mode="popLayout">
-                        {filteredDonors.map((donor, index) => (
-                          <motion.div
-                            key={donor.id}
-                            layout
-                            variants={fadeInUp}
-                            initial="initial"
-                            animate="animate"
-                            exit="exit"
-                            transition={{
-                              ...smoothTransition,
-                              delay: index * 0.02,
-                            }}
-                            whileHover={{ scale: 1.01 }}
-                            whileTap={{ scale: 0.99 }}
-                            onClick={() => setSelectedDonorId(donor.id)}
-                            className={cn(
-                              "group flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-colors border",
-                              selectedDonorId === donor.id
-                                ? "bg-zinc-900 border-zinc-900"
-                                : "bg-white border-transparent hover:bg-zinc-50 hover:border-zinc-200",
-                            )}
-                          >
-                            <div className="relative shrink-0">
-                              <Avatar
-                                className={cn(
-                                  "h-10 w-10 border-2",
-                                  selectedDonorId === donor.id
-                                    ? "border-zinc-700"
-                                    : "border-white shadow-sm",
-                                )}
-                              >
-                                <AvatarImage src={donor.avatar_url} />
-                                <AvatarFallback
-                                  className={cn(
-                                    "text-xs font-bold",
-                                    selectedDonorId === donor.id
-                                      ? "bg-zinc-800 text-zinc-300"
-                                      : "bg-zinc-100 text-zinc-500",
-                                  )}
-                                >
-                                  {donor.initials}
-                                </AvatarFallback>
-                              </Avatar>
-                              <motion.div
-                                initial={{ scale: 0.95, opacity: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={springTransition}
-                                className={cn(
-                                  "absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2",
-                                  selectedDonorId === donor.id
-                                    ? "border-zinc-900"
-                                    : "border-white",
-                                  getStatusColor(donor.status),
-                                )}
-                              />
-                            </div>
-
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-0.5">
-                                <span
-                                  className={cn(
-                                    "font-bold text-sm truncate",
-                                    selectedDonorId === donor.id
-                                      ? "text-white"
-                                      : "text-zinc-900",
-                                  )}
-                                >
-                                  {donor.name}
-                                </span>
-                                {donor.has_active_pledge && (
-                                  <motion.div
-                                    animate={{ scale: [1, 1.2, 1] }}
-                                    transition={{
-                                      duration: 2,
-                                      repeat: Infinity,
-                                    }}
-                                    className={cn(
-                                      "h-2 w-2 rounded-full shrink-0 ml-1",
-                                      selectedDonorId === donor.id
-                                        ? "bg-emerald-400"
-                                        : "bg-emerald-500",
-                                    )}
-                                    title="Active recurring donation"
-                                  />
-                                )}
-                              </div>
-                              <div className="flex items-center justify-between">
-                                <span
-                                  className={cn(
-                                    "text-[10px] truncate max-w-[100px] font-medium uppercase tracking-wider",
-                                    selectedDonorId === donor.id
-                                      ? "text-zinc-400"
-                                      : "text-zinc-400",
-                                  )}
-                                >
-                                  {donor.location || "Unknown"}
-                                </span>
-                                <span
-                                  className={cn(
-                                    "text-xs font-black",
-                                    selectedDonorId === donor.id
-                                      ? "text-zinc-300"
-                                      : "text-zinc-900",
-                                  )}
-                                >
-                                  {formatCurrency(donor.total_given)}
-                                </span>
-                              </div>
-                            </div>
-                            <motion.div
-                              animate={{
-                                x: selectedDonorId === donor.id ? 0 : -2,
-                              }}
-                              whileHover={{ x: 2 }}
-                            >
-                              <ChevronRight
-                                className={cn(
-                                  "h-4 w-4 shrink-0",
-                                  selectedDonorId === donor.id
-                                    ? "text-zinc-500"
-                                    : "text-zinc-300",
-                                )}
-                              />
-                            </motion.div>
-                          </motion.div>
-                        ))}
-                      </AnimatePresence>
-                    </motion.div>
-                  </LayoutGroup>
+                  <DataTableResponsive
+                    columns={donorColumns}
+                    data={filteredDonors}
+                    config={{
+                      enableRowSelection: false,
+                      enableColumnVisibility: true,
+                      enablePagination: true,
+                      enableFilters: false,
+                      enableSorting: false,
+                      virtualization: {
+                        enabled: true,
+                        estimateSize: 88,
+                        overscan: 10,
+                        containerHeight: 640,
+                      },
+                    }}
+                    mobileCardConfig={{
+                      primaryField: "name",
+                      secondaryField: "location",
+                      badgeField: "status",
+                    }}
+                    onRowClick={(row) => setSelectedDonorId(row.original.id)}
+                    emptyState={
+                      <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <p className="text-sm font-bold text-zinc-900">
+                          No partners found
+                        </p>
+                        <p className="text-xs text-zinc-400 mt-1">
+                          {hasActiveFilters
+                            ? "Try adjusting your filters."
+                            : "Add your first partner to get started."}
+                        </p>
+                      </div>
+                    }
+                  />
                 )}
               </ScrollArea>
             </div>
@@ -3160,93 +2999,28 @@ function useDonorsPageLayout() {
                           </TabsContent>
 
                           <TabsContent value="giving" className="mt-0">
-                            <motion.div
-                              {...fadeInUp}
-                              transition={smoothTransition}
-                              className="overflow-x-auto rounded-2xl border border-zinc-200"
-                            >
-                              <table className="w-full text-sm text-left">
-                                <thead className="text-[10px] font-black uppercase tracking-widest text-zinc-400 bg-zinc-50 border-b border-zinc-200">
-                                  <tr>
-                                    <th className="px-6 py-4">Date</th>
-                                    <th className="px-6 py-4">Type</th>
-                                    <th className="px-6 py-4">Method</th>
-                                    <th className="px-6 py-4">Amount</th>
-                                    <th className="px-6 py-4">Status</th>
-                                  </tr>
-                                </thead>
-                                <tbody className="divide-y divide-zinc-100">
-                                  {selectedDonor.activities.filter(
-                                    (a) => a.type === "gift",
-                                  ).length > 0 ? (
-                                    selectedDonor.activities
-                                      .filter((a) => a.type === "gift")
-                                      .map((gift, i) => (
-                                        <motion.tr
-                                          key={gift.id}
-                                          initial={{ opacity: 0 }}
-                                          animate={{ opacity: 1 }}
-                                          transition={{ delay: i * 0.05 }}
-                                          className="hover:bg-zinc-50 transition-colors"
-                                        >
-                                          <td className="px-6 py-4 font-medium text-zinc-900 whitespace-nowrap">
-                                            {format(
-                                              new Date(gift.date),
-                                              "MMM d, yyyy",
-                                            )}
-                                          </td>
-                                          <td className="px-6 py-4 text-zinc-500">
-                                            {gift.title}
-                                          </td>
-                                          <td className="px-6 py-4">
-                                            <span className="flex items-center gap-1.5 text-zinc-500">
-                                              {gift.gift_type &&
-                                                getGiftTypeIcon(gift.gift_type)}
-                                              {gift.gift_type || "Online"}
-                                            </span>
-                                          </td>
-                                          <td className="px-6 py-4 font-bold text-zinc-900">
-                                            {formatCurrency(gift.amount || 0)}
-                                          </td>
-                                          <td className="px-6 py-4">
-                                            <Badge
-                                              className={cn(
-                                                "font-black rounded-full text-[9px] uppercase tracking-widest border-0",
-                                                gift.status === "Failed"
-                                                  ? "bg-rose-50 text-rose-600"
-                                                  : "bg-emerald-50 text-emerald-700",
-                                              )}
-                                            >
-                                              {gift.status || "Succeeded"}
-                                            </Badge>
-                                          </td>
-                                        </motion.tr>
-                                      ))
-                                  ) : (
-                                    <tr>
-                                      <td colSpan={5}>
-                                        <motion.div
-                                          {...fadeInUp}
-                                          className="p-16 text-center"
-                                        >
-                                          <motion.div
-                                            initial={{ scale: 0.8 }}
-                                            animate={{ scale: 1 }}
-                                            transition={springTransition}
-                                            className="h-14 w-14 bg-zinc-100 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                                          >
-                                            <History className="h-6 w-6 text-zinc-300" />
-                                          </motion.div>
-                                          <p className="text-sm font-bold text-zinc-900">
-                                            No giving history available
-                                          </p>
-                                        </motion.div>
-                                      </td>
-                                    </tr>
-                                  )}
-                                </tbody>
-                              </table>
-                            </motion.div>
+                            <DataTableResponsive
+                              columns={givingHistoryColumns}
+                              data={givingHistoryRows}
+                              config={{
+                                enableRowSelection: false,
+                                enableColumnVisibility: false,
+                                enablePagination: true,
+                                enableFilters: false,
+                                enableSorting: true,
+                              }}
+                              emptyState={
+                                <div className="flex flex-col items-center justify-center py-12 text-center">
+                                  <p className="text-sm font-bold text-zinc-900">
+                                    No giving history available
+                                  </p>
+                                  <p className="text-xs text-zinc-400 mt-1">
+                                    Gift activity will appear here once
+                                    donations are recorded.
+                                  </p>
+                                </div>
+                              }
+                            />
                           </TabsContent>
                         </AnimatePresence>
                       </div>
@@ -3297,7 +3071,7 @@ function useDonorsPageLayout() {
                       >
                         <AddPartnerDialog
                           missionaryId={profile.id}
-                          onSuccess={fetchDonors}
+                          onSuccess={handleRefreshDonors}
                           trigger={
                             <Button className="mt-10 h-11 px-8 rounded-2xl bg-zinc-900 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:bg-zinc-800">
                               <Plus className="h-4 w-4 mr-2" /> Add Partner
@@ -3443,7 +3217,7 @@ function useDonorsPageLayout() {
       <EditDonorDialog
         donor={selectedDonor}
         onOpenChange={setIsEditDialogOpen}
-        onSuccess={fetchDonors}
+        onSuccess={handleRefreshDonors}
         open={isEditDialogOpen}
       />
     </motion.div>

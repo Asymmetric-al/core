@@ -3,17 +3,23 @@
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
-import { useConfig } from "@payloadcms/ui";
+import { useAuth, useConfig } from "@payloadcms/ui";
 import { useForm } from "@tanstack/react-form";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { formatAdminURL } from "payload/shared";
 import { useMemo, useState } from "react";
 import { z } from "zod";
 
+import {
+  TENANT_REQUIRED_MESSAGE,
+  TenantSelectField,
+  buildTenantsQuery,
+  isSuperAdminUser,
+} from "./tenant-picker";
 import { buildWebStudioCreateFromTemplateUrl } from "./web-studio-create-api";
 import { StudioLayout } from "../shell/studio-layout";
-
 
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -25,9 +31,11 @@ export function StandardPageFromTemplateView() {
   const router = useRouter();
   const templateId = searchParams.get("template") ?? "";
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const { user } = useAuth();
+  const isSuperAdmin = isSuperAdminUser(user);
 
   const {
-    config: { routes },
+    config: { routes, serverURL },
   } = useConfig();
 
   const createUrl = useMemo(
@@ -38,10 +46,19 @@ export function StandardPageFromTemplateView() {
     [routes.api],
   );
 
+  const tenantsQuery = useQuery(
+    buildTenantsQuery({
+      apiRoute: routes.api,
+      serverURL,
+      isSuperAdmin,
+    }),
+  );
+
   const form = useForm({
     defaultValues: {
       title: "",
       slug: "",
+      tenantId: "",
     },
     onSubmit: async ({ value }) => {
       setSubmitError(null);
@@ -54,7 +71,14 @@ export function StandardPageFromTemplateView() {
       }
 
       if (!templateId) {
-        setSubmitError("Missing template. Open this screen from the template gallery.");
+        setSubmitError(
+          "Missing template. Open this screen from the template gallery.",
+        );
+        return;
+      }
+
+      if (isSuperAdmin && !value.tenantId) {
+        setSubmitError(TENANT_REQUIRED_MESSAGE);
         return;
       }
 
@@ -67,6 +91,7 @@ export function StandardPageFromTemplateView() {
           templateId,
           title: parsed.data.title,
           slug: parsed.data.slug,
+          ...(isSuperAdmin ? { tenantId: value.tenantId } : {}),
         }),
       });
 
@@ -95,10 +120,12 @@ export function StandardPageFromTemplateView() {
   return (
     <StudioLayout sectionLabel="Pages" currentLabel="New from template">
       <div className="mx-auto max-w-lg px-4 py-8 sm:px-6">
-        <h1 className="font-semibold text-xl tracking-tight">Create standard page</h1>
+        <h1 className="font-semibold text-xl tracking-tight">
+          Create standard page
+        </h1>
         <p className="mt-2 text-muted-foreground text-sm">
-          Draft is created with the template&apos;s default layout blocks. You can edit all fields
-          after save opens the document workspace.
+          Draft is created with the template&apos;s default layout blocks. You
+          can edit all fields after save opens the document workspace.
         </p>
         {!templateId ? (
           <p className="mt-4 text-destructive text-sm">
@@ -117,6 +144,19 @@ export function StandardPageFromTemplateView() {
             void form.handleSubmit();
           }}
         >
+          {isSuperAdmin ? (
+            <form.Field name="tenantId">
+              {(field) => (
+                <TenantSelectField
+                  label="Tenant"
+                  field={field}
+                  options={tenantsQuery.data ?? []}
+                  disabled={tenantsQuery.isPending || tenantsQuery.isError}
+                  placeholder="Select tenant"
+                />
+              )}
+            </form.Field>
+          ) : null}
           <form.Field name="title">
             {(field) => (
               <div className="flex flex-col gap-2">
@@ -150,6 +190,11 @@ export function StandardPageFromTemplateView() {
           {submitError ? (
             <p className="text-destructive text-sm" role="alert">
               {submitError}
+            </p>
+          ) : null}
+          {tenantsQuery.isError ? (
+            <p className="text-destructive text-sm">
+              {(tenantsQuery.error as Error).message}
             </p>
           ) : null}
 

@@ -17,9 +17,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { formatAdminURL } from "payload/shared";
 import { useEffect, useMemo, useState } from "react";
 
+import {
+  TENANT_REQUIRED_MESSAGE,
+  TenantSelectField,
+  useSuperAdminTenantOptions,
+} from "./tenant-picker";
 import { buildWebStudioCreateFromTemplateUrl } from "./web-studio-create-api";
 import { StudioLayout } from "../shell/studio-layout";
-
 
 type MissionaryRow = {
   id: string;
@@ -58,10 +62,12 @@ export function MissionaryGivingCreateView() {
       return json.missionaries ?? [];
     },
   });
+  const { isSuperAdmin, tenantsQuery } = useSuperAdminTenantOptions();
 
   const form = useForm({
     defaultValues: {
       missionaryId: preselectedMissionaryId,
+      tenantId: "",
     },
     onSubmit: async ({ value }) => {
       setSubmitError(null);
@@ -73,6 +79,10 @@ export function MissionaryGivingCreateView() {
         setSubmitError("Select a missionary.");
         return;
       }
+      if (isSuperAdmin && !value.tenantId) {
+        setSubmitError(TENANT_REQUIRED_MESSAGE);
+        return;
+      }
 
       const res = await fetch(createUrl, {
         method: "POST",
@@ -82,6 +92,7 @@ export function MissionaryGivingCreateView() {
           targetCollection: "missionary-giving-pages",
           templateId,
           missionaryId: value.missionaryId,
+          ...(isSuperAdmin ? { tenantId: value.tenantId } : {}),
         }),
       });
 
@@ -123,18 +134,26 @@ export function MissionaryGivingCreateView() {
   }, [form, preselectedMissionaryId]);
 
   return (
-    <StudioLayout sectionLabel="Missionary Pages" currentLabel="New giving page">
+    <StudioLayout
+      sectionLabel="Missionary Pages"
+      currentLabel="New giving page"
+    >
       <div className="mx-auto max-w-lg px-4 py-8 sm:px-6">
-        <h1 className="font-semibold text-xl tracking-tight">Missionary giving page</h1>
+        <h1 className="font-semibold text-xl tracking-tight">
+          Missionary giving page
+        </h1>
         <p className="mt-2 text-muted-foreground text-sm">
-          Canonical missionary ID is stored on the document. Title and slug are prefilled from
-          Supabase profile data when possible.
+          Canonical missionary ID is stored on the document. Title and slug are
+          prefilled from Supabase profile data when possible.
         </p>
 
         {!templateId ? (
           <p className="mt-4 text-muted-foreground text-sm">
             Choose a template from the{" "}
-            <Link className="text-primary underline" href="/web-studio/templates">
+            <Link
+              className="text-primary underline"
+              href="/web-studio/templates"
+            >
               gallery
             </Link>
             .
@@ -148,6 +167,20 @@ export function MissionaryGivingCreateView() {
             void form.handleSubmit();
           }}
         >
+          {isSuperAdmin ? (
+            <form.Field name="tenantId">
+              {(field) => (
+                <TenantSelectField
+                  label="Tenant"
+                  field={field}
+                  options={tenantsQuery.data ?? []}
+                  disabled={tenantsQuery.isPending || tenantsQuery.isError}
+                  placeholder="Select tenant"
+                />
+              )}
+            </form.Field>
+          ) : null}
+
           <form.Field name="missionaryId">
             {(field) => (
               <div className="flex flex-col gap-2">
@@ -155,7 +188,9 @@ export function MissionaryGivingCreateView() {
                 <Select
                   value={field.state.value || undefined}
                   onValueChange={(v) => field.handleChange(v)}
-                  disabled={missionariesQuery.isPending || missionariesQuery.isError}
+                  disabled={
+                    missionariesQuery.isPending || missionariesQuery.isError
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select missionary" />
@@ -181,6 +216,12 @@ export function MissionaryGivingCreateView() {
           {missionariesQuery.isError ? (
             <p className="text-destructive text-sm">
               {(missionariesQuery.error as Error).message}
+            </p>
+          ) : null}
+
+          {tenantsQuery.isError ? (
+            <p className="text-destructive text-sm">
+              {(tenantsQuery.error as Error).message}
             </p>
           ) : null}
 

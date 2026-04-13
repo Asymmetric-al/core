@@ -1,18 +1,9 @@
 import { headers } from "next/headers";
 
-export type CmsPage = {
-  id: string;
-  title: string;
-  slug: string;
-  summary?: string | null;
-  content?: unknown;
-  layout?: unknown;
-  pageType?: string | null;
-  missionaryId?: string | null;
-  fundId?: string | null;
-  legacyContentFallback?: boolean | null;
-  updatedAt?: string;
-};
+import type { PublicCmsPage } from "@asym/lib/cms/public-page";
+
+/** @deprecated Use `PublicCmsPage` from `@asym/lib/cms/public-page` */
+export type CmsPage = PublicCmsPage;
 
 function normalizeSlugSegments(slugSegments: string[]) {
   return slugSegments.map((segment) => segment.trim()).filter(Boolean);
@@ -75,7 +66,7 @@ export async function fetchPublishedCmsPage(
   slugSegments: string[],
   hostOverride?: string,
 ) {
-  const payload = await fetchCmsJSON<{ page: CmsPage }>(
+  const payload = await fetchCmsJSON<{ page: PublicCmsPage }>(
     buildPublicCmsPagePath(slugSegments),
     hostOverride,
   );
@@ -99,7 +90,7 @@ export async function fetchPublishedMissionaryGivingPage(
   hostOverride?: string,
 ) {
   const encoded = encodeURIComponent(missionaryId.trim());
-  const payload = await fetchCmsJSON<{ page: CmsPage }>(
+  const payload = await fetchCmsJSON<{ page: PublicCmsPage }>(
     `/api/cms/public/missionary-pages/${encoded}`,
     hostOverride,
   );
@@ -111,9 +102,12 @@ export async function fetchPublishedProjectPage(
   slug: string,
   hostOverride?: string,
 ) {
-  const segments = slug.split("/").map((s) => s.trim()).filter(Boolean);
+  const segments = slug
+    .split("/")
+    .map((s) => s.trim())
+    .filter(Boolean);
   const encoded = segments.map((s) => encodeURIComponent(s)).join("/");
-  const payload = await fetchCmsJSON<{ page: CmsPage }>(
+  const payload = await fetchCmsJSON<{ page: PublicCmsPage }>(
     `/api/cms/public/project-pages/${encoded}`,
     hostOverride,
   );

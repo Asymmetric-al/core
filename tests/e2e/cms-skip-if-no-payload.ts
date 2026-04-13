@@ -40,7 +40,10 @@ export function attachPayloadDbConsoleListener(page: Page): PayloadDbGetter {
  */
 export async function skipIfPayloadDatabaseUnreachable(page: Page) {
   const html = await page.content();
-  const bodyText = await page.locator("body").innerText().catch(() => "");
+  const bodyText = await page
+    .locator("body")
+    .innerText()
+    .catch(() => "");
   if (textMatchesPayloadDbFailure(`${html}\n${bodyText}`)) {
     test.skip(true, SKIP_REASON);
   }
@@ -54,7 +57,8 @@ export async function waitForWebStudioShellOrSkip(
   page: Page,
   sawFailureViaConsole?: () => boolean,
 ) {
-  const consoleGetter = sawFailureViaConsole ?? attachPayloadDbConsoleListener(page);
+  const consoleGetter =
+    sawFailureViaConsole ?? attachPayloadDbConsoleListener(page);
   const shell = page.getByTestId("web-studio-native-shell");
   const failure = page.getByText(/cannot connect to Postgres/i);
 
