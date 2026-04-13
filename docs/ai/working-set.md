@@ -1,5 +1,58 @@
 # Working Set
 
+## 2026-04-13 (Mission Control member care port — phase 7 follow-up hardening)
+
+- Date: 2026-04-13
+- Repo: Asymmetric-al/core
+- Goal: Reapply and finalize phase 6/7 for PR #170 by extending shared route hardening across read endpoints and tightening JSON payload guards for mutation handlers.
+- Primary area:
+  - `apps/admin/app/api/admin/member-care/_lib.ts`
+  - `apps/admin/app/api/admin/member-care/{dashboard,directory,directory/[id]}/route.ts`
+  - `tests/unit/apps/admin/member-care-route-lib.test.ts`
+- Constraints:
+  - Keep all DB/business logic in `@asym/api`.
+  - Keep route handlers thin, with consistent auth/error behavior.
+  - This pass is the explicit phase 6/7 recommit checkpoint for PR #170.
+
+## 2026-04-13 (Mission Control member care port — phase 7 hardening)
+
+- Date: 2026-04-13
+- Repo: Asymmetric-al/core
+- Goal: Complete phase 7 by hardening mutation route handlers with shared auth/JSON/error utilities and adding unit coverage for the shared route-helper boundary.
+- Primary area:
+  - `apps/admin/app/api/admin/member-care/_lib.ts`
+  - `apps/admin/app/api/admin/member-care/{thread,goals,activity,requirements,attention}/route.ts`
+  - `tests/unit/apps/admin/member-care-route-lib.test.ts`
+- Constraints:
+  - Keep route handlers thin and defer business writes to `@asym/api`.
+  - Return explicit HTTP status classes (401/403/400/422/500) for clearer client handling.
+
+## 2026-04-12 (Mission Control member care port — phase 6 completion pass)
+
+- Date: 2026-04-12
+- Repo: Asymmetric-al/core
+- Goal: Finish phase 6 by wiring all mutation hooks into profile UX (check-in logging, manual-attention toggle, care requirements) and adding server-side cache-tag revalidation after writes.
+- Primary area:
+  - `apps/admin/features/mission-control/care/components/PersonnelProfile.tsx`
+  - `packages/api/src/admin/member-care/mutations.ts`
+- Constraints:
+  - Keep route handlers thin and business logic in `@asym/api`.
+  - Ensure write paths refresh both client query caches and Next cache-tagged read models.
+
+## 2026-04-12 (Mission Control member care port — phase 6 mutations)
+
+- Date: 2026-04-12
+- Repo: Asymmetric-al/core
+- Goal: Add real mutation endpoints and client mutation hooks for thread posts, care goals, activity logs, care requirements, and manual-attention updates with shared query invalidation.
+- Primary area:
+  - `packages/api/src/admin/member-care/mutations.ts`
+  - `apps/admin/app/api/admin/member-care/{thread,goals,activity,requirements,attention}/route.ts`
+  - `apps/admin/features/mission-control/care/hooks/use-care.ts`
+  - `apps/admin/features/mission-control/care/components/PersonnelProfile.tsx`
+- Constraints:
+  - Keep route handlers thin and business DB writes in `@asym/api`.
+  - Invalidate dashboard/profile/notification query keys on mutation success.
+
 ## 2026-04-12 (Mission Control member care port — phase 5 person detail shell)
 
 - Date: 2026-04-12
@@ -136,18 +189,6 @@
 - Notes:
   - Foundation pass completed: shared `data-grid` exports are now public, the admin app no longer owns `@tanstack/db` directly, and shared TanStack package versions are aligned and typechecked.
   - The next pass is to standardize shared domain collections/hooks in `packages/database` before refactoring app surfaces to consume them.
-
-## 2026-04-10 (Web Studio Phase 2 — shared editorial workspaces)
-
-- Repo: Asymmetric-al/core
-- Goal: Generalize the Phase 1 Pages slice into shared native Web Studio list/document workspaces and register current editorial collections (`pages`, `navigation`, `missionary-profiles`, `ministry-updates`, `media`) onto them while keeping Payload document/runtime ownership.
-- Key paths:
-  - `apps/admin/src/cms-ui/web-studio/collections/**`
-  - `apps/admin/src/cms-ui/web-studio/shell/*`
-  - `apps/admin/src/cms/collections/{pages,navigation,missionary-profiles,ministry-updates,media}.ts`
-  - `docs/guides/architecture/web-studio-phase2.md`
-- Rollback: collection-scoped env flags (`CMS_WEB_STUDIO_NATIVE_*`) + `NODE_ENV=test bun run cms:importmap`
-- Known safe boundary: default list/edit routes are native; nested document subviews (`api`, `versions`, `version`, `live preview`) still rely on stock Payload routing until a safer public wrapper surface exists.
 
 ## 2026-04-07 (Post-Turbo-2.9 verification matrix re-run)
 

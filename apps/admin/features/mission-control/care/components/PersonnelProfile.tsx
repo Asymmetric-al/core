@@ -38,6 +38,13 @@ import {
 import React, { useMemo, useState, useEffect } from "react";
 
 import { HealthHeatmap } from "./HealthHeatmap";
+import {
+  useCreateCareThreadPost,
+  useCreateOrUpdateCareGoal,
+  useLogCareActivity,
+  useSetManualAttentionFlag,
+  useUpsertCareRequirement,
+} from "../hooks/use-care";
 
 import type { CarePersonnel, ActivityLogEntry } from "../types";
 
@@ -49,9 +56,17 @@ interface PersonnelProfileProps {
 function PersonnelProfileHeaderCard({
   personnel,
   localTime,
+  onLogCheckIn,
+  onToggleManualAttention,
+  isLoggingCheckIn,
+  isUpdatingAttention,
 }: {
   personnel: CarePersonnel;
   localTime: string | null;
+  onLogCheckIn: () => Promise<void>;
+  onToggleManualAttention: () => Promise<void>;
+  isLoggingCheckIn: boolean;
+  isUpdatingAttention: boolean;
 }) {
   return (
     <Card className="border-slate-200 shadow-sm overflow-hidden">
@@ -99,10 +114,21 @@ function PersonnelProfileHeaderCard({
               variant="outline"
               size="sm"
               className="h-9 px-4 font-bold border-slate-200"
+              onClick={onToggleManualAttention}
+              disabled={isUpdatingAttention}
             >
-              <Phone className="mr-2 h-4 w-4 text-slate-400" /> Call
+              <AlertTriangle className="mr-2 h-4 w-4 text-slate-400" />
+              {isUpdatingAttention
+                ? "Updating..."
+                : personnel.manualAttention
+                  ? "Clear Attention"
+                  : "Flag Attention"}
             </Button>
-            <Button className="h-9 px-4 font-bold bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-200">
+            <Button
+              className="h-9 px-4 font-bold bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-200"
+              onClick={onLogCheckIn}
+              disabled={isLoggingCheckIn}
+            >
               <Heart className="mr-2 h-4 w-4" /> Log Check-in
             </Button>
           </div>
@@ -301,11 +327,8 @@ function CareThreadTabContent({
   activities: ActivityLogEntry[];
 }) {
   const [draft, setDraft] = useState("");
-  const [posts, setPosts] = useState<ActivityLogEntry[]>([]);
-  const threadEntries = [
-    ...posts,
-    ...activities.filter((activity) => !activity.isPrivate),
-  ];
+  const createThreadPost = useCreateCareThreadPost();
+  const threadEntries = activities.filter((activity) => !activity.isPrivate);
 
   return (
     <TabsContent
@@ -353,25 +376,18 @@ function CareThreadTabContent({
               <Button
                 size="sm"
                 className="h-8 font-bold bg-slate-900 text-white"
-                onClick={() => {
+                onClick={async () => {
                   if (!draft.trim()) return;
-                  setPosts((current) => [
-                    {
-                      id: `draft-${Date.now()}`,
-                      personnelId: personnel.id,
-                      type: "Pastoral Note",
-                      content: draft,
-                      date: new Date().toISOString(),
-                      authorId: "current-user",
-                      authorName: "You",
-                      isPrivate: false,
-                    },
-                    ...current,
-                  ]);
+                  await createThreadPost.mutateAsync({
+                    personnelId: personnel.id,
+                    content: draft,
+                    isPrivate: false,
+                  });
                   setDraft("");
                 }}
+                disabled={createThreadPost.isPending}
               >
-                Post Update
+                {createThreadPost.isPending ? "Posting..." : "Post Update"}
               </Button>
             </div>
           </div>
@@ -382,6 +398,8 @@ function CareThreadTabContent({
 }
 
 function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
+  const upsertCareGoal = useCreateOrUpdateCareGoal();
+  const upsertCareRequirement = useUpsertCareRequirement();
   const planItems = personnel.careGaps.length
     ? personnel.careGaps.map((gap, index) => ({
         id: `${personnel.id}-${index}`,
@@ -400,10 +418,46 @@ function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
     <TabsContent value="care-plan" className="animate-in fade-in duration-300">
       <Card className="border-slate-200 shadow-sm min-h-[400px]">
         <CardHeader className="border-b border-slate-50">
-          <CardTitle className="text-base font-bold">Care Plan</CardTitle>
-          <CardDescription className="text-xs">
-            Goals, interventions, and due care tasks for this member.
-          </CardDescription>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <CardTitle className="text-base font-bold">Care Plan</CardTitle>
+              <CardDescription className="text-xs">
+                Goals, interventions, and due care tasks for this member.
+              </CardDescription>
+            </div>
+            <Button
+              size="sm"
+              className="h-8 bg-slate-900 text-white"
+              onClick={async () => {
+                await upsertCareGoal.mutateAsync({
+                  personnelId: personnel.id,
+                  title: `Follow-up plan (${new Date().toLocaleDateString()})`,
+                  status: "active",
+                });
+              }}
+              disabled={upsertCareGoal.isPending}
+            >
+              {upsertCareGoal.isPending ? "Saving..." : "Add Goal"}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8"
+              onClick={async () => {
+                await upsertCareRequirement.mutateAsync({
+                  personnelId: personnel.id,
+                  activityType: "Check-in",
+                  intervalDays: 30,
+                  notes: "Monthly wellness check-in cadence.",
+                });
+              }}
+              disabled={upsertCareRequirement.isPending}
+            >
+              {upsertCareRequirement.isPending
+                ? "Saving..."
+                : "Add Requirement"}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="p-6 space-y-3">
           {planItems.map((item) => (
@@ -499,9 +553,9 @@ function SecureNotesTabContent({
   personnel: CarePersonnel;
 }) {
   const [draft, setDraft] = useState("");
-  const [notes, setNotes] = useState<ActivityLogEntry[]>([]);
+  const createThreadPost = useCreateCareThreadPost();
   const privateNotes = activities.filter((activity) => activity.isPrivate);
-  const secureNotes = [...notes, ...privateNotes];
+  const secureNotes = privateNotes;
 
   return (
     <TabsContent
@@ -566,25 +620,18 @@ function SecureNotesTabContent({
               <Button
                 size="sm"
                 className="h-8 font-bold bg-amber-600 text-white hover:bg-amber-500"
-                onClick={() => {
+                onClick={async () => {
                   if (!draft.trim()) return;
-                  setNotes((current) => [
-                    {
-                      id: `secure-${Date.now()}`,
-                      personnelId: personnel.id,
-                      type: "Pastoral Note",
-                      content: draft,
-                      date: new Date().toISOString(),
-                      authorId: "current-user",
-                      authorName: "You",
-                      isPrivate: true,
-                    },
-                    ...current,
-                  ]);
+                  await createThreadPost.mutateAsync({
+                    personnelId: personnel.id,
+                    content: draft,
+                    isPrivate: true,
+                  });
                   setDraft("");
                 }}
+                disabled={createThreadPost.isPending}
               >
-                Save Secure Note
+                {createThreadPost.isPending ? "Saving..." : "Save Secure Note"}
               </Button>
             </div>
           </div>
@@ -599,6 +646,8 @@ export function PersonnelProfile({
   activities,
 }: PersonnelProfileProps) {
   const [localTime, setLocalTime] = useState<string | null>(null);
+  const logCareActivity = useLogCareActivity();
+  const setManualAttention = useSetManualAttentionFlag();
 
   const heatmapData = useMemo(
     () =>
@@ -627,7 +676,26 @@ export function PersonnelProfile({
 
   return (
     <div className="space-y-6">
-      <PersonnelProfileHeaderCard personnel={personnel} localTime={localTime} />
+      <PersonnelProfileHeaderCard
+        personnel={personnel}
+        localTime={localTime}
+        onLogCheckIn={async () => {
+          await logCareActivity.mutateAsync({
+            personnelId: personnel.id,
+            type: "Check-in",
+            content: "Quick wellness check-in logged from profile header.",
+            isPrivate: false,
+          });
+        }}
+        onToggleManualAttention={async () => {
+          await setManualAttention.mutateAsync({
+            personnelId: personnel.id,
+            manualAttention: !Boolean(personnel.manualAttention),
+          });
+        }}
+        isLoggingCheckIn={logCareActivity.isPending}
+        isUpdatingAttention={setManualAttention.isPending}
+      />
 
       <Tabs defaultValue="overview" className="w-full">
         <div className="flex items-center justify-between border-b border-slate-200 mb-6 pb-px">

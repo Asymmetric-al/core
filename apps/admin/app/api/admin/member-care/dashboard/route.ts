@@ -1,30 +1,17 @@
 import { readMemberCareDashboardSnapshot } from "@asym/api/reads/member-care";
-import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
+
+import { requireMemberCareAccess, toApiErrorResponse } from "../_lib";
 
 export async function GET() {
-  const auth = await getAuthContext();
-
-  if (
-    !auth.isAuthenticated ||
-    !auth.userId ||
-    !auth.tenantId ||
-    !hasAnyContextRole(auth, ["staff", "admin", "super_admin"])
-  ) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await requireMemberCareAccess();
+  if (!auth.ok) {
+    return auth.response;
   }
 
   try {
-    const snapshot = await readMemberCareDashboardSnapshot(auth.tenantId);
+    const snapshot = await readMemberCareDashboardSnapshot(auth.context.tenantId);
     return Response.json(snapshot);
   } catch (error) {
-    return Response.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to load member care dashboard.",
-      },
-      { status: 500 },
-    );
+    return toApiErrorResponse(error, "Failed to load member care dashboard.");
   }
 }
