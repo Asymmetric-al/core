@@ -1,4 +1,7 @@
-import { upsertCareGoal } from "@asym/api/admin/member-care/mutations";
+import {
+  upsertCareGoal,
+  type UpsertCareGoalInput,
+} from "@asym/api/admin/member-care/mutations";
 
 import {
   readJsonBody,
@@ -21,7 +24,7 @@ export async function POST(request: Request) {
     const result = await upsertCareGoal(
       auth.context.tenantId,
       auth.context.userId,
-      body.body,
+      body.body as UpsertCareGoalInput,
     );
     return Response.json(result);
   } catch (error) {

@@ -1,4 +1,7 @@
-import { createCareThreadPost } from "@asym/api/admin/member-care/mutations";
+import {
+  createCareThreadPost,
+  type CreateCareThreadPostInput,
+} from "@asym/api/admin/member-care/mutations";
 
 import {
   readJsonBody,
@@ -21,7 +24,7 @@ export async function POST(request: Request) {
     const result = await createCareThreadPost(
       auth.context.tenantId,
       auth.context.userId,
-      body.body,
+      body.body as CreateCareThreadPostInput,
     );
     return Response.json(result, { status: 201 });
   } catch (error) {

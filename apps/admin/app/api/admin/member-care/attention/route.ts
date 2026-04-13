@@ -1,4 +1,7 @@
-import { setManualAttentionFlag } from "@asym/api/admin/member-care/mutations";
+import {
+  setManualAttentionFlag,
+  type SetManualAttentionInput,
+} from "@asym/api/admin/member-care/mutations";
 
 import {
   readJsonBody,
@@ -18,9 +21,15 @@ export async function PATCH(request: Request) {
   }
 
   try {
-    const result = await setManualAttentionFlag(auth.context.tenantId, body.body);
+    const result = await setManualAttentionFlag(
+      auth.context.tenantId,
+      body.body as SetManualAttentionInput,
+    );
     return Response.json(result);
   } catch (error) {
-    return toMutationErrorResponse(error, "Failed to set manual attention flag.");
+    return toMutationErrorResponse(
+      error,
+      "Failed to set manual attention flag.",
+    );
   }
 }

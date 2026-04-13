@@ -1,4 +1,7 @@
-import { logCareActivity } from "@asym/api/admin/member-care/mutations";
+import {
+  logCareActivity,
+  type LogCareActivityInput,
+} from "@asym/api/admin/member-care/mutations";
 
 import {
   readJsonBody,
@@ -21,7 +24,7 @@ export async function POST(request: Request) {
     const result = await logCareActivity(
       auth.context.tenantId,
       auth.context.userId,
-      body.body,
+      body.body as LogCareActivityInput,
     );
     return Response.json(result, { status: 201 });
   } catch (error) {

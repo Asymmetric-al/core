@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
-const getAuthContextMock = vi.fn();
-const hasAnyContextRoleMock = vi.fn();
+const { getAuthContextMock, hasAnyContextRoleMock } = vi.hoisted(() => ({
+  getAuthContextMock: vi.fn(),
+  hasAnyContextRoleMock: vi.fn(),
+}));
 
 vi.mock("@asym/auth/context", () => ({
   getAuthContext: getAuthContextMock,
