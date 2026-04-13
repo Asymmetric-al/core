@@ -1,5 +1,31 @@
 # Working Set
 
+## 2026-04-10 (Web Studio Phase 5 — living documentation + handoff)
+
+- Repo: Asymmetric-al/core
+- Goal: Centralize Web Studio truth in `docs/guides/architecture/web-studio-living-spec.md`; add runbook, human + AI handoffs; link/update `cms-runtime.md`, `site-studio-payload.md`, phase snapshots; add `apps/admin/src/cms-ui/web-studio/README.md` and minimal module headers.
+- Key paths:
+  - `docs/guides/architecture/web-studio-living-spec.md`
+  - `docs/guides/development/web-studio-runbook.md`
+  - `docs/guides/development/web-studio-handoff.md`
+  - `docs/ai/web-studio-handoff.md`
+  - `apps/admin/src/cms-ui/web-studio/README.md`
+- Rollback: doc-only; revert commits if needed.
+
+## 2026-04-10 (Web Studio Phase 3 — templates, wizards, public expansion)
+
+- Repo: Asymmetric-al/core
+- Goal: Ship template gallery + TanStack Form wizards, Payload `create-from-template` endpoint, missionary/project public read routes, donor client helpers, and docs/tests — without breaking existing `/api/cms/public/pages` consumers.
+- Key paths:
+  - `apps/admin/payload.config.ts` (admin `views`, root `endpoints`)
+  - `apps/admin/src/cms/create-from-template-endpoint.ts`
+  - `apps/admin/src/cms-ui/web-studio/flows/*`
+  - `apps/admin/app/api/cms/public/missionary-pages/[id]/route.ts`
+  - `apps/admin/app/api/cms/public/project-pages/[slug]/route.ts`
+  - `apps/donor/lib/cms/client.ts`
+  - `docs/guides/architecture/{cms-runtime,web-studio-phase3}.md`
+- Rollback: collection env flags + remove endpoint registration if needed; regenerate import map after view component path changes.
+
 ## 2026-04-08 (Mission Control contributions infinite grid)
 
 - Date: 2026-04-08

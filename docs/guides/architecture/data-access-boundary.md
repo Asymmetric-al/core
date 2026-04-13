@@ -31,6 +31,11 @@ The CI script currently scans `apps/*/app/api/**/*.ts`. This is why `apps/donor/
 - Route handler: `apps/admin/app/api/posts/route.ts` re-exports `GET` and `POST` from `@asym/api/posts` and does not import Supabase directly.
 - Business logic: `packages/api/src/posts/index.ts` imports `getAdminClient` from `@asym/database/supabase/admin`, which is the correct location for data-layer logic.
 
+Web Studio Phase 3 staff directory endpoints follow the same pattern:
+
+- `apps/admin/app/api/admin/missionaries/route.ts` → `@asym/api/admin/missionary-directory`
+- `apps/admin/app/api/admin/funds/route.ts` → `@asym/api/admin/fund-directory`
+
 ## Incorrect pattern
 
 Route handlers in `apps/*/app/api/` must not call Supabase clients directly.

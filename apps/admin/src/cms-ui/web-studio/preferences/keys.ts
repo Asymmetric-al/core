@@ -22,6 +22,11 @@ export const WEB_STUDIO_COLLECTION_PREFERENCE_MAP = {
     recentDocs: "web-studio.ministryUpdates.recent",
     workspace: "web-studio.ministryUpdates.documentWorkspace",
   },
+  "missionary-giving-pages": {
+    listUi: "web-studio.missionaryGivingPages.listUi",
+    recentDocs: "web-studio.missionaryGivingPages.recent",
+    workspace: "web-studio.missionaryGivingPages.documentWorkspace",
+  },
   navigation: {
     listUi: "web-studio.navigation.listUi",
     recentDocs: "web-studio.navigation.recent",
@@ -31,5 +36,15 @@ export const WEB_STUDIO_COLLECTION_PREFERENCE_MAP = {
     listUi: WEB_STUDIO_PREF_KEYS.pagesListUi,
     recentDocs: WEB_STUDIO_PREF_KEYS.recentPages,
     workspace: WEB_STUDIO_PREF_KEYS.pagesDocWorkspace,
+  },
+  "page-templates": {
+    listUi: "web-studio.pageTemplates.listUi",
+    recentDocs: "web-studio.pageTemplates.recent",
+    workspace: "web-studio.pageTemplates.documentWorkspace",
+  },
+  "project-pages": {
+    listUi: "web-studio.projectPages.listUi",
+    recentDocs: "web-studio.projectPages.recent",
+    workspace: "web-studio.projectPages.documentWorkspace",
   },
 } as const;
