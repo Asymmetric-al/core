@@ -1,5 +1,7 @@
 # Web Studio Phase 2 — current parity status
 
+**Superseded for “current system” truth by:** [`web-studio-living-spec.md`](./web-studio-living-spec.md) (this file remains as Phase 2 history).
+
 ## Goal
 
 Expand the Phase 1 Pages-only native slice into a shared Web Studio shell and

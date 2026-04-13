@@ -8,6 +8,8 @@ import {
   LayoutDashboard,
   PanelLeftClose,
   PanelLeft,
+  Sparkles,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -32,6 +34,9 @@ export function StudioNavRail({ className }: { className?: string }) {
     process.env.CMS_WEB_STUDIO_NATIVE_MINISTRY_UPDATES ?? "",
     process.env.CMS_WEB_STUDIO_NATIVE_NAVIGATION ?? "",
     process.env.CMS_WEB_STUDIO_NATIVE_PAGES ?? "",
+    process.env.CMS_WEB_STUDIO_NATIVE_PAGE_TEMPLATES ?? "",
+    process.env.CMS_WEB_STUDIO_NATIVE_MISSIONARY_GIVING_PAGES ?? "",
+    process.env.CMS_WEB_STUDIO_NATIVE_PROJECT_PAGES ?? "",
   ].join("|");
 
   useEffect(() => {
@@ -105,7 +110,7 @@ export function StudioNavRail({ className }: { className?: string }) {
         setRecentDocs(
           entries
             .flat()
-            .sort((a, b) =>
+            .sort((a: { updatedAt?: string }, b: { updatedAt?: string }) =>
               (b.updatedAt ?? "").localeCompare(a.updatedAt ?? ""),
             )
             .slice(0, 6),
@@ -157,6 +162,40 @@ export function StudioNavRail({ className }: { className?: string }) {
         </Button>
       </div>
       <nav className="flex flex-col gap-1 p-2">
+        <Button
+          variant={
+            pathname.startsWith("/web-studio/templates") ? "secondary" : "ghost"
+          }
+          size="sm"
+          className={cn(
+            "justify-start gap-2 font-semibold text-xs",
+            collapsed && "justify-center px-0",
+          )}
+          asChild
+        >
+          <Link href="/web-studio/templates" title="Templates">
+            <Sparkles className="h-4 w-4 shrink-0" />
+            {!collapsed ? <span>Templates</span> : null}
+          </Link>
+        </Button>
+        <Button
+          variant={
+            pathname.startsWith("/web-studio/missionaries")
+              ? "secondary"
+              : "ghost"
+          }
+          size="sm"
+          className={cn(
+            "justify-start gap-2 font-semibold text-xs",
+            collapsed && "justify-center px-0",
+          )}
+          asChild
+        >
+          <Link href="/web-studio/missionaries" title="Missionaries">
+            <Users className="h-4 w-4 shrink-0" />
+            {!collapsed ? <span>Missionaries</span> : null}
+          </Link>
+        </Button>
         {enabledCollections.map((collection) => {
           const isActive =
             pathname === collection.listPath ||

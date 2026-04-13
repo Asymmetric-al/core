@@ -1,3 +1,9 @@
+import {
+  createLegacyRichTextField,
+  createPageLayoutField,
+  createPageTypeField,
+  createTemplateRelationshipField,
+} from "./page-builders";
 import { pagesGeneratePreviewURL } from "../../cms-ui/web-studio/adapters/preview-url";
 import { isNativePagesWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
 import {
@@ -80,10 +86,18 @@ export const Pages: CollectionConfig = {
       name: "summary",
       type: "textarea",
     },
+    createPageTypeField(),
+    createTemplateRelationshipField(),
+    createPageLayoutField(),
     {
       name: "content",
       type: "richText",
       required: true,
+      admin: {
+        description:
+          "Legacy rich-text fallback during the layout rollout. Public rendering should prefer layout when present.",
+      },
     },
+    createLegacyRichTextField(),
   ],
 };

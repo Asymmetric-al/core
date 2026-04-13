@@ -40,6 +40,8 @@ export type NativeCollectionListViewProps = {
   beforeActions?: React.ReactNode[];
   BeforeList?: React.ReactNode;
   BeforeListTable?: React.ReactNode;
+  /** When set, overrides `createHref` from collection config and Payload default create URL */
+  createHrefOverride?: string;
   collectionSlug: WebStudioCollectionSlug;
   columnState: TableColumnsProviderProps["columnState"];
   Description?: React.ReactNode;
@@ -67,6 +69,7 @@ export function NativeCollectionListView(props: NativeCollectionListViewProps) {
     beforeActions,
     BeforeList,
     BeforeListTable,
+    createHrefOverride,
     collectionSlug,
     columnState,
     Description: _Description,
@@ -151,6 +154,8 @@ export function NativeCollectionListView(props: NativeCollectionListViewProps) {
   const { data, handleSearchChange, query } = useListQuery();
   const docs = data?.docs ?? [];
   const totalDocs = data?.totalDocs ?? 0;
+  const createHref =
+    createHrefOverride ?? studioConfig.createHref ?? newDocumentURL;
 
   return (
     <StudioLayout sectionLabel={studioConfig.sectionLabel}>
@@ -161,13 +166,13 @@ export function NativeCollectionListView(props: NativeCollectionListViewProps) {
           className="gap-8 p-0 pb-12"
           headerClassName="border-0 pb-6"
           actions={
-            hasCreatePermission && newDocumentURL ? (
+            hasCreatePermission && createHref ? (
               <Button
                 size="sm"
                 className="font-semibold uppercase tracking-wide"
                 asChild
               >
-                <Link href={newDocumentURL}>
+                <Link href={createHref}>
                   <Plus className="mr-2 h-4 w-4" />
                   {studioConfig.createLabel}
                 </Link>
