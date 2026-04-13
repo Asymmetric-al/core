@@ -4,7 +4,7 @@ import {
 } from "@asym/auth/demo-login";
 import { createClient } from "@asym/database/supabase/server";
 import { serverEnv } from "@asym/env";
-import { LoginScreen } from "@asym/ui/components/auth/LoginScreen";
+import { LoginScreen } from "@asym/ui/components/auth/LoginScreenClient";
 import { LoginScreenLayout } from "@asym/ui/components/auth/LoginScreenLayout";
 import { redirect } from "next/navigation";
 

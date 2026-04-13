@@ -1,6 +1,6 @@
 export * from "./auth-primitives";
 export * from "./DemoOnlyLoginCard";
 export * from "./FullLoginCard";
-export * from "./LoginScreen";
+export { LoginScreen, type LoginScreenProps } from "./LoginScreenClient";
 export * from "./LoginScreenLayout";
 export * from "./RegisterScreen";
