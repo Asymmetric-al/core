@@ -1,3 +1,4 @@
+import { isNativeCollectionWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
 import {
   tenantScopedCreateAccess,
   tenantScopedDeleteAccess,
@@ -9,11 +10,33 @@ import { applyTenantFromContext } from "../hooks/tenant";
 
 import type { CollectionConfig } from "payload";
 
+const nativeMissionaryProfilesAdmin = isNativeCollectionWebStudioEnabled(
+  "missionary-profiles",
+)
+  ? {
+      components: {
+        views: {
+          list: {
+            Component:
+              "/src/cms-ui/web-studio/missionary-profiles/list/MissionaryProfilesNativeListView.tsx#MissionaryProfilesNativeListView",
+          },
+          edit: {
+            default: {
+              Component:
+                "/src/cms-ui/web-studio/missionary-profiles/document/MissionaryProfilesNativeEditView.tsx#MissionaryProfilesNativeEditView",
+            },
+          },
+        },
+      },
+    }
+  : {};
+
 export const MissionaryProfiles: CollectionConfig = {
   slug: "missionary-profiles",
   admin: {
     defaultColumns: ["fullName", "tenant", "updatedAt"],
     useAsTitle: "fullName",
+    ...nativeMissionaryProfilesAdmin,
   },
   access: {
     read: tenantScopedReadAccess("tenant"),
@@ -44,6 +67,15 @@ export const MissionaryProfiles: CollectionConfig = {
       type: "text",
       required: true,
       index: true,
+    },
+    {
+      name: "supabaseMissionaryId",
+      type: "text",
+      index: true,
+      admin: {
+        description:
+          "Canonical missionary UUID from public.missionaries. Used for cross-reference lookup when creating missionary giving pages.",
+      },
     },
     {
       name: "tagline",

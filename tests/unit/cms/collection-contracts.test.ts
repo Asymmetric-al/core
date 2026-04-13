@@ -13,6 +13,7 @@ type CollectionDef = {
     drafts?: {
       autosave?: {
         interval?: number;
+        showSaveDraftButton?: boolean;
       };
     };
   };
@@ -25,6 +26,19 @@ type CollectionDef = {
     strategies?: unknown[];
   };
   admin?: {
+    components?: {
+      views?: {
+        edit?: {
+          default?: {
+            Component?: string;
+          };
+        };
+        list?: {
+          Component?: string;
+        };
+      };
+    };
+    preview?: unknown;
     useAsTitle?: string;
   };
 };
@@ -87,6 +101,10 @@ describe("CMS collection contracts", () => {
   it("enables drafts only for publish-managed collections", () => {
     expect(Pages.versions?.drafts?.autosave?.interval).toBe(300);
     expect(MinistryUpdates.versions?.drafts?.autosave?.interval).toBe(300);
+    expect(Pages.versions?.drafts?.autosave?.showSaveDraftButton).toBe(true);
+    expect(
+      MinistryUpdates.versions?.drafts?.autosave?.showSaveDraftButton,
+    ).toBe(true);
 
     expect(Navigation.versions).toBeUndefined();
     expect(MissionaryProfiles.versions).toBeUndefined();
@@ -173,5 +191,43 @@ describe("CMS collection contracts", () => {
     expect(CmsUsers.auth?.strategies).toHaveLength(1);
     expect(getField(CmsUsers, "email").type).toBe("email");
     expect(getField(CmsUsers, "role").type).toBe("select");
+  });
+
+  it("registers native Mission Control list/edit views for editorial collections", () => {
+    expect(Pages.admin?.components?.views?.list?.Component).toContain(
+      "PagesNativeListView",
+    );
+    expect(Pages.admin?.components?.views?.edit?.default?.Component).toContain(
+      "PagesNativeEditView",
+    );
+    expect(Pages.admin?.preview).toBeTypeOf("function");
+
+    expect(Navigation.admin?.components?.views?.list?.Component).toContain(
+      "NavigationNativeListView",
+    );
+    expect(
+      Navigation.admin?.components?.views?.edit?.default?.Component,
+    ).toContain("NavigationNativeEditView");
+
+    expect(
+      MissionaryProfiles.admin?.components?.views?.list?.Component,
+    ).toContain("MissionaryProfilesNativeListView");
+    expect(
+      MissionaryProfiles.admin?.components?.views?.edit?.default?.Component,
+    ).toContain("MissionaryProfilesNativeEditView");
+
+    expect(MinistryUpdates.admin?.components?.views?.list?.Component).toContain(
+      "MinistryUpdatesNativeListView",
+    );
+    expect(
+      MinistryUpdates.admin?.components?.views?.edit?.default?.Component,
+    ).toContain("MinistryUpdatesNativeEditView");
+
+    expect(Media.admin?.components?.views?.list?.Component).toContain(
+      "MediaNativeListView",
+    );
+    expect(Media.admin?.components?.views?.edit?.default?.Component).toContain(
+      "MediaNativeEditView",
+    );
   });
 });
