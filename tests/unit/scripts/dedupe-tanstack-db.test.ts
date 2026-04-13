@@ -8,7 +8,9 @@ import { dedupeTanstackDb } from "../../../scripts/dedupe-tanstack-db.mjs";
 
 const symlinkTestsSupported = (() => {
   if (process.platform !== "win32") return true;
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "dedupe-db-symlink-probe-"));
+  const dir = fs.mkdtempSync(
+    path.join(os.tmpdir(), "dedupe-db-symlink-probe-"),
+  );
   const target = path.join(dir, "t");
   const link = path.join(dir, "l");
   try {
