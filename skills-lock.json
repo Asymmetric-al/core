@@ -15,6 +15,11 @@
       "source": "supabase/agent-skills",
       "sourceType": "github",
       "computedHash": "f4cd7570115d97af6bcb2946eb891a958c8d04a43b479871c9ccadbc670ad058"
+    },
+    "tiptap": {
+      "source": "ueberdosis/tiptap",
+      "sourceType": "github",
+      "computedHash": "992391aaf81dc4b76427d77e6f40f3ab45c6af37de972202d9206376970f1984"
     }
   }
 }
