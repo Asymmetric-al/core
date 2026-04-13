@@ -99,6 +99,22 @@ describe("member care route helpers", () => {
     expect(result.response.status).toBe(400);
   });
 
+  it("returns 422 when schema validation fails", async () => {
+    const schema = z.object({ personnelId: z.string().min(1) });
+    const request = new Request("http://localhost/api", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ personnelId: 42 }),
+    });
+
+    const result = await readJsonBody(request, schema);
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("Expected schema validation failure");
+    expect(result.response.status).toBe(422);
+  });
+
   it("maps zod errors to 422 responses", async () => {
     const response = toMutationErrorResponse(
       new z.ZodError([

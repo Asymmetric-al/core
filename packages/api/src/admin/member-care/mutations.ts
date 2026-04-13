@@ -2,13 +2,13 @@ import { getAdminClient } from "@asym/database/supabase/admin";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
-const threadPostSchema = z.object({
+export const threadPostSchema = z.object({
   personnelId: z.string().min(1),
   content: z.string().min(1),
   isPrivate: z.boolean().default(false),
 });
 
-const careGoalSchema = z.object({
+export const careGoalSchema = z.object({
   id: z.string().optional(),
   personnelId: z.string().min(1),
   title: z.string().min(1),
@@ -16,14 +16,14 @@ const careGoalSchema = z.object({
   targetDate: z.string().optional(),
 });
 
-const activitySchema = z.object({
+export const activitySchema = z.object({
   personnelId: z.string().min(1),
   type: z.string().min(1),
   content: z.string().min(1),
   isPrivate: z.boolean().default(false),
 });
 
-const careRequirementSchema = z.object({
+export const careRequirementSchema = z.object({
   id: z.string().optional(),
   personnelId: z.string().min(1),
   activityType: z.string().min(1),
@@ -31,7 +31,7 @@ const careRequirementSchema = z.object({
   notes: z.string().optional(),
 });
 
-const manualAttentionSchema = z.object({
+export const manualAttentionSchema = z.object({
   personnelId: z.string().min(1),
   manualAttention: z.boolean(),
 });

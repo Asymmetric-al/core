@@ -1,6 +1,6 @@
 import {
+  manualAttentionSchema,
   setManualAttentionFlag,
-  type SetManualAttentionInput,
 } from "@asym/api/admin/member-care/mutations";
 
 import {
@@ -15,7 +15,7 @@ export async function PATCH(request: Request) {
     return auth.response;
   }
 
-  const body = await readJsonBody(request);
+  const body = await readJsonBody(request, manualAttentionSchema);
   if (!body.ok) {
     return body.response;
   }
@@ -23,7 +23,7 @@ export async function PATCH(request: Request) {
   try {
     const result = await setManualAttentionFlag(
       auth.context.tenantId,
-      body.body as SetManualAttentionInput,
+      body.body,
     );
     return Response.json(result);
   } catch (error) {

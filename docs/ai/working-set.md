@@ -1,5 +1,19 @@
 # Working Set
 
+## 2026-04-13 (Mission Control member care port — phase 8 contract hardening)
+
+- Date: 2026-04-13
+- Repo: Asymmetric-al/core
+- Goal: Complete phase 8 by enforcing typed route contracts with shared schema-aware JSON parsing and eliminating unsafe payload casts in member-care mutation routes.
+- Primary area:
+  - `apps/admin/app/api/admin/member-care/_lib.ts`
+  - `apps/admin/app/api/admin/member-care/{thread,goals,activity,requirements,attention}/route.ts`
+  - `packages/api/src/admin/member-care/mutations.ts`
+  - `tests/unit/apps/admin/member-care-route-lib.test.ts`
+- Constraints:
+  - Keep route handlers thin while validating request shape at the HTTP boundary.
+  - Preserve business validation in `@asym/api` without duplicating divergent schema logic.
+
 ## 2026-04-13 (Mission Control member care port — phase 7 follow-up hardening)
 
 - Date: 2026-04-13

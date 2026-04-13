@@ -1,5 +1,5 @@
 import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
-import { ZodError } from "zod";
+import { ZodError, type ZodType } from "zod";
 
 type MemberCareContext = {
   tenantId: string;
@@ -10,8 +10,8 @@ type AuthResult =
   | { ok: true; context: MemberCareContext }
   | { ok: false; response: Response };
 
-type JsonResult =
-  | { ok: true; body: unknown }
+type JsonResult<T = unknown> =
+  | { ok: true; body: T }
   | { ok: false; response: Response };
 
 export async function requireMemberCareAccess(): Promise<AuthResult> {
@@ -40,7 +40,10 @@ export async function requireMemberCareAccess(): Promise<AuthResult> {
   };
 }
 
-export async function readJsonBody(request: Request): Promise<JsonResult> {
+export async function readJsonBody<T = unknown>(
+  request: Request,
+  schema?: ZodType<T>,
+): Promise<JsonResult<T>> {
   try {
     const body = await request.json();
     if (!body || typeof body !== "object" || Array.isArray(body)) {
@@ -53,7 +56,25 @@ export async function readJsonBody(request: Request): Promise<JsonResult> {
       };
     }
 
-    return { ok: true, body };
+    if (schema) {
+      const parsed = schema.safeParse(body);
+      if (!parsed.success) {
+        return {
+          ok: false,
+          response: Response.json(
+            {
+              error: "Invalid request payload.",
+              details: parsed.error.flatten(),
+            },
+            { status: 422 },
+          ),
+        };
+      }
+
+      return { ok: true, body: parsed.data };
+    }
+
+    return { ok: true, body: body as T };
   } catch {
     return {
       ok: false,

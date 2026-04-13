@@ -1,6 +1,6 @@
 import {
+  activitySchema,
   logCareActivity,
-  type LogCareActivityInput,
 } from "@asym/api/admin/member-care/mutations";
 
 import {
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     return auth.response;
   }
 
-  const body = await readJsonBody(request);
+  const body = await readJsonBody(request, activitySchema);
   if (!body.ok) {
     return body.response;
   }
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     const result = await logCareActivity(
       auth.context.tenantId,
       auth.context.userId,
-      body.body as LogCareActivityInput,
+      body.body,
     );
     return Response.json(result, { status: 201 });
   } catch (error) {
