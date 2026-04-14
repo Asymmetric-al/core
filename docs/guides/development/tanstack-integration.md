@@ -8,10 +8,11 @@ This guide documents the project-standard integration for TanStack Query v5, Tab
 | ------------------------------- | ---------- | ---------------------------------- | ------------------------- |
 | `@tanstack/react-query`         | `^5.96.2`  | `packages/database`, apps          | Query state and caching   |
 | `@tanstack/react-table`         | `^8.21.3`  | `packages/ui`, apps                | Headless table state      |
-| `@tanstack/react-db`            | `^0.1.80`  | `packages/database`, `packages/ui` | React DB bindings         |
-| `@tanstack/query-db-collection` | `^1.0.33`  | `packages/database`                | Query-backed collections  |
-| `@tanstack/db`                  | `^0.6.2`   | `packages/database`                | DB runtime                |
+| `@tanstack/react-db`            | `^0.1.82`  | `packages/database`, `packages/ui` | React DB bindings         |
+| `@tanstack/query-db-collection` | `^1.0.35`  | `packages/database`                | Query-backed collections  |
+| `@tanstack/db`                  | `^0.6.4`   | `packages/database`                | DB runtime                |
 | `@tanstack/react-virtual`       | `^3.13.23` | `packages/ui`                      | Row/list virtualization   |
+| `@tanstack/cli`                 | `^0.63.1`  | repo root (devDependency)          | TanStack docs + tooling   |
 | `zod`                           | `^4.3.6`   | apps + shared packages             | Runtime schema validation |
 
 ## Architecture Boundaries
@@ -249,3 +250,10 @@ This preserves count consistency without requiring route-level SQL transactions 
 - [ ] Counter RPC mutation flows include compensating writes on partial failure.
 - [ ] URL-backed tables: expect toolbar/pagination to disable while `isUrlStatePending` is true.
 - [ ] Lint/typecheck/unit tests pass on affected workspaces.
+
+## Latest Docs + Release Validation
+
+- TanStack DB docs: `https://tanstack.com/db/latest`
+- TanStack Virtual docs: `https://tanstack.com/virtual/latest`
+- Version truth for this repo is pinned via workspace `package.json` plus npm dist-tags (`npm view @tanstack/* version dist-tags`).
+- TanStack CLI is installed at the repo root to support `tanstack doc` / `tanstack search-docs` for future upgrade checks.
