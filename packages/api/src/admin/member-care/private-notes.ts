@@ -4,8 +4,8 @@ import {
   createCarePrivateNote,
   privateNoteSchema,
 } from "./mutations";
-import { withOperation } from "../../shared/with-operation";
 import { toErrorResponse } from "../../shared/http-errors";
+import { withOperation } from "../../shared/with-operation";
 
 export const POST = withOperation(
   async ({ auth, request }) => {

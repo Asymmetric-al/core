@@ -1,1 +1,1 @@
-import { POST } from "@asym/api/admin/member-care/private-notes";
+export { POST } from "@asym/api/admin/member-care/private-notes";

@@ -1,3 +1,10 @@
+import {
+  readJsonBody,
+  requireMemberCareAccess,
+  toApiErrorResponse,
+  toMutationErrorResponse,
+} from "../../../../../../packages/api/src/admin/member-care/route-helpers";
+import { manualAttentionSchema } from "../../../../../../packages/api/src/admin/member-care/mutations";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { getAuthContextMock, hasAnyContextRoleMock } = vi.hoisted(() => ({
@@ -9,14 +16,6 @@ vi.mock("@asym/auth/context", () => ({
   getAuthContext: getAuthContextMock,
   hasAnyContextRole: hasAnyContextRoleMock,
 }));
-
-import {
-  readJsonBody,
-  requireMemberCareAccess,
-  toApiErrorResponse,
-  toMutationErrorResponse,
-} from "../../../../apps/admin/app/api/admin/member-care/_lib";
-import { manualAttentionSchema } from "../../../../packages/api/src/admin/member-care/mutations";
 
 describe("member care route helpers", () => {
   beforeEach(() => {
