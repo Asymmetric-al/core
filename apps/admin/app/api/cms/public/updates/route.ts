@@ -1,18 +1,11 @@
-import { NextResponse, connection, type NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
-import {
-  getPayloadClient,
-  isPayloadClientInitializationError,
-} from "../../../../../src/cms/get-payload";
+import { getPayloadClient } from "../../../../../src/cms/get-payload";
 import { resolveTenantFromRequest } from "../../../../../src/cms/public/resolve-tenant";
-
-async function ensureRequestTimeExecution() {
-  if (process.env.NODE_ENV === "test") {
-    return;
-  }
-
-  await connection();
-}
+import {
+  ensureRequestTimeExecution,
+  publicCmsRouteErrorResponse,
+} from "../../../../../src/cms/public/route-helpers";
 
 export async function GET(request: NextRequest) {
   await ensureRequestTimeExecution();
@@ -52,26 +45,14 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       tenant: {
-        id: tenant.id,
         slug: tenant.slug ?? null,
       },
       updates: updatesQuery.docs,
     });
   } catch (error) {
-    if (isPayloadClientInitializationError(error)) {
-      console.error(error.message);
-
-      return NextResponse.json(
-        { error: "Failed to fetch ministry updates" },
-        { status: error.statusCode },
-      );
-    }
-
-    console.error("Failed to fetch ministry updates.", error);
-
-    return NextResponse.json(
-      { error: "Failed to fetch ministry updates" },
-      { status: 500 },
-    );
+    return publicCmsRouteErrorResponse(error, {
+      clientMessage: "Failed to fetch ministry updates",
+      logMessage: "Failed to fetch ministry updates.",
+    });
   }
 }
