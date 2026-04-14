@@ -1,6 +1,15 @@
 export {
+  useCareDashboard,
   useCarePersonnel,
   useCareActivity,
   useCareProfile,
+  useCarePrivateNotes,
+  useCreateCareThreadPost,
+  useCreateCarePrivateNote,
+  useCreatePrivateNote,
+  useCreateOrUpdateCareGoal,
+  useLogCareActivity,
+  useUpsertCareRequirement,
+  useSetManualAttentionFlag,
   useLogActivity,
 } from "@asym/database/hooks";

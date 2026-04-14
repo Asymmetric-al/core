@@ -27,6 +27,8 @@ export const adminSurfaceQueryKeys = {
   taskLinkedEntities: ["admin", "tasks", "linked-entities"] as const,
   carePersonnel: ["admin", "care", "personnel"] as const,
   careActivity: ["admin", "care", "activity"] as const,
+  memberCareDashboard: ["admin", "member-care", "dashboard"] as const,
+  memberCareDetail: ["admin", "member-care", "detail"] as const,
   eventAttendees: ["admin", "events", "attendees"] as const,
   mobilizeCandidates: ["admin", "mobilize", "candidates"] as const,
   teams: ["admin", "teams"] as const,
