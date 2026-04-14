@@ -172,7 +172,8 @@ function getCurrentApiRouteEntries() {
   ]
     .sort()
     .map((filePath) => {
-      const segments = filePath.split("/");
+      const normalized = filePath.replace(/\\/g, "/");
+      const segments = normalized.split("/");
       const app = segments[1];
       const route = `/${segments.slice(3, -1).join("/")}`;
       return `${app}: ${route}`;
