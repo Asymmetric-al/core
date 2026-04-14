@@ -1,247 +1,61 @@
-"use client";
-
-import {
-  type LucideProps,
-  type LucideIcon,
-  Settings,
-  LayoutDashboard,
-  Globe,
-  Users,
-  DollarSign,
-  Mail,
-  FileText,
-  PenTool,
-  Rocket,
-  BarChart3,
-  HelpCircle,
-  Zap,
-  Heart,
-  CalendarDays,
-  Plus,
-  ChevronRight,
-  ChevronLeft,
-  ChevronDown,
-  Menu,
-  Bell,
-  Command,
-  LogOut,
-  Building2,
-  ChevronsUpDown,
-  Check,
-  Search,
-  User,
-  ArrowRight,
-  Edit,
-  UserPlus,
-  Phone,
-  TrendingUp,
-  CheckCircle,
-  AlertTriangle,
-  PenSquare,
-  Copy,
-  XCircle,
-  Receipt,
-  Calendar,
-  FilePlus,
-  ClipboardList,
-  FileSearch,
-  ArrowUp,
-  Send,
-  RefreshCw,
-  AlertCircle,
-  Key,
-  Download,
-  CheckSquare,
-  ClipboardPlus,
-  FileHeart,
-  DoorOpen,
-  Printer,
-} from "lucide-react";
-import dynamicIconImports from "lucide-react/dynamicIconImports";
-import React, { lazy, Suspense, useMemo } from "react";
-
-// Helper to convert PascalCase to kebab-case for lucide-react/dynamicIconImports
-function pascalToKebab(str: string): string {
-  return str.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
-}
-
-interface DynamicIconProps extends Omit<LucideProps, "ref" | "name"> {
-  name: string | LucideIcon;
-  fallback?: React.ReactNode;
-}
-
-type DynamicImportName = keyof typeof dynamicIconImports;
-const LAZY_ICON_MAP = new Map<
-  DynamicImportName,
-  React.LazyExoticComponent<React.ComponentType<LucideProps>>
->(
-  (Object.keys(dynamicIconImports) as DynamicImportName[]).map((iconName) => [
-    iconName,
-    lazy(dynamicIconImports[iconName]),
-  ]),
-);
-
-export function DynamicIcon({ name, fallback, ...props }: DynamicIconProps) {
-  const kebabName = useMemo(() => {
-    if (typeof name === "function") return null;
-
-    if (!name || typeof name !== "string") return null;
-    // If it's already kebab-case or a valid key in dynamicIconImports, use it
-    if (name in dynamicIconImports)
-      return name as keyof typeof dynamicIconImports;
-    // Otherwise try converting from PascalCase
-    const converted = pascalToKebab(name);
-    if (converted in dynamicIconImports)
-      return converted as keyof typeof dynamicIconImports;
-    return null;
-  }, [name]);
-  const lazyIconComponent = kebabName
-    ? (LAZY_ICON_MAP.get(kebabName) ?? null)
-    : null;
-
-  // If name is already an icon component, render it directly
-  if (typeof name === "function") {
-    const IconComponent = name;
-    return <IconComponent {...props} />;
-  }
-
-  if (!lazyIconComponent) {
-    return <Settings {...props} />;
-  }
-
-  const lazyIconElement = React.createElement(lazyIconComponent, props);
-
-  return (
-    <Suspense
-      fallback={
-        fallback || (
-          <div className="w-4 h-4 animate-pulse bg-slate-200 rounded" />
-        )
-      }
-    >
-      {lazyIconElement}
-    </Suspense>
-  );
-}
-
-// Icon mapping function
-const ICON_MAP: Record<string, LucideIcon> = {
-  LayoutDashboard,
-  Globe,
-  Users,
-  DollarSign,
-  Mail,
-  FileText,
-  PenTool,
-  Rocket,
-  BarChart3,
-  HelpCircle,
-  Zap,
-  Settings,
-  Heart,
-  CalendarDays,
-  Plus,
-  ChevronRight,
-  ChevronLeft,
-  ChevronDown,
-  Menu,
-  Bell,
-  Command,
-  LogOut,
-  Building2,
-  ChevronsUpDown,
-  Check,
-  Search,
-  User,
-  ArrowRight,
-  Edit,
-  UserPlus,
-  Phone,
-  TrendingUp,
-  CheckCircle,
-  AlertTriangle,
-  PenSquare,
-  Copy,
-  XCircle,
-  Receipt,
-  Calendar,
-  FilePlus,
-  ClipboardList,
-  FileSearch,
-  ArrowUp,
-  Send,
-  RefreshCw,
-  AlertCircle,
-  Key,
-  Download,
-  CheckSquare,
-  ClipboardPlus,
-  FileHeart,
-  DoorOpen,
-  Printer,
-};
-
-export function getIcon(iconName: string | LucideIcon): LucideIcon {
-  // If it's already an icon component, return it
-  if (typeof iconName === "function") {
-    return iconName;
-  }
-  // Otherwise look it up in the map
-  return ICON_MAP[iconName] || Settings;
-}
+export {
+  type DynamicIconProps,
+  DynamicIcon,
+  getIcon,
+} from "../../components/icons";
 
 export {
-  LayoutDashboard,
-  Globe,
-  Users,
-  DollarSign,
-  Mail,
-  FileText,
-  PenTool,
-  Rocket,
-  BarChart3,
-  HelpCircle,
-  Zap,
-  Settings,
-  Heart,
-  CalendarDays,
-  Plus,
-  ChevronRight,
-  ChevronLeft,
-  ChevronDown,
-  Menu,
-  Bell,
-  Command,
-  LogOut,
-  Building2,
-  ChevronsUpDown,
-  Check,
-  Search,
-  User,
-  ArrowRight,
-  Edit,
-  UserPlus,
-  Phone,
-  TrendingUp,
-  CheckCircle,
-  AlertTriangle,
-  PenSquare,
-  Copy,
-  XCircle,
-  Receipt,
-  Calendar,
-  FilePlus,
-  ClipboardList,
-  FileSearch,
-  ArrowUp,
-  Send,
-  RefreshCw,
   AlertCircle,
-  Key,
-  Download,
+  AlertTriangle,
+  ArrowRight,
+  ArrowUp,
+  BarChart3,
+  Bell,
+  Building2,
+  Calendar,
+  CalendarDays,
+  Check,
+  CheckCircle,
   CheckSquare,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsUpDown,
+  ClipboardList,
   ClipboardPlus,
-  FileHeart,
+  Command,
+  Copy,
+  DollarSign,
   DoorOpen,
+  Download,
+  Edit,
+  FileHeart,
+  FilePlus,
+  FileSearch,
+  FileText,
+  Globe,
+  Heart,
+  HelpCircle,
+  Key,
+  LayoutDashboard,
+  LogOut,
+  Mail,
+  Menu,
+  PenSquare,
+  PenTool,
+  Phone,
+  Plus,
   Printer,
-};
+  Receipt,
+  RefreshCw,
+  Rocket,
+  Search,
+  Send,
+  Settings,
+  TrendingUp,
+  User,
+  UserPlus,
+  Users,
+  XCircle,
+  Zap,
+} from "lucide-react";

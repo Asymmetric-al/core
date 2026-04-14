@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  type LucideIcon,
   type LucideProps,
   Settings,
   LayoutDashboard,
@@ -39,8 +40,8 @@ function pascalToKebab(str: string): string {
   return str.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
 }
 
-interface DynamicIconProps extends Omit<LucideProps, "ref"> {
-  name: string;
+export interface DynamicIconProps extends Omit<LucideProps, "ref" | "name"> {
+  name: string | LucideIcon;
   fallback?: React.ReactNode;
 }
 
@@ -57,6 +58,9 @@ const LAZY_ICON_MAP = new Map<
 
 export function DynamicIcon({ name, fallback, ...props }: DynamicIconProps) {
   const kebabName = useMemo(() => {
+    if (typeof name === "function") return null;
+
+    if (!name || typeof name !== "string") return null;
     // If it's already kebab-case or a valid key in dynamicIconImports, use it
     if (name in dynamicIconImports)
       return name as keyof typeof dynamicIconImports;
@@ -69,6 +73,12 @@ export function DynamicIcon({ name, fallback, ...props }: DynamicIconProps) {
   const lazyIconComponent = kebabName
     ? (LAZY_ICON_MAP.get(kebabName) ?? null)
     : null;
+
+  // If name is already an icon component, render it directly
+  if (typeof name === "function") {
+    const IconComponent = name;
+    return <IconComponent {...props} />;
+  }
 
   if (!lazyIconComponent) {
     return <Settings {...props} />;
@@ -121,7 +131,13 @@ const iconMap: Record<string, React.ComponentType<LucideProps>> = {
   ArrowRight,
 };
 
-export function getIcon(name: string): React.ComponentType<LucideProps> {
+export function getIcon(
+  name: string | LucideIcon,
+): React.ComponentType<LucideProps> {
+  if (typeof name === "function") {
+    return name;
+  }
+
   return iconMap[name] || Settings;
 }
 
