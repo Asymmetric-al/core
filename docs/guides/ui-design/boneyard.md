@@ -2,7 +2,7 @@
 
 ## Version and upstream
 
-- **npm:** track **`boneyard-js@^1.7.1`** (see [0xGF/boneyard releases](https://github.com/0xGF/boneyard/releases); v1.7.1 adds guided `skeletons` in config, CLI auth diagnostics, Preact/RN work, etc.).
+- **npm:** track **`boneyard-js@^1.7.6`** (see [0xGF/boneyard releases](https://github.com/0xGF/boneyard/releases)). The 1.7.x line adds guided `skeletons` config, redirect/auth diagnostics, optional styling controls, and 1.7.6 improves the React/Preact first visible frame so bones mount without the earlier blank flash.
 - **Monorepo:** `@asym/ui` re-exports the React `Skeleton` as `BoneyardSkeleton` from `boneyard-js/react` but does **not** list `boneyard-js` as a runtime `dependency`. It is an **optional** `peerDependency` plus a **`devDependency`** for `@asym/ui`’s own typecheck. Apps that render Boneyard at runtime declare **`boneyard-js`** in their **`dependencies`** (`@asym/admin`, `@asym/missionary-app`, `@asym/donor`).
 
 ## Triggers
@@ -27,6 +27,15 @@
 boneyard-js **1.7+** supports a top-level **`skeletons`** object: keys are skeleton **names**, values include **`route`** (path on the same origin as the CLI start URL) and optional **`wait`** (ms override for that page). When present, the CLI **skips** link discovery and visits only those routes — ideal for monorepos with multiple apps and public `/boneyard/*` capture pages.
 
 Each app’s config in this repo lists its named skeleton(s) explicitly.
+
+## Runtime defaults in this repo
+
+The current repo rollout intentionally keeps Boneyard on the conservative defaults already captured into the generated registries:
+
+- `color: "rgba(0,0,0,0.06)"`
+- `animate: "pulse"`
+
+Upstream 1.7.x also supports `stagger`, `transition`, `boneClass`, `shimmerColor`, `darkShimmerColor`, `speed`, and `shimmerAngle`, but we do **not** enable them globally by default. Add those only when a specific loading surface benefits from them and the regenerated bones are visually verified.
 
 ## Donor capture note (single breakpoint)
 
@@ -58,7 +67,7 @@ Use **`{app}-{area}-{section}`** so names are unique within an app crawl (duplic
 Protected apps redirect unauthenticated users. Capture runs in Playwright **without** your session cookies, so pilot screens use **dedicated public routes** under `/boneyard/...`:
 
 - **Admin / missionary:** path prefixes are allowlisted in each app’s layout public-path list.
-- **Donor:** `apps/donor/proxy.ts` lists **`/boneyard/`** under `publicRoutes` so the capture URL is reachable without a session.
+- **Donor:** `apps/donor/proxy.ts` lists **`/boneyard`** under `publicRoutes` so nested capture routes remain reachable without a session.
 
 Missionary **`/boneyard` routes** render inside a minimal padded shell (not full `AppShell`) so viewport width is closer to the real main content column.
 
@@ -87,6 +96,7 @@ The attribute is **not** honored unless listed in `snapshotConfig.excludeSelecto
 - [ ] Did not import `bones/registry` from a server-only module.
 - [ ] `/boneyard/*` pages use fixture data only (no real PII or authenticated data paths).
 - [ ] `boneyard.config.json` includes **`skeletons`** entries for each named capture route.
+- [ ] Donor proxy allowlists `/boneyard` (no trailing slash) so nested capture routes stay public.
 
 ## Playwright smoke (`tests/e2e/boneyard-smoke.spec.ts`)
 

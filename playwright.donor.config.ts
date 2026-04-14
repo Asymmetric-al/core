@@ -44,6 +44,9 @@ const isLocalBaseUrl = (() => {
   }
 })();
 
+const shouldStartLocalWebServer =
+  isLocalBaseUrl && process.env.PLAYWRIGHT_DONOR_BASE_URL == null;
+
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: false,
@@ -58,7 +61,7 @@ export default defineConfig({
     video: "retain-on-failure",
   },
   projects: [{ name: "donor-boneyard", use: { ...devices["Desktop Chrome"] } }],
-  webServer: isLocalBaseUrl
+  webServer: shouldStartLocalWebServer
     ? {
         command:
           "node -e \"try{require('fs').rmSync('apps/donor/.next/dev/lock',{force:true})}catch{}\" && bun run --cwd apps/donor dev:playwright -- --port 3000 --hostname 127.0.0.1",

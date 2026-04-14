@@ -1,5 +1,35 @@
 # Working Set
 
+## 2026-04-14 (PR #153 boneyard-js 1.7.6 refresh)
+
+- Date: 2026-04-14
+- Repo: Asymmetric-al/core
+- Goal: Update PR #153 from the current `boneyard-js` 1.7.1 target to 1.7.6, clean up the remaining donor capture-route / CI issues on the branch, and keep the Boneyard rollout on conservative runtime defaults.
+- Primary area:
+  - `apps/{admin,missionary,donor}/package.json`
+  - `packages/ui/package.json`
+  - `apps/donor/proxy.ts`
+  - `playwright.donor.config.ts`
+  - `.github/workflows/ci-integration.yml`
+  - `docs/guides/ui-design/boneyard.md`
+  - `bun.lock`
+- Constraints:
+  - Keep `@asym/ui` on the optional-peer + devDependency model for `boneyard-js`; do not leave a stale runtime dependency there.
+  - Preserve the current guided-crawl `skeletons` configs and only regenerate `apps/*/bones/**` if 1.7.6 changes generated output materially.
+  - Keep donor capture tests using the already-started CI donor app instead of starting a second dev server.
+  - Do not turn on new 1.7.x shimmer/stagger knobs globally without an explicit visual reason.
+- Evidence sources used:
+  - `docs/ai/rules/{general,frontend,testing}.md`
+  - `.next-docs/01-app/{01-getting-started/05-server-and-client-components,02-guides/third-party-libraries}.mdx`
+  - `docs/guides/ui-design/boneyard.md`
+  - local repo files under `apps/{admin,missionary,donor}`, `packages/ui`, `.github/workflows`, and `tests/e2e`
+  - upstream `0xGF/boneyard` README plus npm tarball/type inspection for `1.6.1`, `1.7.1`, and `1.7.6`
+  - GitHub PR #153 metadata and branch file reads via `gh`
+- Notes:
+  - The live repo index is stale for this branch; local file reads and GitHub branch reads are the source of truth for PR #153 work.
+  - The highest-value upstream runtime improvement for this repo is the 1.7.6 React/Preact first-frame skeleton mount fix; the rest of the 1.7.x additions are mostly optional controls or multi-framework expansion.
+  - The donor proxy bug is already covered conceptually by `tests/unit/auth/route-matching.test.ts`, which proves `/boneyard` works for nested routes and `/boneyard/` does not.
+
 ## 2026-04-11 (Repo health hardening pass)
 
 - Date: 2026-04-11
