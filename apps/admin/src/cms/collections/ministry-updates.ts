@@ -1,3 +1,4 @@
+import { isNativeCollectionWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
 import {
   tenantScopedCreateAccess,
   tenantScopedDeleteAccess,
@@ -9,11 +10,33 @@ import { applyTenantFromContext } from "../hooks/tenant";
 
 import type { CollectionConfig } from "payload";
 
+const nativeMinistryUpdatesAdmin = isNativeCollectionWebStudioEnabled(
+  "ministry-updates",
+)
+  ? {
+      components: {
+        views: {
+          list: {
+            Component:
+              "/src/cms-ui/web-studio/ministry-updates/list/MinistryUpdatesNativeListView.tsx#MinistryUpdatesNativeListView",
+          },
+          edit: {
+            default: {
+              Component:
+                "/src/cms-ui/web-studio/ministry-updates/document/MinistryUpdatesNativeEditView.tsx#MinistryUpdatesNativeEditView",
+            },
+          },
+        },
+      },
+    }
+  : {};
+
 export const MinistryUpdates: CollectionConfig = {
   slug: "ministry-updates",
   admin: {
     defaultColumns: ["title", "tenant", "updatedAt"],
     useAsTitle: "title",
+    ...nativeMinistryUpdatesAdmin,
   },
   access: {
     read: tenantScopedReadAccess("tenant"),
@@ -30,6 +53,7 @@ export const MinistryUpdates: CollectionConfig = {
     drafts: {
       autosave: {
         interval: 300,
+        showSaveDraftButton: true,
       },
     },
   },
