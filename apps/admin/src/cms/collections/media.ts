@@ -1,3 +1,4 @@
+import { isNativeCollectionWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
 import {
   tenantScopedCreateAccess,
   tenantScopedDeleteAccess,
@@ -11,6 +12,28 @@ import type { CollectionConfig } from "payload";
 
 export const Media: CollectionConfig = {
   slug: "media",
+  admin: {
+    defaultColumns: ["filename", "alt", "tenant", "updatedAt"],
+    useAsTitle: "filename",
+    ...(isNativeCollectionWebStudioEnabled("media")
+      ? {
+          components: {
+            views: {
+              edit: {
+                default: {
+                  Component:
+                    "/src/cms-ui/web-studio/media/document/MediaNativeEditView.tsx#MediaNativeEditView",
+                },
+              },
+              list: {
+                Component:
+                  "/src/cms-ui/web-studio/media/list/MediaNativeListView.tsx#MediaNativeListView",
+              },
+            },
+          },
+        }
+      : {}),
+  },
   access: {
     read: tenantScopedReadAccess("tenant"),
     create: tenantScopedCreateAccess("tenant"),

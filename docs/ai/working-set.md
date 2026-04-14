@@ -30,6 +30,32 @@
   - The biggest page wins in this pass are adjacent extractions (models/hooks/sections), not full feature migrations.
   - Validation should cover `verify:workspace-contract`, scoped lint/typecheck, unit tests, and a vendor-scoped React Doctor script for future audits.
 
+## 2026-04-10 (Web Studio Phase 5 — living documentation + handoff)
+
+- Repo: Asymmetric-al/core
+- Goal: Centralize Web Studio truth in `docs/guides/architecture/web-studio-living-spec.md`; add runbook, human + AI handoffs; link/update `cms-runtime.md`, `site-studio-payload.md`, phase snapshots; add `apps/admin/src/cms-ui/web-studio/README.md` and minimal module headers.
+- Key paths:
+  - `docs/guides/architecture/web-studio-living-spec.md`
+  - `docs/guides/development/web-studio-runbook.md`
+  - `docs/guides/development/web-studio-handoff.md`
+  - `docs/ai/web-studio-handoff.md`
+  - `apps/admin/src/cms-ui/web-studio/README.md`
+- Rollback: doc-only; revert commits if needed.
+
+## 2026-04-10 (Web Studio Phase 3 — templates, wizards, public expansion)
+
+- Repo: Asymmetric-al/core
+- Goal: Ship template gallery + TanStack Form wizards, Payload `create-from-template` endpoint, missionary/project public read routes, donor client helpers, and docs/tests — without breaking existing `/api/cms/public/pages` consumers.
+- Key paths:
+  - `apps/admin/payload.config.ts` (admin `views`, root `endpoints`)
+  - `apps/admin/src/cms/create-from-template-endpoint.ts`
+  - `apps/admin/src/cms-ui/web-studio/flows/*`
+  - `apps/admin/app/api/cms/public/missionary-pages/[id]/route.ts`
+  - `apps/admin/app/api/cms/public/project-pages/[slug]/route.ts`
+  - `apps/donor/lib/cms/client.ts`
+  - `docs/guides/architecture/{cms-runtime,web-studio-phase3}.md`
+- Rollback: collection env flags + remove endpoint registration if needed; regenerate import map after view component path changes.
+
 ## 2026-04-08 (Mission Control contributions infinite grid)
 
 - Date: 2026-04-08
@@ -88,6 +114,18 @@
 - Notes:
   - Foundation pass completed: shared `data-grid` exports are now public, the admin app no longer owns `@tanstack/db` directly, and shared TanStack package versions are aligned and typechecked.
   - The next pass is to standardize shared domain collections/hooks in `packages/database` before refactoring app surfaces to consume them.
+
+## 2026-04-10 (Web Studio Phase 2 — shared editorial workspaces)
+
+- Repo: Asymmetric-al/core
+- Goal: Generalize the Phase 1 Pages slice into shared native Web Studio list/document workspaces and register current editorial collections (`pages`, `navigation`, `missionary-profiles`, `ministry-updates`, `media`) onto them while keeping Payload document/runtime ownership.
+- Key paths:
+  - `apps/admin/src/cms-ui/web-studio/collections/**`
+  - `apps/admin/src/cms-ui/web-studio/shell/*`
+  - `apps/admin/src/cms/collections/{pages,navigation,missionary-profiles,ministry-updates,media}.ts`
+  - `docs/guides/architecture/web-studio-phase2.md`
+- Rollback: collection-scoped env flags (`CMS_WEB_STUDIO_NATIVE_*`) + `NODE_ENV=test bun run cms:importmap`
+- Known safe boundary: default list/edit routes are native; nested document subviews (`api`, `versions`, `version`, `live preview`) still rely on stock Payload routing until a safer public wrapper surface exists.
 
 ## 2026-04-07 (Post-Turbo-2.9 verification matrix re-run)
 
@@ -1178,3 +1216,48 @@
   - scoped lint/typecheck for touched packages/apps
   - `bun run test:unit`
   - Playwright session guard spec for donor/admin/missionary.
+
+## 2026-04-11 (TanStack DB + Virtual latest-version upgrade planning)
+
+- Date: 2026-04-11
+- Repo: Asymmetric-al/core
+- Goal: Verify the latest TanStack DB/Virtual/CLI versions and produce a concrete, repo-specific full-upgrade plan.
+- Primary area:
+  - `packages/database/package.json`
+  - `packages/ui/package.json`
+  - `docs/guides/development/tanstack-{integration,virtual-foundation,surface-inventory}.md`
+- Constraints:
+  - Nia MCP is unavailable in this session, so use repo-scoped `rg` and package registry checks (`npm view`) as evidence.
+  - Treat official TanStack docs and npm package registry as the version truth for planning.
+  - Produce phased rollout guidance with verification checkpoints and rollback guardrails.
+- Evidence sources used:
+  - `docs/ai/stack-registry.md`
+  - `docs/ai/working-set.md`
+  - `package.json` files under `packages/database` and `packages/ui`
+  - `npm view @tanstack/* version` checks (DB, react-db, query-db-collection, react-virtual, virtual-core, CLI)
+  - TanStack docs pages under `https://tanstack.com/db/latest` and `https://tanstack.com/virtual/latest`
+- Notes:
+  - Current repo already sits on the TanStack DB `0.6.x` line; target is patch alignment and coordinated Virtual/CLI bumps.
+
+## 2026-04-11 (TanStack DB/Virtual upgrade implementation)
+
+- Date: 2026-04-11
+- Repo: Asymmetric-al/core
+- Goal: Execute the TanStack DB + Virtual upgrade plan end-to-end, including dependency bumps, docs refresh, and verification.
+- Primary area:
+  - `package.json` (root)
+  - `packages/database/package.json`
+  - `packages/ui/package.json`
+  - `docs/guides/development/tanstack-integration.md`
+  - `docs/guides/development/tanstack-virtual-foundation.md`
+- Constraints:
+  - Nia MCP remains unavailable in-session; use repo-scoped file search and primary-source package/doc checks.
+  - Verify latest package versions from npm dist-tags before editing.
+  - Run at least scoped lint + typecheck + unit coverage to validate upgrade safety.
+- Evidence sources used:
+  - `npm view @tanstack/{db,react-db,query-db-collection,react-virtual,virtual-core,cli} version dist-tags`
+  - `https://tanstack.com/db/latest`
+  - `https://tanstack.com/virtual/latest`
+  - `rg` scans for TanStack usage in `packages/database` and `packages/ui`
+- Notes:
+  - `tanstack search-docs` currently fails in this environment (`fetch failed`), so docs verification uses direct official URLs + npm registry checks.
