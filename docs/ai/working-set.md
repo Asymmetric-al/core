@@ -1,5 +1,35 @@
 # Working Set
 
+## 2026-04-11 (Repo health hardening pass)
+
+- Date: 2026-04-11
+- Repo: Asymmetric-al/core
+- Goal: Land a low-risk repo health pass that reduces duplicated Mission Control shell surfaces, extracts model/section logic from the largest route modules, aligns task-surface motion with the shared reduced-motion wrapper, and corrects React Query v5 loading semantics where query state is currently read via `isLoading`.
+- Primary area:
+  - `apps/admin/features/mission-control/{components,shell}/**`
+  - `apps/admin/app/{feed,admin/teams}/**`
+  - `apps/missionary/app/{donors,feed,profile}/**`
+  - `packages/missionary/components/tasks/**`
+  - `scripts/verify-workspace-contract.mjs`
+  - `package.json`
+- Constraints:
+  - Keep App Router behavior unchanged; no segment config exports while `cacheComponents` is enabled.
+  - Prefer compatibility re-exports over large shell rewrites so existing imports keep working.
+  - Split large route files with adjacent model/hooks/sections files instead of broad architecture changes.
+  - Keep shared UI imports routed through `@asym/ui` and shared motion through `@asym/lib/motion`.
+  - Scope repo-wide quality tooling to first-party sources and avoid vendor noise.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/ai/rules/{general,frontend,testing}.md`
+  - `docs/guides/architecture/{data-access-boundary,runtime-map}.md`
+  - `.next-docs/01-app/01-getting-started/06-cache-components.mdx`
+  - `.next-docs/01-app/03-api-reference/04-functions/use-pathname.mdx`
+  - repo-scoped Nia search + direct file reads for missionary/admin route modules and Mission Control shell duplicates
+- Notes:
+  - The `shell/` Mission Control tree is effectively a compatibility surface; only `apps/admin/app/admin/teams/teams-sections.tsx` currently imports it directly.
+  - The biggest page wins in this pass are adjacent extractions (models/hooks/sections), not full feature migrations.
+  - Validation should cover `verify:workspace-contract`, scoped lint/typecheck, unit tests, and a vendor-scoped React Doctor script for future audits.
+
 ## 2026-04-10 (Web Studio Phase 5 — living documentation + handoff)
 
 - Repo: Asymmetric-al/core

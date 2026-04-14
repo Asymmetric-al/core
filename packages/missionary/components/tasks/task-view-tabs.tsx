@@ -1,7 +1,7 @@
 "use client";
 
+import { motion, useReducedMotion } from "@asym/lib/motion";
 import { cn } from "@asym/ui/lib/utils";
-import { motion } from "motion/react";
 import * as React from "react";
 
 export type TaskView =
@@ -39,6 +39,7 @@ export function TaskViewTabs({
   onViewChange,
   counts,
 }: TaskViewTabsProps) {
+  const reduceMotion = useReducedMotion();
   return (
     <div className="w-full border-b bg-card">
       <div className="container">
@@ -83,7 +84,11 @@ export function TaskViewTabs({
                     layoutId="task-tab-indicator"
                     className="absolute bottom-0 inset-x-0 h-0.5 bg-primary rounded-full z-10"
                     style={{ bottom: 0, top: "auto" }}
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    transition={
+                      reduceMotion
+                        ? { duration: 0.15 }
+                        : { type: "spring", stiffness: 500, damping: 30 }
+                    }
                   />
                 )}
               </button>

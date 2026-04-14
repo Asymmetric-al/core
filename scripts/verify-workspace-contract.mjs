@@ -148,6 +148,37 @@ const appSegmentConfigFilePaths = [
     globSync("apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}"),
   ),
 ];
+const runtimeMapPath = "docs/guides/architecture/runtime-map.md";
+
+function getRuntimeMapRouteEntries(runtimeMap) {
+  return new Set(
+    runtimeMap
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.startsWith("|"))
+      .filter((line) => !line.includes("| App"))
+      .filter((line) => !line.includes("| ---"))
+      .map((line) => line.split("|").map((part) => part.trim()))
+      .map((parts) => [parts[1], parts[2]])
+      .filter(([app, routeCell]) => app && routeCell)
+      .map(([app, routeCell]) => `${app}: ${routeCell.replaceAll("`", "")}`),
+  );
+}
+
+function getCurrentApiRouteEntries() {
+  return [
+    ...new Set(globSync("apps/*/app/api/**/route.ts")),
+    ...new Set(globSync("apps/*/app/api/**/route.tsx")),
+  ]
+    .sort()
+    .map((filePath) => {
+      const normalized = filePath.replace(/\\/g, "/");
+      const segments = normalized.split("/");
+      const app = segments[1];
+      const route = `/${segments.slice(3, -1).join("/")}`;
+      return `${app}: ${route}`;
+    });
+}
 
 for (const filePath of appSegmentConfigFilePaths) {
   const content = await fs.readFile(filePath, "utf8");
@@ -160,6 +191,21 @@ for (const filePath of appSegmentConfigFilePaths) {
       );
     }
   }
+}
+
+try {
+  const runtimeMap = await fs.readFile(runtimeMapPath, "utf8");
+  const runtimeMapEntries = getRuntimeMapRouteEntries(runtimeMap);
+  const currentApiRoutes = getCurrentApiRouteEntries();
+  for (const route of currentApiRoutes) {
+    if (!runtimeMapEntries.has(route)) {
+      violations.push(
+        `${runtimeMapPath}: missing runtime map route entry '${route}'`,
+      );
+    }
+  }
+} catch {
+  violations.push(`${runtimeMapPath}: missing runtime map documentation file`);
 }
 
 const disallowedPrivateCaptureRoutePaths = [

@@ -1,7 +1,7 @@
 "use client";
 
+import { motion, useReducedMotion } from "@asym/lib/motion";
 import { cn } from "@asym/ui/lib/utils";
-import { motion } from "motion/react";
 import * as React from "react";
 
 interface StatCardProps {
@@ -19,11 +19,16 @@ export function StatCard({
   onClick,
   isActive,
 }: StatCardProps) {
+  const reduceMotion = useReducedMotion();
   return (
     <motion.button
-      whileHover={{ scale: 1.02, y: -2 }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      whileHover={reduceMotion ? undefined : { scale: 1.02, y: -2 }}
+      whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+      transition={
+        reduceMotion
+          ? { duration: 0.15 }
+          : { type: "spring", stiffness: 400, damping: 25 }
+      }
       onClick={onClick}
       className={cn(
         "flex flex-col gap-1 px-5 py-4 rounded-2xl border transition-all cursor-pointer text-left shadow-sm min-w-[120px] flex-1 md:flex-none relative overflow-hidden group",
@@ -76,11 +81,12 @@ export function TaskStats({
   currentView,
   onViewChange,
 }: TaskStatsProps) {
+  const reduceMotion = useReducedMotion();
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1 }}
+      transition={reduceMotion ? { duration: 0.15 } : { delay: 0.1 }}
       className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 lg:mx-0 lg:px-0 lg:pb-0 lg:grid lg:grid-cols-5"
     >
       <StatCard

@@ -68,6 +68,22 @@ async function createWorkspaceContractRepo() {
     name: "@asym/tooling-config",
   });
 
+  await mkdir(path.join(tempRoot, "docs/guides/architecture"), {
+    recursive: true,
+  });
+  await writeFile(
+    path.join(tempRoot, "docs/guides/architecture/runtime-map.md"),
+    [
+      "# API Runtime Map",
+      "",
+      "## Route Inventory",
+      "",
+      "| App | Route family | Runtime policy | Reason |",
+      "| --- | --- | --- | --- |",
+      "| demo | `/api/example` | Node.js (no `runtime` segment export) | Fixture |",
+    ].join("\n"),
+  );
+
   return tempRoot;
 }
 
@@ -281,6 +297,40 @@ describe("verify-workspace-contract", () => {
     expect(() =>
       runNodeScript(tempRoot, "scripts/verify-workspace-contract.mjs"),
     ).toThrow(/private capture routes are not routable/);
+  });
+
+  it("fails when runtime-map route inventory drifts from app api routes", async () => {
+    const tempRoot = await createWorkspaceContractRepo();
+    await mkdir(path.join(tempRoot, "docs/guides/architecture"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, "docs/guides/architecture/runtime-map.md"),
+      [
+        "# API Runtime Map",
+        "",
+        "## Route Inventory",
+        "",
+        "| App | Route family | Runtime policy | Reason |",
+        "| --- | --- | --- | --- |",
+        "| demo | `/api/other` | Node.js (no `runtime` segment export) | Fixture |",
+      ].join("\n"),
+    );
+
+    const routePath = path.join(tempRoot, "apps/demo/app/api/example/route.ts");
+    await mkdir(path.dirname(routePath), { recursive: true });
+    await writeFile(
+      routePath,
+      [
+        "export async function GET() {",
+        "  return Response.json({ ok: true });",
+        "}",
+      ].join("\n"),
+    );
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/verify-workspace-contract.mjs"),
+    ).toThrow(/missing runtime map route entry/);
   });
 });
 
