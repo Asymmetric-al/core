@@ -102,8 +102,7 @@ const MEMBER_CARE_ACTIVITY_TYPE_FROM_DB = Object.fromEntries(
   keyof typeof MEMBER_CARE_ACTIVITY_TYPE_TO_DB
 >;
 
-type MemberCareUiActivityType =
-  keyof typeof MEMBER_CARE_ACTIVITY_TYPE_TO_DB;
+type MemberCareUiActivityType = keyof typeof MEMBER_CARE_ACTIVITY_TYPE_TO_DB;
 type MemberCareDbActivityType =
   (typeof MEMBER_CARE_ACTIVITY_TYPE_TO_DB)[MemberCareUiActivityType];
 
@@ -111,9 +110,8 @@ function toDbActivityType(
   value: z.infer<typeof activitySchema.shape.type>,
 ): MemberCareDbActivityType {
   return (
-    MEMBER_CARE_ACTIVITY_TYPE_TO_DB[
-      value as MemberCareUiActivityType
-    ] ?? (value as MemberCareDbActivityType)
+    MEMBER_CARE_ACTIVITY_TYPE_TO_DB[value as MemberCareUiActivityType] ??
+    (value as MemberCareDbActivityType)
   );
 }
 
@@ -132,7 +130,10 @@ function getClient() {
   return client;
 }
 
-async function getActorNameSnapshot(client: ReturnType<typeof getClient>, actorId: string) {
+async function getActorNameSnapshot(
+  client: ReturnType<typeof getClient>,
+  actorId: string,
+) {
   const { data, error } = await client
     .from("profiles")
     .select("display_name, full_name, first_name, last_name")
@@ -278,11 +279,7 @@ export async function upsertCareGoal(
         .eq("id", payload.id)
         .select("id")
         .single()
-    : client
-        .from("member_care_goals")
-        .insert(goalRecord)
-        .select("id")
-        .single();
+    : client.from("member_care_goals").insert(goalRecord).select("id").single();
 
   const { data, error } = await query;
 

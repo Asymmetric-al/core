@@ -138,13 +138,16 @@ async function fetchMemberCareDashboard(): Promise<MemberCareDashboardResponse> 
 async function fetchMemberCareDetail(
   personnelId: string,
 ): Promise<MemberCareDetailResponse> {
-  const response = await fetch(`/api/admin/member-care/directory/${personnelId}`, {
-    credentials: "same-origin",
-    headers: {
-      Accept: "application/json",
+  const response = await fetch(
+    `/api/admin/member-care/directory/${personnelId}`,
+    {
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+      },
+      method: "GET",
     },
-    method: "GET",
-  });
+  );
 
   return parseJsonResponse<MemberCareDetailResponse>(response);
 }
@@ -256,10 +259,8 @@ export function useCreateCareThreadPost() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: {
-      personnelId: string;
-      content: string;
-    }) => requestMutation("/api/admin/member-care/thread", "POST", input),
+    mutationFn: (input: { personnelId: string; content: string }) =>
+      requestMutation("/api/admin/member-care/thread", "POST", input),
     onSuccess: async (_result, variables) => {
       await invalidateMemberCareQueries(queryClient, variables.personnelId);
     },
@@ -270,10 +271,8 @@ export function useCreateCarePrivateNote() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: {
-      personnelId: string;
-      content: string;
-    }) => requestMutation("/api/admin/member-care/private-notes", "POST", input),
+    mutationFn: (input: { personnelId: string; content: string }) =>
+      requestMutation("/api/admin/member-care/private-notes", "POST", input),
     onSuccess: async (_result, variables) => {
       await invalidateMemberCareQueries(queryClient, variables.personnelId);
     },

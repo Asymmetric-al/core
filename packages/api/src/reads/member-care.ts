@@ -197,7 +197,7 @@ function initialsFor(name: string): string {
 }
 
 function getProfileRecord(row: MissionaryDirectoryRow) {
-  return Array.isArray(row.profile) ? row.profile[0] ?? null : row.profile;
+  return Array.isArray(row.profile) ? (row.profile[0] ?? null) : row.profile;
 }
 
 function displayNameFor(row: MissionaryDirectoryRow): string {
@@ -210,7 +210,9 @@ function displayNameFor(row: MissionaryDirectoryRow): string {
   }
 
   const composed = [profile?.first_name, profile?.last_name]
-    .filter((part): part is string => typeof part === "string" && part.length > 0)
+    .filter(
+      (part): part is string => typeof part === "string" && part.length > 0,
+    )
     .join(" ")
     .trim();
 
@@ -241,7 +243,9 @@ function toHealthSignals(input: unknown): MemberCarePersonnel["healthSignals"] {
   };
 }
 
-function toActivityType(value: string | null | undefined): MemberCareActivityType {
+function toActivityType(
+  value: string | null | undefined,
+): MemberCareActivityType {
   switch (value) {
     case "video_call":
       return "Video Call";
@@ -352,7 +356,9 @@ async function readDirectoryRows(tenantId: string) {
     .limit(250);
 
   if (error) {
-    throw new Error(toErrorMessage(error, "Failed to read member care directory."));
+    throw new Error(
+      toErrorMessage(error, "Failed to read member care directory."),
+    );
   }
 
   return (data ?? []) as MissionaryDirectoryRow[];
@@ -399,7 +405,9 @@ async function readActivityRows(tenantId: string, missionaryId?: string) {
   const { data, error } = await query;
 
   if (error) {
-    throw new Error(toErrorMessage(error, "Failed to read member care activities."));
+    throw new Error(
+      toErrorMessage(error, "Failed to read member care activities."),
+    );
   }
 
   return (data ?? []) as ActivityRow[];
@@ -458,7 +466,9 @@ async function readPrivateNoteRows(
   const client = await getMemberCareClient();
   let query = client
     .from("member_care_private_notes")
-    .select("id, missionary_id, author_user_id, author_name_snapshot, content, created_at")
+    .select(
+      "id, missionary_id, author_user_id, author_name_snapshot, content, created_at",
+    )
     .eq("tenant_id", tenantId)
     .order("created_at", { ascending: false });
 
@@ -595,27 +605,28 @@ export async function readMemberCarePersonDetail(
   actorUserId: string,
   actorIsSuperAdmin = false,
 ): Promise<MemberCarePersonDetail> {
-  const [personnelRow, activityRows, privateNoteRows, goalRows, requirementRows] =
-    await Promise.all([
-      readDirectoryRowById(tenantId, personnelId),
-      readActivityRows(tenantId, personnelId),
-      readPrivateNoteRows(
-        tenantId,
-        actorUserId,
-        personnelId,
-        actorIsSuperAdmin,
-      ),
-      readGoalRows(tenantId, personnelId),
-      readRequirementRows(tenantId, personnelId),
-    ]);
+  const [
+    personnelRow,
+    activityRows,
+    privateNoteRows,
+    goalRows,
+    requirementRows,
+  ] = await Promise.all([
+    readDirectoryRowById(tenantId, personnelId),
+    readActivityRows(tenantId, personnelId),
+    readPrivateNoteRows(tenantId, actorUserId, personnelId, actorIsSuperAdmin),
+    readGoalRows(tenantId, personnelId),
+    readRequirementRows(tenantId, personnelId),
+  ]);
 
   const goals = goalRows.map(toGoal);
   const requirements = requirementRows.map(toRequirement);
   const personnel = personnelRow
-    ? (
-        applyGoalsAndRequirements([toPersonnel(personnelRow)], goals, requirements)[0] ??
-        null
-      )
+    ? (applyGoalsAndRequirements(
+        [toPersonnel(personnelRow)],
+        goals,
+        requirements,
+      )[0] ?? null)
     : null;
 
   return {

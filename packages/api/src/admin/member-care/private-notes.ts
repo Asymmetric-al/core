@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 
-import {
-  createCarePrivateNote,
-  privateNoteSchema,
-} from "./mutations";
+import { createCarePrivateNote, privateNoteSchema } from "./mutations";
 import { toErrorResponse } from "../../shared/http-errors";
 import { withOperation } from "../../shared/with-operation";
 

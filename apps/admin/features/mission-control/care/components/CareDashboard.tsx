@@ -233,43 +233,43 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
             <CardContent className="p-responsive-card">
               <div className="space-y-5">
                 {upcomingBirthdayNotifications.slice(0, 3).map((note) => {
-                    const p = personnel.find(
-                      (item) => item.id === note.personnelId,
-                    );
-                    if (!p) return null;
-                    return (
-                      <div
-                        key={note.id}
-                        className="flex items-center justify-between group cursor-pointer hover:bg-muted/30 p-2 -m-2 rounded-xl transition-colors"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="relative">
-                            <div className="h-10 w-10 rounded-full bg-primary/5 flex items-center justify-center text-[10px] font-bold text-primary border border-primary/10">
-                              {p.initials}
-                            </div>
-                            <div className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-background flex items-center justify-center border border-border/50 shadow-sm">
-                              <Clock className="h-2 w-2 text-muted-foreground" />
-                            </div>
+                  const p = personnel.find(
+                    (item) => item.id === note.personnelId,
+                  );
+                  if (!p) return null;
+                  return (
+                    <div
+                      key={note.id}
+                      className="flex items-center justify-between group cursor-pointer hover:bg-muted/30 p-2 -m-2 rounded-xl transition-colors"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <div className="h-10 w-10 rounded-full bg-primary/5 flex items-center justify-center text-[10px] font-bold text-primary border border-primary/10">
+                            {p.initials}
                           </div>
-                          <div>
-                            <p className="text-sm font-bold text-primary leading-tight">
-                              {p.name}
-                            </p>
-                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1">
-                              {note.title} • {note.detail}
-                            </p>
+                          <div className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-background flex items-center justify-center border border-border/50 shadow-sm">
+                            <Clock className="h-2 w-2 text-muted-foreground" />
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 transition-all text-muted-foreground hover:text-primary"
-                        >
-                          <ArrowUpRight className="h-4 w-4" />
-                        </Button>
+                        <div>
+                          <p className="text-sm font-bold text-primary leading-tight">
+                            {p.name}
+                          </p>
+                          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1">
+                            {note.title} • {note.detail}
+                          </p>
+                        </div>
                       </div>
-                    );
-                  })}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 transition-all text-muted-foreground hover:text-primary"
+                      >
+                        <ArrowUpRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  );
+                })}
                 {upcomingBirthdayNotifications.length === 0 && (
                   <div className="rounded-2xl border border-border/50 bg-background p-5 text-xs font-semibold text-muted-foreground">
                     No upcoming birthdays yet. Care task scheduling is coming

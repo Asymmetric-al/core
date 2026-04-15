@@ -133,10 +133,7 @@ describe("member care route helpers", () => {
       throw new Error("Expected schema parsing to fail");
     }
 
-    const response = toMutationErrorResponse(
-      parsed.error,
-      "Fallback",
-    );
+    const response = toMutationErrorResponse(parsed.error, "Fallback");
 
     expect(response.status).toBe(422);
   });
