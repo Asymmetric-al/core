@@ -33,7 +33,11 @@ The Skills CLI (`npx skills`) is the package manager for the open agent skills e
 
 ### Repo-local skills (Asymmetric-al/core)
 
-Before searching the public index, check **`docs/ai/skills/`** and **`AGENTS.md` → Skill Routing**. Canonical skills there are mirrored to `.cursor/skills/` and `.agents/skills/` with `bun run skills:sync` (CI: `bun run skills:verify`).
+Before searching the public index, check **`docs/ai/skills/`** and **`AGENTS.md` → Skill Routing**. Canonical repo-owned skills live under `docs/ai/skills/` and are mirrored to `.cursor/skills/` and `.agents/skills/` with `bun run skills:sync` (CI: `bun run skills:verify`).
+
+Use the canonical docs path when routing or documenting repo-critical skills. Treat `.cursor/skills/` and `.agents/skills/` as shared runtime mirrors for tool compatibility, not the primary authoring location.
+
+Some extra ecosystem or tool-specific skills may exist only in `.cursor/skills/` or `.agents/skills/`. Those are optional unless the repo explicitly promotes them into `docs/ai/skills/`.
 
 **Example — Supabase:** platform work is covered by `docs/ai/skills/supabase/SKILL.md` and Postgres tuning by `docs/ai/skills/supabase-postgres-best-practices/SKILL.md`. Install or refresh from [supabase/agent-skills](https://skills.sh/supabase/agent-skills) with `npx skills add supabase/agent-skills -y`, then `bun run skills:refresh-upstream`, `bun run skills:sync`, and `bun run skills:verify`. **`skills-lock.json`** records CLI pins; use `npx skills experimental_install -y` to restore from the lockfile.
 
