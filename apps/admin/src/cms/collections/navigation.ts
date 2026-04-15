@@ -1,3 +1,4 @@
+import { isNativeCollectionWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
 import {
   tenantScopedCreateAccess,
   tenantScopedDeleteAccess,
@@ -14,6 +15,24 @@ export const Navigation: CollectionConfig = {
   admin: {
     defaultColumns: ["label", "tenant", "updatedAt"],
     useAsTitle: "label",
+    ...(isNativeCollectionWebStudioEnabled("navigation")
+      ? {
+          components: {
+            views: {
+              list: {
+                Component:
+                  "/src/cms-ui/web-studio/navigation/list/NavigationNativeListView.tsx#NavigationNativeListView",
+              },
+              edit: {
+                default: {
+                  Component:
+                    "/src/cms-ui/web-studio/navigation/document/NavigationNativeEditView.tsx#NavigationNativeEditView",
+                },
+              },
+            },
+          },
+        }
+      : {}),
   },
   access: {
     read: tenantScopedReadAccess("tenant"),

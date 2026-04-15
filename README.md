@@ -9,13 +9,21 @@ A high-performance Next.js 16.2.1 (App Router) Turborepo monorepo for mission-fo
    - macOS / Linux / Git Bash: `bun run setup`
    - Windows PowerShell: see [Windows](#windows) below (`.\scripts\setup.ps1`).
 3. **Fill required Supabase values** in `.env.local` if the first run stopped with "missing required env vars", then run setup again.
-4. **Start dev:** `bun run dev` (or an app-specific script from `package.json`).
-5. **Optional smoke check:** `bun run verify` (uses Bash; on Windows without a Bash shim, run `bash scripts/verify/index.sh` from Git Bash or WSL).
+4. **Start dev:** `bun run dev` (or an app-specific script from `package.json`). For a single surface, `bun run dev:donor` is typical (donor on port 3000).
+5. **Optional smoke check:** `bun run verify` (implemented in `scripts/verify/index.mjs`; on Windows without a Bash shim, run `bash scripts/verify/index.sh` from Git Bash or WSL).
 
 **After `git pull` when skill files changed:** run `bun run skills:verify`. If it reports drift between `docs/ai/skills/` and the mirrors under `.agents/skills/` and `.cursor/skills/`, run `bun run skills:sync` and commit the updated mirror files so CI and teammates stay aligned.
 
-**Required:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-**Optional:** All other entries in `.env.example` (Stripe, demo accounts, Unlayer, etc.)
+**Required:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`  
+**Optional:** Other entries in `.env.example` (Stripe, demo accounts, etc.)
+
+`bun run dev` runs **all** apps via Turbo (`turbo run dev`). Default HTTP checks in `bun run verify` use **`http://localhost:3000`** (`VERIFY_BASE_URL`), so use `bun run dev:donor` (or point `VERIFY_BASE_URL` at the app you are running).
+
+Per-app dev commands (from root `package.json`):
+
+- `bun run dev:donor` → donor app, port **3000**
+- `bun run dev:admin` → admin app, port **3030**
+- `bun run dev:missionary` → missionary app, port **4000**
 
 ### Cursor Cloud Agent (VM) secrets
 
@@ -69,116 +77,67 @@ Invoke-ScriptAnalyzer -Path .\scripts\setup.ps1, .\scripts\lib\*.ps1
 
 ## Architecture & Tech Stack
 
-- **Framework**: Next.js 16.2.1 (App Router, Turbopack) - _Optimized for Performance_
-- **UI System**: Tailwind CSS 4 + shadcn/ui (Maia Theme) + Base UI
-- **Theme**: Light Zinc Aesthetic (Zinc/Zinc), Shadcn/UI Maia Theme
+- **Framework**: Next.js 16.2.1 (App Router, Turbopack in app configs) — _optimized for performance_
+- **UI system**: Tailwind CSS 4 + shadcn/ui (Maia theme) + Base UI
+- **Theme**: Light Zinc aesthetic (Zinc/Zinc), shadcn/ui Maia theme
 - **Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth (Unified across platforms)
-- **Payments**: Stripe (Advanced integration)
-- **State Management**: React 19 + TanStack Query v5
-- **Animations**: Motion + Tailwind Motion
+- **Auth**: Supabase Auth (shared helpers in `packages/auth`, `packages/api`)
+- **Payments**: Stripe (donor and related flows)
+- **State**: React 19 + TanStack Query v5
+- **Animation**: `motion` (v12) and shared UI helpers such as `MotionPreset` (`packages/ui`)
 
 ## UX/UI Standards (Shadcn/UI)
 
-The platform follows a standardized **Zinc Light** theme, optimized for both desktop and mobile viewports with a seamless, responsive transition.
+The platform uses a **Zinc**-oriented light theme (Maia tokens) for desktop and mobile.
 
 ### Typography
 
-- **Primary**: Inter (`tracking-tight`)
-- **Mono**:
-- **Headings**:
+Fonts are loaded per app in each app’s `app/layout.tsx` via `next/font/google`:
+
+- **Sans / body**: Inter
+- **Display / headings**: Syne
+- **Mono**: Geist Mono
 
 ### Design Tokens
 
-- **Padding**: Standardized `px-4 py-6 sm:px-6` for main content areas.
-- **Borders**: Use maia theme tokens, not hard coded zinc. Default to `border-border` or `border-border/60`. Keep rounding driven by the Maia radius token `--radius`.
-- **Motion**: Staggered reveals and smooth transitions using `MotionPreset`.
-- **Responsive**: Mobile-first navigation with robust drawers (Sheet) for sidebar access on smaller screens.
+- **Padding**: Typical main content uses `px-4 py-6 sm:px-6` where applied in layouts.
+- **Borders**: Prefer Maia theme tokens (`border-border`, `border-border/60`, `--radius`).
+- **Motion**: `MotionPreset` and related presets from `@asym/lib/motion-presets` / `@asym/ui`.
+- **Responsive**: Mobile-first patterns; sidebar access often uses Sheet/drawer-style navigation.
 
 ### Chart Standards
 
-- **Aesthetic**: Data-dense, high-contrast using Maia `oklch` theme tokens. Use `--chart-1` through `--chart-5` for series colors.
-- **Bar Charts**:
-  - **Radius**: Uniform corner radius of `[4, 4, 0, 0]` on the top segment of stacked bars or all segments of non-stacked bars. Avoid fully rounded domed tops.
-  - **Density**: Use `maxBarSize={52}` for bold, wide bars that scale responsibly.
-  - **Axes**: Ensure Y-Axis labels have sufficient width (min `40px`) and margin (`tickMargin={8}`) to prevent numerical cutoff.
-  - **Labels**: Use `month` only for X-Axis time series (e.g., "Nov", "Dec") to maintain high density without clutter.
+- **Tokens**: Maia chart CSS variables `--chart-1` … `--chart-5` where used with Recharts.
+- **Bar charts** (where this convention applies): top corner radius `[4, 4, 0, 0]`, `maxBarSize={52}`, Y-axis label width and `tickMargin={8}`, short month labels on time axes when dense.
 
-## Multi-Tenant Architecture & Routing
+## Apps and local routing
 
-This platform is architected for a multi-tenant environment, allowing a single deployment to serve multiple organizations with isolated data and customized subdomains.
+Each surface is a **separate Next.js app** with its own `app/` tree and dev port (see Quickstart).
 
-### Production Routing Model
+| Surface                 | Package                | Dev port | Notes                                                                                                                                                                 |
+| ----------------------- | ---------------------- | -------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Donor                   | `@asym/donor`          |     3000 | Public site + donor dashboard under `/donor-dashboard` (authenticated areas)                                                                                          |
+| Admin (Mission Control) | `@asym/admin`          |     3030 | Staff/admin UI; routes live under `apps/admin/app/` (e.g. `/`, `/contributions`, `/crm`). Many in-app links use a `/mc/...` path prefix in the Mission Control shell. |
+| Missionary              | `@asym/missionary-app` |     4000 | Missionary dashboard; home route `/`                                                                                                                                  |
 
-In a live production environment, the platform uses dynamic routing based on host headers (subdomains):
-
-| User Role                      | Production URL               | Routing Logic                                                             |
-| :----------------------------- | :--------------------------- | :------------------------------------------------------------------------ |
-| **Public Site**                | `tenanturl.org/`             | Root application serving public content and giving pages.                 |
-| **Organization Admin**         | `tenanturl.org/admin`        | Administrative interface for the organization (Mission Control).          |
-| **Missionaries/Field Workers** | `my.tenanturl.org`           | Dedicated subdomain for field workers to manage their support and donors. |
-| **Donors/Partners**            | `tenanturl.org/givingportal` | Portal for donors to manage their contributions and pledges.              |
-
-### Demo Site Accessibility
-
-For this demonstration and development environment, we have implemented aliases to allow easy access to all modules from a single domain:
-
-- **Mission Control (Admin)**: Accessible via [/admin](/admin) (mapped to `/mc`)
-- **Missionary Dashboard**: Accessible via [/my](/my) (mapped to `/`)
-- **Donor Portal**: Accessible via [/dashboard](/dashboard) (mapped to `/donor-dashboard`)
-
-### Implementation Details
-
-- **Apps**: Route ownership is split across Next.js apps in `apps/*` (see each app's `app/` directory).
-- **Shared auth middleware**: Lives in `packages/auth/middleware.ts` (apps opt in to using it).
-- **Conceptualization**: Production routing may use host-based rules; local dev generally runs the apps directly on their dev ports.
-
-## Project Modules
-
-### Mission Control (Admin Dashboard)
-
-The administrative headquarters for organization leaders. Manage CRM, Contributions, Member Care, and Mobilization with advanced reporting and automation tools.
-
-- Route: `/mc`
-
-### Missionary Dashboard
-
-Empowering field missionaries with donor engagement tools, task management, and impact feeds.
-
-- **My Feed/Ministry Updates**: A high-fidelity social engagement platform designed for missionaries to share their journey directly with their support base.
-  - **Functionality**: Supports rich text (HTML) storytelling, multi-media carousels for multiple photos, and real-time interaction (Likes, Prayers, Comments).
-  - **Premium Style**: Features a high-end "Maia" aesthetic with animated micro-interactions. Clicking a reaction triggers a delightful burst of floating emoji particles (❤️, 🙏, 🔥) and visceral pulsing effects.
-  - **Workflow**: Missionaries can save drafts, manage visibility (Public vs Partners Only), and handle follower requests with manual or automated approval levels.
-  - **Media Management**: Integrated media toolbar allows for quick image uploads and carousel creation to make updates visually engaging.
-- Route: `/`
-
-### Donor Portal
-
-A seamless experience for kingdom partners to manage their giving and follow mission progress.
-
-- **Personalized Impact Feed**: A unified, high-fidelity view of updates from all missionaries the donor supports.
-- **The Connection Concept**: The platform creates a direct link between generosity and real-world impact.
-  - **Automatic Integration**: When a donor makes a contribution to a missionary or clicks "Follow" on their profile, that missionary's feed is automatically integrated into the donor's personalized dashboard.
-  - **Real-Time Updates**: Donors receive instant access to stories, prayer requests, and progress reports, allowing them to see exactly how their partnership is making a difference.
-  - **Two-Way Interaction**: Donors can respond with reactions and comments, fostering a genuine relationship between the field and the support base.
-- Route: `/donor-portal`
+Shared auth gating uses **`createAuthMiddleware`** from `packages/auth/middleware.ts`, wired in each app through **`apps/<app>/proxy.ts`** (exported `proxy`).
 
 ## Development
 
-This project is optimized for both local development and the **Example Cloud (example.com)** environment.
+Use the per-app `dev:*` scripts when you only need one surface, or `bun run dev` / `bun run dev:all` when you need several (see root `package.json`).
 
 ### AI Agent Guidance System
 
-This repository includes comprehensive AI agent guidance under `docs/ai/`:
+Agent-oriented docs live under `docs/ai/`:
 
-- **Entry point:** `AGENTS.md` - routing rules for all AI agent work
-- **Stack registry:** `docs/ai/stack-registry.md` - canonical tech stack list
-- **Working set:** `docs/ai/working-set.md` - living task context (keep updated)
-- **Monorepo architecture:** `docs/ai/monorepo-architecture.md` - workspace structure
-- **Rulebooks:** `docs/ai/rules/*` - domain-specific guidelines (frontend, backend, testing, etc.)
-- **Skills:** `docs/ai/skills/*` - reusable workflow patterns (repo-owned, versioned)
+- **Entry point:** `AGENTS.md` — routing rules for all AI agent work
+- **Stack registry:** `docs/ai/stack-registry.md` — canonical tech stack list
+- **Working set:** `docs/ai/working-set.md` — living task context (keep updated)
+- **Monorepo architecture:** `docs/ai/monorepo-architecture.md` — workspace structure
+- **Rulebooks:** `docs/ai/rules/*` — domain-specific guidelines (frontend, backend, testing, etc.)
+- **Skills:** `docs/ai/skills/*` — reusable workflow patterns (repo-owned, versioned)
 
-**Important:** `docs/ai/` is the canonical source. The `rules/` and `skills/` directories at the repository root contain deprecation shims only.
+**Canonical source:** `docs/ai/`. Root `rules/` and `skills/` contain **deprecation pointers** to `docs/ai/` (not full duplicates).
 
 **Repo-owned skills (how it fits together):** Edit and review skills under `docs/ai/skills/<name>/SKILL.md`. `AGENTS.md` points agents at those paths for routing. The same content is copied into **committed mirrors** at `.agents/skills/` (Codex-style discovery) and `.cursor/skills/` (Cursor) by the sync script so tools can surface them without a personal global install. CI runs `bun run skills:verify` to ensure mirrors match the canonical tree.
 
@@ -209,84 +168,73 @@ Commit both the canonical files and any mirror updates.
 
 ### Package Manager
 
-This project uses **bun** (v1.3+). Do not use npm/yarn/pnpm.
-
-- **Startup Command**: `bun run dev`
+This repo uses **Bun** (see root `package.json` `packageManager`, currently **1.3.x**). Prefer `bun` / `bunx` for scripts in this workspace.
 
 ### Monorepo Workspace Contract
 
-This repository uses Bun workspaces + Turborepo with this contract:
+Bun workspaces + Turborepo:
 
 ```text
-apps/*      -> deployable applications (admin, donor, missionary)
-packages/*  -> shared runtime libraries used by apps
-packages/env -> shared environment schema/config package (@asym/env)
-tooling/*   -> shared tooling/config packages (eslint, tsconfig, etc.)
+apps/*       -> deployable applications (admin, donor, missionary)
+packages/*   -> shared libraries used by apps
+packages/env -> @asym/env (shared env schema)
+tooling/*    -> eslint/tsconfig and other tooling packages
 ```
 
-Use these placement rules:
+Placement:
 
-- Put code in `apps/*` when it is app-specific routing/UI/behavior.
-- Put code in `packages/*` when it is shared across two or more apps.
-- Use `packages/env` for shared environment schemas/configuration.
-- Put code in `tooling/*` only for build/lint/type/tooling configuration packages.
+- App-specific routing/UI → `apps/*`
+- Shared across apps → `packages/*`
+- Shared env validation → `packages/env`
+- Lint/tsconfig-only packages → `tooling/*`
 
-Workspace conventions:
+Conventions:
 
-- Every workspace package name must use `@asym/<name>`.
-- Internal workspace dependencies must use `workspace:*` (not `file:` links).
-- Root workspace globs in `package.json` are canonical: `apps/*`, `packages/*`, `packages/env`, `tooling/*`.
+- Workspace package names use `@asym/<name>` (admin app is `@asym/admin`, missionary app is `@asym/missionary-app`).
+- Internal deps use `workspace:*` (not `file:`).
+- Workspace globs in root `package.json`: `apps/*`, `packages/*`, `packages/env`, `tooling/*`.
 
-Guardrail command:
+Guardrail:
 
 ```bash
 bun run verify:workspace-contract
 ```
 
-This command validates workspace globs, package names, and internal dependency protocol.
+**Verify** (`bun run verify`):
 
-Verify command behavior:
-
-- `bun run verify` runs cross-platform verification with workspace contract checks.
-- `VERIFY_HTTP=1 bun run verify` additionally checks `/`, `/login`, and `/register` on `http://localhost:3000`.
-- `VERIFY_SUPABASE=1 bun run verify` additionally runs Supabase verification.
+- Runs workspace contract checks (and optional HTTP checks).
+- `VERIFY_HTTP=1` checks `/`, `/login`, and `/register` against `VERIFY_BASE_URL` (default `http://localhost:3000`).
+- `VERIFY_SUPABASE=1` runs `bun run setup:verify`.
 
 ### Linting
 
-Linting uses a unified ESLint flat config strategy:
-
-- `apps/*` consume `@asym/eslint-config/nextjs.mjs`
-- `packages/*` should consume `@asym/eslint-config/library.mjs`
-- root `eslint.config.mjs` is a fallback/orchestrator config
-
-Canonical lint entrypoint:
+- `apps/*` → `@asym/eslint-config/nextjs.mjs`
+- `packages/*` → `@asym/eslint-config/library.mjs` where configured
+- Root `eslint.config.mjs` orchestrates
 
 ```bash
 bun run lint
 ```
 
-Architecture boundaries are enforced with `no-restricted-imports` so apps do not import from other apps directly.
-Shared code should be moved into `@asym/*` packages.
-
-For full config details, migration notes, and the pragmatic exception policy, see:
-`tooling/eslint-config/README.md`.
+Details: `tooling/eslint-config/README.md`.
 
 ### How to add a new app
 
-1. Create a new folder under `apps/<app-name>/`.
-2. Add `apps/<app-name>/package.json` with a scoped name (`@asym/<app-name>`).
-3. Add any internal dependencies as `workspace:*`.
-4. Add the app scripts (`dev`, `build`, `lint`, `typecheck`) so Turbo can orchestrate it.
-5. Run `bun run verify:workspace-contract`.
+1. Add `apps/<app-name>/` with `package.json` named `@asym/<app-name>` (follow existing naming patterns).
+2. Use `workspace:*` for internal dependencies.
+3. Add `dev`, `build`, `lint`, `typecheck` scripts for Turbo.
+4. Use a **unique dev port** if developers run multiple apps together (see existing apps).
+5. Wire auth via `apps/<app-name>/proxy.ts` if the app should match donor/admin/missionary patterns.
+6. Run `bun run verify:workspace-contract`.
 
-Minimal app `package.json` example:
+Example `package.json` fragment:
 
 ```json
 {
   "name": "@asym/my-new-app",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 3010",
     "build": "next build",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
@@ -299,13 +247,12 @@ Minimal app `package.json` example:
 
 ### How to add a new package
 
-1. Create a new folder under `packages/<package-name>/`.
-2. Add `packages/<package-name>/package.json` with `name: "@asym/<package-name>"`.
-3. Export from the package entrypoint and keep cross-package imports via package names.
-4. Use `workspace:*` for internal dependencies.
-5. Run `bun run verify:workspace-contract`.
+1. `packages/<package-name>/` with `name: "@asym/<package-name>"`.
+2. Export from the package entry; import by package name across the workspace.
+3. `workspace:*` for internal deps.
+4. `bun run verify:workspace-contract`.
 
-Minimal package `package.json` example:
+Minimal `package.json` example:
 
 ```json
 {
@@ -324,21 +271,21 @@ Minimal package `package.json` example:
 
 Common commands:
 
-- `bun run format` (fix), `bun run format:check` (verify), `bun run lint`, and `bun run typecheck`
-- `bun run build` (CI-equivalent defaults), `bun run build:strict` (real env), `bun run test:unit`
-- `bun run test:e2e` (CI-equivalent defaults), `bun run test:e2e:strict` (real env), `bun run test:e2e:ui`
-- `bun run verify` for localhost smoke (on Windows use Git Bash / WSL: `bash scripts/verify/index.sh`)
-- `bun run verify:e2e` to re-run Playwright and validate the JSON report
-- PR-readiness (matches blocking CI): `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
+- `bun run format` / `bun run format:check`, `bun run lint`, `bun run typecheck`
+- `bun run build` (CI-style env via `scripts/run-with-ci-env.mjs`), `bun run build:strict`, `bun run test:unit`
+- `bun run test:e2e`, `bun run test:e2e:strict`, `bun run test:e2e:ui`
+- `bun run verify` (optional `VERIFY_HTTP=1`, `VERIFY_SUPABASE=1`)
+- `bun run verify:e2e`
+- PR-style gate: `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
 
 ### Git Hooks Setup
 
-Git hooks now enforce two checkpoints:
+Husky hooks:
 
-- `pre-commit`: staged-file lint + format (`lint-staged`)
-- `pre-push`: CI parity gate (`bun run ci:preflight`)
+- **pre-commit:** `lint-staged`
+- **pre-push:** `bun run ci:preflight`
 
-If you get "command not found" errors:
+If hooks cannot find tools, configure PATH for Husky (see Husky docs). Example init snippet (adjust for your Node/Bun install):
 
 **macOS/Linux:**
 
@@ -346,151 +293,106 @@ If you get "command not found" errors:
 mkdir -p ~/.config/husky && echo 'export PATH="/usr/local/bin:$PATH"' > ~/.config/husky/init.sh
 ```
 
-**Windows:**
+**Windows (Git Bash):**
 
 ```bash
 mkdir -p ~/.config/husky && echo 'export PATH="/c/Program Files/nodejs:$PATH"' > ~/.config/husky/init.sh
 ```
 
-**Using nvm:** Replace with `export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"`
-
-One-time setup per machine.
-
 ### Turborepo (Task Orchestration + Cache)
 
-Use Turbo for consistent task execution (and caching where applicable):
+- `bunx turbo run dev` / filtered tasks per package
+- `bunx turbo run lint typecheck build`
+- `bun run format` / `bun run format:check`
 
-- Local dev: `bunx turbo run dev`
-- Cached checks: `bunx turbo run lint typecheck build`
-- Formatting: `bun run format` (fix) / `bun run format:check` (verify)
-- Internal package `build` tasks are source-first validation (`tsc --noEmit`) so packages participate in the Turbo graph without forcing a `dist`-first workflow.
+Turbo remote caching depends on your CI/provider setup (e.g. `TURBO_TOKEN` / Vercel integration). See Turborepo docs for your environment.
 
-Remote caching (Vercel Remote Cache) is enabled for internal PRs and protected branch CI (fork PRs do not have access to the required secrets/vars).
-
-For a deterministic local build workflow (strict env vs CI-equivalent stub env), see `docs/guides/development/build-runbook.md`.
-For lockfile/workspace-root warnings in Next builds, see the runbook section `Multiple lockfile warnings during Next.js build`.
+Build env details: `docs/guides/development/build-runbook.md`.
 
 ### Key Dependencies
 
-| Package               | Version | Notes                                      |
-| --------------------- | ------- | ------------------------------------------ |
-| Next.js               | 16.2.1  | App Router + Turbopack                     |
-| React                 | 19.2.3  | Concurrent features                        |
-| TypeScript            | 5.9.3   | Strict mode                                |
-| motion                | 12.x    | Animation library (formerly framer-motion) |
-| @tanstack/react-query | 5.x     | Server state management                    |
-| @supabase/ssr         | 0.8.x   | Server-side Supabase client                |
-| @sentry/nextjs        | 10.x    | Error monitoring                           |
+| Package               | Version | Notes                                    |
+| --------------------- | ------- | ---------------------------------------- |
+| Next.js               | 16.2.1  | App Router + Turbopack in app configs    |
+| React                 | 19.2.3  |                                          |
+| TypeScript            | 5.9.3   |                                          |
+| motion                | 12.x    | Animation (successor to framer-motion)   |
+| @tanstack/react-query | 5.x     | Server state                             |
+| @supabase/ssr         | 0.8.x   | Supabase server/client helpers           |
+| @sentry/nextjs        | 10.x    | Error monitoring (via `@asym/lib`, etc.) |
 
 ### Verification Steps
 
 ```bash
-# Fix formatting (only when needed)
 bun run format
 
-# PR-readiness (matches blocking CI)
 bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit
 
-# Optional (non-blocking in CI, but recommended for flow changes)
 bun run test:e2e
 
-# Full local validation sweep (includes husky prepare + build)
 bun run validate:full
 
-# Strict sanity checks with real env values in .env.local
 bun run build:strict
 bun run test:e2e:strict
 
-# T1 merge gate (workspace contract only)
 bun run verify:t1
 
-# Check for outdated packages
 bun outdated
 ```
 
 ### Supabase schema + money-unit QA (separate from T1)
 
-The Supabase schema/migration + money-unit verifier changes are intentionally high-risk and should be QA-gated separately from T1.
-Treat these as a dedicated branch/ticket track before merge:
-
 ```bash
-# Optional DB+money QA gate (not part of the T1 contract gate)
 bun run verify:supabase-money
 ```
 
-`verify:money-units` samples these columns from Supabase/Postgres via the Supabase REST API:
-`donations.amount`, `donor_pledges.amount`, `funds.target_amount`, `funds.goal_amount`, and `funds.current_amount`.
-
-Interpretation:
-
-- `YES`: values appear to be stored as integer cents.
-- `NO`: values appear to be dollars (or mixed units), not cents.
-- `INCONCLUSIVE`: sampled values are ambiguous; confirm with schema/migrations or known transactions.
-- `ERROR`: the table/query could not be read with the current key or schema.
-
-Notes:
-
-- Uses `SUPABASE_SERVICE_ROLE_KEY` when present; otherwise falls back to `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-- If any column reports `NO`, the script exits non-zero to make CI/local verification fail loudly.
-- Files under this separate QA track include `supabase/migrations/20260214090000_foundation_1_schema.sql`, `supabase/schema.sql`, and `scripts/verify-money-units.ts`.
+`verify:money-units` samples columns via the Supabase REST API (see `scripts/verify-money-units.ts` and README notes in-repo for column list and exit codes).
 
 ## Key Conventions
 
-1. **RSC First**: Keep components as React Server Components unless interactivity is required.
-2. **Next.js 16.2.1 Compliance**: Always `await` dynamic `params` and `searchParams` in routes and layouts.
-3. **Zinc and Shadcn/ui Maia Aesthetic**: Use `zinc-900` for primary actions and `zinc-500` for secondary text.
-4. **Responsive Integrity**: Test all UI changes on both 375px (Mobile) and 1440px (Desktop) viewports.
+1. **RSC first:** Keep components as React Server Components unless interactivity requires client hooks or browser-only APIs.
+2. **Next.js 16.2.1 compliance:** Always `await` dynamic `params` and `searchParams` in routes and layouts (follow current App Router patterns for this repo’s Next version).
+3. **Zinc and shadcn/ui Maia aesthetic:** Maia/Zinc tokens and shared UI patterns in `@asym/ui`; use `zinc-900` for primary actions and `zinc-500` for secondary text where this convention applies.
+4. **Responsive integrity:** Test UI changes on both ~375px (mobile) and ~1440px (desktop) viewports.
 
 ---
 
 ## App-Connected Development
 
-To run this project locally against the hosted Supabase project, you only need the public URL + anon key.
-
-Follow the Quickstart above, and set these required values in `.env.local`:
+Hosted Supabase only needs the public URL and anon key in `.env.local`:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 ### How to request access
 
-Ask a maintainer for access to the shared dev Supabase project and request the project URL + anon key. Do not request service-role keys or database credentials.
+Ask a maintainer for the shared dev Supabase URL and anon key. Do not use service-role keys or DB credentials for normal app development.
 
 ### Demo login (optional)
 
-The demo login flow uses `/api/auth/demo-account` with the public anon client and pre-seeded demo users.
-Set `DEMO_ADMIN_EMAIL`, `DEMO_MISSIONARY_EMAIL`, `DEMO_DONOR_EMAIL`, and `DEMO_PASSWORD` in `.env.local` to enable the demo buttons.
+Demo availability and sign-in go through **`/api/auth/demo-account`** (implemented in `packages/api`, re-exported per app). Configure demo users in `.env.local` per `.env.example` / `docs/auth/sign-in.md`.
 
-For full sign-in mode, demo-only mode, and middleware/layout integration details, see
-`docs/auth/sign-in.md`.
+Details: `docs/auth/sign-in.md`.
 
 ## Supabase CLI Workflow (Hybrid)
-
-Use the repo entrypoint for all local Supabase CLI commands:
 
 ```bash
 bun run supabase -- <supabase-subcommand>
 ```
 
-How it resolves:
+- Uses a global `supabase` CLI when available.
+- Otherwise uses a pinned CLI via `npx` (see `scripts/supabase-cli.mjs`).
 
-- Prefers a machine-global `supabase` CLI when available (fast path).
-- Falls back to a pinned CLI version via `npx` when global CLI is missing.
-
-Optional global install (recommended for speed):
+Optional global install:
 
 ```bash
-# macOS / Linux (Homebrew)
 brew install supabase/tap/supabase
-
-# Windows (Scoop)
+# Windows (Scoop):
 scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
 scoop install supabase
 ```
 
 ## Supabase Demo Seed
-
-Deterministic demo seed + optional read-only public policies live in:
 
 - `supabase/seed.sql`
 - `supabase/migrations/20260216153000_demo_readonly_rls.sql`
@@ -506,11 +408,11 @@ bun run seed:demo:local
 
 ### Hosted (explicit target)
 
-Required env vars:
+Required env vars (hosted script validates the project ref; default ref is defined in `scripts/seed-demo.sh`):
 
-- `NEXT_PUBLIC_SUPABASE_URL=https://btewedpsxwsjczvmegby.supabase.co`
-- `SUPABASE_SERVICE_ROLE_KEY` (required safety gate)
-- `SUPABASE_DB_URL` (direct Postgres connection URL for SQL execution)
+- `NEXT_PUBLIC_SUPABASE_URL` (must match the intended Supabase project)
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_DB_URL`
 
 Commands:
 
@@ -520,26 +422,21 @@ bun run seed:demo:hosted
 bun run seed:demo:verify
 ```
 
-`seed:demo:verify` prints row counts and confirms the single-profile seed invariant.
-
 ## License
 
-asymmetric.al is open source software licensed under the GNU Affero General Public License v3.0 only (AGPL-3.0-only).
-
-- Full license text: see the `LICENSE` file in this repository.
-- Source for the running service: the hosted app links to the exact tag or commit for the version you are using (Help > About, or `/help/about`).
+Licensed under **AGPL-3.0-only**. See `LICENSE`.
 
 ### What AGPL means for hosted use
 
-If you run a modified version of this software for users over a network, you must offer those users the Corresponding Source for the version that is running.
+If you run a modified version for users over a network, you must offer them the corresponding source for that version.
 
 ### Trademarks
 
-The AGPL covers the source code in this repository. It does not grant permission to use our name, logo, or other trademarks. Treat all project marks as reserved unless we publish a separate trademark policy.
+The license covers source code, not trademarks. Do not use project names or logos without permission unless a separate policy says otherwise.
 
 ### Third party software
 
-This project may include or integrate third party open source components. If we ship bundled third party code, we will include attributions and license notes in `THIRD_PARTY_NOTICES.md` or `NOTICE`.
+Attributions for bundled third-party code: `THIRD_PARTY_NOTICES.md`.
 
 ---
 

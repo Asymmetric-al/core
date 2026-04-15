@@ -86,7 +86,7 @@ describe("public pages route", () => {
     expect(response.status).toBe(200);
     expect(body).toMatchObject({
       page: { id: "page_1", slug: "about/team" },
-      tenant: { id: "tenant_1", slug: "alpha" },
+      tenant: { slug: "alpha" },
     });
     expect(find).toHaveBeenCalledWith({
       collection: "pages",

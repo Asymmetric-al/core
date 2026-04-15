@@ -425,6 +425,22 @@ html[data-theme="dark"] {
     opacity 0.2s ease;
 }
 
+.payload-native-edit .doc-header {
+  display: none;
+}
+
+.payload-native-edit .collection-edit__form {
+  padding-top: 0;
+}
+
+.payload-native-edit .doc-controls {
+  display: none;
+}
+
+.payload-native-edit .collection-edit__main-wrapper {
+  border-top: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .payload-admin-wrapper *,
   .payload-admin-wrapper *::before,

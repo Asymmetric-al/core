@@ -81,7 +81,7 @@ describe("public ministry updates route", () => {
 
     expect(response.status).toBe(200);
     expect(body).toEqual({
-      tenant: { id: "tenant_1", slug: "alpha" },
+      tenant: { slug: "alpha" },
       updates: [
         { id: "update_1", title: "Quarterly Update", _status: "published" },
       ],

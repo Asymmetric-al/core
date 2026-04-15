@@ -21,7 +21,9 @@ describe("virtualization pilot screens", () => {
   });
 
   it("keeps missionary donor list virtualization enabled instead of threshold-toggling", () => {
-    const source = readRepoFile("apps/missionary/app/donors/page.tsx");
+    const source = readRepoFile(
+      "apps/missionary/app/donors/use-donors-page-view.tsx",
+    );
 
     expect(source).not.toMatch(
       /const shouldVirtualizeDonorList = filteredDonors\.length > 30;/,
