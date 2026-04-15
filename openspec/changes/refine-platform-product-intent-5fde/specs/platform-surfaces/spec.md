@@ -1,0 +1,272 @@
+# Delta for Platform Surfaces And User Experience Intent
+
+## REMOVED Requirements
+
+### Requirement: Mission Control (Admin)
+
+This requirement is removed and replaced by **Mission Control As The Staff
+Operations Surface** so the merged spec names Mission Control plainly as the
+main staff operations console and conceptual home of operational depth.
+
+#### Scenario: A reader looks for the old admin heading
+
+- GIVEN a contributor expects the old “Mission Control (Admin)” heading
+- WHEN they search this spec after the change merges
+- THEN they follow **Mission Control As The Staff Operations Surface**
+- AND they treat that requirement as the authoritative statement of what belongs
+  in Mission Control first
+
+### Requirement: Missionary Workspace
+
+This requirement is removed and replaced by **Missionary Workspace As The
+Missionary Support-Raising Surface** so the merged spec names the missionary
+surface by its durable purpose rather than only by its audience.
+
+#### Scenario: A reader looks for the old missionary heading
+
+- GIVEN a contributor expects the old “Missionary Workspace” heading
+- WHEN they search this spec after the change merges
+- THEN they follow **Missionary Workspace As The Missionary Support-Raising
+  Surface**
+- AND they treat that requirement as the authoritative statement of what the
+  missionary experience is and is not for
+
+### Requirement: Donor Portal And Public Giving
+
+This requirement is removed and replaced by **Donor Portal As The Donor
+Self-Service Surface**, **Public Tenant Website As The Public Ministry
+Surface**, and **Cross-Surface Continuous Flows** so donor self-service, public
+website intent, and connected giving behavior remain distinct and durable.
+
+#### Scenario: A reader looks for the old donor-and-public heading
+
+- GIVEN a contributor expects one combined donor/public requirement
+- WHEN they search this spec after the change merges
+- THEN they use **Donor Portal As The Donor Self-Service Surface** for logged-in
+  donor experience
+- AND they use **Public Tenant Website As The Public Ministry Surface** and
+  **Cross-Surface Continuous Flows** for public and end-to-end giving behavior
+
+### Requirement: Cross-Surface Coherence
+
+This requirement is removed and replaced by **Surface Ownership And Shared
+Records**, **Cross-Surface Continuous Flows**, and **Coherence, Visibility, And
+Simplicity Across Surfaces** so the merged spec protects ownership, handoff, and
+platform feel separately.
+
+#### Scenario: A reader looks for the old coherence heading
+
+- GIVEN a contributor expects the old “Cross-Surface Coherence” heading
+- WHEN they search this spec after the change merges
+- THEN they use the new three-way split for ownership, connected flow, and
+  product feel
+- AND they do not collapse those concerns back into one vague coherence rule
+
+## ADDED Requirements
+
+### Requirement: Mission Control As The Staff Operations Surface
+
+Mission Control SHALL be the main staff operations console and the most heavily
+used daily surface in the platform. It MUST serve as the control center for the
+organization's operations and the conceptual home of operational depth.
+
+Mission Control MUST own organizational operational depth across CRM,
+contributions, reporting, website and content management, communications,
+documents, mobilization, automations, business intelligence, exports, offline
+donation entry, and tenant settings.
+
+Mission Control MUST NOT be treated as optional back-office overflow. When a
+capability carries organization-wide operational depth, staff control,
+exception-handling, or administrative truth, its first conceptual home SHALL be
+Mission Control.
+
+#### Scenario: A new capability carries operational depth
+
+- GIVEN a feature includes staff controls, organization-wide visibility,
+  exception handling, reporting impact, or administrative setup
+- WHEN an agent decides where that feature belongs first
+- THEN Mission Control is the primary surface unless the product truth is
+  explicitly changed in OpenSpec
+- AND other surfaces may expose role-appropriate slices without becoming the
+  conceptual home of that depth
+
+### Requirement: Donor Portal As The Donor Self-Service Surface
+
+The donor portal SHALL be the donor self-service surface. It MUST let donors
+control their giving, recurring gifts, payment methods, receipts, statements,
+and related self-service actions without exposing staff-style complexity.
+
+The donor portal SHALL feel calm, clear, confidence-building, and easy to use.
+It MUST highlight the most common donor actions clearly and MUST NOT bury them
+inside staff workflows, internal terminology, or operational detours.
+
+The donor portal MUST NOT become a staff operations surface. It SHALL present
+only the depth needed for a donor to manage their relationship to giving with
+clarity and confidence.
+
+#### Scenario: A donor wants to complete a common giving task
+
+- GIVEN a donor wants to update a recurring gift, change a payment method, find
+  a receipt, or review giving history
+- WHEN an agent designs or changes the donor portal flow
+- THEN the action is surfaced clearly in donor language and completed without
+  staff-style setup, review queues, or operational clutter
+- AND the portal remains focused on donor self-service rather than internal
+  administration
+
+### Requirement: Missionary Workspace As The Missionary Support-Raising Surface
+
+The missionary workspace SHALL be the fundraising and communication home for
+missionaries. It MUST help missionaries understand support progress, donor
+information, recent giving, tasks, Ministry Updates, and the public pages they
+are allowed to control.
+
+The missionary workspace MUST stay focused on what helps a missionary
+understand support, respond to donors, manage updates, and manage the pages or
+projects they are allowed to control.
+
+The missionary workspace MUST NOT become a replacement for Mission Control. It
+SHALL avoid staff-style operational depth that would overload missionaries or
+turn the workspace into a second admin console.
+
+#### Scenario: A capability would add staff-style depth to the missionary experience
+
+- GIVEN a proposal would expose the missionary surface to staff-style controls,
+  broad operational setup, or organization-wide administrative detail
+- WHEN an agent decides whether that capability belongs in the missionary
+  workspace
+- THEN the workspace keeps only the depth that directly helps missionaries raise
+  support, communicate clearly, and manage what they are authorized to control
+- AND the broader operational depth stays conceptually anchored in Mission
+  Control
+
+### Requirement: Public Tenant Website As The Public Ministry Surface
+
+The public tenant website SHALL be the public face of the ministry. It MUST be
+tenant-branded, highly customizable, content-managed, and tightly connected to
+missionary pages, project pages, public storytelling, and giving flows.
+
+The public tenant website MUST remain a public-facing ministry experience. It
+MUST NOT drift into a logged-in operational surface or become a disguised staff
+tool.
+
+Public giving MUST feel native to the tenant website rather than like a
+disconnected external tool. Missionary and project pages SHALL conceptually
+belong to the public tenant website surface even when authorized users initiate
+or edit related changes from other surfaces.
+
+#### Scenario: A public website change starts to behave like an operational surface
+
+- GIVEN a proposal would solve a staff or authenticated workflow by placing more
+  operational depth on the public tenant website
+- WHEN an agent evaluates whether it fits the public surface
+- THEN they preserve the website as a branded, public-facing ministry
+  experience centered on discovery, storytelling, pages, and giving
+- AND they move operational depth back to staff or role-appropriate surfaces
+  instead of letting the website become a public admin console
+
+### Requirement: Surface Ownership And Shared Records
+
+The platform SHALL allow the same underlying records to appear across multiple
+surfaces according to role and privilege without changing conceptual ownership.
+
+When the same information can appear in both Mission Control and the missionary
+workspace, it MUST belong in the CRM and Mission Control first as the
+operational source of truth. Other surfaces MAY read from and write to the same
+connected system according to role and privilege, but the conceptual home MUST
+stay there.
+
+Missionary and project pages MUST belong to the public tenant website surface.
+Changes to those pages MAY start in the missionary workspace, but they SHALL
+flow back into the operational record and the public content layer. If a tenant
+requires approval, the review and approval path MUST appear as part of one
+connected surface behavior rather than as a detached side process.
+
+#### Scenario: A feature could live in Mission Control or the missionary workspace
+
+- GIVEN the same record or capability could appear in both Mission Control and
+  the missionary workspace
+- WHEN an agent decides where it belongs first
+- THEN Mission Control and the CRM keep conceptual ownership whenever the record
+  is part of operational truth, staff oversight, or organization-wide workflow
+- AND the missionary workspace only carries the role-appropriate view or action
+  needed by the missionary
+
+#### Scenario: A missionary updates public page content
+
+- GIVEN a missionary updates a photo, bio, or page content they are allowed to
+  control
+- WHEN that change moves through preview, submission, optional approval, and
+  publication
+- THEN the public tenant website updates as the public-facing destination
+- AND the connected operational and content records stay synchronized without
+  inventing a separate conceptual owner for the page
+
+### Requirement: Cross-Surface Continuous Flows
+
+Important actions SHALL feel like one connected flow across public, donor,
+missionary, and staff experiences. The platform MUST avoid manual re-entry,
+broken handoff, and confusion about where a user goes next.
+
+The public giving flow MUST continue cleanly through receipt, donor history,
+operational visibility, and missionary awareness as one connected product flow.
+Likewise, staff actions with downstream effects MUST reflect across the related
+surfaces without requiring side-channel correction.
+
+Ministry Updates MAY appear across surfaces according to visibility and
+moderation settings. They SHALL remain part of one connected product flow even
+when missionaries manage them, admins review them, public pages display them,
+donor experiences surface them, or communication flows reference them.
+
+#### Scenario: A public gift becomes part of the connected ministry record
+
+- GIVEN a donor gives through the public tenant website
+- WHEN the gift completes and the donor moves into follow-up experiences
+- THEN the donor receives a receipt, sees the gift in donor history, staff can
+  see the gift in the operational record, and missionary-relevant views reflect
+  it where appropriate
+- AND that end-to-end path behaves like one product flow rather than a chain of
+  detached tools
+
+#### Scenario: An admin triggers a refund
+
+- GIVEN an admin triggers a refund or similar corrective action from the staff
+  operations surface
+- WHEN the result affects donor-visible history or missionary-relevant support
+  context
+- THEN the connected surfaces reflect the new state without manual re-entry
+- AND the platform does not rely on side-channel cleanup to keep surfaces in
+  sync
+
+### Requirement: Coherence, Visibility, And Simplicity Across Surfaces
+
+The major surfaces SHALL feel like one connected platform rather than separate
+products. Shared concepts MUST use shared product language and predictable
+behavior across surfaces unless an intentional difference is explicitly defined
+in OpenSpec.
+
+Role-based visibility MUST shape every surface. Users SHALL see the depth that
+fits their role, and staff depth MUST NOT leak into donor or missionary
+surfaces.
+
+Hidden capability MUST be handled cleanly so the product still feels
+intentional, coherent, and complete rather than broken, chopped apart, or half
+revealed.
+
+#### Scenario: A role should not see certain depth
+
+- GIVEN a user does not have the role or privilege for certain operational depth
+- WHEN an agent designs how that surface behaves for the user
+- THEN the product hides or simplifies that depth cleanly within the intended
+  surface experience
+- AND the result feels purposeful rather than like missing pieces of a staff
+  tool leaked into the wrong place
+
+#### Scenario: Naming or behavior drift would make the platform feel like separate products
+
+- GIVEN a new flow introduces different names, states, or mental models for the
+  same concept across staff, donor, missionary, or public surfaces
+- WHEN an agent decides whether that difference is acceptable
+- THEN they push back toward shared product language and connected behavior
+- AND they reject drift that would make the platform feel like separate apps
+  with disconnected logic or unsynced records
