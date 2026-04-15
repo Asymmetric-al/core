@@ -612,7 +612,10 @@ export async function readMemberCarePersonDetail(
   const goals = goalRows.map(toGoal);
   const requirements = requirementRows.map(toRequirement);
   const personnel = personnelRow
-    ? applyGoalsAndRequirements([toPersonnel(personnelRow)], goals, requirements)[0]
+    ? (
+        applyGoalsAndRequirements([toPersonnel(personnelRow)], goals, requirements)[0] ??
+        null
+      )
     : null;
 
   return {
