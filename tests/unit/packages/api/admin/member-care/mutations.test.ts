@@ -36,20 +36,26 @@ const {
     }
 
     if (table === "member_care_activities") {
-      const chain = {
-        insert: activityInsert.mockReturnValue(chain),
-        select: vi.fn(() => chain),
-        single: activitySingle,
+      const chain = {} as {
+        insert: ReturnType<typeof vi.fn>;
+        select: ReturnType<typeof vi.fn>;
+        single: typeof activitySingle;
       };
+      chain.insert = activityInsert.mockImplementation(() => chain);
+      chain.select = vi.fn(() => chain);
+      chain.single = activitySingle;
       return chain;
     }
 
     if (table === "member_care_requirements") {
-      const chain = {
-        insert: requirementInsert.mockReturnValue(chain),
-        select: vi.fn(() => chain),
-        single: requirementSingle,
+      const chain = {} as {
+        insert: ReturnType<typeof vi.fn>;
+        select: ReturnType<typeof vi.fn>;
+        single: typeof requirementSingle;
       };
+      chain.insert = requirementInsert.mockImplementation(() => chain);
+      chain.select = vi.fn(() => chain);
+      chain.single = requirementSingle;
       return chain;
     }
 
