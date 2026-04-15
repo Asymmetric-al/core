@@ -221,6 +221,7 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 - **Next.js App Router structure, rendering, data fetching:** `docs/ai/skills/nextjs-app-router/SKILL.md`
 - **Cache Components / PPR / cacheTag & invalidation:** `docs/ai/skills/cache-components/SKILL.md`
 - **React component design/refactor:** `docs/ai/skills/react-component-dev/SKILL.md`
+- **Million React Doctor / performance & health audits (`millionco/react-doctor`):** `docs/ai/skills/react-doctor/SKILL.md`
 - **Composable, accessible UI components (components.build spec):** `docs/ai/skills/components-build/SKILL.md`
 - **shadcn/ui system usage:** `docs/ai/skills/moai-library-shadcn/SKILL.md`
 - **Base UI:** `docs/ai/skills/base-ui/SKILL.md`

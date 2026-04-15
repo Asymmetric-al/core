@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "canonicalSkills": [
+    "anim",
+    "base-ui",
+    "cache-components",
+    "commit",
+    "components-build",
+    "emil-design-eng",
+    "find-skills",
+    "moai-library-shadcn",
+    "motion",
+    "nextjs-app-router",
+    "nextjs-supabase-auth",
+    "react-component-dev",
+    "react-doctor",
+    "rechart",
+    "supabase",
+    "supabase-postgres-best-practices",
+    "tanstack-table",
+    "tiptap",
+    "vercel-react-best-practices",
+    "vercel-react-view-transitions"
+  ]
+}

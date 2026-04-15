@@ -1,13 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { manualAttentionSchema } from "../../../../../../packages/api/src/admin/member-care/mutations";
-import {
-  readJsonBody,
-  requireMemberCareAccess,
-  toApiErrorResponse,
-  toMutationErrorResponse,
-} from "../../../../../../packages/api/src/admin/member-care/route-helpers";
-
 const { getAuthContextMock, hasAnyContextRoleMock } = vi.hoisted(() => ({
   getAuthContextMock: vi.fn(),
   hasAnyContextRoleMock: vi.fn(),
@@ -17,6 +9,22 @@ vi.mock("@asym/auth/context", () => ({
   getAuthContext: getAuthContextMock,
   hasAnyContextRole: hasAnyContextRoleMock,
 }));
+
+vi.mock("@asym/database/supabase/admin", () => ({
+  getAdminClient: vi.fn(() => ({ client: {}, error: null })),
+}));
+
+vi.mock("next/cache", () => ({
+  revalidateTag: vi.fn(),
+}));
+
+import { manualAttentionSchema } from "../../../../../../packages/api/src/admin/member-care/mutations";
+import {
+  readJsonBody,
+  requireMemberCareAccess,
+  toApiErrorResponse,
+  toMutationErrorResponse,
+} from "../../../../../../packages/api/src/admin/member-care/route-helpers";
 
 describe("member care route helpers", () => {
   beforeEach(() => {

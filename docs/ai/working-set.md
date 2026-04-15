@@ -6,7 +6,7 @@
 - Repo: Asymmetric-al/core
 - Goal: Complete phase 8 by enforcing typed route contracts with shared schema-aware JSON parsing and eliminating unsafe payload casts in member-care mutation routes.
 - Primary area:
-  - `apps/admin/app/api/admin/member-care/_lib.ts`
+  - `packages/api/src/admin/member-care/route-helpers.ts`
   - `apps/admin/app/api/admin/member-care/{thread,goals,activity,requirements,attention}/route.ts`
   - `packages/api/src/admin/member-care/mutations.ts`
   - `tests/unit/apps/admin/member-care-route-lib.test.ts`
@@ -20,7 +20,7 @@
 - Repo: Asymmetric-al/core
 - Goal: Reapply and finalize phase 6/7 for PR #170 by extending shared route hardening across read endpoints and tightening JSON payload guards for mutation handlers.
 - Primary area:
-  - `apps/admin/app/api/admin/member-care/_lib.ts`
+  - `packages/api/src/admin/member-care/route-helpers.ts`
   - `apps/admin/app/api/admin/member-care/{dashboard,directory,directory/[id]}/route.ts`
   - `tests/unit/apps/admin/member-care-route-lib.test.ts`
 - Constraints:
@@ -34,7 +34,7 @@
 - Repo: Asymmetric-al/core
 - Goal: Complete phase 7 by hardening mutation route handlers with shared auth/JSON/error utilities and adding unit coverage for the shared route-helper boundary.
 - Primary area:
-  - `apps/admin/app/api/admin/member-care/_lib.ts`
+  - `packages/api/src/admin/member-care/route-helpers.ts`
   - `apps/admin/app/api/admin/member-care/{thread,goals,activity,requirements,attention}/route.ts`
   - `tests/unit/apps/admin/member-care-route-lib.test.ts`
 - Constraints:
@@ -144,6 +144,37 @@
   - `docs/ai/rules/{general,frontend,backend,testing}.md`
   - `docs/ai/skills/{nextjs-app-router,tiptap,tanstack-table,supabase}/SKILL.md`
   - `.next-docs/01-app/01-getting-started/{05-server-and-client-components,07-fetching-data}.mdx`
+
+## 2026-04-11 (Repo health hardening pass)
+
+- Date: 2026-04-11
+- Repo: Asymmetric-al/core
+- Goal: Land a low-risk repo health pass that reduces duplicated Mission Control shell surfaces, extracts model/section logic from the largest route modules, aligns task-surface motion with the shared reduced-motion wrapper, and corrects React Query v5 loading semantics where query state is currently read via `isLoading`.
+- Primary area:
+  - `apps/admin/features/mission-control/{components,shell}/**`
+  - `apps/admin/app/{feed,admin/teams}/**`
+  - `apps/missionary/app/{donors,feed,profile}/**`
+  - `packages/missionary/components/tasks/**`
+  - `scripts/verify-workspace-contract.mjs`
+  - `package.json`
+- Constraints:
+  - Keep App Router behavior unchanged; no segment config exports while `cacheComponents` is enabled.
+  - Prefer compatibility re-exports over large shell rewrites so existing imports keep working.
+  - Split large route files with adjacent model/hooks/sections files instead of broad architecture changes.
+  - Keep shared UI imports routed through `@asym/ui` and shared motion through `@asym/lib/motion`.
+  - Scope repo-wide quality tooling to first-party sources and avoid vendor noise.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/ai/rules/{general,frontend,testing}.md`
+  - `docs/guides/architecture/{data-access-boundary,runtime-map}.md`
+  - `.next-docs/01-app/01-getting-started/06-cache-components.mdx`
+  - `.next-docs/01-app/03-api-reference/04-functions/use-pathname.mdx`
+  - repo-scoped Nia search + direct file reads for missionary/admin route modules and Mission Control shell duplicates
+- Notes:
+  - The `shell/` Mission Control tree is effectively a compatibility surface; only `apps/admin/app/admin/teams/teams-sections.tsx` currently imports it directly.
+  - The biggest page wins in this pass are adjacent extractions (models/hooks/sections), not full feature migrations.
+  - Validation should cover `verify:workspace-contract`, scoped lint/typecheck, unit tests, and a vendor-scoped React Doctor script for future audits.
+
 ## 2026-04-10 (Web Studio Phase 5 — living documentation + handoff)
 
 - Repo: Asymmetric-al/core
@@ -1318,3 +1349,48 @@
   - scoped lint/typecheck for touched packages/apps
   - `bun run test:unit`
   - Playwright session guard spec for donor/admin/missionary.
+
+## 2026-04-11 (TanStack DB + Virtual latest-version upgrade planning)
+
+- Date: 2026-04-11
+- Repo: Asymmetric-al/core
+- Goal: Verify the latest TanStack DB/Virtual/CLI versions and produce a concrete, repo-specific full-upgrade plan.
+- Primary area:
+  - `packages/database/package.json`
+  - `packages/ui/package.json`
+  - `docs/guides/development/tanstack-{integration,virtual-foundation,surface-inventory}.md`
+- Constraints:
+  - Nia MCP is unavailable in this session, so use repo-scoped `rg` and package registry checks (`npm view`) as evidence.
+  - Treat official TanStack docs and npm package registry as the version truth for planning.
+  - Produce phased rollout guidance with verification checkpoints and rollback guardrails.
+- Evidence sources used:
+  - `docs/ai/stack-registry.md`
+  - `docs/ai/working-set.md`
+  - `package.json` files under `packages/database` and `packages/ui`
+  - `npm view @tanstack/* version` checks (DB, react-db, query-db-collection, react-virtual, virtual-core, CLI)
+  - TanStack docs pages under `https://tanstack.com/db/latest` and `https://tanstack.com/virtual/latest`
+- Notes:
+  - Current repo already sits on the TanStack DB `0.6.x` line; target is patch alignment and coordinated Virtual/CLI bumps.
+
+## 2026-04-11 (TanStack DB/Virtual upgrade implementation)
+
+- Date: 2026-04-11
+- Repo: Asymmetric-al/core
+- Goal: Execute the TanStack DB + Virtual upgrade plan end-to-end, including dependency bumps, docs refresh, and verification.
+- Primary area:
+  - `package.json` (root)
+  - `packages/database/package.json`
+  - `packages/ui/package.json`
+  - `docs/guides/development/tanstack-integration.md`
+  - `docs/guides/development/tanstack-virtual-foundation.md`
+- Constraints:
+  - Nia MCP remains unavailable in-session; use repo-scoped file search and primary-source package/doc checks.
+  - Verify latest package versions from npm dist-tags before editing.
+  - Run at least scoped lint + typecheck + unit coverage to validate upgrade safety.
+- Evidence sources used:
+  - `npm view @tanstack/{db,react-db,query-db-collection,react-virtual,virtual-core,cli} version dist-tags`
+  - `https://tanstack.com/db/latest`
+  - `https://tanstack.com/virtual/latest`
+  - `rg` scans for TanStack usage in `packages/database` and `packages/ui`
+- Notes:
+  - `tanstack search-docs` currently fails in this environment (`fetch failed`), so docs verification uses direct official URLs + npm registry checks.

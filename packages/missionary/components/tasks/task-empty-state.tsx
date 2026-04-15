@@ -1,8 +1,8 @@
 "use client";
 
+import { motion } from "@asym/lib/motion";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Plus, CheckCircle2, FilterX } from "lucide-react";
-import { motion } from "motion/react";
 import * as React from "react";
 
 interface EmptyStateProps {

@@ -10,7 +10,9 @@ function readRepoFile(path: string) {
 
 describe("missionary donors TanStack migration", () => {
   it("uses the shared missionary donor hook and shared tables for both donor surfaces", () => {
-    const source = readRepoFile("apps/missionary/app/donors/page.tsx");
+    const source = readRepoFile(
+      "apps/missionary/app/donors/use-donors-page-view.tsx",
+    );
 
     expect(source).toMatch(/useMissionaryDonorRows/);
     expect(source).toMatch(/DataTableResponsive/);

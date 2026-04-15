@@ -50,8 +50,7 @@
     "./reads/member-care": "./src/reads/member-care.ts",
     "./admin/member-care/mutations": "./src/admin/member-care/mutations.ts",
     "./admin/member-care/route-helpers": "./src/admin/member-care/route-helpers.ts",
-    "./admin/member-care/private-notes": "./src/admin/member-care/private-notes.ts",
-    "./admin/member-care/route-helpers": "./src/admin/member-care/route-helpers.ts"
+    "./admin/member-care/private-notes": "./src/admin/member-care/private-notes.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
