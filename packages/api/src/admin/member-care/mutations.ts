@@ -17,7 +17,28 @@ export const careGoalSchema = z.object({
 
 export const activitySchema = z.object({
   personnelId: z.string().min(1),
-  type: z.string().min(1),
+  type: z.union([
+    z.enum([
+      "Video Call",
+      "In-Person Visit",
+      "Check-in",
+      "Pastoral Note",
+      "Care Plan Update",
+      "Crisis Intervention",
+      "Birthday",
+      "Prayer Request",
+    ]),
+    z.enum([
+      "video_call",
+      "in_person_visit",
+      "check_in",
+      "pastoral_note",
+      "care_plan_update",
+      "crisis_intervention",
+      "birthday",
+      "prayer_request",
+    ]),
+  ]),
   content: z.string().min(1),
 });
 
@@ -29,7 +50,28 @@ export const privateNoteSchema = z.object({
 export const careRequirementSchema = z.object({
   id: z.string().optional(),
   personnelId: z.string().min(1),
-  activityType: z.string().min(1),
+  activityType: z.union([
+    z.enum([
+      "Video Call",
+      "In-Person Visit",
+      "Check-in",
+      "Pastoral Note",
+      "Care Plan Update",
+      "Crisis Intervention",
+      "Birthday",
+      "Prayer Request",
+    ]),
+    z.enum([
+      "video_call",
+      "in_person_visit",
+      "check_in",
+      "pastoral_note",
+      "care_plan_update",
+      "crisis_intervention",
+      "birthday",
+      "prayer_request",
+    ]),
+  ]),
   intervalDays: z.number().int().positive(),
   notes: z.string().optional(),
 });
@@ -38,6 +80,51 @@ export const manualAttentionSchema = z.object({
   personnelId: z.string().min(1),
   manualAttention: z.boolean(),
 });
+
+const MEMBER_CARE_ACTIVITY_TYPE_TO_DB = {
+  "Video Call": "video_call",
+  "In-Person Visit": "in_person_visit",
+  "Check-in": "check_in",
+  "Pastoral Note": "pastoral_note",
+  "Care Plan Update": "care_plan_update",
+  "Crisis Intervention": "crisis_intervention",
+  Birthday: "birthday",
+  "Prayer Request": "prayer_request",
+} as const;
+
+const MEMBER_CARE_ACTIVITY_TYPE_FROM_DB = Object.fromEntries(
+  Object.entries(MEMBER_CARE_ACTIVITY_TYPE_TO_DB).map(([label, dbValue]) => [
+    dbValue,
+    label,
+  ]),
+) as Record<
+  (typeof MEMBER_CARE_ACTIVITY_TYPE_TO_DB)[keyof typeof MEMBER_CARE_ACTIVITY_TYPE_TO_DB],
+  keyof typeof MEMBER_CARE_ACTIVITY_TYPE_TO_DB
+>;
+
+type MemberCareUiActivityType =
+  keyof typeof MEMBER_CARE_ACTIVITY_TYPE_TO_DB;
+type MemberCareDbActivityType =
+  (typeof MEMBER_CARE_ACTIVITY_TYPE_TO_DB)[MemberCareUiActivityType];
+
+function toDbActivityType(
+  value: z.infer<typeof activitySchema.shape.type>,
+): MemberCareDbActivityType {
+  return (
+    MEMBER_CARE_ACTIVITY_TYPE_TO_DB[
+      value as MemberCareUiActivityType
+    ] ?? (value as MemberCareDbActivityType)
+  );
+}
+
+function toActivityLabel(
+  value: z.infer<typeof activitySchema.shape.type>,
+): MemberCareUiActivityType {
+  return (
+    MEMBER_CARE_ACTIVITY_TYPE_FROM_DB[value as MemberCareDbActivityType] ??
+    (value as MemberCareUiActivityType)
+  );
+}
 
 function getClient() {
   const { client, error } = getAdminClient();
@@ -211,6 +298,8 @@ export async function logCareActivity(
   input: LogCareActivityInput,
 ) {
   const payload = activitySchema.parse(input);
+  const dbActivityType = toDbActivityType(payload.type);
+  const activityLabel = toActivityLabel(payload.type);
   const client = getClient();
   await assertMissionaryOwnership(client, tenantId, payload.personnelId);
   const actorNameSnapshot = await getActorNameSnapshot(client, actorId);
@@ -220,8 +309,8 @@ export async function logCareActivity(
     .insert({
       tenant_id: tenantId,
       missionary_id: payload.personnelId,
-      type: payload.type,
-      title: payload.type,
+      type: dbActivityType,
+      title: activityLabel,
       description: payload.content,
       author_user_id: actorId,
       author_name_snapshot: actorNameSnapshot,
@@ -242,13 +331,14 @@ export async function upsertCareRequirement(
   input: UpsertCareRequirementInput,
 ) {
   const payload = careRequirementSchema.parse(input);
+  const dbActivityType = toDbActivityType(payload.activityType);
   const client = getClient();
   await assertMissionaryOwnership(client, tenantId, payload.personnelId);
 
   const requirementRecord = {
     tenant_id: tenantId,
     missionary_id: payload.personnelId,
-    activity_type: payload.activityType,
+    activity_type: dbActivityType,
     interval_days: payload.intervalDays,
     notes: payload.notes ?? null,
     updated_by: actorId,
