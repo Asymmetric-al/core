@@ -1,7 +1,7 @@
 "use client";
 
-import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
 import { PageShell } from "@asym/ui/components/shadcn/page-shell";
+import { Skeleton as BoneyardSkeleton } from "boneyard-js/react";
 
 import { MissionaryTasksListBoneyardFixture } from "../../tasks/boneyard-fixture";
 

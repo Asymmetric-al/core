@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "@asym/lib/motion";
 import { TaskDialog } from "@asym/missionary/components/task-dialog";
 import { TaskKanbanBoard } from "@asym/missionary/components/task-kanban-board";
 import { TaskRow } from "@asym/missionary/components/task-row";
-import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,6 +29,7 @@ import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
 import { cn } from "@asym/ui/lib/utils";
+import { Skeleton as BoneyardSkeleton } from "boneyard-js/react";
 import { isToday, isPast } from "date-fns";
 import {
   Plus,
