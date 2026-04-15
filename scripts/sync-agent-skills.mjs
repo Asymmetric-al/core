@@ -28,7 +28,10 @@ const CANONICAL_MANIFEST_VERSION = 1;
 const SAFE_CANONICAL_SKILL_DIR_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function assertSafeCanonicalSkillDirName(skillName, context) {
-  if (typeof skillName !== "string" || !SAFE_CANONICAL_SKILL_DIR_RE.test(skillName)) {
+  if (
+    typeof skillName !== "string" ||
+    !SAFE_CANONICAL_SKILL_DIR_RE.test(skillName)
+  ) {
     throw new Error(
       `Refusing unsafe canonical skill directory name${context ? ` (${context})` : ""}: ${JSON.stringify(skillName)}`,
     );
@@ -39,8 +42,9 @@ function assertMirrorSkillDirUnderRoot(targetRoot, skillName) {
   const rootResolved = path.resolve(targetRoot);
   const targetDir = path.join(targetRoot, skillName);
   const dirResolved = path.resolve(targetDir);
-  const prefix =
-    rootResolved.endsWith(path.sep) ? rootResolved : `${rootResolved}${path.sep}`;
+  const prefix = rootResolved.endsWith(path.sep)
+    ? rootResolved
+    : `${rootResolved}${path.sep}`;
   if (dirResolved !== rootResolved && !dirResolved.startsWith(prefix)) {
     throw new Error(
       `Refusing path outside mirror root for skill ${JSON.stringify(skillName)}`,
