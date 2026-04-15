@@ -58,28 +58,35 @@ function getSupabaseOrigin() {
 
 const supabaseOrigin = getSupabaseOrigin();
 
-const MISSIONARY_PUBLIC_PATH_PREFIXES = [
+const MISSIONARY_AUTH_PUBLIC_PATH_PREFIXES = [
   "/login",
   "/register",
   "/auth/callback",
   "/forgot-password",
   "/no-access",
   "/api/",
-  "/boneyard/",
 ] as const;
 
-function isPublicPath(pathname: string) {
-  return MISSIONARY_PUBLIC_PATH_PREFIXES.some((prefix) =>
+function isAuthPublicPath(pathname: string) {
+  return MISSIONARY_AUTH_PUBLIC_PATH_PREFIXES.some((prefix) =>
     prefix.endsWith("/")
       ? pathname.startsWith(prefix)
       : pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
 }
 
+function isBoneyardPath(pathname: string) {
+  return pathname === "/boneyard" || pathname.startsWith("/boneyard/");
+}
+
 async function MissionaryRoleGate({ children }: { children: React.ReactNode }) {
   const pathname = (await headers()).get("x-asym-pathname") ?? "/";
-  if (isPublicPath(pathname)) {
+  if (isAuthPublicPath(pathname)) {
     return <>{children}</>;
+  }
+
+  if (isBoneyardPath(pathname)) {
+    return <MissionaryLayoutShell>{children}</MissionaryLayoutShell>;
   }
 
   const authContext = await getAuthContext();
