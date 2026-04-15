@@ -49,6 +49,10 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
     () => getDashboardNotifications({ personnel, activities }),
     [personnel, activities],
   );
+  const upcomingBirthdayNotifications = React.useMemo(
+    () => notifications.filter((note) => note.type === "birthday"),
+    [notifications],
+  );
   const openInterventionsCount = React.useMemo(
     () => getOpenInterventionsCount(personnel),
     [personnel],
@@ -219,21 +223,16 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
             </CardContent>
           </Card>
 
-          {/* Upcoming Schedule */}
+          {/* Upcoming Birthdays */}
           <Card className="border-border/50 shadow-sm overflow-hidden">
             <CardHeader className="pb-3 border-b border-border/30 bg-muted/5">
               <CardTitle className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
-                Upcoming Schedule
+                Upcoming Birthdays
               </CardTitle>
             </CardHeader>
             <CardContent className="p-responsive-card">
               <div className="space-y-5">
-                {notifications
-                  .filter(
-                    (note) => note.type === "task" || note.type === "birthday",
-                  )
-                  .slice(0, 3)
-                  .map((note) => {
+                {upcomingBirthdayNotifications.slice(0, 3).map((note) => {
                     const p = personnel.find(
                       (item) => item.id === note.personnelId,
                     );
@@ -271,20 +270,16 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
                       </div>
                     );
                   })}
-                {notifications.filter(
-                  (note) => note.type === "task" || note.type === "birthday",
-                ).length === 0 && (
+                {upcomingBirthdayNotifications.length === 0 && (
                   <div className="rounded-2xl border border-border/50 bg-background p-5 text-xs font-semibold text-muted-foreground">
-                    No upcoming tasks or birthdays.
+                    No upcoming birthdays yet. Care task scheduling is coming
+                    soon.
                   </div>
                 )}
               </div>
-              <Button
-                variant="outline"
-                className="w-full btn-responsive font-bold border-border/50 hover:bg-muted mt-6"
-              >
-                Full Calendar
-              </Button>
+              <div className="mt-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                Care task scheduling coming soon
+              </div>
             </CardContent>
           </Card>
         </div>

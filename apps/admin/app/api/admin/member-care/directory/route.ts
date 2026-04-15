@@ -12,7 +12,7 @@ export async function GET() {
 
   try {
     const directory = await readMemberCareDirectory(auth.context.tenantId);
-    return Response.json({ data: directory });
+    return Response.json(directory);
   } catch (error) {
     return toApiErrorResponse(error, "Failed to load member care directory.");
   }

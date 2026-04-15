@@ -358,6 +358,29 @@ async function readDirectoryRows(tenantId: string) {
   return (data ?? []) as MissionaryDirectoryRow[];
 }
 
+async function readDirectoryRowById(
+  tenantId: string,
+  personnelId: string,
+): Promise<MissionaryDirectoryRow | null> {
+  const client = await getMemberCareClient();
+  const { data, error } = await client
+    .from("missionaries")
+    .select(
+      "id, location, timezone, health_status, last_check_in, manual_attention, region, mission_field, health_signals, birth_date, profile:profiles!profile_id(first_name, last_name, full_name, display_name, avatar_url)",
+    )
+    .eq("tenant_id", tenantId)
+    .eq("id", personnelId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(
+      toErrorMessage(error, "Failed to read member care profile."),
+    );
+  }
+
+  return (data as MissionaryDirectoryRow | null) ?? null;
+}
+
 async function readActivityRows(tenantId: string, missionaryId?: string) {
   const client = await getMemberCareClient();
   let query = client
@@ -430,14 +453,18 @@ async function readPrivateNoteRows(
   tenantId: string,
   actorUserId: string,
   missionaryId?: string,
+  actorIsSuperAdmin = false,
 ) {
   const client = await getMemberCareClient();
   let query = client
     .from("member_care_private_notes")
     .select("id, missionary_id, author_user_id, author_name_snapshot, content, created_at")
     .eq("tenant_id", tenantId)
-    .eq("author_user_id", actorUserId)
     .order("created_at", { ascending: false });
+
+  if (!actorIsSuperAdmin) {
+    query = query.eq("author_user_id", actorUserId);
+  }
 
   if (missionaryId) {
     query = query.eq("missionary_id", missionaryId);
@@ -566,25 +593,27 @@ export async function readMemberCarePersonDetail(
   tenantId: string,
   personnelId: string,
   actorUserId: string,
+  actorIsSuperAdmin = false,
 ): Promise<MemberCarePersonDetail> {
-  const [personnelRows, activityRows, privateNoteRows, goalRows, requirementRows] =
+  const [personnelRow, activityRows, privateNoteRows, goalRows, requirementRows] =
     await Promise.all([
-      readDirectoryRows(tenantId),
+      readDirectoryRowById(tenantId, personnelId),
       readActivityRows(tenantId, personnelId),
-      readPrivateNoteRows(tenantId, actorUserId, personnelId),
+      readPrivateNoteRows(
+        tenantId,
+        actorUserId,
+        personnelId,
+        actorIsSuperAdmin,
+      ),
       readGoalRows(tenantId, personnelId),
       readRequirementRows(tenantId, personnelId),
     ]);
 
   const goals = goalRows.map(toGoal);
   const requirements = requirementRows.map(toRequirement);
-  const personnel = applyGoalsAndRequirements(
-    personnelRows
-      .filter((row) => row.id === personnelId)
-      .map(toPersonnel),
-    goals,
-    requirements,
-  )[0] ?? null;
+  const personnel = personnelRow
+    ? applyGoalsAndRequirements([toPersonnel(personnelRow)], goals, requirements)[0]
+    : null;
 
   return {
     personnel,

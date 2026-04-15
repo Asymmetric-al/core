@@ -18,6 +18,7 @@ export async function GET(
       auth.context.tenantId,
       id,
       auth.context.userId,
+      auth.context.isSuperAdmin,
     );
 
     if (!detail.personnel) {
