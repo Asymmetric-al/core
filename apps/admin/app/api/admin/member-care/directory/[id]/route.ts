@@ -14,7 +14,12 @@ export async function GET(
   const { id } = await context.params;
 
   try {
-    const detail = await readMemberCarePersonDetail(auth.context.tenantId, id);
+    const detail = await readMemberCarePersonDetail(
+      auth.context.tenantId,
+      id,
+      auth.context.userId,
+      auth.context.isSuperAdmin,
+    );
 
     if (!detail.personnel) {
       return Response.json({ error: "Not found" }, { status: 404 });

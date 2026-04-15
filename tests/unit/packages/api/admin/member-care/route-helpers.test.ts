@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { z } from "zod";
+
+import { manualAttentionSchema } from "../../../../../../packages/api/src/admin/member-care/mutations";
+import {
+  readJsonBody,
+  requireMemberCareAccess,
+  toApiErrorResponse,
+  toMutationErrorResponse,
+} from "../../../../../../packages/api/src/admin/member-care/route-helpers";
 
 const { getAuthContextMock, hasAnyContextRoleMock } = vi.hoisted(() => ({
   getAuthContextMock: vi.fn(),
@@ -10,13 +17,6 @@ vi.mock("@asym/auth/context", () => ({
   getAuthContext: getAuthContextMock,
   hasAnyContextRole: hasAnyContextRoleMock,
 }));
-
-import {
-  readJsonBody,
-  requireMemberCareAccess,
-  toApiErrorResponse,
-  toMutationErrorResponse,
-} from "../../../../apps/admin/app/api/admin/member-care/_lib";
 
 describe("member care route helpers", () => {
   beforeEach(() => {
@@ -66,6 +66,7 @@ describe("member care route helpers", () => {
     expect(result.context).toEqual({
       tenantId: "tenant-1",
       userId: "user-1",
+      isSuperAdmin: false,
     });
   });
 
@@ -100,32 +101,32 @@ describe("member care route helpers", () => {
   });
 
   it("returns 422 when schema validation fails", async () => {
-    const schema = z.object({ personnelId: z.string().min(1) });
     const request = new Request("http://localhost/api", {
       method: "POST",
       headers: {
         "content-type": "application/json",
       },
-      body: JSON.stringify({ personnelId: 42 }),
+      body: JSON.stringify({ personnelId: 42, manualAttention: true }),
     });
 
-    const result = await readJsonBody(request, schema);
+    const result = await readJsonBody(request, manualAttentionSchema);
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error("Expected schema validation failure");
     expect(result.response.status).toBe(422);
   });
 
   it("maps zod errors to 422 responses", async () => {
+    const parsed = manualAttentionSchema.safeParse({
+      personnelId: 42,
+      manualAttention: "nope",
+    });
+
+    if (parsed.success) {
+      throw new Error("Expected schema parsing to fail");
+    }
+
     const response = toMutationErrorResponse(
-      new z.ZodError([
-        {
-          code: "invalid_type",
-          expected: "string",
-          received: "number",
-          path: ["personnelId"],
-          message: "Expected string",
-        },
-      ]),
+      parsed.error,
       "Fallback",
     );
 

@@ -40,6 +40,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import { HealthHeatmap } from "./HealthHeatmap";
 import {
   useCreateCareThreadPost,
+  useCreateCarePrivateNote,
   useCreateOrUpdateCareGoal,
   useLogCareActivity,
   useSetManualAttentionFlag,
@@ -47,10 +48,12 @@ import {
 } from "../hooks/use-care";
 
 import type { CarePersonnel, ActivityLogEntry } from "../types";
+import type { MemberCarePrivateNote } from "@asym/database/hooks";
 
 interface PersonnelProfileProps {
   personnel: CarePersonnel;
   activities: ActivityLogEntry[];
+  privateNotes: MemberCarePrivateNote[];
 }
 
 function PersonnelProfileHeaderCard({
@@ -328,7 +331,7 @@ function CareThreadTabContent({
 }) {
   const [draft, setDraft] = useState("");
   const createThreadPost = useCreateCareThreadPost();
-  const threadEntries = activities.filter((activity) => !activity.isPrivate);
+  const threadEntries = activities;
 
   return (
     <TabsContent
@@ -381,7 +384,6 @@ function CareThreadTabContent({
                   await createThreadPost.mutateAsync({
                     personnelId: personnel.id,
                     content: draft,
-                    isPrivate: false,
                   });
                   setDraft("");
                 }}
@@ -546,16 +548,14 @@ function ActivityTabContent({
 }
 
 function SecureNotesTabContent({
-  activities,
-  personnel,
+  personnelId,
+  privateNotes,
 }: {
-  activities: ActivityLogEntry[];
-  personnel: CarePersonnel;
+  personnelId: string;
+  privateNotes: MemberCarePrivateNote[];
 }) {
   const [draft, setDraft] = useState("");
-  const createThreadPost = useCreateCareThreadPost();
-  const privateNotes = activities.filter((activity) => activity.isPrivate);
-  const secureNotes = privateNotes;
+  const createPrivateNote = useCreateCarePrivateNote();
 
   return (
     <TabsContent
@@ -572,7 +572,7 @@ function SecureNotesTabContent({
               <Lock className="h-3.5 w-3.5 text-amber-600" />
             </div>
             <CardDescription className="text-xs text-amber-700/60">
-              Only visible to Care Leads and Directors.
+              Only visible to you and platform super admins.
             </CardDescription>
           </div>
           <Button
@@ -584,9 +584,15 @@ function SecureNotesTabContent({
           </Button>
         </CardHeader>
         <CardContent className="space-y-4 p-6">
-          {secureNotes.length > 0 ? (
+          <div className="rounded-xl border border-amber-200/60 bg-amber-50 p-4 text-[11px] text-amber-900">
+            Private notes are visible only to the author and platform super
+            admins. They are for internal ministry/admin use only. Do not store
+            regulated or legally protected information unless your organization
+            has explicitly approved that use.
+          </div>
+          {privateNotes.length > 0 ? (
             <div className="space-y-4">
-              {secureNotes.map((note) => (
+              {privateNotes.map((note) => (
                 <div
                   key={note.id}
                   className="p-4 rounded-xl border border-amber-100 bg-white shadow-sm space-y-2"
@@ -622,16 +628,15 @@ function SecureNotesTabContent({
                 className="h-8 font-bold bg-amber-600 text-white hover:bg-amber-500"
                 onClick={async () => {
                   if (!draft.trim()) return;
-                  await createThreadPost.mutateAsync({
-                    personnelId: personnel.id,
+                  await createPrivateNote.mutateAsync({
+                    personnelId,
                     content: draft,
-                    isPrivate: true,
                   });
                   setDraft("");
                 }}
-                disabled={createThreadPost.isPending}
+                disabled={createPrivateNote.isPending}
               >
-                {createThreadPost.isPending ? "Saving..." : "Save Secure Note"}
+                {createPrivateNote.isPending ? "Saving..." : "Save Secure Note"}
               </Button>
             </div>
           </div>
@@ -644,6 +649,7 @@ function SecureNotesTabContent({
 export function PersonnelProfile({
   personnel,
   activities,
+  privateNotes,
 }: PersonnelProfileProps) {
   const [localTime, setLocalTime] = useState<string | null>(null);
   const logCareActivity = useLogCareActivity();
@@ -684,7 +690,6 @@ export function PersonnelProfile({
             personnelId: personnel.id,
             type: "Check-in",
             content: "Quick wellness check-in logged from profile header.",
-            isPrivate: false,
           });
         }}
         onToggleManualAttention={async () => {
@@ -730,7 +735,10 @@ export function PersonnelProfile({
 
         <ActivityTabContent activities={activities} heatmapData={heatmapData} />
 
-        <SecureNotesTabContent activities={activities} personnel={personnel} />
+        <SecureNotesTabContent
+          personnelId={personnel.id}
+          privateNotes={privateNotes}
+        />
       </Tabs>
     </div>
   );

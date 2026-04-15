@@ -1,7 +1,7 @@
 import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
 import { ZodError, type ZodType } from "zod";
 
-type MemberCareContext = {
+export type MemberCareContext = {
   tenantId: string;
   userId: string;
   isSuperAdmin: boolean;

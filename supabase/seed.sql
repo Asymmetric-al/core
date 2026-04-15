@@ -17,6 +17,10 @@ DELETE FROM public.assets;
 DELETE FROM public.pdf_templates;
 DELETE FROM public.missionary_tasks;
 DELETE FROM public.follower_requests;
+DELETE FROM public.member_care_private_notes;
+DELETE FROM public.member_care_requirements;
+DELETE FROM public.member_care_goals;
+DELETE FROM public.member_care_activities;
 DELETE FROM public.donor_activities;
 DELETE FROM public.donor_feed_preferences;
 DELETE FROM public.follows;
@@ -227,6 +231,13 @@ INSERT INTO public.missionaries (
   tagline,
   location,
   phone,
+  timezone,
+  region,
+  health_status,
+  last_check_in,
+  manual_attention,
+  health_signals,
+  birth_date,
   cover_url,
   social_links,
   created_at,
@@ -283,6 +294,13 @@ VALUES (
   'Demo Team',
   'Chicago, IL',
   '+1-555-0100',
+  'America/Chicago',
+  'North America',
+  'needs_attention',
+  '2026-04-05T15:00:00Z'::timestamptz,
+  TRUE,
+  '{"emotional":42,"spiritual":67,"physical":58,"financial":35}'::jsonb,
+  '1991-04-20'::date,
   'https://images.unsplash.com/photo-1500648767791-00dcc994a43e',
   '{"website":"https://demo.givehope.test"}'::jsonb,
   '2025-11-01T09:00:00Z'::timestamptz,
@@ -299,6 +317,13 @@ SET
   tagline = EXCLUDED.tagline,
   location = EXCLUDED.location,
   phone = EXCLUDED.phone,
+  timezone = EXCLUDED.timezone,
+  region = EXCLUDED.region,
+  health_status = EXCLUDED.health_status,
+  last_check_in = EXCLUDED.last_check_in,
+  manual_attention = EXCLUDED.manual_attention,
+  health_signals = EXCLUDED.health_signals,
+  birth_date = EXCLUDED.birth_date,
   cover_url = EXCLUDED.cover_url,
   social_links = EXCLUDED.social_links,
   updated_at = EXCLUDED.updated_at;
@@ -967,6 +992,242 @@ SELECT
   ('2025-11-10T09:00:00Z'::timestamptz + ((gs - 1) * interval '2 days')),
   ('2025-11-10T10:00:00Z'::timestamptz + ((gs - 1) * interval '2 days'))
 FROM generate_series(1, 32) AS gs;
+
+-- ---------------------------------------------------------------------------
+-- 5b) Member care domain
+-- ---------------------------------------------------------------------------
+UPDATE public.missionaries
+SET
+  timezone = CASE id
+    WHEN '20000000-0000-0000-0000-000000000001'::uuid THEN 'Africa/Nairobi'
+    WHEN '20000000-0000-0000-0000-000000000002'::uuid THEN 'Asia/Bangkok'
+    WHEN '20000000-0000-0000-0000-000000000003'::uuid THEN 'Africa/Kampala'
+    WHEN '20000000-0000-0000-0000-000000000004'::uuid THEN 'Asia/Amman'
+    WHEN '20000000-0000-0000-0000-000000000005'::uuid THEN 'Europe/Lisbon'
+    WHEN '20000000-0000-0000-0000-000000000006'::uuid THEN 'America/Sao_Paulo'
+    ELSE timezone
+  END,
+  region = CASE id
+    WHEN '20000000-0000-0000-0000-000000000001'::uuid THEN 'Africa'
+    WHEN '20000000-0000-0000-0000-000000000002'::uuid THEN 'SE Asia'
+    WHEN '20000000-0000-0000-0000-000000000003'::uuid THEN 'Africa'
+    WHEN '20000000-0000-0000-0000-000000000004'::uuid THEN 'Middle East'
+    WHEN '20000000-0000-0000-0000-000000000005'::uuid THEN 'Europe'
+    WHEN '20000000-0000-0000-0000-000000000006'::uuid THEN 'Latin America'
+    ELSE region
+  END,
+  health_status = CASE id
+    WHEN '20000000-0000-0000-0000-000000000001'::uuid THEN 'at_risk'
+    WHEN '20000000-0000-0000-0000-000000000002'::uuid THEN 'healthy'
+    WHEN '20000000-0000-0000-0000-000000000003'::uuid THEN 'needs_attention'
+    WHEN '20000000-0000-0000-0000-000000000004'::uuid THEN 'crisis'
+    WHEN '20000000-0000-0000-0000-000000000005'::uuid THEN 'healthy'
+    WHEN '20000000-0000-0000-0000-000000000006'::uuid THEN 'needs_attention'
+    ELSE health_status
+  END,
+  last_check_in = CASE id
+    WHEN '20000000-0000-0000-0000-000000000001'::uuid THEN '2026-03-01T14:00:00Z'::timestamptz
+    WHEN '20000000-0000-0000-0000-000000000002'::uuid THEN '2026-04-07T09:00:00Z'::timestamptz
+    WHEN '20000000-0000-0000-0000-000000000003'::uuid THEN '2026-03-22T12:30:00Z'::timestamptz
+    WHEN '20000000-0000-0000-0000-000000000004'::uuid THEN '2026-04-02T07:15:00Z'::timestamptz
+    WHEN '20000000-0000-0000-0000-000000000005'::uuid THEN '2026-04-10T10:00:00Z'::timestamptz
+    WHEN '20000000-0000-0000-0000-000000000006'::uuid THEN '2026-03-18T16:45:00Z'::timestamptz
+    ELSE last_check_in
+  END,
+  manual_attention = CASE id
+    WHEN '20000000-0000-0000-0000-000000000001'::uuid THEN TRUE
+    WHEN '20000000-0000-0000-0000-000000000004'::uuid THEN TRUE
+    ELSE FALSE
+  END,
+  health_signals = CASE id
+    WHEN '20000000-0000-0000-0000-000000000001'::uuid THEN '{"emotional":42,"spiritual":67,"physical":58,"financial":35}'::jsonb
+    WHEN '20000000-0000-0000-0000-000000000002'::uuid THEN '{"emotional":82,"spiritual":88,"physical":79,"financial":73}'::jsonb
+    WHEN '20000000-0000-0000-0000-000000000003'::uuid THEN '{"emotional":63,"spiritual":74,"physical":61,"financial":48}'::jsonb
+    WHEN '20000000-0000-0000-0000-000000000004'::uuid THEN '{"emotional":28,"spiritual":54,"physical":45,"financial":39}'::jsonb
+    WHEN '20000000-0000-0000-0000-000000000005'::uuid THEN '{"emotional":88,"spiritual":90,"physical":81,"financial":76}'::jsonb
+    WHEN '20000000-0000-0000-0000-000000000006'::uuid THEN '{"emotional":57,"spiritual":69,"physical":64,"financial":52}'::jsonb
+    ELSE health_signals
+  END,
+  birth_date = CASE id
+    WHEN '20000000-0000-0000-0000-000000000001'::uuid THEN '1991-04-20'::date
+    WHEN '20000000-0000-0000-0000-000000000002'::uuid THEN '1992-05-10'::date
+    WHEN '20000000-0000-0000-0000-000000000003'::uuid THEN '1987-04-18'::date
+    ELSE birth_date
+  END
+WHERE tenant_id = '00000000-0000-0000-0000-000000000001';
+
+INSERT INTO public.member_care_activities (
+  id,
+  tenant_id,
+  missionary_id,
+  author_user_id,
+  author_name_snapshot,
+  type,
+  title,
+  description,
+  occurred_at,
+  created_at,
+  updated_at
+)
+VALUES
+  (
+    '93000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000001',
+    '20000000-0000-0000-0000-000000000001',
+    '11111111-1111-1111-1111-111111111111',
+    'Jordan Hale',
+    'video_call',
+    'Weekly wellness video call',
+    'Discussed financial stress, rest rhythm, and next-step support needs.',
+    '2026-04-05T14:00:00Z'::timestamptz,
+    '2026-04-05T14:00:00Z'::timestamptz,
+    '2026-04-05T14:00:00Z'::timestamptz
+  ),
+  (
+    '93000000-0000-0000-0000-000000000002',
+    '00000000-0000-0000-0000-000000000001',
+    '20000000-0000-0000-0000-000000000002',
+    '11111111-1111-1111-1111-111111111111',
+    'Jordan Hale',
+    'check_in',
+    'Routine check-in',
+    'Healthy support rhythm and no urgent needs reported.',
+    '2026-04-07T09:00:00Z'::timestamptz,
+    '2026-04-07T09:00:00Z'::timestamptz,
+    '2026-04-07T09:00:00Z'::timestamptz
+  ),
+  (
+    '93000000-0000-0000-0000-000000000003',
+    '00000000-0000-0000-0000-000000000001',
+    '20000000-0000-0000-0000-000000000003',
+    '11111111-1111-1111-1111-111111111111',
+    'Jordan Hale',
+    'prayer_request',
+    'Prayer request follow-up',
+    'Followed up after a ministry setback and captured prayer needs.',
+    '2026-03-22T12:30:00Z'::timestamptz,
+    '2026-03-22T12:30:00Z'::timestamptz,
+    '2026-03-22T12:30:00Z'::timestamptz
+  )
+ON CONFLICT (id) DO UPDATE
+SET
+  author_name_snapshot = EXCLUDED.author_name_snapshot,
+  type = EXCLUDED.type,
+  title = EXCLUDED.title,
+  description = EXCLUDED.description,
+  occurred_at = EXCLUDED.occurred_at,
+  updated_at = EXCLUDED.updated_at;
+
+INSERT INTO public.member_care_goals (
+  id,
+  tenant_id,
+  missionary_id,
+  title,
+  status,
+  target_date,
+  updated_by,
+  created_at,
+  updated_at
+)
+VALUES
+  (
+    '94000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000001',
+    '20000000-0000-0000-0000-000000000001',
+    'Stabilize monthly support shortfall',
+    'active',
+    '2026-05-15'::date,
+    '11111111-1111-1111-1111-111111111111',
+    '2026-04-01T09:00:00Z'::timestamptz,
+    '2026-04-10T09:00:00Z'::timestamptz
+  ),
+  (
+    '94000000-0000-0000-0000-000000000002',
+    '00000000-0000-0000-0000-000000000001',
+    '20000000-0000-0000-0000-000000000003',
+    'Schedule follow-up counseling session',
+    'pending',
+    '2026-04-20'::date,
+    '11111111-1111-1111-1111-111111111111',
+    '2026-04-03T09:00:00Z'::timestamptz,
+    '2026-04-09T09:00:00Z'::timestamptz
+  )
+ON CONFLICT (id) DO UPDATE
+SET
+  title = EXCLUDED.title,
+  status = EXCLUDED.status,
+  target_date = EXCLUDED.target_date,
+  updated_by = EXCLUDED.updated_by,
+  updated_at = EXCLUDED.updated_at;
+
+INSERT INTO public.member_care_requirements (
+  id,
+  tenant_id,
+  missionary_id,
+  activity_type,
+  interval_days,
+  notes,
+  updated_by,
+  created_at,
+  updated_at
+)
+VALUES
+  (
+    '95000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000001',
+    '20000000-0000-0000-0000-000000000001',
+    'check_in',
+    30,
+    'Monthly wellness check-in cadence.',
+    '11111111-1111-1111-1111-111111111111',
+    '2026-03-20T09:00:00Z'::timestamptz,
+    '2026-04-05T09:00:00Z'::timestamptz
+  ),
+  (
+    '95000000-0000-0000-0000-000000000002',
+    '00000000-0000-0000-0000-000000000001',
+    '20000000-0000-0000-0000-000000000003',
+    'video_call',
+    14,
+    'Biweekly video care rhythm.',
+    '11111111-1111-1111-1111-111111111111',
+    '2026-03-22T09:00:00Z'::timestamptz,
+    '2026-04-04T09:00:00Z'::timestamptz
+  )
+ON CONFLICT (id) DO UPDATE
+SET
+  activity_type = EXCLUDED.activity_type,
+  interval_days = EXCLUDED.interval_days,
+  notes = EXCLUDED.notes,
+  updated_by = EXCLUDED.updated_by,
+  updated_at = EXCLUDED.updated_at;
+
+INSERT INTO public.member_care_private_notes (
+  id,
+  tenant_id,
+  missionary_id,
+  author_user_id,
+  author_name_snapshot,
+  content,
+  created_at,
+  updated_at
+)
+VALUES
+  (
+    '96000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000001',
+    '20000000-0000-0000-0000-000000000001',
+    '11111111-1111-1111-1111-111111111111',
+    'Jordan Hale',
+    '<p>Confidential pastoral note for the demo author-only secure notes surface.</p>',
+    '2026-04-05T15:00:00Z'::timestamptz,
+    '2026-04-05T15:00:00Z'::timestamptz
+  )
+ON CONFLICT (id) DO UPDATE
+SET
+  author_name_snapshot = EXCLUDED.author_name_snapshot,
+  content = EXCLUDED.content,
+  updated_at = EXCLUDED.updated_at;
 
 INSERT INTO public.follower_requests (
   id,

@@ -127,6 +127,24 @@ export interface Missionary {
   phone: string | null;
   location: string | null;
   tagline: string | null;
+  timezone: string;
+  region:
+    | "Africa"
+    | "SE Asia"
+    | "Europe"
+    | "Latin America"
+    | "Middle East"
+    | "North America";
+  health_status: "healthy" | "needs_attention" | "at_risk" | "crisis";
+  last_check_in: string | null;
+  manual_attention: boolean;
+  health_signals: {
+    emotional: number;
+    spiritual: number;
+    physical: number;
+    financial: number;
+  };
+  birth_date: string | null;
   social_links: {
     facebook?: string;
     instagram?: string;
@@ -331,6 +349,65 @@ export interface DonorActivity {
   status: string | null;
   gift_type: string | null;
   note: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type MemberCareActivityType =
+  | "video_call"
+  | "in_person_visit"
+  | "check_in"
+  | "pastoral_note"
+  | "care_plan_update"
+  | "crisis_intervention"
+  | "birthday"
+  | "prayer_request";
+
+export interface MemberCareActivity {
+  id: string;
+  tenant_id: string;
+  missionary_id: string;
+  author_user_id: string;
+  author_name_snapshot: string | null;
+  type: MemberCareActivityType;
+  title: string | null;
+  description: string;
+  occurred_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MemberCareGoal {
+  id: string;
+  tenant_id: string;
+  missionary_id: string;
+  title: string;
+  status: "pending" | "active" | "completed";
+  target_date: string | null;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MemberCareRequirement {
+  id: string;
+  tenant_id: string;
+  missionary_id: string;
+  activity_type: MemberCareActivityType;
+  interval_days: number;
+  notes: string | null;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MemberCarePrivateNote {
+  id: string;
+  tenant_id: string;
+  missionary_id: string;
+  author_user_id: string;
+  author_name_snapshot: string | null;
+  content: string;
   created_at: string;
   updated_at: string;
 }

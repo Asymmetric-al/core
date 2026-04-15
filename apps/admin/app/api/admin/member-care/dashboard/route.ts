@@ -1,6 +1,8 @@
+import {
+  requireMemberCareAccess,
+  toApiErrorResponse,
+} from "@asym/api/admin/member-care/route-helpers";
 import { readMemberCareDashboardSnapshot } from "@asym/api/reads/member-care";
-
-import { requireMemberCareAccess, toApiErrorResponse } from "../_lib";
 
 export async function GET() {
   const auth = await requireMemberCareAccess();

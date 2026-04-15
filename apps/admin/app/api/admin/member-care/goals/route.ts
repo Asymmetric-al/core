@@ -2,12 +2,11 @@ import {
   careGoalSchema,
   upsertCareGoal,
 } from "@asym/api/admin/member-care/mutations";
-
 import {
   readJsonBody,
   requireMemberCareAccess,
   toMutationErrorResponse,
-} from "../_lib";
+} from "@asym/api/admin/member-care/route-helpers";
 
 export async function POST(request: Request) {
   const auth = await requireMemberCareAccess();
