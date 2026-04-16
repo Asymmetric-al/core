@@ -1,6 +1,6 @@
-import type { Metadata } from "next";
-
 import { WhereWeWorkContent } from "./where-we-work-client";
+
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Where we work",
