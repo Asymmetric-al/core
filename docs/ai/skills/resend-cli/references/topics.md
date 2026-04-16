@@ -12,11 +12,11 @@ Lists all topics. No pagination flags.
 
 ## topics create
 
-| Flag | Type | Required | Description |
-|------|------|----------|-------------|
-| `--name <name>` | string | Yes (non-interactive) | Topic name |
-| `--description <desc>` | string | No | Description |
-| `--default-subscription <mode>` | string | No | `opt_in` (default) \| `opt_out` |
+| Flag                            | Type   | Required              | Description                     |
+| ------------------------------- | ------ | --------------------- | ------------------------------- |
+| `--name <name>`                 | string | Yes (non-interactive) | Topic name                      |
+| `--description <desc>`          | string | No                    | Description                     |
+| `--default-subscription <mode>` | string | No                    | `opt_in` (default) \| `opt_out` |
 
 ---
 
@@ -30,9 +30,9 @@ Lists all topics. No pagination flags.
 
 **Argument:** `<id>` — Topic UUID
 
-| Flag | Type | Description |
-|------|------|-------------|
-| `--name <name>` | string | New name |
+| Flag                   | Type   | Description     |
+| ---------------------- | ------ | --------------- |
+| `--name <name>`        | string | New name        |
 | `--description <desc>` | string | New description |
 
 At least one of `--name` or `--description` is required — otherwise the CLI errors with `no_changes`.
@@ -45,6 +45,6 @@ At least one of `--name` or `--description` is required — otherwise the CLI er
 
 **Argument:** `<id>` — Topic UUID
 
-| Flag | Type | Required | Description |
-|------|------|----------|-------------|
+| Flag    | Type    | Required              | Description       |
+| ------- | ------- | --------------------- | ----------------- |
 | `--yes` | boolean | Yes (non-interactive) | Skip confirmation |
