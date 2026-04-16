@@ -6,7 +6,9 @@ Capture durable **why** for Asymmetric.al core: who the software serves, what
 outcomes matter, and how we know the platform is succeeding over time. This
 spec complements `AGENTS.md` (routing) and `docs/guides/architecture/*`
 (structure and patterns).
+
 ## Requirements
+
 ### Requirement: Mission And Scope
 
 Asymmetric.al MUST exist as an all-in-one platform for Christian missions
@@ -31,6 +33,7 @@ improves donor follow-through, missionary support, ministry capacity, and focus
 on the Gospel rather than on the tool itself.
 
 #### Scenario: An agent needs the north star without a product brief
+
 - GIVEN an agent must plan or implement work without a separate product document
 - WHEN they read this requirement for orientation
 - THEN they treat Asymmetric.al as one connected ministry operations platform
@@ -39,6 +42,7 @@ on the Gospel rather than on the tool itself.
   whole-ministry flow, manual glue, or tool sprawl
 
 #### Scenario: A tactical choice would ship faster but increase friction or glue
+
 - GIVEN a shortcut could land sooner by pushing work onto staff, donors, or
   missionaries outside the product
 - WHEN the agent evaluates that shortcut
@@ -58,6 +62,7 @@ those measures would mask fragmentation, weak operations, or eroded donor
 confidence.
 
 #### Scenario: A tactical choice would ship faster but sacrifice trust or clarity
+
 - GIVEN a faster path would blur financial clarity, confuse roles, or hide the
   state of important ministry work from the people who rely on it
 - WHEN the agent weighs speed against long-horizon success
@@ -66,6 +71,7 @@ confidence.
   plan that does not silently become permanent glue
 
 #### Scenario: Success metrics would reward fragmentation
+
 - GIVEN a team celebrates shipped tickets or UI count while donors, staff, or
   missionaries still bounce between disconnected concepts or duplicate entry
 - WHEN an agent interprets “success” for prioritization
@@ -89,6 +95,7 @@ platform span. Agents MUST NOT treat any major area as an optional add-on that
 can drift independently without an explicit product decision.
 
 #### Scenario: A change would improve one surface while weakening platform coherence
+
 - GIVEN a change improves one of the four major areas
 - WHEN it would silently redefine the others as out of scope, duplicate their
   job, or fork vocabulary and mental models across areas
@@ -109,6 +116,7 @@ right donor-facing confirmation and record trail. Accuracy, trust, and
 financial clarity MUST take priority over any one group's convenience.
 
 #### Scenario: A feature request helps one audience but risks donation trust
+
 - GIVEN a feature request primarily benefits staff, missionaries, or internal
   workflows
 - WHEN it could weaken donor-visible clarity, create ambiguous designation,
@@ -119,6 +127,7 @@ financial clarity MUST take priority over any one group's convenience.
   explicitly changes product truth in OpenSpec
 
 #### Scenario: A feature request helps one audience but risks ministry-wide clarity
+
 - GIVEN a feature request benefits one role
 - WHEN it would hide or fragment information the ministry as a whole needs to
   stay aligned on support, relationships, or outcomes
@@ -135,6 +144,7 @@ Agents MUST NOT starve staff operational completeness to chase surface-only
 wins.
 
 #### Scenario: A shortcut would weaken the administrative foundation
+
 - GIVEN a shortcut would ship donor- or missionary-facing polish faster
 - WHEN it would leave staff without a clear operational home for the same data,
   tasks, or controls—or would push operational burden back into spreadsheets or
@@ -155,6 +165,7 @@ outward-facing presentation and story. These truths MUST reinforce one coherent
 platform rather than compete with one another.
 
 #### Scenario: A proposal would blur the operational and content truths
+
 - GIVEN a proposal treats public content as a substitute for operational truth,
   or treats operational records as the public content truth by default
 - WHEN that would make staff, missionaries, or donors unsure which truth the
@@ -177,6 +188,7 @@ across the codebase, one-off fixes, or local optimization that damages platform
 coherence.
 
 #### Scenario: A request would pull the repo toward unrelated products or experiments
+
 - GIVEN a request would add or expand a product that does not serve the unified
   ministry operating model in this repo
 - WHEN it would introduce a parallel product identity, unrelated user model, or
@@ -185,6 +197,7 @@ coherence.
 - AND they do not merge scope creep simply because implementation is easy
 
 #### Scenario: An agent defaults to generic SaaS thinking under ambiguity
+
 - GIVEN implementation details are underspecified
 - WHEN a generic SaaS pattern would add a disconnected module, duplicate a
   concept already owned elsewhere, or optimize a single screen without a
@@ -192,4 +205,3 @@ coherence.
 - THEN the agent chooses the path that preserves one coherent ministry platform
 - AND they favor fewer disconnected tools and clearer end-to-end flows over
   clever one-offs
-

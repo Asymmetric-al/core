@@ -7,7 +7,9 @@ agents and contributors do not re-derive them from scattered files.
 
 Detailed rules, enforcement scripts, and exception tables live in git docs and
 code; this spec names the contracts and points to authoritative detail.
+
 ## Requirements
+
 ### Requirement: Monorepo Surface Split And Shared Logic Convergence
 
 The monorepo SHALL preserve three primary user-facing application surfaces:
@@ -22,6 +24,7 @@ The platform MUST use the monorepo to behave like one coherent product, not to
 grow separate app-local versions of the same rule or workflow.
 
 #### Scenario: An app-local fix would duplicate business logic
+
 - GIVEN a local fix in one app surface would copy business logic that already
   exists elsewhere or is likely to be needed elsewhere
 - WHEN an agent chooses between a quick local patch and a shared owning layer
@@ -31,6 +34,7 @@ grow separate app-local versions of the same rule or workflow.
   behavior
 
 #### Scenario: An agent tries to treat surface split as only an implementation detail
+
 - GIVEN a shortcut would ignore the durable split between the three
   product-facing surfaces because all code lives in one monorepo
 - WHEN an agent chooses where logic or responsibility should live
@@ -51,6 +55,7 @@ The two layers SHALL remain distinct but tightly linked, and they MUST NOT
 compete for source-of-truth ownership.
 
 #### Scenario: A feature treats CMS data as operational truth
+
 - GIVEN a feature proposal wants to treat public content as the authoritative
   source for permissions-sensitive state, operational workflow, or money-related
   truth
@@ -75,6 +80,7 @@ no more specific spec exists, the platform MUST favor CRM operational truth
 first and then align CMS public truth to it.
 
 #### Scenario: A local implementation would let CRM and CMS drift
+
 - GIVEN a local implementation could update operational truth or public truth in
   only one layer
 - WHEN an agent chooses between a fast one-sided patch and aligned cross-layer
@@ -84,6 +90,7 @@ first and then align CMS public truth to it.
   feature contract rather than as later cleanup
 
 #### Scenario: CRM and CMS appear to disagree
+
 - GIVEN an agent sees different state in operational records and public content
 - WHEN no more specific spec exists for resolving the conflict
 - THEN they favor CRM operational truth first
@@ -104,6 +111,7 @@ Payment data, secrets, and trust-sensitive internals MUST never leak into the
 wrong layer.
 
 #### Scenario: A payment, refund, or official record mutation would leak into the wrong layer
+
 - GIVEN a proposed implementation would place a payment action, refund, official
   record mutation, secret-bearing integration, or audit-sensitive side effect in
   a public or limited-role layer
@@ -132,6 +140,7 @@ Hidden or unavailable capability MUST feel intentional and clean rather than
 hacked away or half-present.
 
 #### Scenario: A public or limited-role surface tries to perform admin-depth behavior
+
 - GIVEN a donor, missionary, or public-facing flow asks to perform an action
   that requires broad operational visibility, finance-sensitive handling,
   approval control, or tenant-wide administration
@@ -142,6 +151,7 @@ hacked away or half-present.
   narrower surface
 
 #### Scenario: A donor or missionary surface would drift into staff-style operational complexity
+
 - GIVEN a proposed change would make a donor or missionary experience carry
   staff-oriented workflow depth, internal record-management detail, or broad
   operational controls
@@ -151,6 +161,7 @@ hacked away or half-present.
   console
 
 #### Scenario: Hidden capability would be left half-present
+
 - GIVEN a narrower role should not see or trigger a deeper capability
 - WHEN an agent decides how that limitation appears in the product
 - THEN they keep the capability cleanly outside the role-scoped surface or show
@@ -170,6 +181,7 @@ UI hiding alone MUST NOT be treated as sufficient boundary protection when the
 underlying scope would still be too broad.
 
 #### Scenario: A shortcut would bypass tenant or role isolation
+
 - GIVEN a shortcut would simplify implementation by reusing broader data access,
   broader action scope, or cross-tenant state
 - WHEN an agent compares that shortcut with a stricter scoped path
@@ -193,6 +205,7 @@ truth. Trust-sensitive payment internals MUST stay protected even while the
 user-facing state remains honest.
 
 #### Scenario: A user-facing flow would present a more optimistic state than operational truth supports
+
 - GIVEN a donor, missionary, or public flow could show success, finality, or a
   cleaner state before the operational record actually supports it
 - WHEN an agent chooses how to present that money state
@@ -201,6 +214,7 @@ user-facing state remains honest.
 - AND they do not let public optimism outrun operational truth for convenience
 
 #### Scenario: A local implementation wants to expose trust-sensitive internals for convenience
+
 - GIVEN a shortcut would expose payment internals, sensitive status detail, or
   secret-bearing data to a layer that does not need it
 - WHEN an agent weighs implementation convenience against payment trust
@@ -224,6 +238,7 @@ Publication flow MUST preserve CRM/CMS alignment and MUST NOT create a side
 channel that publishes around the tenant's release rules.
 
 #### Scenario: A missionary content change would skip tenant-chosen approval or moderation
+
 - GIVEN a missionary or admin initiates a public-content change
 - WHEN the tenant requires review, moderation, or approval before release
 - THEN the change remains inside that publication boundary until the tenant's
@@ -231,6 +246,7 @@ channel that publishes around the tenant's release rules.
 - AND no convenience shortcut publishes directly from the initiating surface
 
 #### Scenario: A tenant allows automatic publishing
+
 - GIVEN a tenant has chosen automatic publishing for an allowed content path
 - WHEN an authorized user submits a valid change
 - THEN the platform releases it without inventing an extra manual gate
@@ -251,6 +267,7 @@ separated from authenticated control flows while preserving coherent handoff
 between them.
 
 #### Scenario: Public and authenticated behavior start to blur together
+
 - GIVEN a new flow could be implemented either as public website behavior or as
   authenticated portal behavior
 - WHEN an agent sees that one option would blur identity, permission, or
@@ -274,6 +291,7 @@ When a change modifies structural or trust boundaries, the relevant OpenSpec
 delta and any boundary-restating repo docs SHALL be updated in the same effort.
 
 #### Scenario: A code change updates durable behavior but leaves boundary docs stale
+
 - GIVEN a code change alters a durable boundary around scope, role visibility,
   operational truth, server-side control, publication, or money-state behavior
 - WHEN an agent prepares or reviews that change
@@ -281,4 +299,3 @@ delta and any boundary-restating repo docs SHALL be updated in the same effort.
   restates the same boundary
 - AND they do not treat stale boundary documentation as acceptable cleanup for a
   later pass
-

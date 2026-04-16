@@ -8,7 +8,9 @@ each app is for and what “good” feels like for users.
 
 Canonical structural detail (paths, packages, diagrams) lives in
 `docs/guides/architecture/overview.md` and should stay aligned with this intent.
+
 ## Requirements
+
 ### Requirement: Mission Control As The Staff Operations Surface
 
 Mission Control SHALL be the main staff operations console and the most heavily
@@ -25,6 +27,7 @@ exception-handling, or administrative truth, its first conceptual home SHALL be
 Mission Control.
 
 #### Scenario: A new capability carries operational depth
+
 - GIVEN a feature includes staff controls, organization-wide visibility,
   exception handling, reporting impact, or administrative setup
 - WHEN an agent decides where that feature belongs first
@@ -48,6 +51,7 @@ only the depth needed for a donor to manage their relationship to giving with
 clarity and confidence.
 
 #### Scenario: A donor wants to complete a common giving task
+
 - GIVEN a donor wants to update a recurring gift, change a payment method, find
   a receipt, or review giving history
 - WHEN an agent designs or changes the donor portal flow
@@ -72,6 +76,7 @@ SHALL avoid staff-style operational depth that would overload missionaries or
 turn the workspace into a second admin console.
 
 #### Scenario: A capability would add staff-style depth to the missionary experience
+
 - GIVEN a proposal would expose the missionary surface to staff-style controls,
   broad operational setup, or organization-wide administrative detail
 - WHEN an agent decides whether that capability belongs in the missionary
@@ -97,6 +102,7 @@ belong to the public tenant website surface even when authorized users initiate
 or edit related changes from other surfaces.
 
 #### Scenario: A public website change starts to behave like an operational surface
+
 - GIVEN a proposal would solve a staff or authenticated workflow by placing more
   operational depth on the public tenant website
 - WHEN an agent evaluates whether it fits the public surface
@@ -120,6 +126,7 @@ experience even when related edits or submissions begin in missionary or admin
 surfaces.
 
 #### Scenario: A feature could live in Mission Control or the missionary workspace
+
 - GIVEN the same record or capability could appear in both Mission Control and
   the missionary workspace
 - WHEN an agent decides where it belongs first
@@ -129,6 +136,7 @@ surfaces.
   needed by the missionary
 
 #### Scenario: A missionary updates public page content
+
 - GIVEN a missionary updates a photo, bio, or page content they are allowed to
   control
 - WHEN that change moves through the connected review or publication flow
@@ -154,6 +162,7 @@ when missionaries manage them, admins review them, public pages display them,
 donor experiences surface them, or communication flows reference them.
 
 #### Scenario: A public gift becomes part of the connected ministry flow
+
 - GIVEN a donor gives through the public tenant website
 - WHEN the donor moves into follow-up experiences
 - THEN the donor sees a connected path through confirmation and donor history
@@ -161,6 +170,7 @@ donor experiences surface them, or communication flows reference them.
   than acting like detached products
 
 #### Scenario: An admin triggers a refund
+
 - GIVEN an admin triggers a refund or similar corrective action from the staff
   operations surface
 - WHEN the result affects donor-visible history or missionary-relevant support
@@ -185,6 +195,7 @@ intentional, coherent, and complete rather than broken, chopped apart, or half
 revealed.
 
 #### Scenario: A role should not see certain depth
+
 - GIVEN a user does not have the role or privilege for certain operational depth
 - WHEN an agent designs how that surface behaves for the user
 - THEN the product hides or simplifies that depth cleanly within the intended
@@ -193,10 +204,10 @@ revealed.
   tool leaked into the wrong place
 
 #### Scenario: Naming or behavior drift would make the platform feel like separate products
+
 - GIVEN a new flow introduces different names, states, or mental models for the
   same concept across staff, donor, missionary, or public surfaces
 - WHEN an agent decides whether that difference is acceptable
 - THEN they push back toward shared product language and connected behavior
 - AND they reject drift that would make the platform feel like separate apps
   with disconnected logic or unsynced records
-
