@@ -293,6 +293,60 @@ function StatCard({
 }
 
 type SortOption = "name" | "last_gift" | "total_given" | "joined_date";
+
+type DonorActivityType = "note" | "call" | "meeting" | "email";
+type DonorMutationResult = { ok: true } | { ok: false; error: unknown };
+
+const DONOR_ACTIVITY_TITLES: Record<DonorActivityType, string> = {
+  note: "Note",
+  call: "Phone Call",
+  meeting: "Meeting",
+  email: "Email",
+};
+
+async function insertDonorActivity(options: {
+  supabase: ReturnType<typeof createBrowserClient>;
+  donorId: string;
+  activityType: DonorActivityType;
+  note: string;
+}): Promise<DonorMutationResult> {
+  try {
+    const { error: insertError } = await options.supabase
+      .from("donor_activities")
+      .insert({
+        donor_id: options.donorId,
+        type: options.activityType,
+        title: DONOR_ACTIVITY_TITLES[options.activityType],
+        description: options.note,
+        date: new Date().toISOString(),
+      });
+    if (insertError) return { ok: false, error: insertError };
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error };
+  }
+}
+
+async function updateDonorTags(options: {
+  supabase: ReturnType<typeof createBrowserClient>;
+  donorId: string;
+  tags: string[];
+}): Promise<DonorMutationResult> {
+  try {
+    const { error: updateError } = await options.supabase
+      .from("donors")
+      .update({
+        tags: options.tags,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", options.donorId);
+    if (updateError) return { ok: false, error: updateError };
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error };
+  }
+}
+
 export function useDonorsPageLayout() {
   const { profile, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
@@ -518,59 +572,42 @@ export function useDonorsPageLayout() {
     if (!selectedDonor || !noteInput.trim() || !supabase) return;
 
     setIsSavingNote(true);
-    try {
-      const titleMap = {
-        note: "Note",
-        call: "Phone Call",
-        meeting: "Meeting",
-        email: "Email",
-      };
-
-      const { error: insertError } = await supabase
-        .from("donor_activities")
-        .insert({
-          donor_id: selectedDonor.id,
-          type: activityType,
-          title: titleMap[activityType],
-          description: noteInput.trim(),
-          date: new Date().toISOString(),
-        });
-
-      if (insertError) throw insertError;
-
+    const outcome = await insertDonorActivity({
+      supabase,
+      donorId: selectedDonor.id,
+      activityType,
+      note: noteInput.trim(),
+    });
+    if (outcome.ok) {
       toast.success("Activity logged successfully");
       setNoteInput("");
       setIsNoteDialogOpen(false);
       handleRefreshDonors();
-    } catch (err) {
+    } else {
       toast.error("Failed to add activity");
-      console.error(err);
-    } finally {
-      setIsSavingNote(false);
+      console.error(outcome.error);
     }
+    setIsSavingNote(false);
   }, [selectedDonor, noteInput, activityType, supabase, handleRefreshDonors]);
 
   const handleSaveTags = React.useCallback(async () => {
     if (!selectedDonor || !supabase) return;
 
     setIsSavingTags(true);
-    try {
-      const { error: updateError } = await supabase
-        .from("donors")
-        .update({ tags: selectedTags, updated_at: new Date().toISOString() })
-        .eq("id", selectedDonor.id);
-
-      if (updateError) throw updateError;
-
+    const outcome = await updateDonorTags({
+      supabase,
+      donorId: selectedDonor.id,
+      tags: selectedTags,
+    });
+    if (outcome.ok) {
       toast.success("Tags updated successfully");
       setIsTagDialogOpen(false);
       handleRefreshDonors();
-    } catch (err) {
+    } else {
       toast.error("Failed to update tags");
-      console.error(err);
-    } finally {
-      setIsSavingTags(false);
+      console.error(outcome.error);
     }
+    setIsSavingTags(false);
   }, [selectedDonor, selectedTags, supabase, handleRefreshDonors]);
 
   const toggleTag = React.useCallback((tagId: string) => {
