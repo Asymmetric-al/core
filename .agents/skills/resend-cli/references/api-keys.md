@@ -14,11 +14,11 @@ List all API keys (IDs, names, `created_at`, and `last_used_at` — tokens never
 
 ## api-keys create
 
-| Flag | Type | Required | Description |
-|------|------|----------|-------------|
-| `--name <name>` | string | Yes (non-interactive) | Key name (max 50 chars) |
-| `--permission <perm>` | string | No | `full_access` (default) \| `sending_access` |
-| `--domain-id <id>` | string | No | Restrict `sending_access` to one domain |
+| Flag                  | Type   | Required              | Description                                 |
+| --------------------- | ------ | --------------------- | ------------------------------------------- |
+| `--name <name>`       | string | Yes (non-interactive) | Key name (max 50 chars)                     |
+| `--permission <perm>` | string | No                    | `full_access` (default) \| `sending_access` |
+| `--domain-id <id>`    | string | No                    | Restrict `sending_access` to one domain     |
 
 **Output:** `{"id":"...","token":"re_..."}` — token shown once only.
 
@@ -28,8 +28,8 @@ List all API keys (IDs, names, `created_at`, and `last_used_at` — tokens never
 
 **Argument:** `<id>` — API key ID
 
-| Flag | Type | Required | Description |
-|------|------|----------|-------------|
+| Flag    | Type    | Required              | Description       |
+| ------- | ------- | --------------------- | ----------------- |
 | `--yes` | boolean | Yes (non-interactive) | Skip confirmation |
 
 **Alias:** `rm`

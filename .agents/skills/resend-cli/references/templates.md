@@ -6,29 +6,29 @@ Detailed flag specifications for `resend templates` commands.
 
 ## templates list
 
-| Flag | Type | Default | Description |
-|------|------|---------|-------------|
-| `--limit <n>` | number | 10 | Max results (1-100) |
-| `--after <cursor>` | string | — | Forward pagination |
-| `--before <cursor>` | string | — | Backward pagination |
+| Flag                | Type   | Default | Description         |
+| ------------------- | ------ | ------- | ------------------- |
+| `--limit <n>`       | number | 10      | Max results (1-100) |
+| `--after <cursor>`  | string | —       | Forward pagination  |
+| `--before <cursor>` | string | —       | Backward pagination |
 
 ---
 
 ## templates create
 
-| Flag | Type | Required | Description |
-|------|------|----------|-------------|
-| `--name <name>` | string | Yes | Template name |
-| `--html <html>` | string | One of html/html-file/react-email | HTML body with `{{{VAR_NAME}}}` placeholders |
-| `--html-file <path>` | string | One of html/html-file/react-email | Path to HTML file (use `"-"` for stdin) |
-| `--react-email <path>` | string | One of html/html-file/react-email | Path to React Email template (.tsx) — bundles and renders to HTML |
-| `--subject <subject>` | string | No | Email subject |
-| `--text <text>` | string | No | Plain-text body |
-| `--text-file <path>` | string | No | Path to plain-text file (use `"-"` for stdin) |
-| `--from <address>` | string | No | Sender address |
-| `--reply-to <address>` | string | No | Reply-to address |
-| `--alias <alias>` | string | No | Lookup alias |
-| `--var <var...>` | string[] | No | Variables: `KEY:type` or `KEY:type:fallback` |
+| Flag                   | Type     | Required                          | Description                                                       |
+| ---------------------- | -------- | --------------------------------- | ----------------------------------------------------------------- |
+| `--name <name>`        | string   | Yes                               | Template name                                                     |
+| `--html <html>`        | string   | One of html/html-file/react-email | HTML body with `{{{VAR_NAME}}}` placeholders                      |
+| `--html-file <path>`   | string   | One of html/html-file/react-email | Path to HTML file (use `"-"` for stdin)                           |
+| `--react-email <path>` | string   | One of html/html-file/react-email | Path to React Email template (.tsx) — bundles and renders to HTML |
+| `--subject <subject>`  | string   | No                                | Email subject                                                     |
+| `--text <text>`        | string   | No                                | Plain-text body                                                   |
+| `--text-file <path>`   | string   | No                                | Path to plain-text file (use `"-"` for stdin)                     |
+| `--from <address>`     | string   | No                                | Sender address                                                    |
+| `--reply-to <address>` | string   | No                                | Reply-to address                                                  |
+| `--alias <alias>`      | string   | No                                | Lookup alias                                                      |
+| `--var <var...>`       | string[] | No                                | Variables: `KEY:type` or `KEY:type:fallback`                      |
 
 Variable types: `string`, `number`
 
@@ -64,8 +64,8 @@ Same optional flags as `create` (including `--react-email`, `--text-file`, and `
 
 **Argument:** `<id|alias>`
 
-| Flag | Type | Required | Description |
-|------|------|----------|-------------|
+| Flag    | Type    | Required              | Description       |
+| ------- | ------- | --------------------- | ----------------- |
 | `--yes` | boolean | Yes (non-interactive) | Skip confirmation |
 
 ---
