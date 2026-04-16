@@ -107,14 +107,31 @@ const RecurringBarShape = createRoundedBarShape("recurring");
 const OneTimeBarShape = createRoundedBarShape("oneTime");
 const OfflineBarShape = createRoundedBarShape("offline");
 
-const SKELETON_HEIGHTS = [45, 62, 38, 71, 55, 82, 48, 67, 41, 75, 58, 89, 52];
+const SKELETON_BARS = [
+  { id: "bar-1", height: 45 },
+  { id: "bar-2", height: 62 },
+  { id: "bar-3", height: 38 },
+  { id: "bar-4", height: 71 },
+  { id: "bar-5", height: 55 },
+  { id: "bar-6", height: 82 },
+  { id: "bar-7", height: 48 },
+  { id: "bar-8", height: 67 },
+  { id: "bar-9", height: 41 },
+  { id: "bar-10", height: 75 },
+  { id: "bar-11", height: 58 },
+  { id: "bar-12", height: 89 },
+  { id: "bar-13", height: 52 },
+] as const;
 
 function GivingBreakdownSkeleton() {
   return (
     <div className="h-[200px] sm:h-[250px] md:h-[300px] w-full flex flex-col">
       <div className="flex-1 flex items-end justify-around gap-1 px-4 pb-6">
-        {SKELETON_HEIGHTS.map((height, i) => (
-          <div key={i} className="flex-1 flex flex-col items-center gap-1">
+        {SKELETON_BARS.map(({ id, height }) => (
+          <div
+            key={id}
+            className="flex-1 flex flex-col items-center gap-1"
+          >
             <Skeleton
               className="w-full rounded-t-sm"
               style={{ height: `${height}%` }}

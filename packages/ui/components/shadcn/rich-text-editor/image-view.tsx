@@ -88,7 +88,7 @@ function ResizableImageView({
 
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleEnd);
-    window.addEventListener("touchmove", handleTouchMove);
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
     window.addEventListener("touchend", handleEnd);
 
     return () => {
@@ -121,6 +121,9 @@ function ResizableImageView({
         {isEditable && (
           <>
             <div
+              role="separator"
+              aria-label="Resize image from the left"
+              aria-orientation="vertical"
               className="absolute inset-y-0 left-0 z-20 flex w-6 cursor-col-resize items-center justify-start pl-1.5"
               onMouseDown={(e) => {
                 e.preventDefault();
@@ -135,6 +138,9 @@ function ResizableImageView({
             </div>
 
             <div
+              role="separator"
+              aria-label="Resize image from the right"
+              aria-orientation="vertical"
               className="absolute inset-y-0 right-0 z-20 flex w-6 cursor-col-resize items-center justify-end pr-2"
               onMouseDown={(e) => {
                 e.preventDefault();

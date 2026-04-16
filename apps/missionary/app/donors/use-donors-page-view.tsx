@@ -370,6 +370,8 @@ export function useDonorsPageLayout() {
   const [isTagDialogOpen, setIsTagDialogOpen] = React.useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [selectedTags, setSelectedTags] = React.useState<string[]>([]);
+  const [lastSelectedDonorForTags, setLastSelectedDonorForTags] =
+    React.useState<string | null>(null);
   const [isSavingTags, setIsSavingTags] = React.useState(false);
   const [isSavingNote, setIsSavingNote] = React.useState(false);
   const [activityType, setActivityType] = React.useState<
@@ -557,11 +559,10 @@ export function useDonorsPageLayout() {
     [selectedDonorId],
   );
 
-  React.useEffect(() => {
-    if (selectedDonor) {
-      setSelectedTags(selectedDonor.tags || []);
-    }
-  }, [selectedDonor]);
+  if (selectedDonor && selectedDonor.id !== lastSelectedDonorForTags) {
+    setLastSelectedDonorForTags(selectedDonor.id);
+    setSelectedTags(selectedDonor.tags || []);
+  }
 
   const copyToClipboard = React.useCallback((text: string, label: string) => {
     navigator.clipboard.writeText(text);
