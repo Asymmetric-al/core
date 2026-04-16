@@ -16,7 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { formatAdminURL } from "payload/shared";
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { z } from "zod";
 
 import {
@@ -41,6 +41,14 @@ const formSchema = z.object({
 });
 
 export function MinistryUpdateCreateView() {
+  return (
+    <Suspense fallback={null}>
+      <MinistryUpdateCreateViewContent />
+    </Suspense>
+  );
+}
+
+function MinistryUpdateCreateViewContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const templateId = searchParams.get("template") ?? "";
@@ -59,14 +67,10 @@ export function MinistryUpdateCreateView() {
   );
   const { isSuperAdmin, tenantsQuery } = useSuperAdminTenantOptions();
 
-  const profilesUrl = useMemo(
-    () =>
-      `${serverURL}${formatAdminURL({
-        apiRoute: routes.api,
-        path: "/missionary-profiles",
-      })}?limit=200&pagination=false&depth=0&draft=true`,
-    [routes.api, serverURL],
-  );
+  const profilesUrl = `${serverURL}${formatAdminURL({
+    apiRoute: routes.api,
+    path: "/missionary-profiles",
+  })}?limit=200&pagination=false&depth=0&draft=true`;
 
   const profilesQuery = useQuery({
     queryKey: ["web-studio", "missionary-profiles", profilesUrl],
