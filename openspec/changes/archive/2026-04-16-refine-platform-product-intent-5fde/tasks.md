@@ -8,12 +8,12 @@
 
 ## 2. Review and reconcile merged specs
 
-- [ ] 2.1 Review all four deltas with the product owner for durable truth and naming
-- [ ] 2.2 Decide whether any requirement text should be tightened before fold-forward
-- [ ] 2.3 Confirm related architecture and repo-guidance docs that restate these durable boundaries remain aligned
+- [x] 2.1 Review all four deltas with the product owner for durable truth and naming
+- [x] 2.2 Decide whether any requirement text should be tightened before fold-forward
+- [x] 2.3 Confirm related architecture and repo-guidance docs that restate these durable boundaries remain aligned
 
 ## 3. Fold forward and final validation
 
-- [ ] 3.1 Apply the approved deltas to the merged specs through the agreed OpenSpec workflow
-- [ ] 3.2 Run `npx -y @fission-ai/openspec@latest validate --all` after fold-forward
-- [ ] 3.3 Archive the change when the merged specs are the accepted source of truth
+- [x] 3.1 Apply the approved deltas to the merged specs through the agreed OpenSpec workflow
+- [x] 3.2 Run `npx -y @fission-ai/openspec@latest validate --all` after fold-forward
+- [x] 3.3 Archive the change when the merged specs are the accepted source of truth
