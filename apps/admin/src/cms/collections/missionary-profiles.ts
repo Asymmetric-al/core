@@ -69,6 +69,15 @@ export const MissionaryProfiles: CollectionConfig = {
       index: true,
     },
     {
+      name: "supabaseMissionaryId",
+      type: "text",
+      index: true,
+      admin: {
+        description:
+          "Canonical missionary UUID from public.missionaries. Used for cross-reference lookup when creating missionary giving pages.",
+      },
+    },
+    {
       name: "tagline",
       type: "text",
     },

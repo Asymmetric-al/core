@@ -77,7 +77,7 @@ import {
 } from "lucide-react";
 import React from "react";
 
-import { DynamicIcon } from "@/features/mission-control/shell/components/icons";
+import { DynamicIcon } from "@/features/mission-control/components/icons";
 
 export type PermissionLevel = "Admin" | "Manage" | "View";
 

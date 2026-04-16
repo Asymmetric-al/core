@@ -13,6 +13,10 @@ export function MinistryUpdatesNativeListView(
   props: MinistryUpdatesNativeListViewProps,
 ) {
   return (
-    <NativeCollectionListView {...props} collectionSlug="ministry-updates" />
+    <NativeCollectionListView
+      {...props}
+      collectionSlug="ministry-updates"
+      createHrefOverride="/web-studio/templates?pageType=ministry_update"
+    />
   );
 }

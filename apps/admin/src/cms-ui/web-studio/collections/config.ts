@@ -1,8 +1,10 @@
 import {
-  ImageIcon,
   FileText,
+  Globe2,
+  ImageIcon,
   LayoutList,
   Newspaper,
+  Target,
   UserRound,
 } from "lucide-react";
 
@@ -12,13 +14,17 @@ import { WEB_STUDIO_COLLECTION_PREFERENCE_MAP } from "../preferences/keys";
 
 export type WebStudioCollectionSlug =
   | "media"
+  | "missionary-giving-pages"
   | "missionary-profiles"
   | "ministry-updates"
   | "navigation"
-  | "pages";
+  | "page-templates"
+  | "pages"
+  | "project-pages";
 
 export type WebStudioCollectionConfig = {
   createLabel: string;
+  createHref?: string;
   description: string;
   editDescription: string;
   hasDrafts: boolean;
@@ -56,6 +62,32 @@ export const WEB_STUDIO_COLLECTION_CONFIGS: Record<
     slug: "media",
     titlePlural: "Media",
     titleSingular: "Media asset",
+  },
+  "missionary-giving-pages": {
+    createLabel: "New missionary page",
+    createHref: "/web-studio/pages/give",
+    description:
+      "Missionary giving pages tied to canonical missionary records, marketing blocks, and donation context.",
+    editDescription:
+      "Missionary giving pages keep Payload draft, publish, and block editing behavior while the shared document shell owns framing.",
+    hasDrafts: true,
+    hasVersions: true,
+    icon: Globe2,
+    listPath: "/web-studio/collections/missionary-giving-pages",
+    previewMode: "public-link",
+    previewPathForData: (data) => {
+      const missionaryId =
+        typeof data?.missionaryId === "string" ? data.missionaryId : "";
+      return missionaryId
+        ? `/workers/${encodeURIComponent(missionaryId)}`
+        : null;
+    },
+    preferences:
+      WEB_STUDIO_COLLECTION_PREFERENCE_MAP["missionary-giving-pages"],
+    sectionLabel: "Missionary Pages",
+    slug: "missionary-giving-pages",
+    titlePlural: "Missionary Pages",
+    titleSingular: "Missionary Page",
   },
   "missionary-profiles": {
     createLabel: "New profile",
@@ -108,8 +140,27 @@ export const WEB_STUDIO_COLLECTION_CONFIGS: Record<
     titlePlural: "Navigation",
     titleSingular: "Navigation",
   },
+  "page-templates": {
+    createLabel: "New template",
+    createHref: "/web-studio/templates",
+    description:
+      "Template gallery for standard pages, missionary pages, and fund-backed project pages.",
+    editDescription:
+      "Templates store default layout blocks and metadata while remaining ordinary Payload editorial assets.",
+    hasDrafts: true,
+    hasVersions: true,
+    icon: FileText,
+    listPath: "/web-studio/collections/page-templates",
+    previewMode: "none",
+    preferences: WEB_STUDIO_COLLECTION_PREFERENCE_MAP["page-templates"],
+    sectionLabel: "Templates",
+    slug: "page-templates",
+    titlePlural: "Page Templates",
+    titleSingular: "Page Template",
+  },
   pages: {
     createLabel: "New page",
+    createHref: "/web-studio/templates?pageType=standard",
     description:
       "Tenant-scoped site pages. Search, filter, and open a document to edit.",
     editDescription:
@@ -128,6 +179,28 @@ export const WEB_STUDIO_COLLECTION_CONFIGS: Record<
     slug: "pages",
     titlePlural: "Pages",
     titleSingular: "Page",
+  },
+  "project-pages": {
+    createLabel: "New project page",
+    createHref: "/web-studio/projects/new",
+    description:
+      "Fund-backed project landing pages with template-driven layout, marketing copy, and donation context.",
+    editDescription:
+      "Project pages keep Payload draft, publish, and block editing behavior while the shared document shell owns framing.",
+    hasDrafts: true,
+    hasVersions: true,
+    icon: Target,
+    listPath: "/web-studio/collections/project-pages",
+    previewMode: "public-link",
+    previewPathForData: (data) => {
+      const slug = typeof data?.slug === "string" ? data.slug : "";
+      return slug ? `/projects/${encodeURIComponent(slug)}` : null;
+    },
+    preferences: WEB_STUDIO_COLLECTION_PREFERENCE_MAP["project-pages"],
+    sectionLabel: "Project Pages",
+    slug: "project-pages",
+    titlePlural: "Project Pages",
+    titleSingular: "Project Page",
   },
 };
 

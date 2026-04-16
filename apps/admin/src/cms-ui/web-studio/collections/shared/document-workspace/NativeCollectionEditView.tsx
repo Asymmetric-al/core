@@ -138,7 +138,7 @@ export function NativeCollectionEditView({
       const existing =
         (await getPreference<Array<Record<string, string>>>(
           studioConfig.preferences.recentDocs,
-        ).catch((error) => {
+        ).catch((error: unknown) => {
           warnPreferenceDev("recent docs preference read failed", error);
           return [];
         })) ?? [];
@@ -149,11 +149,13 @@ export function NativeCollectionEditView({
           href: `${studioConfig.listPath}/${identifier}`,
           updatedAt: new Date().toISOString(),
         },
-        ...existing.filter((entry) => entry.id !== identifier),
+        ...existing.filter(
+          (entry: Record<string, string>) => entry.id !== identifier,
+        ),
       ].slice(0, 6);
 
       await setPreference(studioConfig.preferences.recentDocs, next).catch(
-        (error) => {
+        (error: unknown) => {
           warnPreferenceDev("recent docs preference write failed", error);
         },
       );
