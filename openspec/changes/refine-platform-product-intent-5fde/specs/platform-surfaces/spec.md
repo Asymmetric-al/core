@@ -3,6 +3,7 @@
 ## REMOVED Requirements
 
 ### Requirement: Mission Control (Admin)
+
 **Reason**: The old requirement names the staff surface too generically and does
 not clearly state its durable purpose as the platform's main operations
 console.
@@ -10,6 +11,7 @@ console.
 authoritative statement of what Mission Control is for.
 
 #### Scenario: A reader looks for the old admin heading
+
 - GIVEN a contributor expects the old “Mission Control (Admin)” heading
 - WHEN they search this spec after the change merges
 - THEN they follow **Mission Control As The Staff Operations Surface**
@@ -17,6 +19,7 @@ authoritative statement of what Mission Control is for.
   in Mission Control first
 
 ### Requirement: Missionary Workspace
+
 **Reason**: The old requirement names the missionary surface by audience only.
 The replacement states its durable support-raising and communication purpose
 more clearly.
@@ -25,6 +28,7 @@ Surface** as the authoritative statement of what the missionary workspace is and
 is not for.
 
 #### Scenario: A reader looks for the old missionary heading
+
 - GIVEN a contributor expects the old “Missionary Workspace” heading
 - WHEN they search this spec after the change merges
 - THEN they follow **Missionary Workspace As The Missionary Support-Raising
@@ -33,6 +37,7 @@ is not for.
   missionary experience is and is not for
 
 ### Requirement: Donor Portal And Public Giving
+
 **Reason**: The old requirement combines donor self-service, public website
 intent, and connected giving behavior into one requirement. The replacement
 separates those concerns.
@@ -41,6 +46,7 @@ separates those concerns.
 **Cross-Surface Continuous Flows** as the new source of truth.
 
 #### Scenario: A reader looks for the old donor-and-public heading
+
 - GIVEN a contributor expects one combined donor/public requirement
 - WHEN they search this spec after the change merges
 - THEN they use **Donor Portal As The Donor Self-Service Surface** for logged-in
@@ -49,6 +55,7 @@ separates those concerns.
   **Cross-Surface Continuous Flows** for public and connected-flow intent
 
 ### Requirement: Cross-Surface Coherence
+
 **Reason**: The old requirement compresses conceptual ownership, connected flow,
 and platform feel into one vague rule.
 **Migration**: Use **Surface Ownership And Shared Records**,
@@ -56,6 +63,7 @@ and platform feel into one vague rule.
 Across Surfaces** as the clearer split.
 
 #### Scenario: A reader looks for the old coherence heading
+
 - GIVEN a contributor expects the old “Cross-Surface Coherence” heading
 - WHEN they search this spec after the change merges
 - THEN they use the new three-way split for ownership, connected flow, and
@@ -80,6 +88,7 @@ exception-handling, or administrative truth, its first conceptual home SHALL be
 Mission Control.
 
 #### Scenario: A new capability carries operational depth
+
 - GIVEN a feature includes staff controls, organization-wide visibility,
   exception handling, reporting impact, or administrative setup
 - WHEN an agent decides where that feature belongs first
@@ -103,6 +112,7 @@ only the depth needed for a donor to manage their relationship to giving with
 clarity and confidence.
 
 #### Scenario: A donor wants to complete a common giving task
+
 - GIVEN a donor wants to update a recurring gift, change a payment method, find
   a receipt, or review giving history
 - WHEN an agent designs or changes the donor portal flow
@@ -127,6 +137,7 @@ SHALL avoid staff-style operational depth that would overload missionaries or
 turn the workspace into a second admin console.
 
 #### Scenario: A capability would add staff-style depth to the missionary experience
+
 - GIVEN a proposal would expose the missionary surface to staff-style controls,
   broad operational setup, or organization-wide administrative detail
 - WHEN an agent decides whether that capability belongs in the missionary
@@ -152,6 +163,7 @@ belong to the public tenant website surface even when authorized users initiate
 or edit related changes from other surfaces.
 
 #### Scenario: A public website change starts to behave like an operational surface
+
 - GIVEN a proposal would solve a staff or authenticated workflow by placing more
   operational depth on the public tenant website
 - WHEN an agent evaluates whether it fits the public surface
@@ -175,6 +187,7 @@ experience even when related edits or submissions begin in missionary or admin
 surfaces.
 
 #### Scenario: A feature could live in Mission Control or the missionary workspace
+
 - GIVEN the same record or capability could appear in both Mission Control and
   the missionary workspace
 - WHEN an agent decides where it belongs first
@@ -184,6 +197,7 @@ surfaces.
   needed by the missionary
 
 #### Scenario: A missionary updates public page content
+
 - GIVEN a missionary updates a photo, bio, or page content they are allowed to
   control
 - WHEN that change moves through the connected review or publication flow
@@ -209,6 +223,7 @@ when missionaries manage them, admins review them, public pages display them,
 donor experiences surface them, or communication flows reference them.
 
 #### Scenario: A public gift becomes part of the connected ministry flow
+
 - GIVEN a donor gives through the public tenant website
 - WHEN the donor moves into follow-up experiences
 - THEN the donor sees a connected path through confirmation and donor history
@@ -216,6 +231,7 @@ donor experiences surface them, or communication flows reference them.
   than acting like detached products
 
 #### Scenario: An admin triggers a refund
+
 - GIVEN an admin triggers a refund or similar corrective action from the staff
   operations surface
 - WHEN the result affects donor-visible history or missionary-relevant support
@@ -240,6 +256,7 @@ intentional, coherent, and complete rather than broken, chopped apart, or half
 revealed.
 
 #### Scenario: A role should not see certain depth
+
 - GIVEN a user does not have the role or privilege for certain operational depth
 - WHEN an agent designs how that surface behaves for the user
 - THEN the product hides or simplifies that depth cleanly within the intended
@@ -248,6 +265,7 @@ revealed.
   tool leaked into the wrong place
 
 #### Scenario: Naming or behavior drift would make the platform feel like separate products
+
 - GIVEN a new flow introduces different names, states, or mental models for the
   same concept across staff, donor, missionary, or public surfaces
 - WHEN an agent decides whether that difference is acceptable
