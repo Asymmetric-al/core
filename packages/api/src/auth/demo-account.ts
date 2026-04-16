@@ -5,7 +5,7 @@ import {
 } from "@asym/auth";
 import { APP_ROLES, type AppRole } from "@asym/auth/roles";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
-import { runtimeEnvFlags, serverEnv } from "@asym/env";
+import { serverEnv } from "@asym/env";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 
@@ -129,9 +129,15 @@ function createAuthClient(request: Request) {
 }
 
 function isDemoEndpointEnabled() {
+  // Use `process.env.NODE_ENV` here (not `runtimeEnvFlags.NODE_ENV` from `@asym/env`).
+  // `runtimeEnvFlags` snapshots NODE_ENV when the env module first loads; under Vitest
+  // that is typically `"test"`, which would incorrectly keep demo routes enabled when
+  // tests simulate `NODE_ENV=production`.
+  // Read `ALLOW_DEMO_ACCOUNTS` from `process.env`, not `serverEnv`: `@asym/env` parses
+  // once at module load; Vitest mutates `process.env` per test after imports.
   if (
-    runtimeEnvFlags.NODE_ENV === "production" &&
-    !serverEnv.ALLOW_DEMO_ACCOUNTS
+    process.env.NODE_ENV === "production" &&
+    process.env.ALLOW_DEMO_ACCOUNTS !== "true"
   ) {
     return false;
   }
@@ -272,7 +278,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (runtimeEnvFlags.NODE_ENV !== "production") {
+    if (process.env.NODE_ENV !== "production") {
       console.info(`[demo-auth] demo login success role=${role}`);
     }
 

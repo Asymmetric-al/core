@@ -103,6 +103,8 @@ describe("api/auth/signout", () => {
     const { POST } = await import("../../../packages/api/src/auth/signout");
     process.env.NEXT_PUBLIC_SUPABASE_URL = "";
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "";
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "";
+    process.env.E2E_AUTH_BYPASS = "false";
 
     const request = new Request("http://localhost/api/auth/signout", {
       method: "POST",
