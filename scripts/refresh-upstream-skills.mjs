@@ -248,8 +248,21 @@ async function refreshSkill({ skillName, from, preserve = [] }) {
 }
 
 async function main() {
+  let skipped = 0;
   for (const source of upstreamSources) {
-    await refreshSkill(source);
+    try {
+      await refreshSkill(source);
+    } catch (error) {
+      console.warn(
+        `[warn] skipping ${source.skillName}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      skipped += 1;
+    }
+  }
+  if (skipped > 0) {
+    console.warn(
+      `${skipped} skill(s) skipped — install their upstream sources to refresh them.`,
+    );
   }
   console.log(
     "upstream skill refresh complete — run `bun run skills:sync` then `bun run skills:verify`",
