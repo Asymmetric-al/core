@@ -3,14 +3,12 @@
 ## REMOVED Requirements
 
 ### Requirement: Multi-Tenant Safety First
-
-This requirement is removed and replaced by **Safety And Permission Correctness
-Over Convenience** so the merged spec states the platform's decision order
-plainly: tenant safety first, financial and operational truth second, and
-convenience third.
+**Reason**: The old requirement captures the right instinct but not the full
+decision order needed for future agent judgment.
+**Migration**: Use **Safety And Permission Correctness Over Convenience** as
+the authoritative rule for conflicts between safety and convenience.
 
 #### Scenario: A reader looks for the old safety heading
-
 - GIVEN a contributor expects the old “Multi-Tenant Safety First” heading
 - WHEN they search this spec after the change merges
 - THEN they follow **Safety And Permission Correctness Over Convenience**
@@ -18,14 +16,13 @@ convenience third.
   convenience
 
 ### Requirement: Respect User Time And Context
-
-This requirement is removed and replaced by **Administrative Foundation With
-Surface-Appropriate Simplicity** and **System Behavior Over Repeated Manual Glue
-Work** so the merged spec gives clearer product judgment about simplicity
-without weakening operational depth.
+**Reason**: The old requirement is too generic. The replacement makes tradeoff
+judgment explicit around admin depth, donor clarity, missionary focus, and
+repeated manual work.
+**Migration**: Use **Administrative Foundation With Surface-Appropriate
+Simplicity** and **System Behavior Over Repeated Manual Glue Work**.
 
 #### Scenario: A reader looks for the old time-and-context heading
-
 - GIVEN a contributor expects the old “Respect User Time And Context” heading
 - WHEN they search this spec after the change merges
 - THEN they use the new requirements for how to balance depth, focus, and manual
@@ -33,47 +30,41 @@ without weakening operational depth.
 - AND they do not reduce this principle to generic UI simplification
 
 ### Requirement: Honest UX Around Money And Identity
-
-This requirement is removed and replaced by **Operational Truth And Money
-Integrity** and **Donor Trust Through Honest States And Clear Handoffs** so the
-merged spec separates durable money truth from the experience of seeing that
-truth clearly.
+**Reason**: The old requirement combines money-truth judgment with presentation
+judgment. The replacement separates those concerns.
+**Migration**: Use **Operational Truth And Money Integrity** and
+**Donor Trust Through Honest States And Clear Handoffs**.
 
 #### Scenario: A reader looks for the old money-and-identity heading
-
 - GIVEN a contributor expects the old “Honest UX Around Money And Identity”
   heading
 - WHEN they search this spec after the change merges
-- THEN they use **Operational Truth And Money Integrity** for truth correctness
+- THEN they use **Operational Truth And Money Integrity** for truth judgment
 - AND they use **Donor Trust Through Honest States And Clear Handoffs** for how
-  that truth must be exposed to users
+  that truth must be exposed
 
 ### Requirement: Shared Behavior Lives In Shared Packages
-
-This requirement is removed because package placement is not the durable product
-judgment layer for this spec. The surviving concern appears as **Shared
-Language, Shared Behavior, And Cross-Surface Coherence** without binding the
-principle to a specific implementation tactic.
+**Reason**: Package placement is an implementation tactic, not the durable
+judgment layer for this spec.
+**Migration**: Use **Shared Language, Shared Behavior, And Cross-Surface
+Coherence** as the product-judgment replacement.
 
 #### Scenario: A reader looks for the old shared-packages heading
-
 - GIVEN a contributor expects the old “Shared Behavior Lives In Shared Packages”
   heading
 - WHEN they search this spec after the change merges
 - THEN they follow **Shared Language, Shared Behavior, And Cross-Surface
   Coherence**
-- AND they treat platform consistency as the product principle, not a package
-  rule
+- AND they treat platform consistency as the product principle rather than any
+  specific implementation tactic
 
 ### Requirement: Accessibility And Performance Are Part Of UX
-
-This requirement is removed and replaced by **Clarity, Accessibility, And
-Perceived Speed Over Decorative Richness** and **Product-Level Definition Of
-Done** so the merged spec states more directly what to choose when polish
-conflicts with clarity or speed.
+**Reason**: The replacement makes the tradeoff explicit when visual richness
+conflicts with clarity, accessibility, or speed.
+**Migration**: Use **Clarity, Accessibility, And Perceived Speed Over
+Decorative Richness** and **Product-Level Definition Of Done**.
 
 #### Scenario: A reader looks for the old accessibility-and-performance heading
-
 - GIVEN a contributor expects the old “Accessibility And Performance Are Part Of
   UX” heading
 - WHEN they search this spec after the change merges
@@ -82,17 +73,16 @@ conflicts with clarity or speed.
 - AND they treat clarity and perceived speed as first-class product decisions
 
 ### Requirement: Durable Docs Stay Aligned
-
-This requirement is removed because documentation synchronization is a workflow
-concern owned elsewhere in OpenSpec and repo instructions, not the durable
-product judgment layer for this spec.
+**Reason**: Boundary-document alignment belongs in the boundaries spec as a
+discipline around structural and trust contracts, not here in the judgment
+layer.
+**Migration**: Use **Durable Boundary Docs Stay Aligned** in
+`platform-boundaries`.
 
 #### Scenario: A reader looks for the old docs-alignment heading
-
 - GIVEN a contributor expects the old “Durable Docs Stay Aligned” heading
 - WHEN they search this spec after the change merges
-- THEN they use OpenSpec workflow guidance and repo instructions for doc-sync
-  expectations
+- THEN they use `platform-boundaries` for durable boundary-doc alignment
 - AND they keep this spec focused on product judgment rather than workflow
 
 ## ADDED Requirements
@@ -109,7 +99,6 @@ visibility ambiguous just because that shortcut is technically simpler or easier
 to ship.
 
 #### Scenario: A shortcut would make development faster but weaken safety
-
 - GIVEN an implementation shortcut would avoid stricter permission checks,
   weaken role isolation, or blur who is allowed to see or do something
 - WHEN an agent compares that shortcut with a safer path
@@ -126,27 +115,17 @@ fund ownership, missionary visibility, and administrative visibility.
 When a change helps one user group but weakens the accuracy, clarity, or
 unambiguity of money flow, the platform SHALL protect money integrity first.
 
-When CRM and CMS appear to disagree, an agent MUST treat CRM as the operational
-truth and CMS as the public content truth unless a more specific spec
-explicitly overrides that behavior.
+This requirement MUST govern product judgment about truthful money behavior. It
+does not replace the structural source-of-truth ownership rules, which belong in
+`platform-boundaries`.
 
 #### Scenario: A change would help one user group but weaken money truth
-
 - GIVEN a proposed change would make a workflow easier for one audience
 - WHEN it would also make donations, designations, refunds, recurring state, or
   receipt behavior less accurate or less unambiguous
 - THEN the agent rejects the convenience or redesigns it so operational truth
   stays correct
 - AND they do not ship a path that leaves money state open to interpretation
-
-#### Scenario: CRM and CMS appear to disagree
-
-- GIVEN a feature touches both operational records and public-facing content
-- WHEN an agent sees tension between CRM-shaped truth and CMS-shaped truth
-- THEN they treat CRM as the operational truth and CMS as the public content
-  truth by default
-- AND they require a more specific OpenSpec override before reversing that
-  judgment
 
 ### Requirement: Administrative Foundation With Surface-Appropriate Simplicity
 
@@ -155,22 +134,30 @@ support the organization's operational strength first, because downstream donor
 and missionary experiences depend on that foundation being reliable and
 complete.
 
-When admin power, donor clarity, and missionary simplicity are in tension, the
-platform SHALL favor them in that order by default while still strongly
-protecting donor clarity and keeping missionary experiences focused.
+Within a safe, permitted, and operationally truthful path, the platform SHALL
+preserve the administrative foundation the organization depends on, protect
+donor clarity strongly, and keep missionary experiences focused rather than
+expansive.
 
-The platform MUST simplify donor and missionary experiences without turning them
-into staff surfaces and without weakening the administrative depth the
-organization depends on.
+This default MUST NOT override safety, permission correctness, money integrity,
+or donor-trust obligations.
 
 #### Scenario: A feature would give admins more power but make downstream surfaces too deep
-
 - GIVEN a proposed capability benefits staff operations
 - WHEN exposing the same depth in donor or missionary experiences would make
   those surfaces feel staff-like, confusing, or overloaded
-- THEN the agent keeps the operational depth in the admin layer
+- THEN the agent keeps the operational depth in the staff layer
 - AND they expose only the focused downstream behavior needed by the donor or
   missionary experience
+
+#### Scenario: A misread of admin-first judgment would weaken donor clarity
+- GIVEN an agent is tempted to mirror staff complexity in a donor-facing or
+  missionary-facing path for the sake of parity
+- WHEN that parity would make the narrower experience harder to understand
+- THEN they protect donor clarity and missionary focus instead of copying staff
+  depth
+- AND they do not treat this requirement as permission to make every surface
+  equally powerful
 
 ### Requirement: Donor Trust Through Honest States And Clear Handoffs
 
@@ -183,7 +170,6 @@ identity state when doing so would make the experience feel safer than it
 actually is.
 
 #### Scenario: A payment or identity flow might hide the real state
-
 - GIVEN a flow could conceal a failure, delay, permission issue, or incomplete
   payment state behind reassuring language or vague UI
 - WHEN an agent decides how to present that state
@@ -203,7 +189,6 @@ human reconciliation as the normal answer when a durable system behavior is the
 better product direction.
 
 #### Scenario: A repeated manual action could be absorbed into system behavior
-
 - GIVEN staff, donors, or missionaries repeatedly perform the same corrective,
   linking, or follow-up action by hand
 - WHEN the platform could absorb that repetition into a durable and safe system
@@ -225,7 +210,6 @@ interaction MUST not be preferred if it makes the product slower, harder to
 understand, less accessible, or less obviously actionable.
 
 #### Scenario: A rich interaction would reduce clarity or speed
-
 - GIVEN a visually attractive interaction would add motion, density, or visual
   complexity
 - WHEN that interaction would slow the product down, reduce accessibility, or
@@ -237,7 +221,7 @@ understand, less accessible, or less obviously actionable.
 
 Shared language and shared behavior across the platform MUST matter as much as
 local optimization. The same concept SHALL not behave differently in different
-surfaces without a clear reason documented in product intent.
+surfaces without a clear reason documented in product intent or surface intent.
 
 The platform MUST optimize for performance and reliability without allowing
 separate surfaces to drift into inconsistent vocabulary, inconsistent state
@@ -248,7 +232,6 @@ too inconsistent, too clever locally, or too disconnected across surfaces.
 Everything MUST work together as one cohesive, high-trust platform.
 
 #### Scenario: The same concept appears across more than one surface
-
 - GIVEN the same concept appears in multiple surfaces
 - WHEN an agent considers using different names, state rules, or behaviors for
   local optimization
@@ -269,7 +252,6 @@ feels fragmented, unlike the rest of the platform, or too dependent on user
 guesswork to complete confidently.
 
 #### Scenario: A feature technically works but still feels fragmented
-
 - GIVEN a feature passes technical checks and can be used end to end
 - WHEN it still feels unlike the rest of the platform, fragile in error states,
   confusing in money or identity behavior, or inconsistent across surfaces

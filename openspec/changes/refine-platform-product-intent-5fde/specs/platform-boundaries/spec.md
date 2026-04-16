@@ -122,6 +122,14 @@ grow separate app-local versions of the same rule or workflow.
 - AND they keep app-local implementation only for genuinely surface-specific
   behavior
 
+#### Scenario: An agent tries to treat surface split as only an implementation detail
+- GIVEN a shortcut would ignore the durable split between the three
+  product-facing surfaces because all code lives in one monorepo
+- WHEN an agent chooses where logic or responsibility should live
+- THEN they preserve the product-facing surface split as a real boundary
+- AND they do not collapse distinct surfaces into one vague app layer simply
+  because local code access is easy
+
 ### Requirement: CRM As Operational Truth And CMS As Public Truth
 
 CRM MUST own operational identity, relationships, giving, permissions-sensitive
@@ -234,6 +242,14 @@ hacked away or half-present.
 - AND they do not turn a donor or missionary experience into a second staff
   console
 
+#### Scenario: Hidden capability would be left half-present
+- GIVEN a narrower role should not see or trigger a deeper capability
+- WHEN an agent decides how that limitation appears in the product
+- THEN they keep the capability cleanly outside the role-scoped surface or show
+  only an intentional status or handoff
+- AND they do not leak partial admin behavior into a narrow surface as broken or
+  confusing remnants
+
 ### Requirement: Tenant Isolation And Scope Integrity
 
 Tenant isolation and role scope MUST be non-negotiable structural boundaries.
@@ -276,11 +292,20 @@ user-facing state remains honest.
   retried, partial, or refunded outcomes when applicable
 - AND they do not let public optimism outrun operational truth for convenience
 
+#### Scenario: A local implementation wants to expose trust-sensitive internals for convenience
+- GIVEN a shortcut would expose payment internals, sensitive status detail, or
+  secret-bearing data to a layer that does not need it
+- WHEN an agent weighs implementation convenience against payment trust
+- THEN they keep trust-sensitive internals protected behind the correct boundary
+- AND they expose only the truthful user-facing state and next action
+
 ### Requirement: Publication, Moderation, And Tenant-Controlled Release Boundaries
 
-Missionary-managed public content SHALL be allowed to originate from the
-missionary surface or from Mission Control, but publication MUST respect
-tenant-configured approval and moderation rules.
+Missionary-managed public content SHALL respect tenant-controlled publication
+boundaries even when it originates from the missionary surface or from Mission
+Control.
+
+Publication MUST respect tenant-configured approval and moderation rules.
 
 No surface MUST bypass the tenant's chosen publication boundary. If a tenant
 allows automatic publishing, the platform MUST respect that choice as a
