@@ -1,10 +1,19 @@
-## 1. Delta and validation
+## 1. Delta specs drafted and validated
 
-- [x] 1.1 Author `openspec/changes/refine-platform-product-intent-5fde/specs/platform-product-intent/spec.md` with ADDED / MODIFIED / REMOVED sections
-- [x] 1.2 Run `npx -y @fission-ai/openspec@latest validate refine-platform-product-intent-5fde --type change` (or Bun equivalent)
+- [x] 1.1 Author `openspec/changes/refine-platform-product-intent-5fde/specs/platform-product-intent/spec.md`
+- [x] 1.2 Author `openspec/changes/refine-platform-product-intent-5fde/specs/platform-surfaces/spec.md`
+- [x] 1.3 Author `openspec/changes/refine-platform-product-intent-5fde/specs/platform-principles/spec.md`
+- [x] 1.4 Author `openspec/changes/refine-platform-product-intent-5fde/specs/platform-boundaries/spec.md`
+- [x] 1.5 Run `npx -y @fission-ai/openspec@latest validate refine-platform-product-intent-5fde --type change --strict`
 
-## 2. Fold forward (manual / follow-up)
+## 2. Review and reconcile merged specs
 
-- [ ] 2.1 Review delta with product owner
-- [ ] 2.2 Apply merged spec updates via agreed workflow (for example `openspec archive` or hand-merge of `openspec/specs/platform-product-intent/spec.md` from the resolved intent)
-- [ ] 2.3 Run `bunx @fission-ai/openspec@latest validate --all` after merge
+- [ ] 2.1 Review all four deltas with the product owner for durable truth and naming
+- [ ] 2.2 Decide whether any requirement text should be tightened before fold-forward
+- [ ] 2.3 Confirm related architecture and repo-guidance docs that restate these durable boundaries remain aligned
+
+## 3. Fold forward and final validation
+
+- [ ] 3.1 Apply the approved deltas to the merged specs through the agreed OpenSpec workflow
+- [ ] 3.2 Run `npx -y @fission-ai/openspec@latest validate --all` after fold-forward
+- [ ] 3.3 Archive the change when the merged specs are the accepted source of truth
