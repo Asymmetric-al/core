@@ -109,17 +109,17 @@ Per Nia + v4 changelog: when `rsc: false`, the CLI no longer auto-appends `"use 
 
 **Evidence.** `rg 'bg-white|text-zinc-\d|bg-zinc-\d|border-zinc-\d|text-slate-|bg-slate-|border-slate-|text-black'` inside `packages/ui/components/shadcn/`:
 
-| File                       | Issue                                                                                                                                                  |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `button.tsx`               | `variant: maia` and `maia-outline` hardcode `bg-slate-900`, `bg-white`, `text-slate-600`, `border-slate-200`, `hover:bg-slate-50`, `hover:bg-slate-800` |
-| `slider.tsx`               | Thumb hardcodes `bg-white` — invisible on dark theme                                                                                                   |
-| `chart-wrappers.tsx`       | `ChartTooltip` + `KpiTile` hardcode `bg-white`, `text-zinc-400/600/900`, `border-zinc-50/100/200`, `bg-zinc-50/100`, `bg-white/80` with no dark variant |
-| `data-grid/data-grid-cell.tsx` | `bg-white` on inline edit input — invisible on dark                                                                                                |
-| `data-table/data-table-wrapper.tsx` | `text-zinc-900`, `text-zinc-500` in the error / empty states — invisible on dark                                                               |
-| `filter-bar.tsx`           | Multiple `bg-white`, `text-zinc-400/600/900`, `border-zinc-100/200`, `bg-zinc-100/200` strings                                                         |
-| `image-cropper.tsx`        | Hardcoded `bg-white`, `border-zinc-100/200`, `text-zinc-400/500/600/900`, `bg-zinc-900`, `hover:bg-zinc-800` — has its own mini palette                |
-| `image-upload.tsx`         | Hardcoded `border-zinc-200/400`, `text-zinc-400`, `bg-zinc-50`                                                                                         |
-| `map.tsx`                  | ~20 hardcoded `zinc-*` / `bg-white` rules (does pair them with `dark:` so it's partially OK, but drifts from the token system)                         |
+| File                                | Issue                                                                                                                                                   |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `button.tsx`                        | `variant: maia` and `maia-outline` hardcode `bg-slate-900`, `bg-white`, `text-slate-600`, `border-slate-200`, `hover:bg-slate-50`, `hover:bg-slate-800` |
+| `slider.tsx`                        | Thumb hardcodes `bg-white` — invisible on dark theme                                                                                                    |
+| `chart-wrappers.tsx`                | `ChartTooltip` + `KpiTile` hardcode `bg-white`, `text-zinc-400/600/900`, `border-zinc-50/100/200`, `bg-zinc-50/100`, `bg-white/80` with no dark variant |
+| `data-grid/data-grid-cell.tsx`      | `bg-white` on inline edit input — invisible on dark                                                                                                     |
+| `data-table/data-table-wrapper.tsx` | `text-zinc-900`, `text-zinc-500` in the error / empty states — invisible on dark                                                                        |
+| `filter-bar.tsx`                    | Multiple `bg-white`, `text-zinc-400/600/900`, `border-zinc-100/200`, `bg-zinc-100/200` strings                                                          |
+| `image-cropper.tsx`                 | Hardcoded `bg-white`, `border-zinc-100/200`, `text-zinc-400/500/600/900`, `bg-zinc-900`, `hover:bg-zinc-800` — has its own mini palette                 |
+| `image-upload.tsx`                  | Hardcoded `border-zinc-200/400`, `text-zinc-400`, `bg-zinc-50`                                                                                          |
+| `map.tsx`                           | ~20 hardcoded `zinc-*` / `bg-white` rules (does pair them with `dark:` so it's partially OK, but drifts from the token system)                          |
 
 **Why it matters.** `AGENTS.md` and `docs/ai/ADMIN-UX-STANDARDS.md` explicitly ban non-semantic color usage. These components visibly break in dark mode or regress the Maia palette contract whenever someone re-themes the palette (light or dark). This is the top visible regression risk in the UI.
 
@@ -161,13 +161,13 @@ Keep `maia` and `maia-outline` variants (they are consumed in `apps/missionary/a
 
 **Evidence.** `shadcn add <component> --diff` dry-run against every installed component. Measured lines of diff (LOW = small cosmetic delta, HIGH = important semantic delta):
 
-| Tier            | Components                                                                                                                                                                                                                                                                                                                                 | Diff lines |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
-| Trivial (< 30)  | `sonner`, `spinner`, `collapsible`, `label`, `skeleton`, `kbd`, `textarea`, `input`                                                                                                                                                                                                                                                        | 15–30      |
-| Low (30–60)     | `hover-card`, `separator`, `input-otp`, `checkbox`, `radio-group`, `alert`, `switch`, `toggle`, `empty`, `tooltip`, `progress`, `breadcrumb`, `accordion`                                                                                                                                                                                  | 30–60      |
-| Medium (60–110) | `card`, `badge`, `scroll-area`, `slider`, `toggle-group`, `table`, `resizable`, `popover`, `navigation-menu`, `select`, `tabs`, `dialog`, `sheet`, `dropdown-menu`, `avatar`, `carousel`, `context-menu`, `pagination`                                                                                                                     | 60–110     |
-| High (110–300)  | `menubar`, `item`, `field`, `button-group`, `drawer`, `calendar`, `alert-dialog`, `input-group`, `command`, `sidebar`, `chart`                                                                                                                                                                                                             | 110–300    |
-| Custom (≥ 300)  | `form` (899 line diff — intentional TanStack Form rewrite)                                                                                                                                                                                                                                                                                 | 899        |
+| Tier            | Components                                                                                                                                                                                                             | Diff lines |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| Trivial (< 30)  | `sonner`, `spinner`, `collapsible`, `label`, `skeleton`, `kbd`, `textarea`, `input`                                                                                                                                    | 15–30      |
+| Low (30–60)     | `hover-card`, `separator`, `input-otp`, `checkbox`, `radio-group`, `alert`, `switch`, `toggle`, `empty`, `tooltip`, `progress`, `breadcrumb`, `accordion`                                                              | 30–60      |
+| Medium (60–110) | `card`, `badge`, `scroll-area`, `slider`, `toggle-group`, `table`, `resizable`, `popover`, `navigation-menu`, `select`, `tabs`, `dialog`, `sheet`, `dropdown-menu`, `avatar`, `carousel`, `context-menu`, `pagination` | 60–110     |
+| High (110–300)  | `menubar`, `item`, `field`, `button-group`, `drawer`, `calendar`, `alert-dialog`, `input-group`, `command`, `sidebar`, `chart`                                                                                         | 110–300    |
+| Custom (≥ 300)  | `form` (899 line diff — intentional TanStack Form rewrite)                                                                                                                                                             | 899        |
 
 **Common drift patterns** (present in roughly every file):
 
