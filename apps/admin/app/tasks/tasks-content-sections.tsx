@@ -224,20 +224,23 @@ export function TasksFilterSection({
 interface TasksTableSectionProps {
   columns: ColumnDef<Task>[];
   data: Task[];
+  isLoading?: boolean;
   onCreateTask: () => void;
 }
 
 export function TasksTableSection({
   columns,
   data,
+  isLoading,
   onCreateTask,
 }: TasksTableSectionProps) {
   return (
-    <Card className="rounded-[2.5rem] border-zinc-100/80 shadow-sm overflow-hidden bg-white">
+    <Card className="rounded-[2.5rem] border-zinc-100/80 shadow-sm bg-white">
       <div className="p-1">
         <DataTableWrapper
           columns={columns}
           data={data}
+          isLoading={isLoading}
           searchColumnId="title"
           getRowId={(task) => task.id}
           config={{

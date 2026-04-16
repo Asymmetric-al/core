@@ -12,6 +12,7 @@ import { TimezoneScheduler } from "@/features/mission-control/care/components/Ti
 import {
   useCareProfile,
   useCareActivity,
+  useCarePrivateNotes,
 } from "@/features/mission-control/care/hooks/use-care";
 
 export default function CareProfilePage() {
@@ -22,8 +23,10 @@ export default function CareProfilePage() {
   const { data: activities, isLoading: loadingActivities } = useCareActivity(
     id as string,
   );
+  const { data: privateNotes, isLoading: loadingPrivateNotes } =
+    useCarePrivateNotes(id as string);
 
-  if (loadingProfile || loadingActivities) {
+  if (loadingProfile || loadingActivities || loadingPrivateNotes) {
     return (
       <div className="p-6 space-y-6">
         <Skeleton className="h-8 w-32" />
@@ -48,7 +51,7 @@ export default function CareProfilePage() {
     <div className="p-6 space-y-6 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
         <Link
-          href="/mc/care/directory"
+          href="/care/directory"
           className="flex items-center gap-2 text-sm font-bold text-zinc-500 hover:text-zinc-900 transition-colors group"
         >
           <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
@@ -77,6 +80,7 @@ export default function CareProfilePage() {
           <PersonnelProfile
             personnel={personnel}
             activities={activities || []}
+            privateNotes={privateNotes || []}
           />
         </div>
         <div className="lg:col-span-4 space-y-6">

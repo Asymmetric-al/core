@@ -11,6 +11,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
+import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
+import { DataTableWrapper } from "@asym/ui/components/shadcn/data-table/data-table-wrapper";
 import {
   Dialog,
   DialogContent,
@@ -49,19 +51,12 @@ import {
   SheetTrigger,
 } from "@asym/ui/components/shadcn/sheet";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@asym/ui/components/shadcn/table";
-import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from "@asym/ui/components/shadcn/tabs";
+import { type ColumnDef } from "@tanstack/react-table";
 import {
   Activity,
   ChevronRight,
@@ -82,7 +77,7 @@ import {
 } from "lucide-react";
 import React from "react";
 
-import { DynamicIcon } from "@/features/mission-control/shell/components/icons";
+import { DynamicIcon } from "@/features/mission-control/components/icons";
 
 export type PermissionLevel = "Admin" | "Manage" | "View";
 
@@ -222,50 +217,39 @@ function getPermissionColor(level: string) {
   }
 }
 
-export function TeamsPageHeader() {
+/** Primary action for Mission Control PageShell header (Create Team dialog). */
+export function TeamsPageActions() {
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight text-zinc-900">
-          Manage Teams
-        </h2>
-        <p className="text-zinc-500 mt-1">
-          Organize users and departments with shared, granular permissions.
-        </p>
-      </div>
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button className="bg-zinc-900 text-white shadow-xl hover:bg-zinc-800">
-            <Plus className="mr-2 h-4 w-4" /> Create Team
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Create New Team</DialogTitle>
-            <DialogDescription>
-              Set up a new organizational unit. You can invite members after
-              creation.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Team Name</Label>
-              <Input id="name" placeholder="e.g. Marketing, Crisis Response" />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="description">Description</Label>
-              <Input
-                id="description"
-                placeholder="Brief purpose of this team"
-              />
-            </div>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button className="h-11 rounded-xl bg-zinc-900 font-black uppercase tracking-widest text-[10px] text-white shadow-xl hover:bg-zinc-800">
+          <Plus className="mr-2 h-4 w-4" />
+          Create Team
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Create New Team</DialogTitle>
+          <DialogDescription>
+            Set up a new organizational unit. You can invite members after
+            creation.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Label htmlFor="name">Team Name</Label>
+            <Input id="name" placeholder="e.g. Marketing, Crisis Response" />
           </div>
-          <DialogFooter>
-            <Button type="submit">Create Team</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+          <div className="grid gap-2">
+            <Label htmlFor="description">Description</Label>
+            <Input id="description" placeholder="Brief purpose of this team" />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button type="submit">Create Team</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -577,100 +561,10 @@ function TeamManagementSheet({
   );
 }
 
-function TeamsTableRow({
-  team,
-  selectedTeam,
-  members,
-  onSelectTeam,
-}: {
-  team: Team;
-  selectedTeam: Team | null;
-  members: Member[];
-  onSelectTeam: (team: Team | null) => void;
-}) {
-  return (
-    <TableRow className="group hover:bg-zinc-50/80 transition-colors">
-      <TableCell className="py-4">
-        <div className="flex items-center gap-3">
-          <div
-            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-bold text-xs shadow-sm ${team.color}`}
-          >
-            {team.avatar}
-          </div>
-          <div className="flex flex-col">
-            <span className="font-bold text-zinc-900">{team.name}</span>
-            <span className="text-xs text-zinc-500 line-clamp-1">
-              {team.description}
-            </span>
-          </div>
-        </div>
-      </TableCell>
-      <TableCell>
-        <div className="flex flex-wrap gap-1.5">
-          {Object.entries(team.permissions)
-            .slice(0, 3)
-            .map(([key, level]) => (
-              <Badge
-                key={key}
-                variant="outline"
-                className={`text-[10px] px-1.5 py-0 capitalize border-zinc-200 font-medium ${getPermissionColor(level as string)}`}
-              >
-                {key}: {level}
-              </Badge>
-            ))}
-          {Object.keys(team.permissions).length > 3 && (
-            <Badge
-              variant="outline"
-              className="text-[10px] px-1.5 py-0 border-zinc-200 text-zinc-400"
-            >
-              +{Object.keys(team.permissions).length - 3} more
-            </Badge>
-          )}
-        </div>
-      </TableCell>
-      <TableCell>
-        <div className="flex items-center gap-2">
-          <div className="flex -space-x-2 mr-2">
-            {["A", "B", "C"].map((initial) => (
-              <div
-                key={initial}
-                className="size-6 rounded-full border-2 border-white bg-zinc-200 flex items-center justify-center text-[10px] font-bold text-zinc-500 shadow-sm"
-              >
-                {initial}
-              </div>
-            ))}
-          </div>
-          <span className="text-xs font-bold text-zinc-600">
-            {team.membersCount}
-          </span>
-        </div>
-      </TableCell>
-      <TableCell className="text-right">
-        <Sheet onOpenChange={(open) => !open && onSelectTeam(null)}>
-          <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 hover:bg-zinc-200/50 font-bold text-zinc-600 gap-1"
-              onClick={() => onSelectTeam(team)}
-            >
-              Manage <ChevronRight className="h-4 w-4" />
-            </Button>
-          </SheetTrigger>
-          <TeamManagementSheet
-            selectedTeam={selectedTeam}
-            members={members}
-            onClose={() => onSelectTeam(null)}
-          />
-        </Sheet>
-      </TableCell>
-    </TableRow>
-  );
-}
-
 interface TeamsTableCardProps {
   teams: Team[];
   members: Member[];
+  isLoading?: boolean;
   searchTerm: string;
   selectedTeam: Team | null;
   onSearchTermChange: (value: string) => void;
@@ -680,13 +574,119 @@ interface TeamsTableCardProps {
 export function TeamsTableCard({
   teams,
   members,
+  isLoading,
   searchTerm,
   selectedTeam,
   onSearchTermChange,
   onSelectTeam,
 }: TeamsTableCardProps) {
+  const columns = React.useMemo<ColumnDef<Team>[]>(
+    () => [
+      {
+        accessorKey: "name",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Team Name" />
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center gap-3 py-1">
+            <div
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-bold text-xs shadow-sm ${row.original.color}`}
+            >
+              {row.original.avatar}
+            </div>
+            <div className="flex flex-col">
+              <span className="font-bold text-zinc-900">
+                {row.original.name}
+              </span>
+              <span className="text-xs text-zinc-500 line-clamp-1">
+                {row.original.description}
+              </span>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: "permissions",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Permissions Preview" />
+        ),
+        cell: ({ row }) => (
+          <div className="flex flex-wrap gap-1.5">
+            {Object.entries(row.original.permissions)
+              .slice(0, 3)
+              .map(([key, level]) => (
+                <Badge
+                  key={key}
+                  variant="outline"
+                  className={`text-[10px] px-1.5 py-0 capitalize border-zinc-200 font-medium ${getPermissionColor(level as string)}`}
+                >
+                  {key}: {level}
+                </Badge>
+              ))}
+            {Object.keys(row.original.permissions).length > 3 && (
+              <Badge
+                variant="outline"
+                className="text-[10px] px-1.5 py-0 border-zinc-200 text-zinc-400"
+              >
+                +{Object.keys(row.original.permissions).length - 3} more
+              </Badge>
+            )}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "membersCount",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Members" />
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <div className="flex -space-x-2 mr-2">
+              {["A", "B", "C"].map((initial) => (
+                <div
+                  key={initial}
+                  className="size-6 rounded-full border-2 border-white bg-zinc-200 flex items-center justify-center text-[10px] font-bold text-zinc-500 shadow-sm"
+                >
+                  {initial}
+                </div>
+              ))}
+            </div>
+            <span className="text-xs font-bold text-zinc-600">
+              {row.original.membersCount}
+            </span>
+          </div>
+        ),
+      },
+      {
+        id: "actions",
+        cell: ({ row }) => (
+          <div className="flex justify-end pr-2">
+            <Sheet onOpenChange={(open) => !open && onSelectTeam(null)}>
+              <SheetTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 hover:bg-zinc-200/50 font-bold text-zinc-600 gap-1"
+                  onClick={() => onSelectTeam(row.original)}
+                >
+                  Manage <ChevronRight className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+              <TeamManagementSheet
+                selectedTeam={selectedTeam}
+                members={members}
+                onClose={() => onSelectTeam(null)}
+              />
+            </Sheet>
+          </div>
+        ),
+      },
+    ],
+    [members, onSelectTeam, selectedTeam],
+  );
+
   return (
-    <Card className="border-zinc-200 shadow-sm overflow-hidden">
+    <Card className="border-zinc-200 shadow-sm">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-zinc-50/50 border-b border-zinc-100 py-4">
         <div>
           <CardTitle className="text-lg font-bold">
@@ -707,33 +707,22 @@ export function TeamsTableCard({
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent bg-zinc-50/30">
-              <TableHead className="w-[300px] py-3 font-bold text-zinc-900">
-                Team Name
-              </TableHead>
-              <TableHead className="font-bold text-zinc-900">
-                Permissions Preview
-              </TableHead>
-              <TableHead className="font-bold text-zinc-900">Members</TableHead>
-              <TableHead className="text-right font-bold text-zinc-900">
-                Actions
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {teams.map((team) => (
-              <TeamsTableRow
-                key={team.id}
-                team={team}
-                selectedTeam={selectedTeam}
-                members={members}
-                onSelectTeam={onSelectTeam}
-              />
-            ))}
-          </TableBody>
-        </Table>
+        <DataTableWrapper
+          columns={columns}
+          data={teams}
+          isLoading={isLoading}
+          config={{
+            enableRowSelection: false,
+            enableColumnVisibility: false,
+            enablePagination: true,
+            enableFilters: false,
+            enableSorting: true,
+          }}
+          emptyState={{
+            title: "No teams found",
+            description: "Adjust the current search to find a team.",
+          }}
+        />
       </CardContent>
     </Card>
   );

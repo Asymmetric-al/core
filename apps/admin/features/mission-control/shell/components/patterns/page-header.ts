@@ -1,1 +1,1 @@
-export { PageHeader } from "./PageHeader";
+export { PageHeader } from "../../../components/patterns/page-header";

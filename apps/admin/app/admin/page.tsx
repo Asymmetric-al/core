@@ -18,44 +18,12 @@ import {
   Sparkles,
   Download,
   Activity,
-  CheckCircle,
   ArrowRight,
   Lock,
   Users,
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
-
-const STATS = [
-  {
-    label: "Custom Domains",
-    value: "4",
-    sub: "All SSL active",
-    icon: Globe,
-    hasCheck: true,
-  },
-  {
-    label: "API Keys",
-    value: "8",
-    sub: "all keys rotated recently",
-    icon: Key,
-    hasCheck: false,
-  },
-  {
-    label: "System Health",
-    value: "100%",
-    sub: "all services operational",
-    icon: Activity,
-    hasCheck: false,
-  },
-  {
-    label: "Admin Users",
-    value: "12",
-    sub: "high privilege accounts",
-    icon: Users,
-    hasCheck: false,
-  },
-];
 
 const MODULES = [
   {
@@ -152,36 +120,6 @@ export default function AdminPage() {
       }
     >
       <div className="space-y-8 animate-in fade-in duration-500">
-        {/* Stats Row */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 text-left">
-          {STATS.map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: i * 0.05 }}
-            >
-              <Card className="rounded-2xl border border-zinc-100 bg-white shadow-sm">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
-                    {stat.label}
-                  </CardTitle>
-                  <stat.icon className="h-4 w-4 text-zinc-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-black tabular-nums tracking-tight text-zinc-900">
-                    {stat.value}
-                  </div>
-                  <div className="flex items-center gap-1 mt-1 text-zinc-600">
-                    {stat.hasCheck && <CheckCircle className="h-3 w-3" />}
-                    <span className="text-xs font-medium">{stat.sub}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-
         {/* Admin Modules */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {MODULES.map((item, i) => (
@@ -189,7 +127,7 @@ export default function AdminPage() {
               key={item.title}
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 + i * 0.05 }}
+              transition={{ duration: 0.4, delay: i * 0.05 }}
             >
               <Link href={item.href} className="group block">
                 <Card className="h-full overflow-hidden border border-zinc-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-zinc-200 hover:shadow-lg hover:shadow-zinc-200/50">

@@ -55,11 +55,61 @@ CREATE TABLE IF NOT EXISTS public.missionaries (
     tagline TEXT,
     location TEXT,
     phone TEXT,
+    timezone TEXT NOT NULL DEFAULT 'UTC',
+    region TEXT NOT NULL DEFAULT 'North America',
+    health_status TEXT NOT NULL DEFAULT 'healthy',
+    last_check_in TIMESTAMPTZ,
+    manual_attention BOOLEAN NOT NULL DEFAULT FALSE,
+    health_signals JSONB NOT NULL DEFAULT '{"emotional":50,"spiritual":50,"physical":50,"financial":50}'::jsonb,
+    birth_date DATE,
     cover_url TEXT,
     social_links JSONB DEFAULT '{}'::jsonb,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'missionaries_health_status_check'
+      AND conrelid = 'public.missionaries'::regclass
+  ) THEN
+    ALTER TABLE public.missionaries
+      ADD CONSTRAINT missionaries_health_status_check
+      CHECK (health_status IN ('healthy', 'needs_attention', 'at_risk', 'crisis'));
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'missionaries_region_check'
+      AND conrelid = 'public.missionaries'::regclass
+  ) THEN
+    ALTER TABLE public.missionaries
+      ADD CONSTRAINT missionaries_region_check
+      CHECK (region IN (
+        'Africa',
+        'SE Asia',
+        'Europe',
+        'Latin America',
+        'Middle East',
+        'North America'
+      ));
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'missionaries_health_signals_object_check'
+      AND conrelid = 'public.missionaries'::regclass
+  ) THEN
+    ALTER TABLE public.missionaries
+      ADD CONSTRAINT missionaries_health_signals_object_check
+      CHECK (jsonb_typeof(health_signals) = 'object');
+  END IF;
+END $$;
 
 -- 4. Donors
 CREATE TABLE IF NOT EXISTS public.donors (
@@ -542,6 +592,81 @@ CREATE TABLE IF NOT EXISTS public.missionary_tasks (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 18b. Member Care activities, goals, requirements, and private notes
+CREATE TABLE IF NOT EXISTS public.member_care_activities (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
+    missionary_id UUID NOT NULL REFERENCES public.missionaries(id) ON DELETE CASCADE,
+    author_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
+    author_name_snapshot TEXT,
+    type TEXT NOT NULL,
+    title TEXT,
+    description TEXT NOT NULL,
+    occurred_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT member_care_activities_type_check CHECK (
+      type IN (
+        'video_call',
+        'in_person_visit',
+        'check_in',
+        'pastoral_note',
+        'care_plan_update',
+        'crisis_intervention',
+        'birthday',
+        'prayer_request'
+      )
+    )
+);
+
+CREATE TABLE IF NOT EXISTS public.member_care_goals (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
+    missionary_id UUID NOT NULL REFERENCES public.missionaries(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    target_date DATE,
+    updated_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT member_care_goals_status_check CHECK (status IN ('pending', 'active', 'completed'))
+);
+
+CREATE TABLE IF NOT EXISTS public.member_care_requirements (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
+    missionary_id UUID NOT NULL REFERENCES public.missionaries(id) ON DELETE CASCADE,
+    activity_type TEXT NOT NULL,
+    interval_days INTEGER NOT NULL CHECK (interval_days > 0),
+    notes TEXT,
+    updated_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT member_care_requirements_activity_type_check CHECK (
+      activity_type IN (
+        'video_call',
+        'in_person_visit',
+        'check_in',
+        'pastoral_note',
+        'care_plan_update',
+        'crisis_intervention',
+        'birthday',
+        'prayer_request'
+      )
+    )
+);
+
+CREATE TABLE IF NOT EXISTS public.member_care_private_notes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
+    missionary_id UUID NOT NULL REFERENCES public.missionaries(id) ON DELETE CASCADE,
+    author_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
+    author_name_snapshot TEXT,
+    content TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- 19. PDF Templates
 CREATE TABLE IF NOT EXISTS public.pdf_templates (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -704,6 +829,9 @@ CREATE INDEX IF NOT EXISTS idx_donations_tenant_year_gift
 CREATE INDEX IF NOT EXISTS idx_donations_donor_year_gift
     ON public.donations (donor_id, DATE_TRUNC('year', gift_date::timestamp));
 
+CREATE INDEX IF NOT EXISTS idx_donations_tenant_amount_id
+    ON public.donations (tenant_id, amount DESC, id DESC);
+
 CREATE INDEX IF NOT EXISTS idx_donors_tenant_status
     ON public.donors (tenant_id, status);
 
@@ -861,6 +989,29 @@ $function$;
 -- ==========================================
 -- FUNCTIONS & TRIGGERS
 -- ==========================================
+
+CREATE OR REPLACE FUNCTION public.admin_contributions_summary(p_tenant_id UUID)
+RETURNS TABLE (
+    total_received BIGINT,
+    successful_count BIGINT,
+    pending_amount BIGINT,
+    pending_count BIGINT,
+    average_gift NUMERIC,
+    recurring_count BIGINT
+)
+LANGUAGE sql
+STABLE
+AS $function$
+  SELECT
+    COALESCE(SUM(amount) FILTER (WHERE status IN ('completed', 'succeeded', 'success')), 0)::BIGINT AS total_received,
+    COUNT(*) FILTER (WHERE status IN ('completed', 'succeeded', 'success'))::BIGINT AS successful_count,
+    COALESCE(SUM(amount) FILTER (WHERE status IN ('pending', 'processing')), 0)::BIGINT AS pending_amount,
+    COUNT(*) FILTER (WHERE status IN ('pending', 'processing'))::BIGINT AS pending_count,
+    COALESCE(AVG(amount) FILTER (WHERE status IN ('completed', 'succeeded', 'success')), 0)::NUMERIC AS average_gift,
+    COUNT(*) FILTER (WHERE COALESCE(is_recurring, FALSE) OR donation_type = 'recurring')::BIGINT AS recurring_count
+  FROM public.donations
+  WHERE tenant_id = p_tenant_id;
+$function$;
 
 -- RPC helpers for post counters
 CREATE OR REPLACE FUNCTION public.increment_post_like_count(post_id UUID)

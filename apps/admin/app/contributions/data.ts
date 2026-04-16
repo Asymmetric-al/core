@@ -5,16 +5,93 @@ export const mockContributions: Contribution[] = [];
 
 const fixtureNow = new Date().toISOString();
 
+function boneyardRow(
+  row: Pick<
+    Contribution,
+    | "id"
+    | "donorId"
+    | "donorName"
+    | "donorEmail"
+    | "amount"
+    | "date"
+    | "contributionDate"
+    | "createdAt"
+    | "updatedAt"
+    | "status"
+    | "type"
+    | "paymentMethod"
+    | "source"
+    | "fundCode"
+    | "fundName"
+    | "transactionId"
+    | "isAnonymous"
+    | "receiptSent"
+  > &
+    Partial<Contribution>,
+): Contribution {
+  const amountGross = row.amountGross ?? row.amount;
+  const receiptSent = row.receiptSent;
+  return {
+    donorAvatar: row.donorAvatar ?? null,
+    donorType: row.donorType ?? null,
+    donorPhone: row.donorPhone ?? null,
+    donorLocation: row.donorLocation ?? null,
+    organizationName: row.organizationName ?? null,
+    amount: row.amount,
+    amountGross,
+    amountNet: row.amountNet ?? null,
+    amountFee: row.amountFee ?? null,
+    amountTaxDeductible: row.amountTaxDeductible ?? null,
+    currency: row.currency ?? "usd",
+    date: row.date,
+    contributionDate: row.contributionDate,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    settlementDate: row.settlementDate ?? null,
+    depositDate: row.depositDate ?? null,
+    status: row.status,
+    subStatus: row.subStatus ?? null,
+    type: row.type,
+    paymentMethod: row.paymentMethod,
+    source: row.source,
+    fundId: row.fundId ?? row.fundCode,
+    fundCode: row.fundCode,
+    fundName: row.fundName,
+    missionaryId: row.missionaryId ?? null,
+    missionaryName: row.missionaryName ?? null,
+    campaignId: row.campaignId ?? null,
+    receiptStatus: row.receiptStatus ?? (receiptSent ? "sent" : "pending"),
+    receiptSent,
+    receiptSentAt: row.receiptSentAt ?? null,
+    annualStatementEligible: row.annualStatementEligible ?? true,
+    entryMethod: row.entryMethod ?? "api",
+    reconciliationStatus: row.reconciliationStatus ?? "unreconciled",
+    transactionId: row.transactionId,
+    externalTransactionId: row.externalTransactionId ?? null,
+    processorTransactionId:
+      row.processorTransactionId ?? row.transactionId ?? null,
+    notes: row.notes ?? null,
+    notesPreview: row.notesPreview ?? null,
+    isAnonymous: row.isAnonymous,
+    id: row.id,
+    donorId: row.donorId,
+    donorName: row.donorName,
+    donorEmail: row.donorEmail,
+  };
+}
+
 /** Synthetic rows for Boneyard capture, unit tests, and skeleton fixtures only. */
 export const boneyardContributionsFixture: Contribution[] = [
-  {
+  boneyardRow({
     id: "by-c1",
     donorId: "by-d1",
     donorName: "Sarah Mitchell",
     donorEmail: "sarah.mitchell@example.com",
-    donorAvatar: null,
     amount: 250,
     date: fixtureNow,
+    contributionDate: fixtureNow,
+    createdAt: fixtureNow,
+    updatedAt: fixtureNow,
     status: "completed",
     type: "One-time",
     paymentMethod: "Credit Card",
@@ -24,17 +101,18 @@ export const boneyardContributionsFixture: Contribution[] = [
     transactionId: "pi_fixture_1",
     isAnonymous: false,
     receiptSent: true,
-    createdAt: fixtureNow,
-    updatedAt: fixtureNow,
-  },
-  {
+    receiptStatus: "sent",
+  }),
+  boneyardRow({
     id: "by-c2",
     donorId: "by-d2",
     donorName: "James Chen",
     donorEmail: "james.chen@example.com",
-    donorAvatar: null,
     amount: 100,
     date: fixtureNow,
+    contributionDate: fixtureNow,
+    createdAt: fixtureNow,
+    updatedAt: fixtureNow,
     status: "pending",
     type: "Recurring",
     paymentMethod: "Bank Transfer",
@@ -44,15 +122,13 @@ export const boneyardContributionsFixture: Contribution[] = [
     transactionId: null,
     isAnonymous: false,
     receiptSent: false,
-    createdAt: fixtureNow,
-    updatedAt: fixtureNow,
-  },
+    receiptStatus: "pending",
+  }),
 ];
 
 export const contributionStatusOptions = [
   { label: "Completed", value: "completed" },
   { label: "Pending", value: "pending" },
-  { label: "Processing", value: "processing" },
   { label: "Failed", value: "failed" },
   { label: "Refunded", value: "refunded" },
 ];

@@ -112,6 +112,8 @@ export const env = createEnv({
     BING_SITE_VERIFICATION: z.string().optional(),
     PAYLOAD_SECRET: z.string().optional(),
     PAYLOAD_DATABASE_URI: z.string().optional(),
+    /** Server-only donor origin for CMS preview links (fallback after `NEXT_PUBLIC_DONOR_URL`). */
+    DONOR_APP_URL: z.string().url().optional(),
     CMS_BASE_URL: z.string().url().optional(),
     APP_VERSION: z.string().optional(),
     GIT_REF: z.string().optional(),
@@ -153,6 +155,8 @@ export const env = createEnv({
     NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
     /** Opt-in experimental React View Transitions (see `experimental.viewTransition` in Next config). */
     NEXT_PUBLIC_VIEW_TRANSITIONS_ENABLED: optionalBoolean,
+    /** Donor app origin for CMS page preview links from admin Web Studio (default dev: http://127.0.0.1:3000). */
+    NEXT_PUBLIC_DONOR_URL: z.string().url().optional(),
   },
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
@@ -188,6 +192,7 @@ export const env = createEnv({
     BING_SITE_VERIFICATION: process.env.BING_SITE_VERIFICATION,
     PAYLOAD_SECRET: process.env.PAYLOAD_SECRET,
     PAYLOAD_DATABASE_URI: process.env.PAYLOAD_DATABASE_URI,
+    DONOR_APP_URL: process.env.DONOR_APP_URL,
     CMS_BASE_URL: process.env.CMS_BASE_URL,
     APP_VERSION: process.env.APP_VERSION,
     GIT_REF: process.env.GIT_REF,
@@ -225,6 +230,7 @@ export const env = createEnv({
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     NEXT_PUBLIC_VIEW_TRANSITIONS_ENABLED:
       process.env.NEXT_PUBLIC_VIEW_TRANSITIONS_ENABLED,
+    NEXT_PUBLIC_DONOR_URL: process.env.NEXT_PUBLIC_DONOR_URL,
   },
   skipValidation:
     process.env.SKIP_ENV_VALIDATION === "1" ||

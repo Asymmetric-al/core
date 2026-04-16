@@ -34,7 +34,7 @@ const footerSections: FooterSection[] = [
   {
     title: "Platform",
     links: [
-      { label: "Mission Control", href: "/mc", badge: "Admin" },
+      { label: "Mission Control", href: "/", badge: "Admin" },
       {
         label: "Missionary Dashboard",
         href: "/",

@@ -1,5 +1,6 @@
 "use client";
 
+import { resolveMissionControlHref } from "@asym/lib/mission-control/routes";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
@@ -31,7 +32,10 @@ export function TilePage({ tile, children }: TilePageProps) {
             {tile.quickActions.slice(0, 2).map((action) => {
               const Icon = action.icon ? getIcon(action.icon) : null;
               return (
-                <Link key={action.label} href={`/mc${action.href}`}>
+                <Link
+                  key={action.label}
+                  href={resolveMissionControlHref(action.href)}
+                >
                   <Button size="sm">
                     {Icon && <Icon className="mr-2 h-4 w-4" />}
                     {action.label}
@@ -60,7 +64,10 @@ export function TilePage({ tile, children }: TilePageProps) {
               {tile.quickActions.map((action) => {
                 const Icon = action.icon ? getIcon(action.icon) : null;
                 return (
-                  <Link key={action.label} href={`/mc${action.href}`}>
+                  <Link
+                    key={action.label}
+                    href={resolveMissionControlHref(action.href)}
+                  >
                     <Button
                       variant="outline"
                       size="sm"

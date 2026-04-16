@@ -68,6 +68,22 @@ async function createWorkspaceContractRepo() {
     name: "@asym/tooling-config",
   });
 
+  await mkdir(path.join(tempRoot, "docs/guides/architecture"), {
+    recursive: true,
+  });
+  await writeFile(
+    path.join(tempRoot, "docs/guides/architecture/runtime-map.md"),
+    [
+      "# API Runtime Map",
+      "",
+      "## Route Inventory",
+      "",
+      "| App | Route family | Runtime policy | Reason |",
+      "| --- | --- | --- | --- |",
+      "| demo | `/api/example` | Node.js (no `runtime` segment export) | Fixture |",
+    ].join("\n"),
+  );
+
   return tempRoot;
 }
 
@@ -282,6 +298,40 @@ describe("verify-workspace-contract", () => {
       runNodeScript(tempRoot, "scripts/verify-workspace-contract.mjs"),
     ).toThrow(/private capture routes are not routable/);
   });
+
+  it("fails when runtime-map route inventory drifts from app api routes", async () => {
+    const tempRoot = await createWorkspaceContractRepo();
+    await mkdir(path.join(tempRoot, "docs/guides/architecture"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, "docs/guides/architecture/runtime-map.md"),
+      [
+        "# API Runtime Map",
+        "",
+        "## Route Inventory",
+        "",
+        "| App | Route family | Runtime policy | Reason |",
+        "| --- | --- | --- | --- |",
+        "| demo | `/api/other` | Node.js (no `runtime` segment export) | Fixture |",
+      ].join("\n"),
+    );
+
+    const routePath = path.join(tempRoot, "apps/demo/app/api/example/route.ts");
+    await mkdir(path.dirname(routePath), { recursive: true });
+    await writeFile(
+      routePath,
+      [
+        "export async function GET() {",
+        "  return Response.json({ ok: true });",
+        "}",
+      ].join("\n"),
+    );
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/verify-workspace-contract.mjs"),
+    ).toThrow(/missing runtime map route entry/);
+  });
 });
 
 describe("verify-skills-sync", () => {
@@ -310,6 +360,36 @@ describe("verify-skills-sync", () => {
       runNodeScript(tempRoot, "scripts/verify-skills-sync.mjs"),
     ).toThrow(/repoRoot:/);
   }, 20_000);
+});
+
+describe("sync-agent-skills", () => {
+  it("refuses traversal-like entries in the canonical skills manifest", async () => {
+    const tempRoot = await createTempRepo("sync-skills-manifest-unsafe");
+    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    await mkdir(path.join(tempRoot, "docs", "ai", "skills", "anim"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, "docs", "ai", "skills", "anim", "SKILL.md"),
+      "---\nname: anim\n---\n",
+    );
+
+    await mkdir(path.join(tempRoot, ".agents", "skills"), { recursive: true });
+    await writeJson(
+      path.join(tempRoot, ".agents", "skills", ".repo-canonical-skills.json"),
+      { version: 1, canonicalSkills: [".."] },
+    );
+    await mkdir(path.join(tempRoot, ".cursor", "skills"), { recursive: true });
+    await writeJson(
+      path.join(tempRoot, ".cursor", "skills", ".repo-canonical-skills.json"),
+      { version: 1, canonicalSkills: [".."] },
+    );
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs"),
+    ).toThrow(/Refusing unsafe canonical skill directory name/);
+  });
 });
 
 describe("verify-eslint-config", () => {

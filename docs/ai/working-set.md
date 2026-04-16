@@ -1,5 +1,265 @@
 # Working Set
 
+## 2026-04-13 (Mission Control member care port — phase 8 contract hardening)
+
+- Date: 2026-04-13
+- Repo: Asymmetric-al/core
+- Goal: Complete phase 8 by enforcing typed route contracts with shared schema-aware JSON parsing and eliminating unsafe payload casts in member-care mutation routes.
+- Primary area:
+  - `packages/api/src/admin/member-care/route-helpers.ts`
+  - `apps/admin/app/api/admin/member-care/{thread,goals,activity,requirements,attention}/route.ts`
+  - `packages/api/src/admin/member-care/mutations.ts`
+  - `tests/unit/apps/admin/member-care-route-lib.test.ts`
+- Constraints:
+  - Keep route handlers thin while validating request shape at the HTTP boundary.
+  - Preserve business validation in `@asym/api` without duplicating divergent schema logic.
+
+## 2026-04-13 (Mission Control member care port — phase 7 follow-up hardening)
+
+- Date: 2026-04-13
+- Repo: Asymmetric-al/core
+- Goal: Reapply and finalize phase 6/7 for PR #170 by extending shared route hardening across read endpoints and tightening JSON payload guards for mutation handlers.
+- Primary area:
+  - `packages/api/src/admin/member-care/route-helpers.ts`
+  - `apps/admin/app/api/admin/member-care/{dashboard,directory,directory/[id]}/route.ts`
+  - `tests/unit/apps/admin/member-care-route-lib.test.ts`
+- Constraints:
+  - Keep all DB/business logic in `@asym/api`.
+  - Keep route handlers thin, with consistent auth/error behavior.
+  - This pass is the explicit phase 6/7 recommit checkpoint for PR #170.
+
+## 2026-04-13 (Mission Control member care port — phase 7 hardening)
+
+- Date: 2026-04-13
+- Repo: Asymmetric-al/core
+- Goal: Complete phase 7 by hardening mutation route handlers with shared auth/JSON/error utilities and adding unit coverage for the shared route-helper boundary.
+- Primary area:
+  - `packages/api/src/admin/member-care/route-helpers.ts`
+  - `apps/admin/app/api/admin/member-care/{thread,goals,activity,requirements,attention}/route.ts`
+  - `tests/unit/apps/admin/member-care-route-lib.test.ts`
+- Constraints:
+  - Keep route handlers thin and defer business writes to `@asym/api`.
+  - Return explicit HTTP status classes (401/403/400/422/500) for clearer client handling.
+
+## 2026-04-12 (Mission Control member care port — phase 6 completion pass)
+
+- Date: 2026-04-12
+- Repo: Asymmetric-al/core
+- Goal: Finish phase 6 by wiring all mutation hooks into profile UX (check-in logging, manual-attention toggle, care requirements) and adding server-side cache-tag revalidation after writes.
+- Primary area:
+  - `apps/admin/features/mission-control/care/components/PersonnelProfile.tsx`
+  - `packages/api/src/admin/member-care/mutations.ts`
+- Constraints:
+  - Keep route handlers thin and business logic in `@asym/api`.
+  - Ensure write paths refresh both client query caches and Next cache-tagged read models.
+
+## 2026-04-12 (Mission Control member care port — phase 6 mutations)
+
+- Date: 2026-04-12
+- Repo: Asymmetric-al/core
+- Goal: Add real mutation endpoints and client mutation hooks for thread posts, care goals, activity logs, care requirements, and manual-attention updates with shared query invalidation.
+- Primary area:
+  - `packages/api/src/admin/member-care/mutations.ts`
+  - `apps/admin/app/api/admin/member-care/{thread,goals,activity,requirements,attention}/route.ts`
+  - `apps/admin/features/mission-control/care/hooks/use-care.ts`
+  - `apps/admin/features/mission-control/care/components/PersonnelProfile.tsx`
+- Constraints:
+  - Keep route handlers thin and business DB writes in `@asym/api`.
+  - Invalidate dashboard/profile/notification query keys on mutation success.
+
+## 2026-04-12 (Mission Control member care port — phase 5 person detail shell)
+
+- Date: 2026-04-12
+- Repo: Asymmetric-al/core
+- Goal: Complete person-detail shell tab coverage (overview, care thread, care plan, activity, secure notes) and route rich text through shared TipTap wrappers.
+- Primary area:
+  - `apps/admin/features/mission-control/care/components/PersonnelProfile.tsx`
+- Constraints:
+  - Use existing shared `@asym/ui` rich text editor/viewer components (no app-local editor).
+  - Keep shell/tabs styling aligned with existing Mission Control surface.
+
+## 2026-04-12 (Mission Control member care port — phase 4 roster completion)
+
+- Date: 2026-04-12
+- Repo: Asymmetric-al/core
+- Goal: Complete roster UX with stronger TanStack Table filtering/search semantics, explicit care-priority visibility, and last-contact age indicators while preserving current route ownership.
+- Primary area:
+  - `apps/admin/features/mission-control/care/components/PersonnelList.tsx`
+  - `apps/admin/app/care/directory/[id]/page.tsx`
+- Constraints:
+  - Keep using shared `@asym/ui` table primitives and avoid premature virtualization.
+  - Align links with canonical `/care/*` routes.
+
+## 2026-04-12 (Mission Control member care port — phase 3 overview completion)
+
+- Date: 2026-04-12
+- Repo: Asymmetric-al/core
+- Goal: Complete the overview slice by removing remaining placeholder assumptions in dashboard cards/panels and tightening read-model field mapping quality for activities and health signals.
+- Primary area:
+  - `apps/admin/features/mission-control/care/components/CareDashboard.tsx`
+  - `apps/admin/features/mission-control/care/member-care.derived.ts`
+  - `packages/api/src/reads/member-care.ts`
+  - `tests/unit/apps/admin/features/mission-control/care/member-care-derived.test.ts`
+- Constraints:
+  - Keep the existing `/care` route and shell unchanged.
+  - Reuse shared selector math for overview cards and side panels.
+
+## 2026-04-12 (Mission Control member care port — phase 2 read-model wiring)
+
+- Date: 2026-04-12
+- Repo: Asymmetric-al/core
+- Goal: Introduce tenant-scoped member-care read-model functions in `@asym/api` and wire admin care hooks to those read APIs via thin route handlers.
+- Primary area:
+  - `packages/api/src/reads/member-care.ts`
+  - `packages/api/package.json` export map
+  - `apps/admin/app/api/admin/member-care/**/route.ts`
+  - `apps/admin/features/mission-control/care/hooks/use-care.ts`
+- Constraints:
+  - Keep route handlers thin and business DB access in `packages/api/src/*`.
+  - Preserve existing `/care` route ownership and client surface while swapping data source.
+  - Nia MCP remains unavailable in this runtime; used repo-scoped `rg` + direct file reads.
+
+## 2026-04-11 (Mission Control member care port — phase 1 derivations)
+
+- Date: 2026-04-11
+- Repo: Asymmetric-al/core
+- Goal: Start the Shepherd-to-Core member care port by extracting reusable, tested derivation utilities and wiring the existing dashboard preview cards to those selectors.
+- Target paths discovered before implementation:
+  - `apps/admin/app/care/page.tsx`
+  - `apps/admin/app/care/directory/page.tsx`
+  - `apps/admin/app/care/directory/[id]/page.tsx`
+  - `apps/admin/features/mission-control/care/components/{CareDashboard,PersonnelList,PersonnelProfile,TimezoneScheduler}.tsx`
+  - `apps/admin/features/mission-control/care/hooks/use-care.ts`
+  - `apps/admin/features/mission-control/care/{types,constants,utils}.ts`
+  - `packages/ui/components/shadcn/rich-text-editor/{rich-text-editor,rich-text-viewer}.tsx`
+  - `packages/api/src/reads/*` (read-model pattern review target)
+  - `packages/database/hooks/admin-workspace.ts` and `packages/database/collections/admin-workspace.ts`
+- Constraints:
+  - Preserve Mission Control route ownership and shell.
+  - Keep app UI on shared `@asym/ui` primitives and existing tokens.
+  - Centralize dashboard/notification derivation math in one module.
+  - Nia MCP is not available in this runtime; fallback is repo-scoped `rg` + direct file reads.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/ai/rules/{general,frontend,backend,testing}.md`
+  - `docs/ai/skills/{nextjs-app-router,tiptap,tanstack-table,supabase}/SKILL.md`
+  - `.next-docs/01-app/01-getting-started/{05-server-and-client-components,07-fetching-data}.mdx`
+
+## 2026-04-11 (Repo health hardening pass)
+
+- Date: 2026-04-11
+- Repo: Asymmetric-al/core
+- Goal: Land a low-risk repo health pass that reduces duplicated Mission Control shell surfaces, extracts model/section logic from the largest route modules, aligns task-surface motion with the shared reduced-motion wrapper, and corrects React Query v5 loading semantics where query state is currently read via `isLoading`.
+- Primary area:
+  - `apps/admin/features/mission-control/{components,shell}/**`
+  - `apps/admin/app/{feed,admin/teams}/**`
+  - `apps/missionary/app/{donors,feed,profile}/**`
+  - `packages/missionary/components/tasks/**`
+  - `scripts/verify-workspace-contract.mjs`
+  - `package.json`
+- Constraints:
+  - Keep App Router behavior unchanged; no segment config exports while `cacheComponents` is enabled.
+  - Prefer compatibility re-exports over large shell rewrites so existing imports keep working.
+  - Split large route files with adjacent model/hooks/sections files instead of broad architecture changes.
+  - Keep shared UI imports routed through `@asym/ui` and shared motion through `@asym/lib/motion`.
+  - Scope repo-wide quality tooling to first-party sources and avoid vendor noise.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/ai/rules/{general,frontend,testing}.md`
+  - `docs/guides/architecture/{data-access-boundary,runtime-map}.md`
+  - `.next-docs/01-app/01-getting-started/06-cache-components.mdx`
+  - `.next-docs/01-app/03-api-reference/04-functions/use-pathname.mdx`
+  - repo-scoped Nia search + direct file reads for missionary/admin route modules and Mission Control shell duplicates
+- Notes:
+  - The `shell/` Mission Control tree is effectively a compatibility surface; only `apps/admin/app/admin/teams/teams-sections.tsx` currently imports it directly.
+  - The biggest page wins in this pass are adjacent extractions (models/hooks/sections), not full feature migrations.
+  - Validation should cover `verify:workspace-contract`, scoped lint/typecheck, unit tests, and a vendor-scoped React Doctor script for future audits.
+
+## 2026-04-10 (Web Studio Phase 5 — living documentation + handoff)
+
+- Repo: Asymmetric-al/core
+- Goal: Centralize Web Studio truth in `docs/guides/architecture/web-studio-living-spec.md`; add runbook, human + AI handoffs; link/update `cms-runtime.md`, `site-studio-payload.md`, phase snapshots; add `apps/admin/src/cms-ui/web-studio/README.md` and minimal module headers.
+- Key paths:
+  - `docs/guides/architecture/web-studio-living-spec.md`
+  - `docs/guides/development/web-studio-runbook.md`
+  - `docs/guides/development/web-studio-handoff.md`
+  - `docs/ai/web-studio-handoff.md`
+  - `apps/admin/src/cms-ui/web-studio/README.md`
+- Rollback: doc-only; revert commits if needed.
+
+## 2026-04-10 (Web Studio Phase 3 — templates, wizards, public expansion)
+
+- Repo: Asymmetric-al/core
+- Goal: Ship template gallery + TanStack Form wizards, Payload `create-from-template` endpoint, missionary/project public read routes, donor client helpers, and docs/tests — without breaking existing `/api/cms/public/pages` consumers.
+- Key paths:
+  - `apps/admin/payload.config.ts` (admin `views`, root `endpoints`)
+  - `apps/admin/src/cms/create-from-template-endpoint.ts`
+  - `apps/admin/src/cms-ui/web-studio/flows/*`
+  - `apps/admin/app/api/cms/public/missionary-pages/[id]/route.ts`
+  - `apps/admin/app/api/cms/public/project-pages/[slug]/route.ts`
+  - `apps/donor/lib/cms/client.ts`
+  - `docs/guides/architecture/{cms-runtime,web-studio-phase3}.md`
+- Rollback: collection env flags + remove endpoint registration if needed; regenerate import map after view component path changes.
+
+## 2026-04-08 (Mission Control contributions infinite grid)
+
+- Date: 2026-04-08
+- Repo: Asymmetric-al/core
+- Goal: Rebuild the Mission Control Contributions table into a production-grade infinite virtual admin grid using TanStack Table, Query, DB, and Virtual without replacing the rest of the page chrome.
+- Primary area:
+  - `apps/admin/app/contributions/**`
+  - `apps/admin/app/api/admin/contributions/**`
+  - `packages/api/src/admin/contributions/**`
+  - `packages/database/hooks/admin-contributions-infinite.ts`
+  - `packages/ui/components/shadcn/data-table/data-table-responsive.tsx`
+  - `supabase/migrations/20260408224500_admin_contributions_summary.sql`
+- Constraints:
+  - Keep client boundaries small and preserve the existing page shell, stats cards, and detail sheet.
+  - Keep all business data access in `packages/api/src/*` with thin app route re-exports only.
+  - Use server-aware search/filter/sort and keyset pagination for the list endpoint.
+  - Use TanStack DB only where it adds value: the loaded-row client working set and future patch/realtime extension point.
+  - Match the Maia theme and reuse shared UI primitives from `packages/ui`.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/ai/rules/{frontend,backend}.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `.next-docs/01-app/01-getting-started/{05-server-and-client-components,06-cache-components,07-fetching-data,15-route-handlers}.mdx`
+  - Nia repo search for current Contributions implementation and shared grid/data patterns
+  - TanStack CLI docs for infinite queries, query collections, virtualizer guidance, and CLI MCP migration
+  - Base UI docs via Nia confirming no first-class table/grid primitive
+  - shadcn CLI docs for current table component guidance
+- Notes:
+  - Current branch still has unrelated Mission Control nav/route work in progress; do not overwrite those files casually.
+  - Existing Playwright global setup for admin auth is still blocked by the duplicated Password label locator and can fail unrelated to Contributions.
+
+## 2026-04-08 (TanStack surface migration)
+
+- Date: 2026-04-08
+- Repo: Asymmetric-al/core
+- Goal: Standardize all in-scope tables, grids, and table-like virtualized list surfaces onto the shared TanStack Table + Query + DB + Virtual architecture without regressing the existing Mission Control route fixes on this branch.
+- Primary area:
+  - `packages/database/{collections,hooks,providers,query-keys}.ts*`
+  - `packages/ui/components/shadcn/{data-table,data-grid}/**`
+  - `apps/admin/app/{contributions,crm,tasks,events,mobilize,admin/teams}/**`
+  - `apps/admin/features/mission-control/{locations,care}/**`
+  - `apps/donor/app/(dashboard)/donor-dashboard/history/**`
+  - `apps/missionary/app/donors/page.tsx`
+- Constraints:
+  - Keep shared UI ownership in `packages/ui` and shared data ownership in `packages/database`.
+  - Use current TanStack guidance via official CLI docs plus NIA-indexed upstream repos (`tanstack/query`, `tanstack/table`, `tanstack/db`).
+  - Keep virtualization on the shared `virtualization` config path; legacy fields are compatibility-only.
+  - Remove app-local or ad hoc fetch/join logic where a shared collection/hook can own the data contract instead.
+  - Avoid undoing unrelated branch work, especially the current `/contributions` route and nav normalization changes.
+- Evidence sources used:
+  - `docs/guides/development/{tanstack-integration,tanstack-virtual-foundation,tanstack-surface-inventory}.md`
+  - `packages/database/{collections/client-db,hooks/hooks,query-keys}.ts`
+  - `packages/ui/components/shadcn/{data-table,data-grid}/**`
+  - NIA repo search against `tanstack/query`, `tanstack/table`, and `tanstack/db`
+  - official `@tanstack/cli` `search-docs` / `doc` output for Query/Table/CLI migration notes
+- Notes:
+  - Foundation pass completed: shared `data-grid` exports are now public, the admin app no longer owns `@tanstack/db` directly, and shared TanStack package versions are aligned and typechecked.
+  - The next pass is to standardize shared domain collections/hooks in `packages/database` before refactoring app surfaces to consume them.
+
 ## 2026-04-07 (Post-Turbo-2.9 verification matrix re-run)
 
 - Date: 2026-04-07
@@ -1089,3 +1349,48 @@
   - scoped lint/typecheck for touched packages/apps
   - `bun run test:unit`
   - Playwright session guard spec for donor/admin/missionary.
+
+## 2026-04-11 (TanStack DB + Virtual latest-version upgrade planning)
+
+- Date: 2026-04-11
+- Repo: Asymmetric-al/core
+- Goal: Verify the latest TanStack DB/Virtual/CLI versions and produce a concrete, repo-specific full-upgrade plan.
+- Primary area:
+  - `packages/database/package.json`
+  - `packages/ui/package.json`
+  - `docs/guides/development/tanstack-{integration,virtual-foundation,surface-inventory}.md`
+- Constraints:
+  - Nia MCP is unavailable in this session, so use repo-scoped `rg` and package registry checks (`npm view`) as evidence.
+  - Treat official TanStack docs and npm package registry as the version truth for planning.
+  - Produce phased rollout guidance with verification checkpoints and rollback guardrails.
+- Evidence sources used:
+  - `docs/ai/stack-registry.md`
+  - `docs/ai/working-set.md`
+  - `package.json` files under `packages/database` and `packages/ui`
+  - `npm view @tanstack/* version` checks (DB, react-db, query-db-collection, react-virtual, virtual-core, CLI)
+  - TanStack docs pages under `https://tanstack.com/db/latest` and `https://tanstack.com/virtual/latest`
+- Notes:
+  - Current repo already sits on the TanStack DB `0.6.x` line; target is patch alignment and coordinated Virtual/CLI bumps.
+
+## 2026-04-11 (TanStack DB/Virtual upgrade implementation)
+
+- Date: 2026-04-11
+- Repo: Asymmetric-al/core
+- Goal: Execute the TanStack DB + Virtual upgrade plan end-to-end, including dependency bumps, docs refresh, and verification.
+- Primary area:
+  - `package.json` (root)
+  - `packages/database/package.json`
+  - `packages/ui/package.json`
+  - `docs/guides/development/tanstack-integration.md`
+  - `docs/guides/development/tanstack-virtual-foundation.md`
+- Constraints:
+  - Nia MCP remains unavailable in-session; use repo-scoped file search and primary-source package/doc checks.
+  - Verify latest package versions from npm dist-tags before editing.
+  - Run at least scoped lint + typecheck + unit coverage to validate upgrade safety.
+- Evidence sources used:
+  - `npm view @tanstack/{db,react-db,query-db-collection,react-virtual,virtual-core,cli} version dist-tags`
+  - `https://tanstack.com/db/latest`
+  - `https://tanstack.com/virtual/latest`
+  - `rg` scans for TanStack usage in `packages/database` and `packages/ui`
+- Notes:
+  - `tanstack search-docs` currently fails in this environment (`fetch failed`), so docs verification uses direct official URLs + npm registry checks.

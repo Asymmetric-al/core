@@ -68,6 +68,7 @@ export function DataTableResponsiveInner<TData, TValue>({
   onRefresh,
   onExport,
   onRowClick,
+  infiniteScroll,
   enableVirtualization,
   floatingBarActions,
   rowActions,
@@ -105,6 +106,7 @@ export function DataTableResponsiveInner<TData, TValue>({
     virtualRowHeight = 56,
     virtualOverscan = 8,
     virtualContainerHeight = 640,
+    stickyHeader = false,
   } = config;
 
   const [viewMode, setViewMode] = React.useState(defaultViewMode);
@@ -159,6 +161,9 @@ export function DataTableResponsiveInner<TData, TValue>({
       enableSorting: false,
       enableHiding: false,
       size: 48,
+      meta: {
+        sticky: "left",
+      },
     }),
     [],
   );
@@ -316,6 +321,8 @@ export function DataTableResponsiveInner<TData, TValue>({
             virtualOverscan={virtualOverscan}
             virtualContainerHeight={virtualContainerHeight}
             rowActions={rowActions}
+            infiniteScroll={infiniteScroll}
+            stickyHeader={stickyHeader}
           />
         )}
 
