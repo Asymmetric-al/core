@@ -49,12 +49,6 @@ const POST_REFRESH_REPLACEMENTS = [
   {
     skillName: "emil-design-engineering",
     relativePath: "forms-controls.md",
-    search: '<input type="[REDACTED]" />',
-    replace: '<input type="[REDACTED]" /> // pragma: allowlist secret',
-  },
-  {
-    skillName: "emil-design-engineering",
-    relativePath: "forms-controls.md",
     search: '<input data-lpignore="true" data-1p-ignore />',
     replace:
       '<input data-lpignore="true" data-1p-ignore /> // pragma: allowlist secret',
@@ -105,7 +99,60 @@ async function restorePreservedFiles(targetRoot, preservedFiles) {
   }
 }
 
+function annotateEmilDesignEngineeringFormsControls(content) {
+  const lines = content.split("\n");
+  const helperHeadingIndex = lines.findIndex(
+    (line) => line.trim() === "### Input Types",
+  );
+
+  if (helperHeadingIndex !== -1) {
+    const codeFenceStart = lines.findIndex(
+      (line, index) => index > helperHeadingIndex && line.trim() === "```html",
+    );
+    const codeFenceEnd =
+      codeFenceStart === -1
+        ? -1
+        : lines.findIndex(
+            (line, index) => index > codeFenceStart && line.trim() === "```",
+          );
+
+    if (codeFenceStart !== -1 && codeFenceEnd !== -1) {
+      const inputLineIndexes = [];
+      for (let index = codeFenceStart + 1; index < codeFenceEnd; index += 1) {
+        if (lines[index].trim().startsWith("<input ")) {
+          inputLineIndexes.push(index);
+        }
+      }
+
+      // The upstream second example input triggers the repo secret scanner;
+      // patch by position within the example block rather than by literal
+      // value so refresh keeps working even when tool output redacts tokens.
+      const secondInputExampleIndex = inputLineIndexes[1];
+      if (
+        secondInputExampleIndex !== undefined &&
+        !lines[secondInputExampleIndex].includes("// pragma: allowlist secret")
+      ) {
+        lines[secondInputExampleIndex] =
+          `${lines[secondInputExampleIndex]} // pragma: allowlist secret`;
+      }
+    }
+  }
+
+  return lines.join("\n");
+}
+
 async function applyPostRefreshReplacements(skillName, targetRoot) {
+  if (skillName === "emil-design-engineering") {
+    const formsControlsPath = path.join(targetRoot, "forms-controls.md");
+    const formsControlsContent = await readFile(formsControlsPath, "utf8");
+    const patchedContent =
+      annotateEmilDesignEngineeringFormsControls(formsControlsContent);
+
+    if (patchedContent !== formsControlsContent) {
+      await writeFile(formsControlsPath, patchedContent, "utf8");
+    }
+  }
+
   for (const replacement of POST_REFRESH_REPLACEMENTS) {
     if (replacement.skillName !== skillName) {
       continue;
@@ -122,6 +169,54 @@ async function applyPostRefreshReplacements(skillName, targetRoot) {
       content.replace(replacement.search, replacement.replace),
       "utf8",
     );
+  }
+
+  if (skillName === "emil-design-engineering") {
+    const targetPath = path.join(targetRoot, "forms-controls.md");
+    const lines = (await readFile(targetPath, "utf8")).split("\n");
+
+    const helperHeadingIndex = lines.findIndex(
+      (line) => line === "### 1Password Integration", // pragma: allowlist secret
+    );
+    if (helperHeadingIndex !== -1) {
+      lines[helperHeadingIndex] =
+        "### 1Password Integration // pragma: allowlist secret"; // pragma: allowlist secret
+    }
+
+    const helperCopyIndex = lines.findIndex(
+      (line) => line === "Disable 1Password autocomplete when not needed:", // pragma: allowlist secret
+    );
+    if (helperCopyIndex !== -1) {
+      lines[helperCopyIndex] =
+        "Disable 1Password autocomplete when not needed: // pragma: allowlist secret"; // pragma: allowlist secret
+    }
+
+    const helperInputIndex = lines.findIndex((line) =>
+      line.includes('data-lpignore="true" data-1p-ignore'), // pragma: allowlist secret
+    );
+    if (
+      helperInputIndex !== -1 &&
+      !lines[helperInputIndex].includes("pragma: allowlist secret")
+    ) {
+      lines[helperInputIndex] =
+        `${lines[helperInputIndex]} // pragma: allowlist secret`;
+    }
+
+    const inputTypesIndex = lines.findIndex(
+      (line) => line.trim() === "Use appropriate `type` attributes:",
+    );
+    if (inputTypesIndex !== -1) {
+      for (let index = inputTypesIndex + 1; index < lines.length; index += 1) {
+        if (lines[index].startsWith("<input type=")) {
+          if (!lines[index].includes("pragma: allowlist secret")) {
+            lines[index] = `${lines[index]} // pragma: allowlist secret`;
+          }
+          break;
+        }
+      }
+    }
+
+    await writeFile(targetPath, lines.join("\n"), "utf8");
   }
 }
 
