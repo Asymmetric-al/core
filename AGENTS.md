@@ -225,9 +225,10 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 - **Composable, accessible UI components (components.build spec):** `docs/ai/skills/components-build/SKILL.md`
 - **shadcn/ui system usage:** `docs/ai/skills/moai-library-shadcn/SKILL.md`
 - **Base UI:** `docs/ai/skills/base-ui/SKILL.md`
-- **Motion animations (`motion/react`):** `docs/ai/skills/motion/SKILL.md`
+- **Animation work, transitions, micro-interactions, or motion polish:** load `docs/ai/skills/emil-design-engineering/SKILL.md` first. Pair with `docs/ai/skills/motion/SKILL.md` only when `motion/react` API details are needed.
+- **Motion animations (`motion/react`) implementation details:** `docs/ai/skills/motion/SKILL.md`
 - **Tasteful UI animation (timing, easing, CSS/Motion patterns):** `docs/ai/skills/anim/SKILL.md`
-- **UI polish, animation craft, design engineering (Emil Kowalski patterns):** `docs/ai/skills/emil-design-eng/SKILL.md`
+- **Additional Emil design-engineering notes / companion reference:** `docs/ai/skills/emil-design-eng/SKILL.md`
 - **Recharts:** `docs/ai/skills/rechart/SKILL.md`
 - **TanStack Table v8:** `docs/ai/skills/tanstack-table/SKILL.md`
 - **Tiptap rich text editor (`@tiptap/*`, shared editor in `@asym/ui`):** `docs/ai/skills/tiptap/SKILL.md`

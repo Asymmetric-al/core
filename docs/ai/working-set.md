@@ -1,5 +1,21 @@
 # Working Set
 
+## 2026-04-16 (animations.dev design engineering skill vendoring)
+
+- Date: 2026-04-16
+- Repo: Asymmetric-al/core
+- Goal: Install the animations.dev Design Engineering skill from the provided installer, vendor it into `docs/ai/skills/` as the canonical source, mirror it through the existing sync flow, and route all animation work to it first.
+- Primary area:
+  - `AGENTS.md`
+  - `README.md`
+  - `docs/ai/skills/*`
+  - `scripts/{sync-agent-skills,refresh-upstream-skills}.mjs`
+  - `cursor.md`
+- Constraints:
+  - Follow the existing canonical-skill pattern exactly: `docs/ai/skills/*` authoring source, mirrored to `.agents/skills/*` and `.cursor/skills/*`.
+  - Keep routing concise and prefer the new design-engineering skill as the first stop for animation, transitions, micro-interactions, and motion polish.
+  - Do not create fake instruction surfaces; only update real repo entrypoints already in use.
+
 ## 2026-04-13 (Mission Control member care port — phase 8 contract hardening)
 
 - Date: 2026-04-13

@@ -147,7 +147,7 @@ Agent-oriented docs live under `docs/ai/`:
 | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `bun run skills:sync`             | Copies canonical `docs/ai/skills/*` into `.agents/skills/` and `.cursor/skills/`, prunes stale canonical copies from mirrors, and overlays extra packs from `.agents/skills` into `.cursor/skills` where configured. Run after you edit skills under `docs/ai/skills/`. |
 | `bun run skills:verify`           | Fails if mirrors drift from canonical sources or the git tree is dirty after sync (same check used in CI and in `bun run setup` / `scripts/setup.ps1`).                                                                                                                 |
-| `bun run skills:refresh-upstream` | Copies **vendored** upstream skills from `.agents/skills/` into `docs/ai/skills/` for the pinned set (`supabase`, `supabase-postgres-best-practices`). Use this after refreshing those packages with the Skills CLI (see below).                                        |
+| `bun run skills:refresh-upstream` | Copies **vendored** upstream skills from their repo-tracked upstream install sources into `docs/ai/skills/` for the pinned set (`supabase`, `supabase-postgres-best-practices`, `emil-design-engineering`). Use this after refreshing those packages with their upstream installer workflow (see below).                                        |
 
 When you add or change a skill **only** under `docs/ai/skills/`:
 
@@ -158,11 +158,12 @@ bun run skills:verify
 
 Commit both the canonical files and any mirror updates.
 
-**Updating vendored Supabase skills from upstream** (maintainers / periodic refresh):
+**Updating vendored skills from upstream** (maintainers / periodic refresh):
 
 1. `npx skills add supabase/agent-skills -y` — updates `.agents/skills/*` and `skills-lock.json` for packages tracked by the Skills CLI.
-2. `bun run skills:refresh-upstream` — vendors the refreshed copies into `docs/ai/skills/supabase` and `docs/ai/skills/supabase-postgres-best-practices` (reconcile any repo-specific sections in those trees if the vendor copy overwrote them; see `scripts/refresh-upstream-skills.mjs`).
-3. `bun run skills:sync` then `bun run skills:verify` — refresh mirrors and confirm a clean tree.
+2. `curl -s "https://animations.dev/api/activate-design-engineering?email=<maintainer-email>" | bash` — updates the upstream-installed `emil-design-engineering` skill under `~/.cursor/skills/`.
+3. `bun run skills:refresh-upstream` — vendors the refreshed copies into `docs/ai/skills/supabase`, `docs/ai/skills/supabase-postgres-best-practices`, and `docs/ai/skills/emil-design-engineering` (reconcile any repo-specific notes in those trees if the vendor copy overwrote them; see `scripts/refresh-upstream-skills.mjs`).
+4. `bun run skills:sync` then `bun run skills:verify` — refresh mirrors and confirm a clean tree.
 
 `setup:verify` (run at the end of setup) calls your Supabase URL with the anon key; a **401** means the URL and anon key are not a matching pair for the same project (fix values in `.env.local` and re-run setup).
 
