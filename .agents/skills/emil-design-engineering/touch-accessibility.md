@@ -34,7 +34,9 @@ Disable `touch-action` for custom components that implement pan and zoom gesture
 Set `touch-action: manipulation` to prevent double-tap zoom on controls:
 
 ```css
-button, a, input {
+button,
+a,
+input {
   touch-action: manipulation;
 }
 ```
@@ -53,7 +55,7 @@ Ensure minimal tap target of all buttons on touch devices is at least 44px:
 
 /* But hit area should be 44px */
 .icon-button::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: -10px;
 }
@@ -86,8 +88,8 @@ Apply `muted` and `playsinline` to `<video>` tags to autoplay on iOS without ope
 Replace `Cmd` with `Ctrl` based on operating system:
 
 ```js
-const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-const modKey = isMac ? 'Cmd' : 'Ctrl';
+const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+const modKey = isMac ? "Cmd" : "Ctrl";
 
 // Display: "Save (Cmd+S)" on Mac, "Save (Ctrl+S)" on Windows
 ```
@@ -115,8 +117,8 @@ Ensure keyboard navigation scrolls elements into view if needed:
 ```jsx
 function handleFocus(e) {
   e.target.scrollIntoView({
-    behavior: 'smooth',
-    block: 'nearest',
+    behavior: "smooth",
+    block: "nearest",
   });
 }
 ```
@@ -163,7 +165,7 @@ For users who prefer reduced motion, show play buttons instead of autoplaying vi
 
 ```jsx
 const prefersReducedMotion = window.matchMedia(
-  '(prefers-reduced-motion: reduce)'
+  "(prefers-reduced-motion: reduce)",
 ).matches;
 
 <video
@@ -171,7 +173,7 @@ const prefersReducedMotion = window.matchMedia(
   controls={prefersReducedMotion}
   muted
   playsinline
-/>
+/>;
 ```
 
 ### Time-Limited Actions
@@ -183,7 +185,7 @@ let timeoutId;
 let remainingTime;
 let startTime;
 
-document.addEventListener('visibilitychange', () => {
+document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
     // Pause the timer
     clearTimeout(timeoutId);
@@ -227,7 +229,7 @@ Apply a safe-area for submenus using clippath to ensure diagonal movement works.
 
 ```css
 .submenu-trigger::after {
-  content: '';
+  content: "";
   position: absolute;
   /* Creates a "safe zone" for cursor movement */
   clip-path: polygon(0 0, 100% 0, 100% 100%);

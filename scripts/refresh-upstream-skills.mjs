@@ -57,14 +57,12 @@ const POST_REFRESH_REPLACEMENTS = [
     skillName: "emil-design-engineering",
     relativePath: "forms-controls.md",
     search: "### 1Password Integration", // pragma: allowlist secret
-    replace:
-      "### 1Password Integration // pragma: allowlist secret", // pragma: allowlist secret
+    replace: "### 1Password Integration // pragma: allowlist secret", // pragma: allowlist secret
   },
   {
     skillName: "emil-design-engineering",
     relativePath: "forms-controls.md",
-    search:
-      "Disable 1Password autocomplete when not needed:", // pragma: allowlist secret
+    search: "Disable 1Password autocomplete when not needed:", // pragma: allowlist secret
     replace:
       "Disable 1Password autocomplete when not needed: // pragma: allowlist secret",
   },
@@ -74,7 +72,10 @@ async function readPreservedFiles(targetRoot, preserve) {
   const entries = await Promise.all(
     preserve.map(async (relativePath) => {
       try {
-        const content = await readFile(path.join(targetRoot, relativePath), "utf8");
+        const content = await readFile(
+          path.join(targetRoot, relativePath),
+          "utf8",
+        );
         return [relativePath, content];
       } catch (error) {
         const errorCode =
@@ -191,8 +192,8 @@ async function applyPostRefreshReplacements(skillName, targetRoot) {
         "Disable 1Password autocomplete when not needed: // pragma: allowlist secret"; // pragma: allowlist secret
     }
 
-    const helperInputIndex = lines.findIndex((line) =>
-      line.includes('data-lpignore="true" data-1p-ignore'), // pragma: allowlist secret
+    const helperInputIndex = lines.findIndex(
+      (line) => line.includes('data-lpignore="true" data-1p-ignore'), // pragma: allowlist secret
     );
     if (
       helperInputIndex !== -1 &&

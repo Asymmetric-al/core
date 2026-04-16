@@ -9,15 +9,15 @@ A comprehensive guide for building polished, accessible web interfaces based on 
 
 ## Quick Reference
 
-| Category                                        | When to Use                                          |
-| ----------------------------------------------- | ---------------------------------------------------- |
-| [Animations](animations.md)                     | Enter/exit transitions, easing, springs, performance |
-| [UI Polish](ui-polish.md)                       | Typography, visual design, layout, colors            |
-| [Forms & Controls](forms-controls.md)           | Inputs, buttons, form submission                     |
-| [Touch & Accessibility](touch-accessibility.md) | Mobile, touch devices, keyboard nav, a11y            |
-| [Component Design](component-design.md)         | Compound components, composition, props API          |
-| [Marketing](marketing.md)                       | Landing pages, blogs, docs sites                     |
-| [Performance](performance.md)                   | Virtualization, preloading, optimization             |
+| Category                                        | When to Use                                                               |
+| ----------------------------------------------- | ------------------------------------------------------------------------- |
+| [Animations](animations.md)                     | Enter/exit transitions, easing, springs, performance                      |
+| [UI Polish](ui-polish.md)                       | Typography, visual design, layout, colors                                 |
+| [Forms & Controls](forms-controls.md)           | Inputs, buttons, form submission                                          |
+| [Touch & Accessibility](touch-accessibility.md) | Mobile, touch devices, keyboard nav, a11y                                 |
+| [Component Design](component-design.md)         | Compound components, composition, props API                               |
+| [Marketing](marketing.md)                       | Landing pages, blogs, docs sites                                          |
+| [Performance](performance.md)                   | Virtualization, preloading, optimization                                  |
 | [Design Rules](design-rules.md)                 | Paired right/wrong calls across icons, type, color, IA, interaction, copy |
 
 ## Core Principles
