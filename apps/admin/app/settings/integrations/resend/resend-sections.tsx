@@ -358,7 +358,7 @@ export function ResendDisconnectedView({
   showApiKey,
   onToggleApiKeyVisibility,
 }: ResendDisconnectedViewProps) {
-  const apiKeyInputId = "resend-api-key";
+  const resendCredentialFieldId = "resend-api-key";
   const handleConnectSubmit = () => {
     void form.handleSubmit();
   };
@@ -412,14 +412,14 @@ export function ResendDisconnectedView({
 
               return (
                 <Field data-invalid={errors.length > 0}>
-                  <FieldLabel htmlFor={apiKeyInputId}>
+                  <FieldLabel htmlFor={resendCredentialFieldId}>
                     Resend API Key <span className="text-red-500">*</span>
                   </FieldLabel>
                   <FieldContent>
                     <div className="relative">
                       <Input
                         className="pr-10 font-mono text-sm"
-                        id={apiKeyInputId}
+                        id={resendCredentialFieldId}
                         onBlur={field.handleBlur}
                         onChange={(event) =>
                           field.handleChange(event.target.value)
