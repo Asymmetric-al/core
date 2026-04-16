@@ -9,7 +9,7 @@
  * 3. Re-apply any repo-specific notes or references if the refresh overwrote them
  * 4. `bun run skills:sync` && `bun run skills:verify`
  */
-import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { access, cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -223,6 +223,20 @@ async function applyPostRefreshReplacements(skillName, targetRoot) {
 
 async function refreshSkill({ skillName, from, preserve = [] }) {
   const to = path.join(canonicalRoot, skillName);
+
+  // Guard: verify the source exists before deleting the canonical tree.
+  // Without this check, rm(to) would permanently delete the canonical skill
+  // tree on any machine that hasn't run the upstream installer, with no rollback.
+  try {
+    await access(from);
+  } catch {
+    throw new Error(
+      `refreshSkill: source path does not exist — "${from}"\n` +
+        `Aborting to avoid deleting canonical tree at "${to}".\n` +
+        `Run the upstream installer first (e.g. the animations.dev curl | bash), then retry.`,
+    );
+  }
+
   const preservedFiles = await readPreservedFiles(to, preserve);
   await rm(to, { recursive: true, force: true });
   await cp(from, to, { recursive: true });
