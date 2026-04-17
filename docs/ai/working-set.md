@@ -1,5 +1,28 @@
 # Working Set
 
+## 2026-04-16 (PR #175 review — vendored Resend CLI 2.0 agent skill)
+
+- Date: 2026-04-16
+- Repo: Asymmetric-al/core
+- Goal: Rigorous evidence-based review of PR #175, which vendors `resend/resend-cli` v2.0.0 into `docs/ai/skills/resend-cli/`, mirrors it to `.agents/skills/` and `.cursor/skills/`, and adds routing in `AGENTS.md`, `README.md`, `docs/ai/skills/find-skills/SKILL.md`, plus `resend-cli` entry in both `.repo-canonical-skills.json` manifests.
+- Primary area:
+  - `docs/ai/skills/resend-cli/{SKILL.md,references/*.md}`
+  - `.agents/skills/resend-cli/**` and `.cursor/skills/resend-cli/**` (sync mirrors)
+  - `.agents/skills/.repo-canonical-skills.json` and `.cursor/skills/.repo-canonical-skills.json`
+  - `AGENTS.md` (Skill Routing section)
+  - `README.md` (skill scripts table + maintainer refresh notes)
+  - `docs/ai/skills/find-skills/SKILL.md` (Resend example block)
+- Stack: AGENTS.md routing, agent-skills (.agents/.cursor mirrors), bun scripts:sync/verify, prettier, no runtime
+- Constraints:
+  - Pure docs/agent-tooling change — no `apps/`, `packages/`, `tooling/`, `supabase/`, or runtime `scripts/` touched.
+  - Mirrors must match canonical (`bun run skills:verify` must stay green).
+  - Vendored content must remain byte-faithful to upstream `resend/resend-cli` tag `v2.0.0` apart from the repo-local `references/upstream.md`.
+- Outcome (2026-04-16):
+  - PR #175 reviewed and **approved with non-blocking comments** (see https://github.com/Asymmetric-al/core/pull/175#pullrequestreview-4125139736).
+  - Verified locally: `bun run skills:verify` clean (Greptile P1 mirror drift resolved by HEAD commit `944ffe2e28`); `bun run format:check` and `bun run lint` clean for the diff. CI on origin HEAD is fully green.
+  - Inline replies posted on all 5 bot review comments (Greptile #3093388338 stale/resolved; Codex #3093260503 partial; Cursor #3093250821, #3093250824, #3093270553 valid stylistic / partial).
+  - Follow-up issue #179 filed for the non-blocking doc cleanup (Quality-Gate exemption decision for vendored upstream skills + AGENTS.md / find-skills paragraph split + optional Bun callout).
+
 ## 2026-04-13 (Mission Control member care port — phase 8 contract hardening)
 
 - Date: 2026-04-13

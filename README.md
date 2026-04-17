@@ -149,6 +149,8 @@ Agent-oriented docs live under `docs/ai/`:
 | `bun run skills:verify`           | Fails if mirrors drift from canonical sources or the git tree is dirty after sync (same check used in CI and in `bun run setup` / `scripts/setup.ps1`).                                                                                                                 |
 | `bun run skills:refresh-upstream` | Copies **vendored** upstream skills from `.agents/skills/` into `docs/ai/skills/` for the pinned set (`supabase`, `supabase-postgres-best-practices`). Use this after refreshing those packages with the Skills CLI (see below).                                        |
 
+**Resend CLI skill:** `docs/ai/skills/resend-cli/` is copied manually from the tagged [`resend/resend-cli`](https://github.com/resend/resend-cli) tree (`skills/resend-cli/`). It is not part of `skills:refresh-upstream`. After updating it, run `bun run skills:sync` and `bun run skills:verify`. See `docs/ai/skills/resend-cli/references/upstream.md`.
+
 When you add or change a skill **only** under `docs/ai/skills/`:
 
 ```bash
@@ -163,6 +165,11 @@ Commit both the canonical files and any mirror updates.
 1. `npx skills add supabase/agent-skills -y` — updates `.agents/skills/*` and `skills-lock.json` for packages tracked by the Skills CLI.
 2. `bun run skills:refresh-upstream` — vendors the refreshed copies into `docs/ai/skills/supabase` and `docs/ai/skills/supabase-postgres-best-practices` (reconcile any repo-specific sections in those trees if the vendor copy overwrote them; see `scripts/refresh-upstream-skills.mjs`).
 3. `bun run skills:sync` then `bun run skills:verify` — refresh mirrors and confirm a clean tree.
+
+**Updating the vendored Resend CLI skill from upstream** (maintainers / on CLI releases):
+
+1. Replace `docs/ai/skills/resend-cli/` with the `skills/resend-cli/` directory from the desired [`resend/resend-cli`](https://github.com/resend/resend-cli) tag (see `docs/ai/skills/resend-cli/references/upstream.md`).
+2. `bun run skills:sync` then `bun run skills:verify`.
 
 `setup:verify` (run at the end of setup) calls your Supabase URL with the anon key; a **401** means the URL and anon key are not a matching pair for the same project (fix values in `.env.local` and re-run setup).
 
