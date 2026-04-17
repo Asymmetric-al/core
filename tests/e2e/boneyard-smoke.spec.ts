@@ -47,9 +47,9 @@ function getExpectation(
 
   if (target === "donor") {
     return {
-      heading: "Donor dashboard",
       path: "/boneyard/donor-dashboard",
       skeletonName: "donor-dashboard-main",
+      visibleText: "Thank you for your partnership.",
     };
   }
 
@@ -73,9 +73,9 @@ function getExpectation(
     }
     if (port === 3000) {
       return {
-        heading: "Donor dashboard",
         path: "/boneyard/donor-dashboard",
         skeletonName: "donor-dashboard-main",
+        visibleText: "Thank you for your partnership.",
       };
     }
   } catch {
