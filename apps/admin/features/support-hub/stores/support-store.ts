@@ -90,6 +90,14 @@ export const supportStore = {
       conversationId: z.string().min(1),
       authorAgentId: z.string().min(1),
       payload: supportReplyPayloadSchema,
+      /**
+       * `send` performs the optimistic donor reply (default — preserves the
+       * Phase 3 bulk action contract). `draft` writes a `support_messages`
+       * row with `deliveryState: "draft"` and skips the conversation-side
+       * timestamp bumps so the inbox does not treat the draft as a real
+       * outbound message.
+       */
+      mode: z.enum(["send", "draft"]).default("send"),
     }),
     saveMacro: z.object({
       id: z.string().min(1).optional(),

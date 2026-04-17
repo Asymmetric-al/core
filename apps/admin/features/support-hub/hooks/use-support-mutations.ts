@@ -301,6 +301,7 @@ export function useSendSupportReply() {
         SUPPORT_SYSTEM_PARTICIPANT;
       const stamp = nowIso();
       const messageId = genId("msg-reply");
+      const isDraft = input.mode === "draft";
       const message: SupportMessage = {
         id: messageId,
         tenantId: conversation.tenantId,
@@ -308,7 +309,7 @@ export function useSendSupportReply() {
         type: "email",
         direction: "outbound",
         isPrivate: false,
-        deliveryState: "queued",
+        deliveryState: isDraft ? "draft" : "queued",
         author,
         body: input.payload,
         attachments: input.payload.attachments.map((attachment) => ({
@@ -328,7 +329,7 @@ export function useSendSupportReply() {
           cc: [],
           bcc: [],
         },
-        outboundSendLogId: `send-log-${messageId}`,
+        outboundSendLogId: isDraft ? null : `send-log-${messageId}`,
         inboundEmailId: null,
         postedAt: stamp,
         createdAt: stamp,
@@ -337,23 +338,27 @@ export function useSendSupportReply() {
       const insertTx = supportStore.collections.messages.insert(message);
       await insertTx.isPersisted.promise;
 
-      const updateTx = supportStore.collections.conversations.update(
-        input.conversationId,
-        (draft: SupportConversation) => {
-          draft.messageCount += 1;
-          draft.lastMessageAt = stamp;
-          draft.lastMessageDirection = "outbound";
-          draft.updatedAt = stamp;
-          if (draft.firstRespondedAt === null) {
-            draft.firstRespondedAt = stamp;
-          }
-          draft.snoozedUntil = null;
-          if (draft.status === "snoozed") {
-            draft.status = "open";
-          }
-        },
-      );
-      await updateTx.isPersisted.promise;
+      // Drafts do not bump the conversation timestamps or status — they are
+      // private to the agent and the donor never sees them.
+      if (!isDraft) {
+        const updateTx = supportStore.collections.conversations.update(
+          input.conversationId,
+          (draft: SupportConversation) => {
+            draft.messageCount += 1;
+            draft.lastMessageAt = stamp;
+            draft.lastMessageDirection = "outbound";
+            draft.updatedAt = stamp;
+            if (draft.firstRespondedAt === null) {
+              draft.firstRespondedAt = stamp;
+            }
+            draft.snoozedUntil = null;
+            if (draft.status === "snoozed") {
+              draft.status = "open";
+            }
+          },
+        );
+        await updateTx.isPersisted.promise;
+      }
 
       return messageId;
     },
