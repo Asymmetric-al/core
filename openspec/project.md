@@ -12,12 +12,12 @@ and UI.
 Durable big-picture context for **what we build** and **why** lives in four
 top-level specs (OpenSpec discovers `openspec/specs/<id>/spec.md`):
 
-| Spec                                                        | Path                                             |
-| ----------------------------------------------------------- | ------------------------------------------------ |
-| Product intent (goals, scope, long-horizon success)         | `openspec/specs/platform-product-intent/spec.md` |
-| Surfaces (admin, donor, missionary, public UX intent)       | `openspec/specs/platform-surfaces/spec.md`       |
-| Principles (decision criteria)                              | `openspec/specs/platform-principles/spec.md`     |
-| System boundaries (packages, data, auth, payments, runtime) | `openspec/specs/platform-boundaries/spec.md`     |
+| Spec                                                               | Path                                             |
+| ------------------------------------------------------------------ | ------------------------------------------------ |
+| Product intent (goals, scope, long-horizon success)                | `openspec/specs/platform-product-intent/spec.md` |
+| Surfaces (admin, donor, missionary, public UX intent)              | `openspec/specs/platform-surfaces/spec.md`       |
+| Principles (decision criteria)                                     | `openspec/specs/platform-principles/spec.md`     |
+| System boundaries (trust contracts, CRM/CMS, scope, sensitive ops) | `openspec/specs/platform-boundaries/spec.md`     |
 
 Structural detail (directory trees, diagrams, route tables) remains in
 `docs/guides/architecture/overview.md`. Keep OpenSpec intent and architecture

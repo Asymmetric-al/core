@@ -5,7 +5,7 @@
 ### Requirement: Monorepo And Application Split
 
 **Reason**: The old requirement ties durable boundaries to framework and folder
-language. The replacement states the three product-facing surfaces more clearly
+language. The replacement states the four major product-facing areas more clearly
 and adds the long-lived rule that shared logic must converge instead of being
 copied across app trees.
 **Migration**: Use **Monorepo Surface Split And Shared Logic Convergence** as
@@ -116,9 +116,10 @@ use this spec only for long-lived structural and trust boundaries.
 
 ### Requirement: Monorepo Surface Split And Shared Logic Convergence
 
-The monorepo SHALL preserve three primary user-facing application surfaces:
-Mission Control / admin, donor/public, and missionary workspace. These are
-product-facing boundaries, not arbitrary folder choices.
+The monorepo SHALL preserve the same four major product-facing areas defined in
+`platform-product-intent` and detailed in `platform-surfaces`: Mission Control /
+admin, the public tenant website, the donor experience, and the missionary
+workspace. These are product-facing boundaries, not arbitrary folder choices.
 
 Surface-specific behavior can stay local to a surface, but repeated business
 logic and shared behavior MUST converge into shared internal packages or
@@ -139,8 +140,8 @@ grow separate app-local versions of the same rule or workflow.
 
 #### Scenario: An agent tries to treat surface split as only an implementation detail
 
-- GIVEN a shortcut would ignore the durable split between the three
-  product-facing surfaces because all code lives in one monorepo
+- GIVEN a shortcut would ignore the durable split between the four major
+  product-facing areas because all code lives in one monorepo
 - WHEN an agent chooses where logic or responsibility should live
 - THEN they preserve the product-facing surface split as a real boundary
 - AND they do not collapse distinct surfaces into one vague app layer simply
@@ -333,7 +334,7 @@ Control.
 
 Publication MUST respect tenant-configured approval and moderation rules.
 
-No surface MUST bypass the tenant's chosen publication boundary. If a tenant
+Surfaces MUST NOT bypass the tenant's chosen publication boundary. If a tenant
 allows automatic publishing, the platform MUST respect that choice as a
 first-class boundary rather than forcing a manual gate the tenant did not ask
 for.

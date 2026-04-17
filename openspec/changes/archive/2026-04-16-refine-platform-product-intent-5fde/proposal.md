@@ -28,8 +28,10 @@ high-trust ministry platform.
   ownership and alignment, server-side sensitive operations, role and tenant
   scope, honest money state, publication boundaries, public/auth separation,
   and boundary-doc alignment.
-- Keep all refinement work in OpenSpec delta files under this change rather
-  than editing merged specs directly during review.
+- During active review, keep refinements in OpenSpec delta files under this
+  change; fold approved text into `openspec/specs/<id>/spec.md` when landing (see
+  tasks). Canonical merged specs under `openspec/specs/**` are what OpenSpec
+  discovers; this archive folder is a historical snapshot of the change.
 - Standardize all new requirement scenarios around concrete
   GIVEN / WHEN / THEN decisions so future AI agents can reject the wrong path
   before writing code.
