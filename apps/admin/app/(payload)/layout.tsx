@@ -14,11 +14,31 @@ type Props = {
 const serverFunction: ServerFunctionClient = async (args) => {
   "use server";
 
-  return handleServerFunctions({
-    ...args,
-    config,
-    importMap,
-  });
+  try {
+    return await handleServerFunctions({
+      ...args,
+      config,
+      importMap,
+    });
+  } catch (cause: unknown) {
+    const name =
+      typeof args === "object" &&
+      args !== null &&
+      "name" in args &&
+      typeof (args as { name: unknown }).name === "string"
+        ? (args as { name: string }).name
+        : "unknown";
+
+    // Payload UI catches server-function failures and does `console.error(_err)`.
+    // A rejection with `undefined` surfaces as a useless "undefined" in the Next overlay.
+    if (cause === undefined) {
+      throw new Error(
+        `[Payload] Server function "${name}" failed: rejection was undefined (often dev-only: streaming / Turbopack / aborted RSC). Check the dev server terminal for the underlying stack.`,
+      );
+    }
+
+    throw cause;
+  }
 };
 
 export default function PayloadLayout({ children }: Props) {
