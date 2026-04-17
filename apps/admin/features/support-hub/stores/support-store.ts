@@ -129,6 +129,40 @@ export const supportStore = {
         assignee: z.string(),
       }),
     }),
+    saveLabel: z.object({
+      id: z.string().min(1).optional(),
+      name: z.string().min(1),
+      slug: z.string().min(1),
+      tone: z.enum(["zinc", "blue", "amber", "rose", "emerald", "violet"]),
+      description: z.string().nullable(),
+    }),
+    deleteLabel: z.object({
+      id: z.string().min(1),
+    }),
+    deleteSavedView: z.object({
+      id: z.string().min(1),
+    }),
+    deleteMacro: z.object({
+      id: z.string().min(1),
+    }),
+    deleteCannedResponse: z.object({
+      id: z.string().min(1),
+    }),
+    runMacro: z.object({
+      conversationId: z.string().min(1),
+      macroId: z.string().min(1),
+      authorAgentId: z.string().min(1),
+    }),
+    applyRoundRobinAssignment: z.object({
+      conversationId: z.string().min(1),
+      /** Agent id of the actor performing the rotation; logged on the activity row. */
+      authorAgentId: z.string().min(1).optional(),
+      /**
+       * Agents to skip when picking the next assignee. The current assignee is
+       * automatically excluded; pass extras here for "skip on furlough" cases.
+       */
+      excludeAgentIds: z.array(z.string().min(1)).default([]),
+    }),
   },
 } as const;
 
@@ -167,4 +201,17 @@ export type SaveCannedResponseInput = z.input<
 >;
 export type SaveSavedViewInput = z.input<
   typeof supportStore.inputs.saveSavedView
+>;
+export type SaveLabelInput = z.input<typeof supportStore.inputs.saveLabel>;
+export type DeleteLabelInput = z.input<typeof supportStore.inputs.deleteLabel>;
+export type DeleteSavedViewInput = z.input<
+  typeof supportStore.inputs.deleteSavedView
+>;
+export type DeleteMacroInput = z.input<typeof supportStore.inputs.deleteMacro>;
+export type DeleteCannedResponseInput = z.input<
+  typeof supportStore.inputs.deleteCannedResponse
+>;
+export type RunMacroInput = z.input<typeof supportStore.inputs.runMacro>;
+export type ApplyRoundRobinAssignmentInput = z.input<
+  typeof supportStore.inputs.applyRoundRobinAssignment
 >;
