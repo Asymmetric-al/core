@@ -1,5 +1,150 @@
 # Working Set
 
+## 2026-04-13 (Mission Control member care port — phase 8 contract hardening)
+
+- Date: 2026-04-13
+- Repo: Asymmetric-al/core
+- Goal: Complete phase 8 by enforcing typed route contracts with shared schema-aware JSON parsing and eliminating unsafe payload casts in member-care mutation routes.
+- Primary area:
+  - `packages/api/src/admin/member-care/route-helpers.ts`
+  - `apps/admin/app/api/admin/member-care/{thread,goals,activity,requirements,attention}/route.ts`
+  - `packages/api/src/admin/member-care/mutations.ts`
+  - `tests/unit/apps/admin/member-care-route-lib.test.ts`
+- Constraints:
+  - Keep route handlers thin while validating request shape at the HTTP boundary.
+  - Preserve business validation in `@asym/api` without duplicating divergent schema logic.
+
+## 2026-04-13 (Mission Control member care port — phase 7 follow-up hardening)
+
+- Date: 2026-04-13
+- Repo: Asymmetric-al/core
+- Goal: Reapply and finalize phase 6/7 for PR #170 by extending shared route hardening across read endpoints and tightening JSON payload guards for mutation handlers.
+- Primary area:
+  - `packages/api/src/admin/member-care/route-helpers.ts`
+  - `apps/admin/app/api/admin/member-care/{dashboard,directory,directory/[id]}/route.ts`
+  - `tests/unit/apps/admin/member-care-route-lib.test.ts`
+- Constraints:
+  - Keep all DB/business logic in `@asym/api`.
+  - Keep route handlers thin, with consistent auth/error behavior.
+  - This pass is the explicit phase 6/7 recommit checkpoint for PR #170.
+
+## 2026-04-13 (Mission Control member care port — phase 7 hardening)
+
+- Date: 2026-04-13
+- Repo: Asymmetric-al/core
+- Goal: Complete phase 7 by hardening mutation route handlers with shared auth/JSON/error utilities and adding unit coverage for the shared route-helper boundary.
+- Primary area:
+  - `packages/api/src/admin/member-care/route-helpers.ts`
+  - `apps/admin/app/api/admin/member-care/{thread,goals,activity,requirements,attention}/route.ts`
+  - `tests/unit/apps/admin/member-care-route-lib.test.ts`
+- Constraints:
+  - Keep route handlers thin and defer business writes to `@asym/api`.
+  - Return explicit HTTP status classes (401/403/400/422/500) for clearer client handling.
+
+## 2026-04-12 (Mission Control member care port — phase 6 completion pass)
+
+- Date: 2026-04-12
+- Repo: Asymmetric-al/core
+- Goal: Finish phase 6 by wiring all mutation hooks into profile UX (check-in logging, manual-attention toggle, care requirements) and adding server-side cache-tag revalidation after writes.
+- Primary area:
+  - `apps/admin/features/mission-control/care/components/PersonnelProfile.tsx`
+  - `packages/api/src/admin/member-care/mutations.ts`
+- Constraints:
+  - Keep route handlers thin and business logic in `@asym/api`.
+  - Ensure write paths refresh both client query caches and Next cache-tagged read models.
+
+## 2026-04-12 (Mission Control member care port — phase 6 mutations)
+
+- Date: 2026-04-12
+- Repo: Asymmetric-al/core
+- Goal: Add real mutation endpoints and client mutation hooks for thread posts, care goals, activity logs, care requirements, and manual-attention updates with shared query invalidation.
+- Primary area:
+  - `packages/api/src/admin/member-care/mutations.ts`
+  - `apps/admin/app/api/admin/member-care/{thread,goals,activity,requirements,attention}/route.ts`
+  - `apps/admin/features/mission-control/care/hooks/use-care.ts`
+  - `apps/admin/features/mission-control/care/components/PersonnelProfile.tsx`
+- Constraints:
+  - Keep route handlers thin and business DB writes in `@asym/api`.
+  - Invalidate dashboard/profile/notification query keys on mutation success.
+
+## 2026-04-12 (Mission Control member care port — phase 5 person detail shell)
+
+- Date: 2026-04-12
+- Repo: Asymmetric-al/core
+- Goal: Complete person-detail shell tab coverage (overview, care thread, care plan, activity, secure notes) and route rich text through shared TipTap wrappers.
+- Primary area:
+  - `apps/admin/features/mission-control/care/components/PersonnelProfile.tsx`
+- Constraints:
+  - Use existing shared `@asym/ui` rich text editor/viewer components (no app-local editor).
+  - Keep shell/tabs styling aligned with existing Mission Control surface.
+
+## 2026-04-12 (Mission Control member care port — phase 4 roster completion)
+
+- Date: 2026-04-12
+- Repo: Asymmetric-al/core
+- Goal: Complete roster UX with stronger TanStack Table filtering/search semantics, explicit care-priority visibility, and last-contact age indicators while preserving current route ownership.
+- Primary area:
+  - `apps/admin/features/mission-control/care/components/PersonnelList.tsx`
+  - `apps/admin/app/care/directory/[id]/page.tsx`
+- Constraints:
+  - Keep using shared `@asym/ui` table primitives and avoid premature virtualization.
+  - Align links with canonical `/care/*` routes.
+
+## 2026-04-12 (Mission Control member care port — phase 3 overview completion)
+
+- Date: 2026-04-12
+- Repo: Asymmetric-al/core
+- Goal: Complete the overview slice by removing remaining placeholder assumptions in dashboard cards/panels and tightening read-model field mapping quality for activities and health signals.
+- Primary area:
+  - `apps/admin/features/mission-control/care/components/CareDashboard.tsx`
+  - `apps/admin/features/mission-control/care/member-care.derived.ts`
+  - `packages/api/src/reads/member-care.ts`
+  - `tests/unit/apps/admin/features/mission-control/care/member-care-derived.test.ts`
+- Constraints:
+  - Keep the existing `/care` route and shell unchanged.
+  - Reuse shared selector math for overview cards and side panels.
+
+## 2026-04-12 (Mission Control member care port — phase 2 read-model wiring)
+
+- Date: 2026-04-12
+- Repo: Asymmetric-al/core
+- Goal: Introduce tenant-scoped member-care read-model functions in `@asym/api` and wire admin care hooks to those read APIs via thin route handlers.
+- Primary area:
+  - `packages/api/src/reads/member-care.ts`
+  - `packages/api/package.json` export map
+  - `apps/admin/app/api/admin/member-care/**/route.ts`
+  - `apps/admin/features/mission-control/care/hooks/use-care.ts`
+- Constraints:
+  - Keep route handlers thin and business DB access in `packages/api/src/*`.
+  - Preserve existing `/care` route ownership and client surface while swapping data source.
+  - Nia MCP remains unavailable in this runtime; used repo-scoped `rg` + direct file reads.
+
+## 2026-04-11 (Mission Control member care port — phase 1 derivations)
+
+- Date: 2026-04-11
+- Repo: Asymmetric-al/core
+- Goal: Start the Shepherd-to-Core member care port by extracting reusable, tested derivation utilities and wiring the existing dashboard preview cards to those selectors.
+- Target paths discovered before implementation:
+  - `apps/admin/app/care/page.tsx`
+  - `apps/admin/app/care/directory/page.tsx`
+  - `apps/admin/app/care/directory/[id]/page.tsx`
+  - `apps/admin/features/mission-control/care/components/{CareDashboard,PersonnelList,PersonnelProfile,TimezoneScheduler}.tsx`
+  - `apps/admin/features/mission-control/care/hooks/use-care.ts`
+  - `apps/admin/features/mission-control/care/{types,constants,utils}.ts`
+  - `packages/ui/components/shadcn/rich-text-editor/{rich-text-editor,rich-text-viewer}.tsx`
+  - `packages/api/src/reads/*` (read-model pattern review target)
+  - `packages/database/hooks/admin-workspace.ts` and `packages/database/collections/admin-workspace.ts`
+- Constraints:
+  - Preserve Mission Control route ownership and shell.
+  - Keep app UI on shared `@asym/ui` primitives and existing tokens.
+  - Centralize dashboard/notification derivation math in one module.
+  - Nia MCP is not available in this runtime; fallback is repo-scoped `rg` + direct file reads.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/ai/rules/{general,frontend,backend,testing}.md`
+  - `docs/ai/skills/{nextjs-app-router,tiptap,tanstack-table,supabase}/SKILL.md`
+  - `.next-docs/01-app/01-getting-started/{05-server-and-client-components,07-fetching-data}.mdx`
+
 ## 2026-04-11 (Repo health hardening pass)
 
 - Date: 2026-04-11
@@ -114,18 +259,6 @@
 - Notes:
   - Foundation pass completed: shared `data-grid` exports are now public, the admin app no longer owns `@tanstack/db` directly, and shared TanStack package versions are aligned and typechecked.
   - The next pass is to standardize shared domain collections/hooks in `packages/database` before refactoring app surfaces to consume them.
-
-## 2026-04-10 (Web Studio Phase 2 — shared editorial workspaces)
-
-- Repo: Asymmetric-al/core
-- Goal: Generalize the Phase 1 Pages slice into shared native Web Studio list/document workspaces and register current editorial collections (`pages`, `navigation`, `missionary-profiles`, `ministry-updates`, `media`) onto them while keeping Payload document/runtime ownership.
-- Key paths:
-  - `apps/admin/src/cms-ui/web-studio/collections/**`
-  - `apps/admin/src/cms-ui/web-studio/shell/*`
-  - `apps/admin/src/cms/collections/{pages,navigation,missionary-profiles,ministry-updates,media}.ts`
-  - `docs/guides/architecture/web-studio-phase2.md`
-- Rollback: collection-scoped env flags (`CMS_WEB_STUDIO_NATIVE_*`) + `NODE_ENV=test bun run cms:importmap`
-- Known safe boundary: default list/edit routes are native; nested document subviews (`api`, `versions`, `version`, `live preview`) still rely on stock Payload routing until a safer public wrapper surface exists.
 
 ## 2026-04-07 (Post-Turbo-2.9 verification matrix re-run)
 
