@@ -21,4 +21,8 @@ export interface SupportInboxStats {
   escalatedCount: number;
   waitingOnAgentCount: number;
   waitingOnDonorCount: number;
+  /** Average minutes between first inbound message and first outbound reply. */
+  averageFirstResponseMinutes: number;
+  /** Conversations resolved since local-midnight on `generatedAt`. */
+  resolvedTodayCount: number;
 }

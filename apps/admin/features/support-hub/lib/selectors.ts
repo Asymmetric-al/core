@@ -237,9 +237,16 @@ export function computeInboxStats(
     },
   );
 
+  const generatedAt = toDate(now);
+  const startOfDay = new Date(
+    generatedAt.getFullYear(),
+    generatedAt.getMonth(),
+    generatedAt.getDate(),
+  ).toISOString();
+
   return {
     inboxId,
-    generatedAt: toDate(now).toISOString(),
+    generatedAt: generatedAt.toISOString(),
     total: filteredRows.length,
     totalDelta: deterministicDelta("__total__", filteredRows.length),
     buckets,
@@ -247,7 +254,48 @@ export function computeInboxStats(
     escalatedCount: selectEscalated(filteredRows).length,
     waitingOnAgentCount: selectWaitingOnAgent(filteredRows).length,
     waitingOnDonorCount: selectWaitingOnDonor(filteredRows).length,
+    averageFirstResponseMinutes:
+      computeAverageFirstResponseMinutes(filteredRows),
+    resolvedTodayCount: countResolvedSince(filteredRows, startOfDay),
   };
+}
+
+/**
+ * Average wall-clock minutes between the first inbound message and the first
+ * agent reply across the conversations that have been responded to. Returns 0
+ * when no row qualifies so the stat-card never renders `NaN`.
+ */
+export function computeAverageFirstResponseMinutes(
+  rows: SupportConversation[],
+): number {
+  const minutes: number[] = [];
+  for (const row of rows) {
+    if (row.firstRespondedAt === null) continue;
+    const delta = minutesBetween(row.firstMessageAt, row.firstRespondedAt);
+    if (delta === null) continue;
+    if (!Number.isFinite(delta) || delta < 0) continue;
+    minutes.push(delta);
+  }
+  if (minutes.length === 0) return 0;
+  const sum = minutes.reduce((acc, value) => acc + value, 0);
+  return Math.round(sum / minutes.length);
+}
+
+/**
+ * Count of conversations whose `resolvedAt` is on or after `sinceIso`.
+ * The stat-card uses local-midnight as the cutoff for "resolved today".
+ */
+export function countResolvedSince(
+  rows: SupportConversation[],
+  sinceIso: string,
+): number {
+  const cutoff = toDate(sinceIso).getTime();
+  let count = 0;
+  for (const row of rows) {
+    if (row.resolvedAt === null) continue;
+    if (toDate(row.resolvedAt).getTime() >= cutoff) count += 1;
+  }
+  return count;
 }
 
 function deterministicDelta(seed: string, count: number): number {

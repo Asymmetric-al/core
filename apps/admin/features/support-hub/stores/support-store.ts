@@ -124,34 +124,39 @@ export const supportStore = {
   },
 } as const;
 
-export type AssignConversationInput = z.infer<
+/**
+ * Inputs use `z.input<...>` so caller-side defaults (`reason`, `mode`) stay
+ * optional at the type level — they only become required after Zod fills them
+ * in inside the mutation hook.
+ */
+export type AssignConversationInput = z.input<
   typeof supportStore.inputs.assignConversation
 >;
-export type SetConversationStatusInput = z.infer<
+export type SetConversationStatusInput = z.input<
   typeof supportStore.inputs.setConversationStatus
 >;
-export type SnoozeConversationInput = z.infer<
+export type SnoozeConversationInput = z.input<
   typeof supportStore.inputs.snoozeConversation
 >;
-export type UnsnoozeConversationInput = z.infer<
+export type UnsnoozeConversationInput = z.input<
   typeof supportStore.inputs.unsnoozeConversation
 >;
-export type ToggleConversationLabelInput = z.infer<
+export type ToggleConversationLabelInput = z.input<
   typeof supportStore.inputs.toggleConversationLabel
 >;
-export type SetConversationPriorityInput = z.infer<
+export type SetConversationPriorityInput = z.input<
   typeof supportStore.inputs.setConversationPriority
 >;
-export type AddPrivateNoteInput = z.infer<
+export type AddPrivateNoteInput = z.input<
   typeof supportStore.inputs.addPrivateNote
 >;
-export type SendReplyInput = z.infer<typeof supportStore.inputs.sendReply> & {
+export type SendReplyInput = z.input<typeof supportStore.inputs.sendReply> & {
   payload: SupportReplyPayload;
 };
-export type SaveMacroInput = z.infer<typeof supportStore.inputs.saveMacro>;
-export type SaveCannedResponseInput = z.infer<
+export type SaveMacroInput = z.input<typeof supportStore.inputs.saveMacro>;
+export type SaveCannedResponseInput = z.input<
   typeof supportStore.inputs.saveCannedResponse
 >;
-export type SaveSavedViewInput = z.infer<
+export type SaveSavedViewInput = z.input<
   typeof supportStore.inputs.saveSavedView
 >;
