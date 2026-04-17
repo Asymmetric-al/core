@@ -306,6 +306,7 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 
 - Package manager/runtime: Bun (`bun`, `bunx`)
 - Task runner: Turborepo (`turbo`)
+- **Turbo + env:** Root `turbo.json` uses **`"envMode": "loose"`** so `turbo run dev` forwards your shell and dotenv vars to Next.js. Turbo 2’s default **strict** mode only passes variables declared under each task’s `env` / `globalEnv`, which hid `SUPABASE_DB_URL`, `PAYLOAD_DATABASE_URI`, demo secrets, etc., from `next dev` even when `.env.local` existed.
 - Next.js app paths:
   - `apps/admin` (`@asym/admin`)
   - `apps/donor` (`@asym/donor`)
@@ -396,7 +397,9 @@ Docker and Supabase CLI must be installed and running before starting local Supa
 
 ### Environment variables
 
-The `.env.local` file at the repo root must be symlinked into each app directory for Next.js to pick it up:
+Keep secrets in **repo-root** `.env.local` (gitignored). Each app’s `next.config.ts` calls **`loadEnvConfig` from `@next/env`** on the monorepo root so Payload and Next see `SUPABASE_DB_URL`, `PAYLOAD_DATABASE_URI`, etc., without copying files.
+
+Optional (older pattern): symlink root `.env.local` into each app if you rely on tooling that only reads `apps/<app>/.env.local`:
 
 ```
 ln -sf ../../.env.local apps/donor/.env.local
