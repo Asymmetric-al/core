@@ -86,7 +86,7 @@
         "@tanstack/react-form": "1.28.6",
         "@tanstack/react-query": "^5.96.2",
         "@tanstack/react-table": "^8.21.3",
-        "boneyard-js": "^1.6.1",
+        "boneyard-js": "^1.7.6",
         "clsx": "^2.1.1",
         "date-fns": "^4.1.0",
         "lucide-animated": "^1.0.0",
@@ -138,6 +138,7 @@
         "@stripe/stripe-js": "^5.10.0",
         "@tanstack/react-query": "^5.96.2",
         "@tanstack/react-table": "^8.21.3",
+        "boneyard-js": "^1.7.6",
         "date-fns": "^4.1.0",
         "lucide-react": "^0.575.0",
         "motion": "^12.34.2",
@@ -185,7 +186,7 @@
         "@dnd-kit/utilities": "^3.2.2",
         "@next/env": "16.2.1",
         "@tanstack/react-query": "^5.96.2",
-        "boneyard-js": "^1.6.1",
+        "boneyard-js": "^1.7.6",
         "date-fns": "^4.1.0",
         "lucide-react": "^0.575.0",
         "motion": "^12.34.2",
@@ -421,7 +422,6 @@
         "@tiptap/pm": "^3.20.1",
         "@tiptap/react": "^3.20.1",
         "@tiptap/starter-kit": "^3.20.1",
-        "boneyard-js": "^1.6.1",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "cmdk": "^1.1.1",
@@ -447,16 +447,21 @@
         "@asym/typescript-config": "workspace:*",
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
+        "boneyard-js": "^1.7.6",
         "eslint": "^9.39.2",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
         "typescript": "^5.7.3",
       },
       "peerDependencies": {
+        "boneyard-js": "^1.7.6",
         "react": "^18.0.0 || ^19.0.0",
         "react-dom": "^18.0.0 || ^19.0.0",
         "tailwindcss": "^4",
       },
+      "optionalPeers": [
+        "boneyard-js",
+      ],
     },
     "tooling/eslint-config": {
       "name": "@asym/eslint-config",
@@ -3901,8 +3906,6 @@
     "dom-serializer/entities": ["entities@4.5.0", "", {}, "sha512-V0hjH4dGPh9Ao5p0MoRY6BVqtwCjhz6vI5LT8AJ55H+4g9/4vbHx1I54fS0XuclLhDHArPQCiMjDxjaL8fPxhw=="],
 
     "enquirer/strip-ansi": ["strip-ansi@6.0.1", "", { "dependencies": { "ansi-regex": "^5.0.1" } }, "sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A=="],
-
-    "escodegen/source-map": ["source-map@0.6.1", "", {}, "sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g=="],
 
     "eslint/chalk": ["chalk@4.1.2", "", { "dependencies": { "ansi-styles": "^4.1.0", "supports-color": "^7.1.0" } }, "sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA=="],
 

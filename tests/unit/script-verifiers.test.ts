@@ -362,6 +362,36 @@ describe("verify-skills-sync", () => {
   }, 20_000);
 });
 
+describe("sync-agent-skills", () => {
+  it("refuses traversal-like entries in the canonical skills manifest", async () => {
+    const tempRoot = await createTempRepo("sync-skills-manifest-unsafe");
+    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    await mkdir(path.join(tempRoot, "docs", "ai", "skills", "anim"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, "docs", "ai", "skills", "anim", "SKILL.md"),
+      "---\nname: anim\n---\n",
+    );
+
+    await mkdir(path.join(tempRoot, ".agents", "skills"), { recursive: true });
+    await writeJson(
+      path.join(tempRoot, ".agents", "skills", ".repo-canonical-skills.json"),
+      { version: 1, canonicalSkills: [".."] },
+    );
+    await mkdir(path.join(tempRoot, ".cursor", "skills"), { recursive: true });
+    await writeJson(
+      path.join(tempRoot, ".cursor", "skills", ".repo-canonical-skills.json"),
+      { version: 1, canonicalSkills: [".."] },
+    );
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs"),
+    ).toThrow(/Refusing unsafe canonical skill directory name/);
+  });
+});
+
 describe("verify-eslint-config", () => {
   it("allows Payload-generated files to keep their bare eslint-disable banner", async () => {
     const tempRoot = await createEslintVerifyRepo();

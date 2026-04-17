@@ -1,20 +1,18 @@
 # Asymmetric.al - Kingdom Impact Platform
 
-A Turborepo monorepo using **Next.js 16.2** (App Router) and **Bun**, with three deployable apps (`apps/admin`, `apps/donor`, `apps/missionary`) and shared packages under `packages/*`.
+A high-performance Next.js 16.2.1 (App Router) Turborepo monorepo for mission-focused organizations, with three apps (`apps/admin`, `apps/donor`, `apps/missionary`) and shared workspace packages (`packages/*`).
 
 ## Quickstart
 
-```bash
-bun run setup
-# first run creates .env.local with placeholders
-# fill these required values, then re-run `bun run setup`:
-# NEXT_PUBLIC_SUPABASE_URL
-# NEXT_PUBLIC_SUPABASE_ANON_KEY
-bun run dev:donor
-# in another terminal:
-bun run verify
-# `bun run verify` is implemented in `scripts/verify/index.mjs`; on Windows without shims, use Git Bash / WSL: `bash scripts/verify/index.sh`
-```
+1. **Install prerequisites:** [Bun](https://bun.sh) and Git on your PATH.
+2. **Run setup** (creates `.env.local` on first run if needed, installs dependencies, checks that committed skill mirrors match `docs/ai/skills/`, then runs repo setup checks):
+   - macOS / Linux / Git Bash: `bun run setup`
+   - Windows PowerShell: see [Windows](#windows) below (`.\scripts\setup.ps1`).
+3. **Fill required Supabase values** in `.env.local` if the first run stopped with "missing required env vars", then run setup again.
+4. **Start dev:** `bun run dev` (or an app-specific script from `package.json`). For a single surface, `bun run dev:donor` is typical (donor on port 3000).
+5. **Optional smoke check:** `bun run verify` (implemented in `scripts/verify/index.mjs`; on Windows without a Bash shim, run `bash scripts/verify/index.sh` from Git Bash or WSL).
+
+**After `git pull` when skill files changed:** run `bun run skills:verify`. If it reports drift between `docs/ai/skills/` and the mirrors under `.agents/skills/` and `.cursor/skills/`, run `bun run skills:sync` and commit the updated mirror files so CI and teammates stay aligned.
 
 **Required:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`  
 **Optional:** Other entries in `.env.example` (Stripe, demo accounts, etc.)
@@ -60,6 +58,8 @@ pwsh -File .\scripts\setup.ps1
 First run creates `.env.local`. Fill these required values, then re-run the setup:
 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
+The script order matches `bun run setup` on Unix: install dependencies (unless `-SkipInstall`), run `bun run skills:verify`, then `bun run setup:verify`. After pulling changes that touch skills, run `bun run skills:verify`; if it reports mirror drift, run `bun run skills:sync` and commit the updated mirrors.
+
 Skip dependency install if you already ran it:
 
 ```powershell
@@ -77,8 +77,9 @@ Invoke-ScriptAnalyzer -Path .\scripts\setup.ps1, .\scripts\lib\*.ps1
 
 ## Architecture & Tech Stack
 
-- **Framework**: Next.js 16.2 (App Router, Turbopack in app configs)
-- **UI**: Tailwind CSS 4, shadcn/ui (Maia theme), Base UI
+- **Framework**: Next.js 16.2.1 (App Router, Turbopack in app configs) — _optimized for performance_
+- **UI system**: Tailwind CSS 4 + shadcn/ui (Maia theme) + Base UI
+- **Theme**: Light Zinc aesthetic (Zinc/Zinc), shadcn/ui Maia theme
 - **Database**: Supabase (PostgreSQL)
 - **Auth**: Supabase Auth (shared helpers in `packages/auth`, `packages/api`)
 - **Payments**: Stripe (donor and related flows)
@@ -129,23 +130,48 @@ Use the per-app `dev:*` scripts when you only need one surface, or `bun run dev`
 
 Agent-oriented docs live under `docs/ai/`:
 
-- **Entry point:** `AGENTS.md`
-- **Stack registry:** `docs/ai/stack-registry.md`
-- **Working set:** `docs/ai/working-set.md`
-- **Monorepo architecture:** `docs/ai/monorepo-architecture.md`
-- **Rulebooks:** `docs/ai/rules/*`
-- **Skills:** `docs/ai/skills/*`
+- **Entry point:** `AGENTS.md` — routing rules for all AI agent work
+- **Stack registry:** `docs/ai/stack-registry.md` — canonical tech stack list
+- **Working set:** `docs/ai/working-set.md` — living task context (keep updated)
+- **Monorepo architecture:** `docs/ai/monorepo-architecture.md` — workspace structure
+- **Rulebooks:** `docs/ai/rules/*` — domain-specific guidelines (frontend, backend, testing, etc.)
+- **Skills:** `docs/ai/skills/*` — reusable workflow patterns (repo-owned, versioned)
 
 **Canonical source:** `docs/ai/`. Root `rules/` and `skills/` contain **deprecation pointers** to `docs/ai/` (not full duplicates).
 
-Sync canonical skills into runtime folders after skill updates:
+**Repo-owned skills (how it fits together):** Edit and review skills under `docs/ai/skills/<name>/SKILL.md`. `AGENTS.md` points agents at those paths for routing. The same content is copied into **committed mirrors** at `.agents/skills/` (Codex-style discovery) and `.cursor/skills/` (Cursor) by the sync script so tools can surface them without a personal global install. CI runs `bun run skills:verify` to ensure mirrors match the canonical tree.
+
+**Skill scripts (root `package.json`):**
+
+| Command                           | What it does                                                                                                                                                                                                                                                            |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bun run skills:sync`             | Copies canonical `docs/ai/skills/*` into `.agents/skills/` and `.cursor/skills/`, prunes stale canonical copies from mirrors, and overlays extra packs from `.agents/skills` into `.cursor/skills` where configured. Run after you edit skills under `docs/ai/skills/`. |
+| `bun run skills:verify`           | Fails if mirrors drift from canonical sources or the git tree is dirty after sync (same check used in CI and in `bun run setup` / `scripts/setup.ps1`).                                                                                                                 |
+| `bun run skills:refresh-upstream` | Copies **vendored** upstream skills from `.agents/skills/` into `docs/ai/skills/` for the pinned set (`supabase`, `supabase-postgres-best-practices`). Use this after refreshing those packages with the Skills CLI (see below).                                        |
+
+**Resend CLI skill:** `docs/ai/skills/resend-cli/` is copied manually from the tagged [`resend/resend-cli`](https://github.com/resend/resend-cli) tree (`skills/resend-cli/`). It is not part of `skills:refresh-upstream`. After updating it, run `bun run skills:sync` and `bun run skills:verify`. See `docs/ai/skills/resend-cli/references/upstream.md`.
+
+When you add or change a skill **only** under `docs/ai/skills/`:
 
 ```bash
 bun run skills:sync
+bun run skills:verify
 ```
 
-- Canonical: `docs/ai/skills/*`
-- Mirrors: `.agents/skills/*` and `.cursor/skills/*`
+Commit both the canonical files and any mirror updates.
+
+**Updating vendored Supabase skills from upstream** (maintainers / periodic refresh):
+
+1. `npx skills add supabase/agent-skills -y` — updates `.agents/skills/*` and `skills-lock.json` for packages tracked by the Skills CLI.
+2. `bun run skills:refresh-upstream` — vendors the refreshed copies into `docs/ai/skills/supabase` and `docs/ai/skills/supabase-postgres-best-practices` (reconcile any repo-specific sections in those trees if the vendor copy overwrote them; see `scripts/refresh-upstream-skills.mjs`).
+3. `bun run skills:sync` then `bun run skills:verify` — refresh mirrors and confirm a clean tree.
+
+**Updating the vendored Resend CLI skill from upstream** (maintainers / on CLI releases):
+
+1. Replace `docs/ai/skills/resend-cli/` with the `skills/resend-cli/` directory from the desired [`resend/resend-cli`](https://github.com/resend/resend-cli) tag (see `docs/ai/skills/resend-cli/references/upstream.md`).
+2. `bun run skills:sync` then `bun run skills:verify`.
+
+`setup:verify` (run at the end of setup) calls your Supabase URL with the anon key; a **401** means the URL and anon key are not a matching pair for the same project (fix values in `.env.local` and re-run setup).
 
 ### Package Manager
 
@@ -331,10 +357,10 @@ bun run verify:supabase-money
 
 ## Key Conventions
 
-1. **RSC first** unless the UI needs client hooks or browser-only APIs.
-2. **Dynamic route APIs:** follow current Next.js App Router patterns for `params` / `searchParams` (this repo targets Next 16.2).
-3. **Theming:** Maia/Zinc tokens and shared UI patterns in `@asym/ui`.
-4. **Responsive checks:** exercise mobile and desktop widths for UI changes.
+1. **RSC first:** Keep components as React Server Components unless interactivity requires client hooks or browser-only APIs.
+2. **Next.js 16.2.1 compliance:** Always `await` dynamic `params` and `searchParams` in routes and layouts (follow current App Router patterns for this repo’s Next version).
+3. **Zinc and shadcn/ui Maia aesthetic:** Maia/Zinc tokens and shared UI patterns in `@asym/ui`; use `zinc-900` for primary actions and `zinc-500` for secondary text where this convention applies.
+4. **Responsive integrity:** Test UI changes on both ~375px (mobile) and ~1440px (desktop) viewports.
 
 ---
 

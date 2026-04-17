@@ -125,6 +125,11 @@ fi
 log "Installing dependencies..."
 bun install
 
+log "Verifying repo skill mirrors..."
+if ! bun run skills:verify; then
+  exit 1
+fi
+
 log "Running setup verification..."
 if bun run setup:verify; then
   log "Setup complete"

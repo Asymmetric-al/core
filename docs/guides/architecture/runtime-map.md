@@ -23,6 +23,15 @@ For every `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}` file while
 | admin      | `/api/admin/crm/records`                | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/admin/funds`                      | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/admin/locations`                  | Node.js (no `runtime` segment export) | Admin client                               |
+| admin      | `/api/admin/member-care/activity`       | Node.js (no `runtime` segment export) | Admin client                               |
+| admin      | `/api/admin/member-care/attention`      | Node.js (no `runtime` segment export) | Admin client                               |
+| admin      | `/api/admin/member-care/dashboard`      | Node.js (no `runtime` segment export) | Admin client                               |
+| admin      | `/api/admin/member-care/directory`      | Node.js (no `runtime` segment export) | Admin client                               |
+| admin      | `/api/admin/member-care/directory/[id]` | Node.js (no `runtime` segment export) | Admin client                               |
+| admin      | `/api/admin/member-care/goals`          | Node.js (no `runtime` segment export) | Admin client                               |
+| admin      | `/api/admin/member-care/private-notes`  | Node.js (no `runtime` segment export) | Admin client                               |
+| admin      | `/api/admin/member-care/requirements`   | Node.js (no `runtime` segment export) | Admin client                               |
+| admin      | `/api/admin/member-care/thread`         | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/admin/missionaries`               | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/admin/org-settings`               | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/admin/posts`                      | Node.js (no `runtime` segment export) | Admin client                               |
