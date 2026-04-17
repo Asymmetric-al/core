@@ -13,6 +13,10 @@ export const adminBaseURL =
   process.env.PLAYWRIGHT_ADMIN_BASE_URL ??
   `http://localhost:${adminPort}`;
 
+/**
+ * Next dev responds to `/_next/static/` with redirects (308) in some setups, which
+ * breaks Playwright `webServer` readiness. A stable app route is more reliable.
+ */
 export function nextDevReadyURL(base: string): string {
-  return `${base.replace(/\/$/, "")}/_next/static/`;
+  return `${base.replace(/\/$/, "")}/login`;
 }

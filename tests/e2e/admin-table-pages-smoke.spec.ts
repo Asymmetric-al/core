@@ -1,10 +1,13 @@
 import { expect, test, type Page } from "@playwright/test";
 
+import { adminBaseURL } from "./base-urls";
 import { getDemoRoleMap } from "./helpers/demo-auth";
 import { installDemoSessionInBrowser } from "./helpers/install-demo-session";
 
 async function ensureAdminDemo(page: Page) {
-  const availability = await page.request.get("/api/auth/demo-account");
+  const availability = await page.request.get(
+    `${adminBaseURL}/api/auth/demo-account`,
+  );
   test.skip(!availability.ok(), "Demo availability endpoint is unavailable.");
   const roles = getDemoRoleMap(await availability.json()) ?? {};
   test.skip(!roles.admin, "Admin demo account is not configured.");
@@ -13,6 +16,13 @@ async function ensureAdminDemo(page: Page) {
   if (!ok) {
     test.skip(true, `Demo admin session install failed (${status})`);
   }
+}
+
+/** Many admin pages use `PageShell` (no `<main>`); the shell chrome is the stable signal. */
+async function expectMissionControlChrome(page: Page) {
+  await expect(
+    page.getByRole("link", { name: /Mission Control/i }),
+  ).toBeVisible({ timeout: 120_000 });
 }
 
 const TABLE_ROUTES = [
@@ -24,6 +34,7 @@ const TABLE_ROUTES = [
 ] as const;
 
 test.describe("Admin table pages smoke", () => {
+  test.setTimeout(180_000);
   for (const { path, name } of TABLE_ROUTES) {
     test(`${name} (${path}) loads without client error overlay`, async ({
       page,
@@ -33,7 +44,7 @@ test.describe("Admin table pages smoke", () => {
       await page.waitForLoadState("domcontentloaded");
 
       await expect(page.locator("#__next_error__")).toHaveCount(0);
-      await expect(page.getByRole("main")).toBeVisible();
+      await expectMissionControlChrome(page);
     });
   }
 

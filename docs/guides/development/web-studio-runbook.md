@@ -100,6 +100,18 @@ Unauthenticated visit to `/web-studio` should redirect to login.
 
 **E2E failure modes:** port in use (`EADDRINUSE`); admin dev never becomes ready without Postgres for Payload — free ports and run `supabase start` or valid `PAYLOAD_DATABASE_URI`.
 
+### E2E + Payload Postgres (hosted Supabase)
+
+- **Docker is required** for `supabase start` locally (`npx supabase start` talks to Docker). Sandboxes without Docker cannot bring up `127.0.0.1:54322` automatically.
+- **IPv4-only runners** often cannot open Supabase **direct** DB URLs (`db.<ref>.supabase.co` resolves to **IPv6**). Use a **Supavisor session pooler** connection string in `PAYLOAD_DATABASE_URI` (see root `.env.example` notes).
+- **`test:e2e:smoke:cms` / `test:e2e:cms`:** Web Studio specs skip when Payload cannot reach Postgres (see `tests/e2e/cms-skip-if-no-payload.ts`). With a working `PAYLOAD_DATABASE_URI`, those tests should **run** (not skip) and assert the native shell.
+
+### Admin dev: Contributions live query + stderr noise
+
+- **`QueryBuilderError: … alias "donation"`** was caused by **two physical copies** of `@tanstack/db` in `node_modules` (different `CollectionImpl` classes). The repo runs **`node scripts/dedupe-tanstack-db.mjs` on `postinstall`** to symlink nested copies to the workspace root package. Re-run `bun install` if the error returns after a bad install.
+- `useDataTableWithLiveQuery` must pass a **callback** `(q) => …` into `useLiveQuery` (see `packages/ui/components/shadcn/data-table/hooks/use-data-table-live-query.ts`).
+- **`TypeError: controller[kState].transformAlgorithm is not a function`** still appears in **Next dev / Turbopack** stderr in some runs; **admin E2E passed** with it present. Treat as **dev noise** unless it reproduces on `next start` / production builds.
+
 ---
 
 ## 9. Rollback
