@@ -7,6 +7,10 @@ import * as React from "react";
 
 import { AttachmentChips } from "./AttachmentChips";
 import { ComposerActions } from "./ComposerActions";
+import {
+  CannedResponseSuggestionExtension,
+  buildMentionExtension,
+} from "./extensions";
 import { QuickActionsSlot } from "./QuickActionsSlot";
 import { SignatureChip } from "./SignatureChip";
 import { SupportTipTapEditor } from "./SupportTipTapEditor";
@@ -15,8 +19,15 @@ import {
   useConversationComposer,
   type ComposerMode,
 } from "./use-conversation-composer";
+import { useSupportAgents } from "../../../hooks/use-support-agents";
+import { useSupportCannedResponses } from "../../../hooks/use-support-canned-responses";
+import { logSupportActivity } from "../../../lib/activity-log";
+import { buildMergeVariableContext } from "../../../lib/merge-variables";
+import { toSupportParticipant } from "../../../lib/participants";
+import { MacroLauncher } from "../../macros/MacroLauncher";
 
 import type { SupportAssignee, SupportConversation } from "../../../types";
+import type { Extensions } from "@asym/ui/components/shadcn/rich-text-editor";
 
 interface ConversationComposerProps {
   conversation: SupportConversation;
@@ -48,6 +59,49 @@ export function ConversationComposer({
   });
   const containerRef = useComposerHotkeys({ onPrimaryAction: composer.send });
 
+  const { data: cannedResponses } = useSupportCannedResponses();
+  const { data: agents } = useSupportAgents();
+  const mergeContext = React.useMemo(
+    () => buildMergeVariableContext(conversation, agent),
+    [conversation, agent],
+  );
+
+  const handleMentionInsert = React.useCallback(
+    (mentionedAgent: SupportAssignee) => {
+      const actor = agent ? toSupportParticipant(agent) : null;
+      void logSupportActivity({
+        conversation,
+        actor,
+        verb: "mention",
+        body: `${actor?.name ?? "Someone"} mentioned ${mentionedAgent.name} in a private note.`,
+      });
+    },
+    [agent, conversation],
+  );
+
+  const extraExtensions = React.useMemo<Extensions>(() => {
+    if (composer.mode === "reply") {
+      return [
+        CannedResponseSuggestionExtension.configure({
+          cannedResponses,
+          mergeContext,
+        }),
+      ];
+    }
+    return [
+      buildMentionExtension({
+        agents,
+        onMention: handleMentionInsert,
+      }),
+    ];
+  }, [
+    agents,
+    cannedResponses,
+    composer.mode,
+    handleMentionInsert,
+    mergeContext,
+  ]);
+
   return (
     <div
       ref={containerRef}
@@ -70,13 +124,30 @@ export function ConversationComposer({
         onChange={composer.setValue}
         disabled={composer.isPending}
         tone={composer.mode}
+        extraExtensions={extraExtensions}
         placeholder={
           composer.mode === "reply"
-            ? "Write a reply to the donor..."
-            : "Leave an internal note for the team..."
+            ? "Write a reply to the donor... type / for canned responses"
+            : "Leave an internal note for the team... type @ to mention an agent"
         }
         beforeToolbar={slots?.beforeToolbar}
-        afterToolbar={slots?.afterToolbar}
+        afterToolbar={
+          slots?.afterToolbar ?? (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-[11px] text-zinc-500">
+                {composer.mode === "reply"
+                  ? "Type / for a canned response."
+                  : "Type @ to mention a teammate."}
+              </p>
+              <MacroLauncher
+                conversation={conversation}
+                onCannedResponseInsert={({ html, text }) => {
+                  composer.setValue(htmlToTiptapJson(html, text));
+                }}
+              />
+            </div>
+          )
+        }
         footer={
           <div className="flex flex-col gap-2 border-t border-zinc-100 px-3 py-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -118,6 +189,28 @@ interface ComposerTabsProps {
   mode: ComposerMode;
   onModeChange: (mode: ComposerMode) => void;
   donorName: string;
+}
+
+/**
+ * Converts a canned-response HTML body into a Tiptap-shaped document JSON
+ * string. We keep the shape minimal — `EditorRoot.parseContent` will hydrate
+ * the body when the editor mounts. Falls back to a plain paragraph wrapper
+ * when HTML is empty.
+ */
+function htmlToTiptapJson(html: string, text: string): string {
+  const safeHtml =
+    html && html.length > 0 ? html : `<p>${escapeHtml(text)}</p>`;
+  // EditorRoot already accepts raw HTML strings via `parseContent`, so we
+  // pass the HTML through unchanged. The `setValue` contract serializes the
+  // editor doc to JSON on next change, so subsequent edits behave normally.
+  return safeHtml;
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 function ComposerTabs({ mode, onModeChange, donorName }: ComposerTabsProps) {

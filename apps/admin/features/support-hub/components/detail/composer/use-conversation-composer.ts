@@ -4,11 +4,13 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import { serializeReplyPayload } from "./serialize-payload";
+import { useSupportConversation } from "../../../hooks/use-support-conversation";
 import {
   useAddSupportPrivateNote,
   useSendSupportReply,
 } from "../../../hooks/use-support-mutations";
 import { useCurrentSupportAgentId } from "../../../lib/current-agent";
+import { buildMergeVariableContext } from "../../../lib/merge-variables";
 
 import type { SupportAttachmentDraft } from "../../../models/editor-payload";
 import type { SupportAssignee } from "../../../types";
@@ -88,6 +90,13 @@ export function useConversationComposer({
   >({ reply: [], note: [] });
   const [appendSignature, setAppendSignature] = React.useState(true);
 
+  const conversationQuery = useSupportConversation(conversationId);
+  const conversation = conversationQuery.data ?? null;
+  const mergeContext = React.useMemo(
+    () => buildMergeVariableContext(conversation, resolvedAgent),
+    [conversation, resolvedAgent],
+  );
+
   const sendReply = useSendSupportReply();
   const addNote = useAddSupportPrivateNote();
   const isPending = sendReply.isPending || addNote.isPending;
@@ -149,6 +158,7 @@ export function useConversationComposer({
         attachments: [],
         signatureAgent: null,
         appendSignature: false,
+        mergeContext,
       });
       try {
         await addNote.mutateAsync({
@@ -170,6 +180,7 @@ export function useConversationComposer({
       attachments,
       signatureAgent: resolvedAgent,
       appendSignature,
+      mergeContext,
     });
     try {
       await sendReply.mutateAsync({
@@ -203,6 +214,7 @@ export function useConversationComposer({
       attachments,
       signatureAgent: resolvedAgent,
       appendSignature,
+      mergeContext,
     });
     try {
       await sendReply.mutateAsync({

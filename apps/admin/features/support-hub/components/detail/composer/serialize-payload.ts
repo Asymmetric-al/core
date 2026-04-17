@@ -1,3 +1,8 @@
+import {
+  applyMergeVariables,
+  type MergeVariableContext,
+} from "../../../lib/merge-variables";
+
 import type {
   SupportAttachmentDraft,
   SupportReplyPayload,
@@ -11,6 +16,13 @@ interface SerializeArgs {
   /** When set, append the agent's signature to text/html (never to the JSON doc). */
   signatureAgent: SupportAssignee | null;
   appendSignature: boolean;
+  /**
+   * Defensive merge-variable substitution at serialize time. Most callers
+   * already substitute at insertion time (so the editor JSON is clean), but
+   * macro / canned-response insertions that bypass the composer rely on this
+   * pass to keep `{{donor.name}}` from leaking into a donor email.
+   */
+  mergeContext?: MergeVariableContext;
 }
 
 /**
@@ -35,6 +47,7 @@ export function serializeReplyPayload({
   attachments,
   signatureAgent,
   appendSignature,
+  mergeContext,
 }: SerializeArgs): SupportReplyPayload {
   const json = parseDocument(rawJson);
   const text = nodeToText(json).trim();
@@ -55,10 +68,19 @@ export function serializeReplyPayload({
     ? `${html}\n<p class="support-signature">--<br/>${signatureLine.html}</p>`
     : html;
 
+  // Defensive second pass — see `mergeContext` JSDoc for rationale. Cheap when
+  // there is nothing to substitute.
+  const mergedText = mergeContext
+    ? applyMergeVariables(finalText, mergeContext)
+    : finalText;
+  const mergedHtml = mergeContext
+    ? applyMergeVariables(finalHtml, mergeContext)
+    : finalHtml;
+
   return {
     json,
-    html: finalHtml,
-    text: finalText,
+    html: mergedHtml,
+    text: mergedText,
     attachments,
   };
 }
@@ -103,6 +125,12 @@ function nodeToText(node: TiptapNode): string {
   if (!node) return "";
   if (node.type === "text") return node.text ?? "";
   if (node.type === "hardBreak") return "\n";
+  if (node.type === "mention") {
+    const label = (node.attrs?.label as string | undefined) ?? "";
+    const id = (node.attrs?.id as string | undefined) ?? "";
+    const display = label.length > 0 ? label : id;
+    return display.length > 0 ? `@${display}` : "";
+  }
 
   const children = (node.content ?? []).map(nodeToText);
   switch (node.type) {
@@ -131,6 +159,13 @@ function nodeToHtml(node: TiptapNode): string {
     return wrapMarks(escapeHtml(node.text ?? ""), node.marks ?? []);
   }
   if (node.type === "hardBreak") return "<br/>";
+  if (node.type === "mention") {
+    const label = (node.attrs?.label as string | undefined) ?? "";
+    const id = (node.attrs?.id as string | undefined) ?? "";
+    const display = label.length > 0 ? label : id;
+    if (display.length === 0) return "";
+    return `<span class="support-mention" data-mention-id="${escapeAttr(id)}">@${escapeHtml(display)}</span>`;
+  }
 
   const children = (node.content ?? []).map(nodeToHtml).join("");
   switch (node.type) {

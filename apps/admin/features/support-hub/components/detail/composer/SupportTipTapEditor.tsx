@@ -4,6 +4,7 @@ import {
   EditorContent,
   EditorRoot,
   EditorToolbar,
+  type Extensions,
   type ToolbarTool,
 } from "@asym/ui/components/shadcn/rich-text-editor";
 import { cn } from "@asym/ui/lib/utils";
@@ -30,6 +31,12 @@ interface SupportTipTapEditorProps {
   beforeToolbar?: ReactNode;
   /** Optional row rendered after the toolbar tool group (Phase 5 macro slot). */
   afterToolbar?: ReactNode;
+  /**
+   * Phase 5 hook for mode-aware Tiptap extensions (canned suggestion in reply
+   * mode, mention suggestion in note mode). Forwarded straight to
+   * `EditorRoot.extraExtensions`.
+   */
+  extraExtensions?: Extensions;
 }
 
 /**
@@ -90,6 +97,7 @@ export function SupportTipTapEditor({
   footer,
   beforeToolbar,
   afterToolbar,
+  extraExtensions,
 }: SupportTipTapEditorProps) {
   const tools = tone === "reply" ? SUPPORT_REPLY_TOOLS : SUPPORT_NOTE_TOOLS;
 
@@ -100,6 +108,7 @@ export function SupportTipTapEditor({
       disabled={disabled}
       placeholder={placeholder}
       proseInvert={false}
+      extraExtensions={extraExtensions}
       className={cn(
         "border border-zinc-200 bg-white shadow-sm",
         tone === "note" && "border-amber-200 bg-amber-50/40",
