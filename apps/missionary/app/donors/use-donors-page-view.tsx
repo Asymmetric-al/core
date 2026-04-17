@@ -293,7 +293,68 @@ function StatCard({
 }
 
 type SortOption = "name" | "last_gift" | "total_given" | "joined_date";
-export function useDonorsPageLayout() {
+
+export type DonorsPageViewModel = {
+  activeCount: number;
+  activePledgeCount: number;
+  activeTab: string;
+  activityType: "note" | "call" | "meeting" | "email";
+  atRiskCount: number;
+  clearAllFilters: () => void;
+  copyToClipboard: (text: string, label: string) => void;
+  donorColumns: ColumnDef<Donor>[];
+  donors: Donor[];
+  error: string | null;
+  filteredDonors: Donor[];
+  formatAddress: (address: Address) => string[];
+  givingHistoryColumns: ColumnDef<Activity>[];
+  givingHistoryRows: Activity[];
+  handleAddNote: () => Promise<void>;
+  handleRefreshDonors: () => void;
+  handleSaveTags: () => Promise<void>;
+  handleStatCardClick: (
+    filterType: "atRisk" | "activePledge" | "lapsed" | "new",
+  ) => void;
+  hasActiveFilters: boolean;
+  isEditDialogOpen: boolean;
+  isLoading: boolean;
+  isNoteDialogOpen: boolean;
+  isSavingNote: boolean;
+  isSavingTags: boolean;
+  isTagDialogOpen: boolean;
+  lapsedCount: number;
+  monthlyPledgeTotal: number;
+  noteInput: string;
+  openEditDialog: () => void;
+  pledgeFilter: string;
+  profile: ReturnType<typeof useAuth>["profile"];
+  searchTerm: string;
+  selectedDonor: Donor | null;
+  selectedTags: string[];
+  setActiveTab: React.Dispatch<React.SetStateAction<string>>;
+  setActivityType: React.Dispatch<
+    React.SetStateAction<"note" | "call" | "meeting" | "email">
+  >;
+  setIsEditDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsNoteDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsTagDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setNoteInput: React.Dispatch<React.SetStateAction<string>>;
+  setPledgeFilter: React.Dispatch<React.SetStateAction<string>>;
+  setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
+  setSelectedDonorId: React.Dispatch<React.SetStateAction<string | null>>;
+  setSortAsc: React.Dispatch<React.SetStateAction<boolean>>;
+  setSortBy: React.Dispatch<React.SetStateAction<SortOption>>;
+  setStatusFilter: React.Dispatch<React.SetStateAction<string>>;
+  setTagFilter: React.Dispatch<React.SetStateAction<string[]>>;
+  sortAsc: boolean;
+  sortBy: SortOption;
+  statusFilter: string;
+  tagFilter: string[];
+  toggleTag: (tagId: string) => void;
+  totalGiven: number;
+};
+
+export function useDonorsPageView(): DonorsPageViewModel {
   const { profile, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   const supabase = React.useMemo(
@@ -737,6 +798,118 @@ export function useDonorsPageLayout() {
     [],
   );
 
+  return {
+    activeCount,
+    activePledgeCount,
+    activeTab,
+    activityType,
+    atRiskCount,
+    clearAllFilters,
+    copyToClipboard,
+    donorColumns,
+    donors,
+    error,
+    filteredDonors,
+    formatAddress,
+    givingHistoryColumns,
+    givingHistoryRows,
+    handleAddNote,
+    handleRefreshDonors,
+    handleSaveTags,
+    handleStatCardClick,
+    hasActiveFilters,
+    isEditDialogOpen,
+    isLoading,
+    isNoteDialogOpen,
+    isSavingNote,
+    isSavingTags,
+    isTagDialogOpen,
+    lapsedCount,
+    monthlyPledgeTotal,
+    noteInput,
+    openEditDialog,
+    pledgeFilter,
+    profile,
+    searchTerm,
+    selectedDonor,
+    selectedTags,
+    setActiveTab,
+    setActivityType,
+    setIsEditDialogOpen,
+    setIsNoteDialogOpen,
+    setIsTagDialogOpen,
+    setNoteInput,
+    setPledgeFilter,
+    setSearchTerm,
+    setSelectedDonorId,
+    setSortAsc,
+    setSortBy,
+    setStatusFilter,
+    setTagFilter,
+    sortAsc,
+    sortBy,
+    statusFilter,
+    tagFilter,
+    toggleTag,
+    totalGiven,
+  };
+}
+
+export function DonorsPageContent({
+  activeCount,
+  activePledgeCount,
+  activeTab,
+  activityType,
+  atRiskCount,
+  clearAllFilters,
+  copyToClipboard,
+  donorColumns,
+  donors,
+  error,
+  filteredDonors,
+  formatAddress,
+  givingHistoryColumns,
+  givingHistoryRows,
+  handleAddNote,
+  handleRefreshDonors,
+  handleSaveTags,
+  handleStatCardClick,
+  hasActiveFilters,
+  isEditDialogOpen,
+  isLoading,
+  isNoteDialogOpen,
+  isSavingNote,
+  isSavingTags,
+  isTagDialogOpen,
+  lapsedCount,
+  monthlyPledgeTotal,
+  noteInput,
+  openEditDialog,
+  pledgeFilter,
+  profile,
+  searchTerm,
+  selectedDonor,
+  selectedTags,
+  setActiveTab,
+  setActivityType,
+  setIsEditDialogOpen,
+  setIsNoteDialogOpen,
+  setIsTagDialogOpen,
+  setNoteInput,
+  setPledgeFilter,
+  setSearchTerm,
+  setSelectedDonorId,
+  setSortAsc,
+  setSortBy,
+  setStatusFilter,
+  setTagFilter,
+  sortAsc,
+  sortBy,
+  statusFilter,
+  tagFilter,
+  toggleTag,
+  totalGiven,
+}: DonorsPageViewModel) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
