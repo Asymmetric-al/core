@@ -1,5 +1,20 @@
 # Working Set
 
+## 2026-04-17 (shadcn/ui migration: post-merge validation)
+
+- Date: 2026-04-17
+- Repo: Asymmetric-al/core
+- Goal: Re-validate the shadcn/ui + primitives split after merge: full `ci:preflight`, `shadcn diff` in `packages/ui`, and align unit tests with canonical `components/primitives` paths so coverage tracks real implementations rather than compatibility shims only.
+- Primary area:
+  - `tests/unit/packages/ui/components/primitives/**`
+  - `packages/ui/components/{primitives,shadcn}/**`
+- Constraints:
+  - Treat `shadcn diff` and repo gates as the source of truth for canonical drift.
+  - Keep compatibility re-exports in `components/shadcn/*` for external/legacy imports; tests should import primitives directly where they assert first-party helper behavior.
+- Evidence sources used:
+  - `bun run ci:preflight`
+  - `bunx shadcn@latest diff` (cwd `packages/ui`)
+
 ## 2026-04-17 (shadcn/ui full implementation pass)
 
 - Date: 2026-04-17
@@ -19,7 +34,6 @@
   - Keep App Router server/client boundaries explicit and compatible with `cacheComponents: true`.
   - Preserve the shared Maia/Zinc token system; remove hardcoded component colors in favor of semantic tokens.
   - Keep shared UI ownership in `packages/ui`; apps must keep consuming via `@asym/ui`.
-  - This runtime currently lacks Bun and a workspace `node_modules`; environment must be restored before validation.
 - Evidence sources used:
   - `docs/ai/{stack-registry,working-set}.md`
   - `docs/ai/rules/{general,frontend,testing}.md`
