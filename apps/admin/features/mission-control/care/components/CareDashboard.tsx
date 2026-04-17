@@ -20,6 +20,13 @@ import {
 } from "lucide-react";
 import React from "react";
 
+import {
+  getAttentionGaps,
+  getCriticalCarePriorities,
+  getDashboardNotifications,
+  getOpenInterventionsCount,
+  getRecentCheckInCount,
+} from "../member-care.derived";
 import { PersonnelList } from "./PersonnelList";
 
 import type { CarePersonnel, ActivityLogEntry } from "../types";
@@ -29,10 +36,32 @@ interface CareDashboardProps {
   activities: ActivityLogEntry[];
 }
 
-export function CareDashboard({
-  personnel,
-  activities: _activities,
-}: CareDashboardProps) {
+export function CareDashboard({ personnel, activities }: CareDashboardProps) {
+  const attentionGaps = React.useMemo(
+    () => getAttentionGaps({ personnel, activities }),
+    [personnel, activities],
+  );
+  const criticalPriorities = React.useMemo(
+    () => getCriticalCarePriorities(attentionGaps),
+    [attentionGaps],
+  );
+  const notifications = React.useMemo(
+    () => getDashboardNotifications({ personnel, activities }),
+    [personnel, activities],
+  );
+  const upcomingBirthdayNotifications = React.useMemo(
+    () => notifications.filter((note) => note.type === "birthday"),
+    [notifications],
+  );
+  const openInterventionsCount = React.useMemo(
+    () => getOpenInterventionsCount(personnel),
+    [personnel],
+  );
+  const recentCheckIns = React.useMemo(
+    () => getRecentCheckInCount(activities),
+    [activities],
+  );
+
   const atRiskCount = personnel.filter(
     (p) => p.status === "At Risk" || p.status === "Crisis",
   ).length;
@@ -48,7 +77,7 @@ export function CareDashboard({
     },
     {
       label: "Open Interventions",
-      value: 12,
+      value: openInterventionsCount,
       icon: ShieldCheck,
       color: "text-indigo-600",
       bg: "bg-indigo-50/50",
@@ -56,7 +85,7 @@ export function CareDashboard({
     },
     {
       label: "Check-ins (30d)",
-      value: 89,
+      value: recentCheckIns,
       icon: Heart,
       color: "text-emerald-600",
       bg: "bg-emerald-50/50",
@@ -64,7 +93,7 @@ export function CareDashboard({
     },
     {
       label: "Risk Alerts",
-      value: atRiskCount,
+      value: criticalPriorities.length || atRiskCount,
       icon: AlertTriangle,
       color: atRiskCount > 0 ? "text-destructive" : "text-muted-foreground",
       bg: atRiskCount > 0 ? "bg-destructive/5" : "bg-muted/30",
@@ -159,96 +188,98 @@ export function CareDashboard({
               </CardDescription>
             </CardHeader>
             <CardContent className="p-responsive-card space-y-3">
-              {[
-                {
-                  type: "Update Overdue",
-                  count: 2,
-                  desc: "No check-in for 45+ days",
-                  color: "rose",
-                },
-                {
-                  type: "Financial Gap",
-                  count: 1,
-                  desc: "Support below 70% threshold",
-                  color: "orange",
-                },
-              ].map((alert) => (
-                <div
-                  key={alert.type}
-                  className="p-3 rounded-2xl border border-border/50 bg-background shadow-sm flex items-start gap-4 hover:border-destructive/30 transition-colors cursor-pointer group"
-                >
-                  <div className="h-10 w-10 rounded-xl bg-muted/30 text-muted-foreground flex items-center justify-center border border-border/50 shrink-0 group-hover:bg-destructive/5 group-hover:text-destructive transition-colors">
-                    <AlertTriangle className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-primary">
-                        {alert.type}
-                      </span>
-                      <Badge className="h-4 px-1 bg-destructive text-destructive-foreground border-none text-[10px] font-black">
-                        {alert.count}
-                      </Badge>
+              {attentionGaps.length > 0 ? (
+                attentionGaps.slice(0, 3).map((alert) => (
+                  <div
+                    key={`${alert.personnelId}-${alert.reason}`}
+                    className="p-3 rounded-2xl border border-border/50 bg-background shadow-sm flex items-start gap-4 hover:border-destructive/30 transition-colors cursor-pointer group"
+                  >
+                    <div className="h-10 w-10 rounded-xl bg-muted/30 text-muted-foreground flex items-center justify-center border border-border/50 shrink-0 group-hover:bg-destructive/5 group-hover:text-destructive transition-colors">
+                      <AlertTriangle className="h-5 w-5" />
                     </div>
-                    <p className="text-[11px] font-medium text-muted-foreground mt-0.5">
-                      {alert.desc}
-                    </p>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-primary">
+                          {alert.reasonLabel}
+                        </span>
+                        <Badge className="h-4 px-1 bg-destructive text-destructive-foreground border-none text-[10px] font-black">
+                          {alert.daysOverdue}
+                        </Badge>
+                      </div>
+                      <p className="text-[11px] font-medium text-muted-foreground mt-0.5">
+                        {alert.personnelName}
+                      </p>
+                    </div>
                   </div>
+                ))
+              ) : (
+                <div className="rounded-2xl border border-border/50 bg-background p-5 text-xs font-semibold text-muted-foreground">
+                  No urgent care gaps right now.
                 </div>
-              ))}
+              )}
               <Button className="w-full btn-responsive font-bold bg-destructive text-destructive-foreground hover:opacity-90 shadow-lg shadow-destructive/10 mt-2">
-                Review All Alerts
+                Review All Alerts ({attentionGaps.length})
               </Button>
             </CardContent>
           </Card>
 
-          {/* Upcoming Schedule */}
+          {/* Upcoming Birthdays */}
           <Card className="border-border/50 shadow-sm overflow-hidden">
             <CardHeader className="pb-3 border-b border-border/30 bg-muted/5">
               <CardTitle className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
-                Upcoming Schedule
+                Upcoming Birthdays
               </CardTitle>
             </CardHeader>
             <CardContent className="p-responsive-card">
               <div className="space-y-5">
-                {personnel.slice(0, 3).map((p) => (
-                  <div
-                    key={p.id}
-                    className="flex items-center justify-between group cursor-pointer hover:bg-muted/30 p-2 -m-2 rounded-xl transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="relative">
-                        <div className="h-10 w-10 rounded-full bg-primary/5 flex items-center justify-center text-[10px] font-bold text-primary border border-primary/10">
-                          {p.initials}
-                        </div>
-                        <div className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-background flex items-center justify-center border border-border/50 shadow-sm">
-                          <Clock className="h-2 w-2 text-muted-foreground" />
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-primary leading-tight">
-                          {p.name}
-                        </p>
-                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1">
-                          Tomorrow • Check-in
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 transition-all text-muted-foreground hover:text-primary"
+                {upcomingBirthdayNotifications.slice(0, 3).map((note) => {
+                  const p = personnel.find(
+                    (item) => item.id === note.personnelId,
+                  );
+                  if (!p) return null;
+                  return (
+                    <div
+                      key={note.id}
+                      className="flex items-center justify-between group cursor-pointer hover:bg-muted/30 p-2 -m-2 rounded-xl transition-colors"
                     >
-                      <ArrowUpRight className="h-4 w-4" />
-                    </Button>
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <div className="h-10 w-10 rounded-full bg-primary/5 flex items-center justify-center text-[10px] font-bold text-primary border border-primary/10">
+                            {p.initials}
+                          </div>
+                          <div className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-background flex items-center justify-center border border-border/50 shadow-sm">
+                            <Clock className="h-2 w-2 text-muted-foreground" />
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-primary leading-tight">
+                            {p.name}
+                          </p>
+                          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1">
+                            {note.title} • {note.detail}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 transition-all text-muted-foreground hover:text-primary"
+                      >
+                        <ArrowUpRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  );
+                })}
+                {upcomingBirthdayNotifications.length === 0 && (
+                  <div className="rounded-2xl border border-border/50 bg-background p-5 text-xs font-semibold text-muted-foreground">
+                    No upcoming birthdays yet. Care task scheduling is coming
+                    soon.
                   </div>
-                ))}
+                )}
               </div>
-              <Button
-                variant="outline"
-                className="w-full btn-responsive font-bold border-border/50 hover:bg-muted mt-6"
-              >
-                Full Calendar
-              </Button>
+              <div className="mt-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                Care task scheduling coming soon
+              </div>
             </CardContent>
           </Card>
         </div>

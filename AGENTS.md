@@ -216,11 +216,12 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 
 **Supabase and Supabase Auth:** For any work touching Supabase products (database, Auth, Storage, Realtime, Edge Functions, CLI, MCP, RLS, migrations), load **`docs/ai/skills/supabase/SKILL.md`** first. For Next.js App Router auth integration specifically, also use **`docs/ai/skills/nextjs-supabase-auth/SKILL.md`**. For Postgres query/schema/RLS performance, use **`docs/ai/skills/supabase-postgres-best-practices/SKILL.md`**.
 
-**Keeping ecosystem skills current:** **`skills-lock.json`** pins content hashes for skills installed via the Skills CLI (see entries under `skills.*`). To **restore** those installs into `.agents/skills/` from the lockfile: `npx skills experimental_install -y` (this rewrites every skill listed in the lockfile under `.agents/skills/`; prefer `npx skills add <pkg> -y` for targeted updates). To **pull newer upstream** content: `npx skills add supabase/agent-skills -y` (updates the lockfile), then `bun run skills:refresh-upstream`, reconcile any **This repository** / workflow sections in `docs/ai/skills/supabase/SKILL.md` and `docs/ai/skills/supabase-postgres-best-practices/SKILL.md` if the vendor copy overwrote them, then `bun run skills:sync` and `bun run skills:verify`. Apply the same pattern for other vendored packages by extending `scripts/refresh-upstream-skills.mjs`.
+**Keeping ecosystem skills current:** **`skills-lock.json`** pins content hashes for skills installed via the Skills CLI (see entries under `skills.*`). To **restore** those installs into `.agents/skills/` from the lockfile: `npx skills experimental_install -y` (this rewrites every skill listed in the lockfile under `.agents/skills/`; prefer `npx skills add <pkg> -y` for targeted updates). To **pull newer upstream** content: `npx skills add supabase/agent-skills -y` (updates the lockfile), then `bun run skills:refresh-upstream`, reconcile any **This repository** / workflow sections in `docs/ai/skills/supabase/SKILL.md` and `docs/ai/skills/supabase-postgres-best-practices/SKILL.md` if the vendor copy overwrote them, then `bun run skills:sync` and `bun run skills:verify`. Apply the same pattern for other vendored packages by extending `scripts/refresh-upstream-skills.mjs`. **Resend CLI** (`docs/ai/skills/resend-cli/`) is vendored from the tagged [`resend/resend-cli`](https://github.com/resend/resend-cli) tree (`skills/resend-cli/`); refresh steps live in `docs/ai/skills/resend-cli/references/upstream.md` — it is **not** updated by `bun run skills:refresh-upstream` today.
 
 - **Next.js App Router structure, rendering, data fetching:** `docs/ai/skills/nextjs-app-router/SKILL.md`
 - **Cache Components / PPR / cacheTag & invalidation:** `docs/ai/skills/cache-components/SKILL.md`
 - **React component design/refactor:** `docs/ai/skills/react-component-dev/SKILL.md`
+- **Million React Doctor / performance & health audits (`millionco/react-doctor`):** `docs/ai/skills/react-doctor/SKILL.md`
 - **Composable, accessible UI components (components.build spec):** `docs/ai/skills/components-build/SKILL.md`
 - **shadcn/ui system usage:** `docs/ai/skills/moai-library-shadcn/SKILL.md`
 - **Base UI:** `docs/ai/skills/base-ui/SKILL.md`
@@ -230,6 +231,7 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 - **Recharts:** `docs/ai/skills/rechart/SKILL.md`
 - **TanStack Table v8:** `docs/ai/skills/tanstack-table/SKILL.md`
 - **Tiptap rich text editor (`@tiptap/*`, shared editor in `@asym/ui`):** `docs/ai/skills/tiptap/SKILL.md`
+- **Resend CLI (`resend` binary, shell, scripts, CI/CD, non-interactive flags):** `docs/ai/skills/resend-cli/SKILL.md` (not the same as SDK or tenant app integration; see `docs/guides/features/resend-integration.md` for product email routes and UI)
 - **Supabase (platform-wide: Auth, DB API, Storage, Realtime, Edge Functions, CLI, MCP, RLS, migrations):** `docs/ai/skills/supabase/SKILL.md`
 - **Supabase Postgres tuning / query patterns:** `docs/ai/skills/supabase-postgres-best-practices/SKILL.md`
 - **Next.js + Supabase Auth integration:** `docs/ai/skills/nextjs-supabase-auth/SKILL.md`
@@ -304,6 +306,7 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 
 - Package manager/runtime: Bun (`bun`, `bunx`)
 - Task runner: Turborepo (`turbo`)
+- **Turbo + env:** Root `turbo.json` uses **`"envMode": "loose"`** so `turbo run dev` forwards your shell and dotenv vars to Next.js. Turbo 2’s default **strict** mode only passes variables declared under each task’s `env` / `globalEnv`, which hid `SUPABASE_DB_URL`, `PAYLOAD_DATABASE_URI`, demo secrets, etc., from `next dev` even when `.env.local` existed.
 - Next.js app paths:
   - `apps/admin` (`@asym/admin`)
   - `apps/donor` (`@asym/donor`)
@@ -394,7 +397,9 @@ Docker and Supabase CLI must be installed and running before starting local Supa
 
 ### Environment variables
 
-The `.env.local` file at the repo root must be symlinked into each app directory for Next.js to pick it up:
+Keep secrets in **repo-root** `.env.local` (gitignored). Each app’s `next.config.ts` calls **`loadEnvConfig` from `@next/env`** on the monorepo root so Payload and Next see `SUPABASE_DB_URL`, `PAYLOAD_DATABASE_URI`, etc., without copying files.
+
+Optional (older pattern): symlink root `.env.local` into each app if you rely on tooling that only reads `apps/<app>/.env.local`:
 
 ```
 ln -sf ../../.env.local apps/donor/.env.local
