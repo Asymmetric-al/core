@@ -16,10 +16,11 @@ import {
   PopoverTrigger,
 } from "@asym/ui/components/shadcn/popover";
 import { cn } from "@asym/ui/lib/utils";
-import { Check, Tag } from "lucide-react";
+import { Check, Settings2, Tag } from "lucide-react";
 import * as React from "react";
 
 import { useSupportLabels } from "../../hooks/use-support-labels";
+import { LabelManagerDialog } from "../labels/LabelManagerDialog";
 
 interface LabelFilterProps {
   value: string[];
@@ -34,6 +35,7 @@ interface LabelFilterProps {
 export function LabelFilter({ value, onValueChange }: LabelFilterProps) {
   const { data: labels } = useSupportLabels();
   const [open, setOpen] = React.useState(false);
+  const [isManagerOpen, setIsManagerOpen] = React.useState(false);
 
   const valueSet = React.useMemo(() => new Set(value), [value]);
 
@@ -120,9 +122,28 @@ export function LabelFilter({ value, onValueChange }: LabelFilterProps) {
                 </Button>
               </div>
             ) : null}
+            <div className="border-t border-zinc-100 p-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setOpen(false);
+                  setIsManagerOpen(true);
+                }}
+                className="h-8 w-full justify-center gap-1.5 text-xs font-medium text-zinc-600"
+              >
+                <Settings2 className="size-3.5" />
+                Manage labels
+              </Button>
+            </div>
           </CommandList>
         </Command>
       </PopoverContent>
+      <LabelManagerDialog
+        open={isManagerOpen}
+        onOpenChange={setIsManagerOpen}
+      />
     </Popover>
   );
 }

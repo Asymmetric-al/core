@@ -8,6 +8,7 @@ import { Check, X } from "lucide-react";
 import { ConversationAssigneeMenu } from "./ConversationAssigneeMenu";
 import { ConversationContactSidecar } from "./ConversationContactSidecar";
 import { ConversationLabelMenu } from "./ConversationLabelMenu";
+import { ConversationMacrosMenu } from "./ConversationMacrosMenu";
 import { ConversationPriorityMenu } from "./ConversationPriorityMenu";
 import { ConversationSlaChip } from "./ConversationSlaChip";
 import { ConversationSnoozeMenu } from "./ConversationSnoozeMenu";
@@ -61,6 +62,7 @@ export function ConversationHeader({
           <span className="text-zinc-700">{conversation.status}</span>
         </span>
         <div className="flex items-center gap-1.5">
+          <ConversationMacrosMenu conversation={conversation} />
           <ConversationSnoozeMenu conversation={conversation} />
           <Button
             type="button"

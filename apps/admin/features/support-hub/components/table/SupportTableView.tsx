@@ -31,58 +31,62 @@ export function SupportTableView({
   selectedConversationId,
   onSelectConversation,
 }: SupportTableViewProps) {
-  const { actions } = useSupportBulkActions();
+  const { actions, overlays } = useSupportBulkActions();
 
   return (
-    <DataTableResponsive<SupportConversation, unknown>
-      columns={supportConversationColumns}
-      data={conversations}
-      searchColumnId="subject"
-      searchPlaceholder="Search subjects..."
-      isLoading={isLoading}
-      getRowId={(row) => row.id}
-      onRowClick={(row) => onSelectConversation(row.original.id)}
-      floatingBarActions={actions}
-      config={{
-        enableRowSelection: true,
-        enableColumnVisibility: true,
-        enablePagination: true,
-        enableSorting: true,
-        enableFilters: false,
-        stickyHeader: true,
-        enableKeyboardNavigation: true,
-        enableViewToggle: true,
-      }}
-      initialState={{
-        columnVisibility: {
-          inboxId: false,
-        },
-      }}
-      mobileCardConfig={{
-        primaryField: "subject",
-        secondaryField: "donor",
-        renderCard: (row) => (
-          <SupportConversationMobileCard
-            conversation={row.original}
-            isSelected={row.original.id === selectedConversationId}
-            onSelect={onSelectConversation}
-          />
-        ),
-      }}
-      emptyState={
-        <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50/50 p-12 text-center">
-          <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-zinc-100">
-            <LifeBuoy className="size-5 text-zinc-300" />
+    <>
+      <DataTableResponsive<SupportConversation, unknown>
+        columns={supportConversationColumns}
+        data={conversations}
+        searchColumnId="subject"
+        searchPlaceholder="Search subjects..."
+        isLoading={isLoading}
+        getRowId={(row) => row.id}
+        onRowClick={(row) => onSelectConversation(row.original.id)}
+        floatingBarActions={actions}
+        config={{
+          enableRowSelection: true,
+          enableColumnVisibility: true,
+          enablePagination: true,
+          enableSorting: true,
+          enableFilters: false,
+          stickyHeader: true,
+          enableKeyboardNavigation: true,
+          enableViewToggle: true,
+        }}
+        initialState={{
+          columnVisibility: {
+            inboxId: false,
+          },
+        }}
+        mobileCardConfig={{
+          primaryField: "subject",
+          secondaryField: "donor",
+          renderCard: (row) => (
+            <SupportConversationMobileCard
+              conversation={row.original}
+              isSelected={row.original.id === selectedConversationId}
+              onSelect={onSelectConversation}
+            />
+          ),
+        }}
+        emptyState={
+          <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50/50 p-12 text-center">
+            <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-zinc-100">
+              <LifeBuoy className="size-5 text-zinc-300" />
+            </div>
+            <h3 className="text-base font-semibold text-zinc-900">
+              No conversations match your filters
+            </h3>
+            <p className="mt-1 text-xs text-zinc-500">
+              Adjust the view, status, or label filters above to widen the
+              search.
+            </p>
           </div>
-          <h3 className="text-base font-semibold text-zinc-900">
-            No conversations match your filters
-          </h3>
-          <p className="mt-1 text-xs text-zinc-500">
-            Adjust the view, status, or label filters above to widen the search.
-          </p>
-        </div>
-      }
-    />
+        }
+      />
+      {overlays}
+    </>
   );
 }
 
