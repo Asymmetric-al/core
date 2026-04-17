@@ -73,7 +73,7 @@ These are correct-by-design and must be preserved by any refactor:
 5. **Next.js config hygiene** — `transpilePackages: ["@asym/ui", …]`, `optimizePackageImports: ["@asym/ui", "lucide-react", "@radix-ui/react-icons"]` everywhere, and `cacheComponents: true` — all correct for Next.js 16 + Turbopack.
 6. **`cn` helper** (`packages/ui/lib/utils.ts`) is the canonical shadcn helper (clsx + tailwind-merge).
 7. **Reduced-motion base rule** in `styles/globals.css` and a robust **touch-target rule** for `pointer: coarse` — both exceed the default shadcn template.
-8. **Form system intentionally replaced** — `packages/ui/components/shadcn/form.tsx` is a custom `@tanstack/react-form` wrapper (`Asym*Field` + `useAsymForm`). Upstream shadcn v4 officially documents TanStack Form as an alternative to `react-hook-form` (`content/docs/forms/tanstack-form.mdx`), so keeping this is aligned with current guidance — but the file is labelled "shadcn form" by name, which is misleading (more below).
+8. **Form system intentionally replaced** — the repo uses a custom `@tanstack/react-form` wrapper (`Asym*Field` + `useAsymForm`), now moved to `packages/ui/components/primitives/tanstack-form.tsx`. Upstream shadcn v4 officially documents TanStack Form as an alternative to `react-hook-form` (`content/docs/forms/tanstack-form.mdx`), so keeping this is aligned with current guidance.
 
 ---
 
@@ -200,7 +200,7 @@ Keep `maia` and `maia-outline` variants (they are consumed in `apps/missionary/a
    - Low (13 files): as above.
    - Medium (18 files): hand-review diff. For `card` specifically, decide whether to adopt upstream's `gap-6 / p-6` (visual review required).
    - High (11 files): hand-port per slot. `sidebar` is the riskiest because of the `useIsMobile` import-path change and because upstream has added new slot variants.
-3. **Stage C — Keep our intentional customizations**: `form.tsx` (TanStack Form) stays as-is but gets renamed to `tanstack-form.tsx` so nobody confuses it for the canonical shadcn form (see S2-1). `button.tsx` keeps `maia` and `maia-outline` variants but with semantic tokens. `chart-wrappers.tsx`, `filter-bar.tsx`, `motion-preset.tsx`, `ripple-button.tsx`, `image-upload.tsx`, `image-cropper.tsx`, `map.tsx`, `page-shell.tsx`, `responsive-container.tsx`, `theme-toggle.tsx`, `RichTextEditor.tsx`, `data-table/`, `data-grid/` are all first-party additions and should stay — but live in a sibling folder (see S1-4).
+3. **Stage C — Keep our intentional customizations**: `tanstack-form.tsx` (TanStack Form), `button.tsx` `maia` / `maia-outline` variants, and the repo’s first-party shared compositions (`chart-wrappers.tsx`, `filter-bar.tsx`, `motion-preset.tsx`, `ripple-button.tsx`, `image-upload.tsx`, `image-cropper.tsx`, `map.tsx`, `page-shell.tsx`, `responsive-container.tsx`, `theme-toggle.tsx`, `RichTextEditor.tsx`) stay in the shared UI package, but live in `packages/ui/components/primitives/` rather than the CLI-managed primitive folder.
 
 **Scope.** 50 components, ~2000 lines of diff total. Split across 3 PRs (Stage A, Stage B by tier, Stage C rename/re-home).
 
@@ -239,35 +239,39 @@ However, every single component in the repo uses `lucide-react` (0.575.0 is pinn
 
 ---
 
-#### S1-4 First-party "custom" components live next to canonical shadcn files
+#### S1-4 First-party "custom" components lived next to canonical shadcn files
 
-**Evidence.** `packages/ui/components/shadcn/` contains, mixed together:
+**Evidence.** At audit time, `packages/ui/components/shadcn/` contained, mixed together:
 
 - 51 canonical shadcn components (the ones you'd install via CLI).
 - First-party additions: `chart-wrappers.tsx`, `filter-bar.tsx`, `image-upload.tsx`, `image-cropper.tsx`, `map.tsx`, `motion-preset.tsx`, `ripple-button.tsx`, `page-shell.tsx`, `responsive-container.tsx`, `theme-toggle.tsx`, `rich-text-editor/`, `RichTextEditor.tsx`, `data-table/`, `data-grid/`, `icons/`.
 
-The `shadcn info` command does not claim these as "Installed components" (good), but there is no structural distinction on disk.
+The `shadcn info` command did not claim these as "Installed components" (good), but there was no structural distinction on disk.
 
 **Why it matters.** When running `shadcn add <x>` the CLI has no signal that `chart-wrappers.tsx` is custom. Nothing breaks today, but it makes the `--diff` audit noisy and it is fragile — a future upstream `chart-wrappers.tsx` would overwrite ours silently.
 
-**Action.** Two options, ordered by preference:
+**Action taken.**
 
-1. Move first-party additions out of `shadcn/` into `packages/ui/components/primitives/` (or `composites/`). Update exports in `packages/ui/package.json` and `packages/ui/components/shadcn/index.ts`.
-2. Or, leave them in place but keep a `packages/ui/components/shadcn/CUSTOM.md` manifest listing first-party files so a reviewer can't mistake them for shadcn originals. Lower effort, smaller win.
+Moved first-party additions into `packages/ui/components/primitives/` and left compatibility re-export shims at the legacy `components/shadcn/*` paths so existing consumers continue to work during the transition. A `packages/ui/components/shadcn/CUSTOM.md` manifest also remains as a maintenance note for future CLI updates.
 
-**Scope.** Option 1 touches the package exports table + barrel + any downstream imports (~15 files across apps, all mechanical). Option 2 is a one-file doc.
+**Outcome.** The shared UI package now has a clearer separation:
+
+- `components/shadcn/` -> CLI-managed / canonical primitives, plus compatibility shims
+- `components/primitives/` -> first-party shared wrappers and compositions
+
+Downstream app/package imports have been updated to the new `@asym/ui/components/primitives/*` paths where practical.
 
 ---
 
-#### S1-5 `form.tsx` is misnamed
+#### S1-5 `form.tsx` was misnamed
 
-**Evidence.** `packages/ui/components/shadcn/form.tsx` exports `AsymTextField`, `AsymSelectField`, `AsymSubmitButton`, `useAsymForm`, etc. — a fully custom TanStack Form integration. Anyone running `shadcn add form` against this project overwrites it with the canonical react-hook-form version (899-line diff).
+**Evidence.** At audit time, `packages/ui/components/shadcn/form.tsx` exported `AsymTextField`, `AsymSelectField`, `AsymSubmitButton`, `useAsymForm`, etc. — a fully custom TanStack Form integration. Anyone running `shadcn add form` against this project would overwrite it with the canonical react-hook-form version (899-line diff).
 
 **Why it matters.** Dangerous footgun during any future shadcn CLI sync. Also the CLI `shadcn info` lists `form` as an installed component, so tooling treats it as canonical.
 
-**Action.** Rename to `tanstack-form.tsx`, update `index.ts` re-exports, update imports (no consumers currently exist outside the barrel). Add a real shadcn `form.tsx` back if you ever need the RHF-based pattern side-by-side.
+**Action taken.** Renamed to `packages/ui/components/primitives/tanstack-form.tsx`, updated re-exports, and moved live consumers to `@asym/ui/components/primitives/tanstack-form`. Compatibility re-export stubs remain at the legacy `components/shadcn/tanstack-form` path.
 
-**Scope.** 1 file rename + barrel update. If no consumer uses it outside the barrel, this is a drop-in.
+**Outcome.** Future `shadcn add form` calls can no longer collide with the repo’s TanStack Form layer.
 
 ---
 
@@ -419,7 +423,7 @@ Expected risk: **medium**. Every visual change gets a screenshot review. If anyt
 _(Branch: `cursor/shadcn-ui-audit-theme-discipline-6047`)_
 
 - S0-2 — Sweep hardcoded non-semantic colors into tokens across: `slider.tsx`, `chart-wrappers.tsx`, `data-grid-cell.tsx`, `data-table-wrapper.tsx`, `filter-bar.tsx`, `image-cropper.tsx`, `image-upload.tsx`, `map.tsx`, `button.tsx (maia variants)`.
-- S1-4 — Move first-party additions out of `shadcn/` into `primitives/` (or keep them and add the `CUSTOM.md` manifest if the move is too invasive for one PR).
+- S1-4 — Move first-party additions out of `shadcn/` into `primitives/` and leave compatibility shims.
 - S2-1 — Button focus ring unification (already covered by S1-1 Stage B for button, but verify here).
 - S2-2 — Mount `<TooltipProvider>` at each app root. Remove inner wrapper from `tooltip.tsx`.
 - S2-3 — Drop redundant `focus-visible:outline-1` on navigation-menu / tabs.
@@ -438,6 +442,18 @@ Expected risk: **medium**. S0-2 requires visual QA in dark mode.
 - **Adopting a new visual style** (Vega / Nova / Maia / Lyra / Mira). The repo's design is already called "Maia" by internal docs but is implemented as `new-york` with a Zinc palette — it is NOT the upstream Maia preset. No migration planned; the current choice is intentional and compatible.
 - **Moving from `new-york` to the unnamed default v4 style**. Not worth the churn.
 - **ADR for shadcn registries** (`@ss-components`, `@shadcnuikit`, `@reactbits-*`, `@efferd`). They're declared but not used beyond `shadcn-studio/blocks`. Consider pruning in a future pass.
+
+## 4. Shipped outcome
+
+The implementation that followed this audit completed the originally proposed staged work on the branch:
+
+- shared hook / config hygiene landed
+- official `shadcn migrate radix` landed
+- canonical v4 primitive resync landed
+- tooltip-provider-at-root pattern landed
+- semantic-token cleanup on custom shared surfaces landed
+- first-party shared wrappers/compositions were moved into `packages/ui/components/primitives/`
+- compatibility re-export shims were left under `packages/ui/components/shadcn/*` to keep deep imports stable during migration
 
 ---
 

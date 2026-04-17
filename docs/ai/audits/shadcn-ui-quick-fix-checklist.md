@@ -81,18 +81,18 @@ Companion to `shadcn-ui-audit-2026-04-16.md`. Actionable items only. Copy straig
 
 ## PR 3 — theme discipline & re-home
 
-- [ ] Replace hardcoded non-semantic colors with tokens in:
-  - [ ] `packages/ui/components/shadcn/slider.tsx`
-  - [ ] `packages/ui/components/shadcn/chart-wrappers.tsx`
-  - [ ] `packages/ui/components/shadcn/data-grid/data-grid-cell.tsx`
-  - [ ] `packages/ui/components/shadcn/data-table/data-table-wrapper.tsx`
-  - [ ] `packages/ui/components/shadcn/filter-bar.tsx`
-  - [ ] `packages/ui/components/shadcn/image-cropper.tsx`
-  - [ ] `packages/ui/components/shadcn/image-upload.tsx`
-  - [ ] `packages/ui/components/shadcn/map.tsx`
-- [ ] Decide on home for first-party additions:
-  - Either move to `packages/ui/components/primitives/…` (preferred) OR
-  - Keep in place, add `packages/ui/components/shadcn/CUSTOM.md` manifest enumerating non-canonical files.
+- [x] Replace hardcoded non-semantic colors with tokens in:
+  - [x] `packages/ui/components/shadcn/slider.tsx`
+  - [x] `packages/ui/components/primitives/chart-wrappers.tsx`
+  - [x] `packages/ui/components/shadcn/data-grid/data-grid-cell.tsx`
+  - [x] `packages/ui/components/shadcn/data-table/data-table-wrapper.tsx`
+  - [x] `packages/ui/components/primitives/filter-bar.tsx`
+  - [x] `packages/ui/components/primitives/image-cropper.tsx`
+  - [x] `packages/ui/components/primitives/image-upload.tsx`
+  - [x] `packages/ui/components/primitives/map.tsx`
+- [x] Move first-party shared additions to `packages/ui/components/primitives/`
+- [x] Keep compatibility shims at the old `packages/ui/components/shadcn/*` paths for deep-import stability
+- [x] Add `packages/ui/components/shadcn/CUSTOM.md` manifest documenting the custom boundary
 - [ ] Add ESLint rule forbidding non-deep imports of `@asym/ui` in `apps/**`.
 - [ ] Optional: modernize `@layer base :focus-visible` in `styles/globals.css` to the v4 glow style.
 - [ ] Optional: remove unused `--space-*` / `--gap-*` custom variables from `styles/globals.css`.
