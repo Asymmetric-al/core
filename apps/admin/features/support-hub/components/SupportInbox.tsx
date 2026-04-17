@@ -9,7 +9,7 @@ import { SupportNowProvider, useSupportNow } from "../lib/now";
 import { useSupportInboxState } from "../lib/route-state";
 import { type SupportConversationFilter } from "../lib/selectors";
 import { SupportBoardView } from "./board/SupportBoardView";
-import { DetailPanePlaceholder } from "./detail/DetailPanePlaceholder";
+import { ConversationDetail } from "./detail/ConversationDetail";
 import { StatsStrip } from "./stats/StatsStrip";
 import { SupportInboxEmptyState } from "./SupportInboxEmptyState";
 import { SupportTableView } from "./table/SupportTableView";
@@ -107,7 +107,7 @@ function SupportInboxBody() {
 
         {state.selectedConversationId ? (
           <div className="hidden min-h-0 lg:col-span-4 lg:block">
-            <DetailPanePlaceholder
+            <ConversationDetail
               conversationId={state.selectedConversationId}
               onClose={handleCloseDetail}
               layout="inline"
@@ -117,7 +117,7 @@ function SupportInboxBody() {
       </div>
 
       <div className="lg:hidden">
-        <DetailPanePlaceholder
+        <ConversationDetail
           conversationId={state.selectedConversationId}
           onClose={handleCloseDetail}
           layout="sheet"
