@@ -3,7 +3,8 @@ import type { Contribution } from "./types";
 /** Live-query page reads from TanStack DB; keep empty for typing / fallbacks. */
 export const mockContributions: Contribution[] = [];
 
-const fixtureNow = new Date().toISOString();
+/** Static timestamps for Boneyard capture, unit tests, and skeleton fixtures. */
+const FIXTURE_TIMESTAMP = "2026-04-16T12:00:00.000Z";
 
 function boneyardRow(
   row: Pick<
@@ -88,10 +89,10 @@ export const boneyardContributionsFixture: Contribution[] = [
     donorName: "Sarah Mitchell",
     donorEmail: "sarah.mitchell@example.com",
     amount: 250,
-    date: fixtureNow,
-    contributionDate: fixtureNow,
-    createdAt: fixtureNow,
-    updatedAt: fixtureNow,
+    date: FIXTURE_TIMESTAMP,
+    contributionDate: FIXTURE_TIMESTAMP,
+    createdAt: FIXTURE_TIMESTAMP,
+    updatedAt: FIXTURE_TIMESTAMP,
     status: "completed",
     type: "One-time",
     paymentMethod: "Credit Card",
@@ -109,10 +110,10 @@ export const boneyardContributionsFixture: Contribution[] = [
     donorName: "James Chen",
     donorEmail: "james.chen@example.com",
     amount: 100,
-    date: fixtureNow,
-    contributionDate: fixtureNow,
-    createdAt: fixtureNow,
-    updatedAt: fixtureNow,
+    date: FIXTURE_TIMESTAMP,
+    contributionDate: FIXTURE_TIMESTAMP,
+    createdAt: FIXTURE_TIMESTAMP,
+    updatedAt: FIXTURE_TIMESTAMP,
     status: "pending",
     type: "Recurring",
     paymentMethod: "Bank Transfer",

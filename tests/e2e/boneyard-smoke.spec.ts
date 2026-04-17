@@ -1,15 +1,21 @@
 import { expect, test } from "@playwright/test";
 
 type BoneyardRouteExpectation = {
-  heading: string;
   path: string;
   skeletonName: string;
+  /** Prefer role=heading when the page has a stable title */
+  heading?: string;
+  /**
+   * Donor capture keeps the heading in the DOM for accessibility while
+   * boneyard-js hides the wrapped content during measurement.
+   */
+  allowHiddenHeading?: boolean;
 };
 
 /**
  * Resolve which capture surface we are testing. Prefer `project.name` from
  * `playwright.admin.config.ts` / `playwright.missionary.config.ts`, then
- * `PLAYWRIGHT_BONEYARD_TARGET=admin|missionary`, then baseURL port as a last resort.
+ * `PLAYWRIGHT_BONEYARD_TARGET=admin|missionary|donor`, then baseURL port as a last resort.
  */
 function getExpectation(
   projectName: string | undefined,
@@ -22,7 +28,9 @@ function getExpectation(
       ? "admin"
       : projectName === "missionary-boneyard" || envTarget === "missionary"
         ? "missionary"
-        : null;
+        : projectName === "donor-boneyard" || envTarget === "donor"
+          ? "donor"
+          : null;
 
   if (target === "admin") {
     return {
@@ -37,6 +45,15 @@ function getExpectation(
       heading: "Mission Tasks",
       path: "/boneyard/tasks",
       skeletonName: "missionary-tasks-list",
+    };
+  }
+
+  if (target === "donor") {
+    return {
+      heading: "Donor dashboard",
+      path: "/boneyard/donor-dashboard",
+      skeletonName: "donor-dashboard-main",
+      allowHiddenHeading: true,
     };
   }
 
@@ -58,6 +75,14 @@ function getExpectation(
         skeletonName: "missionary-tasks-list",
       };
     }
+    if (port === 3000) {
+      return {
+        heading: "Donor dashboard",
+        path: "/boneyard/donor-dashboard",
+        skeletonName: "donor-dashboard-main",
+        allowHiddenHeading: true,
+      };
+    }
   } catch {
     /* ignore */
   }
@@ -76,7 +101,7 @@ test("boneyard capture routes render generated bone overlays", async ({
   if (!expectation) {
     test.skip(
       true,
-      "Run with playwright.admin.config.ts or playwright.missionary.config.ts, set PLAYWRIGHT_BONEYARD_TARGET, or use baseURL port 3030/4000.",
+      "Run with playwright.admin/missionary/donor.config.ts, set PLAYWRIGHT_BONEYARD_TARGET, or use baseURL port 3030/4000/3000.",
     );
     return;
   }
@@ -84,21 +109,37 @@ test("boneyard capture routes render generated bone overlays", async ({
   await page.goto(expectation.path);
   await page.waitForLoadState("domcontentloaded");
 
-  await expect(
-    page.getByRole("heading", { name: expectation.heading }),
-  ).toBeVisible();
+  if (expectation.heading) {
+    const heading = page.getByRole("heading", {
+      name: expectation.heading,
+      includeHidden: expectation.allowHiddenHeading === true,
+    });
+
+    if (expectation.allowHiddenHeading) {
+      await expect(heading).toHaveCount(1);
+    } else {
+      await expect(heading).toBeVisible();
+    }
+  }
   await expect(page.getByText("This page could not be found.")).toHaveCount(0);
+  // Wrapper may be `visibility:hidden` while the overlay measures (boneyard-js 1.7+);
+  // assert DOM presence, then wait for painted bone layers below.
   await expect(
     page.locator(`[data-boneyard="${expectation.skeletonName}"]`),
-  ).toBeVisible();
+  ).toBeAttached();
 
-  // Boneyard paints overlay layers with inline `position` styles; avoid coupling
-  // to a specific tag or `absolute` substring—any positioned child under the
-  // root indicates the runtime registered bones and drew an overlay.
+  // boneyard-js 1.7+ puts `position: relative` on the `[data-boneyard]` root;
+  // `querySelector` does not match the element itself, so also check the root
+  // `style` and stable overlay markers (`data-boneyard-overlay` / bone nodes).
   await page.waitForFunction(
     ({ skeletonName }) => {
       const root = document.querySelector(`[data-boneyard="${skeletonName}"]`);
       if (!root) return false;
+
+      const rootStyle = root.getAttribute("style") ?? "";
+      if (rootStyle.includes("position")) return true;
+      if (root.querySelector("[data-boneyard-overlay]")) return true;
+      if (root.querySelector("[data-boneyard-bone]")) return true;
 
       return root.querySelector("[style*='position']") != null;
     },
