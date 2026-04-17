@@ -86,6 +86,19 @@ function normalizeContributionStatus(status: string): ContributionStatus {
   return "pending";
 }
 
+function normalizeContributionType(
+  donationType: string | null,
+  isRecurring: boolean | null,
+): ContributionLiveRow["type"] {
+  if (isRecurring === true) return "Recurring";
+  if (isRecurring === false) return "One-time";
+  const t = donationType?.toLowerCase().trim() ?? "";
+  if (t === "pledge") return "Pledge";
+  if (t === "in-kind" || t === "in_kind" || t === "inkind") return "In-kind";
+  if (t === "recurring") return "Recurring";
+  return "One-time";
+}
+
 function getQueryError(
   query:
     | {
@@ -158,7 +171,10 @@ export function useContributionsLiveRows() {
         amount: donation.amount,
         date: donation.created_at,
         status: normalizeContributionStatus(donation.status),
-        type: "One-time",
+        type: normalizeContributionType(
+          donation.donation_type,
+          donation.is_recurring,
+        ),
         paymentMethod: "Other",
         source: "Online",
         fundCode: fund?.id ?? null,

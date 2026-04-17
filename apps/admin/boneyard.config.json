@@ -2,5 +2,11 @@
   "out": "./bones",
   "wait": 1200,
   "color": "rgba(0,0,0,0.06)",
-  "animate": "pulse"
+  "animate": "pulse",
+  "skeletons": {
+    "admin-contributions-content": {
+      "route": "/boneyard/contributions",
+      "wait": 1400
+    }
+  }
 }

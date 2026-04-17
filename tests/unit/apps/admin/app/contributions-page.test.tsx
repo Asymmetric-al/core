@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 
 import React from "react";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { useAdminContributionsMock } = vi.hoisted(() => {
@@ -28,6 +28,10 @@ vi.mock(
   },
 );
 
+vi.mock("sonner", () => ({
+  toast: { info: vi.fn(), error: vi.fn(), success: vi.fn() },
+}));
+
 import ContributionsPage from "../../../../../apps/admin/app/contributions/page";
 import {
   boneyardContributionsFixture,
@@ -49,10 +53,20 @@ function mockQuery(partial: Record<string, unknown>) {
 describe("apps/admin/app/contributions/page", () => {
   afterEach(() => {
     cleanup();
+    vi.clearAllMocks();
   });
 
   beforeEach(() => {
+    delete process.env.NEXT_PUBLIC_ADMIN_CONTRIBUTIONS_USE_MOCK;
     useAdminContributionsMock.mockReset();
+    useAdminContributionsMock.mockReturnValue(
+      mockQuery({
+        isError: false,
+        isPending: false,
+        data: [],
+        error: null,
+      }),
+    );
 
     vi.stubGlobal(
       "matchMedia",
@@ -80,6 +94,19 @@ describe("apps/admin/app/contributions/page", () => {
 
   it("exports a client component (function) that renders the contributions UI", () => {
     expect(typeof ContributionsPage).toBe("function");
+  });
+
+  it("renders contributions shell with empty data", async () => {
+    render(<ContributionsPage />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("heading", { name: "Contributions" }),
+      ).toBeTruthy();
+    });
+
+    expect(screen.getByTestId("mc-contributions-live")).toBeTruthy();
+    expect(screen.getByText("No contributions found")).toBeTruthy();
   });
 
   it("shows load failed and retry when the query is in error state", () => {
@@ -141,5 +168,22 @@ describe("apps/admin/app/contributions/page", () => {
     for (let i = 0; i < data.length; i++) {
       expect(data[i]).not.toBe(mockContributions[i]);
     }
+  });
+
+  it("keeps boneyard fixture timestamps deterministic", () => {
+    expect(boneyardContributionsFixture).toMatchObject([
+      {
+        date: "2026-04-16T12:00:00.000Z",
+        contributionDate: "2026-04-16T12:00:00.000Z",
+        createdAt: "2026-04-16T12:00:00.000Z",
+        updatedAt: "2026-04-16T12:00:00.000Z",
+      },
+      {
+        date: "2026-04-16T12:00:00.000Z",
+        contributionDate: "2026-04-16T12:00:00.000Z",
+        createdAt: "2026-04-16T12:00:00.000Z",
+        updatedAt: "2026-04-16T12:00:00.000Z",
+      },
+    ]);
   });
 });
