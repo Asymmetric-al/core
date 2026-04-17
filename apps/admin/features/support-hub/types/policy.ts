@@ -3,37 +3,18 @@ export type {
   SupportSlaPolicy,
 } from "@asym/database/hooks";
 
-/* App-only — the automation rule shape is reserved for a later phase but the
- * contract is documented here so callers can plan field naming. */
-export type SupportAutomationTrigger =
-  | "conversation_created"
-  | "message_received"
-  | "conversation_updated";
-
-export type SupportAutomationCondition =
-  | { kind: "subject_contains"; value: string }
-  | { kind: "from_domain_equals"; value: string }
-  | { kind: "label_includes"; labelId: string }
-  | { kind: "priority_is"; value: "urgent" | "high" | "normal" | "low" };
-
-export type SupportAutomationAction =
-  | { kind: "assign_team"; teamId: string }
-  | { kind: "assign_agent"; agentId: string }
-  | { kind: "add_label"; labelId: string }
-  | { kind: "set_priority"; priority: "urgent" | "high" | "normal" | "low" };
-
-export interface SupportAutomationRule {
-  id: string;
-  tenantId: string;
-  name: string;
-  description: string | null;
-  enabled: boolean;
-  trigger: SupportAutomationTrigger;
-  conditions: SupportAutomationCondition[];
-  actions: SupportAutomationAction[];
-  createdAt: string;
-  updatedAt: string;
-}
+/**
+ * Automation rule types moved to `./automation.ts` in Phase 6 and live on the
+ * database collections (`supportAutomationRulesCollection`). The canonical
+ * exports are re-surfaced here so legacy imports that still read the rule
+ * shape via `types/policy` keep compiling.
+ */
+export type {
+  SupportAutomationAction,
+  SupportAutomationCondition,
+  SupportAutomationRule,
+  SupportAutomationTrigger,
+} from "./automation";
 
 export interface SupportBusinessHoursDay {
   day:

@@ -1,7 +1,11 @@
 "use client";
 
 import {
+  SUPPORT_AUTOMATION_ACTION_KINDS,
+  SUPPORT_AUTOMATION_CONDITION_KINDS,
+  SUPPORT_AUTOMATION_TRIGGERS,
   supportAgentsCollection,
+  supportAutomationRulesCollection,
   supportBusinessHoursCollection,
   supportCannedResponsesCollection,
   supportConversationsCollection,
@@ -10,7 +14,9 @@ import {
   supportLabelsCollection,
   supportMacrosCollection,
   supportMessagesCollection,
+  supportNotificationPreferencesCollection,
   supportSavedViewsCollection,
+  supportSignaturesCollection,
   supportSlaPoliciesCollection,
   supportTeamsCollection,
 } from "@asym/database/hooks";
@@ -49,6 +55,9 @@ export const supportStore = {
     agents: supportAgentsCollection,
     businessHours: supportBusinessHoursCollection,
     slaPolicies: supportSlaPoliciesCollection,
+    signatures: supportSignaturesCollection,
+    automationRules: supportAutomationRulesCollection,
+    notificationPreferences: supportNotificationPreferencesCollection,
   },
   inputs: {
     assignConversation: z.object({
@@ -163,6 +172,116 @@ export const supportStore = {
        */
       excludeAgentIds: z.array(z.string().min(1)).default([]),
     }),
+
+    /* ----- Phase 6 inputs ------------------------------------------------ */
+
+    saveInboxSettings: z.object({
+      id: z.string().min(1),
+      inboxId: z.string().min(1),
+      defaultSignatureId: z.string().min(1).nullable(),
+      defaultSlaPolicyId: z.string().min(1).nullable(),
+      defaultBusinessHoursId: z.string().min(1).nullable(),
+      roundRobinEnabled: z.boolean(),
+      autoResolveAfterDays: z.number().int().nonnegative().nullable(),
+      showContactSidecar: z.boolean(),
+    }),
+    saveBusinessHours: z.object({
+      id: z.string().min(1).optional(),
+      name: z.string().min(1),
+      timezone: z.string().min(1),
+      weeklySchedule: z.array(
+        z.object({
+          day: z.enum([
+            "monday",
+            "tuesday",
+            "wednesday",
+            "thursday",
+            "friday",
+            "saturday",
+            "sunday",
+          ]),
+          enabled: z.boolean(),
+          openTime: z.string().regex(/^\d{2}:\d{2}$/),
+          closeTime: z.string().regex(/^\d{2}:\d{2}$/),
+        }),
+      ),
+      holidays: z.array(
+        z.object({
+          id: z.string().min(1),
+          date: z.string().min(1),
+          label: z.string().min(1),
+        }),
+      ),
+      isDefault: z.boolean().default(false),
+    }),
+    deleteBusinessHours: z.object({ id: z.string().min(1) }),
+    saveSlaPolicy: z.object({
+      id: z.string().min(1).optional(),
+      name: z.string().min(1),
+      description: z.string().nullable(),
+      firstResponseMinutes: z.number().int().positive(),
+      nextResponseMinutes: z.number().int().positive(),
+      resolutionMinutes: z.number().int().positive(),
+      businessHoursId: z.string().min(1).nullable(),
+      isDefault: z.boolean().default(false),
+    }),
+    deleteSlaPolicy: z.object({ id: z.string().min(1) }),
+    setDefaultSlaPolicy: z.object({ id: z.string().min(1) }),
+    saveTeam: z.object({
+      id: z.string().min(1).optional(),
+      name: z.string().min(1),
+      slug: z.string().min(1),
+      description: z.string().nullable(),
+      initials: z.string().min(1).max(4),
+    }),
+    deleteTeam: z.object({ id: z.string().min(1) }),
+    saveSignature: z.object({
+      id: z.string().min(1).optional(),
+      ownerAgentId: z.string().min(1).nullable(),
+      name: z.string().min(1),
+      bodyText: z.string().min(1),
+      bodyHtml: z.string().nullable().optional(),
+      isDefault: z.boolean().default(false),
+    }),
+    deleteSignature: z.object({ id: z.string().min(1) }),
+    setDefaultSignature: z.object({ id: z.string().min(1) }),
+    saveAutomationRule: z.object({
+      id: z.string().min(1).optional(),
+      name: z.string().min(1),
+      description: z.string().nullable(),
+      enabled: z.boolean().default(true),
+      trigger: z.enum(SUPPORT_AUTOMATION_TRIGGERS),
+      conditions: z.array(
+        z
+          .object({
+            kind: z.enum(SUPPORT_AUTOMATION_CONDITION_KINDS),
+          })
+          .passthrough(),
+      ),
+      actions: z
+        .array(
+          z
+            .object({
+              kind: z.enum(SUPPORT_AUTOMATION_ACTION_KINDS),
+            })
+            .passthrough(),
+        )
+        .min(1),
+    }),
+    deleteAutomationRule: z.object({ id: z.string().min(1) }),
+    toggleAutomationRule: z.object({
+      id: z.string().min(1),
+      enabled: z.boolean(),
+    }),
+    saveNotificationPreferences: z.object({
+      agentId: z.string().min(1),
+      emailMentions: z.boolean(),
+      emailAssignments: z.boolean(),
+      emailDailyDigest: z.boolean(),
+      inAppMentions: z.boolean(),
+      inAppAssignments: z.boolean(),
+      inAppSlaWarnings: z.boolean(),
+    }),
   },
 } as const;
 
@@ -214,4 +333,45 @@ export type DeleteCannedResponseInput = z.input<
 export type RunMacroInput = z.input<typeof supportStore.inputs.runMacro>;
 export type ApplyRoundRobinAssignmentInput = z.input<
   typeof supportStore.inputs.applyRoundRobinAssignment
+>;
+export type SaveInboxSettingsInput = z.input<
+  typeof supportStore.inputs.saveInboxSettings
+>;
+export type SaveBusinessHoursInput = z.input<
+  typeof supportStore.inputs.saveBusinessHours
+>;
+export type DeleteBusinessHoursInput = z.input<
+  typeof supportStore.inputs.deleteBusinessHours
+>;
+export type SaveSlaPolicyInput = z.input<
+  typeof supportStore.inputs.saveSlaPolicy
+>;
+export type DeleteSlaPolicyInput = z.input<
+  typeof supportStore.inputs.deleteSlaPolicy
+>;
+export type SetDefaultSlaPolicyInput = z.input<
+  typeof supportStore.inputs.setDefaultSlaPolicy
+>;
+export type SaveTeamInput = z.input<typeof supportStore.inputs.saveTeam>;
+export type DeleteTeamInput = z.input<typeof supportStore.inputs.deleteTeam>;
+export type SaveSignatureInput = z.input<
+  typeof supportStore.inputs.saveSignature
+>;
+export type DeleteSignatureInput = z.input<
+  typeof supportStore.inputs.deleteSignature
+>;
+export type SetDefaultSignatureInput = z.input<
+  typeof supportStore.inputs.setDefaultSignature
+>;
+export type SaveAutomationRuleInput = z.input<
+  typeof supportStore.inputs.saveAutomationRule
+>;
+export type DeleteAutomationRuleInput = z.input<
+  typeof supportStore.inputs.deleteAutomationRule
+>;
+export type ToggleAutomationRuleInput = z.input<
+  typeof supportStore.inputs.toggleAutomationRule
+>;
+export type SaveNotificationPreferencesInput = z.input<
+  typeof supportStore.inputs.saveNotificationPreferences
 >;

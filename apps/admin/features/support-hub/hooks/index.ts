@@ -1,4 +1,5 @@
 export * from "./use-support-agents";
+export * from "./use-support-automation-rules";
 export * from "./use-support-canned-responses";
 export * from "./use-support-conversation";
 export * from "./use-support-conversations";
@@ -8,6 +9,8 @@ export * from "./use-support-labels";
 export * from "./use-support-macros";
 export * from "./use-support-messages";
 export * from "./use-support-mutations";
+export * from "./use-support-notification-preferences";
 export * from "./use-support-reports";
 export * from "./use-support-saved-views";
+export * from "./use-support-signatures";
 export * from "./use-support-stats";
