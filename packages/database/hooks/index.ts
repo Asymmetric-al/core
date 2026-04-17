@@ -15,14 +15,27 @@ export { useAdminContributionsInfiniteGrid } from "./admin-contributions-infinit
 export { useAdminCrmRecordsInfiniteGrid } from "./admin-crm-infinite";
 export { useDonorHistoryTransactions } from "./donor-history";
 export {
+  useCareDashboard,
+  useMemberCareDashboardQuery,
+  useMemberCareDetailQuery,
+  useCarePersonnel,
+  useCareActivity,
+  useCareProfile,
+  useCarePrivateNotes,
+  useCreateCareThreadPost,
+  useCreateCarePrivateNote,
+  useCreatePrivateNote,
+  useCreateOrUpdateCareGoal,
+  useLogCareActivity,
+  useUpsertCareRequirement,
+  useSetManualAttentionFlag,
+  useLogActivity,
+} from "./member-care";
+export {
   useCrmContacts,
   useTasksRows,
   useTaskStaff,
   useTaskLinkedEntities,
-  useCarePersonnel,
-  useCareActivity,
-  useCareProfile,
-  useLogActivity,
   useEventAttendees,
   useMobilizeCandidates,
   useTeams,
@@ -50,13 +63,22 @@ export type {
   AdminTask,
   AdminTaskStaffMember,
   AdminTaskLinkedEntity,
-  AdminCarePersonnel,
-  AdminCareActivity,
   AdminEventAttendee,
   AdminMobilizeCandidate,
   AdminTeam,
   AdminTeamMember,
 } from "./admin-workspace";
+export type {
+  MemberCarePriority,
+  MemberCareActivityType,
+  MemberCarePersonnel,
+  MemberCareActivity,
+  MemberCarePrivateNote,
+  MemberCareGoal,
+  MemberCareRequirement,
+  MemberCareDashboardResponse,
+  MemberCareDetailResponse,
+} from "./member-care";
 export type {
   LinkedEntities,
   LinkedMissionary,

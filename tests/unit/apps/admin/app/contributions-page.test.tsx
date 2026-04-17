@@ -169,4 +169,21 @@ describe("apps/admin/app/contributions/page", () => {
       expect(data[i]).not.toBe(mockContributions[i]);
     }
   });
+
+  it("keeps boneyard fixture timestamps deterministic", () => {
+    expect(boneyardContributionsFixture).toMatchObject([
+      {
+        date: "2026-04-16T12:00:00.000Z",
+        contributionDate: "2026-04-16T12:00:00.000Z",
+        createdAt: "2026-04-16T12:00:00.000Z",
+        updatedAt: "2026-04-16T12:00:00.000Z",
+      },
+      {
+        date: "2026-04-16T12:00:00.000Z",
+        contributionDate: "2026-04-16T12:00:00.000Z",
+        createdAt: "2026-04-16T12:00:00.000Z",
+        updatedAt: "2026-04-16T12:00:00.000Z",
+      },
+    ]);
+  });
 });

@@ -5,8 +5,11 @@ type BoneyardRouteExpectation = {
   skeletonName: string;
   /** Prefer role=heading when the page has a stable title */
   heading?: string;
-  /** Fallback visible copy when the hero title is dynamic (e.g. time-based greeting) */
-  visibleText?: string;
+  /**
+   * Donor capture keeps the heading in the DOM for accessibility while
+   * boneyard-js hides the wrapped content during measurement.
+   */
+  allowHiddenHeading?: boolean;
 };
 
 /**
@@ -47,9 +50,10 @@ function getExpectation(
 
   if (target === "donor") {
     return {
+      heading: "Donor dashboard",
       path: "/boneyard/donor-dashboard",
       skeletonName: "donor-dashboard-main",
-      visibleText: "Thank you for your partnership.",
+      allowHiddenHeading: true,
     };
   }
 
@@ -73,9 +77,10 @@ function getExpectation(
     }
     if (port === 3000) {
       return {
+        heading: "Donor dashboard",
         path: "/boneyard/donor-dashboard",
         skeletonName: "donor-dashboard-main",
-        visibleText: "Thank you for your partnership.",
+        allowHiddenHeading: true,
       };
     }
   } catch {
@@ -105,11 +110,16 @@ test("boneyard capture routes render generated bone overlays", async ({
   await page.waitForLoadState("domcontentloaded");
 
   if (expectation.heading) {
-    await expect(
-      page.getByRole("heading", { name: expectation.heading }),
-    ).toBeVisible();
-  } else if (expectation.visibleText) {
-    await expect(page.getByText(expectation.visibleText)).toBeVisible();
+    const heading = page.getByRole("heading", {
+      name: expectation.heading,
+      includeHidden: expectation.allowHiddenHeading === true,
+    });
+
+    if (expectation.allowHiddenHeading) {
+      await expect(heading).toHaveCount(1);
+    } else {
+      await expect(heading).toBeVisible();
+    }
   }
   await expect(page.getByText("This page could not be found.")).toHaveCount(0);
   // Wrapper may be `visibility:hidden` while the overlay measures (boneyard-js 1.7+);
