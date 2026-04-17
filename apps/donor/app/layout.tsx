@@ -165,7 +165,7 @@ export default function RootLayout({
           storageKey="donor-theme"
           disableTransitionOnChange
         >
-          <TooltipProvider>
+          <TooltipProvider delayDuration={0}>
             <QueryProvider>
               <MotionProvider>
                 <Suspense fallback={null}>

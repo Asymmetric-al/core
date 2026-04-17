@@ -24,11 +24,7 @@ const nextConfig: NextConfig = {
   ],
   experimental: {
     viewTransition: true,
-    optimizePackageImports: [
-      "@asym/ui",
-      "lucide-react",
-      "@radix-ui/react-icons",
-    ],
+    optimizePackageImports: ["@asym/ui", "lucide-react"],
   },
   images: {
     remotePatterns: [
