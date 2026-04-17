@@ -15,6 +15,7 @@
     "react-component-dev",
     "react-doctor",
     "rechart",
+    "resend-cli",
     "supabase",
     "supabase-postgres-best-practices",
     "tanstack-table",

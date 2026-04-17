@@ -83,6 +83,90 @@ describe("getAuthContext E2E bypass", () => {
     expect(ctx.profileRole).toBe("donor");
   });
 
+  it("injects default tenant for super_admin E2E bypass when tenantId is null", async () => {
+    mockedCreateServerClient.mockReturnValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
+      },
+    });
+
+    const value = createE2EAuthCookieValue({
+      userId: "e2e-super",
+      role: "super_admin",
+      tenantId: null,
+    });
+
+    const { cookies } = await import("next/headers");
+    vi.mocked(cookies).mockResolvedValue({
+      get: (name: string) =>
+        name === E2E_AUTH_COOKIE_NAME ? { value } : undefined,
+      getAll: () => [],
+      set: vi.fn(),
+    } as never);
+
+    const { getAuthContext } = await import("./context");
+    const ctx = await getAuthContext();
+
+    expect(ctx.isAuthenticated).toBe(true);
+    expect(ctx.tenantId).toBe("00000000-0000-0000-0000-000000000001");
+  });
+
+  it("injects default tenant for staff-capable E2E bypass when tenantId is null", async () => {
+    mockedCreateServerClient.mockReturnValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
+      },
+    });
+
+    const value = createE2EAuthCookieValue({
+      userId: "e2e-admin-user",
+      role: "admin",
+      tenantId: null,
+    });
+
+    const { cookies } = await import("next/headers");
+    vi.mocked(cookies).mockResolvedValue({
+      get: (name: string) =>
+        name === E2E_AUTH_COOKIE_NAME ? { value } : undefined,
+      getAll: () => [],
+      set: vi.fn(),
+    } as never);
+
+    const { getAuthContext } = await import("./context");
+    const ctx = await getAuthContext();
+
+    expect(ctx.isAuthenticated).toBe(true);
+    expect(ctx.tenantId).toBe("00000000-0000-0000-0000-000000000001");
+  });
+
+  it("does not inject default tenant for donor E2E bypass when tenantId is null", async () => {
+    mockedCreateServerClient.mockReturnValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
+      },
+    });
+
+    const value = createE2EAuthCookieValue({
+      userId: "e2e-donor",
+      role: "donor",
+      tenantId: null,
+    });
+
+    const { cookies } = await import("next/headers");
+    vi.mocked(cookies).mockResolvedValue({
+      get: (name: string) =>
+        name === E2E_AUTH_COOKIE_NAME ? { value } : undefined,
+      getAll: () => [],
+      set: vi.fn(),
+    } as never);
+
+    const { getAuthContext } = await import("./context");
+    const ctx = await getAuthContext();
+
+    expect(ctx.isAuthenticated).toBe(true);
+    expect(ctx.tenantId).toBeNull();
+  });
+
   it("prefers Supabase session over stale asym_e2e_auth when both are present", async () => {
     const e2eValue = createE2EAuthCookieValue({
       userId: "e2e-stale-user",

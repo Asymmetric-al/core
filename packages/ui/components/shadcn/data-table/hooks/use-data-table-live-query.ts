@@ -26,22 +26,15 @@ import type {
   AdvancedFilterState,
   FilterFieldDefinition,
 } from "../filters/types";
+import type { Context, InitialQueryBuilder, QueryBuilder } from "@tanstack/db";
 
-type LiveQueryBuilder<TData> = (q: {
-  from: (arg: Record<string, unknown>) => {
-    where: (fn: (args: unknown) => boolean) => unknown;
-    join: (
-      collection: Record<string, unknown>,
-      fn: (args: unknown) => boolean,
-    ) => unknown;
-    select: (fn: (args: unknown) => TData) => unknown;
-    orderBy: (fn: (args: unknown) => unknown, dir?: "asc" | "desc") => unknown;
-  };
-}) => unknown;
-
-interface UseDataTableWithLiveQueryOptions<TData, TValue> {
+interface UseDataTableWithLiveQueryOptions<
+  TData,
+  TValue,
+  TContext extends Context,
+> {
   columns: ColumnDef<TData, TValue>[];
-  queryBuilder: LiveQueryBuilder<TData>;
+  queryBuilder: (q: InitialQueryBuilder) => QueryBuilder<TContext>;
   queryKey?: readonly string[];
   advancedFilterFields?: FilterFieldDefinition[];
   initialState?: {
@@ -88,7 +81,11 @@ interface UseDataTableWithLiveQueryReturn<TData> {
   refetch: () => void;
 }
 
-export function useDataTableWithLiveQuery<TData, TValue = unknown>({
+export function useDataTableWithLiveQuery<
+  TData,
+  TValue = unknown,
+  TContext extends Context = Context,
+>({
   columns,
   queryBuilder,
   queryKey,
@@ -106,7 +103,8 @@ export function useDataTableWithLiveQuery<TData, TValue = unknown>({
   onAdvancedFilterChange,
 }: UseDataTableWithLiveQueryOptions<
   TData,
-  TValue
+  TValue,
+  TContext
 >): UseDataTableWithLiveQueryReturn<TData> {
   const queryClient = useQueryClient();
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>(
@@ -128,9 +126,10 @@ export function useDataTableWithLiveQuery<TData, TValue = unknown>({
       initialState.advancedFilter ?? createEmptyFilterState(),
     );
 
-  const liveQueryResult = useLiveQuery(
-    queryBuilder as unknown as Parameters<typeof useLiveQuery>[0],
-  );
+  // `readonly string[]` from `queryKey` is not inferred as `unknown[]`; without a mutable
+  // dependency array TypeScript falls through to later `useLiveQuery` overloads and errors.
+  const deps: unknown[] = queryKey?.length ? [...queryKey] : [];
+  const liveQueryResult = useLiveQuery(queryBuilder, deps);
 
   const rawData = React.useMemo(() => {
     const data = liveQueryResult?.data;

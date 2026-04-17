@@ -5,6 +5,9 @@ import { TaskRow } from "@asym/missionary/components/task-row";
 import type { Task } from "@asym/missionary/types";
 
 /** Static tasks for Boneyard CLI capture only (`window.__BONEYARD_BUILD`). */
+const FIXTURE_TIMESTAMP = "2099-04-08T12:00:00.000Z";
+const FIXTURE_FOLLOW_UP_DUE_DATE = "2099-04-15";
+
 export const MISSIONARY_TASKS_BONEYARD_FIXTURE: Task[] = [
   {
     id: "by-fixture-1",
@@ -16,7 +19,7 @@ export const MISSIONARY_TASKS_BONEYARD_FIXTURE: Task[] = [
     task_type: "call",
     status: "in_progress",
     priority: "high",
-    due_date: new Date().toISOString().slice(0, 10),
+    due_date: FIXTURE_FOLLOW_UP_DUE_DATE,
     reminder_date: null,
     donor_id: "d1",
     donor: {
@@ -27,8 +30,8 @@ export const MISSIONARY_TASKS_BONEYARD_FIXTURE: Task[] = [
     },
     sort_key: 1,
     is_auto_generated: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    created_at: FIXTURE_TIMESTAMP,
+    updated_at: FIXTURE_TIMESTAMP,
     completed_at: null,
   },
   {
@@ -46,8 +49,8 @@ export const MISSIONARY_TASKS_BONEYARD_FIXTURE: Task[] = [
     donor: null,
     sort_key: 2,
     is_auto_generated: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    created_at: FIXTURE_TIMESTAMP,
+    updated_at: FIXTURE_TIMESTAMP,
     completed_at: null,
   },
   {
@@ -70,8 +73,8 @@ export const MISSIONARY_TASKS_BONEYARD_FIXTURE: Task[] = [
     },
     sort_key: 3,
     is_auto_generated: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    created_at: FIXTURE_TIMESTAMP,
+    updated_at: FIXTURE_TIMESTAMP,
     completed_at: null,
   },
   {
@@ -89,8 +92,8 @@ export const MISSIONARY_TASKS_BONEYARD_FIXTURE: Task[] = [
     donor: null,
     sort_key: 4,
     is_auto_generated: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    created_at: FIXTURE_TIMESTAMP,
+    updated_at: FIXTURE_TIMESTAMP,
     completed_at: null,
   },
   {
@@ -108,8 +111,8 @@ export const MISSIONARY_TASKS_BONEYARD_FIXTURE: Task[] = [
     donor: null,
     sort_key: 5,
     is_auto_generated: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    created_at: FIXTURE_TIMESTAMP,
+    updated_at: FIXTURE_TIMESTAMP,
     completed_at: null,
   },
 ];

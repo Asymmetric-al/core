@@ -61,6 +61,19 @@ export default async function globalSetup(_config: FullConfig) {
   const donorAuthFile = path.join(process.cwd(), ".auth", "donor.json");
   const adminAuthFile = path.join(process.cwd(), ".auth", "admin.json");
 
+  // `run-with-ci-env.mjs` sets E2E_AUTH_BYPASS=true so apps accept the E2E cookie without
+  // real Supabase password grants. Skip expensive (and often impossible) real logins.
+  if (
+    process.env.E2E_AUTH_BYPASS === "true" ||
+    process.env.E2E_AUTH_BYPASS === "1"
+  ) {
+    await Promise.all([
+      writeEmptyStorage(donorAuthFile),
+      writeEmptyStorage(adminAuthFile),
+    ]);
+    return;
+  }
+
   if (process.env.SKIP_E2E_AUTH === "1") {
     await Promise.all([
       writeEmptyStorage(donorAuthFile),

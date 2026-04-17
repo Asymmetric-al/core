@@ -140,6 +140,11 @@ const isRemoteBaseUrl = (() => {
   }
 })();
 
+/** First-run Turbopack compiles for donor + admin can exceed 3 minutes in CI/sandboxes. */
+const PLAYWRIGHT_WEB_SERVER_TIMEOUT_MS = Number(
+  process.env.PLAYWRIGHT_WEB_SERVER_TIMEOUT_MS || 600_000,
+);
+
 const donorServer = {
   command: `node -e "try{require('fs').rmSync('apps/donor/.next/dev/lock',{force:true})}catch{}" && bun run --cwd apps/donor dev:playwright -- --port ${port} --hostname ${DEFAULT_LOCAL_HOSTNAME}`,
   env: {
@@ -157,7 +162,7 @@ const donorServer = {
   },
   url: nextDevReadyURL(baseURL),
   reuseExistingServer: !process.env.CI,
-  timeout: 180_000,
+  timeout: PLAYWRIGHT_WEB_SERVER_TIMEOUT_MS,
 } as const;
 
 const adminServer = {
@@ -176,7 +181,7 @@ const adminServer = {
   },
   url: nextDevReadyURL(adminBaseURL),
   reuseExistingServer: !process.env.CI,
-  timeout: 180_000,
+  timeout: PLAYWRIGHT_WEB_SERVER_TIMEOUT_MS,
 } as const;
 
 const includeAdminServer =

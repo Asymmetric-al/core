@@ -97,7 +97,7 @@ export function withOperation(
         );
       }
 
-      const authContext = await getAuthContext();
+      const authContext = await getAuthContext(request);
       if (options?.roles) {
         requireRole(authContext, options.roles);
       } else {

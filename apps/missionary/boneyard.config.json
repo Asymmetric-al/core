@@ -2,5 +2,11 @@
   "out": "./bones",
   "wait": 1200,
   "color": "rgba(0,0,0,0.06)",
-  "animate": "pulse"
+  "animate": "pulse",
+  "skeletons": {
+    "missionary-tasks-list": {
+      "route": "/boneyard/tasks",
+      "wait": 1400
+    }
+  }
 }
