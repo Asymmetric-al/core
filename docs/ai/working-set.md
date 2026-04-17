@@ -29,6 +29,27 @@
   - `npx shadcn@latest info`
   - prior repo audit docs under `docs/ai/audits/`
 
+## 2026-04-17 (shadcn/ui follow-up: custom surface separation)
+
+- Date: 2026-04-17
+- Repo: Asymmetric-al/core
+- Goal: Apply the modern shadcn best practice of separating generated primitives from first-party shared compositions by moving repo-specific UI out of `packages/ui/components/shadcn/` into sibling `components/primitives/` and `components/blocks/` folders, while preserving compatibility exports and then updating docs/metadata to reflect the final structure.
+- Primary area:
+  - `packages/ui/components/shadcn/**`
+  - `packages/ui/components/{primitives,blocks}/**`
+  - `packages/ui/package.json`
+  - `packages/ui/README.md`
+  - `docs/ai/audits/shadcn-ui-{audit-2026-04-16,quick-fix-checklist}.md`
+- Constraints:
+  - Only proceed if current best practice supports separating generated shadcn primitives from custom shared wrappers/compositions.
+  - Keep old `@asym/ui/components/shadcn/*` imports working through compatibility exports/re-export stubs where needed.
+  - Do not reintroduce `@/` package-local imports that break app-level transpilation.
+  - Re-run the same lint/typecheck/build validation loop after the move.
+- Evidence sources used:
+  - Vercel Academy: `The Anatomy of shadcn/ui Components`
+  - repo-local shadcn CLI outputs and current package export map
+  - `docs/ai/rules/frontend.md`
+
 ## 2026-04-13 (Mission Control member care port — phase 8 contract hardening)
 
 - Date: 2026-04-13

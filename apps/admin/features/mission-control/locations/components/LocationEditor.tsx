@@ -1,5 +1,6 @@
 "use client";
 
+import { useAsymForm } from "@asym/ui/components/primitives/tanstack-form";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Field,
@@ -23,7 +24,6 @@ import {
   SheetTitle,
 } from "@asym/ui/components/shadcn/sheet";
 import { Switch } from "@asym/ui/components/shadcn/switch";
-import { useAsymForm } from "@asym/ui/components/shadcn/tanstack-form";
 import { Loader2, Trash2 } from "lucide-react";
 import { z } from "zod";
 

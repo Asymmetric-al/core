@@ -42,15 +42,12 @@ export * from "./item";
 export * from "./kbd";
 export * from "./label";
 export * from "./menubar";
-export * from "./motion-preset";
 export * from "./navigation-menu";
 export * from "./pagination";
 export * from "./popover";
 export * from "./progress";
 export * from "./radio-group";
 export * from "./resizable";
-export * from "./responsive-container";
-export * from "./RichTextEditor";
 export {
   EditorRoot,
   EditorContent,
@@ -62,7 +59,6 @@ export {
   RichTextEditor as RichTextEditorCompound,
 } from "./rich-text-editor";
 export type { PostContentProps } from "./rich-text-editor";
-export * from "./ripple-button";
 export * from "./scroll-area";
 export * from "./select";
 export * from "./separator";
@@ -76,10 +72,7 @@ export * from "./switch";
 export * from "./table";
 export * from "./tabs";
 export * from "./textarea";
-export * from "./theme-toggle";
 export * from "./toggle";
 export * from "./toggle-group";
 export * from "./tooltip";
 export * from "./visually-hidden";
-export * from "./page-shell";
-export * from "./filter-bar";

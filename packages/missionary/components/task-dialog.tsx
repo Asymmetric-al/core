@@ -2,6 +2,7 @@
 
 import { createBrowserClient } from "@asym/database/supabase";
 import { useAuth } from "@asym/lib/hooks";
+import { useAsymForm } from "@asym/ui/components/primitives/tanstack-form";
 import {
   Avatar,
   AvatarFallback,
@@ -37,7 +38,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
-import { useAsymForm } from "@asym/ui/components/shadcn/tanstack-form";
 import { cn } from "@asym/ui/lib/utils";
 import { format } from "date-fns";
 import {

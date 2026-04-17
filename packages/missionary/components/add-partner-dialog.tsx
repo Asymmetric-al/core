@@ -1,6 +1,7 @@
 "use client";
 
 import { createBrowserClient } from "@asym/database/supabase";
+import { useAsymForm } from "@asym/ui/components/primitives/tanstack-form";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Dialog,
@@ -9,7 +10,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@asym/ui/components/shadcn/dialog";
-import { useAsymForm } from "@asym/ui/components/shadcn/tanstack-form";
 import { Loader2 } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";

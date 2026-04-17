@@ -163,12 +163,12 @@ Tenant order: `resolveTenantFromRequest` — **query `?tenant=` → forwarded ho
 
 ## 7. Form architecture
 
-| Use case                       | Stack                                                                                   |
-| ------------------------------ | --------------------------------------------------------------------------------------- |
-| Main document body             | Payload document context — **no** TanStack Form for the primary Payload fields          |
-| Template / wizard screens      | `@tanstack/react-form` + Zod in `flows/*.tsx`                                           |
-| Workspace / inspector settings | `useAsymForm` from `@asym/ui/components/shadcn/tanstack-form` (TanStack Form–based API) |
-| Simple search in list          | Native controlled inputs + Payload list hooks                                           |
+| Use case                       | Stack                                                                                       |
+| ------------------------------ | ------------------------------------------------------------------------------------------- |
+| Main document body             | Payload document context — **no** TanStack Form for the primary Payload fields              |
+| Template / wizard screens      | `@tanstack/react-form` + Zod in `flows/*.tsx`                                               |
+| Workspace / inspector settings | `useAsymForm` from `@asym/ui/components/primitives/tanstack-form` (TanStack Form–based API) |
+| Simple search in list          | Native controlled inputs + Payload list hooks                                               |
 
 **Why:** Payload owns field semantics and draft lifecycle; TanStack Form is for **isolated** Mission Control UI that must not fight Payload’s form engine.
 

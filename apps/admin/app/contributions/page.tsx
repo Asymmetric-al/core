@@ -1,8 +1,8 @@
 "use client";
 
 import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { useState } from "react";
 

@@ -43,7 +43,9 @@
     "./lib/utils": "./lib/utils.ts",
     "./lib/theme-provider": "./lib/theme-provider.tsx",
     "./styles/*": "./styles/*",
-    "./components/view-transitions": "./components/view-transitions/index.ts"
+    "./components/view-transitions": "./components/view-transitions/index.ts",
+    "./components/primitives": "./components/primitives/index.ts",
+    "./components/primitives/*": "./components/primitives/*.tsx"
   },
   "scripts": {
     "build": "tsc --noEmit",

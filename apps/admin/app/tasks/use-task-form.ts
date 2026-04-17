@@ -1,4 +1,4 @@
-import { useAsymForm } from "@asym/ui/components/shadcn/tanstack-form";
+import { useAsymForm } from "@asym/ui/components/primitives/tanstack-form";
 
 import {
   createInitialTaskFormValues,
