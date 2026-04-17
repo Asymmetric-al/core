@@ -56,6 +56,7 @@
     "test:e2e:auth:missionary": "node scripts/run-with-ci-env.mjs -- bunx playwright test -c playwright.missionary.config.ts tests/e2e/auth-demo-missionary.spec.ts --project=missionary-boneyard",
     "test:e2e:boneyard:admin": "node scripts/run-with-ci-env.mjs -- bunx playwright test -c playwright.admin.config.ts tests/e2e/boneyard-smoke.spec.ts --project=admin-boneyard",
     "test:e2e:boneyard:missionary": "node scripts/run-with-ci-env.mjs -- bunx playwright test -c playwright.missionary.config.ts tests/e2e/boneyard-smoke.spec.ts --project=missionary-boneyard",
+    "test:e2e:boneyard:donor": "node scripts/run-with-ci-env.mjs -- bunx playwright test -c playwright.donor.config.ts tests/e2e/boneyard-smoke.spec.ts --project=donor-boneyard",
     "test:a11y": "node scripts/run-with-ci-env.mjs -- bunx playwright test tests/e2e/accessibility.spec.ts",
     "test:a11y:strict": "bunx playwright test tests/e2e/accessibility.spec.ts",
     "test:perf": "node scripts/run-with-ci-env.mjs -- bunx playwright test --grep @perf --workers=1",
@@ -100,10 +101,12 @@
     "clean:cache": "rm -rf .turbo node_modules/.cache",
     "boneyard:admin": "cd apps/admin && bunx boneyard-js build http://localhost:3030/boneyard/contributions",
     "boneyard:missionary": "cd apps/missionary && bunx boneyard-js build http://localhost:4000/boneyard/tasks",
-    "boneyard:all": "bun run boneyard:admin && bun run boneyard:missionary",
+    "boneyard:donor": "cd apps/donor && bunx boneyard-js build http://localhost:3000/boneyard/donor-dashboard --breakpoints 1280",
+    "boneyard:all": "bun run boneyard:admin && bun run boneyard:missionary && bun run boneyard:donor",
     "boneyard:admin:force": "cd apps/admin && bunx boneyard-js build http://localhost:3030/boneyard/contributions --force",
     "boneyard:missionary:force": "cd apps/missionary && bunx boneyard-js build http://localhost:4000/boneyard/tasks --force",
-    "boneyard:force": "bun run boneyard:admin:force && bun run boneyard:missionary:force",
+    "boneyard:donor:force": "cd apps/donor && bunx boneyard-js build http://localhost:3000/boneyard/donor-dashboard --force --breakpoints 1280",
+    "boneyard:force": "bun run boneyard:admin:force && bun run boneyard:missionary:force && bun run boneyard:donor:force",
     "prepare": "husky"
   },
   "dependencies": {
