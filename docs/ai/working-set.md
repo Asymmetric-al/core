@@ -1,5 +1,28 @@
 # Working Set
 
+## 2026-04-16 (PR #175 review — vendored Resend CLI 2.0 agent skill)
+
+- Date: 2026-04-16
+- Repo: Asymmetric-al/core
+- Goal: Rigorous evidence-based review of PR #175, which vendors `resend/resend-cli` v2.0.0 into `docs/ai/skills/resend-cli/`, mirrors it to `.agents/skills/` and `.cursor/skills/`, and adds routing in `AGENTS.md`, `README.md`, `docs/ai/skills/find-skills/SKILL.md`, plus `resend-cli` entry in both `.repo-canonical-skills.json` manifests.
+- Primary area:
+  - `docs/ai/skills/resend-cli/{SKILL.md,references/*.md}`
+  - `.agents/skills/resend-cli/**` and `.cursor/skills/resend-cli/**` (sync mirrors)
+  - `.agents/skills/.repo-canonical-skills.json` and `.cursor/skills/.repo-canonical-skills.json`
+  - `AGENTS.md` (Skill Routing section)
+  - `README.md` (skill scripts table + maintainer refresh notes)
+  - `docs/ai/skills/find-skills/SKILL.md` (Resend example block)
+- Stack: AGENTS.md routing, agent-skills (.agents/.cursor mirrors), bun scripts:sync/verify, prettier, no runtime
+- Constraints:
+  - Pure docs/agent-tooling change — no `apps/`, `packages/`, `tooling/`, `supabase/`, or runtime `scripts/` touched.
+  - Mirrors must match canonical (`bun run skills:verify` must stay green).
+  - Vendored content must remain byte-faithful to upstream `resend/resend-cli` tag `v2.0.0` apart from the repo-local `references/upstream.md`.
+- Outcome (2026-04-16):
+  - PR #175 reviewed and **approved with non-blocking comments** (see https://github.com/Asymmetric-al/core/pull/175#pullrequestreview-4125139736).
+  - Verified locally: `bun run skills:verify` clean (Greptile P1 mirror drift resolved by HEAD commit `944ffe2e28`); `bun run format:check` and `bun run lint` clean for the diff. CI on origin HEAD is fully green.
+  - Inline replies posted on all 5 bot review comments (Greptile #3093388338 stale/resolved; Codex #3093260503 partial; Cursor #3093250821, #3093250824, #3093270553 valid stylistic / partial).
+  - Follow-up issue #179 filed for the non-blocking doc cleanup (Quality-Gate exemption decision for vendored upstream skills + AGENTS.md / find-skills paragraph split + optional Bun callout).
+
 ## 2026-04-13 (Mission Control member care port — phase 8 contract hardening)
 
 - Date: 2026-04-13
@@ -144,6 +167,36 @@
   - `docs/ai/rules/{general,frontend,backend,testing}.md`
   - `docs/ai/skills/{nextjs-app-router,tiptap,tanstack-table,supabase}/SKILL.md`
   - `.next-docs/01-app/01-getting-started/{05-server-and-client-components,07-fetching-data}.mdx`
+
+## 2026-04-14 (PR #153 boneyard-js 1.7.6 refresh)
+
+- Date: 2026-04-14
+- Repo: Asymmetric-al/core
+- Goal: Update PR #153 from the current `boneyard-js` 1.7.1 target to 1.7.6, clean up the remaining donor capture-route / CI issues on the branch, and keep the Boneyard rollout on conservative runtime defaults.
+- Primary area:
+  - `apps/{admin,missionary,donor}/package.json`
+  - `packages/ui/package.json`
+  - `apps/donor/proxy.ts`
+  - `playwright.donor.config.ts`
+  - `.github/workflows/ci-integration.yml`
+  - `docs/guides/ui-design/boneyard.md`
+  - `bun.lock`
+- Constraints:
+  - Keep `@asym/ui` on the optional-peer + devDependency model for `boneyard-js`; do not leave a stale runtime dependency there.
+  - Preserve the current guided-crawl `skeletons` configs and only regenerate `apps/*/bones/**` if 1.7.6 changes generated output materially.
+  - Keep donor capture tests using the already-started CI donor app instead of starting a second dev server.
+  - Do not turn on new 1.7.x shimmer/stagger knobs globally without an explicit visual reason.
+- Evidence sources used:
+  - `docs/ai/rules/{general,frontend,testing}.md`
+  - `.next-docs/01-app/{01-getting-started/05-server-and-client-components,02-guides/third-party-libraries}.mdx`
+  - `docs/guides/ui-design/boneyard.md`
+  - local repo files under `apps/{admin,missionary,donor}`, `packages/ui`, `.github/workflows`, and `tests/e2e`
+  - upstream `0xGF/boneyard` README plus npm tarball/type inspection for `1.6.1`, `1.7.1`, and `1.7.6`
+  - GitHub PR #153 metadata and branch file reads via `gh`
+- Notes:
+  - The live repo index is stale for this branch; local file reads and GitHub branch reads are the source of truth for PR #153 work.
+  - The highest-value upstream runtime improvement for this repo is the 1.7.6 React/Preact first-frame skeleton mount fix; the rest of the 1.7.x additions are mostly optional controls or multi-framework expansion.
+  - The donor proxy bug is already covered conceptually by `tests/unit/auth/route-matching.test.ts`, which proves `/boneyard` works for nested routes and `/boneyard/` does not.
 
 ## 2026-04-11 (Repo health hardening pass)
 

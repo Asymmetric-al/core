@@ -43,6 +43,8 @@ Some extra ecosystem or tool-specific skills may exist only in `.cursor/skills/`
 
 **Example — Tiptap:** rich text work is covered by `docs/ai/skills/tiptap/SKILL.md`. To compare against upstream: `npx skills add ueberdosis/tiptap` (see also [Tiptap agent skill](https://tiptap.dev/docs/resources/agent-skill)).
 
+**Example — Resend:** **CLI** work (terminal, automation, CI) is covered by `docs/ai/skills/resend-cli/SKILL.md`, vendored from [`resend/resend-cli`](https://github.com/resend/resend-cli) (`skills/resend-cli/` at tag v2.0.0+); maintainer refresh notes are in `docs/ai/skills/resend-cli/references/upstream.md`. **Platform send/receive** (SDK, webhooks, inbound) is a separate concern — optional ecosystem install [`resend/resend-skills`](https://github.com/resend/resend-skills) may live under `.agents/skills/resend/` when added with the Skills CLI. **App-level Resend integration** in this monorepo is documented in `docs/guides/features/resend-integration.md`.
+
 ## How to Help Users Find Skills
 
 ### Step 1: Understand What They Need
