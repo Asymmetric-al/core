@@ -89,7 +89,8 @@ bun run shadcn:uikit:add button1
 ### `components.json` ownership
 
 - `packages/ui/components.json` is intentionally used for registry configuration in this repo.
-- `style` is pinned to **`radix-maia`** (shadcn v4 schema enum) with **`tailwind.baseColor: zinc`**; Maia surfaces and Zinc tokens are enforced by `packages/ui/styles/globals.css`, not by app-local styling.
+- `style` is pinned to **`base-maia`** (shadcn v4 Base UI Maia variant — see [schema](https://ui.shadcn.com/schema.json)) with **`tailwind.baseColor: zinc`**; Maia surfaces and Zinc tokens are enforced by `packages/ui/styles/globals.css`, not by app-local styling.
+- **New** components added via `shadcn add` should follow this pin (Base UI Maia codegen). **Legacy** Radix-backed primitives under `components/shadcn/*` may remain until migrated; do not assume every file matches the pin until touched.
 - Preserve existing registry entries when adding/updating components.
 - Do not manually edit `components.json`; use shadcn CLI commands from the repo root with `--cwd packages/ui`.
 

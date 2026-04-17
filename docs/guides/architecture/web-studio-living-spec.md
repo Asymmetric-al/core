@@ -93,7 +93,7 @@ flowchart LR
 | `apps/admin`          | Payload config, collections, Web Studio UI, public `/api/cms/public/*`, staff `/api/admin/*` re-exports |
 | `apps/donor`          | `lib/cms/client.ts` — consumer of public CMS; `CMS_BASE_URL`, forwarded host                            |
 | `apps/missionary-app` | No direct Web Studio; may share `@asym/*` packages                                                      |
-| `packages/ui`         | shadcn + Maia/Zinc; `useAsymForm`, shared components                                                    |
+| `packages/ui`         | shadcn (Base UI Maia + Zinc); `useAsymForm`, shared components                                          |
 | `packages/api`        | Business DB logic; `admin/missionary-directory`, `admin/fund-directory`                                 |
 | `packages/auth`       | `getAuthContext`, roles for staff routes / CMS users                                                    |
 | `packages/database`   | Supabase clients; Payload uses `PAYLOAD_DATABASE_URI` / pool                                            |
