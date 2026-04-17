@@ -6,12 +6,12 @@ import { ExternalLink, Pencil, Trash2, Check, X } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
+import { cn } from "@asym/ui/lib/utils";
+
 import { Button } from "../button";
 import { Input } from "../input";
 import { useEditorContext } from "./editor-context";
 import { getUrlFromString, normalizePostLinkHref } from "./helpers";
-
-import { cn } from "@/lib/utils";
 
 const DEFAULT_LINK_BUBBLE_STATE = {
   href: "",

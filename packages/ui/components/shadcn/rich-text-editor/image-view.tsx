@@ -9,9 +9,9 @@ import {
 import { Trash } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { Button } from "../button";
+import { cn } from "@asym/ui/lib/utils";
 
-import { cn } from "@/lib/utils";
+import { Button } from "../button";
 
 function normalizeImageWidth(value: unknown): string {
   if (typeof value === "number" && Number.isFinite(value)) {

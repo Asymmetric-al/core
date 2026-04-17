@@ -18,6 +18,8 @@ import {
 import * as React from "react";
 import { toast } from "sonner";
 
+import { cn } from "@asym/ui/lib/utils";
+
 import { useOptionalEditorContext } from "./editor-context";
 import { getUrlFromString } from "./helpers";
 import { Button } from "../button";
@@ -31,8 +33,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../tooltip";
-
-import { cn } from "@/lib/utils";
 
 /* ---------------------------- Tool definitions ---------------------------- */
 

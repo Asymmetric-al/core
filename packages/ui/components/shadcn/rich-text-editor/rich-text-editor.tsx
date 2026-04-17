@@ -3,12 +3,13 @@
 import { useEditor, EditorContent as TipTapEditorContent } from "@tiptap/react";
 import * as React from "react";
 
+import { cn } from "@asym/ui/lib/utils";
+
 import { EditorContext, useOptionalEditorContext } from "./editor-context";
 import { createDefaultExtensions } from "./extensions";
 import { parseContent } from "./helpers";
 import { LinkBubbleMenu } from "./link-bubble-menu";
 
-import { cn } from "@/lib/utils";
 import "./tiptap.css";
 
 export interface RichTextEditorProps {

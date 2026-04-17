@@ -4,10 +4,11 @@ import { SafeHtml } from "@asym/lib/components/safe-html";
 import { renderToReactElement } from "@tiptap/static-renderer";
 import * as React from "react";
 
+import { cn } from "@asym/ui/lib/utils";
+
 import { viewerExtensions } from "./extensions";
 import { parseContent } from "./helpers";
 
-import { cn } from "@/lib/utils";
 import "./tiptap.css";
 
 export interface RichTextViewerProps {
