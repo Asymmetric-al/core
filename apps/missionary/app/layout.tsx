@@ -6,6 +6,7 @@ import { QueryProvider } from "@asym/database/providers";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { MotionProvider } from "@asym/lib/motion";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
+import { TooltipProvider } from "@asym/ui/components/shadcn/tooltip";
 import { Inter, Geist_Mono, Syne } from "next/font/google";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -160,13 +161,15 @@ export default function RootLayout({
           <BoneyardRegistry />
           <QueryProvider>
             <MotionProvider>
-              <Suspense fallback={null}>
-                <NuqsAdapter>
-                  <MissionaryRoleGate>
-                    <MissionaryLayoutShell>{children}</MissionaryLayoutShell>
-                  </MissionaryRoleGate>
-                </NuqsAdapter>
-              </Suspense>
+              <TooltipProvider>
+                <Suspense fallback={null}>
+                  <NuqsAdapter>
+                    <MissionaryRoleGate>
+                      <MissionaryLayoutShell>{children}</MissionaryLayoutShell>
+                    </MissionaryRoleGate>
+                  </NuqsAdapter>
+                </Suspense>
+              </TooltipProvider>
             </MotionProvider>
           </QueryProvider>
         </ThemeProvider>

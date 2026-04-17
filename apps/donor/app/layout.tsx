@@ -4,6 +4,7 @@ import { QueryProvider } from "@asym/database/providers";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { MotionProvider } from "@asym/lib/motion";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
+import { TooltipProvider } from "@asym/ui/components/shadcn/tooltip";
 import { Inter, Geist_Mono, Syne } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Suspense } from "react";
@@ -164,15 +165,17 @@ export default function RootLayout({
           storageKey="donor-theme"
           disableTransitionOnChange
         >
-          <QueryProvider>
-            <MotionProvider>
-              <Suspense fallback={null}>
-                <NuqsAdapter>
-                  <OpenPolicyProvider>{children}</OpenPolicyProvider>
-                </NuqsAdapter>
-              </Suspense>
-            </MotionProvider>
-          </QueryProvider>
+          <TooltipProvider>
+            <QueryProvider>
+              <MotionProvider>
+                <Suspense fallback={null}>
+                  <NuqsAdapter>
+                    <OpenPolicyProvider>{children}</OpenPolicyProvider>
+                  </NuqsAdapter>
+                </Suspense>
+              </MotionProvider>
+            </QueryProvider>
+          </TooltipProvider>
         </ThemeProvider>
         <Toaster />
       </body>

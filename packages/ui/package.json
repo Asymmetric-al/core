@@ -108,6 +108,7 @@
     "next": "16.2.1",
     "next-themes": "^0.4.6",
     "nuqs": "^2.8.6",
+    "radix-ui": "^1.4.3",
     "react-day-picker": "^9.11.2",
     "react-easy-crop": "^5.5.6",
     "react-email-editor": "^1.7.11",
