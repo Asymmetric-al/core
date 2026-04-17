@@ -74,9 +74,8 @@ export async function waitForWebStudioShellOrSkip(
   await skipIfPayloadDatabaseUnreachable(page);
 
   if (!(await shell.isVisible().catch(() => false))) {
-    test.skip(
-      true,
-      "Web Studio native shell did not render within the timeout. If Postgres is up, investigate shell mount or demo auth; otherwise fix PAYLOAD_DATABASE_URI.",
+    throw new Error(
+      "Web Studio native shell did not render within the timeout without a confirmed Payload DB outage. Treat this as a real regression, not a skip.",
     );
   }
 }

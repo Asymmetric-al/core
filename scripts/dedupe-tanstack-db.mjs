@@ -48,7 +48,18 @@ export function dedupeTanstackDb(repoRoot, fileSystem = fs) {
       if (/** @type {NodeJS.ErrnoException} */ (e).code !== "ENOENT") throw e;
     }
     fileSystem.mkdirSync(path.dirname(targetDir), { recursive: true });
-    fileSystem.symlinkSync(canonical, targetDir, "dir");
+    try {
+      fileSystem.symlinkSync(canonical, targetDir, "dir");
+    } catch (e) {
+      const code = /** @type {NodeJS.ErrnoException} */ (e).code;
+      if (code === "EPERM" || code === "EACCES" || code === "ENOTSUP") {
+        console.warn(
+          `[dedupe-tanstack-db] Skipping symlink for ${targetDir}: ${code}.`,
+        );
+        return;
+      }
+      throw e;
+    }
   }
 
   for (const p of nested) {

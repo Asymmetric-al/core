@@ -98,4 +98,35 @@ describe("dedupeTanstackDb", () => {
       }
     },
   );
+
+  it("warns and continues when the platform disallows symlink creation", () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "dedupe-db-"));
+    try {
+      const canonical = path.join(tmp, "node_modules/@tanstack/db");
+      fs.mkdirSync(canonical, { recursive: true });
+      fs.writeFileSync(path.join(canonical, "package.json"), "{}");
+
+      const mockFs = {
+        ...fs,
+        symlinkSync: vi.fn(() => {
+          const err = new Error(
+            "symlink not permitted",
+          ) as NodeJS.ErrnoException;
+          err.code = "EPERM";
+          throw err;
+        }),
+      } as typeof fs;
+
+      expect(() => dedupeTanstackDb(tmp, mockFs)).not.toThrow();
+      expect(
+        warnSpy.mock.calls.some(
+          ([message]) =>
+            typeof message === "string" &&
+            message.includes("[dedupe-tanstack-db] Skipping symlink"),
+        ),
+      ).toBe(true);
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
 });
