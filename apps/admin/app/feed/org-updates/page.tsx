@@ -88,8 +88,8 @@ type PostStatus = "published" | "draft";
 
 const RichTextEditor = dynamic(
   () =>
-    import("@asym/ui/components/shadcn/RichTextEditor").then(
-      (mod) => mod.RichTextEditor,
+    import("@asym/ui/components/shadcn/rich-text-editor").then(
+      (mod) => mod.LegacyRichTextEditor,
     ),
   {
     ssr: false,

@@ -50,7 +50,6 @@ export * from "./progress";
 export * from "./radio-group";
 export * from "./resizable";
 export * from "./responsive-container";
-export * from "./RichTextEditor";
 export {
   EditorRoot,
   EditorContent,
@@ -59,7 +58,6 @@ export {
   RichTextViewer,
   isPostContentEmpty,
   LegacyRichTextEditor,
-  RichTextEditor as RichTextEditorCompound,
 } from "./rich-text-editor";
 export type { PostContentProps } from "./rich-text-editor";
 export * from "./ripple-button";

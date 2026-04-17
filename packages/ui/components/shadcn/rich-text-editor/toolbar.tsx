@@ -1,5 +1,6 @@
 "use client";
 
+import { type Editor, useEditorState } from "@tiptap/react";
 import {
   Bold,
   Italic,
@@ -17,8 +18,6 @@ import {
 import * as React from "react";
 import { toast } from "sonner";
 
-import { cn } from "@asym/ui/lib/utils";
-
 import { useOptionalEditorContext } from "./editor-context";
 import { getUrlFromString } from "./helpers";
 import { Button } from "../button";
@@ -33,7 +32,7 @@ import {
   TooltipTrigger,
 } from "../tooltip";
 
-import type { Editor } from "@tiptap/react";
+import { cn } from "@/lib/utils";
 
 /* ---------------------------- Tool definitions ---------------------------- */
 
@@ -64,6 +63,21 @@ const ALL_TOOLS: ToolbarTool[] = [
   "redo",
 ];
 
+const DEFAULT_TOOLBAR_STATE = {
+  isBold: false,
+  isItalic: false,
+  isUnderline: false,
+  isHeading1: false,
+  isHeading2: false,
+  isBlockquote: false,
+  isBulletList: false,
+  isOrderedList: false,
+  isLink: false,
+  canUndo: false,
+  canRedo: false,
+  existingHref: undefined as string | undefined,
+};
+
 /* -------------------------------------------------------------------------- */
 
 export interface EditorToolbarProps {
@@ -88,6 +102,30 @@ export function EditorToolbar({
 }: EditorToolbarProps) {
   const ctx = useOptionalEditorContext();
   const editor = editorProp ?? ctx?.editor ?? null;
+  const toolbarState =
+    useEditorState({
+      editor,
+      selector: ({ editor: currentEditor }) => {
+        if (!currentEditor) return DEFAULT_TOOLBAR_STATE;
+
+        return {
+          isBold: currentEditor.isActive("bold"),
+          isItalic: currentEditor.isActive("italic"),
+          isUnderline: currentEditor.isActive("underline"),
+          isHeading1: currentEditor.isActive("heading", { level: 1 }),
+          isHeading2: currentEditor.isActive("heading", { level: 2 }),
+          isBlockquote: currentEditor.isActive("blockquote"),
+          isBulletList: currentEditor.isActive("bulletList"),
+          isOrderedList: currentEditor.isActive("orderedList"),
+          isLink: currentEditor.isActive("link"),
+          canUndo: currentEditor.can().undo(),
+          canRedo: currentEditor.can().redo(),
+          existingHref: currentEditor.getAttributes("link").href as
+            | string
+            | undefined,
+        };
+      },
+    }) ?? DEFAULT_TOOLBAR_STATE;
 
   if (!editor) return null;
 
@@ -115,7 +153,7 @@ export function EditorToolbar({
         {has("bold") && (
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleBold().run()}
-            active={editor.isActive("bold")}
+            active={toolbarState.isBold}
             tooltip="Bold (Ctrl+B)"
           >
             <Bold className="h-3.5 w-3.5" />
@@ -124,7 +162,7 @@ export function EditorToolbar({
         {has("italic") && (
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleItalic().run()}
-            active={editor.isActive("italic")}
+            active={toolbarState.isItalic}
             tooltip="Italic (Ctrl+I)"
           >
             <Italic className="h-3.5 w-3.5" />
@@ -132,8 +170,8 @@ export function EditorToolbar({
         )}
         {has("underline") && (
           <ToolbarButton
-            onClick={() => editor.chain().focus().toggleMark("underline").run()}
-            active={editor.isActive("underline")}
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
+            active={toolbarState.isUnderline}
             tooltip="Underline (Ctrl+U)"
           >
             <Underline className="h-3.5 w-3.5" />
@@ -152,7 +190,7 @@ export function EditorToolbar({
               onClick={() =>
                 editor.chain().focus().toggleHeading({ level: 1 }).run()
               }
-              active={editor.isActive("heading", { level: 1 })}
+              active={toolbarState.isHeading1}
               tooltip="Heading 1"
             >
               <Heading1 className="h-3.5 w-3.5" />
@@ -161,7 +199,7 @@ export function EditorToolbar({
               onClick={() =>
                 editor.chain().focus().toggleHeading({ level: 2 }).run()
               }
-              active={editor.isActive("heading", { level: 2 })}
+              active={toolbarState.isHeading2}
               tooltip="Heading 2"
             >
               <Heading2 className="h-3.5 w-3.5" />
@@ -171,7 +209,7 @@ export function EditorToolbar({
         {has("blockquote") && (
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleBlockquote().run()}
-            active={editor.isActive("blockquote")}
+            active={toolbarState.isBlockquote}
             tooltip="Quote"
           >
             <Quote className="h-3.5 w-3.5" />
@@ -187,7 +225,7 @@ export function EditorToolbar({
         {has("bulletList") && (
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleBulletList().run()}
-            active={editor.isActive("bulletList")}
+            active={toolbarState.isBulletList}
             tooltip="Bullet List"
           >
             <List className="h-3.5 w-3.5" />
@@ -196,7 +234,7 @@ export function EditorToolbar({
         {has("orderedList") && (
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
-            active={editor.isActive("orderedList")}
+            active={toolbarState.isOrderedList}
             tooltip="Numbered List"
           >
             <ListOrdered className="h-3.5 w-3.5" />
@@ -209,7 +247,13 @@ export function EditorToolbar({
   if (media) {
     sections.push(
       <div key="media" className="flex items-center gap-0.5">
-        {has("link") && <LinkButton editor={editor} />}
+        {has("link") && (
+          <LinkButton
+            editor={editor}
+            existingHref={toolbarState.existingHref}
+            isActive={toolbarState.isLink}
+          />
+        )}
         {has("image") && onImageClick && (
           <ImageClickButton onClick={onImageClick} />
         )}
@@ -227,7 +271,7 @@ export function EditorToolbar({
           <ToolbarButton
             onClick={() => editor.chain().focus().undo().run()}
             active={false}
-            disabled={!editor.can().undo()}
+            disabled={!toolbarState.canUndo}
             tooltip="Undo (Ctrl+Z)"
           >
             <Undo2 className="h-3.5 w-3.5" />
@@ -237,7 +281,7 @@ export function EditorToolbar({
           <ToolbarButton
             onClick={() => editor.chain().focus().redo().run()}
             active={false}
-            disabled={!editor.can().redo()}
+            disabled={!toolbarState.canRedo}
             tooltip="Redo (Ctrl+Shift+Z)"
           >
             <Redo2 className="h-3.5 w-3.5" />
@@ -316,11 +360,17 @@ function ToolbarButton({
   );
 }
 
-function LinkButton({ editor }: { editor: Editor }) {
+function LinkButton({
+  editor,
+  existingHref,
+  isActive,
+}: {
+  editor: Editor;
+  existingHref?: string;
+  isActive: boolean;
+}) {
   const [url, setUrl] = React.useState("");
   const [open, setOpen] = React.useState(false);
-
-  const existingHref = editor.getAttributes("link").href as string | undefined;
 
   React.useEffect(() => {
     if (open) {
@@ -331,7 +381,7 @@ function LinkButton({ editor }: { editor: Editor }) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!url) {
-      editor.chain().focus().extendMarkRange("link").unsetMark("link").run();
+      editor.chain().focus().extendMarkRange("link").unsetLink().run();
       setOpen(false);
       return;
     }
@@ -345,7 +395,7 @@ function LinkButton({ editor }: { editor: Editor }) {
       .chain()
       .focus()
       .extendMarkRange("link")
-      .setMark("link", { href: parsed })
+      .setLink({ href: parsed })
       .run();
 
     setUrl("");
@@ -362,7 +412,7 @@ function LinkButton({ editor }: { editor: Editor }) {
               size="sm"
               className={cn(
                 "h-7 w-7 p-0 rounded-md transition-colors",
-                editor.isActive("link")
+                isActive
                   ? "bg-primary text-primary-foreground"
                   : "hover:bg-muted text-muted-foreground hover:text-foreground",
               )}
@@ -402,7 +452,7 @@ function LinkButton({ editor }: { editor: Editor }) {
                     .chain()
                     .focus()
                     .extendMarkRange("link")
-                    .unsetMark("link")
+                    .unsetLink()
                     .run();
                   setUrl("");
                   setOpen(false);

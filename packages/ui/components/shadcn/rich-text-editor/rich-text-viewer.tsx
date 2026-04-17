@@ -1,15 +1,13 @@
 "use client";
 
-import Link from "@tiptap/extension-link";
-import Underline from "@tiptap/extension-underline";
-import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
+import { SafeHtml } from "@asym/lib/components/safe-html";
+import { renderToReactElement } from "@tiptap/static-renderer";
 import * as React from "react";
 
-import { cn } from "@asym/ui/lib/utils";
+import { viewerExtensions } from "./extensions";
+import { parseContent } from "./helpers";
 
-import { isAllowedPostLinkHref, parseContent } from "./helpers";
-import { ResizableImageExtension } from "./image-view";
+import { cn } from "@/lib/utils";
 import "./tiptap.css";
 
 export interface RichTextViewerProps {
@@ -18,74 +16,28 @@ export interface RichTextViewerProps {
   className?: string;
 }
 
-const viewerExtensions = [
-  StarterKit.configure({
-    heading: { levels: [1, 2] },
-    link: false,
-    underline: false,
-    bulletList: {
-      HTMLAttributes: { class: "list-disc pl-4 space-y-1" },
-    },
-    orderedList: {
-      HTMLAttributes: { class: "list-decimal pl-4 space-y-1" },
-    },
-    blockquote: {
-      HTMLAttributes: { class: "border-l-4 border-primary pl-4 italic" },
-    },
-  }),
-  Link.configure({
-    openOnClick: true,
-    isAllowedUri: (url) => isAllowedPostLinkHref(url),
-    HTMLAttributes: {
-      class: "text-primary underline cursor-pointer",
-      target: "_blank",
-      rel: "noopener noreferrer",
-    },
-  }),
-  Underline,
-  ResizableImageExtension.configure({
-    inline: false,
-    allowBase64: false,
-  }),
-];
-
 export function RichTextViewer({ value, className }: RichTextViewerProps) {
-  const editor = useEditor({
-    extensions: viewerExtensions,
-    content: value ? parseContent(value) : "",
-    editable: false,
-    immediatelyRender: false,
-    editorProps: {
-      attributes: {
-        class: cn(
-          "tiptap prose prose-sm sm:prose-base max-w-none dark:prose-invert",
-          className,
-        ),
-      },
-    },
-  });
-
-  React.useEffect(() => {
-    if (!editor) return;
-
-    if (!value) {
-      editor.commands.clearContent();
-      return;
+  const content = React.useMemo(() => parseContent(value), [value]);
+  const contentClassName = cn(
+    "tiptap prose prose-sm sm:prose-base max-w-none dark:prose-invert",
+    className,
+  );
+  const renderedContent = React.useMemo(() => {
+    if (typeof content !== "object") {
+      return null;
     }
 
-    const parsed = parseContent(value);
-    const current = editor.getJSON();
-
-    if (typeof parsed === "object") {
-      if (JSON.stringify(parsed) !== JSON.stringify(current)) {
-        editor.commands.setContent(parsed);
-      }
-    } else {
-      editor.commands.setContent(parsed);
-    }
-  }, [value, editor]);
+    return renderToReactElement({
+      content,
+      extensions: viewerExtensions,
+    });
+  }, [content]);
 
   if (!value) return null;
 
-  return <EditorContent editor={editor} />;
+  if (typeof content !== "object") {
+    return <SafeHtml className={contentClassName} html={content} />;
+  }
+
+  return <div className={contentClassName}>{renderedContent}</div>;
 }

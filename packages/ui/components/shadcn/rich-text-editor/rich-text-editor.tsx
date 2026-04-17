@@ -3,12 +3,12 @@
 import { useEditor, EditorContent as TipTapEditorContent } from "@tiptap/react";
 import * as React from "react";
 
-import { cn } from "@asym/ui/lib/utils";
-
 import { EditorContext, useOptionalEditorContext } from "./editor-context";
 import { createDefaultExtensions } from "./extensions";
 import { parseContent } from "./helpers";
 import { LinkBubbleMenu } from "./link-bubble-menu";
+
+import { cn } from "@/lib/utils";
 import "./tiptap.css";
 
 export interface RichTextEditorProps {
@@ -43,13 +43,19 @@ export const EditorRoot = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
       () => createDefaultExtensions({ placeholder }),
       [placeholder],
     );
+    const lastSyncedValueRef = React.useRef(value);
 
     const editor = useEditor({
       extensions,
       content: parseContent(value),
       editable: !disabled,
       onUpdate: ({ editor: ed }) => {
-        onChange(JSON.stringify(ed.getJSON()));
+        const nextValue = JSON.stringify(ed.getJSON());
+
+        if (nextValue !== lastSyncedValueRef.current) {
+          lastSyncedValueRef.current = nextValue;
+          onChange(nextValue);
+        }
       },
       editorProps: {
         attributes: {
@@ -73,20 +79,27 @@ export const EditorRoot = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
       if (!editor) return;
 
       if (!value) {
-        editor.commands.clearContent();
+        if (lastSyncedValueRef.current === value) return;
+
+        editor.commands.clearContent(false);
+        lastSyncedValueRef.current = value;
         return;
       }
+
+      if (lastSyncedValueRef.current === value) return;
 
       const parsed = parseContent(value);
       const current = editor.getJSON();
 
       if (typeof parsed === "object") {
         if (JSON.stringify(parsed) !== JSON.stringify(current)) {
-          editor.commands.setContent(parsed);
+          editor.commands.setContent(parsed, { emitUpdate: false });
         }
-      } else if (parsed !== editor.getHTML() && parsed !== editor.getText()) {
-        editor.commands.setContent(parsed);
+      } else if (parsed !== editor.getText()) {
+        editor.commands.setContent(parsed, { emitUpdate: false });
       }
+
+      lastSyncedValueRef.current = value;
     }, [value, editor]);
 
     return (

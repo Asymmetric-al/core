@@ -1,27 +1,47 @@
 "use client";
 
+import { useEditorState } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
 import { ExternalLink, Pencil, Trash2, Check, X } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
-
-import { cn } from "@asym/ui/lib/utils";
 
 import { Button } from "../button";
 import { Input } from "../input";
 import { useEditorContext } from "./editor-context";
 import { getUrlFromString, normalizePostLinkHref } from "./helpers";
 
+import { cn } from "@/lib/utils";
+
+const DEFAULT_LINK_BUBBLE_STATE = {
+  href: "",
+  isLink: false,
+};
+
 export function LinkBubbleMenu() {
   const { editor } = useEditorContext();
   const [isEditing, setIsEditing] = React.useState(false);
   const [url, setUrl] = React.useState("");
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const bubbleMenuState =
+    useEditorState({
+      editor,
+      selector: ({ editor: currentEditor }) => {
+        if (!currentEditor) return DEFAULT_LINK_BUBBLE_STATE;
+
+        return {
+          href:
+            (currentEditor.getAttributes("link").href as string | undefined) ??
+            "",
+          isLink: currentEditor.isActive("link"),
+        };
+      },
+    }) ?? DEFAULT_LINK_BUBBLE_STATE;
 
   if (!editor) return null;
 
   const handleEdit = () => {
-    setUrl(editor.getAttributes("link").href ?? "");
+    setUrl(bubbleMenuState.href);
     setIsEditing(true);
     setTimeout(() => inputRef.current?.focus(), 0);
   };
@@ -38,7 +58,7 @@ export function LinkBubbleMenu() {
       .chain()
       .focus()
       .extendMarkRange("link")
-      .setMark("link", { href: parsed })
+      .setLink({ href: parsed })
       .run();
 
     setIsEditing(false);
@@ -46,7 +66,7 @@ export function LinkBubbleMenu() {
   };
 
   const handleRemove = () => {
-    editor.chain().focus().extendMarkRange("link").unsetMark("link").run();
+    editor.chain().focus().extendMarkRange("link").unsetLink().run();
     setIsEditing(false);
     setUrl("");
   };
@@ -60,12 +80,12 @@ export function LinkBubbleMenu() {
   return (
     <BubbleMenu
       editor={editor}
-      shouldShow={({ editor: ed, from, to }) => {
-        if (from === to && ed.isActive("link")) return true;
-        if (from !== to && ed.isActive("link")) return true;
-        return false;
+      shouldShow={({ editor: ed, element, view }) => {
+        const isChildOfMenu = element.contains(document.activeElement);
+        const hasEditorFocus = view.hasFocus() || isChildOfMenu;
+
+        return ed.isEditable && hasEditorFocus && ed.isActive("link");
       }}
-      updateDelay={0}
       className={cn(
         "flex items-center gap-1 rounded-lg border border-border bg-background p-1 shadow-lg",
         "animate-in fade-in-0 zoom-in-95 duration-100",
@@ -81,7 +101,7 @@ export function LinkBubbleMenu() {
         />
       ) : (
         <PreviewView
-          href={editor.getAttributes("link").href ?? ""}
+          href={bubbleMenuState.href}
           onEdit={handleEdit}
           onRemove={handleRemove}
         />
