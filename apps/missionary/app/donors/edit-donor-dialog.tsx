@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@asym/ui/components/shadcn/dialog";
-import { useAsymForm } from "@asym/ui/components/shadcn/form";
+import { useAsymForm } from "@asym/ui/components/shadcn/tanstack-form";
 import { Loader2 } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";

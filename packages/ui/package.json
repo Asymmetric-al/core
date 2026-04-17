@@ -43,7 +43,6 @@
     "./lib/utils": "./lib/utils.ts",
     "./lib/theme-provider": "./lib/theme-provider.tsx",
     "./styles/*": "./styles/*",
-    "./tailwind-preset": "./tailwind-preset.ts",
     "./components/view-transitions": "./components/view-transitions/index.ts"
   },
   "scripts": {
@@ -79,7 +78,6 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tabs": "^1.1.13",
-    "@radix-ui/react-toast": "^1.2.4",
     "@radix-ui/react-toggle": "^1.1.10",
     "@radix-ui/react-toggle-group": "^1.1.11",
     "@radix-ui/react-tooltip": "^1.2.8",

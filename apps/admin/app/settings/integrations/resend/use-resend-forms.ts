@@ -1,4 +1,4 @@
-import { useAsymForm } from "@asym/ui/components/shadcn/form";
+import { useAsymForm } from "@asym/ui/components/shadcn/tanstack-form";
 
 import {
   connectResendSchema,

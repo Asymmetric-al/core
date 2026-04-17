@@ -7,7 +7,6 @@ import {
   FieldError,
   FieldLabel,
 } from "@asym/ui/components/shadcn/field";
-import { useAsymForm } from "@asym/ui/components/shadcn/form";
 import {
   Select,
   SelectContent,
@@ -24,6 +23,7 @@ import {
   SheetTitle,
 } from "@asym/ui/components/shadcn/sheet";
 import { Switch } from "@asym/ui/components/shadcn/switch";
+import { useAsymForm } from "@asym/ui/components/shadcn/tanstack-form";
 import { Loader2, Trash2 } from "lucide-react";
 import { z } from "zod";
 

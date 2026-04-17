@@ -1,11 +1,11 @@
 "use client";
 
-import { useIsMobile } from "@asym/lib/hooks/use-mobile";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { PanelLeftIcon } from "lucide-react";
 import * as React from "react";
 
+import { useIsMobile } from "@asym/ui/hooks";
 import { cn } from "@asym/ui/lib/utils";
 
 import { Button } from "./button";

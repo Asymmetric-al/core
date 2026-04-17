@@ -33,7 +33,7 @@ export * from "./dropdown-menu";
 export * from "./data-grid";
 export * from "./empty";
 export * from "./field";
-export * from "./form";
+export * from "./tanstack-form";
 export * from "./hover-card";
 export * from "./input";
 export * from "./input-group";

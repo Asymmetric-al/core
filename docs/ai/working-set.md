@@ -1,5 +1,34 @@
 # Working Set
 
+## 2026-04-17 (shadcn/ui full implementation pass)
+
+- Date: 2026-04-17
+- Repo: Asymmetric-al/core
+- Goal: Execute the full shadcn/ui audit plan end-to-end: repo hygiene, canonical v4.3 component resync via shadcn CLI, theme-token cleanup, and separation of first-party UI from canonical shadcn surfaces without regressing Next.js 16 Cache Components behavior.
+- Primary area:
+  - `packages/ui/components.json`
+  - `packages/ui/package.json`
+  - `packages/ui/components/shadcn/**`
+  - `packages/ui/components/{primitives,shadcn}/**`
+  - `packages/ui/hooks/use-mobile.ts`
+  - `packages/lib/hooks/use-mobile.ts`
+  - `apps/{admin,donor,missionary}/app/layout.tsx`
+  - `docs/ai/audits/shadcn-ui-{audit-2026-04-16,quick-fix-checklist}.md`
+- Constraints:
+  - Use shadcn CLI as the source of truth for canonical component sync; preserve intentional repo-specific APIs only where clearly required.
+  - Keep App Router server/client boundaries explicit and compatible with `cacheComponents: true`.
+  - Preserve the shared Maia/Zinc token system; remove hardcoded component colors in favor of semantic tokens.
+  - Keep shared UI ownership in `packages/ui`; apps must keep consuming via `@asym/ui`.
+  - This runtime currently lacks Bun and a workspace `node_modules`; environment must be restored before validation.
+- Evidence sources used:
+  - `docs/ai/{stack-registry,working-set}.md`
+  - `docs/ai/rules/{general,frontend,testing}.md`
+  - `docs/ai/skills/{react-component-dev,nextjs-app-router,vercel-react-best-practices}/SKILL.md`
+  - `.agents/skills/{lint-and-validate,systematic-debugging}/SKILL.md`
+  - `.next-docs/01-app/{01-getting-started/06-cache-components,03-api-reference/01-directives/use-client}.mdx`
+  - `npx shadcn@latest info`
+  - prior repo audit docs under `docs/ai/audits/`
+
 ## 2026-04-13 (Mission Control member care port — phase 8 contract hardening)
 
 - Date: 2026-04-13

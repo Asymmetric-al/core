@@ -24,7 +24,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@asym/ui/components/shadcn/dialog";
-import { useAsymForm } from "@asym/ui/components/shadcn/form";
 import {
   Popover,
   PopoverContent,
@@ -38,6 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
+import { useAsymForm } from "@asym/ui/components/shadcn/tanstack-form";
 import { cn } from "@asym/ui/lib/utils";
 import { format } from "date-fns";
 import {
