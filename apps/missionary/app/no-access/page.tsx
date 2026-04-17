@@ -4,8 +4,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "No access",
-  description:
-    "Your account does not have permission to view this portal.",
+  description: "Your account does not have permission to view this portal.",
 };
 
 export default function NoAccessPage() {

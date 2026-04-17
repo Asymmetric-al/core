@@ -826,9 +826,7 @@ async function runExportPdf(
   }
 }
 
-type DeleteTemplateResult =
-  | { ok: true }
-  | { ok: false; error: string };
+type DeleteTemplateResult = { ok: true } | { ok: false; error: string };
 
 async function runDeletePdfTemplate(
   templateId: string,

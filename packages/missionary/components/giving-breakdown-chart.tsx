@@ -128,10 +128,7 @@ function GivingBreakdownSkeleton() {
     <div className="h-[200px] sm:h-[250px] md:h-[300px] w-full flex flex-col">
       <div className="flex-1 flex items-end justify-around gap-1 px-4 pb-6">
         {SKELETON_BARS.map(({ id, height }) => (
-          <div
-            key={id}
-            className="flex-1 flex flex-col items-center gap-1"
-          >
+          <div key={id} className="flex-1 flex flex-col items-center gap-1">
             <Skeleton
               className="w-full rounded-t-sm"
               style={{ height: `${height}%` }}
