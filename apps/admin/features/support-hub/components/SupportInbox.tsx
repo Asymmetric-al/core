@@ -4,17 +4,32 @@ import { cn } from "@asym/ui/lib/utils";
 import * as React from "react";
 
 import { useSupportConversations } from "../hooks/use-support-conversations";
+import {
+  useSetSupportConversationStatus,
+  useSnoozeSupportConversation,
+} from "../hooks/use-support-mutations";
 import { useCurrentSupportAgentId } from "../lib/current-agent";
 import { SupportNowProvider, useSupportNow } from "../lib/now";
 import { useSupportInboxState } from "../lib/route-state";
 import { type SupportConversationFilter } from "../lib/selectors";
 import { SupportBoardView } from "./board/SupportBoardView";
+import { SupportCommandPalette } from "./command/SupportCommandPalette";
+import { useInboxShortcuts } from "./command/use-inbox-shortcuts";
+import {
+  SupportCommandPaletteProvider,
+  useSupportCommandPalette,
+} from "./command/use-support-command-palette";
 import { ConversationDetail } from "./detail/ConversationDetail";
 import { StatsStrip } from "./stats/StatsStrip";
 import { SupportInboxEmptyState } from "./SupportInboxEmptyState";
 import { SupportTableView } from "./table/SupportTableView";
 import { ViewTabs } from "./tabs/ViewTabs";
 import { InboxToolbar } from "./toolbar/InboxToolbar";
+import { SavedViewsBar } from "./views/SavedViewsBar";
+
+import type { SupportConversation } from "../types";
+
+const HOUR_MS = 60 * 60 * 1000;
 
 /**
  * Top-level workspace for the donor-care inbox. Reads URL state via
@@ -30,7 +45,9 @@ import { InboxToolbar } from "./toolbar/InboxToolbar";
 export function SupportInbox() {
   return (
     <SupportNowProvider>
-      <SupportInboxBody />
+      <SupportCommandPaletteProvider>
+        <SupportInboxBody />
+      </SupportCommandPaletteProvider>
     </SupportNowProvider>
   );
 }
@@ -40,6 +57,10 @@ function SupportInboxBody() {
   const currentAgentId = useCurrentSupportAgentId();
   const conversations = useSupportConversations();
   const nowIso = useSupportNow();
+  const palette = useSupportCommandPalette();
+  const setStatus = useSetSupportConversationStatus();
+  const snooze = useSnoozeSupportConversation();
+  const inboxRef = React.useRef<HTMLDivElement | null>(null);
 
   const baseFilter: Omit<SupportConversationFilter, "view"> = {
     status: state.status,
@@ -65,9 +86,58 @@ function SupportInboxBody() {
   const isLoading = conversations.isLoading || filteredConversations.isLoading;
   const isEmpty = !isLoading && filteredConversations.data.length === 0;
 
+  const stepConversation = (direction: 1 | -1) => {
+    const list = filteredConversations.data;
+    if (list.length === 0) return;
+    const currentIndex = list.findIndex(
+      (row: SupportConversation) => row.id === state.selectedConversationId,
+    );
+    const nextIndex = clampIndex(
+      currentIndex === -1
+        ? direction > 0
+          ? 0
+          : list.length - 1
+        : currentIndex + direction,
+      list.length,
+    );
+    setState({ selectedConversationId: list[nextIndex]?.id ?? null });
+  };
+
+  const handleResolveSelected = () => {
+    if (!state.selectedConversationId) return;
+    void setStatus.mutateAsync({
+      conversationId: state.selectedConversationId,
+      status: "resolved",
+    });
+  };
+
+  const handleSnoozeSelected = () => {
+    if (!state.selectedConversationId) return;
+    void snooze.mutateAsync({
+      conversationId: state.selectedConversationId,
+      snoozedUntil: new Date(Date.now() + 24 * HOUR_MS).toISOString(),
+    });
+  };
+
+  useInboxShortcuts({
+    containerRef: inboxRef,
+    enabled: !palette.isOpen,
+    handlers: {
+      openCommandPalette: () => palette.open(),
+      nextConversation: () => stepConversation(1),
+      previousConversation: () => stepConversation(-1),
+      resolveConversation: () => handleResolveSelected(),
+      openSnoozeMenu: () => handleSnoozeSelected(),
+      closeOverlay: () => palette.close(),
+    },
+  });
+
   return (
-    <div className="space-y-4">
+    <div ref={inboxRef} className="space-y-4">
+      <SupportCommandPalette />
       <StatsStrip />
+
+      <SavedViewsBar />
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <ViewTabs
@@ -125,4 +195,11 @@ function SupportInboxBody() {
       </div>
     </div>
   );
+}
+
+function clampIndex(value: number, length: number): number {
+  if (length === 0) return 0;
+  if (value < 0) return length - 1;
+  if (value >= length) return 0;
+  return value;
 }
