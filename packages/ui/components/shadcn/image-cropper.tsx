@@ -216,7 +216,7 @@ export function ImageCropper({
   if (state.imageError) {
     return (
       <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleCancel()}>
-        <DialogContent className="sm:max-w-[400px] border-zinc-200 bg-white p-6">
+        <DialogContent className="border-border bg-background p-6 sm:max-w-[400px]">
           <DialogHeader className="sr-only">
             <DialogTitle>Image load error</DialogTitle>
             <DialogDescription>
@@ -229,7 +229,7 @@ export function ImageCropper({
               <AlertCircle className="h-6 w-6 text-red-500" />
             </div>
 
-            <p className="text-center text-sm text-zinc-600">
+            <p className="text-muted-foreground text-center text-sm">
               Failed to load image. Please try a different file.
             </p>
 
@@ -244,18 +244,18 @@ export function ImageCropper({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleCancel()}>
-      <DialogContent className="flex h-[90vh] max-h-[700px] flex-col overflow-hidden border-zinc-200 bg-white p-0 sm:max-w-[600px]">
-        <DialogHeader className="shrink-0 border-b border-zinc-100 p-4 sm:p-6">
+      <DialogContent className="border-border bg-background flex h-[90vh] max-h-[700px] flex-col overflow-hidden p-0 sm:max-w-[600px]">
+        <DialogHeader className="border-border/70 shrink-0 border-b p-4 sm:p-6">
           <DialogTitle className="flex items-center gap-2 text-lg font-bold uppercase tracking-tight sm:text-xl">
-            <Scissors className="h-4 w-4 text-zinc-900 sm:h-5 sm:w-5" />
+            <Scissors className="text-foreground h-4 w-4 sm:h-5 sm:w-5" />
             Crop Image
           </DialogTitle>
-          <DialogDescription className="text-xs text-zinc-500">
+          <DialogDescription className="text-muted-foreground text-xs">
             Adjust zoom and rotation, then apply the crop to save the image.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="relative min-h-[200px] flex-1 bg-zinc-900 sm:min-h-[300px]">
+        <div className="bg-foreground relative min-h-[200px] flex-1 sm:min-h-[300px]">
           <Cropper
             image={image}
             crop={state.crop}
@@ -273,10 +273,10 @@ export function ImageCropper({
           />
         </div>
 
-        <div className="shrink-0 space-y-4 border-t border-zinc-100 bg-white p-4 sm:space-y-6 sm:p-6">
+        <div className="border-border/70 bg-background shrink-0 space-y-4 border-t p-4 sm:space-y-6 sm:p-6">
           <div className="space-y-3 sm:space-y-4">
             <div className="flex items-center gap-3 sm:gap-4">
-              <ZoomOut className="h-4 w-4 flex-shrink-0 text-zinc-400" />
+              <ZoomOut className="text-muted-foreground h-4 w-4 flex-shrink-0" />
               <Slider
                 value={[state.zoom]}
                 min={minZoom}
@@ -289,11 +289,11 @@ export function ImageCropper({
                 }}
                 className="flex-1"
               />
-              <ZoomIn className="h-4 w-4 flex-shrink-0 text-zinc-400" />
+              <ZoomIn className="text-muted-foreground h-4 w-4 flex-shrink-0" />
             </div>
 
             <div className="flex items-center gap-3 sm:gap-4">
-              <RotateCw className="h-4 w-4 flex-shrink-0 text-zinc-400" />
+              <RotateCw className="text-muted-foreground h-4 w-4 flex-shrink-0" />
               <Slider
                 value={[state.rotation]}
                 min={0}
@@ -306,7 +306,7 @@ export function ImageCropper({
                 }}
                 className="flex-1"
               />
-              <span className="w-8 text-right text-[10px] font-bold text-zinc-400">
+              <span className="text-muted-foreground w-8 text-right text-[10px] font-bold">
                 {state.rotation}&deg;
               </span>
             </div>
@@ -318,7 +318,7 @@ export function ImageCropper({
               variant="outline"
               onClick={handleCancel}
               disabled={state.isProcessing}
-              className="h-9 flex-1 rounded-lg border-zinc-200 text-[10px] font-black uppercase tracking-widest sm:h-10 sm:flex-none"
+              className="border-border h-9 flex-1 rounded-lg text-[10px] font-black uppercase tracking-widest sm:h-10 sm:flex-none"
             >
               Cancel
             </Button>
@@ -326,7 +326,7 @@ export function ImageCropper({
               type="button"
               onClick={handleSave}
               disabled={state.isProcessing || !state.croppedAreaPixels}
-              className="h-9 min-w-[100px] flex-1 rounded-lg bg-zinc-900 text-[10px] font-black uppercase tracking-widest text-white hover:bg-zinc-800 sm:h-10 sm:min-w-[120px] sm:flex-none"
+              className="bg-primary text-primary-foreground h-9 min-w-[100px] flex-1 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 sm:h-10 sm:min-w-[120px] sm:flex-none"
             >
               {state.isProcessing ? (
                 <>

@@ -170,8 +170,8 @@ export function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
 
   return (
-    <div className="bg-white border border-zinc-200 rounded-lg shadow-xl p-3 min-w-[120px] animate-in fade-in zoom-in-95 duration-200">
-      <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-2 border-b border-zinc-50 pb-1.5">
+    <div className="bg-popover text-popover-foreground border-border/70 min-w-[120px] rounded-lg border p-3 shadow-xl animate-in fade-in zoom-in-95 duration-200">
+      <p className="text-muted-foreground border-border/50 mb-2 border-b pb-1.5 text-[10px] font-bold uppercase tracking-wider">
         {label}
       </p>
       <div className="space-y-1.5">
@@ -185,11 +185,11 @@ export function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
                 className="h-1.5 w-1.5 rounded-full"
                 style={{ backgroundColor: item.color || item.fill }}
               />
-              <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-tight">
+              <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-tight">
                 {item.name}
               </span>
             </div>
-            <span className="text-xs font-bold text-zinc-900 tabular-nums">
+            <span className="text-foreground tabular-nums text-xs font-bold">
               {typeof item.value === "number"
                 ? `$${item.value.toLocaleString()}`
                 : item.value}
@@ -246,7 +246,7 @@ export function KpiTile({
   return (
     <Card
       className={cn(
-        "relative overflow-hidden group hover:border-zinc-300 transition-colors",
+        "group relative overflow-hidden transition-colors hover:border-border",
         className,
       )}
     >
@@ -267,7 +267,8 @@ export function KpiTile({
                     "h-5 px-1.5 text-[10px] font-bold border-none",
                     delta.trend === "up" && "bg-emerald-50 text-emerald-700",
                     delta.trend === "down" && "bg-rose-50 text-rose-700",
-                    delta.trend === "neutral" && "bg-zinc-100 text-zinc-600",
+                    delta.trend === "neutral" &&
+                      "bg-muted text-muted-foreground",
                   )}
                 >
                   {delta.trend === "up" && (
@@ -290,13 +291,13 @@ export function KpiTile({
             )}
           </div>
           {Icon && (
-            <div className="p-2 bg-zinc-50 rounded-xl border border-zinc-100 group-hover:bg-zinc-100 transition-colors">
-              <Icon className="h-5 w-5 text-zinc-600" />
+            <div className="bg-muted border-border/60 rounded-xl border p-2 transition-colors group-hover:bg-accent">
+              <Icon className="text-muted-foreground h-5 w-5" />
             </div>
           )}
         </div>
         {isError && (
-          <div className="absolute inset-0 bg-white/80 backdrop-blur-[1px] flex items-center justify-center p-4 text-center">
+          <div className="bg-background/80 absolute inset-0 flex items-center justify-center p-4 text-center backdrop-blur-[1px]">
             <div className="flex items-center gap-2 text-destructive">
               <AlertCircle className="h-4 w-4" />
               <span className="text-xs font-semibold">Error loading data</span>

@@ -61,13 +61,13 @@ type MapProps = {
 
 function Loader() {
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-50/80 dark:bg-zinc-900/80 backdrop-blur-md z-50">
+    <div className="bg-background/80 absolute inset-0 z-50 flex flex-col items-center justify-center backdrop-blur-md">
       <div className="relative flex items-center justify-center mb-4">
         <div className="absolute inset-0 rounded-full bg-primary/10 animate-ping" />
         <div className="relative size-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
       </div>
       <div className="flex gap-1.5 items-center">
-        <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+        <span className="text-muted-foreground text-sm font-medium">
           Loading Map
         </span>
         <div className="flex gap-1">
@@ -222,7 +222,7 @@ export function Map({
       <div
         ref={containerRef}
         className={cn(
-          "relative w-full h-full min-h-[400px] bg-zinc-100 dark:bg-zinc-900",
+          "bg-muted relative h-full min-h-[400px] w-full",
           className,
         )}
       >
@@ -395,7 +395,7 @@ export function MarkerPopup({
   return createPortal(
     <div
       className={cn(
-        "relative rounded-2xl border border-zinc-200/50 bg-white dark:bg-zinc-900 p-0 text-zinc-900 dark:text-zinc-50 shadow-2xl",
+        "bg-popover text-popover-foreground border-border/50 relative rounded-2xl border p-0 shadow-2xl",
         className,
       )}
     >
@@ -445,7 +445,7 @@ function ZoomInIcon() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="text-zinc-600 dark:text-zinc-400"
+      className="text-muted-foreground"
     >
       <line x1="12" y1="5" x2="12" y2="19" />
       <line x1="5" y1="12" x2="19" y2="12" />
@@ -464,7 +464,7 @@ function ZoomOutIcon() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="text-zinc-600 dark:text-zinc-400"
+      className="text-muted-foreground"
     >
       <line x1="5" y1="12" x2="19" y2="12" />
     </svg>
@@ -482,7 +482,7 @@ function LocateIcon() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="text-zinc-600 dark:text-zinc-400"
+      className="text-muted-foreground"
     >
       <line x1="2" y1="12" x2="5" y2="12" />
       <line x1="19" y1="12" x2="22" y2="12" />
@@ -505,7 +505,7 @@ function MaximizeIcon() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="text-zinc-600 dark:text-zinc-400"
+      className="text-muted-foreground"
     >
       <path d="M8 3H5a2 2 0 0 0-2 2v3" />
       <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
@@ -526,7 +526,7 @@ function SunIcon() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="text-zinc-400"
+      className="text-muted-foreground"
     >
       <circle cx="12" cy="12" r="4" />
       <path d="M12 2v2" />
@@ -552,7 +552,7 @@ function MoonIcon() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="text-zinc-600"
+      className="text-muted-foreground"
     >
       <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
     </svg>
@@ -603,19 +603,19 @@ export function MapControls({
       position={position}
       className={cn("flex flex-col gap-2", className)}
     >
-      <div className="flex flex-col rounded-2xl border border-zinc-200/80 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl shadow-lg overflow-hidden ring-1 ring-black/5">
+      <div className="bg-popover/90 border-border/80 ring-border/40 flex flex-col overflow-hidden rounded-2xl border shadow-lg ring-1 backdrop-blur-xl">
         {showZoom && (
           <>
             <button
               onClick={handleZoomIn}
-              className="p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors border-b border-zinc-100 dark:border-zinc-800"
+              className="border-border/60 hover:bg-accent p-2.5 transition-colors border-b"
               title="Zoom In"
             >
               <ZoomInIcon />
             </button>
             <button
               onClick={handleZoomOut}
-              className="p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors border-b border-zinc-100 dark:border-zinc-800"
+              className="border-border/60 hover:bg-accent p-2.5 transition-colors border-b"
               title="Zoom Out"
             >
               <ZoomOutIcon />
@@ -625,7 +625,7 @@ export function MapControls({
         {showGeolocate && (
           <button
             onClick={handleGeolocate}
-            className="p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors border-b border-zinc-100 dark:border-zinc-800"
+            className="border-border/60 hover:bg-accent p-2.5 transition-colors border-b"
             title="Find My Location"
           >
             <LocateIcon />
@@ -634,7 +634,7 @@ export function MapControls({
         {showFullscreen && (
           <button
             onClick={handleFullscreen}
-            className="p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            className="hover:bg-accent p-2.5 transition-colors"
             title="Toggle Fullscreen"
           >
             <MaximizeIcon />
@@ -661,7 +661,7 @@ export function MapStyleToggle({
     <MapOverlay position={position} className={cn(className)}>
       <button
         onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-        className="size-10 flex items-center justify-center rounded-2xl border border-zinc-200/80 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl shadow-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all ring-1 ring-black/5"
+        className="bg-popover/90 border-border/80 ring-border/40 hover:bg-accent flex size-10 items-center justify-center rounded-2xl border shadow-lg ring-1 backdrop-blur-xl transition-all"
       >
         {resolvedTheme === "dark" ? <SunIcon /> : <MoonIcon />}
       </button>
@@ -688,8 +688,8 @@ export function MapLegend({
       position={position}
       className={cn("hidden lg:block", className)}
     >
-      <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-xl p-4 min-w-[160px] ring-1 ring-black/5">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-3">
+      <div className="bg-popover/90 border-border/80 ring-border/40 min-w-[160px] rounded-2xl border p-4 shadow-xl ring-1 backdrop-blur-xl">
+        <p className="text-muted-foreground mb-3 text-[10px] font-bold uppercase tracking-wider">
           {title}
         </p>
         <div className="space-y-2.5">{children}</div>

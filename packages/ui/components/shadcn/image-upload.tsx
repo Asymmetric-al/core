@@ -192,7 +192,7 @@ function ImageUploadDefaultContent({
             height={96}
             loader={passthroughImageLoader}
             unoptimized
-            className="h-24 w-24 rounded-full object-cover border-2 border-zinc-200"
+            className="border-border h-24 w-24 rounded-full border-2 object-cover"
           />
           {onRemove && (
             <button
@@ -214,16 +214,16 @@ function ImageUploadDefaultContent({
           onClick={openFilePicker}
           disabled={isUploading || disabled}
           className={cn(
-            "h-24 w-24 rounded-full border-dashed flex flex-col items-center justify-center gap-2",
-            isDragging && "border-zinc-400 bg-zinc-50",
+            "flex h-24 w-24 flex-col items-center justify-center gap-2 rounded-full border-dashed",
+            isDragging && "border-ring bg-accent",
           )}
         >
           {isUploading ? (
-            <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
+            <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
           ) : (
             <>
-              <Upload className="h-6 w-6 text-zinc-400" />
-              <span className="text-[10px] uppercase font-bold tracking-widest text-zinc-400">
+              <Upload className="text-muted-foreground h-6 w-6" />
+              <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest">
                 Upload
               </span>
             </>

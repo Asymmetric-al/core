@@ -41,12 +41,12 @@ export function FilterBar({
         <div className="flex flex-1 flex-col md:flex-row items-start md:items-center gap-3 w-full md:w-auto">
           {search && (
             <div className="relative w-full md:w-80">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-400" />
+              <Search className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
               <Input
                 placeholder={search.placeholder || "Search..."}
                 value={search.value}
                 onChange={(e) => search.onChange(e.target.value)}
-                className="h-12 pl-10 pr-4 rounded-xl border-zinc-100 bg-white/50 focus:bg-white transition-all font-medium placeholder:text-zinc-400 placeholder:font-bold placeholder:uppercase placeholder:tracking-widest placeholder:text-[10px]"
+                className="placeholder:text-muted-foreground h-12 rounded-xl border-border/60 bg-background/60 pr-4 pl-10 font-medium transition-all focus:bg-background placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-widest"
               />
             </div>
           )}
@@ -69,13 +69,13 @@ export function FilterBar({
             <Badge
               key={filter.label}
               variant="secondary"
-              className="h-7 px-3 rounded-lg bg-zinc-100 text-zinc-600 border-none font-bold uppercase tracking-widest text-[9px] hover:bg-zinc-200 transition-colors cursor-default"
+              className="text-muted-foreground h-7 cursor-default rounded-lg border-none bg-muted px-3 text-[9px] font-bold uppercase tracking-widest transition-colors hover:bg-accent hover:text-accent-foreground"
             >
               {filter.label}
               <button
                 type="button"
                 onClick={filter.onRemove}
-                className="ml-2 hover:text-zinc-900 transition-colors"
+                className="ml-2 transition-colors hover:text-foreground"
               >
                 <X className="size-3" />
               </button>
@@ -87,7 +87,7 @@ export function FilterBar({
               variant="ghost"
               size="sm"
               onClick={onReset}
-              className="h-7 px-3 text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900"
+              className="text-muted-foreground h-7 px-3 text-[9px] font-black uppercase tracking-widest hover:text-foreground"
             >
               Clear all
             </Button>
