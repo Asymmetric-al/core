@@ -87,6 +87,8 @@ export function ComposerActions({
           type="button"
           size="sm"
           disabled={isPending || !isDirty}
+          aria-busy={isPending}
+          aria-label={isReply ? "Send reply to donor" : "Add internal note"}
           onClick={onSend}
           className="h-8 gap-1.5 rounded-lg bg-zinc-900 px-3 text-xs font-bold uppercase tracking-widest text-white hover:bg-zinc-800"
         >

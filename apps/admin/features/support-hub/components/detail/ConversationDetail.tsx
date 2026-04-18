@@ -17,6 +17,7 @@ import { ConversationDetailEmpty } from "./ConversationDetailEmpty";
 import { ConversationHeader } from "./ConversationHeader";
 import { ConversationTimeline } from "./ConversationTimeline";
 import { useSupportConversation } from "../../hooks/use-support-conversation";
+import { useFocusReturn } from "../../lib/use-focus-return";
 
 import type { SupportAssignee, SupportConversation } from "../../types";
 
@@ -48,6 +49,10 @@ export function ConversationDetail({
 }: ConversationDetailProps) {
   const { data: conversation, isLoading } =
     useSupportConversation(conversationId);
+
+  // Phase 7: when the detail pane closes, restore focus to the row / card
+  // that opened it. The hook reads `document.activeElement` on mount.
+  useFocusReturn(conversationId !== null);
 
   if (layout === "inline") {
     return (
