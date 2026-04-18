@@ -36,6 +36,7 @@ This document is the canonical rollout reference for the Donor Care Support Hub.
 
 - No `supabase/migrations/*` change. The in-memory adapter is the only live data path.
 - No live Resend wiring for the inbound router. `routeInboundToSupportHub()` is a typed stub.
+- **No tenant isolation on the new route handlers.** `requireSupportHubAccess()` derives `tenantId` from the session but does not thread it into adapter calls; the in-memory store responds to every authenticated staff caller with the same module-scoped fixtures. Not exploitable today (no UI client calls the routes + only a single demo tenant is seeded), but the routes **must not be exposed to a multi-tenant deployment** until the fix on `cursor/critical-correctness-issues-b783@4357b908` (`AsyncLocalStorage` request scope + per-call tenant filter + `SUPPORT_HUB_TENANT_MISMATCH` write guard) lands. Tracked as Phase 8 step 0 below and in the Open risks section of [`final-audit-and-wrap-up.md`](./final-audit-and-wrap-up.md).
 - No CSAT collection or report.
 - No Knowledge Base article insertion.
 - No CRM hydration (donor profile lookup, gift history, missionary/church detail) — the sidecar uses safe deep-links into existing list pages.
@@ -64,6 +65,16 @@ This PR is purely additive. To roll back, revert the merge commit; nothing in th
 ## Phase 8 plan
 
 Phase 8 turns on real persistence + real inbound email. The sequence is intentional — each step should land in its own PR and pass the `support-hub.smoke.spec.ts` regression net before the next one starts.
+
+### Step 0 — Tenant isolation (must land before any other Phase 8 step)
+
+- Cherry-pick or re-implement the fix on `cursor/critical-correctness-issues-b783@4357b908`:
+  - New `request-context.ts` exposing `runWithSupportHubTenant(tenantId, fn)` + `tenantScopeForReads()` over `AsyncLocalStorage`.
+  - New `withSupportHubAccess(handler)` helper in `route-helpers.ts` that runs the handler body inside the tenant scope.
+  - Wrap every `apps/admin/app/api/admin/support/**/route.ts` body with `return withSupportHubAccess(async () => { ... })`.
+  - Filter enforcement on the in-memory adapter: `matchesConversationFilter`, `get`, `listMessages`, conversation mutations, registry `list()`, and a `SUPPORT_HUB_TENANT_MISMATCH` write guard mapped to a 403 in `toApiErrorResponse`.
+  - Port the existing `tenant-isolation.test.ts` (asserts empty lists for other tenants, mutation rejection, and successful assign under the demo tenant id).
+- This is the prerequisite for exposing the route handlers in any multi-tenant environment and for the Phase 8 Supabase swap (the `AsyncLocalStorage` scope replaces the row-level `tenant_id` filter in the in-memory adapter; the Supabase implementation will trade it for `tenant_id = (auth.jwt() -> 'app_metadata' ->> 'tenant_id')::uuid` RLS).
 
 ### Step 1 — Supabase migration
 

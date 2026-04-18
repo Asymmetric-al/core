@@ -164,24 +164,24 @@ support.
 
 ## Production readiness analysis
 
-| Surface                                                                                                           | Wired today        | Notes                                                                                                                                                                     |
-| ----------------------------------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/support` inbox + board + table + view tabs + filters + saved views                                              | Yes (in-memory)    | Reads + writes the in-memory TanStack DB collection. State survives within a process; resets on restart.                                                                  |
-| Conversation detail (header, timeline, composer, signature, drafts, attachments)                                  | Yes (in-memory)    | TipTap composer is real; send and draft flows write to the in-memory collection. No Resend send.                                                                          |
-| Private notes, labels, macros (incl. dry-run), canned responses, saved views, command palette, keyboard shortcuts | Yes (in-memory)    | Phase 5 work landed end-to-end against the live collection.                                                                                                               |
-| Reports (overview / agents / teams / labels / inbox) + filters + CSV / JSON export                                | Yes (in-memory)    | The in-browser aggregator runs against the live collection. CSV / JSON export is browser-only via Blob.                                                                   |
-| Settings (12 panels)                                                                                              | Yes (in-memory)    | Each settings form writes through the matching `useSupportSaveXxx` mutation, which hits the TanStack DB collection. **Does not** fetch or post to the new route handlers. |
-| Automation rule builder (dry-run + CRUD)                                                                          | Yes (in-memory)    | The pure evaluator runs against the live collection during dry-run; no live event source today.                                                                           |
-| `packages/api/src/admin/support-hub/*` adapter                                                                    | **Built, unwired** | Reachable only via tests + the route handlers below. Provides the swap surface for Phase 8.                                                                               |
-| `apps/admin/app/api/admin/support/**` route handlers                                                              | **Built, unwired** | Auth-gated and functional, but no client in this repo calls them today. Useful for future Phase 8 work or external clients.                                               |
-| Supabase persistence                                                                                              | **None**           | No `supabase/migrations/*` for `support_*` tables.                                                                                                                        |
-| RLS for support tables                                                                                            | **None**           | Tables do not exist.                                                                                                                                                      |
-| Inbound email pipeline                                                                                            | **None**           | Stub only. The Resend `email.received` branch in `packages/api/src/email/webhooks/resend.ts` does not call `routeInboundToSupportHub()`.                                  |
-| Outbound email pipeline                                                                                           | **Mock**           | Adapter writes a message row with `deliveryState: "queued"`; no `sendEmail()` call to Resend.                                                                             |
-| CSAT collection + reports                                                                                         | **None**           | Reserved in Phase 1 spec; never built.                                                                                                                                    |
-| Knowledge-base article insertion                                                                                  | **None**           | Listed in follow-ups; never built.                                                                                                                                        |
-| Live CRM hydration                                                                                                | **None**           | Phase 7 ships safe deep-link chips only.                                                                                                                                  |
-| Mention notifications (email + bell)                                                                              | **None**           | Mention writes a `type: "system"` activity row; no delivery.                                                                                                              |
+| Surface                                                                                                           | Wired today        | Notes                                                                                                                                                                                                             |
+| ----------------------------------------------------------------------------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/support` inbox + board + table + view tabs + filters + saved views                                              | Yes (in-memory)    | Reads + writes the in-memory TanStack DB collection. State survives within a process; resets on restart.                                                                                                          |
+| Conversation detail (header, timeline, composer, signature, drafts, attachments)                                  | Yes (in-memory)    | TipTap composer is real; send and draft flows write to the in-memory collection. No Resend send.                                                                                                                  |
+| Private notes, labels, macros (incl. dry-run), canned responses, saved views, command palette, keyboard shortcuts | Yes (in-memory)    | Phase 5 work landed end-to-end against the live collection.                                                                                                                                                       |
+| Reports (overview / agents / teams / labels / inbox) + filters + CSV / JSON export                                | Yes (in-memory)    | The in-browser aggregator runs against the live collection. CSV / JSON export is browser-only via Blob.                                                                                                           |
+| Settings (12 panels)                                                                                              | Yes (in-memory)    | Each settings form writes through the matching `useSupportSaveXxx` mutation, which hits the TanStack DB collection. **Does not** fetch or post to the new route handlers.                                         |
+| Automation rule builder (dry-run + CRUD)                                                                          | Yes (in-memory)    | The pure evaluator runs against the live collection during dry-run; no live event source today.                                                                                                                   |
+| `packages/api/src/admin/support-hub/*` adapter                                                                    | **Built, unwired** | Reachable only via tests + the route handlers below. Provides the swap surface for Phase 8.                                                                                                                       |
+| `apps/admin/app/api/admin/support/**` route handlers                                                              | **Built, unwired** | Role-gated via `requireSupportHubAccess()`. **Do not expose to a multi-tenant deployment without first landing the tenant-isolation fix on `cursor/critical-correctness-issues-b783@4357b908` (see Open risks).** |
+| Supabase persistence                                                                                              | **None**           | No `supabase/migrations/*` for `support_*` tables.                                                                                                                                                                |
+| RLS for support tables                                                                                            | **None**           | Tables do not exist.                                                                                                                                                                                              |
+| Inbound email pipeline                                                                                            | **None**           | Stub only. The Resend `email.received` branch in `packages/api/src/email/webhooks/resend.ts` does not call `routeInboundToSupportHub()`.                                                                          |
+| Outbound email pipeline                                                                                           | **Mock**           | Adapter writes a message row with `deliveryState: "queued"`; no `sendEmail()` call to Resend.                                                                                                                     |
+| CSAT collection + reports                                                                                         | **None**           | Reserved in Phase 1 spec; never built.                                                                                                                                                                            |
+| Knowledge-base article insertion                                                                                  | **None**           | Listed in follow-ups; never built.                                                                                                                                                                                |
+| Live CRM hydration                                                                                                | **None**           | Phase 7 ships safe deep-link chips only.                                                                                                                                                                          |
+| Mention notifications (email + bell)                                                                              | **None**           | Mention writes a `type: "system"` activity row; no delivery.                                                                                                                                                      |
 
 **Summary:** the Support Hub is **demo-ready** as a self-contained
 in-memory donor-care workspace. It is **not production-ready for live
@@ -190,6 +190,23 @@ real outbound email are all still open work.
 
 ## Open risks
 
+- **Cross-tenant data exposure in the Phase 7 in-memory adapter (high
+  severity, flagged by the automated review on PR #192 on 2026-04-18).**
+  The 30 new route handlers correctly call
+  `requireSupportHubAccess()`, which derives `tenantId` from the
+  authenticated session — but the adapter call sites then never pass
+  that `tenantId` into `listSupportConversations`, `getSupportConversation`,
+  or any of the registry / mutation reads. The in-memory adapter
+  responds to every authenticated staff caller with the same
+  module-scoped store. **A staff/admin user from `tenant-a` can read
+  and mutate fixture rows that belong to `tenant-b`** (or to the demo
+  tenant) once the route handlers are exposed beyond a single-tenant
+  deployment. Not exploitable today (no UI client calls the routes
+  - the in-memory store seeds a single demo tenant), but it must be
+    fixed before Phase 8 swaps the adapter to Supabase. A proposed fix
+    using `AsyncLocalStorage` to thread the request `tenantId` through
+    the adapter exists on `cursor/critical-correctness-issues-b783`
+    commit `4357b908`; cherry-pick or fold into Phase 8.
 - **Spec drift in Phase 1 discovery.** The Phase 1 doc still says
   migration + RLS + inbound router were Phase 2 work and that
   TanStack DB collections were not in MVP. Both are inverted in the
@@ -227,6 +244,16 @@ The exact files Phase 8 needs to change. Most of these are already
 documented in `release-notes.md`; this list consolidates them and adds
 the file-level references.
 
+0. **Tenant isolation (must land before any Supabase swap or any
+   multi-tenant deployment of the Phase 7 routes).** Cherry-pick or
+   re-implement the fix on `cursor/critical-correctness-issues-b783`
+   commit `4357b908`: a `request-context.ts` `AsyncLocalStorage` wrapper
+   that threads the authenticated `tenantId` through
+   `withSupportHubAccess()` into every adapter call, plus filter
+   enforcement on `matchesConversationFilter`, `get`, `listMessages`,
+   the registry `list()` methods, and a `SUPPORT_HUB_TENANT_MISMATCH`
+   write guard mapped to a 403. Then port `tenant-isolation.test.ts`
+   alongside the existing reads-mutations suite.
 1. `supabase/migrations/<ts>_support_hub_foundation.sql` — Phase 1 §3.4
    schema + Phase 6 additions (automation, signature, notification
    tables) + RLS + indexes. Add the rollback migration alongside.
