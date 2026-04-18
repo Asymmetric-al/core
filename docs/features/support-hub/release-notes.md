@@ -2,6 +2,23 @@
 
 This document is the canonical rollout reference for the Donor Care Support Hub. Read it once before the first production deploy of `/support` and again before flipping the Phase 8 Supabase swap.
 
+> **Wired today vs staged for Phase 8.** Phase 7 ships the API adapter
+> layer + 30 thin route handlers + the inbound-router stub, but the UI
+> still reads + writes the in-memory TanStack DB collection directly. The
+> matrix below is the precise truth — see
+> [`final-audit-and-wrap-up.md`](./final-audit-and-wrap-up.md) for full
+> evidence.
+>
+> | Surface                                                                                                                               | Wired today                                                                               | Staged for Phase 8                                                                            |
+> | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+> | Inbox + board + table + detail + composer + macros + canned + saved views + command palette + reports + settings + automation builder | Yes (in-memory)                                                                           | Same UX, but data flows through the new route handlers + Supabase tables                      |
+> | `packages/api/src/admin/support-hub/*` adapter                                                                                        | Built, unwired from UI                                                                    | Single export flip in `adapter/index.ts` activates the Supabase implementation                |
+> | `apps/admin/app/api/admin/support/**` route handlers (30)                                                                             | Built, auth-gated, reachable, **called by no client today**                               | The UI hooks (`useSupportXxxLive`) swap to `useQuery` against these routes                    |
+> | Supabase migration + RLS                                                                                                              | None                                                                                      | New `supabase/migrations/<ts>_support_hub_foundation.sql` + rollback                          |
+> | Inbound email                                                                                                                         | None                                                                                      | `routeInboundToSupportHub()` body filled in + invoked from the Resend `email.received` branch |
+> | Outbound email                                                                                                                        | Mock — adapter writes a row with `deliveryState: "queued"`; `sendEmail()` is never called | Adapter calls `sendEmail()` from `@asym/email` and persists the `outboundSendLogId`           |
+> | CSAT, KB-article insertion, live CRM hydration, mention notifications                                                                 | None                                                                                      | All deferred to Phase 8 / Phase 8.5                                                           |
+
 ## Phase 7 release (this PR)
 
 ### What ships
@@ -36,7 +53,7 @@ This document is the canonical rollout reference for the Donor Care Support Hub.
 - `bun run typecheck` — 13 packages clean.
 - `bun run lint` — workspace clean.
 - `bun run test:unit` — 528 tests across 121 files.
-- `bun run test:e2e:smoke` — Phase 7's `tests/e2e/support-hub.smoke.spec.ts` runs alongside the existing CRM / contributions smokes.
+- `bun run test:e2e:smoke` — Phase 7 adds `tests/e2e/support-hub.smoke.spec.ts` alongside the existing CRM / contributions smokes. The spec self-skips when the demo session install is unavailable, so it has not been verified end-to-end inside CI yet; it should be promoted to a hard requirement once the Phase 8 Supabase migration ships.
 - Prettier — clean.
 - `tanstack-foundation-guardrails.test.ts` — green.
 
