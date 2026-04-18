@@ -13,7 +13,7 @@ This document is the canonical rollout reference for the Donor Care Support Hub.
 > | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
 > | Inbox + board + table + detail + composer + macros + canned + saved views + command palette + reports + settings + automation builder | Yes (in-memory)                                                                           | Same UX, but data flows through the new route handlers + Supabase tables                      |
 > | `packages/api/src/admin/support-hub/*` adapter                                                                                        | Built, unwired from UI                                                                    | Single export flip in `adapter/index.ts` activates the Supabase implementation                |
-> | `apps/admin/app/api/admin/support/**` route handlers (30)                                                                             | Built, auth-gated, reachable, **called by no client today**                               | The UI hooks (`useSupportXxxLive`) swap to `useQuery` against these routes                    |
+> | `apps/admin/app/api/admin/support/**` route handlers (30)                                                                             | Built, auth-gated, **tenant-isolated** (in-memory preview), called by no client today     | The UI hooks (`useSupportXxxLive`) swap to `useQuery` against these routes                    |
 > | Supabase migration + RLS                                                                                                              | None                                                                                      | New `supabase/migrations/<ts>_support_hub_foundation.sql` + rollback                          |
 > | Inbound email                                                                                                                         | None                                                                                      | `routeInboundToSupportHub()` body filled in + invoked from the Resend `email.received` branch |
 > | Outbound email                                                                                                                        | Mock — adapter writes a row with `deliveryState: "queued"`; `sendEmail()` is never called | Adapter calls `sendEmail()` from `@asym/email` and persists the `outboundSendLogId`           |
@@ -24,7 +24,8 @@ This document is the canonical rollout reference for the Donor Care Support Hub.
 ### What ships
 
 - Production-shaped `packages/api/src/admin/support-hub/*` adapter layer with a single swap point in `adapter/index.ts`.
-- 30 thin route handlers under `apps/admin/app/api/admin/support/**` covering every conversation, registry, and report surface.
+- 30 thin route handlers under `apps/admin/app/api/admin/support/**` covering every conversation, registry, and report surface — every handler binds the authenticated `tenantId` via `withSupportHubAccess()` so the in-memory adapter cannot leak or mutate another tenant's rows.
+- Tenant-isolated in-memory adapter: `AsyncLocalStorage` request scope (`packages/api/src/admin/support-hub/request-context.ts`), per-call `tenantScopeForReads()` filter on every list / get / message read, and a `SUPPORT_HUB_TENANT_MISMATCH` write guard mapped to a 403 by `toApiErrorResponse`. Cross-tenant reads return empty / not-found; cross-tenant writes return 403.
 - CRM cross-links from the contact sidecar into `/crm` and `/contributions`.
 - A11y improvements: aria labels + `aria-pressed` on board cards, `aria-busy` on the composer Send button, focus return when the detail pane closes.
 - Perf gates: 200-row virtualization on the table; 50-card-per-column pagination on the board; per-slice memoization of the report request shape.
@@ -36,7 +37,7 @@ This document is the canonical rollout reference for the Donor Care Support Hub.
 
 - No `supabase/migrations/*` change. The in-memory adapter is the only live data path.
 - No live Resend wiring for the inbound router. `routeInboundToSupportHub()` is a typed stub.
-- **No tenant isolation on the new route handlers.** `requireSupportHubAccess()` derives `tenantId` from the session but does not thread it into adapter calls; the in-memory store responds to every authenticated staff caller with the same module-scoped fixtures. Not exploitable today (no UI client calls the routes + only a single demo tenant is seeded), but the routes **must not be exposed to a multi-tenant deployment** until the fix on `cursor/critical-correctness-issues-b783@4357b908` (`AsyncLocalStorage` request scope + per-call tenant filter + `SUPPORT_HUB_TENANT_MISMATCH` write guard) lands. Tracked as Phase 8 step 0 below and in the Open risks section of [`final-audit-and-wrap-up.md`](./final-audit-and-wrap-up.md).
+- The tenant model on the new route handlers is still **single-demo-seed**. Tenant isolation is enforced (see "What ships" above), but only one tenant (`SUPPORT_HUB_DEMO_TENANT_ID = "tenant-give-hope"`) has rows in the in-memory adapter today. Foreign-tenant reads return empty and foreign-tenant writes are rejected with a 403 — but the in-memory adapter is still process-scoped and ephemeral. Phase 8 step 1 lands the Supabase migration so additional tenants get real, persistent rows and step 2 translates the in-memory `tenantScopeForReads()` filter into RLS on `tenant_id`.
 - No CSAT collection or report.
 - No Knowledge Base article insertion.
 - No CRM hydration (donor profile lookup, gift history, missionary/church detail) — the sidecar uses safe deep-links into existing list pages.
@@ -53,7 +54,7 @@ This document is the canonical rollout reference for the Donor Care Support Hub.
 
 - `bun run typecheck` — 13 packages clean.
 - `bun run lint` — workspace clean.
-- `bun run test:unit` — 528 tests across 121 files.
+- `bun run test:unit` — 531 tests across 122 files (the original 528 + 3 new tenant-isolation tests in `tests/unit/packages/api/admin/support-hub/tenant-isolation.test.ts`).
 - `bun run test:e2e:smoke` — Phase 7 adds `tests/e2e/support-hub.smoke.spec.ts` alongside the existing CRM / contributions smokes. The spec self-skips when the demo session install is unavailable, so it has not been verified end-to-end inside CI yet; it should be promoted to a hard requirement once the Phase 8 Supabase migration ships.
 - Prettier — clean.
 - `tanstack-foundation-guardrails.test.ts` — green.
@@ -66,15 +67,9 @@ This PR is purely additive. To roll back, revert the merge commit; nothing in th
 
 Phase 8 turns on real persistence + real inbound email. The sequence is intentional — each step should land in its own PR and pass the `support-hub.smoke.spec.ts` regression net before the next one starts.
 
-### Step 0 — Tenant isolation (must land before any other Phase 8 step)
+### Step 0 — Tenant isolation: DONE on this PR (commit `585cddbb`)
 
-- Cherry-pick or re-implement the fix on `cursor/critical-correctness-issues-b783@4357b908`:
-  - New `request-context.ts` exposing `runWithSupportHubTenant(tenantId, fn)` + `tenantScopeForReads()` over `AsyncLocalStorage`.
-  - New `withSupportHubAccess(handler)` helper in `route-helpers.ts` that runs the handler body inside the tenant scope.
-  - Wrap every `apps/admin/app/api/admin/support/**/route.ts` body with `return withSupportHubAccess(async () => { ... })`.
-  - Filter enforcement on the in-memory adapter: `matchesConversationFilter`, `get`, `listMessages`, conversation mutations, registry `list()`, and a `SUPPORT_HUB_TENANT_MISMATCH` write guard mapped to a 403 in `toApiErrorResponse`.
-  - Port the existing `tenant-isolation.test.ts` (asserts empty lists for other tenants, mutation rejection, and successful assign under the demo tenant id).
-- This is the prerequisite for exposing the route handlers in any multi-tenant environment and for the Phase 8 Supabase swap (the `AsyncLocalStorage` scope replaces the row-level `tenant_id` filter in the in-memory adapter; the Supabase implementation will trade it for `tenant_id = (auth.jwt() -> 'app_metadata' ->> 'tenant_id')::uuid` RLS).
+Cherry-picked from `cursor/critical-correctness-issues-b783@4357b908`. See "What ships" above and the Open risks section of [`final-audit-and-wrap-up.md`](./final-audit-and-wrap-up.md). The Supabase migration in step 1 below should keep this contract green and step 2 should translate the in-memory `tenantScopeForReads()` filter into `tenant_id = (auth.jwt() -> 'app_metadata' ->> 'tenant_id')::uuid` RLS policies on every `support_*` table. The new `tenant-isolation.test.ts` is the regression net while the in-memory adapter is still in use; Phase 8 should port the same three assertions onto the Supabase adapter as a parallel suite.
 
 ### Step 1 — Supabase migration
 

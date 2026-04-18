@@ -11,6 +11,20 @@ Phases 1–6 are stacked. Phase 7 makes the donor care Support Hub production-sh
 > seam Phase 8 will activate alongside the Supabase migration. See
 > [`final-audit-and-wrap-up.md`](./final-audit-and-wrap-up.md) for the
 > full source-of-truth + production-readiness analysis.
+>
+> **Tenant isolation on the in-memory preview is now enforced.** The
+> 2026-04-18 cursor[bot] high-severity finding (cross-tenant data
+> exposure on the route handlers) was fixed on this PR by cherry-picking
+> commit `585cddbb` from `cursor/critical-correctness-issues-b783@4357b908`.
+> Every route handler now wraps its body in `withSupportHubAccess(async
+() => { ... })`, which binds the authenticated `tenantId` for the
+> request via an `AsyncLocalStorage` scope; the in-memory adapter
+> filters every read by `tenantScopeForReads()` and rejects non-demo
+> writes with `SUPPORT_HUB_TENANT_MISMATCH` (403). New regression
+> coverage lives in
+> `tests/unit/packages/api/admin/support-hub/tenant-isolation.test.ts`.
+> The route handlers are still unwired from the UI; the Supabase swap +
+> RLS translation remain Phase 8.
 
 ## Decisions locked
 
