@@ -836,7 +836,9 @@ async function runDeletePdfTemplate(
       method: "DELETE",
     });
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = (await response.json().catch(() => ({}))) as {
+        error?: string;
+      };
       return {
         ok: false,
         error: errorData.error ?? "Failed to delete template",
@@ -888,7 +890,9 @@ async function runSaveTemplate(options: {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = (await response.json().catch(() => ({}))) as {
+        error?: string;
+      };
       return {
         ok: false,
         error: errorData.error ?? "Failed to save template",

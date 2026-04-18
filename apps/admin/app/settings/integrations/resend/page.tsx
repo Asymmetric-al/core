@@ -255,9 +255,10 @@ export default function ResendSettingsPage() {
           status: "error",
           error: "Failed to load Resend connection status.",
         }));
-      }
-      if (isActive) {
-        setIsHydratingConnection(false);
+      } finally {
+        if (isActive) {
+          setIsHydratingConnection(false);
+        }
       }
     }
 

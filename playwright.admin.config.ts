@@ -50,6 +50,8 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: getWorkerCount(),
+  /** Admin dev + first-hit compilation can exceed the default 30s. */
+  timeout: 180_000,
   reporter: [["list"]],
   use: {
     baseURL,

@@ -10,6 +10,7 @@ import { Suspense } from "react";
 
 import type { Metadata, Viewport } from "next";
 
+import { BoneyardRegistry } from "@/app/_providers/boneyard-registry";
 import { OpenPolicyProvider } from "@/components/providers/openpolicy-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 
@@ -168,6 +169,7 @@ export default function RootLayout({
             <MotionProvider>
               <Suspense fallback={null}>
                 <NuqsAdapter>
+                  <BoneyardRegistry />
                   <OpenPolicyProvider>{children}</OpenPolicyProvider>
                 </NuqsAdapter>
               </Suspense>
