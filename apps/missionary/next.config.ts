@@ -1,8 +1,11 @@
 import { fileURLToPath } from "node:url";
 
+import { loadEnvConfig } from "@next/env";
+
 import type { NextConfig } from "next";
 
 const WORKSPACE_ROOT = fileURLToPath(new URL("../..", import.meta.url));
+loadEnvConfig(WORKSPACE_ROOT);
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,

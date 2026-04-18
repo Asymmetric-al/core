@@ -216,7 +216,7 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 
 **Supabase and Supabase Auth:** For any work touching Supabase products (database, Auth, Storage, Realtime, Edge Functions, CLI, MCP, RLS, migrations), load **`docs/ai/skills/supabase/SKILL.md`** first. For Next.js App Router auth integration specifically, also use **`docs/ai/skills/nextjs-supabase-auth/SKILL.md`**. For Postgres query/schema/RLS performance, use **`docs/ai/skills/supabase-postgres-best-practices/SKILL.md`**.
 
-**Keeping ecosystem skills current:** **`skills-lock.json`** pins content hashes for skills installed via the Skills CLI (see entries under `skills.*`). To **restore** those installs into `.agents/skills/` from the lockfile: `npx skills experimental_install -y` (this rewrites every skill listed in the lockfile under `.agents/skills/`; prefer `npx skills add <pkg> -y` for targeted updates). To **pull newer upstream** content: `npx skills add supabase/agent-skills -y` (updates the lockfile), then `bun run skills:refresh-upstream`, reconcile any **This repository** / workflow sections in `docs/ai/skills/supabase/SKILL.md` and `docs/ai/skills/supabase-postgres-best-practices/SKILL.md` if the vendor copy overwrote them, then `bun run skills:sync` and `bun run skills:verify`. Apply the same pattern for other vendored packages by extending `scripts/refresh-upstream-skills.mjs`.
+**Keeping ecosystem skills current:** **`skills-lock.json`** pins content hashes for skills installed via the Skills CLI (see entries under `skills.*`). To **restore** those installs into `.agents/skills/` from the lockfile: `npx skills experimental_install -y` (this rewrites every skill listed in the lockfile under `.agents/skills/`; prefer `npx skills add <pkg> -y` for targeted updates). To **pull newer upstream** content: `npx skills add supabase/agent-skills -y` (updates the lockfile), then `bun run skills:refresh-upstream`, reconcile any **This repository** / workflow sections in `docs/ai/skills/supabase/SKILL.md` and `docs/ai/skills/supabase-postgres-best-practices/SKILL.md` if the vendor copy overwrote them, then `bun run skills:sync` and `bun run skills:verify`. **`emil-design-engineering`** is not in `skills-lock.json`; refresh it with the animations.dev installer into `~/.cursor/skills/`, then the same `skills:refresh-upstream` → `skills:sync` / `skills:verify` loop (see root `README.md`). Apply the same pattern for other vendored packages by extending `scripts/refresh-upstream-skills.mjs`. **Resend CLI** (`docs/ai/skills/resend-cli/`) is vendored from the tagged [`resend/resend-cli`](https://github.com/resend/resend-cli) tree (`skills/resend-cli/`); refresh steps live in `docs/ai/skills/resend-cli/references/upstream.md` — it is **not** updated by `bun run skills:refresh-upstream` today.
 
 - **Next.js App Router structure, rendering, data fetching:** `docs/ai/skills/nextjs-app-router/SKILL.md`
 - **Cache Components / PPR / cacheTag & invalidation:** `docs/ai/skills/cache-components/SKILL.md`
@@ -232,6 +232,7 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 - **Recharts:** `docs/ai/skills/rechart/SKILL.md`
 - **TanStack Table v8:** `docs/ai/skills/tanstack-table/SKILL.md`
 - **Tiptap rich text editor (`@tiptap/*`, shared editor in `@asym/ui`):** `docs/ai/skills/tiptap/SKILL.md`
+- **Resend CLI (`resend` binary, shell, scripts, CI/CD, non-interactive flags):** `docs/ai/skills/resend-cli/SKILL.md` (not the same as SDK or tenant app integration; see `docs/guides/features/resend-integration.md` for product email routes and UI)
 - **Supabase (platform-wide: Auth, DB API, Storage, Realtime, Edge Functions, CLI, MCP, RLS, migrations):** `docs/ai/skills/supabase/SKILL.md`
 - **Supabase Postgres tuning / query patterns:** `docs/ai/skills/supabase-postgres-best-practices/SKILL.md`
 - **Next.js + Supabase Auth integration:** `docs/ai/skills/nextjs-supabase-auth/SKILL.md`
@@ -306,6 +307,7 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 
 - Package manager/runtime: Bun (`bun`, `bunx`)
 - Task runner: Turborepo (`turbo`)
+- **Turbo + env:** Root `turbo.json` uses **`"envMode": "loose"`** so `turbo run dev` forwards your shell and dotenv vars to Next.js. Turbo 2’s default **strict** mode only passes variables declared under each task’s `env` / `globalEnv`, which hid `SUPABASE_DB_URL`, `PAYLOAD_DATABASE_URI`, demo secrets, etc., from `next dev` even when `.env.local` existed.
 - Next.js app paths:
   - `apps/admin` (`@asym/admin`)
   - `apps/donor` (`@asym/donor`)
@@ -386,17 +388,22 @@ Note: unit tests are currently run repo-wide with `bun run test:unit`.
 
 Docker and Supabase CLI must be installed and running before starting local Supabase. After Docker is running (`sudo dockerd &`), run `supabase start` from the repo root.
 
-**Known issue**: Migration `20260214090000_foundation_1_schema.sql` uses `LOCK TABLE` outside a transaction block, which fails with the Supabase CLI. Workaround:
+**Known issue**: Migration `20260214090000_foundation_1_schema.sql` uses `LOCK TABLE` outside a transaction block, which fails with the Supabase CLI. Later migrations also have dependency chains that require the foundation schema. Workaround:
 
-1. Temporarily move `supabase/migrations/20260214090000_foundation_1_schema.sql`, `20260216153000_demo_readonly_rls.sql`, and `supabase/seed.sql` to `/tmp/`
-2. Run `supabase start` (applies only the init migration)
-3. Restore the moved files
-4. Apply the remaining migration manually: `docker exec -i supabase_db_asymmetrical-platform psql -U postgres -d postgres --single-transaction < supabase/migrations/20260214090000_foundation_1_schema.sql`
-5. Apply seed: `docker exec -i supabase_db_asymmetrical-platform psql -U postgres -d postgres --single-transaction < supabase/seed.sql`
+1. Move **all** `2026*` migrations and `seed.sql` out: `mkdir -p /tmp/supabase_mig_staging && for f in supabase/migrations/2026*.sql; do mv "$f" /tmp/supabase_mig_staging/; done && mv supabase/seed.sql /tmp/`
+2. Run `supabase start` (applies only the init migration `20250101000000`)
+3. Restore all moved files back: `mv /tmp/supabase_mig_staging/*.sql supabase/migrations/ && mv /tmp/seed.sql supabase/seed.sql`
+4. Apply foundation migration: `docker exec -i supabase_db_asymmetrical-platform psql -U postgres -d postgres --single-transaction < supabase/migrations/20260214090000_foundation_1_schema.sql`
+5. Record it in the migration table: `docker exec -i supabase_db_asymmetrical-platform psql -U postgres -d postgres -c "INSERT INTO supabase_migrations.schema_migrations (version) VALUES ('20260214090000');"`
+6. Apply remaining migrations in order (without `--single-transaction` for those with explicit `BEGIN`/`COMMIT`); record each version in `supabase_migrations.schema_migrations`
+7. **Note**: Migration `20260226113000_authz_memberships_foundation.sql` has an index expression (`COALESCE(staff_role::text, '')`) that Postgres rejects as non-IMMUTABLE. Create the `authz` schema, types, table, and functions manually (see the migration SQL for definitions), skipping the problematic index expression. If that migration file changes, re-derive these manual steps from the file so local state does not silently drift.
+8. Apply seed: `docker exec -i supabase_db_asymmetrical-platform psql -U postgres -d postgres < supabase/seed.sql` (use without `--single-transaction` since the seed contains its own `BEGIN`/`COMMIT`)
 
 ### Environment variables
 
-The `.env.local` file at the repo root must be symlinked into each app directory for Next.js to pick it up:
+Keep secrets in **repo-root** `.env.local` (gitignored). Each app’s `next.config.ts` calls **`loadEnvConfig` from `@next/env`** on the monorepo root so Payload and Next see `SUPABASE_DB_URL`, `PAYLOAD_DATABASE_URI`, etc., without copying files.
+
+Optional (older pattern): symlink root `.env.local` into each app if you rely on tooling that only reads `apps/<app>/.env.local`:
 
 ```
 ln -sf ../../.env.local apps/donor/.env.local
@@ -408,6 +415,10 @@ Minimum required env vars for local dev (from `supabase status -o env`):
 
 - `NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key from supabase status>`
+
+Optional (local dev and Cursor Cloud sandboxes only; do **not** rely on this in production or shared previews unless you deliberately accept weaker startup checks):
+
+- `SKIP_ENV_VALIDATION=1` — bypasses strict env schema validation when optional keys like Stripe/Sentry are not set (see `packages/env/src/schema.ts`).
 
 ### Checks
 

@@ -125,16 +125,19 @@ function annotateEmilDesignEngineeringFormsControls(content) {
         }
       }
 
-      // The upstream second example input triggers the repo secret scanner;
-      // patch by position within the example block rather than by literal
-      // value so refresh keeps working even when tool output redacts tokens.
-      const secondInputExampleIndex = inputLineIndexes[1];
+      // The password example triggers the repo secret scanner. Target the line
+      // that contains `type="password"` (not "second <input>" by index: when
+      // email+password share one line, the next line is `tel` and would get a
+      // spurious pragma).
+      const passwordLineIndex = inputLineIndexes.find((idx) =>
+        lines[idx].includes('type="password"'),
+      );
       if (
-        secondInputExampleIndex !== undefined &&
-        !lines[secondInputExampleIndex].includes("// pragma: allowlist secret")
+        passwordLineIndex !== undefined &&
+        !lines[passwordLineIndex].includes("// pragma: allowlist secret")
       ) {
-        lines[secondInputExampleIndex] =
-          `${lines[secondInputExampleIndex]} // pragma: allowlist secret`;
+        lines[passwordLineIndex] =
+          `${lines[passwordLineIndex]} // pragma: allowlist secret`;
       }
     }
   }
@@ -223,6 +226,12 @@ async function applyPostRefreshReplacements(skillName, targetRoot) {
 
 async function refreshSkill({ skillName, from, preserve = [] }) {
   const to = path.join(canonicalRoot, skillName);
+
+  if (skillName === "emil-design-engineering" && !process.env.HOME?.trim()) {
+    throw new Error(
+      `refreshSkill (${skillName}): HOME is not set (or empty); cannot resolve ~/.cursor/skills/${skillName}.`,
+    );
+  }
 
   // Guard: verify the source exists before deleting the canonical tree.
   // Without this check, rm(to) would permanently delete the canonical skill

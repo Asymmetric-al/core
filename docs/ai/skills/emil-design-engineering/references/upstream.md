@@ -1,7 +1,7 @@
 ---
 source_name: animations.dev (Emil's Design Engineering skill)
 source_url: https://animations.dev
-installer_command: curl -s "https://animations.dev/api/activate-design-engineering?email=conradobrien%40gmail.com" | bash
+installer_command: curl -s "https://animations.dev/api/activate-design-engineering?email=<maintainer-email>" | bash
 last_reviewed: 2026-04-16
 ---
 
@@ -10,7 +10,7 @@ last_reviewed: 2026-04-16
 Canonical copy in this repo: `docs/ai/skills/emil-design-engineering/` (mirrored to `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`).
 
 - **Source site:** https://animations.dev
-- **Installer endpoint:** https://animations.dev/api/activate-design-engineering?email=conradobrien%40gmail.com
+- **Installer endpoint:** `https://animations.dev/api/activate-design-engineering?email=<maintainer-email>` (URL-encode the address when you substitute a real email)
 - **Observed installer target on this machine:** `~/.cursor/skills/emil-design-engineering/`
 - **Installed slug:** `emil-design-engineering`
 
