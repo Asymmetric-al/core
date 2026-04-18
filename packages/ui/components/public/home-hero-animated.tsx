@@ -86,7 +86,7 @@ export function HomeHeroAnimated({
               <Button
                 size="lg"
                 variant="ghost"
-                className="h-12 rounded-full border border-white/15 bg-white px-8 text-sm font-bold font-syne text-slate-950 shadow-lg transition-transform duration-200 ease-out hover:scale-[1.02] hover:bg-zinc-100 hover:text-slate-950 active:scale-[0.98] group"
+                className="h-12 rounded-full border border-white/15 bg-white px-8 text-sm font-bold font-syne text-slate-950 shadow-lg hover:bg-zinc-100 hover:text-slate-950 hover-scale-subtle group"
                 asChild
               >
                 <Link href="/workers">
