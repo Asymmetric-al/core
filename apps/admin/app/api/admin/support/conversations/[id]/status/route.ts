@@ -10,20 +10,20 @@ type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, context: RouteContext) {
   return withSupportHubAccess(async () => {
-  const body = await readJsonBody(request, setConversationStatusSchema);
-  if (!body.ok) return body.response;
-  try {
-    const { id } = await context.params;
-    if (body.body.conversationId !== id) {
-      return Response.json(
-        { error: "conversationId mismatch." },
-        { status: 422 },
-      );
+    const body = await readJsonBody(request, setConversationStatusSchema);
+    if (!body.ok) return body.response;
+    try {
+      const { id } = await context.params;
+      if (body.body.conversationId !== id) {
+        return Response.json(
+          { error: "conversationId mismatch." },
+          { status: 422 },
+        );
+      }
+      const conversation = await setSupportConversationStatus(body.body);
+      return Response.json({ conversation });
+    } catch (error) {
+      return toApiErrorResponse(error, "Failed to set status.");
     }
-    const conversation = await setSupportConversationStatus(body.body);
-    return Response.json({ conversation });
-  } catch (error) {
-    return toApiErrorResponse(error, "Failed to set status.");
-  }
   });
 }

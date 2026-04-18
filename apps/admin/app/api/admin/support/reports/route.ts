@@ -15,16 +15,16 @@ import {
  */
 export async function GET(request: Request) {
   return withSupportHubAccess(async () => {
-  try {
-    const url = new URL(request.url);
-    const conversationId = url.searchParams.get("conversationId");
-    const conversations = await listSupportConversations({});
-    const messages = conversationId
-      ? await listSupportConversationMessages(conversationId)
-      : [];
-    return Response.json({ conversations, messages });
-  } catch (error) {
-    return toApiErrorResponse(error, "Failed to load report data.");
-  }
+    try {
+      const url = new URL(request.url);
+      const conversationId = url.searchParams.get("conversationId");
+      const conversations = await listSupportConversations({});
+      const messages = conversationId
+        ? await listSupportConversationMessages(conversationId)
+        : [];
+      return Response.json({ conversations, messages });
+    } catch (error) {
+      return toApiErrorResponse(error, "Failed to load report data.");
+    }
   });
 }

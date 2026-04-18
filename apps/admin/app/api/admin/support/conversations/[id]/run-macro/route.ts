@@ -16,20 +16,20 @@ type RouteContext = { params: Promise<{ id: string }> };
 
 export async function POST(request: Request, context: RouteContext) {
   return withSupportHubAccess(async () => {
-  const body = await readJsonBody(request, runMacroSchema);
-  if (!body.ok) return body.response;
-  try {
-    const { id } = await context.params;
-    if (body.body.conversationId !== id) {
-      return Response.json(
-        { error: "conversationId mismatch." },
-        { status: 422 },
-      );
+    const body = await readJsonBody(request, runMacroSchema);
+    if (!body.ok) return body.response;
+    try {
+      const { id } = await context.params;
+      if (body.body.conversationId !== id) {
+        return Response.json(
+          { error: "conversationId mismatch." },
+          { status: 422 },
+        );
+      }
+      const result = await runSupportMacroOnServer(body.body);
+      return Response.json({ result });
+    } catch (error) {
+      return toApiErrorResponse(error, "Failed to run macro.");
     }
-    const result = await runSupportMacroOnServer(body.body);
-    return Response.json({ result });
-  } catch (error) {
-    return toApiErrorResponse(error, "Failed to run macro.");
-  }
   });
 }

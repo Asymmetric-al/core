@@ -549,14 +549,18 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       assertWritableTenantScope();
       const stamp = nowIso();
       if (input.id) {
-        const row = patchTenantById(store.cannedResponses, input.id, (entry) => {
-          entry.shortCode = input.shortCode;
-          entry.title = input.title;
-          entry.ownerAgentId = input.ownerAgentId;
-          entry.bodyText = input.bodyText;
-          entry.bodyHtml = input.bodyHtml ?? null;
-          entry.updatedAt = stamp;
-        });
+        const row = patchTenantById(
+          store.cannedResponses,
+          input.id,
+          (entry) => {
+            entry.shortCode = input.shortCode;
+            entry.title = input.title;
+            entry.ownerAgentId = input.ownerAgentId;
+            entry.bodyText = input.bodyText;
+            entry.bodyHtml = input.bodyHtml ?? null;
+            entry.updatedAt = stamp;
+          },
+        );
         return clone(row);
       }
       const row: SupportCannedResponse = {
@@ -848,8 +852,7 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       assertWritableTenantScope();
       const scope = tenantScopeForReads();
       const target = store.signatures.find(
-        (signature) =>
-          signature.id === id && signature.tenantId === scope,
+        (signature) => signature.id === id && signature.tenantId === scope,
       );
       if (!target) throw new Error(`Unknown signature: ${id}`);
       const stamp = nowIso();
@@ -867,8 +870,7 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       assertWritableTenantScope();
       const scope = tenantScopeForReads();
       store.signatures = store.signatures.filter(
-        (signature) =>
-          !(signature.id === id && signature.tenantId === scope),
+        (signature) => !(signature.id === id && signature.tenantId === scope),
       );
     },
   },
@@ -880,15 +882,19 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       assertWritableTenantScope();
       const stamp = nowIso();
       if (input.id) {
-        const row = patchTenantById(store.automationRules, input.id, (entry) => {
-          entry.name = input.name;
-          entry.description = input.description;
-          entry.enabled = input.enabled;
-          entry.trigger = input.trigger;
-          entry.conditions = input.conditions;
-          entry.actions = input.actions;
-          entry.updatedAt = stamp;
-        });
+        const row = patchTenantById(
+          store.automationRules,
+          input.id,
+          (entry) => {
+            entry.name = input.name;
+            entry.description = input.description;
+            entry.enabled = input.enabled;
+            entry.trigger = input.trigger;
+            entry.conditions = input.conditions;
+            entry.actions = input.actions;
+            entry.updatedAt = stamp;
+          },
+        );
         return clone(row);
       }
       const row: SupportAutomationRule = {
@@ -929,8 +935,7 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
     async get(agentId) {
       const scope = tenantScopeForReads();
       const row = store.notificationPreferences.find(
-        (entry) =>
-          entry.agentId === agentId && entry.tenantId === scope,
+        (entry) => entry.agentId === agentId && entry.tenantId === scope,
       );
       return row ? clone(row) : null;
     },

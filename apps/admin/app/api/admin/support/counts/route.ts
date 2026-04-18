@@ -12,20 +12,20 @@ import {
  */
 export async function GET() {
   return withSupportHubAccess(async () => {
-  try {
-    const conversations = await listSupportConversations({});
-    const counts = {
-      total: conversations.length,
-      open: conversations.filter((c) => c.status === "open").length,
-      pending: conversations.filter((c) => c.status === "pending").length,
-      snoozed: conversations.filter((c) => c.status === "snoozed").length,
-      resolved: conversations.filter((c) => c.status === "resolved").length,
-      escalated: conversations.filter((c) => c.escalatedAt !== null).length,
-      unassigned: conversations.filter((c) => c.assignee === null).length,
-    };
-    return Response.json({ counts });
-  } catch (error) {
-    return toApiErrorResponse(error, "Failed to compute counts.");
-  }
+    try {
+      const conversations = await listSupportConversations({});
+      const counts = {
+        total: conversations.length,
+        open: conversations.filter((c) => c.status === "open").length,
+        pending: conversations.filter((c) => c.status === "pending").length,
+        snoozed: conversations.filter((c) => c.status === "snoozed").length,
+        resolved: conversations.filter((c) => c.status === "resolved").length,
+        escalated: conversations.filter((c) => c.escalatedAt !== null).length,
+        unassigned: conversations.filter((c) => c.assignee === null).length,
+      };
+      return Response.json({ counts });
+    } catch (error) {
+      return toApiErrorResponse(error, "Failed to compute counts.");
+    }
   });
 }
