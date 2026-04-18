@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "@asym/lib/motion";
+import { motion, useReducedMotion } from "@asym/lib/motion";
+import { transitionStandard } from "@asym/lib/motion-presets";
 import {
   Avatar,
   AvatarFallback,
@@ -38,17 +39,6 @@ import Link from "next/link";
 import * as React from "react";
 
 import type { Task, TaskType, TaskStatus, TaskPriority } from "../types";
-
-const springTransition = {
-  type: "spring" as const,
-  stiffness: 400,
-  damping: 30,
-};
-
-const smoothTransition = {
-  duration: 0.25,
-  ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
-};
 
 const TASK_TYPE_CONFIG: Record<
   TaskType,
@@ -190,6 +180,7 @@ export function TaskRow({
   onDelete: () => void;
   index: number;
 }) {
+  const reduceMotion = useReducedMotion();
   const typeConfig = TASK_TYPE_CONFIG[task.task_type] ?? TASK_TYPE_CONFIG.to_do;
   const priorityConfig = PRIORITY_CONFIG[task.priority] ?? PRIORITY_CONFIG.none;
   const statusConfig = STATUS_CONFIG[task.status] ?? STATUS_CONFIG.not_started;
@@ -197,53 +188,58 @@ export function TaskRow({
   const isCompleted = task.status === "completed";
   const Icon = typeConfig.icon;
 
+  // Stagger entrance only — no per-row `layout`, no per-row hover
+  // springs, no per-badge `whileHover` (those competed with the
+  // existing CSS hover rules and ran on touch tap).
   return (
     <motion.div
-      layout
-      initial={{ opacity: 0, y: 20 }}
+      initial={reduceMotion ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: -100 }}
-      transition={{ ...smoothTransition, delay: index * 0.03 }}
+      exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -40 }}
+      transition={
+        reduceMotion
+          ? { duration: 0 }
+          : { ...transitionStandard, delay: Math.min(index, 6) * 0.03 }
+      }
       className={cn(
-        "relative group flex items-start gap-4 p-5 border rounded-2xl transition-all",
+        "relative group flex items-start gap-4 p-5 border rounded-2xl",
+        "transition-[border-color,box-shadow] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]",
         isCompleted
           ? "bg-zinc-50/50 border-zinc-100"
-          : "bg-white border-zinc-200 hover:border-zinc-300 hover:shadow-md",
+          : "bg-white border-zinc-200 hover-lift hover:border-zinc-300 hover:shadow-md",
       )}
     >
-      <motion.div className="mt-1 relative" whileTap={{ scale: 0.9 }}>
+      <div className="mt-1 relative">
         <Checkbox
           checked={isCompleted}
           onCheckedChange={onComplete}
           className="h-5 w-5 rounded-md border-zinc-300 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
         />
-      </motion.div>
+      </div>
 
-      <motion.div
+      <div
         className={cn(
           "flex h-10 w-10 items-center justify-center rounded-xl shrink-0",
           isCompleted ? "opacity-50" : "",
           typeConfig.bgColor,
           typeConfig.color,
         )}
-        whileHover={{ scale: 1.05 }}
-        transition={springTransition}
       >
         <Icon className="h-4 w-4" />
-      </motion.div>
+      </div>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <motion.p
+              <p
                 className={cn(
                   "font-bold text-sm tracking-tight",
                   isCompleted ? "line-through text-zinc-400" : "text-zinc-900",
                 )}
               >
                 {task.title}
-              </motion.p>
+              </p>
               {task.priority !== "none" && !isCompleted && (
                 <Badge
                   className={cn(
@@ -272,10 +268,7 @@ export function TaskRow({
         <div className="flex items-center gap-2 mt-3 flex-wrap">
           {task.donor && (
             <Link href={`/donors?selected=${task.donor.id}`}>
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                className="flex items-center gap-2 px-2 py-1 rounded-full bg-zinc-100 border border-zinc-200 hover:border-zinc-300 transition-colors cursor-pointer"
-              >
+              <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-zinc-100 border border-zinc-200 hover:border-zinc-300 transition-colors cursor-pointer">
                 <Avatar className="h-4 w-4">
                   <AvatarImage src={task.donor.avatar_url || undefined} />
                   <AvatarFallback className="text-[8px] font-bold bg-zinc-200 text-zinc-600">
@@ -289,12 +282,11 @@ export function TaskRow({
                 <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">
                   {task.donor.name}
                 </span>
-              </motion.div>
+              </div>
             </Link>
           )}
           {dueDateStatus && !isCompleted && (
-            <motion.div
-              whileHover={{ scale: 1.02 }}
+            <div
               className={cn(
                 "flex items-center gap-1.5 px-2 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider",
                 dueDateStatus.color,
@@ -302,16 +294,13 @@ export function TaskRow({
             >
               <Clock className="h-3 w-3" />
               {dueDateStatus.label}
-            </motion.div>
+            </div>
           )}
           {task.reminder_date && !isCompleted && (
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-violet-50 border border-violet-200 text-violet-700 text-[10px] font-bold uppercase tracking-wider"
-            >
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-violet-50 border border-violet-200 text-violet-700 text-[10px] font-bold uppercase tracking-wider">
               <Bell className="h-3 w-3" />
               {format(new Date(task.reminder_date), "MMM d")}
-            </motion.div>
+            </div>
           )}
           <Badge
             className={cn(
@@ -326,15 +315,13 @@ export function TaskRow({
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </motion.div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg"
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="end"

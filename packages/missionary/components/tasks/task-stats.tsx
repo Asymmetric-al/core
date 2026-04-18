@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "@asym/lib/motion";
+import { transitionStandard } from "@asym/lib/motion-presets";
 import { cn } from "@asym/ui/lib/utils";
 import * as React from "react";
 
@@ -19,19 +20,16 @@ export function StatCard({
   onClick,
   isActive,
 }: StatCardProps) {
-  const reduceMotion = useReducedMotion();
+  // Stat cards in a horizontally-scrolling row should not lift on
+  // hover (competes with scroll on touch) and should not use springs
+  // (springs are for gestures, not steady-state UI). Press is handled
+  // by the .press-feedback / .hover-scale-subtle utilities.
   return (
-    <motion.button
-      whileHover={reduceMotion ? undefined : { scale: 1.02, y: -2 }}
-      whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-      transition={
-        reduceMotion
-          ? { duration: 0.15 }
-          : { type: "spring", stiffness: 400, damping: 25 }
-      }
+    <button
       onClick={onClick}
       className={cn(
-        "flex flex-col gap-1 px-5 py-4 rounded-2xl border transition-all cursor-pointer text-left shadow-sm min-w-[120px] flex-1 md:flex-none relative overflow-hidden group",
+        "flex flex-col gap-1 px-5 py-4 rounded-2xl border cursor-pointer text-left shadow-sm min-w-[120px] flex-1 md:flex-none relative overflow-hidden group",
+        "press-feedback hover-scale-subtle",
         variant === "default" && "bg-card border-border text-foreground",
         variant === "warning" &&
           "bg-amber-50 border-amber-200 text-amber-900 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-200",
@@ -48,18 +46,26 @@ export function StatCard({
           className="absolute top-3 right-3 h-2 w-2 rounded-full bg-primary"
         />
       )}
-      <motion.span
-        key={value}
-        initial={{ scale: 1.2, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="text-3xl font-bold tabular-nums tracking-tight"
-      >
-        {value}
-      </motion.span>
+      <ValueText value={value} />
       <span className="text-[10px] font-semibold uppercase tracking-wider opacity-70 group-hover:opacity-100 transition-opacity">
         {label}
       </span>
-    </motion.button>
+    </button>
+  );
+}
+
+function ValueText({ value }: { value: number }) {
+  const reduceMotion = useReducedMotion();
+  return (
+    <motion.span
+      key={value}
+      initial={reduceMotion ? false : { scale: 1.15, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={transitionStandard}
+      className="text-3xl font-bold tabular-nums tracking-tight"
+    >
+      {value}
+    </motion.span>
   );
 }
 

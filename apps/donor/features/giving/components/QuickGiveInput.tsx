@@ -70,7 +70,10 @@ export function QuickGiveInput({ workerId, className }: QuickGiveInputProps) {
         "relative h-12 rounded-2xl overflow-hidden cursor-text",
         "bg-slate-900 shadow-xl shadow-slate-900/20",
         "ring-1 ring-white/10",
-        "transition-all duration-500",
+        // Animate only ring + shadow with explicit timing — Framer's
+        // `layout` already owns the width morph, so we don't add a
+        // CSS `transition-all` that would compete with it.
+        "transition-[box-shadow,border-color] duration-[var(--duration-standard)] ease-[var(--ease-out-soft)]",
         isFocused && "ring-white/25 shadow-2xl shadow-slate-900/40",
         className,
       )}
