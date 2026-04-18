@@ -1,5 +1,7 @@
 "use client";
 
+import { useReducedMotion } from "@asym/lib/motion";
+import { EASE_OUT_SOFT } from "@asym/lib/motion-presets";
 import {
   LazyMotion,
   domAnimation,
@@ -36,9 +38,10 @@ function RippleButton({
   variant,
   size,
   scale = 10,
-  transition = { duration: 0.6, ease: "easeOut" },
+  transition = { duration: 0.4, ease: EASE_OUT_SOFT },
   ...props
 }: RippleButtonProps) {
+  const reduceMotion = useReducedMotion();
   const [ripples, setRipples] = React.useState<Ripple[]>([]);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
 
@@ -46,6 +49,7 @@ function RippleButton({
 
   const createRipple = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
+      if (reduceMotion) return;
       const button = buttonRef.current;
 
       if (!button) return;
@@ -64,9 +68,9 @@ function RippleButton({
 
       setTimeout(() => {
         setRipples((prev) => prev.filter((r) => r.id !== newRipple.id));
-      }, 600);
+      }, 400);
     },
-    [],
+    [reduceMotion],
   );
 
   const handleClick = React.useCallback(

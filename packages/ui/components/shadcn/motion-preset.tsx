@@ -1,5 +1,7 @@
 "use client";
 
+import { useReducedMotion } from "@asym/lib/motion";
+import { transitionStandard } from "@asym/lib/motion-presets";
 import {
   AnimatePresence,
   LazyMotion,
@@ -56,7 +58,7 @@ function MotionPreset({
   children,
   className,
   component = "div",
-  transition = { type: "spring", stiffness: 200, damping: 20 },
+  transition = transitionStandard,
   delay = 0,
   inView = true,
   inViewMargin = "0px",
@@ -68,6 +70,7 @@ function MotionPreset({
   motionProps = EMPTY_MOTION_PROPS,
 }: MotionPresetProps) {
   const localRef = React.useRef<HTMLDivElement | null>(null);
+  const reduceMotion = useReducedMotion();
 
   React.useImperativeHandle<HTMLDivElement | null, HTMLDivElement | null>(
     ref,
@@ -110,6 +113,28 @@ function MotionPreset({
   }
 
   const MotionComponent = motionComponents[component] || m.div;
+
+  // Reduced-motion: render fully visible, no tween, no exit.
+  if (reduceMotion) {
+    return (
+      <LazyMotion features={domAnimation}>
+        <MotionComponent
+          ref={localRef}
+          initial={false}
+          animate="visible"
+          variants={{
+            hidden: hiddenVariant,
+            visible: visibleVariant,
+          }}
+          transition={{ duration: 0 }}
+          className={className}
+          {...motionProps}
+        >
+          {children}
+        </MotionComponent>
+      </LazyMotion>
+    );
+  }
 
   return (
     <LazyMotion features={domAnimation}>
