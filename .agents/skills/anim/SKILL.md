@@ -345,11 +345,11 @@ When updating one half, update the other so consumers stay in lockstep.
 
 ### CSS utilities (composable, defined in the same file)
 
-| Utility               | What it does                                       | Touch-safe?   | Pair with                           |
-| --------------------- | -------------------------------------------------- | ------------- | ----------------------------------- |
-| `.press-feedback`     | `:active` scale to `var(--scale-press)`            | Yes (`:active` fires on tap) | Default on every `<Button>` already |
-| `.hover-lift`         | `:hover` `translateY(-2px)`                        | Yes (`@media (hover: hover)`) | Cards, tiles                        |
-| `.hover-scale-subtle` | `:hover` `scale(var(--scale-hover-subtle))`        | Yes (`@media (hover: hover)`) | Buttons, badges, marketing CTAs     |
+| Utility               | What it does                                | Touch-safe?                   | Pair with                           |
+| --------------------- | ------------------------------------------- | ----------------------------- | ----------------------------------- |
+| `.press-feedback`     | `:active` scale to `var(--scale-press)`     | Yes (`:active` fires on tap)  | Default on every `<Button>` already |
+| `.hover-lift`         | `:hover` `translateY(-2px)`                 | Yes (`@media (hover: hover)`) | Cards, tiles                        |
+| `.hover-scale-subtle` | `:hover` `scale(var(--scale-hover-subtle))` | Yes (`@media (hover: hover)`) | Buttons, badges, marketing CTAs     |
 
 The three utilities **share** one `transition-property` declaration so you can stack them on the same element without one overriding another's transition list.
 
