@@ -2,6 +2,16 @@
 
 Phases 1–6 are stacked. Phase 7 makes the donor care Support Hub production-shaped: a real `packages/api/src/admin/support-hub/*` adapter layer with a single swap point for the Phase 8 Supabase implementation, 30 thin route handlers under `apps/admin/app/api/admin/support/**`, CRM-ready cross-link chips into `/crm` and `/contributions`, accessibility + performance + failure-recovery audits, ~47 new unit / component tests, an e2e smoke spec, and the operator + admin + release-note docs.
 
+> **The API surface is a swap point, not the live runtime today.** Phase 7
+> ships the `packages/api/src/admin/support-hub/*` adapter layer + the
+> 30 thin route handlers under `apps/admin/app/api/admin/support/**`,
+> but the UI continues to read + write the in-memory TanStack DB
+> collection through Phase 2's hooks. None of the new route handlers are
+> called by any client in this repo today. They exist as the documented
+> seam Phase 8 will activate alongside the Supabase migration. See
+> [`final-audit-and-wrap-up.md`](./final-audit-and-wrap-up.md) for the
+> full source-of-truth + production-readiness analysis.
+
 ## Decisions locked
 
 - **Persistence: adapter boundary, not a Supabase migration.** Phase 1 §3.4, Phase 5 doc, and Phase 6 doc all listed real Supabase tables as a Phase 7-or-later follow-up. The prompt's deliverable #1 explicitly accepts "real data wiring **or** a very clear adapter boundary." Phase 7 ships the adapter; Phase 8 swaps the implementation behind a single `adapter/index.ts` re-export.
