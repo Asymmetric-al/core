@@ -2416,3 +2416,32 @@ export const supportNotificationPreferencesCollection = createCollection(
     ),
   }),
 );
+
+/* ------------------------------------------------------------------------ */
+/*  Seed re-exports                                                          */
+/*                                                                            */
+/*  Phase 7 introduced a server-side adapter (`packages/api/src/admin/       */
+/*  support-hub/adapter/in-memory.ts`) that needs the same donor-care        */
+/*  fixtures the TanStack DB collections seed from. Re-exporting the seeds   */
+/*  here keeps a single source of truth without leaking `@tanstack/db` into  */
+/*  the API package — the adapter only ever reads these arrays, never the   */
+/*  collections themselves.                                                  */
+/* ------------------------------------------------------------------------ */
+
+export {
+  AGENTS_SEED as SUPPORT_AGENTS_SEED,
+  AUTOMATION_RULES_SEED as SUPPORT_AUTOMATION_RULES_SEED,
+  BUSINESS_HOURS_SEED as SUPPORT_BUSINESS_HOURS_SEED,
+  CANNED_RESPONSES_SEED as SUPPORT_CANNED_RESPONSES_SEED,
+  CONVERSATIONS_SEED as SUPPORT_CONVERSATIONS_SEED,
+  INBOX_SETTINGS_SEED as SUPPORT_INBOX_SETTINGS_SEED,
+  INBOXES_SEED as SUPPORT_INBOXES_SEED,
+  LABELS_SEED as SUPPORT_LABELS_SEED,
+  MACROS_SEED as SUPPORT_MACROS_SEED,
+  MESSAGES_SEED as SUPPORT_MESSAGES_SEED,
+  NOTIFICATION_PREFERENCES_SEED as SUPPORT_NOTIFICATION_PREFERENCES_SEED,
+  SAVED_VIEWS_SEED as SUPPORT_SAVED_VIEWS_SEED,
+  SIGNATURES_SEED as SUPPORT_SIGNATURES_SEED,
+  SLA_POLICIES_SEED as SUPPORT_SLA_POLICIES_SEED,
+  TEAMS_SEED as SUPPORT_TEAMS_SEED,
+};
