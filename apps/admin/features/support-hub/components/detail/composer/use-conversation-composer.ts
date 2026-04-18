@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { serializeReplyPayload } from "./serialize-payload";
 import { useSupportConversation } from "../../../hooks/use-support-conversation";
+import { useSupportFailureRecovery } from "../../../hooks/use-support-failure-recovery";
 import {
   useAddSupportPrivateNote,
   useSendSupportReply,
@@ -99,6 +100,7 @@ export function useConversationComposer({
 
   const sendReply = useSendSupportReply();
   const addNote = useAddSupportPrivateNote();
+  const failure = useSupportFailureRecovery();
   const isPending = sendReply.isPending || addNote.isPending;
 
   // Reset local drafts when the conversation changes.
@@ -160,7 +162,7 @@ export function useConversationComposer({
         appendSignature: false,
         mergeContext,
       });
-      try {
+      const performAddNote = async () => {
         await addNote.mutateAsync({
           conversationId,
           authorAgentId,
@@ -168,9 +170,20 @@ export function useConversationComposer({
           bodyHtml: payload.html,
         });
         toast.success("Internal note added.");
+        failure.clear();
         reset();
+      };
+      try {
+        await performAddNote();
       } catch (error) {
-        toast.error(extractErrorMessage(error, "Could not save the note."));
+        const message = extractErrorMessage(error, "Could not save the note.");
+        toast.error(message);
+        failure.report({
+          kind: "add-note",
+          message,
+          conversationId,
+          retry: performAddNote,
+        });
       }
       return;
     }
@@ -182,7 +195,7 @@ export function useConversationComposer({
       appendSignature,
       mergeContext,
     });
-    try {
+    const performSend = async () => {
       await sendReply.mutateAsync({
         conversationId,
         authorAgentId,
@@ -190,9 +203,20 @@ export function useConversationComposer({
         mode: "send",
       });
       toast.success("Reply sent.");
+      failure.clear();
       reset();
+    };
+    try {
+      await performSend();
     } catch (error) {
-      toast.error(extractErrorMessage(error, "Could not send the reply."));
+      const message = extractErrorMessage(error, "Could not send the reply.");
+      toast.error(message);
+      failure.report({
+        kind: "send-reply",
+        message,
+        conversationId,
+        retry: performSend,
+      });
     }
   };
 
@@ -216,7 +240,7 @@ export function useConversationComposer({
       appendSignature,
       mergeContext,
     });
-    try {
+    const performDraft = async () => {
       await sendReply.mutateAsync({
         conversationId,
         authorAgentId,
@@ -224,9 +248,20 @@ export function useConversationComposer({
         mode: "draft",
       });
       toast.success("Draft saved.");
+      failure.clear();
       reset();
+    };
+    try {
+      await performDraft();
     } catch (error) {
-      toast.error(extractErrorMessage(error, "Could not save the draft."));
+      const message = extractErrorMessage(error, "Could not save the draft.");
+      toast.error(message);
+      failure.report({
+        kind: "save-draft",
+        message,
+        conversationId,
+        retry: performDraft,
+      });
     }
   };
 

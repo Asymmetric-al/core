@@ -3,7 +3,10 @@
 import { cn } from "@asym/ui/lib/utils";
 import * as React from "react";
 
+import { SupportFailureBanner } from "./SupportFailureBanner";
+import { SupportInboxEmptyState } from "./SupportInboxEmptyState";
 import { useSupportConversations } from "../hooks/use-support-conversations";
+import { SupportFailureRecoveryProvider } from "../hooks/use-support-failure-recovery";
 import {
   useSetSupportConversationStatus,
   useSnoozeSupportConversation,
@@ -21,7 +24,6 @@ import {
 } from "./command/use-support-command-palette";
 import { ConversationDetail } from "./detail/ConversationDetail";
 import { StatsStrip } from "./stats/StatsStrip";
-import { SupportInboxEmptyState } from "./SupportInboxEmptyState";
 import { SupportTableView } from "./table/SupportTableView";
 import { ViewTabs } from "./tabs/ViewTabs";
 import { InboxToolbar } from "./toolbar/InboxToolbar";
@@ -46,7 +48,9 @@ export function SupportInbox() {
   return (
     <SupportNowProvider>
       <SupportCommandPaletteProvider>
-        <SupportInboxBody />
+        <SupportFailureRecoveryProvider>
+          <SupportInboxBody />
+        </SupportFailureRecoveryProvider>
       </SupportCommandPaletteProvider>
     </SupportNowProvider>
   );
@@ -135,6 +139,7 @@ function SupportInboxBody() {
   return (
     <div ref={inboxRef} className="space-y-4">
       <SupportCommandPalette />
+      <SupportFailureBanner />
       <StatsStrip />
 
       <SavedViewsBar />
