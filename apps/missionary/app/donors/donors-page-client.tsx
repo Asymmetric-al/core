@@ -1,10 +1,12 @@
 "use client";
 "use no memo";
 
-import { useDonorsPageLayout } from "./use-donors-page-view";
+import { DonorsPageContent, useDonorsPageView } from "./use-donors-page-view";
 
 function DonorsPageView() {
-  return useDonorsPageLayout();
+  const viewModel = useDonorsPageView();
+
+  return <DonorsPageContent {...viewModel} />;
 }
 
 export default function DonorsPage() {
