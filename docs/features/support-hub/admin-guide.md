@@ -37,7 +37,17 @@ Today the report aggregator (`apps/admin/features/support-hub/lib/report-aggrega
 
 ## Settings
 
-| Path                                 | Surface                                                                                                                         | Posts to                                                                                            |
+> **What runs today vs Phase 8 endpoint targets.** Each settings panel
+> writes through a Phase 5/6 client-side mutation hook (e.g.
+> `useSaveSupportSlaPolicy`) that calls the in-memory TanStack DB
+> collection directly via `supportStore.collections.*`. The endpoint
+> column below shows the route handler each mutation will call once
+> Phase 8 swaps the data layer (`packages/api/src/admin/support-hub/adapter/index.ts`)
+> and rewires the hooks to `useQuery` against the new routes. Today,
+> those endpoints exist + are auth-gated, but the UI does not call them
+> — see [`final-audit-and-wrap-up.md`](./final-audit-and-wrap-up.md).
+
+| Path                                 | Surface                                                                                                                         | Phase 8 target endpoint                                                                             |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | `/support/settings/inbox`            | Inbox identity, default sender / signature / SLA / business hours, round-robin toggle, auto-resolve, contact sidecar visibility | `PATCH /api/admin/support/inbox-settings`                                                           |
 | `/support/settings/collaborators`    | Read-only agent list + teams CRUD                                                                                               | `GET /api/admin/support/agents`, `POST` / `PATCH` / `DELETE /api/admin/support/teams[/:id]`         |
@@ -52,7 +62,12 @@ Today the report aggregator (`apps/admin/features/support-hub/lib/report-aggrega
 | `/support/settings/automations`      | Typed event → condition → action rules with dry-run                                                                             | `POST` / `PATCH` / `DELETE /api/admin/support/automation-rules[/:id]`; toggle via `?toggle=true`    |
 | `/support/settings/notifications`    | Per-agent email + in-app channel toggles                                                                                        | `PATCH /api/admin/support/notification-preferences`                                                 |
 
-Every endpoint returns the saved row so the UI can echo it back without an extra `GET`. Sonner toasts surface on the success path; the inbox-wide failure banner picks up donor-visible mutations.
+Today the in-memory collection writers return the saved row synchronously
+so the UI can echo it back without a round trip; sonner toasts surface
+on the success path and the inbox-wide failure banner picks up
+donor-visible mutations. Once Phase 8 swaps the hooks to `useQuery`
+against the route handlers, every endpoint above will return the saved
+row in the same shape.
 
 ## Automations
 
