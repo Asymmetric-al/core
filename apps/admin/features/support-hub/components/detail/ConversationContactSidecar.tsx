@@ -5,19 +5,22 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
-import { cn } from "@asym/ui/lib/utils";
-import { Building2, Heart, Mail, Receipt, Sparkles } from "lucide-react";
+import { Mail } from "lucide-react";
 
-import type { SupportContactRef, SupportConversation } from "../../types";
+import { ConversationCrmLinks } from "./ConversationCrmLinks";
+
+import type { SupportConversation } from "../../types";
 
 interface ConversationContactSidecarProps {
   conversation: SupportConversation;
 }
 
 /**
- * Compact donor identity block + CRM-ready references summary. Phase 4 only
- * surfaces the data we already have; Phase 5+ will hydrate live donor /
- * gift / missionary / church lookups when CRM linkage lands.
+ * Compact donor identity block + CRM-ready references summary. Phase 7
+ * extracts the link-rendering logic into `<ConversationCrmLinks />` so the
+ * cross-link surface is testable in isolation and so Phase 8's CRM-hydration
+ * work can swap in live donor / gift / missionary lookups without touching
+ * this layout.
  */
 export function ConversationContactSidecar({
   conversation,
@@ -42,69 +45,11 @@ export function ConversationContactSidecar({
           <Mail className="mr-1 inline size-3 align-[-2px] text-zinc-400" />
           {conversation.externalContactEmail}
         </p>
-        <ContactRefRow contact={conversation.contact} />
+        <ConversationCrmLinks
+          contact={conversation.contact}
+          donorEmail={conversation.externalContactEmail}
+        />
       </div>
     </div>
   );
-}
-
-function ContactRefRow({ contact }: { contact: SupportContactRef | null }) {
-  if (!contact) return null;
-  const refs = collectActiveRefs(contact);
-  if (refs.length === 0) return null;
-  return (
-    <div className="mt-2 flex flex-wrap items-center gap-1.5">
-      {refs.map((ref) => (
-        <span
-          key={ref.label}
-          className={cn(
-            "inline-flex items-center gap-1 rounded-md border border-zinc-100 bg-zinc-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-500",
-          )}
-          title={`${ref.label}: ${ref.value}`}
-        >
-          {ref.icon}
-          {ref.label}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-interface RefSummary {
-  label: string;
-  value: string;
-  icon: React.ReactNode;
-}
-
-function collectActiveRefs(contact: SupportContactRef): RefSummary[] {
-  const refs: RefSummary[] = [];
-  if (contact.donorId) {
-    refs.push({
-      label: "Donor",
-      value: contact.donorId,
-      icon: <Heart className="size-3 text-rose-400" />,
-    });
-  }
-  if (contact.contributionId) {
-    refs.push({
-      label: "Gift",
-      value: contact.contributionId,
-      icon: <Receipt className="size-3 text-amber-500" />,
-    });
-  }
-  if (contact.missionaryId) {
-    refs.push({
-      label: "Missionary",
-      value: contact.missionaryId,
-      icon: <Sparkles className="size-3 text-violet-500" />,
-    });
-  }
-  if (contact.churchId) {
-    refs.push({
-      label: "Church",
-      value: contact.churchId,
-      icon: <Building2 className="size-3 text-zinc-500" />,
-    });
-  }
-  return refs;
 }
