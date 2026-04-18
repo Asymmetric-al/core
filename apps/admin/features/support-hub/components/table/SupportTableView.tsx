@@ -33,6 +33,12 @@ export function SupportTableView({
 }: SupportTableViewProps) {
   const { actions, overlays } = useSupportBulkActions();
 
+  // Phase 7 perf: enable row virtualization once we cross 200 rows so the
+  // table never tries to render the full set of donor conversations.
+  // Smaller tables keep the existing pagination behavior — virtualization
+  // adds layout cost that doesn't pay off until the row count is high.
+  const enableVirtualization = conversations.length > 200;
+
   return (
     <>
       <DataTableResponsive<SupportConversation, unknown>
@@ -44,6 +50,7 @@ export function SupportTableView({
         getRowId={(row) => row.id}
         onRowClick={(row) => onSelectConversation(row.original.id)}
         floatingBarActions={actions}
+        enableVirtualization={enableVirtualization}
         config={{
           enableRowSelection: true,
           enableColumnVisibility: true,
