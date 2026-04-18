@@ -26,13 +26,13 @@ export const QuickActionCard = memo(function QuickActionCard({
   return (
     <Card
       className={cn(
-        "group cursor-pointer shadow-none transition-all hover:border-primary/50 hover:shadow-sm",
+        "group cursor-pointer shadow-none hover-lift hover:border-primary/50 hover:shadow-sm",
         className,
       )}
       onClick={onAction}
     >
       <CardContent className="flex flex-col items-center justify-center gap-2 px-4 py-6 text-center">
-        <Avatar className="size-10 rounded-sm transition-transform group-hover:scale-105">
+        <Avatar className="size-10 rounded-sm">
           <AvatarFallback className="bg-primary/10 text-primary shrink-0 rounded-sm">
             <Icon className="size-5" />
           </AvatarFallback>
