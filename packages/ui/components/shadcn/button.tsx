@@ -5,7 +5,11 @@ import * as React from "react";
 import { cn } from "@asym/ui/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive cursor-pointer",
+  // Base: press-feedback (subtle scale on :active) plus a transition
+  // list that already covers color/border/box-shadow. Don't add
+  // `transition-colors` here — it would compete with `press-feedback`
+  // for the cascade. See docs/ai/skills/anim/SKILL.md.
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium press-feedback disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive cursor-pointer",
   {
     variants: {
       variant: {
@@ -19,9 +23,12 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        maia: "bg-slate-900 text-white shadow-xl hover:bg-slate-800 rounded-2xl font-semibold tracking-wide transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]",
+        // Maia: explicit transition list (no `all`); hover scale gated
+        // for hover devices only via the .hover-scale-subtle utility;
+        // press handled by .press-feedback on the base class.
+        maia: "bg-slate-900 text-white shadow-xl hover:bg-slate-800 rounded-2xl font-semibold tracking-wide hover-scale-subtle",
         "maia-outline":
-          "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-2xl font-semibold tracking-wide transition-all duration-300 shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
+          "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-2xl font-semibold tracking-wide shadow-sm hover:shadow-md hover-scale-subtle",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
