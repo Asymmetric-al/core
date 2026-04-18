@@ -1,7 +1,7 @@
 import {
   deleteSupportSignature,
   readJsonBody,
-  requireSupportHubAccess,
+  withSupportHubAccess,
   saveSupportSignature,
   setDefaultSupportSignature,
   toApiErrorResponse,
@@ -11,8 +11,7 @@ import { saveSignatureSchema } from "@asym/api/admin/support-hub/schemas";
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, context: RouteContext) {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   const { id } = await context.params;
   const url = new URL(request.url);
   if (url.searchParams.get("default") === "true") {
@@ -31,11 +30,11 @@ export async function PATCH(request: Request, context: RouteContext) {
   } catch (error) {
     return toApiErrorResponse(error, "Failed to update signature.");
   }
+  });
 }
 
 export async function DELETE(_request: Request, context: RouteContext) {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   try {
     const { id } = await context.params;
     await deleteSupportSignature(id);
@@ -43,4 +42,5 @@ export async function DELETE(_request: Request, context: RouteContext) {
   } catch (error) {
     return toApiErrorResponse(error, "Failed to delete signature.");
   }
+  });
 }

@@ -1,26 +1,25 @@
 import {
   listSupportAutomationRules,
   readJsonBody,
-  requireSupportHubAccess,
+  withSupportHubAccess,
   saveSupportAutomationRule,
   toApiErrorResponse,
 } from "@asym/api/admin/support-hub";
 import { saveAutomationRuleSchema } from "@asym/api/admin/support-hub/schemas";
 
 export async function GET() {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   try {
     const automationRules = await listSupportAutomationRules();
     return Response.json({ automationRules });
   } catch (error) {
     return toApiErrorResponse(error, "Failed to list automation rules.");
   }
+  });
 }
 
 export async function POST(request: Request) {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   const body = await readJsonBody(request, saveAutomationRuleSchema);
   if (!body.ok) return body.response;
   try {
@@ -29,4 +28,5 @@ export async function POST(request: Request) {
   } catch (error) {
     return toApiErrorResponse(error, "Failed to save automation rule.");
   }
+  });
 }

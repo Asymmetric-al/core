@@ -1,15 +1,14 @@
 import {
   getSupportConversation,
-  requireSupportHubAccess,
+  withSupportHubAccess,
   toApiErrorResponse,
 } from "@asym/api/admin/support-hub";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, context: RouteContext) {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
 
+  return withSupportHubAccess(async () => {
   try {
     const { id } = await context.params;
     const conversation = await getSupportConversation(id);
@@ -20,4 +19,5 @@ export async function GET(_request: Request, context: RouteContext) {
   } catch (error) {
     return toApiErrorResponse(error, "Failed to load conversation.");
   }
+  });
 }

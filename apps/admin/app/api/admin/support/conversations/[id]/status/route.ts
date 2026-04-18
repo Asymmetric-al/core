@@ -1,6 +1,6 @@
 import {
   readJsonBody,
-  requireSupportHubAccess,
+  withSupportHubAccess,
   setSupportConversationStatus,
   toApiErrorResponse,
 } from "@asym/api/admin/support-hub";
@@ -9,8 +9,7 @@ import { setConversationStatusSchema } from "@asym/api/admin/support-hub/schemas
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, context: RouteContext) {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   const body = await readJsonBody(request, setConversationStatusSchema);
   if (!body.ok) return body.response;
   try {
@@ -26,4 +25,5 @@ export async function PATCH(request: Request, context: RouteContext) {
   } catch (error) {
     return toApiErrorResponse(error, "Failed to set status.");
   }
+  });
 }

@@ -1,5 +1,6 @@
 export {
   requireSupportHubAccess,
+  withSupportHubAccess,
   readJsonBody,
   toApiErrorResponse,
 } from "./route-helpers";

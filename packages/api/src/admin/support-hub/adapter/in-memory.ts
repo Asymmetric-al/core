@@ -14,7 +14,9 @@ import {
   SUPPORT_SIGNATURES_FIXTURE,
   SUPPORT_SLA_POLICIES_FIXTURE,
   SUPPORT_TEAMS_FIXTURE,
+  SUPPORT_HUB_DEMO_TENANT_ID,
 } from "./fixtures";
+import { getSupportHubRequestTenantId } from "../request-context";
 
 import type {
   AddPrivateNoteInput,
@@ -101,8 +103,53 @@ function genId(prefix: string): string {
   return `${prefix}-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
 }
 
-function defaultTenantId(rows: { tenantId: string }[]): string {
-  return rows[0]?.tenantId ?? "tenant-give-hope";
+/**
+ * When a Support Hub API request is active, new rows inherit that tenant.
+ * Otherwise (unit tests, scripts) the demo seed tenant is used.
+ */
+function newRowTenantId(): string {
+  return getSupportHubRequestTenantId() ?? SUPPORT_HUB_DEMO_TENANT_ID;
+}
+
+function tenantScopeForReads(): string {
+  return getSupportHubRequestTenantId() ?? SUPPORT_HUB_DEMO_TENANT_ID;
+}
+
+/**
+ * Phase 7 ships a single-tenant in-memory store. Reject cross-tenant writes so
+ * the API cannot mutate another org's data once multi-tenant data exists.
+ */
+function assertWritableTenantScope(): void {
+  const scope = getSupportHubRequestTenantId();
+  if (scope === undefined) return;
+  if (scope !== SUPPORT_HUB_DEMO_TENANT_ID) {
+    throw new Error("SUPPORT_HUB_TENANT_MISMATCH");
+  }
+}
+
+function findOrThrowTenantRow<T extends { id: string; tenantId: string }>(
+  rows: T[],
+  id: string,
+  label: string,
+): T {
+  const scope = tenantScopeForReads();
+  const row = rows.find((entry) => entry.id === id && entry.tenantId === scope);
+  if (!row) throw new Error(`Unknown ${label}: ${id}`);
+  return row;
+}
+
+function rowsForTenant<T extends { tenantId: string }>(rows: T[]): T[] {
+  return rows.filter((row) => row.tenantId === tenantScopeForReads());
+}
+
+function patchTenantById<T extends { id: string; tenantId: string }>(
+  rows: T[],
+  id: string,
+  patch: (row: T) => void,
+): T {
+  const row = findOrThrowTenantRow(rows, id, "row");
+  patch(row);
+  return row;
 }
 
 function agentParticipant(agent: SupportAssignee | null): SupportParticipant {
@@ -161,6 +208,13 @@ export function __resetInMemorySupportHubStore(): void {
   store = buildInMemoryStore();
 }
 
+function findConversationInTenant(id: string): SupportConversation | undefined {
+  const scope = tenantScopeForReads();
+  return store.conversations.find(
+    (entry) => entry.id === id && entry.tenantId === scope,
+  );
+}
+
 function findOrThrow<T extends { id: string }>(
   rows: T[],
   id: string,
@@ -185,6 +239,7 @@ function matchesConversationFilter(
   conversation: SupportConversation,
   filter: SupportConversationFilter,
 ): boolean {
+  if (conversation.tenantId !== tenantScopeForReads()) return false;
   if (filter.inboxId && conversation.inboxId !== filter.inboxId) return false;
   if (
     filter.status &&
@@ -220,6 +275,12 @@ function matchesConversationFilter(
   return true;
 }
 
+function findConversationOrThrow(id: string): SupportConversation {
+  const conversation = findConversationInTenant(id);
+  if (!conversation) throw new Error(`Unknown conversation: ${id}`);
+  return conversation;
+}
+
 export const inMemorySupportHubAdapter: SupportHubAdapter = {
   conversations: {
     async list(filter) {
@@ -230,22 +291,23 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       );
     },
     async get(id) {
-      const row = store.conversations.find((entry) => entry.id === id);
+      const row = findConversationInTenant(id);
       return row ? clone(row) : null;
     },
     async listMessages(conversationId) {
+      if (!findConversationInTenant(conversationId)) return [];
+      const scope = tenantScopeForReads();
       return clone(
         store.messages.filter(
-          (message) => message.conversationId === conversationId,
+          (message) =>
+            message.conversationId === conversationId &&
+            message.tenantId === scope,
         ),
       );
     },
     async assign(input: AssignConversationInput) {
-      const conversation = findOrThrow(
-        store.conversations,
-        input.conversationId,
-        "conversation",
-      );
+      assertWritableTenantScope();
+      const conversation = findConversationOrThrow(input.conversationId);
       const agent = input.assigneeAgentId
         ? (store.agents.find((row) => row.id === input.assigneeAgentId) ?? null)
         : null;
@@ -254,11 +316,8 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       return clone(conversation);
     },
     async setStatus(input: SetConversationStatusInput) {
-      const conversation = findOrThrow(
-        store.conversations,
-        input.conversationId,
-        "conversation",
-      );
+      assertWritableTenantScope();
+      const conversation = findConversationOrThrow(input.conversationId);
       const stamp = nowIso();
       conversation.status = input.status;
       conversation.updatedAt = stamp;
@@ -277,47 +336,32 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       return clone(conversation);
     },
     async setPriority(input: SetConversationPriorityInput) {
-      const conversation = patchById(
-        store.conversations,
-        input.conversationId,
-        (row) => {
-          row.priority = input.priority;
-          row.updatedAt = nowIso();
-        },
-      );
+      assertWritableTenantScope();
+      const conversation = findConversationOrThrow(input.conversationId);
+      conversation.priority = input.priority;
+      conversation.updatedAt = nowIso();
       return clone(conversation);
     },
     async snooze(input: SnoozeConversationInput) {
-      const conversation = patchById(
-        store.conversations,
-        input.conversationId,
-        (row) => {
-          row.status = "snoozed";
-          row.snoozedUntil = input.snoozedUntil;
-          row.updatedAt = nowIso();
-        },
-      );
+      assertWritableTenantScope();
+      const conversation = findConversationOrThrow(input.conversationId);
+      conversation.status = "snoozed";
+      conversation.snoozedUntil = input.snoozedUntil;
+      conversation.updatedAt = nowIso();
       return clone(conversation);
     },
     async unsnooze(input: UnsnoozeConversationInput) {
-      const conversation = patchById(
-        store.conversations,
-        input.conversationId,
-        (row) => {
-          if (row.status === "snoozed") row.status = "open";
-          row.snoozedUntil = null;
-          row.updatedAt = nowIso();
-        },
-      );
+      assertWritableTenantScope();
+      const conversation = findConversationOrThrow(input.conversationId);
+      if (conversation.status === "snoozed") conversation.status = "open";
+      conversation.snoozedUntil = null;
+      conversation.updatedAt = nowIso();
       return clone(conversation);
     },
     async toggleLabel(input: ToggleConversationLabelInput) {
-      const conversation = findOrThrow(
-        store.conversations,
-        input.conversationId,
-        "conversation",
-      );
-      const label = findOrThrow(store.labels, input.labelId, "label");
+      assertWritableTenantScope();
+      const conversation = findConversationOrThrow(input.conversationId);
+      const label = findOrThrowTenantRow(store.labels, input.labelId, "label");
       const has = conversation.labels.some(
         (existing) => existing.id === label.id,
       );
@@ -337,11 +381,8 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
   },
   messages: {
     async sendReply(input: SendReplyInput) {
-      const conversation = findOrThrow(
-        store.conversations,
-        input.conversationId,
-        "conversation",
-      );
+      assertWritableTenantScope();
+      const conversation = findConversationOrThrow(input.conversationId);
       const agent =
         store.agents.find((row) => row.id === input.authorAgentId) ?? null;
       const stamp = nowIso();
@@ -385,11 +426,8 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       return clone(message);
     },
     async addPrivateNote(input: AddPrivateNoteInput) {
-      const conversation = findOrThrow(
-        store.conversations,
-        input.conversationId,
-        "conversation",
-      );
+      assertWritableTenantScope();
+      const conversation = findConversationOrThrow(input.conversationId);
       const agent =
         store.agents.find((row) => row.id === input.authorAgentId) ?? null;
       const stamp = nowIso();
@@ -424,11 +462,12 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
   },
   labels: {
     async list() {
-      return clone(store.labels);
+      return clone(rowsForTenant(store.labels));
     },
     async save(input: SaveLabelInput) {
+      assertWritableTenantScope();
       if (input.id) {
-        const label = patchById(store.labels, input.id, (row) => {
+        const label = patchTenantById(store.labels, input.id, (row) => {
           row.name = input.name;
           row.slug = input.slug;
           row.tone = input.tone;
@@ -438,7 +477,7 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       }
       const label: SupportLabel = {
         id: genId("label"),
-        tenantId: defaultTenantId(store.labels),
+        tenantId: newRowTenantId(),
         name: input.name,
         slug: input.slug,
         tone: input.tone,
@@ -448,9 +487,14 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       return clone(label);
     },
     async delete(id) {
-      store.labels = store.labels.filter((label) => label.id !== id);
+      assertWritableTenantScope();
+      const scope = tenantScopeForReads();
+      store.labels = store.labels.filter(
+        (label) => !(label.id === id && label.tenantId === scope),
+      );
       // Strip the deleted label from every conversation that still carries it.
       for (const conversation of store.conversations) {
+        if (conversation.tenantId !== scope) continue;
         if (!conversation.labels.some((label) => label.id === id)) continue;
         conversation.labels = conversation.labels.filter(
           (label) => label.id !== id,
@@ -461,12 +505,13 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
   },
   macros: {
     async list() {
-      return clone(store.macros);
+      return clone(rowsForTenant(store.macros));
     },
     async save(input: SaveMacroInput) {
+      assertWritableTenantScope();
       const stamp = nowIso();
       if (input.id) {
-        const macro = patchById(store.macros, input.id, (row) => {
+        const macro = patchTenantById(store.macros, input.id, (row) => {
           row.name = input.name;
           row.description = input.description;
           row.ownerAgentId = input.ownerAgentId;
@@ -477,7 +522,7 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       }
       const macro: SupportMacro = {
         id: genId("macro"),
-        tenantId: defaultTenantId(store.labels),
+        tenantId: newRowTenantId(),
         ownerAgentId: input.ownerAgentId,
         name: input.name,
         description: input.description,
@@ -489,17 +534,22 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       return clone(macro);
     },
     async delete(id) {
-      store.macros = store.macros.filter((macro) => macro.id !== id);
+      assertWritableTenantScope();
+      const scope = tenantScopeForReads();
+      store.macros = store.macros.filter(
+        (macro) => !(macro.id === id && macro.tenantId === scope),
+      );
     },
   },
   cannedResponses: {
     async list() {
-      return clone(store.cannedResponses);
+      return clone(rowsForTenant(store.cannedResponses));
     },
     async save(input: SaveCannedResponseInput) {
+      assertWritableTenantScope();
       const stamp = nowIso();
       if (input.id) {
-        const row = patchById(store.cannedResponses, input.id, (entry) => {
+        const row = patchTenantById(store.cannedResponses, input.id, (entry) => {
           entry.shortCode = input.shortCode;
           entry.title = input.title;
           entry.ownerAgentId = input.ownerAgentId;
@@ -511,7 +561,7 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       }
       const row: SupportCannedResponse = {
         id: genId("canned"),
-        tenantId: defaultTenantId(store.labels),
+        tenantId: newRowTenantId(),
         ownerAgentId: input.ownerAgentId,
         shortCode: input.shortCode,
         title: input.title,
@@ -524,19 +574,22 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       return clone(row);
     },
     async delete(id) {
+      assertWritableTenantScope();
+      const scope = tenantScopeForReads();
       store.cannedResponses = store.cannedResponses.filter(
-        (entry) => entry.id !== id,
+        (entry) => !(entry.id === id && entry.tenantId === scope),
       );
     },
   },
   savedViews: {
     async list() {
-      return clone(store.savedViews);
+      return clone(rowsForTenant(store.savedViews));
     },
     async save(input: SaveSavedViewInput) {
+      assertWritableTenantScope();
       const stamp = nowIso();
       if (input.id) {
-        const row = patchById(store.savedViews, input.id, (entry) => {
+        const row = patchTenantById(store.savedViews, input.id, (entry) => {
           entry.name = input.name;
           entry.slug = input.slug;
           entry.ownerAgentId = input.ownerAgentId;
@@ -548,7 +601,7 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       }
       const row: SupportSavedView = {
         id: genId("view"),
-        tenantId: defaultTenantId(store.labels),
+        tenantId: newRowTenantId(),
         ownerAgentId: input.ownerAgentId,
         name: input.name,
         slug: input.slug,
@@ -561,26 +614,32 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       return clone(row);
     },
     async delete(id) {
-      store.savedViews = store.savedViews.filter((view) => view.id !== id);
+      assertWritableTenantScope();
+      const scope = tenantScopeForReads();
+      store.savedViews = store.savedViews.filter(
+        (view) => !(view.id === id && view.tenantId === scope),
+      );
     },
   },
   inboxes: {
     async list() {
-      return clone(store.inboxes);
+      return clone(rowsForTenant(store.inboxes));
     },
   },
   inboxSettings: {
     async list() {
-      return clone(store.inboxSettings);
+      return clone(rowsForTenant(store.inboxSettings));
     },
     async get(inboxId) {
+      const scoped = rowsForTenant(store.inboxSettings);
       const target = inboxId
-        ? store.inboxSettings.find((row) => row.inboxId === inboxId)
-        : store.inboxSettings[0];
+        ? scoped.find((row) => row.inboxId === inboxId)
+        : scoped[0];
       return target ? clone(target) : null;
     },
     async save(input: SaveInboxSettingsInput) {
-      const row = patchById(store.inboxSettings, input.id, (entry) => {
+      assertWritableTenantScope();
+      const row = patchTenantById(store.inboxSettings, input.id, (entry) => {
         entry.inboxId = input.inboxId;
         entry.defaultSignatureId = input.defaultSignatureId;
         entry.defaultSlaPolicyId = input.defaultSlaPolicyId;
@@ -595,14 +654,17 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
   },
   agents: {
     async list() {
+      if (tenantScopeForReads() !== SUPPORT_HUB_DEMO_TENANT_ID) return [];
       return clone(store.agents);
     },
   },
   teams: {
     async list() {
+      if (tenantScopeForReads() !== SUPPORT_HUB_DEMO_TENANT_ID) return [];
       return clone(store.teams);
     },
     async save(input: SaveTeamInput) {
+      assertWritableTenantScope();
       if (input.id) {
         const row = patchById(store.teams, input.id, (entry) => {
           entry.name = input.name;
@@ -623,17 +685,19 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       return clone(row);
     },
     async delete(id) {
+      assertWritableTenantScope();
       store.teams = store.teams.filter((team) => team.id !== id);
     },
   },
   businessHours: {
     async list() {
-      return clone(store.businessHours);
+      return clone(rowsForTenant(store.businessHours));
     },
     async save(input: SaveBusinessHoursInput) {
+      assertWritableTenantScope();
       const stamp = nowIso();
       if (input.id) {
-        const row = patchById(store.businessHours, input.id, (entry) => {
+        const row = patchTenantById(store.businessHours, input.id, (entry) => {
           entry.name = input.name;
           entry.timezone = input.timezone;
           entry.weeklySchedule = input.weeklySchedule;
@@ -645,7 +709,7 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       }
       const row: SupportBusinessHours = {
         id: genId("biz-hours"),
-        tenantId: defaultTenantId(store.labels),
+        tenantId: newRowTenantId(),
         name: input.name,
         timezone: input.timezone,
         weeklySchedule: input.weeklySchedule,
@@ -658,18 +722,23 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       return clone(row);
     },
     async delete(id) {
-      store.businessHours = store.businessHours.filter((row) => row.id !== id);
+      assertWritableTenantScope();
+      const scope = tenantScopeForReads();
+      store.businessHours = store.businessHours.filter(
+        (row) => !(row.id === id && row.tenantId === scope),
+      );
     },
   },
   slaPolicies: {
     async list() {
-      return clone(store.slaPolicies);
+      return clone(rowsForTenant(store.slaPolicies));
     },
     async save(input: SaveSlaPolicyInput) {
+      assertWritableTenantScope();
       const stamp = nowIso();
       let saved: SupportSlaPolicy;
       if (input.id) {
-        saved = patchById(store.slaPolicies, input.id, (entry) => {
+        saved = patchTenantById(store.slaPolicies, input.id, (entry) => {
           entry.name = input.name;
           entry.description = input.description;
           entry.firstResponseMinutes = input.firstResponseMinutes;
@@ -682,7 +751,7 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       } else {
         saved = {
           id: genId("sla"),
-          tenantId: defaultTenantId(store.labels),
+          tenantId: newRowTenantId(),
           name: input.name,
           description: input.description,
           firstResponseMinutes: input.firstResponseMinutes,
@@ -696,7 +765,9 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
         store.slaPolicies.push(saved);
       }
       if (saved.isDefault) {
+        const scope = tenantScopeForReads();
         for (const policy of store.slaPolicies) {
+          if (policy.tenantId !== scope) continue;
           if (policy.id !== saved.id && policy.isDefault) {
             policy.isDefault = false;
             policy.updatedAt = stamp;
@@ -706,8 +777,11 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       return clone(saved);
     },
     async setDefault(id) {
+      assertWritableTenantScope();
+      const scope = tenantScopeForReads();
       const stamp = nowIso();
       for (const policy of store.slaPolicies) {
+        if (policy.tenantId !== scope) continue;
         const shouldBeDefault = policy.id === id;
         if (policy.isDefault !== shouldBeDefault) {
           policy.isDefault = shouldBeDefault;
@@ -716,20 +790,23 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       }
     },
     async delete(id) {
+      assertWritableTenantScope();
+      const scope = tenantScopeForReads();
       store.slaPolicies = store.slaPolicies.filter(
-        (policy) => policy.id !== id,
+        (policy) => !(policy.id === id && policy.tenantId === scope),
       );
     },
   },
   signatures: {
     async list() {
-      return clone(store.signatures);
+      return clone(rowsForTenant(store.signatures));
     },
     async save(input: SaveSignatureInput) {
+      assertWritableTenantScope();
       const stamp = nowIso();
       let saved: SupportSignature;
       if (input.id) {
-        saved = patchById(store.signatures, input.id, (entry) => {
+        saved = patchTenantById(store.signatures, input.id, (entry) => {
           entry.ownerAgentId = input.ownerAgentId;
           entry.name = input.name;
           entry.bodyText = input.bodyText;
@@ -740,7 +817,7 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       } else {
         saved = {
           id: genId("sig"),
-          tenantId: defaultTenantId(store.labels),
+          tenantId: newRowTenantId(),
           ownerAgentId: input.ownerAgentId,
           name: input.name,
           bodyText: input.bodyText,
@@ -752,7 +829,9 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
         store.signatures.push(saved);
       }
       if (saved.isDefault) {
+        const scope = tenantScopeForReads();
         for (const signature of store.signatures) {
+          if (signature.tenantId !== scope) continue;
           if (
             signature.id !== saved.id &&
             signature.ownerAgentId === saved.ownerAgentId &&
@@ -766,10 +845,16 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       return clone(saved);
     },
     async setDefault(id) {
-      const target = store.signatures.find((signature) => signature.id === id);
+      assertWritableTenantScope();
+      const scope = tenantScopeForReads();
+      const target = store.signatures.find(
+        (signature) =>
+          signature.id === id && signature.tenantId === scope,
+      );
       if (!target) throw new Error(`Unknown signature: ${id}`);
       const stamp = nowIso();
       for (const signature of store.signatures) {
+        if (signature.tenantId !== scope) continue;
         if (signature.ownerAgentId !== target.ownerAgentId) continue;
         const shouldBeDefault = signature.id === id;
         if (signature.isDefault !== shouldBeDefault) {
@@ -779,19 +864,23 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       }
     },
     async delete(id) {
+      assertWritableTenantScope();
+      const scope = tenantScopeForReads();
       store.signatures = store.signatures.filter(
-        (signature) => signature.id !== id,
+        (signature) =>
+          !(signature.id === id && signature.tenantId === scope),
       );
     },
   },
   automationRules: {
     async list() {
-      return clone(store.automationRules);
+      return clone(rowsForTenant(store.automationRules));
     },
     async save(input: SaveAutomationRuleInput) {
+      assertWritableTenantScope();
       const stamp = nowIso();
       if (input.id) {
-        const row = patchById(store.automationRules, input.id, (entry) => {
+        const row = patchTenantById(store.automationRules, input.id, (entry) => {
           entry.name = input.name;
           entry.description = input.description;
           entry.enabled = input.enabled;
@@ -804,7 +893,7 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       }
       const row: SupportAutomationRule = {
         id: genId("automation"),
-        tenantId: defaultTenantId(store.labels),
+        tenantId: newRowTenantId(),
         name: input.name,
         description: input.description,
         enabled: input.enabled,
@@ -818,32 +907,39 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       return clone(row);
     },
     async toggle(input: ToggleAutomationRuleInput) {
-      const row = patchById(store.automationRules, input.id, (entry) => {
+      assertWritableTenantScope();
+      const row = patchTenantById(store.automationRules, input.id, (entry) => {
         entry.enabled = input.enabled;
         entry.updatedAt = nowIso();
       });
       return clone(row);
     },
     async delete(id) {
+      assertWritableTenantScope();
+      const scope = tenantScopeForReads();
       store.automationRules = store.automationRules.filter(
-        (rule) => rule.id !== id,
+        (rule) => !(rule.id === id && rule.tenantId === scope),
       );
     },
   },
   notificationPreferences: {
     async list() {
-      return clone(store.notificationPreferences);
+      return clone(rowsForTenant(store.notificationPreferences));
     },
     async get(agentId) {
+      const scope = tenantScopeForReads();
       const row = store.notificationPreferences.find(
-        (entry) => entry.agentId === agentId,
+        (entry) =>
+          entry.agentId === agentId && entry.tenantId === scope,
       );
       return row ? clone(row) : null;
     },
     async save(input: SaveNotificationPreferencesInput) {
+      assertWritableTenantScope();
       const stamp = nowIso();
+      const scope = tenantScopeForReads();
       const existing = store.notificationPreferences.find(
-        (row) => row.agentId === input.agentId,
+        (row) => row.agentId === input.agentId && row.tenantId === scope,
       );
       if (existing) {
         existing.emailMentions = input.emailMentions;
@@ -857,7 +953,7 @@ export const inMemorySupportHubAdapter: SupportHubAdapter = {
       }
       const row: SupportNotificationPreferences = {
         id: genId("notif-pref"),
-        tenantId: defaultTenantId(store.labels),
+        tenantId: newRowTenantId(),
         agentId: input.agentId,
         emailMentions: input.emailMentions,
         emailAssignments: input.emailAssignments,

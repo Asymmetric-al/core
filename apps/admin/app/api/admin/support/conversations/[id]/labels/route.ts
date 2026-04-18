@@ -1,6 +1,6 @@
 import {
   readJsonBody,
-  requireSupportHubAccess,
+  withSupportHubAccess,
   toApiErrorResponse,
   toggleSupportConversationLabel,
 } from "@asym/api/admin/support-hub";
@@ -9,8 +9,7 @@ import { toggleConversationLabelSchema } from "@asym/api/admin/support-hub/schem
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, context: RouteContext) {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   const body = await readJsonBody(request, toggleConversationLabelSchema);
   if (!body.ok) return body.response;
   try {
@@ -26,4 +25,5 @@ export async function PATCH(request: Request, context: RouteContext) {
   } catch (error) {
     return toApiErrorResponse(error, "Failed to toggle label.");
   }
+  });
 }

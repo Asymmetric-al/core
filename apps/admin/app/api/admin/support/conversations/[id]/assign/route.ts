@@ -1,7 +1,7 @@
 import {
   assignSupportConversation,
   readJsonBody,
-  requireSupportHubAccess,
+  withSupportHubAccess,
   toApiErrorResponse,
 } from "@asym/api/admin/support-hub";
 import { assignConversationSchema } from "@asym/api/admin/support-hub/schemas";
@@ -9,8 +9,7 @@ import { assignConversationSchema } from "@asym/api/admin/support-hub/schemas";
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, context: RouteContext) {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   const body = await readJsonBody(request, assignConversationSchema);
   if (!body.ok) return body.response;
   try {
@@ -26,4 +25,5 @@ export async function PATCH(request: Request, context: RouteContext) {
   } catch (error) {
     return toApiErrorResponse(error, "Failed to assign conversation.");
   }
+  });
 }

@@ -1,26 +1,25 @@
 import {
   listSupportMacros,
   readJsonBody,
-  requireSupportHubAccess,
+  withSupportHubAccess,
   saveSupportMacro,
   toApiErrorResponse,
 } from "@asym/api/admin/support-hub";
 import { saveMacroSchema } from "@asym/api/admin/support-hub/schemas";
 
 export async function GET() {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   try {
     const macros = await listSupportMacros();
     return Response.json({ macros });
   } catch (error) {
     return toApiErrorResponse(error, "Failed to list macros.");
   }
+  });
 }
 
 export async function POST(request: Request) {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   const body = await readJsonBody(request, saveMacroSchema);
   if (!body.ok) return body.response;
   try {
@@ -29,4 +28,5 @@ export async function POST(request: Request) {
   } catch (error) {
     return toApiErrorResponse(error, "Failed to save macro.");
   }
+  });
 }

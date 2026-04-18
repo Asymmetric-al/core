@@ -1,7 +1,7 @@
 import {
   addSupportPrivateNote,
   readJsonBody,
-  requireSupportHubAccess,
+  withSupportHubAccess,
   toApiErrorResponse,
 } from "@asym/api/admin/support-hub";
 import { addPrivateNoteSchema } from "@asym/api/admin/support-hub/schemas";
@@ -9,8 +9,7 @@ import { addPrivateNoteSchema } from "@asym/api/admin/support-hub/schemas";
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function POST(request: Request, context: RouteContext) {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   const body = await readJsonBody(request, addPrivateNoteSchema);
   if (!body.ok) return body.response;
   try {
@@ -26,4 +25,5 @@ export async function POST(request: Request, context: RouteContext) {
   } catch (error) {
     return toApiErrorResponse(error, "Failed to add private note.");
   }
+  });
 }

@@ -1,26 +1,25 @@
 import {
   listSupportSignatures,
   readJsonBody,
-  requireSupportHubAccess,
+  withSupportHubAccess,
   saveSupportSignature,
   toApiErrorResponse,
 } from "@asym/api/admin/support-hub";
 import { saveSignatureSchema } from "@asym/api/admin/support-hub/schemas";
 
 export async function GET() {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   try {
     const signatures = await listSupportSignatures();
     return Response.json({ signatures });
   } catch (error) {
     return toApiErrorResponse(error, "Failed to list signatures.");
   }
+  });
 }
 
 export async function POST(request: Request) {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   const body = await readJsonBody(request, saveSignatureSchema);
   if (!body.ok) return body.response;
   try {
@@ -29,4 +28,5 @@ export async function POST(request: Request) {
   } catch (error) {
     return toApiErrorResponse(error, "Failed to save signature.");
   }
+  });
 }

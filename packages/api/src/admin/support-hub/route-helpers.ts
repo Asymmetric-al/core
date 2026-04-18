@@ -1,6 +1,8 @@
 import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
 import { ZodError, type ZodType } from "zod";
 
+import { runWithSupportHubTenant } from "./request-context";
+
 export type SupportHubContext = {
   tenantId: string;
   userId: string;
@@ -52,6 +54,18 @@ export async function requireSupportHubAccess(): Promise<AuthResult> {
   };
 }
 
+/**
+ * Runs the handler after `requireSupportHubAccess()` succeeds, binding the
+ * authenticated tenant for adapter-level isolation (Phase 7 in-memory).
+ */
+export async function withSupportHubAccess(
+  handler: () => Promise<Response>,
+): Promise<Response> {
+  const auth = await requireSupportHubAccess();
+  if (!auth.ok) return auth.response;
+  return runWithSupportHubTenant(auth.context.tenantId, handler);
+}
+
 export async function readJsonBody<T = unknown>(
   request: Request,
   schema?: ZodType<T>,
@@ -101,6 +115,18 @@ export function toApiErrorResponse(
     return Response.json(
       { error: "Invalid request payload.", details: error.flatten() },
       { status: 422 },
+    );
+  }
+  if (
+    error instanceof Error &&
+    error.message === "SUPPORT_HUB_TENANT_MISMATCH"
+  ) {
+    return Response.json(
+      {
+        error:
+          "Support Hub is not available for this workspace in the current preview.",
+      },
+      { status: 403 },
     );
   }
   return Response.json({ error: fallbackMessage }, { status });

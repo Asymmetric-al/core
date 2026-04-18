@@ -32,7 +32,10 @@ import type {
  */
 
 const NOW = "2026-04-15T12:00:00.000Z";
-const TENANT_ID = "tenant-give-hope";
+
+/** Exported for server-side tenant scoping (matches every seeded row). */
+export const SUPPORT_HUB_DEMO_TENANT_ID = "tenant-give-hope";
+const TENANT_ID = SUPPORT_HUB_DEMO_TENANT_ID;
 const INBOX_ID = "support-inbox-default";
 
 const AGENT_EMILY: SupportAssignee = {

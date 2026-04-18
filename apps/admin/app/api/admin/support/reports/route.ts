@@ -1,7 +1,7 @@
 import {
   listSupportConversationMessages,
   listSupportConversations,
-  requireSupportHubAccess,
+  withSupportHubAccess,
   toApiErrorResponse,
 } from "@asym/api/admin/support-hub";
 
@@ -14,8 +14,7 @@ import {
  * same shape without going through the TanStack DB collections.
  */
 export async function GET(request: Request) {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   try {
     const url = new URL(request.url);
     const conversationId = url.searchParams.get("conversationId");
@@ -27,4 +26,5 @@ export async function GET(request: Request) {
   } catch (error) {
     return toApiErrorResponse(error, "Failed to load report data.");
   }
+  });
 }

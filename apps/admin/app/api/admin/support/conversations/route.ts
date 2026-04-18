@@ -1,13 +1,12 @@
 import {
   listSupportConversations,
-  requireSupportHubAccess,
+  withSupportHubAccess,
   toApiErrorResponse,
 } from "@asym/api/admin/support-hub";
 
 export async function GET(request: Request) {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
 
+  return withSupportHubAccess(async () => {
   try {
     const url = new URL(request.url);
     const conversations = await listSupportConversations({
@@ -29,4 +28,5 @@ export async function GET(request: Request) {
   } catch (error) {
     return toApiErrorResponse(error, "Failed to list support conversations.");
   }
+  });
 }

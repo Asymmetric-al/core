@@ -1,7 +1,7 @@
 import {
   deleteSupportBusinessHours,
   readJsonBody,
-  requireSupportHubAccess,
+  withSupportHubAccess,
   saveSupportBusinessHours,
   toApiErrorResponse,
 } from "@asym/api/admin/support-hub";
@@ -10,8 +10,7 @@ import { saveBusinessHoursSchema } from "@asym/api/admin/support-hub/schemas";
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, context: RouteContext) {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   const body = await readJsonBody(request, saveBusinessHoursSchema);
   if (!body.ok) return body.response;
   try {
@@ -21,11 +20,11 @@ export async function PATCH(request: Request, context: RouteContext) {
   } catch (error) {
     return toApiErrorResponse(error, "Failed to update business hours.");
   }
+  });
 }
 
 export async function DELETE(_request: Request, context: RouteContext) {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   try {
     const { id } = await context.params;
     await deleteSupportBusinessHours(id);
@@ -33,4 +32,5 @@ export async function DELETE(_request: Request, context: RouteContext) {
   } catch (error) {
     return toApiErrorResponse(error, "Failed to delete business hours.");
   }
+  });
 }

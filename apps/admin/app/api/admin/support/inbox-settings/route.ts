@@ -1,15 +1,14 @@
 import {
   getSupportInboxSettings,
   readJsonBody,
-  requireSupportHubAccess,
+  withSupportHubAccess,
   saveSupportInboxSettings,
   toApiErrorResponse,
 } from "@asym/api/admin/support-hub";
 import { saveInboxSettingsSchema } from "@asym/api/admin/support-hub/schemas";
 
 export async function GET(request: Request) {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   try {
     const url = new URL(request.url);
     const settings = await getSupportInboxSettings(
@@ -19,11 +18,11 @@ export async function GET(request: Request) {
   } catch (error) {
     return toApiErrorResponse(error, "Failed to load inbox settings.");
   }
+  });
 }
 
 export async function PATCH(request: Request) {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   const body = await readJsonBody(request, saveInboxSettingsSchema);
   if (!body.ok) return body.response;
   try {
@@ -32,4 +31,5 @@ export async function PATCH(request: Request) {
   } catch (error) {
     return toApiErrorResponse(error, "Failed to save inbox settings.");
   }
+  });
 }

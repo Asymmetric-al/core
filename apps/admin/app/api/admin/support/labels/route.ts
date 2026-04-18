@@ -1,26 +1,25 @@
 import {
   listSupportLabels,
   readJsonBody,
-  requireSupportHubAccess,
+  withSupportHubAccess,
   saveSupportLabel,
   toApiErrorResponse,
 } from "@asym/api/admin/support-hub";
 import { saveLabelSchema } from "@asym/api/admin/support-hub/schemas";
 
 export async function GET() {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   try {
     const labels = await listSupportLabels();
     return Response.json({ labels });
   } catch (error) {
     return toApiErrorResponse(error, "Failed to list labels.");
   }
+  });
 }
 
 export async function POST(request: Request) {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   const body = await readJsonBody(request, saveLabelSchema);
   if (!body.ok) return body.response;
   try {
@@ -29,4 +28,5 @@ export async function POST(request: Request) {
   } catch (error) {
     return toApiErrorResponse(error, "Failed to save label.");
   }
+  });
 }

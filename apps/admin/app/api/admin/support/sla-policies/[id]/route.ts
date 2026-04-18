@@ -1,7 +1,7 @@
 import {
   deleteSupportSlaPolicy,
   readJsonBody,
-  requireSupportHubAccess,
+  withSupportHubAccess,
   saveSupportSlaPolicy,
   setDefaultSupportSlaPolicy,
   toApiErrorResponse,
@@ -11,8 +11,7 @@ import { saveSlaPolicySchema } from "@asym/api/admin/support-hub/schemas";
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, context: RouteContext) {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   const { id } = await context.params;
   const url = new URL(request.url);
   if (url.searchParams.get("default") === "true") {
@@ -31,11 +30,11 @@ export async function PATCH(request: Request, context: RouteContext) {
   } catch (error) {
     return toApiErrorResponse(error, "Failed to update SLA policy.");
   }
+  });
 }
 
 export async function DELETE(_request: Request, context: RouteContext) {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   try {
     const { id } = await context.params;
     await deleteSupportSlaPolicy(id);
@@ -43,4 +42,5 @@ export async function DELETE(_request: Request, context: RouteContext) {
   } catch (error) {
     return toApiErrorResponse(error, "Failed to delete SLA policy.");
   }
+  });
 }

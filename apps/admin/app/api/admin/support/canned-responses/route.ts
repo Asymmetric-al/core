@@ -1,26 +1,25 @@
 import {
   listSupportCannedResponses,
   readJsonBody,
-  requireSupportHubAccess,
+  withSupportHubAccess,
   saveSupportCannedResponse,
   toApiErrorResponse,
 } from "@asym/api/admin/support-hub";
 import { saveCannedResponseSchema } from "@asym/api/admin/support-hub/schemas";
 
 export async function GET() {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   try {
     const cannedResponses = await listSupportCannedResponses();
     return Response.json({ cannedResponses });
   } catch (error) {
     return toApiErrorResponse(error, "Failed to list canned responses.");
   }
+  });
 }
 
 export async function POST(request: Request) {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   const body = await readJsonBody(request, saveCannedResponseSchema);
   if (!body.ok) return body.response;
   try {
@@ -29,4 +28,5 @@ export async function POST(request: Request) {
   } catch (error) {
     return toApiErrorResponse(error, "Failed to save canned response.");
   }
+  });
 }

@@ -1,26 +1,25 @@
 import {
   listSupportSavedViews,
   readJsonBody,
-  requireSupportHubAccess,
+  withSupportHubAccess,
   saveSupportSavedView,
   toApiErrorResponse,
 } from "@asym/api/admin/support-hub";
 import { saveSavedViewSchema } from "@asym/api/admin/support-hub/schemas";
 
 export async function GET() {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   try {
     const savedViews = await listSupportSavedViews();
     return Response.json({ savedViews });
   } catch (error) {
     return toApiErrorResponse(error, "Failed to list saved views.");
   }
+  });
 }
 
 export async function POST(request: Request) {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   const body = await readJsonBody(request, saveSavedViewSchema);
   if (!body.ok) return body.response;
   try {
@@ -29,4 +28,5 @@ export async function POST(request: Request) {
   } catch (error) {
     return toApiErrorResponse(error, "Failed to save saved view.");
   }
+  });
 }

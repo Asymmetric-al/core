@@ -1,6 +1,6 @@
 import {
   listSupportConversations,
-  requireSupportHubAccess,
+  withSupportHubAccess,
   toApiErrorResponse,
 } from "@asym/api/admin/support-hub";
 
@@ -11,8 +11,7 @@ import {
  * stats strip and by smoke tests as a quick "is the API alive" probe.
  */
 export async function GET() {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   try {
     const conversations = await listSupportConversations({});
     const counts = {
@@ -28,4 +27,5 @@ export async function GET() {
   } catch (error) {
     return toApiErrorResponse(error, "Failed to compute counts.");
   }
+  });
 }

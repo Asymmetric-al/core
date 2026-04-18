@@ -1,7 +1,7 @@
 import {
   deleteSupportSavedView,
   readJsonBody,
-  requireSupportHubAccess,
+  withSupportHubAccess,
   saveSupportSavedView,
   toApiErrorResponse,
 } from "@asym/api/admin/support-hub";
@@ -10,8 +10,7 @@ import { saveSavedViewSchema } from "@asym/api/admin/support-hub/schemas";
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, context: RouteContext) {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   const body = await readJsonBody(request, saveSavedViewSchema);
   if (!body.ok) return body.response;
   try {
@@ -21,11 +20,11 @@ export async function PATCH(request: Request, context: RouteContext) {
   } catch (error) {
     return toApiErrorResponse(error, "Failed to update saved view.");
   }
+  });
 }
 
 export async function DELETE(_request: Request, context: RouteContext) {
-  const auth = await requireSupportHubAccess();
-  if (!auth.ok) return auth.response;
+  return withSupportHubAccess(async () => {
   try {
     const { id } = await context.params;
     await deleteSupportSavedView(id);
@@ -33,4 +32,5 @@ export async function DELETE(_request: Request, context: RouteContext) {
   } catch (error) {
     return toApiErrorResponse(error, "Failed to delete saved view.");
   }
+  });
 }
