@@ -265,7 +265,7 @@ export function MapMarker({
   const markerRef = useRef<maplibregl.Marker | null>(null);
   const initialLngLatRef = useRef<[number, number]>([longitude, latitude]);
   const onClickRef = useRef(onClick);
-  const markerElement = useMemo<HTMLDivElement | null>(() => {
+  const [markerElement] = useState<HTMLDivElement | null>(() => {
     if (typeof document === "undefined") {
       return null;
     }
@@ -273,7 +273,7 @@ export function MapMarker({
     const element = document.createElement("div");
     element.className = "map-marker-container";
     return element;
-  }, []);
+  });
 
   useEffect(() => {
     onClickRef.current = onClick;

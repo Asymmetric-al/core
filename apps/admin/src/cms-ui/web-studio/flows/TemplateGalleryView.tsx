@@ -14,7 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { formatAdminURL } from "payload/shared";
-import { useMemo } from "react";
+import { Suspense, useMemo } from "react";
 
 import { PAGE_TEMPLATES_SLUG } from "../../../cms/constants";
 import { StudioLayout } from "../shell/studio-layout";
@@ -56,6 +56,14 @@ function wizardHrefForPageType(
 }
 
 export function TemplateGalleryView() {
+  return (
+    <Suspense fallback={null}>
+      <TemplateGalleryViewContent />
+    </Suspense>
+  );
+}
+
+function TemplateGalleryViewContent() {
   const searchParams = useSearchParams();
   const pageTypeFilter = searchParams.get("pageType") ?? "";
   const missionaryContext = searchParams.get("missionaryId");

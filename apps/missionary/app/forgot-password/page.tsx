@@ -1,5 +1,13 @@
 import Link from "next/link";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Account help",
+  description:
+    "Reset access to the missionary portal. Contact your administrator for access support.",
+};
+
 export default function ForgotPasswordPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-muted px-4 py-8">
