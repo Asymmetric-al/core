@@ -1,5 +1,55 @@
 # Working Set
 
+## 2026-04-17 (shadcn/ui full implementation pass)
+
+- Date: 2026-04-17
+- Repo: Asymmetric-al/core
+- Goal: Execute the full shadcn/ui audit plan end-to-end: repo hygiene, canonical v4.3 component resync via shadcn CLI, theme-token cleanup, and separation of first-party UI from canonical shadcn surfaces without regressing Next.js 16 Cache Components behavior.
+- Primary area:
+  - `packages/ui/components.json`
+  - `packages/ui/package.json`
+  - `packages/ui/components/shadcn/**`
+  - `packages/ui/components/{primitives,shadcn}/**`
+  - `packages/ui/hooks/use-mobile.ts`
+  - `packages/lib/hooks/use-mobile.ts`
+  - `apps/{admin,donor,missionary}/app/layout.tsx`
+  - `docs/ai/audits/shadcn-ui-{audit-2026-04-16,quick-fix-checklist}.md`
+- Constraints:
+  - Use shadcn CLI as the source of truth for canonical component sync; preserve intentional repo-specific APIs only where clearly required.
+  - Keep App Router server/client boundaries explicit and compatible with `cacheComponents: true`.
+  - Preserve the shared Maia/Zinc token system; remove hardcoded component colors in favor of semantic tokens.
+  - Keep shared UI ownership in `packages/ui`; apps must keep consuming via `@asym/ui`.
+  - This runtime currently lacks Bun and a workspace `node_modules`; environment must be restored before validation.
+- Evidence sources used:
+  - `docs/ai/{stack-registry,working-set}.md`
+  - `docs/ai/rules/{general,frontend,testing}.md`
+  - `docs/ai/skills/{react-component-dev,nextjs-app-router,vercel-react-best-practices}/SKILL.md`
+  - `.agents/skills/{lint-and-validate,systematic-debugging}/SKILL.md`
+  - `.next-docs/01-app/{01-getting-started/06-cache-components,03-api-reference/01-directives/use-client}.mdx`
+  - `npx shadcn@latest info`
+  - prior repo audit docs under `docs/ai/audits/`
+
+## 2026-04-17 (shadcn/ui follow-up: custom surface separation)
+
+- Date: 2026-04-17
+- Repo: Asymmetric-al/core
+- Goal: Apply the modern shadcn best practice of separating generated primitives from first-party shared compositions by moving repo-specific UI out of `packages/ui/components/shadcn/` into sibling `components/primitives/` and `components/blocks/` folders, while preserving compatibility exports and then updating docs/metadata to reflect the final structure.
+- Primary area:
+  - `packages/ui/components/shadcn/**`
+  - `packages/ui/components/{primitives,blocks}/**`
+  - `packages/ui/package.json`
+  - `packages/ui/README.md`
+  - `docs/ai/audits/shadcn-ui-{audit-2026-04-16,quick-fix-checklist}.md`
+- Constraints:
+  - Only proceed if current best practice supports separating generated shadcn primitives from custom shared wrappers/compositions.
+  - Keep old `@asym/ui/components/shadcn/*` imports working through compatibility exports/re-export stubs where needed.
+  - Do not reintroduce `@/` package-local imports that break app-level transpilation.
+  - Re-run the same lint/typecheck/build validation loop after the move.
+- Evidence sources used:
+  - Vercel Academy: `The Anatomy of shadcn/ui Components`
+  - repo-local shadcn CLI outputs and current package export map
+  - `docs/ai/rules/frontend.md`
+
 ## 2026-04-16 (React Doctor full-monorepo audit + fix)
 
 - Date: 2026-04-16

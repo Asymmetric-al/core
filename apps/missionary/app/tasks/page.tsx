@@ -6,6 +6,8 @@ import { TaskDialog } from "@asym/missionary/components/task-dialog";
 import { TaskKanbanBoard } from "@asym/missionary/components/task-kanban-board";
 import { TaskRow } from "@asym/missionary/components/task-row";
 import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
+import { FilterBar } from "@asym/ui/components/primitives/filter-bar";
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,8 +27,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
 } from "@asym/ui/components/shadcn/dropdown-menu";
-import { FilterBar } from "@asym/ui/components/shadcn/filter-bar";
-import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
 import { cn } from "@asym/ui/lib/utils";
