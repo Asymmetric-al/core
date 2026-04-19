@@ -1,12 +1,19 @@
 import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 
+const METRICS_SKELETON_KEYS = [
+  "metric-a",
+  "metric-b",
+  "metric-c",
+  "metric-d",
+] as const;
+
 export function MetricsSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-      {[...Array(4)].map((_, i) => (
+      {METRICS_SKELETON_KEYS.map((key) => (
         <Card
-          key={i}
+          key={key}
           className="border-zinc-200 bg-white shadow-sm rounded-3xl"
         >
           <CardContent className="flex items-center gap-4 p-6">
@@ -39,6 +46,13 @@ export function ChartSkeleton() {
   );
 }
 
+const ACTIVITY_SKELETON_KEYS = [
+  "activity-a",
+  "activity-b",
+  "activity-c",
+  "activity-d",
+] as const;
+
 export function ActivityFeedSkeleton() {
   return (
     <Card className="border-zinc-200 bg-white shadow-sm rounded-3xl overflow-hidden">
@@ -53,8 +67,11 @@ export function ActivityFeedSkeleton() {
       </CardHeader>
       <CardContent className="p-0">
         <div className="divide-y divide-zinc-50">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="flex items-center gap-4 px-6 md:px-8 py-5">
+          {ACTIVITY_SKELETON_KEYS.map((key) => (
+            <div
+              key={key}
+              className="flex items-center gap-4 px-6 md:px-8 py-5"
+            >
               <Skeleton className="h-11 w-11 rounded-full bg-zinc-100" />
               <div className="min-w-0 flex-1 space-y-2">
                 <Skeleton className="h-4 w-32 bg-zinc-100" />

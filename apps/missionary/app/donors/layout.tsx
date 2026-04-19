@@ -1,6 +1,12 @@
 import { connection } from "next/server";
 
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
+
+export const metadata: Metadata = {
+  title: "Partners",
+  description: "Manage partner profiles, activity, and tags.",
+};
 
 /**
  * Keep this segment request-bound while cacheComponents is enabled globally.
