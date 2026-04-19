@@ -61,14 +61,13 @@ export function QuickActionsRow() {
   const actionRefs = ROLE_QUICK_ACTIONS[role] ?? ROLE_QUICK_ACTIONS.staff ?? [];
 
   const actions = actionRefs
-    .map(({ tileId, actionIndex }) => {
+    .flatMap(({ tileId, actionIndex }) => {
       const tile = TILES.find((t) => t.id === tileId);
-      if (!tile) return null;
+      if (!tile) return [];
       const action = tile.quickActions[actionIndex];
-      if (!action) return null;
-      return { ...action, tile };
+      if (!action) return [];
+      return [{ ...action, tile }];
     })
-    .filter(Boolean)
     .slice(0, 4);
 
   return (

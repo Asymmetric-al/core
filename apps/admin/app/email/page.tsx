@@ -623,6 +623,26 @@ function EmailExportDialog({
   );
 }
 
+async function simulateSaveTemplate(): Promise<boolean> {
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function runSaveEmailDesign(
+  editor: UnlayerEditorHandle,
+): Promise<boolean> {
+  try {
+    await editor.saveDesign();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export default function EmailStudio() {
   const editorRef = useRef<UnlayerEditorHandle>(null);
   const [ui, dispatchUi] = useReducer(
@@ -732,9 +752,8 @@ export default function EmailStudio() {
 
   const handleSave = useCallback(async () => {
     dispatchUi({ type: "set_saving", value: true });
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
+    const saved = await simulateSaveTemplate();
+    if (saved) {
       if (!metadata.id) {
         setMetadata((prev) => ({ ...prev, id: crypto.randomUUID() }));
       }
@@ -744,14 +763,13 @@ export default function EmailStudio() {
         description: `"${metadata.name}" has been saved successfully`,
         duration: 3000,
       });
-    } catch {
+    } else {
       toast.error("Failed to save template", {
         description: "Please try again",
         duration: 3000,
       });
-    } finally {
-      dispatchUi({ type: "set_saving", value: false });
     }
+    dispatchUi({ type: "set_saving", value: false });
   }, [metadata.id, metadata.name]);
 
   const handleConfirmSave = useCallback(async () => {
@@ -760,8 +778,8 @@ export default function EmailStudio() {
     dispatchUi({ type: "set_show_save_dialog", value: false });
     dispatchUi({ type: "set_saving", value: true });
 
-    try {
-      await editorRef.current.saveDesign();
+    const saved = await runSaveEmailDesign(editorRef.current);
+    if (saved) {
       dispatchUi({ type: "set_unsaved_changes", value: false });
 
       if (!metadata.id) {
@@ -772,11 +790,10 @@ export default function EmailStudio() {
         description: `"${metadata.name}" has been saved successfully`,
         duration: 3000,
       });
-    } catch {
+    } else {
       toast.error("Failed to save template");
-    } finally {
-      dispatchUi({ type: "set_saving", value: false });
     }
+    dispatchUi({ type: "set_saving", value: false });
   }, [metadata.name, metadata.id]);
 
   const handleCopyHtml = useCallback(() => {

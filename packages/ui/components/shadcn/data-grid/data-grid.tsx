@@ -560,6 +560,11 @@ export function DataGrid<TData extends Record<string, unknown>>({
 
   const parentRef = React.useRef<HTMLDivElement>(null);
   const [gridData, setGridData] = React.useState<TData[]>(data);
+  const [lastExternalData, setLastExternalData] = React.useState(data);
+  if (data !== lastExternalData) {
+    setLastExternalData(data);
+    setGridData(data);
+  }
   const [selectedCells, setSelectedCells] = React.useState<
     DataGridCellPosition[]
   >([]);
@@ -573,10 +578,6 @@ export function DataGrid<TData extends Record<string, unknown>>({
   const [copiedData, setCopiedData] = React.useState<string[][]>([]);
   const [undoStack, setUndoStack] = React.useState<TData[][]>([]);
   const [redoStack, setRedoStack] = React.useState<TData[][]>([]);
-
-  React.useEffect(() => {
-    setGridData(data);
-  }, [data]);
 
   const saveToUndo = React.useCallback(() => {
     if (enableUndo) {
