@@ -1,5 +1,20 @@
 # Working Set
 
+## 2026-04-16 (React Doctor full-monorepo audit + fix)
+
+- Date: 2026-04-16
+- Repo: Asymmetric-al/core
+- Goal: Run Million's React Doctor across the full monorepo (apps + packages), triage findings, apply all actionable error and warning fixes, and re-audit to verify the score improves.
+- Primary area:
+  - `apps/admin/**`, `apps/donor/**`, `apps/missionary/**`
+  - `packages/ui/**`, `packages/api/**`, and other `packages/*` React surfaces
+  - Driver: `scripts/react-doctor-first-party.mjs`
+- Constraints:
+  - Preserve Next.js 16 App Router patterns (Server Components by default, `"use client"` only where needed).
+  - Respect the data-access boundary (`docs/guides/architecture/data-access-boundary.md`).
+  - Gate with `bun run lint`, `bun run typecheck`, `bun run test:unit` before re-audit.
+  - Keep shared fixes in `packages/ui` / `packages/api` over per-app patches.
+
 ## 2026-04-16 (animations.dev design engineering skill vendoring)
 
 - Date: 2026-04-16
