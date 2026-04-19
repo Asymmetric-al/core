@@ -811,6 +811,103 @@ function PDFDeleteDialogSection({
   );
 }
 
+type ExportPdfResult =
+  | { ok: true; url?: string }
+  | { ok: false; error: unknown };
+
+async function runExportPdf(
+  editor: UnlayerEditorHandle,
+): Promise<ExportPdfResult> {
+  try {
+    const pdfResult = await editor.exportPdf();
+    return { ok: true, url: pdfResult?.url ?? undefined };
+  } catch (error) {
+    return { ok: false, error };
+  }
+}
+
+type DeleteTemplateResult = { ok: true } | { ok: false; error: string };
+
+async function runDeletePdfTemplate(
+  templateId: string,
+): Promise<DeleteTemplateResult> {
+  try {
+    const response = await fetch(`/api/pdf-templates/${templateId}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      const errorData = (await response.json().catch(() => ({}))) as {
+        error?: string;
+      };
+      return {
+        ok: false,
+        error: errorData.error ?? "Failed to delete template",
+      };
+    }
+    return { ok: true };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to delete template";
+    return { ok: false, error: message };
+  }
+}
+
+type SaveTemplateResult =
+  | { ok: true; templateId: string }
+  | { ok: false; error: string };
+
+async function runSaveTemplate(options: {
+  editor: UnlayerEditorHandle;
+  metadata: PDFMetadata;
+}): Promise<SaveTemplateResult> {
+  try {
+    const exportData = await options.editor.exportHtml({
+      minify: false,
+      cleanup: true,
+    });
+
+    const payload = {
+      name: options.metadata.name,
+      description: options.metadata.description || undefined,
+      design: exportData.design,
+      html: exportData.html,
+      category: options.metadata.category,
+      page_size: options.metadata.pageSize,
+      orientation: options.metadata.orientation,
+      status: "draft",
+    };
+
+    const url = options.metadata.id
+      ? `/api/pdf-templates/${options.metadata.id}`
+      : "/api/pdf-templates";
+
+    const method = options.metadata.id ? "PUT" : "POST";
+
+    const response = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorData = (await response.json().catch(() => ({}))) as {
+        error?: string;
+      };
+      return {
+        ok: false,
+        error: errorData.error ?? "Failed to save template",
+      };
+    }
+
+    const { template } = await response.json();
+    return { ok: true, templateId: template.id };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to save template";
+    return { ok: false, error: message };
+  }
+}
+
 function usePDFStudioController() {
   const editorRef = useRef<UnlayerEditorHandle>(null);
   const [ui, dispatchUi] = useReducer(
@@ -863,11 +960,10 @@ function usePDFStudioController() {
   const handleExportPDF = useCallback(async () => {
     if (!editorRef.current) return;
     dispatchUi({ type: "set_exporting", value: true });
-    try {
-      const pdfResult = await editorRef.current.exportPdf();
-
-      if (pdfResult?.url) {
-        window.open(pdfResult.url, "_blank");
+    const result = await runExportPdf(editorRef.current);
+    if (result.ok) {
+      if (result.url) {
+        window.open(result.url, "_blank");
         toast.success("PDF exported successfully", {
           description: "Your PDF is ready for download",
           duration: 4000,
@@ -878,15 +974,14 @@ function usePDFStudioController() {
           duration: 3000,
         });
       }
-    } catch (error) {
-      console.error("PDF export error:", error);
+    } else {
+      console.error("PDF export error:", result.error);
       toast.error("Failed to export PDF", {
         description:
           "PDF export requires an Unlayer project ID. Configure your Unlayer account for PDF export.",
       });
-    } finally {
-      dispatchUi({ type: "set_exporting", value: false });
     }
+    dispatchUi({ type: "set_exporting", value: false });
   }, []);
 
   useEffect(() => {
@@ -963,56 +1058,23 @@ function usePDFStudioController() {
     dispatchUi({ type: "set_show_save_dialog", value: false });
     dispatchUi({ type: "set_saving", value: true });
 
-    try {
-      const exportData = await editorRef.current.exportHtml({
-        minify: false,
-        cleanup: true,
-      });
+    const result = await runSaveTemplate({
+      editor: editorRef.current,
+      metadata,
+    });
 
-      const payload = {
-        name: metadata.name,
-        description: metadata.description || undefined,
-        design: exportData.design,
-        html: exportData.html,
-        category: metadata.category,
-        page_size: metadata.pageSize,
-        orientation: metadata.orientation,
-        status: "draft",
-      };
-
-      const url = metadata.id
-        ? `/api/pdf-templates/${metadata.id}`
-        : "/api/pdf-templates";
-
-      const method = metadata.id ? "PUT" : "POST";
-
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to save template");
-      }
-
-      const { template } = await response.json();
-
-      setMetadata((prev) => ({ ...prev, id: template.id }));
+    if (result.ok) {
+      setMetadata((prev) => ({ ...prev, id: result.templateId }));
       dispatchUi({ type: "set_unsaved_changes", value: false });
 
       toast.success("Template saved", {
         description: `"${metadata.name}" has been saved successfully`,
         duration: 3000,
       });
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to save template";
-      toast.error("Save failed", { description: message });
-    } finally {
-      dispatchUi({ type: "set_saving", value: false });
+    } else {
+      toast.error("Save failed", { description: result.error });
     }
+    dispatchUi({ type: "set_saving", value: false });
   }, [metadata]);
 
   const handleDelete = useCallback(async () => {
@@ -1020,16 +1082,8 @@ function usePDFStudioController() {
 
     dispatchUi({ type: "set_show_delete_dialog", value: false });
 
-    try {
-      const response = await fetch(`/api/pdf-templates/${metadata.id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to delete template");
-      }
-
+    const result = await runDeletePdfTemplate(metadata.id);
+    if (result.ok) {
       toast.success("Template deleted");
       setMetadata(DEFAULT_PDF_METADATA);
       currentDesignRef.current = null;
@@ -1037,10 +1091,8 @@ function usePDFStudioController() {
         editorRef.current.loadDesign(DEFAULT_DESIGN);
       }
       dispatchUi({ type: "set_unsaved_changes", value: false });
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to delete template";
-      toast.error("Delete failed", { description: message });
+    } else {
+      toast.error("Delete failed", { description: result.error });
     }
   }, [metadata.id]);
 
