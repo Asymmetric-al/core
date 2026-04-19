@@ -177,7 +177,7 @@ export function DataGridCell({
       placeholder={placeholder}
       className={cn(
         cellClassName,
-        "rounded-none bg-white",
+        "rounded-none bg-background",
         "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0",
       )}
     />

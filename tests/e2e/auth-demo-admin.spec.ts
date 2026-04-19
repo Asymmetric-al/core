@@ -1,7 +1,13 @@
 import { expect, test } from "@playwright/test";
 
+import { adminBaseURL } from "./base-urls";
+
+test.setTimeout(180_000);
+
 test("admin demo login redirects and persists session", async ({ page }) => {
-  const availability = await page.request.get("/api/auth/demo-account");
+  const availability = await page.request.get(
+    `${adminBaseURL}/api/auth/demo-account`,
+  );
   test.skip(!availability.ok(), "Demo availability endpoint is unavailable.");
 
   const payload = (await availability.json()) as {
@@ -16,8 +22,11 @@ test("admin demo login redirects and persists session", async ({ page }) => {
   await page.getByRole("button", { name: "Demo Access" }).click();
   await page.waitForURL((url) => url.pathname === protectedPath);
 
-  await page.reload();
-  await page.waitForLoadState("networkidle");
+  // Full navigation is more reliable than `reload()` in Next dev (streaming / long tasks).
+  await page.goto(`${adminBaseURL}${protectedPath}`, {
+    waitUntil: "domcontentloaded",
+    timeout: 120_000,
+  });
   expect(new URL(page.url()).pathname).toBe(protectedPath);
   expect(page.url()).not.toContain("/login");
 });

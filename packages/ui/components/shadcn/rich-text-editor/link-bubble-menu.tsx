@@ -80,6 +80,7 @@ export function LinkBubbleMenu() {
   return (
     <BubbleMenu
       editor={editor}
+      updateDelay={0}
       shouldShow={({ editor: ed, element, view }) => {
         const isChildOfMenu = element.contains(document.activeElement);
         const hasEditorFocus = view.hasFocus() || isChildOfMenu;

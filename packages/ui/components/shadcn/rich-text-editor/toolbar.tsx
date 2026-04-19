@@ -295,17 +295,22 @@ export function EditorToolbar({
     <TooltipProvider delayDuration={0}>
       <div className="sticky top-0 z-10 border-b border-border bg-muted/40 backdrop-blur-sm">
         <div className="flex items-center gap-0.5 overflow-x-auto px-3 sm:px-4 py-2">
-          {sections.map((section, i) => (
-            <React.Fragment key={i}>
-              {i > 0 && (
-                <Separator
-                  orientation="vertical"
-                  className="h-4 mx-1.5 bg-border/60"
-                />
-              )}
-              {section}
-            </React.Fragment>
-          ))}
+          {sections.map((section, i) => {
+            const sectionKey =
+              (section as React.ReactElement<{ key?: React.Key }>).key ??
+              `section-${i}`;
+            return (
+              <React.Fragment key={sectionKey}>
+                {i > 0 && (
+                  <Separator
+                    orientation="vertical"
+                    className="h-4 mx-1.5 bg-border/60"
+                  />
+                )}
+                {section}
+              </React.Fragment>
+            );
+          })}
         </div>
 
         {actions && (

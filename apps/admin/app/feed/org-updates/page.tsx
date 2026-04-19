@@ -7,6 +7,7 @@ import {
   BrandLogo,
   brandConfig,
 } from "@asym/ui/components/brand-logo";
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,7 +29,6 @@ import {
   DropdownMenuSeparator,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { Label } from "@asym/ui/components/shadcn/label";
-import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import {
   RadioGroup,
   RadioGroupItem,
@@ -88,8 +88,8 @@ type PostStatus = "published" | "draft";
 
 const RichTextEditor = dynamic(
   () =>
-    import("@asym/ui/components/shadcn/rich-text-editor").then(
-      (mod) => mod.LegacyRichTextEditor,
+    import("@asym/ui/components/primitives/RichTextEditor").then(
+      (mod) => mod.RichTextEditor,
     ),
   {
     ssr: false,

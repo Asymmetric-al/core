@@ -1,5 +1,55 @@
 # Working Set
 
+## 2026-04-17 (shadcn/ui full implementation pass)
+
+- Date: 2026-04-17
+- Repo: Asymmetric-al/core
+- Goal: Execute the full shadcn/ui audit plan end-to-end: repo hygiene, canonical v4.3 component resync via shadcn CLI, theme-token cleanup, and separation of first-party UI from canonical shadcn surfaces without regressing Next.js 16 Cache Components behavior.
+- Primary area:
+  - `packages/ui/components.json`
+  - `packages/ui/package.json`
+  - `packages/ui/components/shadcn/**`
+  - `packages/ui/components/{primitives,shadcn}/**`
+  - `packages/ui/hooks/use-mobile.ts`
+  - `packages/lib/hooks/use-mobile.ts`
+  - `apps/{admin,donor,missionary}/app/layout.tsx`
+  - `docs/ai/audits/shadcn-ui-{audit-2026-04-16,quick-fix-checklist}.md`
+- Constraints:
+  - Use shadcn CLI as the source of truth for canonical component sync; preserve intentional repo-specific APIs only where clearly required.
+  - Keep App Router server/client boundaries explicit and compatible with `cacheComponents: true`.
+  - Preserve the shared Maia/Zinc token system; remove hardcoded component colors in favor of semantic tokens.
+  - Keep shared UI ownership in `packages/ui`; apps must keep consuming via `@asym/ui`.
+  - This runtime currently lacks Bun and a workspace `node_modules`; environment must be restored before validation.
+- Evidence sources used:
+  - `docs/ai/{stack-registry,working-set}.md`
+  - `docs/ai/rules/{general,frontend,testing}.md`
+  - `docs/ai/skills/{react-component-dev,nextjs-app-router,vercel-react-best-practices}/SKILL.md`
+  - `.agents/skills/{lint-and-validate,systematic-debugging}/SKILL.md`
+  - `.next-docs/01-app/{01-getting-started/06-cache-components,03-api-reference/01-directives/use-client}.mdx`
+  - `npx shadcn@latest info`
+  - prior repo audit docs under `docs/ai/audits/`
+
+## 2026-04-17 (shadcn/ui follow-up: custom surface separation)
+
+- Date: 2026-04-17
+- Repo: Asymmetric-al/core
+- Goal: Apply the modern shadcn best practice of separating generated primitives from first-party shared compositions by moving repo-specific UI out of `packages/ui/components/shadcn/` into sibling `components/primitives/` and `components/blocks/` folders, while preserving compatibility exports and then updating docs/metadata to reflect the final structure.
+- Primary area:
+  - `packages/ui/components/shadcn/**`
+  - `packages/ui/components/{primitives,blocks}/**`
+  - `packages/ui/package.json`
+  - `packages/ui/README.md`
+  - `docs/ai/audits/shadcn-ui-{audit-2026-04-16,quick-fix-checklist}.md`
+- Constraints:
+  - Only proceed if current best practice supports separating generated shadcn primitives from custom shared wrappers/compositions.
+  - Keep old `@asym/ui/components/shadcn/*` imports working through compatibility exports/re-export stubs where needed.
+  - Do not reintroduce `@/` package-local imports that break app-level transpilation.
+  - Re-run the same lint/typecheck/build validation loop after the move.
+- Evidence sources used:
+  - Vercel Academy: `The Anatomy of shadcn/ui Components`
+  - repo-local shadcn CLI outputs and current package export map
+  - `docs/ai/rules/frontend.md`
+
 ## 2026-04-16 (Tiptap audit + hardening)
 
 - Date: 2026-04-16
@@ -22,6 +72,60 @@
   - `.next-docs/01-app/01-getting-started/05-server-and-client-components.mdx`
   - repo file reads for current editor/viewer/toolbar consumers
   - Nia repo search against `ueberdosis/tiptap` for Tiptap 3.22 `StarterKit`, `useEditorState`, `setContent({ emitUpdate: false })`, BubbleMenu defaults, and `@tiptap/static-renderer`
+
+## 2026-04-16 (React Doctor full-monorepo audit + fix)
+
+- Date: 2026-04-16
+- Repo: Asymmetric-al/core
+- Goal: Run Million's React Doctor across the full monorepo (apps + packages), triage findings, apply all actionable error and warning fixes, and re-audit to verify the score improves.
+- Primary area:
+  - `apps/admin/**`, `apps/donor/**`, `apps/missionary/**`
+  - `packages/ui/**`, `packages/api/**`, and other `packages/*` React surfaces
+  - Driver: `scripts/react-doctor-first-party.mjs`
+- Constraints:
+  - Preserve Next.js 16 App Router patterns (Server Components by default, `"use client"` only where needed).
+  - Respect the data-access boundary (`docs/guides/architecture/data-access-boundary.md`).
+  - Gate with `bun run lint`, `bun run typecheck`, `bun run test:unit` before re-audit.
+  - Keep shared fixes in `packages/ui` / `packages/api` over per-app patches.
+
+## 2026-04-16 (animations.dev design engineering skill vendoring)
+
+- Date: 2026-04-16
+- Repo: Asymmetric-al/core
+- Goal: Install the animations.dev Design Engineering skill from the provided installer, vendor it into `docs/ai/skills/` as the canonical source, mirror it through the existing sync flow, and route all animation work to it first.
+- Primary area:
+  - `AGENTS.md`
+  - `README.md`
+  - `docs/ai/skills/*`
+  - `scripts/{sync-agent-skills,refresh-upstream-skills}.mjs`
+  - `cursor.md`
+- Constraints:
+  - Follow the existing canonical-skill pattern exactly: `docs/ai/skills/*` authoring source, mirrored to `.agents/skills/*` and `.cursor/skills/*`.
+  - Keep routing concise and prefer the new design-engineering skill as the first stop for animation, transitions, micro-interactions, and motion polish.
+  - Do not create fake instruction surfaces; only update real repo entrypoints already in use.
+
+## 2026-04-16 (PR #175 review — vendored Resend CLI 2.0 agent skill)
+
+- Date: 2026-04-16
+- Repo: Asymmetric-al/core
+- Goal: Rigorous evidence-based review of PR #175, which vendors `resend/resend-cli` v2.0.0 into `docs/ai/skills/resend-cli/`, mirrors it to `.agents/skills/` and `.cursor/skills/`, and adds routing in `AGENTS.md`, `README.md`, `docs/ai/skills/find-skills/SKILL.md`, plus `resend-cli` entry in both `.repo-canonical-skills.json` manifests.
+- Primary area:
+  - `docs/ai/skills/resend-cli/{SKILL.md,references/*.md}`
+  - `.agents/skills/resend-cli/**` and `.cursor/skills/resend-cli/**` (sync mirrors)
+  - `.agents/skills/.repo-canonical-skills.json` and `.cursor/skills/.repo-canonical-skills.json`
+  - `AGENTS.md` (Skill Routing section)
+  - `README.md` (skill scripts table + maintainer refresh notes)
+  - `docs/ai/skills/find-skills/SKILL.md` (Resend example block)
+- Stack: AGENTS.md routing, agent-skills (.agents/.cursor mirrors), bun scripts:sync/verify, prettier, no runtime
+- Constraints:
+  - Pure docs/agent-tooling change — no `apps/`, `packages/`, `tooling/`, `supabase/`, or runtime `scripts/` touched.
+  - Mirrors must match canonical (`bun run skills:verify` must stay green).
+  - Vendored content must remain byte-faithful to upstream `resend/resend-cli` tag `v2.0.0` apart from the repo-local `references/upstream.md`.
+- Outcome (2026-04-16):
+  - PR #175 reviewed and **approved with non-blocking comments** (see https://github.com/Asymmetric-al/core/pull/175#pullrequestreview-4125139736).
+  - Verified locally: `bun run skills:verify` clean (Greptile P1 mirror drift resolved by HEAD commit `944ffe2e28`); `bun run format:check` and `bun run lint` clean for the diff. CI on origin HEAD is fully green.
+  - Inline replies posted on all 5 bot review comments (Greptile #3093388338 stale/resolved; Codex #3093260503 partial; Cursor #3093250821, #3093250824, #3093270553 valid stylistic / partial).
+  - Follow-up issue #179 filed for the non-blocking doc cleanup (Quality-Gate exemption decision for vendored upstream skills + AGENTS.md / find-skills paragraph split + optional Bun callout).
 
 ## 2026-04-13 (Mission Control member care port — phase 8 contract hardening)
 
@@ -167,6 +271,36 @@
   - `docs/ai/rules/{general,frontend,backend,testing}.md`
   - `docs/ai/skills/{nextjs-app-router,tiptap,tanstack-table,supabase}/SKILL.md`
   - `.next-docs/01-app/01-getting-started/{05-server-and-client-components,07-fetching-data}.mdx`
+
+## 2026-04-14 (PR #153 boneyard-js 1.7.6 refresh)
+
+- Date: 2026-04-14
+- Repo: Asymmetric-al/core
+- Goal: Update PR #153 from the current `boneyard-js` 1.7.1 target to 1.7.6, clean up the remaining donor capture-route / CI issues on the branch, and keep the Boneyard rollout on conservative runtime defaults.
+- Primary area:
+  - `apps/{admin,missionary,donor}/package.json`
+  - `packages/ui/package.json`
+  - `apps/donor/proxy.ts`
+  - `playwright.donor.config.ts`
+  - `.github/workflows/ci-integration.yml`
+  - `docs/guides/ui-design/boneyard.md`
+  - `bun.lock`
+- Constraints:
+  - Keep `@asym/ui` on the optional-peer + devDependency model for `boneyard-js`; do not leave a stale runtime dependency there.
+  - Preserve the current guided-crawl `skeletons` configs and only regenerate `apps/*/bones/**` if 1.7.6 changes generated output materially.
+  - Keep donor capture tests using the already-started CI donor app instead of starting a second dev server.
+  - Do not turn on new 1.7.x shimmer/stagger knobs globally without an explicit visual reason.
+- Evidence sources used:
+  - `docs/ai/rules/{general,frontend,testing}.md`
+  - `.next-docs/01-app/{01-getting-started/05-server-and-client-components,02-guides/third-party-libraries}.mdx`
+  - `docs/guides/ui-design/boneyard.md`
+  - local repo files under `apps/{admin,missionary,donor}`, `packages/ui`, `.github/workflows`, and `tests/e2e`
+  - upstream `0xGF/boneyard` README plus npm tarball/type inspection for `1.6.1`, `1.7.1`, and `1.7.6`
+  - GitHub PR #153 metadata and branch file reads via `gh`
+- Notes:
+  - The live repo index is stale for this branch; local file reads and GitHub branch reads are the source of truth for PR #153 work.
+  - The highest-value upstream runtime improvement for this repo is the 1.7.6 React/Preact first-frame skeleton mount fix; the rest of the 1.7.x additions are mostly optional controls or multi-framework expansion.
+  - The donor proxy bug is already covered conceptually by `tests/unit/auth/route-matching.test.ts`, which proves `/boneyard` works for nested routes and `/boneyard/` does not.
 
 ## 2026-04-11 (Repo health hardening pass)
 

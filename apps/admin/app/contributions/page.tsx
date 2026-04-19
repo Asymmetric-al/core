@@ -1,18 +1,22 @@
 "use client";
 
 import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { useState } from "react";
 
 import { ContributionsBoneyardFallback } from "./boneyard-fallback";
 import { ContributionDetailSheet } from "./contribution-detail-sheet";
-import { boneyardContributionsFixture } from "./data";
+import { boneyardContributionsFixture, mockContributions } from "./data";
 import { ContributionsMainBody, ContributionsPageActions } from "./main-body";
 import { useAdminContributions } from "./use-admin-contributions";
 
 import type { Contribution } from "./types";
+
+/** When `"1"`, table data comes from `mockContributions` (local dev only). */
+const USE_MOCK_CONTRIBUTIONS_UI =
+  process.env.NEXT_PUBLIC_ADMIN_CONTRIBUTIONS_USE_MOCK === "1";
 
 export default function ContributionsPage() {
   const contributionsQuery = useAdminContributions();
@@ -21,7 +25,11 @@ export default function ContributionsPage() {
 
   const isError = contributionsQuery.isError;
   const isPagePending = contributionsQuery.isPending;
-  const contributionRows = isError ? [] : (contributionsQuery.data ?? []);
+  const contributionRows = isError
+    ? []
+    : USE_MOCK_CONTRIBUTIONS_UI
+      ? mockContributions
+      : (contributionsQuery.data ?? []);
 
   const errorMessage =
     contributionsQuery.error instanceof Error

@@ -11,6 +11,7 @@ import {
 } from "@asym/lib/mission-control/bootstrap";
 import { MotionProvider } from "@asym/lib/motion";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
+import { TooltipProvider } from "@asym/ui/components/shadcn/tooltip";
 import { Inter, Geist_Mono, Syne } from "next/font/google";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -251,11 +252,13 @@ export default function RootLayout({
         >
           <BoneyardRegistry />
           <QueryProvider>
-            <MotionProvider>
-              <Suspense fallback={null}>
-                <LayoutContent>{children}</LayoutContent>
-              </Suspense>
-            </MotionProvider>
+            <TooltipProvider delayDuration={0}>
+              <MotionProvider>
+                <Suspense fallback={null}>
+                  <LayoutContent>{children}</LayoutContent>
+                </Suspense>
+              </MotionProvider>
+            </TooltipProvider>
           </QueryProvider>
         </ThemeProvider>
         <Toaster />

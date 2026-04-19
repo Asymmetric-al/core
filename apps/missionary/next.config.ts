@@ -1,8 +1,11 @@
 import { fileURLToPath } from "node:url";
 
+import { loadEnvConfig } from "@next/env";
+
 import type { NextConfig } from "next";
 
 const WORKSPACE_ROOT = fileURLToPath(new URL("../..", import.meta.url));
+loadEnvConfig(WORKSPACE_ROOT);
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -24,11 +27,7 @@ const nextConfig: NextConfig = {
   ],
   experimental: {
     viewTransition: true,
-    optimizePackageImports: [
-      "@asym/ui",
-      "lucide-react",
-      "@radix-ui/react-icons",
-    ],
+    optimizePackageImports: ["@asym/ui", "lucide-react"],
   },
   images: {
     remotePatterns: [

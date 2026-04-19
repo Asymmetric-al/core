@@ -4,12 +4,14 @@ import { QueryProvider } from "@asym/database/providers";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { MotionProvider } from "@asym/lib/motion";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
+import { TooltipProvider } from "@asym/ui/components/shadcn/tooltip";
 import { Inter, Geist_Mono, Syne } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Suspense } from "react";
 
 import type { Metadata, Viewport } from "next";
 
+import { BoneyardRegistry } from "@/app/_providers/boneyard-registry";
 import { OpenPolicyProvider } from "@/components/providers/openpolicy-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 
@@ -164,15 +166,18 @@ export default function RootLayout({
           storageKey="donor-theme"
           disableTransitionOnChange
         >
-          <QueryProvider>
-            <MotionProvider>
-              <Suspense fallback={null}>
-                <NuqsAdapter>
-                  <OpenPolicyProvider>{children}</OpenPolicyProvider>
-                </NuqsAdapter>
-              </Suspense>
-            </MotionProvider>
-          </QueryProvider>
+          <TooltipProvider delayDuration={0}>
+            <QueryProvider>
+              <MotionProvider>
+                <Suspense fallback={null}>
+                  <NuqsAdapter>
+                    <BoneyardRegistry />
+                    <OpenPolicyProvider>{children}</OpenPolicyProvider>
+                  </NuqsAdapter>
+                </Suspense>
+              </MotionProvider>
+            </QueryProvider>
+          </TooltipProvider>
         </ThemeProvider>
         <Toaster />
       </body>

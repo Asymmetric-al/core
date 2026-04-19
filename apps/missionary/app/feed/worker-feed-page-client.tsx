@@ -92,8 +92,8 @@ import { PageHeader } from "@/components/page-header";
 
 const RichTextEditor = dynamic(
   () =>
-    import("@asym/ui/components/shadcn/rich-text-editor").then(
-      (mod) => mod.LegacyRichTextEditor,
+    import("@asym/ui/components/primitives/RichTextEditor").then(
+      (mod) => mod.RichTextEditor,
     ),
   {
     ssr: false,

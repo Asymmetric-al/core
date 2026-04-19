@@ -3,6 +3,7 @@
 import { useEventAttendees } from "@asym/database/hooks";
 import { motion } from "@asym/lib/motion";
 import { formatCurrency, getInitials } from "@asym/lib/utils";
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
   Avatar,
   AvatarFallback,
@@ -21,7 +22,6 @@ import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
 import { DataTableWrapper } from "@asym/ui/components/shadcn/data-table/data-table-wrapper";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
-import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import { Progress } from "@asym/ui/components/shadcn/progress";
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import {

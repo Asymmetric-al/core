@@ -28,10 +28,14 @@ export function RichTextViewer({ value, className }: RichTextViewerProps) {
       return null;
     }
 
-    return renderToReactElement({
-      content,
-      extensions: viewerExtensions,
-    });
+    try {
+      return renderToReactElement({
+        content,
+        extensions: viewerExtensions,
+      });
+    } catch {
+      return null;
+    }
   }, [content]);
 
   if (!value) return null;

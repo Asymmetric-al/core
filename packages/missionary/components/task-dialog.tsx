@@ -2,6 +2,7 @@
 
 import { createBrowserClient } from "@asym/database/supabase";
 import { useAuth } from "@asym/lib/hooks";
+import { useAsymForm } from "@asym/ui/components/primitives/tanstack-form";
 import {
   Avatar,
   AvatarFallback,
@@ -24,7 +25,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@asym/ui/components/shadcn/dialog";
-import { useAsymForm } from "@asym/ui/components/shadcn/form";
 import {
   Popover,
   PopoverContent,
@@ -273,9 +273,9 @@ function TaskTypeSelectField({ form }: { form: MissionaryTaskFormApi }) {
 
         return (
           <div className="grid gap-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
               Task Type
-            </label>
+            </span>
             <Select
               onOpenChange={(open) => {
                 if (!open) {
@@ -336,9 +336,9 @@ function PrioritySelectField({ form }: { form: MissionaryTaskFormApi }) {
     <form.Field name="priority">
       {(field) => (
         <div className="grid gap-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
             Priority
-          </label>
+          </span>
           <Select
             onOpenChange={(open) => {
               if (!open) {
@@ -389,9 +389,9 @@ function DatePickerField({
     <form.Field name={name}>
       {(field) => (
         <div className="grid gap-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
             {label}
-          </label>
+          </span>
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -436,9 +436,9 @@ function StatusSelectField({ form }: { form: MissionaryTaskFormApi }) {
     <form.Field name="status">
       {(field) => (
         <div className="grid gap-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
             Status
-          </label>
+          </span>
           <Select
             onOpenChange={(open) => {
               if (!open) {
@@ -493,9 +493,9 @@ function DonorSelectorField({
 
         return (
           <div className="grid gap-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
               Associated Partner
-            </label>
+            </span>
 
             <Popover
               onOpenChange={onDonorSearchOpenChange}
