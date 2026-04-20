@@ -1,5 +1,37 @@
 # Working Set
 
+## 2026-04-17 (shadcn/ui migration: post-merge validation)
+
+- Date: 2026-04-17
+- Repo: Asymmetric-al/core
+- Goal: Re-validate the shadcn/ui + primitives split after merge: full `ci:preflight`, `shadcn diff` in `packages/ui`, and align unit tests with canonical `components/primitives` paths so coverage tracks real implementations rather than compatibility shims only.
+- Primary area:
+  - `tests/unit/packages/ui/components/primitives/**`
+  - `packages/ui/components/{primitives,shadcn}/**`
+- Constraints:
+  - Treat `shadcn diff` and repo gates as the source of truth for canonical drift.
+  - Keep compatibility re-exports in `components/shadcn/*` for external/legacy imports; tests should import primitives directly where they assert first-party helper behavior.
+- Evidence sources used:
+  - `bun run ci:preflight`
+  - `bunx shadcn@latest diff` (cwd `packages/ui`)
+
+## 2026-04-17 (shadcn follow-up: drift gate + Cache Components route hygiene)
+
+- Date: 2026-04-17
+- Repo: Asymmetric-al/core
+- Goal: Wire `shadcn diff` into CI via `verify:shadcn-diff`, document stub vs primitive ownership in `CUSTOM.md`, and stop noisy prerender rejections for `withOperation` GET handlers under Next.js 16 `cacheComponents` by touching the incoming `NextRequest` headers before `cookies()` (per Next.js Route Handlers + Cache Components docs: request properties end prerender before runtime header APIs).
+- Primary area:
+  - `scripts/verify/{shadcn-diff.mjs,ci-preflight.mjs}`
+  - `package.json` (script: `verify:shadcn-diff`)
+  - `packages/api/src/shared/with-operation.ts`
+  - `packages/api/tests/unit/with-operation.test.ts`
+  - `packages/ui/components/shadcn/CUSTOM.md`
+- Constraints:
+  - Prefer request-scoped signals compatible with `cacheComponents` over `export const dynamic` (disabled when `cacheComponents` is on per route-segment-config docs).
+  - Keep `verify:shadcn-diff` fast and non-interactive (CLI only, cwd `packages/ui`).
+- Evidence sources used:
+  - `.next-docs/01-app/01-getting-started/{06-cache-components,15-route-handlers}.mdx`
+
 ## 2026-04-17 (shadcn/ui full implementation pass)
 
 - Date: 2026-04-17
@@ -19,7 +51,6 @@
   - Keep App Router server/client boundaries explicit and compatible with `cacheComponents: true`.
   - Preserve the shared Maia/Zinc token system; remove hardcoded component colors in favor of semantic tokens.
   - Keep shared UI ownership in `packages/ui`; apps must keep consuming via `@asym/ui`.
-  - This runtime currently lacks Bun and a workspace `node_modules`; environment must be restored before validation.
 - Evidence sources used:
   - `docs/ai/{stack-registry,working-set}.md`
   - `docs/ai/rules/{general,frontend,testing}.md`
