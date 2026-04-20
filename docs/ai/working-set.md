@@ -81,6 +81,60 @@
   - repo-local shadcn CLI outputs and current package export map
   - `docs/ai/rules/frontend.md`
 
+## 2026-04-16 (Tiptap audit + hardening)
+
+- Date: 2026-04-16
+- Repo: Asymmetric-al/core
+- Goal: Audit and harden the shared Tiptap implementation for Tiptap 3 best practices, stronger controlled-editor reliability, and lower read-only rendering cost across feed surfaces.
+- Primary area:
+  - `packages/ui/components/shadcn/rich-text-editor/*`
+  - `packages/ui/components/shadcn/index.ts`
+  - `packages/ui/package.json`
+  - `apps/admin/app/feed/org-updates/page.tsx`
+  - `apps/missionary/app/feed/worker-feed-page-client.tsx`
+  - `docs/ai/skills/tiptap/SKILL.md`
+- Constraints:
+  - Keep App Router client boundaries explicit (`immediatelyRender: false` for live editors).
+  - Reuse shared `@asym/ui` editor primitives; remove dead app-local editor stubs instead of duplicating behavior.
+  - Prefer static rendering for read-only content instead of mounting a live ProseMirror editor per feed item.
+- Evidence sources used:
+  - `docs/ai/rules/{frontend,testing}.md`
+  - `docs/ai/skills/tiptap/SKILL.md`
+  - `.next-docs/01-app/01-getting-started/05-server-and-client-components.mdx`
+  - repo file reads for current editor/viewer/toolbar consumers
+  - Nia repo search against `ueberdosis/tiptap` for Tiptap 3.22 `StarterKit`, `useEditorState`, `setContent({ emitUpdate: false })`, BubbleMenu defaults, and `@tiptap/static-renderer`
+
+## 2026-04-16 (React Doctor full-monorepo audit + fix)
+
+- Date: 2026-04-16
+- Repo: Asymmetric-al/core
+- Goal: Run Million's React Doctor across the full monorepo (apps + packages), triage findings, apply all actionable error and warning fixes, and re-audit to verify the score improves.
+- Primary area:
+  - `apps/admin/**`, `apps/donor/**`, `apps/missionary/**`
+  - `packages/ui/**`, `packages/api/**`, and other `packages/*` React surfaces
+  - Driver: `scripts/react-doctor-first-party.mjs`
+- Constraints:
+  - Preserve Next.js 16 App Router patterns (Server Components by default, `"use client"` only where needed).
+  - Respect the data-access boundary (`docs/guides/architecture/data-access-boundary.md`).
+  - Gate with `bun run lint`, `bun run typecheck`, `bun run test:unit` before re-audit.
+  - Keep shared fixes in `packages/ui` / `packages/api` over per-app patches.
+
+## 2026-04-16 (animations.dev design engineering skill vendoring)
+
+- Date: 2026-04-16
+- Repo: Asymmetric-al/core
+- Goal: Install the animations.dev Design Engineering skill from the provided installer, vendor it into `docs/ai/skills/` as the canonical source, mirror it through the existing sync flow, and route all animation work to it first.
+- Primary area:
+  - `AGENTS.md`
+  - `README.md`
+  - `docs/ai/skills/*`
+  - `scripts/{sync-agent-skills,refresh-upstream-skills}.mjs`
+  - `cursor.md`
+- Constraints:
+  - Follow the existing canonical-skill pattern exactly: `docs/ai/skills/*` authoring source, mirrored to `.agents/skills/*` and `.cursor/skills/*`.
+  - Keep routing concise and prefer the new design-engineering skill as the first stop for animation, transitions, micro-interactions, and motion polish.
+  - Do not create fake instruction surfaces; only update real repo entrypoints already in use.
+
 ## 2026-04-16 (PR #175 review — vendored Resend CLI 2.0 agent skill)
 
 - Date: 2026-04-16

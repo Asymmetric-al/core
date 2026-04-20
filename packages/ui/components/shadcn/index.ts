@@ -56,7 +56,6 @@ export {
   RichTextViewer,
   isPostContentEmpty,
   LegacyRichTextEditor,
-  RichTextEditor as RichTextEditorCompound,
 } from "./rich-text-editor";
 export type { PostContentProps } from "./rich-text-editor";
 export * from "./scroll-area";

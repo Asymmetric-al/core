@@ -1,10 +1,13 @@
 import { fileURLToPath } from "node:url";
 
+import { loadEnvConfig } from "@next/env";
 import { withPayload } from "@payloadcms/next/withPayload";
 
 import type { NextConfig } from "next";
 
 const WORKSPACE_ROOT = fileURLToPath(new URL("../..", import.meta.url));
+/** Monorepo root `.env.local` — Next only auto-loads `apps/<app>/.env.local` by default. */
+loadEnvConfig(WORKSPACE_ROOT);
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,

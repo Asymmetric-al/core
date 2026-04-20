@@ -1,8 +1,13 @@
 import { fileURLToPath } from "node:url";
 
+import { loadEnvConfig } from "@next/env";
+
 import type { NextConfig } from "next";
 
 const WORKSPACE_ROOT = fileURLToPath(new URL("../..", import.meta.url));
+/** Monorepo root `.env.local` — Next only auto-loads `apps/<app>/.env.local` by default. */
+loadEnvConfig(WORKSPACE_ROOT);
+
 /**
  * Paths relative to `turbopack.root` (monorepo root). Absolute filesystem paths
  * are mis-resolved by Turbopack as `./workspace/...` and break the donor build.

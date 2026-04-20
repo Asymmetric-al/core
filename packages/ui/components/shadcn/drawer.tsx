@@ -41,7 +41,7 @@ function DrawerTrigger({
   return (
     <DrawerPrimitive.Trigger
       data-slot="drawer-trigger"
-      render={asChild ? <SlotPrimitive.Slot /> : undefined}
+      render={asChild ? <SlotPrimitive.Root /> : undefined}
       {...props}
     />
   );
@@ -62,7 +62,7 @@ function DrawerClose({
   return (
     <DrawerPrimitive.Close
       data-slot="drawer-close"
-      render={asChild ? <SlotPrimitive.Slot /> : undefined}
+      render={asChild ? <SlotPrimitive.Root /> : undefined}
       {...props}
     />
   );

@@ -134,12 +134,14 @@ describe("withOperation", () => {
     });
 
     const handler = withOperation(async () => NextResponse.json({ ok: true }));
-    const response = await handler(createRequest());
+    const request = createRequest();
+    const response = await handler(request);
 
     expect(response.status).toBe(401);
     const body = await response.json();
     expect(body).toMatchObject({ error: "Unauthorized" });
     expectBodyHasRequestId(body);
+    expect(mockedGetAuthContext).toHaveBeenCalledWith(request);
   });
 
   it("returns 403 with requestId when role check fails", async () => {
