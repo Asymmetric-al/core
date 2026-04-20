@@ -28,13 +28,13 @@ before they become harder to undo:
 
 - The root `package.json` is acting partly like an app: it carries
   runtime dependencies (`@asym/*` workspace packages, `next`, `graphql`,
-  `graphql-yoga`, `sharp`, `tiptap`, `@tailwindcss/typography`,
+  `graphql-yoga`, `sharp`, `@tailwindcss/typography`,
   `require-in-the-middle`) that no Turbo task in the root actually
   needs. This blurs the "root should be repo-management only" rule and
   inflates installs for every CI job.
 - Several headline scripts bypass the Turbo task graph: `bun run
-  test:unit` (root `vitest run`), `bun run test:e2e*`, `bun run
-  format:check`, and `bun run cms:*` / `bun run legal:*` use
+test:unit` (root `vitest run`), `bun run test:e2e*`, `bun run
+format:check`, and `bun run cms:*` / `bun run legal:*` use
   `bun run --cwd <app> ...` instead of `turbo run <task> --filter=...`.
   This produces uncached, repeated work in CI and breaks Turbo's
   affected/changed-only execution model. CI also runs `bun run test:unit`
@@ -81,7 +81,7 @@ Verdict: **Mostly aligned, with improvements recommended.**
 
 **Severity:** High
 
-**File / lines:** `package.json` lines 109–127, 130–161
+**File / lines:** `package.json` `dependencies` / `devDependencies` (line numbers drift with edits; verify in-tree)
 
 **Turbo area:** workspace structure / dependency placement
 
@@ -90,7 +90,7 @@ Verdict: **Mostly aligned, with improvements recommended.**
 The root `package.json` declares runtime dependencies that only apps
 use:
 
-```109:127:package.json
+```package.json
   "dependencies": {
     "@asym/auth": "workspace:*",
     "@asym/config": "workspace:*",
@@ -101,9 +101,6 @@ use:
     "@asym/lib": "workspace:*",
     "@asym/ui": "workspace:*",
     "@tailwindcss/typography": "^0.5.19",
-    "@tiptap/extension-link": "^3.20.0",
-    "@tiptap/extension-underline": "^3.20.0",
-    "@tiptap/pm": "^3.20.0",
     "graphql": "16.12.0",
     "graphql-yoga": "5.17.1",
     "next": "16.2.1",
@@ -111,6 +108,8 @@ use:
     "sharp": "^0.34.5"
   },
 ```
+
+_(Snapshot aligned with `epic` after workspace Tiptap usage moved to `packages/ui`; root no longer lists `@tiptap/*`.)_
 
 None of these are imported by code that lives in the repo root. The
 `@asym/*` workspace deps in the root let root-level test files and
@@ -492,9 +491,9 @@ Add `boundaries` rules to `turbo.json` (Turbo ≥ 2.5):
   "boundaries": {
     "tags": {
       "ui": { "dependencies": { "deny": ["api", "database-server"] } },
-      "data": { "dependencies": { "deny": ["ui"] } }
-    }
-  }
+      "data": { "dependencies": { "deny": ["ui"] } },
+    },
+  },
 }
 ```
 
@@ -757,8 +756,8 @@ Move app-specific env vars into per-package `turbo.json` overrides:
 {
   "extends": ["//"],
   "tasks": {
-    "build": { "env": ["PAYLOAD_*", "RESEND_*"] }
-  }
+    "build": { "env": ["PAYLOAD_*", "RESEND_*"] },
+  },
 }
 ```
 
@@ -842,7 +841,7 @@ Order them small-to-large; the first three are cheap wins.
    to `dependsOn: ["^typecheck"]` (or nothing).
 
 3. **Trim root `dependencies`.** Move `next`, `graphql`, `graphql-yoga`,
-   `sharp`, `tiptap-*`, `@tailwindcss/typography`,
+   `sharp`, `@tailwindcss/typography`,
    `require-in-the-middle`, and the `@asym/*` workspace deps into the
    packages and apps that actually use them. Keep root limited to
    repo-wide tooling.
@@ -891,8 +890,7 @@ Use this prompt to drive the smallest safe fix in a follow-up PR:
 >    any code in the repo root out of `dependencies`:
 >    - Move `@asym/auth`, `@asym/config`, `@asym/database`, `@asym/email`,
 >      `@asym/env`, `@asym/graphql`, `@asym/lib`, `@asym/ui`, `next`,
->      `graphql`, `graphql-yoga`, `sharp`, `@tiptap/extension-link`,
->      `@tiptap/extension-underline`, `@tiptap/pm`,
+>      `graphql`, `graphql-yoga`, `sharp`,
 >      `@tailwindcss/typography`, and `require-in-the-middle` into the
 >      apps/packages that import them. Run `bun install` and update
 >      `bun.lock`.
@@ -925,7 +923,7 @@ Use this prompt to drive the smallest safe fix in a follow-up PR:
 >
 > Do not refactor app code. Do not rename packages. After the change,
 > run `bun install --frozen-lockfile`, `bunx turbo run lint typecheck
-> build --dry-run`, and `bun run check`. Verify there are no new
+build --dry-run`, and `bun run check`. Verify there are no new
 > errors and that `turbo run build --filter=@asym/donor` succeeds.
 
 ---
