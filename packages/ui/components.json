@@ -3,6 +3,7 @@
   "style": "base-maia",
   "rsc": false,
   "tsx": true,
+  "iconLibrary": "lucide",
   "tailwind": {
     "config": "",
     "css": "styles/globals.css",

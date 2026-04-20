@@ -119,11 +119,22 @@ Caret ranges are a Phase 0 pragmatic choice while the team does not yet have vis
 
 ## Import Patterns
 
-- Current repo standard (apps):
+- Current repo standard (apps) for **canonical shadcn primitives**:
 
 ```ts
 import { Button } from "@asym/ui/components/shadcn/button";
 ```
+
+- Current repo standard (apps) for **first-party shared wrappers/compositions**:
+
+```ts
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
+import { FilterBar } from "@asym/ui/components/primitives/filter-bar";
+```
+
+- Compatibility note:
+  - Existing deep imports under `@asym/ui/components/shadcn/*` remain supported for compatibility.
+  - First-party files that were historically colocated under `components/shadcn/` now live in `components/primitives/` with compatibility re-export stubs at the old paths.
 
 - Optional barrel imports (use when file-local patterns already use them):
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "@asym/lib/motion";
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
@@ -10,7 +11,6 @@ import {
   CardTitle,
   CardDescription,
 } from "@asym/ui/components/shadcn/card";
-import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import {
   Shield,
   Globe,

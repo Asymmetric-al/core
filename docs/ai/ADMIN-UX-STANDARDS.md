@@ -149,7 +149,7 @@ No `max-w-*` constraint — content fills the available width (sidebar constrain
 
 ## PageShell Component
 
-All module pages wrap in `PageShell` from `@asym/ui/components/shadcn/page-shell`.
+All module pages wrap in `PageShell` from `@asym/ui/components/primitives/page-shell`.
 
 ```tsx
 <PageShell
@@ -468,7 +468,7 @@ import {
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
 import { DataTableResponsive } from "@asym/ui/components/shadcn/data-table";
-import { PageShell } from "@asym/ui/components/shadcn/page-shell";
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Sheet, SheetContent } from "@asym/ui/components/shadcn/sheet";
 import { AppIcon } from "@asym/ui/components/shadcn/icons/AppIcon";
 import { cn } from "@asym/ui/lib/utils";

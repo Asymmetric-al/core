@@ -1,6 +1,14 @@
 "use client";
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
+import {
+  Map,
+  MapMarker,
+  MarkerContent,
+  MapControls,
+  MapStyleToggle,
+  MapLegend,
+} from "@asym/ui/components/primitives/map";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
@@ -18,14 +26,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@asym/ui/components/shadcn/dialog";
-import {
-  Map,
-  MapMarker,
-  MarkerContent,
-  MapControls,
-  MapStyleToggle,
-  MapLegend,
-} from "@asym/ui/components/shadcn/map";
 import { cn } from "@asym/ui/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
