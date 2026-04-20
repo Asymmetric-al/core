@@ -3,25 +3,25 @@
 import { createFormHook, createFormHookContexts } from "@tanstack/react-form";
 import * as React from "react";
 
-import { Button } from "./button";
+import { cn } from "../../lib/utils";
+import { Button } from "../shadcn/button";
 import {
   Field,
   FieldContent,
   FieldDescription,
   FieldError,
   FieldLabel,
-} from "./field";
-import { Input } from "./input";
+} from "../shadcn/field";
+import { Input } from "../shadcn/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./select";
-import { Switch } from "./switch";
-import { Textarea } from "./textarea";
-import { cn } from "../../lib/utils";
+} from "../shadcn/select";
+import { Switch } from "../shadcn/switch";
+import { Textarea } from "../shadcn/textarea";
 
 type AsymFieldError = {
   message?: string;

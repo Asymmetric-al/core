@@ -1,5 +1,109 @@
 # Working Set
 
+## 2026-04-17 (shadcn/ui full implementation pass)
+
+- Date: 2026-04-17
+- Repo: Asymmetric-al/core
+- Goal: Execute the full shadcn/ui audit plan end-to-end: repo hygiene, canonical v4.3 component resync via shadcn CLI, theme-token cleanup, and separation of first-party UI from canonical shadcn surfaces without regressing Next.js 16 Cache Components behavior.
+- Primary area:
+  - `packages/ui/components.json`
+  - `packages/ui/package.json`
+  - `packages/ui/components/shadcn/**`
+  - `packages/ui/components/{primitives,shadcn}/**`
+  - `packages/ui/hooks/use-mobile.ts`
+  - `packages/lib/hooks/use-mobile.ts`
+  - `apps/{admin,donor,missionary}/app/layout.tsx`
+  - `docs/ai/audits/shadcn-ui-{audit-2026-04-16,quick-fix-checklist}.md`
+- Constraints:
+  - Use shadcn CLI as the source of truth for canonical component sync; preserve intentional repo-specific APIs only where clearly required.
+  - Keep App Router server/client boundaries explicit and compatible with `cacheComponents: true`.
+  - Preserve the shared Maia/Zinc token system; remove hardcoded component colors in favor of semantic tokens.
+  - Keep shared UI ownership in `packages/ui`; apps must keep consuming via `@asym/ui`.
+  - This runtime currently lacks Bun and a workspace `node_modules`; environment must be restored before validation.
+- Evidence sources used:
+  - `docs/ai/{stack-registry,working-set}.md`
+  - `docs/ai/rules/{general,frontend,testing}.md`
+  - `docs/ai/skills/{react-component-dev,nextjs-app-router,vercel-react-best-practices}/SKILL.md`
+  - `.agents/skills/{lint-and-validate,systematic-debugging}/SKILL.md`
+  - `.next-docs/01-app/{01-getting-started/06-cache-components,03-api-reference/01-directives/use-client}.mdx`
+  - `npx shadcn@latest info`
+  - prior repo audit docs under `docs/ai/audits/`
+
+## 2026-04-17 (shadcn/ui follow-up: custom surface separation)
+
+- Date: 2026-04-17
+- Repo: Asymmetric-al/core
+- Goal: Apply the modern shadcn best practice of separating generated primitives from first-party shared compositions by moving repo-specific UI out of `packages/ui/components/shadcn/` into sibling `components/primitives/` and `components/blocks/` folders, while preserving compatibility exports and then updating docs/metadata to reflect the final structure.
+- Primary area:
+  - `packages/ui/components/shadcn/**`
+  - `packages/ui/components/{primitives,blocks}/**`
+  - `packages/ui/package.json`
+  - `packages/ui/README.md`
+  - `docs/ai/audits/shadcn-ui-{audit-2026-04-16,quick-fix-checklist}.md`
+- Constraints:
+  - Only proceed if current best practice supports separating generated shadcn primitives from custom shared wrappers/compositions.
+  - Keep old `@asym/ui/components/shadcn/*` imports working through compatibility exports/re-export stubs where needed.
+  - Do not reintroduce `@/` package-local imports that break app-level transpilation.
+  - Re-run the same lint/typecheck/build validation loop after the move.
+- Evidence sources used:
+  - Vercel Academy: `The Anatomy of shadcn/ui Components`
+  - repo-local shadcn CLI outputs and current package export map
+  - `docs/ai/rules/frontend.md`
+
+## 2026-04-16 (Tiptap audit + hardening)
+
+- Date: 2026-04-16
+- Repo: Asymmetric-al/core
+- Goal: Audit and harden the shared Tiptap implementation for Tiptap 3 best practices, stronger controlled-editor reliability, and lower read-only rendering cost across feed surfaces.
+- Primary area:
+  - `packages/ui/components/shadcn/rich-text-editor/*`
+  - `packages/ui/components/shadcn/index.ts`
+  - `packages/ui/package.json`
+  - `apps/admin/app/feed/org-updates/page.tsx`
+  - `apps/missionary/app/feed/worker-feed-page-client.tsx`
+  - `docs/ai/skills/tiptap/SKILL.md`
+- Constraints:
+  - Keep App Router client boundaries explicit (`immediatelyRender: false` for live editors).
+  - Reuse shared `@asym/ui` editor primitives; remove dead app-local editor stubs instead of duplicating behavior.
+  - Prefer static rendering for read-only content instead of mounting a live ProseMirror editor per feed item.
+- Evidence sources used:
+  - `docs/ai/rules/{frontend,testing}.md`
+  - `docs/ai/skills/tiptap/SKILL.md`
+  - `.next-docs/01-app/01-getting-started/05-server-and-client-components.mdx`
+  - repo file reads for current editor/viewer/toolbar consumers
+  - Nia repo search against `ueberdosis/tiptap` for Tiptap 3.22 `StarterKit`, `useEditorState`, `setContent({ emitUpdate: false })`, BubbleMenu defaults, and `@tiptap/static-renderer`
+
+## 2026-04-16 (React Doctor full-monorepo audit + fix)
+
+- Date: 2026-04-16
+- Repo: Asymmetric-al/core
+- Goal: Run Million's React Doctor across the full monorepo (apps + packages), triage findings, apply all actionable error and warning fixes, and re-audit to verify the score improves.
+- Primary area:
+  - `apps/admin/**`, `apps/donor/**`, `apps/missionary/**`
+  - `packages/ui/**`, `packages/api/**`, and other `packages/*` React surfaces
+  - Driver: `scripts/react-doctor-first-party.mjs`
+- Constraints:
+  - Preserve Next.js 16 App Router patterns (Server Components by default, `"use client"` only where needed).
+  - Respect the data-access boundary (`docs/guides/architecture/data-access-boundary.md`).
+  - Gate with `bun run lint`, `bun run typecheck`, `bun run test:unit` before re-audit.
+  - Keep shared fixes in `packages/ui` / `packages/api` over per-app patches.
+
+## 2026-04-16 (animations.dev design engineering skill vendoring)
+
+- Date: 2026-04-16
+- Repo: Asymmetric-al/core
+- Goal: Install the animations.dev Design Engineering skill from the provided installer, vendor it into `docs/ai/skills/` as the canonical source, mirror it through the existing sync flow, and route all animation work to it first.
+- Primary area:
+  - `AGENTS.md`
+  - `README.md`
+  - `docs/ai/skills/*`
+  - `scripts/{sync-agent-skills,refresh-upstream-skills}.mjs`
+  - `cursor.md`
+- Constraints:
+  - Follow the existing canonical-skill pattern exactly: `docs/ai/skills/*` authoring source, mirrored to `.agents/skills/*` and `.cursor/skills/*`.
+  - Keep routing concise and prefer the new design-engineering skill as the first stop for animation, transitions, micro-interactions, and motion polish.
+  - Do not create fake instruction surfaces; only update real repo entrypoints already in use.
+
 ## 2026-04-16 (PR #175 review — vendored Resend CLI 2.0 agent skill)
 
 - Date: 2026-04-16
