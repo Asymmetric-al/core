@@ -41,7 +41,7 @@
 | Stat cards above the inbox (Total / Open / Pending / Resolved with WoW deltas)                                    | `components/tickets/ticket-stats.tsx`                       | `apps/admin/features/support-hub/components/SupportInbox.tsx` (top section)                       | MVP   | Reuses the Maia/Zinc stat-card pattern from `apps/admin/app/contributions/main-body.tsx`.                                                                                               |
 | Search toolbar with status dropdown + board/table toggle                                                          | `components/tickets/ticket-search-toolbar.tsx`              | `apps/admin/features/support-hub/components/toolbar/SupportSearchToolbar.tsx`                     | MVP   | Status dropdown wires to `?status=` search param; layout toggle wires to `?layout=`.                                                                                                    |
 | View slices (`all`, `mine`, `unassigned`, `past-due`, `escalated`)                                                | `lib/tickets/types.ts` (`TicketViewKey`)                    | `apps/admin/features/support-hub/types.ts` (`SupportViewKey`) and `?view=` param                  | MVP   | Computed in the API read layer, not stored.                                                                                                                                             |
-| Board ↔ table layout toggle                                                                                      | `lib/tickets/types.ts` (`TicketLayoutMode`)                 | `?layout=` param + `SupportInbox` switching between `SupportBoardView` and `SupportTableView`     | MVP   | Default `board` (matches donor).                                                                                                                                                        |
+| Board ↔ table layout toggle                                                                                       | `lib/tickets/types.ts` (`TicketLayoutMode`)                 | `?layout=` param + `SupportInbox` switching between `SupportBoardView` and `SupportTableView`     | MVP   | Default `board` (matches donor).                                                                                                                                                        |
 | Drag-and-drop kanban with HTML5 native DnD                                                                        | `components/tickets/ticket-board.tsx`                       | `apps/admin/features/support-hub/components/board/SupportBoardView.tsx`                           | MVP   | Persisted via `useSetSupportConversationStatus` mutation; `board_order` updates batched.                                                                                                |
 | Bulk action bar above the table (status / priority / assignee)                                                    | `components/tickets/tickets-page.tsx` (`tableToolbarProps`) | `apps/admin/features/support-hub/components/toolbar/SupportBulkActions.tsx`                       | MVP   | Hooks into `DataTableResponsive` selection state.                                                                                                                                       |
 
@@ -116,8 +116,10 @@
 | CSAT            | `/support/reports/csat`          | Phase 4 | Backed by new `support_csat_responses` table.                   |
 | Inbox           | `/support/reports/inbox`         | Phase 4 | Per-inbox volume, channel mix.                                  |
 
-All seven shapes are supported by the MVP data model; the UI ships in
-Phase 4.
+Conversation-centric metrics needed for six of the seven report shapes live
+in the MVP `support_*` sketch; **CSAT** additionally needs
+`support_csat_responses` (Phase 4 — see `phase-01-discovery.md` §3.4 deferred
+tables). All report **UIs** ship Phase 4.
 
 ## 7. Channels and integrations
 
