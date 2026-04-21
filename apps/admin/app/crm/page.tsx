@@ -7,6 +7,7 @@ import {
   crmRecordAvatarTransitionName,
   crmRecordTitleTransitionName,
 } from "@asym/lib/view-transitions";
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
   Avatar,
   AvatarFallback,
@@ -18,7 +19,6 @@ import {
   DataTableResponsive,
   type DataTableFilterField,
 } from "@asym/ui/components/shadcn/data-table";
-import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 import {
   Sheet,

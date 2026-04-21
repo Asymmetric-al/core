@@ -9,7 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { formatAdminURL } from "payload/shared";
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { z } from "zod";
 
 import {
@@ -27,6 +27,14 @@ const formSchema = z.object({
 });
 
 export function StandardPageFromTemplateView() {
+  return (
+    <Suspense fallback={null}>
+      <StandardPageFromTemplateViewContent />
+    </Suspense>
+  );
+}
+
+function StandardPageFromTemplateViewContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const templateId = searchParams.get("template") ?? "";

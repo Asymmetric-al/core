@@ -5,7 +5,13 @@
  */
 import { connection } from "next/server";
 
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
+
+export const metadata: Metadata = {
+  title: "Tasks",
+  description: "Track follow-ups and partner tasks.",
+};
 
 export default async function TasksLayout({
   children,
