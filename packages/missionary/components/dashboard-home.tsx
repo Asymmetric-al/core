@@ -2,6 +2,7 @@
 
 import { DEMO_PROFILE_ID } from "@asym/auth/constants";
 import { useAuth } from "@asym/lib/hooks";
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
   Avatar,
   AvatarFallback,
@@ -16,7 +17,6 @@ import {
   CardTitle,
   CardDescription,
 } from "@asym/ui/components/shadcn/card";
-import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import {
   ArrowUpRight,
   TrendingUp,

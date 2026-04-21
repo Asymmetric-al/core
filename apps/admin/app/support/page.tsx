@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "@asym/lib/motion";
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
@@ -9,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
-import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import { Inbox, Users, Tag, Zap, BookOpen, Clock } from "lucide-react";
 import Link from "next/link";
 
