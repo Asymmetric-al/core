@@ -1,8 +1,8 @@
 "use client";
 
 import { motion } from "@asym/lib/motion";
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import { cn } from "@asym/ui/lib/utils";
 import { Download, PenSquare, RefreshCw } from "lucide-react";
 import Link from "next/link";

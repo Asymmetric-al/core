@@ -10,6 +10,13 @@ import {
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "About",
+  description: "Build and licensing information for this deployment.",
+};
+
 export default function HelpAboutPage() {
   const build = getBuildInfo();
   const sourceUrl = getGitHubSourceTreeUrl(build.ref);

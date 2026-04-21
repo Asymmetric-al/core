@@ -228,6 +228,26 @@ describe("support-hub selectors", () => {
     expect(countResolvedSince(rows, "2026-04-15T00:00:00.000Z")).toBe(2);
   });
 
+  it("computeInboxStats separates unassignedCount from waitingOnAgentCount", () => {
+    const rows: SupportConversation[] = [
+      makeConversation({
+        id: "assigned-inbound",
+        status: "open",
+        assignee: makeAssignee(),
+        lastMessageDirection: "inbound",
+      }),
+      makeConversation({
+        id: "unassigned-outbound",
+        status: "open",
+        assignee: null,
+        lastMessageDirection: "outbound",
+      }),
+    ];
+    const stats = computeInboxStats(rows, NOW);
+    expect(stats.waitingOnAgentCount).toBe(1);
+    expect(stats.unassignedCount).toBe(1);
+  });
+
   it("computeInboxStats surfaces bucket counts plus the new metrics", () => {
     const rows: SupportConversation[] = [
       makeConversation({
@@ -261,6 +281,7 @@ describe("support-hub selectors", () => {
     expect(stats.pastDueCount).toBe(1);
     expect(stats.resolvedTodayCount).toBe(1);
     expect(stats.averageFirstResponseMinutes).toBeGreaterThan(0);
+    expect(stats.unassignedCount).toBe(1);
   });
 });
 

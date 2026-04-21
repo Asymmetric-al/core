@@ -7,7 +7,7 @@ import { cn } from "@asym/ui/lib/utils";
 import { useSupportConversations } from "../../hooks/use-support-conversations";
 import { useCurrentSupportAgentId } from "../../lib/current-agent";
 import { useSupportNow } from "../../lib/now";
-import { selectByView } from "../../lib/selectors";
+import { selectByView, selectConversations } from "../../lib/selectors";
 
 import type { SupportConversationFilter } from "../../lib/selectors";
 import type { SupportInboxView } from "../../types";
@@ -55,14 +55,15 @@ export function ViewTabs({ value, onValueChange, baseFilter }: ViewTabsProps) {
     escalated: 0,
   };
 
-  const effectiveNow = (baseFilter?.now as string | Date | undefined) ?? nowIso;
+  const effectiveNow = baseFilter?.now ?? nowIso;
   for (const tab of TABS) {
-    counts[tab.view] = selectByView(
-      rows,
-      tab.view,
-      currentAgentId,
-      effectiveNow,
-    ).length;
+    counts[tab.view] = baseFilter
+      ? selectConversations(rows, {
+          ...baseFilter,
+          view: tab.view,
+          now: effectiveNow,
+        }).length
+      : selectByView(rows, tab.view, currentAgentId, effectiveNow).length;
   }
 
   return (

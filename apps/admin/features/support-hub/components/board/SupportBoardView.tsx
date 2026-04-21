@@ -26,6 +26,8 @@ interface ColumnDescriptor {
   description: string;
 }
 
+const SNOOZE_DEFAULT_MS = 24 * 60 * 60 * 1000;
+
 const COLUMNS: ColumnDescriptor[] = [
   {
     status: "open",
@@ -85,6 +87,13 @@ export function SupportBoardView({
       void setStatus.mutateAsync({
         conversationId,
         status: toStatus,
+        ...(toStatus === "snoozed"
+          ? {
+              snoozedUntil: new Date(
+                new Date(nowIso).getTime() + SNOOZE_DEFAULT_MS,
+              ).toISOString(),
+            }
+          : {}),
       });
     },
   });

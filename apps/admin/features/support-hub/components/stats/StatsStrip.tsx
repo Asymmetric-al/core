@@ -4,6 +4,7 @@ import { StatCard } from "./StatCard";
 import { useSupportConversations } from "../../hooks/use-support-conversations";
 import { useSupportInboxStats } from "../../hooks/use-support-stats";
 import { useCurrentSupportAgentId } from "../../lib/current-agent";
+import { useSupportNow } from "../../lib/now";
 
 type StatTone = "zinc" | "amber" | "rose" | "emerald";
 
@@ -31,7 +32,8 @@ interface StatTile {
  * pure derivation over the live collections.
  */
 export function StatsStrip({ inboxId = null }: StatsStripProps) {
-  const stats = useSupportInboxStats({ inboxId });
+  const nowIso = useSupportNow();
+  const stats = useSupportInboxStats({ inboxId, now: nowIso });
   const conversations = useSupportConversations();
   const currentAgentId = useCurrentSupportAgentId();
 
@@ -64,7 +66,7 @@ export function StatsStrip({ inboxId = null }: StatsStripProps) {
     {
       key: "unassigned",
       label: "Unassigned",
-      value: stats.data.waitingOnAgentCount,
+      value: stats.data.unassignedCount,
       hint: "needs routing",
       tone: "amber",
     },
