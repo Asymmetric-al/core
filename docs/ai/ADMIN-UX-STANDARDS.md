@@ -33,7 +33,7 @@
 - Semantic tokens only — components use `bg-background`, `text-foreground`, `border-border`, etc.
 - Zinc palette for structure (surfaces, borders, text hierarchy)
 - Accent colors ONLY for semantic meaning (status, warning, success)
-- One typography system: Inter for UI, Geist Mono for code/numbers
+- One typography system: Inter for UI body, Syne for display/headings, Geist Mono for code/numbers
 - Light and dark must both look designed
 
 ---
@@ -44,7 +44,8 @@
 
 | Font           | Usage                                                          |
 | -------------- | -------------------------------------------------------------- |
-| **Inter**      | All UI text (default `font-sans`)                              |
+| **Inter**      | All UI body text (default `font-sans`)                         |
+| **Syne**       | Display and heading treatments (`font-display` or `font-syne`) |
 | **Geist Mono** | IDs, transaction codes, fund codes, currency amounts in tables |
 
 ### When to Use Geist Mono (`font-mono`)
