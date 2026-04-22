@@ -91,6 +91,11 @@ export function useConversationComposer({
   const sendReply = useSendSupportReply();
   const addNote = useAddSupportPrivateNote();
   const isPending = sendReply.isPending || addNote.isPending;
+  const activeConversationIdRef = React.useRef(conversationId);
+  const inFlightRef = React.useRef(false);
+  React.useEffect(() => {
+    activeConversationIdRef.current = conversationId;
+  }, [conversationId]);
 
   // Reset local drafts when the conversation changes.
   React.useEffect(() => {
@@ -124,14 +129,19 @@ export function useConversationComposer({
     }));
   };
 
+  const clearMode = (targetMode: ComposerMode) => {
+    setDrafts((prev) => ({ ...prev, [targetMode]: "" }));
+    setAttachmentsByMode((prev) => ({ ...prev, [targetMode]: [] }));
+  };
+
   const reset = () => {
-    setDrafts((prev) => ({ ...prev, [mode]: "" }));
-    setAttachmentsByMode((prev) => ({ ...prev, [mode]: [] }));
+    clearMode(mode);
   };
 
   const isDirty = isPayloadDirty(value);
 
   const send = async () => {
+    if (inFlightRef.current) return;
     if (!authorAgentId) {
       toast.error("No agent matched the current Mission Control user yet.");
       return;
@@ -143,6 +153,9 @@ export function useConversationComposer({
       return;
     }
 
+    const startConversationId = conversationId;
+    const startMode = mode;
+
     if (mode === "note") {
       const payload = serializeReplyPayload({
         rawJson: value,
@@ -150,17 +163,21 @@ export function useConversationComposer({
         signatureAgent: null,
         appendSignature: false,
       });
+      inFlightRef.current = true;
       try {
         await addNote.mutateAsync({
-          conversationId,
+          conversationId: startConversationId,
           authorAgentId,
           bodyText: payload.text,
           bodyHtml: payload.html,
         });
+        if (activeConversationIdRef.current !== startConversationId) return;
         toast.success("Internal note added.");
-        reset();
+        clearMode(startMode);
       } catch (error) {
         toast.error(extractErrorMessage(error, "Could not save the note."));
+      } finally {
+        inFlightRef.current = false;
       }
       return;
     }
@@ -171,21 +188,26 @@ export function useConversationComposer({
       signatureAgent: resolvedAgent,
       appendSignature,
     });
+    inFlightRef.current = true;
     try {
       await sendReply.mutateAsync({
-        conversationId,
+        conversationId: startConversationId,
         authorAgentId,
         payload,
         mode: "send",
       });
+      if (activeConversationIdRef.current !== startConversationId) return;
       toast.success("Reply sent.");
-      reset();
+      clearMode("reply");
     } catch (error) {
       toast.error(extractErrorMessage(error, "Could not send the reply."));
+    } finally {
+      inFlightRef.current = false;
     }
   };
 
   const saveDraft = async () => {
+    if (inFlightRef.current) return;
     if (mode !== "reply") {
       toast.info("Drafts are only available for donor replies.");
       return;
@@ -198,23 +220,28 @@ export function useConversationComposer({
       toast.info("Type a reply first.");
       return;
     }
+    const startConversationId = conversationId;
     const payload = serializeReplyPayload({
       rawJson: value,
       attachments,
       signatureAgent: resolvedAgent,
       appendSignature,
     });
+    inFlightRef.current = true;
     try {
       await sendReply.mutateAsync({
-        conversationId,
+        conversationId: startConversationId,
         authorAgentId,
         payload,
         mode: "draft",
       });
+      if (activeConversationIdRef.current !== startConversationId) return;
       toast.success("Draft saved.");
-      reset();
+      clearMode("reply");
     } catch (error) {
       toast.error(extractErrorMessage(error, "Could not save the draft."));
+    } finally {
+      inFlightRef.current = false;
     }
   };
 

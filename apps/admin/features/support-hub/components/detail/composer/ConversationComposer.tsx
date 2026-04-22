@@ -46,7 +46,19 @@ export function ConversationComposer({
     conversationId: conversation.id,
     agent,
   });
-  const containerRef = useComposerHotkeys({ onPrimaryAction: composer.send });
+  const isHotkeyEnabled = React.useCallback(
+    () => !composer.isPending && composer.isDirty,
+    [composer.isPending, composer.isDirty],
+  );
+  const sendRef = React.useRef(composer.send);
+  sendRef.current = composer.send;
+  const onPrimary = React.useCallback(() => {
+    void sendRef.current();
+  }, []);
+  const containerRef = useComposerHotkeys({
+    onPrimaryAction: onPrimary,
+    isEnabled: isHotkeyEnabled,
+  });
 
   return (
     <div
@@ -88,6 +100,7 @@ export function ConversationComposer({
               />
               {composer.mode === "reply" ? (
                 <SignatureChip
+                  conversationId={conversation.id}
                   agent={composer.agent}
                   enabled={composer.appendSignature}
                   onChange={composer.setAppendSignature}

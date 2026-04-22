@@ -3,15 +3,16 @@
 import { cn } from "@asym/ui/lib/utils";
 import * as React from "react";
 
+import { SupportInboxEmptyState } from "./SupportInboxEmptyState";
 import { useSupportConversations } from "../hooks/use-support-conversations";
 import { useCurrentSupportAgentId } from "../lib/current-agent";
 import { SupportNowProvider, useSupportNow } from "../lib/now";
 import { useSupportInboxState } from "../lib/route-state";
 import { type SupportConversationFilter } from "../lib/selectors";
+import { useLgUp } from "../lib/use-lg-up";
 import { SupportBoardView } from "./board/SupportBoardView";
 import { ConversationDetail } from "./detail/ConversationDetail";
 import { StatsStrip } from "./stats/StatsStrip";
-import { SupportInboxEmptyState } from "./SupportInboxEmptyState";
 import { SupportTableView } from "./table/SupportTableView";
 import { ViewTabs } from "./tabs/ViewTabs";
 import { InboxToolbar } from "./toolbar/InboxToolbar";
@@ -40,6 +41,7 @@ function SupportInboxBody() {
   const currentAgentId = useCurrentSupportAgentId();
   const conversations = useSupportConversations();
   const nowIso = useSupportNow();
+  const isLgUp = useLgUp();
 
   const baseFilter: Omit<SupportConversationFilter, "view"> = {
     status: state.status,
@@ -105,8 +107,8 @@ function SupportInboxBody() {
           )}
         </div>
 
-        {state.selectedConversationId ? (
-          <div className="hidden min-h-0 lg:col-span-4 lg:block">
+        {isLgUp && state.selectedConversationId ? (
+          <div className="min-h-0 lg:col-span-4">
             <ConversationDetail
               conversationId={state.selectedConversationId}
               onClose={handleCloseDetail}
@@ -116,13 +118,13 @@ function SupportInboxBody() {
         ) : null}
       </div>
 
-      <div className="lg:hidden">
+      {!isLgUp ? (
         <ConversationDetail
           conversationId={state.selectedConversationId}
           onClose={handleCloseDetail}
           layout="sheet"
         />
-      </div>
+      ) : null}
     </div>
   );
 }

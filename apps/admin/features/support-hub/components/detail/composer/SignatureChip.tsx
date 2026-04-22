@@ -7,6 +7,8 @@ import { Signature } from "lucide-react";
 import type { SupportAssignee } from "../../../types";
 
 interface SignatureChipProps {
+  /** Namespaces the switch `id` when multiple composers could exist in dev tools. */
+  conversationId: string;
   agent: SupportAssignee | null;
   enabled: boolean;
   onChange: (enabled: boolean) => void;
@@ -18,12 +20,13 @@ interface SignatureChipProps {
  * appends the signature to `html` and `text` only at send time.
  */
 export function SignatureChip({
+  conversationId,
   agent,
   enabled,
   onChange,
 }: SignatureChipProps) {
   if (!agent) return null;
-  const id = `support-signature-${agent.id}`;
+  const id = `support-signature-${conversationId}-${agent.id}`;
   return (
     <label
       htmlFor={id}
