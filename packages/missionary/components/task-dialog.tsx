@@ -2,6 +2,7 @@
 
 import { createBrowserClient } from "@asym/database/supabase";
 import { useAuth } from "@asym/lib/hooks";
+import { useAsymForm } from "@asym/ui/components/primitives/tanstack-form";
 import {
   Avatar,
   AvatarFallback,
@@ -24,7 +25,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@asym/ui/components/shadcn/dialog";
-import { useAsymForm } from "@asym/ui/components/shadcn/form";
 import {
   Popover,
   PopoverContent,
