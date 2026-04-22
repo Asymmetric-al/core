@@ -30,6 +30,29 @@ export interface OperationOptions {
   roles?: UserRole[];
 }
 
+/**
+ * Next.js Cache Components may prerender GET Route Handlers. Control-flow errors
+ * (bail out / resume at request time) must propagate — never map them to JSON 500s.
+ */
+function isNextPrerenderControlFlowError(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) {
+    return false;
+  }
+
+  const digest =
+    "digest" in error ? (error as { digest?: unknown }).digest : undefined;
+  if (
+    digest === "NEXT_PRERENDER_INTERRUPTED" ||
+    digest === "HANGING_PROMISE_REJECTION"
+  ) {
+    return true;
+  }
+
+  return (
+    error instanceof Error && error.message.includes("bail out of prerendering")
+  );
+}
+
 function isJsonErrorBody(
   body: unknown,
 ): body is Record<string, unknown> & { error: string } {
@@ -89,6 +112,12 @@ export function withOperation(
     const requestId = crypto.randomUUID();
 
     try {
+      // With `cacheComponents`, GET Route Handlers can enter the same prerender model
+      // as pages. Touching the incoming request opts the handler out of static
+      // prerender *before* `next/headers` `cookies()` runs (see Next.js Route Handlers
+      // + Cache Components docs: request headers/url stop prerendering).
+      void request.headers.get("cookie");
+
       const { client: supabaseAdmin, error: adminError } = getAdminClient();
       if (!supabaseAdmin) {
         return NextResponse.json(
@@ -117,6 +146,10 @@ export function withOperation(
 
       return normalizeHandlerErrorResponse(response, requestId);
     } catch (error) {
+      if (isNextPrerenderControlFlowError(error)) {
+        throw error;
+      }
+
       const normalized = toApiHttpError(error, "Internal error");
       if (normalized.status >= 500) {
         console.error("[withOperation] Unhandled error:", error);

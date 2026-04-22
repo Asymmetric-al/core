@@ -725,7 +725,7 @@ const SAVED_VIEWS_SEED: SupportSavedView[] = [
       layout: "table",
       status: "all",
       q: "",
-      labelSlugs: [LABEL_IDS.escalated],
+      labelSlugs: ["escalated"],
       assignee: "",
     },
     createdAt: NOW_SEED,

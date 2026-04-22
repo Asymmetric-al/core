@@ -7,6 +7,7 @@ import {
   type AppId,
 } from "@asym/auth/demo-login";
 import { createBrowserClient } from "@asym/database/supabase";
+import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
@@ -71,51 +72,41 @@ export function LoginScreen({
   const [error, setError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isDemoSubmitting, setIsDemoSubmitting] = React.useState(false);
-  const [isDemoEnabled, setIsDemoEnabled] = React.useState(false);
 
-  React.useEffect(() => {
-    if (demoOnly) return;
+  const demoAvailabilityQuery = useQuery({
+    queryKey: ["auth", "demo-availability", demoRole],
+    enabled: !demoOnly,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const response = await fetch("/api/auth/demo-account", {
+        method: "GET",
+        cache: "no-store",
+      });
+      if (!response.ok) return false;
+      const payload = (await response.json()) as DemoAvailabilityResponse;
+      return resolveDemoAvailability(payload, demoRole);
+    },
+  });
+  const isDemoEnabled = demoAvailabilityQuery.data ?? false;
 
-    let active = true;
-    void (async () => {
-      try {
-        const response = await fetch("/api/auth/demo-account", {
-          method: "GET",
-          cache: "no-store",
-        });
-        if (!response.ok) return;
-
-        const payload = (await response.json()) as DemoAvailabilityResponse;
-        if (!active) return;
-        setIsDemoEnabled(resolveDemoAvailability(payload, demoRole));
-      } catch {
-        if (!active) return;
-        setIsDemoEnabled(false);
-      }
-    })();
-
-    return () => {
-      active = false;
-    };
-  }, [demoOnly, demoRole]);
-
-  React.useEffect(() => {
-    const supabase = createBrowserClient();
-    let active = true;
-
-    void (async () => {
+  const existingSessionQuery = useQuery({
+    queryKey: ["auth", "session-existing"],
+    staleTime: 0,
+    queryFn: async () => {
+      const supabase = createBrowserClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!active || !user) return;
-      router.replace(targetPath);
-      router.refresh();
-    })();
+      return user ?? null;
+    },
+  });
+  const existingUser = existingSessionQuery.data;
 
-    return () => {
-      active = false;
-    };
-  }, [router, targetPath]);
+  React.useEffect(() => {
+    if (!existingUser) return;
+    router.replace(targetPath);
+    router.refresh();
+  }, [existingUser, router, targetPath]);
 
   const handleDemoLogin = React.useCallback(async () => {
     setError(null);

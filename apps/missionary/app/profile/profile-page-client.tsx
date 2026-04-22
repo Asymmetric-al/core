@@ -3,7 +3,6 @@
 import { motion, LayoutGroup } from "@asym/lib/motion";
 import { MISSIONARY_SETTINGS_HEADER_VT_NAME } from "@asym/lib/view-transitions";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { TooltipProvider } from "@asym/ui/components/shadcn/tooltip";
 import { AlertCircle } from "lucide-react";
 
 import { ProfileFormColumn } from "./profile-form-column";
@@ -52,52 +51,50 @@ export function ProfilePageClient() {
   }
 
   return (
-    <TooltipProvider>
-      <LayoutGroup>
-        <motion.div
-          className="space-y-6 pb-20"
-          initial="initial"
-          animate="animate"
-          variants={staggerContainer}
-        >
-          <motion.div variants={fadeInUp} transition={gentleTransition}>
-            <PageHeader
-              title="Profile"
-              titleViewTransitionName={MISSIONARY_SETTINGS_HEADER_VT_NAME}
-              description="Update your information and how you appear to supporters."
-            >
-              <ProfileHeaderActions
-                copiedLink={vm.copiedLink}
-                profile={vm.profile}
-                hasChanges={vm.hasChanges}
-                isSaving={vm.isSaving}
-                saveSuccess={vm.saveSuccess}
-                handleCopyLink={vm.handleCopyLink}
-                handleDiscard={vm.handleDiscard}
-                handleSave={vm.handleSave}
-              />
-            </PageHeader>
-          </motion.div>
-
-          <div className="grid gap-6 lg:grid-cols-12">
-            <ProfileFormColumn
+    <LayoutGroup>
+      <motion.div
+        className="space-y-6 pb-20"
+        initial="initial"
+        animate="animate"
+        variants={staggerContainer}
+      >
+        <motion.div variants={fadeInUp} transition={gentleTransition}>
+          <PageHeader
+            title="Profile"
+            titleViewTransitionName={MISSIONARY_SETTINGS_HEADER_VT_NAME}
+            description="Update your information and how you appear to supporters."
+          >
+            <ProfileHeaderActions
+              copiedLink={vm.copiedLink}
               profile={vm.profile}
-              validationErrors={vm.validationErrors}
-              bioWordCount={vm.bioWordCount}
-              initials={vm.initials}
-              updateProfile={vm.updateProfile}
+              hasChanges={vm.hasChanges}
+              isSaving={vm.isSaving}
+              saveSuccess={vm.saveSuccess}
+              handleCopyLink={vm.handleCopyLink}
+              handleDiscard={vm.handleDiscard}
               handleSave={vm.handleSave}
             />
-
-            <ProfilePreviewColumn
-              profile={vm.profile}
-              previewMode={vm.previewMode}
-              initials={vm.initials}
-              setPreviewMode={vm.setPreviewMode}
-            />
-          </div>
+          </PageHeader>
         </motion.div>
-      </LayoutGroup>
-    </TooltipProvider>
+
+        <div className="grid gap-6 lg:grid-cols-12">
+          <ProfileFormColumn
+            profile={vm.profile}
+            validationErrors={vm.validationErrors}
+            bioWordCount={vm.bioWordCount}
+            initials={vm.initials}
+            updateProfile={vm.updateProfile}
+            handleSave={vm.handleSave}
+          />
+
+          <ProfilePreviewColumn
+            profile={vm.profile}
+            previewMode={vm.previewMode}
+            initials={vm.initials}
+            setPreviewMode={vm.setPreviewMode}
+          />
+        </div>
+      </motion.div>
+    </LayoutGroup>
   );
 }

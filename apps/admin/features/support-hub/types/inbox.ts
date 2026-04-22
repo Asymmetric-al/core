@@ -20,6 +20,8 @@ export interface SupportInboxStats {
   pastDueCount: number;
   escalatedCount: number;
   waitingOnAgentCount: number;
+  /** Active conversations with no assignee (same predicate as the Unassigned view). */
+  unassignedCount: number;
   waitingOnDonorCount: number;
   /** Average minutes between first inbound message and first outbound reply. */
   averageFirstResponseMinutes: number;

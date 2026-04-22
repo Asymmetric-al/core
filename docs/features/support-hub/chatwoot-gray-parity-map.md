@@ -116,8 +116,10 @@
 | CSAT            | `/support/reports/csat`          | Phase 4 | Backed by new `support_csat_responses` table.                   |
 | Inbox           | `/support/reports/inbox`         | Phase 4 | Per-inbox volume, channel mix.                                  |
 
-All seven shapes are supported by the MVP data model; the UI ships in
-Phase 4.
+Conversation-centric metrics needed for six of the seven report shapes live
+in the MVP `support_*` sketch; **CSAT** additionally needs
+`support_csat_responses` (Phase 4 — see `phase-01-discovery.md` §3.4 deferred
+tables). All report **UIs** ship Phase 4.
 
 ## 7. Channels and integrations
 

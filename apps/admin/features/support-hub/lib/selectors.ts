@@ -253,6 +253,7 @@ export function computeInboxStats(
     pastDueCount: selectPastDue(filteredRows, now).length,
     escalatedCount: selectEscalated(filteredRows).length,
     waitingOnAgentCount: selectWaitingOnAgent(filteredRows).length,
+    unassignedCount: selectUnassigned(filteredRows).length,
     waitingOnDonorCount: selectWaitingOnDonor(filteredRows).length,
     averageFirstResponseMinutes:
       computeAverageFirstResponseMinutes(filteredRows),
