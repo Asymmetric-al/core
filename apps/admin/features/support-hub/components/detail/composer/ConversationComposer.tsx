@@ -51,7 +51,9 @@ export function ConversationComposer({
     [composer.isPending, composer.isDirty],
   );
   const sendRef = React.useRef(composer.send);
-  sendRef.current = composer.send;
+  React.useLayoutEffect(() => {
+    sendRef.current = composer.send;
+  }, [composer.send]);
   const onPrimary = React.useCallback(() => {
     void sendRef.current();
   }, []);

@@ -17,8 +17,10 @@ interface HotkeyMap {
  */
 export function useComposerHotkeys({ onPrimaryAction, isEnabled }: HotkeyMap) {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
-  const isEnabledRef = React.useRef(isEnabled);
-  isEnabledRef.current = isEnabled;
+  const isEnabledRef = React.useRef<(() => boolean) | undefined>(isEnabled);
+  React.useLayoutEffect(() => {
+    isEnabledRef.current = isEnabled;
+  }, [isEnabled]);
 
   React.useEffect(() => {
     const node = containerRef.current;
@@ -28,7 +30,8 @@ export function useComposerHotkeys({ onPrimaryAction, isEnabled }: HotkeyMap) {
       const isPrimaryShortcut =
         (event.metaKey || event.ctrlKey) && event.key === "Enter";
       if (!isPrimaryShortcut) return;
-      if (isEnabledRef.current && !isEnabledRef.current()) {
+      const isHotkeyOn = isEnabledRef.current;
+      if (isHotkeyOn && !isHotkeyOn()) {
         return;
       }
       event.preventDefault();
