@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { fetchPublishedCmsPage } from "@/lib/cms/client";
@@ -9,6 +10,20 @@ type PageProps = {
     cmsSlug: string[];
   }>;
 };
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { cmsSlug } = await params;
+  const page = await fetchPublishedCmsPage(cmsSlug);
+  if (!page) {
+    return { title: "Page not found" };
+  }
+  return {
+    title: page.title,
+    description: page.summary ?? undefined,
+  };
+}
 
 export default async function CmsPublicPage({ params }: PageProps) {
   const { cmsSlug } = await params;
@@ -139,9 +154,10 @@ function renderLexicalDocument(content: unknown, pageId: string) {
     return null;
   }
 
-  const rendered = root.children
-    .map((node, index) => renderLexicalNode(node, `${pageId}-${index}`))
-    .filter(Boolean);
+  const rendered = root.children.flatMap((node, index) => {
+    const result = renderLexicalNode(node, `${pageId}-${index}`);
+    return result ? [result] : [];
+  });
 
   return rendered.length ? rendered : null;
 }

@@ -17,6 +17,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-syne), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -119,6 +120,41 @@
 
   --section-gap: var(--space-4);
   --card-padding: var(--space-3);
+
+  /* ============================================
+     MOTION TOKENS
+     CSS source of truth for the repo motion contract.
+     Mirrored in `packages/lib/motion-presets.ts` for `motion/react` consumers.
+     See `docs/ai/skills/anim/SKILL.md` and the Motion section of
+     `docs/ai/rules/frontend.md` for guidance.
+     ============================================ */
+
+  /* Easing — keep names short; "soft" denotes the strong cubic-bezier
+     variants recommended by emil-design-eng over the weak built-ins. */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-soft: cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out-soft: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Duration tiers. Product UI stays under 300ms unless explicitly
+     ceremonial (drawers, marketing). */
+  --duration-press: 120ms; /* button/tile press feedback */
+  --duration-micro: 150ms; /* hover, color change */
+  --duration-standard: 220ms; /* tooltip, popover, dropdown, select */
+  --duration-modal: 220ms; /* dialog open/close */
+  --duration-drawer: 320ms; /* sheet / vaul drawer */
+  --duration-route: 240ms; /* matches asym-vt-route-* */
+  --duration-shared: 280ms; /* matches asym-vt-share-* */
+
+  /* Stagger between related items. Keep tight (30–80ms). */
+  --stagger-tight: 45ms;
+  --stagger-medium: 60ms;
+
+  /* Transform tokens. Press should never go below 0.95 — that's
+     cartoon territory per emil-design-eng. */
+  --scale-press: 0.98;
+  --scale-hover-subtle: 1.02;
+  --scale-entrance: 0.96;
 
   --background: oklch(0.985 0.002 265);
   --foreground: oklch(0.145 0.015 265);
@@ -441,6 +477,47 @@
 
   .touch-spacing > * + * {
     margin-top: var(--touch-spacing-min, 8px);
+  }
+
+  /* ============================================
+     MOTION UTILITIES
+     Token-driven helpers for the most common cases. Prefer these
+     over inline `transition-all` / `hover:scale-*` so motion stays
+     consistent across the repo. See docs/ai/skills/anim/SKILL.md.
+     ============================================ */
+
+  /* Always-on press feedback. Subtle scale on :active for any
+     pressable element (button, tile, list item). Touch-safe because
+     :active fires on tap. */
+  .press-feedback {
+    transition: transform var(--duration-press) var(--ease-out-soft);
+  }
+  .press-feedback:active {
+    transform: scale(var(--scale-press));
+  }
+
+  /* Hover-only lift. Gated by `(hover: hover) and (pointer: fine)` so
+     it never fires on touch devices (where hover triggers on tap). */
+  .hover-lift {
+    transition:
+      transform var(--duration-micro) var(--ease-out-soft),
+      box-shadow var(--duration-micro) var(--ease-out-soft);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .hover-lift:hover {
+      transform: translateY(-2px);
+    }
+  }
+
+  /* Hover-only scale. Same touch-safe gate as `hover-lift` but a
+     scale change instead of a translate. Use for buttons, badges. */
+  .hover-scale-subtle {
+    transition: transform var(--duration-micro) var(--ease-out-soft);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .hover-scale-subtle:hover {
+      transform: scale(var(--scale-hover-subtle));
+    }
   }
 
   .safe-area-inset {
@@ -801,8 +878,8 @@
 
 ::view-transition-old(asym-vt-route-exit),
 ::view-transition-new(asym-vt-route-enter) {
-  animation-duration: 240ms;
-  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  animation-duration: var(--duration-route);
+  animation-timing-function: var(--ease-out-soft);
 }
 
 ::view-transition-old(asym-vt-route-exit) {
@@ -837,8 +914,8 @@
 
 ::view-transition-old(asym-vt-share-morph),
 ::view-transition-new(asym-vt-share-morph) {
-  animation-duration: 280ms;
-  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  animation-duration: var(--duration-shared);
+  animation-timing-function: var(--ease-out-soft);
 }
 
 ::view-transition-old(asym-vt-share-morph) {

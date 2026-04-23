@@ -1,27 +1,74 @@
 /**
  * Shared motion timing aligned with `docs/ai/skills/anim` — subtle, transform-first.
  * Use from client components only (`motion/react`, `@asym/lib/motion`).
+ *
+ * These constants mirror the CSS motion tokens in
+ * `packages/ui/styles/globals.css` (`--ease-*`, `--duration-*`,
+ * `--stagger-*`, `--scale-*`). When updating one side, update the other
+ * so CSS-only and `motion/react` consumers share one contract.
  */
 
 import type { Transition } from "motion/react";
 
-/** Ease-out for entrances (decelerate into place). */
+/* ------------------------------------------------------------------ */
+/*  Easing — mirrors --ease-*-soft / --ease-drawer in globals.css     */
+/* ------------------------------------------------------------------ */
+
+/** Strong ease-out for entrances/exits — `cubic-bezier(0.22, 1, 0.36, 1)`. */
 export const EASE_OUT_SOFT = [0.22, 1, 0.36, 1] as const;
 
-/** Ease-in for exits (accelerate away). */
+/** Strong ease-in for exits — `cubic-bezier(0.4, 0, 1, 1)`. */
 export const EASE_IN_SOFT = [0.4, 0, 1, 1] as const;
 
+/** Strong ease-in-out for on-screen movement — `cubic-bezier(0.77, 0, 0.175, 1)`. */
+export const EASE_IN_OUT_SOFT = [0.77, 0, 0.175, 1] as const;
+
+/** iOS-like drawer curve — `cubic-bezier(0.32, 0.72, 0, 1)`. */
+export const EASE_DRAWER = [0.32, 0.72, 0, 1] as const;
+
+/* ------------------------------------------------------------------ */
+/*  Durations (seconds) — mirror --duration-* in globals.css          */
+/*  Product UI stays under 300ms unless explicitly ceremonial.        */
+/* ------------------------------------------------------------------ */
+
+/** 120ms — button/tile press feedback. */
+export const DURATION_PRESS = 0.12;
+/** 150ms — hover, color change, micro-interactions. */
 export const DURATION_MICRO = 0.15;
-export const DURATION_STANDARD = 0.25;
+/** 220ms — tooltip, popover, dropdown, select, modal. */
+export const DURATION_STANDARD = 0.22;
+/** 240ms — view-transition route enter/exit (matches `--duration-route`). */
+export const DURATION_ROUTE = 0.24;
+/** 280ms — view-transition shared element morph (matches `--duration-shared`). */
+export const DURATION_SHARED = 0.28;
+/** 320ms — sheet / drawer (matches `--duration-drawer`). */
+export const DURATION_DRAWER = 0.32;
+/** 350ms — slow ceremonial entrance for hero/marketing surfaces. */
 export const DURATION_SLOW = 0.35;
 
-/** Stagger between related children (seconds). */
+/* ------------------------------------------------------------------ */
+/*  Stagger (seconds) — mirrors --stagger-* in globals.css            */
+/* ------------------------------------------------------------------ */
+
+/** 45ms between related items. */
 export const STAGGER_TIGHT = 0.045;
+/** 60ms — slightly looser stagger. */
 export const STAGGER_MEDIUM = 0.06;
 
-/** Hover / tap scale — matches shadcn `maia` button variant band. */
+/* ------------------------------------------------------------------ */
+/*  Transform tokens — mirror --scale-* in globals.css                */
+/* ------------------------------------------------------------------ */
+
+/** Subtle hover scale. */
 export const SCALE_HOVER_SUBTLE = 1.02;
+/** Subtle press scale. Never go below 0.95 — that's cartoon territory. */
 export const SCALE_TAP_SUBTLE = 0.98;
+/** Modal-style entrance scale (not from 0). */
+export const SCALE_ENTRANCE = 0.96;
+
+/* ------------------------------------------------------------------ */
+/*  Pre-built Transitions                                              */
+/* ------------------------------------------------------------------ */
 
 export const transitionStandard: Transition = {
   duration: DURATION_STANDARD,
@@ -38,14 +85,16 @@ export const transitionExitQuick: Transition = {
   ease: EASE_IN_SOFT,
 };
 
+/**
+ * Spring for **gestures only** (drag/swipe momentum, decorative
+ * mouse-tracking). Do NOT use for steady-state UI like buttons,
+ * stat cards, or list rows — see `docs/ai/skills/anim/SKILL.md`.
+ */
 export const springTap: Transition = {
   type: "spring",
   stiffness: 400,
   damping: 25,
 };
-
-/** Modal-style entrance scale (not from 0). */
-export const SCALE_ENTRANCE = 0.96;
 
 function isReduced(reduceMotion: boolean | null): boolean {
   return reduceMotion === true;
