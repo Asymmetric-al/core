@@ -62,6 +62,42 @@ export const SUPPORT_REPORT_SLICES = [
   "resolution",
   "label-mix",
   "agent-mix",
+  "messages-received",
+  "messages-sent",
+  "customer-waiting",
+  "resolution-count",
+  "open-count",
+  "snoozed-count",
+] as const;
+
+export const SUPPORT_AUTOMATION_TRIGGERS = [
+  "conversation_created",
+  "message_received",
+  "status_changed",
+  "label_added",
+  "past_due_reached",
+] as const;
+
+export const SUPPORT_AUTOMATION_CONDITION_KINDS = [
+  "inbox_is",
+  "label_includes",
+  "from_domain_equals",
+  "assignee_is_present",
+  "is_overdue",
+  "is_escalated",
+  "subject_contains",
+  "body_contains",
+] as const;
+
+export const SUPPORT_AUTOMATION_ACTION_KINDS = [
+  "assign_agent",
+  "assign_team",
+  "add_label",
+  "set_priority",
+  "set_status",
+  "snooze",
+  "mark_escalated",
+  "run_macro",
 ] as const;
 
 export type SupportConversationStatus =
@@ -80,6 +116,12 @@ export type SupportMessageDirection =
 export type SupportMessageDeliveryState =
   (typeof SUPPORT_MESSAGE_DELIVERY_STATES)[number];
 export type SupportReportSlice = (typeof SUPPORT_REPORT_SLICES)[number];
+export type SupportAutomationTrigger =
+  (typeof SUPPORT_AUTOMATION_TRIGGERS)[number];
+export type SupportAutomationConditionKind =
+  (typeof SUPPORT_AUTOMATION_CONDITION_KINDS)[number];
+export type SupportAutomationActionKind =
+  (typeof SUPPORT_AUTOMATION_ACTION_KINDS)[number];
 
 const isoString = z
   .string()
@@ -355,6 +397,76 @@ const supportSlaPolicySchema = z.object({
   updatedAt: isoString,
 });
 
+const supportSignatureSchema = z.object({
+  id: z.string().min(1),
+  tenantId: z.string().min(1),
+  ownerAgentId: z.string().nullable(),
+  name: z.string().min(1),
+  bodyText: z.string().min(1),
+  bodyHtml: z.string().nullable(),
+  isDefault: z.boolean(),
+  createdAt: isoString,
+  updatedAt: isoString,
+});
+
+const supportAutomationConditionSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("inbox_is"), inboxId: z.string().min(1) }),
+  z.object({ kind: z.literal("label_includes"), labelId: z.string().min(1) }),
+  z.object({
+    kind: z.literal("from_domain_equals"),
+    domain: z.string().min(1),
+  }),
+  z.object({ kind: z.literal("assignee_is_present"), value: z.boolean() }),
+  z.object({ kind: z.literal("is_overdue"), value: z.boolean() }),
+  z.object({ kind: z.literal("is_escalated"), value: z.boolean() }),
+  z.object({ kind: z.literal("subject_contains"), value: z.string().min(1) }),
+  z.object({ kind: z.literal("body_contains"), value: z.string().min(1) }),
+]);
+
+const supportAutomationActionSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("assign_agent"), agentId: z.string().min(1) }),
+  z.object({ kind: z.literal("assign_team"), teamId: z.string().min(1) }),
+  z.object({ kind: z.literal("add_label"), labelId: z.string().min(1) }),
+  z.object({
+    kind: z.literal("set_priority"),
+    priority: z.enum(SUPPORT_PRIORITIES),
+  }),
+  z.object({
+    kind: z.literal("set_status"),
+    status: z.enum(SUPPORT_CONVERSATION_STATUSES),
+  }),
+  z.object({ kind: z.literal("snooze"), hours: z.number().int().positive() }),
+  z.object({ kind: z.literal("mark_escalated") }),
+  z.object({ kind: z.literal("run_macro"), macroId: z.string().min(1) }),
+]);
+
+const supportAutomationRuleSchema = z.object({
+  id: z.string().min(1),
+  tenantId: z.string().min(1),
+  name: z.string().min(1),
+  description: z.string().nullable(),
+  enabled: z.boolean(),
+  trigger: z.enum(SUPPORT_AUTOMATION_TRIGGERS),
+  conditions: z.array(supportAutomationConditionSchema),
+  actions: z.array(supportAutomationActionSchema).min(1),
+  createdAt: isoString,
+  updatedAt: isoString,
+});
+
+const supportNotificationPreferencesSchema = z.object({
+  id: z.string().min(1),
+  tenantId: z.string().min(1),
+  agentId: z.string().min(1),
+  emailMentions: z.boolean(),
+  emailAssignments: z.boolean(),
+  emailDailyDigest: z.boolean(),
+  inAppMentions: z.boolean(),
+  inAppAssignments: z.boolean(),
+  inAppSlaWarnings: z.boolean(),
+  createdAt: isoString,
+  updatedAt: isoString,
+});
+
 /* ------------------------------------------------------------------------ */
 /*  Public types — derived from the schemas                                  */
 /* ------------------------------------------------------------------------ */
@@ -386,6 +498,19 @@ export type SupportSavedViewFilter = z.output<
 export type SupportSavedView = z.output<typeof supportSavedViewSchema>;
 export type SupportBusinessHours = z.output<typeof supportBusinessHoursSchema>;
 export type SupportSlaPolicy = z.output<typeof supportSlaPolicySchema>;
+export type SupportSignature = z.output<typeof supportSignatureSchema>;
+export type SupportAutomationCondition = z.output<
+  typeof supportAutomationConditionSchema
+>;
+export type SupportAutomationAction = z.output<
+  typeof supportAutomationActionSchema
+>;
+export type SupportAutomationRule = z.output<
+  typeof supportAutomationRuleSchema
+>;
+export type SupportNotificationPreferences = z.output<
+  typeof supportNotificationPreferencesSchema
+>;
 
 export const EMPTY_SUPPORT_CONTACT_REF: SupportContactRef = {
   contactId: null,
@@ -823,12 +948,153 @@ const INBOXES_SEED: SupportInbox[] = [
   },
 ];
 
+const SIGNATURE_IDS = {
+  emily: "sig-emily-thompson",
+  david: "sig-david-rodriguez",
+  rachel: "sig-rachel-kim",
+} as const;
+
+const SIGNATURES_SEED: SupportSignature[] = [
+  {
+    id: SIGNATURE_IDS.emily,
+    tenantId: TENANT_ID,
+    ownerAgentId: AGENT_IDS.emily,
+    name: "Emily — Director of Operations",
+    bodyText:
+      "Emily Thompson\nDirector of Operations\nGive Hope · admin@givehope.org",
+    bodyHtml:
+      '<p>Emily Thompson<br/>Director of Operations<br/>Give Hope · <a href="mailto:admin@givehope.org">admin@givehope.org</a></p>',
+    isDefault: true,
+    createdAt: NOW_SEED,
+    updatedAt: NOW_SEED,
+  },
+  {
+    id: SIGNATURE_IDS.david,
+    tenantId: TENANT_ID,
+    ownerAgentId: AGENT_IDS.david,
+    name: "David — Member Care",
+    bodyText:
+      "David Rodriguez\nMember Care Lead\nGive Hope · care@givehope.org",
+    bodyHtml:
+      '<p>David Rodriguez<br/>Member Care Lead<br/>Give Hope · <a href="mailto:care@givehope.org">care@givehope.org</a></p>',
+    isDefault: true,
+    createdAt: NOW_SEED,
+    updatedAt: NOW_SEED,
+  },
+  {
+    id: SIGNATURE_IDS.rachel,
+    tenantId: TENANT_ID,
+    ownerAgentId: AGENT_IDS.rachel,
+    name: "Rachel — Finance",
+    bodyText: "Rachel Kim\nFinance Manager\nGive Hope · finance@givehope.org",
+    bodyHtml:
+      '<p>Rachel Kim<br/>Finance Manager<br/>Give Hope · <a href="mailto:finance@givehope.org">finance@givehope.org</a></p>',
+    isDefault: true,
+    createdAt: NOW_SEED,
+    updatedAt: NOW_SEED,
+  },
+];
+
+const AUTOMATION_RULES_SEED: SupportAutomationRule[] = [
+  {
+    id: "automation-finance-foundations",
+    tenantId: TENANT_ID,
+    name: "Route foundation gifts to Finance",
+    description:
+      "Auto-label and assign conversations from known foundation domains to the Finance team.",
+    enabled: true,
+    trigger: "conversation_created",
+    conditions: [{ kind: "from_domain_equals", domain: "techfoundations.org" }],
+    actions: [
+      { kind: "add_label", labelId: LABEL_IDS.finance },
+      { kind: "assign_team", teamId: TEAM_IDS.finance },
+    ],
+    createdAt: NOW_SEED,
+    updatedAt: NOW_SEED,
+  },
+  {
+    id: "automation-snooze-marketing",
+    tenantId: TENANT_ID,
+    name: "Snooze marketing replies",
+    description:
+      "Automatically snooze conversations where the subject mentions a newsletter.",
+    enabled: true,
+    trigger: "message_received",
+    conditions: [{ kind: "subject_contains", value: "newsletter" }],
+    actions: [{ kind: "snooze", hours: 24 }],
+    createdAt: NOW_SEED,
+    updatedAt: NOW_SEED,
+  },
+  {
+    id: "automation-escalate-urgent-gift",
+    tenantId: TENANT_ID,
+    name: "Escalate urgent gift issues",
+    description:
+      "Flag high priority and escalate conversations mentioning urgent gift issues.",
+    enabled: false,
+    trigger: "message_received",
+    conditions: [
+      { kind: "subject_contains", value: "urgent" },
+      { kind: "body_contains", value: "gift" },
+    ],
+    actions: [
+      { kind: "set_priority", priority: "high" },
+      { kind: "mark_escalated" },
+      { kind: "add_label", labelId: LABEL_IDS.escalated },
+    ],
+    createdAt: NOW_SEED,
+    updatedAt: NOW_SEED,
+  },
+];
+
+const NOTIFICATION_PREFERENCES_SEED: SupportNotificationPreferences[] = [
+  {
+    id: "notif-pref-emily",
+    tenantId: TENANT_ID,
+    agentId: AGENT_IDS.emily,
+    emailMentions: true,
+    emailAssignments: true,
+    emailDailyDigest: true,
+    inAppMentions: true,
+    inAppAssignments: true,
+    inAppSlaWarnings: true,
+    createdAt: NOW_SEED,
+    updatedAt: NOW_SEED,
+  },
+  {
+    id: "notif-pref-david",
+    tenantId: TENANT_ID,
+    agentId: AGENT_IDS.david,
+    emailMentions: true,
+    emailAssignments: true,
+    emailDailyDigest: false,
+    inAppMentions: true,
+    inAppAssignments: true,
+    inAppSlaWarnings: true,
+    createdAt: NOW_SEED,
+    updatedAt: NOW_SEED,
+  },
+  {
+    id: "notif-pref-rachel",
+    tenantId: TENANT_ID,
+    agentId: AGENT_IDS.rachel,
+    emailMentions: true,
+    emailAssignments: false,
+    emailDailyDigest: true,
+    inAppMentions: true,
+    inAppAssignments: false,
+    inAppSlaWarnings: true,
+    createdAt: NOW_SEED,
+    updatedAt: NOW_SEED,
+  },
+];
+
 const INBOX_SETTINGS_SEED: SupportInboxSettings[] = [
   {
     id: INBOX_SETTINGS_ID,
     tenantId: TENANT_ID,
     inboxId: INBOX_ID,
-    defaultSignatureId: null,
+    defaultSignatureId: SIGNATURE_IDS.emily,
     defaultSlaPolicyId: SLA_IDS.standard,
     defaultBusinessHoursId: BIZ_HOURS_IDS.standard,
     roundRobinEnabled: false,
@@ -1847,6 +2113,9 @@ let teamRows = cloneValue(TEAMS_SEED);
 let agentRows = cloneValue(AGENTS_SEED);
 let businessHoursRows = cloneValue(BUSINESS_HOURS_SEED);
 let slaPolicyRows = cloneValue(SLA_POLICIES_SEED);
+let signatureRows = cloneValue(SIGNATURES_SEED);
+let automationRuleRows = cloneValue(AUTOMATION_RULES_SEED);
+let notificationPreferenceRows = cloneValue(NOTIFICATION_PREFERENCES_SEED);
 
 interface SeedMutationContext<TItem> {
   transaction: { mutations: { key?: unknown; modified: TItem }[] };
@@ -2092,6 +2361,57 @@ export const supportSlaPoliciesCollection = createCollection(
       () => slaPolicyRows,
       (rows) => {
         slaPolicyRows = rows;
+      },
+    ),
+  }),
+);
+
+export const supportSignaturesCollection = createCollection(
+  queryCollectionOptions({
+    id: "support_signatures",
+    queryKey: ["admin", "support", "signatures"],
+    queryClient: getQueryClient(),
+    schema: supportSignatureSchema,
+    getKey: (item) => item.id,
+    queryFn: async () => cloneValue(signatureRows),
+    ...buildWriters(
+      () => signatureRows,
+      (rows) => {
+        signatureRows = rows;
+      },
+    ),
+  }),
+);
+
+export const supportAutomationRulesCollection = createCollection(
+  queryCollectionOptions({
+    id: "support_automation_rules",
+    queryKey: ["admin", "support", "automation-rules"],
+    queryClient: getQueryClient(),
+    schema: supportAutomationRuleSchema,
+    getKey: (item) => item.id,
+    queryFn: async () => cloneValue(automationRuleRows),
+    ...buildWriters(
+      () => automationRuleRows,
+      (rows) => {
+        automationRuleRows = rows;
+      },
+    ),
+  }),
+);
+
+export const supportNotificationPreferencesCollection = createCollection(
+  queryCollectionOptions({
+    id: "support_notification_preferences",
+    queryKey: ["admin", "support", "notification-preferences"],
+    queryClient: getQueryClient(),
+    schema: supportNotificationPreferencesSchema,
+    getKey: (item) => item.id,
+    queryFn: async () => cloneValue(notificationPreferenceRows),
+    ...buildWriters(
+      () => notificationPreferenceRows,
+      (rows) => {
+        notificationPreferenceRows = rows;
       },
     ),
   }),

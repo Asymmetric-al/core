@@ -338,6 +338,28 @@ export function computeReportSlice(
       return buildLabelMixSlice(scoped, labels, now);
     case "agent-mix":
       return buildAgentMixSlice(scoped, now);
+    case "messages-received":
+    case "messages-sent":
+    case "customer-waiting":
+    case "resolution-count":
+    case "open-count":
+    case "snoozed-count":
+      /**
+       * Phase 6 introduced richer report slices that require the full message
+       * + business-hours collection. Those aggregations live in
+       * `lib/report-aggregations.ts` (`buildReportSeries`) because they need
+       * more than the conversation row alone. The light-weight
+       * `computeReportSlice` entry-point stays backwards-compatible for the
+       * Phase 3 stats strip by returning an empty series for the heavy
+       * slices — callers that need real data should use `buildReportSeries`.
+       */
+      return {
+        slice,
+        generatedAt: toDate(now).toISOString(),
+        unit: slice === "customer-waiting" ? "minutes" : "count",
+        total: 0,
+        buckets: [],
+      };
     default: {
       const _exhaustive: never = slice;
       void _exhaustive;

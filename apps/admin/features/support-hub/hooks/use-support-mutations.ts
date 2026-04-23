@@ -19,31 +19,53 @@ import {
   type AddPrivateNoteInput,
   type ApplyRoundRobinAssignmentInput,
   type AssignConversationInput,
+  type DeleteAutomationRuleInput,
+  type DeleteBusinessHoursInput,
   type DeleteCannedResponseInput,
   type DeleteLabelInput,
   type DeleteMacroInput,
   type DeleteSavedViewInput,
+  type DeleteSignatureInput,
+  type DeleteSlaPolicyInput,
+  type DeleteTeamInput,
   type RunMacroInput,
+  type SaveAutomationRuleInput,
+  type SaveBusinessHoursInput,
   type SaveCannedResponseInput,
+  type SaveInboxSettingsInput,
   type SaveLabelInput,
   type SaveMacroInput,
+  type SaveNotificationPreferencesInput,
   type SaveSavedViewInput,
+  type SaveSignatureInput,
+  type SaveSlaPolicyInput,
+  type SaveTeamInput,
   type SendReplyInput,
   type SetConversationPriorityInput,
   type SetConversationStatusInput,
+  type SetDefaultSignatureInput,
+  type SetDefaultSlaPolicyInput,
   type SnoozeConversationInput,
+  type ToggleAutomationRuleInput,
   type ToggleConversationLabelInput,
   type UnsnoozeConversationInput,
 } from "../stores/support-store";
 
 import type {
   SupportAssignee,
+  SupportAutomationRule,
+  SupportBusinessHours,
   SupportCannedResponse,
   SupportConversation,
+  SupportInboxSettings,
   SupportLabel,
   SupportMacro,
   SupportMessage,
+  SupportNotificationPreferences,
   SupportSavedView,
+  SupportSignature,
+  SupportSlaPolicy,
+  SupportTeam,
 } from "@asym/database/hooks";
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -869,3 +891,466 @@ function formatHumanIso(iso: string): string {
 }
 
 void HOUR_MS;
+
+/* ------------------------------------------------------------------------ */
+/*  Phase 6 mutation hooks                                                   */
+/*                                                                            */
+/*  Each hook mirrors the Phase 2 / Phase 5 pattern: Zod-validate the input, */
+/*  call the in-memory collection writer, await persistence, invalidate the  */
+/*  TanStack Query cache. All new hooks are additive — no existing caller    */
+/*  has to change.                                                           */
+/* ------------------------------------------------------------------------ */
+
+export function useSaveSupportInboxSettings() {
+  const invalidate = useInvalidateSupportCaches();
+  return useMutation({
+    mutationFn: async (raw: SaveInboxSettingsInput) => {
+      const input = supportStore.inputs.saveInboxSettings.parse(raw);
+      const tx = supportStore.collections.inboxSettings.update(
+        input.id,
+        (draft: SupportInboxSettings) => {
+          draft.inboxId = input.inboxId;
+          draft.defaultSignatureId = input.defaultSignatureId;
+          draft.defaultSlaPolicyId = input.defaultSlaPolicyId;
+          draft.defaultBusinessHoursId = input.defaultBusinessHoursId;
+          draft.roundRobinEnabled = input.roundRobinEnabled;
+          draft.autoResolveAfterDays = input.autoResolveAfterDays;
+          draft.showContactSidecar = input.showContactSidecar;
+          draft.updatedAt = nowIso();
+        },
+      );
+      await tx.isPersisted.promise;
+      return input.id;
+    },
+    onSuccess: () => invalidate(),
+  });
+}
+
+export function useSaveSupportBusinessHours() {
+  const invalidate = useInvalidateSupportCaches();
+  return useMutation({
+    mutationFn: async (raw: SaveBusinessHoursInput) => {
+      const input = supportStore.inputs.saveBusinessHours.parse(raw);
+      if (input.id) {
+        const tx = supportStore.collections.businessHours.update(
+          input.id,
+          (draft: SupportBusinessHours) => {
+            draft.name = input.name;
+            draft.timezone = input.timezone;
+            draft.weeklySchedule = input.weeklySchedule;
+            draft.holidays = input.holidays;
+            draft.isDefault = input.isDefault;
+            draft.updatedAt = nowIso();
+          },
+        );
+        await tx.isPersisted.promise;
+        return input.id;
+      }
+      const stamp = nowIso();
+      const row: SupportBusinessHours = {
+        id: genId("biz-hours"),
+        tenantId: defaultTenantIdFromCollection(),
+        name: input.name,
+        timezone: input.timezone,
+        weeklySchedule: input.weeklySchedule,
+        holidays: input.holidays,
+        isDefault: input.isDefault,
+        createdAt: stamp,
+        updatedAt: stamp,
+      };
+      const tx = supportStore.collections.businessHours.insert(row);
+      await tx.isPersisted.promise;
+      return row.id;
+    },
+    onSuccess: () => invalidate(),
+  });
+}
+
+export function useDeleteSupportBusinessHours() {
+  const invalidate = useInvalidateSupportCaches();
+  return useMutation({
+    mutationFn: async (raw: DeleteBusinessHoursInput) => {
+      const input = supportStore.inputs.deleteBusinessHours.parse(raw);
+      const tx = supportStore.collections.businessHours.delete(input.id);
+      await tx.isPersisted.promise;
+      return input.id;
+    },
+    onSuccess: () => invalidate(),
+  });
+}
+
+export function useSaveSupportSlaPolicy() {
+  const invalidate = useInvalidateSupportCaches();
+  return useMutation({
+    mutationFn: async (raw: SaveSlaPolicyInput) => {
+      const input = supportStore.inputs.saveSlaPolicy.parse(raw);
+      if (input.id) {
+        const tx = supportStore.collections.slaPolicies.update(
+          input.id,
+          (draft: SupportSlaPolicy) => {
+            draft.name = input.name;
+            draft.description = input.description;
+            draft.firstResponseMinutes = input.firstResponseMinutes;
+            draft.nextResponseMinutes = input.nextResponseMinutes;
+            draft.resolutionMinutes = input.resolutionMinutes;
+            draft.businessHoursId = input.businessHoursId;
+            draft.isDefault = input.isDefault;
+            draft.updatedAt = nowIso();
+          },
+        );
+        await tx.isPersisted.promise;
+        if (input.isDefault) await clearOtherDefaultSlas(input.id);
+        return input.id;
+      }
+      const stamp = nowIso();
+      const row: SupportSlaPolicy = {
+        id: genId("sla"),
+        tenantId: defaultTenantIdFromCollection(),
+        name: input.name,
+        description: input.description,
+        firstResponseMinutes: input.firstResponseMinutes,
+        nextResponseMinutes: input.nextResponseMinutes,
+        resolutionMinutes: input.resolutionMinutes,
+        businessHoursId: input.businessHoursId,
+        isDefault: input.isDefault,
+        createdAt: stamp,
+        updatedAt: stamp,
+      };
+      const tx = supportStore.collections.slaPolicies.insert(row);
+      await tx.isPersisted.promise;
+      if (row.isDefault) await clearOtherDefaultSlas(row.id);
+      return row.id;
+    },
+    onSuccess: () => invalidate(),
+  });
+}
+
+export function useDeleteSupportSlaPolicy() {
+  const invalidate = useInvalidateSupportCaches();
+  return useMutation({
+    mutationFn: async (raw: DeleteSlaPolicyInput) => {
+      const input = supportStore.inputs.deleteSlaPolicy.parse(raw);
+      const tx = supportStore.collections.slaPolicies.delete(input.id);
+      await tx.isPersisted.promise;
+      return input.id;
+    },
+    onSuccess: () => invalidate(),
+  });
+}
+
+export function useSetDefaultSupportSlaPolicy() {
+  const invalidate = useInvalidateSupportCaches();
+  return useMutation({
+    mutationFn: async (raw: SetDefaultSlaPolicyInput) => {
+      const input = supportStore.inputs.setDefaultSlaPolicy.parse(raw);
+      const rows = (supportStore.collections.slaPolicies.toArray ??
+        []) as SupportSlaPolicy[];
+      for (const row of rows) {
+        const shouldBeDefault = row.id === input.id;
+        if (row.isDefault === shouldBeDefault) continue;
+        const tx = supportStore.collections.slaPolicies.update(
+          row.id,
+          (draft: SupportSlaPolicy) => {
+            draft.isDefault = shouldBeDefault;
+            draft.updatedAt = nowIso();
+          },
+        );
+        await tx.isPersisted.promise;
+      }
+      return input.id;
+    },
+    onSuccess: () => invalidate(),
+  });
+}
+
+async function clearOtherDefaultSlas(keepId: string): Promise<void> {
+  const rows = (supportStore.collections.slaPolicies.toArray ??
+    []) as SupportSlaPolicy[];
+  for (const row of rows) {
+    if (row.id === keepId) continue;
+    if (!row.isDefault) continue;
+    const tx = supportStore.collections.slaPolicies.update(
+      row.id,
+      (draft: SupportSlaPolicy) => {
+        draft.isDefault = false;
+        draft.updatedAt = nowIso();
+      },
+    );
+    await tx.isPersisted.promise;
+  }
+}
+
+export function useSaveSupportTeam() {
+  const invalidate = useInvalidateSupportCaches();
+  return useMutation({
+    mutationFn: async (raw: SaveTeamInput) => {
+      const input = supportStore.inputs.saveTeam.parse(raw);
+      if (input.id) {
+        const tx = supportStore.collections.teams.update(
+          input.id,
+          (draft: SupportTeam) => {
+            draft.name = input.name;
+            draft.slug = input.slug;
+            draft.description = input.description;
+            draft.initials = input.initials;
+          },
+        );
+        await tx.isPersisted.promise;
+        return input.id;
+      }
+      const row: SupportTeam = {
+        id: genId("team"),
+        name: input.name,
+        slug: input.slug,
+        description: input.description,
+        initials: input.initials,
+      };
+      const tx = supportStore.collections.teams.insert(row);
+      await tx.isPersisted.promise;
+      return row.id;
+    },
+    onSuccess: () => invalidate(),
+  });
+}
+
+export function useDeleteSupportTeam() {
+  const invalidate = useInvalidateSupportCaches();
+  return useMutation({
+    mutationFn: async (raw: DeleteTeamInput) => {
+      const input = supportStore.inputs.deleteTeam.parse(raw);
+      const tx = supportStore.collections.teams.delete(input.id);
+      await tx.isPersisted.promise;
+      return input.id;
+    },
+    onSuccess: () => invalidate(),
+  });
+}
+
+export function useSaveSupportSignature() {
+  const invalidate = useInvalidateSupportCaches();
+  return useMutation({
+    mutationFn: async (raw: SaveSignatureInput) => {
+      const input = supportStore.inputs.saveSignature.parse(raw);
+      if (input.id) {
+        const tx = supportStore.collections.signatures.update(
+          input.id,
+          (draft: SupportSignature) => {
+            draft.ownerAgentId = input.ownerAgentId;
+            draft.name = input.name;
+            draft.bodyText = input.bodyText;
+            draft.bodyHtml = input.bodyHtml ?? null;
+            draft.isDefault = input.isDefault;
+            draft.updatedAt = nowIso();
+          },
+        );
+        await tx.isPersisted.promise;
+        if (input.isDefault)
+          await clearOtherDefaultSignatures(input.id, input.ownerAgentId);
+        return input.id;
+      }
+      const stamp = nowIso();
+      const row: SupportSignature = {
+        id: genId("sig"),
+        tenantId: defaultTenantIdFromCollection(),
+        ownerAgentId: input.ownerAgentId,
+        name: input.name,
+        bodyText: input.bodyText,
+        bodyHtml: input.bodyHtml ?? null,
+        isDefault: input.isDefault,
+        createdAt: stamp,
+        updatedAt: stamp,
+      };
+      const tx = supportStore.collections.signatures.insert(row);
+      await tx.isPersisted.promise;
+      if (row.isDefault)
+        await clearOtherDefaultSignatures(row.id, row.ownerAgentId);
+      return row.id;
+    },
+    onSuccess: () => invalidate(),
+  });
+}
+
+export function useDeleteSupportSignature() {
+  const invalidate = useInvalidateSupportCaches();
+  return useMutation({
+    mutationFn: async (raw: DeleteSignatureInput) => {
+      const input = supportStore.inputs.deleteSignature.parse(raw);
+      const tx = supportStore.collections.signatures.delete(input.id);
+      await tx.isPersisted.promise;
+      return input.id;
+    },
+    onSuccess: () => invalidate(),
+  });
+}
+
+export function useSetDefaultSupportSignature() {
+  const invalidate = useInvalidateSupportCaches();
+  return useMutation({
+    mutationFn: async (raw: SetDefaultSignatureInput) => {
+      const input = supportStore.inputs.setDefaultSignature.parse(raw);
+      const rows = (supportStore.collections.signatures.toArray ??
+        []) as SupportSignature[];
+      const target = rows.find((row) => row.id === input.id);
+      if (!target) {
+        throw new Error(`Unknown signature: ${input.id}`);
+      }
+      for (const row of rows) {
+        if (row.ownerAgentId !== target.ownerAgentId) continue;
+        const shouldBeDefault = row.id === input.id;
+        if (row.isDefault === shouldBeDefault) continue;
+        const tx = supportStore.collections.signatures.update(
+          row.id,
+          (draft: SupportSignature) => {
+            draft.isDefault = shouldBeDefault;
+            draft.updatedAt = nowIso();
+          },
+        );
+        await tx.isPersisted.promise;
+      }
+      return input.id;
+    },
+    onSuccess: () => invalidate(),
+  });
+}
+
+async function clearOtherDefaultSignatures(
+  keepId: string,
+  ownerAgentId: string | null,
+): Promise<void> {
+  const rows = (supportStore.collections.signatures.toArray ??
+    []) as SupportSignature[];
+  for (const row of rows) {
+    if (row.id === keepId) continue;
+    if (row.ownerAgentId !== ownerAgentId) continue;
+    if (!row.isDefault) continue;
+    const tx = supportStore.collections.signatures.update(
+      row.id,
+      (draft: SupportSignature) => {
+        draft.isDefault = false;
+        draft.updatedAt = nowIso();
+      },
+    );
+    await tx.isPersisted.promise;
+  }
+}
+
+export function useSaveSupportAutomationRule() {
+  const invalidate = useInvalidateSupportCaches();
+  return useMutation({
+    mutationFn: async (raw: SaveAutomationRuleInput) => {
+      const input = supportStore.inputs.saveAutomationRule.parse(raw);
+      if (input.id) {
+        const tx = supportStore.collections.automationRules.update(
+          input.id,
+          (draft: SupportAutomationRule) => {
+            draft.name = input.name;
+            draft.description = input.description;
+            draft.enabled = input.enabled;
+            draft.trigger = input.trigger;
+            draft.conditions =
+              input.conditions as SupportAutomationRule["conditions"];
+            draft.actions = input.actions as SupportAutomationRule["actions"];
+            draft.updatedAt = nowIso();
+          },
+        );
+        await tx.isPersisted.promise;
+        return input.id;
+      }
+      const stamp = nowIso();
+      const row: SupportAutomationRule = {
+        id: genId("automation"),
+        tenantId: defaultTenantIdFromCollection(),
+        name: input.name,
+        description: input.description,
+        enabled: input.enabled,
+        trigger: input.trigger,
+        conditions: input.conditions as SupportAutomationRule["conditions"],
+        actions: input.actions as SupportAutomationRule["actions"],
+        createdAt: stamp,
+        updatedAt: stamp,
+      };
+      const tx = supportStore.collections.automationRules.insert(row);
+      await tx.isPersisted.promise;
+      return row.id;
+    },
+    onSuccess: () => invalidate(),
+  });
+}
+
+export function useDeleteSupportAutomationRule() {
+  const invalidate = useInvalidateSupportCaches();
+  return useMutation({
+    mutationFn: async (raw: DeleteAutomationRuleInput) => {
+      const input = supportStore.inputs.deleteAutomationRule.parse(raw);
+      const tx = supportStore.collections.automationRules.delete(input.id);
+      await tx.isPersisted.promise;
+      return input.id;
+    },
+    onSuccess: () => invalidate(),
+  });
+}
+
+export function useToggleSupportAutomationRule() {
+  const invalidate = useInvalidateSupportCaches();
+  return useMutation({
+    mutationFn: async (raw: ToggleAutomationRuleInput) => {
+      const input = supportStore.inputs.toggleAutomationRule.parse(raw);
+      const tx = supportStore.collections.automationRules.update(
+        input.id,
+        (draft: SupportAutomationRule) => {
+          draft.enabled = input.enabled;
+          draft.updatedAt = nowIso();
+        },
+      );
+      await tx.isPersisted.promise;
+      return input.id;
+    },
+    onSuccess: () => invalidate(),
+  });
+}
+
+export function useSaveSupportNotificationPreferences() {
+  const invalidate = useInvalidateSupportCaches();
+  return useMutation({
+    mutationFn: async (raw: SaveNotificationPreferencesInput) => {
+      const input = supportStore.inputs.saveNotificationPreferences.parse(raw);
+      const rows = (supportStore.collections.notificationPreferences.toArray ??
+        []) as SupportNotificationPreferences[];
+      const existing = rows.find((row) => row.agentId === input.agentId);
+      const stamp = nowIso();
+      if (existing) {
+        const tx = supportStore.collections.notificationPreferences.update(
+          existing.id,
+          (draft: SupportNotificationPreferences) => {
+            draft.emailMentions = input.emailMentions;
+            draft.emailAssignments = input.emailAssignments;
+            draft.emailDailyDigest = input.emailDailyDigest;
+            draft.inAppMentions = input.inAppMentions;
+            draft.inAppAssignments = input.inAppAssignments;
+            draft.inAppSlaWarnings = input.inAppSlaWarnings;
+            draft.updatedAt = stamp;
+          },
+        );
+        await tx.isPersisted.promise;
+        return existing.id;
+      }
+      const row: SupportNotificationPreferences = {
+        id: genId("notif-pref"),
+        tenantId: defaultTenantIdFromCollection(),
+        agentId: input.agentId,
+        emailMentions: input.emailMentions,
+        emailAssignments: input.emailAssignments,
+        emailDailyDigest: input.emailDailyDigest,
+        inAppMentions: input.inAppMentions,
+        inAppAssignments: input.inAppAssignments,
+        inAppSlaWarnings: input.inAppSlaWarnings,
+        createdAt: stamp,
+        updatedAt: stamp,
+      };
+      const tx = supportStore.collections.notificationPreferences.insert(row);
+      await tx.isPersisted.promise;
+      return row.id;
+    },
+    onSuccess: () => invalidate(),
+  });
+}

@@ -4,6 +4,7 @@ import { useLiveQuery } from "@tanstack/react-db";
 
 import {
   supportAgentsCollection,
+  supportAutomationRulesCollection,
   supportBusinessHoursCollection,
   supportCannedResponsesCollection,
   supportConversationsCollection,
@@ -12,13 +13,18 @@ import {
   supportLabelsCollection,
   supportMacrosCollection,
   supportMessagesCollection,
+  supportNotificationPreferencesCollection,
   supportSavedViewsCollection,
+  supportSignaturesCollection,
   supportSlaPoliciesCollection,
   supportTeamsCollection,
 } from "../collections/support-hub";
 
 export {
   EMPTY_SUPPORT_CONTACT_REF,
+  SUPPORT_AUTOMATION_ACTION_KINDS,
+  SUPPORT_AUTOMATION_CONDITION_KINDS,
+  SUPPORT_AUTOMATION_TRIGGERS,
   SUPPORT_CHANNELS,
   SUPPORT_CONVERSATION_STATUSES,
   SUPPORT_INBOX_LAYOUTS,
@@ -32,6 +38,7 @@ export {
   SUPPORT_PRIORITIES,
   SUPPORT_REPORT_SLICES,
   supportAgentsCollection,
+  supportAutomationRulesCollection,
   supportBusinessHoursCollection,
   supportCannedResponsesCollection,
   supportConversationsCollection,
@@ -40,13 +47,21 @@ export {
   supportLabelsCollection,
   supportMacrosCollection,
   supportMessagesCollection,
+  supportNotificationPreferencesCollection,
   supportSavedViewsCollection,
+  supportSignaturesCollection,
   supportSlaPoliciesCollection,
   supportTeamsCollection,
 } from "../collections/support-hub";
 
 export type {
   SupportAssignee,
+  SupportAutomationAction,
+  SupportAutomationActionKind,
+  SupportAutomationCondition,
+  SupportAutomationConditionKind,
+  SupportAutomationRule,
+  SupportAutomationTrigger,
   SupportBusinessHours,
   SupportCannedResponse,
   SupportChannel,
@@ -69,12 +84,14 @@ export type {
   SupportMessageDeliveryState,
   SupportMessageDirection,
   SupportMessageType,
+  SupportNotificationPreferences,
   SupportParticipant,
   SupportPriority,
   SupportReportSlice,
   SupportRichTextPayload,
   SupportSavedView,
   SupportSavedViewFilter,
+  SupportSignature,
   SupportSlaPolicy,
   SupportTeam,
 } from "../collections/support-hub";
@@ -129,4 +146,16 @@ export function useSupportBusinessHoursLive() {
 
 export function useSupportSlaPoliciesLive() {
   return useLiveQuery(supportSlaPoliciesCollection);
+}
+
+export function useSupportSignaturesLive() {
+  return useLiveQuery(supportSignaturesCollection);
+}
+
+export function useSupportAutomationRulesLive() {
+  return useLiveQuery(supportAutomationRulesCollection);
+}
+
+export function useSupportNotificationPreferencesLive() {
+  return useLiveQuery(supportNotificationPreferencesCollection);
 }
