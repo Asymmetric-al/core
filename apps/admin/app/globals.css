@@ -3,13 +3,6 @@
 @source "../../**/*.{js,ts,jsx,tsx,mdx}";
 @source "../../../packages/**/**/*.{js,ts,jsx,tsx,mdx}";
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
+/* The repo-wide `prefers-reduced-motion` baseline lives in
+ * `@asym/ui/styles/globals.css` (imported above). Do not redeclare it
+ * here — see `docs/ai/skills/anim/SKILL.md`. */
