@@ -5,8 +5,8 @@ import {
   useTaskStaff,
   useTasksRows,
 } from "@asym/database/hooks";
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import { Plus } from "lucide-react";
 import { useMemo, useCallback, useReducer } from "react";
 

@@ -3,7 +3,7 @@ name: tiptap
 description: Tiptap rich text editor for React and Next.js. Use when building or modifying rich text editors, @tiptap extensions, StarterKit, collaboration, comments, Content AI, import/export, or Pro extensions in this monorepo.
 metadata:
   owner: "skills-steward"
-  last_updated: 2026-03-20
+  last_updated: 2026-04-16
   status: "active"
   upstream:
     url: "https://tiptap.dev/docs/resources/agent-skill"
@@ -63,12 +63,16 @@ Then commit updates under `.cursor/skills/` and `.agents/skills/` so CI (`bun ru
 
 - Target **Tiptap 3** and follow the official installation guides when adding new surface area
 - Align **all** `@tiptap/*` versions in the workspace you modify
+- In **Tiptap 3**, `StarterKit` already includes **Link** and **Underline**; configure them through `StarterKit.configure(...)` before adding standalone extensions
 - **Pro extensions** and private registry setup: see Tiptap docs (`pro-extensions` guide)
 
 ### Next.js and React
 
 - For SSR / App Router, set **`immediatelyRender: false`** on `useEditor` (already done in `editor.tsx`; preserve when refactoring)
 - Prefer the **React** APIs documented in Tiptap (`useEditor`, `EditorContent`, extensions)
+- In **3.20+**, import `BubbleMenu` / `FloatingMenu` from **`@tiptap/react/menus`**
+- `useEditor` defaults `shouldRerenderOnTransaction` to **`false`**; use **`useEditorState`** for toolbars or other UI that depends on selection/active-state changes
+- For read-only feeds, previews, or list items, prefer **`@tiptap/static-renderer`** (`renderToReactElement` / `renderToHTMLString`) over mounting a read-only `useEditor` instance per item
 
 ### Reference repositories (optional, for deep searches)
 
@@ -97,13 +101,17 @@ When implementing these capabilities, open the matching section in **tiptap-docs
 2. For new behavior, check Tiptap docs for the correct extension or command API
 3. Add dependencies in `packages/ui` (and align root `@tiptap/*` if those packages are also used at root)
 4. Keep `immediatelyRender: false` for Next.js client editors
-5. Run scoped checks: `bunx turbo run lint --filter=@asym/ui` and `bunx turbo run typecheck --filter=@asym/ui`
+5. Use `useEditorState` for toolbar / bubble-menu state that depends on `editor.isActive(...)`, `editor.can()`, or `editor.getAttributes(...)`
+6. Use `@tiptap/static-renderer` for read-only rendering unless a live editor instance is explicitly required
+7. Run scoped checks: `bunx turbo run lint --filter=@asym/ui` and `bunx turbo run typecheck --filter=@asym/ui`
 
 ## Checklist
 
 - [ ] Changes live in `packages/ui` unless an app-only integration is explicitly required
 - [ ] All `@tiptap/*` versions aligned in touched workspaces
 - [ ] Next.js editor options safe for SSR (`immediatelyRender: false` where applicable)
+- [ ] Toolbar / active-state UI uses `useEditorState` when it must track selection or mark changes
+- [ ] Read-only rendering uses `@tiptap/static-renderer` unless a live editor is truly needed
 - [ ] Toolbar/commands and schema stay consistent (no orphaned marks/nodes)
 - [ ] Lint and typecheck pass for `@asym/ui`
 
@@ -116,4 +124,6 @@ When implementing these capabilities, open the matching section in **tiptap-docs
 
 - Omitting `immediatelyRender: false` and breaking hydration in the App Router
 - Mixing mismatched `@tiptap/*` versions across packages
+- Mounting a read-only editor in feeds or lists instead of using `@tiptap/static-renderer`
+- Reading `editor.isActive()` directly in render without `useEditorState`, causing stale toolbar state
 - Duplicating editor code in `apps/*` instead of extending `@asym/ui`

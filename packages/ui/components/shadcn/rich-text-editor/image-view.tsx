@@ -13,6 +13,23 @@ import { cn } from "@asym/ui/lib/utils";
 
 import { Button } from "../button";
 
+function normalizeImageWidth(value: unknown): string {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return `${value}px`;
+  }
+
+  if (typeof value === "string") {
+    const normalizedValue = value.trim();
+
+    if (!normalizedValue) return "100%";
+    if (/^\d+$/.test(normalizedValue)) return `${normalizedValue}px`;
+
+    return normalizedValue;
+  }
+
+  return "100%";
+}
+
 /* -------------------------------------------------------------------------- */
 /*    Extension - extends base Image with width attribute + custom NodeView   */
 /* -------------------------------------------------------------------------- */
@@ -23,8 +40,17 @@ export const ResizableImageExtension = Image.extend({
       ...this.parent?.(),
       width: {
         default: "100%",
-        renderHTML: (attributes) => ({ width: attributes.width }),
-        parseHTML: (element) => element.getAttribute("width") || "100%",
+        renderHTML: (attributes) => {
+          const width = normalizeImageWidth(attributes.width);
+
+          if (width === "100%") return {};
+
+          return { style: `width: ${width}` };
+        },
+        parseHTML: (element) =>
+          normalizeImageWidth(
+            element.style.width || element.getAttribute("width") || "100%",
+          ),
       },
     };
   },
@@ -73,7 +99,7 @@ function ResizableImageView({
       const { side, startX, startWidth } = resizeState.current;
       const dx = side === "right" ? clientX - startX : startX - clientX;
       const newWidth = Math.max(150, Math.min(startWidth + dx, parentWidth));
-      updateAttributes({ width: newWidth });
+      updateAttributes({ width: `${newWidth}px` });
     }
 
     function handleMouseMove(e: MouseEvent) {
@@ -88,7 +114,7 @@ function ResizableImageView({
 
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleEnd);
-    window.addEventListener("touchmove", handleTouchMove);
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
     window.addEventListener("touchend", handleEnd);
 
     return () => {
@@ -100,12 +126,13 @@ function ResizableImageView({
   }, [resizing, updateAttributes]);
 
   const isEditable = editor?.isEditable;
+  const currentWidth = normalizeImageWidth(node.attrs.width);
 
   return (
     <NodeViewWrapper
       ref={containerRef}
       className={cn("image-resizable", selected && "image-selected")}
-      style={{ width: node.attrs.width }}
+      style={{ width: currentWidth }}
       data-drag-handle
     >
       <div className="group relative inline-block">
@@ -121,6 +148,9 @@ function ResizableImageView({
         {isEditable && (
           <>
             <div
+              role="separator"
+              aria-label="Resize image from the left"
+              aria-orientation="vertical"
               className="absolute inset-y-0 left-0 z-20 flex w-6 cursor-col-resize items-center justify-start pl-1.5"
               onMouseDown={(e) => {
                 e.preventDefault();
@@ -135,6 +165,9 @@ function ResizableImageView({
             </div>
 
             <div
+              role="separator"
+              aria-label="Resize image from the right"
+              aria-orientation="vertical"
               className="absolute inset-y-0 right-0 z-20 flex w-6 cursor-col-resize items-center justify-end pr-2"
               onMouseDown={(e) => {
                 e.preventDefault();

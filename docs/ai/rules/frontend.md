@@ -41,6 +41,7 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 
 ### shadcn component workflow
 
+- Shared `packages/ui/components.json` pins **`style: base-maia`** so CLI installs align with **Base UI first** (see “Component and primitive policy” above).
 - Run shadcn additions from repo root with `--cwd packages/ui`:
   - `bunx --bun shadcn@latest add <component> --cwd packages/ui`
 - Ensure generated files land in the shared UI package and remain correctly exported for `@asym/ui` consumers.

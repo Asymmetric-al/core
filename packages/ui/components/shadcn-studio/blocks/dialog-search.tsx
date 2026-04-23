@@ -10,7 +10,7 @@ import {
   MoreVerticalIcon,
 } from "lucide-react";
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 import {
   Avatar,
@@ -37,8 +37,7 @@ type Props = {
 };
 
 const SearchDialog = ({ defaultOpen = false, trigger, className }: Props) => {
-  const initialOpenRef = useRef(defaultOpen);
-  const [open, setOpen] = useState(initialOpenRef.current);
+  const [open, setOpen] = useState(defaultOpen);
   const [search, setSearch] = useState("");
 
   return (

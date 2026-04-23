@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "@asym/lib/motion";
+import { FilterBar } from "@asym/ui/components/primitives/filter-bar";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Card } from "@asym/ui/components/shadcn/card";
 import { DataTableWrapper } from "@asym/ui/components/shadcn/data-table/data-table-wrapper";
@@ -11,7 +12,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
-import { FilterBar } from "@asym/ui/components/shadcn/filter-bar";
 import { Tabs, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
 import { cn } from "@asym/ui/lib/utils";
 import {
