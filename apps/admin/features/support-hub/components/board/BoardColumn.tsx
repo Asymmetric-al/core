@@ -16,6 +16,11 @@ interface BoardColumnProps {
   dropProps: React.HTMLAttributes<HTMLDivElement> & {
     "aria-dropeffect": "move";
   };
+  /**
+   * Phase 7 a11y improvement — overrides the default `${label} column` aria
+   * label so screen readers announce the count alongside the column name.
+   */
+  ariaLabel?: string;
   children: React.ReactNode;
 }
 
@@ -37,13 +42,14 @@ export function BoardColumn({
   isHovered,
   isDragging,
   dropProps,
+  ariaLabel,
   children,
 }: BoardColumnProps) {
   const tone = STATUS_TONES[status];
 
   return (
     <section
-      aria-label={`${label} column`}
+      aria-label={ariaLabel ?? `${label} column`}
       className={cn(
         "flex h-full min-h-0 min-w-[260px] flex-1 flex-col rounded-2xl border bg-zinc-50/40 p-3",
         tone.tint,

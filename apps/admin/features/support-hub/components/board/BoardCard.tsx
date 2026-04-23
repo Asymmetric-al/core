@@ -86,10 +86,23 @@ export function BoardCard({
         type="button"
         onClick={() => onSelect(conversation.id)}
         onKeyDown={(event) => onCardKeyDown?.(event, conversation)}
+        aria-pressed={isSelected}
+        aria-label={[
+          conversation.subject,
+          `from ${
+            conversation.externalContactName ??
+            conversation.externalContactEmail
+          }`,
+          `status ${conversation.status}`,
+          conversation.assignee
+            ? `assigned to ${conversation.assignee.name}`
+            : "unassigned",
+          isFirstReplyPastDue ? "past due" : null,
+          isEscalated ? "escalated" : null,
+        ]
+          .filter(Boolean)
+          .join(", ")}
         className="flex w-full flex-col gap-2 rounded-2xl p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400"
-        aria-label={`${conversation.subject} from ${
-          conversation.externalContactName ?? conversation.externalContactEmail
-        }`}
       >
         <header className="flex items-center justify-between gap-2 text-[11px] text-zinc-500">
           <span className="flex items-center gap-1.5 truncate">

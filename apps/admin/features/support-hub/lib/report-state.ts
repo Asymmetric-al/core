@@ -98,15 +98,54 @@ export function useSupportReportRouteState(): {
     [state.scopeKind, state.scopeId],
   );
 
+  /**
+   * Phase 7 perf: build a stable per-slice request map keyed on the
+   * underlying state hash. The map regenerates only when the state actually
+   * changes, so consumers calling `request("volume")` twice in the same
+   * render tree get the same object reference. Without this, every render
+   * handed `useSupportReport` a fresh object and forced
+   * `buildReportSeries` to re-aggregate on every keystroke.
+   */
+  const sliceRequests = React.useMemo(() => {
+    const cache = new Map<SupportReportSlice, SupportReportRequest>();
+    const slices: SupportReportSlice[] = [
+      "volume",
+      "first-response",
+      "resolution",
+      "label-mix",
+      "agent-mix",
+      "messages-received",
+      "messages-sent",
+      "customer-waiting",
+      "resolution-count",
+      "open-count",
+      "snoozed-count",
+    ];
+    for (const slice of slices) {
+      cache.set(slice, {
+        slice,
+        scope,
+        range,
+        groupBy: state.groupBy,
+        businessHoursOnly: state.businessHoursOnly,
+      });
+    }
+    return cache;
+  }, [scope, range, state.groupBy, state.businessHoursOnly]);
+
   const request = React.useCallback(
-    (slice: SupportReportSlice): SupportReportRequest => ({
-      slice,
-      scope,
-      range,
-      groupBy: state.groupBy,
-      businessHoursOnly: state.businessHoursOnly,
-    }),
-    [scope, range, state.groupBy, state.businessHoursOnly],
+    (slice: SupportReportSlice): SupportReportRequest => {
+      const cached = sliceRequests.get(slice);
+      if (cached) return cached;
+      return {
+        slice,
+        scope,
+        range,
+        groupBy: state.groupBy,
+        businessHoursOnly: state.businessHoursOnly,
+      };
+    },
+    [sliceRequests, scope, range, state.groupBy, state.businessHoursOnly],
   );
 
   return {

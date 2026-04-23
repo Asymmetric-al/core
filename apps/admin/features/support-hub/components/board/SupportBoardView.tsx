@@ -90,10 +90,16 @@ export function SupportBoardView({
   });
 
   return (
-    <div className="flex h-full min-h-[480px] gap-3 overflow-x-auto pb-2">
+    <div
+      className="flex h-full min-h-[480px] gap-3 overflow-x-auto pb-2"
+      role="region"
+      aria-label="Donor care board view"
+    >
       {COLUMNS.map((column) => {
         const rows = groupedByStatus.get(column.status) ?? [];
         const dropProps = dnd.getColumnDropProps(column.status);
+        const visibleRows = rows.slice(0, BOARD_CARD_PAGE_SIZE);
+        const overflow = Math.max(0, rows.length - BOARD_CARD_PAGE_SIZE);
         return (
           <BoardColumn
             key={column.status}
@@ -104,8 +110,9 @@ export function SupportBoardView({
             isHovered={dnd.hoverColumn === column.status}
             isDragging={dnd.isDragging}
             dropProps={dropProps}
+            ariaLabel={`${column.label} conversations, ${rows.length} item${rows.length === 1 ? "" : "s"}`}
           >
-            {rows.map((conversation) => (
+            {visibleRows.map((conversation) => (
               <BoardCard
                 key={conversation.id}
                 conversation={conversation}
@@ -119,9 +126,22 @@ export function SupportBoardView({
                 })}
               />
             ))}
+            {overflow > 0 ? (
+              <p className="px-2 py-1 text-[11px] font-medium text-zinc-500">
+                +{overflow} more — refine your filter to see them.
+              </p>
+            ) : null}
           </BoardColumn>
         );
       })}
     </div>
   );
 }
+
+/**
+ * Phase 7 perf cap: render at most this many cards per column. Larger
+ * columns surface a "+N more" hint so the page never tries to paint a
+ * 500-card column. Phase 8 will swap this for a virtualized list when the
+ * collection cardinality justifies it.
+ */
+const BOARD_CARD_PAGE_SIZE = 50;
