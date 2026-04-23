@@ -1,8 +1,8 @@
 "use client";
 
 import { motion } from "@asym/lib/motion";
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Heart, BookOpen } from "lucide-react";
 import React from "react";

@@ -1,14 +1,14 @@
 "use client";
 
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Card } from "@asym/ui/components/shadcn/card";
 import {
   Map,
   MapMarker,
   MarkerContent,
   MapControls,
-} from "@asym/ui/components/shadcn/map";
-import { PageShell } from "@asym/ui/components/shadcn/page-shell";
+} from "@asym/ui/components/primitives/map";
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Card } from "@asym/ui/components/shadcn/card";
 import {
   Tabs,
   TabsContent,

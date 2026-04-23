@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   preloadImageSource,
   shouldDisplayCropperPreloadFailure,
-} from "../../../../../../packages/ui/components/shadcn/image-cropper-helpers";
+} from "../../../../../../packages/ui/components/primitives/image-cropper-helpers";
 
 describe("image-cropper helpers", () => {
   it("resolves when the image factory reports a successful load", async () => {
