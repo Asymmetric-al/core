@@ -10,7 +10,9 @@ describe("posts/link-policy", () => {
     expect(normalizePostLinkHref("https://example.com/path")).toBe(
       "https://example.com/path",
     );
-    expect(normalizePostLinkHref("http://example.com/")).toBe("http://example.com/");
+    expect(normalizePostLinkHref("http://example.com/")).toBe(
+      "http://example.com/",
+    );
     expect(normalizePostLinkHref("javascript:alert(1)")).toBe(null);
     expect(normalizePostLinkHref("ftp://files.example/")).toBe(null);
   });
