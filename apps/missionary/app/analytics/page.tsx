@@ -1,13 +1,13 @@
 "use client";
 
-import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
 import {
   ChartCard,
   KpiTile,
   ChartLegend,
   ChartTooltip,
-} from "@asym/ui/components/shadcn/chart-wrappers";
+} from "@asym/ui/components/primitives/chart-wrappers";
+import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Select,
   SelectContent,
