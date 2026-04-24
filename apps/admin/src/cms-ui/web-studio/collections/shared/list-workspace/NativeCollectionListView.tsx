@@ -1,8 +1,8 @@
 "use client";
 
+import { FilterBar } from "@asym/ui/components/primitives/filter-bar";
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { FilterBar } from "@asym/ui/components/shadcn/filter-bar";
-import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import { cn } from "@asym/ui/lib/utils";
 import {
   ListControls,

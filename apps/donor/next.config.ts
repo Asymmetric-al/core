@@ -5,7 +5,15 @@ import { loadEnvConfig } from "@next/env";
 import type { NextConfig } from "next";
 
 const WORKSPACE_ROOT = fileURLToPath(new URL("../..", import.meta.url));
+/** Monorepo root `.env.local` — Next only auto-loads `apps/<app>/.env.local` by default. */
 loadEnvConfig(WORKSPACE_ROOT);
+
+/**
+ * Paths relative to `turbopack.root` (monorepo root). Absolute filesystem paths
+ * are mis-resolved by Turbopack as `./workspace/...` and break the donor build.
+ */
+const BONEYARD_JS_ALIAS = "apps/donor/node_modules/boneyard-js";
+const BONEYARD_JS_REACT_ALIAS = `${BONEYARD_JS_ALIAS}/dist/react.js`;
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -15,6 +23,13 @@ const nextConfig: NextConfig = {
   },
   turbopack: {
     root: WORKSPACE_ROOT,
+    // Bun may hoist `boneyard-js` out of the repo-root `node_modules/` symlink; with
+    // `turbopack.root` = monorepo root, bare `boneyard-js` imports from `apps/donor/bones`
+    // otherwise fail to resolve. Pin to the workspace-linked copy under this app.
+    resolveAlias: {
+      "boneyard-js": BONEYARD_JS_ALIAS,
+      "boneyard-js/react": BONEYARD_JS_REACT_ALIAS,
+    },
   },
   transpilePackages: [
     "@asym/api",
@@ -27,11 +42,7 @@ const nextConfig: NextConfig = {
   ],
   experimental: {
     viewTransition: true,
-    optimizePackageImports: [
-      "@asym/ui",
-      "lucide-react",
-      "@radix-ui/react-icons",
-    ],
+    optimizePackageImports: ["@asym/ui", "lucide-react"],
   },
   images: {
     remotePatterns: [

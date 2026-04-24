@@ -1,7 +1,7 @@
 "use client";
 
 import { useTeams, useTeamMembers } from "@asym/database/hooks";
-import { PageShell } from "@asym/ui/components/shadcn/page-shell";
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { useMemo, useState } from "react";
 
 import {

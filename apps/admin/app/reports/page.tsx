@@ -2,6 +2,7 @@
 
 import { SafeHtml } from "@asym/lib/components/safe-html";
 import { motion, AnimatePresence } from "@asym/lib/motion";
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
@@ -10,7 +11,6 @@ import {
   CardTitle,
   CardDescription,
 } from "@asym/ui/components/shadcn/card";
-import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import {
   TrendingUp,
   DollarSign,
