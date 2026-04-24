@@ -1,44 +1,5 @@
-"use client";
+import PageClient from "./page-client";
 
-import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
-import { PageShell } from "@asym/ui/components/primitives/page-shell";
-
-import { boneyardContributionsFixture } from "../../contributions/data";
-import {
-  ContributionsMainBody,
-  ContributionsPageActions,
-} from "../../contributions/main-body";
-
-/**
- * Public capture route for Boneyard CLI (no admin shell auth).
- * Run: `bun run boneyard:admin` with dev server on :3030.
- */
-export default function BoneyardContributionsCapturePage() {
-  const skeletonContent = (
-    <ContributionsMainBody
-      data={boneyardContributionsFixture}
-      isLoading={false}
-      onSelectContribution={() => {}}
-    />
-  );
-
-  return (
-    <PageShell
-      title="Contributions"
-      description="Track and manage all donations and contributions."
-      actions={<ContributionsPageActions />}
-    >
-      <BoneyardSkeleton
-        name="admin-contributions-content"
-        loading={true}
-        fixture={skeletonContent}
-        snapshotConfig={{
-          excludeSelectors: ["[data-no-skeleton]", "svg.lucide", "svg"],
-          excludeTags: ["footer"],
-        }}
-      >
-        {skeletonContent}
-      </BoneyardSkeleton>
-    </PageShell>
-  );
+export default function Page() {
+  return <PageClient />;
 }

@@ -44,6 +44,7 @@ const nextConfig: NextConfig = {
     return webpackConfig;
   },
   experimental: {
+    globalNotFound: true,
     viewTransition: true,
     optimizePackageImports: ["@asym/ui", "lucide-react"],
   },

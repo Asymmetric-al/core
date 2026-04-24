@@ -136,13 +136,16 @@ function ResizableImageView({
       data-drag-handle
     >
       <div className="group relative inline-block">
+        {/* Intentional raw img: TipTap needs a DOM ref for resize handles; uploads provide image URLs and base64 is disabled in extensions.ts. */}
         <img
           ref={imgRef}
           src={node.attrs.src}
           alt={node.attrs.alt ?? ""}
           title={node.attrs.title ?? undefined}
           className="rounded-lg w-full h-auto block"
+          decoding="async"
           draggable={false}
+          loading="lazy"
         />
 
         {isEditable && (
