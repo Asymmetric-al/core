@@ -40,8 +40,8 @@ export const AppIcon = React.memo(function AppIcon({
 }: AppIconProps) {
   const reduceMotion = useReducedMotion();
 
-  // Graceful fallback: when not animated, when SSR-rendering, or when
-  // the user prefers reduced motion, render the standard icon.
+  // Graceful fallback: when not animated or when the user prefers reduced
+  // motion, render the standard icon.
   if (!animated || reduceMotion) {
     return (
       <Icon

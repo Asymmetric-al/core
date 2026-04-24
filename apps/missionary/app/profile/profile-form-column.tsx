@@ -1,13 +1,13 @@
 "use client";
 
 import { motion } from "@asym/lib/motion";
+import { ImageUpload } from "@asym/ui/components/primitives/image-upload";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   CardContent,
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
-import { ImageUpload } from "@asym/ui/components/shadcn/image-upload";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
