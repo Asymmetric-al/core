@@ -16,16 +16,13 @@ let handler: (req: unknown) => Promise<Response>;
 
 // Large transitive import (Payload + Lexical + CMS graph); 10s default
 // hookTimeout is flaky on Windows CI and parallel test runs.
-beforeAll(
-  async () => {
-    const module =
-      await import("../../../apps/admin/src/cms/create-from-template-endpoint");
-    handler = module.webStudioCreateFromTemplateEndpoint.handler as (
-      req: unknown,
-    ) => Promise<Response>;
-  },
-  60_000,
-);
+beforeAll(async () => {
+  const module =
+    await import("../../../apps/admin/src/cms/create-from-template-endpoint");
+  handler = module.webStudioCreateFromTemplateEndpoint.handler as (
+    req: unknown,
+  ) => Promise<Response>;
+}, 60_000);
 
 beforeEach(() => {
   vi.clearAllMocks();
