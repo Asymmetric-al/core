@@ -207,6 +207,8 @@ Load rulebooks before editing files in their domain.
 - **Testing/Playwright/a11y/perf gates:** `docs/ai/rules/testing.md`
 - **TypeScript config / TS 6–7 prep (no version bump):** `docs/ai/rules/typescript-future-proofing.md` and `docs/guides/typescript-6-readiness.md`
 - **shadcn/studio MCP workflows (/cui, /rui, /iui, /ftc):** `docs/ai/rules/shadcn-studio-mcp.md` (only when running those workflows)
+- **Async QA Foreman mode / grind-style verification:** `docs/ai/rules/async-qa-foreman.md` when the user requests Async QA Foreman mode, grind-style completion pressure, background QA, long-running verification, or a second agent to challenge quality and keep the main agent working.
+- **OpenSpec alignment / prompt intent guard:** `docs/ai/rules/openspec-guardian.md` when the user asks for OpenSpec alignment, prompt-intent checking, scope-drift prevention, spec-grounded review, or a background agent to keep implementation aligned with the original request and OpenSpec.
 
 ---
 

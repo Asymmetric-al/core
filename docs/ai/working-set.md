@@ -1,3 +1,66 @@
+## 2026-04-25 (OpenSpec Guardian instruction-system)
+
+- Date: 2026-04-25
+- Repo: Asymmetric-al/core
+- Goal: Add reusable Cursor `openspec-guardian` background subagent plus rulebook and routing so implementation stays aligned with user prompt, OpenSpec, active changes, and repo boundaries (not general QA).
+- Primary area:
+  - `.cursor/agents/openspec-guardian.md`
+  - `.cursor/rules/openspec-guardian.mdc`
+  - `docs/ai/rules/openspec-guardian.md`
+  - `AGENTS.md` (routing bullet only)
+  - `README.md` (AI Agent Guidance bullet only)
+  - `docs/ai/working-set.md` (this entry)
+- Constraints:
+  - Instruction-system and docs only; no apps, packages, Supabase, runtime/product code.
+  - Do not edit generated marker regions in `AGENTS.md`; do not hand-edit skill mirrors.
+- Verification commands run:
+  - `bun run format:check`
+  - `bunx @fission-ai/openspec@latest validate --all`
+  - `bun run lint`
+- Outcome: Guardian wiring added; `skills:verify` / `skills:sync` skipped (no skill tree edits).
+
+## 2026-04-25 (Async QA Foreman instruction-system)
+
+- Date: 2026-04-25
+- Repo: Asymmetric-al/core
+- Goal: Add reusable Cursor Async QA Foreman docs and wiring (`qa-foreman` subagent, Cursor rule, durable rulebook, AGENTS/README routing) so anyone can request grind-style background QA without changing product code.
+- Primary area:
+  - `.cursor/agents/qa-foreman.md`
+  - `.cursor/rules/async-qa-foreman.mdc`
+  - `docs/ai/rules/async-qa-foreman.md`
+  - `AGENTS.md` (routing bullet only)
+  - `README.md` (AI Agent Guidance bullet only)
+  - `docs/ai/working-set.md` (this entry)
+- Constraints:
+  - Docs and agent-tooling only; no apps, packages, runtime scripts, Supabase migrations, or product code unless verification proved otherwise.
+  - Do not edit generated marker regions in `AGENTS.md`; do not hand-edit skill mirrors.
+- Verification commands run:
+  - `bun run format:check`
+  - `bun run lint`
+- Outcome: Instruction-system files added/updated; `skills:verify` / `skills:sync` skipped (no changes under `docs/ai/skills/`, `.cursor/skills/`, or `.agents/skills/`).
+
+## 2026-04-25 (repo-wide shadcn/tailwind/ui audit planning)
+
+- Date: 2026-04-25
+- Repo: Asymmetric-al/core
+- Goal: Produce a plan-only audit for shadcn/ui + Tailwind v4 + Maia/Zinc consistency across `packages/ui` and `apps/{admin,donor,missionary}` without code implementation.
+- Primary area:
+  - `packages/ui/components.json`
+  - `packages/ui/styles/globals.css`
+  - `packages/ui/components/{shadcn,primitives,view-transitions}`
+  - `apps/{admin,donor,missionary}/app/{globals.css,layout.tsx}`
+  - `packages/lib/{motion.tsx,motion-presets.ts,view-transitions/*}`
+- Constraints:
+  - Plan mode only (no UI refactors in this step).
+  - Preserve Maia theme, Zinc palette, and shared token ownership in `packages/ui/styles/globals.css`.
+  - Preserve app behavior/routing/providers and existing compatibility deep imports.
+  - Use Bun/Turbo scripts only; inspect shadcn CLI with `--cwd packages/ui`.
+- Evidence sources used:
+  - `bunx --bun shadcn@latest info --cwd packages/ui`
+  - `bunx --bun shadcn@latest diff --cwd packages/ui`
+  - `.next-docs` references for Server/Client Components, Cache Components, and Image usage
+  - repo `rg` scans across apps/packages/docs for imports, tokens, motion, and accessibility markers
+
 # Working Set
 
 ## 2026-04-17 (shadcn/ui migration: post-merge validation)

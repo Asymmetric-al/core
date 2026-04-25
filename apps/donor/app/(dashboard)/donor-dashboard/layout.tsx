@@ -42,7 +42,7 @@ export default async function DonorDashboardLayout({
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
+    <div className="flex min-h-screen flex-col bg-zinc-50">
       <Navbar />
       <div className="pt-16">
         <DonorSubNav />

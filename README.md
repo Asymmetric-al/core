@@ -135,6 +135,8 @@ Agent-oriented docs live under `docs/ai/`:
 - **Working set:** `docs/ai/working-set.md` — living task context (keep updated)
 - **Monorepo architecture:** `docs/ai/monorepo-architecture.md` — workspace structure
 - **Rulebooks:** `docs/ai/rules/*` — domain-specific guidelines (frontend, backend, testing, etc.)
+- **Async QA Foreman:** `docs/ai/rules/async-qa-foreman.md` — optional background `/qa-foreman` subagent (`.cursor/agents/qa-foreman.md`) for grind-style verification while the main agent implements.
+- **OpenSpec Guardian:** `docs/ai/rules/openspec-guardian.md` — optional background `/openspec-guardian` subagent (`.cursor/agents/openspec-guardian.md`) for prompt intent and OpenSpec alignment while the main agent implements.
 - **Skills:** `docs/ai/skills/*` — reusable workflow patterns (repo-owned, versioned)
 
 **Canonical source:** `docs/ai/`. Root `rules/` and `skills/` contain **deprecation pointers** to `docs/ai/` (not full duplicates).
