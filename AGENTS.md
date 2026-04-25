@@ -209,6 +209,7 @@ Load rulebooks before editing files in their domain.
 - **shadcn/studio MCP workflows (/cui, /rui, /iui, /ftc):** `docs/ai/rules/shadcn-studio-mcp.md` (only when running those workflows)
 - **Async QA Foreman mode / grind-style verification:** `docs/ai/rules/async-qa-foreman.md` when the user requests Async QA Foreman mode, grind-style completion pressure, background QA, long-running verification, or a second agent to challenge quality and keep the main agent working.
 - **OpenSpec alignment / prompt intent guard:** `docs/ai/rules/openspec-guardian.md` when the user asks for OpenSpec alignment, prompt-intent checking, scope-drift prevention, spec-grounded review, or a background agent to keep implementation aligned with the original request and OpenSpec.
+- **PDF Document Builder / PDF Studio replacement:** before work on PDF Studio, DocRaptor rendering, React Email fork work, document templates, financial reports, receipts, batch generation, variables, repeaters, or Unlayer migration, read `openspec/project.md` plus the active PDF Document Builder OpenSpec change/specs. OpenSpec holds the durable product intent and behavior contract; `AGENTS.md` only routes agents to it.
 
 ---
 
