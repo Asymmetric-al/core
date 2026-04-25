@@ -510,20 +510,22 @@
 
   /* Always-on press feedback. Subtle scale on :active for any
      pressable element (button, tile, list item). Touch-safe because
-     :active fires on tap. */
+     :active fires on tap. Composes with Tailwind's `transition-colors`
+     by extending the transition list rather than overriding it. */
   .press-feedback {
-    transition: transform var(--duration-press) var(--ease-out-soft);
-  }
-  .press-feedback:active {
-    transform: scale(var(--scale-press));
+    transition-property:
+      transform, color, background-color, border-color, text-decoration-color,
+      fill, stroke, box-shadow;
+    transition-timing-function: var(--ease-out-soft);
+    transition-duration: var(--duration-press);
   }
 
   /* Hover-only lift. Gated by `(hover: hover) and (pointer: fine)` so
      it never fires on touch devices (where hover triggers on tap). */
   .hover-lift {
-    transition:
-      transform var(--duration-micro) var(--ease-out-soft),
-      box-shadow var(--duration-micro) var(--ease-out-soft);
+    transition-property: transform, box-shadow;
+    transition-timing-function: var(--ease-out-soft);
+    transition-duration: var(--duration-micro);
   }
   @media (hover: hover) and (pointer: fine) {
     .hover-lift:hover {
@@ -532,14 +534,22 @@
   }
 
   /* Hover-only scale. Same touch-safe gate as `hover-lift` but a
-     scale change instead of a translate. Use for buttons, badges. */
-  .hover-scale-subtle {
-    transition: transform var(--duration-micro) var(--ease-out-soft);
-  }
+     scale change instead of a translate. Use for buttons and badges.
+     Note: this utility does NOT declare its own `transition-*`
+     because it is most often combined with `.press-feedback` (which
+     already animates `transform`); declaring transition twice would
+     fight the cascade. Pair with another utility that includes
+     `transform` in its transition-property. */
   @media (hover: hover) and (pointer: fine) {
     .hover-scale-subtle:hover {
       transform: scale(var(--scale-hover-subtle));
     }
+  }
+
+  /* :active after :hover so press transform wins when both match (mouse down
+     while hovered). Same specificity as .hover-scale-subtle:hover. */
+  .press-feedback:active {
+    transform: scale(var(--scale-press));
   }
 
   .safe-area-inset {

@@ -147,7 +147,7 @@ export function GivingWidget({
                 role="radio"
                 aria-checked={amount === amt && !customAmount}
                 className={cn(
-                  "py-2.5 rounded-xl border text-sm font-bold transition-all active:scale-[0.98]",
+                  "py-2.5 rounded-xl border text-sm font-bold press-feedback",
                   amount === amt && !customAmount
                     ? "border-slate-900 bg-slate-50 text-slate-900"
                     : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900 hover:bg-slate-50",
@@ -183,7 +183,7 @@ export function GivingWidget({
 
         <Button
           size="lg"
-          className="w-full h-14 text-lg font-bold bg-slate-900 hover:bg-slate-800 shadow-xl shadow-slate-900/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.99]"
+          className="w-full h-14 text-lg font-bold bg-slate-900 hover:bg-slate-800 shadow-xl shadow-slate-900/20 rounded-xl hover-scale-subtle"
           asChild
         >
           <Link
