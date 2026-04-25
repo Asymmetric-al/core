@@ -430,7 +430,7 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                           key={amt}
                           onClick={() => handleAmountClick(amt)}
                           className={cn(
-                            "py-2.5 rounded-xl border text-sm font-bold transition-all active:scale-[0.98]",
+                            "py-2.5 rounded-xl border text-sm font-bold press-feedback",
                             amount === amt && !customAmount
                               ? "border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-100"
                               : "border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-slate-900 hover:bg-slate-50",
@@ -461,7 +461,7 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
 
                   <Button
                     size="lg"
-                    className="w-full h-14 text-lg font-bold bg-slate-900 hover:bg-slate-800 shadow-xl shadow-slate-900/20 rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    className="w-full h-14 text-lg font-bold bg-slate-900 hover:bg-slate-800 shadow-xl shadow-slate-900/20 rounded-2xl hover-scale-subtle"
                     asChild
                   >
                     <Link
