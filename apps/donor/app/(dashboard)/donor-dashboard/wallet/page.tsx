@@ -972,7 +972,7 @@ function AddMethodDialog({
           </Button>
           <Button
             onClick={onSave}
-            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-12 px-8 font-black uppercase tracking-widest text-[10px] rounded-xl transition-transform active:scale-[0.98]"
+            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-12 px-8 font-black uppercase tracking-widest text-[10px] rounded-xl"
           >
             {editingMethod ? "Update Method" : "Save Payment Method"}
           </Button>
@@ -1105,7 +1105,7 @@ function SwapPledgeDialog({
           <Button
             onClick={onConfirmMove}
             disabled={!targetMethodId}
-            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-10 px-6 font-black uppercase tracking-widest text-[10px] rounded-xl transition-transform active:scale-[0.98]"
+            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-10 px-6 font-black uppercase tracking-widest text-[10px] rounded-xl"
           >
             Confirm Move
           </Button>
@@ -1235,7 +1235,7 @@ function BulkMoveDialog({
           <Button
             onClick={onConfirmMoveAndDelete}
             disabled={!targetMethodId}
-            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-10 px-6 font-black uppercase tracking-widest text-[10px] rounded-xl transition-transform active:scale-[0.98]"
+            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-10 px-6 font-black uppercase tracking-widest text-[10px] rounded-xl"
           >
             Transfer & Delete
           </Button>

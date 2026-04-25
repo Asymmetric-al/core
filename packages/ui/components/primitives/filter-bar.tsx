@@ -46,7 +46,7 @@ export function FilterBar({
                 placeholder={search.placeholder || "Search..."}
                 value={search.value}
                 onChange={(e) => search.onChange(e.target.value)}
-                className="placeholder:text-muted-foreground h-12 rounded-xl border-border/60 bg-background/60 pr-4 pl-10 font-medium transition-all focus:bg-background placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-widest"
+                className="placeholder:text-muted-foreground h-12 rounded-xl border-border/60 bg-background/60 pr-4 pl-10 font-medium transition-colors focus:bg-background placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-widest"
               />
             </div>
           )}

@@ -507,7 +507,7 @@ function PausePledgeContent({
         <Button
           onClick={onConfirmPause}
           disabled={pauseDuration === "" && !customResumeDate}
-          className="bg-amber-600 hover:bg-amber-700 text-white shadow-md font-bold uppercase tracking-widest text-[9px] h-9 px-6 rounded-lg transition-transform active:scale-[0.98]"
+          className="bg-amber-600 hover:bg-amber-700 text-white shadow-md font-bold uppercase tracking-widest text-[9px] h-9 px-6 rounded-lg"
         >
           Confirm Pause
         </Button>
@@ -1238,14 +1238,14 @@ function MovePledgeDialog({
             <Button
               onClick={onConfirmMove}
               disabled={!selectedTargetId}
-              className="bg-zinc-900 text-white shadow-lg font-bold uppercase tracking-widest text-[9px] h-10 px-6 rounded-lg transition-transform active:scale-[0.98]"
+              className="bg-zinc-900 text-white shadow-lg font-bold uppercase tracking-widest text-[9px] h-10 px-6 rounded-lg"
             >
               Confirm Move
             </Button>
           ) : (
             <Button
               onClick={onSaveNewMethod}
-              className="bg-zinc-900 text-white shadow-lg font-bold uppercase tracking-widest text-[9px] h-10 px-6 rounded-lg transition-transform active:scale-[0.98]"
+              className="bg-zinc-900 text-white shadow-lg font-bold uppercase tracking-widest text-[9px] h-10 px-6 rounded-lg"
             >
               Save & Use {newMethodType === "card" ? "Card" : "Account"}
             </Button>

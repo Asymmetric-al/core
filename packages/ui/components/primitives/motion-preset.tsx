@@ -1,5 +1,7 @@
 "use client";
 
+import { useReducedMotion } from "@asym/lib/motion";
+import { transitionStandard } from "@asym/lib/motion-presets";
 import {
   AnimatePresence,
   LazyMotion,
@@ -51,12 +53,26 @@ const motionComponents = m as unknown as Record<
 >;
 const EMPTY_MOTION_PROPS: MotionPresetProps["motionProps"] = {};
 
+function mergeTransition(
+  base: Transition,
+  delay: number,
+  reduceMotion: boolean,
+): Transition {
+  if (reduceMotion) {
+    return { ...base, duration: 0, delay: 0 };
+  }
+  return {
+    ...base,
+    delay: (base?.delay ?? 0) + delay,
+  };
+}
+
 function MotionPreset({
   ref,
   children,
   className,
   component = "div",
-  transition = { type: "spring", stiffness: 200, damping: 20 },
+  transition = transitionStandard,
   delay = 0,
   inView = true,
   inViewMargin = "0px",
@@ -68,6 +84,7 @@ function MotionPreset({
   motionProps = EMPTY_MOTION_PROPS,
 }: MotionPresetProps) {
   const localRef = React.useRef<HTMLDivElement | null>(null);
+  const reduceMotion = useReducedMotion();
 
   React.useImperativeHandle<HTMLDivElement | null, HTMLDivElement | null>(
     ref,
@@ -111,6 +128,12 @@ function MotionPreset({
 
   const MotionComponent = motionComponents[component] || m.div;
 
+  const effectiveTransition = mergeTransition(
+    transition,
+    delay,
+    Boolean(reduceMotion),
+  );
+
   return (
     <LazyMotion features={domAnimation}>
       <AnimatePresence>
@@ -123,10 +146,7 @@ function MotionPreset({
             hidden: hiddenVariant,
             visible: visibleVariant,
           }}
-          transition={{
-            ...transition,
-            delay: (transition?.delay ?? 0) + delay,
-          }}
+          transition={effectiveTransition}
           className={className}
           {...motionProps}
         >
