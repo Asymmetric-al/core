@@ -11,7 +11,7 @@ function readRepoFile(path: string) {
 describe("donor history TanStack migration", () => {
   it("uses the shared donor history hook and responsive data table", () => {
     const source = readRepoFile(
-      "apps/donor/app/(dashboard)/donor-dashboard/history/page.tsx",
+      "apps/donor/app/(dashboard)/donor-dashboard/history/history-page-client.tsx",
     );
 
     expect(source).toMatch(/useDonorHistoryTransactions/);

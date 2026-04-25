@@ -53,7 +53,9 @@ describe("admin TanStack surface migrations", () => {
   });
 
   it("moves raw table surfaces onto shared hooks for attendees, mobilize, and teams", () => {
-    const eventsSource = readRepoFile("apps/admin/app/events/page.tsx");
+    const eventsSource = readRepoFile(
+      "apps/admin/app/events/events-page-client.tsx",
+    );
     const mobilizePageSource = readRepoFile("apps/admin/app/mobilize/page.tsx");
     const mobilizeSectionsSource = readRepoFile(
       "apps/admin/app/mobilize/mobilize-sections.tsx",
