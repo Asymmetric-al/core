@@ -225,6 +225,26 @@ describe("withOperation", () => {
     expect(mockedCreateAuditLogger).toHaveBeenCalledTimes(1);
   });
 
+  it("rethrows Next.js prerender bailout errors instead of returning 500", async () => {
+    mockedGetAdminClient.mockReturnValue({
+      client: {} as never,
+      error: null,
+    });
+
+    const prerenderError = Object.assign(
+      new Error(
+        "Route /api/admin/missionaries needs to bail out of prerendering at this point because it used request.headers.",
+      ),
+      { digest: "NEXT_PRERENDER_INTERRUPTED" },
+    );
+
+    mockedGetAuthContext.mockRejectedValue(prerenderError);
+
+    const handler = withOperation(async () => NextResponse.json({ ok: true }));
+
+    await expect(handler(createRequest())).rejects.toBe(prerenderError);
+  });
+
   it("normalizes async handler failures with requestId", async () => {
     mockedGetAdminClient.mockReturnValue({
       client: {} as never,

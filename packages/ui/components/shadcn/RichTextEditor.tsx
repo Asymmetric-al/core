@@ -1,3 +1,1 @@
-"use client";
-
-export { LegacyRichTextEditor as RichTextEditor } from "./rich-text-editor/legacy-rich-text-editor";
+export * from "../primitives/RichTextEditor";

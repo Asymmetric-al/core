@@ -2,8 +2,8 @@
 
 import { useMobilizeCandidates } from "@asym/database/hooks";
 import { motion } from "@asym/lib/motion";
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import { Plus } from "lucide-react";
 import React, { useMemo, useState } from "react";
 
