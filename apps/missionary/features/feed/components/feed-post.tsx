@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "@asym/lib/motion";
+import { motion, AnimatePresence, useReducedMotion } from "@asym/lib/motion";
 import {
   Avatar,
   AvatarFallback,
@@ -86,18 +86,23 @@ const FloatingEmoji = ({
   offsetX: number;
   offsetRotate: number;
 }) => {
+  const reduceMotion = useReducedMotion();
+  if (reduceMotion) {
+    // Reduced motion: skip the celebratory float entirely.
+    return null;
+  }
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95, y: 0, x: 0 }}
       animate={{
         opacity: [0, 1, 1, 0],
-        scale: [0.95, 1.8, 1.2, 0.8],
-        y: [-20, -120],
+        scale: [0.95, 1.4, 1.1, 0.85],
+        y: [-20, -100],
         x: offsetX,
         rotate: offsetRotate,
       }}
       transition={{
-        duration: 1.2,
+        duration: 1.0,
         ease: "easeOut",
         times: [0, 0.2, 0.8, 1],
       }}
