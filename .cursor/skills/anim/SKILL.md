@@ -310,8 +310,8 @@
 
 The repo motion contract has **two synchronized halves**:
 
-1. **CSS tokens** in `packages/ui/styles/globals.css` (`:root`) — used by every Tailwind class, Radix surface, and CSS rule.
-2. **TS constants** in `packages/lib/motion-presets.ts` — used by every `motion/react` component.
+1. **CSS tokens** in `packages/ui/styles/globals.css` (`:root`) — the baseline for Tailwind, Radix surfaces, and global CSS.
+2. **TS constants** in `packages/lib/motion-presets.ts` — the intended pair for `motion/react` and shared helpers; **prefer these over raw literals** in new or refactored client code.
 
 When updating one half, update the other so consumers stay in lockstep.
 
@@ -343,19 +343,21 @@ When updating one half, update the other so consumers stay in lockstep.
 --scale-entrance: 0.96;
 ```
 
+**Authoritative values** live in `packages/ui/styles/globals.css`; keep the fenced copy above in sync when tokens change.
+
 ### CSS utilities (composable, defined in the same file)
 
-| Utility               | What it does                                | Touch-safe?                   | Pair with                           |
-| --------------------- | ------------------------------------------- | ----------------------------- | ----------------------------------- |
-| `.press-feedback`     | `:active` scale to `var(--scale-press)`     | Yes (`:active` fires on tap)  | Default on every `<Button>` already |
-| `.hover-lift`         | `:hover` `translateY(-2px)`                 | Yes (`@media (hover: hover)`) | Cards, tiles                        |
-| `.hover-scale-subtle` | `:hover` `scale(var(--scale-hover-subtle))` | Yes (`@media (hover: hover)`) | Buttons, badges, marketing CTAs     |
+| Utility               | What it does                                | Touch-safe?                                       | Pair with                           |
+| --------------------- | ------------------------------------------- | ------------------------------------------------- | ----------------------------------- |
+| `.press-feedback`     | `:active` scale to `var(--scale-press)`     | Yes (`:active` fires on tap)                      | Default on every `<Button>` already |
+| `.hover-lift`         | `:hover` `translateY(-2px)`                 | Yes (`@media (hover: hover) and (pointer: fine)`) | Cards, tiles                        |
+| `.hover-scale-subtle` | `:hover` `scale(var(--scale-hover-subtle))` | Yes (`@media (hover: hover) and (pointer: fine)`) | Buttons, badges, marketing CTAs     |
 
 The three utilities **share** one `transition-property` declaration so you can stack them on the same element without one overriding another's transition list.
 
 ### TS constants (`@asym/lib/motion-presets`)
 
-`EASE_OUT_SOFT`, `EASE_IN_SOFT`, `EASE_IN_OUT_SOFT`, `EASE_DRAWER`, `DURATION_PRESS`, `DURATION_MICRO`, `DURATION_STANDARD`, `DURATION_ROUTE`, `DURATION_SHARED`, `DURATION_DRAWER`, `DURATION_SLOW`, `STAGGER_TIGHT`, `STAGGER_MEDIUM`, `SCALE_HOVER_SUBTLE`, `SCALE_TAP_SUBTLE`, `SCALE_ENTRANCE`. Each mirrors the matching CSS token.
+`EASE_OUT_SOFT`, `EASE_IN_SOFT`, `EASE_IN_OUT_SOFT`, `EASE_DRAWER`, `DURATION_PRESS`, `DURATION_MICRO`, `DURATION_STANDARD`, `DURATION_ROUTE`, `DURATION_SHARED`, `DURATION_DRAWER`, `DURATION_SLOW`, `STAGGER_TIGHT`, `STAGGER_MEDIUM`, `SCALE_HOVER_SUBTLE`, `SCALE_TAP_SUBTLE`, `SCALE_ENTRANCE`. **Semantic parity** with the CSS `--ease-*`, `--duration-*` (where present), `--stagger-*`, and `--scale-*` tokens in `globals.css` — same numeric intent, not always the same name (e.g. `DURATION_SLOW` is extra-tier TS for marketing/hero; `SCALE_TAP_SUBTLE` matches `--scale-press`).
 
 Pre-built `Transition` objects: `transitionStandard`, `transitionSlow`, `transitionExitQuick`, `springTap` (gestures only).
 
@@ -371,12 +373,12 @@ Re-exports `motion`, `AnimatePresence`, `LayoutGroup`, `useReducedMotion`, plus 
 
 ## Repo motion standard (operative rules)
 
-These rules are enforced informally by code review; the audit's Phase 7 doc is the source of truth.
+These rules are enforced informally by code review. **Runtime contract:** `packages/ui/styles/globals.css` and `packages/lib/motion-presets.ts` (update both together). **Written contract (this file +** `docs/ai/rules/frontend.md` **Motion rules):** how to apply them; keep all three in sync when policy changes.
 
 ### When NOT to animate (in this repo)
 
 - Anything triggered by `⌘K`, `⌘B`, or other keyboard shortcuts. Command palette is intentionally instant — see `packages/ui/components/shadcn/command.tsx`.
-- Form validation errors — color/icon/text only.
+- Form validation errors — no extra motion; use color/icon/text for _visual_ feedback only (errors must still be named, associated, and programmatically exposed per form a11y — not “color only” in the WCAG sense).
 - Live data, timers, ticker counters — `tabular-nums` and no animation.
 - Sortable/filtered list reordering at high frequency — use VT shared morphs or no animation; do not add per-row springs (`packages/missionary/components/tasks/task-row.tsx` is the canonical example).
 - Disabled controls — no hover/press feedback (handled by `disabled:pointer-events-none disabled:opacity-50` on `Button`).
@@ -398,7 +400,7 @@ These rules are enforced informally by code review; the audit's Phase 7 doc is t
 
 ### Route transitions
 
-- Owned by `RouteMainViewTransitionBoundary`. Every `apps/*/app/.../layout.tsx` shell wraps the changing region only.
+- Owned by `RouteMainViewTransitionBoundary`, applied at the **app shell** (e.g. donor `layout.tsx`, `apps/missionary/components/app-shell.tsx`, `apps/admin/app/mc-shell.tsx` — not necessarily the root `layout.tsx` in every app).
 - When a page header / shell uses `motion.div` and is also inside `RouteMainViewTransitionBoundary`, suppress the per-page entrance via `useWithinViewTransitionRouteLayer()` (the `PageShell` pattern is the template).
 - Do not add `motion.div layout` on the swapping region.
 
@@ -410,13 +412,13 @@ These rules are enforced informally by code review; the audit's Phase 7 doc is t
 
 ### Tooltip pattern
 
-- Default `delayDuration={300}`, `skipDelayDuration={0}` — first tooltip waits, subsequent tooltips inside the warm window are instant.
+- Shared `TooltipProvider` defaults: `delayDuration={300}`, `skipDelayDuration={0}` (see `packages/ui/components/shadcn/tooltip.tsx`). With Radix, `skipDelayDuration` is the window for _skipping the open delay_ when moving between triggers; **`0` disables that skip window** — do not read it as "warm follow-up" behavior. For always-instant tooltips, set `delayDuration={0}` on a subtree provider (e.g. nav sidebar, rich-text toolbar) instead of inferring it from `skipDelayDuration` alone.
 - The sidebar's `<TooltipProvider delayDuration={0}>` is a deliberate exception (collapsed-icon sidebar tooltips should be instant).
 
 ### Reduced motion
 
 - The repo-wide `prefers-reduced-motion: reduce` baseline lives **only** in `packages/ui/styles/globals.css`. Apps must not redeclare it.
-- Every motion primitive in TS calls `useReducedMotion()` and returns `transition: { duration: 0 }`, `initial: false`, or skips the motion entirely. Pattern examples: `MotionPreset`, `RippleButton`, `AppIcon`, `task-row`, `task-stats`, `feed-post`'s `FloatingEmoji`.
+- **New or refactored** `motion/react` code should use `useReducedMotion()` and return `transition: { duration: 0 }`, `initial: false`, or skip motion when reduced motion is on. Pattern examples: `MotionPreset`, `RippleButton`, `AppIcon`, `task-row`, `task-stats`, `feed-post`'s `FloatingEmoji`.
 - View Transitions are zeroed in CSS (`globals.css` under `@media (prefers-reduced-motion: reduce)`).
 
 ## Repo examples to copy

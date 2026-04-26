@@ -4,7 +4,7 @@ import {
   composeEventHandlers,
   isKeyboardClickKey,
   resolveButtonTriggerType,
-} from "../../../../../../packages/ui/components/shadcn/image-upload-helpers";
+} from "../../../../../../packages/ui/components/primitives/image-upload-helpers";
 
 describe("image-upload helpers", () => {
   it("runs both handlers when the consumer handler does not cancel the event", () => {

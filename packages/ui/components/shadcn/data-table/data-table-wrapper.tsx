@@ -90,10 +90,10 @@ export function DataTableWrapper<TData, TValue>({
         <div className="rounded-2xl bg-destructive/10 p-4 mb-4">
           <AlertCircle className="size-10 text-destructive" />
         </div>
-        <h3 className="text-lg font-black uppercase tracking-widest text-zinc-900">
+        <h3 className="text-foreground text-lg font-black uppercase tracking-widest">
           Something went wrong
         </h3>
-        <p className="text-sm text-zinc-500 mt-2 max-w-sm font-medium">
+        <p className="text-muted-foreground mt-2 max-w-sm text-sm font-medium">
           {error instanceof Error
             ? error.message
             : error || "We couldn't load the data. Please try again."}
@@ -131,7 +131,7 @@ export function DataTableWrapper<TData, TValue>({
     <Empty className="py-20">
       <EmptyHeader>
         <EmptyMedia variant="icon">{emptyState.icon || <Inbox />}</EmptyMedia>
-        <EmptyTitle className="font-black uppercase tracking-widest text-zinc-900">
+        <EmptyTitle className="text-foreground font-black uppercase tracking-widest">
           {emptyState.title || "No data found"}
         </EmptyTitle>
         <EmptyDescription className="font-medium">

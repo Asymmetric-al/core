@@ -1,11 +1,14 @@
 "use client";
 
 import { useTasks } from "@asym/lib/hooks";
-import { motion, AnimatePresence } from "@asym/lib/motion";
+import { motion, AnimatePresence, useReducedMotion } from "@asym/lib/motion";
+import { transitionStandard } from "@asym/lib/motion-presets";
 import { TaskDialog } from "@asym/missionary/components/task-dialog";
 import { TaskKanbanBoard } from "@asym/missionary/components/task-kanban-board";
 import { TaskRow } from "@asym/missionary/components/task-row";
 import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
+import { FilterBar } from "@asym/ui/components/primitives/filter-bar";
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,8 +28,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
 } from "@asym/ui/components/shadcn/dropdown-menu";
-import { FilterBar } from "@asym/ui/components/shadcn/filter-bar";
-import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
 import { cn } from "@asym/ui/lib/utils";
@@ -58,12 +59,6 @@ import type {
   TaskStatus,
   TaskPriority,
 } from "@asym/lib/hooks/use-tasks";
-
-const springTransition = {
-  type: "spring" as const,
-  stiffness: 400,
-  damping: 30,
-};
 
 const smoothTransition = {
   duration: 0.25,
@@ -162,6 +157,21 @@ function TaskListSkeleton() {
   );
 }
 
+function StatValueText({ value }: { value: number }) {
+  const reduceMotion = useReducedMotion();
+  return (
+    <motion.span
+      key={value}
+      initial={reduceMotion ? false : { scale: 1.15, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={transitionStandard}
+      className="text-3xl font-black tabular-nums tracking-tight"
+    >
+      {value}
+    </motion.span>
+  );
+}
+
 function StatCard({
   label,
   value,
@@ -175,14 +185,16 @@ function StatCard({
   onClick?: () => void;
   isActive?: boolean;
 }) {
+  // Same motion contract as `packages/missionary/components/tasks/task-stats.tsx`:
+  // CSS press/hover-scale utilities, no per-card spring whileHover/whileTap
+  // (avoids double grammar with scroll on the stats row).
   return (
-    <motion.button
-      whileHover={{ scale: 1.02, y: -2 }}
-      whileTap={{ scale: 0.98 }}
-      transition={springTransition}
+    <button
+      type="button"
       onClick={onClick}
       className={cn(
-        "flex items-center gap-4 px-6 py-4 rounded-2xl border transition-all cursor-pointer text-left shadow-sm min-w-[160px]",
+        "flex items-center gap-4 px-6 py-4 rounded-2xl border cursor-pointer text-left shadow-sm min-w-[160px]",
+        "press-feedback hover-scale-subtle",
         color,
         isActive
           ? "ring-2 ring-zinc-900 ring-offset-2 border-transparent"
@@ -190,19 +202,12 @@ function StatCard({
       )}
     >
       <div className="flex flex-col">
-        <motion.span
-          key={value}
-          initial={{ scale: 1.2, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="text-3xl font-black tabular-nums tracking-tight"
-        >
-          {value}
-        </motion.span>
+        <StatValueText value={value} />
         <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60 mt-0.5">
           {label}
         </span>
       </div>
-    </motion.button>
+    </button>
   );
 }
 

@@ -26,6 +26,7 @@ export function StatCard({
   // by the .press-feedback / .hover-scale-subtle utilities.
   return (
     <button
+      type="button"
       onClick={onClick}
       className={cn(
         "flex flex-col gap-1 px-5 py-4 rounded-2xl border cursor-pointer text-left shadow-sm min-w-[120px] flex-1 md:flex-none relative overflow-hidden group",
