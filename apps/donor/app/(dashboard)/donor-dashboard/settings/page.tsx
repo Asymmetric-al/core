@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
+import { ImageUpload } from "@asym/ui/components/primitives/image-upload";
 import {
   Avatar,
   AvatarFallback,
@@ -16,7 +17,6 @@ import {
   CardDescription,
   CardFooter,
 } from "@asym/ui/components/shadcn/card";
-import { ImageUpload } from "@asym/ui/components/shadcn/image-upload";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";

@@ -1,7 +1,7 @@
 "use client";
 
 import { Drawer as DrawerPrimitive } from "@base-ui/react/drawer";
-import { Slot } from "@radix-ui/react-slot";
+import { Slot as SlotPrimitive } from "radix-ui";
 import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
@@ -41,7 +41,7 @@ function DrawerTrigger({
   return (
     <DrawerPrimitive.Trigger
       data-slot="drawer-trigger"
-      render={asChild ? <Slot /> : undefined}
+      render={asChild ? <SlotPrimitive.Root /> : undefined}
       {...props}
     />
   );
@@ -62,7 +62,7 @@ function DrawerClose({
   return (
     <DrawerPrimitive.Close
       data-slot="drawer-close"
-      render={asChild ? <Slot /> : undefined}
+      render={asChild ? <SlotPrimitive.Root /> : undefined}
       {...props}
     />
   );
