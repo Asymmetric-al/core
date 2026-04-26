@@ -146,7 +146,7 @@ function StatCard({
       <MotionCard
         whileHover={{ y: -2, scale: 1.01 }}
         transition={springTransition}
-        className="rounded-2xl border shadow-sm hover:shadow-md transition-all duration-300"
+        className="rounded-2xl border shadow-sm hover:shadow-md transition-shadow duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]"
       >
         <CardContent className="p-4 sm:p-5">
           <div className="flex items-start justify-between">
@@ -519,7 +519,7 @@ function AllPostsFeedPostCard({
         whileHover={{ y: -2 }}
         transition={springTransition}
         className={cn(
-          "rounded-2xl sm:rounded-3xl border shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden",
+          "rounded-2xl sm:rounded-3xl border shadow-sm hover:shadow-lg transition-[box-shadow,border-color,opacity] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] overflow-hidden",
           post.status === "hidden" && "opacity-60",
           post.isFlagged && "border-amber-200",
         )}
@@ -902,7 +902,7 @@ function FlaggedCommentsPanel({
             exit={{ opacity: 0, x: 20, scale: 0.95 }}
             transition={{ ...smoothTransition, delay: index * 0.05 }}
           >
-            <Card className="rounded-xl border-amber-200 hover:shadow-md transition-all duration-300">
+            <Card className="rounded-xl border-amber-200 hover:shadow-md transition-shadow duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]">
               <CardContent className="p-4">
                 <div className="flex gap-3">
                   <motion.div
@@ -1532,7 +1532,7 @@ function ModerationQueuePostCard({
         whileHover={{ y: -2 }}
         transition={springTransition}
         className={cn(
-          "rounded-2xl sm:rounded-3xl border shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden",
+          "rounded-2xl sm:rounded-3xl border shadow-sm hover:shadow-lg transition-[box-shadow,border-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] overflow-hidden",
           post.isFlagged && "border-amber-200",
         )}
       >

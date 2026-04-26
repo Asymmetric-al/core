@@ -32,10 +32,10 @@ export function WorkflowsPanel() {
             href={resolveMissionControlHref(workflow.route)}
             className="group block"
           >
-            <Card className="h-full overflow-hidden rounded-3xl border border-zinc-200/60 bg-white shadow-sm transition-all duration-300 hover:border-zinc-300 hover:shadow-xl hover:shadow-zinc-200/40 hover:-translate-y-1">
+            <Card className="h-full overflow-hidden rounded-3xl border border-zinc-200/60 bg-white shadow-sm hover-lift hover:border-zinc-300 hover:shadow-xl hover:shadow-zinc-200/40">
               <CardHeader className="space-y-1.5 p-6">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="h-9 w-9 rounded-xl bg-zinc-50 border border-zinc-100 flex items-center justify-center group-hover:bg-zinc-900 group-hover:border-zinc-900 transition-all">
+                  <div className="h-9 w-9 rounded-xl bg-zinc-50 border border-zinc-100 flex items-center justify-center group-hover:bg-zinc-900 group-hover:border-zinc-900 transition-[background-color,border-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]">
                     <ArrowRight className="h-4 w-4 text-zinc-400 group-hover:text-white transition-colors" />
                   </div>
                 </div>

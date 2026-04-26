@@ -508,38 +508,39 @@
      consistent across the repo. See docs/ai/skills/anim/SKILL.md.
      ============================================ */
 
-  /* Always-on press feedback. Subtle scale on :active for any
-     pressable element (button, tile, list item). Touch-safe because
-     :active fires on tap. Composes with Tailwind's `transition-colors`
-     by extending the transition list rather than overriding it. */
-  .press-feedback {
+  /* Shared transition-property set used by `.press-feedback`,
+     `.hover-lift`, and `.hover-scale-subtle` so the three utilities
+     can be combined on the same element without a second
+     `transition-property` declaration overriding the first. */
+  .press-feedback,
+  .hover-lift,
+  .hover-scale-subtle {
     transition-property:
       transform, color, background-color, border-color, text-decoration-color,
       fill, stroke, box-shadow;
     transition-timing-function: var(--ease-out-soft);
+    transition-duration: var(--duration-micro);
+  }
+
+  /* Always-on press feedback. Subtle scale on :active for any
+     pressable element (button, tile, list item). Touch-safe because
+     :active fires on tap. */
+  .press-feedback {
     transition-duration: var(--duration-press);
   }
 
-  /* Hover-only lift. Gated by `(hover: hover) and (pointer: fine)` so
-     it never fires on touch devices (where hover triggers on tap). */
-  .hover-lift {
-    transition-property: transform, box-shadow;
-    transition-timing-function: var(--ease-out-soft);
-    transition-duration: var(--duration-micro);
-  }
+  /* Hover-only lift. Gated by `(hover: hover) and (pointer: fine)`
+     so it never fires on touch devices (where hover triggers on tap). */
   @media (hover: hover) and (pointer: fine) {
     .hover-lift:hover {
       transform: translateY(-2px);
     }
   }
 
-  /* Hover-only scale. Same touch-safe gate as `hover-lift` but a
-     scale change instead of a translate. Use for buttons and badges.
-     Note: this utility does NOT declare its own `transition-*`
-     because it is most often combined with `.press-feedback` (which
-     already animates `transform`); declaring transition twice would
-     fight the cascade. Pair with another utility that includes
-     `transform` in its transition-property. */
+  /* Hover-only scale. Same touch-safe gate as `.hover-lift` but a
+     scale change instead of a translate. Shares the unified
+     transition-property block above so it composes with
+     `.press-feedback` without a cascade fight. */
   @media (hover: hover) and (pointer: fine) {
     .hover-scale-subtle:hover {
       transform: scale(var(--scale-hover-subtle));
