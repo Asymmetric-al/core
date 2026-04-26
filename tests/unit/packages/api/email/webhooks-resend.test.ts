@@ -167,6 +167,39 @@ describe("api/email/webhooks/resend", () => {
     expect(body.code).toBe("webhook_signature_invalid");
   });
 
+  it("returns 503 when webhook persistence is unavailable", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    try {
+      getAdminClientMock.mockReturnValueOnce({
+        client: null,
+        error: "Admin client unavailable",
+      });
+      verifyResendWebhookSignatureMock.mockReturnValueOnce({
+        success: true,
+        event: {
+          type: "email.delivered",
+          created_at: "2026-02-23T10:00:00.000Z",
+          data: {
+            tenant_id: "tenant_direct",
+            email_id: "msg_123",
+          },
+        },
+      });
+
+      const response = await POST(createWebhookRequest({ hello: "world" }));
+      const body = await response.json();
+
+      expect(response.status).toBe(503);
+      expect(body.code).toBe("webhook_persistence_unavailable");
+      expect(body.accepted).toBe(false);
+      expect(upsertEmailEventsMock).not.toHaveBeenCalled();
+    } finally {
+      consoleErrorSpy.mockRestore();
+    }
+  });
+
   it("prefers payload tenant_id over metadata and tags", async () => {
     verifyResendWebhookSignatureMock.mockReturnValueOnce({
       success: true,
@@ -209,6 +242,42 @@ describe("api/email/webhooks/resend", () => {
     expect(upsertSuppressionsMock).not.toHaveBeenCalled();
     expect(upsertInboundMock).not.toHaveBeenCalled();
     expect(insertEmailEventsMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 503 when core event persistence fails", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    try {
+      upsertEmailEventsMock.mockResolvedValueOnce({
+        data: null,
+        error: { code: "23505", message: "event write failed" },
+      });
+      verifyResendWebhookSignatureMock.mockReturnValueOnce({
+        success: true,
+        event: {
+          type: "email.delivered",
+          created_at: "2026-02-23T10:00:00.000Z",
+          data: {
+            tenant_id: "tenant_direct",
+            resend_event_id: "evt_123",
+            email_id: "msg_123",
+            email: "recipient@example.com",
+          },
+        },
+      });
+
+      const response = await POST(createWebhookRequest({ hello: "world" }));
+      const body = await response.json();
+
+      expect(response.status).toBe(503);
+      expect(body.accepted).toBe(false);
+      expect(body.code).toBe("webhook_persistence_failed");
+      expect(body.operation).toBe("email_events.upsert");
+      expect(updateSendLogsMock).not.toHaveBeenCalled();
+    } finally {
+      consoleErrorSpy.mockRestore();
+    }
   });
 
   it("falls back to email_send_logs tenant lookup for outbound events", async () => {
@@ -339,6 +408,33 @@ describe("api/email/webhooks/resend", () => {
     expect(updateSendLogsMock).not.toHaveBeenCalled();
     expect(upsertSuppressionsMock).not.toHaveBeenCalled();
     expect(upsertInboundMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 503 for retryable outbound tenant lookup failures", async () => {
+    emailSendLogsSelectLimitMock.mockResolvedValueOnce({
+      data: null,
+      error: { message: "database unavailable" },
+    });
+    verifyResendWebhookSignatureMock.mockReturnValueOnce({
+      success: true,
+      event: {
+        type: "email.delivered",
+        created_at: "2026-02-23T10:00:00.000Z",
+        data: {
+          resend_event_id: "evt_lookup_error",
+          email_id: "msg_lookup_error",
+          email: "recipient@example.com",
+        },
+      },
+    });
+
+    const response = await POST(createWebhookRequest({ hello: "world" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(body.accepted).toBe(false);
+    expect(body.code).toBe("tenant_resolution_dependency_unavailable");
+    expect(upsertEmailEventsMock).not.toHaveBeenCalled();
   });
 
   it("resolves inbound tenant from recipient domain", async () => {

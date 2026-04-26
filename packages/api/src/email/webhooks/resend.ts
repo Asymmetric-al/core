@@ -21,15 +21,73 @@ type AdminSupabaseClient = NonNullable<
 type TenantResolutionSource = "payload" | "send_logs" | "inbound_recipients";
 type TenantResolutionWarningCode =
   | "tenant_resolution_unresolved"
-  | "tenant_resolution_ambiguous";
+  | "tenant_resolution_ambiguous"
+  | "tenant_resolution_dependency_unavailable";
 
 interface TenantResolutionResult {
   tenantId: string | null;
   source: TenantResolutionSource | null;
   warningCode?: TenantResolutionWarningCode;
   warning?: string;
+  retryable?: boolean;
   candidateTenantIds?: string[];
   matchedDomains?: string[];
+}
+
+interface SupabaseErrorLike {
+  code?: string;
+  message?: string;
+  details?: string;
+  hint?: string;
+}
+
+interface SupabaseWriteResult {
+  error: SupabaseErrorLike | null;
+}
+
+class WebhookPersistenceError extends Error {
+  constructor(
+    readonly operation: string,
+    readonly context: JsonRecord,
+    readonly causeError: SupabaseErrorLike,
+  ) {
+    super(
+      causeError.message || `Failed to persist Resend webhook ${operation}`,
+    );
+    this.name = "WebhookPersistenceError";
+  }
+}
+
+async function assertSupabaseWrite(
+  operation: string,
+  result: PromiseLike<SupabaseWriteResult> | SupabaseWriteResult,
+  context: JsonRecord,
+): Promise<void> {
+  const { error } = await result;
+  if (!error) {
+    return;
+  }
+
+  console.error("Failed to persist Resend webhook data", {
+    operation,
+    ...context,
+    code: error.code,
+    message: error.message,
+  });
+  throw new WebhookPersistenceError(operation, context, error);
+}
+
+function toWebhookPersistenceResponse(error: WebhookPersistenceError) {
+  return NextResponse.json(
+    {
+      accepted: false,
+      code: "webhook_persistence_failed",
+      error: error.message,
+      operation: error.operation,
+      ...error.context,
+    },
+    { status: 503 },
+  );
 }
 
 function isJsonRecord(value: unknown): value is JsonRecord {
@@ -281,7 +339,18 @@ async function resolveTenantIdFromSendLogsByMessageId(
     .eq("resend_message_id", messageId)
     .limit(25);
 
-  if (error || !data || data.length === 0) {
+  if (error) {
+    return {
+      tenantId: null,
+      source: null,
+      warningCode: "tenant_resolution_dependency_unavailable",
+      warning:
+        "Unable to resolve tenant because email_send_logs lookup failed.",
+      retryable: true,
+    };
+  }
+
+  if (!data || data.length === 0) {
     return {
       tenantId: null,
       source: null,
@@ -351,7 +420,19 @@ async function resolveTenantIdFromInboundRecipients(
       .eq("is_connected", true)
       .ilike("default_from_email", `%@${domain}`);
 
-    if (error || !data || data.length === 0) {
+    if (error) {
+      return {
+        tenantId: null,
+        source: null,
+        warningCode: "tenant_resolution_dependency_unavailable",
+        warning:
+          "Unable to resolve tenant because tenant_email_settings lookup failed.",
+        retryable: true,
+        matchedDomains: Array.from(matchedDomains),
+      };
+    }
+
+    if (!data || data.length === 0) {
       continue;
     }
 
@@ -408,7 +489,7 @@ async function resolveTenantId(
   event: ResendWebhookEnvelope,
   eventData: JsonRecord,
   messageId: string | null,
-  supabaseAdmin: AdminSupabaseClient | null,
+  supabaseAdmin: AdminSupabaseClient,
 ): Promise<TenantResolutionResult> {
   const tenantIdFromPayload = extractTenantId(event);
   if (tenantIdFromPayload) {
@@ -419,17 +500,6 @@ async function resolveTenantId(
   }
 
   const isInboundEvent = event.type === "email.received";
-  if (!supabaseAdmin) {
-    return {
-      tenantId: null,
-      source: null,
-      warningCode: "tenant_resolution_unresolved",
-      warning: isInboundEvent
-        ? "Admin client unavailable; unable to resolve inbound tenant from connected settings."
-        : "Admin client unavailable; unable to resolve outbound tenant without explicit tenant_id.",
-    };
-  }
-
   if (isInboundEvent) {
     return resolveTenantIdFromInboundRecipients(
       supabaseAdmin,
@@ -482,7 +552,25 @@ export async function POST(request: NextRequest) {
   }
 
   const event = verification.event;
-  const { client: supabaseAdmin } = getAdminClient();
+  const { client: supabaseAdmin, error: adminClientError } = getAdminClient();
+  if (!supabaseAdmin) {
+    console.error("Resend webhook persistence unavailable", {
+      eventType: event.type,
+      message: adminClientError,
+    });
+    return NextResponse.json(
+      {
+        accepted: false,
+        eventType: event.type,
+        code: "webhook_persistence_unavailable",
+        error:
+          adminClientError ??
+          "Admin client unavailable; unable to persist Resend webhook event.",
+      },
+      { status: 503 },
+    );
+  }
+
   const eventData = getEventData(event);
   const recipientEmail = extractRecipientEmail(event);
   const messageId = extractMessageId(event);
@@ -500,168 +588,239 @@ export async function POST(request: NextRequest) {
   const tenantId = tenantResolution.tenantId;
   const isInboundEvent = event.type === "email.received";
 
-  if (!tenantId && !isInboundEvent) {
-    return NextResponse.json(
-      {
-        accepted: false,
-        eventType: event.type,
-        messageId,
-        code: tenantResolution.warningCode ?? "tenant_resolution_unresolved",
-        error:
-          tenantResolution.warning ??
-          "Unable to resolve tenant for outbound webhook event.",
-        candidateTenantIds: tenantResolution.candidateTenantIds,
-      },
-      { status: 422 },
-    );
-  }
-
-  if (supabaseAdmin && tenantId && messageId) {
-    const emailEventPayload = {
-      tenant_id: tenantId,
-      resend_event_id: resolvedEventId,
-      resend_message_id: messageId,
-      event_type: event.type,
-      recipient_email: recipientEmail ?? "unknown@example.invalid",
-      occurred_at: occurredAt,
-      bounce_type: asString(eventData.type),
-      bounce_reason: asString(eventData.reason),
-      click_url: asString(eventData.url),
-      user_agent: asString(eventData.useragent),
-      ip_address: asString(eventData.ip),
-      campaign_id: campaignId,
-      raw_event: eventData,
-    };
-
-    await supabaseAdmin.from("email_events").upsert(emailEventPayload, {
-      onConflict: "tenant_id,resend_event_id",
-    });
-
-    const suppressionType = suppressionTypeForEventType(event.type);
-    if (suppressionType && recipientEmail) {
-      await supabaseAdmin.from("email_suppressions").upsert(
+  try {
+    if (!tenantId && !isInboundEvent) {
+      return NextResponse.json(
         {
-          tenant_id: tenantId,
-          email: recipientEmail,
-          suppression_type: suppressionType,
-          source: "resend",
-          reason: asString(eventData.reason),
+          accepted: false,
+          eventType: event.type,
+          messageId,
+          code: tenantResolution.warningCode ?? "tenant_resolution_unresolved",
+          error:
+            tenantResolution.warning ??
+            "Unable to resolve tenant for outbound webhook event.",
+          candidateTenantIds: tenantResolution.candidateTenantIds,
         },
-        {
-          onConflict: "tenant_id,email,suppression_type",
-        },
+        { status: tenantResolution.retryable ? 503 : 422 },
       );
     }
 
-    const sendLogStatus = sendLogStatusForEventType(event.type);
-    if (sendLogStatus) {
-      await supabaseAdmin
-        .from("email_send_logs")
-        .update({
-          status: sendLogStatus,
-          sent_at: sendLogStatus === "sent" ? occurredAt : null,
-          error_code: sendLogStatus === "bounced" ? event.type : null,
-          error_message:
-            sendLogStatus === "bounced" ? asString(eventData.reason) : null,
-        })
-        .eq("tenant_id", tenantId)
-        .eq("resend_message_id", messageId);
+    if (isInboundEvent && tenantResolution.retryable) {
+      return NextResponse.json(
+        {
+          accepted: false,
+          eventType: event.type,
+          messageId,
+          code:
+            tenantResolution.warningCode ??
+            "tenant_resolution_dependency_unavailable",
+          error:
+            tenantResolution.warning ??
+            "Unable to resolve inbound tenant because a dependency is unavailable.",
+        },
+        { status: 503 },
+      );
     }
-  }
 
-  if (event.type === "email.received") {
-    const inboundTenantWarning =
-      tenantId === null
-        ? {
-            tenantWarningCode:
-              tenantResolution.warningCode ?? "tenant_resolution_unresolved",
-            tenantWarning:
-              tenantResolution.warning ??
-              "Inbound tenant could not be resolved from payload or recipients.",
-            candidateTenantIds: tenantResolution.candidateTenantIds,
-            matchedDomains: tenantResolution.matchedDomains,
-          }
-        : null;
+    if (tenantId && messageId) {
+      const emailEventPayload = {
+        tenant_id: tenantId,
+        resend_event_id: resolvedEventId,
+        resend_message_id: messageId,
+        event_type: event.type,
+        recipient_email: recipientEmail ?? "unknown@example.invalid",
+        occurred_at: occurredAt,
+        bounce_type: asString(eventData.type),
+        bounce_reason: asString(eventData.reason),
+        click_url: asString(eventData.url),
+        user_agent: asString(eventData.useragent),
+        ip_address: asString(eventData.ip),
+        campaign_id: campaignId,
+        raw_event: eventData,
+      };
 
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) {
+      await assertSupabaseWrite(
+        "email_events.upsert",
+        supabaseAdmin.from("email_events").upsert(emailEventPayload, {
+          onConflict: "tenant_id,resend_event_id",
+        }),
+        {
+          eventType: event.type,
+          messageId,
+          tenantId,
+          resendEventId: resolvedEventId,
+        },
+      );
+
+      const suppressionType = suppressionTypeForEventType(event.type);
+      if (suppressionType && recipientEmail) {
+        await assertSupabaseWrite(
+          "email_suppressions.upsert",
+          supabaseAdmin.from("email_suppressions").upsert(
+            {
+              tenant_id: tenantId,
+              email: recipientEmail,
+              suppression_type: suppressionType,
+              source: "resend",
+              reason: asString(eventData.reason),
+            },
+            {
+              onConflict: "tenant_id,email,suppression_type",
+            },
+          ),
+          {
+            eventType: event.type,
+            messageId,
+            tenantId,
+            suppressionType,
+          },
+        );
+      }
+
+      const sendLogStatus = sendLogStatusForEventType(event.type);
+      if (sendLogStatus) {
+        await assertSupabaseWrite(
+          "email_send_logs.update",
+          supabaseAdmin
+            .from("email_send_logs")
+            .update({
+              status: sendLogStatus,
+              sent_at: sendLogStatus === "sent" ? occurredAt : null,
+              error_code: sendLogStatus === "bounced" ? event.type : null,
+              error_message:
+                sendLogStatus === "bounced" ? asString(eventData.reason) : null,
+            })
+            .eq("tenant_id", tenantId)
+            .eq("resend_message_id", messageId),
+          {
+            eventType: event.type,
+            messageId,
+            tenantId,
+            sendLogStatus,
+          },
+        );
+      }
+    }
+
+    if (event.type === "email.received") {
+      const inboundTenantWarning =
+        tenantId === null
+          ? {
+              tenantWarningCode:
+                tenantResolution.warningCode ?? "tenant_resolution_unresolved",
+              tenantWarning:
+                tenantResolution.warning ??
+                "Inbound tenant could not be resolved from payload or recipients.",
+              candidateTenantIds: tenantResolution.candidateTenantIds,
+              matchedDomains: tenantResolution.matchedDomains,
+            }
+          : null;
+
+      const apiKey = process.env.RESEND_API_KEY;
+      if (!apiKey) {
+        return NextResponse.json(
+          {
+            accepted: true,
+            eventType: event.type,
+            tenantId,
+            resolutionSource: tenantResolution.source,
+            warning:
+              "RESEND_API_KEY is not configured; skipping inbound body retrieval.",
+            ...(inboundTenantWarning ?? {}),
+          },
+          { status: 202 },
+        );
+      }
+
+      const emailId = getInboundEmailId(event);
+      if (!emailId) {
+        return NextResponse.json(
+          {
+            accepted: true,
+            eventType: event.type,
+            tenantId,
+            resolutionSource: tenantResolution.source,
+            warning: "Inbound event did not include an email_id.",
+            ...(inboundTenantWarning ?? {}),
+          },
+          { status: 202 },
+        );
+      }
+
+      const [receivedEmailResult, attachmentsResult] = await Promise.allSettled(
+        [
+          getReceivedEmail(apiKey, emailId),
+          listReceivedEmailAttachments(apiKey, emailId),
+        ],
+      );
+
+      const receivedEmail =
+        receivedEmailResult.status === "fulfilled"
+          ? receivedEmailResult.value
+          : {
+              success: false,
+              error: "Inbound email body retrieval failed.",
+              errorCode: "server_error",
+              data: null,
+            };
+      const attachments =
+        attachmentsResult.status === "fulfilled"
+          ? attachmentsResult.value
+          : {
+              success: false,
+              error: "Inbound attachment listing failed.",
+              errorCode: "server_error",
+              data: [],
+            };
+
+      await assertSupabaseWrite(
+        "email_inbound_messages.upsert",
+        supabaseAdmin.from("email_inbound_messages").upsert(
+          {
+            tenant_id: tenantId,
+            resend_email_id: emailId,
+            event_type: event.type,
+            from_email: asString(eventData.from) ?? "unknown@example.invalid",
+            subject: asString(eventData.subject),
+            to_recipients: asStringArray(eventData.to),
+            cc_recipients: asStringArray(eventData.cc),
+            bcc_recipients: asStringArray(eventData.bcc),
+            attachment_count: attachments.data?.length ?? 0,
+            received_at: occurredAt,
+            payload: eventData,
+            parsed_text: receivedEmail.success
+              ? asString(receivedEmail.data?.text)
+              : null,
+            parsed_html: receivedEmail.success
+              ? asString(receivedEmail.data?.html)
+              : null,
+          },
+          {
+            onConflict: "resend_email_id",
+          },
+        ),
+        {
+          eventType: event.type,
+          emailId,
+          tenantId,
+          receivedEmailLoaded: receivedEmail.success,
+          attachmentsLoaded: attachments.success,
+        },
+      );
+
       return NextResponse.json(
         {
           accepted: true,
           eventType: event.type,
           tenantId,
           resolutionSource: tenantResolution.source,
-          warning:
-            "RESEND_API_KEY is not configured; skipping inbound body retrieval.",
+          emailId,
+          receivedEmailLoaded: receivedEmail.success,
+          attachmentsLoaded: attachments.success,
+          attachmentCount: attachments.data?.length ?? 0,
           ...(inboundTenantWarning ?? {}),
         },
-        { status: 202 },
-      );
-    }
-
-    const emailId = getInboundEmailId(event);
-    if (!emailId) {
-      return NextResponse.json(
-        {
-          accepted: true,
-          eventType: event.type,
-          tenantId,
-          resolutionSource: tenantResolution.source,
-          warning: "Inbound event did not include an email_id.",
-          ...(inboundTenantWarning ?? {}),
-        },
-        { status: 202 },
-      );
-    }
-
-    const [receivedEmailResult, attachmentsResult] = await Promise.allSettled([
-      getReceivedEmail(apiKey, emailId),
-      listReceivedEmailAttachments(apiKey, emailId),
-    ]);
-
-    const receivedEmail =
-      receivedEmailResult.status === "fulfilled"
-        ? receivedEmailResult.value
-        : {
-            success: false,
-            error: "Inbound email body retrieval failed.",
-            errorCode: "server_error",
-            data: null,
-          };
-    const attachments =
-      attachmentsResult.status === "fulfilled"
-        ? attachmentsResult.value
-        : {
-            success: false,
-            error: "Inbound attachment listing failed.",
-            errorCode: "server_error",
-            data: [],
-          };
-
-    if (supabaseAdmin) {
-      await supabaseAdmin.from("email_inbound_messages").upsert(
-        {
-          tenant_id: tenantId,
-          resend_email_id: emailId,
-          event_type: event.type,
-          from_email: asString(eventData.from) ?? "unknown@example.invalid",
-          subject: asString(eventData.subject),
-          to_recipients: asStringArray(eventData.to),
-          cc_recipients: asStringArray(eventData.cc),
-          bcc_recipients: asStringArray(eventData.bcc),
-          attachment_count: attachments.data?.length ?? 0,
-          received_at: occurredAt,
-          payload: eventData,
-          parsed_text: receivedEmail.success
-            ? asString(receivedEmail.data?.text)
-            : null,
-          parsed_html: receivedEmail.success
-            ? asString(receivedEmail.data?.html)
-            : null,
-        },
-        {
-          onConflict: "resend_email_id",
-        },
+        { status: inboundTenantWarning ? 202 : 200 },
       );
     }
 
@@ -670,25 +829,30 @@ export async function POST(request: NextRequest) {
         accepted: true,
         eventType: event.type,
         tenantId,
+        messageId,
         resolutionSource: tenantResolution.source,
-        emailId,
-        receivedEmailLoaded: receivedEmail.success,
-        attachmentsLoaded: attachments.success,
-        attachmentCount: attachments.data?.length ?? 0,
-        ...(inboundTenantWarning ?? {}),
       },
-      { status: inboundTenantWarning ? 202 : 200 },
+      { status: 200 },
+    );
+  } catch (error) {
+    if (error instanceof WebhookPersistenceError) {
+      return toWebhookPersistenceResponse(error);
+    }
+
+    console.error("Unexpected Resend webhook handling failure", {
+      eventType: event.type,
+      messageId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return NextResponse.json(
+      {
+        accepted: false,
+        eventType: event.type,
+        messageId,
+        code: "webhook_processing_failed",
+        error: "Failed to process Resend webhook event.",
+      },
+      { status: 503 },
     );
   }
-
-  return NextResponse.json(
-    {
-      accepted: true,
-      eventType: event.type,
-      tenantId,
-      messageId,
-      resolutionSource: tenantResolution.source,
-    },
-    { status: 200 },
-  );
 }

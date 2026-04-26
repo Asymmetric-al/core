@@ -105,6 +105,7 @@ Use this map when extending behavior:
   - `supabase/schema.sql`
   - `supabase/migrations/20260223120000_resend_email_foundation.sql`
   - `supabase/migrations/20260402100000_resend_validation_snapshot.sql`
+  - `supabase/migrations/20260426100000_resend_email_rls_grants.sql`
   - `packages/database/types/database.ts`
 - Regression tests:
   - `tests/unit/packages/api/email/webhooks-resend.test.ts`
@@ -118,6 +119,28 @@ Use these variables when wiring server-side defaults/webhooks:
 - `RESEND_API_KEY` (required for webhook signature verification and inbound body retrieval)
 - `RESEND_WEBHOOK_SECRET` (required for webhook signature verification)
 - `RESEND_ENCRYPTION_KEY` (required to encrypt/decrypt tenant API keys at rest)
+
+All three variables are server-only and are validated by `packages/env` for
+staging and production deployments:
+
+- `RESEND_API_KEY` must start with `re_`.
+- `RESEND_WEBHOOK_SECRET` must start with `whsec_`.
+- `RESEND_ENCRYPTION_KEY` must be at least 32 characters. Rotating it requires
+  re-encrypting existing tenant API keys; see the rotation runbook below.
+
+Do not expose these as `NEXT_PUBLIC_*` variables or log their values.
+
+## Sending Contract
+
+All production Resend sends must include a stable idempotency key. Use a
+deterministic `<event-type>/<entity-id>` key for single sends and a
+`batch-<event-type>/<batch-id>` key for future batch sends. Resend idempotency
+keys expire after 24 hours and must be 256 characters or fewer.
+
+Single email requests are capped at 50 recipients. Future campaign and bulk
+delivery work must use explicit chunking/batching before calling Resend; batch
+sends are limited to 100 email objects and do not support attachments or
+scheduling.
 
 ## Error Codes
 
@@ -144,6 +167,11 @@ The Resend hardening pass adds foundational tables for analytics/compliance:
 - `email_suppressions`
 - `email_inbound_messages`
 
+These tables are server-only. RLS is enabled, `anon` and `authenticated` grants
+are revoked, and the service role is granted table access. Application code must
+continue to access these tables only through server-side `@asym/api` handlers
+using the Supabase admin client.
+
 ## Webhook Tenant Resolution Behavior
 
 `POST /api/email/webhooks/resend` uses deterministic tenant resolution with hybrid
@@ -152,9 +180,13 @@ strictness:
 - Outbound events (`email.delivered`, `email.bounced`, etc.) must resolve a
   tenant from payload (`tenant_id`) or `email_send_logs` lookup by
   `resend_message_id`. If unresolved, the endpoint returns `422`.
+- Dependency failures such as unavailable Supabase admin access or failed lookup
+  queries return `503` so Resend can retry rather than treating the event as a
+  permanent bad payload.
 - Inbound events (`email.received`) can resolve from payload or connected sender
   domains. If unresolved/ambiguous, the endpoint returns `202` with
   `tenantWarningCode` and `tenantWarning`, and still stores inbound metadata.
+- Core persistence failures return `503` with `webhook_persistence_failed`.
 
 ## Key Rotation Runbooks
 
@@ -223,16 +255,35 @@ Operational caveat:
 - Inbound body and attachment retrieval are independent; one can fail while the
   other succeeds. Response flags (`receivedEmailLoaded`, `attachmentsLoaded`)
   indicate what was loaded.
+- Live Resend webhook creation and DNS changes are operational tasks. The CLI
+  can confirm current state, but creating webhooks and fixing MX records require
+  a public endpoint, DNS-provider access, and explicit approval because they
+  mutate live provider configuration.
+
+## Observability And Retention
+
+Every send response includes a `correlationId`, `recipientCount`, and
+`retryCount`; provider message ids are persisted when available. Webhook
+processing logs structured failures for tenant resolution, core persistence, and
+unexpected processing errors without logging API keys or webhook secrets.
+
+Retention policy:
+
+- Keep `email_send_logs` and `email_events` for 400 days by default so donor
+  receipt, annual statement, and deliverability investigations can cover the
+  prior giving year.
+- Keep `email_inbound_messages.parsed_text` and `parsed_html` for 90 days by
+  default, then archive or purge parsed content while preserving event metadata
+  needed for audit.
+- Suppression records are operational safety records and should be retained
+  until explicitly removed by an authorized staff/admin workflow.
+- Any UI that later displays inbound HTML must sanitize it before rendering.
 
 ## Next Implementation Steps
 
-- Add lightweight telemetry counters for:
-  - outbound `422 tenant_resolution_*` responses
-  - inbound `202` unresolved/ambiguous responses
-  - inbound partial retrieval failures
 - Add admin reporting views over `email_events`, `email_suppressions`, and
   `email_inbound_messages` for operational support.
-- Add periodic cleanup/archival policy for large inbound payload retention.
+- Add scheduled cleanup/archival jobs that enforce the retention policy above.
 
 Replay verification examples:
 

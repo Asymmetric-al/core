@@ -78,6 +78,7 @@ export const RETRY_CONFIG = {
   maxRetries: 3,
   baseDelayMs: 1000,
   maxDelayMs: 30000,
+  jitterRatio: 0.2,
   retryableStatuses: [429, 500, 502, 503, 504],
   retryableErrors: ["ETIMEDOUT", "ECONNRESET", "ENOTFOUND"],
 } as const;
@@ -85,8 +86,14 @@ export const RETRY_CONFIG = {
 /**
  * Conservative defaults to stay under provider limits.
  */
+export const RESEND_LIMITS = {
+  maxRecipientsPerEmail: 50,
+  maxBatchEmails: 100,
+  defaultRequestsPerSecond: 5,
+} as const;
+
 export const RATE_LIMIT_CONFIG = {
-  maxRequestsPerMinute: 200,
+  maxRequestsPerMinute: 300,
   maxRecipientsPerRequest: 50,
   maxDailyEmails: 10000,
   burstSize: 25,
