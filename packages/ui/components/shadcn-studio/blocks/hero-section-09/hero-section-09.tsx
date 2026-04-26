@@ -4,8 +4,8 @@ import { SquarePlusIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { MotionPreset } from "@asym/ui/components/primitives/motion-preset";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { MotionPreset } from "@asym/ui/components/shadcn/motion-preset";
 import {
   Tooltip,
   TooltipContent,
