@@ -109,7 +109,7 @@ export function AboutBelief() {
 
             <m.div {...propsScaleFadeInView(reduceMotion)} className="relative">
               <div className="aspect-square bg-slate-50 rounded-3xl p-8 flex items-center justify-center border border-slate-100 shadow-xl overflow-hidden relative group">
-                <div className="absolute inset-0 opacity-20 pointer-events-none grayscale group-hover:grayscale-0 transition-all duration-500 ease-out">
+                <div className="absolute inset-0 opacity-20 pointer-events-none grayscale group-hover:grayscale-0 transition-[filter] duration-500 ease-out">
                   <Image
                     src="https://images.unsplash.com/photo-1509099836639-18ba1795216d?q=80&w=2000"
                     fill

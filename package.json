@@ -75,6 +75,7 @@
     "skills:sync": "node scripts/sync-agent-skills.mjs",
     "skills:verify": "node scripts/verify-skills-sync.mjs",
     "skills:refresh-upstream": "node scripts/refresh-upstream-skills.mjs",
+    "check:motion": "node scripts/check-motion-patterns.mjs",
     "legal:validate": "bun run --cwd apps/donor legal:validate",
     "legal:generate:md": "bun run --cwd apps/donor legal:generate:md",
     "legal:generate:html": "bun run --cwd apps/donor legal:generate:html",

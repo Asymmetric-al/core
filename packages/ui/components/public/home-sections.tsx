@@ -500,7 +500,7 @@ export function HomeCTA() {
           <Button
             size="lg"
             variant="outline"
-            className="h-14 px-10 rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 text-lg font-bold font-syne backdrop-blur-xl transition-all"
+            className="h-14 px-10 rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 text-lg font-bold font-syne backdrop-blur-xl"
             asChild
           >
             <Link href="/about">Our Framework</Link>

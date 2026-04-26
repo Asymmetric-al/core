@@ -135,7 +135,7 @@ export function NavbarClient({
               asChild
               variant="ghost"
               className={cn(
-                "rounded-full px-5 lg:px-6 font-bold uppercase tracking-widest text-[10px] h-10 shadow-lg transition-all",
+                "rounded-full px-5 lg:px-6 font-bold uppercase tracking-widest text-[10px] h-10 shadow-lg",
                 showScrolledStyles
                   ? "bg-slate-900 text-white hover:bg-slate-800"
                   : "bg-white text-slate-900 hover:bg-slate-100",
