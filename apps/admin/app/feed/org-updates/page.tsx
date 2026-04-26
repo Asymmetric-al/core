@@ -386,7 +386,7 @@ function PostCard({
       <MotionCard
         whileHover={{ y: -2 }}
         transition={springTransition}
-        className="overflow-hidden border shadow-sm hover:shadow-lg transition-all duration-500 rounded-2xl sm:rounded-3xl bg-card"
+        className="overflow-hidden border shadow-sm hover:shadow-lg transition-shadow duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] rounded-2xl sm:rounded-3xl bg-card"
       >
         <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-4 flex flex-row items-start justify-between space-y-0">
           <div className="flex gap-3 sm:gap-4">
@@ -566,7 +566,7 @@ function DraftCard({
       <MotionCard
         whileHover={{ y: -2 }}
         transition={springTransition}
-        className="overflow-hidden border hover:shadow-lg transition-all duration-500 rounded-2xl sm:rounded-3xl bg-card p-4 sm:p-6"
+        className="overflow-hidden border hover:shadow-lg transition-shadow duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] rounded-2xl sm:rounded-3xl bg-card p-4 sm:p-6"
       >
         <div className="flex flex-col sm:flex-row items-start justify-between gap-4 sm:gap-6">
           <div className="flex-1 min-w-0 space-y-3">

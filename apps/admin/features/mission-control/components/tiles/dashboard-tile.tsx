@@ -25,12 +25,12 @@ export function DashboardTile({
     <Link
       href={href}
       className={cn(
-        "group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200 bg-white p-6 transition-all duration-300 hover:border-zinc-300 hover:shadow-xl hover:shadow-zinc-200/40",
+        "group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200 bg-white p-6 transition-[border-color,box-shadow] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] hover:border-zinc-300 hover:shadow-xl hover:shadow-zinc-200/40",
         className,
       )}
     >
       <div>
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-50 border border-zinc-100 shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:bg-zinc-900 group-hover:border-zinc-900">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-50 border border-zinc-100 shadow-sm transition-[background-color,border-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] group-hover:bg-zinc-900 group-hover:border-zinc-900">
           <Icon className="h-6 w-6 text-zinc-900 transition-colors group-hover:text-white" />
         </div>
         <h3 className="mt-5 text-lg font-bold tracking-tight text-zinc-900 transition-colors group-hover:text-premium">
@@ -45,7 +45,7 @@ export function DashboardTile({
         <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 transition-colors group-hover:text-zinc-900">
           Access Module
         </span>
-        <ArrowUpRight className="h-4 w-4 text-zinc-300 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-zinc-900" />
+        <ArrowUpRight className="h-4 w-4 text-zinc-300 transition-colors group-hover:text-zinc-900" />
       </div>
 
       {/* Subtle background glow on hover */}

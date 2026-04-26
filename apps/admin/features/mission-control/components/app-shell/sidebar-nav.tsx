@@ -196,7 +196,7 @@ export const SidebarNav = memo(function SidebarNav() {
     <TooltipProvider delayDuration={0}>
       <aside
         className={cn(
-          "flex flex-col border-r border-border bg-card/80 backdrop-blur-xl transition-all duration-300 ease-in-out",
+          "flex flex-col border-r border-border bg-card/80 backdrop-blur-xl transition-[width] duration-[var(--duration-standard)] ease-[var(--ease-out-soft)]",
           sidebarCollapsed ? "w-[70px]" : "w-[260px]",
         )}
       >
