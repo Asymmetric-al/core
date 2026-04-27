@@ -222,9 +222,9 @@ const FeedFilter = ({
             key={type}
             onClick={() => onChange(type)}
             className={cn(
-              "px-5 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-300 border select-none whitespace-nowrap flex items-center gap-2",
+              "px-5 py-2 rounded-full text-xs font-bold uppercase tracking-widest border select-none whitespace-nowrap flex items-center gap-2 press-feedback",
               current === type
-                ? "bg-zinc-900 text-white border-zinc-900 shadow-lg hover:shadow-xl transform scale-[1.02]"
+                ? "bg-zinc-900 text-white border-zinc-900 shadow-lg ring-2 ring-zinc-900/10"
                 : "bg-white text-zinc-500 border-zinc-200/60 hover:bg-zinc-50 hover:border-zinc-300 hover:text-zinc-900 shadow-sm",
             )}
           >
@@ -626,7 +626,7 @@ const PostCard: React.FC<{
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="relative group cursor-pointer">
-            <Avatar className="h-10 w-10 border border-zinc-100 shadow-sm transition-transform group-hover:scale-[1.02]">
+            <Avatar className="h-10 w-10 border border-zinc-100 shadow-sm transition-transform duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[var(--scale-hover-subtle)]">
               <AvatarImage src={post.workerAvatar} />
               <AvatarFallback className="bg-zinc-100 font-bold text-zinc-600 uppercase">
                 {post.workerName[0]}

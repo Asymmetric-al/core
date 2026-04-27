@@ -130,7 +130,7 @@ export default function AdminPage() {
               transition={{ duration: 0.4, delay: i * 0.05 }}
             >
               <Link href={item.href} className="group block">
-                <Card className="h-full overflow-hidden border border-zinc-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-zinc-200 hover:shadow-lg hover:shadow-zinc-200/50">
+                <Card className="h-full overflow-hidden border border-zinc-100 bg-white shadow-sm hover-lift hover:border-zinc-200 hover:shadow-lg hover:shadow-zinc-200/50">
                   <CardHeader className="pb-4">
                     <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 text-zinc-600 transition-colors group-hover:bg-zinc-600 group-hover:text-white">
                       <item.icon className="h-6 w-6" />
