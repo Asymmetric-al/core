@@ -39,6 +39,22 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 - Avoid arbitrary values like `w-[123px]` unless there is no practical alternative.
 - Keep spacing, typography, and radius aligned with existing shared components.
 
+### Motion rules
+
+Per `AGENTS.md`: for animation craft and feel, load `docs/ai/skills/emil-design-engineering/SKILL.md` first; **repo timing/CSS contract** (tokens, utilities, route VT): `docs/ai/skills/anim/SKILL.md` (summary below).
+
+- **Use the motion tokens, not literals.** Prefer real `--duration-*` / `--ease-*` variables (e.g. `var(--duration-standard)`, `var(--ease-out-soft)`) or `EASE_OUT_*` / `DURATION_*` from `@asym/lib/motion-presets` (not brace shorthand — the `{a,b,…}` form above is documentation-only). All motion tokens live in `packages/ui/styles/globals.css :root`.
+- **No `transition: all` / `transition-all`.** Specify exact properties (e.g. `transition-[transform,box-shadow]` or one of the shared utilities below).
+- **Press feedback is automatic on `<Button>`.** Don't add `active:scale-[0.98]` inline. Native `<button>` elements that don't use the shadcn `Button` should add the `.press-feedback` utility.
+- **Hover-on-touch is a bug.** Any `hover:scale-*`, `hover:-translate-*`, or `hover:shadow-*` lift must be wrapped in `@media (hover: hover) and (pointer: fine)`. Use `.hover-lift` / `.hover-scale-subtle` (already gated) when possible; otherwise `[@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[…]`.
+- **Popovers / tooltips / dropdowns / selects scale from their trigger** via `transform-origin: var(--radix-*-content-transform-origin)` (already wired in shared primitives). Modals stay `transform-origin: center`.
+- **Route transitions** belong to `RouteMainViewTransitionBoundary`. Don't compete with it — when a `motion.div` lives inside a route VT layer, suppress its entrance via `useWithinViewTransitionRouteLayer()` (see `PageShell`).
+- **Don't animate keyboard-initiated actions** (⌘K command palette is intentionally instant).
+- **Don't animate `width` / `height` / layout properties.** Use `transform: scaleX/scaleY/translate` instead. The impact meter in `packages/ui/components/public/home-sections.tsx` is the canonical example.
+- **Lists**: one motion grammar per row. CSS for steady-state hover/press; `motion/react` only for the parent stagger or VT shared morphs. Don't combine `motion.layout` + per-row `whileHover` springs + CSS hover-lift on the same node — it drops frames under load.
+- **Springs (`motion/react`)** are for gestures, momentum, and decorative interactions only. Not for buttons, stat cards, or list rows.
+- **Reduced-motion baseline lives in `packages/ui/styles/globals.css`** — apps must not redeclare it. Every TS motion primitive should call `useReducedMotion()` and either return early, set `transition: { duration: 0 }`, or pass `initial: false`.
+
 ### shadcn component workflow
 
 - Shared `packages/ui/components.json` pins **`style: base-maia`** so CLI installs align with **Base UI first** (see “Component and primitive policy” above).

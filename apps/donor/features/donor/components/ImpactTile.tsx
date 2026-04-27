@@ -48,7 +48,7 @@ export function ImpactTile({
         <div className="flex justify-between items-start mb-3 sm:mb-4">
           <div
             className={cn(
-              "p-1.5 sm:p-2 rounded-lg border shadow-sm transition-transform group-hover:scale-[1.02]",
+              "p-1.5 sm:p-2 rounded-lg border shadow-sm transition-transform duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.02]",
               bgClass,
               colorClass,
               "border-current/10",

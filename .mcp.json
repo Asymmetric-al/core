@@ -7,6 +7,10 @@
     "tanstack": {
       "command": "bunx",
       "args": ["-y", "@tanstack/cli", "mcp"]
+    },
+    "shadcn": {
+      "command": "npx",
+      "args": ["--yes", "shadcn@latest", "mcp"]
     }
   }
 }
