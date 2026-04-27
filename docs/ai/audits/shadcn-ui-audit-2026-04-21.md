@@ -24,9 +24,11 @@ Per [shadcn MCP docs](https://ui.shadcn.com/docs/mcp), the server was initialize
 ```json
 "shadcn": {
   "command": "npx",
-  "args": ["shadcn@latest", "mcp"]
+  "args": ["--yes", "shadcn@latest", "mcp"]
 }
 ```
+
+(`--yes` matches non-interactive `npx` / CLI usage elsewhere in this audit; avoids install prompts when Cursor spawns the MCP subprocess.)
 
 **Human step:** In Cursor Settings, enable the **shadcn** MCP server (green dot). The agent session used **CLI** for all registry calls because hosted MCP tool names (`list_components`, `get_component_metadata`, …) are not exposed in this runner; behavior matches the same registries the MCP server would use (`components.json` + `@shadcn` URL pattern from `info`).
 

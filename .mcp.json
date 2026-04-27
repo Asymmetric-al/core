@@ -10,7 +10,7 @@
     },
     "shadcn": {
       "command": "npx",
-      "args": ["shadcn@latest", "mcp"]
+      "args": ["--yes", "shadcn@latest", "mcp"]
     }
   }
 }
