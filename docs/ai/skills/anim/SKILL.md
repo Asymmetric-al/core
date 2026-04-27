@@ -308,8 +308,125 @@
 
 ## Shared implementation (this monorepo)
 
-- **`@asym/lib/motion-presets`** — canonical durations, easings, stagger steps, `SCALE_ENTRANCE` (0.96), and helpers (`propsHeroEntrance`, `propsFadeRiseInView`, `propsScaleFadeInView`) that respect `useReducedMotion()`. Prefer importing these in client components next to `@asym/lib/motion` or `motion/react`.
-- **`@asym/lib/motion`** — re-exports `useReducedMotion` for LazyMotion trees.
+The repo motion contract has **two synchronized halves**:
+
+1. **CSS tokens** in `packages/ui/styles/globals.css` (`:root`) — the baseline for Tailwind, Radix surfaces, and global CSS.
+2. **TS constants** in `packages/lib/motion-presets.ts` — the intended pair for `motion/react` and shared helpers; **prefer these over raw literals** in new or refactored client code.
+
+When updating one half, update the other so consumers stay in lockstep.
+
+### CSS tokens (`packages/ui/styles/globals.css :root`)
+
+```css
+/* Easing — strong cubic-bezier variants, not the weak built-ins */
+--ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+--ease-in-soft: cubic-bezier(0.4, 0, 1, 1);
+--ease-in-out-soft: cubic-bezier(0.77, 0, 0.175, 1);
+--ease-drawer: cubic-bezier(0.32, 0.72, 0, 1); /* iOS curve */
+
+/* Duration tiers — product UI stays under 300ms unless ceremonial */
+--duration-press: 120ms; /* button/tile press feedback */
+--duration-micro: 150ms; /* hover, color change */
+--duration-standard: 220ms; /* tooltip, popover, dropdown, select */
+--duration-modal: 220ms; /* dialog open/close */
+--duration-drawer: 320ms; /* sheet / vaul drawer */
+--duration-route: 240ms; /* matches asym-vt-route-* */
+--duration-shared: 280ms; /* matches asym-vt-share-* */
+
+/* Stagger — keep tight (30–80ms) */
+--stagger-tight: 45ms;
+--stagger-medium: 60ms;
+
+/* Transform tokens — never go below 0.95 (cartoon territory) */
+--scale-press: 0.98;
+--scale-hover-subtle: 1.02;
+--scale-entrance: 0.96;
+```
+
+**Authoritative values** live in `packages/ui/styles/globals.css`; keep the fenced copy above in sync when tokens change.
+
+### CSS utilities (composable, defined in the same file)
+
+| Utility               | What it does                                | Touch-safe?                                       | Pair with                           |
+| --------------------- | ------------------------------------------- | ------------------------------------------------- | ----------------------------------- |
+| `.press-feedback`     | `:active` scale to `var(--scale-press)`     | Yes (`:active` fires on tap)                      | Default on every `<Button>` already |
+| `.hover-lift`         | `:hover` `translateY(-2px)`                 | Yes (`@media (hover: hover) and (pointer: fine)`) | Cards, tiles                        |
+| `.hover-scale-subtle` | `:hover` `scale(var(--scale-hover-subtle))` | Yes (`@media (hover: hover) and (pointer: fine)`) | Buttons, badges, marketing CTAs     |
+
+The three utilities **share** one `transition-property` declaration so you can stack them on the same element without one overriding another's transition list.
+
+### TS constants (`@asym/lib/motion-presets`)
+
+`EASE_OUT_SOFT`, `EASE_IN_SOFT`, `EASE_IN_OUT_SOFT`, `EASE_DRAWER`, `DURATION_PRESS`, `DURATION_MICRO`, `DURATION_STANDARD`, `DURATION_ROUTE`, `DURATION_SHARED`, `DURATION_DRAWER`, `DURATION_SLOW`, `STAGGER_TIGHT`, `STAGGER_MEDIUM`, `SCALE_HOVER_SUBTLE`, `SCALE_TAP_SUBTLE`, `SCALE_ENTRANCE`. **Semantic parity** with the CSS `--ease-*`, `--duration-*` (where present), `--stagger-*`, and `--scale-*` tokens in `globals.css` — same numeric intent, not always the same name (e.g. `DURATION_SLOW` is extra-tier TS for marketing/hero; `SCALE_TAP_SUBTLE` matches `--scale-press`).
+
+Pre-built `Transition` objects: `transitionStandard`, `transitionSlow`, `transitionExitQuick`, `springTap` (gestures only).
+
+Reduced-motion-aware helpers:
+
+- `propsHeroEntrance(reduceMotion, delay?, y?)` — fade + small rise.
+- `propsFadeRiseInView(reduceMotion, options?)` — fade + rise on scroll-in.
+- `propsScaleFadeInView(reduceMotion, options?)` — fade + scale from `SCALE_ENTRANCE`.
+
+### `@asym/lib/motion`
+
+Re-exports `motion`, `AnimatePresence`, `LayoutGroup`, `useReducedMotion`, plus `MotionProvider` (a `LazyMotion features={domAnimation}` wrapper). Use these in any client component that already imports from `motion/react`.
+
+## Repo motion standard (operative rules)
+
+These rules are enforced informally by code review. **Runtime contract:** `packages/ui/styles/globals.css` and `packages/lib/motion-presets.ts` (update both together). **Written contract (this file +** `docs/ai/rules/frontend.md` **Motion rules):** how to apply them; keep all three in sync when policy changes.
+
+### When NOT to animate (in this repo)
+
+- Anything triggered by `⌘K`, `⌘B`, or other keyboard shortcuts. Command palette is intentionally instant — see `packages/ui/components/shadcn/command.tsx`.
+- Form validation errors — no extra motion; use color/icon/text for _visual_ feedback only (errors must still be named, associated, and programmatically exposed per form a11y — not “color only” in the WCAG sense).
+- Live data, timers, ticker counters — `tabular-nums` and no animation.
+- Sortable/filtered list reordering at high frequency — use VT shared morphs or no animation; do not add per-row springs (`packages/missionary/components/tasks/task-row.tsx` is the canonical example).
+- Disabled controls — no hover/press feedback (handled by `disabled:pointer-events-none disabled:opacity-50` on `Button`).
+
+### Hover on touch
+
+- Any `hover:scale-*`, `hover:-translate-*`, `hover:shadow-*` lift effect must be wrapped in `@media (hover: hover) and (pointer: fine)`.
+- Easiest path: use `.hover-lift` or `.hover-scale-subtle` (both already gated). For ad-hoc `group-hover:` patterns where the parent owns the trigger, use the Tailwind arbitrary variant: `[@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[var(--scale-hover-subtle)]`.
+
+### Button press
+
+- All pressable elements get press feedback via the `Button` base (which now includes `.press-feedback`). Native `<button>` elements that don't use the `Button` primitive should add `.press-feedback` directly.
+- Never add `active:scale-[0.98]` inline — it duplicates the contract.
+
+### Popover / tooltip / dropdown origin
+
+- Radix-based surfaces use `transform-origin: var(--radix-*-content-transform-origin)`. Already correct in shared primitives — keep it.
+- Modals (`Dialog`, full-screen overlays) keep `transform-origin: center`.
+
+### Route transitions
+
+- Owned by `RouteMainViewTransitionBoundary`, applied at the **app shell** (e.g. donor `layout.tsx`, `apps/missionary/components/app-shell.tsx`, `apps/admin/app/mc-shell.tsx` — not necessarily the root `layout.tsx` in every app).
+- When a page header / shell uses `motion.div` and is also inside `RouteMainViewTransitionBoundary`, suppress the per-page entrance via `useWithinViewTransitionRouteLayer()` (the `PageShell` pattern is the template).
+- Do not add `motion.div layout` on the swapping region.
+
+### CSS transitions vs `motion/react` tweens vs springs
+
+- **CSS transitions** for all state changes (open/close, hover, press, color).
+- **`motion/react` tweens** for orchestrated entrances and exits (page mounts, hero strips, lists).
+- **Springs** only for gestures and decorative interactions. Not for stat cards, list rows, or buttons.
+
+### Tooltip pattern
+
+- Shared `TooltipProvider` defaults: `delayDuration={300}`, `skipDelayDuration={0}` (see `packages/ui/components/shadcn/tooltip.tsx`). With Radix, `skipDelayDuration` is the window for _skipping the open delay_ when moving between triggers; **`0` disables that skip window** — do not read it as "warm follow-up" behavior. For always-instant tooltips, set `delayDuration={0}` on a subtree provider (e.g. nav sidebar, rich-text toolbar) instead of inferring it from `skipDelayDuration` alone.
+- The sidebar's `<TooltipProvider delayDuration={0}>` is a deliberate exception (collapsed-icon sidebar tooltips should be instant).
+
+### Reduced motion
+
+- The repo-wide `prefers-reduced-motion: reduce` baseline lives **only** in `packages/ui/styles/globals.css`. Apps must not redeclare it.
+- **New or refactored** `motion/react` code should use `useReducedMotion()` and return `transition: { duration: 0 }`, `initial: false`, or skip motion when reduced motion is on. Pattern examples: `MotionPreset`, `RippleButton`, `AppIcon`, `task-row`, `task-stats`, `feed-post`'s `FloatingEmoji`.
+- View Transitions are zeroed in CSS (`globals.css` under `@media (prefers-reduced-motion: reduce)`).
+
+## Repo examples to copy
+
+- **Best primitive example**: `packages/ui/components/shadcn/page-shell.tsx` (motion + tokens + view-transition awareness in one file).
+- **Best button**: `packages/ui/components/shadcn/button.tsx` (`press-feedback` on the base; `hover-scale-subtle` for `maia` variants; no `transition: all`).
+- **Best card hover**: `apps/admin/features/mission-control/components/tiles/tile-card.tsx` (uses `hover-lift` only, no per-effect translate stack).
+- **Best list row**: `packages/missionary/components/tasks/task-row.tsx` (one stagger entrance, no per-row `motion.layout`, no per-element springs, hover lift via `hover-lift`).
 
 ## Common mistakes / pitfalls
 

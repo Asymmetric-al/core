@@ -110,7 +110,7 @@ const UpdateCard = ({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) => (
                 src={update.image}
                 alt="Update visual"
                 fill
-                className="object-cover hover:scale-[1.02] transition-transform duration-700"
+                className="object-cover transition-transform duration-700 [@media(hover:hover)_and_(pointer:fine)]:hover:scale-[1.02]"
                 sizes="(max-width: 768px) 100vw, 500px"
               />
             </div>
@@ -142,7 +142,7 @@ function WorkerProfileHeaderSection({ worker }: { worker: FieldWorker }) {
           src={worker.image}
           alt={`${worker.title} - Missionary in ${worker.location}`}
           fill
-          className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+          className="object-cover transition-transform duration-700 [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.02]"
           sizes="(max-width: 768px) 100vw, 800px"
           priority
         />
