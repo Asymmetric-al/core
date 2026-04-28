@@ -18,6 +18,47 @@
 
 # Working Set
 
+## 2026-04-24 (AL-203 unit feedback loop)
+
+- Date: 2026-04-24
+- Repo: Asymmetric-al/core
+- Goal: Implement a repeatable unit-test feedback command that runs the full Vitest suite, writes structured pass/fail artifacts, reruns failing files, categorizes remediation-related failures, and optionally posts failing reports to AL-203.
+- Primary area:
+  - `scripts/verify/unit-feedback.mjs`
+  - `tests/unit/scripts/unit-feedback.test.ts`
+  - `package.json`
+  - `docs/ci.md`
+- Constraints:
+  - Keep `bun run test:unit` unchanged as the CI source of truth.
+  - Write generated feedback artifacts under ignored `test-results/`.
+  - Do not post to GitHub when the unit suite passes.
+- Evidence sources used:
+  - `docs/ai/rules/{general,testing}.md`
+  - `.agents/skills/vitest/SKILL.md`
+  - `vitest.config.ts`
+  - `scripts/verify/test-unit-warnings.mjs`
+
+## 2026-04-24 (AL-203 Next.js/React audit remediation)
+
+- Date: 2026-04-24
+- Repo: Asymmetric-al/core
+- Goal: Implement the Next.js/React/Turborepo audit remediation: add global App Router fallbacks, remove donor route barrel imports, reduce route-level client boundaries, and document the rich-text raw image exception.
+- Primary area:
+  - `apps/{admin,donor,missionary}/app/**`
+  - `apps/{admin,donor,missionary}/next.config.ts`
+  - `apps/donor/features/donor/components/**`
+  - `packages/ui/components/shadcn/rich-text-editor/**`
+  - `docs/ai/audits/2026-04-24-next-react-turborepo-assessment.md`
+- Constraints:
+  - Use `.next-docs/` as the Next.js 16.2.1 docs fallback because `node_modules/next/dist/docs/` is unavailable in this environment.
+  - Nia tools are unavailable in this session; use repo-scoped `git grep`, PowerShell search, and direct file reads as fallback evidence.
+  - Preserve interactive page behavior by moving client logic into colocated islands rather than rewriting flows.
+- Evidence sources used:
+  - `docs/ai/rules/{general,frontend,testing}.md`
+  - `docs/ai/skills/{nextjs-app-router,react-component-dev,vercel-react-best-practices}/SKILL.md`
+  - `.next-docs/01-app/01-getting-started/{05-server-and-client-components,12-images}.mdx`
+  - `.next-docs/01-app/03-api-reference/03-file-conventions/{error,not-found}.mdx`
+
 ## 2026-04-17 (shadcn/ui migration: post-merge validation)
 
 - Date: 2026-04-17

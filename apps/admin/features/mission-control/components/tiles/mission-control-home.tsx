@@ -83,7 +83,7 @@ export function MissionControlHome() {
                     return (
                       <div
                         key={tile.id}
-                        className={`flex items-start gap-4 rounded-2xl border p-4 transition-all duration-300 ${
+                        className={`flex items-start gap-4 rounded-2xl border p-4 transition-[border-color,background-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] ${
                           hasAccess
                             ? "bg-white border-zinc-200 hover:border-zinc-300 shadow-sm"
                             : "bg-zinc-50 border-zinc-100 opacity-60"

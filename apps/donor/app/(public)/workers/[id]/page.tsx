@@ -137,7 +137,7 @@ function UpdateCard({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) {
                   src={update.image}
                   alt={`Visual from ${update.title}`}
                   fill
-                  className="object-cover hover:scale-[1.02] transition-transform duration-700"
+                  className="object-cover transition-transform duration-700 [@media(hover:hover)_and_(pointer:fine)]:hover:scale-[1.02]"
                   sizes="(max-width: 768px) 100vw, 500px"
                   loading="lazy"
                 />
