@@ -1,5 +1,7 @@
 "use client";
 
+import { useReducedMotion } from "@asym/lib/motion";
+import { EASE_OUT_SOFT } from "@asym/lib/motion-presets";
 import {
   LazyMotion,
   domAnimation,
@@ -14,6 +16,23 @@ import { cn } from "@asym/ui/lib/utils";
 import { buttonVariants } from "../shadcn/button";
 
 import type { VariantProps } from "class-variance-authority";
+
+const DEFAULT_RIPPLE_DURATION_S = 0.4;
+const defaultRippleTransition: Transition = {
+  duration: DEFAULT_RIPPLE_DURATION_S,
+  ease: EASE_OUT_SOFT,
+};
+
+function rippleDurationMs(transition: Transition | undefined): number {
+  const d =
+    transition &&
+    typeof transition === "object" &&
+    "duration" in transition &&
+    typeof (transition as { duration?: unknown }).duration === "number"
+      ? (transition as { duration: number }).duration
+      : DEFAULT_RIPPLE_DURATION_S;
+  return Math.ceil(d * 1000);
+}
 
 interface Ripple {
   id: number;
@@ -36,16 +55,20 @@ function RippleButton({
   variant,
   size,
   scale = 10,
-  transition = { duration: 0.6, ease: "easeOut" },
+  transition = defaultRippleTransition,
   ...props
 }: RippleButtonProps) {
+  const reduceMotion = useReducedMotion();
   const [ripples, setRipples] = React.useState<Ripple[]>([]);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
 
   React.useImperativeHandle(ref, () => buttonRef.current as HTMLButtonElement);
 
+  const removeAfterMs = rippleDurationMs(transition);
+
   const createRipple = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
+      if (reduceMotion) return;
       const button = buttonRef.current;
 
       if (!button) return;
@@ -64,9 +87,9 @@ function RippleButton({
 
       setTimeout(() => {
         setRipples((prev) => prev.filter((r) => r.id !== newRipple.id));
-      }, 600);
+      }, removeAfterMs);
     },
-    [],
+    [reduceMotion, removeAfterMs],
   );
 
   const handleClick = React.useCallback(

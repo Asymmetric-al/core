@@ -209,7 +209,9 @@ const VisualCard = ({
   return (
     <div
       className={cn(
-        "relative rounded-2xl p-6 aspect-[1.586/1] flex flex-col justify-between overflow-hidden shadow-2xl transition-transform duration-500 border select-none group-hover:scale-[1.02]",
+        // Card lift on parent hover; gated for hover-capable devices
+        // via the @media block in the @media:hover utility next door.
+        "relative rounded-2xl p-6 aspect-[1.586/1] flex flex-col justify-between overflow-hidden shadow-2xl border select-none transition-transform duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[var(--scale-hover-subtle)]",
         getBgStyle(),
       )}
     >
@@ -643,7 +645,7 @@ function ACHNudgeBanner({
             </button>
           </div>
           <div className="flex gap-5 items-start relative z-10">
-            <div className="h-12 w-12 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-md shrink-0 border border-emerald-50 group-hover:scale-[1.02] transition-transform duration-300 ease-out">
+            <div className="h-12 w-12 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-md shrink-0 border border-emerald-50 transition-transform duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[var(--scale-hover-subtle)]">
               <Landmark className="h-6 w-6" />
             </div>
             <div>
@@ -972,7 +974,7 @@ function AddMethodDialog({
           </Button>
           <Button
             onClick={onSave}
-            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-12 px-8 font-black uppercase tracking-widest text-[10px] rounded-xl transition-transform active:scale-[0.98]"
+            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-12 px-8 font-black uppercase tracking-widest text-[10px] rounded-xl"
           >
             {editingMethod ? "Update Method" : "Save Payment Method"}
           </Button>
@@ -1105,7 +1107,7 @@ function SwapPledgeDialog({
           <Button
             onClick={onConfirmMove}
             disabled={!targetMethodId}
-            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-10 px-6 font-black uppercase tracking-widest text-[10px] rounded-xl transition-transform active:scale-[0.98]"
+            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-10 px-6 font-black uppercase tracking-widest text-[10px] rounded-xl"
           >
             Confirm Move
           </Button>
@@ -1235,7 +1237,7 @@ function BulkMoveDialog({
           <Button
             onClick={onConfirmMoveAndDelete}
             disabled={!targetMethodId}
-            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-10 px-6 font-black uppercase tracking-widest text-[10px] rounded-xl transition-transform active:scale-[0.98]"
+            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-10 px-6 font-black uppercase tracking-widest text-[10px] rounded-xl"
           >
             Transfer & Delete
           </Button>
