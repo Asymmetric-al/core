@@ -1,36 +1,44 @@
 /** @vitest-environment jsdom */
 
 import React from "react";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { flushSync } from "react-dom";
 
 import { EditorContext } from "../../../../../../../packages/ui/components/shadcn/rich-text-editor/editor-context";
+import { bubbleMenuShouldShowResults } from "../../../../../../../tests/mocks/tiptap-react-menus";
 
-const toastError = vi.fn();
-const shouldShowProbe = vi.fn();
-
-vi.mock("@tiptap/react", () => ({
-  useEditorState: ({ editor, selector }: { editor: unknown; selector: (arg: { editor: unknown }) => unknown }) =>
-    selector({ editor }),
+const { toastError } = vi.hoisted(() => ({
+  toastError: vi.fn(),
 }));
 
-vi.mock("@tiptap/react/menus", () => ({
-  BubbleMenu: ({ children, shouldShow, editor }: { children: React.ReactNode; shouldShow: (arg: any) => boolean; editor: any }) => {
-    const element = document.createElement("div");
-    document.body.appendChild(element);
-    const visible = shouldShow({
+vi.mock("@tiptap/react", async (importOriginal) => {
+  const mod = await importOriginal<typeof import("@tiptap/react")>();
+  return {
+    ...mod,
+    useEditorState: ({
       editor,
-      element,
-      view: { hasFocus: () => true },
-    });
-    shouldShowProbe(visible);
-    return visible ? <div data-testid="bubble-menu">{children}</div> : null;
-  },
-}));
+      selector,
+    }: {
+      editor: unknown;
+      selector: (arg: { editor: unknown }) => unknown;
+    }) => selector({ editor }),
+  };
+});
 
-vi.mock("sonner", () => ({
-  toast: { error: (...args: unknown[]) => toastError(...args) },
-}));
+vi.mock("sonner", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("sonner")>();
+  Object.assign(actual.toast, {
+    error: (...args: unknown[]) => toastError(...args),
+  });
+  return actual;
+});
 
 import { LinkBubbleMenu } from "../../../../../../../packages/ui/components/shadcn/rich-text-editor/link-bubble-menu";
 
@@ -43,16 +51,26 @@ function createEditor(overrides?: {
   const chain = {
     focus: () => chain,
     extendMarkRange: () => (calls.push("extendMarkRange"), chain),
-    setLink: ({ href }: { href: string }) => (calls.push(`setLink:${href}`), chain),
+    setLink: ({ href }: { href: string }) => (
+      calls.push(`setLink:${href}`),
+      chain
+    ),
     unsetLink: () => (calls.push("unsetLink"), chain),
     run: () => (calls.push("run"), true),
   };
 
   const editor = {
     isEditable: overrides?.isEditable ?? true,
-    isActive: (name: string) => (name === "link" ? (overrides?.isLink ?? true) : false),
-    getAttributes: () => ({ href: overrides?.href ?? "https://example.com" }),
+    isActive: (name: string) =>
+      name === "link" ? (overrides?.isLink ?? true) : false,
+    getAttributes: (name: string) =>
+      name === "link" ? { href: overrides?.href ?? "https://example.com" } : {},
     chain: () => chain,
+    isDestroyed: false,
+    on: (_event: string, _fn: () => void) => () => {},
+    off: () => {},
+    registerPlugin: () => {},
+    unregisterPlugin: () => {},
   };
 
   return { editor, calls };
@@ -61,7 +79,7 @@ function createEditor(overrides?: {
 afterEach(() => {
   cleanup();
   toastError.mockReset();
-  shouldShowProbe.mockReset();
+  bubbleMenuShouldShowResults.length = 0;
 });
 
 describe("rich-text-editor/link-bubble-menu", () => {
@@ -99,14 +117,18 @@ describe("rich-text-editor/link-bubble-menu", () => {
     fireEvent.click(screen.getByLabelText("Save link"));
 
     await waitFor(() => {
-      expect(calls.some((call) => call.startsWith("setLink:https://new.example.com"))).toBe(true);
+      expect(
+        calls.some((call) =>
+          call.startsWith("setLink:https://new.example.com"),
+        ),
+      ).toBe(true);
     });
 
     fireEvent.click(screen.getByLabelText("Remove link"));
     expect(calls).toContain("unsetLink");
   });
 
-  it("rejects invalid edits, keeps focus, and supports cancel", () => {
+  it("rejects invalid edits, keeps focus, and supports cancel", async () => {
     const { editor, calls } = createEditor({ href: "https://example.com" });
 
     render(
@@ -117,10 +139,17 @@ describe("rich-text-editor/link-bubble-menu", () => {
 
     fireEvent.click(screen.getByLabelText("Edit link"));
     const input = screen.getByLabelText("Edit link URL") as HTMLInputElement;
-    fireEvent.change(input, { target: { value: "javascript:alert(1)" } });
+    await waitFor(() => {
+      expect(input.value).toBe("https://example.com");
+    });
+    flushSync(() => {
+      fireEvent.change(input, { target: { value: "javascript:alert(1)" } });
+    });
     fireEvent.click(screen.getByLabelText("Save link"));
 
-    expect(toastError).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(toastError).toHaveBeenCalledWith("Please enter a valid URL");
+    });
     expect(document.activeElement).toBe(input);
 
     fireEvent.click(screen.getByLabelText("Cancel link edit"));
@@ -129,13 +158,16 @@ describe("rich-text-editor/link-bubble-menu", () => {
   });
 
   it("shouldShow requires editable + focused + active link", () => {
-    const { editor: readOnlyEditor } = createEditor({ isEditable: false, isLink: true });
+    const { editor: readOnlyEditor } = createEditor({
+      isEditable: false,
+      isLink: true,
+    });
     render(
       <EditorContext.Provider value={{ editor: readOnlyEditor as never }}>
         <LinkBubbleMenu />
       </EditorContext.Provider>,
     );
 
-    expect(shouldShowProbe).toHaveBeenCalledWith(false);
+    expect(bubbleMenuShouldShowResults.some((v) => v === false)).toBe(true);
   });
 });

@@ -41,7 +41,10 @@ describe("rich-text-editor/extensions", () => {
   });
 
   it("keeps image allowBase64 disabled and heading limited to h1/h2", () => {
-    const starterKit = getExtension(createDefaultExtensions(), "starterKit") as {
+    const starterKit = getExtension(
+      createDefaultExtensions(),
+      "starterKit",
+    ) as {
       options?: Record<string, unknown>;
     };
     const image = getExtension(createDefaultExtensions(), "image") as {
@@ -55,7 +58,10 @@ describe("rich-text-editor/extensions", () => {
   });
 
   it("applies secure link HTML attributes and URL guards", () => {
-    const starterKit = getExtension(createDefaultExtensions(), "starterKit") as {
+    const starterKit = getExtension(
+      createDefaultExtensions(),
+      "starterKit",
+    ) as {
       options?: Record<string, unknown>;
     };
 

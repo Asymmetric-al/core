@@ -1,19 +1,41 @@
 /** @vitest-environment jsdom */
 
 import React from "react";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { flushSync } from "react-dom";
 
-const toastError = vi.fn();
-
-vi.mock("@tiptap/react", () => ({
-  useEditorState: ({ editor, selector }: { editor: unknown; selector: (arg: { editor: unknown }) => unknown }) =>
-    selector({ editor }),
+const { toastError } = vi.hoisted(() => ({
+  toastError: vi.fn(),
 }));
 
-vi.mock("sonner", () => ({
-  toast: { error: (...args: unknown[]) => toastError(...args) },
-}));
+vi.mock("@tiptap/react", async (importOriginal) => {
+  const mod = await importOriginal<typeof import("@tiptap/react")>();
+  return {
+    ...mod,
+    useEditorState: ({
+      editor,
+      selector,
+    }: {
+      editor: unknown;
+      selector: (arg: { editor: unknown }) => unknown;
+    }) => selector({ editor }),
+  };
+});
+
+vi.mock("sonner", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("sonner")>();
+  Object.assign(actual.toast, {
+    error: (...args: unknown[]) => toastError(...args),
+  });
+  return actual;
+});
 
 import { EditorToolbar } from "../../../../../../../packages/ui/components/shadcn/rich-text-editor/toolbar";
 
@@ -35,14 +57,23 @@ function createEditorMock(overrides?: {
     toggleBold: () => (calls.push("toggleBold"), chain),
     toggleItalic: () => (calls.push("toggleItalic"), chain),
     toggleUnderline: () => (calls.push("toggleUnderline"), chain),
-    toggleHeading: ({ level }: { level: number }) => (calls.push(`toggleHeading:${level}`), chain),
+    toggleHeading: ({ level }: { level: number }) => (
+      calls.push(`toggleHeading:${level}`),
+      chain
+    ),
     toggleBlockquote: () => (calls.push("toggleBlockquote"), chain),
     toggleBulletList: () => (calls.push("toggleBulletList"), chain),
     toggleOrderedList: () => (calls.push("toggleOrderedList"), chain),
     extendMarkRange: () => (calls.push("extendMarkRange"), chain),
-    setLink: ({ href }: { href: string }) => (calls.push(`setLink:${href}`), chain),
+    setLink: ({ href }: { href: string }) => (
+      calls.push(`setLink:${href}`),
+      chain
+    ),
     unsetLink: () => (calls.push("unsetLink"), chain),
-    setImage: ({ src }: { src: string }) => (calls.push(`setImage:${src}`), chain),
+    setImage: ({ src }: { src: string }) => (
+      calls.push(`setImage:${src}`),
+      chain
+    ),
     undo: () => (calls.push("undo"), chain),
     redo: () => (calls.push("redo"), chain),
     run: () => (calls.push("run"), true),
@@ -55,14 +86,21 @@ function createEditorMock(overrides?: {
   const editor = {
     chain: () => chain,
     isActive: (name: string, attrs?: { level?: number }) => {
-      if (name === "heading") return Boolean(isActive[`heading:${attrs?.level}`]);
+      if (name === "heading")
+        return Boolean(isActive[`heading:${attrs?.level}`]);
       return Boolean(isActive[name]);
     },
     can: () => ({
       undo: () => overrides?.canUndo ?? true,
       redo: () => overrides?.canRedo ?? true,
     }),
-    getAttributes: () => ({ href: overrides?.href }),
+    getAttributes: (name: string) =>
+      name === "link" ? { href: overrides?.href } : {},
+    isDestroyed: false,
+    on: (_event: string, _fn: () => void) => () => {},
+    off: () => {},
+    registerPlugin: () => {},
+    unregisterPlugin: () => {},
   };
 
   return { editor, calls };
@@ -84,12 +122,25 @@ describe("rich-text-editor/toolbar", () => {
   });
 
   it("respects tools prop and command wiring for text/list/history actions", () => {
-    const { editor, calls } = createEditorMock({ canUndo: false, canRedo: false });
+    const { editor, calls } = createEditorMock({
+      canUndo: false,
+      canRedo: false,
+    });
 
     render(
       <EditorToolbar
         editor={editor as never}
-        tools={["bold", "italic", "underline", "heading", "blockquote", "bulletList", "orderedList", "undo", "redo"]}
+        tools={[
+          "bold",
+          "italic",
+          "underline",
+          "heading",
+          "blockquote",
+          "bulletList",
+          "orderedList",
+          "undo",
+          "redo",
+        ]}
       />,
     );
 
@@ -115,8 +166,14 @@ describe("rich-text-editor/toolbar", () => {
       ]),
     );
 
-    expect(screen.getByLabelText("Undo (Ctrl+Z)").getAttribute("data-disabled")).toBe("");
-    expect(screen.getByLabelText("Redo (Ctrl+Shift+Z)").getAttribute("data-disabled")).toBe("");
+    expect(
+      screen.getByLabelText("Undo (Ctrl+Z)").getAttribute("data-disabled"),
+    ).toBe("");
+    expect(
+      screen
+        .getByLabelText("Redo (Ctrl+Shift+Z)")
+        .getAttribute("data-disabled"),
+    ).toBe("");
   });
 
   it("supports link add/update/remove and rejects invalid links", async () => {
@@ -135,12 +192,23 @@ describe("rich-text-editor/toolbar", () => {
     });
 
     fireEvent.click(screen.getByLabelText("Add link"));
-    fireEvent.change(screen.getByLabelText("Link URL"), {
-      target: { value: "javascript:alert(1)" },
+    await waitFor(() => {
+      expect(
+        (screen.getByLabelText("Link URL") as HTMLInputElement).value,
+      ).toBe("https://example.com");
     });
-    fireEvent.submit(screen.getByLabelText("Link URL").closest("form") as HTMLFormElement);
+    flushSync(() => {
+      fireEvent.change(screen.getByLabelText("Link URL"), {
+        target: { value: "javascript:alert(1)" },
+      });
+    });
+    fireEvent.submit(
+      screen.getByLabelText("Link URL").closest("form") as HTMLFormElement,
+    );
 
-    expect(toastError).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(toastError).toHaveBeenCalledWith("Please enter a valid URL");
+    });
 
     fireEvent.click(screen.getByLabelText("Remove link"));
     expect(calls).toContain("unsetLink");
@@ -151,18 +219,30 @@ describe("rich-text-editor/toolbar", () => {
     const onImageClick = vi.fn();
 
     const { rerender, container } = render(
-      <EditorToolbar editor={editor as never} onImageClick={onImageClick} tools={["image"]} />,
+      <EditorToolbar
+        editor={editor as never}
+        onImageClick={onImageClick}
+        tools={["image"]}
+      />,
     );
 
     fireEvent.click(screen.getByLabelText("Insert image"));
     expect(onImageClick).toHaveBeenCalledTimes(1);
 
-    const onImageUpload = vi.fn().mockResolvedValue("https://cdn.example.com/img.png");
+    const onImageUpload = vi
+      .fn()
+      .mockResolvedValue("https://cdn.example.com/img.png");
     rerender(
-      <EditorToolbar editor={editor as never} onImageUpload={onImageUpload} tools={["image"]} />,
+      <EditorToolbar
+        editor={editor as never}
+        onImageUpload={onImageUpload}
+        tools={["image"]}
+      />,
     );
 
-    const uploadInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const uploadInput = container.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
     const file = new File(["abc"], "avatar.png", { type: "image/png" });
     fireEvent.change(uploadInput, { target: { files: [file] } });
 
@@ -174,14 +254,23 @@ describe("rich-text-editor/toolbar", () => {
 
     const failingUpload = vi.fn().mockRejectedValue(new Error("upload failed"));
     rerender(
-      <EditorToolbar editor={editor as never} onImageUpload={failingUpload} tools={["image"]} />,
+      <EditorToolbar
+        editor={editor as never}
+        onImageUpload={failingUpload}
+        tools={["image"]}
+      />,
     );
 
-    fireEvent.change(container.querySelector('input[type="file"]') as HTMLInputElement, {
-      target: { files: [file] },
-    });
+    const file2 = new File(["xyz"], "avatar2.png", { type: "image/png" });
+    fireEvent.change(
+      container.querySelector('input[type="file"]') as HTMLInputElement,
+      {
+        target: { files: [file2] },
+      },
+    );
 
     await waitFor(() => {
+      expect(failingUpload).toHaveBeenCalledWith(file2);
       expect(toastError).toHaveBeenCalledWith("upload failed");
     });
   });

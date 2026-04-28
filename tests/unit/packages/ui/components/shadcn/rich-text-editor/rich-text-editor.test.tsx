@@ -54,7 +54,9 @@ describe("rich-text-editor/rich-text-editor", () => {
   it("initializes from JSON and legacy HTML input", async () => {
     const jsonValue = JSON.stringify({
       type: "doc",
-      content: [{ type: "paragraph", content: [{ type: "text", text: "json value" }] }],
+      content: [
+        { type: "paragraph", content: [{ type: "text", text: "json value" }] },
+      ],
     });
 
     const onChange = vi.fn();
@@ -90,7 +92,9 @@ describe("rich-text-editor/rich-text-editor", () => {
 
     await waitFor(() => {
       expect(onChange).toHaveBeenCalled();
-      expect(() => JSON.parse(onChange.mock.calls.at(-1)?.[0] ?? "")).not.toThrow();
+      expect(() =>
+        JSON.parse(onChange.mock.calls.at(-1)?.[0] ?? ""),
+      ).not.toThrow();
     });
   });
 
@@ -98,11 +102,15 @@ describe("rich-text-editor/rich-text-editor", () => {
     const onChange = vi.fn();
     const initial = JSON.stringify({
       type: "doc",
-      content: [{ type: "paragraph", content: [{ type: "text", text: "one" }] }],
+      content: [
+        { type: "paragraph", content: [{ type: "text", text: "one" }] },
+      ],
     });
     const next = JSON.stringify({
       type: "doc",
-      content: [{ type: "paragraph", content: [{ type: "text", text: "two" }] }],
+      content: [
+        { type: "paragraph", content: [{ type: "text", text: "two" }] },
+      ],
     });
 
     const { rerender } = render(
@@ -158,7 +166,9 @@ describe("rich-text-editor/rich-text-editor", () => {
     expect(editor).toBeTruthy();
     expect(editor?.className.includes("dark:prose-invert")).toBe(false);
 
-    const disabledEditable = container.querySelector('[contenteditable="false"]');
+    const disabledEditable = container.querySelector(
+      '[contenteditable="false"]',
+    );
     expect(disabledEditable).toBeTruthy();
 
     rerender(

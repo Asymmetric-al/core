@@ -20,7 +20,11 @@ describe("rich-text-editor/rich-text-viewer", () => {
     const value = JSON.stringify({
       type: "doc",
       content: [
-        { type: "heading", attrs: { level: 1 }, content: [{ type: "text", text: "Heading" }] },
+        {
+          type: "heading",
+          attrs: { level: 1 },
+          content: [{ type: "text", text: "Heading" }],
+        },
         {
           type: "paragraph",
           content: [
@@ -34,7 +38,11 @@ describe("rich-text-editor/rich-text-viewer", () => {
               marks: [
                 {
                   type: "link",
-                  attrs: { href: "https://example.com", target: "_blank", rel: "noopener noreferrer" },
+                  attrs: {
+                    href: "https://example.com",
+                    target: "_blank",
+                    rel: "noopener noreferrer",
+                  },
                 },
               ],
               text: "link",
@@ -46,15 +54,25 @@ describe("rich-text-editor/rich-text-viewer", () => {
           content: [
             {
               type: "listItem",
-              content: [{ type: "paragraph", content: [{ type: "text", text: "Item" }] }],
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "Item" }],
+                },
+              ],
             },
           ],
         },
         {
           type: "blockquote",
-          content: [{ type: "paragraph", content: [{ type: "text", text: "Quote" }] }],
+          content: [
+            { type: "paragraph", content: [{ type: "text", text: "Quote" }] },
+          ],
         },
-        { type: "image", attrs: { src: "https://example.com/a.jpg", alt: "alt text" } },
+        {
+          type: "image",
+          attrs: { src: "https://example.com/a.jpg", alt: "alt text" },
+        },
       ],
     });
 
@@ -71,7 +89,9 @@ describe("rich-text-editor/rich-text-viewer", () => {
   });
 
   it("falls back to SafeHtml for legacy HTML strings", () => {
-    render(<RichTextViewer value={'<h2>Legacy</h2><p><strong>Body</strong></p>'} />);
+    render(
+      <RichTextViewer value={"<h2>Legacy</h2><p><strong>Body</strong></p>"} />,
+    );
 
     expect(screen.getByRole("heading", { name: "Legacy" })).toBeTruthy();
     expect(screen.getByText("Body")).toBeTruthy();
