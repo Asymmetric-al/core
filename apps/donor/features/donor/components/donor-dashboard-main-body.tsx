@@ -1,5 +1,3 @@
-"use client";
-
 import { formatCurrency } from "@asym/lib/utils";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -21,8 +19,9 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 
-import { ImpactTile } from "@/features/donor/components";
-import { Greeting } from "@/features/donor/components/dashboard-ui";
+import { Greeting } from "./dashboard-greeting";
+import { ImpactTile } from "./ImpactTile";
+
 import { RECENT_UPDATES } from "@/lib/mock-data";
 
 export function DonorDashboardMainBody() {
