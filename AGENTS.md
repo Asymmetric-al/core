@@ -243,7 +243,7 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 
 **GitHub `AL-###` issue/PR workflow:** there are no `SKILL.md` files under `docs/ai/skills/` for those flows today; follow `docs/ai/rules/general.md`. Deprecated stubs live under `skills/*/DEPRECATED.md` only.
 
-**Extra Cursor-packaged skills:** additional `SKILL.md` files under `.cursor/skills/` (e.g. Playwright, Stripe, Turborepo) may be present; use them when the task matches their descriptions.
+**Extra Cursor-packaged skills:** additional `SKILL.md` files under `.cursor/skills/` (e.g. Playwright, Stripe, Turborepo) may be present; use them when the task matches their descriptions. **Grill me** (stress-test a plan or design one question at a time): `.cursor/skills/grill-me/SKILL.md` from [mattpocock/skills](https://github.com/mattpocock/skills), pinned in **`skills-lock.json`**.
 
 ---
 
