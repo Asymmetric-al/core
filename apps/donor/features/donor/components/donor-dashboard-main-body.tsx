@@ -78,7 +78,7 @@ export function DonorDashboardMainBody() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-8">
           <div className="relative overflow-hidden rounded-xl bg-slate-900 text-white shadow-xl h-[350px] lg:h-[400px] flex flex-col justify-end group cursor-pointer border border-white/5">
-            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center transition-transform duration-700 group-hover:scale-[1.02]" />
+            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center transition-transform duration-700 [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.02]" />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent opacity-90" />
 
             <div className="relative z-10 p-6 md:p-10 space-y-4 text-left">

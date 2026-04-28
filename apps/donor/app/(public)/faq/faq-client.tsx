@@ -130,9 +130,9 @@ const CategoryButton = ({
   <button
     onClick={onClick}
     className={cn(
-      "flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 border",
+      "flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold press-feedback border",
       active
-        ? "bg-slate-900 text-white border-slate-900 shadow-md transform scale-[1.02]"
+        ? "bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-slate-900/10"
         : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50",
     )}
   >
@@ -400,7 +400,7 @@ export function FAQPageClient() {
 
           <div className="flex flex-col sm:flex-row gap-4 relative z-10 w-full md:w-auto">
             <Button
-              className="h-14 px-8 bg-white text-slate-950 hover:bg-slate-100 font-bold text-base rounded-full shadow-lg transition-transform hover:scale-[1.02]"
+              className="h-14 px-8 bg-white text-slate-950 hover:bg-slate-100 font-bold text-base rounded-full shadow-lg hover-scale-subtle"
               asChild
             >
               <Link href="/contact">
@@ -409,7 +409,7 @@ export function FAQPageClient() {
             </Button>
             <Button
               variant="outline"
-              className="h-14 px-8 border-white/20 text-white hover:bg-white/10 hover:text-white font-semibold text-base rounded-full backdrop-blur-sm transition-transform hover:scale-[1.02]"
+              className="h-14 px-8 border-white/20 text-white hover:bg-white/10 hover:text-white font-semibold text-base rounded-full backdrop-blur-sm hover-scale-subtle"
             >
               <MessageCircle className="mr-2 h-5 w-5" /> Chat with Us
             </Button>

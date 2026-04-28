@@ -31,7 +31,7 @@ export function WorkerProfileHeroWithViewTransitions({
             src={worker.image}
             alt={`${worker.title} - Missionary serving in ${worker.location}`}
             fill
-            className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+            className="object-cover transition-transform duration-700 [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.02]"
             sizes="(max-width: 768px) 100vw, 800px"
             priority
             quality={85}

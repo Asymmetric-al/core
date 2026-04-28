@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "@asym/lib/motion";
+import { motion, useReducedMotion } from "@asym/lib/motion";
 import {
   Avatar,
   AvatarFallback,
@@ -52,33 +52,42 @@ export function TaskRow({
   onDelete,
   index,
 }: TaskRowProps) {
+  const reduceMotion = useReducedMotion();
   const typeConfig = TASK_TYPE_CONFIG[task.task_type];
   const priorityConfig = PRIORITY_CONFIG[task.priority];
   const dueDateStatus = getDueDateStatus(task.due_date);
   const isCompleted = task.status === "completed";
   const Icon = typeConfig.icon;
 
+  // Stagger entrance only — no per-row `layout` (was causing the
+  // CSS+JS double grammar with the hover lift); hover lift moves to
+  // the touch-safe `hover-lift` utility; no per-element whileTap on
+  // the checkbox.
   return (
     <motion.div
-      layout
-      initial={{ opacity: 0, y: 20 }}
+      initial={reduceMotion ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      transition={{ ...smoothTransition, delay: index * 0.02 }}
+      exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -20 }}
+      transition={
+        reduceMotion
+          ? { duration: 0 }
+          : { ...smoothTransition, delay: Math.min(index, 6) * 0.02 }
+      }
       className={cn(
-        "relative group flex items-start gap-5 p-6 border rounded-[2rem] transition-all duration-300",
+        "relative group flex items-start gap-5 p-6 border rounded-[2rem]",
+        "transition-[border-color,box-shadow] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]",
         isCompleted
           ? "bg-[oklch(0.985_0.002_265)]/50 border-[oklch(0.915_0.003_265)] opacity-75"
-          : "bg-white border-[oklch(0.915_0.003_265)] hover:border-[oklch(0.205_0.015_265)] hover:shadow-xl hover:-translate-y-1",
+          : "bg-white border-[oklch(0.915_0.003_265)] hover-lift hover:border-[oklch(0.205_0.015_265)] hover:shadow-xl",
       )}
     >
-      <motion.div className="mt-1.5 relative z-10" whileTap={{ scale: 0.9 }}>
+      <div className="mt-1.5 relative z-10">
         <Checkbox
           checked={isCompleted}
           onCheckedChange={onComplete}
-          className="h-6 w-6 rounded-lg border-[oklch(0.915_0.003_265)] data-[state=checked]:bg-[oklch(0.205_0.015_265)] data-[state=checked]:border-[oklch(0.205_0.015_265)] transition-all cursor-pointer"
+          className="h-6 w-6 rounded-lg border-[oklch(0.915_0.003_265)] data-[state=checked]:bg-[oklch(0.205_0.015_265)] data-[state=checked]:border-[oklch(0.205_0.015_265)] transition-colors cursor-pointer"
         />
-      </motion.div>
+      </div>
 
       <div className="flex-1 min-w-0 space-y-4">
         <div className="flex items-start justify-between gap-4">
@@ -101,7 +110,7 @@ export function TaskRow({
               </div>
             </div>
 
-            <motion.h3
+            <h3
               className={cn(
                 "text-lg font-black tracking-tight leading-tight",
                 isCompleted
@@ -110,12 +119,12 @@ export function TaskRow({
               )}
             >
               {task.title}
-            </motion.h3>
+            </h3>
 
             {task.description && (
               <p
                 className={cn(
-                  "text-sm font-medium mt-1 line-clamp-2 transition-all",
+                  "text-sm font-medium mt-1 line-clamp-2 transition-colors",
                   isCompleted
                     ? "text-[oklch(0.708_0.01_265)]"
                     : "text-[oklch(0.45_0.008_265)]",
@@ -131,7 +140,7 @@ export function TaskRow({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-10 w-10 shrink-0 text-[oklch(0.915_0.003_265)] hover:text-[oklch(0.145_0.015_265)] hover:bg-[oklch(0.965_0.003_265)] rounded-xl transition-all"
+                className="h-10 w-10 shrink-0 text-[oklch(0.915_0.003_265)] hover:text-[oklch(0.145_0.015_265)] hover:bg-[oklch(0.965_0.003_265)] rounded-xl"
               >
                 <MoreHorizontal className="h-5 w-5" />
               </Button>
@@ -169,10 +178,7 @@ export function TaskRow({
         <div className="flex items-center gap-3 flex-wrap">
           {task.donor && (
             <Link href={`/donors?selected=${task.donor.id}`}>
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                className="flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-[oklch(0.985_0.002_265)] border border-[oklch(0.915_0.003_265)] hover:bg-white hover:border-[oklch(0.205_0.015_265)] transition-all cursor-pointer group/donor"
-              >
+              <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-[oklch(0.985_0.002_265)] border border-[oklch(0.915_0.003_265)] hover:bg-white hover:border-[oklch(0.205_0.015_265)] transition-colors cursor-pointer group/donor">
                 <Avatar className="h-5 w-5 border-2 border-white shadow-sm">
                   <AvatarImage src={task.donor.avatar_url || undefined} />
                   <AvatarFallback className="text-[8px] font-black bg-[oklch(0.915_0.003_265)] text-[oklch(0.45_0.008_265)]">
@@ -186,7 +192,7 @@ export function TaskRow({
                 <span className="text-[10px] font-black text-[oklch(0.45_0.008_265)] uppercase tracking-widest group-hover/donor:text-[oklch(0.145_0.015_265)] transition-colors">
                   {task.donor.name}
                 </span>
-              </motion.div>
+              </div>
             </Link>
           )}
 

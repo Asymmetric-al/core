@@ -78,7 +78,7 @@ export function NavbarClient({
       </a>
       <nav
         className={cn(
-          "fixed top-0 z-50 w-full transition-all duration-300",
+          "fixed top-0 z-50 w-full transition-[background-color,backdrop-filter,padding,border-color] duration-[var(--duration-standard)] ease-[var(--ease-out-soft)]",
           showScrolledStyles
             ? "bg-white/95 backdrop-blur-md border-b border-slate-200 py-2 sm:py-3"
             : "bg-transparent py-4 sm:py-6",
@@ -92,7 +92,8 @@ export function NavbarClient({
           >
             <div
               className={cn(
-                "h-8 w-8 rounded-lg flex items-center justify-center font-bold text-sm shadow-sm group-hover:scale-105 transition-all",
+                // Logo: gate hover-scale for hover devices only.
+                "h-8 w-8 rounded-lg flex items-center justify-center font-bold text-sm shadow-sm transition-[transform,background-color,color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-105",
                 showScrolledStyles
                   ? "bg-slate-900 text-white"
                   : "bg-white text-slate-900",
@@ -134,7 +135,7 @@ export function NavbarClient({
               asChild
               variant="ghost"
               className={cn(
-                "rounded-full px-5 lg:px-6 font-bold uppercase tracking-widest text-[10px] h-10 shadow-lg transition-all",
+                "rounded-full px-5 lg:px-6 font-bold uppercase tracking-widest text-[10px] h-10 shadow-lg",
                 showScrolledStyles
                   ? "bg-slate-900 text-white hover:bg-slate-800"
                   : "bg-white text-slate-900 hover:bg-slate-100",
@@ -168,7 +169,7 @@ export function NavbarClient({
         <div
           id="mobile-menu"
           className={cn(
-            "md:hidden fixed inset-0 bg-white z-40 transition-all duration-300 ease-out",
+            "md:hidden fixed inset-0 bg-white z-40 transition-[opacity,transform] duration-[var(--duration-drawer)] ease-[var(--ease-out-soft)]",
             isMobileMenuOpen
               ? "opacity-100 translate-y-0"
               : "opacity-0 -translate-y-full pointer-events-none",
@@ -184,7 +185,7 @@ export function NavbarClient({
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
                     "text-xl font-bold text-slate-900 py-4 border-b border-slate-100 touch-target flex items-center",
-                    "transition-all duration-300",
+                    "transition-[opacity,transform] duration-[var(--duration-standard)] ease-[var(--ease-out-soft)]",
                     isMobileMenuOpen
                       ? "opacity-100 translate-x-0"
                       : "opacity-0 -translate-x-4",
