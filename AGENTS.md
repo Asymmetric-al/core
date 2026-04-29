@@ -243,7 +243,7 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 
 **GitHub `AL-###` issue/PR workflow:** there are no `SKILL.md` files under `docs/ai/skills/` for those flows today; follow `docs/ai/rules/general.md`. Deprecated stubs live under `skills/*/DEPRECATED.md` only.
 
-**Extra Cursor-packaged skills:** additional `SKILL.md` files under `.cursor/skills/` (e.g. Playwright, Stripe, Turborepo) may be present; use them when the task matches their descriptions. From [mattpocock/skills](https://github.com/mattpocock/skills), pinned in **`skills-lock.json`**: **grill-me** (stress-test a plan one question at a time) — `.cursor/skills/grill-me/SKILL.md`; **tdd** (test-driven workflow) — `.cursor/skills/tdd/SKILL.md`. Distinct from **`docs/ai/skills/`** ecosystem **`test-driven-development`** if both exist.
+**Extra Cursor-packaged skills:** additional `SKILL.md` files under `.cursor/skills/` (e.g. Playwright, Stripe, Turborepo) may be present; use them when the task matches their descriptions. From [mattpocock/skills](https://github.com/mattpocock/skills), pinned in **`skills-lock.json`**: **grill-me** — `.cursor/skills/grill-me/SKILL.md`; **tdd** — `.cursor/skills/tdd/SKILL.md`; **improve-codebase-architecture** — `.cursor/skills/improve-codebase-architecture/SKILL.md`; **ubiquitous-language** (DDD glossary / “domain model”; upstream deprecated, vendored from `skills/deprecated/`) — `.cursor/skills/ubiquitous-language/SKILL.md`. **`domain-model`** is not a separate CLI skill name in that repo—use **ubiquitous-language** for that workflow. Distinct from **`docs/ai/skills/`** ecosystem **`test-driven-development`** where both exist.
 
 ---
 
