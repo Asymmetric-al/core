@@ -76,6 +76,11 @@ The repo already has a strong, hand-maintained instruction system:
 - Canonical repo-local skills live under `docs/ai/skills/*/SKILL.md`; mirrors in
   `.cursor/skills/*` and `.agents/skills/*` are runtime copies, not the source
   of truth.
+- Optional **Skills CLI** installs (for example mattpocock packs) land under
+  `.agents/skills/<name>/`; run `bun run skills:sync` so `.cursor/skills/`
+  stays aligned. Pins live in **`skills-lock.json`**. Treat these like other
+  conditional helpers: they do not override OpenSpec or canonical
+  `docs/ai/skills/` — route from **`AGENTS.md`**.
 - Local Next.js docs under `node_modules/next/dist/docs/` are the framework
   source of truth; committed `.next-docs/` is the fallback for environments
   where `node_modules` is absent.
