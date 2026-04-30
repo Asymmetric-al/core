@@ -54,3 +54,9 @@ docs/ai/working-set.md
 
 # Orchids.app (external AI builder) — not part of this monorepo
 .orchids/
+
+# Traycer / scratch — local agent artifacts (must not be committed)
+.traycer/
+/.tmp/
+/~/
+
