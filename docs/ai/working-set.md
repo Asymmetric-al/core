@@ -1,5 +1,29 @@
 # Working Set
 
+## 2026-04-30 (Mission Control Cloud Agent dev environment)
+
+- Date: 2026-04-30
+- Repo: Asymmetric-al/core
+- Goal: Set up a repeatable Cursor Cloud Agent development path for the Mission Control Dashboard (`@asym/admin`) so agents and humans can start it without live Supabase secrets.
+- Primary area:
+  - `scripts/dev/setup-mission-control-cloud.mjs`
+  - `package.json`
+  - `README.md`
+  - `apps/admin/README.md`
+  - `AGENTS.md`
+  - `tests/unit/scripts/run-with-ci-env.test.ts`
+- Constraints:
+  - Keep secrets out of committed files; only write gitignored `.env.local`.
+  - Preserve real existing `.env.local` values while replacing placeholders with safe Cloud Agent defaults.
+  - Use Next.js 16.2.1 bundled docs / `.next-docs` as source of truth for `next dev` and env behavior.
+- Evidence sources used:
+  - `docs/ai/rules/{general,frontend,testing}.md`
+  - `.agents/skills/{nextjs-app-router,turborepo}/SKILL.md`
+  - `.next-docs/01-app/02-guides/{local-development,environment-variables}.mdx`
+  - `.next-docs/01-app/03-api-reference/06-cli/next.mdx`
+  - `apps/admin/package.json`
+  - `apps/admin/next.config.ts`
+
 ## 2026-04-24 (AL-203 unit feedback loop)
 
 - Date: 2026-04-24

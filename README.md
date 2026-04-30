@@ -23,6 +23,7 @@ Per-app dev commands (from root `package.json`):
 
 - `bun run dev:donor` → donor app, port **3000**
 - `bun run dev:admin` → admin app, port **3030**
+- `bun run dev:mission-control` → Mission Control admin app, port **3030**, with Cloud Agent-friendly dev defaults
 - `bun run dev:missionary` → missionary app, port **4000**
 
 ### Cursor Cloud Agent (VM) secrets
@@ -40,6 +41,17 @@ Security rules:
 - `.env.local` stays local-only and is already gitignored.
 - Never expose `SUPABASE_SERVICE_ROLE_KEY` in browser/client code.
 - Browser login flows require only `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+
+### Mission Control Cloud Agent setup
+
+Use this when a fresh Cursor Cloud Agent, or a human in the same sandbox, needs the Mission Control Dashboard without a real Supabase project.
+
+```bash
+bun run setup:mission-control:cloud
+bun run dev:mission-control
+```
+
+Then open `http://localhost:3030`. The setup command writes only gitignored `.env.local` defaults: `SKIP_ENV_VALIDATION=1`, `E2E_AUTH_BYPASS=true`, placeholder public Supabase values, and the admin Playwright base URL. Replace those values with real Supabase/demo account secrets when testing live auth or hosted data.
 
 ### Windows
 
