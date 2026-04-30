@@ -21,11 +21,11 @@ Behavior:
 - `/login` renders a **single** `Demo Access` CTA.
 - Client sends only `{ role }` to `/api/auth/demo-account`.
 - Server signs in with env-backed demo credentials and sets Supabase cookies.
-- Browser never receives demo emails/passwords.
+- The browser never receives demo emails or their passphrases from the server response.
 
 ### 2) Full login mode
 
-Any value other than `"true"` for `DEMO_ONLY_LOGIN` renders full email/password login.
+Any value other than `"true"` for `DEMO_ONLY_LOGIN` renders full email and passphrase login.
 
 Optional demo CTA appears as a secondary action when demo availability is enabled.
 
@@ -54,7 +54,7 @@ Notes:
 
 ### Demo credentials (server-side only)
 
-- `DEMO_PASSWORD`
+- Shared demo passphrase (see the env var name in `.env.example` under “Demo accounts and cron”)
 - `DEMO_ADMIN_EMAIL`
 - `DEMO_MISSIONARY_EMAIL`
 - `DEMO_DONOR_EMAIL`
@@ -66,6 +66,39 @@ Notes:
 ### Service-role only
 
 - `SUPABASE_SERVICE_ROLE_KEY` (seed scripts / server jobs only, never client)
+
+---
+
+## Canonical test accounts (deterministic seed)
+
+After **`supabase db reset --local`** (or any workflow that applies `supabase/seed.sql`), Auth contains **one** email user tied to the full demo dataset.
+
+| Field | Value |
+| --- | --- |
+| Email | `demo-owner@givehope.test` |
+| Passphrase | Run **`bun run seed:demo:login`** — it prints the string passed to `extensions.crypt(...)` in `supabase/seed.sql`. |
+| User id | `11111111-1111-1111-1111-111111111111` (same as `profiles.id`; see `@asym/auth/constants` `DEMO_USER_ID` / `DEMO_PROFILE_ID`) |
+| `profiles.role` | `admin` (with `authz.memberships` including staff, donor, and missionary for the default tenant) |
+
+Use that email and printed passphrase for **Supabase Auth email sign-in** on any app login screen when your Next.js apps point at the **same** Supabase project as `NEXT_PUBLIC_SUPABASE_URL` (with anon or publishable key).
+
+**Hosted / cloud Supabase** does not include this user until you run the same seed (for example `bash ./scripts/seed-demo.sh hosted` against the project that script targets, or your team’s equivalent) **or** you create users yourself. To create env-driven demo users without hand-editing SQL, use **`bun run seed:demo:users`** (see below): you choose the emails and a shared passphrase in env (see `.env.example`); the Admin API creates or updates those users ([`auth.admin.createUser` / `updateUserById`](https://supabase.com/docs/reference/javascript/auth-admin-createuser)).
+
+### E2E / CI “Demo Access” (cookie bypass)
+
+When **`E2E_AUTH_BYPASS=true`** (or Playwright’s defaults), **`POST /api/auth/demo-account`** can set an httpOnly **E2E cookie** instead of calling Supabase’s email sign-in API. The login UI’s **Demo Access** button then works **without** the demo email env vars or the shared passphrase env var from `.env.example`, but this is **non-production only** (`isE2EAuthBypassEnabled()` in `@asym/auth`).
+
+### Optional `.env.local` alignment with the seed user
+
+If you want the **Demo Access** button to use Supabase Auth email sign-in (same user as seed) instead of relying only on E2E bypass, set at least:
+
+```bash
+DEMO_ADMIN_EMAIL=demo-owner@givehope.test
+# paste the passphrase printed by: bun run seed:demo:login
+# set the shared passphrase variable from .env.example (demo section)
+```
+
+Missionary and donor demo buttons need the same pattern with emails that exist in **your** Auth database (either additional seed users or `seed:demo:users`).
 
 ---
 
@@ -81,7 +114,7 @@ Required env vars for the script:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
-- `DEMO_PASSWORD`
+- Shared demo passphrase env (see `.env.example`)
 - the `DEMO_*_EMAIL` variables you want to seed
 
 The script is idempotent and prints a summary table (`created`, `updated`, `skipped`).
