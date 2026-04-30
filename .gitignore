@@ -53,3 +53,7 @@ docs/ai/working-set.md
 .nia_sync_local/
 .env*
 .cursor/settings.json
+
+# Python
+__pycache__/
+*.py[cod]
