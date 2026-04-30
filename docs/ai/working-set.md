@@ -24,6 +24,28 @@
   - `apps/admin/package.json`
   - `apps/admin/next.config.ts`
 
+## 2026-04-30 (local Cloud Agent secrets + DocRaptor env contract)
+
+- Date: 2026-04-30
+- Repo: Asymmetric-al/core
+- Goal: Normalize user-provided local development secrets into gitignored `.env.local` for the Mission Control Cloud Agent environment and add a non-secret DocRaptor env placeholder for future server-side PDF generation.
+- Primary area:
+  - `.env.local` (gitignored; updated locally only)
+  - `.env.example`
+  - `packages/env/src/schema.ts`
+  - `packages/env/README.md`
+  - `docs/{env-var-audit.md,ops/environments.md,guides/development/getting-started.md}`
+- Constraints:
+  - Do not commit any provided secret values.
+  - Use split Cloudinary values consumed by this repo while preserving `CLOUDINARY_URL` for tools/SDKs.
+  - Keep DocRaptor server-only (`DOCRAPTOR_API_KEY`), per DocRaptor docs warning against exposing API keys in client-side JavaScript.
+- Evidence sources used:
+  - `.env.example`
+  - `packages/env/src/schema.ts`
+  - `packages/lib/cloudinary-server.ts`
+  - DocRaptor Node docs (`user_credentials` / API key usage)
+  - Stripe API authentication docs (`sk_test_` / `sk_live_` secret-key prefixes)
+
 ## 2026-04-24 (AL-203 unit feedback loop)
 
 - Date: 2026-04-24

@@ -87,6 +87,7 @@ export const env = createEnv({
       (value) => !value || value.startsWith("whsec_"),
       "STRIPE_WEBHOOK_SECRET must start with whsec_",
     ),
+    DOCRAPTOR_API_KEY: z.string().optional(),
     SENTRY_DSN: z
       .string()
       .url()
@@ -181,6 +182,7 @@ export const env = createEnv({
     CRON_SECRET: process.env.CRON_SECRET,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+    DOCRAPTOR_API_KEY: process.env.DOCRAPTOR_API_KEY,
     SENTRY_DSN: process.env.SENTRY_DSN,
     CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
     ALLOW_DEMO_ACCOUNTS: process.env.ALLOW_DEMO_ACCOUNTS,
