@@ -73,14 +73,16 @@ Notes:
 
 After **`supabase db reset --local`** (or any workflow that applies `supabase/seed.sql`), Auth contains **one** email user tied to the full demo dataset.
 
-| Field | Value |
-| --- | --- |
-| Email | `demo-owner@givehope.test` |
-| Passphrase | Run **`bun run seed:demo:login`** — it prints the string passed to `extensions.crypt(...)` in `supabase/seed.sql`. |
-| User id | `11111111-1111-1111-1111-111111111111` (same as `profiles.id`; see `@asym/auth/constants` `DEMO_USER_ID` / `DEMO_PROFILE_ID`) |
-| `profiles.role` | `admin` (with `authz.memberships` including staff, donor, and missionary for the default tenant) |
+| Field           | Value                                                                                                                         |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Email           | `demo-owner@givehope.test`                                                                                                    |
+| Passphrase      | Run **`bun run seed:demo:login`** — it prints the string passed to `extensions.crypt(...)` in `supabase/seed.sql`.            |
+| User id         | `11111111-1111-1111-1111-111111111111` (same as `profiles.id`; see `@asym/auth/constants` `DEMO_USER_ID` / `DEMO_PROFILE_ID`) |
+| `profiles.role` | `admin` (with `authz.memberships` including staff, donor, and missionary for the default tenant)                              |
 
 Use that email and printed passphrase for **Supabase Auth email sign-in** on any app login screen when your Next.js apps point at the **same** Supabase project as `NEXT_PUBLIC_SUPABASE_URL` (with anon or publishable key).
+
+For how Supabase handles email-based credential sign-in (including confirmed-email defaults on hosted projects), see the [Authentication](https://supabase.com/docs/guides/auth) section of the Supabase docs. Browser flows in this repo use the JS client `auth` namespace as described in the [JavaScript reference](https://supabase.com/docs/reference/javascript/introduction); `bun run seed:demo:users` uses the service-role [`createUser` / `updateUserById`](https://supabase.com/docs/reference/javascript/auth-admin-createuser) Admin APIs with `email_confirm: true` so hosted tenants that require verified email still accept seeded accounts. The deterministic SQL seed sets `email_confirmed_at` on the demo user for the same reason.
 
 **Hosted / cloud Supabase** does not include this user until you run the same seed (for example `bash ./scripts/seed-demo.sh hosted` against the project that script targets, or your team’s equivalent) **or** you create users yourself. To create env-driven demo users without hand-editing SQL, use **`bun run seed:demo:users`** (see below): you choose the emails and a shared passphrase in env (see `.env.example`); the Admin API creates or updates those users ([`auth.admin.createUser` / `updateUserById`](https://supabase.com/docs/reference/javascript/auth-admin-createuser)).
 
