@@ -78,7 +78,9 @@ The repo already has a strong, hand-maintained instruction system:
   of truth.
 - Optional **Skills CLI** installs (for example mattpocock packs) land under
   `.agents/skills/<name>/`; run `bun run skills:sync` so `.cursor/skills/`
-  stays aligned. Pins live in **`skills-lock.json`**. Treat these like other
+  stays aligned. Pins live in **`skills-lock.json`** (CLI-installed paths,
+  vendored upstream paths under `skills/deprecated/` or `skills/misc/`, and
+  repo-local stubs such as **`prd-to-plan`** / **`domain-model`**). Treat these like other
   conditional helpers: they do not override OpenSpec or canonical
   `docs/ai/skills/` — route from **`AGENTS.md`**.
 - Local Next.js docs under `node_modules/next/dist/docs/` are the framework
