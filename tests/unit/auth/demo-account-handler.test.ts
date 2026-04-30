@@ -1,5 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { DEMO_USER_ID } from "../../../packages/auth/constants";
+import { parseE2EAuthCookieValue } from "../../../packages/auth/e2e-auth";
+
 const ORIGINAL_ENV = { ...process.env };
 const ORIGINAL_FETCH = global.fetch;
 
@@ -102,5 +105,35 @@ describe("api/auth/demo-account", () => {
     const payload = (await response.json()) as { ok: boolean; code?: string };
     expect(payload.ok).toBe(false);
     expect(payload.code).toBe("DEMO_DISABLED");
+  });
+
+  it("E2E bypass admin POST sets cookie with seeded demo user id", async () => {
+    process.env.E2E_AUTH_BYPASS = "true";
+    const { POST } =
+      await import("../../../packages/api/src/auth/demo-account");
+
+    const request = new Request("http://localhost:3030/api/auth/demo-account", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ role: "admin" }),
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      ok: true,
+      role: "admin",
+      bypass: true,
+    });
+
+    const setCookie = response.headers.get("set-cookie") ?? "";
+    expect(setCookie).toContain("asym_e2e_auth_admin=");
+    const match = setCookie.match(/asym_e2e_auth_admin=([^;]+)/);
+    expect(match?.[1]).toBeTruthy();
+    const parsed = parseE2EAuthCookieValue(
+      decodeURIComponent(match![1]!),
+    );
+    expect(parsed?.userId).toBe(DEMO_USER_ID);
+    expect(parsed?.role).toBe("admin");
   });
 });

@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it } from "vitest";
 
+import { DEMO_USER_ID } from "../../../packages/auth/constants";
 import {
   createE2EAuthCookieValue,
+  getEffectiveE2EBypassIdentity,
   isE2EAuthBypassEnabled,
   parseE2EAuthCookieValue,
 } from "../../../packages/auth/e2e-auth";
@@ -47,5 +49,16 @@ describe("e2e auth helpers", () => {
 
     process.env.NODE_ENV = "production";
     expect(isE2EAuthBypassEnabled()).toBe(false);
+  });
+
+  it("maps legacy e2e-* admin cookie to seeded demo user for Mission Control", () => {
+    const effective = getEffectiveE2EBypassIdentity({
+      userId: "e2e-admin-user",
+      role: "admin",
+      tenantId: null,
+    });
+    expect(effective.userId).toBe(DEMO_USER_ID);
+    expect(effective.profileId).toBe(DEMO_USER_ID);
+    expect(effective.profileRole).toBe("admin");
   });
 });

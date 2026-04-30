@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { DEMO_USER_ID } from "./constants";
 import { createE2EAuthCookieValue, E2E_AUTH_COOKIE_NAME } from "./e2e-auth";
 
 const originalBypass = process.env.E2E_AUTH_BYPASS;
@@ -108,6 +109,9 @@ describe("getAuthContext E2E bypass", () => {
     const ctx = await getAuthContext();
 
     expect(ctx.isAuthenticated).toBe(true);
+    expect(ctx.userId).toBe("e2e-super");
+    expect(ctx.profileId).toBeNull();
+    expect(ctx.role).toBe("super_admin");
     expect(ctx.tenantId).toBe("00000000-0000-0000-0000-000000000001");
   });
 
@@ -136,6 +140,9 @@ describe("getAuthContext E2E bypass", () => {
     const ctx = await getAuthContext();
 
     expect(ctx.isAuthenticated).toBe(true);
+    expect(ctx.userId).toBe(DEMO_USER_ID);
+    expect(ctx.profileId).toBe(DEMO_USER_ID);
+    expect(ctx.role).toBe("admin");
     expect(ctx.tenantId).toBe("00000000-0000-0000-0000-000000000001");
   });
 

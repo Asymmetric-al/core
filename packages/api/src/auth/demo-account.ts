@@ -3,6 +3,7 @@ import {
   getE2EAuthCookieNameForRequest,
   isE2EAuthBypassEnabled,
 } from "@asym/auth";
+import { DEMO_USER_ID } from "@asym/auth/constants";
 import { APP_ROLES, type AppRole } from "@asym/auth/roles";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { serverEnv } from "@asym/env";
@@ -217,10 +218,12 @@ export async function POST(request: Request) {
 
       const cookieName = getE2EAuthCookieNameForRequest(request);
       if (cookieName) {
+        const userIdForCookie =
+          role === "admin" ? DEMO_USER_ID : `e2e-${role}-user`;
         response.cookies.set(
           cookieName,
           createE2EAuthCookieValue({
-            userId: `e2e-${role}-user`,
+            userId: userIdForCookie,
             role: e2eRole,
             tenantId: null,
           }),

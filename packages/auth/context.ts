@@ -6,6 +6,7 @@ import { cookies, headers } from "next/headers";
 
 import {
   E2E_AUTH_COOKIE_NAME,
+  getEffectiveE2EBypassIdentity,
   getE2EAuthCookieNameForProxyHost,
   isE2EAuthBypassEnabled,
   parseE2EAuthCookieValue,
@@ -154,14 +155,14 @@ async function getE2EAuthBypassContext(): Promise<AuthContext | null> {
   if (!e2eSession) {
     return null;
   }
-  const profileRole = e2eSession.role;
+  const effective = getEffectiveE2EBypassIdentity(e2eSession);
   const role = derivePrimaryRole({
-    profileRole,
+    profileRole: effective.profileRole,
     memberships: [],
   });
   const tenantIdForBypass =
-    e2eSession.tenantId ??
-    (hasAnyRole({ profileRole, memberships: [] }, [
+    effective.tenantId ??
+    (hasAnyRole({ profileRole: effective.profileRole, memberships: [] }, [
       "admin",
       "staff",
       "super_admin",
@@ -169,12 +170,12 @@ async function getE2EAuthBypassContext(): Promise<AuthContext | null> {
       ? DEFAULT_TENANT_ID
       : null);
   return {
-    userId: e2eSession.userId,
+    userId: effective.userId,
     tenantId: tenantIdForBypass,
     role,
-    profileRole,
+    profileRole: effective.profileRole,
     memberships: [],
-    profileId: null,
+    profileId: effective.profileId,
     isAuthenticated: true,
   };
 }

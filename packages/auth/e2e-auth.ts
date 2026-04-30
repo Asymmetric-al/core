@@ -1,3 +1,5 @@
+import { DEMO_USER_ID } from "./constants";
+
 import type { UserRole } from "@asym/database/types";
 
 /** @deprecated Prefer surface-specific names; kept for grep/docs compatibility */
@@ -147,4 +149,51 @@ export function parseE2EAuthCookieValue(
   } catch {
     return null;
   }
+}
+
+/**
+ * Normalize E2E bypass cookie sessions so server layouts match middleware.
+ *
+ * `POST /api/auth/demo-account` historically set `userId` to `e2e-${role}-user`
+ * while the cookie `role` was `admin` for Mission Control. `derivePrimaryRole`
+ * then returned null (no memberships), so `getAuthContext` treated the user
+ * as unauthenticated even though the proxy let the request through.
+ *
+ * When the synthetic id is the seeded demo user, attach `profileId` so callers
+ * that expect a profile row stay aligned with `supabase/seed.sql`.
+ */
+export function getEffectiveE2EBypassIdentity(session: E2EAuthSession): {
+  userId: string;
+  profileRole: UserRole;
+  profileId: string | null;
+  tenantId: string | null;
+} {
+  const { role: cookieRole, tenantId } = session;
+
+  if (session.userId === DEMO_USER_ID) {
+    return {
+      userId: DEMO_USER_ID,
+      profileRole: cookieRole,
+      profileId: DEMO_USER_ID,
+      tenantId,
+    };
+  }
+
+  // Legacy: POST /api/auth/demo-account used userId `e2e-admin-user` with role
+  // `admin` while Mission Control layouts need a resolvable profile (seed user).
+  if (session.userId === "e2e-admin-user" && cookieRole === "admin") {
+    return {
+      userId: DEMO_USER_ID,
+      profileRole: "admin",
+      profileId: DEMO_USER_ID,
+      tenantId,
+    };
+  }
+
+  return {
+    userId: session.userId,
+    profileRole: cookieRole,
+    profileId: null,
+    tenantId,
+  };
 }
