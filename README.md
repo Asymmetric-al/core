@@ -132,7 +132,8 @@ Agent-oriented docs live under `docs/ai/`:
 
 - **Entry point:** `AGENTS.md` — routing rules for all AI agent work
 - **Stack registry:** `docs/ai/stack-registry.md` — canonical tech stack list
-- **Working set:** `docs/ai/working-set.md` — living task context (keep updated)
+- **Working set:** `docs/ai/working-set.example.md` — template for local `docs/ai/working-set.md` scratch context
+- **Nia MCP:** `docs/ai/nia.md` — repo-scoped Nia search, MCP setup, and local sync rules
 - **Monorepo architecture:** `docs/ai/monorepo-architecture.md` — workspace structure
 - **Rulebooks:** `docs/ai/rules/*` — domain-specific guidelines (frontend, backend, testing, etc.)
 - **Skills:** `docs/ai/skills/*` — reusable workflow patterns (repo-owned, versioned)

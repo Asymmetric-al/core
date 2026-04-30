@@ -27,7 +27,7 @@
 # [mcp_servers.postgres]
 # command = "docker"
 # args = ["run", "-i", "--rm", "-e", "DATABASE_URI", "crystaldba/postgres-mcp", "--access-mode=restricted"]
-# env = { DATABASE_URI = "postgresql://username:password@localhost:5432/dbname" }
+# env = { DATABASE_URI = "postgresql://username:[REDACTED]@localhost:5432/dbname" }
 
 ###
 
@@ -44,18 +44,21 @@
 
 ###
 
+# Nia remote MCP is preferred; configure it in a user/global MCP file when
+# possible so API keys are never committed to this repo. See docs/ai/nia.md.
+# [mcp_servers.nia]
+# url = "<NIA_MCP_URL_FROM_DOCS>"
+# http_headers = { "Authorization" = "Bearer nk_..." }
+
+# Local fallback when remote MCP is unavailable.
 # [mcp_servers.nia]
 # command = "pipx"
 # args = ["run", "--no-cache", "nia-mcp-server"]
 # startup_timeout_ms = 30000
-# Nia usage in this repo is always repo-scoped and search calls must include the required preamble.
-# Contributors use their own NIA_API_KEY and subscribe to the public Asymmetric-al/core indexed source (never share keys).
-# Keep docs/ai/working-set.md updated and use docs/ai/stack-registry.md to build preambles.
-# See AGENTS.md#nia-mcp-usage-always-repo-scoped for policy + examples.
-
+#
 # [mcp_servers.nia.env]
 # NIA_API_KEY = "nk_..."
-# NIA_API_URL = "https://apigcp.trynia.ai/"
+# NIA_API_URL = "<NIA_API_URL_FROM_DOCS>/"
 
 ###
 
