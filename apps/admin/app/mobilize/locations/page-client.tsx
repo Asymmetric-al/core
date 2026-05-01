@@ -85,6 +85,8 @@ export default function LocationsPage() {
     <PageShell
       title="Where We Work"
       description="Manage global ministry footprints and projects."
+      className="gap-6 p-4 pb-16 sm:p-6 lg:p-7"
+      headerClassName="gap-4 border-border/80 pb-5"
       actions={actions}
     >
       <Tabs defaultValue="map" className="space-y-5">

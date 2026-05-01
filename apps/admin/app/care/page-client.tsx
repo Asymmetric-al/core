@@ -50,6 +50,8 @@ export default function MemberCareDashboardPage() {
     <PageShell
       title="Member Care"
       description="Holistic support and health monitoring for your global team."
+      className="gap-6 p-4 pb-16 sm:p-6 lg:p-7"
+      headerClassName="gap-4 border-border/80 pb-5 md:items-end"
       actions={
         <>
           <Button

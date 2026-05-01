@@ -270,6 +270,8 @@ export function TasksPageContent() {
     <PageShell
       title="Mission Pipeline"
       description="Coordinate donor outreach and field operations."
+      className="gap-6 p-4 pb-16 sm:p-6 lg:p-7"
+      headerClassName="gap-4 border-border/80 pb-5"
       actions={
         <Button
           onClick={() => dispatchUi({ type: "open-create-modal" })}

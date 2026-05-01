@@ -37,6 +37,8 @@ export default function ContentModerationPage() {
     <PageShell
       title="Moderation"
       description="Review flagged content, moderate posts, and manage comments."
+      className="gap-6 p-4 pb-16 sm:p-6 lg:p-7"
+      headerClassName="gap-4 border-border/80 pb-5 md:items-end"
       actions={
         <div className="flex flex-wrap items-center gap-2">
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>

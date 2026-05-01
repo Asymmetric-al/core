@@ -37,6 +37,8 @@ export default function CareDirectoryPage() {
     <PageShell
       title="Personnel Directory"
       description="Manage and monitor all global team members."
+      className="gap-6 p-4 pb-16 sm:p-6 lg:p-7"
+      headerClassName="gap-4 border-border/80 pb-5"
       actions={actions}
     >
       <Card className="overflow-hidden rounded-2xl border-zinc-200/70 shadow-sm">

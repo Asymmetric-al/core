@@ -1255,6 +1255,8 @@ export default function EventsPage() {
     <PageShell
       title="Events"
       description="Plan events, sessions, speakers, registrations, and logistics."
+      className="gap-6 p-4 pb-16 sm:p-6 lg:p-7"
+      headerClassName="gap-4 border-border/80 pb-5"
       actions={
         <div className="flex flex-wrap gap-2">
           <Button

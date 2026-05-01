@@ -105,6 +105,8 @@ export default function AdminPage() {
     <PageShell
       title="Administration"
       description="Global system configuration and security oversight."
+      className="gap-6 p-4 pb-16 sm:p-6 lg:p-7"
+      headerClassName="items-start gap-4 border-border/80 pb-5 md:items-end"
       actions={
         <div className="flex gap-2">
           <Button
