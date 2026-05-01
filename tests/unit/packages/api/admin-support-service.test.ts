@@ -10,6 +10,7 @@ vi.mock("node:crypto", () => ({
 
 import {
   createSupportTicket,
+  getSupportSummary,
   getSupportTicket,
   listSupportTickets,
 } from "../../../../packages/api/src/admin/support/service";
@@ -46,6 +47,26 @@ function createQuery(result: unknown) {
 }
 
 describe("admin support service tenant isolation", () => {
+  it("returns an empty support workspace when support tables are not migrated yet", async () => {
+    const query = createQuery({
+      data: null,
+      error: {
+        code: "PGRST205",
+        message:
+          "Could not find the table 'public.support_tickets' in the schema cache",
+      },
+    });
+    const from = vi.fn(() => query);
+
+    const model = await getSupportSummary({ from } as never, TENANT_A);
+
+    expect(from).toHaveBeenCalledWith("support_tickets");
+    expect(from).toHaveBeenCalledWith("support_contacts");
+    expect(model.tickets).toEqual([]);
+    expect(model.contacts).toEqual([]);
+    expect(model.queues.map((queue) => queue.id)).toContain("donor_care");
+  });
+
   it("filters ticket lists by tenant before other filters", async () => {
     const query = createQuery({ data: [], error: null });
     const from = vi.fn(() => query);

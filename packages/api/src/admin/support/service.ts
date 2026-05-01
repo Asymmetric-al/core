@@ -48,6 +48,16 @@ function escapeSearchTerm(value: string) {
   return value.replace(/[%(),]/g, " ").trim();
 }
 
+function isMissingSupportTableError(error: {
+  code?: string;
+  message?: string;
+}) {
+  return (
+    error.code === "PGRST205" &&
+    error.message?.includes("public.support_") === true
+  );
+}
+
 function createSupportTicketPublicId() {
   const randomSuffix = randomUUID()
     .replaceAll("-", "")
@@ -140,6 +150,10 @@ export async function listSupportTickets(
     ascending: false,
   });
   if (error) {
+    if (isMissingSupportTableError(error)) {
+      return [];
+    }
+
     throw new ApiHttpError(500, error.message);
   }
 
@@ -158,6 +172,10 @@ export async function getSupportTicket(
     .eq("public_id", id)
     .maybeSingle();
   if (error) {
+    if (isMissingSupportTableError(error)) {
+      return null;
+    }
+
     throw new ApiHttpError(500, error.message);
   }
 
@@ -208,6 +226,10 @@ async function listSupportContacts(
     .eq("tenant_id", tenantId)
     .order("last_seen_at", { ascending: false });
   if (error) {
+    if (isMissingSupportTableError(error)) {
+      return [];
+    }
+
     throw new ApiHttpError(500, error.message);
   }
 
