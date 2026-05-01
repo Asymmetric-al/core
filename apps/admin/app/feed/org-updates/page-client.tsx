@@ -1456,6 +1456,7 @@ export default function OrgUpdatesPage() {
       <PageShell
         title={`${brandConfig.name} Updates`}
         description="Share announcements and updates with your supporters."
+        density="compact"
         actions={
           <>
             <Button
