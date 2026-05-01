@@ -582,8 +582,7 @@ export default function MissionControlCRM() {
       <PageShell
         title="CRM"
         description="Manage contacts, donors, and partner relationships."
-        className="gap-6 p-4 pb-16 sm:p-6 lg:p-7"
-        headerClassName="items-start gap-4 border-border/80 pb-5 md:items-end [&_h1]:text-3xl [&_h1]:normal-case [&_h1]:tracking-tight sm:[&_h1]:text-4xl lg:[&_h1]:text-5xl [&>div:first-child]:space-y-2 [&_p]:leading-6"
+        density="compact"
         actions={
           <div className="flex items-center gap-3">
             <div className="flex bg-muted p-0.5 rounded-lg border border-border">

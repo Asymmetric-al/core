@@ -88,8 +88,7 @@ export default function SupportHubPage() {
     <PageShell
       title="Support Hub"
       description="Manage donor, missionary, and staff requests through queues, macros, knowledge, and escalations."
-      className="gap-6 p-4 pb-16 sm:p-6 lg:p-7"
-      headerClassName="gap-4 border-border/80 pb-5 md:items-end"
+      density="compact"
     >
       <div className="space-y-5">
         {/* Stat cards */}

@@ -52,10 +52,8 @@ export default function Mobilize() {
       training: allCandidates.filter(
         (candidate) => candidate.stage === "Training",
       ).length,
-      ready: allCandidates.filter(
-        (candidate) =>
-          candidate.stage === "Ready" || candidate.stage === "Deployed",
-      ).length,
+      ready: allCandidates.filter((candidate) => candidate.stage === "Ready")
+        .length,
     };
   }, [allCandidates]);
 
@@ -63,8 +61,7 @@ export default function Mobilize() {
     <PageShell
       title="Mobilize"
       description="Recruitment pipeline and candidate management."
-      className="gap-6 p-4 pb-16 sm:p-6 lg:p-7"
-      headerClassName="gap-4 border-border/80 pb-5 md:items-end"
+      density="compact"
       actions={
         <Button
           className="h-10 rounded-xl bg-zinc-900 px-4 text-sm font-semibold text-white shadow-sm hover:bg-zinc-800"

@@ -114,8 +114,7 @@ export default function MissionControlReports() {
     <PageShell
       title="Reports"
       description="Financial and operational insights for the organization."
-      className="flex flex-col gap-6 p-4 pb-16 sm:p-6 lg:p-7"
-      headerClassName="flex flex-col items-start justify-between gap-4 border-b border-border/80 pb-5 md:flex-row md:items-end [&_h1]:text-3xl [&_h1]:tracking-tight [&_h1]:normal-case sm:[&_h1]:text-4xl lg:[&_h1]:text-5xl [&_p]:leading-6"
+      density="compact"
       actions={
         <div className="flex items-center gap-3">
           <Button
