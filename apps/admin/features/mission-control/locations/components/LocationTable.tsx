@@ -55,7 +55,7 @@ export function LocationTable({
             <span className="font-bold text-sm text-zinc-900 truncate tracking-tight">
               {row.original.title}
             </span>
-            <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest truncate">
+            <span className="text-xs text-muted-foreground truncate">
               {row.original.lat.toFixed(4)}, {row.original.lng.toFixed(4)}
             </span>
           </div>
@@ -76,7 +76,7 @@ export function LocationTable({
               <Activity className="size-3 text-zinc-400" />
             )}
             {type === "custom" && <Globe className="size-3 text-zinc-400" />}
-            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.1em]">
+            <span className="text-xs font-semibold text-muted-foreground capitalize">
               {type}
             </span>
           </div>
@@ -94,7 +94,7 @@ export function LocationTable({
           <Badge
             variant="outline"
             className={cn(
-              "text-[9px] font-black h-5 uppercase tracking-widest px-2.5 rounded-full border-none shadow-none",
+              "h-5 px-2.5 rounded-full border shadow-none text-[11px] font-medium capitalize",
               status === "published"
                 ? "bg-emerald-500/10 text-emerald-600"
                 : "bg-zinc-100 text-zinc-500",
@@ -111,7 +111,7 @@ export function LocationTable({
         <DataTableColumnHeader column={column} title="Last Updated" />
       ),
       cell: ({ row }) => (
-        <div className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest tabular-nums">
+        <div className="text-xs font-medium text-muted-foreground tabular-nums">
           {new Date(row.original.updated_at).toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
@@ -130,6 +130,7 @@ export function LocationTable({
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 rounded-lg"
+                aria-label={`Open actions for ${row.original.title}`}
               >
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
