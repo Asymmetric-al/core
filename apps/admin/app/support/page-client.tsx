@@ -288,7 +288,9 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
                                   className="h-3.5 w-3.5"
                                   aria-hidden="true"
                                 />
-                                {contact?.name ?? "Unknown contact"}
+                                {contact?.name ??
+                                  ticket.contactName ??
+                                  "Unknown contact"}
                               </span>
                               <span className="inline-flex items-center gap-1">
                                 <ChannelIcon
@@ -376,10 +378,13 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
                         Contact
                       </p>
                       <p className="mt-1 font-semibold">
-                        {selectedContact?.name ?? "Unknown contact"}
+                        {selectedContact?.name ??
+                          selectedTicket.contactName ??
+                          "Unknown contact"}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {selectedContact?.relationship}
+                        {selectedContact?.relationship ??
+                          selectedTicket.contactEmail}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         {selectedContact?.givingSummary}

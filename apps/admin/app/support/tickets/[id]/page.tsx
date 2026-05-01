@@ -1,3 +1,4 @@
+import { loadSupportTicketDetail } from "@asym/api/admin/support/loaders";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
@@ -9,7 +10,6 @@ import {
 } from "@asym/ui/components/shadcn/card";
 import Link from "next/link";
 
-import { supportHubDemoModel } from "../../support-hub.data";
 import { formatSupportRelativeTime } from "../../support-hub.derived";
 import { supportHubRoutes } from "../../support-hub.routes";
 
@@ -21,7 +21,8 @@ export default async function SupportTicketDetailPage({
   params,
 }: SupportTicketDetailPageProps) {
   const { id } = await params;
-  const ticket = supportHubDemoModel.tickets.find((item) => item.id === id);
+  const model = await loadSupportTicketDetail(id);
+  const { ticket } = model;
 
   if (!ticket) {
     return (
@@ -46,15 +47,9 @@ export default async function SupportTicketDetailPage({
     );
   }
 
-  const contact = supportHubDemoModel.contacts.find(
-    (item) => item.id === ticket.contactId,
-  );
-  const queue = supportHubDemoModel.queues.find(
-    (item) => item.id === ticket.queueId,
-  );
-  const macro = supportHubDemoModel.macros.find(
-    (item) => item.queueId === ticket.queueId,
-  );
+  const contact = model.contacts.find((item) => item.id === ticket.contactId);
+  const queue = model.queues.find((item) => item.id === ticket.queueId);
+  const macro = model.macros.find((item) => item.queueId === ticket.queueId);
 
   return (
     <PageShell
@@ -83,7 +78,7 @@ export default async function SupportTicketDetailPage({
                   ticket.followUpAt
                     ? formatSupportRelativeTime(
                         ticket.followUpAt,
-                        supportHubDemoModel.generatedAt,
+                        model.generatedAt,
                       )
                     : "Not scheduled",
                 ],
@@ -117,9 +112,9 @@ export default async function SupportTicketDetailPage({
             </CardHeader>
             <CardContent className="space-y-2 text-sm text-muted-foreground">
               <p className="font-semibold text-foreground">
-                {contact?.name ?? "Unknown contact"}
+                {contact?.name ?? ticket.contactName ?? "Unknown contact"}
               </p>
-              <p>{contact?.email}</p>
+              <p>{contact?.email ?? ticket.contactEmail}</p>
               <p>{contact?.organization}</p>
               <p>{contact?.givingSummary}</p>
             </CardContent>

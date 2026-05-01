@@ -99,4 +99,17 @@ describe("support hub UI structure", () => {
     expect(source).toMatch(/searchParams/);
     expect(source).toMatch(/article/);
   });
+
+  it("uses DB-backed loaders for hub, list, and detail read paths", () => {
+    for (const path of [
+      "apps/admin/app/support/page.tsx",
+      "apps/admin/app/support/tickets/page.tsx",
+      "apps/admin/app/support/tickets/[id]/page.tsx",
+    ]) {
+      const source = readRepoFile(path);
+
+      expect(source).not.toMatch(/supportHubDemoModel/);
+      expect(source).toMatch(/loadSupport/);
+    }
+  });
 });

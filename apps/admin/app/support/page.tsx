@@ -1,6 +1,9 @@
-import PageClient from "./page-client";
-import { supportHubDemoModel } from "./support-hub.data";
+import { loadSupportHubReadModel } from "@asym/api/admin/support/loaders";
 
-export default function Page() {
-  return <PageClient model={supportHubDemoModel} />;
+import PageClient from "./page-client";
+
+export default async function Page() {
+  const model = await loadSupportHubReadModel();
+
+  return <PageClient model={model} />;
 }

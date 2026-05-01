@@ -29,6 +29,8 @@ export interface SupportTicket {
   id: string;
   subject: string;
   contactId: string;
+  contactEmail?: string;
+  contactName?: string;
   queueId: SupportQueueId;
   status: SupportTicketStatus;
   priority: SupportTicketPriority;

@@ -18,6 +18,20 @@ async function ensureAdminDemo(page: Page) {
   }
 }
 
+async function ensureSupportHubDatabase(page: Page) {
+  const response = await page.request.get(`${adminBaseURL}/api/admin/support`);
+
+  if (response.ok()) {
+    return;
+  }
+
+  const body = await response.text();
+  test.skip(
+    body.includes("support_tickets") || body.includes("support_contacts"),
+    "Support Hub database migration is not applied in this environment.",
+  );
+}
+
 /** Many admin pages use `PageShell` (no `<main>`); the shell chrome is the stable signal. */
 async function expectMissionControlChrome(page: Page) {
   await expect(
@@ -36,7 +50,6 @@ const TABLE_ROUTES = [
 const SUPPORT_ROUTES = [
   { path: "/support", heading: "Support Hub" },
   { path: "/support/tickets", heading: "Support Tickets" },
-  { path: "/support/tickets/SUP-1037", heading: "Donor dashboard question" },
   { path: "/support/tickets/new", heading: "New Support Ticket" },
   { path: "/support/contacts", heading: "Support Contacts" },
   { path: "/support/macros", heading: "Support Macros" },
@@ -120,6 +133,9 @@ test.describe("Admin table pages smoke", () => {
         });
 
         await ensureAdminDemo(page);
+        if (path === "/support" || path === "/support/tickets") {
+          await ensureSupportHubDatabase(page);
+        }
         await page.goto(path);
         await page.waitForLoadState("domcontentloaded");
 
@@ -144,6 +160,48 @@ test.describe("Admin table pages smoke", () => {
       await expect(page.getByLabel("Summary")).toBeVisible();
     });
 
+    test("created ticket appears in the live list and opens in detail", async ({
+      page,
+    }) => {
+      const subject = `Live read path smoke ${Date.now()}`;
+
+      await ensureAdminDemo(page);
+      await ensureSupportHubDatabase(page);
+      await page.goto("/support/tickets/new");
+      await page.waitForLoadState("domcontentloaded");
+
+      await page.getByLabel("Contact").selectOption({ index: 1 });
+      await page.getByLabel("Subject").fill(subject);
+      await page.getByLabel("Support track").selectOption("donor_care");
+      await page.getByLabel("Priority").selectOption("normal");
+      await page
+        .getByLabel("Summary")
+        .fill("Verify that created support tickets are served by live reads.");
+
+      const createResponse = page.waitForResponse(
+        (response) =>
+          response.url().includes("/api/admin/support/tickets") &&
+          response.request().method() === "POST",
+      );
+      await page.getByRole("button", { name: "Create ticket" }).click();
+
+      const response = await createResponse;
+      expect(response.ok()).toBe(true);
+      const ticket = (await response.json()) as { id: string };
+
+      await expect(page.getByText(`Created ticket ${ticket.id}`)).toBeVisible();
+
+      await page.goto("/support/tickets");
+      const ticketRow = page.locator("article").filter({ hasText: subject });
+      await expect(ticketRow).toBeVisible();
+
+      await ticketRow.getByRole("link", { name: "Open thread" }).click();
+      await expect(page).toHaveURL(new RegExp(`/support/tickets/${ticket.id}`));
+      await expect(
+        page.getByRole("heading", { name: subject }).first(),
+      ).toBeVisible();
+    });
+
     test("support hub exposes three support tracks and no timing-risk copy", async ({
       page,
     }) => {
@@ -152,6 +210,7 @@ test.describe("Admin table pages smoke", () => {
         "i",
       );
       await ensureAdminDemo(page);
+      await ensureSupportHubDatabase(page);
       await page.goto("/support");
       await page.waitForLoadState("domcontentloaded");
 

@@ -1,3 +1,4 @@
+import { loadSupportTicketList } from "@asym/api/admin/support/loaders";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
@@ -11,14 +12,8 @@ import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import Link from "next/link";
 
-import { supportHubDemoModel } from "../support-hub.data";
-import {
-  deriveSupportQueueSummaries,
-  filterSupportTickets,
-} from "../support-hub.derived";
+import { deriveSupportQueueSummaries } from "../support-hub.derived";
 import { supportHubRoutes } from "../support-hub.routes";
-
-import type { SupportQueueId, SupportTicketStatus } from "../support-hub.types";
 
 interface SupportTicketsPageProps {
   searchParams?: Promise<{
@@ -28,32 +23,25 @@ interface SupportTicketsPageProps {
   }>;
 }
 
-function toQueueId(value: string | undefined): SupportQueueId | undefined {
-  return supportHubDemoModel.queues.some((queue) => queue.id === value)
-    ? (value as SupportQueueId)
-    : undefined;
-}
+function toSearchParams(params: Record<string, string | undefined>) {
+  const searchParams = new URLSearchParams();
 
-function toStatus(value: string | undefined): SupportTicketStatus | undefined {
-  return ["open", "waiting", "resolved", "escalated"].includes(value ?? "")
-    ? (value as SupportTicketStatus)
-    : undefined;
+  for (const [key, value] of Object.entries(params)) {
+    if (value) {
+      searchParams.set(key, value);
+    }
+  }
+
+  return searchParams;
 }
 
 export default async function SupportTicketsPage({
   searchParams,
 }: SupportTicketsPageProps) {
   const params = (await searchParams) ?? {};
-  const queueSummaries = deriveSupportQueueSummaries(supportHubDemoModel);
-  const filteredTickets = filterSupportTickets(
-    supportHubDemoModel.tickets,
-    {
-      queueId: toQueueId(params.queueId),
-      search: params.search,
-      status: toStatus(params.status),
-    },
-    supportHubDemoModel.contacts,
-  );
+  const model = await loadSupportTicketList(toSearchParams(params));
+  const queueSummaries = deriveSupportQueueSummaries(model);
+  const tickets = model.tickets;
 
   return (
     <PageShell
@@ -94,7 +82,7 @@ export default async function SupportTicketsPage({
               name="queueId"
             >
               <option value="">All tracks</option>
-              {supportHubDemoModel.queues.map((queue) => (
+              {model.queues.map((queue) => (
                 <option key={queue.id} value={queue.id}>
                   {queue.label}
                 </option>
@@ -142,12 +130,12 @@ export default async function SupportTicketsPage({
           <CardHeader>
             <CardTitle>All tickets</CardTitle>
             <CardDescription>
-              Demo read model until the data-backed phase lands.
+              Live tenant-scoped tickets from the support workspace.
             </CardDescription>
           </CardHeader>
           <CardContent className="divide-y divide-border/70 p-0">
-            {filteredTickets.length > 0 ? (
-              filteredTickets.map((ticket) => (
+            {tickets.length > 0 ? (
+              tickets.map((ticket) => (
                 <article className="p-4" key={ticket.id}>
                   <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                     <div>

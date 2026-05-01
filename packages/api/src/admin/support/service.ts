@@ -55,6 +55,8 @@ function mapTicketRow(row: SupportTicketRow): SupportTicket {
       row.contact_email_snapshot ??
       row.contact_name_snapshot ??
       row.id,
+    contactEmail: row.contact_email_snapshot ?? undefined,
+    contactName: row.contact_name_snapshot ?? undefined,
     queueId: row.queue_id,
     status: row.status,
     priority: row.priority,

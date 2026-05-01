@@ -31,6 +31,7 @@
     "./admin/crm": "./src/admin/crm/index.ts",
     "./admin/crm/types": "./src/admin/crm/types.ts",
     "./admin/support": "./src/admin/support/index.ts",
+    "./admin/support/loaders": "./src/admin/support/loaders.ts",
     "./admin/support/tickets": "./src/admin/support/tickets.ts",
     "./admin/support/tickets/ticket": "./src/admin/support/ticket.ts",
     "./admin/support/types": "./src/admin/support/types.ts",
