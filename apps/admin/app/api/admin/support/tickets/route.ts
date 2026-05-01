@@ -1,1 +1,1 @@
-export { GET } from "@asym/api/admin/support/tickets";
+export { GET, POST } from "@asym/api/admin/support/tickets";
