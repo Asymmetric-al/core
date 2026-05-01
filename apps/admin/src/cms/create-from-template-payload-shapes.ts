@@ -7,12 +7,12 @@
  */
 
 /** Block array copied from a page template into new documents. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- mirrors generated Payload block unions that are unavailable in fresh clones
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO(payload-codegen): mirrors generated Payload block unions that are unavailable in fresh clones
 export type CmsLayoutBlocks = any[];
 
 type PayloadPageType = "standard" | "missionary_giving" | "project";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- mirrors generated Payload Lexical state that is unavailable in fresh clones
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO(payload-codegen): mirrors generated Payload Lexical state that is unavailable in fresh clones
 type LexicalRichTextContent = any;
 
 export type PageTemplateForCreate = {
