@@ -31,7 +31,7 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import {
   deriveSupportHubStats,
@@ -101,17 +101,10 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
       ),
     [activeQueueId, model.contacts, model.tickets, search],
   );
-  useEffect(() => {
-    if (
-      selectedTicketId &&
-      !visibleTickets.some((ticket) => ticket.id === selectedTicketId)
-    ) {
-      setSelectedTicketId(null);
-    }
-  }, [selectedTicketId, visibleTickets]);
-
   const selectedTicket =
-    visibleTickets.find((ticket) => ticket.id === selectedTicketId) ??
+    (selectedTicketId
+      ? visibleTickets.find((ticket) => ticket.id === selectedTicketId)
+      : undefined) ??
     visibleTickets[0] ??
     null;
   const selectedContact = selectedTicket
