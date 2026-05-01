@@ -1,9 +1,17 @@
 "use client";
 
 import { useMC } from "@asym/lib/mission-control/context";
-import { TILES } from "@asym/lib/mission-control/tiles";
+import { resolveMissionControlHref } from "@asym/lib/mission-control/routes";
+import { TILES, WORKFLOWS } from "@asym/lib/mission-control/tiles";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@asym/ui/components/shadcn/card";
 import {
   Dialog,
   DialogContent,
@@ -12,124 +20,520 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@asym/ui/components/shadcn/dialog";
-import { useState } from "react";
+import { cn } from "@asym/ui/lib/utils";
+import {
+  AlertTriangle,
+  ArrowRight,
+  BarChart3,
+  CheckCircle2,
+  Clock3,
+  LayoutGrid,
+  Settings2,
+  Sparkles,
+  Star,
+} from "lucide-react";
+import Link from "next/link";
+import { useMemo, useState } from "react";
 
 import { QuickActionsRow } from "./quick-actions-row";
 import { TileCard } from "./tile-card";
 import { WorkflowsPanel } from "./workflows-panel";
-import { getIcon } from "../icons";
+import { DynamicIcon, getIcon } from "../icons";
 
-export function MissionControlHome() {
+import type { DashboardStats } from "@asym/api/reads/dashboard-stats";
+import type { Tile } from "@asym/lib/mission-control/types";
+
+type MissionControlHomeProps = {
+  dashboardMissionaryId?: string | null;
+  stats?: DashboardStats | null;
+};
+
+type OverviewMetric = {
+  id: string;
+  label: string;
+  value: string;
+  context: string;
+  tone: "info" | "success" | "warning" | "neutral";
+};
+
+const PRIMARY_TILE_IDS = [
+  "crm",
+  "contributions",
+  "reports",
+  "care",
+  "mobilize",
+  "events",
+  "support",
+  "admin",
+] as const;
+
+const DASHBOARD_GUIDE_ITEMS = [
+  {
+    label: "Today",
+    value: "Attention first",
+    detail: "Start with work that has risk, deadlines, or operational impact.",
+  },
+  {
+    label: "This week",
+    value: "Operational picture",
+    detail: "Scan giving, people, care, mobilization, events, and support.",
+  },
+  {
+    label: "Customize",
+    value: "Role-aware modules",
+    detail: "Your tools and quick actions follow your Mission Control role.",
+  },
+];
+
+function getMetricToneClass(tone: OverviewMetric["tone"]) {
+  switch (tone) {
+    case "success":
+      return "border-emerald-200 bg-emerald-50 text-emerald-700";
+    case "warning":
+      return "border-amber-200 bg-amber-50 text-amber-700";
+    case "info":
+      return "border-blue-200 bg-blue-50 text-blue-700";
+    case "neutral":
+      return "border-zinc-200 bg-zinc-50 text-zinc-700";
+    default:
+      return "border-zinc-200 bg-zinc-50 text-zinc-700";
+  }
+}
+
+function buildOverviewMetrics(stats: DashboardStats | null): OverviewMetric[] {
+  if (!stats) {
+    return [
+      {
+        id: "setup",
+        label: "Dashboard data",
+        value: "Limited",
+        context: "Showing the command center layout while tenant metrics load.",
+        tone: "warning",
+      },
+      {
+        id: "modules",
+        label: "Module map",
+        value: "Ready",
+        context: "Use the role-aware modules below to keep moving.",
+        tone: "info",
+      },
+      {
+        id: "actions",
+        label: "Quick actions",
+        value: "Live",
+        context: "Actions are available from your enabled Mission Control tools.",
+        tone: "success",
+      },
+    ];
+  }
+
+  return [
+    {
+      id: "revenue",
+      label: "Revenue this month",
+      value: new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        maximumFractionDigits: 0,
+      }).format(stats.revenueThisMonth),
+      context: "Settled gifts since month start",
+      tone: "success",
+    },
+    {
+      id: "donations",
+      label: "Donations this month",
+      value: stats.totalDonationsThisMonth.toLocaleString(),
+      context: "Settled contribution records",
+      tone: stats.totalDonationsThisMonth > 0 ? "info" : "warning",
+    },
+    {
+      id: "relationships",
+      label: "People in view",
+      value: stats.totalDonors.toLocaleString(),
+      context: "Tenant-wide donor profiles",
+      tone: "neutral",
+    },
+  ];
+}
+
+function classifyTile(tile: Tile) {
+  if (tile.id === "support" || tile.id === "care") return "Attention";
+  if (tile.id === "contributions" || tile.id === "reports") return "Money";
+  if (tile.id === "mobilize" || tile.id === "events") return "Operations";
+  if (tile.id === "crm") return "Relationships";
+  if (tile.id === "admin") return "Admin";
+  return "Tools";
+}
+
+function TileSummaryCard({ tile }: { tile: Tile }) {
+  return (
+    <Link href={resolveMissionControlHref(tile.route)} className="group block">
+      <Card className="h-full border-border/70 bg-card shadow-sm transition-[border-color,box-shadow,transform] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] hover-lift hover:border-zinc-300 hover:shadow-lg hover:shadow-zinc-200/50">
+        <CardContent className="flex h-full flex-col gap-4 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex size-10 items-center justify-center rounded-xl border border-border bg-muted/40 text-foreground transition-[background-color,color,border-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] group-hover:border-zinc-900 group-hover:bg-zinc-900 group-hover:text-white">
+              <DynamicIcon name={tile.icon} className="size-5" />
+            </div>
+            <Badge
+              variant="outline"
+              className="h-5 rounded-md border-border bg-background px-1.5 text-[10px] font-semibold text-muted-foreground"
+            >
+              {classifyTile(tile)}
+            </Badge>
+          </div>
+          <div className="min-w-0 space-y-1">
+            <h3 className="text-sm font-bold leading-tight text-foreground">
+              {tile.title}
+            </h3>
+            <p className="line-clamp-2 text-xs font-medium leading-5 text-muted-foreground">
+              {tile.purpose}
+            </p>
+          </div>
+          <div className="mt-auto flex items-center justify-between border-t border-border/60 pt-3 text-xs font-semibold text-muted-foreground">
+            <span>{tile.quickActions.length} quick actions</span>
+            <ArrowRight className="size-3.5 transition-transform duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] group-hover:translate-x-0.5" />
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
+  );
+}
+
+export function MissionControlHome({
+  dashboardMissionaryId: _dashboardMissionaryId,
+  stats = null,
+}: MissionControlHomeProps) {
   const { role } = useMC();
   const [showAllTools, setShowAllTools] = useState(false);
 
   const visibleTiles = TILES.filter((tile) => tile.roles.includes(role));
   const allTiles = TILES;
+  const overviewMetrics = useMemo(() => buildOverviewMetrics(stats), [stats]);
+  const primaryTiles = useMemo(() => {
+    const byId = new Map(visibleTiles.map((tile) => [tile.id, tile]));
+    const ordered = PRIMARY_TILE_IDS.flatMap((id) => {
+      const tile = byId.get(id);
+      return tile ? [tile] : [];
+    });
+    return ordered.length > 0 ? ordered : visibleTiles.slice(0, 8);
+  }, [visibleTiles]);
+  const topWorkflows = WORKFLOWS.slice(0, 3);
 
   return (
-    <div className="relative isolate min-h-full">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-slate-50 via-white to-transparent" />
+    <div className="relative isolate min-h-full px-4 pb-16 pt-5 sm:px-6 lg:px-7">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-zinc-50 via-background to-transparent" />
 
-      <div className="relative space-y-12">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-1.5">
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">
-              Mission Control
-            </h1>
-            <p className="text-base font-medium text-zinc-500 max-w-2xl">
-              Your command center. A curated workspace for your ministry
-              operations.
-            </p>
-          </div>
-        </div>
+      <div className="relative space-y-6">
+        <section className="grid gap-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.55fr)]">
+          <Card className="overflow-hidden border-zinc-900 bg-zinc-950 text-white shadow-xl">
+            <CardContent className="relative p-5 sm:p-6">
+              <div className="pointer-events-none absolute right-0 top-0 h-64 w-64 translate-x-1/3 -translate-y-1/2 rounded-full bg-white/10 blur-3xl" />
+              <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                <div className="max-w-3xl space-y-3">
+                  <Badge className="h-6 w-fit border border-white/10 bg-white/10 px-2 text-xs font-semibold text-zinc-100 hover:bg-white/10">
+                    Mission Control dashboard
+                  </Badge>
+                  <div className="space-y-2">
+                    <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl">
+                      Start here. See the whole ministry picture.
+                    </h1>
+                    <p className="max-w-2xl text-sm font-medium leading-6 text-zinc-300">
+                      A command-center view for attention, money, people,
+                      mobilization, events, support, and admin readiness.
+                    </p>
+                  </div>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-3 lg:w-[460px]">
+                  {DASHBOARD_GUIDE_ITEMS.map((item) => (
+                    <div
+                      key={item.label}
+                      className="rounded-2xl border border-white/10 bg-white/[0.06] p-3"
+                    >
+                      <p className="text-xs font-medium text-zinc-400">
+                        {item.label}
+                      </p>
+                      <p className="mt-1 text-sm font-bold text-white">
+                        {item.value}
+                      </p>
+                      <p className="mt-1 line-clamp-2 text-xs leading-5 text-zinc-400">
+                        {item.detail}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-        <div className="space-y-6">
-          <h2 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
-            Quick Actions
-          </h2>
-          <QuickActionsRow />
-        </div>
-
-        <div className="space-y-8">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h2 className="text-lg font-bold text-zinc-900">Your Tools</h2>
-              <p className="text-sm font-medium text-zinc-500">
-                Access your enabled modules and features.
-              </p>
-            </div>
-            <Dialog open={showAllTools} onOpenChange={setShowAllTools}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-zinc-500 hover:text-zinc-900"
-                >
-                  View all tools
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-3xl">
-                <DialogHeader>
-                  <DialogTitle>Mission Control Tools</DialogTitle>
-                  <DialogDescription>
-                    Complete list of all available tools and their access
-                    status.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {allTiles.map((tile) => {
-                    const Icon = getIcon(tile.icon);
-                    const hasAccess = tile.roles.includes(role);
-                    return (
-                      <div
-                        key={tile.id}
-                        className={`flex items-start gap-4 rounded-2xl border p-4 transition-[border-color,background-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] ${
-                          hasAccess
-                            ? "bg-white border-zinc-200 hover:border-zinc-300 shadow-sm"
-                            : "bg-zinc-50 border-zinc-100 opacity-60"
-                        }`}
-                      >
+          <Card className="border-border bg-card shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Settings2 className="size-4 text-muted-foreground" />
+                Customizable workspace
+              </CardTitle>
+              <CardDescription>
+                Role-aware modules now form the starting map for daily work.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-xl border border-border bg-muted/20 p-3">
+                  <p className="text-2xl font-black tabular-nums">
+                    {visibleTiles.length}
+                  </p>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    enabled modules
+                  </p>
+                </div>
+                <div className="rounded-xl border border-border bg-muted/20 p-3">
+                  <p className="text-2xl font-black tabular-nums">
+                    {TILES.length}
+                  </p>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    available tools
+                  </p>
+                </div>
+              </div>
+              <Dialog open={showAllTools} onOpenChange={setShowAllTools}>
+                <DialogTrigger asChild>
+                  <Button className="h-10 w-full rounded-xl bg-zinc-900 text-sm font-semibold text-white hover:bg-zinc-800">
+                    <LayoutGrid className="mr-2 size-4" />
+                    Customize modules
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-3xl">
+                  <DialogHeader>
+                    <DialogTitle>Mission Control tools</DialogTitle>
+                    <DialogDescription>
+                      Complete list of tools and whether your current role can
+                      access them.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-3 py-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {allTiles.map((tile) => {
+                      const Icon = getIcon(tile.icon);
+                      const hasAccess = tile.roles.includes(role);
+                      return (
                         <div
-                          className={`flex h-10 w-10 items-center justify-center rounded-xl border ${
+                          key={tile.id}
+                          className={cn(
+                            "flex items-start gap-3 rounded-2xl border p-3 transition-[border-color,background-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]",
                             hasAccess
-                              ? "bg-zinc-50 border-zinc-100"
-                              : "bg-zinc-100 border-transparent"
-                          }`}
+                              ? "border-border bg-card shadow-sm hover:border-zinc-300"
+                              : "border-border/60 bg-muted/30 opacity-70",
+                          )}
                         >
-                          <Icon
-                            className={`h-5 w-5 ${hasAccess ? "text-zinc-700" : "text-zinc-400"}`}
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0 space-y-1">
-                          <p className="text-sm font-bold text-zinc-900">
-                            {tile.title}
-                          </p>
-                          <div className="flex items-center gap-2">
+                          <div
+                            className={cn(
+                              "flex size-9 items-center justify-center rounded-xl border",
+                              hasAccess
+                                ? "border-border bg-muted/30 text-foreground"
+                                : "border-border/60 bg-muted text-muted-foreground",
+                            )}
+                          >
+                            <Icon className="size-4" />
+                          </div>
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <p className="text-sm font-bold text-foreground">
+                              {tile.title}
+                            </p>
                             <Badge
                               variant="secondary"
-                              className={`h-5 px-1.5 text-[10px] font-bold uppercase tracking-wider ${
+                              className={cn(
+                                "h-5 px-1.5 text-[10px] font-semibold",
                                 hasAccess
-                                  ? "bg-zinc-100 text-zinc-900"
-                                  : "bg-zinc-100 text-zinc-400"
-                              }`}
+                                  ? "bg-emerald-50 text-emerald-700"
+                                  : "bg-zinc-100 text-zinc-500",
+                              )}
                             >
                               {hasAccess ? "Available" : "Locked"}
                             </Badge>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {visibleTiles.map((tile) => (
-              <TileCard key={tile.id} tile={tile} />
+                      );
+                    })}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </CardContent>
+          </Card>
+        </section>
+
+        <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="grid gap-3 sm:grid-cols-3">
+            {overviewMetrics.map((metric) => (
+              <Card
+                key={metric.id}
+                className="border-border bg-card shadow-sm"
+              >
+                <CardContent className="flex items-start justify-between gap-4 p-4">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">
+                      {metric.label}
+                    </p>
+                    <p className="mt-1 text-2xl font-black tracking-tight text-foreground tabular-nums">
+                      {metric.value}
+                    </p>
+                    <p className="mt-1 text-xs font-medium leading-5 text-muted-foreground">
+                      {metric.context}
+                    </p>
+                  </div>
+                  <div
+                    className={cn(
+                      "flex size-9 items-center justify-center rounded-xl border",
+                      getMetricToneClass(metric.tone),
+                    )}
+                  >
+                    {metric.tone === "success" ? (
+                      <CheckCircle2 className="size-4" />
+                    ) : metric.tone === "warning" ? (
+                      <AlertTriangle className="size-4" />
+                    ) : (
+                      <BarChart3 className="size-4" />
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
-        </div>
+
+          <Card className="border-border bg-card shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Clock3 className="size-4 text-amber-600" />
+                Priority scan
+              </CardTitle>
+              <CardDescription>
+                Use the first minute to decide where attention goes.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {[
+                {
+                  label: "Support and care",
+                  detail: "Review people-facing risk before routine work.",
+                  tone: "text-rose-600 bg-rose-50 border-rose-100",
+                },
+                {
+                  label: "Giving and reports",
+                  detail: "Check settled giving and operational signals.",
+                  tone: "text-emerald-700 bg-emerald-50 border-emerald-100",
+                },
+                {
+                  label: "Pipeline and events",
+                  detail: "Move candidates, sessions, and tasks forward.",
+                  tone: "text-blue-700 bg-blue-50 border-blue-100",
+                },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="flex gap-3 rounded-xl border border-border bg-background p-3"
+                >
+                  <div
+                    className={cn(
+                      "mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-lg border",
+                      item.tone,
+                    )}
+                  >
+                    <Star className="size-3" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">
+                      {item.label}
+                    </p>
+                    <p className="text-xs leading-5 text-muted-foreground">
+                      {item.detail}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </section>
+
+        <section className="space-y-3">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="text-lg font-bold text-foreground">
+                Quick actions
+              </h2>
+              <p className="text-sm font-medium text-muted-foreground">
+                Role-aware shortcuts for the work you are most likely to do
+                next.
+              </p>
+            </div>
+          </div>
+          <QuickActionsRow />
+        </section>
+
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h2 className="text-lg font-bold text-foreground">
+                Operational map
+              </h2>
+              <p className="text-sm font-medium text-zinc-500">
+                The most important Mission Control modules, grouped for fast
+                scanning.
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {primaryTiles.map((tile) => (
+              <TileSummaryCard key={tile.id} tile={tile} />
+            ))}
+          </div>
+        </section>
+
+        <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-lg font-bold text-foreground">
+                Enabled tools
+              </h2>
+              <p className="text-sm font-medium text-muted-foreground">
+                Full module cards remain below for deeper navigation and quick
+                actions.
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {visibleTiles.map((tile) => (
+                <TileCard key={tile.id} tile={tile} />
+              ))}
+            </div>
+          </div>
+
+          <Card className="h-fit border-border bg-card shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Sparkles className="size-4 text-purple-600" />
+                Suggested workflows
+              </CardTitle>
+              <CardDescription>
+                Cross-module flows that explain what the dashboard connects.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {topWorkflows.map((workflow) => (
+                <Link
+                  key={workflow.id}
+                  href={resolveMissionControlHref(workflow.route)}
+                  className="group flex items-center justify-between gap-3 rounded-xl border border-border bg-background p-3 transition-[border-color,background-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] hover:border-zinc-300 hover:bg-muted/30"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">
+                      {workflow.title}
+                    </p>
+                    <p className="line-clamp-2 text-xs leading-5 text-muted-foreground">
+                      {workflow.description}
+                    </p>
+                  </div>
+                  <ArrowRight className="size-4 shrink-0 text-muted-foreground transition-transform duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] group-hover:translate-x-0.5 group-hover:text-foreground" />
+                </Link>
+              ))}
+            </CardContent>
+          </Card>
+        </section>
 
         <WorkflowsPanel />
       </div>

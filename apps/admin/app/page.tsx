@@ -1,18 +1,17 @@
 import { getAuthContext } from "@asym/auth/context";
-import { DashboardHome } from "@asym/missionary/components/dashboard-home";
 
 import {
   loadDashboardMissionaryId,
   loadDashboardStats,
 } from "./dashboard-stats-loader";
 
-import { AdminDashboardStatsSection } from "@/features/mission-control/components/AdminDashboardStatsSection";
+import { MissionControlHome } from "@/features/mission-control/components/tiles/mission-control-home";
 
 export default async function MissionControlDashboard() {
   const auth = await getAuthContext();
 
   if (!auth.isAuthenticated || !auth.tenantId) {
-    return <DashboardHome />;
+    return <MissionControlHome />;
   }
 
   const [stats, dashboardMissionaryId] = await Promise.all([
@@ -21,13 +20,15 @@ export default async function MissionControlDashboard() {
   ]);
 
   if (!stats) {
-    return <DashboardHome missionaryId={dashboardMissionaryId ?? undefined} />;
+    return (
+      <MissionControlHome dashboardMissionaryId={dashboardMissionaryId} />
+    );
   }
 
   return (
-    <DashboardHome
-      missionaryId={dashboardMissionaryId ?? undefined}
-      belowHeaderSlot={<AdminDashboardStatsSection stats={stats} />}
+    <MissionControlHome
+      dashboardMissionaryId={dashboardMissionaryId}
+      stats={stats}
     />
   );
 }
