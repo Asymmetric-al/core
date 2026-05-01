@@ -20,10 +20,7 @@ const root = new URL("../../../../../../../../", import.meta.url);
 describe("admin support App Router exports", () => {
   it("re-exports GET and POST for support tickets", async () => {
     const route = await import(
-      new URL(
-        "apps/admin/app/api/admin/support/tickets/route.ts",
-        root,
-      ).href
+      new URL("apps/admin/app/api/admin/support/tickets/route.ts", root).href
     );
 
     expect(route.GET).toEqual(expect.any(Function));
