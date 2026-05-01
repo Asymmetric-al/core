@@ -23,12 +23,12 @@ export default function CareDirectoryPage() {
       <Button
         variant="outline"
         size="sm"
-        className="h-14 px-8 font-black border-zinc-200 text-zinc-500 uppercase tracking-[0.2em] text-[10px] rounded-2xl hover:bg-zinc-50 hover:text-zinc-900 transition-all"
+        className="h-10 rounded-xl border-zinc-200 px-4 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950"
       >
-        <Download className="mr-3 h-4 w-4 text-zinc-400" /> Export
+        <Download className="mr-2 h-4 w-4 text-zinc-500" /> Export
       </Button>
-      <Button className="h-14 px-10 font-black bg-zinc-900 text-white hover:bg-zinc-800 shadow-2xl shadow-zinc-200 uppercase tracking-[0.2em] text-[10px] rounded-2xl transition-all">
-        <Plus className="mr-3 h-4 w-4" /> Add Personnel
+      <Button className="h-10 rounded-xl bg-zinc-900 px-5 text-sm font-semibold text-white shadow-sm hover:bg-zinc-800">
+        <Plus className="mr-2 h-4 w-4" /> Add Personnel
       </Button>
     </>
   );
@@ -39,15 +39,15 @@ export default function CareDirectoryPage() {
       description="Manage and monitor all global team members."
       actions={actions}
     >
-      <Card className="shadow-sm border-zinc-100 rounded-[2.5rem] overflow-hidden">
-        <CardHeader className="border-b border-zinc-50 p-10 bg-zinc-50/20">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <Card className="overflow-hidden rounded-2xl border-zinc-200/70 shadow-sm">
+        <CardHeader className="border-b border-zinc-100 bg-zinc-50/30 p-5">
+          <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
             <div>
-              <CardTitle className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em]">
+              <CardTitle className="text-base font-semibold text-zinc-950">
                 All Personnel
               </CardTitle>
-              <p className="text-2xl font-black text-zinc-900 tracking-tight mt-1">
-                Global Workforce Matrix
+              <p className="mt-1 text-sm font-medium text-zinc-600">
+                Global workforce matrix and care visibility.
               </p>
             </div>
 
@@ -57,16 +57,16 @@ export default function CareDirectoryPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-11 px-6 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] border-zinc-100 rounded-xl hover:bg-white hover:text-zinc-900 transition-all"
+                  className="h-10 rounded-xl border-zinc-200 px-4 text-sm font-semibold text-zinc-700 hover:bg-white hover:text-zinc-950"
                 >
-                  <Filter className="mr-3 h-4 w-4" /> Advanced Filters
+                  <Filter className="mr-2 h-4 w-4" /> Advanced Filters
                 </Button>
               }
             />
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="p-6">
+          <div className="p-4">
             <PersonnelList data={personnel || []} isLoading={isLoading} />
           </div>
         </CardContent>

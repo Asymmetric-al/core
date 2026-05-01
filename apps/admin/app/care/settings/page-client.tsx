@@ -86,10 +86,10 @@ const ALERT_PREFERENCES: AlertPreference[] = [
 function CareSettingsHeader() {
   return (
     <div>
-      <h2 className="text-3xl font-black tracking-tight text-zinc-900 text-left">
+      <h2 className="text-2xl font-black tracking-tight text-zinc-900 text-left">
         Care Settings
       </h2>
-      <p className="text-zinc-500 mt-1 font-medium text-left">
+      <p className="text-zinc-600 mt-1 text-sm font-medium text-left">
         Configure regional defaults and care workflow integrations.
       </p>
     </div>
@@ -264,11 +264,11 @@ interface SaveChangesCardProps {
 
 function SaveChangesCard({ saving, onSave }: SaveChangesCardProps) {
   return (
-    <Card className="border-zinc-900 bg-zinc-900 text-white shadow-2xl shadow-zinc-300/50 overflow-hidden rounded-[2rem] sticky top-6">
-      <CardContent className="p-8 space-y-6">
+    <Card className="border-zinc-900 bg-zinc-900 text-white shadow-xl shadow-zinc-300/40 overflow-hidden rounded-2xl sticky top-6">
+      <CardContent className="p-6 space-y-5">
         <div className="space-y-2">
           <h3 className="font-black text-xl tracking-tight">Save Changes</h3>
-          <p className="text-[10px] font-medium text-zinc-500 leading-relaxed uppercase tracking-widest">
+          <p className="text-xs font-medium text-zinc-300 leading-relaxed">
             Update your global preferences. Changes apply immediately across the
             Member Care module.
           </p>
@@ -276,7 +276,7 @@ function SaveChangesCard({ saving, onSave }: SaveChangesCardProps) {
         <Button
           onClick={onSave}
           disabled={saving}
-          className="w-full bg-white text-zinc-900 hover:bg-zinc-100 font-black h-12 shadow-lg rounded-2xl text-[10px] uppercase tracking-widest"
+          className="w-full bg-white text-zinc-900 hover:bg-zinc-100 font-semibold h-10 shadow-lg rounded-xl"
         >
           {saving ? (
             "Updating..."
@@ -286,9 +286,9 @@ function SaveChangesCard({ saving, onSave }: SaveChangesCardProps) {
             </>
           )}
         </Button>
-        <div className="pt-6 border-t border-zinc-800 flex items-start gap-3">
-          <Shield className="h-4 w-4 text-zinc-500 shrink-0" />
-          <p className="text-[10px] font-medium text-zinc-500 text-left leading-relaxed">
+        <div className="pt-5 border-t border-zinc-800 flex items-start gap-3">
+          <Shield className="h-4 w-4 text-zinc-300 shrink-0" />
+          <p className="text-xs font-medium text-zinc-300 text-left leading-relaxed">
             Your data access is restricted to authorized personnel records.
             Pastoral notes are stored securely.
           </p>
@@ -300,11 +300,11 @@ function SaveChangesCard({ saving, onSave }: SaveChangesCardProps) {
 
 function ModuleInfoCard() {
   return (
-    <Card className="border-zinc-200 bg-white shadow-sm overflow-hidden rounded-[2rem]">
-      <CardContent className="p-8 space-y-6">
+    <Card className="border-zinc-200 bg-white shadow-sm overflow-hidden rounded-2xl">
+      <CardContent className="p-6 space-y-5">
         <div className="flex items-center gap-2 text-zinc-900">
           <Info className="h-4 w-4" />
-          <h4 className="text-[10px] font-black uppercase tracking-widest">
+          <h4 className="text-sm font-bold">
             Module Info
           </h4>
         </div>
@@ -314,15 +314,15 @@ function ModuleInfoCard() {
             <span className="font-bold text-zinc-900">Member Care</span>
           </div>
           <div className="flex justify-between items-center text-xs">
-            <span className="text-zinc-400 font-medium">Status</span>
-            <Badge className="bg-zinc-100 text-zinc-900 border-none text-[10px] px-2 h-5 font-bold uppercase tracking-widest">
+            <span className="text-zinc-500 font-medium">Status</span>
+            <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] px-2 h-5 font-semibold shadow-none">
               Active
             </Badge>
           </div>
 
           <div className="pt-4 border-t border-zinc-100 space-y-4">
             <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+              <span className="text-xs font-semibold text-zinc-500">
                 Tenant Website
               </span>
               <span className="text-xs font-bold text-zinc-900">
@@ -331,7 +331,7 @@ function ModuleInfoCard() {
             </div>
             <Button
               variant="outline"
-              className="w-full h-10 rounded-xl border-zinc-200 text-[10px] font-black uppercase tracking-widest text-zinc-900 group"
+              className="w-full h-10 rounded-xl border-zinc-200 text-sm font-semibold text-zinc-900 group"
               asChild
             >
               <a
@@ -362,11 +362,11 @@ export default function CareSettingsPage() {
   };
 
   return (
-    <div className="p-6 space-y-8 animate-in fade-in duration-500 pb-20">
+    <div className="p-6 space-y-6 animate-in fade-in duration-500 pb-20">
       <CareSettingsHeader />
 
-      <div className="grid gap-8 lg:grid-cols-12">
-        <div className="lg:col-span-8 space-y-8">
+      <div className="grid gap-6 lg:grid-cols-12">
+        <div className="lg:col-span-8 space-y-6">
           <RegionalLocalizationCard />
           <ConnectedServicesCard />
           <AlertPreferencesCard />
