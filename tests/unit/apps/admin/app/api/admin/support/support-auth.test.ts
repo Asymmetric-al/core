@@ -110,7 +110,7 @@ function mockAdminClient() {
   getAdminClientMock.mockReturnValue({
     client: {
       from: vi.fn((table: string) =>
-        table === "support_contacts" ? contactsQuery : ticketsQuery
+        table === "support_contacts" ? contactsQuery : ticketsQuery,
       ),
     },
     error: null,
@@ -194,7 +194,7 @@ describe("admin support API auth", () => {
         contacts: expect.any(Array),
         queues: expect.any(Array),
       });
-    }
+    },
   );
 
   it("returns 400 for an invalid ticket queue filter", async () => {

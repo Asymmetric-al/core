@@ -133,7 +133,7 @@ describe("support hub derived model", () => {
       filterSupportTickets(model.tickets, {
         queueId: "donor_care",
         status: "escalated",
-      }).map((ticket) => ticket.id)
+      }).map((ticket) => ticket.id),
     ).toEqual(["ticket-4"]);
   });
 

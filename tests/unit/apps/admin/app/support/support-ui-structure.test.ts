@@ -31,7 +31,9 @@ describe("support hub UI structure", () => {
     const source = readRepoFile("apps/admin/app/support/page-client.tsx");
 
     expect(source).toMatch(/selectedTicketId/);
-    expect(source).not.toMatch(/visibleTickets\[0\]\s*\?\?\s*model\.tickets\[0\]/);
+    expect(source).not.toMatch(
+      /visibleTickets\[0\]\s*\?\?\s*model\.tickets\[0\]/,
+    );
   });
 
   it("labels ticket filters and avoids placeholder-only controls", () => {
