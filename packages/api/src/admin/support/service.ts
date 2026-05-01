@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import { supportHubReadModel } from "@asym/database/collections/support-workspace";
 
 import { ApiHttpError } from "../../shared/http-errors";
@@ -44,6 +46,15 @@ type SupportContactRow = {
 
 function escapeSearchTerm(value: string) {
   return value.replace(/[%(),]/g, " ").trim();
+}
+
+function createSupportTicketPublicId() {
+  const randomSuffix = randomUUID()
+    .replaceAll("-", "")
+    .slice(0, 12)
+    .toUpperCase();
+
+  return `SUP-${Date.now()}-${randomSuffix}`;
 }
 
 function mapTicketRow(row: SupportTicketRow): SupportTicket {
@@ -159,7 +170,7 @@ export async function createSupportTicket(
   userId: string,
   input: CreateSupportTicketInput,
 ): Promise<SupportTicket> {
-  const publicId = `SUP-${Date.now()}`;
+  const publicId = createSupportTicketPublicId();
   const { data, error } = await supabaseAdmin
     .from("support_tickets")
     .insert({
