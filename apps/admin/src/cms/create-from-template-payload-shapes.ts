@@ -7,11 +7,17 @@
  */
 
 /** Block array copied from a page template into new documents. */
-export type CmsLayoutBlocks = unknown[];
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- mirrors generated Payload block unions that are unavailable in fresh clones
+export type CmsLayoutBlocks = any[];
+
+type PayloadPageType = "standard" | "missionary_giving" | "project";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- mirrors generated Payload Lexical state that is unavailable in fresh clones
+type LexicalRichTextContent = any;
 
 export type PageTemplateForCreate = {
   tenant?: unknown;
-  pageType?: string;
+  pageType?: PayloadPageType | "ministry_update";
   defaultLayout?: unknown;
   templateKey?: string;
   defaultSummary?: string | null;
@@ -22,10 +28,10 @@ export type PageCreateFields = {
   title: string;
   slug: string;
   summary?: string;
-  pageType: string;
+  pageType: PayloadPageType;
   template: number;
   layout: CmsLayoutBlocks;
-  content: unknown;
+  content: LexicalRichTextContent;
   legacyContentFallback: boolean;
 };
 
@@ -38,7 +44,7 @@ export type MissionaryGivingPageCreateFields = {
   title: string;
   slug: string;
   summary?: string;
-  pageType: string;
+  pageType: "missionary_giving";
   layout: CmsLayoutBlocks;
 };
 
@@ -50,7 +56,7 @@ export type ProjectPageCreateFields = {
   title: string;
   slug: string;
   summary?: string;
-  pageType: string;
+  pageType: "project";
   layout: CmsLayoutBlocks;
 };
 
@@ -60,5 +66,5 @@ export type MinistryUpdateCreateFields = {
   title: string;
   slug: string;
   excerpt?: string;
-  content: unknown;
+  content: LexicalRichTextContent;
 };
