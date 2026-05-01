@@ -27,6 +27,7 @@ export {
 } from "./admin-workspace";
 export { adminLocationsCollection } from "./admin-locations";
 export { donorHistoryTransactionsCollection } from "./donor-history";
+export { supportHubReadModel } from "./support-workspace";
 
 export type {
   AdminCrmContact,
@@ -46,3 +47,15 @@ export type {
   AdminLocationLinkedEntities,
 } from "./admin-locations";
 export type { DonorHistoryTransaction } from "./donor-history";
+export type {
+  SupportContact,
+  SupportHubReadModel,
+  SupportKnowledgeEntry,
+  SupportMacro,
+  SupportQueue,
+  SupportQueueId,
+  SupportTicket,
+  SupportTicketChannel,
+  SupportTicketPriority,
+  SupportTicketStatus,
+} from "./support-workspace";

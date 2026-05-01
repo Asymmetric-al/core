@@ -33,6 +33,16 @@ const TABLE_ROUTES = [
   { path: "/mobilize/locations", name: "Locations" },
 ] as const;
 
+const SUPPORT_ROUTES = [
+  { path: "/support", heading: "Support Hub" },
+  { path: "/support/tickets", heading: "Support Tickets" },
+  { path: "/support/tickets/SUP-1037", heading: "Donor dashboard question" },
+  { path: "/support/tickets/new", heading: "New Support Ticket" },
+  { path: "/support/contacts", heading: "Support Contacts" },
+  { path: "/support/macros", heading: "Support Macros" },
+  { path: "/support/knowledge", heading: "Support Knowledge" },
+] as const;
+
 test.describe("Admin table pages smoke", () => {
   test.setTimeout(180_000);
   for (const { path, name } of TABLE_ROUTES) {
@@ -93,6 +103,66 @@ test.describe("Admin table pages smoke", () => {
 
       await page.getByRole("button", { name: "Go to previous page" }).click();
       await expect(page.getByText("Page 1 of 2")).toBeVisible();
+    });
+  });
+
+  test.describe("Support Hub smoke", () => {
+    for (const { path, heading } of SUPPORT_ROUTES) {
+      test(`${heading} (${path}) loads without client error overlay`, async ({
+        page,
+      }) => {
+        const hydrationMessages: string[] = [];
+        page.on("console", (message) => {
+          const text = message.text();
+          if (text.includes("hydrated but some attributes")) {
+            hydrationMessages.push(text);
+          }
+        });
+
+        await ensureAdminDemo(page);
+        await page.goto(path);
+        await page.waitForLoadState("domcontentloaded");
+
+        await expect(page.locator("#__next_error__")).toHaveCount(0);
+        await expectMissionControlChrome(page);
+        await expect(
+          page.getByRole("heading", { name: heading }).first(),
+        ).toBeVisible();
+        expect(hydrationMessages).toEqual([]);
+      });
+    }
+
+    test("new ticket exposes real form controls", async ({ page }) => {
+      await ensureAdminDemo(page);
+      await page.goto("/support/tickets/new");
+      await page.waitForLoadState("domcontentloaded");
+
+      await expect(page.getByLabel("Contact")).toBeVisible();
+      await expect(page.getByLabel("Subject")).toBeVisible();
+      await expect(page.getByLabel("Support track")).toBeVisible();
+      await expect(page.getByLabel("Priority")).toBeVisible();
+      await expect(page.getByLabel("Summary")).toBeVisible();
+    });
+
+    test("support hub exposes three support tracks and no timing-risk copy", async ({
+      page,
+    }) => {
+      const timingRiskPattern = new RegExp(
+        `${String.fromCharCode(83, 76, 65)}|${String.fromCharCode(83, 76, 65)} risk`,
+        "i",
+      );
+      await ensureAdminDemo(page);
+      await page.goto("/support");
+      await page.waitForLoadState("domcontentloaded");
+
+      await expect(page.getByText("Donor Care").first()).toBeVisible();
+      await expect(
+        page.getByText("Mobilization / Interested in Joining").first(),
+      ).toBeVisible();
+      await expect(
+        page.getByText("Existing Missionary Support").first(),
+      ).toBeVisible();
+      await expect(page.getByText(timingRiskPattern)).toHaveCount(0);
     });
   });
 });

@@ -142,14 +142,15 @@ function StatCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ ...smoothTransition, delay: index * 0.05 }}
+      className="h-full"
     >
       <MotionCard
         whileHover={{ y: -2, scale: 1.01 }}
         transition={springTransition}
-        className="rounded-2xl border shadow-sm hover:shadow-md transition-shadow duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]"
+        className="h-full min-h-32 rounded-2xl border shadow-sm hover:shadow-md transition-shadow duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]"
       >
-        <CardContent className="p-4 sm:p-5">
-          <div className="flex items-start justify-between">
+        <CardContent className="grid h-full p-4 sm:p-5">
+          <div className="flex h-full items-center justify-between">
             <div className="space-y-1.5">
               <p className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 {label}
@@ -1047,7 +1048,7 @@ export function ContentModerationStatsSection({
   stats: ModerationStats;
 }) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-6 gap-3 sm:gap-4">
       <StatCard
         label="Total Posts"
         value={stats.totalPosts}
@@ -1075,24 +1076,18 @@ export function ContentModerationStatsSection({
         index={3}
       />
       <StatCard
-        label="Comments"
-        value={stats.totalComments}
-        icon={MessageCircle}
-        index={4}
-      />
-      <StatCard
         label="Flagged Comments"
         value={stats.flaggedComments}
         icon={AlertTriangle}
         variant={stats.flaggedComments > 0 ? "danger" : "default"}
-        index={5}
+        index={4}
       />
       <StatCard
         label="Actions Today"
         value={stats.actionsToday}
         icon={ShieldCheck}
         variant="success"
-        index={6}
+        index={5}
       />
     </div>
   );
