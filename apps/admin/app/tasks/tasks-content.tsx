@@ -273,14 +273,14 @@ export function TasksPageContent() {
       actions={
         <Button
           onClick={() => dispatchUi({ type: "open-create-modal" })}
-          className="h-12 px-8 font-black bg-zinc-900 text-white hover:bg-zinc-800 shadow-xl shadow-zinc-200 uppercase tracking-[0.2em] text-[10px] rounded-2xl transition-all"
+          className="h-10 rounded-xl bg-zinc-900 px-5 text-sm font-semibold text-white shadow-sm hover:bg-zinc-800"
         >
           <Plus className="mr-2 size-4" />
           New Mission Task
         </Button>
       }
     >
-      <div className="space-y-12">
+      <div className="space-y-5">
         <TasksStatsCardsSection
           activeTab={activeTab}
           stats={stats}

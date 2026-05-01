@@ -69,11 +69,11 @@ interface MobilizeStats {
 }
 
 const STAGE_COLORS: Record<Stage, string> = {
-  Applied: "bg-zinc-100 text-zinc-700",
-  Vetting: "bg-blue-50 text-blue-700 border-blue-200",
-  Training: "bg-purple-50 text-purple-700 border-purple-200",
-  Ready: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  Deployed: "bg-indigo-50 text-indigo-700 border-indigo-200",
+  Applied: "border-zinc-200 bg-zinc-100 text-zinc-700",
+  Vetting: "border-blue-200 bg-blue-50 text-blue-700",
+  Training: "border-purple-200 bg-purple-50 text-purple-700",
+  Ready: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  Deployed: "border-blue-200 bg-blue-50 text-blue-700",
 };
 
 const TABLE_TABS: readonly MobilizeTab[] = [
@@ -152,21 +152,24 @@ const StatCard = ({
   value,
   icon: Icon,
   color,
+  context,
 }: {
   title: string;
   value: number;
   icon: LucideIcon;
   color: string;
+  context: string;
 }) => (
-  <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm px-6 py-5">
+  <div className="rounded-2xl border border-zinc-100 bg-white px-5 py-4 shadow-sm">
     <div className="flex items-center justify-between">
       <div className="text-left">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
-          {title}
-        </p>
         <h3 className="text-3xl font-black tabular-nums tracking-tight text-zinc-900 mt-0.5">
           {value}
         </h3>
+        <p className="mt-1 text-sm font-semibold text-zinc-900">{title}</p>
+        <p className="mt-0.5 text-xs font-medium text-muted-foreground">
+          {context}
+        </p>
       </div>
       <div
         className={cn(
@@ -198,6 +201,7 @@ export function MobilizeStatsRow({ stats }: { stats: MobilizeStats }) {
           value={stats.applied}
           icon={Users}
           color="text-zinc-600"
+          context="New files to triage"
         />
       </motion.div>
       <motion.div
@@ -215,6 +219,7 @@ export function MobilizeStatsRow({ stats }: { stats: MobilizeStats }) {
           value={stats.vetting}
           icon={UserCheck}
           color="text-blue-600"
+          context="Active review workflow"
         />
       </motion.div>
       <motion.div
@@ -232,6 +237,7 @@ export function MobilizeStatsRow({ stats }: { stats: MobilizeStats }) {
           value={stats.training}
           icon={GraduationCap}
           color="text-purple-600"
+          context="Preparing for deployment"
         />
       </motion.div>
       <motion.div
@@ -245,10 +251,11 @@ export function MobilizeStatsRow({ stats }: { stats: MobilizeStats }) {
         whileHover={{ y: -2 }}
       >
         <StatCard
-          title="Ready"
+          title="Ready or deployed"
           value={stats.ready}
           icon={Plane}
           color="text-emerald-600"
+          context="Cleared for placement"
         />
       </motion.div>
     </div>
@@ -293,10 +300,10 @@ export function MobilizePipelineTable({
               </AvatarFallback>
             </Avatar>
             <div className="text-left">
-              <div className="text-xs font-bold text-zinc-900 leading-tight">
+              <div className="text-sm font-bold text-zinc-900 leading-tight">
                 {row.original.name}
               </div>
-              <div className="text-[10px] text-zinc-500 leading-tight">
+              <div className="mt-0.5 text-xs text-zinc-600 leading-tight">
                 {row.original.email}
               </div>
             </div>
@@ -310,10 +317,10 @@ export function MobilizePipelineTable({
         ),
         cell: ({ row }) => (
           <div className="flex flex-col text-left">
-            <span className="text-xs font-semibold text-zinc-700 leading-tight">
+            <span className="text-sm font-semibold text-zinc-800 leading-tight">
               {row.original.role}
             </span>
-            <span className="text-[10px] text-zinc-500 flex items-center gap-1 mt-0.5">
+            <span className="text-xs text-zinc-600 flex items-center gap-1 mt-0.5">
               <MapPin className="h-3 w-3" /> {row.original.location}
             </span>
           </div>
@@ -328,7 +335,7 @@ export function MobilizePipelineTable({
           <Badge
             variant="outline"
             className={cn(
-              "text-[10px] font-bold border shadow-none px-1.5 py-0 rounded-md uppercase tracking-wider",
+              "h-5 border px-2 py-0 text-xs font-semibold shadow-none",
               STAGE_COLORS[row.original.stage],
             )}
           >
@@ -342,13 +349,13 @@ export function MobilizePipelineTable({
           <DataTableColumnHeader column={column} title="Readiness" />
         ),
         cell: ({ row }) => (
-          <div className="w-24 space-y-1">
-            <div className="flex justify-between text-[8px] uppercase font-bold text-zinc-400">
-              <span>{row.original.readiness}%</span>
+          <div className="w-28 space-y-1.5">
+            <div className="flex justify-between text-xs font-semibold text-zinc-700">
+              <span>{row.original.readiness}% ready</span>
             </div>
             <Progress
               value={row.original.readiness}
-              className="h-1 rounded-full"
+              className="h-1.5 rounded-full"
             />
           </div>
         ),
@@ -358,6 +365,7 @@ export function MobilizePipelineTable({
         cell: ({ row }) => (
           <div className="flex justify-end pr-2">
             <Button
+              aria-label={`Open ${row.original.name}`}
               variant="ghost"
               size="icon"
               className="h-8 w-8 rounded-lg"
@@ -387,31 +395,31 @@ export function MobilizePipelineTable({
           <TabsList className="bg-white border border-zinc-200 h-8 rounded-lg p-0.5">
             <TabsTrigger
               value="all"
-              className="h-7 text-[10px] uppercase font-bold px-3 rounded-md"
+              className="h-7 px-3 text-xs font-semibold rounded-md"
             >
               All
             </TabsTrigger>
             <TabsTrigger
               value="applied"
-              className="h-7 text-[10px] uppercase font-bold px-3 rounded-md"
+              className="h-7 px-3 text-xs font-semibold rounded-md"
             >
               Applied
             </TabsTrigger>
             <TabsTrigger
               value="vetting"
-              className="h-7 text-[10px] uppercase font-bold px-3 rounded-md"
+              className="h-7 px-3 text-xs font-semibold rounded-md"
             >
               Vetting
             </TabsTrigger>
             <TabsTrigger
               value="training"
-              className="h-7 text-[10px] uppercase font-bold px-3 rounded-md"
+              className="h-7 px-3 text-xs font-semibold rounded-md"
             >
               Training
             </TabsTrigger>
             <TabsTrigger
               value="ready"
-              className="h-7 text-[10px] uppercase font-bold px-3 rounded-md"
+              className="h-7 px-3 text-xs font-semibold rounded-md"
             >
               Ready
             </TabsTrigger>
@@ -429,6 +437,7 @@ export function MobilizePipelineTable({
             />
           </div>
           <Button
+            aria-label="Open candidate filters"
             variant="outline"
             size="icon"
             className="bg-white border-zinc-200 shadow-none h-8 w-8 rounded-lg"

@@ -40,6 +40,11 @@ function formatShortDate(value: string | null | undefined) {
   }
 }
 
+const LIFECYCLE_BADGE_CLASS: Record<string, string> = {
+  active: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  inactive: "border-zinc-200 bg-zinc-100 text-zinc-600",
+};
+
 interface ColumnOptions {
   onViewRecord: (row: CrmGridRow) => void;
   tagOptions: DataTableFilterOption[];
@@ -61,13 +66,13 @@ export function getCrmColumns({
         const name = record.displayName || "Unnamed";
         const initial = name.trim()[0] ?? "?";
         return (
-          <div className="flex items-center gap-3 min-w-[200px]">
+          <div className="flex min-w-[220px] items-center gap-3 py-1">
             <SharedNamedViewTransition
               name={crmRecordAvatarTransitionName(record.id)}
             >
-              <Avatar className="h-9 w-9 border border-border">
+              <Avatar className="h-9 w-9 rounded-xl border border-border">
                 <AvatarImage src={record.avatarUrl ?? undefined} />
-                <AvatarFallback className="text-[10px] font-semibold bg-primary text-primary-foreground">
+                <AvatarFallback className="rounded-xl bg-primary text-[10px] font-semibold text-primary-foreground">
                   {initial}
                 </AvatarFallback>
               </Avatar>
@@ -81,7 +86,7 @@ export function getCrmColumns({
                 </span>
               </SharedNamedViewTransition>
               {record.primaryOrganization ? (
-                <span className="text-xs text-muted-foreground mt-0.5 truncate">
+                <span className="mt-1 truncate text-xs font-medium text-muted-foreground">
                   {record.primaryOrganization}
                 </span>
               ) : null}
@@ -99,7 +104,7 @@ export function getCrmColumns({
         <DataTableColumnHeader column={column} title="Record type" />
       ),
       cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground capitalize">
+        <span className="text-sm font-medium capitalize text-foreground">
           {row.original.recordType ?? "—"}
         </span>
       ),
@@ -123,7 +128,7 @@ export function getCrmColumns({
         <DataTableColumnHeader column={column} title="Owner" />
       ),
       cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground">
+        <span className="text-sm font-medium text-muted-foreground">
           {row.original.assignedMissionaryName ?? "—"}
         </span>
       ),
@@ -137,7 +142,7 @@ export function getCrmColumns({
         <DataTableColumnHeader column={column} title="Primary contact" />
       ),
       cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground line-clamp-2 max-w-[200px]">
+        <span className="line-clamp-2 max-w-[200px] text-sm text-muted-foreground">
           {row.original.primaryContactLine ?? "—"}
         </span>
       ),
@@ -151,7 +156,7 @@ export function getCrmColumns({
         <DataTableColumnHeader column={column} title="Location" />
       ),
       cell: ({ row }) => (
-        <span className="text-xs text-muted-foreground line-clamp-2 max-w-[160px]">
+        <span className="line-clamp-2 max-w-[160px] text-xs text-muted-foreground">
           {row.original.location ?? "—"}
         </span>
       ),
@@ -165,7 +170,15 @@ export function getCrmColumns({
         <DataTableColumnHeader column={column} title="Status" />
       ),
       cell: ({ row }) => (
-        <Badge variant="outline" className="text-[9px] font-semibold uppercase">
+        <Badge
+          variant="outline"
+          className={cn(
+            "border text-[10px] font-semibold shadow-none",
+            LIFECYCLE_BADGE_CLASS[
+              row.original.lifecycleStatus?.toLowerCase() ?? ""
+            ] ?? "border-border bg-background text-muted-foreground",
+          )}
+        >
           {row.original.lifecycleStatus ?? "—"}
         </Badge>
       ),
@@ -188,7 +201,7 @@ export function getCrmColumns({
         <DataTableColumnHeader column={column} title="Last gift" />
       ),
       cell: ({ row }) => (
-        <span className="text-xs text-muted-foreground tabular-nums">
+        <span className="text-xs font-medium tabular-nums text-muted-foreground">
           {formatShortDate(row.original.lastGiftAt)}
         </span>
       ),
@@ -222,7 +235,7 @@ export function getCrmColumns({
         <DataTableColumnHeader column={column} title="Funds" />
       ),
       cell: ({ row }) => (
-        <span className="text-xs text-muted-foreground line-clamp-2 max-w-[180px]">
+        <span className="line-clamp-2 max-w-[180px] text-xs text-muted-foreground">
           {row.original.fundsGivenToSummary ?? "—"}
         </span>
       ),
@@ -237,7 +250,7 @@ export function getCrmColumns({
         <DataTableColumnHeader column={column} title="Last touch" />
       ),
       cell: ({ row }) => (
-        <span className="text-xs text-muted-foreground tabular-nums">
+        <span className="text-xs font-medium tabular-nums text-muted-foreground">
           {formatShortDate(row.original.lastTouchAt)}
         </span>
       ),
@@ -271,7 +284,7 @@ export function getCrmColumns({
           <Badge
             variant="outline"
             className={cn(
-              "text-[9px] font-semibold uppercase border shadow-none",
+              "border text-[10px] font-semibold shadow-none",
               PORTAL_BADGE_CLASS[label],
             )}
           >
@@ -306,7 +319,7 @@ export function getCrmColumns({
               <Badge
                 key={t}
                 variant="secondary"
-                className="text-[9px] px-1.5 h-5 font-medium"
+                className="h-5 px-1.5 text-[10px] font-medium"
               >
                 {t}
               </Badge>
@@ -336,6 +349,7 @@ export function getCrmColumns({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
+                  aria-label={`Open actions for ${record.displayName ?? "CRM record"}`}
                   variant="ghost"
                   className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground rounded-xl"
                 >
