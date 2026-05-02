@@ -27,6 +27,7 @@ import {
   BarChart3,
   CheckCircle2,
   Clock3,
+  GripVertical,
   LayoutGrid,
   Settings2,
   Sparkles,
@@ -34,6 +35,17 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import { QuickActionsRow } from "./quick-actions-row";
 import { TileCard } from "./tile-card";
@@ -83,6 +95,33 @@ const DASHBOARD_GUIDE_ITEMS = [
     value: "Role-aware modules",
     detail: "Your tools and quick actions follow your Mission Control role.",
   },
+];
+
+const MINISTRY_HEALTH_TREND = [
+  { month: "Jan", giving: 64, engagement: 58, care: 72 },
+  { month: "Feb", giving: 68, engagement: 62, care: 70 },
+  { month: "Mar", giving: 71, engagement: 66, care: 76 },
+  { month: "Apr", giving: 74, engagement: 69, care: 73 },
+  { month: "May", giving: 79, engagement: 72, care: 78 },
+  { month: "Jun", giving: 83, engagement: 76, care: 81 },
+];
+
+const MINISTRY_HEALTH_MIX = [
+  { area: "Giving", healthy: 83, watch: 12, risk: 5 },
+  { area: "People", healthy: 76, watch: 18, risk: 6 },
+  { area: "Care", healthy: 81, watch: 14, risk: 5 },
+  { area: "Events", healthy: 69, watch: 22, risk: 9 },
+];
+
+const WIDGET_LIBRARY = [
+  "Giving trends",
+  "Donor health",
+  "Care alerts",
+  "Mission pipeline",
+  "Event readiness",
+  "Support SLA",
+  "Admin health",
+  "Content review",
 ];
 
 function getMetricToneClass(tone: OverviewMetric["tone"]) {
@@ -449,6 +488,254 @@ export function MissionControlHome({
               ))}
             </CardContent>
           </Card>
+        </section>
+
+        <section className="space-y-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="text-lg font-bold text-foreground">
+                Ministry health widgets
+              </h2>
+              <p className="text-sm font-medium text-muted-foreground">
+                Two snapshot charts are pinned by default; teams can tune this
+                area by role and season.
+              </p>
+            </div>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="h-10 rounded-xl border-zinc-200 bg-white px-4 text-sm font-semibold hover:bg-zinc-50"
+                >
+                  <LayoutGrid className="mr-2 size-4" />
+                  Add widget
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Widget library</DialogTitle>
+                  <DialogDescription>
+                    Choose the views that matter for your role. This preview
+                    keeps customization visual-only until saved layouts are
+                    wired to user preferences.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-3 py-4 sm:grid-cols-2">
+                  {WIDGET_LIBRARY.map((widget) => (
+                    <div
+                      key={widget}
+                      className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3"
+                    >
+                      <GripVertical className="size-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">
+                          {widget}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Drag into your dashboard layout
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)]">
+            <Card className="border-border bg-card shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">
+                  Ministry health trend
+                </CardTitle>
+                <CardDescription>
+                  Giving, engagement, and care signals on one six-month view.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-72 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={MINISTRY_HEALTH_TREND}
+                      margin={{ top: 8, right: 16, bottom: 4, left: -16 }}
+                    >
+                      <CartesianGrid
+                        vertical={false}
+                        stroke="var(--border)"
+                        strokeDasharray="3 3"
+                      />
+                      <XAxis
+                        dataKey="month"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        width={34}
+                        domain={[0, 100]}
+                        tickFormatter={(value: number) => `${value}%`}
+                        tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                      />
+                      <Tooltip
+                        cursor={{ stroke: "var(--border)" }}
+                        contentStyle={{
+                          borderRadius: "12px",
+                          border: "1px solid var(--border)",
+                          background: "var(--card)",
+                          color: "var(--foreground)",
+                          boxShadow: "0 12px 24px rgba(15, 23, 42, 0.08)",
+                        }}
+                        formatter={(value: number, name: string) => [
+                          `${value}%`,
+                          name,
+                        ]}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="giving"
+                        name="Giving"
+                        stroke="var(--chart-1)"
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="engagement"
+                        name="Engagement"
+                        stroke="var(--chart-2)"
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="care"
+                        name="Care"
+                        stroke="var(--chart-5)"
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {[
+                    ["Giving", "bg-blue-50 text-blue-700"],
+                    ["Engagement", "bg-emerald-50 text-emerald-700"],
+                    ["Care", "bg-amber-50 text-amber-700"],
+                  ].map(([label, className]) => (
+                    <Badge
+                      key={label}
+                      className={cn(
+                        "border-none text-xs font-semibold hover:bg-current/10",
+                        className,
+                      )}
+                    >
+                      {label}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border bg-card shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">
+                  Health distribution
+                </CardTitle>
+                <CardDescription>
+                  Healthy, watch, and risk bands across operational areas.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-72 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={MINISTRY_HEALTH_MIX}
+                      layout="vertical"
+                      margin={{ top: 8, right: 16, bottom: 4, left: 12 }}
+                    >
+                      <CartesianGrid
+                        horizontal={false}
+                        stroke="var(--border)"
+                        strokeDasharray="3 3"
+                      />
+                      <XAxis
+                        type="number"
+                        domain={[0, 100]}
+                        axisLine={false}
+                        tickLine={false}
+                        tickFormatter={(value: number) => `${value}%`}
+                        tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                      />
+                      <YAxis
+                        type="category"
+                        dataKey="area"
+                        width={78}
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 11, fill: "var(--foreground)" }}
+                      />
+                      <Tooltip
+                        cursor={{ fill: "var(--muted)" }}
+                        contentStyle={{
+                          borderRadius: "12px",
+                          border: "1px solid var(--border)",
+                          background: "var(--card)",
+                          color: "var(--foreground)",
+                          boxShadow: "0 12px 24px rgba(15, 23, 42, 0.08)",
+                        }}
+                        formatter={(value: number, name: string) => [
+                          `${value}%`,
+                          name,
+                        ]}
+                      />
+                      <Bar
+                        dataKey="healthy"
+                        name="Healthy"
+                        stackId="health"
+                        fill="var(--chart-2)"
+                        radius={[4, 0, 0, 4]}
+                      />
+                      <Bar
+                        dataKey="watch"
+                        name="Watch"
+                        stackId="health"
+                        fill="var(--chart-4)"
+                      />
+                      <Bar
+                        dataKey="risk"
+                        name="Risk"
+                        stackId="health"
+                        fill="var(--chart-5)"
+                        radius={[0, 4, 4, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                  {[
+                    ["Healthy", "text-emerald-700", "Stable"],
+                    ["Watch", "text-amber-700", "Follow up"],
+                    ["Risk", "text-rose-700", "Act now"],
+                  ].map(([label, className, helper]) => (
+                    <div
+                      key={label}
+                      className="rounded-xl border border-border bg-muted/20 p-2"
+                    >
+                      <p className={cn("text-xs font-bold", className)}>
+                        {label}
+                      </p>
+                      <p className="text-[10px] font-medium text-muted-foreground">
+                        {helper}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </section>
 
         <section className="space-y-3">
