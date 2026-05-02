@@ -122,7 +122,7 @@ const WIDGET_LIBRARY = [
   "Support SLA",
   "Admin health",
   "Content review",
-];
+] as const;
 
 function getMetricToneClass(tone: OverviewMetric["tone"]) {
   switch (tone) {
@@ -508,12 +508,12 @@ export function MissionControlHome({
                   className="h-10 rounded-xl border-zinc-200 bg-white px-4 text-sm font-semibold hover:bg-zinc-50"
                 >
                   <LayoutGrid className="mr-2 size-4" />
-                  Add widget
+                  Preview widgets
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle>Widget library</DialogTitle>
+                  <DialogTitle>Widget library preview</DialogTitle>
                   <DialogDescription>
                     Choose the views that matter for your role. This preview
                     keeps customization visual-only until saved layouts are
@@ -532,7 +532,7 @@ export function MissionControlHome({
                           {widget}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Drag into your dashboard layout
+                          Available as a future dashboard preference
                         </p>
                       </div>
                     </div>
@@ -549,7 +549,8 @@ export function MissionControlHome({
                   Ministry health trend
                 </CardTitle>
                 <CardDescription>
-                  Giving, engagement, and care signals on one six-month view.
+                  Demo snapshot data showing how giving, engagement, and care
+                  can share one six-month view.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -621,9 +622,9 @@ export function MissionControlHome({
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {[
-                    ["Giving", "bg-blue-50 text-blue-700"],
-                    ["Engagement", "bg-emerald-50 text-emerald-700"],
-                    ["Care", "bg-amber-50 text-amber-700"],
+                    ["Giving", "bg-[var(--chart-1)]/10 text-foreground"],
+                    ["Engagement", "bg-[var(--chart-2)]/10 text-foreground"],
+                    ["Care", "bg-[var(--chart-5)]/10 text-foreground"],
                   ].map(([label, className]) => (
                     <Badge
                       key={label}
@@ -645,7 +646,8 @@ export function MissionControlHome({
                   Health distribution
                 </CardTitle>
                 <CardDescription>
-                  Healthy, watch, and risk bands across operational areas.
+                  Demo snapshot bands for the core ministry system; wire to
+                  source-of-truth data before treating as live health.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -716,9 +718,9 @@ export function MissionControlHome({
                 </div>
                 <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                   {[
-                    ["Healthy", "text-emerald-700", "Stable"],
-                    ["Watch", "text-amber-700", "Follow up"],
-                    ["Risk", "text-rose-700", "Act now"],
+                    ["Healthy", "text-foreground", "Stable"],
+                    ["Watch", "text-foreground", "Follow up"],
+                    ["Risk", "text-foreground", "Act now"],
                   ].map(([label, className, helper]) => (
                     <div
                       key={label}
