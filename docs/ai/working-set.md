@@ -1,5 +1,34 @@
 # Working Set
 
+## 2026-05-02 (Mission Control Payouts Phase 0 docs)
+
+- Date: 2026-05-02
+- Repo: Asymmetric-al/core
+- Goal: Build the documentation foundation for Mission Control Payouts before any product code, migrations, or provider integrations are written.
+- Primary area:
+  - `docs/guides/architecture/mission-control-payouts-living-spec.md`
+  - `docs/guides/development/payout-provider-docs.md`
+  - `docs/guides/development/payout-provider-capability-matrix.md`
+  - `docs/guides/development/payout-provider-field-mapping.md`
+  - `docs/guides/development/payout-provider-webhooks.md`
+  - `docs/guides/development/payout-provider-sandbox-runbook.md`
+  - `docs/guides/development/payout-provider-launch-checklist.md`
+- Stack: Next.js, React, TypeScript, Bun, Turborepo, Supabase, TanStack Query, TanStack Table, Zod, Stripe, external payout providers
+- Constraints:
+  - Documentation-only Phase 0: do not write provider integration code, add database tables, or store provider credentials.
+  - Treat the user-provided Mission Control Payouts v7 spec as the current product source.
+  - Provider documentation must be factual, source-linked, and provider-specific.
+  - Mark inaccessible, account-managed, preview-only, or unconfirmed provider behavior as `needs provider confirmation`.
+  - Preserve repo architecture constraints: `packages/api/src/*` owns future business/data logic; app API routes remain thin re-exports.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/ai/stack-registry.md`
+  - `docs/ai/rules/{backend,frontend}.md`
+  - `docs/guides/architecture/{data-access-boundary,runtime-map}.md`
+  - `docs/guides/development/tanstack-integration.md`
+  - Mission Control Payouts v7 spec supplied in the task prompt
+  - Current official provider docs for Wise, Airwallex, Currencycloud, Corpay, and Stripe Global Payouts / Treasury
+
 ## 2026-04-24 (AL-203 unit feedback loop)
 
 - Date: 2026-04-24
