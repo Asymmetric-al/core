@@ -770,10 +770,10 @@ function EventsOverviewTab({ event }: { event: ConferenceEvent }) {
                 </>
               }
             >
-                <Progress
-                  value={(event.registrants / event.capacity) * 100}
+              <Progress
+                value={(event.registrants / event.capacity) * 100}
                 className="mt-3 h-1.5"
-                />
+              />
             </EventMetricCard>
           </motion.div>
           <motion.div
@@ -935,7 +935,11 @@ function EventsConfigTab({ event }: { event: ConferenceEvent }) {
                   </div>
                   <CardTitle className="text-base">{venue.name}</CardTitle>
                 </div>
-                <Button variant="ghost" size="icon" aria-label={`Expand ${venue.name}`}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={`Expand ${venue.name}`}
+                >
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </CardHeader>
@@ -1012,7 +1016,7 @@ function EventsSpeakersTab({
             whileHover={{ y: -2 }}
             transition={SPEAKER_CARD_SPRING}
           >
-          <Card className="group cursor-pointer overflow-hidden transition-shadow hover:shadow-md">
+            <Card className="group cursor-pointer overflow-hidden transition-shadow hover:shadow-md">
               <CardHeader className="flex flex-row items-start gap-4 p-5">
                 <Avatar className="h-12 w-12 border-2 border-white shadow-sm transition-transform group-hover:scale-105">
                   <AvatarImage src={speaker.avatar} />
@@ -1215,7 +1219,7 @@ function EventsAttendeesTab() {
             <div className="flex gap-2 w-full md:w-auto">
               <Button
                 variant="outline"
-              className="rounded-xl border-zinc-200 bg-white text-xs font-semibold shadow-none"
+                className="rounded-xl border-zinc-200 bg-white text-xs font-semibold shadow-none"
               >
                 <Download className="mr-2 h-4 w-4" /> Export CSV
               </Button>

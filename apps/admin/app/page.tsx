@@ -20,9 +20,7 @@ export default async function MissionControlDashboard() {
   ]);
 
   if (!stats) {
-    return (
-      <MissionControlHome dashboardMissionaryId={dashboardMissionaryId} />
-    );
+    return <MissionControlHome dashboardMissionaryId={dashboardMissionaryId} />;
   }
 
   return (

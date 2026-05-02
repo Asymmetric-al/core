@@ -304,9 +304,7 @@ function ModuleInfoCard() {
       <CardContent className="p-6 space-y-5">
         <div className="flex items-center gap-2 text-zinc-900">
           <Info className="h-4 w-4" />
-          <h4 className="text-sm font-bold">
-            Module Info
-          </h4>
+          <h4 className="text-sm font-bold">Module Info</h4>
         </div>
         <div className="space-y-4 text-left">
           <div className="flex justify-between items-center text-xs">

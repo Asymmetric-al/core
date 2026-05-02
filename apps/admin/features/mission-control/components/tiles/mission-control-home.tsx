@@ -160,7 +160,8 @@ function buildOverviewMetrics(stats: DashboardStats | null): OverviewMetric[] {
         id: "actions",
         label: "Quick actions",
         value: "Live",
-        context: "Actions are available from your enabled Mission Control tools.",
+        context:
+          "Actions are available from your enabled Mission Control tools.",
         tone: "success",
       },
     ];
@@ -401,10 +402,7 @@ export function MissionControlHome({
         <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="grid gap-3 sm:grid-cols-3">
             {overviewMetrics.map((metric) => (
-              <Card
-                key={metric.id}
-                className="border-border bg-card shadow-sm"
-              >
+              <Card key={metric.id} className="border-border bg-card shadow-sm">
                 <CardContent className="flex items-start justify-between gap-4 p-4">
                   <div>
                     <p className="text-sm font-semibold text-foreground">
@@ -642,9 +640,7 @@ export function MissionControlHome({
 
             <Card className="border-border bg-card shadow-sm">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">
-                  Health distribution
-                </CardTitle>
+                <CardTitle className="text-base">Health distribution</CardTitle>
                 <CardDescription>
                   Demo snapshot bands for the core ministry system; wire to
                   source-of-truth data before treating as live health.

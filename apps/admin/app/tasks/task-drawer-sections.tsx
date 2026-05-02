@@ -159,7 +159,7 @@ function TaskOverviewSection({
             <Button
               variant="outline"
               size="sm"
-          className="h-7 gap-1.5 rounded-lg text-xs"
+              className="h-7 gap-1.5 rounded-lg text-xs"
             >
               <Badge
                 variant="outline"
@@ -197,7 +197,7 @@ function TaskOverviewSection({
             <Button
               variant="outline"
               size="sm"
-          className="h-7 gap-1.5 rounded-lg text-xs"
+              className="h-7 gap-1.5 rounded-lg text-xs"
             >
               <Badge
                 variant="outline"

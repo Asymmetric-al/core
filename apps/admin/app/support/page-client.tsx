@@ -11,7 +11,15 @@ import {
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
 import { cn } from "@asym/ui/lib/utils";
-import { Inbox, Users, Tag, Zap, BookOpen, Clock, LifeBuoy } from "lucide-react";
+import {
+  Inbox,
+  Users,
+  Tag,
+  Zap,
+  BookOpen,
+  Clock,
+  LifeBuoy,
+} from "lucide-react";
 import Link from "next/link";
 
 const SUPPORT_STATS = [
