@@ -17,6 +17,188 @@ Related Phase 0 documents:
 - [Provider sandbox runbook](../development/payout-provider-sandbox-runbook.md)
 - [Provider launch checklist](../development/payout-provider-launch-checklist.md)
 
+## Phase 1 Architecture Foundation
+
+Phase 1 adds only the safe feature-flag and planning scaffolding needed by later implementation phases. It does not add database schema, product routes, provider account settings, beneficiary workflows, quote comparison, payout execution, provider HTTP clients, or money movement behavior.
+
+Patterns used:
+
+- `AGENTS.md` and [Data Access Boundary](data-access-boundary.md): future business logic belongs in `packages/api/src/*`, and app API routes must remain thin re-exports.
+- [Runtime Map](runtime-map.md): no App Router route segment config exports are allowed while Cache Components are enabled.
+- `packages/env/src/schema.ts`: server/client env values are explicitly separated and boolean flags use the existing `optionalBoolean` parser.
+- `packages/config/navigation.ts` and `packages/config/tiles.ts`: navigation and tiles are static shared config today, so payout nav is documented but not enabled until a later UI phase can gate it safely.
+
+### Server-only feature flags
+
+All Phase 1 payout flags are server-only. No `NEXT_PUBLIC_PAYOUTS_*` values are introduced.
+
+```text
+PAYOUTS_ENABLED=false
+PAYOUTS_MANUAL_PROVIDER_ENABLED=false
+PAYOUTS_WISE_ENABLED=false
+PAYOUTS_AIRWALLEX_ENABLED=false
+PAYOUTS_CURRENCYCLOUD_ENABLED=false
+PAYOUTS_CORPAY_ENABLED=false
+PAYOUTS_STRIPE_GLOBAL_PAYOUTS_ENABLED=false
+PAYOUTS_EXECUTION_ENABLED=false
+PAYOUTS_SANDBOX_ONLY=true
+```
+
+Flag semantics:
+
+- `PAYOUTS_ENABLED`: master server-side gate. When false or unset, every provider quote and execution flag resolves to disabled.
+- `PAYOUTS_MANUAL_PROVIDER_ENABLED`: enables future manual/simulator planning paths without enabling real provider execution.
+- Provider flags (`PAYOUTS_WISE_ENABLED`, `PAYOUTS_AIRWALLEX_ENABLED`, `PAYOUTS_CURRENCYCLOUD_ENABLED`, `PAYOUTS_CORPAY_ENABLED`, `PAYOUTS_STRIPE_GLOBAL_PAYOUTS_ENABLED`): enable provider quote/readiness planning independently.
+- `PAYOUTS_EXECUTION_ENABLED`: global execution lockout. When false, provider execution resolves to disabled even if provider-specific flags are true.
+- `PAYOUTS_SANDBOX_ONLY`: server-detectable signal that later provider code must use sandbox/test behavior only.
+
+The resolver lives in `packages/config/payouts.ts` and exposes:
+
+- `resolvePayoutFeatureConfig(env?)`
+- `getClientSafePayoutFeatureConfig(env?)`
+- `payoutFeatureConfig`
+
+`getClientSafePayoutFeatureConfig` returns only booleans and provider availability. It must never include provider credentials, tokens, webhook secrets, base URLs, or account identifiers.
+
+### Planned admin routes
+
+These routes are reserved for later phases and must not be user-facing until the feature is enabled and the corresponding UI exists:
+
+```text
+/payouts
+/payouts/new
+/payouts/[id]
+/payouts/beneficiaries
+/payouts/provider-accounts
+```
+
+Later batch/reconciliation/report routes remain planned but not enabled:
+
+```text
+/payouts/batches/new
+/payouts/reconciliation
+/payouts/reports
+```
+
+### Planned Missionary routes
+
+Missionary payout visibility is planned for a later read-only phase:
+
+```text
+/payouts
+/payouts/[id]
+```
+
+The Missionary routes must show only tenant-approved, missionary-safe payout fields and documents.
+
+### Planned API route map
+
+Future app API route handlers must re-export from `@asym/api/*` and must not import Supabase directly.
+
+Admin API plan:
+
+```text
+/api/admin/payouts
+/api/admin/payouts/[id]
+/api/admin/payouts/[id]/submit
+/api/admin/payouts/[id]/approve
+/api/admin/payouts/[id]/reject
+/api/admin/payouts/[id]/quotes
+/api/admin/payouts/[id]/select-quote
+/api/admin/payouts/[id]/send
+/api/admin/payouts/[id]/cancel
+/api/admin/payouts/[id]/timeline
+/api/admin/payouts/[id]/documents
+/api/admin/payouts/beneficiaries
+/api/admin/payouts/beneficiaries/[id]
+/api/admin/payouts/beneficiaries/[id]/onboarding-link
+/api/admin/payouts/provider-accounts
+/api/admin/payouts/provider-accounts/[id]
+/api/admin/payouts/provider-accounts/[id]/health-check
+/api/admin/payouts/webhooks/stripe
+/api/admin/payouts/webhooks/wise
+/api/admin/payouts/webhooks/airwallex
+/api/admin/payouts/webhooks/currencycloud
+/api/admin/payouts/webhooks/corpay
+```
+
+Missionary API plan:
+
+```text
+/api/payouts
+/api/payouts/[id]
+```
+
+### Planned package export map
+
+Future API exports:
+
+```text
+@asym/api/admin/payouts
+@asym/api/admin/payouts/approve
+@asym/api/admin/payouts/beneficiaries
+@asym/api/admin/payouts/documents
+@asym/api/admin/payouts/provider-accounts
+@asym/api/admin/payouts/quotes
+@asym/api/admin/payouts/send
+@asym/api/admin/payouts/webhooks/airwallex
+@asym/api/admin/payouts/webhooks/corpay
+@asym/api/admin/payouts/webhooks/currencycloud
+@asym/api/admin/payouts/webhooks/stripe
+@asym/api/admin/payouts/webhooks/wise
+@asym/api/missionary/payouts
+```
+
+Current Phase 1 config export:
+
+```text
+@asym/config/payouts
+```
+
+### Navigation and tile plan
+
+Do not add enabled navigation or tiles in Phase 1. `packages/config/navigation.ts` and `packages/config/tiles.ts` are shared static config surfaces and can be consumed by client code, so they must not import server-only payout env flags.
+
+Future UI phase options:
+
+1. Add a server-filtered navigation/tile adapter that reads tenant settings and server-only payout flags before sending nav data to clients.
+2. Add static nav/tile entries only after the route exists and a safe server-side feature gate prevents unavailable workflows.
+
+Planned admin navigation entry:
+
+```ts
+{
+  id: "payouts",
+  title: "Payouts",
+  href: "/payouts",
+  roles: ["finance", "admin"],
+  section: "main",
+}
+```
+
+Planned Contributions tile quick actions:
+
+```text
+New payout
+New payout batch
+Review payout approvals
+Reconcile provider payouts
+```
+
+### Future issue breakdown
+
+1. Phase 2: database schema, RLS posture, generated types, and non-secret demo fixtures.
+2. Phase 3: API foundation, Zod schemas, provider adapter contracts, and manual adapter.
+3. Phase 4: provider account settings, encrypted credentials, and provider health checks.
+4. Phase 5: universal beneficiary intake and provider readiness grid.
+5. Phase 6: admin Payouts dashboard shell and disabled-by-default navigation.
+6. Phase 7: quote comparison engine with simulators only.
+7. Phase 8: approval policy, step-up session, and notifications.
+8. Phase 9: payout saga/outbox, documents, proof packet, and manual path.
+9. Phase 10: Missionary read-only payout visibility.
+10. Phases 11-15: provider adapters one at a time behind sandbox and launch gates.
+11. Phases 16-18: batch payouts, reconciliation/reporting, accessibility/security/E2E launch hardening.
+
 ## Locked Product Decisions
 
 These decisions are inherited from the Mission Control Payouts v7 spec and should not be changed unless the product owner explicitly updates the direction.

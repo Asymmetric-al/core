@@ -1,5 +1,43 @@
 # Working Set
 
+## 2026-05-02 (Mission Control Payouts Phase 1 architecture foundation)
+
+- Date: 2026-05-02
+- Repo: Asymmetric-al/core
+- Goal: Prepare Mission Control Payouts feature gates, server-safe configuration, route/export planning, and phase handoff docs without adding money movement behavior.
+- Primary area:
+  - `packages/env/src/schema.ts`
+  - `.env.example`
+  - `packages/config/payouts.ts`
+  - `packages/config/{index,package}.json`
+  - `tests/unit/packages/config/payouts.test.ts`
+  - `docs/guides/architecture/mission-control-payouts-living-spec.md`
+  - `docs/guides/development/payout-provider-launch-checklist.md`
+- Stack: TypeScript, Bun, Turborepo, Vitest, Zod, Next.js, React, Supabase, TanStack Query, TanStack Table, Stripe, external payout providers
+- Constraints:
+  - Use TDD for payout feature flag resolver behavior.
+  - Keep all payout flags server-only; do not add `NEXT_PUBLIC_PAYOUTS_*` values.
+  - Default all payout workflows and execution off.
+  - Manual/simulator quote readiness can be enabled without enabling execution.
+  - Do not add routes, UI workflows, database schema, API services, provider HTTP clients, quotes, payouts, or provider account behavior.
+  - Navigation and tile config remain static for now; route/nav additions are documented because `packages/config/navigation.ts` and `packages/config/tiles.ts` cannot safely evaluate server-only env flags.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/ai/stack-registry.md`
+  - `docs/ai/rules/{backend,frontend}.md`
+  - `docs/guides/architecture/{data-access-boundary,runtime-map,mission-control-payouts-living-spec}.md`
+  - `docs/guides/development/payout-provider-docs.md`
+  - `package.json`
+  - `packages/env/src/schema.ts`
+  - `.env.example`
+  - `packages/config/{navigation,tiles}.ts`
+  - `packages/config/package.json`
+  - `tests/unit/{scripts/run-with-ci-env,virtualization-config}.test.ts`
+- Next-phase handoff:
+  - Phase 2 can add database schema only after reading `supabase/AGENTS.md`.
+  - Future UI phases should add navigation/tile entries only when a server-safe gate or tenant setting can prevent unavailable routes from appearing to users.
+  - Future API phases must keep route handlers as thin re-exports to `@asym/api/*`.
+
 ## 2026-05-02 (Mission Control Payouts Phase 0 docs)
 
 - Date: 2026-05-02

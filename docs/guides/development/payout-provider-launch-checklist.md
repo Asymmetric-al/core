@@ -8,6 +8,12 @@ This checklist defines the minimum gates before any Mission Control Payouts prov
 
 No provider execution may be enabled until all global gates pass:
 
+- [ ] Phase 1 server-only flags exist and default to safe/off values.
+- [ ] `PAYOUTS_ENABLED` is true for the target environment and tenant before any payout route or UI is exposed.
+- [ ] `PAYOUTS_EXECUTION_ENABLED` remains false until provider-specific sandbox and production launch gates pass.
+- [ ] `PAYOUTS_SANDBOX_ONLY` remains true until production execution is explicitly approved.
+- [ ] Provider quote visibility is gated separately from provider execution.
+- [ ] Navigation and tile entries are either server-filtered or kept disabled until payout routes exist.
 - [ ] Product owner confirms Phase 0 docs are current enough for implementation.
 - [ ] Tenant legal sender model is confirmed in UI, API, audit logs, and provider account settings.
 - [ ] Provider account belongs to the authenticated tenant.
@@ -26,6 +32,8 @@ No provider execution may be enabled until all global gates pass:
 
 ## Wise Launch Gates
 
+- [ ] `PAYOUTS_WISE_ENABLED` is true only for environments where Wise quote/readiness work is intended.
+- [ ] Wise execution remains blocked unless both `PAYOUTS_EXECUTION_ENABLED` and Wise-specific launch gates pass.
 - [ ] Tenant auth model confirmed: personal API token or OAuth partner/enterprise.
 - [ ] Tenant Wise profile selection is confirmed.
 - [ ] Sandbox credentials and production credentials are separate.
@@ -49,6 +57,8 @@ Production blockers:
 
 ## Airwallex Launch Gates
 
+- [ ] `PAYOUTS_AIRWALLEX_ENABLED` is true only for environments where Airwallex quote/readiness work is intended.
+- [ ] Airwallex execution remains blocked unless both `PAYOUTS_EXECUTION_ENABLED` and Airwallex-specific launch gates pass.
 - [ ] Tenant Airwallex account capabilities are confirmed for Payouts, Wallet, Transactional FX, and Global Treasury if used.
 - [ ] API key and Client ID are generated for sandbox and production separately.
 - [ ] Access token lifecycle is implemented.
@@ -71,6 +81,8 @@ Production blockers:
 
 ## Currencycloud Launch Gates
 
+- [ ] `PAYOUTS_CURRENCYCLOUD_ENABLED` is true only for environments where Currencycloud quote/readiness work is intended.
+- [ ] Currencycloud execution remains blocked unless both `PAYOUTS_EXECUTION_ENABLED` and Currencycloud-specific launch gates pass.
 - [ ] Tenant Currencycloud account model is confirmed: house account, sub-account, Sponsored, Treasury, or other.
 - [ ] Login ID/API key auth token lifecycle is implemented.
 - [ ] Balance checks are available per payment currency.
@@ -96,6 +108,8 @@ Production blockers:
 
 Manual/export mode gates:
 
+- [ ] `PAYOUTS_CORPAY_ENABLED` is true only for environments where Corpay quote/readiness or manual/export planning is intended.
+- [ ] Corpay execution remains blocked unless both `PAYOUTS_EXECUTION_ENABLED` and Corpay-specific launch gates pass.
 - [ ] Manual quote entry records quote source, quote timestamp, expiry, finance user, and provider reference.
 - [ ] Corpay-ready export file format is provider-confirmed.
 - [ ] Manual status updates require audit reason.
@@ -123,6 +137,8 @@ Production blockers:
 
 ## Stripe Global Payouts / Treasury Launch Gates
 
+- [ ] `PAYOUTS_STRIPE_GLOBAL_PAYOUTS_ENABLED` is true only for environments where Stripe Global Payouts / Treasury quote/readiness work is intended.
+- [ ] Stripe Global Payouts execution remains blocked unless both `PAYOUTS_EXECUTION_ENABLED` and Stripe-specific launch gates pass.
 - [ ] Tenant Stripe account has Global Payouts access.
 - [ ] Tenant Stripe account has Treasury access if Treasury funding is used.
 - [ ] Required API version and preview headers are confirmed.
@@ -150,6 +166,9 @@ Production blockers:
 
 Before any provider launch, document how to:
 
+- [ ] Set `PAYOUTS_ENABLED=false` to hide payout workflows.
+- [ ] Set `PAYOUTS_EXECUTION_ENABLED=false` to preserve quote/readiness planning while blocking execution.
+- [ ] Set provider-specific flags false to remove provider quote/readiness availability.
 - [ ] Disable provider execution globally.
 - [ ] Disable provider execution for a tenant.
 - [ ] Keep provider quote-only mode while disabling send.
