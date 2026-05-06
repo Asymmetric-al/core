@@ -6,6 +6,12 @@
       "sourceType": "github",
       "computedHash": "563d4c630fcb2d640e04556ee364cf69d89bd01ed5251dcb6319b672c42b0a8b"
     },
+    "npm-deps-cleanup": {
+      "source": "anthonyshew/dotfiles",
+      "sourceType": "github",
+      "skillPath": "skills/npm-deps-cleanup/SKILL.md",
+      "computedHash": "d033b5b596f7a93e21aad69838e0405f63155e87fc75259b451fe5f0297ecc57"
+    },
     "supabase": {
       "source": "supabase/agent-skills",
       "sourceType": "github",
