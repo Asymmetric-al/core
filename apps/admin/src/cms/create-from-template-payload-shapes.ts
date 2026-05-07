@@ -5,27 +5,32 @@
  * `payload generate:types` (file is gitignored). These shapes must stay aligned
  * with that output so `tsc` works in CI and fresh clones without codegen.
  */
+import type {
+  MinistryUpdate,
+  MissionaryGivingPage,
+  Page,
+  PageTemplate,
+  ProjectPage,
+} from "../../payload-types";
 
 /** Block array copied from a page template into new documents. */
-export type CmsLayoutBlocks = unknown[];
+export type CmsLayoutBlocks = NonNullable<PageTemplate["defaultLayout"]>;
+export type CmsRichTextValue = Page["content"];
 
-export type PageTemplateForCreate = {
-  tenant?: unknown;
-  pageType?: string;
-  defaultLayout?: unknown;
-  templateKey?: string;
-  defaultSummary?: string | null;
-};
+export type PageTemplateForCreate = Pick<
+  PageTemplate,
+  "tenant" | "pageType" | "defaultLayout" | "templateKey" | "defaultSummary"
+>;
 
 export type PageCreateFields = {
   tenant: number;
   title: string;
   slug: string;
   summary?: string;
-  pageType: string;
+  pageType: Page["pageType"];
   template: number;
-  layout: CmsLayoutBlocks;
-  content: unknown;
+  layout: Page["layout"];
+  content: CmsRichTextValue;
   legacyContentFallback: boolean;
 };
 
@@ -38,8 +43,8 @@ export type MissionaryGivingPageCreateFields = {
   title: string;
   slug: string;
   summary?: string;
-  pageType: string;
-  layout: CmsLayoutBlocks;
+  pageType: MissionaryGivingPage["pageType"];
+  layout: MissionaryGivingPage["layout"];
 };
 
 export type ProjectPageCreateFields = {
@@ -50,8 +55,8 @@ export type ProjectPageCreateFields = {
   title: string;
   slug: string;
   summary?: string;
-  pageType: string;
-  layout: CmsLayoutBlocks;
+  pageType: ProjectPage["pageType"];
+  layout: ProjectPage["layout"];
 };
 
 export type MinistryUpdateCreateFields = {
@@ -60,5 +65,5 @@ export type MinistryUpdateCreateFields = {
   title: string;
   slug: string;
   excerpt?: string;
-  content: unknown;
+  content: MinistryUpdate["content"];
 };

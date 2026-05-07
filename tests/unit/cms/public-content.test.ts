@@ -9,6 +9,18 @@ vi.mock("../../../apps/admin/src/cms/get-payload", () => ({
 }));
 
 let buildPublicCmsPagePath: (slugSegments: string[]) => string;
+let fetchPublishedCmsPageResult: (
+  slugSegments: string[],
+  hostOverride?: string,
+) => Promise<unknown>;
+let fetchPublishedMissionaryGivingPageResult: (
+  missionaryId: string,
+  hostOverride?: string,
+) => Promise<unknown>;
+let fetchPublishedProjectPageResult: (
+  slug: string,
+  hostOverride?: string,
+) => Promise<unknown>;
 let resolveTenantFromRequest: (
   request: unknown,
   payloadOverride?: unknown,
@@ -21,6 +33,10 @@ beforeAll(async () => {
   ]);
 
   buildPublicCmsPagePath = donorModule.buildPublicCmsPagePath;
+  fetchPublishedCmsPageResult = donorModule.fetchPublishedCmsPageResult;
+  fetchPublishedMissionaryGivingPageResult =
+    donorModule.fetchPublishedMissionaryGivingPageResult;
+  fetchPublishedProjectPageResult = donorModule.fetchPublishedProjectPageResult;
   resolveTenantFromRequest = adminModule.resolveTenantFromRequest;
 });
 
@@ -130,9 +146,93 @@ describe("public cms tenant resolution", () => {
 });
 
 describe("donor CMS content helpers", () => {
+  beforeEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it("builds URL-safe public CMS page paths", () => {
     expect(buildPublicCmsPagePath([" about us ", "buen día"])).toBe(
       "/api/cms/public/pages/about%20us/buen%20d%C3%ADa",
     );
+  });
+
+  it("returns a found result with tenant-aware fetch cache policy", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          page: { id: "p1", title: "Home", slug: "home" },
+          tenant: { slug: "alpha" },
+        }),
+        { status: 200 },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await fetchPublishedCmsPageResult(
+      [" home "],
+      "Alpha.Example.org:443",
+    );
+
+    expect(result).toEqual({
+      status: "found",
+      statusCode: 200,
+      page: { id: "p1", title: "Home", slug: "home" },
+      tenant: { slug: "alpha" },
+    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://127.0.0.1:3030/api/cms/public/pages/home",
+      expect.objectContaining({
+        headers: { "x-forwarded-host": "Alpha.Example.org:443" },
+        next: {
+          revalidate: 60,
+          tags: [
+            "public-cms",
+            "public-cms:host:alpha.example.org",
+            "public-cms:page:home",
+          ],
+        },
+      }),
+    );
+  });
+
+  it("does not collapse CMS outages into not-found results", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ error: "CMS unavailable" }), {
+          status: 503,
+        }),
+      ),
+    );
+
+    await expect(
+      fetchPublishedCmsPageResult(["home"], "alpha.example.org"),
+    ).resolves.toEqual({
+      status: "unavailable",
+      statusCode: 503,
+      error: "CMS unavailable",
+    });
+  });
+
+  it("classifies invalid page-like descriptors before fetching", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      fetchPublishedMissionaryGivingPageResult(" ", "alpha.example.org"),
+    ).resolves.toEqual({
+      status: "bad-request",
+      statusCode: 400,
+      error: "Missionary id required",
+    });
+    await expect(
+      fetchPublishedProjectPageResult(" ", "alpha.example.org"),
+    ).resolves.toEqual({
+      status: "bad-request",
+      statusCode: 400,
+      error: "Slug required",
+    });
+
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

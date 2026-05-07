@@ -1,21 +1,22 @@
+import {
+  buildPublicCmsReadCachePolicy,
+  buildPublicCmsReadPath,
+  getPublicCmsDescriptorError,
+  isPublicCmsPublishedPagePayload,
+} from "@asym/lib/cms/public-page";
 import { headers } from "next/headers";
 
-import type { PublicCmsPage } from "@asym/lib/cms/public-page";
+import type {
+  PublicCmsPage,
+  PublicCmsPageDescriptor,
+  PublicCmsPageReadResult,
+} from "@asym/lib/cms/public-page";
 
 /** @deprecated Use `PublicCmsPage` from `@asym/lib/cms/public-page` */
 export type CmsPage = PublicCmsPage;
 
-function normalizeSlugSegments(slugSegments: string[]) {
-  return slugSegments.map((segment) => segment.trim()).filter(Boolean);
-}
-
 export function buildPublicCmsPagePath(slugSegments: string[]) {
-  const normalizedSegments = normalizeSlugSegments(slugSegments);
-  const pageSlug = normalizedSegments.length
-    ? normalizedSegments.map((segment) => encodeURIComponent(segment)).join("/")
-    : "home";
-
-  return `/api/cms/public/pages/${pageSlug}`;
+  return buildPublicCmsReadPath({ kind: "page", slugSegments });
 }
 
 function getCmsBaseUrl() {
@@ -49,6 +50,7 @@ async function fetchCmsJSON<T>(
       },
       next: {
         revalidate: 60,
+        tags: buildGenericPublicCmsCacheTags(tenantHost),
       },
     });
 
@@ -62,16 +64,23 @@ async function fetchCmsJSON<T>(
   }
 }
 
+export async function fetchPublishedCmsPageResult(
+  slugSegments: string[],
+  hostOverride?: string,
+) {
+  return fetchPublishedCmsPageLikeResult(
+    { kind: "page", slugSegments },
+    hostOverride,
+  );
+}
+
 export async function fetchPublishedCmsPage(
   slugSegments: string[],
   hostOverride?: string,
 ) {
-  const payload = await fetchCmsJSON<{ page: PublicCmsPage }>(
-    buildPublicCmsPagePath(slugSegments),
-    hostOverride,
-  );
+  const result = await fetchPublishedCmsPageResult(slugSegments, hostOverride);
 
-  return payload?.page ?? null;
+  return result.status === "found" ? result.page : null;
 }
 
 export async function fetchPublishedCmsUpdates(
@@ -89,28 +98,137 @@ export async function fetchPublishedMissionaryGivingPage(
   missionaryId: string,
   hostOverride?: string,
 ) {
-  const encoded = encodeURIComponent(missionaryId.trim());
-  const payload = await fetchCmsJSON<{ page: PublicCmsPage }>(
-    `/api/cms/public/missionary-pages/${encoded}`,
+  const result = await fetchPublishedMissionaryGivingPageResult(
+    missionaryId,
     hostOverride,
   );
 
-  return payload?.page ?? null;
+  return result.status === "found" ? result.page : null;
+}
+
+export async function fetchPublishedMissionaryGivingPageResult(
+  missionaryId: string,
+  hostOverride?: string,
+) {
+  return fetchPublishedCmsPageLikeResult(
+    { kind: "missionary-giving-page", missionaryId },
+    hostOverride,
+  );
 }
 
 export async function fetchPublishedProjectPage(
   slug: string,
   hostOverride?: string,
 ) {
-  const segments = slug
-    .split("/")
-    .map((s) => s.trim())
-    .filter(Boolean);
-  const encoded = segments.map((s) => encodeURIComponent(s)).join("/");
-  const payload = await fetchCmsJSON<{ page: PublicCmsPage }>(
-    `/api/cms/public/project-pages/${encoded}`,
+  const result = await fetchPublishedProjectPageResult(slug, hostOverride);
+
+  return result.status === "found" ? result.page : null;
+}
+
+export async function fetchPublishedProjectPageResult(
+  slug: string,
+  hostOverride?: string,
+) {
+  return fetchPublishedCmsPageLikeResult(
+    { kind: "project-page", slug },
     hostOverride,
   );
+}
 
-  return payload?.page ?? null;
+async function fetchPublishedCmsPageLikeResult(
+  descriptor: PublicCmsPageDescriptor,
+  hostOverride?: string,
+): Promise<PublicCmsPageReadResult> {
+  const descriptorError = getPublicCmsDescriptorError(descriptor);
+  if (descriptorError) {
+    return {
+      status: "bad-request",
+      statusCode: 400,
+      error: descriptorError,
+    };
+  }
+
+  const cmsURL = getCmsBaseUrl();
+  const tenantHost = await getForwardedHost(hostOverride);
+  const path = buildPublicCmsReadPath(descriptor);
+
+  try {
+    const response = await fetch(`${cmsURL}${path}`, {
+      headers: {
+        "x-forwarded-host": tenantHost,
+      },
+      next: buildPublicCmsReadCachePolicy(descriptor, tenantHost),
+    });
+
+    return cmsReadResultFromResponse(response);
+  } catch {
+    return {
+      status: "unavailable",
+      statusCode: 503,
+      error: "CMS unavailable",
+    };
+  }
+}
+
+async function cmsReadResultFromResponse(
+  response: Response,
+): Promise<PublicCmsPageReadResult> {
+  const body = await response.json().catch(() => null);
+
+  if (response.ok) {
+    if (!isPublicCmsPublishedPagePayload(body)) {
+      return {
+        status: "unavailable",
+        statusCode: 502,
+        error: "Invalid CMS response",
+      };
+    }
+
+    return {
+      status: "found",
+      statusCode: 200,
+      page: body.page,
+      tenant: body.tenant,
+    };
+  }
+
+  const error = readCmsError(body);
+
+  if (response.status === 400) {
+    return {
+      status: "bad-request",
+      statusCode: 400,
+      error,
+    };
+  }
+
+  if (response.status === 404) {
+    return {
+      status: error === "Tenant not found" ? "tenant-not-found" : "not-found",
+      statusCode: 404,
+      error,
+    };
+  }
+
+  return {
+    status: "unavailable",
+    statusCode: response.status,
+    error,
+  };
+}
+
+function readCmsError(body: unknown) {
+  if (body && typeof body === "object" && "error" in body) {
+    const error = (body as { error?: unknown }).error;
+    if (typeof error === "string" && error.trim()) {
+      return error;
+    }
+  }
+
+  return "Failed to fetch page content";
+}
+
+function buildGenericPublicCmsCacheTags(tenantHost: string) {
+  const host = tenantHost.replace(/:\d+$/, "").toLowerCase();
+  return host ? ["public-cms", `public-cms:host:${host}`] : ["public-cms"];
 }
