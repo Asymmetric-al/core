@@ -1,7 +1,6 @@
 "use client";
 
-import { signOutOnServer } from "@asym/auth/client-signout";
-import { createBrowserClient } from "@asym/database/supabase";
+import { signOutClientSession } from "@asym/auth/client-session";
 import { cn } from "@asym/ui/lib/utils";
 import {
   LayoutDashboard,
@@ -39,20 +38,7 @@ export function DonorSubNav() {
 
   const handleSignOut = () => {
     startSigningOut(() => {
-      void (async () => {
-        const serverSignOut = await signOutOnServer();
-        if (!serverSignOut.ok) {
-          window.alert(
-            serverSignOut.message ?? "Unable to sign out. Please try again.",
-          );
-        }
-
-        const supabase = createBrowserClient();
-        void supabase.auth.signOut().catch((error) => {
-          console.warn("[auth] browser signout cleanup failed", error);
-        });
-        window.location.href = "/login";
-      })();
+      void signOutClientSession();
     });
   };
 

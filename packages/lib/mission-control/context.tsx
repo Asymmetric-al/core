@@ -1,7 +1,9 @@
 "use client";
 
-import { signOutOnServer } from "@asym/auth/client-signout";
-import { createBrowserClient } from "@asym/database/supabase";
+import {
+  signOutClientSession,
+  subscribeToClientAuthState,
+} from "@asym/auth/client-session";
 import { runtimeEnvFlags } from "@asym/env";
 import {
   createContext,
@@ -125,38 +127,29 @@ export function MCProvider({
   }, []);
 
   useEffect(() => {
-    const supabase = createBrowserClient();
+    return subscribeToClientAuthState(
+      ({ user: sessionUser }) => {
+        if (!sessionUser) {
+          applySignedOutState();
+          return;
+        }
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!session?.user) {
-        applySignedOutState();
-        return;
-      }
-
-      if (!user) {
-        markLoadingComplete();
-      }
-    });
-
-    return () => subscription.unsubscribe();
+        if (!user) {
+          markLoadingComplete();
+        }
+      },
+      { includeProfile: false },
+    );
   }, [applySignedOutState, markLoadingComplete, user]);
 
-  const signOut = async () => {
-    const serverSignOut = await signOutOnServer();
-    if (!serverSignOut.ok) {
-      window.alert(
-        serverSignOut.message ?? "Unable to sign out. Please try again.",
-      );
+  const signOut = useCallback(async () => {
+    const result = await signOutClientSession();
+    if (!result.ok) {
+      return;
     }
 
-    const supabase = createBrowserClient();
-    void supabase.auth.signOut().catch((error) => {
-      console.warn("[auth] browser signout cleanup failed", error);
-    });
-    window.location.href = "/login";
-  };
+    applySignedOutState();
+  }, [applySignedOutState]);
 
   return (
     <MCContext.Provider

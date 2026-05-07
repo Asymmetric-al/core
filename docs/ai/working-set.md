@@ -1,5 +1,34 @@
 # Working Set
 
+## 2026-05-07 (Auth Client Session Module)
+
+- Date: 2026-05-07
+- Repo: Asymmetric-al/core
+- Goal: Carry out the Auth Client Session Module deepening by centralizing client session/profile loading and sign-out behavior behind a small auth module interface.
+- Primary area:
+  - `packages/auth/use-auth.ts`
+  - `packages/api/src/auth/signout.ts`
+  - `packages/lib/hooks/use-auth.ts`
+  - `packages/lib/mission-control/context.tsx`
+  - donor and missionary header/subnav sign-out call sites
+  - auth unit coverage
+- Constraints:
+  - Validate the strategy against OpenSpec, repo rulebooks, current Next.js docs, and Supabase Auth guidance before implementation.
+  - Apply TDD: add failing tests for the module interface and important sign-out/session edge cases before production edits.
+  - Preserve SSR cookie-clearing sign-out, browser-client cleanup, alerting hooks, and role/app-specific redirects.
+  - Nia MCP is unavailable in this session; use local Git/PowerShell search and direct file reads as fallback evidence.
+- Evidence sources used:
+  - `docs/ai/stack-registry.md`
+  - `docs/ai/rules/{general,frontend,backend,testing}.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `docs/ai/skills/{supabase,nextjs-supabase-auth,supabase-postgres-best-practices}/SKILL.md`
+  - `.agents/skills/test-driven-development/SKILL.md`
+  - local Next.js docs fallback under `.next-docs/`
+- Decisions:
+  - Keep the server `/api/auth/signout` route as the SSR cookie authority with explicit current-session Supabase signout scope.
+  - Move client session/profile loading and browser signout cleanup into `packages/auth/client-session.ts`.
+  - Block client redirects when server signout fails so cookies and browser state do not diverge.
+
 ## 2026-04-24 (AL-203 unit feedback loop)
 
 - Date: 2026-04-24

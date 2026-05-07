@@ -51,8 +51,12 @@ This document captures where auth hardening currently stands, how it is wired, a
 ### Signout flow
 
 - Client initiates `POST /api/auth/signout` (server cookie invalidation).
-- Route performs server-side Supabase signout + no-store responses + same-origin checks.
-- UI navigates to `/login` after signout path completes.
+- Route performs current-session server-side Supabase signout + no-store responses + same-origin checks.
+- Shared client session code clears browser auth state and navigates to `/login`
+  only after server signout succeeds.
+- If server signout cannot be confirmed, the UI stays on the current page and
+  shows the failure so the user can retry without creating cookie/client-state
+  desync.
 
 ## What is complete
 
@@ -120,6 +124,15 @@ Future expectation:
   - signout failures
   - permission-denied redirects
   - signup abuse signals
+
+## Current client session module
+
+`packages/auth/client-session.ts` owns browser auth state loading,
+profile lookup, auth-state subscriptions, stale transition suppression, and
+the client half of signout. `packages/api/src/auth/signout.ts` keeps the
+server half scoped to the current Supabase session. App headers and shared
+hooks should call the client session module instead of calling server signout,
+browser auth cleanup, alerts, or redirects directly.
 
 ## Next-dev checklist
 

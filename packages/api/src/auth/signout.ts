@@ -169,7 +169,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { error } = await supabase.auth.signOut();
+  const { error } = await supabase.auth.signOut({ scope: "local" });
   if (error) {
     return noStoreJson(
       { ok: false, error: "Unable to sign out." },

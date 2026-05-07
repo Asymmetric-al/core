@@ -9,6 +9,7 @@
     "./permissions": "./permissions.ts",
     "./redirects": "./redirects.ts",
     "./use-auth": "./use-auth.ts",
+    "./client-session": "./client-session.ts",
     "./client-signout": "./client-signout.ts",
     "./middleware": "./middleware.ts",
     "./constants": "./constants.ts",

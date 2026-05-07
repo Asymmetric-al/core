@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { readFile } from "node:fs/promises";
 
 const ORIGINAL_ENV = { ...process.env };
 const ORIGINAL_FETCH = global.fetch;
@@ -19,6 +20,11 @@ afterEach(() => {
 });
 
 describe("api/auth/signout", () => {
+  it("uses current-session Supabase signout scope explicitly", async () => {
+    const source = await readFile("packages/api/src/auth/signout.ts", "utf8");
+    expect(source).toContain('scope: "local"');
+  });
+
   it("allows requests without origin context", async () => {
     const { POST } = await import("../../../packages/api/src/auth/signout");
     global.fetch = vi.fn(async (input: RequestInfo | URL) => {
