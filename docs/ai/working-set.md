@@ -1,5 +1,31 @@
 # Working Set
 
+## 2026-05-07 (Twenty CRM integration phase pack)
+
+- Date: 2026-05-07
+- Repo: Asymmetric-al/core
+- Goal: Break the attached Deep Twenty CRM integration plan into repo-local phase docs and create a separate current-implementation inventory without changing the phase sequence based on current status.
+- Primary area:
+  - `docs/guides/features/twenty-crm-integration/*`
+  - `packages/api/src/admin/crm/*`
+  - `apps/admin/app/crm/*`
+  - `supabase/migrations/*`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `docs/guides/development/tanstack-integration.md`
+- Constraints:
+  - Keep phase docs independent of current implementation status.
+  - Use the inventory only for sizing and what-exists-now reporting.
+  - Nia tools are unavailable in this session; use repo-scoped `rg` and direct file reads as fallback evidence.
+  - No product code, migrations, env files, or runtime behavior changes.
+- Evidence sources used:
+  - `twenty_crm_deep_integration_plan.pdf`
+  - `openspec/project.md`
+  - `openspec/specs/{platform-product-intent,platform-surfaces,platform-principles,platform-boundaries}/spec.md`
+  - `docs/ai/rules/{general,backend,testing}.md`
+  - `docs/ai/skills/supabase/SKILL.md`
+  - `docs/ai/{stack-registry,working-set}.md`
+  - Official Twenty docs for API, webhooks, Docker Compose, and apps getting started
+
 ## 2026-04-24 (AL-203 unit feedback loop)
 
 - Date: 2026-04-24
