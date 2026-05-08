@@ -22,7 +22,7 @@ Use this order when instructions conflict:
 2. **Repo instruction system:** root `AGENTS.md`, nearest nested `AGENTS.md`, `.cursor/rules`, `CLAUDE.md`, `.github/copilot-instructions.md`, `.github/instructions/*.md`, `docs/ai/*` rulebooks.
 3. **Repo-local canonical skills:** `docs/ai/skills/*/SKILL.md` (mirrored into `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`; verify with `bun run skills:verify`).
 4. **Next.js API truth:** bundled docs under `node_modules/next/dist/docs/` for the installed version (then repo root `node_modules`; see **Next.js docs source of truth** below).
-5. **MCP runtime facts:** e.g. Next.js devtools MCP against a running dev server (see **Next.js MCP (devtools)** below), TanStack MCP from root `.mcp.json`, plus any other MCP servers enabled in the agent.
+5. **MCP/runtime and official CLI facts:** e.g. Next.js devtools MCP against a running dev server (see **Next.js MCP (devtools)** below), official TanStack CLI/Intent output for TanStack work, plus any other MCP servers enabled in the agent.
 6. **External docs:** prefer indexed doc search / package source (e.g. Nia) over training data; use direct official docs when needed.
 7. **General model knowledge:** lowest priority; never substitute memory for version-specific or repo-specific facts.
 
@@ -185,9 +185,22 @@ This repo configures the Next.js devtools MCP server in **root** `.mcp.json` (al
 - **Use it for runtime-grounded work:** current errors, dev logs, routes, page metadata, server actions — **do not guess** these when the MCP tools can query the live dev server.
 - **Docs:** [Next.js MCP guide](https://nextjs.org/docs/app/guides/mcp) and the [`next-devtools-mcp` repository](https://github.com/vercel/next-devtools-mcp).
 
-### TanStack MCP
+### TanStack CLI and Intent
 
-Root `.mcp.json` also defines the TanStack CLI MCP (`@tanstack/cli mcp`). Enable it in your agent when working on TanStack Query / Router / related surfaces.
+For any TanStack work (Query, Router, Table, DB, Form, Virtual, Start, CLI, Intent, Devtools, or related integrations), use the official TanStack CLI and the official TanStack Intent skills. Do not use repo-local or unofficial TanStack skills.
+
+- Install/verify the official CLI with `npm install -g @tanstack/cli` (Node.js 18+ required). Use direct `npm`, `npx`, and `tanstack` commands so the workflow works on Windows and macOS.
+- Use CLI JSON output for agent-safe TanStack discovery and docs, for example `tanstack libraries --json`, `tanstack doc <library> <path> --json`, and `tanstack search-docs "<query>" --library <id> --framework <name> --json`.
+- Do **not** use `@tanstack/cli mcp` / `tanstack mcp`; the official CLI removed that command. Use direct CLI commands instead.
+- Before TanStack work, run `npx @tanstack/intent@latest list`; use only the official skills returned by that command for the installed dependency versions.
+- Load relevant official skills with `npx @tanstack/intent@latest load <package>#<skill>` (for example, `npx @tanstack/intent@latest load @tanstack/db#db-core`).
+
+Official TanStack Intent skills currently returned in this repo:
+
+- `@tanstack/db`: `db-core`, `collection-setup`, `custom-adapter`, `live-queries`, `mutations-optimistic`, `persistence`, `meta-framework`
+- `@tanstack/react-db`: `react-db`
+- `@tanstack/devtools-event-client`: `devtools-bidirectional`, `devtools-event-client`, `devtools-instrumentation`
+- `@tanstack/cli`: `add-addons-existing-app`, `choose-ecosystem-integrations`, `create-app-scaffold`, `maintain-custom-addons-dev-watch`, `query-docs-library-metadata`
 
 ### Dev servers and logs
 
@@ -230,7 +243,7 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 - **Tasteful UI animation (timing, easing, CSS/Motion patterns):** `docs/ai/skills/anim/SKILL.md`
 - **Additional Emil design-engineering notes / companion reference:** `docs/ai/skills/emil-design-eng/SKILL.md`
 - **Recharts:** `docs/ai/skills/rechart/SKILL.md`
-- **TanStack Table v8:** `docs/ai/skills/tanstack-table/SKILL.md`
+- **TanStack work:** use the official TanStack CLI and the official TanStack Intent skills listed in **TanStack CLI and Intent** above; run `npx @tanstack/intent@latest list` and load only returned skills with `npx @tanstack/intent@latest load <package>#<skill>`.
 - **Tiptap rich text editor (`@tiptap/*`, shared editor in `@asym/ui`):** `docs/ai/skills/tiptap/SKILL.md`
 - **Resend CLI (`resend` binary, shell, scripts, CI/CD, non-interactive flags):** `docs/ai/skills/resend-cli/SKILL.md` (not the same as SDK or tenant app integration; see `docs/guides/features/resend-integration.md` for product email routes and UI)
 - **Supabase (platform-wide: Auth, DB API, Storage, Realtime, Edge Functions, CLI, MCP, RLS, migrations):** `docs/ai/skills/supabase/SKILL.md`
