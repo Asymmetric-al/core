@@ -4,10 +4,6 @@
       "command": "bunx",
       "args": ["-y", "next-devtools-mcp@latest"]
     },
-    "tanstack": {
-      "command": "bunx",
-      "args": ["-y", "@tanstack/cli", "mcp"]
-    },
     "shadcn": {
       "command": "npx",
       "args": ["--yes", "shadcn@latest", "mcp"]
