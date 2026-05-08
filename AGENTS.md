@@ -187,20 +187,15 @@ This repo configures the Next.js devtools MCP server in **root** `.mcp.json` (al
 
 ### TanStack CLI and Intent
 
-For any TanStack work (Query, Router, Table, DB, Form, Virtual, Start, CLI, Intent, Devtools, or related integrations), use the official TanStack CLI and the official TanStack Intent skills. Do not use repo-local or unofficial TanStack skills.
+For any TanStack work (Query, Router, Table, DB, Form, Virtual, Start, CLI, Intent, Devtools, or related integrations), use the official TanStack CLI and official TanStack Intent skills when they exist for the installed packages. Do not use repo-local or unofficial TanStack skills.
 
 - Install/verify the official CLI with `npm install -g @tanstack/cli` (Node.js 18+ required). Use direct `npm`, `npx`, and `tanstack` commands so the workflow works on Windows and macOS.
 - Use CLI JSON output for agent-safe TanStack discovery and docs, for example `tanstack libraries --json`, `tanstack doc <library> <path> --json`, and `tanstack search-docs "<query>" --library <id> --framework <name> --json`.
 - Do **not** use `@tanstack/cli mcp` / `tanstack mcp`; the official CLI removed that command. Use direct CLI commands instead.
-- Before TanStack work, run `npx @tanstack/intent@latest list`; use only the official skills returned by that command for the installed dependency versions.
-- Load relevant official skills with `npx @tanstack/intent@latest load <package>#<skill>` (for example, `npx @tanstack/intent@latest load @tanstack/db#db-core`).
-
-Official TanStack Intent skills currently returned in this repo:
-
-- `@tanstack/db`: `db-core`, `collection-setup`, `custom-adapter`, `live-queries`, `mutations-optimistic`, `persistence`, `meta-framework`
-- `@tanstack/react-db`: `react-db`
-- `@tanstack/devtools-event-client`: `devtools-bidirectional`, `devtools-event-client`, `devtools-instrumentation`
-- `@tanstack/cli`: `add-addons-existing-app`, `choose-ecosystem-integrations`, `create-app-scaffold`, `maintain-custom-addons-dev-watch`, `query-docs-library-metadata`
+- Before TanStack work, run `npx --yes @tanstack/intent@latest list` (`npx @tanstack/intent@latest list` is fine in interactive shells); that current command output is the authority for which installed packages expose Intent skills.
+- Load Intent skills only for packages returned by the current list command: `npx --yes @tanstack/intent@latest load <package>#<skill>`.
+- Intent coverage is not exhaustive. For TanStack packages not returned by the current Intent list (for example, Query/Table/Router when absent), continue using `tanstack doc`, `tanstack search-docs`, and the repo guidance in `docs/guides/development/tanstack-integration.md` and `docs/guides/development/tanstack-virtual-foundation.md`.
+- For table-like UI, preserve the repo-specific shared abstractions documented in those guides: prefer `DataTableResponsive` from `@asym/ui/components/shadcn/data-table` when appropriate, reuse shared table virtualization helpers/types from `packages/ui/components/shadcn/data-table`, and keep accessibility expectations from `docs/ai/rules/frontend.md` and the virtual foundation testing checklist discoverable.
 
 ### Dev servers and logs
 
@@ -243,7 +238,7 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 - **Tasteful UI animation (timing, easing, CSS/Motion patterns):** `docs/ai/skills/anim/SKILL.md`
 - **Additional Emil design-engineering notes / companion reference:** `docs/ai/skills/emil-design-eng/SKILL.md`
 - **Recharts:** `docs/ai/skills/rechart/SKILL.md`
-- **TanStack work:** use the official TanStack CLI and the official TanStack Intent skills listed in **TanStack CLI and Intent** above; run `npx @tanstack/intent@latest list` and load only returned skills with `npx @tanstack/intent@latest load <package>#<skill>`.
+- **TanStack work:** use the official TanStack CLI plus current official Intent skills when `npx --yes @tanstack/intent@latest list` returns a matching package; otherwise use `tanstack doc` / `tanstack search-docs` and the repo-specific TanStack guides linked in **TanStack CLI and Intent** above.
 - **Tiptap rich text editor (`@tiptap/*`, shared editor in `@asym/ui`):** `docs/ai/skills/tiptap/SKILL.md`
 - **Resend CLI (`resend` binary, shell, scripts, CI/CD, non-interactive flags):** `docs/ai/skills/resend-cli/SKILL.md` (not the same as SDK or tenant app integration; see `docs/guides/features/resend-integration.md` for product email routes and UI)
 - **Supabase (platform-wide: Auth, DB API, Storage, Realtime, Edge Functions, CLI, MCP, RLS, migrations):** `docs/ai/skills/supabase/SKILL.md`
