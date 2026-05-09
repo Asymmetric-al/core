@@ -69,5 +69,33 @@ bun.lock text eol=lf
 .agents/** text eol=lf
 .cursor/skills/** text eol=lf
 .cursor/skills-cursor/** text eol=lf
+
+# Binary assets inside generated skill mirrors override the broad mirror text rule.
+.agents/skills/**/*.png binary
+.agents/skills/**/*.jpg binary
+.agents/skills/**/*.jpeg binary
+.agents/skills/**/*.gif binary
+.agents/skills/**/*.webp binary
+.agents/skills/**/*.svg binary
+.agents/skills/**/*.avif binary
+.agents/skills/**/*.ico binary
+.agents/skills/**/*.pdf binary
+.agents/skills/**/*.woff binary
+.agents/skills/**/*.woff2 binary
+.agents/skills/**/*.ttf binary
+.agents/skills/**/*.otf binary
+.cursor/skills/**/*.png binary
+.cursor/skills/**/*.jpg binary
+.cursor/skills/**/*.jpeg binary
+.cursor/skills/**/*.gif binary
+.cursor/skills/**/*.webp binary
+.cursor/skills/**/*.svg binary
+.cursor/skills/**/*.avif binary
+.cursor/skills/**/*.ico binary
+.cursor/skills/**/*.pdf binary
+.cursor/skills/**/*.woff binary
+.cursor/skills/**/*.woff2 binary
+.cursor/skills/**/*.ttf binary
+.cursor/skills/**/*.otf binary
 # Legacy agent dir (if present) leave untouched.
 .agent/** -text

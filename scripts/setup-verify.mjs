@@ -96,11 +96,23 @@ async function fetchStatus(url, options = {}) {
 
 await loadDotEnvLocal();
 
-const required = ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY"];
+const required = ["NEXT_PUBLIC_SUPABASE_URL"];
 for (const name of required) {
   if (!process.env[name]) {
     fail(`Missing required env var: ${name}`);
   }
+}
+
+const supabasePublicKey = stripCrLf(
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    "",
+);
+
+if (!supabasePublicKey) {
+  fail(
+    "Missing Supabase public key. Set NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (preferred) or NEXT_PUBLIC_SUPABASE_ANON_KEY.",
+  );
 }
 
 if (hasFailure) process.exit(1);
@@ -108,9 +120,9 @@ if (hasFailure) process.exit(1);
 const supabaseUrl = stripCrLf(
   (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/+$/, ""),
 );
-const supabaseAnonKey = stripCrLf(
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
-);
+const supabaseKeySource = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+  ? "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
+  : "NEXT_PUBLIC_SUPABASE_ANON_KEY";
 
 if (isPlaceholder(supabaseUrl)) {
   fail(
@@ -118,9 +130,9 @@ if (isPlaceholder(supabaseUrl)) {
   );
 }
 
-if (isPlaceholder(supabaseAnonKey)) {
+if (isPlaceholder(supabasePublicKey)) {
   fail(
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY appears to be a placeholder. Set it to your Supabase anon public key (Project Settings -> API).",
+    `${supabaseKeySource} appears to be a placeholder. Set NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (preferred) or NEXT_PUBLIC_SUPABASE_ANON_KEY from Supabase Project Settings -> API.`,
   );
 }
 
@@ -130,23 +142,20 @@ if (!looksLikeUrl(supabaseUrl)) {
   );
 }
 
-if (supabaseAnonKey.startsWith("sb_secret_")) {
+if (supabasePublicKey.startsWith("sb_secret_")) {
   fail(
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY looks like a secret key (sb_secret_*). Do NOT use secrets in NEXT_PUBLIC_* vars. Use the Supabase anon public key (Project Settings -> API).",
-  );
-}
-
-if (supabaseAnonKey.startsWith("sb_publishable_")) {
-  fail(
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY looks like a publishable key (sb_publishable_*). Use the Supabase anon public key (Project Settings -> API).",
+    `${supabaseKeySource} looks like a secret key (sb_secret_*). Do NOT use secrets in NEXT_PUBLIC_* vars. Use a Supabase publishable key or legacy anon public key (Project Settings -> API).`,
   );
 }
 
 if (hasFailure) process.exit(1);
 
-if (!looksLikeSupabaseAnonJwt(supabaseAnonKey)) {
+if (
+  !supabasePublicKey.startsWith("sb_publishable_") &&
+  !looksLikeSupabaseAnonJwt(supabasePublicKey)
+) {
   warn(
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY does not look like the typical Supabase anon JWT (usually starts with eyJ...). If the REST check fails, re-copy the anon public key from Project Settings -> API.",
+    `${supabaseKeySource} does not look like a Supabase publishable key (sb_publishable_*) or legacy anon JWT (usually starts with eyJ...). If the REST check fails, re-copy the public API key from Project Settings -> API.`,
   );
 }
 
@@ -168,15 +177,15 @@ const restRoot = `${supabaseUrl}/rest/v1/`;
 log("Checking anon key is accepted by Supabase REST API...");
 const restCode = await fetchStatus(restRoot, {
   headers: {
-    apikey: supabaseAnonKey,
-    Authorization: `Bearer ${supabaseAnonKey}`,
+    apikey: supabasePublicKey,
+    Authorization: `Bearer ${supabasePublicKey}`,
   },
 });
 
 if (![200, 404].includes(restCode)) {
   if (restCode === 401 || restCode === 403) {
     fail(
-      `Anon key was rejected (HTTP ${restCode}). Ensure NEXT_PUBLIC_SUPABASE_ANON_KEY is the anon public key for this project URL (Project Settings -> API).`,
+      `Supabase public key was rejected (HTTP ${restCode}). Ensure ${supabaseKeySource} belongs to this project URL (Project Settings -> API).`,
     );
   } else if (restCode === 0) {
     fail(

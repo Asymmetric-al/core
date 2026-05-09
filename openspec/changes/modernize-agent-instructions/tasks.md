@@ -37,3 +37,13 @@
 - [x] 5.2 Run `bunx @fission-ai/openspec@latest validate --all`
 - [x] 5.3 Confirm marker integrity, path accuracy, command accuracy, and the
       changed-files-only boundary
+
+## 6. PR #223 Cleanup
+
+- [x] 6.1 Remove accidental local/tool artifacts from version control and ignore
+      them going forward
+- [x] 6.2 Keep `vendor/payload-upstream/` scoped to its existing documented
+      vendor policy, not this AI tooling change
+- [x] 6.3 Pin committed MCP package versions and document the upgrade workflow
+- [x] 6.4 Preserve `docs/ai/skills` as canonical and refresh generated mirrors
+      via `bun run skills:sync`

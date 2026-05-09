@@ -58,9 +58,10 @@ require_cmd git
 supabase_cli_guidance
 
 existing_supabase_url="$(trim_value "${NEXT_PUBLIC_SUPABASE_URL-}")"
+existing_supabase_publishable_key="$(trim_value "${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY-}")"
 existing_supabase_anon_key="$(trim_value "${NEXT_PUBLIC_SUPABASE_ANON_KEY-}")"
 
-if has_env_value "$existing_supabase_url" && has_env_value "$existing_supabase_anon_key"; then
+if has_env_value "$existing_supabase_url" && { has_env_value "$existing_supabase_publishable_key" || has_env_value "$existing_supabase_anon_key"; }; then
   log "Using Supabase vars from process environment"
 elif [[ -f ".env.local" ]]; then
   log ".env.local already exists"
@@ -68,7 +69,7 @@ elif [[ -f ".env.local" ]]; then
   # shellcheck disable=SC1091
   source .env.local
   set +a
-elif has_env_value "$existing_supabase_url" || has_env_value "$existing_supabase_anon_key"; then
+elif has_env_value "$existing_supabase_url" || has_env_value "$existing_supabase_publishable_key" || has_env_value "$existing_supabase_anon_key"; then
   log "Detected partial Supabase env vars in process environment"
 else
   if [[ -f ".env.example" ]]; then
@@ -77,6 +78,7 @@ else
   else
     cat > .env.local <<'EOF'
 NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 EOF
     log "Created .env.local with placeholders"
@@ -96,6 +98,10 @@ if has_env_value "$existing_supabase_anon_key"; then
   export NEXT_PUBLIC_SUPABASE_ANON_KEY="$existing_supabase_anon_key"
 fi
 
+if has_env_value "$existing_supabase_publishable_key"; then
+  export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$existing_supabase_publishable_key"
+fi
+
 missing=0
 
 check_required_env() {
@@ -111,13 +117,20 @@ check_required_env() {
 }
 
 check_required_env "NEXT_PUBLIC_SUPABASE_URL" "https://your-project.supabase.co"
-check_required_env "NEXT_PUBLIC_SUPABASE_ANON_KEY" "your-anon-key"
+
+supabase_public_key="$(trim_value "${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY-}")"
+if [[ -z "$supabase_public_key" ]]; then
+  supabase_public_key="$(trim_value "${NEXT_PUBLIC_SUPABASE_ANON_KEY-}")"
+fi
+if [[ -z "$supabase_public_key" || "$supabase_public_key" == "your-anon-key" ]]; then
+  missing=1
+fi
 
 if [[ $missing -ne 0 ]]; then
   fail "Missing required env vars. Set them in process env or .env.local."
   log "Set these values:"
   log "  - NEXT_PUBLIC_SUPABASE_URL"
-  log "  - NEXT_PUBLIC_SUPABASE_ANON_KEY"
+  log "  - NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (preferred) or NEXT_PUBLIC_SUPABASE_ANON_KEY"
   log "Then re-run: bun run setup"
   exit 1
 fi

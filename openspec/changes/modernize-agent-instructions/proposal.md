@@ -35,9 +35,16 @@ The biggest gaps are:
 - `CLAUDE.md`
 - nested `AGENTS.md` files under `supabase/` and `scripts/`
 - canonical skills under `docs/ai/skills/*`
-- repo-owned MCP config in `.mcp.json` and `.cursor/mcp.json`
+- repo-owned MCP config structure in `.mcp.json` and `.cursor/mcp.json` (package
+  versions may be pinned for deterministic startup)
 - `.next-docs/`
 - product code, tests, database files, and unrelated infrastructure
+
+Follow-up cleanup in this PR also removes accidental local/tool artifacts
+(`.nia-sync/`, `.tmp*/`, `.traycer/`, `~/.traycer/`, root
+`tmp_nia_install_sync.sh`, and `.agent/`) from version control and documents
+that `vendor/payload-upstream/` remains governed by the existing Payload vendor
+policy rather than by this AI tooling change.
 
 ## Expected Outcome
 

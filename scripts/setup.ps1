@@ -56,6 +56,7 @@ function Ensure-EnvLocal {
     } else {
       @(
         'NEXT_PUBLIC_SUPABASE_URL=',
+        'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=',
         'NEXT_PUBLIC_SUPABASE_ANON_KEY='
       ) | Set-Content -LiteralPath '.env.local'
       Write-Log 'Created .env.local with placeholders'
@@ -136,17 +137,19 @@ if (-not $ok) { exit 1 }
 Write-SupabaseCliGuidance
 
 $existingSupabaseUrl = Trim-EnvValue ((Get-Item -Path 'Env:NEXT_PUBLIC_SUPABASE_URL' -ErrorAction SilentlyContinue).Value)
+$existingSupabasePublishableKey = Trim-EnvValue ((Get-Item -Path 'Env:NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY' -ErrorAction SilentlyContinue).Value)
 $existingSupabaseAnonKey = Trim-EnvValue ((Get-Item -Path 'Env:NEXT_PUBLIC_SUPABASE_ANON_KEY' -ErrorAction SilentlyContinue).Value)
 
 $hasSupabaseUrl = -not [string]::IsNullOrWhiteSpace($existingSupabaseUrl)
+$hasSupabasePublishableKey = -not [string]::IsNullOrWhiteSpace($existingSupabasePublishableKey)
 $hasSupabaseAnonKey = -not [string]::IsNullOrWhiteSpace($existingSupabaseAnonKey)
 
-if ($hasSupabaseUrl -and $hasSupabaseAnonKey) {
+if ($hasSupabaseUrl -and ($hasSupabasePublishableKey -or $hasSupabaseAnonKey)) {
   Write-Log 'Using Supabase vars from process environment'
 } elseif (Test-Path -LiteralPath '.env.local') {
   Write-Log '.env.local already exists'
   Import-DotEnv '.env.local'
-} elseif ($hasSupabaseUrl -or $hasSupabaseAnonKey) {
+} elseif ($hasSupabaseUrl -or $hasSupabasePublishableKey -or $hasSupabaseAnonKey) {
   Write-Log 'Detected partial Supabase env vars in process environment'
 } else {
   Ensure-EnvLocal
@@ -161,15 +164,26 @@ if ($hasSupabaseAnonKey) {
   Set-Item -Path 'Env:NEXT_PUBLIC_SUPABASE_ANON_KEY' -Value $existingSupabaseAnonKey
 }
 
+if ($hasSupabasePublishableKey) {
+  Set-Item -Path 'Env:NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY' -Value $existingSupabasePublishableKey
+}
+
 $missing = $false
 $missing = -not (Test-RequiredEnv 'NEXT_PUBLIC_SUPABASE_URL' 'https://your-project.supabase.co') -or $missing
-$missing = -not (Test-RequiredEnv 'NEXT_PUBLIC_SUPABASE_ANON_KEY' 'your-anon-key') -or $missing
+
+$supabasePublicKey = Trim-EnvValue ((Get-Item -Path 'Env:NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY' -ErrorAction SilentlyContinue).Value)
+if ([string]::IsNullOrWhiteSpace($supabasePublicKey)) {
+  $supabasePublicKey = Trim-EnvValue ((Get-Item -Path 'Env:NEXT_PUBLIC_SUPABASE_ANON_KEY' -ErrorAction SilentlyContinue).Value)
+}
+if ([string]::IsNullOrWhiteSpace($supabasePublicKey) -or $supabasePublicKey -eq 'your-anon-key') {
+  $missing = $true
+}
 
 if ($missing) {
   Write-Fail 'Missing required env vars. Set them in process env or .env.local.'
   Write-Log 'Set these values:'
   Write-Log '  - NEXT_PUBLIC_SUPABASE_URL'
-  Write-Log '  - NEXT_PUBLIC_SUPABASE_ANON_KEY'
+  Write-Log '  - NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (preferred) or NEXT_PUBLIC_SUPABASE_ANON_KEY'
   Write-Log 'Then re-run ./scripts/setup.ps1'
   exit 1
 }

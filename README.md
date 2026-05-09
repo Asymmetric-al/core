@@ -14,7 +14,7 @@ A high-performance Next.js 16.2.1 (App Router) Turborepo monorepo for mission-fo
 
 **After `git pull` when skill files changed:** run `bun run skills:verify`. If it reports drift between `docs/ai/skills/` and the mirrors under `.agents/skills/` and `.cursor/skills/`, run `bun run skills:sync` and commit the updated mirror files so CI and teammates stay aligned.
 
-**Required:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`  
+**Required:** `NEXT_PUBLIC_SUPABASE_URL` plus `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (preferred) or `NEXT_PUBLIC_SUPABASE_ANON_KEY` (legacy-compatible)
 **Optional:** Other entries in `.env.example` (Stripe, demo accounts, etc.)
 
 `bun run dev` runs **all** apps via Turbo (`turbo run dev`). Default HTTP checks in `bun run verify` use **`http://localhost:3000`** (`VERIFY_BASE_URL`), so use `bun run dev:donor` (or point `VERIFY_BASE_URL` at the app you are running).
@@ -32,14 +32,14 @@ For Cursor Cloud Agent runs, set secrets in the Cloud Agent Secrets settings ins
 Set these keys in the cloud environment:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (preferred) or `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY` (optional, server-only/admin workflows)
 
 Security rules:
 
 - `.env.local` stays local-only and is already gitignored.
 - Never expose `SUPABASE_SERVICE_ROLE_KEY` in browser/client code.
-- Browser login flows require only `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+- Browser login flows require `NEXT_PUBLIC_SUPABASE_URL` plus one public Supabase API key (`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` preferred, `NEXT_PUBLIC_SUPABASE_ANON_KEY` legacy-compatible).
 
 ### Windows
 
@@ -56,7 +56,7 @@ pwsh -File .\scripts\setup.ps1
 ```
 
 First run creates `.env.local`. Fill these required values, then re-run the setup:
-`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+`NEXT_PUBLIC_SUPABASE_URL` and either `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (preferred) or `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 The script order matches `bun run setup` on Unix: install dependencies (unless `-SkipInstall`), run `bun run skills:verify`, then `bun run setup:verify`. After pulling changes that touch skills, run `bun run skills:verify`; if it reports mirror drift, run `bun run skills:sync` and commit the updated mirrors.
 
@@ -368,14 +368,14 @@ bun run verify:supabase-money
 
 ## App-Connected Development
 
-Hosted Supabase only needs the public URL and anon key in `.env.local`:
+Hosted Supabase only needs the public URL and one public API key in `.env.local`:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (preferred) or `NEXT_PUBLIC_SUPABASE_ANON_KEY` (legacy-compatible)
 
 ### How to request access
 
-Ask a maintainer for the shared dev Supabase URL and anon key. Do not use service-role keys or DB credentials for normal app development.
+Ask a maintainer for the shared dev Supabase URL and public key. Do not use service-role keys or DB credentials for normal app development.
 
 ### Demo login (optional)
 

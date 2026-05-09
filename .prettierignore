@@ -41,12 +41,15 @@ apps/admin/payload-types.ts
 
 # generated and auxiliary agent artifacts
 .tmp
+.tmp-bun
+.tmp-npm-cache
 .agent
 .agents
 .next-docs
 .nia-sync
 .traycer
 ~
+~/.traycer
 vendor/payload-upstream
 
 # keep command docs but skip bundled skill libraries

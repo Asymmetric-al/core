@@ -4,14 +4,14 @@
       "command": "bunx",
       "args": [
         "-y",
-        "next-devtools-mcp@latest"
+        "next-devtools-mcp@0.3.10"
       ]
     },
     "shadcn": {
       "command": "npx",
       "args": [
         "--yes",
-        "shadcn@latest",
+        "shadcn@4.7.0",
         "mcp"
       ]
     }

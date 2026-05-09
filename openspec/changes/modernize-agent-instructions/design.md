@@ -47,5 +47,9 @@ existing rulebooks plus optional Nia access when available.
 - generating or adopting OpenSpec-managed Cursor, Copilot, or Codex slash
   commands
 - changing product behavior
-- removing mirror skill trees
-- changing repo-owned MCP configuration
+- removing canonical mirror skill trees (`.agents/skills` and `.cursor/skills`)
+- changing repo-owned MCP configuration shape (package versions may be pinned)
+
+The PR cleanup may remove accidental local/tool directories (for example,
+`.agent/`, `.nia-sync/`, `.tmp*/`, and Traycer runtime output) because those are
+not part of the canonical instruction system.

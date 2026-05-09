@@ -13,7 +13,7 @@
 
 # [mcp_servers.shadcn]
 # command = "npx"
-# args = ["--yes", "shadcn@latest", "mcp"]
+# args = ["--yes", "shadcn@4.7.0", "mcp"]
 # env = { EMAIL = "${SHADCN_REGISTRY_EMAIL}", LICENSE_KEY = "${SHADCN_REGISTRY_LICENSE_KEY}" }
 # Official docs: https://ui.shadcn.com/docs/mcp
 # Codex users must add this block manually to ~/.codex/config.toml.
@@ -92,11 +92,11 @@
 
 # [mcp_servers.directus]
 # command = "npx"
-# args = ["@directus/content-mcp@latest"]
+# args = ["@directus/content-mcp@0.1.0"]
 # env = { DIRECTUS_URL = "${DIRECTUS_URL}", DIRECTUS_TOKEN = "${DIRECTUS_TOKEN}" }
 
 ###
 
 # [mcp_servers.playwright]
 # command = "npx"
-# args = ["@playwright/mcp@latest"]
+# args = ["@playwright/mcp@0.0.75"]

@@ -184,6 +184,7 @@ This repo configures the Next.js devtools MCP server in **root** `.mcp.json` (al
 - **Requirement:** Next.js 16+ dev server running (e.g. `bun run dev:donor`). The MCP client connects to the app’s `/_next/mcp` endpoint via `next-devtools-mcp`.
 - **Use it for runtime-grounded work:** current errors, dev logs, routes, page metadata, server actions — **do not guess** these when the MCP tools can query the live dev server.
 - **Docs:** [Next.js MCP guide](https://nextjs.org/docs/app/guides/mcp) and the [`next-devtools-mcp` repository](https://github.com/vercel/next-devtools-mcp).
+- **Version pins:** root `.mcp.json` and `.cursor/mcp.json` pin MCP package versions for deterministic agent startup. To upgrade, verify the new package version from npm, update both files together, run the relevant MCP smoke check, and document the version change.
 
 ## Supabase official tooling
 
@@ -201,9 +202,9 @@ For shadcn/ui components, registry items, styling, UI generation, or shadcn MCP 
 
 - **Skill:** load `docs/ai/skills/shadcn/SKILL.md` for official CLI/MCP/registry/component guidance.
 - **Repo companion:** load `docs/ai/skills/moai-library-shadcn/SKILL.md` for this repo's Maia/Zinc tokens, Base UI-first policy, shared `@asym/ui` abstractions, and compatibility stubs.
-- **CLI:** prefer `bunx --bun shadcn@latest ...` in this Bun repo; keep `npx shadcn@latest ...` when matching official MCP/Skills examples or client config. Use `shadcn info --json`, `shadcn docs`, `shadcn add --dry-run`, and `shadcn add --diff` before writing or updating components.
+- **CLI:** prefer `bunx --bun shadcn@latest ...` in this Bun repo for manual one-off CLI work; committed MCP configs pin exact package versions. Use `shadcn info --json`, `shadcn docs`, `shadcn add --dry-run`, and `shadcn add --diff` before writing or updating components.
 - **Shared package:** run component additions from the repo root with `--cwd packages/ui`; do not generate app-local shadcn components.
-- **MCP:** `.mcp.json` and `.cursor/mcp.json` use the official `shadcn@latest mcp` server. Codex requires manual `~/.codex/config.toml` configuration per official shadcn docs. Keep private registry credentials in local environment variables only.
+- **MCP:** `.mcp.json` and `.cursor/mcp.json` use the official shadcn MCP server with an exact package version. Codex requires manual `~/.codex/config.toml` configuration per official shadcn docs. Keep private registry credentials in local environment variables only.
 
 ### TanStack CLI and Intent
 
@@ -261,7 +262,7 @@ Prefer official, current skills, MCP servers, and CLI tools over unofficial or s
 - **Tasteful UI animation (timing, easing, CSS/Motion patterns):** `docs/ai/skills/anim/SKILL.md`
 - **Additional Emil design-engineering notes / companion reference:** `docs/ai/skills/emil-design-eng/SKILL.md`
 - **Recharts:** `docs/ai/skills/rechart/SKILL.md`
-- **TanStack work:** use the official TanStack CLI plus current official Intent skills when `npx --yes @tanstack/intent@latest list` returns a matching package; otherwise use `tanstack doc` / `tanstack search-docs` and the repo-specific TanStack guides linked in **TanStack CLI and Intent** above.
+- **TanStack work:** use the official TanStack CLI plus current official Intent skills when `npx --yes @tanstack/intent@latest list` returns a matching package; otherwise use `bunx tanstack doc` / `bunx tanstack search-docs` and the repo-specific TanStack guides linked in **TanStack CLI and Intent** above.
 - **Tiptap rich text editor (`@tiptap/*`, shared editor in `@asym/ui`):** `docs/ai/skills/tiptap/SKILL.md`
 - **Resend CLI (`resend` binary, shell, scripts, CI/CD, non-interactive flags):** `docs/ai/skills/resend-cli/SKILL.md` (not the same as SDK or tenant app integration; see `docs/guides/features/resend-integration.md` for product email routes and UI)
 - **Supabase (platform-wide: Auth, DB API, Storage, Realtime, Edge Functions, CLI, MCP, RLS, migrations):** `docs/ai/skills/supabase/SKILL.md`
