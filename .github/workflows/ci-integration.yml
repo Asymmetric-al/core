@@ -191,6 +191,7 @@ jobs:
       - name: Run Playwright CMS E2E
         env:
           CI: "1"
+          E2E_AUTH_BYPASS: ${{ secrets.DEMO_ADMIN_EMAIL != '' && secrets.DEMO_PASSWORD != '' && 'true' || 'false' }}
           PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
           PLAYWRIGHT_INCLUDE_ADMIN: "1"
         run: bun run test:e2e:cms --project=chromium
