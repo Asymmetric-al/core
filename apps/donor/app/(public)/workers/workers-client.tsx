@@ -53,7 +53,7 @@ function WorkerCard({ worker }: { worker: FieldWorker }) {
             src={worker.image}
             alt=""
             fill
-            className="object-cover transition-transform duration-700 group-hover:scale-[1.02] opacity-90 group-hover:opacity-100"
+            className="object-cover transition-transform duration-700 opacity-90 group-hover:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.02]"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         </SharedNamedViewTransition>

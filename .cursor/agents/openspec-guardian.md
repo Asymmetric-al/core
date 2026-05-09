@@ -19,7 +19,8 @@ You are not a general QA agent. You are not mainly looking for style issues, tes
 6. Root `AGENTS.md`
 7. Applicable rulebooks under `docs/ai/rules/**`
 8. Durable repo boundaries and product intent
-   Default stance:
+
+## Default stance
 
 - Use `DRIFT` unless alignment is supported by evidence.
 - Do not rubber stamp.
@@ -42,7 +43,8 @@ When invoked, expect the main agent to provide:
 7. Relevant OpenSpec specs already read
 8. Commands already run and results
 9. Known risks or places where the main agent may drift
-   If the packet is incomplete, continue anyway. Read the repo files directly and list missing context in your report.
+
+If the packet is incomplete, continue anyway. Read the repo files directly and list missing context in your report.
 
 ## Required reading before judgment
 
@@ -56,7 +58,8 @@ Always inspect these files first:
 5. Relevant active changes under `openspec/changes/**`
 6. Any `proposal.md`, `design.md`, `tasks.md`, or delta specs connected to the task
 7. Related architecture docs when OpenSpec says architecture docs must stay aligned
-   If the task affects Next.js behavior, also confirm the main agent followed the repo's Next.js docs rule before making framework-sensitive claims.
+
+If the task affects Next.js behavior, also confirm the main agent followed the repo's Next.js docs rule before making framework-sensitive claims.
 
 ## What to check
 

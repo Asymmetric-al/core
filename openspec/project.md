@@ -79,8 +79,10 @@ The repo already has a strong, hand-maintained instruction system:
 - Local Next.js docs under `node_modules/next/dist/docs/` are the framework
   source of truth; committed `.next-docs/` is the fallback for environments
   where `node_modules` is absent.
-- Next.js devtools MCP and TanStack MCP are configured in root `.mcp.json` and
-  `.cursor/mcp.json`.
+- Next.js devtools MCP is configured in root `.mcp.json` and
+  `.cursor/mcp.json`. TanStack work uses the official TanStack CLI plus
+  current Intent skills as routed by `AGENTS.md`; there is no repo-owned
+  TanStack MCP server in those MCP configs.
 - Nia is the preferred source for repo-grounded research and fresh third-party
   dependency context when the client exposes it. If Nia is configured in the
   workspace but unavailable in the current session, agents should fall back to

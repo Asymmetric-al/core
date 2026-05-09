@@ -1,5 +1,3 @@
-import path from "node:path";
-
 import { loadEnvConfig } from "@next/env";
 
 import { resolveMonorepoRoot } from "../../scripts/resolve-monorepo-root.mjs";
@@ -8,7 +6,6 @@ import type { NextConfig } from "next";
 
 const WORKSPACE_ROOT = resolveMonorepoRoot(import.meta.url);
 loadEnvConfig(WORKSPACE_ROOT);
-loadEnvConfig(path.join(WORKSPACE_ROOT, "apps", "missionary"));
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -29,6 +26,7 @@ const nextConfig: NextConfig = {
     "@asym/email",
   ],
   experimental: {
+    globalNotFound: true,
     viewTransition: true,
     optimizePackageImports: ["@asym/ui", "lucide-react"],
   },

@@ -38,6 +38,7 @@ type MembershipRow = {
 
 export interface AuthContext {
   userId: string | null;
+  email: string | null;
   tenantId: string | null;
   role: UserRole | null;
   profileRole: UserRole | null;
@@ -48,6 +49,7 @@ export interface AuthContext {
 
 export interface AuthenticatedContext extends AuthContext {
   userId: string;
+  email: string | null;
   tenantId: string;
   role: UserRole;
   profileRole: UserRole | null;
@@ -122,6 +124,7 @@ async function createAuthContextClient(
 function createUnauthenticatedContext(): AuthContext {
   return {
     userId: null,
+    email: null,
     tenantId: null,
     role: null,
     profileRole: null,
@@ -170,6 +173,7 @@ async function getE2EAuthBypassContext(): Promise<AuthContext | null> {
       : null);
   return {
     userId: e2eSession.userId,
+    email: null,
     tenantId: tenantIdForBypass,
     role,
     profileRole,
@@ -221,6 +225,7 @@ export async function getAuthContext(request?: Request): Promise<AuthContext> {
   if (!profile) {
     return {
       userId: user.id,
+      email: typeof user.email === "string" ? user.email : null,
       tenantId: null,
       role: null,
       profileRole: null,
@@ -247,6 +252,7 @@ export async function getAuthContext(request?: Request): Promise<AuthContext> {
 
   return {
     userId: user.id,
+    email: typeof user.email === "string" ? user.email : null,
     tenantId,
     role,
     profileRole,

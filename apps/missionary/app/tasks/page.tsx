@@ -1,5 +1,5 @@
-import TasksPage from "./tasks-page-client";
+import PageClient from "./page-client";
 
 export default function Page() {
-  return <TasksPage />;
+  return <PageClient />;
 }

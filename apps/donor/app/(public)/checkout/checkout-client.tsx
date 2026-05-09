@@ -605,9 +605,9 @@ function ConfigStep({
                 role="radio"
                 aria-checked={amount === val && !customAmount}
                 className={cn(
-                  "h-24 rounded-[1.8rem] border-2 font-bold font-syne text-2xl transition-all duration-500",
+                  "h-24 rounded-[1.8rem] border-2 font-bold font-syne text-2xl press-feedback",
                   amount === val && !customAmount
-                    ? "border-slate-950 bg-slate-950 text-white shadow-2xl scale-[1.05]"
+                    ? "border-slate-950 bg-slate-950 text-white shadow-2xl ring-4 ring-slate-950/15"
                     : "border-slate-50 bg-slate-50 text-slate-400 hover:border-slate-200 hover:bg-slate-100",
                 )}
               >
@@ -707,7 +707,7 @@ function ConfigStep({
         onClick={onNext}
         disabled={amount <= 0}
         size="lg"
-        className="w-full h-24 text-2xl font-black font-syne bg-slate-950 hover:bg-zinc-800 text-white shadow-2xl rounded-full transition-all hover:scale-[1.02] uppercase tracking-widest"
+        className="w-full h-24 text-2xl font-black font-syne bg-slate-950 hover:bg-zinc-800 text-white shadow-2xl rounded-full hover-scale-subtle uppercase tracking-widest"
       >
         Next Step <ArrowRight className="ml-4 h-8 w-8" aria-hidden="true" />
       </Button>
@@ -1020,7 +1020,7 @@ function PaymentStep({
                 animate={{ opacity: 1, scale: 1 }}
                 className="flex items-center justify-center h-full min-h-[300px]"
               >
-                <button className="h-20 px-12 rounded-full bg-black text-white font-bold text-2xl flex items-center gap-4 hover:scale-[1.02] transition-all shadow-2xl">
+                <button className="h-20 px-12 rounded-full bg-black text-white font-bold text-2xl flex items-center gap-4 press-feedback hover-scale-subtle shadow-2xl">
                   <Wallet className="h-8 w-8" aria-hidden="true" /> Pay with
                   Apple Pay
                 </button>
@@ -1043,7 +1043,7 @@ function PaymentStep({
           onClick={onConfirmPayment}
           disabled={isProcessing}
           size="lg"
-          className="flex-1 h-24 text-2xl font-black font-syne bg-zinc-900 hover:bg-zinc-800 text-white shadow-2xl rounded-full transition-all hover:scale-[1.02] uppercase tracking-widest"
+          className="flex-1 h-24 text-2xl font-black font-syne bg-zinc-900 hover:bg-zinc-800 text-white shadow-2xl rounded-full hover-scale-subtle uppercase tracking-widest"
         >
           {isProcessing ? (
             <Loader2

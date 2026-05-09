@@ -1,57 +1,73 @@
-## 2026-04-25 (OpenSpec Guardian instruction-system)
+# Working Set
+
+## 2026-04-25 (OpenSpec Guardian agent, route shells, and env helpers)
 
 - Date: 2026-04-25
 - Repo: Asymmetric-al/core
-- Goal: Add reusable Cursor `openspec-guardian` background subagent plus rulebook and routing so implementation stays aligned with user prompt, OpenSpec, active changes, and repo boundaries (not general QA).
+- Goal: Add reusable Cursor `openspec-guardian` background subagent plus rulebook and routing, while keeping the reviewed route-shell and dev-env cleanup explicit in scope.
 - Primary area:
   - `.cursor/agents/openspec-guardian.md`
   - `.cursor/rules/openspec-guardian.mdc`
   - `docs/ai/rules/openspec-guardian.md`
-  - `AGENTS.md` (routing bullet only)
-  - `README.md` (AI Agent Guidance bullet only)
+  - `AGENTS.md`
+  - `README.md`
   - `docs/ai/working-set.md` (this entry)
+  - `apps/{admin,donor,missionary}/next.config.ts`
+  - `apps/*/app/**/{page.tsx,page-client.tsx,loading.tsx}`
+  - `scripts/{resolve-monorepo-root,sync-root-env-to-apps}.mjs`
+  - `package.json`
 - Constraints:
-  - Instruction-system and docs only; no apps, packages, Supabase, runtime/product code.
+  - Keep durable source-of-truth and prompt-alignment guidance in docs/rules only.
+  - Preserve server `page.tsx` route wrappers and colocated client islands for Next.js App Router routes.
+  - Use the repo-root `.env.local` contract from `AGENTS.md`; do not silently copy or overwrite app-local env files.
   - Do not edit generated marker regions in `AGENTS.md`; do not hand-edit skill mirrors.
-- Verification commands run:
-  - `bun run format:check`
-  - `bunx @fission-ai/openspec@latest validate --all`
-  - `bun run lint`
-- Outcome: Guardian wiring added; `skills:verify` / `skills:sync` skipped (no skill tree edits).
+- Evidence sources used:
+  - `docs/pr-reviews/pr-206-review.md`
+  - `AGENTS.md`
+  - `docs/ai/{stack-registry,working-set}.md`
+  - `docs/ai/rules/{general,frontend,testing,typescript-future-proofing}.md`
+  - Next.js 16.2.1 docs under `node_modules/next/dist/docs/`
+  - Repo-scoped `rg` + direct file reads (Nia MCP unavailable in this runtime)
 
-## 2026-04-25 (Async QA Foreman instruction-system)
+## 2026-04-25 (Async QA Foreman agent and verification workflow)
 
 - Date: 2026-04-25
 - Repo: Asymmetric-al/core
-- Goal: Add reusable Cursor Async QA Foreman docs and wiring (`qa-foreman` subagent, Cursor rule, durable rulebook, AGENTS/README routing) so anyone can request grind-style background QA without changing product code.
+- Goal: Add reusable Cursor Async QA Foreman docs and wiring (`qa-foreman` subagent, Cursor rule, durable rulebook, AGENTS/README routing), with clear completion gates for quality checks and merge readiness.
 - Primary area:
   - `.cursor/agents/qa-foreman.md`
   - `.cursor/rules/async-qa-foreman.mdc`
   - `docs/ai/rules/async-qa-foreman.md`
-  - `AGENTS.md` (routing bullet only)
-  - `README.md` (AI Agent Guidance bullet only)
+  - `AGENTS.md`
+  - `README.md`
   - `docs/ai/working-set.md` (this entry)
 - Constraints:
-  - Docs and agent-tooling only; no apps, packages, runtime scripts, Supabase migrations, or product code unless verification proved otherwise.
+  - Keep the QA Foreman optional and request-triggered; it must not replace the main agent's ownership.
+  - Keep completion gates explicit: relevant tests, typecheck, lint, build when app/runtime behavior changes, and final diff review.
   - Do not edit generated marker regions in `AGENTS.md`; do not hand-edit skill mirrors.
-- Verification commands run:
-  - `bun run format:check`
-  - `bun run lint`
-- Outcome: Instruction-system files added/updated; `skills:verify` / `skills:sync` skipped (no changes under `docs/ai/skills/`, `.cursor/skills/`, or `.agents/skills/`).
+- Evidence sources used:
+  - `docs/pr-reviews/pr-206-review.md`
+  - `AGENTS.md`
+  - `docs/ai/rules/{general,frontend,testing}.md`
+  - Repo-scoped `rg` + direct file reads (Nia MCP unavailable in this runtime)
 
-## 2026-04-25 (repo-wide shadcn/tailwind/ui audit planning)
+## 2026-04-25 (repo-wide shadcn/tailwind/ui audit and route-shell cleanup)
 
 - Date: 2026-04-25
 - Repo: Asymmetric-al/core
-- Goal: Produce a plan-only audit for shadcn/ui + Tailwind v4 + Maia/Zinc consistency across `packages/ui` and `apps/{admin,donor,missionary}` without code implementation.
+- Goal: Audit shadcn/ui + Tailwind v4 + Maia/Zinc consistency across `packages/ui` and `apps/{admin,donor,missionary}`, then preserve reviewed low-risk route-shell, accessibility, and motion-token cleanup in the PR branch.
 - Primary area:
   - `packages/ui/components.json`
   - `packages/ui/styles/globals.css`
   - `packages/ui/components/{shadcn,primitives,view-transitions}`
   - `apps/{admin,donor,missionary}/app/{globals.css,layout.tsx}`
+  - `apps/admin/app/events/page-client.tsx`
+  - `apps/donor/app/(dashboard)/donor-dashboard/wallet/page-client.tsx`
+  - `apps/missionary/app/tasks/page-client.tsx`
   - `packages/lib/{motion.tsx,motion-presets.ts,view-transitions/*}`
 - Constraints:
-  - Plan mode only (no UI refactors in this step).
+  - Keep UI changes token-based and limited to reviewed accessibility/motion cleanups.
+  - Preserve current `epic` route naming convention: server `page.tsx` wrappers import colocated `page-client.tsx`.
   - Preserve Maia theme, Zinc palette, and shared token ownership in `packages/ui/styles/globals.css`.
   - Preserve app behavior/routing/providers and existing compatibility deep imports.
   - Use Bun/Turbo scripts only; inspect shadcn CLI with `--cwd packages/ui`.
@@ -61,7 +77,89 @@
   - `.next-docs` references for Server/Client Components, Cache Components, and Image usage
   - repo `rg` scans across apps/packages/docs for imports, tokens, motion, and accessibility markers
 
-# Working Set
+## 2026-04-24 (Tiptap shared editor refinement + hardening tests)
+
+- Date: 2026-04-24
+- Repo: Asymmetric-al/core
+- Goal: Audit and harden the shared `@asym/ui` Tiptap editor implementation with low-risk refinements and expanded unit coverage for helpers, extensions, viewer, editor control sync, toolbar, and link bubble behavior.
+- Primary area:
+  - `packages/ui/components/shadcn/rich-text-editor/*`
+  - `tests/unit/packages/ui/components/shadcn/rich-text-editor/*`
+- Constraints:
+  - Preserve existing public API and JSON-string storage model.
+  - Keep shared ownership in `packages/ui`; no app-local editor forks.
+  - Keep `immediatelyRender: false`, `useEditorState`-driven toolbar/bubble state, and static-renderer viewer path.
+- Evidence sources used:
+  - `AGENTS.md`, `docs/ai/rules/{frontend,testing}.md`, `docs/ai/skills/tiptap/SKILL.md`
+  - Official Tiptap docs pages for React/Next, StarterKit, Link, Placeholder, Image, setContent, and Static Renderer
+  - Repo-scoped `rg` + direct file reads (Nia MCP unavailable in this runtime)
+
+## 2026-05-07 (Twenty CRM integration phase pack)
+
+- Date: 2026-05-07
+- Repo: Asymmetric-al/core
+- Goal: Break the attached Deep Twenty CRM integration plan into repo-local phase docs and create a separate current-implementation inventory without changing the phase sequence based on current status.
+- Primary area:
+  - `docs/guides/features/twenty-crm-integration/*`
+  - `packages/api/src/admin/crm/*`
+  - `apps/admin/app/crm/*`
+  - `supabase/migrations/*`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `docs/guides/development/tanstack-integration.md`
+- Constraints:
+  - Keep phase docs independent of current implementation status.
+  - Use the inventory only for sizing and what-exists-now reporting.
+  - Nia tools are unavailable in this session; use repo-scoped `rg` and direct file reads as fallback evidence.
+  - No product code, migrations, env files, or runtime behavior changes.
+- Evidence sources used:
+  - `twenty_crm_deep_integration_plan.pdf`
+  - `openspec/project.md`
+  - `openspec/specs/{platform-product-intent,platform-surfaces,platform-principles,platform-boundaries}/spec.md`
+  - `docs/ai/rules/{general,backend,testing}.md`
+  - `docs/ai/skills/supabase/SKILL.md`
+  - `docs/ai/{stack-registry,working-set}.md`
+  - Official Twenty docs for API, webhooks, Docker Compose, and apps getting started
+
+## 2026-04-24 (AL-203 unit feedback loop)
+
+- Date: 2026-04-24
+- Repo: Asymmetric-al/core
+- Goal: Implement a repeatable unit-test feedback command that runs the full Vitest suite, writes structured pass/fail artifacts, reruns failing files, categorizes remediation-related failures, and optionally posts failing reports to AL-203.
+- Primary area:
+  - `scripts/verify/unit-feedback.mjs`
+  - `tests/unit/scripts/unit-feedback.test.ts`
+  - `package.json`
+  - `docs/ci.md`
+- Constraints:
+  - Keep `bun run test:unit` unchanged as the CI source of truth.
+  - Write generated feedback artifacts under ignored `test-results/`.
+  - Do not post to GitHub when the unit suite passes.
+- Evidence sources used:
+  - `docs/ai/rules/{general,testing}.md`
+  - `.agents/skills/vitest/SKILL.md`
+  - `vitest.config.ts`
+  - `scripts/verify/test-unit-warnings.mjs`
+
+## 2026-04-24 (AL-203 Next.js/React audit remediation)
+
+- Date: 2026-04-24
+- Repo: Asymmetric-al/core
+- Goal: Implement the Next.js/React/Turborepo audit remediation: add global App Router fallbacks, remove donor route barrel imports, reduce route-level client boundaries, and document the rich-text raw image exception.
+- Primary area:
+  - `apps/{admin,donor,missionary}/app/**`
+  - `apps/{admin,donor,missionary}/next.config.ts`
+  - `apps/donor/features/donor/components/**`
+  - `packages/ui/components/shadcn/rich-text-editor/**`
+  - `docs/ai/audits/2026-04-24-next-react-turborepo-assessment.md`
+- Constraints:
+  - Use `.next-docs/` as the Next.js 16.2.1 docs fallback because `node_modules/next/dist/docs/` is unavailable in this environment.
+  - Nia tools are unavailable in this session; use repo-scoped `git grep`, PowerShell search, and direct file reads as fallback evidence.
+  - Preserve interactive page behavior by moving client logic into colocated islands rather than rewriting flows.
+- Evidence sources used:
+  - `docs/ai/rules/{general,frontend,testing}.md`
+  - `docs/ai/skills/{nextjs-app-router,react-component-dev,vercel-react-best-practices}/SKILL.md`
+  - `.next-docs/01-app/01-getting-started/{05-server-and-client-components,12-images}.mdx`
+  - `.next-docs/01-app/03-api-reference/03-file-conventions/{error,not-found}.mdx`
 
 ## 2026-04-17 (shadcn/ui migration: post-merge validation)
 

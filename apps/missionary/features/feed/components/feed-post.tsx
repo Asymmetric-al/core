@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "@asym/lib/motion";
+import { motion, AnimatePresence, useReducedMotion } from "@asym/lib/motion";
 import {
   Avatar,
   AvatarFallback,
@@ -86,18 +86,23 @@ const FloatingEmoji = ({
   offsetX: number;
   offsetRotate: number;
 }) => {
+  const reduceMotion = useReducedMotion();
+  if (reduceMotion) {
+    // Reduced motion: skip the celebratory float entirely.
+    return null;
+  }
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95, y: 0, x: 0 }}
       animate={{
         opacity: [0, 1, 1, 0],
-        scale: [0.95, 1.8, 1.2, 0.8],
-        y: [-20, -120],
+        scale: [0.95, 1.4, 1.1, 0.85],
+        y: [-20, -100],
         x: offsetX,
         rotate: offsetRotate,
       }}
       transition={{
-        duration: 1.2,
+        duration: 1.0,
         ease: "easeOut",
         times: [0, 0.2, 0.8, 1],
       }}
@@ -193,7 +198,7 @@ const ReactionButton = ({
           handleClick();
         }}
         className={cn(
-          "relative flex items-center gap-2.5 px-5 py-2.5 rounded-2xl transition-all duration-300 font-black text-[10px] uppercase tracking-widest overflow-hidden group h-10",
+          "relative flex items-center gap-2.5 px-5 py-2.5 rounded-2xl transition-[background-color,color,box-shadow,border-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] font-black text-[10px] uppercase tracking-widest overflow-hidden group h-10",
           isActive
             ? cn(bg, activeColor, "shadow-lg ring-1 ring-black/5")
             : "text-slate-400 hover:text-slate-600 bg-white border border-slate-100",
@@ -314,7 +319,7 @@ export function FeedPost({ post, onLike, onPrayer }: FeedPostProps) {
                     src={post.media[0].url}
                     alt="Post media"
                     fill
-                    className="object-cover transition-transform duration-500 hover:scale-105"
+                    className="object-cover transition-transform duration-500 [@media(hover:hover)_and_(pointer:fine)]:hover:scale-105"
                     sizes="(max-width: 768px) 100vw, 600px"
                     priority
                   />

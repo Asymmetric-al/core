@@ -21,7 +21,8 @@ Use this workflow when the prompt includes phrases like:
 - long-running verification
 - skeptical senior engineer
 - do not stop until verified
-  Also use it for larger implementation tasks where the user clearly wants extra pressure against early stopping.
+
+Also use it for larger implementation tasks where the user clearly wants extra pressure against early stopping.
 
 ---
 

@@ -11,7 +11,7 @@ function readRepoFile(path: string) {
 describe("virtualization pilot screens", () => {
   it("keeps donor history virtualization enabled instead of threshold-toggling", () => {
     const source = readRepoFile(
-      "apps/donor/app/(dashboard)/donor-dashboard/history/page.tsx",
+      "apps/donor/app/(dashboard)/donor-dashboard/history/page-client.tsx",
     );
 
     expect(source).not.toMatch(

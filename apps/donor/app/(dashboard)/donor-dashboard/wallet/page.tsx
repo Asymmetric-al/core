@@ -1,5 +1,5 @@
-import DonorWalletPage from "./wallet-page-client";
+import PageClient from "./page-client";
 
 export default function Page() {
-  return <DonorWalletPage />;
+  return <PageClient />;
 }

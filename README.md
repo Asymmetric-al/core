@@ -25,6 +25,8 @@ Per-app dev commands (from root `package.json`):
 - `bun run dev:admin` → admin app, port **3030**
 - `bun run dev:missionary` → missionary app, port **4000**
 
+Dev env source of truth is the repo-root `.env.local`. Each app's `next.config.ts` loads that root file with `@next/env`; dev scripts do not copy secrets into app directories. If older tooling requires app-local env files, run `bun run env:link-apps` to create symlinks. The helper refuses to overwrite an existing app `.env.local` unless rerun with `--force`.
+
 ### Cursor Cloud Agent (VM) secrets
 
 For Cursor Cloud Agent runs, set secrets in the Cloud Agent Secrets settings instead of committing values to repo files.
