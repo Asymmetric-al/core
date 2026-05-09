@@ -7,4 +7,4 @@ description: Pointer to the canonical agent instruction and skill system for thi
 
 **Canonical content:** `docs/ai/skills/repo-entry/SKILL.md`
 
-This root file exists so tools that discover `SKILL.md` at the repository root still land on the same entry skill. Edit the canonical file under `docs/ai/skills/repo-entry/` only; run `bun run skills:sync` after changes.
+This root file exists so tools that discover `SKILL.md` at the repository root still land on the same entry skill. Edit the canonical file under `docs/ai/skills/repo-entry/` only; run `bun run skills:sync` and `bun run skills:verify` after changes.
