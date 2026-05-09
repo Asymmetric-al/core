@@ -39,6 +39,35 @@ export const adminSurfaceQueryKeys = {
   locationLinkedEntities: ["admin", "locations", "linked-entities"] as const,
 } as const;
 
+/**
+ * Canonical TanStack Query keys for the Support Hub feature. All hooks under
+ * `apps/admin/features/support-hub/hooks` build on these so cache fan-out
+ * stays consistent and a later phase can rename a key in exactly one place.
+ */
+export const supportHubQueryKeys = {
+  root: ["admin", "support"] as const,
+  conversations: ["admin", "support", "conversations"] as const,
+  conversation: (id: string) =>
+    ["admin", "support", "conversations", id] as const,
+  messagesAll: ["admin", "support", "messages"] as const,
+  messages: (conversationId: string) =>
+    ["admin", "support", "messages", conversationId] as const,
+  labels: ["admin", "support", "labels"] as const,
+  macros: ["admin", "support", "macros"] as const,
+  cannedResponses: ["admin", "support", "canned-responses"] as const,
+  savedViews: ["admin", "support", "saved-views"] as const,
+  inboxes: ["admin", "support", "inboxes"] as const,
+  inboxSettings: ["admin", "support", "inbox-settings"] as const,
+  agents: ["admin", "support", "agents"] as const,
+  teams: ["admin", "support", "teams"] as const,
+  businessHours: ["admin", "support", "business-hours"] as const,
+  slaPolicies: ["admin", "support", "sla-policies"] as const,
+  stats: (inboxId: string | null) =>
+    ["admin", "support", "stats", inboxId ?? "all"] as const,
+  reports: (slice: string, inboxId: string | null) =>
+    ["admin", "support", "reports", slice, inboxId ?? "all"] as const,
+} as const;
+
 export type SupabaseTableQueryName = keyof typeof supabaseTableQueryKeys;
 export type AdminSurfaceQueryName = keyof typeof adminSurfaceQueryKeys;
 

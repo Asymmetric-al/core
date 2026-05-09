@@ -29,6 +29,55 @@ export { adminLocationsCollection } from "./admin-locations";
 export { donorHistoryTransactionsCollection } from "./donor-history";
 export { supportHubReadModel } from "./support-workspace";
 
+export {
+  supportAgentsCollection,
+  supportBusinessHoursCollection,
+  supportCannedResponsesCollection,
+  supportConversationsCollection,
+  supportInboxSettingsCollection,
+  supportInboxesCollection,
+  supportLabelsCollection,
+  supportMacrosCollection,
+  supportMessagesCollection,
+  supportSavedViewsCollection,
+  supportSlaPoliciesCollection,
+  supportTeamsCollection,
+} from "./support-hub";
+
+export type {
+  SupportAssignee,
+  SupportBusinessHours,
+  SupportCannedResponse,
+  SupportChannel,
+  SupportContactRef,
+  SupportConversation,
+  SupportConversationStatus,
+  SupportEmailHeaders,
+  SupportInbox,
+  SupportInboxLayout,
+  SupportInboxSection,
+  SupportInboxSettings,
+  SupportInboxView,
+  SupportLabel,
+  SupportLabelTone,
+  SupportLastMessageDirection,
+  SupportMacro as SupportHubMacro,
+  SupportMacroAction,
+  SupportMessage,
+  SupportMessageAttachment,
+  SupportMessageDeliveryState,
+  SupportMessageDirection,
+  SupportMessageType,
+  SupportParticipant,
+  SupportPriority,
+  SupportReportSlice,
+  SupportRichTextPayload,
+  SupportSavedView,
+  SupportSavedViewFilter,
+  SupportSlaPolicy,
+  SupportTeam,
+} from "./support-hub";
+
 export type {
   AdminCrmContact,
   AdminTask,

@@ -128,6 +128,15 @@ describe("support hub derived model", () => {
     ).toBe("2h ago");
   });
 
+  it("formats future follow-up times as upcoming", () => {
+    expect(
+      formatSupportRelativeTime(
+        "2026-04-30T15:25:00.000Z",
+        "2026-04-30T15:00:00.000Z",
+      ),
+    ).toBe("in 25m");
+  });
+
   it("filters tickets by queue and status", () => {
     expect(
       filterSupportTickets(model.tickets, {

@@ -15,6 +15,7 @@ import { withOperation } from "../../shared/with-operation";
 const SUPPORT_ADMIN_ROLES = ["staff", "admin", "super_admin"] as const;
 
 const createSupportTicketSchema = z.object({
+  contactId: z.string().trim().min(1).optional(),
   contactEmail: z.string().email().optional().or(z.literal("")),
   contactName: z.string().trim().min(1, "Contact is required."),
   priority: z.enum(["low", "normal", "high", "urgent"]),
@@ -34,12 +35,12 @@ function requireAdminSupabase() {
 
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = new URL(request.url).searchParams;
-    const params = parseSupportTicketListParams(searchParams);
-    const supabaseAdmin = requireAdminSupabase();
     const auth = await getAuthContext(request);
     requireRole(auth, [...SUPPORT_ADMIN_ROLES]);
     const ctx = auth as AuthenticatedContext;
+    const searchParams = new URL(request.url).searchParams;
+    const params = parseSupportTicketListParams(searchParams);
+    const supabaseAdmin = requireAdminSupabase();
 
     return NextResponse.json(
       await listSupportTickets(supabaseAdmin, ctx.tenantId, params),
@@ -70,6 +71,7 @@ export const POST = withOperation(
       auth.userId,
       {
         ...parsed.data,
+        contactId: parsed.data.contactId || undefined,
         contactEmail: parsed.data.contactEmail || undefined,
       },
     );

@@ -57,6 +57,7 @@ export function NewTicketForm({ contacts, queues }: NewTicketFormProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          contactId,
           contactEmail: contact.email,
           contactName: contact.name,
           priority,

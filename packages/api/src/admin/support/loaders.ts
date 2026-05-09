@@ -3,6 +3,7 @@ import { getAdminClient } from "@asym/database/supabase/admin";
 
 import { parseSupportTicketListParams } from "./query";
 import {
+  getSupportMetadata,
   getSupportSummary,
   getSupportTicket,
   listSupportTickets,
@@ -61,7 +62,7 @@ export async function loadSupportTicketList(
   const { supabaseAdmin, tenantId } = await getSupportLoaderContext();
   const params = parseSupportTicketListParams(searchParams);
   const [model, tickets] = await Promise.all([
-    getSupportSummary(supabaseAdmin, tenantId),
+    getSupportMetadata(supabaseAdmin, tenantId),
     listSupportTickets(supabaseAdmin, tenantId, params),
   ]);
 
@@ -76,7 +77,7 @@ export async function loadSupportTicketDetail(
 ): Promise<SupportTicketDetailReadModel> {
   const { supabaseAdmin, tenantId } = await getSupportLoaderContext();
   const [model, ticket] = await Promise.all([
-    getSupportSummary(supabaseAdmin, tenantId),
+    getSupportMetadata(supabaseAdmin, tenantId),
     getSupportTicket(supabaseAdmin, tenantId, id),
   ]);
 

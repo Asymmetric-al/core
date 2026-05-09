@@ -11,6 +11,7 @@ import {
   DELIVERABILITY_HELP_URLS,
   HTTP_STATUS,
   RESEND_ERROR_CODES,
+  RESEND_LIMITS,
   RETRY_CONFIG,
 } from "./constants";
 import { getFirstBlockingDeliverabilityWarning } from "./deliverability-warnings";
@@ -74,7 +75,7 @@ export interface SendEmailOptions {
   subject: string;
   html: string;
   text?: string;
-  idempotencyKey?: string;
+  idempotencyKey: string;
   tags?: Array<{ name: string; value: string }>;
   customArgs?: Record<string, string>;
 }
@@ -228,12 +229,70 @@ function extractResendErrorDetails(errorLike: unknown): ResendErrorDetails {
   return { name, message, statusCode, retryAfter };
 }
 
+function getHeaderValue(headers: unknown, name: string): string | null {
+  if (!headers) {
+    return null;
+  }
+
+  if (headers instanceof Headers) {
+    return headers.get(name);
+  }
+
+  if (!isJsonRecord(headers)) {
+    return null;
+  }
+
+  const lowerName = name.toLowerCase();
+  for (const [key, value] of Object.entries(headers)) {
+    if (key.toLowerCase() !== lowerName) {
+      continue;
+    }
+
+    return asString(value);
+  }
+
+  return null;
+}
+
+function extractRetryAfterSeconds(headers: unknown): number | undefined {
+  const retryAfter = getHeaderValue(headers, "retry-after");
+  if (!retryAfter) {
+    return undefined;
+  }
+
+  const seconds = asNumber(retryAfter);
+  if (seconds !== null && seconds >= 0) {
+    return seconds;
+  }
+
+  const dateMs = Date.parse(retryAfter);
+  if (Number.isFinite(dateMs)) {
+    return Math.max(0, Math.ceil((dateMs - Date.now()) / 1000));
+  }
+
+  return undefined;
+}
+
 function isRetryable(details: ResendErrorDetails): boolean {
+  if (details.retryAfter !== undefined) {
+    return true;
+  }
+
   if (
     details.statusCode !== undefined &&
     RETRY_CONFIG.retryableStatuses.some(
       (statusCode) => statusCode === details.statusCode,
     )
+  ) {
+    return true;
+  }
+
+  const message = details.message.toLowerCase();
+  if (
+    message.includes("fetch failed") ||
+    message.includes("network") ||
+    message.includes("timed out") ||
+    message.includes("timeout")
   ) {
     return true;
   }
@@ -253,9 +312,18 @@ function sleep(ms: number): Promise<void> {
   });
 }
 
-function backoffDelayMs(attemptNumber: number): number {
+export function calculateResendRetryDelayMs(
+  attemptNumber: number,
+  retryAfterSeconds?: number,
+): number {
+  if (retryAfterSeconds !== undefined) {
+    return Math.min(RETRY_CONFIG.maxDelayMs, retryAfterSeconds * 1000);
+  }
+
   const exponential = RETRY_CONFIG.baseDelayMs * 2 ** attemptNumber;
-  return Math.min(RETRY_CONFIG.maxDelayMs, exponential);
+  const cappedDelay = Math.min(RETRY_CONFIG.maxDelayMs, exponential);
+  const jitter = cappedDelay * RETRY_CONFIG.jitterRatio * Math.random();
+  return Math.min(RETRY_CONFIG.maxDelayMs, Math.round(cappedDelay + jitter));
 }
 
 function formatAddress(email: string, name?: string): string {
@@ -309,6 +377,75 @@ function buildTags(
   }
 
   return normalized;
+}
+
+function validateSendEmailOptions(
+  options: SendEmailOptions,
+  recipientCount: number,
+  correlationId: string,
+): EmailSendResult | null {
+  if (!options.idempotencyKey || options.idempotencyKey.trim().length === 0) {
+    return {
+      success: false,
+      correlationId,
+      recipientCount,
+      retryCount: 0,
+      errors: [
+        {
+          code: RESEND_ERROR_CODES.VALIDATION_ERROR,
+          message:
+            "idempotencyKey is required for Resend sends to prevent duplicate email delivery.",
+        },
+      ],
+    };
+  }
+
+  if (options.idempotencyKey.length > 256) {
+    return {
+      success: false,
+      correlationId,
+      recipientCount,
+      retryCount: 0,
+      errors: [
+        {
+          code: RESEND_ERROR_CODES.VALIDATION_ERROR,
+          message: "idempotencyKey must be 256 characters or fewer.",
+        },
+      ],
+    };
+  }
+
+  if (recipientCount === 0) {
+    return {
+      success: false,
+      correlationId,
+      recipientCount,
+      retryCount: 0,
+      errors: [
+        {
+          code: RESEND_ERROR_CODES.VALIDATION_ERROR,
+          message: "At least one recipient is required.",
+        },
+      ],
+    };
+  }
+
+  if (recipientCount > RESEND_LIMITS.maxRecipientsPerEmail) {
+    return {
+      success: false,
+      correlationId,
+      recipientCount,
+      retryCount: 0,
+      errors: [
+        {
+          code: RESEND_ERROR_CODES.VALIDATION_ERROR,
+          message: `Resend supports at most ${RESEND_LIMITS.maxRecipientsPerEmail} recipients per single email request.`,
+        },
+      ],
+    };
+  }
+
+  return null;
 }
 
 function mapDomainAuthentication(
@@ -811,6 +948,15 @@ export async function sendEmail(
   const correlationId = crypto.randomUUID();
   const resend = createResendClientInstance(apiKey);
   const recipients = Array.isArray(options.to) ? options.to : [options.to];
+  const validationError = validateSendEmailOptions(
+    options,
+    recipients.length,
+    correlationId,
+  );
+  if (validationError) {
+    return validationError;
+  }
+
   const tags = buildTags(options.tags, options.customArgs);
 
   const payload = {
@@ -831,14 +977,9 @@ export async function sendEmail(
 
   for (let attempt = 0; attempt <= RETRY_CONFIG.maxRetries; attempt++) {
     try {
-      const response = await resend.emails.send(
-        payload,
-        options.idempotencyKey
-          ? {
-              idempotencyKey: options.idempotencyKey,
-            }
-          : undefined,
-      );
+      const response = await resend.emails.send(payload, {
+        idempotencyKey: options.idempotencyKey,
+      });
 
       if (!response.error) {
         return {
@@ -846,14 +987,18 @@ export async function sendEmail(
           messageId: response.data?.id,
           correlationId,
           recipientCount: recipients.length,
+          retryCount: attempt,
         };
       }
 
       const details = extractResendErrorDetails(response.error);
+      details.retryAfter ??= extractRetryAfterSeconds(
+        (response as { headers?: unknown }).headers,
+      );
       lastError = details;
 
       if (attempt < RETRY_CONFIG.maxRetries && isRetryable(details)) {
-        await sleep(backoffDelayMs(attempt));
+        await sleep(calculateResendRetryDelayMs(attempt, details.retryAfter));
         continue;
       }
 
@@ -862,6 +1007,7 @@ export async function sendEmail(
         success: false,
         correlationId,
         recipientCount: recipients.length,
+        retryCount: attempt,
         rateLimited: errorCode === RESEND_ERROR_CODES.RATE_LIMITED,
         retryAfter: details.retryAfter,
         errors: [
@@ -876,7 +1022,7 @@ export async function sendEmail(
       lastError = details;
 
       if (attempt < RETRY_CONFIG.maxRetries && isRetryable(details)) {
-        await sleep(backoffDelayMs(attempt));
+        await sleep(calculateResendRetryDelayMs(attempt, details.retryAfter));
         continue;
       }
 
@@ -885,6 +1031,7 @@ export async function sendEmail(
         success: false,
         correlationId,
         recipientCount: recipients.length,
+        retryCount: attempt,
         rateLimited: errorCode === RESEND_ERROR_CODES.RATE_LIMITED,
         retryAfter: details.retryAfter,
         errors: [
@@ -901,6 +1048,7 @@ export async function sendEmail(
     success: false,
     correlationId,
     recipientCount: recipients.length,
+    retryCount: RETRY_CONFIG.maxRetries,
     errors: [
       {
         code: RESEND_ERROR_CODES.UNKNOWN,

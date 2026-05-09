@@ -3,12 +3,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const {
   getAdminClientMock,
   getAuthContextMock,
+  getSupportMetadataMock,
   getSupportSummaryMock,
   getSupportTicketMock,
   listSupportTicketsMock,
 } = vi.hoisted(() => ({
   getAdminClientMock: vi.fn(),
   getAuthContextMock: vi.fn(),
+  getSupportMetadataMock: vi.fn(),
   getSupportSummaryMock: vi.fn(),
   getSupportTicketMock: vi.fn(),
   listSupportTicketsMock: vi.fn(),
@@ -31,6 +33,7 @@ vi.mock("@asym/auth/context", () => ({
 }));
 
 vi.mock("../../../../packages/api/src/admin/support/service", () => ({
+  getSupportMetadata: getSupportMetadataMock,
   getSupportSummary: getSupportSummaryMock,
   getSupportTicket: getSupportTicketMock,
   listSupportTickets: listSupportTicketsMock,
@@ -68,6 +71,7 @@ describe("admin support server loaders", () => {
     vi.clearAllMocks();
     getAdminClientMock.mockReturnValue({ client: supabaseAdmin, error: null });
     getAuthContextMock.mockResolvedValue(authContext);
+    getSupportMetadataMock.mockResolvedValue({ ...summary, tickets: [] });
     getSupportSummaryMock.mockResolvedValue(summary);
     getSupportTicketMock.mockResolvedValue({
       id: "SUP-1",
@@ -94,6 +98,11 @@ describe("admin support server loaders", () => {
     );
 
     expect(model).toMatchObject({ tickets: [{ id: "SUP-2" }] });
+    expect(getSupportSummaryMock).not.toHaveBeenCalled();
+    expect(getSupportMetadataMock).toHaveBeenCalledWith(
+      supabaseAdmin,
+      "tenant-1",
+    );
     expect(listSupportTicketsMock).toHaveBeenCalledWith(
       supabaseAdmin,
       "tenant-1",
@@ -111,6 +120,11 @@ describe("admin support server loaders", () => {
       queues: summary.queues,
     });
 
+    expect(getSupportSummaryMock).not.toHaveBeenCalled();
+    expect(getSupportMetadataMock).toHaveBeenCalledWith(
+      supabaseAdmin,
+      "tenant-1",
+    );
     expect(getSupportTicketMock).toHaveBeenCalledWith(
       supabaseAdmin,
       "tenant-1",

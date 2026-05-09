@@ -47,14 +47,32 @@ function createQuery(result: unknown) {
 }
 
 describe("admin support service tenant isolation", () => {
-  it("returns an empty support workspace when support tables are not migrated yet", async () => {
-    const query = createQuery({
-      data: null,
-      error: {
+  it.each([
+    [
+      "PostgREST schema cache misses",
+      {
         code: "PGRST205",
         message:
           "Could not find the table 'public.support_tickets' in the schema cache",
       },
+    ],
+    [
+      "Postgres undefined-table errors",
+      {
+        code: "42P01",
+        message: 'relation "public.support_tickets" does not exist',
+      },
+    ],
+    [
+      "message-only missing support relation errors",
+      {
+        message: 'relation "support_contacts" does not exist',
+      },
+    ],
+  ])("returns an empty support workspace for %s", async (_name, error) => {
+    const query = createQuery({
+      data: null,
+      error,
     });
     const from = vi.fn(() => query);
 
@@ -113,7 +131,7 @@ describe("admin support service tenant isolation", () => {
         status: "open",
         priority: "normal",
         channel: "form",
-        contact_id: null,
+        contact_id: "contact-maria",
         contact_name_snapshot: "Maria Chen",
         contact_email_snapshot: "maria@example.org",
         tags: [],
@@ -132,6 +150,7 @@ describe("admin support service tenant isolation", () => {
       TENANT_A,
       "user-1",
       {
+        contactId: "contact-maria",
         contactEmail: "maria@example.org",
         contactName: "Maria Chen",
         priority: "normal",
@@ -144,12 +163,16 @@ describe("admin support service tenant isolation", () => {
     expect(from).toHaveBeenCalledWith("support_tickets");
     expect(query.insert).toHaveBeenCalledWith(
       expect.objectContaining({
+        contact_id: "contact-maria",
         created_by: "user-1",
         tenant_id: TENANT_A,
         public_id: expect.stringMatching(/^SUP-/),
       }),
     );
     expect(ticket.id).toBe("SUP-2000");
+    expect(ticket.contactId).toBe("contact-maria");
+    expect(ticket.contactEmailSnapshot).toBe("maria@example.org");
+    expect(ticket.contactNameSnapshot).toBe("Maria Chen");
   });
 
   it("uses a collision-resistant public id when tickets are created in the same millisecond", async () => {

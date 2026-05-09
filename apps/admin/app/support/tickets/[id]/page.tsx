@@ -47,7 +47,9 @@ export default async function SupportTicketDetailPage({
     );
   }
 
-  const contact = model.contacts.find((item) => item.id === ticket.contactId);
+  const contact = ticket.contactId
+    ? model.contacts.find((item) => item.id === ticket.contactId)
+    : undefined;
   const queue = model.queues.find((item) => item.id === ticket.queueId);
   const macro = model.macros.find((item) => item.queueId === ticket.queueId);
 
@@ -112,9 +114,16 @@ export default async function SupportTicketDetailPage({
             </CardHeader>
             <CardContent className="space-y-2 text-sm text-muted-foreground">
               <p className="font-semibold text-foreground">
-                {contact?.name ?? ticket.contactName ?? "Unknown contact"}
+                {contact?.name ??
+                  ticket.contactName ??
+                  ticket.contactNameSnapshot ??
+                  "Unknown contact"}
               </p>
-              <p>{contact?.email ?? ticket.contactEmail}</p>
+              <p>
+                {contact?.email ??
+                  ticket.contactEmail ??
+                  ticket.contactEmailSnapshot}
+              </p>
               <p>{contact?.organization}</p>
               <p>{contact?.givingSummary}</p>
             </CardContent>

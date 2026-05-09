@@ -65,6 +65,28 @@ CREATE INDEX IF NOT EXISTS idx_support_tickets_tenant_contact
 CREATE INDEX IF NOT EXISTS idx_support_tickets_tenant_assignee_status
     ON public.support_tickets (tenant_id, assigned_to_profile_id, status);
 
+CREATE OR REPLACE FUNCTION public.set_support_workspace_updated_at()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS set_support_contacts_updated_at ON public.support_contacts;
+CREATE TRIGGER set_support_contacts_updated_at
+  BEFORE UPDATE ON public.support_contacts
+  FOR EACH ROW
+  EXECUTE FUNCTION public.set_support_workspace_updated_at();
+
+DROP TRIGGER IF EXISTS set_support_tickets_updated_at ON public.support_tickets;
+CREATE TRIGGER set_support_tickets_updated_at
+  BEFORE UPDATE ON public.support_tickets
+  FOR EACH ROW
+  EXECUTE FUNCTION public.set_support_workspace_updated_at();
+
 ALTER TABLE public.support_contacts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.support_tickets ENABLE ROW LEVEL SECURITY;
 

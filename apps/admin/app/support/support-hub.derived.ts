@@ -12,15 +12,16 @@ export function formatSupportRelativeTime(
   nowInput: string | Date = new Date(),
 ) {
   const diffMs = new Date(nowInput).getTime() - new Date(input).getTime();
-  const minutes = Math.max(1, Math.round(diffMs / 60_000));
+  const isFuture = diffMs < 0;
+  const minutes = Math.max(1, Math.round(Math.abs(diffMs) / 60_000));
 
   if (minutes < 60) {
-    return `${minutes}m ago`;
+    return isFuture ? `in ${minutes}m` : `${minutes}m ago`;
   }
 
   const hours = Math.round(minutes / 60);
 
-  return `${hours}h ago`;
+  return isFuture ? `in ${hours}h` : `${hours}h ago`;
 }
 
 function needsFollowUp(ticket: SupportTicket): boolean {
@@ -92,13 +93,18 @@ export function filterSupportTickets(
     }
 
     if (search) {
-      const contact = contactById.get(ticket.contactId);
+      const contact = ticket.contactId
+        ? contactById.get(ticket.contactId)
+        : undefined;
       const searchable = [
         ticket.subject,
         ticket.summary,
         ticket.assignedTo ?? "",
-        contact?.email ?? "",
-        contact?.name ?? "",
+        contact?.email ??
+          ticket.contactEmail ??
+          ticket.contactEmailSnapshot ??
+          "",
+        contact?.name ?? ticket.contactName ?? ticket.contactNameSnapshot ?? "",
         contact?.organization ?? "",
         contact?.relationship ?? "",
         ...ticket.tags,

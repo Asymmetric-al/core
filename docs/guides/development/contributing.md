@@ -18,16 +18,27 @@ bun run verify
 
 Stripe credentials are optional and only required when testing donation flows.
 
+For Cursor Cloud Agent Mission Control work, use:
+
+```bash
+bun run setup:mission-control:cloud
+bun run dev:mission-control
+```
+
+This starts the admin app at `http://localhost:3030` with gitignored Cloud Agent defaults. Existing explicit `E2E_AUTH_BYPASS=false` values are preserved unless you pass `--force-bypass`. Replace placeholders in `.env.local` before testing live Supabase data or real auth.
+
 Optional MCP tooling configuration for contributors is documented in `docs/mcp-config.example.toml`.
 
 ### Nia (MCP) usage (repo-scoped)
 
-If you use Nia for repo search, follow the canonical policy in [`AGENTS.md#nia-mcp-usage-always-repo-scoped`](../../../AGENTS.md#nia-mcp-usage-always-repo-scoped). Short version:
+If you use Nia for repo search, follow the canonical policy in [`AGENTS.md#nia-mcp-usage-always-repo-scoped`](../../../AGENTS.md#nia-mcp-usage-always-repo-scoped) and the operations guide in [`docs/ai/nia.md`](../../ai/nia.md). Short version:
 
 - Contributors use their own Nia API key and subscribe to the public `Asymmetric-al/core` indexed source (never share keys).
-- Keep `docs/ai/working-set.md` updated and use `docs/ai/stack-registry.md` to select accurate stack tags.
-- Nia search calls must include the required preamble at the top of the `query` string.
+- Configure Nia MCP in user/global MCP settings, not committed project config, because MCP headers contain credentials.
+- Keep local `docs/ai/working-set.md` updated when edits are allowed and use `docs/ai/stack-registry.md` to select accurate stack tags.
+- Nia search calls must include the required preamble at the top of the `query` string when the tool accepts one.
 - Always scope Nia tool calls to `Asymmetric-al/core`; if you must search outside, justify it and then run a scoped pass back inside this repo.
+- Do not commit `.nia-sync/` or local Nia config; current local sync uses the `nia` CLI from `npx nia-wizard@latest`, not the deprecated `nia-sync` package.
 
 ---
 

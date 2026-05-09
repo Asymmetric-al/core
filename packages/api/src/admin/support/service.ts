@@ -52,9 +52,21 @@ function isMissingSupportTableError(error: {
   code?: string;
   message?: string;
 }) {
+  const message = error.message ?? "";
+  const lowerMessage = message.toLowerCase();
+  const mentionsSupportTable =
+    /\b(?:public\.)?support_(?:contacts|tickets)\b/i.test(message);
+  const hasMissingTableCode =
+    error.code === "PGRST205" || error.code === "42P01";
+  const hasMissingTableMessage =
+    lowerMessage.includes("schema cache") ||
+    lowerMessage.includes("does not exist") ||
+    lowerMessage.includes("undefined_table") ||
+    lowerMessage.includes("could not find the table") ||
+    lowerMessage.includes("relation");
+
   return (
-    error.code === "PGRST205" &&
-    error.message?.includes("public.support_") === true
+    mentionsSupportTable && (hasMissingTableCode || hasMissingTableMessage)
   );
 }
 
@@ -71,13 +83,11 @@ function mapTicketRow(row: SupportTicketRow): SupportTicket {
   return {
     id: row.public_id,
     subject: row.subject,
-    contactId:
-      row.contact_id ??
-      row.contact_email_snapshot ??
-      row.contact_name_snapshot ??
-      row.id,
+    contactId: row.contact_id ?? undefined,
     contactEmail: row.contact_email_snapshot ?? undefined,
+    contactEmailSnapshot: row.contact_email_snapshot ?? undefined,
     contactName: row.contact_name_snapshot ?? undefined,
+    contactNameSnapshot: row.contact_name_snapshot ?? undefined,
     queueId: row.queue_id,
     status: row.status,
     priority: row.priority,
@@ -106,15 +116,27 @@ export async function getSupportSummary(
   supabaseAdmin: AdminSupabaseClient,
   tenantId: string,
 ): Promise<SupportHubReadModel> {
-  const [tickets, contacts] = await Promise.all([
+  const [metadata, tickets] = await Promise.all([
+    getSupportMetadata(supabaseAdmin, tenantId),
     listSupportTickets(supabaseAdmin, tenantId),
-    listSupportContacts(supabaseAdmin, tenantId),
   ]);
+
+  return {
+    ...metadata,
+    tickets,
+  };
+}
+
+export async function getSupportMetadata(
+  supabaseAdmin: AdminSupabaseClient,
+  tenantId: string,
+): Promise<SupportHubReadModel> {
+  const contacts = await listSupportContacts(supabaseAdmin, tenantId);
 
   return {
     generatedAt: new Date().toISOString(),
     queues: structuredClone(supportHubReadModel.queues),
-    tickets,
+    tickets: [],
     contacts,
     macros: structuredClone(supportHubReadModel.macros),
     knowledge: structuredClone(supportHubReadModel.knowledge),
@@ -193,6 +215,7 @@ export async function createSupportTicket(
     .from("support_tickets")
     .insert({
       channel: "form",
+      contact_id: input.contactId ?? null,
       contact_email_snapshot: input.contactEmail || null,
       contact_name_snapshot: input.contactName,
       created_by: userId,

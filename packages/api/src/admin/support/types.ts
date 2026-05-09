@@ -24,6 +24,7 @@ export interface SupportTicketListParams {
 }
 
 export interface CreateSupportTicketInput {
+  contactId?: string;
   contactEmail?: string;
   contactName: string;
   priority: SupportTicketPriority;

@@ -107,7 +107,7 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
       : undefined) ??
     visibleTickets[0] ??
     null;
-  const selectedContact = selectedTicket
+  const selectedContact = selectedTicket?.contactId
     ? contactById.get(selectedTicket.contactId)
     : undefined;
   const suggestedMacro =
@@ -244,7 +244,9 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
               <CardContent className="divide-y divide-border/70 p-0">
                 {visibleTickets.length > 0 ? (
                   visibleTickets.map((ticket) => {
-                    const contact = contactById.get(ticket.contactId);
+                    const contact = ticket.contactId
+                      ? contactById.get(ticket.contactId)
+                      : undefined;
                     const ChannelIcon = channelIcons[ticket.channel];
                     return (
                       <article className="p-4" key={ticket.id}>
@@ -290,6 +292,7 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
                                 />
                                 {contact?.name ??
                                   ticket.contactName ??
+                                  ticket.contactNameSnapshot ??
                                   "Unknown contact"}
                               </span>
                               <span className="inline-flex items-center gap-1">
@@ -380,11 +383,13 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
                       <p className="mt-1 font-semibold">
                         {selectedContact?.name ??
                           selectedTicket.contactName ??
+                          selectedTicket.contactNameSnapshot ??
                           "Unknown contact"}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         {selectedContact?.relationship ??
-                          selectedTicket.contactEmail}
+                          selectedTicket.contactEmail ??
+                          selectedTicket.contactEmailSnapshot}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         {selectedContact?.givingSummary}

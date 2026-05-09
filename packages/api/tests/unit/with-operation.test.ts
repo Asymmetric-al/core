@@ -75,6 +75,7 @@ const mockedCreateAuditLogger = vi.mocked(createAuditLogger);
 
 const authenticatedAdmin: TestAuthContext = {
   userId: "user-1",
+  email: "admin@example.com",
   tenantId: "tenant-1",
   role: "admin",
   profileId: "profile-1",
@@ -125,6 +126,7 @@ describe("withOperation", () => {
     });
     mockedGetAuthContext.mockResolvedValue({
       userId: null,
+      email: null,
       tenantId: null,
       role: null,
       profileId: null,

@@ -152,6 +152,27 @@ describe("admin support API auth", () => {
     });
   });
 
+  it("authenticates before validating ticket query filters", async () => {
+    getAuthContextMock.mockResolvedValue({
+      userId: null,
+      tenantId: null,
+      role: null,
+      profileId: null,
+      isAuthenticated: false,
+      profileRole: null,
+      memberships: [],
+    });
+
+    const response = await getSupportTickets(
+      request("/api/admin/support/tickets?queueId=invalid"),
+    );
+
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toMatchObject({
+      error: "Unauthorized",
+    });
+  });
+
   it.each([
     ["summary", () => getSupportSummary(request("/api/admin/support"))],
     ["tickets", () => getSupportTickets(request("/api/admin/support/tickets"))],

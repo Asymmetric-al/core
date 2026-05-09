@@ -55,7 +55,15 @@
     "./reads/member-care": "./src/reads/member-care.ts",
     "./admin/member-care/mutations": "./src/admin/member-care/mutations.ts",
     "./admin/member-care/route-helpers": "./src/admin/member-care/route-helpers.ts",
-    "./admin/member-care/private-notes": "./src/admin/member-care/private-notes.ts"
+    "./admin/member-care/private-notes": "./src/admin/member-care/private-notes.ts",
+    "./admin/support-hub": "./src/admin/support-hub/index.ts",
+    "./admin/support-hub/route-helpers": "./src/admin/support-hub/route-helpers.ts",
+    "./admin/support-hub/schemas": "./src/admin/support-hub/schemas.ts",
+    "./admin/support-hub/adapter": "./src/admin/support-hub/adapter/index.ts",
+    "./admin/support-hub/adapter/types": "./src/admin/support-hub/adapter/types.ts",
+    "./admin/support-hub/inbound-router": "./src/admin/support-hub/inbound-router.ts",
+    "./admin/support-hub/reads/*": "./src/admin/support-hub/reads/*.ts",
+    "./admin/support-hub/mutations/*": "./src/admin/support-hub/mutations/*.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
@@ -65,6 +73,7 @@
   "dependencies": {
     "@asym/auth": "workspace:*",
     "@asym/database": "workspace:*",
+    "@asym/email": "workspace:*",
     "@asym/env": "workspace:*",
     "@asym/lib": "workspace:*",
     "@supabase/ssr": "^0.8.0",
