@@ -51,3 +51,12 @@ next-env.d.ts
 docs/ai/working-set.md
 .env*
 .cursor/settings.json
+
+# Orchids.app (external AI builder) — not part of this monorepo
+.orchids/
+
+# Traycer / scratch — local agent artifacts (must not be committed)
+.traycer/
+/.tmp/
+/~/
+
