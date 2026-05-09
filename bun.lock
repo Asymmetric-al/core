@@ -216,6 +216,7 @@
       "dependencies": {
         "@asym/auth": "workspace:*",
         "@asym/database": "workspace:*",
+        "@asym/email": "workspace:*",
         "@asym/env": "workspace:*",
         "@asym/lib": "workspace:*",
         "@supabase/ssr": "^0.8.0",

@@ -55,6 +55,27 @@ const requireCloudinaryWhenEnabled = (variableName: string) =>
       }
     });
 
+const resendApiKeySchema = requireInProtectedDeployments(
+  "RESEND_API_KEY",
+).refine(
+  (value) => !value || value.startsWith("re_"),
+  "RESEND_API_KEY must start with re_",
+);
+
+const resendWebhookSecretSchema = requireInProtectedDeployments(
+  "RESEND_WEBHOOK_SECRET",
+).refine(
+  (value) => !value || value.startsWith("whsec_"),
+  "RESEND_WEBHOOK_SECRET must start with whsec_",
+);
+
+const resendEncryptionKeySchema = requireInProtectedDeployments(
+  "RESEND_ENCRYPTION_KEY",
+).refine(
+  (value) => !value || value.length >= 32,
+  "RESEND_ENCRYPTION_KEY must be at least 32 characters",
+);
+
 export const env = createEnv({
   server: {
     NODE_ENV: nodeEnvSchema,
@@ -87,6 +108,9 @@ export const env = createEnv({
       (value) => !value || value.startsWith("whsec_"),
       "STRIPE_WEBHOOK_SECRET must start with whsec_",
     ),
+    RESEND_API_KEY: resendApiKeySchema,
+    RESEND_WEBHOOK_SECRET: resendWebhookSecretSchema,
+    RESEND_ENCRYPTION_KEY: resendEncryptionKeySchema,
     SENTRY_DSN: z
       .string()
       .url()
@@ -181,6 +205,9 @@ export const env = createEnv({
     CRON_SECRET: process.env.CRON_SECRET,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    RESEND_WEBHOOK_SECRET: process.env.RESEND_WEBHOOK_SECRET,
+    RESEND_ENCRYPTION_KEY: process.env.RESEND_ENCRYPTION_KEY,
     SENTRY_DSN: process.env.SENTRY_DSN,
     CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
     ALLOW_DEMO_ACCOUNTS: process.env.ALLOW_DEMO_ACCOUNTS,
