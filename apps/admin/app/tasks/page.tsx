@@ -1,7 +1,5 @@
-"use client";
+import PageClient from "./page-client";
 
-import { TasksPageContent } from "./tasks-content";
-
-export default function TasksPage() {
-  return <TasksPageContent />;
+export default function Page() {
+  return <PageClient />;
 }

@@ -1,16 +1,18 @@
-import { fileURLToPath } from "node:url";
-
 import { loadEnvConfig } from "@next/env";
 import { withPayload } from "@payloadcms/next/withPayload";
 
+import { resolveMonorepoRoot } from "../../scripts/resolve-monorepo-root.mjs";
+
 import type { NextConfig } from "next";
 
-const WORKSPACE_ROOT = fileURLToPath(new URL("../..", import.meta.url));
-/** Monorepo root `.env.local` — Next only auto-loads `apps/<app>/.env.local` by default. */
+/** Load the repo-root `.env.local`; app-local files should be symlinks only when needed by external tooling. */
+const WORKSPACE_ROOT = resolveMonorepoRoot(import.meta.url);
 loadEnvConfig(WORKSPACE_ROOT);
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  /** Dev HMR when opening the app via `http://127.0.0.1:3030` instead of `localhost`. */
+  allowedDevOrigins: ["127.0.0.1"],
   cacheComponents: true,
   async redirects() {
     return [
@@ -44,6 +46,7 @@ const nextConfig: NextConfig = {
     return webpackConfig;
   },
   experimental: {
+    globalNotFound: true,
     viewTransition: true,
     optimizePackageImports: ["@asym/ui", "lucide-react"],
   },

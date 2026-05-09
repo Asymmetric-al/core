@@ -1,5 +1,7 @@
 # shadcn/ui Quick-Fix Checklist
 
+> Superseded status: historical reference only. Current `packages/ui/components.json` is already pinned to `base-maia`, `lucide`, `zinc`, Tailwind v4 CSS-first, and `bun run verify:shadcn-diff` is clean. Do not apply these checklist items without re-verifying them against the current tree.
+
 Companion to `shadcn-ui-audit-2026-04-16.md`. Actionable items only. Copy straight into PR descriptions.
 
 ## PR 1 — hygiene (no behavior change)

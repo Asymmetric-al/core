@@ -5,9 +5,9 @@ import { Navbar } from "@asym/ui/components/public/navbar";
 import { RouteMainViewTransitionBoundary } from "@asym/ui/components/view-transitions";
 import { redirect } from "next/navigation";
 
-import type { Metadata } from "next";
+import { DonorSubNav } from "../../../features/donor/components/DonorSubNav";
 
-import { DonorSubNav } from "@/features/donor/components/DonorSubNav";
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   robots: {
@@ -42,7 +42,7 @@ export default async function DonorDashboardLayout({
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
+    <div className="flex min-h-screen flex-col bg-zinc-50">
       <Navbar />
       <div className="pt-16">
         <DonorSubNav />

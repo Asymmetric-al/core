@@ -824,6 +824,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // TODO(Phase 8 — Support Hub inbound wiring):
+    //
+    // Right here, after the inbound message has been verified, the body
+    // has been hydrated from Resend, and the row has been persisted to
+    // `email_inbound_messages`, route the message into the donor-care
+    // Support Hub. Today no client of this webhook does that — the
+    // typed stub `routeInboundToSupportHub()` in
+    // `packages/api/src/admin/support-hub/inbound-router.ts` returns
+    // `{ status: "deferred" }` and is reachable only via its unit test.
+    //
+    // Phase 8 plan:
+    //   1. Resolve the donor-care inbox via the recipient address (see
+    //      `collectInboundRecipients(eventData)` above).
+    //   2. Resolve / create the donor participant + thread the message
+    //      onto an existing conversation when `In-Reply-To` /
+    //      `References` matches; otherwise open a new conversation.
+    //   3. Call `routeInboundToSupportHub({ tenantId, inboxId, ... })`
+    //      from `@asym/api/admin/support-hub/inbound-router`. The
+    //      adapter export in
+    //      `packages/api/src/admin/support-hub/adapter/index.ts` will
+    //      already point at the Supabase implementation by the time this
+    //      branch wires up.
+    //
+    // See `docs/features/support-hub/final-audit-and-wrap-up.md` for the
+    // full Phase 8 follow-up checklist.
+
     return NextResponse.json(
       {
         accepted: true,

@@ -1,10 +1,10 @@
-import { fileURLToPath } from "node:url";
-
 import { loadEnvConfig } from "@next/env";
+
+import { resolveMonorepoRoot } from "../../scripts/resolve-monorepo-root.mjs";
 
 import type { NextConfig } from "next";
 
-const WORKSPACE_ROOT = fileURLToPath(new URL("../..", import.meta.url));
+const WORKSPACE_ROOT = resolveMonorepoRoot(import.meta.url);
 loadEnvConfig(WORKSPACE_ROOT);
 
 const nextConfig: NextConfig = {
@@ -26,6 +26,7 @@ const nextConfig: NextConfig = {
     "@asym/email",
   ],
   experimental: {
+    globalNotFound: true,
     viewTransition: true,
     optimizePackageImports: ["@asym/ui", "lucide-react"],
   },

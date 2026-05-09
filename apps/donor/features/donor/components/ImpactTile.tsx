@@ -1,8 +1,5 @@
-"use client";
-
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { cn } from "@asym/ui/lib/utils";
-import React from "react";
 
 import type { WorkerFeed } from "@/lib/mock-data";
 import type { LucideIcon } from "lucide-react";
