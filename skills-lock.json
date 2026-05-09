@@ -42,6 +42,12 @@
       "skillPath": "skills/misc/migrate-to-shoehorn/SKILL.md",
       "computedHash": "de4da4c11d924fac79c924b2ee3d2db4a5cb98386eb490a599119463d036ae72"
     },
+    "npm-deps-cleanup": {
+      "source": "anthonyshew/dotfiles",
+      "sourceType": "github",
+      "skillPath": "skills/npm-deps-cleanup/SKILL.md",
+      "computedHash": "d033b5b596f7a93e21aad69838e0405f63155e87fc75259b451fe5f0297ecc57"
+    },
     "prd-to-plan": {
       "source": "mattpocock/skills",
       "sourceType": "github",
