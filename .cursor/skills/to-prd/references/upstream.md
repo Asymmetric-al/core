@@ -2,7 +2,7 @@
 
 Installed from **mattpocock/skills** at `skills/engineering/to-prd/SKILL.md`.
 
-- Index: https://skills.sh/mattpocock/skills/to-prd  
+- Index: https://skills.sh/mattpocock/skills/to-prd
 - CLI: `npx skills add mattpocock/skills@to-prd -y`
 
 ## This repository

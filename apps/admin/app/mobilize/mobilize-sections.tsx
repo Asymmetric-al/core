@@ -27,6 +27,7 @@ import { cn } from "@asym/ui/lib/utils";
 import { type ColumnDef } from "@tanstack/react-table";
 import {
   Calendar,
+  ClipboardCheck,
   Filter,
   GraduationCap,
   Mail,
@@ -36,7 +37,6 @@ import {
   Plane,
   Plus,
   Search,
-  UserCheck,
   Users,
 } from "lucide-react";
 import * as React from "react";
@@ -170,8 +170,7 @@ const StatCard = ({
       </div>
       <div
         className={cn(
-          "h-10 w-10 rounded-lg flex items-center justify-center bg-opacity-10",
-          color.replace("text-", "bg-"),
+          "h-10 w-10 rounded-lg flex items-center justify-center bg-muted",
         )}
       >
         <Icon className={cn("h-5 w-5", color)} />
@@ -213,7 +212,7 @@ export function MobilizeStatsRow({ stats }: { stats: MobilizeStats }) {
         <StatCard
           title="In Vetting"
           value={stats.vetting}
-          icon={UserCheck}
+          icon={ClipboardCheck}
           color="text-blue-600"
         />
       </motion.div>

@@ -4,4 +4,3 @@ description: Alias for ubiquitous-language (DDD glossary / domain terminology). 
 ---
 
 This skill is an entry alias. Use **`.cursor/skills/ubiquitous-language/SKILL.md`** (vendored from `skills/deprecated/ubiquitous-language/`).
-

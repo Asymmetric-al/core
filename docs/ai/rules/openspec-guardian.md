@@ -1,6 +1,6 @@
 # OpenSpec Guardian Workflow
 
-**Name:** `openspec-guardian`  
+**Name:** `openspec-guardian`
 **Purpose:** Use a Cursor background subagent to keep implementation aligned with the original user prompt, durable OpenSpec intent, active OpenSpec changes, and repo boundaries.
 **Applies when:** The user asks for OpenSpec alignment, prompt-intent checking, scope-drift prevention, spec-grounded review, a second agent to keep implementation on track, or careful implementation where the main agent must not go off the rails.
 **Do not use when:** The task is a tiny local edit, pure writing task, one-line search, or anything where OpenSpec has no bearing on intent, behavior, or repo boundaries.
