@@ -79,10 +79,10 @@ const monthlyData = [
 ];
 
 const donorSegments = [
-  { name: "Active", value: 4, color: "#18181b" },
-  { name: "New", value: 2, color: "#71717a" },
+  { name: "Active", value: 4, color: "var(--foreground)" },
+  { name: "New", value: 2, color: "var(--muted-foreground)" },
   { name: "At Risk", value: 1, color: "#eab308" },
-  { name: "Lapsed", value: 1, color: "#a1a1aa" },
+  { name: "Lapsed", value: 1, color: "var(--muted)" },
 ];
 
 const yearOverYear = [
@@ -102,7 +102,7 @@ const yearOverYear = [
 
 export default function AnalyticsPage() {
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-300">
       <PageHeader
         title="Analytics"
         description="Detailed insights into your support network and trends."
@@ -177,28 +177,36 @@ export default function AnalyticsPage() {
                   dataKey="month"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fontSize: 9, fontWeight: 700, fill: "#a1a1aa" }}
+                  tick={{
+                    fontSize: 9,
+                    fontWeight: 700,
+                    fill: "var(--muted-foreground)",
+                  }}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fontSize: 9, fontWeight: 700, fill: "#a1a1aa" }}
+                  tick={{
+                    fontSize: 9,
+                    fontWeight: 700,
+                    fill: "var(--muted-foreground)",
+                  }}
                   tickFormatter={(value: number) => `$${value}`}
                   width={35}
                 />
                 <RechartsTooltip
-                  cursor={{ fill: "#f4f4f5", radius: 4 }}
+                  cursor={{ fill: "var(--muted)", radius: 4 }}
                   content={<ChartTooltip />}
                 />
                 <Bar
                   dataKey="recurring"
-                  fill="#18181b"
+                  fill="var(--foreground)"
                   radius={[3, 3, 0, 0]}
                   name="Recurring"
                 />
                 <Bar
                   dataKey="oneTime"
-                  fill="#e4e4e7"
+                  fill="var(--muted)"
                   radius={[3, 3, 0, 0]}
                   name="One-time"
                 />
@@ -258,20 +266,36 @@ export default function AnalyticsPage() {
             <AreaChart data={yearOverYear}>
               <defs>
                 <linearGradient id="colorCurrent" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#18181b" stopOpacity={0.06} />
-                  <stop offset="95%" stopColor="#18181b" stopOpacity={0} />
+                  <stop
+                    offset="5%"
+                    stopColor="var(--foreground)"
+                    stopOpacity={0.06}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--foreground)"
+                    stopOpacity={0}
+                  />
                 </linearGradient>
               </defs>
               <XAxis
                 dataKey="month"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 9, fontWeight: 700, fill: "#a1a1aa" }}
+                tick={{
+                  fontSize: 9,
+                  fontWeight: 700,
+                  fill: "var(--muted-foreground)",
+                }}
               />
               <YAxis
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 9, fontWeight: 700, fill: "#a1a1aa" }}
+                tick={{
+                  fontSize: 9,
+                  fontWeight: 700,
+                  fill: "var(--muted-foreground)",
+                }}
                 tickFormatter={(value: number) => `$${value}`}
                 width={35}
               />
@@ -279,7 +303,7 @@ export default function AnalyticsPage() {
               <Area
                 type="monotone"
                 dataKey="current"
-                stroke="#18181b"
+                stroke="var(--foreground)"
                 strokeWidth={2}
                 fillOpacity={1}
                 fill="url(#colorCurrent)"
@@ -288,7 +312,7 @@ export default function AnalyticsPage() {
               <Area
                 type="monotone"
                 dataKey="previous"
-                stroke="#e4e4e7"
+                stroke="var(--muted)"
                 strokeWidth={1.5}
                 strokeDasharray="4 4"
                 fill="transparent"

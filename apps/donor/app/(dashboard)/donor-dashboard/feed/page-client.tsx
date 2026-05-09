@@ -215,14 +215,14 @@ const FeedFilter = ({
   const filters: FilterType[] = ["All", "Update", "Story", "Video", "Saved"];
 
   return (
-    <div className="sticky top-[0px] z-30 bg-zinc-50/90 backdrop-blur-xl border-b border-zinc-200/50 py-4 mb-8 transition-all">
+    <div className="sticky top-[0px] z-30 bg-zinc-50/90 backdrop-blur-xl border-b border-zinc-200/50 py-4 mb-8 transition-[background-color,border-color,backdrop-filter] duration-200">
       <div className="flex items-center gap-2 overflow-x-auto no-scrollbar px-1 max-w-2xl mx-auto">
         {filters.map((type) => (
           <button
             key={type}
             onClick={() => onChange(type)}
             className={cn(
-              "px-5 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-300 border select-none whitespace-nowrap flex items-center gap-2",
+              "px-5 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-[background-color,border-color,color,box-shadow,transform] duration-200 border select-none whitespace-nowrap flex items-center gap-2",
               current === type
                 ? "bg-zinc-900 text-white border-zinc-900 shadow-lg hover:shadow-xl transform scale-[1.02]"
                 : "bg-white text-zinc-500 border-zinc-200/60 hover:bg-zinc-50 hover:border-zinc-300 hover:text-zinc-900 shadow-sm",
@@ -286,14 +286,16 @@ const PostActions = ({
           whileTap={{ scale: 0.85 }}
           onClick={onLike}
           className={cn(
-            "flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200 group hover:bg-zinc-50",
+            "flex items-center gap-2 px-3 py-2 rounded-full transition-colors duration-150 group hover:bg-zinc-50",
             post.liked ? "text-rose-600" : "text-zinc-500 hover:text-zinc-900",
           )}
         >
           <Heart
             className={cn(
-              "h-5 w-5 transition-all",
-              post.liked ? "fill-current scale-110" : "group-hover:scale-110",
+              "h-5 w-5 transition-transform duration-150",
+              post.liked
+                ? "fill-current scale-110"
+                : "[@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-110",
             )}
             strokeWidth={post.liked ? 0 : 1.5}
           />
@@ -304,14 +306,16 @@ const PostActions = ({
           whileTap={{ scale: 0.85 }}
           onClick={onPray}
           className={cn(
-            "flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200 group hover:bg-zinc-50",
+            "flex items-center gap-2 px-3 py-2 rounded-full transition-colors duration-150 group hover:bg-zinc-50",
             post.prayed ? "text-blue-600" : "text-zinc-500 hover:text-zinc-900",
           )}
         >
           <Globe
             className={cn(
-              "h-5 w-5 transition-all",
-              post.prayed ? "scale-110" : "group-hover:scale-110",
+              "h-5 w-5 transition-transform duration-150",
+              post.prayed
+                ? "scale-110"
+                : "[@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-110",
             )}
             strokeWidth={1.5}
           />
@@ -321,10 +325,10 @@ const PostActions = ({
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={onToggleComments}
-          className="flex items-center gap-2 px-3 py-2 rounded-full text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition-all group"
+          className="flex items-center gap-2 px-3 py-2 rounded-full text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition-colors duration-150 group"
         >
           <MessageCircle
-            className="h-5 w-5 group-hover:scale-110 transition-transform"
+            className="h-5 w-5 [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-110 transition-transform"
             strokeWidth={1.5}
           />
           <span className="text-xs font-bold">{post.comments.length}</span>
@@ -345,7 +349,7 @@ const PostActions = ({
         >
           <Bookmark
             className={cn(
-              "h-4 w-4 transition-all",
+              "h-4 w-4 transition-transform duration-150",
               post.saved ? "fill-current scale-110" : "",
             )}
             strokeWidth={1.5}
@@ -355,6 +359,7 @@ const PostActions = ({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <motion.button
+              aria-label="Share post"
               whileTap={{ scale: 0.9 }}
               className="p-2.5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-full transition-colors"
             >
@@ -585,7 +590,7 @@ const CommentsSection = ({
         <div className="relative flex-1 group">
           <Input
             placeholder="Write a supportive comment..."
-            className="pr-12 bg-white border-zinc-200/80 focus:border-zinc-300 focus:ring-4 focus:ring-zinc-100 rounded-xl h-12 transition-all shadow-sm pl-5"
+            className="pr-12 bg-white border-zinc-200/80 focus:border-zinc-300 focus:ring-4 focus:ring-zinc-100 rounded-xl h-12 transition-colors duration-150 shadow-sm pl-5"
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
@@ -593,7 +598,7 @@ const CommentsSection = ({
           <button
             onClick={handleSubmit}
             disabled={!text.trim()}
-            className="absolute right-1.5 top-1.5 p-2 text-white bg-zinc-900 hover:bg-zinc-800 rounded-lg disabled:opacity-0 disabled:scale-90 transition-all shadow-sm w-9 h-9 flex items-center justify-center"
+            className="absolute right-1.5 top-1.5 p-2 text-white bg-zinc-900 hover:bg-zinc-800 rounded-lg disabled:opacity-0 disabled:scale-90 transition-[background-color,opacity,transform,box-shadow] duration-150 shadow-sm w-9 h-9 flex items-center justify-center"
           >
             <Send className="h-4 w-4" />
           </button>
@@ -626,7 +631,7 @@ const PostCard: React.FC<{
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="relative group cursor-pointer">
-            <Avatar className="h-10 w-10 border border-zinc-100 shadow-sm transition-transform group-hover:scale-[1.02]">
+            <Avatar className="h-10 w-10 border border-zinc-100 shadow-sm transition-transform [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.02]">
               <AvatarImage src={post.workerAvatar} />
               <AvatarFallback className="bg-zinc-100 font-bold text-zinc-600 uppercase">
                 {post.workerName[0]}
@@ -654,6 +659,7 @@ const PostCard: React.FC<{
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
+                aria-label="Open post actions"
                 variant="ghost"
                 size="icon"
                 className="text-zinc-300 hover:text-zinc-600 hover:bg-transparent -mr-2"
@@ -695,7 +701,7 @@ const PostCard: React.FC<{
                 src={post.images[0]}
                 alt="Post content"
                 fill
-                className="object-cover grayscale hover:grayscale-0 transition-all duration-700"
+                className="object-cover grayscale hover:grayscale-0 transition-[filter] duration-300 ease-out"
                 sizes="(max-width: 768px) 100vw, 700px"
                 onError={() => setImageError(true)}
               />
