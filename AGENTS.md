@@ -48,6 +48,8 @@ This file is the deterministic entry point for all agent work in `core`.
 
 ### Nia (MCP) usage: always repo-scoped + always preambled
 
+Canonical Nia workflow, setup, and operation boundaries live in `docs/ai/nia.md`.
+
 **Default for repo context. Use when:**
 
 - "where is...", "how does...", "what calls...", "find...", "trace..."
@@ -67,6 +69,7 @@ This file is the deterministic entry point for all agent work in `core`.
 - Use your own Nia API key (never shared).
 - Add/subscribe the public `Asymmetric-al/core` indexed source in your Nia workspace.
 - Verify the repo appears in your Nia resources list; otherwise scoped queries will fail.
+- Keep Nia credentials in your user/global MCP config or environment. The committed `.mcp.json` files intentionally do not include Nia because MCP JSON commonly requires literal headers/secrets.
 
 #### Required helper docs (must exist, must be used)
 
@@ -75,10 +78,11 @@ This file is the deterministic entry point for all agent work in `core`.
   - Use it to choose accurate "Stack" tags + keywords for Nia queries.
 - `docs/ai/working-set.md`
   - Living task context for the current work.
-  - Keep it updated during the task.
+  - Keep it updated during the task when edits are allowed.
   - Use it to build the Nia query preamble for every Nia search.
+  - Start from `docs/ai/working-set.example.md` on a clean clone if needed.
 
-If either doc is missing or stale, create/update it before doing major work.
+`docs/ai/working-set.md` is local agent scratch context and is ignored by git. If it is missing or stale and edits are allowed, create/update it before major work. In read-only or plan mode, build the preamble from the available task context and say that the working-set update was skipped because edits were not allowed.
 
 #### Nia query preamble (required)
 
@@ -96,9 +100,10 @@ Evidence required: file paths + symbol names + brief explanation
 
 Rules:
 
-- Put this preamble at the top of the `query` string for `mcp__nia__search`.
+- Put this preamble at the top of the `query` string for Nia `search` / `mcp__nia__search` calls.
 - Do not shove the preamble into `pattern` for grep calls. Keep grep patterns tight and exact.
 - Always read the top matches before editing. Cite exact file paths and functions/components.
+- Nia MCP tool namespaces differ by client. Prefer the live tool names exposed by your client; examples below use Cursor-style names where helpful.
 
 #### Actions
 
@@ -108,7 +113,7 @@ Rules:
 
 #### Default workflow (do not stop at snippets)
 
-1. Search (scoped + preambled when using `mcp__nia__search`).
+1. Search (scoped + preambled when using Nia `search` / `mcp__nia__search`).
 2. Read full sources on the best matches (`nia_read`, or local file reads).
 3. Grep exact identifiers when needed (`nia_grep` or `rg`).
 4. Edit only after evidence.
@@ -116,8 +121,9 @@ Rules:
 #### Pre-indexed docs and packages
 
 - Prefer subscribed or indexed documentation and package sources when available (reduces stale answers).
-- If an important upstream doc set is missing from your Nia workspace, subscribe or index it before relying on memory.
+- If an important upstream doc set is missing from your Nia workspace, prefer `manage_resource(action="subscribe")` for a pre-indexed source; use `index` only when no subscribed/global source is available and mutation is allowed.
 - For public package implementation details, use Nia package search for the **exact** dependency version from the nearest `package.json`.
+- For public GitHub one-offs that should not be indexed, use Tracer. For broader discovery, use `nia_research`; then run a scoped pass back inside `Asymmetric-al/core` before editing this repo.
 
 #### If Nia cannot find evidence
 

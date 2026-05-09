@@ -49,8 +49,14 @@ next-env.d.ts
 # agent use
 .reference/
 docs/ai/working-set.md
+.nia-sync/
+.nia_sync_local/
 .env*
 .cursor/settings.json
+
+# Python
+__pycache__/
+*.py[cod]
 
 # Orchids.app (external AI builder) — not part of this monorepo
 .orchids/
@@ -59,4 +65,3 @@ docs/ai/working-set.md
 .traycer/
 /.tmp/
 /~/
-

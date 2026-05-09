@@ -67,7 +67,7 @@ Per `AGENTS.md`: for animation craft and feel, load `docs/ai/skills/emil-design-
 
 - If you are using shadcn/studio MCP workflows (`/cui`, `/rui`, `/iui`, `/ftc`), follow `rules/shadcn-studio-mcp.md` exactly.
 - Do not apply shadcn/studio MCP rules for manual UI edits.
-- If you use Nia (MCP) to trace UI code, keep queries scoped to `Asymmetric-al/core` and use the preamble built from `docs/ai/working-set.md` + `docs/ai/stack-registry.md` for search calls (see `AGENTS.md#nia-mcp-usage-always-repo-scoped`).
+- If you use Nia (MCP) to trace UI code, keep queries scoped to `Asymmetric-al/core` and use the preamble built from `docs/ai/working-set.md` + `docs/ai/stack-registry.md` for search calls (see `AGENTS.md#nia-mcp-usage-always-repo-scoped` and `docs/ai/nia.md`).
 
 ### State management
 
