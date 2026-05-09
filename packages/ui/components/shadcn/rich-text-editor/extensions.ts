@@ -51,6 +51,10 @@ export const viewerExtensions = [
   ResizableImageExtension.configure({
     inline: false,
     allowBase64: false,
+    HTMLAttributes: {
+      decoding: "async",
+      loading: "lazy",
+    },
   }),
 ];
 
@@ -64,6 +68,10 @@ export function createDefaultExtensions(
     ResizableImageExtension.configure({
       inline: false,
       allowBase64: false,
+      HTMLAttributes: {
+        decoding: "async",
+        loading: "lazy",
+      },
     }),
     Placeholder.configure({
       placeholder: ({ node }) => {

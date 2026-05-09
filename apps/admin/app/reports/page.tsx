@@ -1,5 +1,5 @@
-import MissionControlReports from "./reports-page-client";
+import PageClient from "./page-client";
 
 export default function Page() {
-  return <MissionControlReports />;
+  return <PageClient />;
 }

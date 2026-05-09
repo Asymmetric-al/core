@@ -24,7 +24,8 @@ Use this workflow when the prompt includes phrases like:
 - background alignment agent
 - guardian
 - skeptical product/spec reviewer
-  Also use it for non-trivial feature work, behavior changes, multi-step project work, or work that touches durable product behavior.
+
+Also use it for non-trivial feature work, behavior changes, multi-step project work, or work that touches durable product behavior.
 
 ---
 
@@ -173,20 +174,23 @@ The goal is to keep the implementation grounded in the user's actual request and
 
 ## Relationship to QA Foreman
 
-Use `openspec-guardian` for:
+### Use OpenSpec Guardian for
 
 - prompt intent
 - OpenSpec alignment
 - active change alignment
 - scope drift
 - product and boundary correctness
-  Use `qa-foreman` for:
+
+### Use QA Foreman for
+
 - code quality
 - tests
 - edge cases
 - lint, typecheck, build
 - completion quality
-  For serious implementation tasks, use both:
+
+For serious implementation tasks, use both:
 
 1. Spawn `/openspec-guardian` early.
 2. Spawn `/qa-foreman` after the first implementation pass.

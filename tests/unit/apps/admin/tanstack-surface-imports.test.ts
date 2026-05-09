@@ -16,7 +16,9 @@ describe("admin TanStack surface migrations", () => {
     const mainBodySource = readRepoFile(
       "apps/admin/app/contributions/main-body.tsx",
     );
-    const pageSource = readRepoFile("apps/admin/app/contributions/page.tsx");
+    const pageSource = readRepoFile(
+      "apps/admin/app/contributions/page-client.tsx",
+    );
 
     expect(liveQuerySource).toMatch(/@asym\/database\/hooks/);
     expect(mainBodySource).toMatch(/DataTableResponsive/);
@@ -25,7 +27,7 @@ describe("admin TanStack surface migrations", () => {
   });
 
   it("loads CRM contacts from shared package hooks instead of app-local mock data", () => {
-    const source = readRepoFile("apps/admin/app/crm/page.tsx");
+    const source = readRepoFile("apps/admin/app/crm/page-client.tsx");
 
     expect(source).toMatch(/useAdminCrmRecordsInfiniteGrid/);
     expect(source).not.toMatch(/MOCK_CONTACTS/);
@@ -53,14 +55,16 @@ describe("admin TanStack surface migrations", () => {
   });
 
   it("moves raw table surfaces onto shared hooks for attendees, mobilize, and teams", () => {
-    const eventsSource = readRepoFile(
-      "apps/admin/app/events/events-page-client.tsx",
+    const eventsSource = readRepoFile("apps/admin/app/events/page-client.tsx");
+    const mobilizePageSource = readRepoFile(
+      "apps/admin/app/mobilize/page-client.tsx",
     );
-    const mobilizePageSource = readRepoFile("apps/admin/app/mobilize/page.tsx");
     const mobilizeSectionsSource = readRepoFile(
       "apps/admin/app/mobilize/mobilize-sections.tsx",
     );
-    const teamsPageSource = readRepoFile("apps/admin/app/admin/teams/page.tsx");
+    const teamsPageSource = readRepoFile(
+      "apps/admin/app/admin/teams/page-client.tsx",
+    );
     const teamsSectionsSource = readRepoFile(
       "apps/admin/app/admin/teams/teams-sections.tsx",
     );

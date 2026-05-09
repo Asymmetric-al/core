@@ -63,7 +63,7 @@ Do NOT use this skill for:
 - **Authentication libraries** → Use `clerk-auth`, `better-auth`, or other auth-specific skills
 - **Database integration** → Use `cloudflare-d1`, `drizzle-orm-d1`, or database-specific skills
 - **UI component libraries** → Use `tailwind-v4-shadcn` skill for Tailwind + shadcn/ui
-- **State management** → Use `zustand-state-management`, `tanstack-query` skills
+- **TanStack state management** → Use official TanStack Intent skills from `npx @tanstack/intent@latest list`
 - **Form libraries** → Use `react-hook-form-zod` skill
 - **Vercel-specific features** → Refer to Vercel platform documentation
 - **Next.js Enterprise features** (ISR, DPR) → Refer to Next.js Enterprise docs

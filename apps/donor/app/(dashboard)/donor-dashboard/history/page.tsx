@@ -1,5 +1,5 @@
-import DonorHistoryPage from "./history-page-client";
+import PageClient from "./page-client";
 
 export default function Page() {
-  return <DonorHistoryPage />;
+  return <PageClient />;
 }

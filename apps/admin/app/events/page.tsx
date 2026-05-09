@@ -1,5 +1,5 @@
-import EventsPage from "./events-page-client";
+import PageClient from "./page-client";
 
 export default function Page() {
-  return <EventsPage />;
+  return <PageClient />;
 }

@@ -84,6 +84,24 @@ This check runs unit tests and fails if blocked warning patterns are present in 
 
 Optional focused CMS unit coverage (not a `ci.yml` job today): `bun run test:unit:cms`.
 
+### Unit feedback report
+
+Run this when you want a structured, actionable unit-test triage report:
+
+```bash
+bun run test:unit:feedback
+```
+
+The command runs `bun run test:unit`, writes ignored artifacts to `test-results/unit-feedback/latest.md` and `test-results/unit-feedback/latest.json`, and exits with the underlying unit-test status. On failure, it reruns each failing test file with `bunx vitest run <test-file>` and classifies failures into remediation categories: import path, server/client boundary, fallback routing, rich-text image policy, or unrelated.
+
+To post only failing reports to a tracking issue:
+
+```bash
+UNIT_FEEDBACK_GITHUB_ISSUE=203 bun run test:unit:feedback
+```
+
+Current coverage caveat: the repo's custom raw V8 fallback provider writes coverage artifacts, but `coverage-summary.json` is not a line/statement/branch quality signal while it reports `totalScripts: 0`.
+
 ---
 
 ## Integration workflow (`ci-integration.yml`)

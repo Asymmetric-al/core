@@ -188,7 +188,7 @@ export function HomeMission() {
                 alt="Field workers providing humanitarian aid in communities"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover saturate-[0.8] contrast-[1.1] transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+                className="object-cover saturate-[0.8] contrast-[1.1] transition-transform duration-500 ease-out [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.02]"
                 loading="eager"
                 quality={75}
               />
@@ -290,7 +290,7 @@ export function HomeStats() {
             </p>
           </article>
 
-          <article className="md:col-span-4 group bg-white p-8 md:p-10 rounded-2xl hover:scale-[1.02] transition-transform duration-300 ease-out flex flex-col justify-between text-slate-950">
+          <article className="md:col-span-4 group bg-white p-8 md:p-10 rounded-2xl transition-transform duration-300 ease-out [@media(hover:hover)_and_(pointer:fine)]:hover:scale-[1.02] flex flex-col justify-between text-slate-950">
             <Users className="h-8 w-8 mb-8" aria-hidden="true" />
             <div>
               <p className="text-6xl md:text-7xl font-bold tracking-tighter font-syne mb-4">
@@ -399,7 +399,7 @@ export function HomeFeatured() {
                     src={item.img}
                     alt={`${item.title} project - ${item.loc}`}
                     fill
-                    className="object-cover saturate-[0.8] contrast-[1.1] transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+                    className="object-cover saturate-[0.8] contrast-[1.1] transition-transform duration-500 ease-out [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.02]"
                     sizes="(max-width: 768px) 100vw, 33vw"
                     loading="lazy"
                     quality={75}
@@ -425,9 +425,16 @@ export function HomeFeatured() {
                       aria-valuemin={0}
                       aria-valuemax={100}
                     >
+                      {/*
+                        Animate transform: scaleX (GPU, no layout) instead
+                        of width (paint + layout). Keep the bar at full
+                        width and scale it horizontally based on raised %.
+                      */}
                       <div
-                        className="h-full bg-white transition-all duration-1000"
-                        style={{ width: item.raised }}
+                        className="h-full w-full origin-left bg-white transition-transform duration-700 ease-[var(--ease-out-soft)]"
+                        style={{
+                          transform: `scaleX(${parseInt(item.raised) / 100})`,
+                        }}
                       />
                     </div>
                   </div>
@@ -485,7 +492,7 @@ export function HomeCTA() {
           <Button
             size="lg"
             variant="ghost"
-            className="h-14 rounded-full border border-white/15 bg-white px-10 text-lg font-bold font-syne text-slate-950 shadow-lg transition-transform duration-200 ease-out hover:scale-[1.02] hover:bg-zinc-100 hover:text-slate-950 active:scale-[0.98]"
+            className="h-14 rounded-full border border-white/15 bg-white px-10 text-lg font-bold font-syne text-slate-950 shadow-lg hover:bg-zinc-100 hover:text-slate-950 hover-scale-subtle"
             asChild
           >
             <Link href="/workers">Initiate Support</Link>
@@ -493,7 +500,7 @@ export function HomeCTA() {
           <Button
             size="lg"
             variant="outline"
-            className="h-14 px-10 rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 text-lg font-bold font-syne backdrop-blur-xl transition-all"
+            className="h-14 px-10 rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 text-lg font-bold font-syne backdrop-blur-xl"
             asChild
           >
             <Link href="/about">Our Framework</Link>

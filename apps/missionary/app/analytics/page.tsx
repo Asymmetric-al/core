@@ -1,5 +1,5 @@
-import AnalyticsPage from "./analytics-page-client";
+import PageClient from "./page-client";
 
 export default function Page() {
-  return <AnalyticsPage />;
+  return <PageClient />;
 }

@@ -22,7 +22,7 @@ Use this order when instructions conflict:
 2. **Repo instruction system:** root `AGENTS.md`, nearest nested `AGENTS.md`, `.cursor/rules`, `CLAUDE.md`, `.github/copilot-instructions.md`, `.github/instructions/*.md`, `docs/ai/*` rulebooks.
 3. **Repo-local canonical skills:** `docs/ai/skills/*/SKILL.md` (mirrored into `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`; verify with `bun run skills:verify`).
 4. **Next.js API truth:** bundled docs under `node_modules/next/dist/docs/` for the installed version (then repo root `node_modules`; see **Next.js docs source of truth** below).
-5. **MCP runtime facts:** e.g. Next.js devtools MCP against a running dev server (see **Next.js MCP (devtools)** below), TanStack MCP from root `.mcp.json`, plus any other MCP servers enabled in the agent.
+5. **MCP/runtime and official CLI facts:** e.g. Next.js devtools MCP against a running dev server (see **Next.js MCP (devtools)** below), official TanStack CLI/Intent output for TanStack work, plus any other MCP servers enabled in the agent.
 6. **External docs:** prefer indexed doc search / package source (e.g. Nia) over training data; use direct official docs when needed.
 7. **General model knowledge:** lowest priority; never substitute memory for version-specific or repo-specific facts.
 
@@ -185,9 +185,17 @@ This repo configures the Next.js devtools MCP server in **root** `.mcp.json` (al
 - **Use it for runtime-grounded work:** current errors, dev logs, routes, page metadata, server actions — **do not guess** these when the MCP tools can query the live dev server.
 - **Docs:** [Next.js MCP guide](https://nextjs.org/docs/app/guides/mcp) and the [`next-devtools-mcp` repository](https://github.com/vercel/next-devtools-mcp).
 
-### TanStack MCP
+### TanStack CLI and Intent
 
-Root `.mcp.json` also defines the TanStack CLI MCP (`@tanstack/cli mcp`). Enable it in your agent when working on TanStack Query / Router / related surfaces.
+For any TanStack work (Query, Router, Table, DB, Form, Virtual, Start, CLI, Intent, Devtools, or related integrations), use the official TanStack CLI and official TanStack Intent skills when they exist for the installed packages. Do not use repo-local or unofficial TanStack skills.
+
+- Install/verify the official CLI with `npm install -g @tanstack/cli` (Node.js 18+ required). Use direct `npm`, `npx`, and `tanstack` commands so the workflow works on Windows and macOS.
+- Use CLI JSON output for agent-safe TanStack discovery and docs, for example `tanstack libraries --json`, `tanstack doc <library> <path> --json`, and `tanstack search-docs "<query>" --library <id> --framework <name> --json`.
+- Do **not** use `@tanstack/cli mcp` / `tanstack mcp`; the official CLI removed that command. Use direct CLI commands instead.
+- Before TanStack work, run `npx --yes @tanstack/intent@latest list` (`npx @tanstack/intent@latest list` is fine in interactive shells); that current command output is the authority for which installed packages expose Intent skills.
+- Load Intent skills only for packages returned by the current list command: `npx --yes @tanstack/intent@latest load <package>#<skill>`.
+- Intent coverage is not exhaustive. For TanStack packages not returned by the current Intent list (for example, Query/Table/Router when absent), continue using `tanstack doc`, `tanstack search-docs`, and the repo guidance in `docs/guides/development/tanstack-integration.md` and `docs/guides/development/tanstack-virtual-foundation.md`.
+- For table-like UI, preserve the repo-specific shared abstractions documented in those guides: prefer `DataTableResponsive` from `@asym/ui/components/shadcn/data-table` when appropriate, reuse shared table virtualization helpers/types from `packages/ui/components/shadcn/data-table`, and keep accessibility expectations from `docs/ai/rules/frontend.md` and the virtual foundation testing checklist discoverable.
 
 ### Dev servers and logs
 
@@ -209,7 +217,6 @@ Load rulebooks before editing files in their domain.
 - **shadcn/studio MCP workflows (/cui, /rui, /iui, /ftc):** `docs/ai/rules/shadcn-studio-mcp.md` (only when running those workflows)
 - **Async QA Foreman mode / grind-style verification:** `docs/ai/rules/async-qa-foreman.md` when the user requests Async QA Foreman mode, grind-style completion pressure, background QA, long-running verification, or a second agent to challenge quality and keep the main agent working.
 - **OpenSpec alignment / prompt intent guard:** `docs/ai/rules/openspec-guardian.md` when the user asks for OpenSpec alignment, prompt-intent checking, scope-drift prevention, spec-grounded review, or a background agent to keep implementation aligned with the original request and OpenSpec.
-- **PDF Document Builder / PDF Studio replacement:** before work on PDF Studio, DocRaptor rendering, React Email fork work, document templates, financial reports, receipts, batch generation, variables, repeaters, or Unlayer migration, read `openspec/project.md` plus the active PDF Document Builder OpenSpec change/specs. OpenSpec holds the durable product intent and behavior contract; `AGENTS.md` only routes agents to it.
 
 ---
 
@@ -233,7 +240,7 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 - **Tasteful UI animation (timing, easing, CSS/Motion patterns):** `docs/ai/skills/anim/SKILL.md`
 - **Additional Emil design-engineering notes / companion reference:** `docs/ai/skills/emil-design-eng/SKILL.md`
 - **Recharts:** `docs/ai/skills/rechart/SKILL.md`
-- **TanStack Table v8:** `docs/ai/skills/tanstack-table/SKILL.md`
+- **TanStack work:** use the official TanStack CLI plus current official Intent skills when `npx --yes @tanstack/intent@latest list` returns a matching package; otherwise use `tanstack doc` / `tanstack search-docs` and the repo-specific TanStack guides linked in **TanStack CLI and Intent** above.
 - **Tiptap rich text editor (`@tiptap/*`, shared editor in `@asym/ui`):** `docs/ai/skills/tiptap/SKILL.md`
 - **Resend CLI (`resend` binary, shell, scripts, CI/CD, non-interactive flags):** `docs/ai/skills/resend-cli/SKILL.md` (not the same as SDK or tenant app integration; see `docs/guides/features/resend-integration.md` for product email routes and UI)
 - **Supabase (platform-wide: Auth, DB API, Storage, Realtime, Edge Functions, CLI, MCP, RLS, migrations):** `docs/ai/skills/supabase/SKILL.md`

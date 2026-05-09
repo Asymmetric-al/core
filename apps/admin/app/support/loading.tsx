@@ -1,15 +1,14 @@
-import {
-  PageHeaderSkeleton,
-  TableSkeleton,
-} from "@/features/mission-control/components/patterns/skeletons";
+import { PageShell } from "@asym/ui/components/shadcn/page-shell";
 
-export default function Loading() {
+import { SupportInboxSkeleton } from "@/features/support-hub/components";
+
+export default function SupportHubLoading() {
   return (
-    <div className="flex h-full flex-col">
-      <PageHeaderSkeleton />
-      <div className="flex-1 p-6 lg:p-8">
-        <TableSkeleton />
-      </div>
-    </div>
+    <PageShell
+      title="Support Hub"
+      description="Donor care inbox: triage, reply, and track every donor email."
+    >
+      <SupportInboxSkeleton />
+    </PageShell>
   );
 }

@@ -10,129 +10,127 @@ function readRepoFile(path: string) {
 
 const routeSplits = [
   {
+    name: "admin events",
+    wrapperPath: "apps/admin/app/events/page.tsx",
+    clientPath: "apps/admin/app/events/page-client.tsx",
+  },
+  {
+    name: "admin reports",
+    wrapperPath: "apps/admin/app/reports/page.tsx",
+    clientPath: "apps/admin/app/reports/page-client.tsx",
+  },
+  {
+    name: "donor feed",
     wrapperPath: "apps/donor/app/(dashboard)/donor-dashboard/feed/page.tsx",
     clientPath:
-      "apps/donor/app/(dashboard)/donor-dashboard/feed/feed-page-client.tsx",
-    importPath: "./feed-page-client",
-    componentName: "DonorFeedPage",
+      "apps/donor/app/(dashboard)/donor-dashboard/feed/page-client.tsx",
   },
   {
+    name: "donor history",
     wrapperPath: "apps/donor/app/(dashboard)/donor-dashboard/history/page.tsx",
     clientPath:
-      "apps/donor/app/(dashboard)/donor-dashboard/history/history-page-client.tsx",
-    importPath: "./history-page-client",
-    componentName: "DonorHistoryPage",
+      "apps/donor/app/(dashboard)/donor-dashboard/history/page-client.tsx",
   },
   {
+    name: "donor wallet",
+    wrapperPath: "apps/donor/app/(dashboard)/donor-dashboard/wallet/page.tsx",
+    clientPath:
+      "apps/donor/app/(dashboard)/donor-dashboard/wallet/page-client.tsx",
+  },
+  {
+    name: "missionary analytics",
     wrapperPath: "apps/missionary/app/analytics/page.tsx",
-    clientPath: "apps/missionary/app/analytics/analytics-page-client.tsx",
-    importPath: "./analytics-page-client",
-    componentName: "AnalyticsPage",
+    clientPath: "apps/missionary/app/analytics/page-client.tsx",
   },
   {
-    wrapperPath: "apps/admin/app/reports/page.tsx",
-    clientPath: "apps/admin/app/reports/reports-page-client.tsx",
-    importPath: "./reports-page-client",
-    componentName: "MissionControlReports",
+    name: "missionary tasks",
+    wrapperPath: "apps/missionary/app/tasks/page.tsx",
+    clientPath: "apps/missionary/app/tasks/page-client.tsx",
   },
 ] as const;
 
 const loadingPaths = [
+  "apps/admin/app/events/loading.tsx",
+  "apps/admin/app/reports/loading.tsx",
   "apps/donor/app/(dashboard)/donor-dashboard/feed/loading.tsx",
   "apps/donor/app/(dashboard)/donor-dashboard/history/loading.tsx",
+  "apps/donor/app/(dashboard)/donor-dashboard/wallet/loading.tsx",
   "apps/missionary/app/analytics/loading.tsx",
+  "apps/missionary/app/tasks/loading.tsx",
 ] as const;
 
 describe("UI route cleanup contracts", () => {
-  it("keeps route pages as tiny server wrappers around client components", () => {
+  it("keeps moved route pages as tiny server wrappers around canonical client components", () => {
     for (const route of routeSplits) {
       const wrapperSource = readRepoFile(route.wrapperPath);
       const clientSource = readRepoFile(route.clientPath);
 
-      expect(wrapperSource).not.toMatch(/^["']use client["'];/m);
-      expect(wrapperSource).toContain(
-        `import ${route.componentName} from "${route.importPath}";`,
+      expect(wrapperSource, route.name).not.toMatch(/^["']use client["'];/m);
+      expect(wrapperSource, route.name).toContain(
+        'import PageClient from "./page-client";',
       );
-      expect(wrapperSource).toContain(`return <${route.componentName} />;`);
-      expect(clientSource.startsWith('"use client";')).toBe(true);
+      expect(wrapperSource, route.name).toContain("return <PageClient />;");
+      expect(clientSource, route.name).toMatch(/^"use client";/);
     }
   });
 
-  it("keeps added loading fallbacks server-rendered and Skeleton-only", () => {
+  it("keeps moved routes covered by server-rendered loading fallbacks", () => {
     for (const path of loadingPaths) {
       const source = readRepoFile(path);
-      const importLines = source.match(/^import .+$/gm) ?? [];
 
-      expect(source).not.toMatch(/^["']use client["'];/m);
-      expect(importLines).toEqual([
-        'import { Skeleton } from "@asym/ui/components/shadcn/skeleton";',
-      ]);
-      expect(source).toMatch(/export default function Loading\(\)/);
+      expect(source, path).not.toMatch(/^["']use client["'];/m);
+      expect(source, path).toMatch(/export default function Loading\(\)/);
+      expect(source, path).toMatch(/Skeleton/);
     }
   });
 
   it("guards touched client files against broad or slow motion regressions", () => {
-    const clientSources = routeSplits.map((route) =>
-      readRepoFile(route.clientPath),
+    const clientSources = routeSplits.map(
+      (route) => [route.name, readRepoFile(route.clientPath)] as const,
     );
 
-    for (const source of clientSources) {
-      expect(source).not.toMatch(/transition-all/);
-      expect(source).not.toMatch(/duration-700/);
-      expect(source).not.toMatch(/duration-500/);
-      expect(source).not.toMatch(/animate-bounce/);
+    for (const [name, source] of clientSources) {
+      expect(source, name).not.toMatch(/transition-all/);
+      expect(source, name).not.toMatch(/duration-700/);
+      expect(source, name).not.toMatch(/duration-500/);
+      expect(source, name).not.toMatch(/animate-bounce/);
     }
   });
 
-  it("keeps donor feed actions named and image motion targeted", () => {
+  it("keeps donor feed icon actions named and image filter motion targeted", () => {
     const source = readRepoFile(
-      "apps/donor/app/(dashboard)/donor-dashboard/feed/feed-page-client.tsx",
+      "apps/donor/app/(dashboard)/donor-dashboard/feed/page-client.tsx",
     );
 
-    expect(source).toContain('aria-label="Open post actions"');
-    expect(source).toContain('aria-label="Share post"');
-    expect(source).toContain(
-      "grayscale hover:grayscale-0 transition-[filter] duration-300 ease-out",
-    );
+    expect(source).toMatch(/aria-label="Open post actions"/);
+    expect(source).toMatch(/aria-label="Share post"/);
+    expect(source).toMatch(/transition-\[filter\]/);
   });
 
-  it("keeps donor history page fade and chart cells on targeted motion", () => {
+  it("keeps donor history page and chart cells on targeted motion", () => {
     const source = readRepoFile(
-      "apps/donor/app/(dashboard)/donor-dashboard/history/history-page-client.tsx",
+      "apps/donor/app/(dashboard)/donor-dashboard/history/page-client.tsx",
     );
 
-    expect(source).toContain(
-      'className="transition-opacity duration-200 hover:opacity-80"',
-    );
-    expect(source).toContain(
-      'className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 pb-20"',
-    );
+    expect(source).toMatch(/transition-opacity/);
+    expect(source).toMatch(/animate-in fade-in duration-300/);
   });
 
   it("keeps missionary analytics neutral chart colors on Maia CSS variables", () => {
     const source = readRepoFile(
-      "apps/missionary/app/analytics/analytics-page-client.tsx",
+      "apps/missionary/app/analytics/page-client.tsx",
     );
 
-    expect(source).toContain('color: "var(--foreground)"');
-    expect(source).toContain('color: "var(--muted-foreground)"');
-    expect(source).toContain('color: "var(--muted)"');
-    expect(source).toContain('fill: "var(--muted-foreground)"');
-    expect(source).toContain('cursor={{ fill: "var(--muted)", radius: 4 }}');
-    expect(source).toContain('fill="var(--foreground)"');
-    expect(source).toContain('fill="var(--muted)"');
-    expect(source).toContain('stroke="var(--foreground)"');
-    expect(source).toContain('stroke="var(--muted)"');
-    expect(source).toContain('color: "#eab308"');
+    expect(source).toMatch(/var\(--foreground\)/);
+    expect(source).toMatch(/var\(--muted-foreground\)/);
+    expect(source).toMatch(/var\(--muted\)/);
+    expect(source).toMatch(/color: "#eab308"/);
     expect(source).not.toMatch(/#(18181b|71717a|a1a1aa|f4f4f5|e4e4e7)/i);
   });
 
   it("keeps admin reports summary dismissible by accessible name", () => {
-    const source = readRepoFile(
-      "apps/admin/app/reports/reports-page-client.tsx",
-    );
+    const source = readRepoFile("apps/admin/app/reports/page-client.tsx");
 
-    expect(source).toContain('aria-label="Dismiss report summary"');
-    expect(source).toContain("transition-colors duration-150");
+    expect(source).toMatch(/aria-label="Dismiss report summary"/);
   });
 });

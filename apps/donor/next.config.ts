@@ -1,15 +1,12 @@
-import path from "node:path";
-
 import { loadEnvConfig } from "@next/env";
 
 import { resolveMonorepoRoot } from "../../scripts/resolve-monorepo-root.mjs";
 
 import type { NextConfig } from "next";
 
-/** Monorepo root `.env.local` — Next only auto-loads `apps/<app>/.env.local` by default. */
+/** Load the repo-root `.env.local`; app-local files should be symlinks only when needed by external tooling. */
 const WORKSPACE_ROOT = resolveMonorepoRoot(import.meta.url);
 loadEnvConfig(WORKSPACE_ROOT);
-loadEnvConfig(path.join(WORKSPACE_ROOT, "apps", "donor"));
 
 /**
  * Paths relative to `turbopack.root` (monorepo root). Absolute filesystem paths
@@ -44,6 +41,7 @@ const nextConfig: NextConfig = {
     "@asym/email",
   ],
   experimental: {
+    globalNotFound: true,
     viewTransition: true,
     optimizePackageImports: ["@asym/ui", "lucide-react"],
   },
