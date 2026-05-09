@@ -52,6 +52,7 @@ describe("requireSupportHubAccess", () => {
     getAuthContextMock.mockResolvedValue({
       isAuthenticated: true,
       userId: "user-1",
+      email: "user-1@example.com",
       tenantId: "tenant-1",
       role: "staff",
       profileRole: "staff",
@@ -63,6 +64,7 @@ describe("requireSupportHubAccess", () => {
     expect(result.context).toEqual({
       tenantId: "tenant-1",
       userId: "user-1",
+      userEmail: "user-1@example.com",
       isSuperAdmin: false,
     });
   });

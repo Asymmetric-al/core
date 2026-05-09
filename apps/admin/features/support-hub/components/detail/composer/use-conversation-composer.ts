@@ -12,6 +12,7 @@ import {
 } from "../../../hooks/use-support-mutations";
 import { useCurrentSupportAgentId } from "../../../lib/current-agent";
 import { buildMergeVariableContext } from "../../../lib/merge-variables";
+import { isRichTextPayloadDirty } from "../../../lib/rich-text-dirty";
 
 import type { SupportAttachmentDraft } from "../../../models/editor-payload";
 import type { SupportAssignee } from "../../../types";
@@ -140,7 +141,7 @@ export function useConversationComposer({
     setAttachmentsByMode((prev) => ({ ...prev, [mode]: [] }));
   };
 
-  const isDirty = isPayloadDirty(value);
+  const isDirty = isRichTextPayloadDirty(value) || attachments.length > 0;
 
   const send = async () => {
     if (!authorAgentId) {
@@ -283,19 +284,6 @@ export function useConversationComposer({
     agent: resolvedAgent,
     authorAgentId,
   };
-}
-
-function isPayloadDirty(rawJson: string): boolean {
-  if (!rawJson) return false;
-  try {
-    const parsed = JSON.parse(rawJson) as { content?: unknown[] };
-    const content = parsed?.content ?? [];
-    if (!Array.isArray(content) || content.length === 0) return false;
-    const text = JSON.stringify(content);
-    return text.includes('"text"');
-  } catch {
-    return rawJson.trim().length > 0;
-  }
 }
 
 function extractErrorMessage(error: unknown, fallback: string): string {

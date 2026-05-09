@@ -22,13 +22,8 @@ describe("SUPPORT_INBOX_KEYMAP", () => {
       "openCommandPalette",
       "nextConversation",
       "previousConversation",
-      "switchToReply",
-      "switchToNote",
       "resolveConversation",
       "openSnoozeMenu",
-      "openAssigneeMenu",
-      "openLabelsMenu",
-      "openMacrosMenu",
       "closeOverlay",
     ] as const) {
       expect(actions).toContain(required);

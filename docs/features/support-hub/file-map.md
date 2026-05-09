@@ -2,9 +2,10 @@
 
 > Companion to [`phase-01-discovery.md`](./phase-01-discovery.md). This doc
 > lists every file the Support Hub will create or touch, with one-sentence
-> intent for each. No paths are speculative — each placement is grounded in
-> a precedent that already exists in the repo
-> (Care Hub, Contributions, Resend integration).
+> intent for each. Paths are **planned targets** grounded in existing repo
+> precedents (Care Hub, Contributions, Resend integration); exact route
+> granularity and filenames may shift slightly during implementation while
+> keeping package boundaries stable.
 
 ## 0. Conventions used here
 
@@ -18,7 +19,7 @@
 
 ```
 ~ apps/admin/app/support/page.tsx
-+ apps/admin/app/support/loading.tsx
+~ apps/admin/app/support/loading.tsx
 + apps/admin/app/api/admin/support/conversations/route.ts
 + apps/admin/app/api/admin/support/conversations/[id]/route.ts
 + apps/admin/app/api/admin/support/conversations/[id]/messages/route.ts
@@ -139,8 +140,7 @@ Patterns:
   deterministic `idempotency_key = support_message:{id}` and writes the
   resulting `email_send_logs` id back to `support_messages.outbound_send_log_id`.
 - `inbound-router.ts` is invoked from the Resend webhook route inside the
-  `email.received` branch (`packages/api/src/email/webhooks/resend.ts`
-  around line 572).
+  `email.received` branch in `packages/api/src/email/webhooks/resend.ts`.
 
 ## 3. Database hooks and types (`packages/database`)
 
@@ -187,7 +187,9 @@ The Support Hub talks to Resend exclusively through existing exports:
 
 Migration scope:
 
-- All `support_*` tables defined in `phase-01-discovery.md` §3.4.
+- All `support_*` tables in `phase-01-discovery.md` §3.4 (MVP sketch) plus
+  the **Deferred tables** subsection (Phase 3/4), each in the migration that
+  ships its feature.
 - Indexes on `(tenant_id, status, last_message_at desc)`,
   `(tenant_id, assignee_user_id, status)`,
   `(tenant_id, lower(external_contact_email))`,
@@ -212,7 +214,7 @@ Migration scope:
 + tests/unit/packages/api/admin/support-hub/reads.test.ts
 + tests/unit/packages/api/admin/support-hub/mutations.test.ts
 ~ tests/unit/packages/api/email/webhooks-resend.test.ts
-+ tests/playwright/admin/support-hub.smoke.spec.ts
++ tests/e2e/admin-support-hub.smoke.spec.ts
 ```
 
 Smoke spec covers: inbox loads, switch view (`mine` ↔ `all`), switch

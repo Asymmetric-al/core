@@ -73,9 +73,15 @@ MotionProvider → Suspense → NuqsAdapter → MCShell`.
 - Page chrome: `packages/ui/components/shadcn/page-shell.tsx` (`PageShell`).
 - Nav already lists Support Hub: `mc-shell.tsx` (`toolNav`),
   `packages/lib/mission-control/nav.ts`, `packages/config/tiles.ts`,
-  `packages/config/navigation.ts`. Roles for `/support` =
-  `member_care | admin` (matches our `requireSupportHubAccess()` decision
-  below).
+  `packages/config/navigation.ts`. Roles for `/support` (nav id
+  `support`): `member_care`, `admin` — see
+  `packages/lib/mission-control/nav.ts`. **`requireSupportHubAccess()`
+  (planned)** must authorize the same cohort (plus `super_admin` for
+  platform operators); it must **not** blindly reuse
+  `requireMemberCareAccess()`'s `staff` | `admin` | `super_admin`
+  predicate alone, or `member_care` users would see the nav item and get
+  `403` on API routes (see
+  `packages/api/src/admin/member-care/route-helpers.ts`).
 - Forced light theme is intentional and must be preserved.
 
 ### 2.2 Existing `/support` page
@@ -159,10 +165,10 @@ Inbound retrieval helpers exist:
   `--cwd packages/ui`, complex client forms use TanStack Form + Zod, simple
   filter/search forms can be native or `next/form`, no Zustand.
 - `apps/admin/next.config.ts` enables `cacheComponents: true` and
-  `reactCompiler.compilationMode = "annotation"`. The inbox page is a
-  client component (it owns interactive state) and is therefore unaffected
-  by Cache Components, but server reads in `packages/api` must remain
-  request-scoped.
+  `reactCompiler.compilationMode = "annotation"`. Keep
+  `apps/admin/app/support/page.tsx` as a Server Component wrapper and mount
+  an interactive `SupportInbox` client surface beneath it. Server reads in
+  `packages/api` must remain request-scoped.
 
 ### 2.7 TanStack stack already in repo
 
@@ -215,8 +221,11 @@ Notes:
   past `resolved`; resolved + 30 days can be archived later without a new
   state.
 - `snoozed` carries `snoozed_until timestamptz`; an Inngest-style cron is
-  out of scope for MVP — we just compute "ready" by clock and re-open on
-  inbound reply.
+  out of scope for MVP. **MVP rule:** list/board queries treat a row as
+  "wake-ready" when `now() > snoozed_until` (computed filter / view),
+  without automatically flipping `status` until an agent acts or an inbound
+  message arrives; Phase 3 may add a job to auto-open if product wants
+  clock-only wake.
 - `escalated` and `past_due` are computed from
   `escalated_at is not null` and SLA timestamps; no separate table.
 
@@ -255,6 +264,7 @@ support_conversations (
   escalated_at, past_due_at, sla_policy_id null,
   message_count int default 0,
   unread_count  int default 0,
+  board_order int null,               -- kanban ordering within status column; batched updates from board view
   resend_thread_key text,             -- normalized Message-Id family
   metadata jsonb default '{}'::jsonb
 )
@@ -323,6 +333,16 @@ support_audit_log (
 )
 ```
 
+**Deferred tables (named in parity map; migrations ship with the phase that
+implements the feature):**
+
+- **`support_csat_responses`** — backs CSAT report in Phase 4; expect
+  `tenant_id`, `conversation_id`, `score`, `submitted_at`, audit columns, and
+  RLS mirroring other `support_*` tables. Final columns in the Phase 4
+  migration PR.
+- **`support_conversation_mutes`** — Phase 3 mute; expect `tenant_id`,
+  `user_id`, `conversation_id`, unique `(user_id, conversation_id)`, RLS.
+
 Bridge to existing email tables:
 
 - New columns on `email_inbound_messages`:
@@ -346,10 +366,14 @@ Bridge to existing email tables:
   written back to `support_messages.outbound_send_log_id` so analytics work
   end to end.
 
-### 3.5 Reports (Phase 3 surface, data ready in MVP)
+### 3.5 Reports (metrics-ready in MVP; UI and CSAT in Phase 4)
 
-The data model already supports the seven Chatwoot-style reports. We will
-expose them in Phase 3 via materialized aggregates:
+The MVP schema keeps the fields needed for the seven Chatwoot-style report
+shapes. **Reports UI** and **CSAT collection** ship in **Phase 4** (see §3.6
+and `chatwoot-gray-parity-map.md` §6). Optional materialized aggregates for
+heavy queries may land in a Phase 3 infra PR if needed, but user-facing
+reports are not a Phase 3 deliverable — that avoids contradicting the phase
+table below.
 
 - Overview (volume, status mix, channel mix)
 - Conversations (CSAT, first response, resolution time)
@@ -391,20 +415,20 @@ expose them in Phase 3 via materialized aggregates:
 
 ## 4. Conflict list (resolved)
 
-| Conflict           | Resolution                                                                                                                                                                                                        |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ------------------------------------------------------------------- |
-| Shell ownership    | Keep `MCShell`. Inbox renders inside `<PageShell>`. No alternative shell.                                                                                                                                         |
-| Shared tokens      | No new tokens. Map donor's sky/amber/emerald/rose status colors to our existing dot-and-badge pattern (see `apps/admin/app/contributions/main-body.tsx` for the precedent).                                       |
-| Forced light theme | `MCShell` forces light. Drop all `dark:*` classes from any code we adapt from the donor.                                                                                                                          |
-| TipTap reuse       | Use `@asym/ui/components/shadcn/rich-text-editor` for replies and notes. Do **not** repeat the legacy `Textarea` placeholder pattern in `apps/admin/features/mission-control/care/components/RichTextEditor.tsx`. |
-| TanStack stack     | TanStack Query 5 + Table 8 + Virtual 3 + `nuqs` 2 + the repo's mutation/realtime hooks. No TanStack DB collections in MVP.                                                                                        |
-| Data grid fit      | `DataTableResponsive` for the table view; bespoke board for the kanban view; no fork of the donor's `data-grid/`.                                                                                                 |
-| Route shape        | `/support` plus search params; nested `/support/settings`, `/support/reports` deferred.                                                                                                                           |
-| Mobile behavior    | List uses `DataTableResponsive` mobile card mode. Conversation detail opens in a full-screen `Sheet` on mobile and as a third pane on desktop.                                                                    |
-| Auth               | `requireSupportHubAccess()` mirrors `requireMemberCareAccess()`; gate on `staff                                                                                                                                   | admin | super_admin`roles, matching the existing`/support` nav role config. |
-| Cache Components   | Inbox page is a client component (interactive state) — `cacheComponents: true` is irrelevant to it. Server reads in `packages/api/src/admin/support-hub` stay request-scoped.                                     |
-| Email backbone     | Use the existing `tenant_email_settings`, `email_send_logs`, `email_events`, `email_inbound_messages`. Add bridging columns; do not duplicate tables.                                                             |
-| RLS                | All `support_*` tables RLS-on with `tenant_id = auth.jwt()->'app_metadata'->>'tenant_id'`. Match the pattern in member-care foundation.                                                                           |
+| Conflict           | Resolution                                                                                                                                                                                                                                                                                |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Shell ownership    | Keep `MCShell`. Inbox renders inside `<PageShell>`. No alternative shell.                                                                                                                                                                                                                 |
+| Shared tokens      | No new tokens. Map donor's sky/amber/emerald/rose status colors to our existing dot-and-badge pattern (see `apps/admin/app/contributions/main-body.tsx` for the precedent).                                                                                                               |
+| Forced light theme | `MCShell` forces light. Drop all `dark:*` classes from any code we adapt from the donor.                                                                                                                                                                                                  |
+| TipTap reuse       | Use `@asym/ui/components/shadcn/rich-text-editor` for replies and notes. Do **not** repeat the legacy `Textarea` placeholder pattern in `apps/admin/features/mission-control/care/components/RichTextEditor.tsx`.                                                                         |
+| TanStack stack     | TanStack Query 5 + Table 8 + Virtual 3 + `nuqs` 2 + the repo's mutation/realtime hooks. No TanStack DB collections in MVP.                                                                                                                                                                |
+| Data grid fit      | `DataTableResponsive` for the table view; bespoke board for the kanban view; no fork of the donor's `data-grid/`.                                                                                                                                                                         |
+| Route shape        | `/support` plus search params; nested `/support/settings`, `/support/reports` deferred.                                                                                                                                                                                                   |
+| Mobile behavior    | List uses `DataTableResponsive` mobile card mode. Conversation detail opens in a full-screen `Sheet` on mobile and as a third pane on desktop.                                                                                                                                            |
+| Auth               | `requireSupportHubAccess()` follows the same **shape** as `requireMemberCareAccess()` (discriminated union, 401/403), but the **role predicate** must match Support Hub nav: allow `member_care`, `admin`, and `super_admin` (verify against `hasAnyContextRole` at implementation time). |
+| Cache Components   | Keep `/support` as a thin Server Component `page.tsx` wrapper that mounts an interactive client `SupportInbox` surface. `cacheComponents: true` does not change client-only inbox state; server reads in `packages/api/src/admin/support-hub` stay request-scoped.                        |
+| Email backbone     | Use the existing `tenant_email_settings`, `email_send_logs`, `email_events`, `email_inbound_messages`. Add bridging columns; do not duplicate tables.                                                                                                                                     |
+| RLS                | All `support_*` tables RLS-on with `tenant_id = auth.jwt()->'app_metadata'->>'tenant_id'`. Match the pattern in member-care foundation.                                                                                                                                                   |
 
 ## 5. Implementation order (later phases follow this exactly)
 
@@ -432,7 +456,8 @@ expose them in Phase 3 via materialized aggregates:
    - `inbound-router.ts` — message threading + conversation upsert.
    - `schemas.ts` — Zod schemas for every mutation payload.
    - `types.ts` — derived TS types.
-4. **Route handlers (`apps/admin/app/api/admin/support/**`)\*\*
+4. **Route handlers** — `apps/admin/app/api/admin/support/**` (thin
+   `route.ts` files per resource)
    - One folder per resource, each `route.ts` calls `requireSupportHubAccess()`
      then delegates to `@asym/api/admin/support-hub/*`. Thin re-exports only
      (Data Access Boundary rule).

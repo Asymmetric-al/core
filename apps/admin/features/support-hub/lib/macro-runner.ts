@@ -101,6 +101,10 @@ export interface MacroRunResult {
 
 const HOUR_MS = 60 * 60 * 1000;
 
+export function macroNeedsComposerInsert(macro: SupportMacro): boolean {
+  return macro.actions.some((action) => action.kind === "send_canned_response");
+}
+
 /**
  * Sequentially executes a `SupportMacro` against a single conversation.
  *
@@ -220,7 +224,12 @@ export async function runSupportMacro({
             canned.bodyHtml ?? canned.bodyText,
             ctx,
           );
-          onCannedResponseInsert?.({
+          if (!onCannedResponseInsert) {
+            status = "failed";
+            message = `${actor.name} ran "${macro.name}": canned response requires an open composer.`;
+            break;
+          }
+          onCannedResponseInsert({
             cannedResponse: canned,
             text,
             html,

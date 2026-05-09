@@ -13,13 +13,8 @@ export type SupportShortcutAction =
   | "openCommandPalette"
   | "nextConversation"
   | "previousConversation"
-  | "switchToReply"
-  | "switchToNote"
   | "resolveConversation"
   | "openSnoozeMenu"
-  | "openAssigneeMenu"
-  | "openLabelsMenu"
-  | "openMacrosMenu"
   | "closeOverlay";
 
 export interface SupportShortcutEntry {
@@ -59,18 +54,6 @@ export const SUPPORT_INBOX_KEYMAP: SupportShortcutEntry[] = [
     key: "k",
   },
   {
-    action: "switchToReply",
-    label: "Reply mode",
-    chord: "r",
-    key: "r",
-  },
-  {
-    action: "switchToNote",
-    label: "Internal note mode",
-    chord: "n",
-    key: "n",
-  },
-  {
     action: "resolveConversation",
     label: "Resolve conversation",
     chord: "e",
@@ -81,24 +64,6 @@ export const SUPPORT_INBOX_KEYMAP: SupportShortcutEntry[] = [
     label: "Snooze",
     chord: "s",
     key: "s",
-  },
-  {
-    action: "openAssigneeMenu",
-    label: "Assignee menu",
-    chord: "a",
-    key: "a",
-  },
-  {
-    action: "openLabelsMenu",
-    label: "Labels",
-    chord: "l",
-    key: "l",
-  },
-  {
-    action: "openMacrosMenu",
-    label: "Macros",
-    chord: "m",
-    key: "m",
   },
   {
     action: "closeOverlay",

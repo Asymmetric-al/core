@@ -29,6 +29,10 @@ import {
   useSnoozeSupportConversation,
   useToggleSupportLabel,
 } from "../../hooks/use-support-mutations";
+import {
+  runBulkMutations,
+  type BulkMutationReport,
+} from "../../lib/bulk-mutations";
 import { useCurrentSupportAgentId } from "../../lib/current-agent";
 
 import type {
@@ -61,6 +65,25 @@ const TONE_CLASSES: Record<SupportLabelTone, string> = {
   violet: "bg-violet-50 text-violet-700 ring-violet-200",
 };
 
+function toastBulkReport(
+  report: BulkMutationReport,
+  successMessage: string,
+  failureMessage: string,
+) {
+  if (report.total === 0) return;
+  if (report.failed === 0) {
+    toast.success(successMessage);
+    return;
+  }
+  if (report.succeeded > 0) {
+    toast.warning(
+      `${failureMessage} ${report.succeeded}/${report.total} succeeded.`,
+    );
+    return;
+  }
+  toast.error(report.firstError?.message ?? failureMessage);
+}
+
 /**
  * Bulk action bar wired into `DataTableResponsive.floatingBarActions`. Each
  * action delegates to one of the Phase 2 mutation hooks; each hook already
@@ -89,28 +112,20 @@ export function useSupportBulkActions(): UseBulkActionsReturn {
     const rows = pendingLabelRows;
     closeLabelDialog();
     if (rows.length === 0) return;
-    try {
-      await Promise.all(
-        rows.map((row) =>
-          toggleLabel.mutateAsync({
-            conversationId: row.id,
-            labelId: label.id,
-            mode: "add",
-          }),
-        ),
-      );
-      toast.success(
-        rows.length === 1
-          ? `Added "${label.name}" to 1 conversation.`
-          : `Added "${label.name}" to ${rows.length} conversations.`,
-      );
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Could not apply the label to every conversation.",
-      );
-    }
+    const report = await runBulkMutations(rows, (row) =>
+      toggleLabel.mutateAsync({
+        conversationId: row.id,
+        labelId: label.id,
+        mode: "add",
+      }),
+    );
+    toastBulkReport(
+      report,
+      rows.length === 1
+        ? `Added "${label.name}" to 1 conversation.`
+        : `Added "${label.name}" to ${rows.length} conversations.`,
+      `Could not apply "${label.name}" to every conversation.`,
+    );
   };
 
   const actions: FloatingBarAction[] = [
@@ -118,24 +133,40 @@ export function useSupportBulkActions(): UseBulkActionsReturn {
       label: "Mark resolved",
       icon: Check,
       onClick: (rows) => {
-        for (const row of rows) {
-          void setStatus.mutateAsync({
+        void runBulkMutations(rows, (row) =>
+          setStatus.mutateAsync({
             conversationId: row.id,
             status: "resolved",
-          });
-        }
+          }),
+        ).then((report) =>
+          toastBulkReport(
+            report,
+            rows.length === 1
+              ? "Marked 1 conversation resolved."
+              : `Marked ${rows.length} conversations resolved.`,
+            "Could not mark every conversation resolved.",
+          ),
+        );
       },
     },
     {
       label: "Mark pending",
       icon: Clock,
       onClick: (rows) => {
-        for (const row of rows) {
-          void setStatus.mutateAsync({
+        void runBulkMutations(rows, (row) =>
+          setStatus.mutateAsync({
             conversationId: row.id,
             status: "pending",
-          });
-        }
+          }),
+        ).then((report) =>
+          toastBulkReport(
+            report,
+            rows.length === 1
+              ? "Marked 1 conversation pending."
+              : `Marked ${rows.length} conversations pending.`,
+            "Could not mark every conversation pending.",
+          ),
+        );
       },
     },
     {
@@ -143,25 +174,44 @@ export function useSupportBulkActions(): UseBulkActionsReturn {
       icon: Clock,
       onClick: (rows) => {
         const snoozedUntil = new Date(Date.now() + 24 * HOUR_MS).toISOString();
-        for (const row of rows) {
-          void snooze.mutateAsync({
+        void runBulkMutations(rows, (row) =>
+          snooze.mutateAsync({
             conversationId: row.id,
             snoozedUntil,
-          });
-        }
+          }),
+        ).then((report) =>
+          toastBulkReport(
+            report,
+            rows.length === 1
+              ? "Snoozed 1 conversation for 24h."
+              : `Snoozed ${rows.length} conversations for 24h.`,
+            "Could not snooze every conversation.",
+          ),
+        );
       },
     },
     {
       label: "Assign to me",
       icon: UserCheck,
       onClick: (rows) => {
-        if (!currentAgentId) return;
-        for (const row of rows) {
-          void assign.mutateAsync({
+        if (!currentAgentId) {
+          toast.error("No agent matched the current Mission Control user yet.");
+          return;
+        }
+        void runBulkMutations(rows, (row) =>
+          assign.mutateAsync({
             conversationId: row.id,
             assigneeAgentId: currentAgentId,
-          });
-        }
+          }),
+        ).then((report) =>
+          toastBulkReport(
+            report,
+            rows.length === 1
+              ? "Assigned 1 conversation to you."
+              : `Assigned ${rows.length} conversations to you.`,
+            "Could not assign every conversation.",
+          ),
+        );
       },
     },
     {

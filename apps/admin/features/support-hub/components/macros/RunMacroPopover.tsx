@@ -16,6 +16,7 @@ import { MacroPreviewLine } from "./MacroPreviewLine";
 import { useSupportMacros } from "../../hooks/use-support-macros";
 import { useRunSupportMacro } from "../../hooks/use-support-mutations";
 import { useCurrentSupportAgentId } from "../../lib/current-agent";
+import { macroNeedsComposerInsert } from "../../lib/macro-runner";
 
 import type { SupportConversation, SupportMacro } from "../../types";
 
@@ -45,6 +46,10 @@ export function RunMacroPopover({
   const handleRun = async (macro: SupportMacro) => {
     if (!currentAgentId) {
       toast.error("No agent matched the current Mission Control user yet.");
+      return;
+    }
+    if (macroNeedsComposerInsert(macro) && !onCannedResponseInsert) {
+      toast.error("Open the reply composer to insert canned responses.");
       return;
     }
     setBusyMacroId(macro.id);

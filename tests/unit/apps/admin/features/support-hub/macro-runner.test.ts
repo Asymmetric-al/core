@@ -243,4 +243,23 @@ describe("runSupportMacro", () => {
     expect(call.text).toContain("Thank you, Donor Name");
     expect(call.html).toContain("Thank you, Donor Name");
   });
+
+  it("fails canned-response actions when no composer insert slot is provided", async () => {
+    const mutations = buildMockMutations();
+    const macro = buildMacro([
+      { kind: "send_canned_response", cannedResponseId: CANNED.id },
+    ]);
+    const result = await runSupportMacro({
+      macro,
+      conversation: CONVERSATION,
+      actorAgent: AGENT,
+      mutations,
+      lookup: buildLookup(),
+    });
+    expect(result.ok).toBe(false);
+    expect(result.outcomes[0]).toMatchObject({
+      status: "failed",
+      message: expect.stringContaining("requires an open composer"),
+    });
+  });
 });

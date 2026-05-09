@@ -41,6 +41,7 @@ const nextConfig: NextConfig = {
     "@asym/email",
   ],
   experimental: {
+    globalNotFound: true,
     viewTransition: true,
     optimizePackageImports: ["@asym/ui", "lucide-react"],
   },

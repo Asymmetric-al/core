@@ -1,5 +1,6 @@
 export {
   requireSupportHubAccess,
+  resolveCurrentSupportAgentId,
   withSupportHubAccess,
   readJsonBody,
   toApiErrorResponse,

@@ -41,9 +41,14 @@ import {
 } from "../../hooks/use-support-mutations";
 import { useSupportSavedViews } from "../../hooks/use-support-saved-views";
 import { useCurrentSupportAgentId } from "../../lib/current-agent";
+import { macroNeedsComposerInsert } from "../../lib/macro-runner";
 import { useSupportInboxState } from "../../lib/route-state";
 
-import type { SupportInboxRouteState, SupportSavedView } from "../../types";
+import type {
+  SupportInboxRouteState,
+  SupportMacro,
+  SupportSavedView,
+} from "../../types";
 
 const HOUR_MS = 60 * 60 * 1000;
 
@@ -173,17 +178,21 @@ export function SupportCommandPalette() {
     });
   };
 
-  const handleRunMacro = async (macroId: string) => {
+  const handleRunMacro = async (macro: SupportMacro) => {
     const target = ensureSelected();
     if (!target) return;
     if (!currentAgentId) {
       toast.error("No agent matched the current Mission Control user yet.");
       return;
     }
+    if (macroNeedsComposerInsert(macro)) {
+      toast.error("Open the reply composer to insert canned responses.");
+      return;
+    }
     close();
     await runMacro.mutateAsync({
       conversationId: target.id,
-      macroId,
+      macroId: macro.id,
       authorAgentId: currentAgentId,
     });
   };
@@ -290,7 +299,7 @@ export function SupportCommandPalette() {
               {macros.map((macro) => (
                 <CommandItem
                   key={macro.id}
-                  onSelect={() => void handleRunMacro(macro.id)}
+                  onSelect={() => void handleRunMacro(macro)}
                 >
                   <Wand2 className="size-3.5 text-zinc-500" />
                   {macro.name}

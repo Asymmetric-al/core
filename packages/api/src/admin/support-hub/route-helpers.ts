@@ -1,11 +1,13 @@
 import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
 import { ZodError, type ZodType } from "zod";
 
+import { supportHubAdapter } from "./adapter";
 import { runWithSupportHubTenant } from "./request-context";
 
 export type SupportHubContext = {
   tenantId: string;
   userId: string;
+  userEmail: string | null;
   isSuperAdmin: boolean;
 };
 
@@ -48,6 +50,7 @@ export async function requireSupportHubAccess(): Promise<AuthResult> {
     context: {
       tenantId: auth.tenantId,
       userId: auth.userId,
+      userEmail: auth.email,
       isSuperAdmin:
         auth.role === "super_admin" || auth.profileRole === "super_admin",
     },
@@ -59,11 +62,25 @@ export async function requireSupportHubAccess(): Promise<AuthResult> {
  * authenticated tenant for adapter-level isolation (Phase 7 in-memory).
  */
 export async function withSupportHubAccess(
-  handler: () => Promise<Response>,
+  handler: (context: SupportHubContext) => Promise<Response>,
 ): Promise<Response> {
   const auth = await requireSupportHubAccess();
   if (!auth.ok) return auth.response;
-  return runWithSupportHubTenant(auth.context.tenantId, handler);
+  return runWithSupportHubTenant(auth.context.tenantId, () =>
+    handler(auth.context),
+  );
+}
+
+export async function resolveCurrentSupportAgentId(
+  context: SupportHubContext,
+): Promise<string | null> {
+  const agents = await supportHubAdapter.agents.list();
+  const userEmail = context.userEmail?.trim().toLowerCase() ?? null;
+  const match = agents.find((agent) => {
+    if (agent.id === context.userId) return true;
+    return userEmail ? agent.email.toLowerCase() === userEmail : false;
+  });
+  return match?.id ?? null;
 }
 
 export async function readJsonBody<T = unknown>(
