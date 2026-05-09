@@ -31,6 +31,27 @@ response="$(curl --fail --silent --show-error --get \
   --data-urlencode 'limit=100')"
 
 source_id="$(printf '%s' "$response" | python3 scripts/nia_pick_core_source.py)"
-echo "SOURCE_ID=$source_id"
+
+if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+  {
+    echo "source_id=${source_id}"
+    echo "registered=true"
+  } >> "$GITHUB_OUTPUT"
+fi
+
+python3 - "$source_id" <<'PY'
+import json
+import sys
+
+print(
+    json.dumps(
+        {
+            "source_id": sys.argv[1],
+            "registered": True,
+            "repository": "asymmetric-al/core",
+        }
+    )
+)
+PY
 echo "Nia source for asymmetric-al/core is registered."
 echo "Note: GitHub repo indexing is handled by Nia's GitHub connector, not this script."

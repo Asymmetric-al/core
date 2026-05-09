@@ -40,7 +40,7 @@
 
 # [mcp_servers.github]
 # url = "https://api.githubcopilot.com/mcp"
-# http_headers = { "Authorization" = "Bearer ghp_..." }
+# http_headers = { "Authorization" = "Bearer YOUR_GITHUB_MCP_TOKEN" }
 
 ###
 
@@ -48,7 +48,7 @@
 # possible so API keys are never committed to this repo. See docs/ai/nia.md.
 # [mcp_servers.nia]
 # url = "<NIA_MCP_URL_FROM_DOCS>"
-# http_headers = { "Authorization" = "Bearer nk_..." }
+# http_headers = { "Authorization" = "Bearer YOUR_NIA_API_KEY" }
 
 # Local fallback when remote MCP is unavailable.
 # [mcp_servers.nia]
@@ -57,7 +57,7 @@
 # startup_timeout_ms = 30000
 #
 # [mcp_servers.nia.env]
-# NIA_API_KEY = "nk_..."
+# NIA_API_KEY = "YOUR_NIA_API_KEY"
 # NIA_API_URL = "<NIA_API_URL_FROM_DOCS>/"
 
 ###

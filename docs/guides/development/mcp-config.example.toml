@@ -35,7 +35,7 @@
 
 # [mcp_servers.github]
 # url = "https://api.githubcopilot.com/mcp"
-# http_headers = { "Authorization" = "Bearer ghp_..." }
+# http_headers = { "Authorization" = "Bearer YOUR_GITHUB_MCP_TOKEN" }
 
 ###
 

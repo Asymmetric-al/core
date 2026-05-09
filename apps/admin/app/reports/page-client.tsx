@@ -120,7 +120,7 @@ export default function MissionControlReports() {
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
-            className="h-11 px-4 rounded-xl border-zinc-200 hover:bg-zinc-50 transition-all font-bold uppercase tracking-widest text-[10px] gap-2"
+            className="h-11 px-4 rounded-xl border-zinc-200 hover:bg-zinc-50 transition-colors duration-150 font-bold uppercase tracking-widest text-[10px] gap-2"
           >
             <Library className="size-4" />
             Report Library
@@ -166,10 +166,11 @@ export default function MissionControlReports() {
                 </CardContent>
                 <div className="absolute top-8 right-8">
                   <Button
+                    aria-label="Dismiss report summary"
                     variant="ghost"
                     size="icon"
                     onClick={() => setReport(null)}
-                    className="h-10 w-10 text-zinc-600 hover:text-white hover:bg-white/10 rounded-full transition-all"
+                    className="h-10 w-10 text-zinc-600 hover:text-white hover:bg-white/10 rounded-full transition-colors duration-150"
                   >
                     <X className="size-5" />
                   </Button>
@@ -217,7 +218,7 @@ export default function MissionControlReports() {
                 delay: index * 0.05,
               }}
             >
-              <div className="flex items-center gap-4 px-6 py-5 rounded-2xl border border-zinc-100 bg-white shadow-sm transition-all min-w-[160px]">
+              <div className="flex items-center gap-4 px-6 py-5 rounded-2xl border border-zinc-100 bg-white shadow-sm min-w-[160px]">
                 <div className="flex flex-col">
                   <span className="text-3xl font-black tabular-nums tracking-tight text-zinc-900">
                     {kpi.value}

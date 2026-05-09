@@ -80,6 +80,11 @@ Never commit local sync outputs, caches, wheels, virtual environments, or
 `~/.nia-sync/config.json`. Local sync may contain credentials or private
 knowledge.
 
+Generated local sync and scratch outputs stay untracked: `.nia-sync/`,
+`.nia_sync_local/`, `~/.nia-sync/`, Python bytecode, and the local
+`docs/ai/working-set.md` scratch file. The repository keeps
+`docs/ai/working-set.example.md` as the committed template.
+
 ## Agent workflow
 
 1. Check whether Nia is useful for the task.
@@ -173,6 +178,22 @@ export NIA_API_URL=<NIA_API_BASE_URL_FROM_NIA_DOCS>/v2
 The script prints the source id but never prints the API key. It fails if Nia
 does not return an exact `asymmetric-al/core` source.
 
+On `epic` pushes, the workflow skips successfully with a notice when
+`NIA_API_KEY` is not configured. Once the repository secret is installed, the
+workflow validates that Nia can resolve the repository source.
+
+When `GITHUB_OUTPUT` is set, the script writes `source_id` and `registered`
+outputs for GitHub Actions. It also prints a JSON status object for logs.
+Workflows must consume the step outputs instead of parsing free-form log text.
+
+## Repository hygiene
+
+The Nia alignment change intentionally removes previously committed local
+sync, cache, wheel, and scratch artifacts only. Runtime behavior changes are
+limited to `.github/workflows/nia-source-check.yml`,
+`scripts/nia-source-check.sh`, `scripts/nia_pick_core_source.py`, and the docs
+that describe those boundaries.
+
 ## Checklist
 
 - [ ] Nia repo searches are scoped to `Asymmetric-al/core`
@@ -180,4 +201,5 @@ does not return an exact `asymmetric-al/core` source.
 - [ ] Top matches are read before editing
 - [ ] External docs/repos are justified and followed by a repo-scoped pass
 - [ ] Nia workspace mutations are not run in read-only/plan mode
+- [ ] Source-check workflows consume script outputs, not log parsing
 - [ ] API keys and local sync configs are never committed

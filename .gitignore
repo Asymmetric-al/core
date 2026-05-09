@@ -57,3 +57,11 @@ docs/ai/working-set.md
 # Python
 __pycache__/
 *.py[cod]
+
+# Orchids.app (external AI builder) — not part of this monorepo
+.orchids/
+
+# Traycer / scratch — local agent artifacts (must not be committed)
+.traycer/
+/.tmp/
+/~/
