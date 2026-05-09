@@ -184,9 +184,11 @@ strictness:
   queries return `503` so Resend can retry rather than treating the event as a
   permanent bad payload.
 - Inbound events (`email.received`) can resolve from payload or connected sender
-  domains. If unresolved/ambiguous, the endpoint returns `202` with
-  `tenantWarningCode` and `tenantWarning`, and still stores inbound metadata.
-- Core persistence failures return `503` with `webhook_persistence_failed`.
+  domains. If unresolved or ambiguous, the endpoint returns `503` so Resend
+  retries after the tenant/domain configuration issue is fixed. The webhook does
+  not store inbound metadata without a tenant assignment.
+- Core persistence failures return `503` with `webhook_persistence_failed` and a
+  correlation id. Detailed database context is logged server-side only.
 
 ## Key Rotation Runbooks
 
@@ -250,8 +252,8 @@ Operational caveat:
 ## Known Current Limits
 
 - Outbound events without resolvable tenant context still fail closed with `422`.
-- Inbound events with unresolved/ambiguous tenant resolve to `202` and store
-  metadata with `tenant_id = null`.
+- Inbound events with unresolved/ambiguous tenant resolution fail retryably with
+  `503`; there is no tenantless quarantine/replay workflow yet.
 - Inbound body and attachment retrieval are independent; one can fail while the
   other succeeds. Response flags (`receivedEmailLoaded`, `attachmentsLoaded`)
   indicate what was loaded.

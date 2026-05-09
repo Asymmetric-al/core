@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  calculateResendRetryDelayMs,
   createResendValidationSnapshot,
   isResendValidationSendReady,
   parseResendValidationSnapshot,
@@ -11,6 +12,7 @@ import {
   validateResendApiKey,
   verifyResendWebhookSignature,
 } from "../../../../packages/email/resend";
+import { RETRY_CONFIG } from "../../../../packages/email/constants";
 
 describe("@asym/email resend service", () => {
   beforeEach(() => {
@@ -151,6 +153,12 @@ describe("@asym/email resend service", () => {
     expect(result.success).toBe(true);
     expect(result.messageId).toBe("msg_after_retry");
     expect(result.retryCount).toBe(1);
+  });
+
+  it("caps retry backoff after jitter", () => {
+    vi.spyOn(Math, "random").mockReturnValue(1);
+
+    expect(calculateResendRetryDelayMs(10)).toBe(RETRY_CONFIG.maxDelayMs);
   });
 
   it("builds the expected Resend send payload", async () => {

@@ -312,7 +312,7 @@ function sleep(ms: number): Promise<void> {
   });
 }
 
-function backoffDelayMs(
+export function calculateResendRetryDelayMs(
   attemptNumber: number,
   retryAfterSeconds?: number,
 ): number {
@@ -323,7 +323,7 @@ function backoffDelayMs(
   const exponential = RETRY_CONFIG.baseDelayMs * 2 ** attemptNumber;
   const cappedDelay = Math.min(RETRY_CONFIG.maxDelayMs, exponential);
   const jitter = cappedDelay * RETRY_CONFIG.jitterRatio * Math.random();
-  return Math.round(cappedDelay + jitter);
+  return Math.min(RETRY_CONFIG.maxDelayMs, Math.round(cappedDelay + jitter));
 }
 
 function formatAddress(email: string, name?: string): string {
@@ -998,7 +998,7 @@ export async function sendEmail(
       lastError = details;
 
       if (attempt < RETRY_CONFIG.maxRetries && isRetryable(details)) {
-        await sleep(backoffDelayMs(attempt, details.retryAfter));
+        await sleep(calculateResendRetryDelayMs(attempt, details.retryAfter));
         continue;
       }
 
@@ -1022,7 +1022,7 @@ export async function sendEmail(
       lastError = details;
 
       if (attempt < RETRY_CONFIG.maxRetries && isRetryable(details)) {
-        await sleep(backoffDelayMs(attempt, details.retryAfter));
+        await sleep(calculateResendRetryDelayMs(attempt, details.retryAfter));
         continue;
       }
 

@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 import { getAdminClient } from "@asym/database/supabase/admin";
 import {
@@ -11,6 +11,7 @@ import {
   type ResendWebhookEnvelope,
   type ResendWebhookHeaders,
 } from "@asym/email/types";
+import { serverEnv } from "@asym/env";
 import { type NextRequest, NextResponse } from "next/server";
 
 type JsonRecord = Record<string, unknown>;
@@ -78,16 +79,32 @@ async function assertSupabaseWrite(
 }
 
 function toWebhookPersistenceResponse(error: WebhookPersistenceError) {
+  const correlationId = randomUUID();
+
+  console.error("Resend webhook persistence failure response", {
+    correlationId,
+    operation: error.operation,
+    ...error.context,
+    code: error.causeError.code,
+    message: error.causeError.message,
+  });
+
   return NextResponse.json(
     {
       accepted: false,
       code: "webhook_persistence_failed",
-      error: error.message,
-      operation: error.operation,
-      ...error.context,
+      correlationId,
+      error: "Failed to persist Resend webhook event.",
     },
     { status: 503 },
   );
+}
+
+function getResendWebhookConfig() {
+  return {
+    apiKey: serverEnv.RESEND_API_KEY,
+    webhookSecret: serverEnv.RESEND_WEBHOOK_SECRET,
+  };
 }
 
 function isJsonRecord(value: unknown): value is JsonRecord {
@@ -522,13 +539,23 @@ async function resolveTenantId(
 
 export async function POST(request: NextRequest) {
   const payload = await request.text();
-  const webhookSecret = process.env.RESEND_WEBHOOK_SECRET;
+  const { apiKey, webhookSecret } = getResendWebhookConfig();
 
   if (!webhookSecret) {
     return NextResponse.json(
       {
-        error:
-          "RESEND_WEBHOOK_SECRET is not configured for webhook verification",
+        code: "webhook_verification_unconfigured",
+        error: "Resend webhook verification is not configured.",
+      },
+      { status: 503 },
+    );
+  }
+
+  if (!apiKey) {
+    return NextResponse.json(
+      {
+        code: "resend_api_key_unconfigured",
+        error: "Resend API access is not configured.",
       },
       { status: 503 },
     );
@@ -538,7 +565,7 @@ export async function POST(request: NextRequest) {
     payload,
     headers: getWebhookHeaders(request),
     secret: webhookSecret,
-    apiKey: process.env.RESEND_API_KEY,
+    apiKey,
   });
 
   if (!verification.success || !verification.event) {
@@ -605,18 +632,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (isInboundEvent && tenantResolution.retryable) {
+    if (isInboundEvent && !tenantId) {
       return NextResponse.json(
         {
           accepted: false,
           eventType: event.type,
           messageId,
-          code:
-            tenantResolution.warningCode ??
-            "tenant_resolution_dependency_unavailable",
+          code: tenantResolution.warningCode ?? "tenant_resolution_unresolved",
           error:
             tenantResolution.warning ??
-            "Unable to resolve inbound tenant because a dependency is unavailable.",
+            "Unable to resolve inbound tenant from payload or recipients.",
         },
         { status: 503 },
       );
@@ -703,35 +728,6 @@ export async function POST(request: NextRequest) {
     }
 
     if (event.type === "email.received") {
-      const inboundTenantWarning =
-        tenantId === null
-          ? {
-              tenantWarningCode:
-                tenantResolution.warningCode ?? "tenant_resolution_unresolved",
-              tenantWarning:
-                tenantResolution.warning ??
-                "Inbound tenant could not be resolved from payload or recipients.",
-              candidateTenantIds: tenantResolution.candidateTenantIds,
-              matchedDomains: tenantResolution.matchedDomains,
-            }
-          : null;
-
-      const apiKey = process.env.RESEND_API_KEY;
-      if (!apiKey) {
-        return NextResponse.json(
-          {
-            accepted: true,
-            eventType: event.type,
-            tenantId,
-            resolutionSource: tenantResolution.source,
-            warning:
-              "RESEND_API_KEY is not configured; skipping inbound body retrieval.",
-            ...(inboundTenantWarning ?? {}),
-          },
-          { status: 202 },
-        );
-      }
-
       const emailId = getInboundEmailId(event);
       if (!emailId) {
         return NextResponse.json(
@@ -741,7 +737,6 @@ export async function POST(request: NextRequest) {
             tenantId,
             resolutionSource: tenantResolution.source,
             warning: "Inbound event did not include an email_id.",
-            ...(inboundTenantWarning ?? {}),
           },
           { status: 202 },
         );
@@ -818,9 +813,8 @@ export async function POST(request: NextRequest) {
           receivedEmailLoaded: receivedEmail.success,
           attachmentsLoaded: attachments.success,
           attachmentCount: attachments.data?.length ?? 0,
-          ...(inboundTenantWarning ?? {}),
         },
-        { status: inboundTenantWarning ? 202 : 200 },
+        { status: 200 },
       );
     }
 
