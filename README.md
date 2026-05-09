@@ -143,11 +143,11 @@ Agent-oriented docs live under `docs/ai/`:
 
 **Skill scripts (root `package.json`):**
 
-| Command                           | What it does                                                                                                                                                                                                                                                                                                                                                             |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `bun run skills:sync`             | Copies canonical `docs/ai/skills/*` into `.agents/skills/` and `.cursor/skills/`, prunes stale canonical copies from mirrors, and overlays extra packs from `.agents/skills` into `.cursor/skills` where configured. Run after you edit skills under `docs/ai/skills/`.                                                                                                  |
-| `bun run skills:verify`           | Fails if mirrors drift from canonical sources or the git tree is dirty after sync (same check used in CI and in `bun run setup` / `scripts/setup.ps1`).                                                                                                                                                                                                                  |
-| `bun run skills:refresh-upstream` | Vendors the pinned set into `docs/ai/skills/`: `supabase` and `supabase-postgres-best-practices` from repo-local `.agents/skills/` (after the Skills CLI refresh); `emil-design-engineering` from `$HOME/.cursor/skills/` (after the animations.dev installer). Use the matching upstream workflow for each skill, then run `skills:sync` / `skills:verify` (see below). |
+| Command                           | What it does                                                                                                                                                                                                                                                                                                                                                                        |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bun run skills:sync`             | Copies canonical `docs/ai/skills/*` into `.agents/skills/` and `.cursor/skills/`, prunes stale canonical copies from mirrors, and overlays extra packs from `.agents/skills` into `.cursor/skills` where configured. Run after you edit skills under `docs/ai/skills/`.                                                                                                             |
+| `bun run skills:verify`           | Fails if mirrors drift from canonical sources or the git tree is dirty after sync (same check used in CI and in `bun run setup` / `scripts/setup.ps1`).                                                                                                                                                                                                                             |
+| `bun run skills:refresh-upstream` | Vendors the pinned set into `docs/ai/skills/`: `supabase`, `supabase-postgres-best-practices`, and `shadcn` from repo-local `.agents/skills/` (after the Skills CLI refresh); `emil-design-engineering` from `$HOME/.cursor/skills/` (after the animations.dev installer). Use the matching upstream workflow for each skill, then run `skills:sync` / `skills:verify` (see below). |
 
 **Resend CLI skill:** `docs/ai/skills/resend-cli/` is copied manually from the tagged [`resend/resend-cli`](https://github.com/resend/resend-cli) tree (`skills/resend-cli/`). It is not part of `skills:refresh-upstream`. After updating it, run `bun run skills:sync` and `bun run skills:verify`. See `docs/ai/skills/resend-cli/references/upstream.md`.
 
@@ -162,10 +162,11 @@ Commit both the canonical files and any mirror updates.
 
 **Updating vendored skills from upstream** (maintainers / periodic refresh):
 
-1. `npx skills add supabase/agent-skills -y` — updates `.agents/skills/*` and `skills-lock.json` for packages tracked by the Skills CLI.
-2. `curl -s "https://animations.dev/api/activate-design-engineering?email=<maintainer-email>" | bash` — updates the upstream-installed `emil-design-engineering` skill under `~/.cursor/skills/`.
-3. `bun run skills:refresh-upstream` — vendors the refreshed copies into `docs/ai/skills/supabase`, `docs/ai/skills/supabase-postgres-best-practices`, and `docs/ai/skills/emil-design-engineering` (reconcile any repo-specific notes in those trees if the vendor copy overwrote them; see `scripts/refresh-upstream-skills.mjs`).
-4. `bun run skills:sync` then `bun run skills:verify` — refresh mirrors and confirm a clean tree.
+1. `npx skills add supabase/agent-skills -y` — updates official Supabase skills in `.agents/skills/*` and `skills-lock.json`.
+2. `npx skills add shadcn/ui --skill shadcn -y` — updates the official shadcn skill in `.agents/skills/shadcn` and `skills-lock.json`.
+3. `curl -s "https://animations.dev/api/activate-design-engineering?email=<maintainer-email>" | bash` — updates the upstream-installed `emil-design-engineering` skill under `~/.cursor/skills/`.
+4. `bun run skills:refresh-upstream` — vendors the refreshed copies into `docs/ai/skills/supabase`, `docs/ai/skills/supabase-postgres-best-practices`, `docs/ai/skills/shadcn`, and `docs/ai/skills/emil-design-engineering` (reconcile any repo-specific notes in those trees if the vendor copy overwrote them; see `scripts/refresh-upstream-skills.mjs`).
+5. `bun run skills:sync` then `bun run skills:verify` — refresh mirrors and confirm a clean tree.
 
 **Updating the vendored Resend CLI skill from upstream** (maintainers / on CLI releases):
 
@@ -390,14 +391,19 @@ bun run supabase -- <supabase-subcommand>
 
 - Uses a global `supabase` CLI when available.
 - Otherwise uses a pinned CLI via `npx` (see `scripts/supabase-cli.mjs`).
+- Discover syntax with `bun run supabase -- --help` and `bun run supabase -- <group> --help`.
+- Official local development uses `supabase init` for new projects and `supabase start` to launch services. This repo already has `supabase/`; follow the repo-local migration notes before resetting local state.
+- Do **not** install the Supabase CLI globally with `npm install -g supabase`; official global installs use Homebrew, Scoop, or standalone/Linux packages.
 
 Optional global install:
 
 ```bash
+# macOS (Homebrew):
 brew install supabase/tap/supabase
 # Windows (Scoop):
 scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
 scoop install supabase
+# Linux: use the official package or standalone binary from Supabase releases.
 ```
 
 ## Supabase Demo Seed

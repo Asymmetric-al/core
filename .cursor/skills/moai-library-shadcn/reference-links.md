@@ -11,6 +11,9 @@ Use this file as the long-form lookup index. Keep `SKILL.md` concise and jump he
 - [components.json](https://ui.shadcn.com/docs/components-json)
 - [Theming](https://ui.shadcn.com/docs/theming)
 - [Changelog](https://ui.shadcn.com/docs/changelog)
+- [Skills](https://ui.shadcn.com/docs/skills)
+- [MCP Server](https://ui.shadcn.com/docs/mcp)
+- [CLI v4 changelog](https://ui.shadcn.com/docs/changelog/2026-03-cli-v4)
 - [About](https://ui.shadcn.com/docs/about)
 
 ## Installation

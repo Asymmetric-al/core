@@ -2,7 +2,7 @@
 source_name: supabase/agent-skills (supabase-postgres-best-practices)
 source_url: https://github.com/supabase/agent-skills
 license: MIT
-last_reviewed: 2026-04-09
+last_reviewed: 2026-05-08
 ---
 
 # Upstream: Supabase Postgres best practices
@@ -10,6 +10,7 @@ last_reviewed: 2026-04-09
 Canonical copy in this repo: `docs/ai/skills/supabase-postgres-best-practices/SKILL.md` (mirrored to `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`).
 
 - **Skills page:** https://skills.sh/supabase/agent-skills/supabase-postgres-best-practices
+- **Official blog:** https://supabase.com/blog/postgres-best-practices-for-ai-agents
 - **GitHub:** https://github.com/supabase/agent-skills
 - **Upstream path:** `skills/supabase-postgres-best-practices/SKILL.md`
 

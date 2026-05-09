@@ -83,6 +83,10 @@ The repo already has a strong, hand-maintained instruction system:
   `.cursor/mcp.json`. TanStack work uses the official TanStack CLI plus
   current Intent skills as routed by `AGENTS.md`; there is no repo-owned
   TanStack MCP server in those MCP configs.
+- Supabase and shadcn work use official skills, official CLI guidance, and
+  official MCP guidance as routed by `AGENTS.md`. Committed MCP configs must
+  not add unsafe unscoped Supabase production access; prefer local or
+  project-scoped/read-only/feature-limited Supabase MCP examples in docs.
 - Nia is the preferred source for repo-grounded research and fresh third-party
   dependency context when the client exposes it. If Nia is configured in the
   workspace but unavailable in the current session, agents should fall back to

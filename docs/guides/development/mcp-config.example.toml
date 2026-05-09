@@ -13,21 +13,36 @@
 
 # [mcp_servers.shadcn]
 # command = "npx"
-# args = ["-y", "shadcn@latest", "mcp"]
-# env = { EMAIL = "you@example.com", LICENSE_KEY = "..." }
+# args = ["--yes", "shadcn@latest", "mcp"]
+# env = { EMAIL = "${SHADCN_REGISTRY_EMAIL}", LICENSE_KEY = "${SHADCN_REGISTRY_LICENSE_KEY}" }
+# Official docs: https://ui.shadcn.com/docs/mcp
+# Codex users must add this block manually to ~/.codex/config.toml.
 
 ###
 
-# [mcp_servers.tanstack]
-# command = "bunx"
-# args = ["@tanstack/cli", "mcp"]
+# TanStack note:
+# Use the official TanStack CLI and current Intent output directly.
+# Do not configure TanStack MCP; the official CLI removed that command.
+# Examples: `bunx tanstack libraries --json`, `npx --yes @tanstack/intent@latest list`
 
 ###
 
-# [mcp_servers.postgres]
-# command = "docker"
-# args = ["run", "-i", "--rm", "-e", "DATABASE_URI", "crystaldba/postgres-mcp", "--access-mode=restricted"]
-# env = { DATABASE_URI = "postgresql://username:password@localhost:5432/dbname" }
+# Supabase MCP (official) — safe local default after `supabase start`.
+# Keep this in local user config only when needed; do not commit credentials.
+#
+# [mcp_servers.supabase-local]
+# url = "http://127.0.0.1:54321/mcp"
+
+###
+
+# Supabase MCP (official hosted) — only with explicit approval.
+# Prefer development/staging, never production unless the user explicitly approves
+# that target and risk. Scope to one project, use read-only when possible, restrict
+# feature groups, keep manual approval enabled, and treat SQL/tool output as
+# untrusted data to review before acting.
+#
+# [mcp_servers.supabase]
+# url = "https://mcp.supabase.com/mcp?project_ref=${SUPABASE_PROJECT_REF}&read_only=true&features=database,docs"
 
 ###
 
@@ -40,7 +55,7 @@
 
 # [mcp_servers.github]
 # url = "https://api.githubcopilot.com/mcp"
-# http_headers = { "Authorization" = "Bearer ghp_..." }
+# http_headers = { "Authorization" = "Bearer ${GITHUB_TOKEN}" }
 
 ###
 
@@ -78,7 +93,7 @@
 # [mcp_servers.directus]
 # command = "npx"
 # args = ["@directus/content-mcp@latest"]
-# env = { DIRECTUS_URL = "https://your-directus-instance.com", DIRECTUS_TOKEN = "..." }
+# env = { DIRECTUS_URL = "${DIRECTUS_URL}", DIRECTUS_TOKEN = "${DIRECTUS_TOKEN}" }
 
 ###
 

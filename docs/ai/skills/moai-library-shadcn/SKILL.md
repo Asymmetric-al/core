@@ -1,14 +1,15 @@
 # shadcn/ui Design System - Skill
 
 **Name:** `moai-library-shadcn`
-**Purpose:** Build consistent, accessible UI using shadcn/ui components, tokens, and composable primitives.
-Use this skill whenever selecting, installing, composing, or customizing shadcn/ui in this repo.
+**Purpose:** Apply this repo's Maia/Zinc, Base UI-first, shared `@asym/ui`, and wrapper conventions on top of the official shadcn/ui skill.
+Use this skill after `docs/ai/skills/shadcn/SKILL.md` whenever selecting, installing, composing, or customizing shadcn/ui in this repo.
 
 **Applies when:** Working with shadcn/ui components, Tailwind tokens/themes, registry items, or component wrappers.
 **Do not use when:** The UI is intentionally built only with Base UI primitives (use `base-ui` first).
 
 ## Rules
 
+- **Official shadcn first:** Load `docs/ai/skills/shadcn/SKILL.md` for official shadcn CLI v4, MCP, registry, and component API guidance. This skill only adds repo-local conventions.
 - **Docs first:** Start with [reference-links.md](reference-links.md), then open the exact component doc before editing.
 - **Copied-in code is first-party:** Treat `components/ui/*` as owned project code with stable conventions.
 - **Prefer install over reinvention:** Use CLI/registry install paths for base components, then customize in wrappers.
@@ -20,7 +21,7 @@ Use this skill whenever selecting, installing, composing, or customizing shadcn/
 ## Workflow
 
 1. Check whether an existing component already solves the need in `components/ui/*`.
-2. Open the relevant docs from [reference-links.md](reference-links.md).
+2. Load `docs/ai/skills/shadcn/SKILL.md`, then open the relevant docs from [reference-links.md](reference-links.md).
 3. Choose install path:
    - CLI/registry install for standard components and blocks.
    - Manual composition only when customization requires it.
@@ -87,6 +88,7 @@ export function LoadingButton({
 ## Additional resources
 
 - Full shadcn docs index: [reference-links.md](reference-links.md)
+- Official shadcn skill: [`docs/ai/skills/shadcn/SKILL.md`](../shadcn/SKILL.md)
 - Base primitives companion skill: [`docs/ai/skills/base-ui/SKILL.md`](../base-ui/SKILL.md)
 - Base docs index: [`docs/ai/skills/base-ui/reference-links.md`](../base-ui/reference-links.md)
 

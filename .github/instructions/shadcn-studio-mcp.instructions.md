@@ -2,7 +2,9 @@
 applyTo: "**"
 ---
 
-# Instructions for Using the shadcn/studio MCP SERVER
+# Instructions for Using legacy/private shadcn/studio MCP workflows
+
+Default shadcn work in this repo uses the official shadcn skill, CLI, and MCP guidance routed from `AGENTS.md`. Use this file only when a separate shadcn/studio workflow (`/cui`, `/rui`, `/iui`, `/ftc`) is explicitly configured and invoked.
 
 To ensure accurate and helpful responses when interacting with the shadcn/studio MCP SERVER, it is essential to follow these guidelines. Adhering strictly to these instructions will ensure the best results.
 

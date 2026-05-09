@@ -34,7 +34,7 @@ supabase_cli_guidance() {
   fi
 
   log "Supabase CLI not found globally. Repo fallback will use pinned CLI via: bun run supabase -- <command>"
-  log "Recommended global install for faster startup: brew install supabase/tap/supabase (macOS/Linux) or Scoop on Windows"
+  log "Recommended global install for faster startup: Homebrew on macOS, Scoop on Windows, or official Linux packages/standalone binary"
   log "Docs: https://supabase.com/docs/guides/local-development/cli/getting-started"
 }
 

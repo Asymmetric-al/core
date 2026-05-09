@@ -6,5 +6,5 @@ Follow root **`AGENTS.md`** for the repo-wide routing map: OpenSpec-first projec
 - **Next.js:** read bundled docs in `node_modules/next/dist/docs/` for the installed version; use committed `.next-docs/` when `node_modules` is missing.
 - **Scoped instructions:** use `.github/instructions/*.instructions.md` for GitHub path- or workflow-specific guidance.
 - **Nested agent context:** `supabase/AGENTS.md`, `scripts/AGENTS.md`.
-- **shadcn/studio MCP:** `.github/instructions/shadcn-studio-mcp.instructions.md` when using that server.
+- **shadcn:** use official shadcn skill/CLI/MCP guidance routed from `AGENTS.md`; use `.github/instructions/shadcn-studio-mcp.instructions.md` only for separately configured legacy/private shadcn/studio workflows.
 - **Do not duplicate** the whole `AGENTS.md` here; keep this file small and point to the root entrypoint.

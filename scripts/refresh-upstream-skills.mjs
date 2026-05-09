@@ -34,6 +34,11 @@ const upstreamSources = [
     preserve: ["references/upstream.md"],
   },
   {
+    skillName: "shadcn",
+    from: path.join(repoRoot, ".agents", "skills", "shadcn"),
+    preserve: ["references/upstream.md"],
+  },
+  {
     skillName: "emil-design-engineering",
     from: path.join(
       process.env.HOME ?? "",

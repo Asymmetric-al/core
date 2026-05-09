@@ -22,7 +22,7 @@ fi
 
 if [[ ! -f "$CONFIG_PATH" ]]; then
   warn "Codex config not found at $CONFIG_PATH"
-  warn "Create it and add MCP servers: context7, nia, github."
+  warn "Create it and add MCP servers: context7, nia, github, shadcn."
   exit 0
 fi
 
@@ -41,6 +41,13 @@ check_block() {
 check_block "mcp_servers.context7"
 check_block "mcp_servers.nia"
 check_block "mcp_servers.github"
+check_block "mcp_servers.shadcn"
+
+if rg -q "^\\[mcp_servers\\.supabase\\]" "$CONFIG_PATH"; then
+  warn "Supabase MCP configured. Verify it is local or project-scoped/read-only/features-limited; do not connect production data without explicit approval."
+else
+  warn "Supabase MCP is optional. If added, follow official safety guidance: local or project-scoped/read-only/features-limited, no committed tokens."
+fi
 
 if [[ $missing -eq 1 ]]; then
   warn "MCP servers missing. Add them to $CONFIG_PATH before using Codex."

@@ -62,7 +62,7 @@ Do NOT use this skill for:
 - **Pages Router patterns** → This skill covers App Router ONLY (Pages Router is legacy)
 - **Authentication libraries** → Use `clerk-auth`, `better-auth`, or other auth-specific skills
 - **Database integration** → Use `cloudflare-d1`, `drizzle-orm-d1`, or database-specific skills
-- **UI component libraries** → Use `tailwind-v4-shadcn` skill for Tailwind + shadcn/ui
+- **UI component libraries** → Use official `shadcn` skill for shadcn/ui plus repo-local `moai-library-shadcn` guidance
 - **TanStack state management** → Use official TanStack Intent skills from `npx @tanstack/intent@latest list`
 - **Form libraries** → Use `react-hook-form-zod` skill
 - **Vercel-specific features** → Refer to Vercel platform documentation
@@ -72,7 +72,7 @@ Do NOT use this skill for:
 **Relationship with Other Skills**:
 
 - **cloudflare-nextjs**: For deploying Next.js to Cloudflare Workers (use BOTH skills together if deploying to Cloudflare)
-- **tailwind-v4-shadcn**: For Tailwind v4 + shadcn/ui setup (composable with this skill)
+- **shadcn**: For official shadcn/ui CLI, MCP, registry, and component guidance (composable with this skill)
 - **clerk-auth**: For Clerk authentication in Next.js (composable with this skill)
 - **better-auth**: For Better Auth integration (composable with this skill)
 

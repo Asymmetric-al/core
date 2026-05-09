@@ -17,6 +17,14 @@ license: MIT
 
 Use this skill for authentication work in Next.js App Router with Supabase Auth.
 
+## This repository (Asymmetric-al/core)
+
+- Load `docs/ai/skills/supabase/SKILL.md` first or alongside this skill so official Supabase docs, CLI, MCP, RLS, and security guidance is applied.
+- Server code uses `@asym/database/supabase/server`.
+- Client code uses `@asym/database/supabase/client`.
+- Keep route handlers thin and respect `docs/guides/architecture/data-access-boundary.md`.
+- Supabase Auth work must preserve RLS assumptions. Review official Supabase Auth docs (`https://supabase.com/docs/guides/auth`) and RLS docs (`https://supabase.com/docs/guides/database/postgres/row-level-security`) when behavior changes.
+
 ## When to Apply
 
 Use this skill when:
@@ -36,7 +44,7 @@ Do not use this skill when:
 ## Core Rules
 
 1. Use `@supabase/ssr` patterns for App Router integration.
-2. Use `@/lib/supabase/server` for server-side code and `@/lib/supabase/client` for client-side code.
+2. Use `@asym/database/supabase/server` for server-side code and `@asym/database/supabase/client` for client-side code.
 3. Use middleware to refresh and enforce session state on protected routes.
 4. Do not manually store or forward auth tokens in client code.
 5. Use Server Actions (or secure route handlers) for privileged auth operations.
@@ -53,8 +61,8 @@ Do not use this skill when:
 
 ## Checklist
 
-- [ ] Server code imports `@/lib/supabase/server`
-- [ ] Client code imports `@/lib/supabase/client`
+- [ ] Server code imports `@asym/database/supabase/server`
+- [ ] Client code imports `@asym/database/supabase/client`
 - [ ] Protected paths are covered by auth middleware
 - [ ] Callback route/session exchange is correctly handled
 - [ ] No service role keys in client-side code

@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 
-const PINNED_SUPABASE_CLI_VERSION = "2.76.12";
+const PINNED_SUPABASE_CLI_VERSION = "2.98.2";
 const forcePinned = process.env.SUPABASE_CLI_FORCE_PINNED === "1";
 const pinnedVersion =
   process.env.SUPABASE_CLI_VERSION?.trim() || PINNED_SUPABASE_CLI_VERSION;
@@ -46,6 +46,9 @@ function printGlobalInstallHint() {
     console.warn("    scoop install supabase");
   } else {
     console.warn("    brew install supabase/tap/supabase");
+    console.warn(
+      "    # Linux: use the official package or standalone binary from Supabase releases",
+    );
   }
 
   console.warn(

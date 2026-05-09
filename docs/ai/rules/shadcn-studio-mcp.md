@@ -1,8 +1,8 @@
 # shadcn/studio MCP — Workflow
 
 **Name:** `shadcn-studio-mcp`
-**Purpose:** Enforce the exact step-by-step workflow required by the shadcn/studio MCP server.
-Use this only when running shadcn/studio MCP workflows.
+**Purpose:** Enforce the exact step-by-step workflow required by legacy/private shadcn/studio MCP workflows.
+Use this only when a separate shadcn/studio MCP workflow is explicitly configured and invoked. Default shadcn work uses the official shadcn skill (`docs/ai/skills/shadcn/SKILL.md`) and official shadcn MCP guidance.
 
 **Applies when:** Using shadcn/studio MCP workflows `/cui`, `/rui`, `/iui`, or `/ftc`.
 **Do not use when:** Editing UI manually without shadcn/studio MCP tools.

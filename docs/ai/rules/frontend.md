@@ -57,15 +57,18 @@ Per `AGENTS.md`: for animation craft and feel, load `docs/ai/skills/emil-design-
 
 ### shadcn component workflow
 
+- Load official `docs/ai/skills/shadcn/SKILL.md` for shadcn CLI, MCP, registry, and component API guidance. Then apply `docs/ai/skills/moai-library-shadcn/SKILL.md` for this repo's Maia/Zinc, Base UI-first, and `@asym/ui` conventions.
 - Shared `packages/ui/components.json` pins **`style: base-maia`** so CLI installs align with **Base UI first** (see “Component and primitive policy” above).
 - Run shadcn additions from repo root with `--cwd packages/ui`:
   - `bunx --bun shadcn@latest add <component> --cwd packages/ui`
+- Before adding or updating components, use official CLI v4 discovery/review commands when helpful: `bunx --bun shadcn@latest info --json --cwd packages/ui`, `bunx --bun shadcn@latest docs <component>`, `bunx --bun shadcn@latest add <component> --dry-run --cwd packages/ui`, and `bunx --bun shadcn@latest add <component> --diff --cwd packages/ui`.
 - Ensure generated files land in the shared UI package and remain correctly exported for `@asym/ui` consumers.
 - Do not run `shadcn add` inside app workspaces.
 
-### shadcn/studio MCP workflows (conditional)
+### Legacy/private shadcn/studio MCP workflows (conditional)
 
-- If you are using shadcn/studio MCP workflows (`/cui`, `/rui`, `/iui`, `/ftc`), follow `rules/shadcn-studio-mcp.md` exactly.
+- Default shadcn work uses the official shadcn skill and MCP guidance above.
+- If a separate shadcn/studio MCP workflow is explicitly configured and invoked (`/cui`, `/rui`, `/iui`, `/ftc`), follow `rules/shadcn-studio-mcp.md` exactly.
 - Do not apply shadcn/studio MCP rules for manual UI edits.
 - If you use Nia (MCP) to trace UI code, keep queries scoped to `Asymmetric-al/core` and use the preamble built from `docs/ai/working-set.md` + `docs/ai/stack-registry.md` for search calls (see `AGENTS.md#nia-mcp-usage-always-repo-scoped`).
 
@@ -91,7 +94,7 @@ Per `AGENTS.md`: for animation craft and feel, load `docs/ai/skills/emil-design-
 3. Reuse shared primitives from `@asym/ui` before creating new UI.
 4. Keep Tailwind usage token-based and consistent with Maia/Zinc.
 5. Use TanStack Query for async data and invalidate on mutations.
-6. If adding a shadcn component, use `--cwd packages/ui` and verify exports.
+6. If adding a shadcn component, load the official shadcn skill, use `--cwd packages/ui`, preview docs/diffs where helpful, and verify exports.
 7. If shadcn/studio MCP is used, switch to `rules/shadcn-studio-mcp.md` and follow it exactly.
 
 ## Checklists
