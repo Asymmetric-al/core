@@ -365,7 +365,7 @@ function TeamMembersTab({
           <Button
             variant="outline"
             size="sm"
-            className="h-8 text-[11px] font-bold border-zinc-200"
+            className="h-8 rounded-lg border-zinc-200 text-xs font-semibold"
           >
             <UserPlus className="h-3.5 w-3.5 mr-1" /> Add Member
           </Button>
@@ -403,7 +403,8 @@ function TeamMembersTab({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 text-zinc-400"
+                    aria-label={`Open actions for ${member.name}`}
+                    className="h-7 w-7 text-zinc-500 hover:text-zinc-900"
                   >
                     <MoreHorizontal className="h-3.5 w-3.5" />
                   </Button>
@@ -531,7 +532,7 @@ function TeamManagementSheet({
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-2 text-zinc-500">
                 <Activity className="h-3.5 w-3.5" />
-                <span className="text-[10px] font-bold uppercase tracking-wider">
+                <span className="text-xs font-medium">
                   Last edit: 2 mins ago
                 </span>
               </div>

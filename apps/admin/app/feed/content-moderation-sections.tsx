@@ -126,7 +126,7 @@ function StatCard({
   icon: Icon,
   trend,
   trendLabel,
-  variant: _variant = "default",
+  variant = "default",
   index = 0,
 }: {
   label: string;
@@ -137,19 +137,27 @@ function StatCard({
   variant?: "default" | "warning" | "danger" | "success";
   index?: number;
 }) {
+  const toneClass = {
+    default: "border-border bg-card text-muted-foreground",
+    warning: "border-amber-200 bg-amber-50/60 text-amber-700",
+    danger: "border-destructive/30 bg-destructive/5 text-destructive",
+    success: "border-emerald-200 bg-emerald-50/60 text-emerald-700",
+  }[variant];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ ...smoothTransition, delay: index * 0.05 }}
+      className="h-full"
     >
       <MotionCard
         whileHover={{ y: -2, scale: 1.01 }}
         transition={springTransition}
-        className="rounded-2xl border shadow-sm hover:shadow-md transition-shadow duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]"
+        className="h-full min-h-32 rounded-2xl border shadow-sm hover:shadow-md transition-shadow duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]"
       >
-        <CardContent className="p-4 sm:p-5">
-          <div className="flex items-start justify-between">
+        <CardContent className="grid h-full p-4 sm:p-5">
+          <div className="flex h-full items-center justify-between">
             <div className="space-y-1.5">
               <p className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 {label}
@@ -158,7 +166,7 @@ function StatCard({
                 key={value}
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="text-xl sm:text-2xl font-bold tracking-tight text-foreground"
+                className="text-2xl font-bold tracking-tight text-foreground tabular-nums"
               >
                 {value}
               </motion.p>
@@ -184,7 +192,10 @@ function StatCard({
             <motion.div
               whileHover={{ scale: 1.1, rotate: 5 }}
               transition={springTransition}
-              className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center bg-zinc-100 text-zinc-600"
+              className={cn(
+                "h-9 w-9 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center border",
+                toneClass,
+              )}
             >
               <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
             </motion.div>
@@ -1047,7 +1058,7 @@ export function ContentModerationStatsSection({
   stats: ModerationStats;
 }) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-6 gap-3 sm:gap-4">
       <StatCard
         label="Total Posts"
         value={stats.totalPosts}
@@ -1075,24 +1086,18 @@ export function ContentModerationStatsSection({
         index={3}
       />
       <StatCard
-        label="Comments"
-        value={stats.totalComments}
-        icon={MessageCircle}
-        index={4}
-      />
-      <StatCard
         label="Flagged Comments"
         value={stats.flaggedComments}
         icon={AlertTriangle}
         variant={stats.flaggedComments > 0 ? "danger" : "default"}
-        index={5}
+        index={4}
       />
       <StatCard
         label="Actions Today"
         value={stats.actionsToday}
         icon={ShieldCheck}
         variant="success"
-        index={6}
+        index={5}
       />
     </div>
   );

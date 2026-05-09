@@ -129,7 +129,7 @@ function NavSection({
   return (
     <SidebarGroup className="p-0">
       {label && (
-        <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400 px-2 mb-1 h-6">
+        <SidebarGroupLabel className="mb-1 h-6 px-2 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
           {label}
         </SidebarGroupLabel>
       )}
@@ -154,10 +154,10 @@ function NavSection({
                       <SidebarMenuButton
                         tooltip={item.title}
                         className={cn(
-                          "h-8 px-2 rounded-md transition-colors",
+                          "h-8 rounded-md px-2 transition-colors",
                           isActive
-                            ? "bg-zinc-100 text-zinc-900 font-medium"
-                            : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50",
+                            ? "bg-zinc-100 text-zinc-950 font-semibold shadow-sm ring-1 ring-zinc-950/5"
+                            : "text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950",
                         )}
                       >
                         <AppIcon
@@ -165,13 +165,13 @@ function NavSection({
                           animated={isActive}
                           className={cn(
                             "size-4 shrink-0",
-                            isActive ? "text-zinc-700" : "text-zinc-400",
+                            isActive ? "text-zinc-800" : "text-zinc-500",
                           )}
                         />
                         <span className="text-[13px] truncate">
                           {item.title}
                         </span>
-                        <ChevronRight className="ml-auto size-3.5 text-zinc-400 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                        <ChevronRight className="ml-auto size-3.5 text-zinc-500 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
@@ -186,8 +186,8 @@ function NavSection({
                                 className={cn(
                                   "transition-colors",
                                   subActive
-                                    ? "text-zinc-900 font-medium"
-                                    : "text-zinc-500 hover:text-zinc-900",
+                                    ? "font-semibold text-zinc-950"
+                                    : "text-zinc-600 hover:text-zinc-950",
                                 )}
                               >
                                 <Link href={sub.href}>
@@ -213,10 +213,10 @@ function NavSection({
                   isActive={isActive}
                   tooltip={item.title}
                   className={cn(
-                    "h-8 px-2 rounded-md transition-colors",
+                    "h-8 rounded-md px-2 transition-colors",
                     isActive
-                      ? "bg-zinc-100 text-zinc-900 font-medium"
-                      : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50",
+                      ? "bg-zinc-100 text-zinc-950 font-semibold shadow-sm ring-1 ring-zinc-950/5"
+                      : "text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950",
                   )}
                 >
                   <Link href={item.href} className="flex items-center gap-2.5">
@@ -225,7 +225,7 @@ function NavSection({
                       animated={isActive}
                       className={cn(
                         "size-4 shrink-0",
-                        isActive ? "text-zinc-700" : "text-zinc-400",
+                        isActive ? "text-zinc-800" : "text-zinc-500",
                       )}
                     />
                     <span className="text-[13px] truncate">{item.title}</span>
@@ -293,7 +293,7 @@ function AppSidebar() {
             <span className="text-[13px] font-semibold text-zinc-900 leading-tight tracking-tight">
               Give Hope
             </span>
-            <span className="text-[10px] text-zinc-400 leading-tight">
+            <span className="text-[10px] leading-tight text-zinc-500">
               Mission Control
             </span>
           </div>
@@ -338,6 +338,7 @@ function AppHeader() {
                 <Button
                   variant="ghost"
                   className="hidden h-8 w-56 justify-start px-3 text-muted-foreground hover:bg-muted/50 sm:flex gap-2"
+                  aria-label="Open Mission Control search"
                 >
                   <Search className="size-4" />
                   <span className="text-sm text-muted-foreground/60">
@@ -351,6 +352,7 @@ function AppHeader() {
                   variant="ghost"
                   size="icon"
                   className="size-8 sm:hidden"
+                  aria-label="Open Mission Control search"
                 >
                   <Search className="size-4" />
                   <span className="sr-only">Search</span>
@@ -365,6 +367,7 @@ function AppHeader() {
               <Button
                 variant="ghost"
                 size="icon"
+                aria-label="Change language"
                 className="size-8 hidden sm:inline-flex"
               >
                 <Languages className="size-4" />
@@ -376,6 +379,7 @@ function AppHeader() {
               <Button
                 variant="ghost"
                 size="icon"
+                aria-label="Open activity"
                 className="size-8 hidden sm:inline-flex"
               >
                 <Activity className="size-4" />
@@ -384,7 +388,12 @@ function AppHeader() {
           />
           <NotificationDropdown
             trigger={
-              <Button variant="ghost" size="icon" className="relative size-8">
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Open notifications"
+                className="relative size-8"
+              >
                 <Bell className="size-4" />
                 <span className="bg-rose-500 absolute top-1.5 right-1.5 size-1.5 rounded-full ring-2 ring-background" />
               </Button>
@@ -392,7 +401,12 @@ function AppHeader() {
           />
           <ProfileDropdown
             trigger={
-              <Button variant="ghost" size="icon" className="size-8">
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Open profile menu"
+                className="size-8"
+              >
                 <Avatar className="size-7 rounded-lg">
                   <AvatarImage
                     src={

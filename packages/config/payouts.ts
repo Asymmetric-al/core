@@ -117,5 +117,3 @@ export function getClientSafePayoutFeatureConfig(
     providers: config.providers,
   };
 }
-
-export const payoutFeatureConfig = resolvePayoutFeatureConfig();

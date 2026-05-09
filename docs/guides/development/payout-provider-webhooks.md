@@ -36,6 +36,20 @@ Events to support:
 | `balances#update`          | Balance/funding state                | Refresh provider funding snapshot where supported.                                                                                                                                                                      |
 | `transfers#active-cases`   | Processing issue or case             | Map to provider action required or manual review.                                                                                                                                                                       |
 
+Wise transfer state mapping:
+
+| Wise state                   | Internal state category                       | Notes                                                                                                    |
+| ---------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `incoming_payment_waiting`   | Awaiting funding                              | Transfer is submitted and Wise is waiting for funding to be initiated.                                   |
+| `incoming_payment_initiated` | Funding initiated                             | Funding has started but Wise has not received funds yet.                                                 |
+| `processing`                 | Processing                                    | Wise has received funds and is running processing, compliance, fraud, or other behind-the-scenes checks. |
+| `funds_converted`            | Processing / ready to send                    | Compliance checks are complete and funds have been converted.                                            |
+| `outgoing_payment_sent`      | Sent / provisionally completed                | Wise has sent funds; do not treat as irrevocably complete because later payout failure can still occur.  |
+| `bounced_back`               | Failed / returned pending                     | Payment failed after send; store the failure signal and wait for cancellation/refund reconciliation.     |
+| `cancelled`                  | Canceled final                                | Transfer was never funded and was not processed.                                                         |
+| `funds_refunded`             | Returned/refunded final                       | Funds were refunded; reconcile refund amount and currency from `transfers#refund`.                       |
+| unknown or unmapped state    | Manual review / provider status needs mapping | Store raw state server-side and block automated execution transitions until explicitly mapped.           |
+
 Payload and idempotency:
 
 - State-change payload includes resource identifiers, `current_state`, `previous_state`, and `data.occurred_at`.
@@ -76,6 +90,23 @@ Transfer events to support:
 | `payout.transfer.failed`            | Failed.                                                                      |
 | `payout.transfer.cancelled`         | Canceled/returned funding as applicable.                                     |
 
+Airwallex transfer status mapping:
+
+| Airwallex status    | Internal state category                 | Notes                                                                                                 |
+| ------------------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `IN_APPROVAL`       | Awaiting provider approval              | Approvers review the transfer in Airwallex before it can proceed.                                     |
+| `APPROVAL_RECALLED` | Provider approval recalled / editable   | Return to an editable provider-action state; do not execute until resubmitted and approved.           |
+| `APPROVAL_REJECTED` | Provider rejected / action required     | Keep failed vs action-required distinction based on final failure reason and product state model.     |
+| `APPROVAL_BLOCKED`  | Provider blocked / action required      | Surface provider blocker to finance and pause automation.                                             |
+| `SCHEDULED`         | Scheduled / awaiting processing         | Funding and transfer are scheduled; continue checking funding state.                                  |
+| `OVERDUE`           | Funding overdue / action required       | Requires funding remediation or cancellation handling.                                                |
+| `PROCESSING`        | Processing                              | Airwallex is processing; may transition to `SENT` or `FAILED`.                                        |
+| `SENT`              | Sent / not fully settled                | Funds left Airwallex but can still fail banking-partner processing.                                   |
+| `PAID`              | Completed / paid                        | Banking partner processed successfully, but later local clearing or recipient-bank failure can occur. |
+| `FAILED`            | Failed                                  | Retrieve failure reason and expect automatic cancellation handling where applicable.                  |
+| `CANCELLED`         | Canceled / returned funding as needed   | Transfer is canceled; reconcile paid amount and any fees returned to the wallet.                      |
+| unknown or unmapped | Manual review / provider status mapping | Store raw state server-side and block automated execution transitions until explicitly mapped.        |
+
 Funding events to support:
 
 | Airwallex event                                         | Internal mapping note                        |
@@ -87,6 +118,19 @@ Funding events to support:
 | `payout.transfer.funding.failed`                        | Funding failed.                              |
 | `payout.transfer.funding.cancelled`                     | Funding canceled.                            |
 | `payout.transfer.funding.reversed`                      | Funding reversed; reconcile return.          |
+
+Airwallex funding status mapping:
+
+| Airwallex funding status        | Internal state category                   | Notes                                                                                          |
+| ------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `REQUIRES_FUNDING_CONFIRMATION` | Awaiting provider funding confirmation    | Finance/provider action is required before funds can be deducted or reserved.                  |
+| `SCHEDULED`                     | Funding scheduled                         | Confirm sufficient wallet or linked-account balance before transfer date.                      |
+| `PROCESSING`                    | Funding processing                        | Continue polling/webhook reconciliation, especially for wallet-funded transfers.               |
+| `FUNDED`                        | Funded                                    | Funding succeeded; transfer status still determines final payout status.                       |
+| `FAILED`                        | Funding failed                            | Retrieve failure reason and block execution until resolved.                                    |
+| `CANCELLED`                     | Funding canceled                          | No automated payout execution should proceed from this state.                                  |
+| `REVERSED`                      | Funding reversed / returned funds problem | Reconcile wallet deduction and return details; keep finance-visible warning.                   |
+| unknown or unmapped             | Manual review / provider status mapping   | Store raw state server-side and block automated execution transitions until explicitly mapped. |
 
 Payload and idempotency:
 

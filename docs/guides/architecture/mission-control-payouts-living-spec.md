@@ -2,7 +2,7 @@
 
 Last updated: 2026-05-02
 
-Status: Phase 0 documentation foundation. This document summarizes the Mission Control Payouts v7 product specification supplied in the Phase 0 task prompt and links to the provider documentation registers that future implementation phases must follow.
+Status: Phase 0 documentation foundation. This document is the local source of truth for the Mission Control Payouts v7 product direction supplied in the Phase 0 task prompt and links to the provider documentation registers that future implementation phases must follow.
 
 ## Phase 0 Scope
 
@@ -52,13 +52,14 @@ Flag semantics:
 - `PAYOUTS_EXECUTION_ENABLED`: global execution lockout. When false, provider execution resolves to disabled even if provider-specific flags are true.
 - `PAYOUTS_SANDBOX_ONLY`: server-detectable signal that later provider code must use sandbox/test behavior only.
 
-The resolver lives in `packages/config/payouts.ts` and exposes:
+The resolver lives in `packages/config/payouts.ts` and exposes server-callable functions:
 
 - `resolvePayoutFeatureConfig(env?)`
 - `getClientSafePayoutFeatureConfig(env?)`
-- `payoutFeatureConfig`
 
-`getClientSafePayoutFeatureConfig` returns only booleans and provider availability. It must never include provider credentials, tokens, webhook secrets, base URLs, or account identifiers.
+Do not export a module-level resolved payout config or call the resolver at module import time. Future server code should call `resolvePayoutFeatureConfig(env)` from server/config code when it needs the current environment. The shared `@asym/config` root barrel exports payout types only; executable resolver functions must be imported from `@asym/config/payouts` at explicit server call sites.
+
+`getClientSafePayoutFeatureConfig` returns only booleans and provider availability for server-prepared UI payloads. It must never include provider credentials, tokens, webhook secrets, base URLs, account identifiers, or raw provider payloads.
 
 ### Planned admin routes
 
@@ -202,6 +203,17 @@ Reconcile provider payouts
 ## Locked Product Decisions
 
 These decisions are inherited from the Mission Control Payouts v7 spec and should not be changed unless the product owner explicitly updates the direction.
+
+### Local v7 decision summary
+
+Use this section as the local authority for the relevant v7 direction. External or prompt-supplied source material is supporting context only; later implementation work should update this file when product direction changes instead of relying on a private or stale external spec.
+
+- Mission Control is a workflow and recordkeeping layer for tenant-owned payout providers. It must not hold, pool, originate, or move money from an Asymmetrical-owned account.
+- Finance staff compare provider readiness, quote cost, FX, fees, proof support, funding source, warnings, and caveats before selecting a provider.
+- Provider execution is separate from internal approval. Provider MFA, SCA, dashboard approval, risk review, funding confirmation, webhooks, polling, or audited manual confirmation remain authoritative.
+- Internal accounting balances are context only. The executable funding truth is the tenant provider account, balance, wallet, settlement account, storage balance, Treasury balance, or linked funding source.
+- Universal beneficiary intake stores canonical recipient data once, then maps to provider-specific requirements by provider, country, currency, route, entity type, and rail.
+- Missionary payout visibility is read-only and filtered. It may expose practical status, references, and safe proof details, but never provider credentials, balances, raw payloads, internal risk notes, or private finance details.
 
 ### Tenant-owned money movement
 

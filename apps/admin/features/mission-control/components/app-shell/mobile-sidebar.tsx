@@ -76,7 +76,12 @@ export const MobileSidebar = memo(function MobileSidebar() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-9 w-9 lg:hidden">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Open navigation menu"
+          className="h-9 w-9 lg:hidden"
+        >
           <Menu className="h-5 w-5" />
         </Button>
       </SheetTrigger>

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   getClientSafePayoutFeatureConfig,
+  type PayoutFeatureEnv,
   resolvePayoutFeatureConfig,
 } from "../../../../packages/config/payouts";
 
@@ -72,13 +73,15 @@ describe("payout feature config", () => {
   });
 
   it("returns client-safe flags without leaking secret-shaped env values", () => {
-    const config = getClientSafePayoutFeatureConfig({
+    const env = {
       PAYOUTS_ENABLED: "true",
       PAYOUTS_WISE_ENABLED: "true",
       PAYOUTS_EXECUTION_ENABLED: "true",
       WISE_API_TOKEN: "should-not-leak",
       PAYOUTS_PROVIDER_SECRET: "should-not-leak",
-    });
+    } satisfies Record<string, string | undefined>;
+
+    const config = getClientSafePayoutFeatureConfig(env);
 
     const serialized = JSON.stringify(config);
 
@@ -90,5 +93,25 @@ describe("payout feature config", () => {
       "sandboxOnly",
       "providers",
     ]);
+  });
+
+  it("keeps payout resolvers off the shared config barrel", async () => {
+    const configRoot = await import("../../../../packages/config/index");
+
+    expect("payoutFeatureConfig" in configRoot).toBe(false);
+    expect("resolvePayoutFeatureConfig" in configRoot).toBe(false);
+    expect("getClientSafePayoutFeatureConfig" in configRoot).toBe(false);
+  });
+
+  it("resolves server env at call time only", () => {
+    const env: PayoutFeatureEnv = {
+      PAYOUTS_ENABLED: "true",
+      PAYOUTS_MANUAL_PROVIDER_ENABLED: "true",
+    };
+
+    expect(resolvePayoutFeatureConfig({}).enabled).toBe(false);
+    expect(resolvePayoutFeatureConfig(env).providers.manual.quoteEnabled).toBe(
+      true,
+    );
   });
 });

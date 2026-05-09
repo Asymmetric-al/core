@@ -16,6 +16,7 @@ interface PageShellProps {
   className?: string;
   headerClassName?: string;
   contentClassName?: string;
+  density?: "default" | "compact";
   /** @deprecated Badge is no longer rendered. Prop kept for backward compatibility. */
   badge?: string;
 }
@@ -29,6 +30,7 @@ export function PageShell({
   className,
   headerClassName,
   contentClassName,
+  density = "default",
 }: PageShellProps) {
   const reduceMotion = useReducedMotion();
   const withinRouteVt = useWithinViewTransitionRouteLayer();
@@ -61,31 +63,61 @@ export function PageShell({
 
   return (
     <div
-      className={cn("flex flex-col gap-10 p-4 sm:p-6 lg:p-8 pb-20", className)}
+      className={cn(
+        density === "compact"
+          ? "flex flex-col gap-6 p-4 pb-16 sm:p-6 lg:p-7"
+          : "flex flex-col gap-10 p-4 pb-20 sm:p-6 lg:p-8",
+        className,
+      )}
     >
       <motion.div
         {...headerMotion}
         className={cn(
-          "flex flex-col md:flex-row items-start md:items-end justify-between gap-6 border-b border-border pb-8",
+          density === "compact"
+            ? "flex flex-col items-start justify-between gap-4 border-b border-border/80 pb-5 md:flex-row md:items-end"
+            : "flex flex-col items-start justify-between gap-6 border-b border-border pb-8 md:flex-row md:items-end",
           headerClassName,
         )}
       >
-        <div className="space-y-3">
-          {breadcrumbs && <div className="mb-4">{breadcrumbs}</div>}
+        <div className={cn(density === "compact" ? "space-y-2" : "space-y-3")}>
+          {breadcrumbs && (
+            <div className={density === "compact" ? "mb-2" : "mb-4"}>
+              {breadcrumbs}
+            </div>
+          )}
 
-          <h1 className="text-5xl font-black tracking-tighter text-foreground lg:text-6xl uppercase">
+          <h1
+            className={cn(
+              density === "compact"
+                ? "text-3xl font-black tracking-tight text-foreground sm:text-4xl lg:text-5xl"
+                : "text-5xl font-black uppercase tracking-tighter text-foreground lg:text-6xl",
+            )}
+          >
             {title}
           </h1>
 
           {description && (
-            <p className="text-muted-foreground text-sm font-medium leading-relaxed max-w-2xl">
+            <p
+              className={cn(
+                density === "compact"
+                  ? "max-w-2xl text-sm font-medium leading-6 text-muted-foreground"
+                  : "max-w-2xl text-sm font-medium leading-relaxed text-muted-foreground",
+              )}
+            >
               {description}
             </p>
           )}
         </div>
 
         {actions && (
-          <motion.div {...actionsMotion} className="flex flex-wrap gap-3">
+          <motion.div
+            {...actionsMotion}
+            className={cn(
+              density === "compact"
+                ? "flex flex-wrap items-center gap-2.5"
+                : "flex flex-wrap gap-3",
+            )}
+          >
             {actions}
           </motion.div>
         )}

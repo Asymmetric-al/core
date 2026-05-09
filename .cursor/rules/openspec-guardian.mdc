@@ -1,0 +1,65 @@
+---
+description: Use OpenSpec Guardian mode when a task asks for OpenSpec alignment, prompt-intent checking, scope-drift prevention, spec-grounded review, or a background agent to keep implementation aligned with OpenSpec
+globs: "**/*"
+alwaysApply: false
+---
+# OpenSpec Guardian Mode
+Use this rule when the user asks for OpenSpec alignment, prompt-intent checking, scope-drift prevention, spec-grounded review, or a background agent that keeps the main coding agent from going off the rails.
+This mode has two roles:
+1. Main agent: implements the requested work.
+2. `openspec-guardian`: background alignment reviewer that checks the work against the original prompt and OpenSpec.
+The OpenSpec Guardian does not replace `qa-foreman`.
+- Use `openspec-guardian` to check **direction, scope, prompt intent, and OpenSpec alignment**.
+- Use `qa-foreman` to check **quality, tests, edge cases, and completion**.
+- For careful implementation tasks, use both.
+## Main-agent workflow
+1. Read `AGENTS.md`.
+2. Read `openspec/project.md`.
+3. Read `docs/ai/rules/openspec.md`.
+4. Read relevant specs under `openspec/specs/**`.
+5. Read active changes under `openspec/changes/**` that may cover the task.
+6. Define success criteria from the user's prompt.
+7. Identify what OpenSpec context controls the work.
+8. Identify what would count as scope drift.
+9. Immediately spawn `/openspec-guardian` as a background subagent.
+10. Give `/openspec-guardian` a context packet:
+    - original user request
+    - success criteria
+    - current implementation plan
+    - relevant files or directories
+    - current diff summary when available
+    - active OpenSpec change ID if one exists
+    - relevant OpenSpec specs already read
+    - commands already run and results
+    - known risks or likely drift points
+11. Keep working while `/openspec-guardian` runs.
+12. When `/openspec-guardian` reports back, review every finding.
+13. Fix all confirmed alignment problems before declaring completion.
+14. If the guardian says `NEEDS_OPENSPEC_CHANGE`, stop broad implementation until the OpenSpec change is created or updated.
+15. If rejecting a guardian finding, explain why with evidence from the prompt, OpenSpec, or repo files.
+## Completion gate
+Do not declare completion until all are true:
+- The implementation matches the original prompt.
+- The implementation is supported by relevant OpenSpec files.
+- There is no unresolved `DRIFT` verdict.
+- Any `NEEDS_OPENSPEC_CHANGE` verdict has been addressed.
+- Active OpenSpec tasks are updated when applicable.
+- OpenSpec validation has run when applicable.
+- Any mismatch between code, OpenSpec, and repo docs has been resolved or documented.
+## When to spawn both background agents
+For meaningful implementation tasks, spawn both:
+1. `/openspec-guardian` early, to protect scope and intent.
+2. `/qa-foreman` after the first implementation pass, to challenge quality and completion.
+The main agent should keep working while both run.
+## Guardrails
+- Do not rewrite OpenSpec to justify drifted code.
+- Do not treat implementation convenience as product intent.
+- Do not change durable behavior without OpenSpec support.
+- Do not silently cross app, package, auth, tenant, role, money, CRM/CMS, publication, public/private, or data-access boundaries.
+- Do not ignore active OpenSpec changes.
+- Do not casually run `openspec update`.
+- Do not let broad refactors sneak into a narrow prompt.
+- Do not mark a task done while prompt intent and OpenSpec intent disagree.
+## Quick invocation template
+Use this when starting a task:
+Use OpenSpec Guardian mode. I will read OpenSpec context first, define success criteria from the original prompt, then spawn `/openspec-guardian` in the background with the prompt, plan, relevant specs, active change, likely files, and drift risks. I will not finish while unresolved OpenSpec drift remains.
