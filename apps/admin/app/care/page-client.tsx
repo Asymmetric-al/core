@@ -50,17 +50,18 @@ export default function MemberCareDashboardPage() {
     <PageShell
       title="Member Care"
       description="Holistic support and health monitoring for your global team."
+      density="compact"
       actions={
         <>
           <Button
             variant="outline"
-            className="h-11 rounded-xl border-zinc-200 font-bold uppercase tracking-widest text-[10px]"
+            className="h-10 rounded-xl border-zinc-200 px-4 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950"
           >
             <BookOpen className="mr-2 h-4 w-4 text-muted-foreground" />
             <span className="hide-mobile">Knowledge Base</span>
             <span className="show-mobile-only">Docs</span>
           </Button>
-          <Button className="h-11 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-black uppercase tracking-widest text-[10px]">
+          <Button className="h-10 rounded-xl bg-zinc-900 px-4 text-sm font-semibold text-white shadow-sm hover:bg-zinc-800">
             <Heart className="mr-2 h-4 w-4 fill-current" />
             New Care Record
           </Button>
@@ -71,7 +72,7 @@ export default function MemberCareDashboardPage() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-        className="space-y-6 animate-in fade-in duration-500 pb-32"
+        className="space-y-5 animate-in fade-in duration-500 pb-32"
       >
         <CareDashboard
           personnel={personnel || []}

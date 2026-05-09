@@ -126,7 +126,7 @@ function StatCard({
   icon: Icon,
   trend,
   trendLabel,
-  variant: _variant = "default",
+  variant = "default",
   index = 0,
 }: {
   label: string;
@@ -137,6 +137,13 @@ function StatCard({
   variant?: "default" | "warning" | "danger" | "success";
   index?: number;
 }) {
+  const toneClass = {
+    default: "border-border bg-card text-muted-foreground",
+    warning: "border-amber-200 bg-amber-50/60 text-amber-700",
+    danger: "border-destructive/30 bg-destructive/5 text-destructive",
+    success: "border-emerald-200 bg-emerald-50/60 text-emerald-700",
+  }[variant];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -159,7 +166,7 @@ function StatCard({
                 key={value}
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="text-xl sm:text-2xl font-bold tracking-tight text-foreground"
+                className="text-2xl font-bold tracking-tight text-foreground tabular-nums"
               >
                 {value}
               </motion.p>
@@ -185,7 +192,10 @@ function StatCard({
             <motion.div
               whileHover={{ scale: 1.1, rotate: 5 }}
               transition={springTransition}
-              className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center bg-zinc-100 text-zinc-600"
+              className={cn(
+                "h-9 w-9 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center border",
+                toneClass,
+              )}
             >
               <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
             </motion.div>

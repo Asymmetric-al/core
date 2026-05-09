@@ -48,6 +48,7 @@ const isTasksViewTab = (value: string): value is TasksViewTab =>
 function StatCard({
   label,
   value,
+  helper,
   icon: Icon,
   color,
   onClick,
@@ -55,6 +56,7 @@ function StatCard({
 }: {
   label: string;
   value: number;
+  helper: string;
   icon: React.ComponentType<{ className?: string }>;
   color: string;
   onClick?: () => void;
@@ -67,27 +69,30 @@ function StatCard({
       transition={springTransition}
       onClick={onClick}
       className={cn(
-        "flex items-center gap-4 px-6 py-5 rounded-[2rem] border transition-all cursor-pointer text-left shadow-sm min-w-[200px] flex-1",
+        "flex flex-1 cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 text-left shadow-sm transition-[border-color,box-shadow,transform]",
         color,
         isActive
-          ? "ring-2 ring-zinc-900 ring-offset-2 border-transparent"
-          : "border-zinc-100/60 bg-white",
+          ? "border-zinc-900 ring-2 ring-zinc-900/10"
+          : "border-zinc-100/70 bg-white",
       )}
     >
-      <div className="p-3 rounded-2xl bg-white/50 shadow-sm">
+      <div className="rounded-xl bg-white/70 p-2 shadow-sm ring-1 ring-black/5">
         <Icon className="size-5" />
       </div>
-      <div className="flex flex-col">
+      <div className="flex min-w-0 flex-col">
         <motion.span
           key={value}
           initial={{ scale: 1.2, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="text-3xl font-black tabular-nums tracking-tighter"
+          className="text-2xl font-black tabular-nums tracking-tight"
         >
           {value}
         </motion.span>
-        <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60 mt-0.5">
+        <span className="mt-0.5 text-sm font-bold leading-none text-zinc-900">
           {label}
+        </span>
+        <span className="mt-1 text-xs font-medium leading-snug text-zinc-600">
+          {helper}
         </span>
       </div>
     </motion.button>
@@ -106,32 +111,36 @@ export function TasksStatsCardsSection({
   onOverdueClick,
 }: TasksStatsCardsSectionProps) {
   return (
-    <div className="flex flex-wrap gap-6">
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <StatCard
         label="Critical"
         value={stats.overdue}
+        helper="Past due and still open"
         icon={AlertCircle}
-        color="text-rose-600 bg-rose-50/30"
+        color="bg-rose-50/70 text-rose-700"
         isActive={activeTab === "overdue"}
         onClick={onOverdueClick}
       />
       <StatCard
         label="Due Today"
         value={stats.dueToday}
+        helper="Scheduled for today"
         icon={Clock}
-        color="text-amber-600 bg-amber-50/30"
+        color="bg-amber-50/70 text-amber-700"
       />
       <StatCard
         label="In Progress"
         value={stats.inProgress}
+        helper="Currently being worked"
         icon={ListTodo}
-        color="text-blue-600 bg-blue-50/30"
+        color="bg-blue-50/70 text-blue-700"
       />
       <StatCard
         label="Completed"
         value={stats.completed}
+        helper="Closed mission tasks"
         icon={CheckSquare}
-        color="text-emerald-600 bg-emerald-50/30"
+        color="bg-emerald-50/70 text-emerald-700"
       />
     </div>
   );
@@ -174,13 +183,13 @@ export function TasksFilterSection({
             <TabsList className="bg-zinc-100/80 p-1 h-11 rounded-xl border border-zinc-200/50">
               <TabsTrigger
                 value="all"
-                className="text-[9px] font-black uppercase tracking-widest px-4 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                className="rounded-lg px-4 text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm"
               >
                 All Missions
               </TabsTrigger>
               <TabsTrigger
                 value="my"
-                className="text-[9px] font-black uppercase tracking-widest px-4 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                className="rounded-lg px-4 text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm"
               >
                 My Work
               </TabsTrigger>
@@ -191,9 +200,9 @@ export function TasksFilterSection({
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="h-11 rounded-xl border-zinc-200 font-bold uppercase tracking-widest text-[10px] gap-2"
+                className="h-11 gap-2 rounded-xl border-zinc-200 text-xs font-semibold"
               >
-                <ListFilter className="size-4 text-zinc-400" />
+                <ListFilter className="size-4 text-zinc-500" />
                 Display
               </Button>
             </DropdownMenuTrigger>
@@ -201,7 +210,7 @@ export function TasksFilterSection({
               align="end"
               className="w-56 rounded-2xl border-zinc-100 p-2 shadow-xl"
             >
-              <DropdownMenuLabel className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400">
+              <DropdownMenuLabel className="px-3 py-2 text-xs font-semibold text-zinc-600">
                 View Settings
               </DropdownMenuLabel>
               <DropdownMenuCheckboxItem
@@ -235,7 +244,7 @@ export function TasksTableSection({
   onCreateTask,
 }: TasksTableSectionProps) {
   return (
-    <Card className="rounded-[2.5rem] border-zinc-100/80 shadow-sm bg-white">
+    <Card className="rounded-2xl border-zinc-100/80 bg-white shadow-sm">
       <div className="p-1">
         <DataTableWrapper
           columns={columns}
@@ -260,7 +269,7 @@ export function TasksTableSection({
               <Button
                 onClick={onCreateTask}
                 variant="outline"
-                className="mt-4 rounded-xl font-bold uppercase tracking-widest text-[10px]"
+                className="mt-4 rounded-xl text-xs font-semibold"
               >
                 Create First Task
               </Button>

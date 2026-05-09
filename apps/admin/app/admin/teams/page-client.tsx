@@ -36,6 +36,7 @@ export default function TeamsPage() {
     <PageShell
       title="Manage Teams"
       description="Organize users and departments with shared, granular permissions."
+      density="compact"
       actions={<TeamsPageActions />}
       contentClassName="space-y-8 animate-in fade-in duration-500"
     >

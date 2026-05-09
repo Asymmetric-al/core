@@ -28,13 +28,13 @@ interface ReportsChartsProps {
 
 function ReportsChartsFallback() {
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7 text-left">
+    <div className="grid gap-4 text-left md:grid-cols-2 lg:grid-cols-7">
       <Card className="col-span-4 border-zinc-100 rounded-2xl shadow-sm">
         <CardHeader>
-          <CardTitle className="text-sm font-bold uppercase tracking-wider">
+          <CardTitle className="text-base font-semibold">
             Giving Trends
           </CardTitle>
-          <CardDescription className="text-xs">
+          <CardDescription className="text-xs font-medium">
             Monthly volume across all regions.
           </CardDescription>
         </CardHeader>
@@ -45,11 +45,11 @@ function ReportsChartsFallback() {
 
       <Card className="col-span-3 border-zinc-100 rounded-2xl shadow-sm">
         <CardHeader>
-          <CardTitle className="text-sm font-bold uppercase tracking-wider">
+          <CardTitle className="text-base font-semibold">
             Donor Engagement
           </CardTitle>
-          <CardDescription className="text-xs">
-            Retention velocity (6 Month).
+          <CardDescription className="text-xs font-medium">
+            New, retained, and lapsed donor movement.
           </CardDescription>
         </CardHeader>
         <CardContent className="pl-0">
@@ -79,13 +79,13 @@ const ReportsChartsContent = dynamic<ReportsChartsProps>(
       engagementData,
     }: ReportsChartsProps) {
       return (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7 text-left">
+        <div className="grid gap-4 text-left md:grid-cols-2 lg:grid-cols-7">
           <Card className="col-span-4 border-zinc-100 rounded-2xl shadow-sm">
             <CardHeader>
-              <CardTitle className="text-sm font-bold uppercase tracking-wider">
+              <CardTitle className="text-base font-semibold">
                 Giving Trends
               </CardTitle>
-              <CardDescription className="text-xs">
+              <CardDescription className="text-xs font-medium">
                 Monthly volume across all regions.
               </CardDescription>
             </CardHeader>
@@ -100,12 +100,12 @@ const ReportsChartsContent = dynamic<ReportsChartsProps>(
                       <linearGradient id="colorAmt" x1="0" y1="0" x2="0" y2="1">
                         <stop
                           offset="5%"
-                          stopColor="#0f172a"
+                          stopColor="var(--chart-1)"
                           stopOpacity={0.1}
                         />
                         <stop
                           offset="95%"
-                          stopColor="#0f172a"
+                          stopColor="var(--chart-1)"
                           stopOpacity={0}
                         />
                       </linearGradient>
@@ -115,31 +115,31 @@ const ReportsChartsContent = dynamic<ReportsChartsProps>(
                       fontSize={10}
                       tickLine={false}
                       axisLine={false}
-                      stroke="#94a3b8"
+                      stroke="var(--muted-foreground)"
                     />
                     <YAxis
                       fontSize={10}
                       tickLine={false}
                       axisLine={false}
-                      stroke="#94a3b8"
+                      stroke="var(--muted-foreground)"
                       tickFormatter={(value: number) => `$${value / 1000}k`}
                     />
                     <CartesianGrid
                       strokeDasharray="3 3"
                       vertical={false}
-                      stroke="#f1f5f9"
+                      stroke="var(--border)"
                     />
                     <Tooltip
                       contentStyle={{
                         borderRadius: "12px",
-                        border: "1px solid #f1f5f9",
+                        border: "1px solid var(--border)",
                         boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)",
                       }}
                     />
                     <Area
                       type="monotone"
                       dataKey="amount"
-                      stroke="#0f172a"
+                      stroke="var(--chart-1)"
                       strokeWidth={2}
                       fillOpacity={1}
                       fill="url(#colorAmt)"
@@ -152,11 +152,11 @@ const ReportsChartsContent = dynamic<ReportsChartsProps>(
 
           <Card className="col-span-3 border-zinc-100 rounded-2xl shadow-sm">
             <CardHeader>
-              <CardTitle className="text-sm font-bold uppercase tracking-wider">
+              <CardTitle className="text-base font-semibold">
                 Donor Engagement
               </CardTitle>
-              <CardDescription className="text-xs">
-                Retention velocity (6 Month).
+              <CardDescription className="text-xs font-medium">
+                New, retained, and lapsed donor movement.
               </CardDescription>
             </CardHeader>
             <CardContent className="pl-0">
@@ -170,34 +170,39 @@ const ReportsChartsContent = dynamic<ReportsChartsProps>(
                     <CartesianGrid
                       strokeDasharray="3 3"
                       vertical={false}
-                      stroke="#f1f5f9"
+                      stroke="var(--border)"
                     />
                     <XAxis
                       dataKey="month"
                       fontSize={10}
                       tickLine={false}
                       axisLine={false}
-                      stroke="#94a3b8"
+                      stroke="var(--muted-foreground)"
                     />
                     <YAxis
                       fontSize={10}
                       tickLine={false}
                       axisLine={false}
-                      stroke="#94a3b8"
+                      stroke="var(--muted-foreground)"
                     />
-                    <Tooltip cursor={{ fill: "#f8fafc" }} />
+                    <Tooltip cursor={{ fill: "var(--muted)" }} />
                     <Bar
                       dataKey="retained"
                       name="Retained"
                       stackId="a"
-                      fill="#0f172a"
+                      fill="var(--chart-1)"
                     />
-                    <Bar dataKey="new" name="New" stackId="a" fill="#3b82f6" />
+                    <Bar
+                      dataKey="new"
+                      name="New"
+                      stackId="a"
+                      fill="var(--chart-2)"
+                    />
                     <Bar
                       dataKey="lapsed"
                       name="Lapsed"
                       stackId="a"
-                      fill="#e2e8f0"
+                      fill="var(--muted)"
                       radius={[2, 2, 0, 0]}
                     />
                   </BarChart>

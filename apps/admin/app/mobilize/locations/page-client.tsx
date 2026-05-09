@@ -70,13 +70,13 @@ export default function LocationsPage() {
   const actions = (
     <Button
       onClick={() => setIsAdding(!isAdding)}
-      className={`h-14 px-8 font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl transition-all shadow-2xl ${
+      className={`h-10 rounded-xl px-4 text-sm font-semibold shadow-sm transition-colors ${
         isAdding
           ? "bg-amber-500 hover:bg-amber-600 text-white animate-pulse"
           : "bg-zinc-900 text-white hover:bg-zinc-800"
       }`}
     >
-      <Plus className="mr-3 h-4 w-4" />
+      <Plus className="mr-2 h-4 w-4" />
       {isAdding ? "Click on Map to Drop Marker" : "Add Location"}
     </Button>
   );
@@ -85,20 +85,21 @@ export default function LocationsPage() {
     <PageShell
       title="Where We Work"
       description="Manage global ministry footprints and projects."
+      density="compact"
       actions={actions}
     >
-      <Tabs defaultValue="map" className="space-y-8">
-        <div className="flex justify-center">
-          <TabsList className="bg-zinc-100/50 p-1.5 rounded-[1.5rem] h-auto border border-zinc-100">
+      <Tabs defaultValue="map" className="space-y-5">
+        <div className="flex justify-start">
+          <TabsList className="h-10 rounded-xl border border-zinc-200 bg-zinc-100/60 p-1">
             <TabsTrigger
               value="map"
-              className="rounded-xl px-8 py-3 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all"
+              className="rounded-lg px-4 text-sm font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm"
             >
               <Layers className="mr-2 h-3.5 w-3.5" /> Map View
             </TabsTrigger>
             <TabsTrigger
               value="table"
-              className="rounded-xl px-8 py-3 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all"
+              className="rounded-lg px-4 text-sm font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm"
             >
               <TableIcon className="mr-2 h-3.5 w-3.5" /> Data Table
             </TabsTrigger>
@@ -106,7 +107,7 @@ export default function LocationsPage() {
         </div>
 
         <TabsContent value="map" className="m-0">
-          <Card className="relative h-[600px] rounded-[2.5rem] overflow-hidden border-zinc-100 shadow-2xl shadow-zinc-100 bg-zinc-50">
+          <Card className="relative h-[600px] overflow-hidden rounded-2xl border-zinc-100 bg-zinc-50 shadow-sm">
             <Map
               initialViewState={{
                 longitude: 0,
@@ -151,8 +152,8 @@ export default function LocationsPage() {
         </TabsContent>
 
         <TabsContent value="table" className="m-0">
-          <Card className="rounded-[2.5rem] border-zinc-100 shadow-2xl shadow-zinc-100">
-            <div className="p-8">
+          <Card className="rounded-2xl border-zinc-100 shadow-sm">
+            <div className="p-4">
               <LocationTable
                 data={locations || []}
                 isLoading={isLoading}
