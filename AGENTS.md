@@ -22,7 +22,7 @@ Use this order when instructions conflict:
 2. **Repo instruction system:** root `AGENTS.md`, nearest nested `AGENTS.md`, `.cursor/rules`, `CLAUDE.md`, `.github/copilot-instructions.md`, `.github/instructions/*.md`, `docs/ai/*` rulebooks.
 3. **Repo-local canonical skills:** `docs/ai/skills/*/SKILL.md` (mirrored into `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`; verify with `bun run skills:verify`).
 4. **Next.js API truth:** bundled docs under `node_modules/next/dist/docs/` for the installed version (then repo root `node_modules`; see **Next.js docs source of truth** below).
-5. **MCP runtime facts:** e.g. Next.js devtools MCP against a running dev server (see **Next.js MCP (devtools)** below), TanStack MCP from root `.mcp.json`, plus any other MCP servers enabled in the agent.
+5. **MCP/runtime and official CLI facts:** e.g. Next.js devtools MCP against a running dev server (see **Next.js MCP (devtools)** below), official TanStack CLI/Intent output for TanStack work, plus any other MCP servers enabled in the agent.
 6. **External docs:** prefer indexed doc search / package source (e.g. Nia) over training data; use direct official docs when needed.
 7. **General model knowledge:** lowest priority; never substitute memory for version-specific or repo-specific facts.
 
@@ -48,6 +48,8 @@ This file is the deterministic entry point for all agent work in `core`.
 
 ### Nia (MCP) usage: always repo-scoped + always preambled
 
+Canonical Nia workflow, setup, and operation boundaries live in `docs/ai/nia.md`.
+
 **Default for repo context. Use when:**
 
 - "where is...", "how does...", "what calls...", "find...", "trace..."
@@ -67,6 +69,7 @@ This file is the deterministic entry point for all agent work in `core`.
 - Use your own Nia API key (never shared).
 - Add/subscribe the public `Asymmetric-al/core` indexed source in your Nia workspace.
 - Verify the repo appears in your Nia resources list; otherwise scoped queries will fail.
+- Keep Nia credentials in your user/global MCP config or environment. The committed `.mcp.json` files intentionally do not include Nia because MCP JSON commonly requires literal headers/secrets.
 
 #### Required helper docs (must exist, must be used)
 
@@ -75,10 +78,11 @@ This file is the deterministic entry point for all agent work in `core`.
   - Use it to choose accurate "Stack" tags + keywords for Nia queries.
 - `docs/ai/working-set.md`
   - Living task context for the current work.
-  - Keep it updated during the task.
+  - Keep it updated during the task when edits are allowed.
   - Use it to build the Nia query preamble for every Nia search.
+  - Start from `docs/ai/working-set.example.md` on a clean clone if needed.
 
-If either doc is missing or stale, create/update it before doing major work.
+`docs/ai/working-set.md` is local agent scratch context and is ignored by git. If it is missing or stale and edits are allowed, create/update it before major work. In read-only or plan mode, build the preamble from the available task context and say that the working-set update was skipped because edits were not allowed.
 
 #### Nia query preamble (required)
 
@@ -96,9 +100,10 @@ Evidence required: file paths + symbol names + brief explanation
 
 Rules:
 
-- Put this preamble at the top of the `query` string for `mcp__nia__search`.
+- Put this preamble at the top of the `query` string for Nia `search` / `mcp__nia__search` calls.
 - Do not shove the preamble into `pattern` for grep calls. Keep grep patterns tight and exact.
 - Always read the top matches before editing. Cite exact file paths and functions/components.
+- Nia MCP tool namespaces differ by client. Prefer the live tool names exposed by your client; examples below use Cursor-style names where helpful.
 
 #### Actions
 
@@ -108,7 +113,7 @@ Rules:
 
 #### Default workflow (do not stop at snippets)
 
-1. Search (scoped + preambled when using `mcp__nia__search`).
+1. Search (scoped + preambled when using Nia `search` / `mcp__nia__search`).
 2. Read full sources on the best matches (`nia_read`, or local file reads).
 3. Grep exact identifiers when needed (`nia_grep` or `rg`).
 4. Edit only after evidence.
@@ -116,8 +121,9 @@ Rules:
 #### Pre-indexed docs and packages
 
 - Prefer subscribed or indexed documentation and package sources when available (reduces stale answers).
-- If an important upstream doc set is missing from your Nia workspace, subscribe or index it before relying on memory.
+- If an important upstream doc set is missing from your Nia workspace, prefer `manage_resource(action="subscribe")` for a pre-indexed source; use `index` only when no subscribed/global source is available and mutation is allowed.
 - For public package implementation details, use Nia package search for the **exact** dependency version from the nearest `package.json`.
+- For public GitHub one-offs that should not be indexed, use Tracer. For broader discovery, use `nia_research`; then run a scoped pass back inside `Asymmetric-al/core` before editing this repo.
 
 #### If Nia cannot find evidence
 
@@ -185,9 +191,17 @@ This repo configures the Next.js devtools MCP server in **root** `.mcp.json` (al
 - **Use it for runtime-grounded work:** current errors, dev logs, routes, page metadata, server actions — **do not guess** these when the MCP tools can query the live dev server.
 - **Docs:** [Next.js MCP guide](https://nextjs.org/docs/app/guides/mcp) and the [`next-devtools-mcp` repository](https://github.com/vercel/next-devtools-mcp).
 
-### TanStack MCP
+### TanStack CLI and Intent
 
-Root `.mcp.json` also defines the TanStack CLI MCP (`@tanstack/cli mcp`). Enable it in your agent when working on TanStack Query / Router / related surfaces.
+For any TanStack work (Query, Router, Table, DB, Form, Virtual, Start, CLI, Intent, Devtools, or related integrations), use the official TanStack CLI and official TanStack Intent skills when they exist for the installed packages. Do not use repo-local or unofficial TanStack skills.
+
+- Install/verify the official CLI with `npm install -g @tanstack/cli` (Node.js 18+ required). Use direct `npm`, `npx`, and `tanstack` commands so the workflow works on Windows and macOS.
+- Use CLI JSON output for agent-safe TanStack discovery and docs, for example `tanstack libraries --json`, `tanstack doc <library> <path> --json`, and `tanstack search-docs "<query>" --library <id> --framework <name> --json`.
+- Do **not** use `@tanstack/cli mcp` / `tanstack mcp`; the official CLI removed that command. Use direct CLI commands instead.
+- Before TanStack work, run `npx --yes @tanstack/intent@latest list` (`npx @tanstack/intent@latest list` is fine in interactive shells); that current command output is the authority for which installed packages expose Intent skills.
+- Load Intent skills only for packages returned by the current list command: `npx --yes @tanstack/intent@latest load <package>#<skill>`.
+- Intent coverage is not exhaustive. For TanStack packages not returned by the current Intent list (for example, Query/Table/Router when absent), continue using `tanstack doc`, `tanstack search-docs`, and the repo guidance in `docs/guides/development/tanstack-integration.md` and `docs/guides/development/tanstack-virtual-foundation.md`.
+- For table-like UI, preserve the repo-specific shared abstractions documented in those guides: prefer `DataTableResponsive` from `@asym/ui/components/shadcn/data-table` when appropriate, reuse shared table virtualization helpers/types from `packages/ui/components/shadcn/data-table`, and keep accessibility expectations from `docs/ai/rules/frontend.md` and the virtual foundation testing checklist discoverable.
 
 ### Dev servers and logs
 
@@ -207,12 +221,16 @@ Load rulebooks before editing files in their domain.
 - **Testing/Playwright/a11y/perf gates:** `docs/ai/rules/testing.md`
 - **TypeScript config / TS 6–7 prep (no version bump):** `docs/ai/rules/typescript-future-proofing.md` and `docs/guides/typescript-6-readiness.md`
 - **shadcn/studio MCP workflows (/cui, /rui, /iui, /ftc):** `docs/ai/rules/shadcn-studio-mcp.md` (only when running those workflows)
+- **Async QA Foreman mode / grind-style verification:** `docs/ai/rules/async-qa-foreman.md` when the user requests Async QA Foreman mode, grind-style completion pressure, background QA, long-running verification, or a second agent to challenge quality and keep the main agent working.
+- **OpenSpec alignment / prompt intent guard:** `docs/ai/rules/openspec-guardian.md` when the user asks for OpenSpec alignment, prompt-intent checking, scope-drift prevention, spec-grounded review, or a background agent to keep implementation aligned with the original request and OpenSpec.
 
 ---
 
 ## Skill Routing (Deterministic)
 
 Load the skill(s) below when the trigger matches. Canonical skill source is `docs/ai/skills/`; run `bun run skills:sync` to refresh mirrors under `.cursor/skills/` and `.agents/skills/`.
+
+- **Repo entry / instruction map (default orientation for repo work):** `docs/ai/skills/repo-entry/SKILL.md`
 
 **Supabase and Supabase Auth:** For any work touching Supabase products (database, Auth, Storage, Realtime, Edge Functions, CLI, MCP, RLS, migrations), load **`docs/ai/skills/supabase/SKILL.md`** first. For Next.js App Router auth integration specifically, also use **`docs/ai/skills/nextjs-supabase-auth/SKILL.md`**. For Postgres query/schema/RLS performance, use **`docs/ai/skills/supabase-postgres-best-practices/SKILL.md`**.
 
@@ -230,7 +248,7 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 - **Tasteful UI animation (timing, easing, CSS/Motion patterns):** `docs/ai/skills/anim/SKILL.md`
 - **Additional Emil design-engineering notes / companion reference:** `docs/ai/skills/emil-design-eng/SKILL.md`
 - **Recharts:** `docs/ai/skills/rechart/SKILL.md`
-- **TanStack Table v8:** `docs/ai/skills/tanstack-table/SKILL.md`
+- **TanStack work:** use the official TanStack CLI plus current official Intent skills when `npx --yes @tanstack/intent@latest list` returns a matching package; otherwise use `tanstack doc` / `tanstack search-docs` and the repo-specific TanStack guides linked in **TanStack CLI and Intent** above.
 - **Tiptap rich text editor (`@tiptap/*`, shared editor in `@asym/ui`):** `docs/ai/skills/tiptap/SKILL.md`
 - **Resend CLI (`resend` binary, shell, scripts, CI/CD, non-interactive flags):** `docs/ai/skills/resend-cli/SKILL.md` (not the same as SDK or tenant app integration; see `docs/guides/features/resend-integration.md` for product email routes and UI)
 - **Supabase (platform-wide: Auth, DB API, Storage, Realtime, Edge Functions, CLI, MCP, RLS, migrations):** `docs/ai/skills/supabase/SKILL.md`
@@ -243,7 +261,29 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 
 **GitHub `AL-###` issue/PR workflow:** there are no `SKILL.md` files under `docs/ai/skills/` for those flows today; follow `docs/ai/rules/general.md`. Deprecated stubs live under `skills/*/DEPRECATED.md` only.
 
-**Extra Cursor-packaged skills:** additional `SKILL.md` files under `.cursor/skills/` (e.g. Playwright, Stripe, Turborepo) may be present; use them when the task matches their descriptions.
+**Extra Cursor-packaged skills:** optional mirror-only ecosystem installs under **`.agents/skills/<name>/`** and **`.cursor/skills/<name>/`**. These are not canonical repo skills unless promoted into **`docs/ai/skills/<name>/`**. Refresh them with the Skills CLI or documented vendor source, then run `bun run skills:sync` and `bun run skills:verify`. Pins and hashes live in **`skills-lock.json`**. These stay **subordinate to OpenSpec** (`openspec/specs/**`, `openspec/changes/**`, `openspec/project.md`) and canonical **`docs/ai/skills/`** — see **`openspec/specs/agent-instruction-system/spec.md`**.
+
+**Mattpocock pack** ([github.com/mattpocock/skills](https://github.com/mattpocock/skills)) — paths under `.cursor/skills/`:
+
+| Id                                            | Notes                                                                                                                  |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **setup-matt-pocock-skills**                  | Bootstrap agent-docs layout for other mattpocock skills.                                                               |
+| **grill-with-docs**                           | Grill plan vs CONTEXT/ADRs (`ADR-FORMAT.md`, `CONTEXT-FORMAT.md`).                                                     |
+| **grill-me**                                  | Grill without docs; preserves upstream first-person wording, where "me" means the user being interviewed by the agent. |
+| **diagnose**                                  | Ranked hypotheses for bugs.                                                                                            |
+| **zoom-out**                                  | Module/caller map.                                                                                                     |
+| **to-prd**                                    | PRD from context ([skills.sh/to-prd](https://skills.sh/mattpocock/skills/to-prd)); align PRD content with OpenSpec.    |
+| **to-issues**                                 | PRD → issues (**skills.sh “prd-to-issues”** naming maps here).                                                         |
+| **improve-codebase-architecture**             | Architecture deepening.                                                                                                |
+| **tdd**                                       | Red-green-refactor + references.                                                                                       |
+| **qa**, **request-refactor-plan**             | Vendored from upstream **`skills/deprecated/`** (not on default CLI list).                                             |
+| **setup-pre-commit**, **migrate-to-shoehorn** | Vendored from **`skills/misc/`**.                                                                                      |
+| **ubiquitous-language**                       | DDD glossary; vendored from **`skills/deprecated/`** (CLI does not expose `--skill ubiquitous-language`).              |
+| **domain-model**                              | Repo-local **alias** → load **`ubiquitous-language`**.                                                                 |
+| **prd-to-plan**                               | No upstream skill id; repo-local **router** (`prd-to-plan/SKILL.md`) → use **to-prd**, **to-issues**, OpenSpec.        |
+| **write-a-prd**                               | Same as **to-prd** (CLI/skill name).                                                                                   |
+
+**Names not in upstream:** **`domain-model`** (use alias), **`prd-to-issues`** (use **to-issues**), **`write-a-prd`** (= **to-prd**), **`prd-to-plan`** (router stub). Distinct from **`docs/ai/skills/`** **`test-driven-development`** where both exist.
 
 ---
 
@@ -394,7 +434,7 @@ bun run setup:mission-control:cloud
 bun run dev:mission-control
 ```
 
-Then open `http://localhost:3030`. The setup command only writes gitignored `.env.local` defaults (`SKIP_ENV_VALIDATION=1`, `E2E_AUTH_BYPASS=true`, placeholder public Supabase values, `PAYLOAD_SECRET`, and admin Playwright URL/port). Replace those placeholders with real Supabase/demo-account values before testing live auth, hosted data, Payload/CMS, or database-backed admin workflows.
+Then open `http://localhost:3030`. The setup command only writes gitignored `.env.local` defaults (`SKIP_ENV_VALIDATION=1`, `E2E_AUTH_BYPASS=true`, placeholder public Supabase values, `PAYLOAD_SECRET`, and admin Playwright URL/port). Existing explicit `E2E_AUTH_BYPASS=false` values are preserved unless you pass `--force-bypass`. Replace placeholders with real Supabase/demo-account values before testing live auth, hosted data, Payload/CMS, or database-backed admin workflows.
 
 ### Local Supabase startup
 

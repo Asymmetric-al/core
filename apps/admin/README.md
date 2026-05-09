@@ -36,6 +36,10 @@ Then open `http://localhost:3030`. The setup command writes only gitignored
 - `PLAYWRIGHT_ADMIN_BASE_URL=http://localhost:3030`
 - `PLAYWRIGHT_ADMIN_PORT=3030`
 
+Existing explicit `E2E_AUTH_BYPASS=false` values are preserved. Pass
+`--force-bypass` only when you intentionally want the setup script to override
+that local choice.
+
 Replace the Supabase placeholders with real project values when you need live
 data, auth, or database-backed admin workflows.
 

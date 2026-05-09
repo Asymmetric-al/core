@@ -90,7 +90,7 @@ describe("run-with-ci-env", () => {
 });
 
 describe("setup-mission-control-cloud", () => {
-  it("adds Mission Control Cloud Agent defaults without overwriting real secrets", () => {
+  it("adds Mission Control Cloud Agent defaults without overwriting real secrets or explicit auth bypass choices", () => {
     const result = applyMissionControlCloudEnvDefaults(
       [
         "NEXT_PUBLIC_SUPABASE_URL=https://real-project.supabase.co",
@@ -105,9 +105,23 @@ describe("setup-mission-control-cloud", () => {
     expect(result.content).toContain(
       "NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key",
     );
-    expect(result.content).toContain("E2E_AUTH_BYPASS=true");
-    expect(result.content).toContain("PAYLOAD_SECRET=");
+    expect(result.content).toContain("E2E_AUTH_BYPASS=false");
+    expect(result.content).toContain(
+      "PAYLOAD_SECRET=cloud-agent-mission-control-placeholder",
+    );
     expect(result.preservedKeys).toContain("NEXT_PUBLIC_SUPABASE_URL");
+    expect(result.preservedKeys).toContain("E2E_AUTH_BYPASS");
     expect(result.changedKeys).toContain("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  });
+
+  it("can force auth bypass only when explicitly requested", () => {
+    const result = applyMissionControlCloudEnvDefaults(
+      "E2E_AUTH_BYPASS=false\n",
+      undefined,
+      { forceBypass: true },
+    );
+
+    expect(result.content).toContain("E2E_AUTH_BYPASS=true");
+    expect(result.changedKeys).toContain("E2E_AUTH_BYPASS");
   });
 });

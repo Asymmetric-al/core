@@ -209,7 +209,7 @@ const VisualCard = ({
   return (
     <div
       className={cn(
-        "relative rounded-2xl p-6 aspect-[1.586/1] flex flex-col justify-between overflow-hidden shadow-2xl transition-transform duration-500 border select-none group-hover:scale-[1.02]",
+        "relative rounded-2xl p-6 aspect-[1.586/1] flex flex-col justify-between overflow-hidden shadow-2xl transition-transform duration-300 ease-out border select-none [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.02]",
         getBgStyle(),
       )}
     >
@@ -316,7 +316,7 @@ const SelectionList = ({
             layout
             onClick={() => onSelect(method.id)}
             className={cn(
-              "relative flex items-center gap-4 p-4 rounded-xl border transition-all overflow-hidden group cursor-pointer text-left",
+              "relative flex items-center gap-4 p-4 rounded-xl border transition-[background-color,border-color,box-shadow] duration-200 overflow-hidden group cursor-pointer text-left",
               isSelected
                 ? "border-zinc-900 bg-zinc-50 shadow-sm ring-1 ring-zinc-900"
                 : "border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50",
@@ -442,7 +442,7 @@ const CardForm = ({ formData, setFormData, isEditing }: MethodFormProps) => (
         <Input
           placeholder="0000 0000 0000 0000"
           className={cn(
-            "pl-12 h-12 bg-white border-zinc-200 shadow-sm transition-all focus:ring-2 focus:ring-zinc-100 focus:border-zinc-900 font-mono text-lg rounded-xl",
+            "pl-12 h-12 bg-white border-zinc-200 shadow-sm transition-colors duration-150 focus:ring-2 focus:ring-zinc-100 focus:border-zinc-900 font-mono text-lg rounded-xl",
             isEditing &&
               "bg-zinc-100 text-zinc-500 border-zinc-100 cursor-not-allowed",
           )}
@@ -535,7 +535,7 @@ const BankForm = ({ formData, setFormData, isEditing }: MethodFormProps) => (
             id="routing"
             placeholder="9 Digit Routing Number"
             className={cn(
-              "pl-12 h-12 bg-white border-zinc-200 shadow-sm font-mono text-lg transition-all rounded-xl",
+              "pl-12 h-12 bg-white border-zinc-200 shadow-sm font-mono text-lg transition-colors duration-150 rounded-xl",
               isEditing &&
                 "bg-zinc-100 text-zinc-500 border-zinc-100 cursor-not-allowed",
             )}
@@ -563,7 +563,7 @@ const BankForm = ({ formData, setFormData, isEditing }: MethodFormProps) => (
             type={isEditing ? "text" : "password"}
             placeholder="Account Number"
             className={cn(
-              "pl-12 h-12 bg-white border-zinc-200 shadow-sm font-mono text-lg transition-all rounded-xl",
+              "pl-12 h-12 bg-white border-zinc-200 shadow-sm font-mono text-lg transition-colors duration-150 rounded-xl",
               isEditing &&
                 "bg-zinc-100 text-zinc-500 border-zinc-100 cursor-not-allowed",
             )}
@@ -643,7 +643,7 @@ function ACHNudgeBanner({
             </button>
           </div>
           <div className="flex gap-5 items-start relative z-10">
-            <div className="h-12 w-12 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-md shrink-0 border border-emerald-50 group-hover:scale-[1.02] transition-transform duration-300 ease-out">
+            <div className="h-12 w-12 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-md shrink-0 border border-emerald-50 [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.02] transition-transform duration-300 ease-out">
               <Landmark className="h-6 w-6" />
             </div>
             <div>
@@ -771,7 +771,7 @@ function MethodCard({
                   onClick={() => onDeleteRequest(method.id)}
                   className="text-rose-600 focus:text-rose-600 focus:bg-rose-50 rounded-lg cursor-pointer font-bold uppercase tracking-widest text-[10px] group"
                 >
-                  <Trash2 className="mr-2 h-3.5 w-3.5 group-hover:scale-110 transition-transform" />{" "}
+                  <Trash2 className="mr-2 h-3.5 w-3.5 [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-110 transition-transform" />{" "}
                   Remove
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -808,7 +808,7 @@ function MethodCard({
                 {attachedPledges.map((pledge) => (
                   <div
                     key={pledge.id}
-                    className="flex items-center gap-4 p-3 rounded-xl bg-zinc-50/50 border border-zinc-100 hover:border-zinc-300 hover:bg-white transition-all group/pledge cursor-default shadow-sm hover:shadow-md"
+                    className="flex items-center gap-4 p-3 rounded-xl bg-zinc-50/50 border border-zinc-100 hover:border-zinc-300 hover:bg-white transition-[background-color,border-color,box-shadow] duration-200 group/pledge cursor-default shadow-sm hover:shadow-md"
                   >
                     {pledge.avatar ? (
                       <Image
@@ -909,13 +909,13 @@ function AddMethodDialog({
               <TabsList className="grid w-full grid-cols-2 mb-8 bg-white p-1 rounded-xl shadow-sm border border-zinc-200 h-12">
                 <TabsTrigger
                   value="card"
-                  className="rounded-lg font-black uppercase tracking-widest text-[10px] data-[state=active]:bg-zinc-900 data-[state=active]:text-white transition-all shadow-none"
+                  className="rounded-lg font-black uppercase tracking-widest text-[10px] data-[state=active]:bg-zinc-900 data-[state=active]:text-white transition-colors duration-200 shadow-none"
                 >
                   Credit Card
                 </TabsTrigger>
                 <TabsTrigger
                   value="bank"
-                  className="rounded-lg font-black uppercase tracking-widest text-[10px] data-[state=active]:bg-zinc-900 data-[state=active]:text-white transition-all shadow-none"
+                  className="rounded-lg font-black uppercase tracking-widest text-[10px] data-[state=active]:bg-zinc-900 data-[state=active]:text-white transition-colors duration-200 shadow-none"
                 >
                   Bank Account
                 </TabsTrigger>
@@ -1051,7 +1051,7 @@ function SwapPledgeDialog({
             </div>
 
             <div className="text-zinc-200">
-              <ArrowDown className="h-6 w-6 animate-bounce" />
+              <ArrowDown className="h-6 w-6 text-muted-foreground" />
             </div>
           </div>
 
@@ -1196,7 +1196,7 @@ function BulkMoveDialog({
           </div>
 
           <div className="flex justify-center text-zinc-200">
-            <ArrowDown className="h-6 w-6 animate-bounce" />
+            <ArrowDown className="h-6 w-6 text-muted-foreground" />
           </div>
 
           <div className="space-y-4">
@@ -1432,7 +1432,7 @@ export default function DonorWalletPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-24">
+    <div className="max-w-5xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-300 pb-24">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-1 text-left">
         <div>
           <h1 className="text-3xl md:text-4xl font-bold text-zinc-900 tracking-tight uppercase">
@@ -1444,7 +1444,7 @@ export default function DonorWalletPage() {
         </div>
         <Button
           onClick={openAddModal}
-          className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all h-12 px-6 font-black uppercase tracking-widest text-[10px] rounded-lg"
+          className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-[background-color,box-shadow,transform] duration-200 h-12 px-6 font-black uppercase tracking-widest text-[10px] rounded-lg"
         >
           <Plus className="mr-2 h-5 w-5" /> Add Payment Method
         </Button>
@@ -1540,6 +1540,3 @@ export default function DonorWalletPage() {
     </div>
   );
 }
-
-// Sub-forms were moved inside CardForm and BankForm for brevity in this snippet
-// but follow the same pattern as CardForm/BankForm components.

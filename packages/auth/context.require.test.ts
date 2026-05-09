@@ -11,6 +11,7 @@ import type { AuthContext } from "./context";
 function baseAuthenticated(overrides: Partial<AuthContext> = {}): AuthContext {
   return {
     userId: "user-1",
+    email: "user-1@example.com",
     tenantId: "00000000-0000-0000-0000-000000000001",
     role: "staff",
     profileRole: "staff",

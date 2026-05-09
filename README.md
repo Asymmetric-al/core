@@ -26,6 +26,8 @@ Per-app dev commands (from root `package.json`):
 - `bun run dev:mission-control` → Mission Control admin app, port **3030**, with Cloud Agent-friendly dev defaults
 - `bun run dev:missionary` → missionary app, port **4000**
 
+Dev env source of truth is the repo-root `.env.local`. Each app's `next.config.ts` loads that root file with `@next/env`; dev scripts do not copy secrets into app directories. If older tooling requires app-local env files, run `bun run env:link-apps` to create symlinks. The helper refuses to overwrite an existing app `.env.local` unless rerun with `--force`.
+
 ### Cursor Cloud Agent (VM) secrets
 
 For Cursor Cloud Agent runs, set secrets in the Cloud Agent Secrets settings instead of committing values to repo files.
@@ -51,7 +53,7 @@ bun run setup:mission-control:cloud
 bun run dev:mission-control
 ```
 
-Then open `http://localhost:3030`. The setup command writes only gitignored `.env.local` defaults: `SKIP_ENV_VALIDATION=1`, `E2E_AUTH_BYPASS=true`, placeholder public Supabase values, and the admin Playwright base URL. Replace those values with real Supabase/demo account secrets when testing live auth or hosted data.
+Then open `http://localhost:3030`. The setup command writes only gitignored `.env.local` defaults: `SKIP_ENV_VALIDATION=1`, `E2E_AUTH_BYPASS=true`, placeholder public Supabase values, and the admin Playwright base URL. Existing explicit `E2E_AUTH_BYPASS=false` values are preserved unless you pass `--force-bypass`. Replace placeholders with real Supabase/demo account secrets when testing live auth or hosted data.
 
 ### Windows
 
@@ -144,9 +146,12 @@ Agent-oriented docs live under `docs/ai/`:
 
 - **Entry point:** `AGENTS.md` — routing rules for all AI agent work
 - **Stack registry:** `docs/ai/stack-registry.md` — canonical tech stack list
-- **Working set:** `docs/ai/working-set.md` — living task context (keep updated)
+- **Working set:** `docs/ai/working-set.example.md` — template for local `docs/ai/working-set.md` scratch context
+- **Nia MCP:** `docs/ai/nia.md` — repo-scoped Nia search, MCP setup, and local sync rules
 - **Monorepo architecture:** `docs/ai/monorepo-architecture.md` — workspace structure
 - **Rulebooks:** `docs/ai/rules/*` — domain-specific guidelines (frontend, backend, testing, etc.)
+- **Async QA Foreman:** `docs/ai/rules/async-qa-foreman.md` — optional background `/qa-foreman` subagent (`.cursor/agents/qa-foreman.md`) for grind-style verification while the main agent implements.
+- **OpenSpec Guardian:** `docs/ai/rules/openspec-guardian.md` — optional background `/openspec-guardian` subagent (`.cursor/agents/openspec-guardian.md`) for prompt intent and OpenSpec alignment while the main agent implements.
 - **Skills:** `docs/ai/skills/*` — reusable workflow patterns (repo-owned, versioned)
 
 **Canonical source:** `docs/ai/`. Root `rules/` and `skills/` contain **deprecation pointers** to `docs/ai/` (not full duplicates).

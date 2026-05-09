@@ -40,6 +40,7 @@ function fail(message) {
 
 function parseArgs(args) {
   return {
+    forceBypass: args.includes("--force-bypass"),
     skipInstall: args.includes("--skip-install"),
     skipSkillsVerify: args.includes("--skip-skills-verify"),
   };
@@ -67,11 +68,18 @@ function envLineValue(line) {
   return unquoteEnvValue(line.slice(index + 1));
 }
 
-function shouldReplaceEnvValue(key, value) {
+function shouldReplaceEnvValue(key, value, options = {}) {
+  const trimmed = value.trim();
+
   if (key === "E2E_AUTH_BYPASS") {
-    return value.trim().toLowerCase() !== "true";
+    if (trimmed.toLowerCase() === "false" && !options.forceBypass) {
+      return false;
+    }
+
+    return placeholderValues.has(trimmed);
   }
-  return placeholderValues.has(value.trim());
+
+  return placeholderValues.has(trimmed);
 }
 
 function formatEnvLine(key, value) {
@@ -81,6 +89,7 @@ function formatEnvLine(key, value) {
 export function applyMissionControlCloudEnvDefaults(
   content,
   defaults = missionControlCloudEnvDefaults,
+  options = {},
 ) {
   const lines = content ? content.split(/\r?\n/) : [];
   const seen = new Set();
@@ -95,7 +104,7 @@ export function applyMissionControlCloudEnvDefaults(
     seen.add(key);
     const defaultValue = defaults[key];
     const currentValue = envLineValue(line);
-    if (shouldReplaceEnvValue(key, currentValue)) {
+    if (shouldReplaceEnvValue(key, currentValue, options)) {
       changedKeys.push(key);
       return formatEnvLine(key, defaultValue);
     }
@@ -123,10 +132,14 @@ export function applyMissionControlCloudEnvDefaults(
   };
 }
 
-async function ensureEnvFile() {
+async function ensureEnvFile(options) {
   const envPath = path.join(repoRoot, ".env.local");
   const current = existsSync(envPath) ? await readFile(envPath, "utf8") : "";
-  const result = applyMissionControlCloudEnvDefaults(current);
+  const result = applyMissionControlCloudEnvDefaults(
+    current,
+    missionControlCloudEnvDefaults,
+    options,
+  );
 
   if (result.changedKeys.length > 0) {
     await writeFile(envPath, result.content, "utf8");
@@ -137,6 +150,16 @@ async function ensureEnvFile() {
 
   if (result.preservedKeys.length > 0) {
     log(`Preserved existing values: ${result.preservedKeys.join(", ")}`);
+  }
+
+  if (result.changedKeys.includes("E2E_AUTH_BYPASS")) {
+    log(
+      options.forceBypass
+        ? "Forced E2E_AUTH_BYPASS=true because --force-bypass was provided."
+        : "Set E2E_AUTH_BYPASS=true because it was missing or placeholder-like.",
+    );
+  } else if (result.preservedKeys.includes("E2E_AUTH_BYPASS")) {
+    log("Preserved explicit E2E_AUTH_BYPASS value.");
   }
 }
 
@@ -161,11 +184,11 @@ export async function main(args = process.argv.slice(2)) {
   const options = parseArgs(args);
 
   log("Preparing Mission Control Cloud Agent environment...");
-  await ensureEnvFile();
+  await ensureEnvFile(options);
 
   if (!options.skipInstall) {
-    log("Installing dependencies with Bun...");
-    run("bun", ["install"]);
+    log("Installing dependencies with Bun using the frozen lockfile...");
+    run("bun", ["install", "--frozen-lockfile"]);
   }
 
   if (!options.skipSkillsVerify) {
