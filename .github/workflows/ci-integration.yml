@@ -172,7 +172,7 @@ jobs:
         env:
           CI: "1"
           PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
-        run: bun run test:e2e --project=chromium --grep-invert "Admin table pages smoke|admin demo login"
+        run: bun run test:e2e --project=chromium --grep-invert "@perf|@manual|@cms|Admin table pages smoke|admin demo login"
       - name: Admin auth and table smoke
         env:
           CI: "1"
