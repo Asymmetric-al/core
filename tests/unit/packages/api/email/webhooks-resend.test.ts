@@ -20,6 +20,7 @@ const {
   tenantSettingsSelectMock,
   tenantSettingsEqMock,
   tenantSettingsIlikeMock,
+  serverEnvMock,
 } = vi.hoisted(() => {
   const upsertEmailEvents = vi
     .fn()
@@ -48,6 +49,13 @@ const {
     .mockResolvedValue({ data: [], error: null });
   const tenantSettingsEq = vi.fn(() => ({ ilike: tenantSettingsIlike }));
   const tenantSettingsSelect = vi.fn(() => ({ eq: tenantSettingsEq }));
+  const serverEnv: {
+    RESEND_API_KEY: string | undefined;
+    RESEND_WEBHOOK_SECRET: string | undefined;
+  } = {
+    RESEND_API_KEY: "re_test",
+    RESEND_WEBHOOK_SECRET: "whsec_test",
+  };
 
   const from = vi.fn((table: string) => {
     if (table === "email_events") {
@@ -99,6 +107,7 @@ const {
     tenantSettingsSelectMock: tenantSettingsSelect,
     tenantSettingsEqMock: tenantSettingsEq,
     tenantSettingsIlikeMock: tenantSettingsIlike,
+    serverEnvMock: serverEnv,
   };
 });
 
@@ -110,6 +119,10 @@ vi.mock("@asym/email", () => ({
 
 vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: getAdminClientMock,
+}));
+
+vi.mock("@asym/env", () => ({
+  serverEnv: serverEnvMock,
 }));
 
 import { POST } from "../../../../../packages/api/src/email/webhooks/resend";
@@ -130,8 +143,8 @@ function createWebhookRequest(payload: unknown): NextRequest {
 describe("api/email/webhooks/resend", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.RESEND_WEBHOOK_SECRET = "whsec_test";
-    process.env.RESEND_API_KEY = "re_test";
+    serverEnvMock.RESEND_WEBHOOK_SECRET = "whsec_test";
+    serverEnvMock.RESEND_API_KEY = "re_test";
     getReceivedEmailMock.mockResolvedValue({
       success: true,
       data: { text: "body", html: "<p>body</p>" },
@@ -149,8 +162,30 @@ describe("api/email/webhooks/resend", () => {
   });
 
   afterEach(() => {
-    delete process.env.RESEND_WEBHOOK_SECRET;
-    delete process.env.RESEND_API_KEY;
+    serverEnvMock.RESEND_WEBHOOK_SECRET = "whsec_test";
+    serverEnvMock.RESEND_API_KEY = "re_test";
+  });
+
+  it("returns 503 when webhook verification secret is not configured", async () => {
+    serverEnvMock.RESEND_WEBHOOK_SECRET = undefined;
+
+    const response = await POST(createWebhookRequest({ hello: "world" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(body.code).toBe("webhook_verification_unconfigured");
+    expect(verifyResendWebhookSignatureMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 503 when Resend API access is not configured", async () => {
+    serverEnvMock.RESEND_API_KEY = undefined;
+
+    const response = await POST(createWebhookRequest({ hello: "world" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(body.code).toBe("resend_api_key_unconfigured");
+    expect(verifyResendWebhookSignatureMock).not.toHaveBeenCalled();
   });
 
   it("returns 401 when webhook signature verification fails", async () => {
@@ -165,6 +200,39 @@ describe("api/email/webhooks/resend", () => {
 
     expect(response.status).toBe(401);
     expect(body.code).toBe("webhook_signature_invalid");
+  });
+
+  it("returns 503 when webhook persistence is unavailable", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    try {
+      getAdminClientMock.mockReturnValueOnce({
+        client: null,
+        error: "Admin client unavailable",
+      });
+      verifyResendWebhookSignatureMock.mockReturnValueOnce({
+        success: true,
+        event: {
+          type: "email.delivered",
+          created_at: "2026-02-23T10:00:00.000Z",
+          data: {
+            tenant_id: "tenant_direct",
+            email_id: "msg_123",
+          },
+        },
+      });
+
+      const response = await POST(createWebhookRequest({ hello: "world" }));
+      const body = await response.json();
+
+      expect(response.status).toBe(503);
+      expect(body.code).toBe("webhook_persistence_unavailable");
+      expect(body.accepted).toBe(false);
+      expect(upsertEmailEventsMock).not.toHaveBeenCalled();
+    } finally {
+      consoleErrorSpy.mockRestore();
+    }
   });
 
   it("prefers payload tenant_id over metadata and tags", async () => {
@@ -209,6 +277,45 @@ describe("api/email/webhooks/resend", () => {
     expect(upsertSuppressionsMock).not.toHaveBeenCalled();
     expect(upsertInboundMock).not.toHaveBeenCalled();
     expect(insertEmailEventsMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 503 when core event persistence fails", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    try {
+      upsertEmailEventsMock.mockResolvedValueOnce({
+        data: null,
+        error: { code: "23505", message: "event write failed" },
+      });
+      verifyResendWebhookSignatureMock.mockReturnValueOnce({
+        success: true,
+        event: {
+          type: "email.delivered",
+          created_at: "2026-02-23T10:00:00.000Z",
+          data: {
+            tenant_id: "tenant_direct",
+            resend_event_id: "evt_123",
+            email_id: "msg_123",
+            email: "recipient@example.com",
+          },
+        },
+      });
+
+      const response = await POST(createWebhookRequest({ hello: "world" }));
+      const body = await response.json();
+
+      expect(response.status).toBe(503);
+      expect(body.accepted).toBe(false);
+      expect(body.code).toBe("webhook_persistence_failed");
+      expect(body.error).toBe("Failed to persist Resend webhook event.");
+      expect(body.correlationId).toEqual(expect.any(String));
+      expect(body.operation).toBeUndefined();
+      expect(body.messageId).toBeUndefined();
+      expect(updateSendLogsMock).not.toHaveBeenCalled();
+    } finally {
+      consoleErrorSpy.mockRestore();
+    }
   });
 
   it("falls back to email_send_logs tenant lookup for outbound events", async () => {
@@ -341,6 +448,33 @@ describe("api/email/webhooks/resend", () => {
     expect(upsertInboundMock).not.toHaveBeenCalled();
   });
 
+  it("returns 503 for retryable outbound tenant lookup failures", async () => {
+    emailSendLogsSelectLimitMock.mockResolvedValueOnce({
+      data: null,
+      error: { message: "database unavailable" },
+    });
+    verifyResendWebhookSignatureMock.mockReturnValueOnce({
+      success: true,
+      event: {
+        type: "email.delivered",
+        created_at: "2026-02-23T10:00:00.000Z",
+        data: {
+          resend_event_id: "evt_lookup_error",
+          email_id: "msg_lookup_error",
+          email: "recipient@example.com",
+        },
+      },
+    });
+
+    const response = await POST(createWebhookRequest({ hello: "world" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(body.accepted).toBe(false);
+    expect(body.code).toBe("tenant_resolution_dependency_unavailable");
+    expect(upsertEmailEventsMock).not.toHaveBeenCalled();
+  });
+
   it("resolves inbound tenant from recipient domain", async () => {
     tenantSettingsIlikeMock.mockResolvedValueOnce({
       data: [
@@ -387,7 +521,7 @@ describe("api/email/webhooks/resend", () => {
     });
   });
 
-  it("returns 202 for inbound events when tenant resolution is ambiguous", async () => {
+  it("returns 503 for inbound events when tenant resolution is ambiguous", async () => {
     tenantSettingsIlikeMock.mockResolvedValueOnce({
       data: [
         {
@@ -419,22 +553,17 @@ describe("api/email/webhooks/resend", () => {
     const response = await POST(createWebhookRequest({ hello: "world" }));
     const body = await response.json();
 
-    expect(response.status).toBe(202);
-    expect(body.accepted).toBe(true);
-    expect(body.tenantId).toBeNull();
-    expect(body.tenantWarningCode).toBe("tenant_resolution_ambiguous");
-    expect(body.candidateTenantIds).toEqual(["tenant_a", "tenant_b"]);
+    expect(response.status).toBe(503);
+    expect(body.accepted).toBe(false);
+    expect(body.code).toBe("tenant_resolution_ambiguous");
     expect(upsertEmailEventsMock).not.toHaveBeenCalled();
     expect(insertEmailEventsMock).not.toHaveBeenCalled();
-    expect(upsertInboundMock).toHaveBeenCalledTimes(1);
-    const firstUpsertCall = upsertInboundMock.mock.calls[0];
-    expect(firstUpsertCall?.[0]).toMatchObject({
-      tenant_id: null,
-      resend_email_id: "inbound_ambiguous_1",
-    });
+    expect(getReceivedEmailMock).not.toHaveBeenCalled();
+    expect(listReceivedEmailAttachmentsMock).not.toHaveBeenCalled();
+    expect(upsertInboundMock).not.toHaveBeenCalled();
   });
 
-  it("returns 202 for inbound events when recipient domain is invalid", async () => {
+  it("returns 503 for inbound events when recipient domain is invalid", async () => {
     verifyResendWebhookSignatureMock.mockReturnValueOnce({
       success: true,
       event: {
@@ -452,17 +581,44 @@ describe("api/email/webhooks/resend", () => {
     const response = await POST(createWebhookRequest({ hello: "world" }));
     const body = await response.json();
 
-    expect(response.status).toBe(202);
-    expect(body.accepted).toBe(true);
-    expect(body.tenantId).toBeNull();
-    expect(body.tenantWarningCode).toBe("tenant_resolution_unresolved");
+    expect(response.status).toBe(503);
+    expect(body.accepted).toBe(false);
+    expect(body.code).toBe("tenant_resolution_unresolved");
     expect(tenantSettingsSelectMock).not.toHaveBeenCalled();
-    expect(upsertInboundMock).toHaveBeenCalledTimes(1);
-    const firstUpsertCall = upsertInboundMock.mock.calls[0];
-    expect(firstUpsertCall?.[0]).toMatchObject({
-      tenant_id: null,
-      resend_email_id: "inbound_invalid_1",
+    expect(getReceivedEmailMock).not.toHaveBeenCalled();
+    expect(listReceivedEmailAttachmentsMock).not.toHaveBeenCalled();
+    expect(upsertInboundMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 503 for retryable inbound tenant lookup failures", async () => {
+    tenantSettingsIlikeMock.mockResolvedValueOnce({
+      data: null,
+      error: { message: "database unavailable" },
     });
+    verifyResendWebhookSignatureMock.mockReturnValueOnce({
+      success: true,
+      event: {
+        type: "email.received",
+        created_at: "2026-02-23T10:00:00.000Z",
+        data: {
+          resend_event_id: "evt_inbound_lookup_error",
+          email_id: "inbound_lookup_error_1",
+          from: "sender@example.com",
+          to: ["user@one.org"],
+          subject: "lookup failed",
+        },
+      },
+    });
+
+    const response = await POST(createWebhookRequest({ hello: "world" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(body.accepted).toBe(false);
+    expect(body.code).toBe("tenant_resolution_dependency_unavailable");
+    expect(getReceivedEmailMock).not.toHaveBeenCalled();
+    expect(listReceivedEmailAttachmentsMock).not.toHaveBeenCalled();
+    expect(upsertInboundMock).not.toHaveBeenCalled();
   });
 
   it("keeps inbound processing alive when attachment listing fails", async () => {

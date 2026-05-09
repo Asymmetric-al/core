@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "../tooling/typescript-config/library-transitional.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "unit/packages/ui/components/shadcn/rich-text-editor/**/*.ts",
+    "unit/packages/ui/components/shadcn/rich-text-editor/**/*.tsx"
+  ]
+}

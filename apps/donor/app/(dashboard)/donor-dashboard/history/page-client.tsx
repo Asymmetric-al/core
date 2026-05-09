@@ -260,7 +260,7 @@ function MonthlyGivingChart({
             <Cell
               key={entry.month}
               fill={entry.amount > 300 ? "#10b981" : "rgba(255,255,255,0.2)"}
-              className="transition-all duration-300 hover:opacity-80"
+              className="transition-opacity duration-200 hover:opacity-80"
             />
           ))}
         </Bar>
@@ -337,7 +337,7 @@ function HistoryStatsColumn({
     <div className="lg:col-span-1 space-y-6">
       <Card className="bg-zinc-950 text-white border-none shadow-2xl overflow-hidden relative group rounded-2xl">
         <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 to-zinc-950 z-0" />
-        <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity duration-700">
+        <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity duration-300">
           <TrendingUp className="w-40 h-40 text-emerald-400" />
         </div>
 
@@ -626,7 +626,7 @@ export default function DonorHistoryPage() {
   ).length;
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700 pb-20">
+    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 pb-20">
       <HistoryPageHeader
         yearFilter={yearFilter}
         onYearFilterChange={(value) =>

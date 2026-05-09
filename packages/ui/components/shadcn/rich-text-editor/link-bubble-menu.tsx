@@ -82,7 +82,9 @@ export function LinkBubbleMenu() {
       editor={editor}
       updateDelay={0}
       shouldShow={({ editor: ed, element, view }) => {
-        const isChildOfMenu = element.contains(document.activeElement);
+        const isChildOfMenu =
+          element instanceof HTMLElement &&
+          element.contains(document.activeElement);
         const hasEditorFocus = view.hasFocus() || isChildOfMenu;
 
         return ed.isEditable && hasEditorFocus && ed.isActive("link");
@@ -146,6 +148,7 @@ function PreviewView({
       )}
       <div className="h-4 w-px bg-border" />
       <Button
+        aria-label="Edit link"
         variant="ghost"
         size="icon-xs"
         onClick={onEdit}
@@ -154,6 +157,7 @@ function PreviewView({
         <Pencil className="h-3 w-3" />
       </Button>
       <Button
+        aria-label="Remove link"
         variant="ghost"
         size="icon-xs"
         onClick={onRemove}
@@ -184,6 +188,7 @@ const EditView = React.forwardRef<
     >
       <Input
         ref={ref}
+        aria-label="Edit link URL"
         value={url}
         onChange={(e) => onUrlChange(e.target.value)}
         placeholder="https://example.com"
@@ -196,6 +201,7 @@ const EditView = React.forwardRef<
         }}
       />
       <Button
+        aria-label="Save link"
         type="submit"
         variant="ghost"
         size="icon-xs"
@@ -204,6 +210,7 @@ const EditView = React.forwardRef<
         <Check className="h-3.5 w-3.5" />
       </Button>
       <Button
+        aria-label="Cancel link edit"
         type="button"
         variant="ghost"
         size="icon-xs"

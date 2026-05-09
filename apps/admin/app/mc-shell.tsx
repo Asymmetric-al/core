@@ -365,6 +365,7 @@ function AppHeader() {
               <Button
                 variant="ghost"
                 size="icon"
+                aria-label="Change language"
                 className="size-8 hidden sm:inline-flex"
               >
                 <Languages className="size-4" />
@@ -376,6 +377,7 @@ function AppHeader() {
               <Button
                 variant="ghost"
                 size="icon"
+                aria-label="Open activity"
                 className="size-8 hidden sm:inline-flex"
               >
                 <Activity className="size-4" />
@@ -384,7 +386,12 @@ function AppHeader() {
           />
           <NotificationDropdown
             trigger={
-              <Button variant="ghost" size="icon" className="relative size-8">
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Open notifications"
+                className="relative size-8"
+              >
                 <Bell className="size-4" />
                 <span className="bg-rose-500 absolute top-1.5 right-1.5 size-1.5 rounded-full ring-2 ring-background" />
               </Button>
@@ -392,7 +399,12 @@ function AppHeader() {
           />
           <ProfileDropdown
             trigger={
-              <Button variant="ghost" size="icon" className="size-8">
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Open profile menu"
+                className="size-8"
+              >
                 <Avatar className="size-7 rounded-lg">
                   <AvatarImage
                     src={

@@ -12,6 +12,8 @@ import { LinkBubbleMenu } from "./link-bubble-menu";
 
 import "./tiptap.css";
 
+import type { Extensions } from "@tiptap/react";
+
 export interface RichTextEditorProps {
   /** Stored value — JSON string or legacy plain text / HTML. */
   value: string;
@@ -23,6 +25,15 @@ export interface RichTextEditorProps {
   editorClassName?: string;
   /** When false, prose is not inverted in dark mode (default true). */
   proseInvert?: boolean;
+  /**
+   * Extra Tiptap extensions appended after the default extension set. Use this
+   * to plug in suggestion-based features (slash commands, `@`-mentions,
+   * collaboration cursors, etc.) without touching the shared editor.
+   *
+   * The array reference is treated as part of the extension identity — pass a
+   * stable / memoized list to avoid recreating the editor on every render.
+   */
+  extraExtensions?: Extensions;
   children: React.ReactNode;
 }
 
@@ -36,13 +47,17 @@ export const EditorRoot = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
       className,
       editorClassName,
       proseInvert = true,
+      extraExtensions,
       children,
     },
     ref,
   ) {
     const extensions = React.useMemo(
-      () => createDefaultExtensions({ placeholder }),
-      [placeholder],
+      () => [
+        ...createDefaultExtensions({ placeholder }),
+        ...(extraExtensions ?? []),
+      ],
+      [placeholder, extraExtensions],
     );
     const lastSyncedValueRef = React.useRef(value);
 
