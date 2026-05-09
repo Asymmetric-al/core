@@ -164,20 +164,6 @@ jobs:
         run: bash scripts/ci/apply-demo-seed.sh
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
-      - name: Start donor app
-        run: bun run --cwd apps/donor dev -- --port 3005 --hostname 127.0.0.1 &
-      - name: Wait for health endpoint
-        run: |
-          for i in $(seq 1 60); do
-            if curl -sf http://127.0.0.1:3005/api/health >/dev/null; then
-              exit 0
-            fi
-            if [ "$i" -eq 60 ]; then
-              echo "Timed out waiting for health endpoint"
-              exit 1
-            fi
-            sleep 1
-          done
       - name: Demo auth preflight
         env:
           PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
