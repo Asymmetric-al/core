@@ -1,5 +1,7 @@
 # shadcn/ui Full Turbo-repo Audit — 2026-04-16
 
+> Superseded status: historical reference only. A 2026-04 follow-up audit found the current tree pinned to `base-maia`, `iconLibrary: lucide`, `baseColor: zinc`, and `bun run verify:shadcn-diff` reports no drift. Re-check the current working tree before applying any recommendations below.
+
 Exacting, precise audit of the shadcn/ui footprint across the `asymmetrical-platform` monorepo (apps/admin, apps/donor, apps/missionary, packages/ui, packages/missionary, packages/lib).
 
 Prepared using:

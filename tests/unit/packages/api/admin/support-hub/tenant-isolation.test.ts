@@ -1,0 +1,58 @@
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+
+import { SUPPORT_HUB_DEMO_TENANT_ID } from "../../../../../../packages/api/src/admin/support-hub/adapter/fixtures";
+import { __resetInMemorySupportHubStore } from "../../../../../../packages/api/src/admin/support-hub/adapter";
+import {
+  assignSupportConversation,
+  listSupportConversations,
+  saveSupportLabel,
+} from "../../../../../../packages/api/src/admin/support-hub";
+import { runWithSupportHubTenant } from "../../../../../../packages/api/src/admin/support-hub/request-context";
+
+beforeEach(() => {
+  __resetInMemorySupportHubStore();
+});
+
+afterEach(() => {
+  __resetInMemorySupportHubStore();
+});
+
+describe("support-hub in-memory tenant isolation", () => {
+  it("returns seeded data only for the demo tenant scope", async () => {
+    const seeded = await listSupportConversations({});
+    expect(seeded.length).toBeGreaterThan(0);
+
+    await runWithSupportHubTenant("other-tenant", async () => {
+      const empty = await listSupportConversations({});
+      expect(empty).toEqual([]);
+    });
+
+    const again = await listSupportConversations({});
+    expect(again.length).toBe(seeded.length);
+  });
+
+  it("rejects mutations when the request tenant is not the demo seed tenant", async () => {
+    await expect(
+      runWithSupportHubTenant("other-tenant", () =>
+        saveSupportLabel({
+          name: "X",
+          slug: "x",
+          tone: "blue",
+          description: null,
+        }),
+      ),
+    ).rejects.toThrow("SUPPORT_HUB_TENANT_MISMATCH");
+  });
+
+  it("allows mutations under the demo tenant scope", async () => {
+    await runWithSupportHubTenant(SUPPORT_HUB_DEMO_TENANT_ID, async () => {
+      const [c] = await listSupportConversations({});
+      expect(c).toBeDefined();
+      const updated = await assignSupportConversation({
+        conversationId: c!.id,
+        assigneeAgentId: "agent-emily-thompson",
+      });
+      expect(updated.assignee?.id).toBe("agent-emily-thompson");
+    });
+  });
+});

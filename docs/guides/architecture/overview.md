@@ -498,7 +498,7 @@ const breakpoint = useBreakpoint()  // 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
 
 ### Environment Variables
 
-Environment variables are defined in `packages/env` and supplied per app via `apps/[app-name]/.env.local`:
+Environment variables are defined in `packages/env` and supplied from the repo-root `.env.local`. Each app's `next.config.ts` loads that root file with `@next/env`; app-local `.env.local` files are optional symlinks for older tooling and should not be copied over local overrides.
 
 | Variable                             | Purpose                         |
 | ------------------------------------ | ------------------------------- |

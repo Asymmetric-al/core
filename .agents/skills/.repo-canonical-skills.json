@@ -20,7 +20,6 @@
     "resend-cli",
     "supabase",
     "supabase-postgres-best-practices",
-    "tanstack-table",
     "tiptap",
     "vercel-react-best-practices",
     "vercel-react-view-transitions"

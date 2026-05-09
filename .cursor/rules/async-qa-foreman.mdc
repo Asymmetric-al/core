@@ -1,0 +1,76 @@
+---
+description: Use Async QA Foreman mode when a task asks for background QA, grind-style completion pressure, long-running verification, or a second agent to challenge quality while the main agent keeps working
+globs: "**/*"
+alwaysApply: false
+---
+# Async QA Foreman Mode
+Use this rule when the user asks for Async QA Foreman mode, grind-style completion pressure, background QA, long-running verification, or a second agent that keeps the main agent working hard and checking its work.
+This mode has two roles:
+1. Main agent: builder and final owner.
+2. `qa-foreman`: background skeptic, verifier, and quality pressure.
+The background agent does not replace the main agent. It challenges the main agent's plan, diff, tests, verification, and completion claim.
+## Main-agent workflow
+1. Read `AGENTS.md` and the relevant repo rulebooks before coding.
+2. Define success criteria before implementation.
+3. Define the verification plan before implementation.
+4. Identify likely files, relevant rules, known risks, and the smallest useful checks.
+5. Immediately spawn `/qa-foreman` as a background subagent.
+6. Give `/qa-foreman` a context packet:
+   - original user request
+   - success criteria
+   - verification plan
+   - relevant files or directories
+   - known risks
+   - current implementation approach
+   - commands already run and results
+   - current diff summary when available
+7. Keep working while `/qa-foreman` runs.
+8. Do not wait idly unless the next step truly depends on its report.
+9. After each meaningful change, run the smallest useful verification command.
+10. When `/qa-foreman` reports back, review every finding.
+11. Fix all Critical findings.
+12. Fix all valid Major findings.
+13. If rejecting a finding, write the reason and point to evidence.
+14. Rerun the relevant checks after fixes.
+15. Do one final diff review before declaring completion.
+## Completion gate
+Do not declare completion until all are true:
+- The requested behavior is implemented.
+- The implementation matches repo rules and nearby patterns.
+- The `/qa-foreman` verdict is `CLEAR`, or every valid Critical and Major finding has been resolved.
+- Relevant tests pass.
+- Relevant typecheck passes.
+- Relevant lint passes.
+- Build passes when the task affects build output or app/runtime behavior.
+- The final diff has no unrelated changes.
+- Any skipped checks are listed with a clear reason.
+## Verification guidance
+Use Bun and Turbo-aware commands from the repo.
+Prefer targeted checks first:
+- `bun run lint:admin`
+- `bun run lint:donor`
+- `bun run lint:missionary`
+- `bun run typecheck:admin`
+- `bun run typecheck:donor`
+- `bun run typecheck:missionary`
+- targeted `vitest run <path>`
+Use broader checks when the blast radius calls for them:
+- `bun run format:check`
+- `bun run lint`
+- `bun run typecheck`
+- `bun run test:unit`
+- `bun run check`
+- `bun run build`
+- `bun run verify`
+Use E2E, a11y, perf, or app dev-server checks only when the task changes flows those checks cover.
+## Guardrails
+- Keep diffs surgical.
+- Do not weaken tests, lint, types, or build gates.
+- Do not edit `.env.local` or expose secrets.
+- Do not hand-edit `.cursor/skills` or `.agents/skills` for this workflow.
+- Do not let the background subagent own broad implementation changes.
+- Do not mark a task done because the first plausible solution compiles.
+- Do not ignore a `CONTINUE` verdict without explaining why.
+## Quick invocation template
+When starting a task, the main agent should say internally:
+Use Async QA Foreman mode. I will define success criteria and verification, then spawn `/qa-foreman` in the background with the task context while I continue implementing. I will not finish until Critical and Major QA findings are resolved and the relevant checks pass.
