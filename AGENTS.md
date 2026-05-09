@@ -255,27 +255,27 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 
 **GitHub `AL-###` issue/PR workflow:** there are no `SKILL.md` files under `docs/ai/skills/` for those flows today; follow `docs/ai/rules/general.md`. Deprecated stubs live under `skills/*/DEPRECATED.md` only.
 
-**Extra Cursor-packaged skills:** optional **`SKILL.md`** trees under **`.cursor/skills/<name>/`** (mirrored from **`.agents/skills/`** after Skills CLI install + `bun run skills:sync`). Pins and hashes: **`skills-lock.json`**. These stay **subordinate to OpenSpec** (`openspec/specs/**`, `openspec/changes/**`, `openspec/project.md`) and canonical **`docs/ai/skills/`** — see **`openspec/specs/agent-instruction-system/spec.md`**.
+**Extra Cursor-packaged skills:** optional mirror-only ecosystem installs under **`.agents/skills/<name>/`** and **`.cursor/skills/<name>/`**. These are not canonical repo skills unless promoted into **`docs/ai/skills/<name>/`**. Refresh them with the Skills CLI or documented vendor source, then run `bun run skills:sync` and `bun run skills:verify`. Pins and hashes live in **`skills-lock.json`**. These stay **subordinate to OpenSpec** (`openspec/specs/**`, `openspec/changes/**`, `openspec/project.md`) and canonical **`docs/ai/skills/`** — see **`openspec/specs/agent-instruction-system/spec.md`**.
 
 **Mattpocock pack** ([github.com/mattpocock/skills](https://github.com/mattpocock/skills)) — paths under `.cursor/skills/`:
 
-| Id | Notes |
-| --- | --- |
-| **setup-matt-pocock-skills** | Bootstrap agent-docs layout for other mattpocock skills. |
-| **grill-with-docs** | Grill plan vs CONTEXT/ADRs (`ADR-FORMAT.md`, `CONTEXT-FORMAT.md`). |
-| **grill-me** | Grill without docs. |
-| **diagnose** | Ranked hypotheses for bugs. |
-| **zoom-out** | Module/caller map. |
-| **to-prd** | PRD from context ([skills.sh/to-prd](https://skills.sh/mattpocock/skills/to-prd)); align PRD content with OpenSpec. |
-| **to-issues** | PRD → issues (**skills.sh “prd-to-issues”** naming maps here). |
-| **improve-codebase-architecture** | Architecture deepening. |
-| **tdd** | Red-green-refactor + references. |
-| **qa**, **request-refactor-plan** | Vendored from upstream **`skills/deprecated/`** (not on default CLI list). |
-| **setup-pre-commit**, **migrate-to-shoehorn** | Vendored from **`skills/misc/`**. |
-| **ubiquitous-language** | DDD glossary; vendored from **`skills/deprecated/`** (CLI does not expose `--skill ubiquitous-language`). |
-| **domain-model** | Repo-local **alias** → load **`ubiquitous-language`**. |
-| **prd-to-plan** | No upstream skill id; repo-local **router** (`prd-to-plan/SKILL.md`) → use **to-prd**, **to-issues**, OpenSpec. |
-| **write-a-prd** | Same as **to-prd** (CLI/skill name). |
+| Id                                            | Notes                                                                                                                  |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **setup-matt-pocock-skills**                  | Bootstrap agent-docs layout for other mattpocock skills.                                                               |
+| **grill-with-docs**                           | Grill plan vs CONTEXT/ADRs (`ADR-FORMAT.md`, `CONTEXT-FORMAT.md`).                                                     |
+| **grill-me**                                  | Grill without docs; preserves upstream first-person wording, where "me" means the user being interviewed by the agent. |
+| **diagnose**                                  | Ranked hypotheses for bugs.                                                                                            |
+| **zoom-out**                                  | Module/caller map.                                                                                                     |
+| **to-prd**                                    | PRD from context ([skills.sh/to-prd](https://skills.sh/mattpocock/skills/to-prd)); align PRD content with OpenSpec.    |
+| **to-issues**                                 | PRD → issues (**skills.sh “prd-to-issues”** naming maps here).                                                         |
+| **improve-codebase-architecture**             | Architecture deepening.                                                                                                |
+| **tdd**                                       | Red-green-refactor + references.                                                                                       |
+| **qa**, **request-refactor-plan**             | Vendored from upstream **`skills/deprecated/`** (not on default CLI list).                                             |
+| **setup-pre-commit**, **migrate-to-shoehorn** | Vendored from **`skills/misc/`**.                                                                                      |
+| **ubiquitous-language**                       | DDD glossary; vendored from **`skills/deprecated/`** (CLI does not expose `--skill ubiquitous-language`).              |
+| **domain-model**                              | Repo-local **alias** → load **`ubiquitous-language`**.                                                                 |
+| **prd-to-plan**                               | No upstream skill id; repo-local **router** (`prd-to-plan/SKILL.md`) → use **to-prd**, **to-issues**, OpenSpec.        |
+| **write-a-prd**                               | Same as **to-prd** (CLI/skill name).                                                                                   |
 
 **Names not in upstream:** **`domain-model`** (use alias), **`prd-to-issues`** (use **to-issues**), **`write-a-prd`** (= **to-prd**), **`prd-to-plan`** (router stub). Distinct from **`docs/ai/skills/`** **`test-driven-development`** where both exist.
 
