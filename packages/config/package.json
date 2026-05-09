@@ -10,6 +10,7 @@
     "./site-client": "./site-client.ts",
     "./site-shared": "./site-shared.ts",
     "./navigation": "./navigation.ts",
+    "./payouts": "./payouts.ts",
     "./tiles": "./tiles.ts",
     "./email-studio": "./email-studio.ts",
     "./pdf-studio": "./pdf-studio.ts"

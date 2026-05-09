@@ -102,44 +102,38 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
   ];
 
   return (
-    <div className="section-gap animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Stats Row */}
       <div className="grid-responsive-4">
         {stats.map((stat, i) => (
           <Card
             key={stat.label}
             className={cn(
-              "border-border/50 shadow-sm overflow-hidden group",
+              "border-border/60 shadow-sm overflow-hidden group",
               `stagger-${i + 1}`,
             )}
           >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="text-2xl font-black text-primary tracking-tight tabular-nums">
+                    {stat.value}
+                  </div>
+                  <p className="text-sm font-semibold text-foreground">
+                    {stat.label}
+                  </p>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {stat.sub}
+                  </p>
+                </div>
                 <div
                   className={cn(
-                    "h-10 w-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110",
+                    "h-9 w-9 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105",
                     stat.bg,
                   )}
                 >
-                  <stat.icon className={cn("h-5 w-5", stat.color)} />
+                  <stat.icon className={cn("h-4 w-4", stat.color)} />
                 </div>
-                <Badge
-                  variant="outline"
-                  className="text-[10px] font-bold uppercase tracking-widest border-border/50 bg-muted/20"
-                >
-                  Live
-                </Badge>
-              </div>
-              <div className="space-y-1">
-                <div className="text-3xl font-black text-primary tracking-tight tabular-nums">
-                  {stat.value}
-                </div>
-                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
-                  {stat.label}
-                </p>
-                <p className="text-[10px] font-bold text-muted-foreground/60 uppercase">
-                  {stat.sub}
-                </p>
               </div>
             </CardContent>
           </Card>
@@ -148,8 +142,8 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
 
       <div className="grid-12">
         {/* Personnel List (Main) */}
-        <Card className="lg:col-span-8 border-border/50 shadow-sm flex flex-col">
-          <CardHeader className="border-b border-border/30 bg-muted/5">
+        <Card className="lg:col-span-8 border-border/60 shadow-sm flex flex-col">
+          <CardHeader className="border-b border-border/40 bg-muted/5 px-5 py-4">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <CardTitle className="text-lg font-bold text-primary tracking-tight">
@@ -162,7 +156,7 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="btn-responsive font-bold text-primary"
+                className="h-9 font-semibold text-primary"
               >
                 View History
                 <ArrowUpRight className="ml-2 h-3.5 w-3.5" />
@@ -175,10 +169,10 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
         </Card>
 
         {/* Sidebar Tools */}
-        <div className="lg:col-span-4 section-gap">
+        <div className="lg:col-span-4 space-y-5">
           {/* Urgent Alerts */}
           <Card className="border-destructive/20 shadow-sm bg-destructive/[0.02] overflow-hidden">
-            <CardHeader className="border-b border-destructive/10 bg-destructive/[0.03]">
+            <CardHeader className="border-b border-destructive/10 bg-destructive/[0.03] px-5 py-4">
               <CardTitle className="text-base font-bold text-destructive flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-destructive animate-pulse" />
                 Urgent Care Alerts
@@ -187,15 +181,15 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
                 Personnel requiring immediate follow-up.
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-responsive-card space-y-3">
+            <CardContent className="p-4 space-y-3">
               {attentionGaps.length > 0 ? (
                 attentionGaps.slice(0, 3).map((alert) => (
                   <div
                     key={`${alert.personnelId}-${alert.reason}`}
-                    className="p-3 rounded-2xl border border-border/50 bg-background shadow-sm flex items-start gap-4 hover:border-destructive/30 transition-colors cursor-pointer group"
+                    className="p-3 rounded-xl border border-destructive/15 bg-background shadow-sm flex items-start gap-3 hover:border-destructive/35 transition-colors cursor-pointer group"
                   >
-                    <div className="h-10 w-10 rounded-xl bg-muted/30 text-muted-foreground flex items-center justify-center border border-border/50 shrink-0 group-hover:bg-destructive/5 group-hover:text-destructive transition-colors">
-                      <AlertTriangle className="h-5 w-5" />
+                    <div className="h-9 w-9 rounded-xl bg-destructive/5 text-destructive flex items-center justify-center border border-destructive/10 shrink-0">
+                      <AlertTriangle className="h-4 w-4" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
@@ -203,11 +197,14 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
                           {alert.reasonLabel}
                         </span>
                         <Badge className="h-4 px-1 bg-destructive text-destructive-foreground border-none text-[10px] font-black">
-                          {alert.daysOverdue}
+                          {alert.daysOverdue}d
                         </Badge>
                       </div>
                       <p className="text-[11px] font-medium text-muted-foreground mt-0.5">
                         {alert.personnelName}
+                      </p>
+                      <p className="text-[11px] text-destructive/80 mt-1">
+                        Follow up today
                       </p>
                     </div>
                   </div>
@@ -217,7 +214,7 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
                   No urgent care gaps right now.
                 </div>
               )}
-              <Button className="w-full btn-responsive font-bold bg-destructive text-destructive-foreground hover:opacity-90 shadow-lg shadow-destructive/10 mt-2">
+              <Button className="w-full h-9 font-semibold bg-destructive text-destructive-foreground hover:opacity-90 shadow-lg shadow-destructive/10 mt-2">
                 Review All Alerts ({attentionGaps.length})
               </Button>
             </CardContent>
@@ -225,13 +222,13 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
 
           {/* Upcoming Birthdays */}
           <Card className="border-border/50 shadow-sm overflow-hidden">
-            <CardHeader className="pb-3 border-b border-border/30 bg-muted/5">
-              <CardTitle className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+            <CardHeader className="pb-3 border-b border-border/30 bg-muted/5 px-5 py-4">
+              <CardTitle className="text-sm font-semibold text-foreground">
                 Upcoming Birthdays
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-responsive-card">
-              <div className="space-y-5">
+            <CardContent className="p-4">
+              <div className="space-y-3">
                 {upcomingBirthdayNotifications.slice(0, 3).map((note) => {
                   const p = personnel.find(
                     (item) => item.id === note.personnelId,
@@ -255,7 +252,7 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
                           <p className="text-sm font-bold text-primary leading-tight">
                             {p.name}
                           </p>
-                          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1">
+                          <p className="text-[11px] font-medium text-muted-foreground mt-1">
                             {note.title} • {note.detail}
                           </p>
                         </div>
@@ -264,6 +261,7 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 transition-all text-muted-foreground hover:text-primary"
+                        aria-label={`Open ${p.name} care profile`}
                       >
                         <ArrowUpRight className="h-4 w-4" />
                       </Button>
@@ -277,7 +275,7 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
                   </div>
                 )}
               </div>
-              <div className="mt-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+              <div className="mt-5 text-xs font-medium text-muted-foreground">
                 Care task scheduling coming soon
               </div>
             </CardContent>

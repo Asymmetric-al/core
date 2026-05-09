@@ -368,6 +368,7 @@ export default function AutomationsPage() {
     <PageShell
       title="Automations"
       description="Workflow automation and integration management."
+      density="compact"
       actions={
         <div className="flex gap-2">
           <Button

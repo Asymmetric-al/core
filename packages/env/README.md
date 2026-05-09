@@ -34,6 +34,8 @@ These become required for protected deployments (production or custom staging ta
 
 Cloudinary server/client keys are conditionally required only when Cloudinary is enabled in protected deployments.
 
+`DOCRAPTOR_API_KEY` is optional and server-only. DocRaptor examples authenticate with the API key as `user_credentials` or Basic Auth username, so keep it out of `NEXT_PUBLIC_*` variables.
+
 ## Migration Policy
 
 | Change      | Required updates                                                                      | Notes                                                      |
