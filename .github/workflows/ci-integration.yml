@@ -44,6 +44,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
+      - name: Bootstrap Supabase compatibility schemas
+        run: psql "$DATABASE_URL" -f scripts/ci/supabase-compat.sql -v ON_ERROR_STOP=1
       - name: Apply migrations
         run: |
           for f in $(ls -1 supabase/migrations/*.sql | sort); do
@@ -150,6 +152,7 @@ jobs:
           sudo apt-get install -y postgresql-client
       - name: Apply migrations
         run: |
+          psql "$DATABASE_URL" -f scripts/ci/supabase-compat.sql -v ON_ERROR_STOP=1
           for f in $(ls -1 supabase/migrations/*.sql | sort); do
             psql "$DATABASE_URL" -f "$f" -v ON_ERROR_STOP=1
           done
