@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { readFile } from "node:fs/promises";
 
 const ORIGINAL_ENV = { ...process.env };
 const ORIGINAL_FETCH = global.fetch;
@@ -9,6 +8,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   process.env = {
     ...ORIGINAL_ENV,
+    E2E_AUTH_BYPASS: "false",
     NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
     NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key",
   };
@@ -21,8 +21,14 @@ afterEach(() => {
 
 describe("api/auth/signout", () => {
   it("uses current-session Supabase signout scope explicitly", async () => {
-    const source = await readFile("packages/api/src/auth/signout.ts", "utf8");
-    expect(source).toContain('scope: "local"');
+    const { signOutCurrentSession } =
+      await import("../../../packages/api/src/auth/signout");
+    const signOut = vi.fn(async () => ({ error: null }));
+
+    await expect(signOutCurrentSession({ auth: { signOut } })).resolves.toEqual(
+      { error: null },
+    );
+    expect(signOut).toHaveBeenCalledWith({ scope: "local" });
   });
 
   it("allows requests without origin context", async () => {

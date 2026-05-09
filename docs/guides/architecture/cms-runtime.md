@@ -70,16 +70,28 @@ Payload remains authoritative for schema, access, list state, and the document f
 - Shared tenant context is derived from authenticated CMS user data.
 - Collection access is deny-by-default and tenant-scoped for non-super-admin users.
 - Public endpoints resolve tenant from:
-  1. `?tenant=<slug>` query override
-  2. host / forwarded host domain match
-  3. subdomain slug fallback
+  1. host / forwarded host primary-domain match
+  2. subdomain slug fallback when the host is not `www` or `localhost`
+  3. `?tenant=<slug>` fallback only when the host does not resolve a tenant
 - Public endpoints use explicit tenant + published-only filters.
 
 ## Public rendering flow
 
 1. Donor app requests CMS data from `apps/admin` public CMS endpoints.
 2. Admin endpoint resolves tenant context and applies published-only filters.
-3. Donor app renders fallback content for unmatched routes from returned CMS page data.
+3. Donor app classifies public CMS read results before routing: content misses become `notFound()`, while CMS outages remain unavailable errors.
+4. Donor app renders fallback content for unmatched routes from returned CMS page data.
+
+### Published page-like content module
+
+Published page-like content has one conceptual module with runtime-owned adapters:
+
+- `packages/lib/cms/public-page.ts` owns shared descriptors, response/result types, path normalization, and cache tags for standard pages, missionary giving pages, and project pages.
+- `packages/lib/cms/public-page-renderer.tsx` owns the supported server-side Lexical renderer and URL sanitization for public page content.
+- `apps/admin/src/cms/public/published-page-read.ts` owns the Payload Local API adapter: collection selection, tenant predicate, `_status = published`, and JSON response shaping.
+- `apps/donor/lib/cms/client.ts` owns the donor HTTP/cache adapter: `CMS_BASE_URL`, forwarded host, `fetch` cache policy, and result classification.
+
+Payload runtime access stays in `apps/admin`; donor and shared packages must not import the Payload client directly.
 
 ## API surface and contracts
 
@@ -94,21 +106,21 @@ Payload remains authoritative for schema, access, list state, and the document f
 
 | Method | Endpoint                               | Tenant resolution                                      | Source file                                                    | Response contract                                                                    |
 | ------ | -------------------------------------- | ------------------------------------------------------ | -------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `GET`  | `/api/cms/public/pages/:slug*`         | `?tenant=`, host domain match, then subdomain fallback | `apps/admin/app/api/cms/public/pages/[...slug]/route.ts`       | `{ tenant: { slug }, page }` on success, `404` with `{ error }` otherwise            |
+| `GET`  | `/api/cms/public/pages/:slug*`         | host domain match, subdomain fallback, then `?tenant=` | `apps/admin/app/api/cms/public/pages/[...slug]/route.ts`       | `{ tenant: { slug }, page }` on success, `404` with `{ error }` otherwise            |
 | `GET`  | `/api/cms/public/missionary-pages/:id` | same                                                   | `apps/admin/app/api/cms/public/missionary-pages/[id]/route.ts` | `{ tenant, page }` for published `missionary-giving-pages` matched by `missionaryId` |
 | `GET`  | `/api/cms/public/project-pages/:slug`  | same                                                   | `apps/admin/app/api/cms/public/project-pages/[slug]/route.ts`  | `{ tenant, page }` for published `project-pages` matched by `slug`                   |
-| `GET`  | `/api/cms/public/navigation`           | `?tenant=`, host domain match, then subdomain fallback | `apps/admin/app/api/cms/public/navigation/route.ts`            | `{ tenant: { slug }, navigation }` where `navigation` can be `null`                  |
-| `GET`  | `/api/cms/public/updates?limit=5`      | `?tenant=`, host domain match, then subdomain fallback | `apps/admin/app/api/cms/public/updates/route.ts`               | `{ tenant: { slug }, updates: [] }` with `limit` clamped to `1..20`                  |
+| `GET`  | `/api/cms/public/navigation`           | host domain match, subdomain fallback, then `?tenant=` | `apps/admin/app/api/cms/public/navigation/route.ts`            | `{ tenant: { slug }, navigation }` where `navigation` can be `null`                  |
+| `GET`  | `/api/cms/public/updates?limit=5`      | host domain match, subdomain fallback, then `?tenant=` | `apps/admin/app/api/cms/public/updates/route.ts`               | `{ tenant: { slug }, updates: [] }` with `limit` clamped to `1..20`                  |
 
 ### Consumer contract in donor app
 
 `apps/donor/lib/cms/client.ts` is the canonical integration layer for downstream apps. It forwards `x-forwarded-host` and normalizes CMS responses into app-safe helpers:
 
 - `fetchPublishedCmsPage(slugSegments, hostOverride?)`
+- `fetchPublishedCmsPageResult(slugSegments, hostOverride?)`
 - `fetchPublishedMissionaryGivingPage(missionaryId, hostOverride?)`
 - `fetchPublishedProjectPage(slug, hostOverride?)`
 - `fetchPublishedCmsUpdates(limit?, hostOverride?)`
-- `lexicalToPlainText(value)`
 
 This file should be reused as a reference when wiring additional apps (missionary/public microsites) to avoid tenant-resolution drift.
 

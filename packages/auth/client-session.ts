@@ -97,62 +97,45 @@ export async function loadClientAuthState(
   return createAuthStateForUser(supabase, user, includeProfile);
 }
 
-function isSupabaseClient(value: unknown): value is ClientSessionSupabase {
-  return Boolean(
-    value && typeof value === "object" && "auth" in value && "from" in value,
-  );
-}
-
-function resolveSubscribeOptions(
-  optionsOrSupabase?: ClientSessionSupabase | SubscribeToClientAuthStateOptions,
-) {
-  if (isSupabaseClient(optionsOrSupabase)) {
-    return { supabase: optionsOrSupabase };
-  }
-
-  return optionsOrSupabase ?? {};
-}
-
 export function subscribeToClientAuthState(
   onState: (state: ClientAuthState) => void,
-  optionsOrSupabase?: ClientSessionSupabase | SubscribeToClientAuthStateOptions,
+  options: SubscribeToClientAuthStateOptions = {},
 ) {
-  const options = resolveSubscribeOptions(optionsOrSupabase);
   const supabase = options.supabase ?? getClientSessionSupabase();
   const includeProfile = options.includeProfile ?? true;
   const logger = options.logger ?? console;
   let active = true;
-  let version = 0;
+  // Async profile loads can resolve after newer auth events; only publish the latest request.
+  let authStateLoadVersion = 0;
 
   function publishIfCurrent(nextVersion: number, state: ClientAuthState) {
-    if (active && nextVersion === version) {
+    if (active && nextVersion === authStateLoadVersion) {
       onState(state);
     }
   }
 
   function publishSignedOut() {
-    const nextVersion = ++version;
+    const nextVersion = ++authStateLoadVersion;
+    publishIfCurrent(nextVersion, createSignedOutState());
+  }
+
+  function handleClientAuthLoadFailure(nextVersion: number, error: unknown) {
+    logger.warn("[auth] client auth state load failed", error);
     publishIfCurrent(nextVersion, createSignedOutState());
   }
 
   function loadAndPublishForUser(user: User | null) {
-    const nextVersion = ++version;
+    const nextVersion = ++authStateLoadVersion;
 
     void createAuthStateForUser(supabase, user, includeProfile)
       .then((state) => publishIfCurrent(nextVersion, state))
-      .catch((error) => {
-        logger.warn("[auth] client auth state load failed", error);
-        publishIfCurrent(nextVersion, createSignedOutState());
-      });
+      .catch((error) => handleClientAuthLoadFailure(nextVersion, error));
   }
 
-  const initialVersion = ++version;
+  const initialVersion = ++authStateLoadVersion;
   void loadClientAuthState(supabase, { includeProfile })
     .then((state) => publishIfCurrent(initialVersion, state))
-    .catch((error) => {
-      logger.warn("[auth] client auth state load failed", error);
-      publishIfCurrent(initialVersion, createSignedOutState());
-    });
+    .catch((error) => handleClientAuthLoadFailure(initialVersion, error));
 
   const {
     data: { subscription },

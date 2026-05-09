@@ -30,6 +30,7 @@ import {
 
 import type {
   CmsLayoutBlocks,
+  CmsRichTextValue,
   MinistryUpdateCreateFields,
   MissionaryGivingPageCreateFields,
   PageCreateFields,
@@ -132,6 +133,10 @@ function readTemplateKey(template: PageTemplateForCreate): string {
     : "template";
 }
 
+function createDefaultRichTextValue(): CmsRichTextValue {
+  return defaultRichTextValue as unknown as CmsRichTextValue;
+}
+
 function readTenantIdFromDoc(doc: {
   tenant?: number | { id: string | number } | null;
 }): string | null {
@@ -229,7 +234,7 @@ async function createPageFromTemplate(
     pageType,
     template: Number(parsed.templateId),
     layout: defaultLayout,
-    content: defaultRichTextValue,
+    content: createDefaultRichTextValue(),
     legacyContentFallback: true,
   };
 
@@ -595,7 +600,7 @@ async function createMinistryUpdateFromTemplate(
       typeof template.defaultSummary === "string"
         ? template.defaultSummary
         : undefined,
-    content: defaultRichTextValue,
+    content: createDefaultRichTextValue(),
   };
 
   const doc = await payload.create({

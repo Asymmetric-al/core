@@ -43,6 +43,11 @@ const upstreamSources = [
     ),
     preserve: ["references/upstream.md"],
   },
+  {
+    skillName: "npm-deps-cleanup",
+    from: path.join(repoRoot, ".agents", "skills", "npm-deps-cleanup"),
+    preserve: ["references/upstream.md"],
+  },
 ];
 
 const POST_REFRESH_REPLACEMENTS = [

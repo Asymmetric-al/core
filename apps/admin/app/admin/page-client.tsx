@@ -105,23 +105,24 @@ export default function AdminPage() {
     <PageShell
       title="Administration"
       description="Global system configuration and security oversight."
+      density="compact"
       actions={
         <div className="flex gap-2">
           <Button
             variant="outline"
-            className="h-11 px-4 rounded-xl border-zinc-200 hover:bg-zinc-50 font-bold uppercase tracking-widest text-[10px] gap-2"
+            className="h-10 rounded-xl border-zinc-200 px-4 text-sm font-semibold hover:bg-zinc-50"
           >
             <Activity className="h-4 w-4 text-zinc-600" /> Audit Logs
           </Button>
-          <Button className="h-11 px-6 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-zinc-200 gap-2">
+          <Button className="h-10 rounded-xl bg-zinc-900 px-5 text-sm font-semibold text-white shadow-sm hover:bg-zinc-800">
             <Shield className="h-4 w-4" /> Security Scan
           </Button>
         </div>
       }
     >
-      <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="space-y-6 animate-in fade-in duration-500">
         {/* Admin Modules */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {MODULES.map((item, i) => (
             <motion.div
               key={item.title}
@@ -130,15 +131,15 @@ export default function AdminPage() {
               transition={{ duration: 0.4, delay: i * 0.05 }}
             >
               <Link href={item.href} className="group block">
-                <Card className="h-full overflow-hidden border border-zinc-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-zinc-200 hover:shadow-lg hover:shadow-zinc-200/50">
-                  <CardHeader className="pb-4">
-                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 text-zinc-600 transition-colors group-hover:bg-zinc-600 group-hover:text-white">
-                      <item.icon className="h-6 w-6" />
+                <Card className="h-full overflow-hidden border border-zinc-100 bg-white shadow-sm transition-[border-color,box-shadow] duration-200 hover:border-zinc-200 hover:shadow-md">
+                  <CardHeader className="pb-3">
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-100 text-zinc-700 transition-colors group-hover:bg-zinc-900 group-hover:text-white">
+                      <item.icon className="h-5 w-5" />
                     </div>
-                    <CardTitle className="text-lg font-bold text-zinc-900 group-hover:text-zinc-700 transition-colors text-left">
+                    <CardTitle className="text-base font-bold text-zinc-900 transition-colors group-hover:text-zinc-700 text-left">
                       {item.title}
                     </CardTitle>
-                    <CardDescription className="line-clamp-2 text-sm text-zinc-500 mt-1.5 text-left">
+                    <CardDescription className="line-clamp-2 text-sm text-zinc-600 mt-1 text-left">
                       {item.desc}
                     </CardDescription>
                   </CardHeader>
@@ -155,17 +156,17 @@ export default function AdminPage() {
         </div>
 
         {/* Service Status and Best Practices */}
-        <div className="grid gap-6 md:grid-cols-2 text-left">
+        <div className="grid gap-4 md:grid-cols-2 text-left">
           <Card className="rounded-2xl border border-zinc-100 bg-white shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-zinc-900">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-semibold text-zinc-900">
                 Service Operational Status
               </CardTitle>
-              <CardDescription className="text-zinc-500">
+              <CardDescription className="text-zinc-600">
                 Real-time health check of primary integrations.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3">
               {SERVICES.map((service) => (
                 <div
                   key={service.name}
@@ -176,9 +177,9 @@ export default function AdminPage() {
                   </span>
                   <Badge
                     variant="secondary"
-                    className="bg-zinc-100 text-zinc-700 hover:bg-zinc-100 border-zinc-200 shadow-none"
+                    className="border-emerald-200 bg-emerald-50 text-emerald-700 shadow-none hover:bg-emerald-50"
                   >
-                    <div className="mr-1.5 h-1.5 w-1.5 rounded-full bg-zinc-500 animate-pulse" />
+                    <div className="mr-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500" />
                     {service.status}
                   </Badge>
                 </div>
@@ -187,11 +188,11 @@ export default function AdminPage() {
           </Card>
 
           <Card className="rounded-2xl border border-zinc-100 bg-white shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-zinc-900">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-semibold text-zinc-900">
                 Security Best Practices
               </CardTitle>
-              <CardDescription className="text-zinc-500">
+              <CardDescription className="text-zinc-600">
                 Essential security measures for administrators.
               </CardDescription>
             </CardHeader>

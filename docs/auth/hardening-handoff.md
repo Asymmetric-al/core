@@ -48,13 +48,16 @@ This document captures where auth hardening currently stands, how it is wired, a
 - Registration payload no longer sends a client role claim.
 - Privileged roles must be assigned by trusted server/admin workflows.
 
-### Signout flow
+### Sign-out flow
 
 - Client initiates `POST /api/auth/signout` (server cookie invalidation).
-- Route performs current-session server-side Supabase signout + no-store responses + same-origin checks.
+- Route performs current-session server-side Supabase sign-out + no-store
+  responses + same-origin checks.
+- This is an intentional current-device/session sign-out policy. It does not
+  sign the user out of other active browser or device sessions.
 - Shared client session code clears browser auth state and navigates to `/login`
-  only after server signout succeeds.
-- If server signout cannot be confirmed, the UI stays on the current page and
+  only after server sign-out succeeds.
+- If server sign-out cannot be confirmed, the UI stays on the current page and
   shows the failure so the user can retry without creating cookie/client-state
   desync.
 
@@ -129,9 +132,9 @@ Future expectation:
 
 `packages/auth/client-session.ts` owns browser auth state loading,
 profile lookup, auth-state subscriptions, stale transition suppression, and
-the client half of signout. `packages/api/src/auth/signout.ts` keeps the
+the client half of sign-out. `packages/api/src/auth/signout.ts` keeps the
 server half scoped to the current Supabase session. App headers and shared
-hooks should call the client session module instead of calling server signout,
+hooks should call the client session module instead of calling server sign-out,
 browser auth cleanup, alerts, or redirects directly.
 
 ## Next-dev checklist

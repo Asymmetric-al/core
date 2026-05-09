@@ -191,19 +191,25 @@ export const TILES: Tile[] = [
     title: "Support Hub",
     route: "/support",
     icon: "HelpCircle",
-    purpose: "Care requests routed to the right agents.",
-    inside: "Inbox · Contacts · Tags · Macros · Knowledge",
+    purpose:
+      "Track Donor Care, Mobilization, and Existing Missionary Support requests.",
+    inside: "Tracks · Tickets · Contacts · Macros · Knowledge",
     quickActions: [
       { label: "New ticket", href: "/support/tickets/new", icon: "Plus" },
       {
-        label: "Escalate to finance",
-        href: "/support/tickets?escalate=finance",
-        icon: "ArrowUp",
+        label: "Donor Care",
+        href: "/support/tickets?queueId=donor_care",
+        icon: "Heart",
       },
       {
-        label: "Send to Mobilization team",
-        href: "/support/tickets?assign=mobilization",
+        label: "Mobilization",
+        href: "/support/tickets?queueId=mobilization",
         icon: "Send",
+      },
+      {
+        label: "Missionary Support",
+        href: "/support/tickets?queueId=missionary_support",
+        icon: "Compass",
       },
     ],
     roles: ["member_care", "admin"],

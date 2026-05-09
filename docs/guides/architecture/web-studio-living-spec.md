@@ -91,8 +91,9 @@ flowchart LR
 | Location              | Role                                                                                                    |
 | --------------------- | ------------------------------------------------------------------------------------------------------- |
 | `apps/admin`          | Payload config, collections, Web Studio UI, public `/api/cms/public/*`, staff `/api/admin/*` re-exports |
-| `apps/donor`          | `lib/cms/client.ts` — consumer of public CMS; `CMS_BASE_URL`, forwarded host                            |
+| `apps/donor`          | `lib/cms/client.ts` — consumer of public CMS; `CMS_BASE_URL`, forwarded host, result classification     |
 | `apps/missionary-app` | No direct Web Studio; may share `@asym/*` packages                                                      |
+| `packages/lib`        | Public CMS page descriptors, read cache policy, response/result types, and server-side Lexical renderer |
 | `packages/ui`         | shadcn (Base UI Maia + Zinc); `useAsymForm`, shared components                                          |
 | `packages/api`        | Business DB logic; `admin/missionary-directory`, `admin/fund-directory`                                 |
 | `packages/auth`       | `getAuthContext`, roles for staff routes / CMS users                                                    |
@@ -130,7 +131,7 @@ flowchart LR
 | GET    | `/api/cms/public/missionary-pages/[id]` | `missionary-pages/[id]/route.ts`                         |
 | GET    | `/api/cms/public/project-pages/[slug]`  | `project-pages/[slug]/route.ts`                          |
 
-Tenant order: `resolveTenantFromRequest` — **query `?tenant=` → forwarded host / host → subdomain** (see `apps/admin/src/cms/public/resolve-tenant.ts`).
+Tenant order: `resolveTenantFromRequest` — **forwarded host / host primary-domain match → subdomain slug fallback → query `?tenant=` only when the host does not resolve a tenant** (see `apps/admin/src/cms/public/resolve-tenant.ts`).
 
 ### Staff Next API (Mission Control auth, not Payload)
 
@@ -209,7 +210,7 @@ Tenant order: `resolveTenantFromRequest` — **query `?tenant=` → forwarded ho
 ## 10. Public API and consumer contract
 
 - **Versioning:** Public JSON is **not** URL-versioned (`/v1/...`); contract evolves by **additive** fields and careful consumer updates. **Document versions** are a Payload CMS feature, not HTTP API versioning.
-- **Consumers:** `apps/donor/lib/cms/client.ts` — forward `x-forwarded-host` for tenant resolution on admin origin.
+- **Consumers:** `apps/donor/lib/cms/client.ts` — forward `x-forwarded-host` for tenant resolution on admin origin, apply public CMS cache tags, and distinguish `found` / `not-found` / `tenant-not-found` / `bad-request` / `unavailable`.
 - **Backward compatibility:** `pages` response shape preserved; serializer **adds** fields.
 
 ---
@@ -415,15 +416,18 @@ flowchart TB
 
 ```mermaid
 flowchart TD
-  A[HTTP request] --> B{?tenant= slug}
-  B -->|yes| C[Resolve tenant by slug]
-  B -->|no| D[Match host / x-forwarded-host]
-  D -->|match| C
-  D -->|no| E[Subdomain fallback]
-  E --> C
-  C --> F{Found?}
-  F -->|no| G[404 Tenant not found]
-  F -->|yes| H[Query published docs for tenant.id]
+  A[HTTP request] --> B[Match host / x-forwarded-host primaryDomain]
+  B --> C{Matched?}
+  C -->|yes| H[Query published docs for tenant.id]
+  C -->|no| D[Try subdomain slug fallback]
+  D --> E{Matched?}
+  E -->|yes| H
+  E -->|no| F{?tenant= slug}
+  F -->|yes| G[Resolve tenant by slug]
+  F -->|no| I[404 Tenant not found]
+  G --> J{Found?}
+  J -->|no| I
+  J -->|yes| H
 ```
 
 ### Create-from-template

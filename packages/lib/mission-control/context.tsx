@@ -11,6 +11,7 @@ import {
   useCallback,
   useReducer,
   useEffect,
+  useRef,
   type ReactNode,
 } from "react";
 
@@ -109,6 +110,11 @@ export function MCProvider({
   );
   const { user, tenant, role, sidebarCollapsed, loading } = state;
   const isDevMode = runtimeEnvFlags.NODE_ENV === "development";
+  const currentUserRef = useRef(user);
+
+  useEffect(() => {
+    currentUserRef.current = user;
+  }, [user]);
 
   const setRole = useCallback((nextRole: Role) => {
     dispatch({ type: "setRole", role: nextRole });
@@ -134,22 +140,17 @@ export function MCProvider({
           return;
         }
 
-        if (!user) {
+        if (!currentUserRef.current) {
           markLoadingComplete();
         }
       },
       { includeProfile: false },
     );
-  }, [applySignedOutState, markLoadingComplete, user]);
+  }, [applySignedOutState, markLoadingComplete]);
 
   const signOut = useCallback(async () => {
-    const result = await signOutClientSession();
-    if (!result.ok) {
-      return;
-    }
-
-    applySignedOutState();
-  }, [applySignedOutState]);
+    await signOutClientSession();
+  }, []);
 
   return (
     <MCContext.Provider

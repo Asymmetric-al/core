@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
           sent_at: result.success ? new Date().toISOString() : null,
           error_code: result.errors?.[0]?.code ?? null,
           error_message: result.errors?.[0]?.message ?? null,
-          retry_count: 0,
+          retry_count: result.retryCount ?? 0,
           metadata: {
             toEmail: body.toEmail,
             fromEmail: resolvedFromEmail,

@@ -93,9 +93,12 @@ describe("client session auth state", () => {
     const { subscribeToClientAuthState } =
       await import("../../../packages/auth/client-session");
 
-    const stop = subscribeToClientAuthState((state) => {
-      states.push(state);
-    }, supabase as never);
+    const stop = subscribeToClientAuthState(
+      (state) => {
+        states.push(state);
+      },
+      { supabase: supabase as never },
+    );
 
     authCallback?.("SIGNED_OUT", null);
     initialUser.resolve({ data: { user }, error: null });

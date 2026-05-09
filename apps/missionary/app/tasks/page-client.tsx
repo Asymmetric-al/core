@@ -182,7 +182,7 @@ function StatCard({
       transition={springTransition}
       onClick={onClick}
       className={cn(
-        "flex items-center gap-4 px-6 py-4 rounded-2xl border transition-all cursor-pointer text-left shadow-sm min-w-[160px]",
+        "flex items-center gap-4 px-6 py-4 rounded-2xl border transition-[background-color,border-color,box-shadow,transform] duration-200 cursor-pointer text-left shadow-sm min-w-[160px]",
         color,
         isActive
           ? "ring-2 ring-zinc-900 ring-offset-2 border-transparent"
@@ -291,7 +291,7 @@ function TasksPageActions({
         variant="outline"
         size="sm"
         onClick={refresh}
-        className="h-11 px-4 rounded-xl border-zinc-200 hover:bg-zinc-50 transition-all"
+        className="h-11 px-4 rounded-xl border-zinc-200 hover:bg-zinc-50 transition-colors duration-200"
       >
         <RefreshCw className={cn("size-4", loading && "animate-spin")} />
       </Button>

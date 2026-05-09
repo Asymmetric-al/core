@@ -55,6 +55,27 @@ const requireCloudinaryWhenEnabled = (variableName: string) =>
       }
     });
 
+const resendApiKeySchema = requireInProtectedDeployments(
+  "RESEND_API_KEY",
+).refine(
+  (value) => !value || value.startsWith("re_"),
+  "RESEND_API_KEY must start with re_",
+);
+
+const resendWebhookSecretSchema = requireInProtectedDeployments(
+  "RESEND_WEBHOOK_SECRET",
+).refine(
+  (value) => !value || value.startsWith("whsec_"),
+  "RESEND_WEBHOOK_SECRET must start with whsec_",
+);
+
+const resendEncryptionKeySchema = requireInProtectedDeployments(
+  "RESEND_ENCRYPTION_KEY",
+).refine(
+  (value) => !value || value.length >= 32,
+  "RESEND_ENCRYPTION_KEY must be at least 32 characters",
+);
+
 export const env = createEnv({
   server: {
     NODE_ENV: nodeEnvSchema,
@@ -87,6 +108,10 @@ export const env = createEnv({
       (value) => !value || value.startsWith("whsec_"),
       "STRIPE_WEBHOOK_SECRET must start with whsec_",
     ),
+    DOCRAPTOR_API_KEY: z.string().optional(),
+    RESEND_API_KEY: resendApiKeySchema,
+    RESEND_WEBHOOK_SECRET: resendWebhookSecretSchema,
+    RESEND_ENCRYPTION_KEY: resendEncryptionKeySchema,
     SENTRY_DSN: z
       .string()
       .url()
@@ -123,6 +148,15 @@ export const env = createEnv({
     FLY_IMAGE_REF: z.string().optional(),
     BUILD_DATE: z.string().optional(),
     SOURCE_DATE_EPOCH: z.string().optional(),
+    PAYOUTS_ENABLED: optionalBoolean,
+    PAYOUTS_MANUAL_PROVIDER_ENABLED: optionalBoolean,
+    PAYOUTS_WISE_ENABLED: optionalBoolean,
+    PAYOUTS_AIRWALLEX_ENABLED: optionalBoolean,
+    PAYOUTS_CURRENCYCLOUD_ENABLED: optionalBoolean,
+    PAYOUTS_CORPAY_ENABLED: optionalBoolean,
+    PAYOUTS_STRIPE_GLOBAL_PAYOUTS_ENABLED: optionalBoolean,
+    PAYOUTS_EXECUTION_ENABLED: optionalBoolean,
+    PAYOUTS_SANDBOX_ONLY: optionalBoolean,
   },
   client: {
     NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
@@ -181,6 +215,10 @@ export const env = createEnv({
     CRON_SECRET: process.env.CRON_SECRET,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+    DOCRAPTOR_API_KEY: process.env.DOCRAPTOR_API_KEY,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    RESEND_WEBHOOK_SECRET: process.env.RESEND_WEBHOOK_SECRET,
+    RESEND_ENCRYPTION_KEY: process.env.RESEND_ENCRYPTION_KEY,
     SENTRY_DSN: process.env.SENTRY_DSN,
     CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
     ALLOW_DEMO_ACCOUNTS: process.env.ALLOW_DEMO_ACCOUNTS,
@@ -202,6 +240,17 @@ export const env = createEnv({
     FLY_IMAGE_REF: process.env.FLY_IMAGE_REF,
     BUILD_DATE: process.env.BUILD_DATE,
     SOURCE_DATE_EPOCH: process.env.SOURCE_DATE_EPOCH,
+    PAYOUTS_ENABLED: process.env.PAYOUTS_ENABLED,
+    PAYOUTS_MANUAL_PROVIDER_ENABLED:
+      process.env.PAYOUTS_MANUAL_PROVIDER_ENABLED,
+    PAYOUTS_WISE_ENABLED: process.env.PAYOUTS_WISE_ENABLED,
+    PAYOUTS_AIRWALLEX_ENABLED: process.env.PAYOUTS_AIRWALLEX_ENABLED,
+    PAYOUTS_CURRENCYCLOUD_ENABLED: process.env.PAYOUTS_CURRENCYCLOUD_ENABLED,
+    PAYOUTS_CORPAY_ENABLED: process.env.PAYOUTS_CORPAY_ENABLED,
+    PAYOUTS_STRIPE_GLOBAL_PAYOUTS_ENABLED:
+      process.env.PAYOUTS_STRIPE_GLOBAL_PAYOUTS_ENABLED,
+    PAYOUTS_EXECUTION_ENABLED: process.env.PAYOUTS_EXECUTION_ENABLED,
+    PAYOUTS_SANDBOX_ONLY: process.env.PAYOUTS_SANDBOX_ONLY,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_MAIN_DOMAIN: process.env.NEXT_PUBLIC_MAIN_DOMAIN,

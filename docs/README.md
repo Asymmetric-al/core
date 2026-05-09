@@ -57,7 +57,8 @@ Configuration and rules for AI coding assistants:
 - **`rules/`** - AI agent rules (general, frontend, backend, testing, TypeScript future-proofing)
 - **`skills/`** - AI agent skills for specific technologies
 - **`stack-registry.md`** - Technology stack registry
-- **`working-set.md`** - Current work context
+- **`working-set.example.md`** - Template for local `working-set.md` scratch context
+- **`nia.md`** - Nia MCP usage, source-check workflow, and local sync hygiene
 
 **See:** `AGENTS.md` in the root for the AI agent router.
 
