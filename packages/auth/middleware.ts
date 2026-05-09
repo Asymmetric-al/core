@@ -12,13 +12,56 @@ import {
   isE2EAuthBypassEnabled,
   parseE2EAuthCookieValue,
 } from "./e2e-auth";
+import { derivePrimaryRole, type AuthMembership } from "./permissions";
 import {
   isListedRouteMatch,
   matchesListedRoute,
   matchesProtectedPrefix,
 } from "./route-matching";
 
-import type { UserRole } from "@asym/database/types";
+import type {
+  MembershipRole,
+  StaffSubrole,
+  UserRole,
+} from "@asym/database/types";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+type AuthSessionResolution = {
+  userId: string | null;
+  role: UserRole | null;
+};
+
+type AuthSessionResolverContext = {
+  supabase: SupabaseClient;
+  userId: string | null;
+};
+
+type MembershipRow = {
+  tenant_id: string | null;
+  role: string | null;
+  staff_role: string | null;
+  is_active: boolean | null;
+};
+
+const USER_ROLES = new Set<UserRole>([
+  "donor",
+  "missionary",
+  "admin",
+  "staff",
+  "super_admin",
+]);
+const MEMBERSHIP_ROLES = new Set<MembershipRole>([
+  "donor",
+  "missionary",
+  "staff",
+]);
+const STAFF_SUBROLES = new Set<StaffSubrole>([
+  "finance",
+  "mobilizer",
+  "development",
+  "hr",
+  "member_care",
+]);
 
 export interface AuthMiddlewareOptions {
   publicRoutes?: string[];
@@ -31,7 +74,8 @@ export interface AuthMiddlewareOptions {
   allowApi?: boolean;
   resolveSession?: (
     request: NextRequest,
-  ) => Promise<{ userId: string | null; role: UserRole | null }>;
+    context?: AuthSessionResolverContext,
+  ) => Promise<AuthSessionResolution>;
 }
 
 const DEFAULT_AUTH_ROUTES = ["/login", "/register"] as const;
@@ -96,13 +140,98 @@ function logMissingSupabaseConfig(
  *   so revoked sessions are rejected and cookies stay in sync.
  */
 function isRoleAllowedForApp(
-  role: UserRole,
+  role: UserRole | null,
   allowedRoles: UserRole[] | undefined,
 ) {
   if (!allowedRoles || allowedRoles.length === 0) {
     return true;
   }
+  if (!role) {
+    return false;
+  }
   return allowedRoles.includes(role);
+}
+
+function isUserRole(role: string | null | undefined): role is UserRole {
+  return Boolean(role && USER_ROLES.has(role as UserRole));
+}
+
+function isMembershipRole(
+  role: string | null | undefined,
+): role is MembershipRole {
+  return Boolean(role && MEMBERSHIP_ROLES.has(role as MembershipRole));
+}
+
+function isStaffSubrole(
+  staffRole: string | null | undefined,
+): staffRole is StaffSubrole {
+  return Boolean(staffRole && STAFF_SUBROLES.has(staffRole as StaffSubrole));
+}
+
+async function loadMembershipsForProxy(
+  supabase: SupabaseClient,
+  userId: string,
+  tenantId: string | null,
+): Promise<AuthMembership[]> {
+  if (!tenantId) {
+    return [];
+  }
+
+  const { data } = await supabase
+    .schema("authz")
+    .from("memberships")
+    .select("tenant_id, role, staff_role, is_active")
+    .eq("user_id", userId)
+    .eq("tenant_id", tenantId)
+    .eq("is_active", true);
+
+  return ((data ?? []) as MembershipRow[])
+    .filter(
+      (row): row is MembershipRow & { tenant_id: string; role: string } =>
+        typeof row.tenant_id === "string" && isMembershipRole(row.role),
+    )
+    .map((row) => ({
+      tenantId: row.tenant_id,
+      role: row.role as MembershipRole,
+      staffRole: isStaffSubrole(row.staff_role) ? row.staff_role : null,
+      isActive: row.is_active ?? true,
+    }));
+}
+
+async function resolveSupabaseSessionRole(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<AuthSessionResolution> {
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("tenant_id, role")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  const profileRole = isUserRole(profile?.role) ? profile.role : null;
+  const tenantId =
+    typeof profile?.tenant_id === "string" ? profile.tenant_id : null;
+  const memberships = await loadMembershipsForProxy(supabase, userId, tenantId);
+
+  return {
+    userId,
+    role: derivePrimaryRole({ profileRole, memberships }),
+  };
+}
+
+function buildUnauthorizedRedirectUrl(
+  request: NextRequest,
+  loginPath: string,
+  unauthorizedRedirectTo: string,
+) {
+  const next = safeNextParam(
+    `${request.nextUrl.pathname}${request.nextUrl.search || ""}`,
+  );
+  return buildRedirectUrl(
+    request,
+    unauthorizedRedirectTo,
+    unauthorizedRedirectTo === loginPath ? next : null,
+  );
 }
 
 export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
@@ -112,6 +241,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
   const loginPath = options.loginPath ?? "/login";
   const allowApi = options.allowApi ?? true;
   const allowedRoles = options.allowedRoles;
+  const unauthorizedRedirectTo = options.unauthorizedRedirectTo ?? loginPath;
 
   return async function authMiddleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
@@ -179,6 +309,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       data: { user },
     } = await supabase.auth.getUser();
     let userId = user?.id ?? null;
+    let userRole: UserRole | null = null;
 
     // Playwright + demo-account set per-app `asym_e2e_auth_*` cookies while
     // Supabase has no user (see `E2E_AUTH_COOKIE_NAMES`).
@@ -196,8 +327,9 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
         ? request.cookies.get(e2eCookieName)?.value
         : undefined;
       const e2eSession = parseE2EAuthCookieValue(rawCookie);
-      if (e2eSession && isRoleAllowedForApp(e2eSession.role, allowedRoles)) {
+      if (e2eSession) {
         userId = e2eSession.userId;
+        userRole = e2eSession.role;
       }
     }
 
@@ -209,11 +341,9 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       const legacySession = parseE2EAuthCookieValue(
         request.cookies.get(E2E_AUTH_COOKIE_NAME)?.value,
       );
-      if (
-        legacySession &&
-        isRoleAllowedForApp(legacySession.role, allowedRoles)
-      ) {
+      if (legacySession) {
         userId = legacySession.userId;
+        userRole = legacySession.role;
       }
     }
 
@@ -225,11 +355,66 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       return supabaseResponse;
     }
 
+    if (
+      !userId &&
+      options.resolveSession &&
+      isProtectedRoute(pathname, protectedRoutePrefixes) &&
+      allowedRoles?.length
+    ) {
+      try {
+        const resolvedSession = await options.resolveSession(request, {
+          supabase,
+          userId: null,
+        });
+        userId = resolvedSession.userId;
+        userRole = resolvedSession.role;
+      } catch (error) {
+        console.error(
+          `[auth] Failed to resolve custom session role for protected path "${pathname}". Failing closed.`,
+          error,
+        );
+      }
+    }
+
     if (isProtectedRoute(pathname, protectedRoutePrefixes) && !userId) {
       const next = safeNextParam(
         `${request.nextUrl.pathname}${request.nextUrl.search || ""}`,
       );
       return NextResponse.redirect(buildRedirectUrl(request, loginPath, next));
+    }
+
+    if (
+      user?.id &&
+      isProtectedRoute(pathname, protectedRoutePrefixes) &&
+      allowedRoles?.length
+    ) {
+      try {
+        const resolvedSession = options.resolveSession
+          ? await options.resolveSession(request, { supabase, userId: user.id })
+          : await resolveSupabaseSessionRole(supabase, user.id);
+        userId = resolvedSession.userId ?? user.id;
+        userRole = resolvedSession.role;
+      } catch (error) {
+        console.error(
+          `[auth] Failed to resolve session role for protected path "${pathname}". Failing closed.`,
+          error,
+        );
+        userRole = null;
+      }
+    }
+
+    if (
+      isProtectedRoute(pathname, protectedRoutePrefixes) &&
+      userId &&
+      !isRoleAllowedForApp(userRole, allowedRoles)
+    ) {
+      return NextResponse.redirect(
+        buildUnauthorizedRedirectUrl(
+          request,
+          loginPath,
+          unauthorizedRedirectTo,
+        ),
+      );
     }
 
     return supabaseResponse;

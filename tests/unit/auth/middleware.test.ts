@@ -6,13 +6,13 @@ import {
 } from "../../../packages/auth/e2e-auth";
 
 // Stable object identity for hoisted mock factory (reassigning `let` can desync the mock).
-const mockSupabaseConfig = {
-  url: null as string | null,
-  key: null as string | null,
-  keyType: null as "anon" | "publishable" | null,
-};
-const { supabaseSessionRef } = vi.hoisted(() => ({
-  supabaseSessionRef: { userId: null as string | null },
+const { getUserMock, mockSupabaseConfig } = vi.hoisted(() => ({
+  getUserMock: vi.fn(),
+  mockSupabaseConfig: {
+    url: null as string | null,
+    key: null as string | null,
+    keyType: null as "anon" | "publishable" | null,
+  },
 }));
 
 vi.mock("@asym/database/supabase/config", () => ({
@@ -22,14 +22,7 @@ vi.mock("@asym/database/supabase/config", () => ({
 vi.mock("@supabase/ssr", () => ({
   createServerClient: () => ({
     auth: {
-      getUser: () =>
-        Promise.resolve({
-          data: {
-            user: supabaseSessionRef.userId
-              ? { id: supabaseSessionRef.userId }
-              : null,
-          },
-        }),
+      getUser: getUserMock,
     },
   }),
 }));
@@ -73,14 +66,18 @@ function mockNoConfig() {
   mockSupabaseConfig.url = null;
   mockSupabaseConfig.key = null;
   mockSupabaseConfig.keyType = null;
-  supabaseSessionRef.userId = null;
+  getUserMock.mockReset();
+  getUserMock.mockResolvedValue({ data: { user: null } });
 }
 
 function mockConfigWithUser(userId: string | null = "user_123") {
   mockSupabaseConfig.url = "https://example.supabase.co";
   mockSupabaseConfig.key = "anon-key";
   mockSupabaseConfig.keyType = "anon";
-  supabaseSessionRef.userId = userId;
+  getUserMock.mockReset();
+  getUserMock.mockResolvedValue({
+    data: { user: userId ? { id: userId } : null },
+  });
 }
 
 describe("createAuthMiddleware", () => {
@@ -219,6 +216,54 @@ describe("createAuthMiddleware", () => {
     );
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toContain("/login");
+  });
+
+  it("allows a protected session when its resolved role is allowed", async () => {
+    mockConfigWithUser("user_donor");
+    const resolveSession = vi.fn(async (_request, context) => ({
+      userId: context?.userId ?? "user_donor",
+      role: "donor" as const,
+    }));
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/auth/callback"],
+      protectedRoutePrefixes: ["/donor-dashboard"],
+      loginPath: "/login",
+      allowedRoles: ["donor", "super_admin"],
+      resolveSession,
+    });
+
+    const response = await middleware(
+      createRequest("/donor-dashboard/settings"),
+    );
+
+    expect(resolveSession).toHaveBeenCalled();
+    expect(response.status).toBe(200);
+  });
+
+  it("rejects a protected session when its resolved role is not allowed", async () => {
+    mockConfigWithUser("user_admin");
+    const resolveSession = vi.fn(async () => ({
+      userId: "user_admin",
+      role: "admin" as const,
+    }));
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/auth/callback"],
+      protectedRoutePrefixes: ["/donor-dashboard"],
+      loginPath: "/login",
+      unauthorizedRedirectTo: "/no-access",
+      allowedRoles: ["donor", "super_admin"],
+      resolveSession,
+    });
+
+    const response = await middleware(
+      createRequest("/donor-dashboard/settings"),
+    );
+
+    expect(resolveSession).toHaveBeenCalled();
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://example.org/no-access",
+    );
   });
 
   it("allows auth route request when session present", async () => {

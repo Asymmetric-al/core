@@ -1,7 +1,8 @@
 name: Greptile Trigger Codex Review
 
 on:
-  workflow_dispatch:
+  check_run:
+    types: [completed]
 
 permissions:
   contents: read
