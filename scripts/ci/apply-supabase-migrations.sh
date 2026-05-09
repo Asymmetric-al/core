@@ -71,6 +71,9 @@ PY
 for migration in $(ls -1 supabase/migrations/*.sql | sort); do
   migration_name="$(basename "$migration")"
   case "$migration_name" in
+    rollback_*)
+      echo "Skipping rollback migration in forward CI apply: $migration_name"
+      ;;
     20260214090000_foundation_1_schema.sql)
       psql "$DATABASE_URL" --single-transaction -f "$migration" -v ON_ERROR_STOP=1
       ;;
