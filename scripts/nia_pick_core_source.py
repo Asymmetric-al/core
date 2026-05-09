@@ -21,16 +21,18 @@ def main() -> None:
     data = json.load(sys.stdin)
     items: list[dict] = data.get("items", [])
     matches = [i for i in items if norm(i.get("identifier")) in TARGET_IDS]
-    pool = matches if matches else items[:1]
-    if not pool:
+    if not items:
         print("no Nia sources returned", file=sys.stderr)
+        raise SystemExit(1)
+    if not matches:
+        print("no matching Nia source for asymmetric-al/core", file=sys.stderr)
         raise SystemExit(1)
 
     def rank(item: dict) -> int:
         b = (item.get("branch") or "").lower()
         return 0 if b == "epic" else 1
 
-    chosen = sorted(pool, key=rank)[0]
+    chosen = sorted(matches, key=rank)[0]
     print(
         f"Using Nia source id={chosen['id']} "
         f"identifier={chosen.get('identifier')!r} branch={chosen.get('branch')!r}",

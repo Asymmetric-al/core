@@ -133,6 +133,7 @@ describe("api/email/test-send", () => {
       messageId: "msg_1",
       correlationId: "corr_1",
       recipientCount: 1,
+      retryCount: 2,
     });
 
     const response = await POST(
@@ -158,6 +159,7 @@ describe("api/email/test-send", () => {
     expect(insertMock).toHaveBeenCalledWith(
       expect.objectContaining({
         idempotency_key: expectedIdempotencyKey,
+        retry_count: 2,
       }),
     );
   });

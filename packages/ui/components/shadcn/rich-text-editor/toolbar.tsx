@@ -342,6 +342,7 @@ function ToolbarButton({
     <Tooltip>
       <TooltipTrigger asChild>
         <Toggle
+          aria-label={tooltip}
           size="sm"
           pressed={active}
           onPressedChange={onClick}
@@ -413,6 +414,8 @@ function LinkButton({
         <TooltipTrigger asChild>
           <PopoverTrigger asChild>
             <Button
+              type="button"
+              aria-label={isActive ? "Edit link" : "Add link"}
               variant="ghost"
               size="sm"
               className={cn(
@@ -440,6 +443,7 @@ function LinkButton({
             Attach a link to the selected text
           </p>
           <Input
+            aria-label="Link URL"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://example.com"
@@ -448,6 +452,7 @@ function LinkButton({
           <div className="flex items-center justify-end gap-2">
             {existingHref && (
               <Button
+                aria-label="Remove link"
                 type="button"
                 variant="ghost"
                 size="sm"
@@ -481,6 +486,7 @@ function ImageClickButton({ onClick }: { onClick: () => void }) {
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
+          aria-label="Insert image"
           variant="ghost"
           size="sm"
           className="h-7 w-7 p-0 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
@@ -538,6 +544,7 @@ function ImageButton({
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
+            aria-label={isUploading ? "Uploading image" : "Upload image"}
             variant="ghost"
             size="sm"
             className={cn(

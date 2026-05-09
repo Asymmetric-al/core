@@ -66,7 +66,12 @@ export const NotificationsMenu = memo(function NotificationsMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative h-8 w-8">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Open notifications"
+          className="relative h-8 w-8"
+        >
           <Bell className="h-4 w-4" />
           <span className="absolute right-1 top-1 flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75 [@media(prefers-reduced-motion:reduce)]:animate-none" />

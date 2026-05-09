@@ -58,6 +58,8 @@ import {
 import dynamic from "next/dynamic";
 import React, { useState } from "react";
 
+import { deriveRegistrationCapacity } from "./events-derived";
+
 // --- Types & Mock Data ---
 
 type EventStatus = "Draft" | "Published" | "Live" | "Completed";
@@ -738,6 +740,8 @@ function EventMetricCard({
 }
 
 function EventsOverviewTab({ event }: { event: ConferenceEvent }) {
+  const registrationCapacity = deriveRegistrationCapacity(event);
+
   return (
     <TabsContent value="dashboard" className="mt-5 space-y-6">
       <motion.div
@@ -760,18 +764,18 @@ function EventsOverviewTab({ event }: { event: ConferenceEvent }) {
               title="Registrations"
               icon={Users}
               iconClassName="text-blue-600"
-              context={`${event.capacity - event.registrants} seats remaining`}
+              context={registrationCapacity.seatsRemainingLabel}
               value={
                 <>
-                  {event.registrants}{" "}
+                  {event.registrants.toLocaleString()}{" "}
                   <span className="text-sm font-normal text-zinc-500">
-                    / {event.capacity}
+                    / {registrationCapacity.capacityLabel}
                   </span>
                 </>
               }
             >
               <Progress
-                value={(event.registrants / event.capacity) * 100}
+                value={registrationCapacity.progressValue}
                 className="mt-3 h-1.5"
               />
             </EventMetricCard>
@@ -938,7 +942,7 @@ function EventsConfigTab({ event }: { event: ConferenceEvent }) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  aria-label={`Expand ${venue.name}`}
+                  aria-label={`Toggle details for ${venue.name}`}
                 >
                   <ChevronDown className="h-4 w-4" />
                 </Button>
@@ -1016,9 +1020,9 @@ function EventsSpeakersTab({
             whileHover={{ y: -2 }}
             transition={SPEAKER_CARD_SPRING}
           >
-            <Card className="group cursor-pointer overflow-hidden transition-shadow hover:shadow-md">
+            <Card className="group cursor-pointer overflow-hidden transition-shadow [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md">
               <CardHeader className="flex flex-row items-start gap-4 p-5">
-                <Avatar className="h-12 w-12 border-2 border-white shadow-sm transition-transform group-hover:scale-105">
+                <Avatar className="h-12 w-12 border-2 border-white shadow-sm transition-transform [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-105">
                   <AvatarImage src={speaker.avatar} />
                   <AvatarFallback className="bg-zinc-100 font-bold">
                     {speaker.firstName[0]}
@@ -1094,8 +1098,8 @@ function EventsSpeakersTab({
             </Card>
           </motion.div>
         ))}
-        <button className="group flex h-[220px] flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-zinc-200 text-zinc-500 transition-all hover:border-blue-400 hover:bg-blue-50/30 hover:text-blue-600">
-          <div className="h-12 w-12 rounded-full bg-zinc-50 border border-zinc-100 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm">
+        <button className="press-feedback group flex h-[220px] flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-zinc-200 text-zinc-500 transition-[background-color,border-color,color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] hover:border-blue-400 hover:bg-blue-50/30 hover:text-blue-600">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full border border-zinc-100 bg-zinc-50 [@media(hover:hover)_and_(pointer:fine)]:group-hover:bg-white [@media(hover:hover)_and_(pointer:fine)]:group-hover:shadow-sm">
             <Plus className="h-6 w-6" />
           </div>
           <span className="font-bold text-sm">Add New Speaker</span>
@@ -1274,7 +1278,7 @@ export default function EventsPage() {
         </div>
       }
     >
-      <div className="space-y-5 animate-in fade-in duration-500">
+      <div className="space-y-5 animate-in fade-in duration-[var(--duration-standard)] ease-[var(--ease-out-soft)]">
         <Tabs
           value={activeView}
           onValueChange={(value) => {

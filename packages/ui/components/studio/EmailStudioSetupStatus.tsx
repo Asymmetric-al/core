@@ -170,26 +170,26 @@ function EmailStudioSetupPanel({ config, status }: EmailStudioSetupPanelProps) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
-        <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+        <div className="p-3 rounded-lg bg-muted/50 border border-border">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
             Environment
           </div>
-          <div className="text-sm font-medium text-slate-900 capitalize">
+          <div className="text-sm font-medium text-foreground capitalize">
             {config.environment}
           </div>
         </div>
-        <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+        <div className="p-3 rounded-lg bg-muted/50 border border-border">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
             Project ID
           </div>
-          <div className="text-sm font-medium text-slate-900">
+          <div className="text-sm font-medium text-foreground">
             {config.projectId || "Not set"}
           </div>
         </div>
       </div>
 
       <div className="space-y-2">
-        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           Available Features
         </div>
         <div className="flex flex-wrap gap-1.5">
@@ -210,7 +210,7 @@ function EmailStudioSetupPanel({ config, status }: EmailStudioSetupPanelProps) {
               <Badge
                 key={feature}
                 variant="outline"
-                className="bg-slate-50 text-slate-500 border-slate-200 text-[10px]"
+                className="bg-muted text-muted-foreground border-border text-[10px]"
               >
                 <Zap className="h-3 w-3 mr-1 opacity-50" />
                 {feature}
@@ -239,27 +239,27 @@ function EmailStudioSetupPanel({ config, status }: EmailStudioSetupPanelProps) {
               </button>
             </CollapsibleTrigger>
             <CollapsibleContent className="pt-2">
-              <div className="space-y-3 p-3 rounded-lg bg-slate-50 border border-slate-200">
+              <div className="space-y-3 p-3 rounded-lg bg-muted/50 border border-border">
                 {UNLAYER_SETUP_INSTRUCTIONS.steps.map((step) => (
                   <div key={step.step} className="flex gap-3">
                     <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">
                       {step.step}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-slate-900">
+                      <div className="text-sm font-medium text-foreground">
                         {step.title}
                       </div>
-                      <p className="text-xs text-slate-500 mt-0.5">
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         {step.description}
                       </p>
                       {step.details && (
-                        <p className="text-xs text-slate-400 mt-1 italic">
+                        <p className="text-xs text-muted-foreground/80 mt-1 italic">
                           {step.details}
                         </p>
                       )}
                       {step.code && (
                         <div className="mt-2 flex items-center gap-2">
-                          <code className="flex-1 text-xs bg-slate-800 text-slate-100 px-2 py-1.5 rounded font-mono">
+                          <code className="flex-1 text-xs bg-foreground text-background px-2 py-1.5 rounded font-mono">
                             {step.code}
                           </code>
                           <Button
@@ -315,27 +315,27 @@ function EmailStudioSetupPanel({ config, status }: EmailStudioSetupPanelProps) {
                 </button>
               </CollapsibleTrigger>
               <CollapsibleContent className="pt-2">
-                <div className="space-y-3 p-3 rounded-lg bg-slate-50 border border-slate-200">
+                <div className="space-y-3 p-3 rounded-lg bg-muted/50 border border-border">
                   {UNLAYER_SETUP_INSTRUCTIONS.whiteLabelSteps.map((step) => (
                     <div key={step.step} className="flex gap-3">
                       <div className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">
                         {step.step}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-slate-900">
+                        <div className="text-sm font-medium text-foreground">
                           {step.title}
                         </div>
-                        <p className="text-xs text-slate-500 mt-0.5">
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           {step.description}
                         </p>
                         {step.details && (
-                          <p className="text-xs text-slate-400 mt-1 italic">
+                          <p className="text-xs text-muted-foreground/80 mt-1 italic">
                             {step.details}
                           </p>
                         )}
                         {step.code && (
                           <div className="mt-2 flex items-center gap-2">
-                            <code className="flex-1 text-xs bg-slate-800 text-slate-100 px-2 py-1.5 rounded font-mono">
+                            <code className="flex-1 text-xs bg-foreground text-background px-2 py-1.5 rounded font-mono">
                               {step.code}
                             </code>
                             <Button
@@ -376,10 +376,10 @@ function EmailStudioSetupPanel({ config, status }: EmailStudioSetupPanelProps) {
       )}
 
       {config.allowedDomains.length > 0 && (
-        <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+        <div className="p-3 rounded-lg bg-muted/50 border border-border">
           <div className="flex items-center gap-2 mb-2">
-            <Shield className="h-4 w-4 text-slate-500" />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            <Shield className="h-4 w-4 text-muted-foreground" />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               Allowed Domains
             </span>
           </div>
@@ -394,7 +394,7 @@ function EmailStudioSetupPanel({ config, status }: EmailStudioSetupPanelProps) {
               </Badge>
             ))}
           </div>
-          <p className="text-xs text-slate-400 mt-2 flex items-start gap-1">
+          <p className="text-xs text-muted-foreground/80 mt-2 flex items-start gap-1">
             <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
             For production, add your domain in the Unlayer Console.
           </p>

@@ -165,10 +165,10 @@ export default function MissionControlReports() {
                 </CardContent>
                 <div className="absolute top-4 right-4">
                   <Button
+                    aria-label="Dismiss report summary"
                     variant="ghost"
                     size="icon"
                     onClick={() => setReport(null)}
-                    aria-label="Dismiss report summary"
                     className="h-9 w-9 text-zinc-500 hover:text-white hover:bg-white/10 rounded-full transition-colors"
                   >
                     <X className="size-5" />
