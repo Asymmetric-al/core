@@ -1239,7 +1239,7 @@ export default function EventsPage() {
         </div>
       }
     >
-      <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="space-y-8 animate-in fade-in duration-300">
         <Tabs
           value={activeView}
           onValueChange={(value) => {
