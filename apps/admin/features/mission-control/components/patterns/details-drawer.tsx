@@ -41,7 +41,12 @@ export function DetailsDrawer({
         <div className="flex items-center gap-1">
           {fullPageHref && (
             <Link href={fullPageHref}>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Open full page"
+                className="h-8 w-8"
+              >
                 <ExternalLink className="h-4 w-4" />
               </Button>
             </Link>
@@ -49,6 +54,7 @@ export function DetailsDrawer({
           <Button
             variant="ghost"
             size="icon"
+            aria-label="Close details drawer"
             className="h-8 w-8"
             onClick={onClose}
           >

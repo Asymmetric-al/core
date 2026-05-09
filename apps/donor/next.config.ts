@@ -1,11 +1,11 @@
-import { fileURLToPath } from "node:url";
-
 import { loadEnvConfig } from "@next/env";
+
+import { resolveMonorepoRoot } from "../../scripts/resolve-monorepo-root.mjs";
 
 import type { NextConfig } from "next";
 
-const WORKSPACE_ROOT = fileURLToPath(new URL("../..", import.meta.url));
-/** Monorepo root `.env.local` — Next only auto-loads `apps/<app>/.env.local` by default. */
+/** Load the repo-root `.env.local`; app-local files should be symlinks only when needed by external tooling. */
+const WORKSPACE_ROOT = resolveMonorepoRoot(import.meta.url);
 loadEnvConfig(WORKSPACE_ROOT);
 
 /**

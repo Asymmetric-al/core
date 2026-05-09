@@ -16,6 +16,7 @@
     "dev:missionary": "turbo run dev --filter=@asym/missionary-app",
     "dev:donor": "turbo run dev --filter=@asym/donor",
     "dev:all": "bun run --env-file=.env.local turbo run dev --filter=@asym/admin --filter=@asym/missionary-app --filter=@asym/donor",
+    "env:link-apps": "bun scripts/sync-root-env-to-apps.mjs",
     "build": "node scripts/run-with-ci-env.mjs -- turbo run build",
     "build:strict": "turbo run build",
     "build:admin": "node scripts/run-with-ci-env.mjs -- turbo run build --filter=@asym/admin",

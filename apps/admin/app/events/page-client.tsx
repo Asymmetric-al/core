@@ -896,7 +896,11 @@ function EventsConfigTab({ event }: { event: ConferenceEvent }) {
                   </div>
                   <CardTitle className="text-base">{venue.name}</CardTitle>
                 </div>
-                <Button variant="ghost" size="icon">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={`Toggle details for ${venue.name}`}
+                >
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </CardHeader>
@@ -975,7 +979,7 @@ function EventsSpeakersTab({
           >
             <Card className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer group">
               <CardHeader className="p-6 flex flex-row items-start gap-4">
-                <Avatar className="h-16 w-16 border-2 border-white shadow-sm group-hover:scale-105 transition-transform">
+                <Avatar className="h-16 w-16 border-2 border-white shadow-sm [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-105 transition-transform">
                   <AvatarImage src={speaker.avatar} />
                   <AvatarFallback className="bg-zinc-100 font-bold">
                     {speaker.firstName[0]}
@@ -1051,7 +1055,7 @@ function EventsSpeakersTab({
             </Card>
           </motion.div>
         ))}
-        <button className="h-[280px] border-2 border-dashed border-zinc-200 rounded-2xl flex flex-col items-center justify-center gap-3 text-zinc-400 hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50/30 transition-all group">
+        <button className="h-[280px] border-2 border-dashed border-zinc-200 rounded-2xl flex flex-col items-center justify-center gap-3 text-zinc-400 hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50/30 transition-[background-color,border-color,color] duration-200 group">
           <div className="h-12 w-12 rounded-full bg-zinc-50 border border-zinc-100 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm">
             <Plus className="h-6 w-6" />
           </div>

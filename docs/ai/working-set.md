@@ -1,3 +1,81 @@
+# Working Set
+
+## 2026-04-25 (OpenSpec Guardian agent, route shells, and env helpers)
+
+- Date: 2026-04-25
+- Repo: Asymmetric-al/core
+- Goal: Add reusable Cursor `openspec-guardian` background subagent plus rulebook and routing, while keeping the reviewed route-shell and dev-env cleanup explicit in scope.
+- Primary area:
+  - `.cursor/agents/openspec-guardian.md`
+  - `.cursor/rules/openspec-guardian.mdc`
+  - `docs/ai/rules/openspec-guardian.md`
+  - `AGENTS.md`
+  - `README.md`
+  - `docs/ai/working-set.md` (this entry)
+  - `apps/{admin,donor,missionary}/next.config.ts`
+  - `apps/*/app/**/{page.tsx,page-client.tsx,loading.tsx}`
+  - `scripts/{resolve-monorepo-root,sync-root-env-to-apps}.mjs`
+  - `package.json`
+- Constraints:
+  - Keep durable source-of-truth and prompt-alignment guidance in docs/rules only.
+  - Preserve server `page.tsx` route wrappers and colocated client islands for Next.js App Router routes.
+  - Use the repo-root `.env.local` contract from `AGENTS.md`; do not silently copy or overwrite app-local env files.
+  - Do not edit generated marker regions in `AGENTS.md`; do not hand-edit skill mirrors.
+- Evidence sources used:
+  - `docs/pr-reviews/pr-206-review.md`
+  - `AGENTS.md`
+  - `docs/ai/{stack-registry,working-set}.md`
+  - `docs/ai/rules/{general,frontend,testing,typescript-future-proofing}.md`
+  - Next.js 16.2.1 docs under `node_modules/next/dist/docs/`
+  - Repo-scoped `rg` + direct file reads (Nia MCP unavailable in this runtime)
+
+## 2026-04-25 (Async QA Foreman agent and verification workflow)
+
+- Date: 2026-04-25
+- Repo: Asymmetric-al/core
+- Goal: Add reusable Cursor Async QA Foreman docs and wiring (`qa-foreman` subagent, Cursor rule, durable rulebook, AGENTS/README routing), with clear completion gates for quality checks and merge readiness.
+- Primary area:
+  - `.cursor/agents/qa-foreman.md`
+  - `.cursor/rules/async-qa-foreman.mdc`
+  - `docs/ai/rules/async-qa-foreman.md`
+  - `AGENTS.md`
+  - `README.md`
+  - `docs/ai/working-set.md` (this entry)
+- Constraints:
+  - Keep the QA Foreman optional and request-triggered; it must not replace the main agent's ownership.
+  - Keep completion gates explicit: relevant tests, typecheck, lint, build when app/runtime behavior changes, and final diff review.
+  - Do not edit generated marker regions in `AGENTS.md`; do not hand-edit skill mirrors.
+- Evidence sources used:
+  - `docs/pr-reviews/pr-206-review.md`
+  - `AGENTS.md`
+  - `docs/ai/rules/{general,frontend,testing}.md`
+  - Repo-scoped `rg` + direct file reads (Nia MCP unavailable in this runtime)
+
+## 2026-04-25 (repo-wide shadcn/tailwind/ui audit and route-shell cleanup)
+
+- Date: 2026-04-25
+- Repo: Asymmetric-al/core
+- Goal: Audit shadcn/ui + Tailwind v4 + Maia/Zinc consistency across `packages/ui` and `apps/{admin,donor,missionary}`, then preserve reviewed low-risk route-shell, accessibility, and motion-token cleanup in the PR branch.
+- Primary area:
+  - `packages/ui/components.json`
+  - `packages/ui/styles/globals.css`
+  - `packages/ui/components/{shadcn,primitives,view-transitions}`
+  - `apps/{admin,donor,missionary}/app/{globals.css,layout.tsx}`
+  - `apps/admin/app/events/page-client.tsx`
+  - `apps/donor/app/(dashboard)/donor-dashboard/wallet/page-client.tsx`
+  - `apps/missionary/app/tasks/page-client.tsx`
+  - `packages/lib/{motion.tsx,motion-presets.ts,view-transitions/*}`
+- Constraints:
+  - Keep UI changes token-based and limited to reviewed accessibility/motion cleanups.
+  - Preserve current `epic` route naming convention: server `page.tsx` wrappers import colocated `page-client.tsx`.
+  - Preserve Maia theme, Zinc palette, and shared token ownership in `packages/ui/styles/globals.css`.
+  - Preserve app behavior/routing/providers and existing compatibility deep imports.
+  - Use Bun/Turbo scripts only; inspect shadcn CLI with `--cwd packages/ui`.
+- Evidence sources used:
+  - `bunx --bun shadcn@latest info --cwd packages/ui`
+  - `bunx --bun shadcn@latest diff --cwd packages/ui`
+  - `.next-docs` references for Server/Client Components, Cache Components, and Image usage
+  - repo `rg` scans across apps/packages/docs for imports, tokens, motion, and accessibility markers
 
 ## 2026-04-24 (Tiptap shared editor refinement + hardening tests)
 
@@ -15,8 +93,6 @@
   - `AGENTS.md`, `docs/ai/rules/{frontend,testing}.md`, `docs/ai/skills/tiptap/SKILL.md`
   - Official Tiptap docs pages for React/Next, StarterKit, Link, Placeholder, Image, setContent, and Static Renderer
   - Repo-scoped `rg` + direct file reads (Nia MCP unavailable in this runtime)
-
-# Working Set
 
 ## 2026-05-07 (Twenty CRM integration phase pack)
 
