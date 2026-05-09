@@ -3,7 +3,10 @@ import { notFound } from "next/navigation";
 
 import type { Metadata } from "next";
 
-import { fetchPublishedCmsPageResult } from "@/lib/cms/client";
+import {
+  fetchPublishedCmsPageResult,
+  resolvePublishedCmsPageRouteState,
+} from "@/lib/cms/client";
 
 type PageProps = {
   params: Promise<{
@@ -16,6 +19,11 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { cmsSlug } = await params;
   const result = await fetchPublishedCmsPageResult(cmsSlug);
+
+  if (result.status === "unavailable") {
+    return { title: "Page unavailable" };
+  }
+
   if (result.status !== "found") {
     return { title: "Page not found" };
   }
@@ -30,16 +38,17 @@ export async function generateMetadata({
 export default async function CmsPublicPage({ params }: PageProps) {
   const { cmsSlug } = await params;
   const result = await fetchPublishedCmsPageResult(cmsSlug);
+  const routeState = resolvePublishedCmsPageRouteState(result);
 
-  if (result.status === "unavailable") {
-    throw new Error(result.error);
+  if (routeState.status === "unavailable") {
+    throw new Error(routeState.error);
   }
 
-  if (result.status !== "found") {
+  if (routeState.status === "not-found") {
     notFound();
   }
 
-  const { page } = result;
+  const { page } = routeState;
   const renderedContent = renderPublicCmsPageContent(page.content, page.id);
 
   return (

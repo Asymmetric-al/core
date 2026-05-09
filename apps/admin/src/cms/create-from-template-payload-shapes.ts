@@ -7,12 +7,13 @@
  * `tsc` works in CI and fresh clones without codegen.
  */
 
-type CmsRelationship = number | { id: string | number } | null;
+type CmsRelationship = string | number | { id: string | number } | null;
 type CmsPageType =
   | "standard"
   | "missionary_giving"
   | "project"
   | "ministry_update";
+type PayloadPageType = Exclude<CmsPageType, "ministry_update">;
 type CmsRichTextDocument = {
   root: {
     type: string;
@@ -103,10 +104,10 @@ export type CmsLayoutBlocks = CmsLayoutBlock[];
 export type CmsRichTextValue = CmsRichTextDocument;
 
 export type PageTemplateForCreate = {
-  tenant: CmsRelationship;
-  pageType: CmsPageType;
+  tenant?: CmsRelationship;
+  pageType?: CmsPageType;
   defaultLayout?: CmsLayoutBlocks | null;
-  templateKey: string;
+  templateKey?: string;
   defaultSummary?: string | null;
 };
 
@@ -115,7 +116,7 @@ export type PageCreateFields = {
   title: string;
   slug: string;
   summary?: string;
-  pageType: Exclude<CmsPageType, "ministry_update">;
+  pageType: PayloadPageType;
   template: number;
   layout: CmsLayoutBlocks;
   content: CmsRichTextValue;

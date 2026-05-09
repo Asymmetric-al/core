@@ -52,7 +52,7 @@ const TIME_AND_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
 });
 
 const COMPACT_SECTION_LABEL_CLASS =
-  "text-xs font-bold text-muted-foreground uppercase tracking-widest";
+  "text-xs font-semibold text-muted-foreground";
 const COMPACT_OUTLINE_BADGE_CLASS = "h-4 rounded-md border px-1.5 py-0 text-xs";
 const COMPACT_BADGE_CLASS = "h-4 rounded-md px-1.5 text-xs";
 const COMPACT_MUTED_TEXT_CLASS = "text-xs text-muted-foreground";
@@ -114,7 +114,7 @@ function TaskSheetHeader({
           <div className={cn("rounded-xl p-2", statusIconColor)}>
             <TypeIcon className="size-4" />
           </div>
-          <span className="text-sm font-bold text-foreground uppercase tracking-wider">
+          <span className="text-sm font-bold text-foreground">
             Task Details
           </span>
         </div>
@@ -159,7 +159,7 @@ function TaskOverviewSection({
             <Button
               variant="outline"
               size="sm"
-              className="h-7 gap-1.5 text-xs rounded-xl"
+              className="h-7 gap-1.5 rounded-lg text-xs"
             >
               <Badge
                 variant="outline"
@@ -197,7 +197,7 @@ function TaskOverviewSection({
             <Button
               variant="outline"
               size="sm"
-              className="h-7 gap-1.5 text-xs rounded-xl"
+              className="h-7 gap-1.5 rounded-lg text-xs"
             >
               <Badge
                 variant="outline"

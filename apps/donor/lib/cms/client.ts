@@ -83,6 +83,39 @@ export async function fetchPublishedCmsPage(
   return result.status === "found" ? result.page : null;
 }
 
+export type PublishedCmsPageRouteState =
+  | {
+      status: "found";
+      page: PublicCmsPage;
+    }
+  | {
+      status: "not-found";
+    }
+  | {
+      status: "unavailable";
+      error: string;
+    };
+
+export function resolvePublishedCmsPageRouteState(
+  result: PublicCmsPageReadResult,
+): PublishedCmsPageRouteState {
+  if (result.status === "found") {
+    return {
+      status: "found",
+      page: result.page,
+    };
+  }
+
+  if (result.status === "unavailable") {
+    return {
+      status: "unavailable",
+      error: result.error,
+    };
+  }
+
+  return { status: "not-found" };
+}
+
 export async function fetchPublishedCmsUpdates(
   limit = 5,
   hostOverride?: string,

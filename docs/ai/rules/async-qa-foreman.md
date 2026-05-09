@@ -1,6 +1,6 @@
 # Async QA Foreman Workflow
 
-**Name:** `async-qa-foreman`  
+**Name:** `async-qa-foreman`
 **Purpose:** Use a Cursor background subagent as a skeptical QA foreman while the main agent continues implementing, verifying, and fixing the task to completion.
 **Applies when:** The user asks for Async QA Foreman mode, grind-style completion pressure, background QA, long-running verification, a second agent to challenge quality, or unusually careful implementation with repeated verification.
 **Do not use when:** The task is a tiny local edit, a pure writing task, a one-line search, or anything where a background subagent would add cost without improving quality.

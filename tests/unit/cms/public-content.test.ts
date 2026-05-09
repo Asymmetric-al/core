@@ -4,6 +4,8 @@ const { getPayloadClientMock } = vi.hoisted(() => ({
   getPayloadClientMock: vi.fn(),
 }));
 
+type DonorCmsClientModule = typeof import("../../../apps/donor/lib/cms/client");
+
 vi.mock("../../../apps/admin/src/cms/get-payload", () => ({
   getPayloadClient: getPayloadClientMock,
 }));
@@ -21,6 +23,7 @@ let fetchPublishedProjectPageResult: (
   slug: string,
   hostOverride?: string,
 ) => Promise<unknown>;
+let resolvePublishedCmsPageRouteState: DonorCmsClientModule["resolvePublishedCmsPageRouteState"];
 let resolveTenantFromRequest: (
   request: unknown,
   payloadOverride?: unknown,
@@ -37,6 +40,8 @@ beforeAll(async () => {
   fetchPublishedMissionaryGivingPageResult =
     donorModule.fetchPublishedMissionaryGivingPageResult;
   fetchPublishedProjectPageResult = donorModule.fetchPublishedProjectPageResult;
+  resolvePublishedCmsPageRouteState =
+    donorModule.resolvePublishedCmsPageRouteState;
   resolveTenantFromRequest = adminModule.resolveTenantFromRequest;
 });
 
@@ -211,6 +216,39 @@ describe("donor CMS content helpers", () => {
       status: "unavailable",
       statusCode: 503,
       error: "CMS unavailable",
+    });
+  });
+
+  it("keeps route handling distinct for missing pages and CMS outages", () => {
+    expect(
+      resolvePublishedCmsPageRouteState({
+        status: "not-found",
+        statusCode: 404,
+        error: "Page not found",
+      }),
+    ).toEqual({ status: "not-found" });
+
+    expect(
+      resolvePublishedCmsPageRouteState({
+        status: "unavailable",
+        statusCode: 503,
+        error: "CMS unavailable",
+      }),
+    ).toEqual({
+      status: "unavailable",
+      error: "CMS unavailable",
+    });
+
+    expect(
+      resolvePublishedCmsPageRouteState({
+        status: "found",
+        statusCode: 200,
+        page: { id: "p1", title: "Home", slug: "home" },
+        tenant: { slug: "alpha" },
+      }),
+    ).toEqual({
+      status: "found",
+      page: { id: "p1", title: "Home", slug: "home" },
     });
   });
 

@@ -36,6 +36,7 @@ For every `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}` file while
 | admin      | `/api/admin/org-settings`                         | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/admin/posts`                                | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/admin/posts/[postId]`                       | Node.js (no `runtime` segment export) | Admin client                               |
+| admin      | `/api/admin/support`                              | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/admin/support/agents`                       | Node.js (no `runtime` segment export) | Support hub adapter                        |
 | admin      | `/api/admin/support/automation-rules`             | Node.js (no `runtime` segment export) | Support hub adapter                        |
 | admin      | `/api/admin/support/automation-rules/[id]`        | Node.js (no `runtime` segment export) | Support hub adapter                        |
@@ -69,6 +70,8 @@ For every `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}` file while
 | admin      | `/api/admin/support/sla-policies/[id]`            | Node.js (no `runtime` segment export) | Support hub adapter                        |
 | admin      | `/api/admin/support/teams`                        | Node.js (no `runtime` segment export) | Support hub adapter                        |
 | admin      | `/api/admin/support/teams/[id]`                   | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/tickets`                      | Node.js (no `runtime` segment export) | Admin client                               |
+| admin      | `/api/admin/support/tickets/[id]`                 | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/admin/users`                                | Node.js (no `runtime` segment export) | Admin client (`SUPABASE_SERVICE_ROLE_KEY`) |
 | admin      | `/api/auth/demo-account`                          | Node.js (no `runtime` segment export) | Demo auth server action                    |
 | admin      | `/api/auth/signout`                               | Node.js (no `runtime` segment export) | Auth/session cleanup                       |

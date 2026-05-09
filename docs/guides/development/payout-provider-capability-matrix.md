@@ -1,0 +1,54 @@
+# Payout Provider Capability Matrix
+
+Last verified: 2026-05-02
+
+Use this matrix for planning only. Future implementation must re-check provider docs and live tenant account capabilities before enabling quote or execution.
+
+Legend:
+
+- Yes: public docs confirm the capability exists.
+- Partial: public docs confirm a related capability, but route/account support varies or the flow is not equivalent across all payouts.
+- Account-managed: public docs confirm the product exists, but provider enablement or account-specific docs are required.
+- needs provider confirmation: Phase 0 could not verify enough detail for implementation.
+
+| Capability                       | Wise                                                                               | Airwallex                                                 | Currencycloud                                                         | Corpay                                                                         | Stripe Global Payouts / Treasury                                                        |
+| -------------------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| Tenant-owned account model       | Yes, Wise account/profile owned by tenant                                          | Yes, Airwallex account owned by tenant                    | Yes, Currencycloud account/sub-account model                          | Yes, client/partner account model                                              | Yes, tenant Stripe account                                                              |
+| Sandbox                          | Yes, `api.wise-sandbox.com`, with limitations                                      | Yes, `api-demo.airwallex.com/api/v1/`                     | Demo URL exists, but conversion plus payment guide says live API only | Account-managed sandbox                                                        | Stripe test mode plus capability access, needs provider confirmation                    |
+| Authentication                   | Personal token or OAuth 2.0                                                        | Client ID + API key to access token                       | Login ID + API key to temporary `auth_token`                          | HS256 JWT two-token auth                                                       | Stripe secret key plus preview API version headers                                      |
+| Balance/funding source check     | Yes, balances API                                                                  | Yes, wallet balances and funding objects                  | Yes, balances API                                                     | Account-managed settlement/MCA info                                            | Yes, storage balance, payment balance, financial account APIs                           |
+| Create beneficiary by API        | Yes, recipient accounts                                                            | Yes, beneficiaries API                                    | Yes, beneficiaries API                                                | Account-managed create/edit bene                                               | Yes, Accounts v2 recipient plus payout methods                                          |
+| Dynamic beneficiary requirements | Yes, route-specific recipient requirements                                         | Yes, dynamic API/form schemas                             | Yes, beneficiary required details                                     | Yes in navigation, schemas need provider confirmation                          | Yes, requirements entries and country tables                                            |
+| Hosted beneficiary form          | No public equivalent found                                                         | No public equivalent found for payouts                    | No public equivalent found                                            | Vendor portal/manual possible, needs provider confirmation                     | Yes, Account Links hosted recipient form                                                |
+| API quote/rate                   | Yes, quote API                                                                     | Yes, rates and quotes                                     | Yes, detailed rates and held rate quotes                              | Yes, spot/quotes/rate resource                                                 | Partial, dashboard final review and pricing formulas; firm API quote needs confirmation |
+| Lock quote                       | Yes, quote docs state 30 minutes                                                   | Yes, quotes have `valid_to_at`; validities 1 min to 24 hr | Partial, held rate/conversion flow                                    | Yes, spot rate quote expires in 10 seconds                                     | Partial/unknown for API; label estimate unless confirmed                                |
+| Separate conversion object       | Not primary send-money flow                                                        | Yes, conversions API                                      | Yes, conversions API                                                  | Deal booking flow                                                              | Treasury conversion may apply, needs provider confirmation                              |
+| Same-currency payout             | Partial, route/funding dependent                                                   | Yes, transfer without currency conversion                 | Yes, payment in held currency                                         | Yes, wire/EFT/MCA route dependent                                              | Yes, if route/capability supports same currency                                         |
+| Payout execution API             | Yes, transfer create and funding flow                                              | Yes, transfer create                                      | Yes, payment create and authorise                                     | Account-managed full API; manual/export required fallback                      | Yes, OutboundPayments API v2 where enabled                                              |
+| Batch or mass payouts            | Wise platform docs include batch events; implementation needs confirmation         | Batch transfer webhook events exist                       | Batch-like report/payment APIs need confirmation                      | Yes, public docs mention mass payments                                         | Dashboard/API recurring possible; batch semantics need confirmation                     |
+| Webhooks                         | Yes                                                                                | Yes                                                       | Yes, configured via Solutions Manager                                 | Yes                                                                            | Yes                                                                                     |
+| Webhook signature model          | Wise webhook subscriptions/events; exact verification must be re-read per endpoint | Airwallex webhook verification needs implementation docs  | HMAC digest header in examples                                        | `Corpay-Signature`, SHA1 HMAC style, exact method shared during implementation | `Stripe-Signature` raw-body verification                                                |
+| Proof/receipt                    | Receipt PDF and banking partner payout info, MT103 where available                 | Confirmation letter PDF, references, dispatch info        | Payment confirmation, submission info, MT103/pacs.008, tracking       | Payment channel info with MT103/pacs.008 for wires                             | Receipt URL and trace ID; no MT103-style guarantee found                                |
+| Provider-side approval/auth      | SCA/funding requirements need confirmation                                         | Transfer approval, funding confirmation, RFI              | SCA for API payments                                                  | MFA/tiered approval account-managed                                            | 2FA required for funding; capability/provider approval needed                           |
+| Best fit                         | Transparent routes and receipts                                                    | Wallet-funded treasury payouts and dynamic schemas        | Finance-grade FX/payment API                                          | Hard corridors, wires, NGO support, MT103/pacs.008                             | Stripe-funded payouts for tenants with enabled Global Payouts/Treasury                  |
+| Main constraint                  | Sandbox route differences and auth model choice                                    | Account capability gates and dynamic schemas              | Demo/live API gap for conversion plus payment                         | Account-managed API and 10-second spot quote                                   | Preview APIs, account access, firm quote uncertainty                                    |
+
+## Provider Readiness Gates
+
+Every provider must pass these gates before execution is enabled:
+
+- Tenant owns the provider account and legal sender identity.
+- Tenant credentials are server-only and encrypted or stored in approved secret infrastructure.
+- Sandbox or fixture tests prove beneficiary requirements, quote/rate, send, status, and proof behavior.
+- Webhook signature verification is implemented and tested with raw payloads.
+- Provider status mapping is reviewed against current docs.
+- Provider funding source can be checked or limitation is explicitly displayed.
+- Provider-specific SCA/MFA/approval steps are represented as states, not skipped.
+
+## Quote Comparison Notes
+
+- Wise, Airwallex, Currencycloud, and Corpay can produce firm or provider-controlled rates in documented flows.
+- Stripe Global Payouts public docs describe finalized Dashboard review and pricing formulas, but Phase 0 did not verify a universal firm quote API for Global Payouts. Treat Stripe API quotes as `estimated` until provider confirmation.
+- Corpay's 10-second spot booking window requires a stricter safety window than other providers.
+- Airwallex quote IDs cannot be applied when creating and submitting a transfer for approval according to current docs.
+- Currencycloud payments must be in one currency. FX routes need conversion first, then payment in bought currency.

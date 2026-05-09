@@ -124,7 +124,7 @@ function sanitizePublicCmsHref(value: unknown) {
 
   const protocolMatch = /^([a-zA-Z][a-zA-Z0-9+.-]*):/.exec(href);
   if (!protocolMatch) {
-    return href;
+    return "#";
   }
 
   const protocol = protocolMatch[1]?.toLowerCase();

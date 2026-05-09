@@ -42,6 +42,7 @@ export default function ContributionsPage() {
     <PageShell
       title="Contributions"
       description="Track and manage all donations and contributions."
+      density="compact"
       actions={<ContributionsPageActions />}
     >
       <div data-testid="mc-contributions-live">
