@@ -13,6 +13,7 @@
   "scripts": {
     "dev": "turbo run dev",
     "dev:admin": "turbo run dev --filter=@asym/admin",
+    "dev:mission-control": "node scripts/run-with-ci-env.mjs -- bun run dev:admin",
     "dev:missionary": "turbo run dev --filter=@asym/missionary-app",
     "dev:donor": "turbo run dev --filter=@asym/donor",
     "dev:all": "bun run --env-file=.env.local turbo run dev --filter=@asym/admin --filter=@asym/missionary-app --filter=@asym/donor",
@@ -101,6 +102,7 @@
     "generate:icons": "node scripts/generate-icons.js",
     "shadcn:uikit:add": "bun scripts/shadcn/add-shadcnuikit.ts",
     "setup": "bash ./scripts/setup/index.sh",
+    "setup:mission-control:cloud": "node scripts/dev/setup-mission-control-cloud.mjs",
     "setup:verify": "node scripts/setup-verify.mjs",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "clean:cache": "rm -rf .turbo node_modules/.cache",

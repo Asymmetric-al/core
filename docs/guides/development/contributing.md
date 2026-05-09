@@ -18,6 +18,15 @@ bun run verify
 
 Stripe credentials are optional and only required when testing donation flows.
 
+For Cursor Cloud Agent Mission Control work, use:
+
+```bash
+bun run setup:mission-control:cloud
+bun run dev:mission-control
+```
+
+This starts the admin app at `http://localhost:3030` with gitignored Cloud Agent defaults. Existing explicit `E2E_AUTH_BYPASS=false` values are preserved unless you pass `--force-bypass`. Replace placeholders in `.env.local` before testing live Supabase data or real auth.
+
 Optional MCP tooling configuration for contributors is documented in `docs/mcp-config.example.toml`.
 
 ### Nia (MCP) usage (repo-scoped)

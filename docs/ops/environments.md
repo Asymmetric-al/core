@@ -197,7 +197,7 @@ E2E tests can target different environments using `PLAYWRIGHT_BASE_URL`, configu
 | Production  | Sentry, Cloudinary | Quarterly + on compromise | Same process                                                               |
 | Production  | Email, PDF         | Quarterly + on compromise | Rotate in respective service dashboards -> update Vercel env vars          |
 
-Every rotation window must cover all six services: Supabase, Stripe, Sentry, Cloudinary, Email, and PDF.
+Every rotation window must cover all six services: Supabase, Stripe, Sentry, Cloudinary, Email, and PDF generation services such as DocRaptor when configured.
 
 ## 9. If an Environment Is Compromised
 

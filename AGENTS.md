@@ -417,12 +417,24 @@ Note: unit tests are currently run repo-wide with `bun run test:unit`.
 
 ### Services overview
 
-| Service        | Port                                    | Start command            |
-| -------------- | --------------------------------------- | ------------------------ |
-| Donor app      | 3000                                    | `bun run dev:donor`      |
-| Admin app      | 3030                                    | `bun run dev:admin`      |
-| Missionary app | 4000                                    | `bun run dev:missionary` |
-| Local Supabase | 54321 (API), 54322 (DB), 54323 (Studio) | `supabase start`         |
+| Service                 | Port                                    | Start command                 |
+| ----------------------- | --------------------------------------- | ----------------------------- |
+| Donor app               | 3000                                    | `bun run dev:donor`           |
+| Admin app               | 3030                                    | `bun run dev:admin`           |
+| Mission Control (cloud) | 3030                                    | `bun run dev:mission-control` |
+| Missionary app          | 4000                                    | `bun run dev:missionary`      |
+| Local Supabase          | 54321 (API), 54322 (DB), 54323 (Studio) | `supabase start`              |
+
+### Mission Control Cloud Agent startup
+
+For a fresh Cursor Cloud Agent or disposable VM that needs the Mission Control Dashboard without live Supabase credentials:
+
+```bash
+bun run setup:mission-control:cloud
+bun run dev:mission-control
+```
+
+Then open `http://localhost:3030`. The setup command only writes gitignored `.env.local` defaults (`SKIP_ENV_VALIDATION=1`, `E2E_AUTH_BYPASS=true`, placeholder public Supabase values, `PAYLOAD_SECRET`, and admin Playwright URL/port). Existing explicit `E2E_AUTH_BYPASS=false` values are preserved unless you pass `--force-bypass`. Replace placeholders with real Supabase/demo-account values before testing live auth, hosted data, Payload/CMS, or database-backed admin workflows.
 
 ### Local Supabase startup
 
