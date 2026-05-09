@@ -9,6 +9,33 @@
 > - [`chatwoot-gray-parity-map.md`](./chatwoot-gray-parity-map.md) — feature
 >   parity matrix for the two donor systems
 
+> **Phase 7 audit update (2026-04 wrap-up).**
+>
+> This Phase 1 doc is preserved as the historical statement of intent. The
+> actual shipped reality drifted from it in two places — both intentional —
+> and the canonical source of truth is now
+> [`final-audit-and-wrap-up.md`](./final-audit-and-wrap-up.md):
+>
+> - The phase split in `§ 3.6` predicted "MVP (Phase 2 build)" would include
+>   the Supabase migration + RLS + inbound router, "Phase 3" would land
+>   macros / canned / SLA, and "Phase 4" would land reports / settings /
+>   CRM. The shipped split moved later: Phase 2 was the typed mock data
+>   foundation, Phase 5 was productivity (macros / canned / saved views /
+>   command palette), Phase 6 was reports + settings + automation, Phase 7
+>   was the API adapter boundary + a11y + perf + docs. The Supabase
+>   migration, real persistence, and live inbound + outbound email
+>   pipelines are deferred to Phase 8.
+> - `§ 2.7` says "No TanStack DB collections in MVP." The shipped reality
+>   has every Phase 2-6 surface backed by TanStack DB collections in
+>   `packages/database/collections/support-hub.ts`. The Phase 7 server-side
+>   adapter (`packages/api/src/admin/support-hub/*`) and 30 thin route
+>   handlers under `apps/admin/app/api/admin/support/**` are built but
+>   intentionally unwired from the UI; they are the documented swap point
+>   Phase 8 will activate alongside the Supabase migration.
+>
+> Read this notice + the wrap-up doc before treating any specific Phase 1
+> claim as a description of what currently runs.
+
 ## 1. Goal
 
 Build a donor-care **Support Hub** inside the Mission Control admin app to
@@ -47,12 +74,14 @@ MotionProvider → Suspense → NuqsAdapter → MCShell`.
 - Nav already lists Support Hub: `mc-shell.tsx` (`toolNav`),
   `packages/lib/mission-control/nav.ts`, `packages/config/tiles.ts`,
   `packages/config/navigation.ts`. Roles for `/support` (nav id
-  `support`): `member_care`, `admin` — see `packages/lib/mission-control/nav.ts`.
-  **`requireSupportHubAccess()` (planned)** must authorize the same cohort
-  (plus `super_admin` for platform operators); it must **not** blindly reuse
-  `requireMemberCareAccess()`'s `staff` \| `admin` \| `super_admin` predicate
-  alone, or `member_care` users would see the nav item and get `403` on API
-  routes (see `packages/api/src/admin/member-care/route-helpers.ts`).
+  `support`): `member_care`, `admin` — see
+  `packages/lib/mission-control/nav.ts`. **`requireSupportHubAccess()`
+  (planned)** must authorize the same cohort (plus `super_admin` for
+  platform operators); it must **not** blindly reuse
+  `requireMemberCareAccess()`'s `staff` | `admin` | `super_admin`
+  predicate alone, or `member_care` users would see the nav item and get
+  `403` on API routes (see
+  `packages/api/src/admin/member-care/route-helpers.ts`).
 - Forced light theme is intentional and must be preserved.
 
 ### 2.2 Existing `/support` page
@@ -137,8 +166,8 @@ Inbound retrieval helpers exist:
   filter/search forms can be native or `next/form`, no Zustand.
 - `apps/admin/next.config.ts` enables `cacheComponents: true` and
   `reactCompiler.compilationMode = "annotation"`. Keep
-  `apps/admin/app/support/page.tsx` as a Server Component wrapper and mount an
-  interactive `SupportInbox` client surface beneath it. Server reads in
+  `apps/admin/app/support/page.tsx` as a Server Component wrapper and mount
+  an interactive `SupportInbox` client surface beneath it. Server reads in
   `packages/api` must remain request-scoped.
 
 ### 2.7 TanStack stack already in repo
@@ -193,10 +222,10 @@ Notes:
   state.
 - `snoozed` carries `snoozed_until timestamptz`; an Inngest-style cron is
   out of scope for MVP. **MVP rule:** list/board queries treat a row as
-  "wake-ready" when `now() > snoozed_until` (computed filter / view), without
-  automatically flipping `status` until an agent acts or an inbound message
-  arrives; Phase 3 may add a job to auto-open if product wants clock-only
-  wake.
+  "wake-ready" when `now() > snoozed_until` (computed filter / view),
+  without automatically flipping `status` until an agent acts or an inbound
+  message arrives; Phase 3 may add a job to auto-open if product wants
+  clock-only wake.
 - `escalated` and `past_due` are computed from
   `escalated_at is not null` and SLA timestamps; no separate table.
 

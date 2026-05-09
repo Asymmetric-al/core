@@ -31,6 +31,18 @@
 - "Repo target" cells point to the file or symbol the feature will live
   in. Paths come from [`file-map.md`](./file-map.md).
 
+> **Phase 7 audit update (2026-04 wrap-up).** The phase columns below are
+> the original Phase 1 plan, not the actual shipped phasing. The shipped
+> stack landed as Phase 2 (data foundation) → Phase 3 (inbox page) →
+> Phase 4 (detail + composer) → Phase 5 (productivity: macros / canned /
+> saved views / command palette) → Phase 6 (settings + reports +
+> automation) → Phase 7 (API adapter boundary + a11y + perf + docs +
+> CRM cross-link chips). Real Supabase persistence, the Resend
+> `email.received` wiring, and the live outbound `sendEmail()` call are
+> still deferred to **Phase 8**. The canonical source of truth for what
+> actually shipped is
+> [`final-audit-and-wrap-up.md`](./final-audit-and-wrap-up.md).
+
 ## 1. Inbox shell and navigation (structure: gray-ui-csm)
 
 | Donor surface (gray-ui-csm)                                                                                       | Donor cue / file                                            | Repo target                                                                                       | Phase | Notes                                                                                                                                                                                   |
@@ -118,8 +130,8 @@
 
 Conversation-centric metrics needed for six of the seven report shapes live
 in the MVP `support_*` sketch; **CSAT** additionally needs
-`support_csat_responses` (Phase 4 — see `phase-01-discovery.md` §3.4 deferred
-tables). All report **UIs** ship Phase 4.
+`support_csat_responses` (Phase 4 — see `phase-01-discovery.md` §3.4
+deferred tables). All report **UIs** ship Phase 4.
 
 ## 7. Channels and integrations
 

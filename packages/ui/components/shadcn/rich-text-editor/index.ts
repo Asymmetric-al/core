@@ -10,7 +10,12 @@ export type { RichTextViewerProps } from "./rich-text-viewer";
 export { PostContent } from "./post-content";
 export type { PostContentProps } from "./post-content";
 
-export { useEditorContext, useOptionalEditorContext } from "./editor-context";
+export {
+  EditorContext,
+  useEditorContext,
+  useOptionalEditorContext,
+} from "./editor-context";
+export type { EditorContextValue } from "./editor-context";
 
 export {
   extractPlainText,
@@ -23,3 +28,19 @@ export {
 
 export { LegacyRichTextEditor } from "./legacy-rich-text-editor";
 export type { LegacyRichTextEditorProps } from "./legacy-rich-text-editor";
+
+/* ------------------------------------------------------------------------ */
+/*  Tiptap re-exports                                                        */
+/*                                                                            */
+/*  apps/* never imports @tiptap/* directly — the rich-text-editor barrel is */
+/*  the single seam. Phase 5 plugged in `@tiptap/suggestion` and             */
+/*  `@tiptap/extension-mention`; both are forwarded here so the support hub  */
+/*  feature can build suggestion-based extensions (slash, @-mentions)        */
+/*  without breaking the dependency boundary.                                */
+/* ------------------------------------------------------------------------ */
+
+export { Extension, Node, Mark } from "@tiptap/core";
+export type { Editor, Range, Extensions } from "@tiptap/react";
+export { default as Suggestion } from "@tiptap/suggestion";
+export type { SuggestionOptions } from "@tiptap/suggestion";
+export { default as Mention } from "@tiptap/extension-mention";
