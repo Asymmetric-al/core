@@ -32,6 +32,22 @@ target.write_text(sql)
 PY
 }
 
+patch_demo_readonly_migration() {
+  local source_file="$1"
+  local target_file="$2"
+
+  python3 - "$source_file" "$target_file" <<'PY'
+from pathlib import Path
+import sys
+
+source = Path(sys.argv[1])
+target = Path(sys.argv[2])
+sql = source.read_text()
+sql = sql.replace("ESCAPE '\\\\'", "ESCAPE '\\'")
+target.write_text(sql)
+PY
+}
+
 for migration in $(ls -1 supabase/migrations/*.sql | sort); do
   migration_name="$(basename "$migration")"
   case "$migration_name" in
@@ -41,6 +57,11 @@ for migration in $(ls -1 supabase/migrations/*.sql | sort); do
     20260226113000_authz_memberships_foundation.sql)
       patched_migration="$tmp_dir/$migration_name"
       patch_authz_membership_migration "$migration" "$patched_migration"
+      psql "$DATABASE_URL" -f "$patched_migration" -v ON_ERROR_STOP=1
+      ;;
+    20260216153000_demo_readonly_rls.sql)
+      patched_migration="$tmp_dir/$migration_name"
+      patch_demo_readonly_migration "$migration" "$patched_migration"
       psql "$DATABASE_URL" -f "$patched_migration" -v ON_ERROR_STOP=1
       ;;
     *)
