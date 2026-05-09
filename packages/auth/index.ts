@@ -4,6 +4,7 @@ export * from "./middleware";
 export * from "./permissions";
 export * from "./redirects";
 export * from "./use-auth";
+export * from "./client-session";
 export * from "./client-signout";
 export * from "./roles";
 export * from "./demo-login";

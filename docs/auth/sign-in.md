@@ -115,4 +115,10 @@ On mismatch, users are redirected to `/no-access`.
 - Auth callback route (`/auth/callback`) is implemented for PKCE-ready code exchange.
 - Public self-registration is least-privilege: role assignment is enforced server-side to `donor`.
 - Privileged roles (`admin`, `staff`, etc.) must be assigned through trusted admin/invite workflows.
-- Sign-out is completed server-side through `/api/auth/signout` before client navigation to `/login`.
+- Sign-out is intentionally scoped to the current Supabase session/device.
+  Other active browser or device sessions remain signed in; use a separate
+  future "sign out everywhere" flow if global revocation is needed.
+- Successful sign-out completes `/api/auth/signout` first, then clears browser
+  auth state and navigates to `/login`.
+- If server sign-out fails, the shared client session module keeps the user on
+  the current page and surfaces the error for retry.

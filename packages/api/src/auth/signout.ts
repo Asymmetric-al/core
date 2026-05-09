@@ -17,6 +17,16 @@ type PendingCookie = {
   };
 };
 
+type CurrentSessionSignOutClient = {
+  auth: {
+    signOut(options: { scope: "local" }): Promise<{ error: unknown }>;
+  };
+};
+
+export function signOutCurrentSession(supabase: CurrentSessionSignOutClient) {
+  return supabase.auth.signOut({ scope: "local" });
+}
+
 function normalizeCookieOptions(options?: PendingCookie["options"]) {
   if (!options) return undefined;
   const { sameSite, ...rest } = options;
@@ -169,7 +179,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { error } = await supabase.auth.signOut();
+  const { error } = await signOutCurrentSession(supabase);
   if (error) {
     return noStoreJson(
       { ok: false, error: "Unable to sign out." },
