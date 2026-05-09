@@ -1,3 +1,21 @@
+
+## 2026-04-24 (Tiptap shared editor refinement + hardening tests)
+
+- Date: 2026-04-24
+- Repo: Asymmetric-al/core
+- Goal: Audit and harden the shared `@asym/ui` Tiptap editor implementation with low-risk refinements and expanded unit coverage for helpers, extensions, viewer, editor control sync, toolbar, and link bubble behavior.
+- Primary area:
+  - `packages/ui/components/shadcn/rich-text-editor/*`
+  - `tests/unit/packages/ui/components/shadcn/rich-text-editor/*`
+- Constraints:
+  - Preserve existing public API and JSON-string storage model.
+  - Keep shared ownership in `packages/ui`; no app-local editor forks.
+  - Keep `immediatelyRender: false`, `useEditorState`-driven toolbar/bubble state, and static-renderer viewer path.
+- Evidence sources used:
+  - `AGENTS.md`, `docs/ai/rules/{frontend,testing}.md`, `docs/ai/skills/tiptap/SKILL.md`
+  - Official Tiptap docs pages for React/Next, StarterKit, Link, Placeholder, Image, setContent, and Static Renderer
+  - Repo-scoped `rg` + direct file reads (Nia MCP unavailable in this runtime)
+
 # Working Set
 
 ## 2026-05-07 (Twenty CRM integration phase pack)
