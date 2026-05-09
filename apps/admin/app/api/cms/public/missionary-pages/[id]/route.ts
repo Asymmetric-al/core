@@ -1,13 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { MISSIONARY_GIVING_PAGES_SLUG } from "../../../../../../src/cms/constants";
 import { getPayloadClient } from "../../../../../../src/cms/get-payload";
+import {
+  publicCmsPublishedPageResponse,
+  readPublishedPageLike,
+} from "../../../../../../src/cms/public/published-page-read";
 import { resolveTenantFromRequest } from "../../../../../../src/cms/public/resolve-tenant";
 import {
   ensureRequestTimeExecution,
   publicCmsRouteErrorResponse,
 } from "../../../../../../src/cms/public/route-helpers";
-import { serializePublishedPageLike } from "../../../../../../src/cms/public/serialize-published-page";
 
 type RouteContext = {
   params: Promise<{
@@ -27,48 +29,16 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
 
     const { id: rawId } = await context.params;
-    let missionaryId = rawId?.trim() ?? "";
-    try {
-      missionaryId = decodeURIComponent(missionaryId);
-    } catch {
-      /* keep raw */
-    }
-
-    if (!missionaryId) {
-      return NextResponse.json(
-        { error: "Missionary id required" },
-        { status: 400 },
-      );
-    }
-
-    const pageQuery = await payload.find({
-      collection: MISSIONARY_GIVING_PAGES_SLUG,
-      limit: 1,
-      overrideAccess: true,
-      pagination: false,
-      sort: "-updatedAt",
-      where: {
-        and: [
-          { tenant: { equals: tenant.id } },
-          { missionaryId: { equals: missionaryId } },
-          { _status: { equals: "published" } },
-        ],
+    const result = await readPublishedPageLike({
+      payload,
+      tenant,
+      descriptor: {
+        kind: "missionary-giving-page",
+        missionaryId: rawId,
       },
     });
 
-    const doc = pageQuery.docs[0];
-    if (!doc) {
-      return NextResponse.json({ error: "Page not found" }, { status: 404 });
-    }
-
-    return NextResponse.json({
-      page: serializePublishedPageLike(
-        doc as unknown as Record<string, unknown>,
-      ),
-      tenant: {
-        slug: tenant.slug ?? null,
-      },
-    });
+    return publicCmsPublishedPageResponse(result);
   } catch (error) {
     return publicCmsRouteErrorResponse(error, {
       clientMessage: "Failed to fetch page content",
