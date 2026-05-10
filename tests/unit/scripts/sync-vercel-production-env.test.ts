@@ -31,8 +31,26 @@ describe("sync Vercel production env helpers", () => {
     expect(parseInputKeySelection("")).toBeNull();
   });
 
-  it("deduplicates common input requirements while preserving app-specific webhook secrets", () => {
+  it("deduplicates default input requirements while preserving app-specific webhook secrets", () => {
     expect(allInputRequirements().map((entry) => entry.inputKey)).toEqual([
+      "ADMIN_STRIPE_WEBHOOK_SECRET",
+      "DONOR_STRIPE_WEBHOOK_SECRET",
+      "MISSIONARY_STRIPE_WEBHOOK_SECRET",
+      "NEXT_PUBLIC_SENTRY_DSN",
+      "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+      "RESEND_API_KEY",
+      "RESEND_ENCRYPTION_KEY",
+      "SENTRY_DSN",
+      "STRIPE_SECRET_KEY",
+    ]);
+  });
+
+  it("keeps Resend webhook secret available for targeted sync only", () => {
+    expect(
+      allInputRequirements({ includeTargetedOnly: true }).map(
+        (entry) => entry.inputKey,
+      ),
+    ).toEqual([
       "ADMIN_STRIPE_WEBHOOK_SECRET",
       "DONOR_STRIPE_WEBHOOK_SECRET",
       "MISSIONARY_STRIPE_WEBHOOK_SECRET",
@@ -92,11 +110,7 @@ describe("sync Vercel production env helpers", () => {
       RESEND_WEBHOOK_SECRET: undefined,
     });
 
-    expect(missing).toEqual([
-      "ADMIN_STRIPE_WEBHOOK_SECRET",
-      "RESEND_WEBHOOK_SECRET",
-      "VERCEL_TOKEN",
-    ]);
+    expect(missing).toEqual(["ADMIN_STRIPE_WEBHOOK_SECRET", "VERCEL_TOKEN"]);
   });
 
   it("can validate and map a targeted subset without requiring unrelated provider secrets", () => {
@@ -115,6 +129,27 @@ describe("sync Vercel production env helpers", () => {
         vercelKey: "RESEND_API_KEY",
         inputKey: "RESEND_API_KEY",
         value: "re_123",
+        sensitive: true,
+      },
+    ]);
+  });
+
+  it("can validate and map the targeted Resend webhook secret path", () => {
+    const env = {
+      VERCEL_TOKEN: "vercel-token",
+      RESEND_WEBHOOK_SECRET: "whsec_resend",
+    };
+    const options = { inputKeys: ["RESEND_WEBHOOK_SECRET"] };
+
+    expect(validateInputEnv(env, options)).toEqual({
+      missing: [],
+      invalid: [],
+    });
+    expect(envEntriesForProject("admin", env, options)).toEqual([
+      {
+        vercelKey: "RESEND_WEBHOOK_SECRET",
+        inputKey: "RESEND_WEBHOOK_SECRET",
+        value: "whsec_resend",
         sensitive: true,
       },
     ]);
@@ -156,12 +191,6 @@ describe("sync Vercel production env helpers", () => {
         vercelKey: "RESEND_API_KEY",
         inputKey: "RESEND_API_KEY",
         value: "re_123",
-        sensitive: true,
-      },
-      {
-        vercelKey: "RESEND_WEBHOOK_SECRET",
-        inputKey: "RESEND_WEBHOOK_SECRET",
-        value: "whsec_resend",
         sensitive: true,
       },
       {

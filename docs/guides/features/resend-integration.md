@@ -210,8 +210,10 @@ Rollback: restore previous `RESEND_API_KEY` and redeploy.
 
 Use this when rotating the webhook signing secret in Resend.
 
-1. Generate a new webhook secret in Resend for the same endpoint.
-2. Update `RESEND_WEBHOOK_SECRET` in your deployment environment.
+1. Run the guarded `Configure Resend Production Webhook` workflow in dry-run mode.
+2. Run the same workflow in write mode to create or update the production endpoint,
+   mask the returned `whsec_...`, and sync `RESEND_WEBHOOK_SECRET` into Vercel
+   Production for `admin`, `donor`, and `missionary`.
 3. Deploy quickly so secret values match on both sides.
 4. Verify webhook delivery with a test event (expect `200`/`202`, not `401`).
 
