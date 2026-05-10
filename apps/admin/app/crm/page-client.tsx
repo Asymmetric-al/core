@@ -55,6 +55,8 @@ import { PORTAL_BADGE_CLASS, toCrmRecord } from "./types";
 
 import type { CrmGridRow, CrmRecord } from "./types";
 
+const EMPTY_CELL_VALUE = "N/A";
+
 function makeDisplayDate(value?: string | number | Date): Date {
   return value === undefined
     ? new globalThis.Date()
@@ -336,7 +338,7 @@ function DetailDrawer({
                       Email
                     </p>
                     <p className="text-sm font-semibold text-foreground truncate hover:text-primary cursor-pointer">
-                      {contact.email ?? ","}
+                      {contact.email ?? EMPTY_CELL_VALUE}
                     </p>
                   </div>
                   <div className="space-y-1">
@@ -344,7 +346,7 @@ function DetailDrawer({
                       Phone
                     </p>
                     <p className="text-sm font-semibold text-foreground">
-                      {contact.phone ?? ","}
+                      {contact.phone ?? EMPTY_CELL_VALUE}
                     </p>
                   </div>
                   <div className="space-y-1">
@@ -352,7 +354,7 @@ function DetailDrawer({
                       Location
                     </p>
                     <p className="text-sm font-semibold text-foreground">
-                      {contact.location ?? ","}
+                      {contact.location ?? EMPTY_CELL_VALUE}
                     </p>
                   </div>
                 </div>
@@ -362,7 +364,7 @@ function DetailDrawer({
                       Assigned missionary
                     </p>
                     <p className="text-sm font-semibold text-foreground">
-                      {contact.assignedMissionaryName ?? ","}
+                      {contact.assignedMissionaryName ?? EMPTY_CELL_VALUE}
                     </p>
                   </div>
                   <div className="space-y-1">
@@ -371,7 +373,9 @@ function DetailDrawer({
                     </p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {(contact.tags ?? []).length === 0 ? (
-                        <span className="text-sm text-muted-foreground">,</span>
+                        <span className="text-sm text-muted-foreground">
+                          {EMPTY_CELL_VALUE}
+                        </span>
                       ) : (
                         contact.tags.map((t) => (
                           <Badge
@@ -469,7 +473,7 @@ function KanbanView({
                         {orgInitial}
                       </div>
                       <span className="text-[10px] text-muted-foreground font-medium truncate">
-                        {org || ","}
+                        {org || EMPTY_CELL_VALUE}
                       </span>
                     </div>
                     <div className="flex items-center justify-between pt-2 border-t border-muted">
@@ -760,7 +764,7 @@ export default function MissionControlCRM() {
                                   </div>
                                 </SharedNamedViewTransition>
                                 <div className="text-xs text-muted-foreground">
-                                  {c.primaryOrganization ?? ","}
+                                  {c.primaryOrganization ?? EMPTY_CELL_VALUE}
                                 </div>
                               </div>
                             </div>
@@ -768,12 +772,12 @@ export default function MissionControlCRM() {
                               variant="outline"
                               className="text-[9px] uppercase"
                             >
-                              {c.lifecycleStatus ?? ","}
+                              {c.lifecycleStatus ?? EMPTY_CELL_VALUE}
                             </Badge>
                           </div>
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-muted-foreground line-clamp-1">
-                              {c.recordType ?? ","}
+                              {c.recordType ?? EMPTY_CELL_VALUE}
                             </span>
                             <span className="font-semibold tabular-nums">
                               {formatCurrency(c.lifetimeGiving)}

@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 const DEFAULT_APPS = ["admin", "donor", "missionary"];
 
-function sameHardLinkTarget(dest, source) {
+function isSameHardLink(dest, source) {
   const destStat = fs.statSync(dest);
   const sourceStat = fs.statSync(source);
   return (
@@ -14,16 +14,16 @@ function sameHardLinkTarget(dest, source) {
   );
 }
 
-function sameResolvedTarget(dest, source, stat = fs.lstatSync(dest)) {
+function isLinkedToRootEnv(dest, source, stat = fs.lstatSync(dest)) {
   if (!stat.isSymbolicLink()) {
-    return sameHardLinkTarget(dest, source);
+    return isSameHardLink(dest, source);
   }
 
   const target = fs.readlinkSync(dest);
   return path.resolve(path.dirname(dest), target) === source;
 }
 
-function createEnvLink(source, dest) {
+function createRootEnvLink(source, dest) {
   const relativeSource = path.relative(path.dirname(dest), source);
 
   try {
@@ -62,7 +62,7 @@ export function linkRootEnvToApps(
     if (fs.existsSync(dest)) {
       const stat = fs.lstatSync(dest);
 
-      if (sameResolvedTarget(dest, source, stat)) {
+      if (isLinkedToRootEnv(dest, source, stat)) {
         return { status: "unchanged", app, source, dest };
       }
 
@@ -73,7 +73,7 @@ export function linkRootEnvToApps(
       fs.rmSync(dest, { force: true });
     }
 
-    createEnvLink(source, dest);
+    createRootEnvLink(source, dest);
 
     return {
       status: force ? "relinked" : "linked",

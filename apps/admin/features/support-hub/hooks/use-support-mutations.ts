@@ -1,7 +1,11 @@
 "use client";
 
 import { supportHubQueryKeys } from "@asym/database/query-keys";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
 
 import { logSupportActivity } from "../lib/activity-log";
 import {
@@ -74,6 +78,12 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
+function invalidateSupportHubCaches(queryClient: QueryClient): Promise<void> {
+  return queryClient.invalidateQueries({
+    queryKey: [...supportHubQueryKeys.root],
+  });
+}
+
 function genId(prefix: string): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return `${prefix}-${crypto.randomUUID()}`;
@@ -126,11 +136,7 @@ export function useAssignSupportConversation() {
 
       return input.conversationId;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -178,11 +184,7 @@ export function useSetSupportConversationStatus() {
 
       return input.conversationId;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -216,11 +218,7 @@ export function useSnoozeSupportConversation() {
 
       return input.conversationId;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -259,11 +257,7 @@ export function useUnsnoozeSupportConversation() {
 
       return input.conversationId;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -299,11 +293,7 @@ export function useSetSupportConversationPriority() {
 
       return input.conversationId;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -365,11 +355,7 @@ export function useToggleSupportLabel() {
 
       return input.conversationId;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -432,11 +418,7 @@ export function useAddSupportPrivateNote() {
 
       return message.id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -518,11 +500,7 @@ export function useSendSupportReply() {
 
       return messageId;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -561,11 +539,7 @@ export function useSaveSupportMacro() {
       await tx.isPersisted.promise;
       return id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -606,11 +580,7 @@ export function useSaveSupportCannedResponse() {
       await tx.isPersisted.promise;
       return id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -651,11 +621,7 @@ export function useSaveSupportSavedView() {
       await tx.isPersisted.promise;
       return id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -708,11 +674,7 @@ export function useSaveSupportLabel() {
       await tx.isPersisted.promise;
       return id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -742,11 +704,7 @@ export function useDeleteSupportLabel() {
       }
       return input.id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -759,11 +717,7 @@ export function useDeleteSupportSavedView() {
       await tx.isPersisted.promise;
       return input.id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -776,11 +730,7 @@ export function useDeleteSupportMacro() {
       await tx.isPersisted.promise;
       return input.id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -793,11 +743,7 @@ export function useDeleteSupportCannedResponse() {
       await tx.isPersisted.promise;
       return input.id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -871,11 +817,7 @@ export function useRunSupportMacro(): ReturnType<
         },
       });
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -929,11 +871,7 @@ export function useApplyRoundRobinAssignment() {
       });
       return next.id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -978,11 +916,7 @@ export function useSaveSupportInboxSettings() {
       await tx.isPersisted.promise;
       return input.id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -1022,11 +956,7 @@ export function useSaveSupportBusinessHours() {
       await tx.isPersisted.promise;
       return row.id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -1039,11 +969,7 @@ export function useDeleteSupportBusinessHours() {
       await tx.isPersisted.promise;
       return input.id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -1089,11 +1015,7 @@ export function useSaveSupportSlaPolicy() {
       if (row.isDefault) await clearOtherDefaultSlas(row.id);
       return row.id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -1106,11 +1028,7 @@ export function useDeleteSupportSlaPolicy() {
       await tx.isPersisted.promise;
       return input.id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -1135,11 +1053,7 @@ export function useSetDefaultSupportSlaPolicy() {
       }
       return input.id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -1189,11 +1103,7 @@ export function useSaveSupportTeam() {
       await tx.isPersisted.promise;
       return row.id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -1206,11 +1116,7 @@ export function useDeleteSupportTeam() {
       await tx.isPersisted.promise;
       return input.id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -1254,11 +1160,7 @@ export function useSaveSupportSignature() {
         await clearOtherDefaultSignatures(row.id, row.ownerAgentId);
       return row.id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -1271,11 +1173,7 @@ export function useDeleteSupportSignature() {
       await tx.isPersisted.promise;
       return input.id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -1305,11 +1203,7 @@ export function useSetDefaultSupportSignature() {
       }
       return input.id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -1373,11 +1267,7 @@ export function useSaveSupportAutomationRule() {
       await tx.isPersisted.promise;
       return row.id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -1390,11 +1280,7 @@ export function useDeleteSupportAutomationRule() {
       await tx.isPersisted.promise;
       return input.id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -1413,11 +1299,7 @@ export function useToggleSupportAutomationRule() {
       await tx.isPersisted.promise;
       return input.id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -1463,10 +1345,6 @@ export function useSaveSupportNotificationPreferences() {
       await tx.isPersisted.promise;
       return row.id;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: [...supportHubQueryKeys.root],
-      });
-    },
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }

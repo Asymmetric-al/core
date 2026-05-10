@@ -216,7 +216,8 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
     channel.subscribe();
 
     return () => {
-      void channel.unsubscribe();
+      // `removeChannel` unsubscribes and removes this channel from the Supabase client.
+      void supabase.removeChannel(channel);
     };
   }, [profile?.id, supabase, fetchTasks]);
 

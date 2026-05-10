@@ -118,7 +118,7 @@ export function SelectCell<TData>({
       <span
         className={cn("block text-sm text-muted-foreground italic", className)}
       >
-        ,{" "}
+        N/A
       </span>
     );
   }

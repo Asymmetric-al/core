@@ -115,10 +115,12 @@ import type {
 
 import { PageHeader } from "@/components/page-header";
 
-function makeDisplayDate(value?: string | number | Date): Date {
-  return value === undefined
-    ? new globalThis.Date()
-    : new globalThis.Date(value);
+function currentDisplayDate(): Date {
+  return new globalThis.Date();
+}
+
+function parseDisplayDate(value: string | number | Date): Date {
+  return new globalThis.Date(value);
 }
 
 const fadeInUp = {
@@ -323,7 +325,7 @@ async function insertDonorActivity(options: {
         type: options.activityType,
         title: DONOR_ACTIVITY_TITLES[options.activityType],
         description: options.note,
-        date: makeDisplayDate().toISOString(),
+        date: currentDisplayDate().toISOString(),
       });
     if (insertError) return { ok: false, error: insertError };
     return { ok: true };
@@ -342,7 +344,7 @@ async function updateDonorTags(options: {
       .from("donors")
       .update({
         tags: options.tags,
-        updated_at: makeDisplayDate().toISOString(),
+        updated_at: currentDisplayDate().toISOString(),
       })
       .eq("id", options.donorId);
     if (updateError) return { ok: false, error: updateError };
@@ -742,7 +744,7 @@ export function useDonorsPageView(): DonorsPageViewModel {
           <DataTableColumnHeader column={column} title="Date" />
         ),
         cell: ({ row }) =>
-          format(makeDisplayDate(row.original.date), "MMM d, yyyy"),
+          format(parseDisplayDate(row.original.date), "MMM d, yyyy"),
       },
       {
         accessorKey: "title",
@@ -1544,15 +1546,15 @@ export function DonorsPageContent({
                           value: formatCurrency(selectedDonor.last_gift_amount),
                           extra: selectedDonor.last_gift_date
                             ? formatDistanceToNow(
-                                makeDisplayDate(selectedDonor.last_gift_date),
+                                parseDisplayDate(selectedDonor.last_gift_date),
                                 { addSuffix: true },
                               )
                             : null,
                           showPulse:
                             selectedDonor.last_gift_date &&
                             differenceInMonths(
-                              makeDisplayDate(),
-                              makeDisplayDate(selectedDonor.last_gift_date),
+                              currentDisplayDate(),
+                              parseDisplayDate(selectedDonor.last_gift_date),
                             ) < 1,
                         },
                         {
@@ -1564,7 +1566,7 @@ export function DonorsPageContent({
                           label: "Partner Since",
                           value: selectedDonor.joined_date
                             ? format(
-                                makeDisplayDate(selectedDonor.joined_date),
+                                parseDisplayDate(selectedDonor.joined_date),
                                 "MMM yyyy",
                               )
                             : "N/A",
@@ -1894,7 +1896,7 @@ export function DonorsPageContent({
                                             </div>
                                             <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 whitespace-nowrap">
                                               {format(
-                                                makeDisplayDate(activity.date),
+                                                parseDisplayDate(activity.date),
                                                 "MMM d, yyyy",
                                               )}
                                             </span>
@@ -2231,7 +2233,7 @@ export function DonorsPageContent({
                                           </p>
                                           <p className="text-sm font-medium text-zinc-900">
                                             {format(
-                                              makeDisplayDate(
+                                              parseDisplayDate(
                                                 selectedDonor.birthday,
                                               ),
                                               "MMMM d",
@@ -2257,7 +2259,7 @@ export function DonorsPageContent({
                                           </p>
                                           <p className="text-sm font-medium text-zinc-900">
                                             {format(
-                                              makeDisplayDate(
+                                              parseDisplayDate(
                                                 selectedDonor.anniversary,
                                               ),
                                               "MMMM d",
@@ -2386,7 +2388,7 @@ export function DonorsPageContent({
                                                 <Calendar className="size-3.5" />
                                                 Started{" "}
                                                 {format(
-                                                  makeDisplayDate(
+                                                  parseDisplayDate(
                                                     recurring.start_date,
                                                   ),
                                                   "MMM d, yyyy",
@@ -2397,7 +2399,7 @@ export function DonorsPageContent({
                                                   <Clock className="size-3.5" />
                                                   Ends{" "}
                                                   {format(
-                                                    makeDisplayDate(
+                                                    parseDisplayDate(
                                                       recurring.end_date,
                                                     ),
                                                     "MMM d, yyyy",
@@ -2426,7 +2428,7 @@ export function DonorsPageContent({
                                               </p>
                                               <p className="text-lg font-semibold text-zinc-900">
                                                 {format(
-                                                  makeDisplayDate(
+                                                  parseDisplayDate(
                                                     recurring.next_payment_date,
                                                   ),
                                                   "MMM d",
@@ -2434,7 +2436,7 @@ export function DonorsPageContent({
                                               </p>
                                               <p className="text-xs text-zinc-500">
                                                 {formatDistanceToNow(
-                                                  makeDisplayDate(
+                                                  parseDisplayDate(
                                                     recurring.next_payment_date,
                                                   ),
                                                   { addSuffix: true },

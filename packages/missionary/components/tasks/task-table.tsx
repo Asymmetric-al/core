@@ -31,6 +31,8 @@ import { TASK_TYPE_CONFIG, PRIORITY_CONFIG } from "./task-config";
 
 import type { Task } from "../../types";
 
+const EMPTY_CELL_VALUE = "N/A";
+
 interface TaskTableProps {
   tasks: Task[];
   selectedTaskIds: string[];
@@ -253,7 +255,9 @@ export function TaskTable({
                           </span>
                         </div>
                       ) : (
-                        <span className="text-xs text-muted-foreground">,</span>
+                        <span className="text-xs text-muted-foreground">
+                          {EMPTY_CELL_VALUE}
+                        </span>
                       )}
                     </td>
                     <td className="p-4" onClick={(e) => e.stopPropagation()}>

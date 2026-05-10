@@ -11,6 +11,7 @@ Use this when adding tests, modifying critical flows, or verifying changes.
 
 - **E2E framework:** Playwright (configured in `playwright.config.ts`).
 - **Unit tests:** Vitest (configured for `tests/unit/**/*.test.ts(x)`).
+- **Unit test env defaults:** `vitest.config.ts` provides `SKIP_ENV_VALIDATION=1` plus placeholder public Supabase values so unit tests can import env-sensitive modules. Tests that validate env schema behavior must override or clear those values intentionally. These defaults do not replace integration or production env validation, and no real secrets belong in test config.
 - **Accessibility:** `@axe-core/playwright`.
 - **Performance:** Playwright-based Web Vitals assertions.
 - **Local CI parity:** Run `bun run ci:preflight` before push/PR-ready to mirror blocking GitHub checks.

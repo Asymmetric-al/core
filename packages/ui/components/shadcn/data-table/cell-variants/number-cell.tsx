@@ -197,7 +197,7 @@ export function NumberCell<TData>({
         {suffix && <span className="text-muted-foreground">{suffix}</span>}
       </>
     ) : (
-      <span className="text-muted-foreground italic">,</span>
+      <span className="text-muted-foreground italic">N/A</span>
     );
 
   return (

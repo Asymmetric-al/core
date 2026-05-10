@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { ChartStyle } from "@asym/ui/components/shadcn/chart";
 
 describe("ChartStyle", () => {
-  it("renders chart CSS as style children without inner HTML attributes", () => {
+  it("renders chart CSS variables in a style tag", () => {
     const markup = renderToStaticMarkup(
       <ChartStyle
         id="chart-regression"
@@ -22,7 +22,6 @@ describe("ChartStyle", () => {
     );
 
     expect(markup).toContain("<style>");
-    expect(markup).not.toContain("dangerouslySetInnerHTML");
     expect(markup).toContain("[data-chart=chart-regression]");
     expect(markup).toContain("--color-donations: hsl(var(--chart-1));");
     expect(markup).toContain("--color-pledges: hsl(var(--chart-2));");

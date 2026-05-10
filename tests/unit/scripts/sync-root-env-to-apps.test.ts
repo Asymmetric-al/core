@@ -15,7 +15,7 @@ function makeRepoRoot() {
   return repoRoot;
 }
 
-function expectEnvLink(dest: string, source: string) {
+function expectLinkedToRootEnv(dest: string, source: string) {
   const stat = fs.lstatSync(dest);
 
   if (stat.isSymbolicLink()) {
@@ -55,7 +55,7 @@ describe("linkRootEnvToApps", () => {
         status: "linked",
       },
     ]);
-    expectEnvLink(dest, path.join(repoRoot, ".env.local"));
+    expectLinkedToRootEnv(dest, path.join(repoRoot, ".env.local"));
   });
 
   it("refuses to overwrite an app-local env file by default", () => {
@@ -92,7 +92,7 @@ describe("linkRootEnvToApps", () => {
       source: path.join(repoRoot, ".env.local"),
       status: "relinked",
     });
-    expectEnvLink(dest, path.join(repoRoot, ".env.local"));
+    expectLinkedToRootEnv(dest, path.join(repoRoot, ".env.local"));
   });
 
   it.skipIf(process.platform !== "win32")(
@@ -124,7 +124,7 @@ describe("linkRootEnvToApps", () => {
         dest,
       );
       expect(fs.lstatSync(dest).isSymbolicLink()).toBe(false);
-      expectEnvLink(dest, source);
+      expectLinkedToRootEnv(dest, source);
     },
   );
 
@@ -145,6 +145,6 @@ describe("linkRootEnvToApps", () => {
         status: "unchanged",
       },
     ]);
-    expectEnvLink(dest, source);
+    expectLinkedToRootEnv(dest, source);
   });
 });
