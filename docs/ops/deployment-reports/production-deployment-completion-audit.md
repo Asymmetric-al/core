@@ -6,10 +6,10 @@ Generated: 2026-05-10 Asia/Bangkok
 
 The production deployment goal is not complete. Repo-side remediation is merged
 to remote `epic` and verified through commit
-`a3eed2981b211252deeeca694df24bc1b94beb4b`, but the intended Vercel Production
-deployments for `admin`, `donor`, and `missionary` are still blocked by missing
-external provider values and absent READY production deployments for the current
-target commit.
+`3340ac23edc7a70aa3f158039b1e5e67429a64fd`, but the intended Vercel
+Production deployments for `admin`, `donor`, and `missionary` are still blocked
+by missing live Stripe and Sentry provider values and absent READY production
+deployments for the current target commit.
 
 Live Vercel project settings currently report `productionBranch: epic` for all
 three projects. The repo-side branch-gating conflict that disabled `epic` in
@@ -18,22 +18,22 @@ checks this condition explicitly.
 
 ## Objective Checklist
 
-| Requirement                                                              | Evidence                                                                                                                                                                                                                                                                                                                                                                      | Status   |
-| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| Use the latest deployment reports for `admin`, `donor`, and `missionary` | Per-app reports exist in this directory and include Vercel project facts, deployment facts, missing envs, branch wiring, and evidence commands.                                                                                                                                                                                                                               | Complete |
-| Fix repo-side production deployment wiring                               | Live Vercel project settings use `epic` as the Production Branch. `apps/admin/vercel.json`, `apps/donor/vercel.json`, and `apps/missionary/vercel.json` no longer disable `epic`.                                                                                                                                                                                             | Complete |
-| Add missing production Stripe webhook routes                             | Build output includes `/api/webhooks/stripe` for all three apps. Shared handler is exported from `@asym/api/stripe/webhooks`.                                                                                                                                                                                                                                                 | Complete |
-| Test repo changes before shipping                                        | Local `bun run ci:preflight` passed, pre-push `ci:preflight` passed, targeted unit coverage passed, and GitHub CI passed for the target commit.                                                                                                                                                                                                                               | Complete |
-| Verify remote checks, not only local checks                              | GitHub CI and Nia source check succeeded for commit `a3eed2981b211252deeeca694df24bc1b94beb4b`. Targeted `Sync Vercel Production Env` dry-run/write workflows succeeded for `RESEND_API_KEY` and `RESEND_ENCRYPTION_KEY`. Re-check the newest run after every new push before release.                                                                                        | Complete |
-| Add a permanent production readiness verifier                            | `bun run verify:vercel-production -- --commit <sha>` checks required Vercel Production envs, unreadable sensitive values, live Vercel Production Branch compatibility with app-level `vercel.json`, READY production deployment metadata, and production `/api/health`.                                                                                                       | Complete |
-| Add a guarded production env sync path                                   | `.github/workflows/sync-vercel-production-env.yml` and `scripts/sync-vercel-production-env.mjs` can sync real GitHub Secrets into all three Vercel Production projects after validating required provider values. `RESEND_API_KEY` dry-run `25617820225`/write `25617834101` succeeded; `RESEND_ENCRYPTION_KEY` dry-run `25618145516`/write `25618153850` succeeded.          | Complete |
-| Add a guarded Resend webhook configuration path                          | `.github/workflows/configure-resend-production-webhook.yml` and `scripts/configure-resend-production-webhook.mjs` can create or update the production Resend webhook, mask the returned signing secret, and sync `RESEND_WEBHOOK_SECRET` into all three Vercel Production projects. Unit coverage exists in `tests/unit/scripts/configure-resend-production-webhook.test.ts`. | Complete |
-| Document the deployment contract                                         | `docs/ops/environments.md`, `docs/ops/deploy-checklist.md`, and per-app deployment reports document required Production envs, webhook endpoints, branch contract, env sync path, and verification commands.                                                                                                                                                                   | Complete |
-| Configure all required Vercel Production env values                      | Current verifier reports missing Stripe, Sentry, and `RESEND_WEBHOOK_SECRET` values for every app. Supabase/Payload, `RESEND_API_KEY`, and `RESEND_ENCRYPTION_KEY` sensitive values are present but unreadable by Vercel CLI.                                                                                                                                                 | Blocked  |
-| Ensure the release branch matches Vercel Production Branch               | Live Vercel project settings currently use `epic`, and GitHub's default branch is `epic`. If Production is later migrated to `main`, update the Vercel project settings and docs first.                                                                                                                                                                                       | Complete |
-| Prove Vercel now attempts Production builds from the release branch      | After the branch-gating fix reached `epic`, Vercel created Production builds for all three projects from commit `a3eed2981b211252deeeca694df24bc1b94beb4b`. Those builds failed on missing provider envs rather than branch filtering or missing root directories.                                                                                                            | Complete |
-| Ship successful intended Vercel Production deployments                   | Current verifier reports no READY Production deployment for the target commit for `admin`, `donor`, or `missionary`. The latest attempts are `admin-dd37u62uj-asymmetric-al.vercel.app`, `donor-ilwmofddf-asymmetric-al.vercel.app`, and `missionary-1fzatlg81-asymmetric-al.vercel.app`, all `ERROR`.                                                                        | Blocked  |
-| Smoke-check production health                                            | Current health checks: `admin` returns `404`, `donor` returns `200` from a stale deployment, and `missionary` returns `404`.                                                                                                                                                                                                                                                  | Blocked  |
+| Requirement                                                              | Evidence                                                                                                                                                                                                                                                                                                                                                                                     | Status   |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| Use the latest deployment reports for `admin`, `donor`, and `missionary` | Per-app reports exist in this directory and include Vercel project facts, deployment facts, missing envs, branch wiring, and evidence commands.                                                                                                                                                                                                                                              | Complete |
+| Fix repo-side production deployment wiring                               | Live Vercel project settings use `epic` as the Production Branch. `apps/admin/vercel.json`, `apps/donor/vercel.json`, and `apps/missionary/vercel.json` no longer disable `epic`.                                                                                                                                                                                                            | Complete |
+| Add missing production Stripe webhook routes                             | Build output includes `/api/webhooks/stripe` for all three apps. Shared handler is exported from `@asym/api/stripe/webhooks`.                                                                                                                                                                                                                                                                | Complete |
+| Test repo changes before shipping                                        | Local `bun run ci:preflight` passed, pre-push `ci:preflight` passed, targeted unit coverage passed, and GitHub CI passed for the target commit.                                                                                                                                                                                                                                              | Complete |
+| Verify remote checks, not only local checks                              | GitHub CI and Nia source check succeeded for commit `3340ac23edc7a70aa3f158039b1e5e67429a64fd`. Targeted `Sync Vercel Production Env` dry-run/write workflows succeeded for `RESEND_API_KEY` and `RESEND_ENCRYPTION_KEY`; targeted `Configure Resend Production Webhook` dry-run/write workflows succeeded for `RESEND_WEBHOOK_SECRET`.                                                      | Complete |
+| Add a permanent production readiness verifier                            | `bun run verify:vercel-production -- --commit <sha>` checks required Vercel Production envs, unreadable sensitive values, live Vercel Production Branch compatibility with app-level `vercel.json`, READY production deployment metadata, and production `/api/health`.                                                                                                                      | Complete |
+| Add a guarded production env sync path                                   | `.github/workflows/sync-vercel-production-env.yml` and `scripts/sync-vercel-production-env.mjs` can sync real GitHub Secrets into all three Vercel Production projects after validating required provider values. `RESEND_API_KEY` dry-run `25617820225`/write `25617834101` succeeded; `RESEND_ENCRYPTION_KEY` dry-run `25618145516`/write `25618153850` succeeded.                         | Complete |
+| Add a guarded Resend webhook configuration path                          | `.github/workflows/configure-resend-production-webhook.yml` and `scripts/configure-resend-production-webhook.mjs` created Resend webhook `52e90eb0-21e3-422e-8683-974629cd1517`, masked the returned signing secret, and synced `RESEND_WEBHOOK_SECRET` into all three Vercel Production projects. Unit coverage exists in `tests/unit/scripts/configure-resend-production-webhook.test.ts`. | Complete |
+| Document the deployment contract                                         | `docs/ops/environments.md`, `docs/ops/deploy-checklist.md`, and per-app deployment reports document required Production envs, webhook endpoints, branch contract, env sync path, and verification commands.                                                                                                                                                                                  | Complete |
+| Configure all required Vercel Production env values                      | Current verifier reports missing Stripe and Sentry values for every app. Supabase/Payload, `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, and `RESEND_ENCRYPTION_KEY` sensitive values are present but unreadable by Vercel CLI.                                                                                                                                                                 | Blocked  |
+| Ensure the release branch matches Vercel Production Branch               | Live Vercel project settings currently use `epic`, and GitHub's default branch is `epic`. If Production is later migrated to `main`, update the Vercel project settings and docs first.                                                                                                                                                                                                      | Complete |
+| Prove Vercel now attempts Production builds from the release branch      | After the branch-gating fix reached `epic`, Vercel created Production builds for all three projects from commit `3340ac23edc7a70aa3f158039b1e5e67429a64fd`. Those builds failed on missing provider envs rather than branch filtering or missing root directories.                                                                                                                           | Complete |
+| Ship successful intended Vercel Production deployments                   | Current verifier reports no READY Production deployment for the target commit for `admin`, `donor`, or `missionary`. The latest attempts are `admin-kqhkvr39o-asymmetric-al.vercel.app`, `donor-4wa97itx7-asymmetric-al.vercel.app`, and `missionary-kep7ah45m-asymmetric-al.vercel.app`, all `ERROR`.                                                                                       | Blocked  |
+| Smoke-check production health                                            | Current health checks: `admin` returns `404`, `donor` returns `200` from a stale deployment, and `missionary` returns `404`.                                                                                                                                                                                                                                                                 | Blocked  |
 
 ## Current Blocking Values
 
@@ -44,11 +44,10 @@ These values are missing from Vercel Production for all three projects:
 - `STRIPE_WEBHOOK_SECRET`
 - `SENTRY_DSN`
 - `NEXT_PUBLIC_SENTRY_DSN`
-- `RESEND_WEBHOOK_SECRET`
 
 Secret-source checks on 2026-05-10 found:
 
-- Shell environment: the remaining six provider values are absent.
+- Shell environment: the remaining five provider values are absent.
 - Local root `.env.local`: Stripe secret, Stripe publishable key, and public
   Sentry DSN are present but empty; Stripe webhook, server Sentry DSN,
   `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, and `RESEND_ENCRYPTION_KEY` are
@@ -56,46 +55,45 @@ Secret-source checks on 2026-05-10 found:
 - Vercel Preview and Development env scopes: empty for all three projects, so
   there are no lower-environment Vercel provider values to promote.
 - GitHub repository secrets: `RESEND_API_KEY` exists and was synced to Vercel
-  Production by workflow run `25617834101`; Stripe, Sentry,
-  and `RESEND_WEBHOOK_SECRET` are absent.
+  Production by workflow run `25617834101`; Stripe and Sentry are absent.
+  `RESEND_WEBHOOK_SECRET` is derived from Resend during the guarded workflow and
+  is not stored as a GitHub repository secret.
 - `RESEND_ENCRYPTION_KEY` was generated as a new managed production secret,
   stored in GitHub Secrets, and synced to all three Vercel Production projects.
   The pre-check found `tenant_email_settings` unavailable through the production
   REST API and zero tenant Stripe credentials, so there was no existing
   encrypted Resend tenant key material to rotate.
-- A guarded `Configure Resend Production Webhook` workflow now exists to source
-  `RESEND_WEBHOOK_SECRET` from Resend's webhook configuration without printing
-  it. Run that workflow first as a dry-run and then as a write before re-running
-  the production readiness verifier.
-- Vercel Production env scope: `RESEND_API_KEY` and `RESEND_ENCRYPTION_KEY` are
-  now present for all three projects as sensitive values, so the CLI can confirm
-  the names exist but cannot read or print the values.
+- `Configure Resend Production Webhook` dry-run `25618472678` confirmed the
+  endpoint would be created, and write run `25618482475` created Resend webhook
+  `52e90eb0-21e3-422e-8683-974629cd1517`, masked its signing secret, and synced
+  `RESEND_WEBHOOK_SECRET` into all three Vercel Production projects.
+- Vercel Production env scope: `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, and
+  `RESEND_ENCRYPTION_KEY` are now present for all three projects as sensitive
+  values, so the CLI can confirm the names exist but cannot read or print the
+  values.
 - Vercel integration resources: none connected under the `asymmetric-al` scope.
 - Local secret-manager CLIs checked: `stripe`, `sentry-cli`, `op`, `doppler`,
   and `infisical` are not installed.
 
 Do not deploy with dummy values. The app can be made to build with syntactically
 valid placeholders, but that would not be an intended production deployment
-because Stripe webhooks, Sentry reporting, and Resend webhook verification would
-not work.
+because Stripe webhooks and Sentry reporting would not work.
 
 ## Required Completion Sequence
 
-1. Run `Configure Resend Production Webhook` first as a dry-run and then as a
-   write so the real `RESEND_WEBHOOK_SECRET` comes from Resend and is synced to
-   Vercel Production.
-2. Add real live Stripe values and create live Stripe webhook endpoints for all
+1. Add real live Stripe values and create live Stripe webhook endpoints for all
    three production URLs.
-3. Add real Sentry DSNs for server and browser reporting.
-4. Add the missing Stripe and Sentry values as GitHub repository secrets using the exact names
+2. Add real Sentry DSNs for server and browser reporting.
+3. Add the missing Stripe and Sentry values as GitHub repository secrets using the exact names
    documented in `docs/ops/environments.md`.
-5. Run the `Sync Vercel Production Env` workflow first as a dry-run and then as
+4. Run the `Sync Vercel Production Env` workflow first as a dry-run and then as
    a write. `RESEND_API_KEY` and `RESEND_ENCRYPTION_KEY` have already been
-   backfilled into Vercel Production, but that does not make Production
-   deployable until the remaining provider values exist.
-6. Re-run `bun run verify:vercel-production -- --commit <target-commit>`.
-7. Push or merge the approved release commit to `epic`, the current Vercel
+   backfilled into Vercel Production, and `RESEND_WEBHOOK_SECRET` has been
+   sourced from Resend and synced to Vercel Production, but that does not make
+   Production deployable until the remaining provider values exist.
+5. Re-run `bun run verify:vercel-production -- --commit <target-commit>`.
+6. Push or merge the approved release commit to `epic`, the current Vercel
    Production Branch.
-8. Wait for Vercel to produce READY Production deployments for all three apps.
-9. Re-run the production readiness verifier against the deployed `epic` commit
+7. Wait for Vercel to produce READY Production deployments for all three apps.
+8. Re-run the production readiness verifier against the deployed `epic` commit
    and complete the smoke checks in `docs/ops/deploy-checklist.md`.
