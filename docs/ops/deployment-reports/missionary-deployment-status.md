@@ -12,7 +12,7 @@ This remediation branch fixes the repo-side deploy wiring, adds the missing prod
 
 This report has also been replayed onto current `origin/epic` because GitHub still reports `epic` as the default branch and `origin/epic` is ahead of `origin/main`. A credible production release must not deploy stale `main` code; it must first either merge the current `epic` lineage into `main` or explicitly change the production contract away from `main`.
 
-The repo-side remediation is now merged to remote `epic` at commit `ddb558ce50ece088a359f2c29456604e48f733b7`. GitHub reports `ci-gate`, `format`, `lint`, `typecheck`, `test-unit`, `build`, and `source-check` as successful for that commit. No current Vercel Production deployment exists for that commit because legacy `epic` deployments are intentionally disabled and the intended Production branch remains `main`.
+The repo-side remediation and production-readiness verifier are now merged to remote `epic` at commit `cdc1d79d6718220e40daf4603a538497fc75dac0`. GitHub reports CI and Nia source check as successful for that commit; CI includes `ci-gate`, `format`, `lint`, `typecheck`, `test-unit`, and `build`. No current Vercel Production deployment exists for that commit because legacy `epic` deployments are intentionally disabled and the intended Production branch remains `main`.
 
 ## Current Vercel Project Facts
 
@@ -91,7 +91,7 @@ The following required external values are still missing and must be added befor
 Additional secret-source audit on 2026-05-10:
 
 - Local root `.env.local` has `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, and `NEXT_PUBLIC_SENTRY_DSN` present but empty; `STRIPE_WEBHOOK_SECRET`, `SENTRY_DSN`, `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, and `RESEND_ENCRYPTION_KEY` are absent.
-- GitHub repository secrets include Vercel and Supabase values, but no Stripe, Sentry, or Resend secret names.
+- GitHub repository secrets include Vercel and Supabase values plus `RESEND_API_KEY`, but no Stripe, Sentry, `RESEND_WEBHOOK_SECRET`, or `RESEND_ENCRYPTION_KEY` secret names.
 - Vercel Marketplace integrations list no connected integration resource that can supply Stripe, Sentry, or Resend values.
 - Production Supabase `public.tenants` currently has one tenant and zero populated tenant Stripe secret, publishable, or webhook-secret fields.
 
