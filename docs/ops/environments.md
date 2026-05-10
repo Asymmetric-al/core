@@ -220,6 +220,30 @@ validates prefix/URL/length requirements for values Vercel exposes through
 present but unreadable by the CLI, confirms a READY Production deployment for
 the target commit, and checks `/api/health` on the production domain.
 
+After the real provider values exist as GitHub repository secrets, sync them to
+all three Vercel Production projects with the guarded manual workflow
+`Sync Vercel Production Env`. It requires typing `sync-production-env` and
+defaults to dry-run. The workflow reads these GitHub secret names:
+
+- `STRIPE_SECRET_KEY`
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+- `ADMIN_STRIPE_WEBHOOK_SECRET`
+- `DONOR_STRIPE_WEBHOOK_SECRET`
+- `MISSIONARY_STRIPE_WEBHOOK_SECRET`
+- `SENTRY_DSN`
+- `NEXT_PUBLIC_SENTRY_DSN`
+- `RESEND_API_KEY`
+- `RESEND_WEBHOOK_SECRET`
+- `RESEND_ENCRYPTION_KEY`
+- `VERCEL_TOKEN`
+
+Local equivalent:
+
+```bash
+bun run sync:vercel-production-env -- --dry-run
+bun run sync:vercel-production-env
+```
+
 ## 6. Deploy Flows
 
 Non-local environments are branch-triggered and map to deploy targets as follows:

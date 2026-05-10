@@ -70,6 +70,7 @@
     "verify:supabase-money": "bun run setup:verify && bun run verify:money-units",
     "verify:supabase-env": "node scripts/supabase-env-smoke.mjs",
     "supabase": "node scripts/supabase-cli.mjs",
+    "sync:vercel-production-env": "node scripts/sync-vercel-production-env.mjs",
     "verify:eslint": "node scripts/verify-eslint-config.mjs",
     "verify:vercel-production": "node scripts/verify/vercel-production-readiness.mjs",
     "verify:shadcn-diff": "node scripts/verify/shadcn-diff.mjs",

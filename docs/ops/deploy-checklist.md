@@ -10,6 +10,8 @@ staging validation, run the same checks against `develop` after deploy.
 - [ ] Migrations tested on staging first
 - [ ] `main` contains the current `epic` lineage, or the release owner has explicitly changed the production branch contract before deploy
 - [ ] New env vars added to all 3 Vercel projects in Production scope
+- [ ] If syncing from GitHub Secrets, run `Sync Vercel Production Env` with
+      `dry_run=true`, then with `dry_run=false` after the dry-run passes
 - [ ] Stripe live webhook endpoints exist for each production app at `/api/webhooks/stripe`
 - [ ] Production readiness verifier passes for the exact commit to ship:
       `bun run verify:vercel-production -- --commit <sha>`

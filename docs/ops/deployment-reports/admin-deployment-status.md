@@ -153,7 +153,7 @@ GitHub branch-state audit on 2026-05-10:
 
 ## What Must Happen For Admin To Deploy Successfully
 
-1. Add the remaining live Stripe and Sentry values listed above.
+1. Add the remaining live Stripe, Sentry, and Resend values listed above, then run the guarded `Sync Vercel Production Env` workflow first as a dry-run and then as a write.
 2. Create or verify the live Stripe webhook endpoint for `https://admin.asymmetric.al/api/webhooks/stripe`.
 3. Confirm the admin database URL is reachable from Vercel, preferably through Supavisor if direct Supabase DNS fails.
 4. Merge current `epic` plus this remediation into `main`, or make an explicit product decision to keep production on `epic` and reverse the `epic` deployment disablement.

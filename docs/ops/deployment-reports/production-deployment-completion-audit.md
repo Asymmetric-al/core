@@ -14,19 +14,20 @@ Target commit audited: `cdc1d79d6718220e40daf4603a538497fc75dac0`
 
 ## Objective Checklist
 
-| Requirement                                                              | Evidence                                                                                                                                                                                      | Status   |
-| ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| Use the latest deployment reports for `admin`, `donor`, and `missionary` | Per-app reports exist in this directory and include Vercel project facts, deployment facts, missing envs, branch wiring, and evidence commands.                                               | Complete |
-| Fix repo-side production deployment wiring                               | `apps/admin/vercel.json`, `apps/donor/vercel.json`, and `apps/missionary/vercel.json` allow `main` and `develop` while keeping legacy `epic` disabled.                                        | Complete |
-| Add missing production Stripe webhook routes                             | Build output includes `/api/webhooks/stripe` for all three apps. Shared handler is exported from `@asym/api/stripe/webhooks`.                                                                 | Complete |
-| Test repo changes before shipping                                        | Local `bun run ci:preflight` passed, pre-push `ci:preflight` passed, and GitHub CI passed for the target commit.                                                                              | Complete |
-| Verify remote checks, not only local checks                              | GitHub CI run `25616510160` and Nia source check run `25616510159` both succeeded for the target commit.                                                                                      | Complete |
-| Add a permanent production readiness verifier                            | `bun run verify:vercel-production -- --commit <sha>` checks required Vercel Production envs, unreadable sensitive values, READY production deployment metadata, and production `/api/health`. | Complete |
-| Document the deployment contract                                         | `docs/ops/environments.md`, `docs/ops/deploy-checklist.md`, and per-app deployment reports document required Production envs, webhook endpoints, branch contract, and verification commands.  | Complete |
-| Configure all required Vercel Production env values                      | Current verifier reports missing Stripe, Sentry, and Resend values for every app. Supabase/Payload sensitive values are present but unreadable by Vercel CLI.                                 | Blocked  |
-| Ensure `main` contains the current `epic` lineage before production      | `git rev-list --left-right --count origin/main...origin/epic` reports `1 912`; `main` is stale relative to `epic`.                                                                            | Blocked  |
-| Ship successful intended Vercel Production deployments                   | Current verifier reports no READY Production deployment for the target commit for `admin`, `donor`, or `missionary`.                                                                          | Blocked  |
-| Smoke-check production health                                            | Current health checks: `admin` returns `404`, `donor` returns `200` from a stale deployment, and `missionary` returns `404`.                                                                  | Blocked  |
+| Requirement                                                              | Evidence                                                                                                                                                                                                          | Status   |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| Use the latest deployment reports for `admin`, `donor`, and `missionary` | Per-app reports exist in this directory and include Vercel project facts, deployment facts, missing envs, branch wiring, and evidence commands.                                                                   | Complete |
+| Fix repo-side production deployment wiring                               | `apps/admin/vercel.json`, `apps/donor/vercel.json`, and `apps/missionary/vercel.json` allow `main` and `develop` while keeping legacy `epic` disabled.                                                            | Complete |
+| Add missing production Stripe webhook routes                             | Build output includes `/api/webhooks/stripe` for all three apps. Shared handler is exported from `@asym/api/stripe/webhooks`.                                                                                     | Complete |
+| Test repo changes before shipping                                        | Local `bun run ci:preflight` passed, pre-push `ci:preflight` passed, and GitHub CI passed for the target commit.                                                                                                  | Complete |
+| Verify remote checks, not only local checks                              | GitHub CI run `25616510160` and Nia source check run `25616510159` both succeeded for the target commit.                                                                                                          | Complete |
+| Add a permanent production readiness verifier                            | `bun run verify:vercel-production -- --commit <sha>` checks required Vercel Production envs, unreadable sensitive values, READY production deployment metadata, and production `/api/health`.                     | Complete |
+| Add a guarded production env sync path                                   | `.github/workflows/sync-vercel-production-env.yml` and `scripts/sync-vercel-production-env.mjs` can sync real GitHub Secrets into all three Vercel Production projects after validating required provider values. | Complete |
+| Document the deployment contract                                         | `docs/ops/environments.md`, `docs/ops/deploy-checklist.md`, and per-app deployment reports document required Production envs, webhook endpoints, branch contract, env sync path, and verification commands.       | Complete |
+| Configure all required Vercel Production env values                      | Current verifier reports missing Stripe, Sentry, and Resend values for every app. Supabase/Payload sensitive values are present but unreadable by Vercel CLI.                                                     | Blocked  |
+| Ensure `main` contains the current `epic` lineage before production      | `git rev-list --left-right --count origin/main...origin/epic` reports `1 912`; `main` is stale relative to `epic`.                                                                                                | Blocked  |
+| Ship successful intended Vercel Production deployments                   | Current verifier reports no READY Production deployment for the target commit for `admin`, `donor`, or `missionary`.                                                                                              | Blocked  |
+| Smoke-check production health                                            | Current health checks: `admin` returns `404`, `donor` returns `200` from a stale deployment, and `missionary` returns `404`.                                                                                      | Blocked  |
 
 ## Current Blocking Values
 
@@ -61,13 +62,16 @@ not work.
 1. Add real live Stripe values and create live Stripe webhook endpoints for all
    three production URLs.
 2. Add real Sentry DSNs for server and browser reporting.
-3. Add Resend values to Vercel Production. `RESEND_API_KEY` exists in GitHub
-   secrets, but it is not currently in Vercel Production. `RESEND_WEBHOOK_SECRET`
-   must come from the Resend webhook configuration, and `RESEND_ENCRYPTION_KEY`
-   must be a managed production secret because it protects tenant email API keys.
-4. Re-run `bun run verify:vercel-production -- --commit cdc1d79d6718220e40daf4603a538497fc75dac0`.
-5. Merge current `epic` into `main` only after the verifier no longer reports
+3. Add the missing values as GitHub repository secrets using the exact names
+   documented in `docs/ops/environments.md`.
+4. Run the `Sync Vercel Production Env` workflow first as a dry-run and then as
+   a write. `RESEND_API_KEY` already exists in GitHub secrets, but it is not
+   currently in Vercel Production. `RESEND_WEBHOOK_SECRET` must come from the
+   Resend webhook configuration, and `RESEND_ENCRYPTION_KEY` must be a managed
+   production secret because it protects tenant email API keys.
+5. Re-run `bun run verify:vercel-production -- --commit <target-commit>`.
+6. Merge current `epic` into `main` only after the verifier no longer reports
    missing Production env values.
-6. Wait for Vercel to produce READY Production deployments for all three apps.
-7. Re-run the production readiness verifier against the deployed `main` commit
+7. Wait for Vercel to produce READY Production deployments for all three apps.
+8. Re-run the production readiness verifier against the deployed `main` commit
    and complete the smoke checks in `docs/ops/deploy-checklist.md`.
