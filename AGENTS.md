@@ -44,6 +44,24 @@ This file is the deterministic entry point for all agent work in `core`.
 
 ---
 
+## Code Style
+
+Write code for clarity and long term maintenance first.
+
+Prefer straightforward code over clever, compressed, or heavily chained code.
+
+Keep each line focused on one idea. Split dense or compound expressions into well named intermediate variables when that makes the code easier to read.
+
+Extract small helper functions when logic starts to mix concerns, repeat, or become hard to scan. Do not extract helpers only to make a line shorter.
+
+Use clear, descriptive names that make intent obvious.
+
+Prefer explicit control flow, shallow nesting, and early returns over deeply nested or overly compact logic.
+
+Follow existing project patterns and conventions unless this file says otherwise.
+
+Write code that another teammate can read, understand, and modify quickly.
+
 ## Tooling (Required)
 
 ### Nia (MCP) usage: always repo-scoped + always preambled
