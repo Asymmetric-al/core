@@ -86,6 +86,7 @@ For every `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}` file while
 | admin      | `/api/health`                                     | Node.js (no `runtime` segment export) | Health probe                               |
 | admin      | `/api/health/db`                                  | Node.js (no `runtime` segment export) | Database health probe                      |
 | admin      | `/api/missionaries/[id]/metrics`                  | Node.js (no `runtime` segment export) | Admin client                               |
+| admin      | `/api/webhooks/stripe`                            | Node.js (no `runtime` segment export) | Stripe SDK, admin client                   |
 | donor      | `/api/auth/cleanup-demo-users`                    | Node.js (no `runtime` segment export) | Admin client                               |
 | donor      | `/api/auth/demo-account`                          | Node.js (no `runtime` segment export) | Demo auth server action                    |
 | donor      | `/api/auth/signout`                               | Node.js (no `runtime` segment export) | Auth/session cleanup                       |
@@ -105,6 +106,7 @@ For every `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}` file while
 | donor      | `/api/posts/[postId]/prayer`                      | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |
 | donor      | `/api/profile`                                    | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |
 | donor      | `/api/upload/image`                               | Node.js (no `runtime` segment export) | Node.js `Buffer`, server client            |
+| donor      | `/api/webhooks/stripe`                            | Node.js (no `runtime` segment export) | Stripe SDK, admin client                   |
 | missionary | `/api/auth/demo-account`                          | Node.js (no `runtime` segment export) | Demo auth server action                    |
 | missionary | `/api/auth/signout`                               | Node.js (no `runtime` segment export) | Auth/session cleanup                       |
 | missionary | `/api/follower-requests`                          | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |
@@ -119,3 +121,4 @@ For every `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}` file while
 | missionary | `/api/posts/[postId]/like`                        | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |
 | missionary | `/api/posts/[postId]/prayer`                      | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |
 | missionary | `/api/profile`                                    | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |
+| missionary | `/api/webhooks/stripe`                            | Node.js (no `runtime` segment export) | Stripe SDK, admin client                   |

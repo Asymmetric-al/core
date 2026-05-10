@@ -3,6 +3,13 @@ import { spawnSync } from "node:child_process";
 const CI_FALLBACK_SUPABASE_URL = "https://ci-placeholder.supabase.co";
 const CI_FALLBACK_SUPABASE_ANON_KEY = "ci-placeholder-anon-key";
 
+const ciSupabasePublicEnv = {
+  NEXT_PUBLIC_SUPABASE_URL:
+    process.env.NEXT_PUBLIC_SUPABASE_URL ?? CI_FALLBACK_SUPABASE_URL,
+  NEXT_PUBLIC_SUPABASE_ANON_KEY:
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? CI_FALLBACK_SUPABASE_ANON_KEY,
+};
+
 /**
  * Mirrors blocking GitHub CI checks:
  * format -> skills:verify -> lint -> verify:workspace-contract -> verify:eslint
@@ -42,16 +49,13 @@ const stages = [
     script: "build",
     env: {
       SKIP_ENV_VALIDATION: process.env.SKIP_ENV_VALIDATION ?? "1",
-      NEXT_PUBLIC_SUPABASE_URL:
-        process.env.NEXT_PUBLIC_SUPABASE_URL ?? CI_FALLBACK_SUPABASE_URL,
-      NEXT_PUBLIC_SUPABASE_ANON_KEY:
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-        CI_FALLBACK_SUPABASE_ANON_KEY,
+      ...ciSupabasePublicEnv,
     },
   },
   {
     id: "test-unit",
     script: "test:unit",
+    env: ciSupabasePublicEnv,
   },
 ];
 
