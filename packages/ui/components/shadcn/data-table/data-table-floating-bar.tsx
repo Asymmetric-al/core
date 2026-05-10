@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Trash2, Download, MoreHorizontal, Check } from "lucide-react";
+import { X, MoreHorizontal, Check } from "lucide-react";
 import { AnimatePresence, LazyMotion, domAnimation, m } from "motion/react";
 import * as React from "react";
 
@@ -41,28 +41,13 @@ export function DataTableFloatingBar<TData>({
 
   if (selectedCount === 0) return null;
 
-  const defaultActions: FloatingActionBarAction<TData>[] = [
-    {
-      label: "Export",
-      icon: Download,
-      onClick: (rows) => {
-        console.log("Export selected rows:", rows);
-      },
-      variant: "default",
-    },
-    {
-      label: "Delete",
-      icon: Trash2,
-      onClick: (rows) => {
-        console.log("Delete selected rows:", rows);
-      },
-      variant: "destructive",
-    },
-  ];
-
-  const allActions = actions ?? defaultActions;
-  const visibleActions = allActions.filter((a) => !a.hideOnMobile).slice(0, 2);
+  const selectedOriginalRows = selectedRows.map((row) => row.original);
+  const allActions = actions ?? [];
+  const visibleActions = allActions
+    .filter((action) => !action.hideOnMobile)
+    .slice(0, 2);
   const overflowActions = allActions.slice(2);
+  const hasActions = allActions.length > 0;
 
   return (
     <LazyMotion features={domAnimation}>
@@ -90,71 +75,71 @@ export function DataTableFloatingBar<TData>({
             </span>
           </div>
 
-          <div className="w-px h-5 bg-background/20 mx-1" />
+          {hasActions && (
+            <>
+              <div className="w-px h-5 bg-background/20 mx-1" />
 
-          <div className="flex items-center gap-1">
-            {visibleActions.map((action) => (
-              <Button
-                key={action.label}
-                variant="ghost"
-                size="sm"
-                onClick={() =>
-                  action.onClick(selectedRows.map((row) => row.original))
-                }
-                className={cn(
-                  "h-8 px-2 sm:px-3 gap-1.5 rounded-xl",
-                  "text-background hover:bg-background/10 hover:text-background",
-                  action.variant === "destructive" &&
-                    "hover:bg-destructive/20 hover:text-destructive-foreground",
-                )}
-              >
-                {action.icon && (
-                  <action.icon className="size-4" aria-hidden="true" />
-                )}
-                <span className="hidden sm:inline text-sm">{action.label}</span>
-              </Button>
-            ))}
-
-            {overflowActions.length > 0 && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+              <div className="flex items-center gap-1">
+                {visibleActions.map((action) => (
                   <Button
+                    key={action.label}
                     variant="ghost"
-                    size="icon"
-                    className="size-8 rounded-xl text-background hover:bg-background/10 hover:text-background"
+                    size="sm"
+                    onClick={() => action.onClick(selectedOriginalRows)}
+                    className={cn(
+                      "h-8 px-2 sm:px-3 gap-1.5 rounded-xl",
+                      "text-background hover:bg-background/10 hover:text-background",
+                      action.variant === "destructive" &&
+                        "hover:bg-destructive/20 hover:text-destructive-foreground",
+                    )}
                   >
-                    <MoreHorizontal className="size-4" />
+                    {action.icon && (
+                      <action.icon className="size-4" aria-hidden="true" />
+                    )}
+                    <span className="hidden sm:inline text-sm">
+                      {action.label}
+                    </span>
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="rounded-xl">
-                  {overflowActions.map((action, index) => (
-                    <React.Fragment key={action.label}>
-                      {action.variant === "destructive" && index > 0 && (
-                        <DropdownMenuSeparator />
-                      )}
-                      <DropdownMenuItem
-                        onClick={() =>
-                          action.onClick(
-                            selectedRows.map((row) => row.original),
-                          )
-                        }
-                        className={cn(
-                          "rounded-lg gap-2",
-                          action.variant === "destructive" &&
-                            "text-destructive focus:text-destructive",
-                        )}
-                      >
-                        {action.icon && <action.icon className="size-4" />}
-                        {action.label}
-                      </DropdownMenuItem>
-                    </React.Fragment>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
+                ))}
 
-          <div className="w-px h-5 bg-background/20 mx-1" />
+                {overflowActions.length > 0 && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 rounded-xl text-background hover:bg-background/10 hover:text-background"
+                      >
+                        <MoreHorizontal className="size-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="rounded-xl">
+                      {overflowActions.map((action, index) => (
+                        <React.Fragment key={action.label}>
+                          {action.variant === "destructive" && index > 0 && (
+                            <DropdownMenuSeparator />
+                          )}
+                          <DropdownMenuItem
+                            onClick={() => action.onClick(selectedOriginalRows)}
+                            className={cn(
+                              "rounded-lg gap-2",
+                              action.variant === "destructive" &&
+                                "text-destructive focus:text-destructive",
+                            )}
+                          >
+                            {action.icon && <action.icon className="size-4" />}
+                            {action.label}
+                          </DropdownMenuItem>
+                        </React.Fragment>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
+
+              <div className="w-px h-5 bg-background/20 mx-1" />
+            </>
+          )}
 
           <Button
             variant="ghost"

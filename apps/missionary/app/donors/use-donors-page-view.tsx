@@ -89,6 +89,7 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import { DonorTasks } from "./donor-tasks";
+import { filterAndSortDonors, type SortOption } from "./donors-list-model";
 import {
   AVAILABLE_TAGS,
   formatCurrency,
@@ -110,7 +111,7 @@ import type {
   Address,
   Donor,
   RecurringStatus,
-} from "./donors-model";
+} from "./donor-types";
 
 import { PageHeader } from "@/components/page-header";
 
@@ -298,8 +299,6 @@ function StatCard({
   return content;
 }
 
-type SortOption = "name" | "last_gift" | "total_given" | "joined_date";
-
 type DonorActivityType = "note" | "call" | "meeting" | "email";
 type DonorMutationResult = { ok: true } | { ok: false; error: unknown };
 
@@ -459,69 +458,26 @@ export function useDonorsPageView(): DonorsPageViewModel {
     ]);
   }, [queryClient]);
 
-  const filteredDonors = React.useMemo(() => {
-    const result = donors.filter((donor) => {
-      const matchesSearch =
-        (donor.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (donor.email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (donor.location || "")
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        (donor.organization || "")
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase());
-      const matchesStatus =
-        statusFilter === "All" || donor.status === statusFilter;
-      const matchesTags =
-        tagFilter.length === 0 || tagFilter.some((t) => donor.tags.includes(t));
-      const matchesPledge =
-        pledgeFilter === "All" ||
-        (pledgeFilter === "Active" && donor.has_active_pledge) ||
-        (pledgeFilter === "Inactive" && !donor.has_active_pledge);
-      return matchesSearch && matchesStatus && matchesTags && matchesPledge;
-    });
-
-    result.sort((a, b) => {
-      let comparison = 0;
-      switch (sortBy) {
-        case "name":
-          comparison = (a.name || "").localeCompare(b.name || "");
-          break;
-        case "last_gift":
-          const dateA = a.last_gift_date
-            ? makeDisplayDate(a.last_gift_date).getTime()
-            : 0;
-          const dateB = b.last_gift_date
-            ? makeDisplayDate(b.last_gift_date).getTime()
-            : 0;
-          comparison = dateB - dateA;
-          break;
-        case "total_given":
-          comparison = (b.total_given || 0) - (a.total_given || 0);
-          break;
-        case "joined_date":
-          const joinA = a.joined_date
-            ? makeDisplayDate(a.joined_date).getTime()
-            : 0;
-          const joinB = b.joined_date
-            ? makeDisplayDate(b.joined_date).getTime()
-            : 0;
-          comparison = joinB - joinA;
-          break;
-      }
-      return sortAsc ? -comparison : comparison;
-    });
-
-    return result;
-  }, [
-    donors,
-    searchTerm,
-    statusFilter,
-    tagFilter,
-    pledgeFilter,
-    sortBy,
-    sortAsc,
-  ]);
+  const filteredDonors = React.useMemo(
+    () =>
+      filterAndSortDonors(donors, {
+        searchTerm,
+        statusFilter,
+        tagFilter,
+        pledgeFilter,
+        sortBy,
+        sortAsc,
+      }),
+    [
+      donors,
+      searchTerm,
+      statusFilter,
+      tagFilter,
+      pledgeFilter,
+      sortBy,
+      sortAsc,
+    ],
+  );
 
   const selectedDonor = React.useMemo(
     () => donors.find((d) => d.id === selectedDonorId) || null,
