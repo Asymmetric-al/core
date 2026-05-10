@@ -69,6 +69,16 @@ deployment state after each later push; this report intentionally records the
 latest code/config remediation evidence rather than treating any docs-only
 follow-up push as a new source of product readiness.
 
+Current audit refresh on 2026-05-10 10:53 +07:
+
+- Latest deployment: `missionary-3sdb69962-asymmetric-al.vercel.app`
+- Target: `production`
+- State: `ERROR`
+- Commit metadata: `75f407526473e263dd8057adfcbbff282ac13052`
+- Ref metadata: `epic`
+- Readiness verifier result: blocked by the same missing live Stripe and Sentry
+  values listed below; no READY Production deployment exists for this commit.
+
 ## Production Alias Smoke Check
 
 Checked on 2026-05-10:
