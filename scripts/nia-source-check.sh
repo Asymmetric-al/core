@@ -24,6 +24,11 @@ if [[ "${NIA_API_URL}" != */v2 ]]; then
 fi
 
 response="$(curl --fail --silent --show-error --get \
+  --connect-timeout "${NIA_CURL_CONNECT_TIMEOUT_SECONDS:-10}" \
+  --max-time "${NIA_CURL_MAX_TIME_SECONDS:-30}" \
+  --retry "${NIA_CURL_RETRIES:-2}" \
+  --retry-delay "${NIA_CURL_RETRY_DELAY_SECONDS:-2}" \
+  --retry-connrefused \
   "${NIA_API_URL}/sources" \
   -H "Authorization: Bearer ${NIA_API_KEY}" \
   --data-urlencode 'type=repository' \

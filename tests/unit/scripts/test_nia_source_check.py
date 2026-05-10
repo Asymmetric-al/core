@@ -15,8 +15,10 @@ class NiaSourceCheckScriptTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
             fake_curl = temp_path / "curl"
+            curl_args = temp_path / "curl-args"
             fake_curl.write_text(
                 """#!/usr/bin/env bash
+printf '%s\n' "$@" > "$CURL_ARGS_FILE"
 cat <<'JSON'
 {"items":[{"id":"core-epic","identifier":"https://github.com/Asymmetric-al/core","branch":"epic"}]}
 JSON
@@ -31,6 +33,7 @@ JSON
                 {
                     "GITHUB_OUTPUT": str(github_output),
                     "NIA_API_KEY": "test-api-key",
+                    "CURL_ARGS_FILE": str(curl_args),
                     "PATH": f"{temp_path}{os.pathsep}{env['PATH']}",
                 }
             )
@@ -62,6 +65,15 @@ JSON
             self.assertNotIn("test-api-key", result.stdout)
             self.assertNotIn("test-api-key", result.stderr)
             self.assertNotIn("test-api-key", output)
+
+            curl_invocation = curl_args.read_text(encoding="utf-8").splitlines()
+            self.assertIn("--connect-timeout", curl_invocation)
+            self.assertIn("10", curl_invocation)
+            self.assertIn("--max-time", curl_invocation)
+            self.assertIn("30", curl_invocation)
+            self.assertIn("--retry", curl_invocation)
+            self.assertIn("2", curl_invocation)
+            self.assertIn("--retry-connrefused", curl_invocation)
 
 
 if __name__ == "__main__":

@@ -12,6 +12,7 @@ on:
 jobs:
   source-check:
     runs-on: ubuntu-latest
+    timeout-minutes: 3
     env:
       NIA_API_KEY: ${{ secrets.NIA_API_KEY }}
 
