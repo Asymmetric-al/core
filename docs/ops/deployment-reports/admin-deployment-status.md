@@ -30,7 +30,7 @@ the exact release commit.
 - Build Command: `bun run build`
 - Output Directory: Next.js default
 
-## Current Deployment Facts
+## Deployment Facts Observed During Initial Audit
 
 - Latest deployment: `admin-nr1yo6gg4-asymmetric-al.vercel.app`
 - Target: `production`
@@ -41,6 +41,25 @@ the exact release commit.
 - Latest READY production deployment: `admin-7j9vnxrzy-asymmetric-al.vercel.app`
 - Latest READY production commit: `4de67ff4a95a08071291e398824bccb40112bd04`
 - Latest READY production created: `2026-02-21T00:07:52.859Z`
+
+## Post-Fix Deployment Attempt
+
+After the branch-gating fix was pushed to `epic`, Vercel created a new
+Production build for the target commit. This proves the repo-side Production
+Branch block is resolved.
+
+- Deployment: `admin-c3hdg9a66-asymmetric-al.vercel.app`
+- Target: `production`
+- State: `ERROR`
+- Commit metadata: `adb880cc75968edc856b57612dbc62ecd5db428c`
+- Ref metadata: `epic`
+- Build result: failed during Next.js page-data collection because required
+  external Production env values are still absent.
+
+Use `bun run verify:vercel-production -- --commit <sha>` for the newest
+deployment state after each later push; this report intentionally records the
+post-fix evidence rather than treating any docs-only follow-up push as a new
+source of product readiness.
 
 ## Production Alias Smoke Check
 
@@ -56,8 +75,10 @@ The failed deployment reached Next.js compilation and TypeScript successfully, t
 
 - `STRIPE_SECRET_KEY is required for staging and production deployments.`
 - `STRIPE_WEBHOOK_SECRET is required for staging and production deployments.`
+- `RESEND_WEBHOOK_SECRET is required for staging and production deployments.`
+- `RESEND_ENCRYPTION_KEY is required for staging and production deployments.`
 - `SENTRY_DSN is required for staging and production deployments.`
-- Build error: `Failed to collect page data for /api/admin/comments`
+- Build error: `Failed to collect page data for /api/admin/comments/[commentId]`
 
 The same log also showed non-blocking warnings:
 
@@ -111,6 +132,7 @@ Additional secret-source audit on 2026-05-10:
 
 - Local root `.env.local` has `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, and `NEXT_PUBLIC_SENTRY_DSN` present but empty; `STRIPE_WEBHOOK_SECRET`, `SENTRY_DSN`, `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, and `RESEND_ENCRYPTION_KEY` are absent.
 - GitHub repository secrets include Vercel and Supabase values plus `RESEND_API_KEY`, but no Stripe, Sentry, `RESEND_WEBHOOK_SECRET`, or `RESEND_ENCRYPTION_KEY` secret names.
+- Vercel Preview and Development env scopes are empty, so there are no existing non-Production Vercel provider values to promote.
 - Vercel Marketplace integrations list no connected integration resource that can supply Stripe, Sentry, or Resend values.
 - Production Supabase `public.tenants` currently has one tenant and zero populated tenant Stripe secret, publishable, or webhook-secret fields.
 

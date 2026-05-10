@@ -32,7 +32,7 @@ the exact release commit.
 - Build Command: `bun run build`
 - Output Directory: Next.js default
 
-## Current Deployment Facts
+## Deployment Facts Observed During Initial Audit
 
 - Latest deployment: `missionary-jmufalc5x-asymmetric-al.vercel.app`
 - Target: `production`
@@ -44,6 +44,26 @@ the exact release commit.
 - Latest READY production commit: `4de67ff4a95a08071291e398824bccb40112bd04`
 - Latest READY production created: `2026-02-21T00:07:52.959Z`
 
+## Post-Fix Deployment Attempt
+
+After the branch-gating fix was pushed to `epic`, Vercel created a new
+Production build for the target commit. This proves the repo-side Production
+Branch block and the stale missing-root-directory failure are resolved for the
+current source tree.
+
+- Deployment: `missionary-b50ajbsee-asymmetric-al.vercel.app`
+- Target: `production`
+- State: `ERROR`
+- Commit metadata: `adb880cc75968edc856b57612dbc62ecd5db428c`
+- Ref metadata: `epic`
+- Build result: failed during Next.js page-data collection because required
+  external Production env values are still absent.
+
+Use `bun run verify:vercel-production -- --commit <sha>` for the newest
+deployment state after each later push; this report intentionally records the
+post-fix evidence rather than treating any docs-only follow-up push as a new
+source of product readiness.
+
 ## Production Alias Smoke Check
 
 Checked on 2026-05-10:
@@ -52,15 +72,30 @@ Checked on 2026-05-10:
 - This branch contains `apps/missionary/app/api/health/route.ts`, so the `404` confirms the current missionary source tree is not deployed to the production alias.
 - Treat any existing missionary production alias response as stale until Vercel shows a new `READY` production deployment from the current production source commit.
 
-## Latest Failure
+## Previous Stale Failure
 
-The latest failed `missionary` deployment log shows:
+The pre-fix failed `missionary` deployment log showed:
 
 ```text
 The specified Root Directory "apps/missionary" does not exist. Please update your Project Settings.
 ```
 
-That failure came from the older `6c76ce4` `epic` commit. Current `origin/main`, current `origin/epic`, and this remediation branch all contain `apps/missionary`, so a new deployment should move past this specific failure if it deploys a current tree.
+That failure came from the older `6c76ce4` `epic` commit. The post-fix
+deployment for `adb880cc75968edc856b57612dbc62ecd5db428c` reached the Next.js
+build and failed on missing Production env values instead, so the current
+source tree no longer has the old missing-root-directory blocker.
+
+## Current Build Failure
+
+The post-fix deployment reached Next.js compilation and TypeScript successfully,
+then failed while collecting page data. The relevant failure was:
+
+- `STRIPE_SECRET_KEY is required for staging and production deployments.`
+- `STRIPE_WEBHOOK_SECRET is required for staging and production deployments.`
+- `RESEND_WEBHOOK_SECRET is required for staging and production deployments.`
+- `RESEND_ENCRYPTION_KEY is required for staging and production deployments.`
+- `SENTRY_DSN is required for staging and production deployments.`
+- Build error: `Failed to collect page data for /api/auth/demo-account`
 
 ## Remediation Completed In This Branch
 
@@ -98,6 +133,7 @@ Additional secret-source audit on 2026-05-10:
 
 - Local root `.env.local` has `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, and `NEXT_PUBLIC_SENTRY_DSN` present but empty; `STRIPE_WEBHOOK_SECRET`, `SENTRY_DSN`, `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, and `RESEND_ENCRYPTION_KEY` are absent.
 - GitHub repository secrets include Vercel and Supabase values plus `RESEND_API_KEY`, but no Stripe, Sentry, `RESEND_WEBHOOK_SECRET`, or `RESEND_ENCRYPTION_KEY` secret names.
+- Vercel Preview and Development env scopes are empty, so there are no existing non-Production Vercel provider values to promote.
 - Vercel Marketplace integrations list no connected integration resource that can supply Stripe, Sentry, or Resend values.
 - Production Supabase `public.tenants` currently has one tenant and zero populated tenant Stripe secret, publishable, or webhook-secret fields.
 

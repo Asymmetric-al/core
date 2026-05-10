@@ -5,10 +5,11 @@ Generated: 2026-05-10 Asia/Bangkok
 ## Status
 
 The production deployment goal is not complete. Repo-side remediation is merged
-to remote `epic` and verified through the last pushed commit, but the intended
-Vercel Production deployments for `admin`, `donor`, and `missionary` are still
-blocked by missing external provider values and absent READY production
-deployments for the current target commit.
+to remote `epic` and verified through commit
+`adb880cc75968edc856b57612dbc62ecd5db428c`, but the intended Vercel Production
+deployments for `admin`, `donor`, and `missionary` are still blocked by missing
+external provider values and absent READY production deployments for the current
+target commit.
 
 Live Vercel project settings currently report `productionBranch: epic` for all
 three projects. The repo-side branch-gating conflict that disabled `epic` in
@@ -29,7 +30,8 @@ checks this condition explicitly.
 | Document the deployment contract                                         | `docs/ops/environments.md`, `docs/ops/deploy-checklist.md`, and per-app deployment reports document required Production envs, webhook endpoints, branch contract, env sync path, and verification commands.                                                                                                             | Complete |
 | Configure all required Vercel Production env values                      | Current verifier reports missing Stripe, Sentry, and Resend values for every app. Supabase/Payload sensitive values are present but unreadable by Vercel CLI.                                                                                                                                                           | Blocked  |
 | Ensure the release branch matches Vercel Production Branch               | Live Vercel project settings currently use `epic`, and GitHub's default branch is `epic`. If Production is later migrated to `main`, update the Vercel project settings and docs first.                                                                                                                                 | Complete |
-| Ship successful intended Vercel Production deployments                   | Current verifier reports no READY Production deployment for the target commit for `admin`, `donor`, or `missionary`.                                                                                                                                                                                                    | Blocked  |
+| Prove Vercel now attempts Production builds from the release branch      | After the branch-gating fix reached `epic`, Vercel created Production builds for all three projects from commit `adb880cc75968edc856b57612dbc62ecd5db428c`. Those builds failed on missing provider envs rather than branch filtering or missing root directories.                                                      | Complete |
+| Ship successful intended Vercel Production deployments                   | Current verifier reports no READY Production deployment for the target commit for `admin`, `donor`, or `missionary`. The post-fix attempts are `admin-c3hdg9a66-asymmetric-al.vercel.app`, `donor-942yfaejb-asymmetric-al.vercel.app`, and `missionary-b50ajbsee-asymmetric-al.vercel.app`, all `ERROR`.                | Blocked  |
 | Smoke-check production health                                            | Current health checks: `admin` returns `404`, `donor` returns `200` from a stale deployment, and `missionary` returns `404`.                                                                                                                                                                                            | Blocked  |
 
 ## Current Blocking Values
@@ -50,8 +52,11 @@ Secret-source checks on 2026-05-10 found:
 - Shell environment: all eight values absent.
 - Local root `.env.local`: Stripe secret, Stripe publishable key, and public
   Sentry DSN are present but empty; the other five values are absent.
+- Vercel Preview and Development env scopes: empty for all three projects, so
+  there are no lower-environment Vercel provider values to promote.
 - GitHub repository secrets: `RESEND_API_KEY` exists; Stripe, Sentry,
   `RESEND_WEBHOOK_SECRET`, and `RESEND_ENCRYPTION_KEY` are absent.
+- Vercel integration resources: none connected under the `asymmetric-al` scope.
 - Local secret-manager CLIs checked: `stripe`, `sentry-cli`, `op`, `doppler`,
   and `infisical` are not installed.
 
