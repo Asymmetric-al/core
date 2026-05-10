@@ -15,9 +15,10 @@ The latest visible `donor` production deployment is stale and failed against an 
 This remediation removes that branch-gating conflict, adds verifier coverage for
 the live Vercel Production Branch, adds the missing production Stripe webhook
 route, updates the deployment docs, and adds a guarded Vercel Production env
-sync path. Production deployment remains blocked until live Stripe, Sentry, and
-Resend values are supplied and Vercel produces a READY Production deployment for
-the exact release commit.
+sync path plus a guarded Resend production webhook configuration path.
+Production deployment remains blocked until live Stripe, Sentry, and Resend
+webhook values are supplied and Vercel produces a READY Production deployment
+for the exact release commit.
 
 ## Current Vercel Project Facts
 
@@ -106,6 +107,12 @@ then failed while collecting page data. The relevant failure was:
 - The shared handler verifies Stripe signatures against the raw request body, records PaymentIntent state changes, and records charge refunds.
 - Unit coverage exists in `tests/unit/packages/api/stripe-webhooks.test.ts`.
 - Runtime docs and deployment docs now include the new route and the current Vercel Production Branch contract.
+- `.github/workflows/configure-resend-production-webhook.yml` and
+  `scripts/configure-resend-production-webhook.mjs` can create or update the
+  production Resend webhook, mask the returned signing secret, and sync
+  `RESEND_WEBHOOK_SECRET` into all three Vercel Production projects.
+- Unit coverage exists in
+  `tests/unit/scripts/configure-resend-production-webhook.test.ts`.
 
 ## Production Environment Variables
 
@@ -136,6 +143,9 @@ Additional secret-source audit on 2026-05-10:
 - GitHub repository secrets include Vercel and Supabase values plus `RESEND_API_KEY` and `RESEND_ENCRYPTION_KEY`, but no Stripe, Sentry, or `RESEND_WEBHOOK_SECRET` secret names.
 - `RESEND_API_KEY` was backfilled into Vercel Production for this project by `Sync Vercel Production Env` write run `25617834101`; Vercel now reports it as present but sensitive/unreadable.
 - `RESEND_ENCRYPTION_KEY` was generated as a new managed production secret, stored in GitHub Secrets, and synced to this Vercel Production project by `Sync Vercel Production Env` write run `25618153850`; Vercel now reports it as present but sensitive/unreadable.
+- A guarded `Configure Resend Production Webhook` workflow now exists to source
+  `RESEND_WEBHOOK_SECRET` from Resend without printing it; run it first as a
+  dry-run and then as a write before the next production readiness check.
 - Vercel Preview and Development env scopes are empty, so there are no existing non-Production Vercel provider values to promote.
 - Vercel Marketplace integrations list no connected integration resource that can supply Stripe, Sentry, or Resend values.
 - Production Supabase `public.tenants` currently has one tenant and zero populated tenant Stripe secret, publishable, or webhook-secret fields.
@@ -179,13 +189,14 @@ GitHub branch-state audit on 2026-05-10:
 
 ## What Must Happen For Donor To Deploy Successfully
 
-1. Add the remaining live Stripe, Sentry, and Resend webhook values listed above, then run the guarded `Sync Vercel Production Env` workflow first as a dry-run and then as a write.
-2. Create or verify the live Stripe webhook endpoint for `https://donor.asymmetric.al/api/webhooks/stripe`.
-3. Confirm Supabase production values point to the production project, not preview or staging.
-4. Push or merge the approved release commit to `epic`, the current Vercel Production Branch.
-5. Confirm Vercel creates a new production deployment from the current production source commit.
-6. Confirm the deployment moves past the stale missing-root-directory error and reaches `READY`.
-7. Run the donor smoke checks from `docs/ops/deploy-checklist.md`, especially:
+1. Run `Configure Resend Production Webhook` first as a dry-run and then as a write so the real `RESEND_WEBHOOK_SECRET` comes from Resend and is synced to Vercel Production.
+2. Add the remaining live Stripe and Sentry values listed above, then run the guarded `Sync Vercel Production Env` workflow first as a dry-run and then as a write.
+3. Create or verify the live Stripe webhook endpoint for `https://donor.asymmetric.al/api/webhooks/stripe`.
+4. Confirm Supabase production values point to the production project, not preview or staging.
+5. Push or merge the approved release commit to `epic`, the current Vercel Production Branch.
+6. Confirm Vercel creates a new production deployment from the current production source commit.
+7. Confirm the deployment moves past the stale missing-root-directory error and reaches `READY`.
+8. Run the donor smoke checks from `docs/ops/deploy-checklist.md`, especially:
    - `https://donor.asymmetric.al/`
    - `https://donor.asymmetric.al/api/health`
    - Auth login/logout

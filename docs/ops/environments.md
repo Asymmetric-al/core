@@ -210,6 +210,26 @@ Configure each endpoint for at least these live-mode events:
 After creating each endpoint, copy its signing secret into that app's
 `STRIPE_WEBHOOK_SECRET` in Vercel Production scope, then redeploy.
 
+Production Resend webhook endpoint:
+
+| App   | Endpoint URL                                            |
+| ----- | ------------------------------------------------------- |
+| Admin | `https://admin.asymmetric.al/api/email/webhooks/resend` |
+
+The Resend webhook secret must come from Resend's webhook configuration for the
+endpoint above. Use the guarded manual workflow
+`Configure Resend Production Webhook` to create or update the endpoint, mask the
+returned `whsec_...` signing secret, and sync that value into all three Vercel
+Production projects as `RESEND_WEBHOOK_SECRET`. It requires typing
+`configure-resend-production-webhook` and defaults to dry-run.
+
+Local equivalent for inspection only when `RESEND_API_KEY` is available in the
+shell:
+
+```bash
+bun run configure:resend-production-webhook -- --dry-run
+```
+
 Verify production readiness without printing secret values:
 
 ```bash
@@ -260,6 +280,10 @@ Example targeted dry-run/write for the existing Resend API key:
 bun run sync:vercel-production-env -- --dry-run --keys RESEND_API_KEY
 bun run sync:vercel-production-env -- --keys RESEND_API_KEY
 ```
+
+Do not hand-enter or invent `RESEND_WEBHOOK_SECRET`. If it is missing, run
+`Configure Resend Production Webhook` dry-run first and then write mode after
+the dry-run confirms the endpoint action.
 
 ## 6. Deploy Flows
 

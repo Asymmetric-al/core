@@ -15,6 +15,10 @@ staging validation, run the same checks against `develop` after deploy.
 - [ ] New env vars added to all 3 Vercel projects in Production scope
 - [ ] If syncing from GitHub Secrets, run `Sync Vercel Production Env` with
       `dry_run=true`, then with `dry_run=false` after the dry-run passes
+- [ ] Resend production webhook exists at
+      `https://admin.asymmetric.al/api/email/webhooks/resend`; if missing, run
+      `Configure Resend Production Webhook` with `dry_run=true`, then
+      `dry_run=false`
 - [ ] Stripe live webhook endpoints exist for each production app at `/api/webhooks/stripe`
 - [ ] Production readiness verifier passes for the exact commit to ship:
       `bun run verify:vercel-production -- --commit <sha>`
