@@ -118,6 +118,9 @@ For each Vercel project (`admin`, `donor`, `missionary`):
 | `NEXT_PUBLIC_APP_URL`                |
 | `SENTRY_DSN`                         |
 | `NEXT_PUBLIC_SENTRY_DSN`             |
+| `RESEND_API_KEY`                     |
+| `RESEND_WEBHOOK_SECRET`              |
+| `RESEND_ENCRYPTION_KEY`              |
 | `CLOUDINARY_CLOUD_NAME`              |
 | `CLOUDINARY_API_KEY`                 |
 | `CLOUDINARY_API_SECRET`              |
@@ -175,6 +178,9 @@ Set these Vercel variables in the **Production** scope before deploying:
 | `STRIPE_WEBHOOK_SECRET`              | Yes   | Yes   | Yes        | Signing secret for the app-specific production endpoint |
 | `SENTRY_DSN`                         | Yes   | Yes   | Yes        | Required by protected deployment env validation         |
 | `NEXT_PUBLIC_SENTRY_DSN`             | Yes   | Yes   | Yes        | Public client DSN when browser reporting is enabled     |
+| `RESEND_API_KEY`                     | Yes   | Yes   | Yes        | Production Resend API key; use `re_...`                 |
+| `RESEND_WEBHOOK_SECRET`              | Yes   | Yes   | Yes        | Production Resend webhook signing secret                |
+| `RESEND_ENCRYPTION_KEY`              | Yes   | Yes   | Yes        | At least 32 characters; protects tenant email secrets   |
 | `NEXT_PUBLIC_APP_URL`                | Yes   | Yes   | Yes        | App canonical origin                                    |
 | `NEXT_PUBLIC_SITE_URL`               | Yes   | Yes   | Yes        | Same origin as the app unless a split site exists       |
 | `NEXT_PUBLIC_MAIN_DOMAIN`            | Yes   | Yes   | Yes        | `asymmetric.al`                                         |
@@ -201,6 +207,18 @@ Configure each endpoint for at least these live-mode events:
 
 After creating each endpoint, copy its signing secret into that app's
 `STRIPE_WEBHOOK_SECRET` in Vercel Production scope, then redeploy.
+
+Verify production readiness without printing secret values:
+
+```bash
+bun run verify:vercel-production -- --commit <sha>
+```
+
+The verifier checks each Vercel project for required Production env names,
+validates prefix/URL/length requirements for values Vercel exposes through
+`vercel env pull` without printing secrets, reports sensitive values that are
+present but unreadable by the CLI, confirms a READY Production deployment for
+the target commit, and checks `/api/health` on the production domain.
 
 ## 6. Deploy Flows
 

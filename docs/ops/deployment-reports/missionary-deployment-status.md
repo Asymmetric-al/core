@@ -8,7 +8,7 @@ The `missionary` Vercel project is visible under the `asymmetric-al` scope, but 
 
 The latest visible `missionary` production deployment is stale and failed against an older `epic` commit because the configured root directory did not exist in that historical checkout. In the current `origin/main` tree, `apps/missionary` does exist, so the latest failure should not be treated as proof that the current source still has a missing-directory problem.
 
-This remediation branch fixes the repo-side deploy wiring, adds the missing production Stripe webhook route, updates the deployment docs, and partially configures Vercel Production environment variables. Production deployment remains intentionally blocked until live Stripe and Sentry values are supplied.
+This remediation branch fixes the repo-side deploy wiring, adds the missing production Stripe webhook route, updates the deployment docs, and partially configures Vercel Production environment variables. Production deployment remains intentionally blocked until live Stripe, Sentry, and Resend values are supplied.
 
 This report has also been replayed onto current `origin/epic` because GitHub still reports `epic` as the default branch and `origin/epic` is ahead of `origin/main`. A credible production release must not deploy stale `main` code; it must first either merge the current `epic` lineage into `main` or explicitly change the production contract away from `main`.
 
@@ -84,6 +84,16 @@ The following required external values are still missing and must be added befor
 - `STRIPE_WEBHOOK_SECRET` with a `whsec_` prefix for `https://missionary.asymmetric.al/api/webhooks/stripe`
 - `SENTRY_DSN`
 - `NEXT_PUBLIC_SENTRY_DSN`
+- `RESEND_API_KEY` with an `re_` prefix
+- `RESEND_WEBHOOK_SECRET` with a `whsec_` prefix
+- `RESEND_ENCRYPTION_KEY` with at least 32 characters
+
+Additional secret-source audit on 2026-05-10:
+
+- Local root `.env.local` has `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, and `NEXT_PUBLIC_SENTRY_DSN` present but empty; `STRIPE_WEBHOOK_SECRET`, `SENTRY_DSN`, `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, and `RESEND_ENCRYPTION_KEY` are absent.
+- GitHub repository secrets include Vercel and Supabase values, but no Stripe, Sentry, or Resend secret names.
+- Vercel Marketplace integrations list no connected integration resource that can supply Stripe, Sentry, or Resend values.
+- Production Supabase `public.tenants` currently has one tenant and zero populated tenant Stripe secret, publishable, or webhook-secret fields.
 
 Required by the shared env schema for protected deployments:
 
@@ -93,6 +103,9 @@ Required by the shared env schema for protected deployments:
 - `STRIPE_SECRET_KEY` with an `sk_` prefix
 - `STRIPE_WEBHOOK_SECRET` with a `whsec_` prefix
 - `SENTRY_DSN`
+- `RESEND_API_KEY` with an `re_` prefix
+- `RESEND_WEBHOOK_SECRET` with a `whsec_` prefix
+- `RESEND_ENCRYPTION_KEY` with at least 32 characters
 
 Required missionary origin and Supabase variables are now configured. If Cloudinary is enabled later, also add `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `NEXT_PUBLIC_CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET`.
 
@@ -144,6 +157,7 @@ vercel project inspect missionary --scope asymmetric-al
 vercel env ls production --cwd /tmp/core-vercel-missionary --scope asymmetric-al --format=json
 vercel list missionary --scope asymmetric-al --format=json
 vercel inspect missionary-jmufalc5x-asymmetric-al.vercel.app --scope asymmetric-al --logs
+bun run verify:vercel-production -- --commit <sha>
 git ls-tree -d origin/main apps/missionary
 git ls-tree -d origin/epic apps/missionary
 git rev-list --left-right --count origin/main...origin/epic

@@ -71,6 +71,7 @@
     "verify:supabase-env": "node scripts/supabase-env-smoke.mjs",
     "supabase": "node scripts/supabase-cli.mjs",
     "verify:eslint": "node scripts/verify-eslint-config.mjs",
+    "verify:vercel-production": "node scripts/verify/vercel-production-readiness.mjs",
     "verify:shadcn-diff": "node scripts/verify/shadcn-diff.mjs",
     "tsconfig:future-audit": "node scripts/tsconfig-future-audit.mjs",
     "verify:data-boundary": "node scripts/verify/data-boundary-check.mjs",

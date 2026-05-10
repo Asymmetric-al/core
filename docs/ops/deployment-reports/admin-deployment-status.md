@@ -6,7 +6,7 @@ Generated: 2026-05-10 Asia/Bangkok
 
 The `admin` Vercel project is visible under the `asymmetric-al` scope, but the code currently merged to GitHub `main` is not deployed. The latest deployment tied to the PR #223 work is a manual production deployment for commit `4eddb1905edf1343dbba17e668da1e12ed058b3c`, and it failed during `next build` because required production environment variables were missing.
 
-This remediation branch fixes the repo-side deploy wiring, adds the missing production Stripe webhook route, updates the deployment docs, and partially configures Vercel Production environment variables. Production deployment remains intentionally blocked until live Stripe and Sentry values are supplied.
+This remediation branch fixes the repo-side deploy wiring, adds the missing production Stripe webhook route, updates the deployment docs, and partially configures Vercel Production environment variables. Production deployment remains intentionally blocked until live Stripe, Sentry, and Resend values are supplied.
 
 The current merged `main` commit is `2df3b31c4e143be02578665fdcee0892ed9f1b8e`. Vercel has no deployment for that commit.
 
@@ -99,6 +99,16 @@ The following required external values are still missing and must be added befor
 - `STRIPE_WEBHOOK_SECRET` with a `whsec_` prefix for `https://admin.asymmetric.al/api/webhooks/stripe`
 - `SENTRY_DSN`
 - `NEXT_PUBLIC_SENTRY_DSN`
+- `RESEND_API_KEY` with an `re_` prefix
+- `RESEND_WEBHOOK_SECRET` with a `whsec_` prefix
+- `RESEND_ENCRYPTION_KEY` with at least 32 characters
+
+Additional secret-source audit on 2026-05-10:
+
+- Local root `.env.local` has `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, and `NEXT_PUBLIC_SENTRY_DSN` present but empty; `STRIPE_WEBHOOK_SECRET`, `SENTRY_DSN`, `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, and `RESEND_ENCRYPTION_KEY` are absent.
+- GitHub repository secrets include Vercel and Supabase values, but no Stripe, Sentry, or Resend secret names.
+- Vercel Marketplace integrations list no connected integration resource that can supply Stripe, Sentry, or Resend values.
+- Production Supabase `public.tenants` currently has one tenant and zero populated tenant Stripe secret, publishable, or webhook-secret fields.
 
 Required by the shared env schema for protected deployments:
 
@@ -108,6 +118,9 @@ Required by the shared env schema for protected deployments:
 - `STRIPE_SECRET_KEY` with an `sk_` prefix
 - `STRIPE_WEBHOOK_SECRET` with a `whsec_` prefix
 - `SENTRY_DSN`
+- `RESEND_API_KEY` with an `re_` prefix
+- `RESEND_WEBHOOK_SECRET` with a `whsec_` prefix
+- `RESEND_ENCRYPTION_KEY` with at least 32 characters
 
 Required for intended admin/Web Studio behavior is now configured, subject to the database reachability note above.
 
@@ -160,6 +173,7 @@ vercel project inspect admin --scope asymmetric-al
 vercel env ls production --cwd /tmp/core-vercel-admin --scope asymmetric-al --format=json
 vercel list admin --scope asymmetric-al --format=json
 vercel inspect admin-nr1yo6gg4-asymmetric-al.vercel.app --scope asymmetric-al --logs
+bun run verify:vercel-production -- --commit <sha>
 gh api graphql -f query='query { repository(owner:"Asymmetric-al", name:"core") { branchProtectionRules(first:20) { nodes { pattern requiresDeployments requiredDeploymentEnvironments requiredStatusCheckContexts } } } }'
 git rev-list --left-right --count origin/main...origin/epic
 ```

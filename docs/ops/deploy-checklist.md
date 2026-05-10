@@ -11,6 +11,8 @@ staging validation, run the same checks against `develop` after deploy.
 - [ ] `main` contains the current `epic` lineage, or the release owner has explicitly changed the production branch contract before deploy
 - [ ] New env vars added to all 3 Vercel projects in Production scope
 - [ ] Stripe live webhook endpoints exist for each production app at `/api/webhooks/stripe`
+- [ ] Production readiness verifier passes for the exact commit to ship:
+      `bun run verify:vercel-production -- --commit <sha>`
 - [ ] Rollback plan reviewed for this deploy: [docs/ops/rollback-plan.md](./rollback-plan.md)
 
 ## 2. Deploy
@@ -41,6 +43,8 @@ staging validation, run the same checks against `develop` after deploy.
 - [ ] Sentry: check for new errors tagged with the deployed release
 - [ ] Vercel Analytics: check for Web Vitals anomalies
 - [ ] Supabase Dashboard: check for pool exhaustion and failed auth spikes
+- [ ] Re-run production readiness verifier against the deployed commit:
+      `bun run verify:vercel-production -- --commit <sha>`
 
 ## 5. If something is wrong
 
