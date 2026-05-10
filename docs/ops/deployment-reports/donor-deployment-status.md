@@ -4,15 +4,20 @@ Generated: 2026-05-10 Asia/Bangkok
 
 ## Summary
 
-The `donor` Vercel project is visible under the `asymmetric-al` scope, but the code currently merged to GitHub `main` is not deployed. Vercel has no deployment for the merged `main` commit `2df3b31c4e143be02578665fdcee0892ed9f1b8e`.
+The `donor` Vercel project is visible under the `asymmetric-al` scope. Live
+Vercel project settings report `productionBranch: epic`, which matches the
+repository's current GitHub default branch. The previous repo-side blocker was
+that `apps/donor/vercel.json` disabled `epic`, so Vercel could not create the
+intended Production deployment from the current release branch.
 
 The latest visible `donor` production deployment is stale and failed against an older `epic` commit because the configured root directory did not exist in that historical checkout. In the current `origin/main` tree, `apps/donor` does exist, so the latest failure should not be treated as proof that the current source still has a missing-directory problem.
 
-This remediation branch fixes the repo-side deploy wiring, adds the missing production Stripe webhook route, updates the deployment docs, and partially configures Vercel Production environment variables. Production deployment remains intentionally blocked until live Stripe, Sentry, and Resend values are supplied.
-
-This report has also been replayed onto current `origin/epic` because GitHub still reports `epic` as the default branch and `origin/epic` is ahead of `origin/main`. A credible production release must not deploy stale `main` code; it must first either merge the current `epic` lineage into `main` or explicitly change the production contract away from `main`.
-
-The repo-side remediation, production-readiness verifier, guarded Vercel Production env sync workflow, and GitHub Actions runtime hardening are now merged to remote `epic` at commit `1fd4daa490d3f6b7293f68b1cc2e5eead6f73861`. GitHub reports CI run `25616918248` and Nia source check run `25616918269` as successful for that commit; CI includes `ci-gate`, `format`, `lint`, `typecheck`, `test-unit`, and `build`. No current Vercel Production deployment exists for that commit because legacy `epic` deployments are intentionally disabled and the intended Production branch remains `main`.
+This remediation removes that branch-gating conflict, adds verifier coverage for
+the live Vercel Production Branch, adds the missing production Stripe webhook
+route, updates the deployment docs, and adds a guarded Vercel Production env
+sync path. Production deployment remains blocked until live Stripe, Sentry, and
+Resend values are supplied and Vercel produces a READY Production deployment for
+the exact release commit.
 
 ## Current Vercel Project Facts
 
@@ -20,6 +25,7 @@ The repo-side remediation, production-readiness verifier, guarded Vercel Product
 - Project ID: `prj_dZG3XkklLVZyqm85FW5Vvv7ph3kL`
 - Scope: `asymmetric-al`
 - Root Directory: `apps/donor`
+- Production Branch: `epic`
 - Framework: Next.js
 - Node.js Version: `24.x`
 - Install Command: `bun install --cwd ../.. --frozen-lockfile`
@@ -58,12 +64,12 @@ That failure came from the older `6c76ce4` `epic` commit. Current `origin/main`,
 
 ## Remediation Completed In This Branch
 
-- `apps/donor/vercel.json` now allows `main` and `develop` deployments while keeping legacy `epic` deployments disabled.
+- `apps/donor/vercel.json` no longer disables the live Vercel Production Branch, `epic`.
 - `apps/donor/app/api/webhooks/stripe/route.ts` now exposes `POST /api/webhooks/stripe`.
 - The route delegates to the shared `@asym/api/stripe/webhooks` handler instead of embedding data access in the app route.
 - The shared handler verifies Stripe signatures against the raw request body, records PaymentIntent state changes, and records charge refunds.
 - Unit coverage exists in `tests/unit/packages/api/stripe-webhooks.test.ts`.
-- Runtime docs and deployment docs now include the new route and the current `main` production branch contract.
+- Runtime docs and deployment docs now include the new route and the current Vercel Production Branch contract.
 
 ## Production Environment Variables
 
@@ -113,33 +119,31 @@ Do not use `SKIP_ENV_VALIDATION` as the production fix. The donor app handles pu
 
 ## Git And Deployment Wiring
 
-This branch changes each app-level `vercel.json` to:
+This branch keeps app-level `vercel.json` minimal:
 
 ```json
 {
-  "git": {
-    "deploymentEnabled": {
-      "epic": false
-    }
-  }
+  "$schema": "https://openapi.vercel.sh/vercel.json"
 }
 ```
 
-That means Vercel can create automatic deployments from `main` and `develop`, matching the repo documentation updated in this remediation branch. Legacy `epic` deployments remain disabled.
+Vercel's `git.deploymentEnabled` default is `true` for unspecified branches, so
+the live Vercel Production Branch `epic` is now deployable. If the team later
+migrates Production to `main`, first update the Vercel Production Branch setting
+for all three projects and then update this file.
 
 GitHub branch-state audit on 2026-05-10:
 
-- Default branch: `epic`
-- Production branch protection exists on `main` and requires `Production - admin`, `Production - donor`, and `Production - missionary`.
-- `origin/epic` remains substantially ahead of `origin/main`; run `git rev-list --left-right --count origin/main...origin/epic` for the current count before release. This remediation is merged to `origin/epic` so it can be merged forward without losing current code.
-- Do not switch the default branch or production deploy source to `main` until `main` includes the current `epic` lineage.
+- GitHub default branch: `epic`
+- Vercel Production Branch: `epic`
+- Production branch protection exists on `main`, but live Vercel production deploys are currently governed by the Vercel project Production Branch setting above.
 
 ## What Must Happen For Donor To Deploy Successfully
 
 1. Add the remaining live Stripe, Sentry, and Resend values listed above, then run the guarded `Sync Vercel Production Env` workflow first as a dry-run and then as a write.
 2. Create or verify the live Stripe webhook endpoint for `https://donor.asymmetric.al/api/webhooks/stripe`.
 3. Confirm Supabase production values point to the production project, not preview or staging.
-4. Merge current `epic` plus this remediation into `main`, or make an explicit product decision to keep production on `epic` and reverse the `epic` deployment disablement.
+4. Push or merge the approved release commit to `epic`, the current Vercel Production Branch.
 5. Confirm Vercel creates a new production deployment from the current production source commit.
 6. Confirm the deployment moves past the stale missing-root-directory error and reaches `READY`.
 7. Run the donor smoke checks from `docs/ops/deploy-checklist.md`, especially:
@@ -162,6 +166,7 @@ bun run verify:vercel-production -- --commit <sha>
 git ls-tree -d origin/main apps/donor
 git ls-tree -d origin/epic apps/donor
 git rev-list --left-right --count origin/main...origin/epic
+vercel api /v10/projects/donor --scope asymmetric-al --raw
 ```
 
 ## References

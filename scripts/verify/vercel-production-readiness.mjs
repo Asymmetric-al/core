@@ -75,6 +75,7 @@ export const PROJECTS = [
   {
     key: "admin",
     project: "admin",
+    vercelConfigPath: "apps/admin/vercel.json",
     healthUrl: "https://admin.asymmetric.al/api/health",
     requiredEnv: [
       ...COMMON_REQUIRED_ENV,
@@ -89,12 +90,14 @@ export const PROJECTS = [
   {
     key: "donor",
     project: "donor",
+    vercelConfigPath: "apps/donor/vercel.json",
     healthUrl: "https://donor.asymmetric.al/api/health",
     requiredEnv: COMMON_REQUIRED_ENV,
   },
   {
     key: "missionary",
     project: "missionary",
+    vercelConfigPath: "apps/missionary/vercel.json",
     healthUrl: "https://missionary.asymmetric.al/api/health",
     requiredEnv: COMMON_REQUIRED_ENV,
   },
@@ -148,6 +151,46 @@ export function parseVercelDeployments(jsonText) {
     commitSha: deployment.meta?.githubCommitSha ?? "",
     commitRef: deployment.meta?.githubCommitRef ?? "",
   }));
+}
+
+export function parseVercelProjectDetails(jsonText) {
+  const parsed = parseJson(jsonText, {});
+
+  return {
+    productionBranch:
+      typeof parsed?.link?.productionBranch === "string"
+        ? parsed.link.productionBranch
+        : "",
+  };
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[|\\{}()[\]^$+?.]/g, "\\$&");
+}
+
+export function branchPatternMatches(pattern, branch) {
+  if (pattern === branch) return true;
+
+  const regex = new RegExp(
+    `^${pattern.split("*").map(escapeRegExp).join(".*")}$`,
+  );
+  return regex.test(branch);
+}
+
+export function isBranchDeploymentEnabled(vercelConfig, branch) {
+  const setting = vercelConfig?.git?.deploymentEnabled;
+
+  if (typeof setting === "boolean") return setting;
+  if (!setting || typeof setting !== "object") return true;
+
+  const matchingValues = Object.entries(setting)
+    .filter(([pattern]) => branchPatternMatches(pattern, branch))
+    .map(([, enabled]) => enabled);
+
+  if (matchingValues.some((enabled) => enabled === true)) return true;
+  if (matchingValues.some((enabled) => enabled === false)) return false;
+
+  return true;
 }
 
 function parseDotEnvValue(value) {
@@ -256,6 +299,8 @@ export function summarizeProjectReadiness({
   deployments,
   commit,
   health,
+  productionBranch,
+  productionBranchEnabled = true,
 }) {
   const resolvedEnvValues =
     envValues ??
@@ -286,11 +331,14 @@ export function summarizeProjectReadiness({
   );
   const latestDeployment = deployments[0] ?? null;
   const healthOk = health ? health.status >= 200 && health.status < 300 : false;
+  const productionBranchReady =
+    isNonEmpty(productionBranch) && productionBranchEnabled;
 
   return {
     key: project.key,
     project: project.project,
     ready:
+      productionBranchReady &&
       missingEnv.length === 0 &&
       invalidEnv.length === 0 &&
       Boolean(deploymentForCommit) &&
@@ -301,6 +349,9 @@ export function summarizeProjectReadiness({
     deploymentForCommit: deploymentForCommit ?? null,
     latestDeployment,
     health: health ?? null,
+    productionBranch: productionBranch ?? "",
+    productionBranchEnabled,
+    vercelConfigPath: project.vercelConfigPath,
   };
 }
 
@@ -347,6 +398,15 @@ export function formatReadinessReport({ commit, reports }) {
       }
       lines.push("");
     }
+
+    if (report.productionBranch) {
+      lines.push(
+        `Production branch: \`${report.productionBranch}\` (${report.productionBranchEnabled ? "enabled" : "disabled"} by \`${report.vercelConfigPath}\`)`,
+      );
+    } else {
+      lines.push("Production branch: unknown");
+    }
+    lines.push("");
 
     if (report.deploymentForCommit) {
       lines.push(
@@ -427,6 +487,23 @@ Options:
 
 function readCurrentCommit() {
   return run("git", ["rev-parse", "HEAD"]).trim();
+}
+
+function readLocalVercelConfig(project) {
+  const configPath = path.resolve(project.vercelConfigPath);
+  return parseJson(readFileSync(configPath, "utf8"), {});
+}
+
+function readProjectDetails(project, scope) {
+  const output = run("vercel", [
+    "api",
+    `/v10/projects/${project.project}`,
+    "--scope",
+    scope,
+    "--raw",
+  ]);
+
+  return parseVercelProjectDetails(output);
 }
 
 function withLinkedProject(project, scope, fn) {
@@ -532,6 +609,8 @@ async function main() {
   const reports = [];
 
   for (const project of PROJECTS) {
+    const projectDetails = readProjectDetails(project, args.scope);
+    const vercelConfig = readLocalVercelConfig(project);
     const { envKeys, envTypes, envValues } = readProductionEnv(
       project,
       args.scope,
@@ -547,6 +626,11 @@ async function main() {
         deployments,
         commit,
         health,
+        productionBranch: projectDetails.productionBranch,
+        productionBranchEnabled: isBranchDeploymentEnabled(
+          vercelConfig,
+          projectDetails.productionBranch,
+        ),
       }),
     );
   }

@@ -6,15 +6,15 @@ This document is the canonical reference for how environments are defined and op
 
 ## 2. Four-Environment Matrix
 
-| Property      | Local                                | Preview                  | Staging                                                                                          | Production                       |
-| ------------- | ------------------------------------ | ------------------------ | ------------------------------------------------------------------------------------------------ | -------------------------------- |
-| Trigger       | `bun run dev:*`                      | PR opened/pushed         | Push to `develop`                                                                                | PR merged to `main`              |
-| URL           | `localhost:3000`                     | `*.vercel.app`           | `staging-admin.asymmetric.al`, `staging-donor.asymmetric.al`, `staging-missionary.asymmetric.al` | `*.asymmetric.al`                |
-| Supabase      | `bun run supabase -- start` (Docker) | Shared preview project   | Dedicated staging project                                                                        | Production project               |
-| Stripe        | Test-mode                            | Test-mode                | Test-mode                                                                                        | Live-mode                        |
-| Sentry        | Optional (DSN may be unset)          | Optional                 | Configured                                                                                       | Configured                       |
-| Safe to break | Yes - fully disposable               | Yes - isolated test data | Mostly - recoverable                                                                             | **No - real donors, real money** |
-| Seed data     | Local seed script                    | Shared test data         | Demo data (periodically refreshed)                                                               | Real data                        |
+| Property      | Local                                | Preview                  | Staging                                                                                          | Production                             |
+| ------------- | ------------------------------------ | ------------------------ | ------------------------------------------------------------------------------------------------ | -------------------------------------- |
+| Trigger       | `bun run dev:*`                      | PR opened/pushed         | Push to `develop`                                                                                | Push/merge to Vercel Production Branch |
+| URL           | `localhost:3000`                     | `*.vercel.app`           | `staging-admin.asymmetric.al`, `staging-donor.asymmetric.al`, `staging-missionary.asymmetric.al` | `*.asymmetric.al`                      |
+| Supabase      | `bun run supabase -- start` (Docker) | Shared preview project   | Dedicated staging project                                                                        | Production project                     |
+| Stripe        | Test-mode                            | Test-mode                | Test-mode                                                                                        | Live-mode                              |
+| Sentry        | Optional (DSN may be unset)          | Optional                 | Configured                                                                                       | Configured                             |
+| Safe to break | Yes - fully disposable               | Yes - isolated test data | Mostly - recoverable                                                                             | **No - real donors, real money**       |
+| Seed data     | Local seed script                    | Shared test data         | Demo data (periodically refreshed)                                                               | Real data                              |
 
 ## 3. Local Development Setup
 
@@ -151,20 +151,22 @@ After creating each endpoint, copy its signing secret into that app's `STRIPE_WE
 ### 5.6 Staging sync policy and Inngest note
 
 - Staging deploy trigger: push to `develop`.
-- Production deploy trigger: merge to `main`.
-- To refresh staging parity ahead of QA/demo cycles, perform best-effort sync from `main` into `develop` (merge or cherry-pick).
+- Production deploy trigger: push or merge to the Vercel Production Branch.
+- To refresh staging parity ahead of QA/demo cycles, perform best-effort sync from the Production Branch into `develop` (merge or cherry-pick).
 - Inngest staging is not integrated yet and remains a future placeholder.
 
 ## 5.7 Production Vercel requirements
 
-Production deploys are branch-bound to `main`. Each app-level `vercel.json`
-allows `main` and `develop` deployments and keeps legacy `epic` deployments
-disabled.
+Production deploys are currently branch-bound to `epic` in all three live Vercel
+projects. This matches GitHub's current default branch for this repository. Do
+not disable `epic` in app-level `vercel.json` while Vercel project settings use
+`epic` as the Production Branch; doing so prevents Vercel from creating the
+intended Production deployments.
 
-Migration note: GitHub may still report `epic` as the default branch during the
-production-branch migration. Do not deploy from `main` until `main` contains the
-current `epic` lineage, and do not re-enable `epic` deployments unless the
-release owner explicitly reverses the `main` production-branch contract.
+If the team later migrates Production to `main`, change the Vercel project
+Production Branch for `admin`, `donor`, and `missionary`, ensure `main`
+contains the current `epic` lineage, update this guide, and only then disable
+`epic` deployments.
 
 Set these Vercel variables in the **Production** scope before deploying:
 
@@ -217,8 +219,10 @@ bun run verify:vercel-production -- --commit <sha>
 The verifier checks each Vercel project for required Production env names,
 validates prefix/URL/length requirements for values Vercel exposes through
 `vercel env pull` without printing secrets, reports sensitive values that are
-present but unreadable by the CLI, confirms a READY Production deployment for
-the target commit, and checks `/api/health` on the production domain.
+present but unreadable by the CLI, confirms the live Vercel Production Branch is
+not disabled by the app-level `vercel.json`, confirms a READY Production
+deployment for the target commit, and checks `/api/health` on the production
+domain.
 
 After the real provider values exist as GitHub repository secrets, sync them to
 all three Vercel Production projects with the guarded manual workflow
@@ -253,24 +257,25 @@ sequenceDiagram
     participant Dev as Developer
     participant PR as PullRequest
     participant Develop as developBranch
-    participant Main as mainBranch
+    participant Prod as productionBranch
     participant Vercel as Vercel
 
     Dev->>PR: Open PR (feature branch)
     PR->>Vercel: Preview deploy (*.vercel.app)
     Note over Vercel: Preview Supabase project
 
-    PR->>Main: Merge PR to main (production)
-    Main->>Vercel: Production deploy (*.asymmetric.al)
+    PR->>Prod: Merge/push approved release to Vercel Production Branch
+    Prod->>Vercel: Production deploy (*.asymmetric.al)
     Note over Vercel: Production Supabase project
 
-    Note over Main,Develop: Optional best-effort sync for QA/demos
-    Main->>Develop: Merge/cherry-pick (best effort)
+    Note over Prod,Develop: Optional best-effort sync for QA/demos
+    Prod->>Develop: Merge/cherry-pick (best effort)
     Develop->>Vercel: Staging deploy (staging-*.asymmetric.al)
     Note over Vercel: Staging Supabase project
 ```
 
-`develop` may drift from `main`; best-effort sync is performed before QA/demo cycles. Direct-to-`main` PRs remain the primary workflow.
+`develop` may drift from the Production Branch; best-effort sync is performed
+before QA/demo cycles.
 
 ## 7. Playwright `baseURL` Configuration
 

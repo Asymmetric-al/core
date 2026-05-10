@@ -1,6 +1,8 @@
 # Deploy Checklist
 
-Use this checklist for production deploys to `main`. If a release also affects
+Use this checklist for production deploys to the current Vercel Production
+Branch. As of 2026-05-10, all three live Vercel projects (`admin`, `donor`, and
+`missionary`) use `epic` as the Production Branch. If a release also affects
 staging validation, run the same checks against `develop` after deploy.
 
 ## 1. Pre-deploy
@@ -8,7 +10,8 @@ staging validation, run the same checks against `develop` after deploy.
 - [ ] CI checks pass (`lint`, `typecheck`, `unit tests`)
 - [ ] Migrations reviewed (additive-only, or expand-then-contract followed)
 - [ ] Migrations tested on staging first
-- [ ] `main` contains the current `epic` lineage, or the release owner has explicitly changed the production branch contract before deploy
+- [ ] Vercel project Production Branch matches the intended release branch for all 3 projects
+- [ ] The app-level `vercel.json` files do not disable that Production Branch
 - [ ] New env vars added to all 3 Vercel projects in Production scope
 - [ ] If syncing from GitHub Secrets, run `Sync Vercel Production Env` with
       `dry_run=true`, then with `dry_run=false` after the dry-run passes
@@ -19,7 +22,7 @@ staging validation, run the same checks against `develop` after deploy.
 
 ## 2. Deploy
 
-- [ ] Merge approved PR to `main`
+- [ ] Merge or push the approved release commit to the current Vercel Production Branch
 - [ ] Monitor Vercel build logs for all 3 projects:
   - `donor`
   - `missionary`

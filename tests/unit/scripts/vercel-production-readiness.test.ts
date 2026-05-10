@@ -1,20 +1,24 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  branchPatternMatches,
   formatReadinessReport,
   invalidEnvValues,
+  isBranchDeploymentEnabled,
   missingEnvKeys,
   missingEnvValues,
   parseDotEnv,
   parseVercelDeployments,
   parseVercelEnvEntries,
   parseVercelEnvKeys,
+  parseVercelProjectDetails,
   summarizeProjectReadiness,
 } from "../../../scripts/verify/vercel-production-readiness.mjs";
 
 const project = {
   key: "donor",
   project: "donor",
+  vercelConfigPath: "apps/donor/vercel.json",
   healthUrl: "https://donor.asymmetric.al/api/health",
   requiredEnv: ["NEXT_PUBLIC_SUPABASE_URL", "STRIPE_SECRET_KEY"],
 };
@@ -118,6 +122,53 @@ export RESEND_API_KEY='re_hidden'
     ]);
   });
 
+  it("parses Vercel project production branch metadata", () => {
+    expect(
+      parseVercelProjectDetails(
+        JSON.stringify({
+          link: {
+            productionBranch: "epic",
+          },
+        }),
+      ),
+    ).toEqual({
+      productionBranch: "epic",
+    });
+  });
+
+  it("models Vercel deploymentEnabled branch matching", () => {
+    expect(branchPatternMatches("epic", "epic")).toBe(true);
+    expect(branchPatternMatches("internal-*", "internal-build")).toBe(true);
+    expect(branchPatternMatches("internal-*", "release-build")).toBe(false);
+
+    expect(isBranchDeploymentEnabled({}, "epic")).toBe(true);
+    expect(
+      isBranchDeploymentEnabled(
+        {
+          git: {
+            deploymentEnabled: {
+              epic: false,
+            },
+          },
+        },
+        "epic",
+      ),
+    ).toBe(false);
+    expect(
+      isBranchDeploymentEnabled(
+        {
+          git: {
+            deploymentEnabled: {
+              "*": false,
+              main: true,
+            },
+          },
+        },
+        "main",
+      ),
+    ).toBe(true);
+  });
+
   it("blocks when env names, target deployment, or health checks are missing", () => {
     const report = summarizeProjectReadiness({
       project,
@@ -173,11 +224,42 @@ export RESEND_API_KEY='re_hidden'
       ],
       commit: "abc123",
       health: { url: project.healthUrl, status: 200 },
+      productionBranch: "main",
+      productionBranchEnabled: true,
     });
 
     expect(report.ready).toBe(true);
     expect(
       formatReadinessReport({ commit: "abc123", reports: [report] }),
     ).toContain("Overall: READY");
+  });
+
+  it("blocks when the Vercel production branch is disabled locally", () => {
+    const report = summarizeProjectReadiness({
+      project,
+      envValues: {
+        NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+        STRIPE_SECRET_KEY: "sk_live_hidden",
+      },
+      deployments: [
+        {
+          url: "donor.example.vercel.app",
+          state: "READY",
+          target: "production",
+          createdAt: 123,
+          commitSha: "abc123",
+          commitRef: "epic",
+        },
+      ],
+      commit: "abc123",
+      health: { url: project.healthUrl, status: 200 },
+      productionBranch: "epic",
+      productionBranchEnabled: false,
+    });
+
+    expect(report.ready).toBe(false);
+    expect(
+      formatReadinessReport({ commit: "abc123", reports: [report] }),
+    ).toContain("Production branch: `epic` (disabled");
   });
 });
