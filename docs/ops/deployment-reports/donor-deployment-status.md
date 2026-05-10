@@ -12,7 +12,7 @@ This remediation branch fixes the repo-side deploy wiring, adds the missing prod
 
 This report has also been replayed onto current `origin/epic` because GitHub still reports `epic` as the default branch and `origin/epic` is ahead of `origin/main`. A credible production release must not deploy stale `main` code; it must first either merge the current `epic` lineage into `main` or explicitly change the production contract away from `main`.
 
-The repo-side remediation and production-readiness verifier are now merged to remote `epic` at commit `cdc1d79d6718220e40daf4603a538497fc75dac0`. GitHub reports CI and Nia source check as successful for that commit; CI includes `ci-gate`, `format`, `lint`, `typecheck`, `test-unit`, and `build`. No current Vercel Production deployment exists for that commit because legacy `epic` deployments are intentionally disabled and the intended Production branch remains `main`.
+The repo-side remediation, production-readiness verifier, guarded Vercel Production env sync workflow, and GitHub Actions runtime hardening are now merged to remote `epic` at commit `1fd4daa490d3f6b7293f68b1cc2e5eead6f73861`. GitHub reports CI run `25616918248` and Nia source check run `25616918269` as successful for that commit; CI includes `ci-gate`, `format`, `lint`, `typecheck`, `test-unit`, and `build`. No current Vercel Production deployment exists for that commit because legacy `epic` deployments are intentionally disabled and the intended Production branch remains `main`.
 
 ## Current Vercel Project Facts
 
@@ -131,7 +131,7 @@ GitHub branch-state audit on 2026-05-10:
 
 - Default branch: `epic`
 - Production branch protection exists on `main` and requires `Production - admin`, `Production - donor`, and `Production - missionary`.
-- `origin/epic` is ahead of `origin/main`; this remediation is merged to `origin/epic` so it can be merged forward without losing current code.
+- `origin/epic` is ahead of `origin/main` by `916` commits and behind by `1` commit (`git rev-list --left-right --count origin/main...origin/epic` returned `1 916`); this remediation is merged to `origin/epic` so it can be merged forward without losing current code.
 - Do not switch the default branch or production deploy source to `main` until `main` includes the current `epic` lineage.
 
 ## What Must Happen For Donor To Deploy Successfully
