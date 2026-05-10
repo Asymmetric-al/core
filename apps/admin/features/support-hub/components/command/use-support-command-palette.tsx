@@ -42,7 +42,7 @@ export function SupportCommandPaletteProvider({ children }: ProviderProps) {
 }
 
 export function useSupportCommandPalette(): SupportCommandPaletteContextValue {
-  const value = React.useContext(SupportCommandPaletteContext);
+  const value = React.use(SupportCommandPaletteContext);
   if (!value) {
     throw new Error(
       "useSupportCommandPalette must be used inside <SupportCommandPaletteProvider />",

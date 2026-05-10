@@ -40,7 +40,7 @@ export function PageHeader({
               key={`${item.href ?? "current"}-${item.label}`}
               className="flex items-center gap-1"
             >
-              <ChevronRight className="h-3.5 w-3.5" />
+              <ChevronRight className="size-3.5" />
               {item.href ? (
                 <Link href={item.href} className="hover:text-foreground">
                   {item.label}
@@ -54,7 +54,7 @@ export function PageHeader({
       )}
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
           {description && (
             <p className="text-sm text-muted-foreground">{description}</p>
           )}

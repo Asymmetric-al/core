@@ -145,7 +145,7 @@ export function StudioNavRail({ className }: { className?: string }) {
           type="button"
           variant="ghost"
           size="icon"
-          className="h-8 w-8 shrink-0"
+          className="size-8 shrink-0"
           onClick={() => void persistCollapsed(!collapsed)}
           aria-pressed={collapsed}
           aria-label={
@@ -155,9 +155,9 @@ export function StudioNavRail({ className }: { className?: string }) {
           }
         >
           {collapsed ? (
-            <PanelLeft className="h-4 w-4" />
+            <PanelLeft className="size-4" />
           ) : (
-            <PanelLeftClose className="h-4 w-4" />
+            <PanelLeftClose className="size-4" />
           )}
         </Button>
       </div>
@@ -174,7 +174,7 @@ export function StudioNavRail({ className }: { className?: string }) {
           asChild
         >
           <Link href="/web-studio/templates" title="Templates">
-            <Sparkles className="h-4 w-4 shrink-0" />
+            <Sparkles className="size-4 shrink-0" />
             {!collapsed ? <span>Templates</span> : null}
           </Link>
         </Button>
@@ -192,7 +192,7 @@ export function StudioNavRail({ className }: { className?: string }) {
           asChild
         >
           <Link href="/web-studio/missionaries" title="Missionaries">
-            <Users className="h-4 w-4 shrink-0" />
+            <Users className="size-4 shrink-0" />
             {!collapsed ? <span>Missionaries</span> : null}
           </Link>
         </Button>
@@ -214,7 +214,7 @@ export function StudioNavRail({ className }: { className?: string }) {
               asChild
             >
               <Link href={collection.listPath} title={collection.titlePlural}>
-                <Icon className="h-4 w-4 shrink-0" />
+                <Icon className="size-4 shrink-0" />
                 {!collapsed ? <span>{collection.titlePlural}</span> : null}
               </Link>
             </Button>
@@ -230,7 +230,7 @@ export function StudioNavRail({ className }: { className?: string }) {
           asChild
         >
           <Link href="/" title="Mission Control home">
-            <LayoutDashboard className="h-4 w-4 shrink-0" />
+            <LayoutDashboard className="size-4 shrink-0" />
             {!collapsed ? <span>Dashboard</span> : null}
           </Link>
         </Button>
@@ -238,7 +238,7 @@ export function StudioNavRail({ className }: { className?: string }) {
       {!collapsed && recentDocs.length > 0 ? (
         <div className="border-border border-t px-2 py-3">
           <div className="mb-2 flex items-center gap-2 px-2 text-muted-foreground text-[10px] font-semibold uppercase tracking-widest">
-            <Clock3 className="h-3.5 w-3.5" />
+            <Clock3 className="size-3.5" />
             Recent
           </div>
           <div className="flex flex-col gap-1">

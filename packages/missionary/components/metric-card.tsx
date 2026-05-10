@@ -16,9 +16,9 @@ export function MetricCard({ metric }: { metric: Metric }) {
     <Card className="border-zinc-100 bg-white shadow-sm hover:border-zinc-200 transition-all rounded-xl">
       <CardContent className="flex items-center gap-3 p-3.5">
         <div
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${metric.color}`}
+          className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${metric.color}`}
         >
-          <metric.icon className="h-4.5 w-4.5" />
+          <metric.icon className="size-4.5" />
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 leading-none mb-1">

@@ -52,14 +52,14 @@ export const GlobalSearch = memo(function GlobalSearch() {
         className="relative h-8 w-56 justify-start rounded-lg border-input bg-transparent px-3 text-sm text-muted-foreground shadow-none hover:bg-accent hover:text-accent-foreground"
         onClick={() => setOpen(true)}
       >
-        <Search className="mr-2 h-3.5 w-3.5" />
-        <span className="hidden sm:inline-flex">Search...</span>
+        <Search className="mr-2 size-3.5" />
+        <span className="hidden sm:inline-flex">Search…</span>
         <kbd className="pointer-events-none absolute right-1.5 hidden h-5 select-none items-center gap-0.5 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
           <span className="text-xs">⌘</span>K
         </kbd>
       </Button>
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Search tiles, actions, people..." />
+        <CommandInput placeholder="Search tiles, actions, people…" />
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
           <CommandGroup heading="Navigation">
@@ -72,7 +72,7 @@ export const GlobalSearch = memo(function GlobalSearch() {
                     handleSelect(resolveMissionControlHref(tile.route))
                   }
                 >
-                  <Icon className="mr-2 h-4 w-4" />
+                  <Icon className="mr-2 size-4" />
                   <span>{tile.title}</span>
                 </CommandItem>
               );
@@ -89,7 +89,7 @@ export const GlobalSearch = memo(function GlobalSearch() {
                       handleSelect(resolveMissionControlHref(action.href))
                     }
                   >
-                    <Icon className="mr-2 h-4 w-4" />
+                    <Icon className="mr-2 size-4" />
                     <span>{action.label}</span>
                     <span className="ml-auto text-xs text-muted-foreground">
                       {tile.title}

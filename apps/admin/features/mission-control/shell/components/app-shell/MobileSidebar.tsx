@@ -51,7 +51,7 @@ const NavLink = memo(function NavLink({
           : "text-sidebar-foreground",
       )}
     >
-      <DynamicIcon name={item.icon} className="h-4 w-4 shrink-0" />
+      <DynamicIcon name={item.icon} className="size-4 shrink-0" />
       <span>{item.title}</span>
     </Link>
   );
@@ -79,8 +79,8 @@ export const MobileSidebar = memo(function MobileSidebar() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-9 w-9 lg:hidden">
-          <Menu className="h-5 w-5" />
+        <Button variant="ghost" size="icon" className="size-9 lg:hidden">
+          <Menu className="size-5" />
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-72 p-0">
@@ -90,8 +90,8 @@ export const MobileSidebar = memo(function MobileSidebar() {
             className="flex items-center gap-2"
             onClick={handleNavigate}
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <LayoutDashboard className="h-4 w-4" />
+            <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <LayoutDashboard className="size-4" />
             </div>
             <SheetTitle className="font-semibold">Mission Control</SheetTitle>
           </Link>

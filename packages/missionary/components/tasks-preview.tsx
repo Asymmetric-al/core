@@ -25,8 +25,8 @@ export function TasksPreview({ tasks }: TasksPreviewProps) {
     <Card className="border-zinc-100 bg-white shadow-sm rounded-xl overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between p-5 pb-3 border-b border-zinc-50">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-50 text-violet-600 border border-violet-100/50">
-            <CheckSquare className="h-4.5 w-4.5" />
+          <div className="flex size-9 items-center justify-center rounded-lg bg-violet-50 text-violet-600 border border-violet-100/50">
+            <CheckSquare className="size-4.5" />
           </div>
           <div>
             <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 leading-none mb-1">
@@ -40,9 +40,9 @@ export function TasksPreview({ tasks }: TasksPreviewProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 rounded-md text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50 border border-transparent hover:border-zinc-100"
+          className="size-8 rounded-md text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50 border border-transparent hover:border-zinc-100"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="size-4" />
         </Button>
       </CardHeader>
       <CardContent className="p-0">
@@ -53,14 +53,14 @@ export function TasksPreview({ tasks }: TasksPreviewProps) {
               className="group flex cursor-pointer items-start gap-4 p-4 transition-all hover:bg-zinc-50/50"
             >
               <div
-                className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${task.priority === "high" ? "bg-rose-500" : "bg-amber-500"}`}
+                className={`mt-1.5 size-1.5 shrink-0 rounded-full ${task.priority === "high" ? "bg-rose-500" : "bg-amber-500"}`}
               />
               <div className="min-w-0 flex-1">
                 <p className="text-[11px] font-bold text-zinc-900 uppercase tracking-tight leading-snug">
                   {task.title}
                 </p>
                 <div className="mt-1 flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-zinc-400">
-                  <Clock className="h-3 w-3" />
+                  <Clock className="size-3" />
                   <span>Due {task.dueDate}</span>
                 </div>
               </div>

@@ -90,7 +90,7 @@ export function EmailStudioSetupStatus({
               className,
             )}
           >
-            <Icon className="h-3 w-3" />
+            <Icon className="size-3" />
             {currentStatus.label}
           </button>
         </DialogTrigger>
@@ -115,14 +115,14 @@ export function EmailStudioSetupStatus({
         )}
       >
         <div className="flex items-center gap-2">
-          <Icon className="h-4 w-4" />
+          <Icon className="size-4" />
           <span className="text-sm font-medium">{status.message}</span>
         </div>
         {showSetupButton && status.status !== "white_label" && (
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="h-7">
-                <Settings className="h-3.5 w-3.5 mr-1.5" />
+                <Settings className="size-3.5 mr-1.5" />
                 Setup
               </Button>
             </DialogTrigger>
@@ -143,7 +143,7 @@ export function EmailStudioSetupStatus({
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <Icon className="h-4 w-4" />
+      <Icon className="size-4" />
       <span className="text-sm">{currentStatus.label}</span>
     </div>
   );
@@ -199,7 +199,7 @@ function EmailStudioSetupPanel({ config, status }: EmailStudioSetupPanelProps) {
               variant="outline"
               className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px]"
             >
-              <CheckCircle2 className="h-3 w-3 mr-1" />
+              <CheckCircle2 className="size-3 mr-1" />
               {feature}
             </Badge>
           ))}
@@ -212,7 +212,7 @@ function EmailStudioSetupPanel({ config, status }: EmailStudioSetupPanelProps) {
                 variant="outline"
                 className="bg-muted text-muted-foreground border-border text-[10px]"
               >
-                <Zap className="h-3 w-3 mr-1 opacity-50" />
+                <Zap className="size-3 mr-1 opacity-50" />
                 {feature}
               </Badge>
             ))}
@@ -226,15 +226,15 @@ function EmailStudioSetupPanel({ config, status }: EmailStudioSetupPanelProps) {
             <CollapsibleTrigger asChild>
               <button className="flex items-center justify-between w-full p-3 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 transition-colors">
                 <div className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
+                  <Settings className="size-4" />
                   <span className="text-sm font-medium">
                     Basic Setup Instructions
                   </span>
                 </div>
                 {isSetupOpen ? (
-                  <ChevronUp className="h-4 w-4" />
+                  <ChevronUp className="size-4" />
                 ) : (
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronDown className="size-4" />
                 )}
               </button>
             </CollapsibleTrigger>
@@ -242,7 +242,7 @@ function EmailStudioSetupPanel({ config, status }: EmailStudioSetupPanelProps) {
               <div className="space-y-3 p-3 rounded-lg bg-muted/50 border border-border">
                 {UNLAYER_SETUP_INSTRUCTIONS.steps.map((step) => (
                   <div key={step.step} className="flex gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">
+                    <div className="flex-shrink-0 size-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">
                       {step.step}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -265,13 +265,13 @@ function EmailStudioSetupPanel({ config, status }: EmailStudioSetupPanelProps) {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-7 w-7 p-0"
+                            className="size-7 p-0"
                             onClick={() => handleCopy(step.code!, step.step)}
                           >
                             {copiedStep === step.step ? (
-                              <Check className="h-3.5 w-3.5 text-emerald-600" />
+                              <Check className="size-3.5 text-emerald-600" />
                             ) : (
-                              <Copy className="h-3.5 w-3.5" />
+                              <Copy className="size-3.5" />
                             )}
                           </Button>
                         </div>
@@ -284,7 +284,7 @@ function EmailStudioSetupPanel({ config, status }: EmailStudioSetupPanelProps) {
                           className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 mt-1"
                         >
                           Open Unlayer Dashboard
-                          <ExternalLink className="h-3 w-3" />
+                          <ExternalLink className="size-3" />
                         </a>
                       )}
                     </div>
@@ -302,15 +302,15 @@ function EmailStudioSetupPanel({ config, status }: EmailStudioSetupPanelProps) {
               <CollapsibleTrigger asChild>
                 <button className="flex items-center justify-between w-full p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors">
                   <div className="flex items-center gap-2">
-                    <Crown className="h-4 w-4" />
+                    <Crown className="size-4" />
                     <span className="text-sm font-medium">
                       Upgrade to White-Label
                     </span>
                   </div>
                   {isWhiteLabelOpen ? (
-                    <ChevronUp className="h-4 w-4" />
+                    <ChevronUp className="size-4" />
                   ) : (
-                    <ChevronDown className="h-4 w-4" />
+                    <ChevronDown className="size-4" />
                   )}
                 </button>
               </CollapsibleTrigger>
@@ -318,7 +318,7 @@ function EmailStudioSetupPanel({ config, status }: EmailStudioSetupPanelProps) {
                 <div className="space-y-3 p-3 rounded-lg bg-muted/50 border border-border">
                   {UNLAYER_SETUP_INSTRUCTIONS.whiteLabelSteps.map((step) => (
                     <div key={step.step} className="flex gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">
+                      <div className="flex-shrink-0 size-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">
                         {step.step}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -341,15 +341,15 @@ function EmailStudioSetupPanel({ config, status }: EmailStudioSetupPanelProps) {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-7 w-7 p-0"
+                              className="size-7 p-0"
                               onClick={() =>
                                 handleCopy(step.code!, step.step + 10)
                               }
                             >
                               {copiedStep === step.step + 10 ? (
-                                <Check className="h-3.5 w-3.5 text-emerald-600" />
+                                <Check className="size-3.5 text-emerald-600" />
                               ) : (
-                                <Copy className="h-3.5 w-3.5" />
+                                <Copy className="size-3.5" />
                               )}
                             </Button>
                           </div>
@@ -362,7 +362,7 @@ function EmailStudioSetupPanel({ config, status }: EmailStudioSetupPanelProps) {
                             className="inline-flex items-center gap-1 text-xs text-amber-600 hover:text-amber-700 mt-1"
                           >
                             View Pricing
-                            <ExternalLink className="h-3 w-3" />
+                            <ExternalLink className="size-3" />
                           </a>
                         )}
                       </div>
@@ -378,7 +378,7 @@ function EmailStudioSetupPanel({ config, status }: EmailStudioSetupPanelProps) {
       {config.allowedDomains.length > 0 && (
         <div className="p-3 rounded-lg bg-muted/50 border border-border">
           <div className="flex items-center gap-2 mb-2">
-            <Shield className="h-4 w-4 text-muted-foreground" />
+            <Shield className="size-4 text-muted-foreground" />
             <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               Allowed Domains
             </span>
@@ -395,7 +395,7 @@ function EmailStudioSetupPanel({ config, status }: EmailStudioSetupPanelProps) {
             ))}
           </div>
           <p className="text-xs text-muted-foreground/80 mt-2 flex items-start gap-1">
-            <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+            <Info className="size-3 mt-0.5 flex-shrink-0" />
             For production, add your domain in the Unlayer Console.
           </p>
         </div>
@@ -405,7 +405,7 @@ function EmailStudioSetupPanel({ config, status }: EmailStudioSetupPanelProps) {
         <Button variant="outline" size="sm" asChild>
           <a href={status.setupUrl} target="_blank" rel="noopener noreferrer">
             Open Unlayer Dashboard
-            <ExternalLink className="h-3.5 w-3.5 ml-1.5" />
+            <ExternalLink className="size-3.5 ml-1.5" />
           </a>
         </Button>
       </div>
@@ -425,7 +425,7 @@ export function EmailStudioConfigBadge({ className }: { className?: string }) {
           className,
         )}
       >
-        <Crown className="h-3 w-3 mr-1" />
+        <Crown className="size-3 mr-1" />
         White Label
       </Badge>
     );
@@ -437,7 +437,7 @@ export function EmailStudioConfigBadge({ className }: { className?: string }) {
         variant="outline"
         className={cn("bg-blue-50 text-blue-700 border-blue-200", className)}
       >
-        <CheckCircle2 className="h-3 w-3 mr-1" />
+        <CheckCircle2 className="size-3 mr-1" />
         Configured
       </Badge>
     );
@@ -448,7 +448,7 @@ export function EmailStudioConfigBadge({ className }: { className?: string }) {
       variant="outline"
       className={cn("bg-amber-50 text-amber-700 border-amber-200", className)}
     >
-      <AlertCircle className="h-3 w-3 mr-1" />
+      <AlertCircle className="size-3 mr-1" />
       Free Mode
     </Badge>
   );

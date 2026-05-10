@@ -40,6 +40,12 @@ import * as React from "react";
 
 import type { Task, TaskType, TaskStatus, TaskPriority } from "../types";
 
+function makeDisplayDate(value?: string | number | Date): Date {
+  return value === undefined
+    ? new globalThis.Date()
+    : new globalThis.Date(value);
+}
+
 const TASK_TYPE_CONFIG: Record<
   TaskType,
   { label: string; icon: React.ElementType; color: string; bgColor: string }
@@ -133,8 +139,8 @@ const STATUS_CONFIG: Record<TaskStatus, { label: string; color: string }> = {
 
 function getDueDateStatus(dueDate: string | null | undefined) {
   if (!dueDate) return null;
-  const date = new Date(dueDate);
-  const now = new Date();
+  const date = makeDisplayDate(dueDate);
+  const now = makeDisplayDate();
   now.setHours(0, 0, 0, 0);
 
   if (isPast(date) && !isToday(date)) {
@@ -213,19 +219,19 @@ export function TaskRow({
         <Checkbox
           checked={isCompleted}
           onCheckedChange={onComplete}
-          className="h-5 w-5 rounded-md border-zinc-300 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+          className="size-5 rounded-md border-zinc-300 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
         />
       </div>
 
       <div
         className={cn(
-          "flex h-10 w-10 items-center justify-center rounded-xl shrink-0",
+          "flex size-10 items-center justify-center rounded-xl shrink-0",
           isCompleted ? "opacity-50" : "",
           typeConfig.bgColor,
           typeConfig.color,
         )}
       >
-        <Icon className="h-4 w-4" />
+        <Icon className="size-4" />
       </div>
 
       <div className="flex-1 min-w-0">
@@ -252,7 +258,7 @@ export function TaskRow({
               )}
               {task.is_auto_generated && !isCompleted && (
                 <Badge className="bg-violet-50 text-violet-700 border border-violet-200 text-[9px] font-black uppercase tracking-widest px-1.5 h-4 gap-1">
-                  <Sparkles className="h-2.5 w-2.5" />
+                  <Sparkles className="size-2.5" />
                   Auto
                 </Badge>
               )}
@@ -269,7 +275,7 @@ export function TaskRow({
           {task.donor && (
             <Link href={`/donors?selected=${task.donor.id}`}>
               <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-zinc-100 border border-zinc-200 hover:border-zinc-300 transition-colors cursor-pointer">
-                <Avatar className="h-4 w-4">
+                <Avatar className="size-4">
                   <AvatarImage src={task.donor.avatar_url || undefined} />
                   <AvatarFallback className="text-[8px] font-bold bg-zinc-200 text-zinc-600">
                     {task.donor.name
@@ -292,14 +298,14 @@ export function TaskRow({
                 dueDateStatus.color,
               )}
             >
-              <Clock className="h-3 w-3" />
+              <Clock className="size-3" />
               {dueDateStatus.label}
             </div>
           )}
           {task.reminder_date && !isCompleted && (
             <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-violet-50 border border-violet-200 text-violet-700 text-[10px] font-bold uppercase tracking-wider">
-              <Bell className="h-3 w-3" />
-              {format(new Date(task.reminder_date), "MMM d")}
+              <Bell className="size-3" />
+              {format(makeDisplayDate(task.reminder_date), "MMM d")}
             </div>
           )}
           <Badge
@@ -318,9 +324,9 @@ export function TaskRow({
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 shrink-0 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg"
+            className="size-8 shrink-0 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg"
           >
-            <MoreHorizontal className="h-4 w-4" />
+            <MoreHorizontal className="size-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
@@ -331,14 +337,14 @@ export function TaskRow({
             onClick={onEdit}
             className="rounded-lg text-xs font-medium py-2 cursor-pointer"
           >
-            <Pencil className="mr-2 h-3.5 w-3.5 text-zinc-400" />
+            <Pencil className="mr-2 size-3.5 text-zinc-400" />
             Edit Task
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={onComplete}
             className="rounded-lg text-xs font-medium py-2 cursor-pointer"
           >
-            <CheckCircle2 className="mr-2 h-3.5 w-3.5 text-zinc-400" />
+            <CheckCircle2 className="mr-2 size-3.5 text-zinc-400" />
             {isCompleted ? "Reopen Task" : "Mark Complete"}
           </DropdownMenuItem>
           {task.donor && (
@@ -347,7 +353,7 @@ export function TaskRow({
               className="rounded-lg text-xs font-medium py-2 cursor-pointer"
             >
               <Link href={`/donors?selected=${task.donor.id}`}>
-                <User className="mr-2 h-3.5 w-3.5 text-zinc-400" />
+                <User className="mr-2 size-3.5 text-zinc-400" />
                 View Partner
               </Link>
             </DropdownMenuItem>
@@ -357,7 +363,7 @@ export function TaskRow({
             onClick={onDelete}
             className="rounded-lg text-xs font-medium py-2 text-rose-600 focus:text-rose-600 focus:bg-rose-50 cursor-pointer"
           >
-            <Trash2 className="mr-2 h-3.5 w-3.5" />
+            <Trash2 className="mr-2 size-3.5" />
             Delete Task
           </DropdownMenuItem>
         </DropdownMenuContent>

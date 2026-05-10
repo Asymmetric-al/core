@@ -116,7 +116,7 @@ function DashboardHomeContent({
       actions={
         <Button
           variant="outline"
-          className="h-11 rounded-xl border-zinc-200 bg-white font-bold uppercase tracking-widest text-[10px] shadow-sm hover:bg-zinc-50"
+          className="h-11 rounded-xl border-zinc-200 bg-white font-semibold uppercase tracking-widest text-[10px] shadow-sm hover:bg-zinc-50"
         >
           Download Report
         </Button>
@@ -127,9 +127,9 @@ function DashboardHomeContent({
       <MetricTiles missionaryId={missionaryId} />
 
       <Card className="border-zinc-200 shadow-sm bg-white overflow-hidden rounded-xl">
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-0.5 border-b border-zinc-50 space-y-2 sm:space-y-0 px-3 sm:px-4 pt-2.5">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-0.5 border-b border-zinc-50 gap-y-2 sm:gap-y-0 px-3 sm:px-4 pt-2.5">
           <div>
-            <CardTitle className="text-sm sm:text-base font-bold text-zinc-900 leading-none">
+            <CardTitle className="text-sm sm:text-base font-semibold text-zinc-900 leading-none">
               Giving Breakdown
             </CardTitle>
             <CardDescription className="text-[9px] sm:text-[10px] mt-0.5">
@@ -140,7 +140,7 @@ function DashboardHomeContent({
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 text-[9px] font-bold text-zinc-500 hover:text-zinc-900 px-2 rounded-md border border-zinc-100 hover:border-zinc-200 transition-all w-full sm:w-auto"
+              className="h-6 text-[9px] font-semibold text-zinc-500 hover:text-zinc-900 px-2 rounded-md border border-zinc-100 hover:border-zinc-200 transition-all w-full sm:w-auto"
               onClick={() => setActiveTab("analytics")}
             >
               Analytics
@@ -160,11 +160,11 @@ function DashboardHomeContent({
             <CardContent className="p-3 sm:p-4 relative z-10">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0">
                 <div>
-                  <h2 className="text-zinc-500 font-bold text-[9px] uppercase tracking-[0.2em] mb-1 leading-none">
+                  <h2 className="text-zinc-500 font-semibold text-[9px] uppercase tracking-[0.2em] mb-1 leading-none">
                     Monthly Support Goal
                   </h2>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-xl sm:text-2xl md:text-3xl font-black tracking-tighter text-white leading-none">
+                    <span className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tighter text-white leading-none">
                       $4,560
                     </span>
                     <span className="text-zinc-600 text-sm sm:text-base font-medium leading-none">
@@ -174,14 +174,14 @@ function DashboardHomeContent({
                 </div>
                 <Badge
                   variant="outline"
-                  className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400 px-1.5 py-0 text-[8px] font-bold uppercase tracking-wider w-fit"
+                  className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400 px-1.5 py-0 text-[8px] font-semibold uppercase tracking-wider w-fit"
                 >
                   On Track
                 </Badge>
               </div>
 
               <div className="mt-2.5">
-                <div className="flex justify-between text-[9px] mb-1 text-zinc-500 font-bold leading-none">
+                <div className="flex justify-between text-[9px] mb-1 text-zinc-500 font-semibold leading-none">
                   <span>76% Funded</span>
                   <span className="text-zinc-400">$1,440 remaining</span>
                 </div>
@@ -195,26 +195,26 @@ function DashboardHomeContent({
 
               <div className="mt-2.5 grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:gap-y-2 sm:gap-x-8 pt-2.5 border-t border-zinc-800/50">
                 <div className="flex flex-col gap-0">
-                  <span className="text-zinc-600 text-[8px] uppercase tracking-[0.1em] font-bold leading-none">
+                  <span className="text-zinc-600 text-[8px] uppercase tracking-[0.1em] font-semibold leading-none">
                     New Partners
                   </span>
-                  <span className="text-sm sm:text-base font-bold text-white mt-0.5 leading-none">
+                  <span className="text-sm sm:text-base font-semibold text-white mt-0.5 leading-none">
                     +12
                   </span>
                 </div>
                 <div className="flex flex-col gap-0">
-                  <span className="text-zinc-600 text-[8px] uppercase tracking-[0.1em] font-bold leading-none">
+                  <span className="text-zinc-600 text-[8px] uppercase tracking-[0.1em] font-semibold leading-none">
                     Active Donors
                   </span>
-                  <span className="text-sm sm:text-base font-bold text-white mt-0.5 leading-none">
+                  <span className="text-sm sm:text-base font-semibold text-white mt-0.5 leading-none">
                     142
                   </span>
                 </div>
                 <div className="flex flex-col gap-0">
-                  <span className="text-zinc-600 text-[8px] uppercase tracking-[0.1em] font-bold leading-none">
+                  <span className="text-zinc-600 text-[8px] uppercase tracking-[0.1em] font-semibold leading-none">
                     MoM Growth
                   </span>
-                  <span className="text-sm sm:text-base font-bold text-emerald-400 flex items-center gap-1 mt-0.5 leading-none">
+                  <span className="text-sm sm:text-base font-semibold text-emerald-400 flex items-center gap-1 mt-0.5 leading-none">
                     <TrendingUp size={14} /> 12%
                   </span>
                 </div>
@@ -223,10 +223,10 @@ function DashboardHomeContent({
           </Card>
 
           <Card className="border-zinc-200 shadow-sm bg-white rounded-xl overflow-hidden">
-            <CardHeader className="pb-1 flex flex-row items-center justify-between space-y-0 pt-2.5 px-3 sm:px-4">
+            <CardHeader className="pb-1 flex flex-row items-center justify-between gap-y-0 pt-2.5 px-3 sm:px-4">
               <div className="flex items-center gap-1.5">
-                <Activity className="h-3 w-3 text-zinc-400" />
-                <CardTitle className="text-xs sm:text-sm font-bold text-zinc-900 leading-none">
+                <Activity className="size-3 text-zinc-400" />
+                <CardTitle className="text-xs sm:text-sm font-semibold text-zinc-900 leading-none">
                   Latest Updates
                 </CardTitle>
               </div>
@@ -234,10 +234,10 @@ function DashboardHomeContent({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-5 w-5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50 rounded-md"
+                  className="size-5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50 rounded-md"
                   onClick={() => setActiveTab("feed")}
                 >
-                  <ArrowUpRight className="h-3 w-3" />
+                  <ArrowUpRight className="size-3" />
                 </Button>
               )}
             </CardHeader>
@@ -247,7 +247,7 @@ function DashboardHomeContent({
                   key={post.id}
                   className="group flex gap-2 p-1.5 rounded-lg border border-zinc-100 hover:border-zinc-200 hover:bg-zinc-50 transition-all cursor-pointer"
                 >
-                  <Avatar className="h-6 w-6 shrink-0 border border-white shadow-sm">
+                  <Avatar className="size-6 shrink-0 border border-white shadow-sm">
                     <AvatarImage
                       src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.id}`}
                     />
@@ -257,7 +257,7 @@ function DashboardHomeContent({
                     <p className="text-[10px] text-zinc-700 leading-tight font-medium line-clamp-2">
                       {post.content}
                     </p>
-                    <p className="text-[8px] text-zinc-400 mt-0.5 font-bold uppercase tracking-wider">
+                    <p className="text-[8px] text-zinc-400 mt-0.5 font-semibold uppercase tracking-wider">
                       {post.timestamp}
                     </p>
                   </div>
@@ -266,7 +266,7 @@ function DashboardHomeContent({
               {setActiveTab && (
                 <Button
                   variant="outline"
-                  className="sm:col-span-2 w-full text-[9px] font-bold h-7 border-dashed border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 rounded-lg transition-all"
+                  className="sm:col-span-2 w-full text-[9px] font-semibold h-7 border-dashed border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 rounded-lg transition-all"
                   onClick={() => setActiveTab("feed")}
                 >
                   Compose New Update
@@ -280,12 +280,12 @@ function DashboardHomeContent({
           <Card className="flex flex-col h-auto border-zinc-200 shadow-sm bg-white overflow-hidden rounded-xl">
             <CardHeader className="pb-1.5 border-b border-zinc-50 bg-zinc-50/10 space-y-0 pt-2.5 px-3 sm:px-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-xs sm:text-sm font-bold text-zinc-900 leading-none">
+                <CardTitle className="text-xs sm:text-sm font-semibold text-zinc-900 leading-none">
                   Tasks & Alerts
                 </CardTitle>
                 <Badge
                   variant="secondary"
-                  className="bg-white text-zinc-600 border border-zinc-100 text-[8px] font-bold px-1 py-0"
+                  className="bg-white text-zinc-600 border border-zinc-100 text-[8px] font-semibold px-1 py-0"
                 >
                   {MOCK_TASKS.filter((t) => !t.completed).length} Pending
                 </Badge>
@@ -300,8 +300,8 @@ function DashboardHomeContent({
                         key={alert.id}
                         className="flex gap-1.5 items-start bg-white p-1.5 rounded-md border border-amber-100/50 shadow-sm"
                       >
-                        <AlertCircle className="h-2.5 w-2.5 text-amber-600 shrink-0 mt-0.5" />
-                        <p className="text-[9px] font-bold text-amber-900 leading-tight">
+                        <AlertCircle className="size-2.5 text-amber-600 shrink-0 mt-0.5" />
+                        <p className="text-[9px] font-semibold text-amber-900 leading-tight">
                           {alert.text}
                         </p>
                       </div>
@@ -317,18 +317,18 @@ function DashboardHomeContent({
                         key={task.id}
                         className="group p-2 px-3 sm:px-3.5 hover:bg-zinc-50/50 transition-all flex items-start gap-2 cursor-pointer touch-target"
                       >
-                        <Circle className="h-3 w-3 text-zinc-300 group-hover:text-zinc-600 mt-0.5 shrink-0" />
+                        <Circle className="size-3 text-zinc-300 group-hover:text-zinc-600 mt-0.5 shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-[10px] font-bold text-zinc-800 truncate tracking-tight leading-none">
+                          <p className="text-[10px] font-semibold text-zinc-800 truncate tracking-tight leading-none">
                             {task.title}
                           </p>
                           <div className="flex items-center gap-1.5 mt-0.5 leading-none flex-wrap">
                             {task.priority === "high" && (
-                              <Badge className="bg-red-50 text-red-600 hover:bg-red-50 border-none text-[7px] h-3 font-black uppercase tracking-widest px-1">
+                              <Badge className="bg-red-50 text-red-600 hover:bg-red-50 border-none text-[7px] h-3 font-semibold uppercase tracking-widest px-1">
                                 Urgent
                               </Badge>
                             )}
-                            <span className="text-[8px] text-zinc-400 font-bold uppercase tracking-wider">
+                            <span className="text-[8px] text-zinc-400 font-semibold uppercase tracking-wider">
                               Due {task.dueDate}
                             </span>
                           </div>
@@ -341,10 +341,10 @@ function DashboardHomeContent({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="w-full text-[8px] font-black text-zinc-500 hover:text-zinc-900 h-6 justify-between group rounded-md uppercase tracking-wider touch-target"
+                  className="w-full text-[8px] font-semibold text-zinc-500 hover:text-zinc-900 h-6 justify-between group rounded-md uppercase tracking-wider touch-target"
                 >
                   View All Tasks{" "}
-                  <ArrowRight className="h-2 w-2 transition-transform group-hover:translate-x-0.5" />
+                  <ArrowRight className="size-2 transition-transform group-hover:translate-x-0.5" />
                 </Button>
               </div>
             </CardContent>

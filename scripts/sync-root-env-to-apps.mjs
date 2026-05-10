@@ -4,9 +4,40 @@ import { fileURLToPath } from "node:url";
 
 const DEFAULT_APPS = ["admin", "donor", "missionary"];
 
-function sameResolvedTarget(dest, source) {
+function sameHardLinkTarget(dest, source) {
+  const destStat = fs.statSync(dest);
+  const sourceStat = fs.statSync(source);
+  return (
+    destStat.dev === sourceStat.dev &&
+    destStat.ino !== 0 &&
+    destStat.ino === sourceStat.ino
+  );
+}
+
+function sameResolvedTarget(dest, source, stat = fs.lstatSync(dest)) {
+  if (!stat.isSymbolicLink()) {
+    return sameHardLinkTarget(dest, source);
+  }
+
   const target = fs.readlinkSync(dest);
   return path.resolve(path.dirname(dest), target) === source;
+}
+
+function createEnvLink(source, dest) {
+  const relativeSource = path.relative(path.dirname(dest), source);
+
+  try {
+    fs.symlinkSync(relativeSource, dest);
+  } catch (error) {
+    if (
+      process.platform !== "win32" ||
+      (error.code !== "EPERM" && error.code !== "EACCES")
+    ) {
+      throw error;
+    }
+
+    fs.linkSync(source, dest);
+  }
 }
 
 export function linkRootEnvToApps(
@@ -31,7 +62,7 @@ export function linkRootEnvToApps(
     if (fs.existsSync(dest)) {
       const stat = fs.lstatSync(dest);
 
-      if (stat.isSymbolicLink() && sameResolvedTarget(dest, source)) {
+      if (sameResolvedTarget(dest, source, stat)) {
         return { status: "unchanged", app, source, dest };
       }
 
@@ -42,8 +73,7 @@ export function linkRootEnvToApps(
       fs.rmSync(dest, { force: true });
     }
 
-    const relativeSource = path.relative(path.dirname(dest), source);
-    fs.symlinkSync(relativeSource, dest);
+    createEnvLink(source, dest);
 
     return {
       status: force ? "relinked" : "linked",
@@ -64,7 +94,7 @@ function printResult(result) {
 
   if (result.status === "refused") {
     process.stderr.write(
-      `[sync-root-env] Refusing to overwrite existing ${result.dest}; rerun with --force to replace it with a symlink to ${result.source}.\n`,
+      `[sync-root-env] Refusing to overwrite existing ${result.dest}; rerun with --force to replace it with a link to ${result.source}.\n`,
     );
     return;
   }

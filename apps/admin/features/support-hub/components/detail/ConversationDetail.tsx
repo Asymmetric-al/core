@@ -126,10 +126,10 @@ function DetailBody({ conversation, isLoading, onClose }: DetailBodyProps) {
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
       <ConversationHeader conversation={conversation} onClose={onClose} />
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 py-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
         <ConversationTimeline conversationId={conversation.id} />
       </div>
-      <div className="border-t border-zinc-100 bg-zinc-50/40 px-3 py-3">
+      <div className="border-t border-zinc-100 bg-zinc-50/40 p-3">
         <ConversationComposer conversation={conversation} agent={agent} />
       </div>
     </div>

@@ -47,7 +47,7 @@ export function StudioTopBar({
       <div className="flex flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
         <Button variant="ghost" size="sm" className="gap-1.5" asChild>
           <Link href="/">
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="size-4" />
             <span className="font-semibold text-xs uppercase tracking-wide">
               Mission Control
             </span>
@@ -96,7 +96,7 @@ export function StudioTopBar({
           disabled
           title="Command palette (coming soon)"
         >
-          <Search className="h-4 w-4" />
+          <Search className="size-4" />
           <span className="font-semibold text-[10px] uppercase tracking-wider">
             Search
           </span>

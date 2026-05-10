@@ -12,7 +12,7 @@ interface QuickGiveInputProps {
 }
 
 export function QuickGiveInput({ workerId, className }: QuickGiveInputProps) {
-  const router = useRouter();
+  const { push } = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -51,7 +51,7 @@ export function QuickGiveInput({ workerId, className }: QuickGiveInputProps) {
 
   const handleGive = () => {
     if (hasValidAmount) {
-      router.push(`/checkout?workerId=${workerId}&amount=${amount}`);
+      push(`/checkout?workerId=${workerId}&amount=${amount}`);
     } else {
       inputRef.current?.focus();
     }
@@ -82,7 +82,7 @@ export function QuickGiveInput({ workerId, className }: QuickGiveInputProps) {
       onMouseLeave={() => setIsHovered(false)}
       layout
     >
-      <div className="relative h-full w-full flex items-center justify-between">
+      <div className="relative size-full flex items-center justify-between">
         <div className="flex items-center h-full flex-1 px-4 min-w-0">
           <motion.span
             layout
@@ -146,7 +146,7 @@ export function QuickGiveInput({ workerId, className }: QuickGiveInputProps) {
                 animate={{ x: hasValidAmount && isHovered ? 3 : 0 }}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
               >
-                <ArrowRight className="h-4 w-4 stroke-[3]" />
+                <ArrowRight className="size-4 stroke-[3]" />
               </motion.div>
             </motion.button>
           )}
@@ -158,7 +158,7 @@ export function QuickGiveInput({ workerId, className }: QuickGiveInputProps) {
             animate={{ opacity: 1 }}
             className="absolute right-4 pointer-events-none"
           >
-            <ArrowRight className="h-4 w-4 text-white/50 stroke-[2.5]" />
+            <ArrowRight className="size-4 text-white/50 stroke-[2.5]" />
           </motion.div>
         )}
       </div>

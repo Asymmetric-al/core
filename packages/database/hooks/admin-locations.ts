@@ -7,10 +7,7 @@ import {
   adminLocationsCollection,
   fetchAdminLocationsResponse,
 } from "../collections/admin-locations";
-import {
-  getAdminSurfaceQueryKey,
-  invalidateAdminSurfaceQuery,
-} from "../query-keys";
+import { getAdminSurfaceQueryKey } from "../query-keys";
 
 export type {
   AdminLocation as Location,
@@ -80,8 +77,12 @@ export function useUpsertLocation() {
     },
     onSuccess: async () => {
       await Promise.all([
-        invalidateAdminSurfaceQuery(queryClient, "locations"),
-        invalidateAdminSurfaceQuery(queryClient, "locationLinkedEntities"),
+        queryClient.invalidateQueries({
+          queryKey: getAdminSurfaceQueryKey("locations"),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: getAdminSurfaceQueryKey("locationLinkedEntities"),
+        }),
       ]);
     },
   });
@@ -106,8 +107,12 @@ export function useDeleteLocation() {
     },
     onSuccess: async () => {
       await Promise.all([
-        invalidateAdminSurfaceQuery(queryClient, "locations"),
-        invalidateAdminSurfaceQuery(queryClient, "locationLinkedEntities"),
+        queryClient.invalidateQueries({
+          queryKey: getAdminSurfaceQueryKey("locations"),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: getAdminSurfaceQueryKey("locationLinkedEntities"),
+        }),
       ]);
     },
   });

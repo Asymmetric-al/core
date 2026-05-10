@@ -76,7 +76,7 @@ export default function LocationsPage() {
           : "bg-zinc-900 text-white hover:bg-zinc-800"
       }`}
     >
-      <Plus className="mr-2 h-4 w-4" />
+      <Plus className="mr-2 size-4" />
       {isAdding ? "Click on Map to Drop Marker" : "Add Location"}
     </Button>
   );
@@ -95,13 +95,13 @@ export default function LocationsPage() {
               value="map"
               className="rounded-lg px-4 text-sm font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm"
             >
-              <Layers className="mr-2 h-3.5 w-3.5" /> Map View
+              <Layers className="mr-2 size-3.5" /> Map View
             </TabsTrigger>
             <TabsTrigger
               value="table"
               className="rounded-lg px-4 text-sm font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm"
             >
-              <TableIcon className="mr-2 h-3.5 w-3.5" /> Data Table
+              <TableIcon className="mr-2 size-3.5" /> Data Table
             </TabsTrigger>
           </TabsList>
         </div>

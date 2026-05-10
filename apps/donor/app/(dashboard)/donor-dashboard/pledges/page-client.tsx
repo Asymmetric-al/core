@@ -63,6 +63,16 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 
+function makeDisplayDate(value?: string | number | Date): Date {
+  return value === undefined
+    ? new globalThis.Date()
+    : new globalThis.Date(value);
+}
+
+function makeDisplayTimestamp(): number {
+  return globalThis.Date.now();
+}
+
 // --- Types & Mock Data ---
 
 type PledgeStatus = "Active" | "Paused" | "Processing" | "Failed";
@@ -225,7 +235,7 @@ function PledgeCard({
               <div className="flex items-start gap-4">
                 <Avatar
                   className={cn(
-                    "h-14 w-14 border-2 shadow-sm",
+                    "size-14 border-2 shadow-sm",
                     isPaused
                       ? "border-zinc-200 grayscale"
                       : "border-white ring-1 ring-zinc-100",
@@ -235,7 +245,7 @@ function PledgeCard({
                     src={pledge.recipientAvatar}
                     className="object-cover"
                   />
-                  <AvatarFallback className="bg-zinc-100 text-zinc-500 font-bold">
+                  <AvatarFallback className="bg-zinc-100 text-zinc-500 font-semibold">
                     {pledge.recipientName[0]}
                   </AvatarFallback>
                 </Avatar>
@@ -243,7 +253,7 @@ function PledgeCard({
                   <Badge
                     variant="outline"
                     className={cn(
-                      "text-[9px] font-bold uppercase tracking-widest border-zinc-200",
+                      "text-[9px] font-semibold uppercase tracking-widest border-zinc-200",
                       isPaused
                         ? "bg-zinc-100 text-zinc-500"
                         : "bg-zinc-900 text-white border-zinc-900",
@@ -253,7 +263,7 @@ function PledgeCard({
                   </Badge>
                   <h3
                     className={cn(
-                      "text-lg font-bold leading-tight uppercase tracking-tight",
+                      "text-lg font-semibold leading-tight uppercase tracking-tight",
                       isPaused ? "text-zinc-500" : "text-zinc-900",
                     )}
                   >
@@ -267,33 +277,33 @@ function PledgeCard({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-zinc-400 hover:text-zinc-900 -mr-2"
+                    className="size-8 text-zinc-400 hover:text-zinc-900 -mr-2"
                   >
-                    <MoreHorizontal className="h-5 w-5" />
+                    <MoreHorizontal className="size-5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   {pledge.status === "Active" ? (
                     <DropdownMenuItem
                       onClick={() => onPauseClick(pledge)}
-                      className="text-[10px] font-bold uppercase tracking-widest"
+                      className="text-[10px] font-semibold uppercase tracking-widest"
                     >
-                      <PauseCircle className="mr-2 h-4 w-4" /> Pause Pledge
+                      <PauseCircle className="mr-2 size-4" /> Pause Pledge
                     </DropdownMenuItem>
                   ) : (
                     <DropdownMenuItem
                       onClick={() => onResumePledge(pledge.id)}
-                      className="text-emerald-600 text-[10px] font-bold uppercase tracking-widest"
+                      className="text-emerald-600 text-[10px] font-semibold uppercase tracking-widest"
                     >
-                      <PlayCircle className="mr-2 h-4 w-4" /> Resume Pledge
+                      <PlayCircle className="mr-2 size-4" /> Resume Pledge
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    className="text-red-600 text-[10px] font-bold uppercase tracking-widest"
+                    className="text-red-600 text-[10px] font-semibold uppercase tracking-widest"
                     onClick={() => onStopPledge(pledge.id)}
                   >
-                    <X className="mr-2 h-4 w-4" /> Cancel Pledge
+                    <X className="mr-2 size-4" /> Cancel Pledge
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -303,13 +313,13 @@ function PledgeCard({
               <div>
                 <div
                   className={cn(
-                    "text-3xl font-bold tabular-nums tracking-tighter",
+                    "text-3xl font-semibold tabular-nums tracking-tighter",
                     isPaused ? "text-zinc-400" : "text-zinc-900",
                   )}
                 >
                   {formatCurrency(pledge.amount)}
                 </div>
-                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mt-1">
+                <div className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.2em] mt-1">
                   {pledge.frequency}
                 </div>
               </div>
@@ -317,18 +327,18 @@ function PledgeCard({
               {isPaused ? (
                 <Button
                   onClick={() => onResumePledge(pledge.id)}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-md gap-2 font-bold uppercase tracking-widest text-[10px]"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-md gap-2 font-semibold uppercase tracking-widest text-[10px]"
                 >
-                  <PlayCircle className="h-4 w-4" /> Resume Now
+                  <PlayCircle className="size-4" /> Resume Now
                 </Button>
               ) : (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => onEditClick(pledge)}
-                  className="border-zinc-200 text-zinc-700 hover:text-zinc-900 hover:border-zinc-300 gap-2 bg-white shadow-sm font-bold uppercase tracking-widest text-[9px] h-8 rounded-lg"
+                  className="border-zinc-200 text-zinc-700 hover:text-zinc-900 hover:border-zinc-300 gap-2 bg-white shadow-sm font-semibold uppercase tracking-widest text-[9px] h-8 rounded-lg"
                 >
-                  <Edit2 className="h-3.5 w-3.5" /> Edit Details
+                  <Edit2 className="size-3.5" /> Edit Details
                 </Button>
               )}
             </div>
@@ -346,15 +356,15 @@ function PledgeCard({
                   )}
                 >
                   {method.type === "card" ? (
-                    <CreditCard className="h-4 w-4" />
+                    <CreditCard className="size-4" />
                   ) : (
-                    <Wallet className="h-4 w-4" />
+                    <Wallet className="size-4" />
                   )}
                 </div>
                 <div className="flex flex-col">
                   <span
                     className={cn(
-                      "text-[10px] font-bold uppercase tracking-tight",
+                      "text-[10px] font-semibold uppercase tracking-tight",
                       isPaused ? "text-zinc-400" : "text-zinc-700",
                     )}
                   >
@@ -362,9 +372,9 @@ function PledgeCard({
                   </span>
                   <button
                     onClick={() => onOpenMove(pledge)}
-                    className="text-[9px] font-black text-zinc-400 hover:text-zinc-900 uppercase tracking-widest text-left flex items-center gap-1 mt-0.5"
+                    className="text-[9px] font-semibold text-zinc-400 hover:text-zinc-900 uppercase tracking-widest text-left flex items-center gap-1 mt-0.5"
                   >
-                    Change <ArrowRightLeft className="h-2.5 w-2.5" />
+                    Change <ArrowRightLeft className="size-2.5" />
                   </button>
                 </div>
               </div>
@@ -372,18 +382,21 @@ function PledgeCard({
               <div className="flex items-center gap-2 text-zinc-500 bg-zinc-50 px-3 py-1.5 rounded-full border border-zinc-100 self-start sm:self-auto">
                 {isPaused ? (
                   <>
-                    <PauseCircle className="h-3.5 w-3.5 text-amber-500" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">
+                    <PauseCircle className="size-3.5 text-amber-500" />
+                    <span className="text-[10px] font-semibold uppercase tracking-widest">
                       Paused until{" "}
-                      {format(new Date(pledge.pausedUntil!), "MMM d")}
+                      {format(makeDisplayDate(pledge.pausedUntil!), "MMM d")}
                     </span>
                   </>
                 ) : (
                   <>
-                    <Clock className="h-3.5 w-3.5 text-emerald-500" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">
+                    <Clock className="size-3.5 text-emerald-500" />
+                    <span className="text-[10px] font-semibold uppercase tracking-widest">
                       Next:{" "}
-                      {format(new Date(pledge.nextChargeDate), "MMM d, yyyy")}
+                      {format(
+                        makeDisplayDate(pledge.nextChargeDate),
+                        "MMM d, yyyy",
+                      )}
                     </span>
                   </>
                 )}
@@ -419,14 +432,14 @@ function PausePledgeContent({
     >
       <div className="p-6 flex-1 space-y-6">
         <div className="flex items-center gap-2 text-amber-600 bg-amber-50 p-3 rounded-xl border border-amber-100">
-          <PauseCircle className="h-5 w-5" />
-          <span className="font-bold text-xs uppercase tracking-widest">
+          <PauseCircle className="size-5" />
+          <span className="font-semibold text-xs uppercase tracking-widest">
             Pause Pledge
           </span>
         </div>
 
         <div className="space-y-4">
-          <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+          <Label className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
             How long would you like to pause?
           </Label>
           <div className="grid grid-cols-2 gap-3">
@@ -441,8 +454,8 @@ function PausePledgeContent({
                 className={cn(
                   "cursor-pointer p-4 rounded-xl border text-center transition-all hover:shadow-md",
                   pauseDuration === month && !customResumeDate
-                    ? "bg-amber-50 border-amber-500 text-amber-900 font-bold ring-1 ring-amber-500 shadow-inner"
-                    : "bg-white border-zinc-200 text-zinc-500 hover:border-zinc-300 font-bold uppercase tracking-widest text-[10px]",
+                    ? "bg-amber-50 border-amber-500 text-amber-900 font-semibold ring-1 ring-amber-500 shadow-inner"
+                    : "bg-white border-zinc-200 text-zinc-500 hover:border-zinc-300 font-semibold uppercase tracking-widest text-[10px]",
                 )}
               >
                 {month} Month{month !== "1" && "s"}
@@ -456,8 +469,8 @@ function PausePledgeContent({
               className={cn(
                 "cursor-pointer p-4 rounded-xl border text-center transition-all hover:shadow-md flex flex-col justify-center",
                 customResumeDate
-                  ? "bg-amber-50 border-amber-500 text-amber-900 font-bold ring-1 ring-amber-500 shadow-inner"
-                  : "bg-white border-zinc-200 text-zinc-500 hover:border-zinc-300 font-bold uppercase tracking-widest text-[10px]",
+                  ? "bg-amber-50 border-amber-500 text-amber-900 font-semibold ring-1 ring-amber-500 shadow-inner"
+                  : "bg-white border-zinc-200 text-zinc-500 hover:border-zinc-300 font-semibold uppercase tracking-widest text-[10px]",
               )}
             >
               <span>Specific Date</span>
@@ -469,24 +482,24 @@ function PausePledgeContent({
 
           {pauseDuration === "" && (
             <div className="pt-2 animate-in fade-in slide-in-from-top-2">
-              <Label className="mb-2 block text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">
+              <Label className="mb-2 block text-[9px] font-semibold uppercase tracking-[0.2em] text-zinc-400">
                 Resume Date
               </Label>
               <Input
                 type="date"
-                min={format(addMonths(new Date(), 1), "yyyy-MM-dd")}
+                min={format(addMonths(makeDisplayDate(), 1), "yyyy-MM-dd")}
                 onChange={(e) => onCustomResumeDateChange(e.target.value)}
-                className="bg-white h-11 border-zinc-200 rounded-lg font-bold"
+                className="bg-white h-11 border-zinc-200 rounded-lg font-semibold"
               />
             </div>
           )}
 
           {!customResumeDate && (
-            <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-widest text-center bg-zinc-100 p-3 rounded-lg border border-zinc-200">
+            <p className="text-[9px] text-zinc-400 font-semibold uppercase tracking-widest text-center bg-zinc-100 p-3 rounded-lg border border-zinc-200">
               Pledge will automatically resume on{" "}
               <strong className="text-zinc-900">
                 {format(
-                  addMonths(new Date(), parseInt(pauseDuration || "0")),
+                  addMonths(makeDisplayDate(), parseInt(pauseDuration || "0")),
                   "MMMM d, yyyy",
                 )}
               </strong>
@@ -500,14 +513,14 @@ function PausePledgeContent({
         <Button
           variant="ghost"
           onClick={onBack}
-          className="font-bold uppercase tracking-widest text-[9px] h-9 px-4"
+          className="font-semibold uppercase tracking-widest text-[9px] h-9 px-4"
         >
           Back
         </Button>
         <Button
           onClick={onConfirmPause}
           disabled={pauseDuration === "" && !customResumeDate}
-          className="bg-amber-600 hover:bg-amber-700 text-white shadow-md font-bold uppercase tracking-widest text-[9px] h-9 px-6 rounded-lg transition-transform active:scale-[0.98]"
+          className="bg-amber-600 hover:bg-amber-700 text-white shadow-md font-semibold uppercase tracking-widest text-[9px] h-9 px-6 rounded-lg transition-transform active:scale-[0.98]"
         >
           Confirm Pause
         </Button>
@@ -544,30 +557,30 @@ function MovePledgeSelectContent({
           >
             <div
               className={cn(
-                "w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors",
+                "size-4 rounded-full border flex items-center justify-center shrink-0 transition-colors",
                 selectedTargetId === wallet.id
                   ? "border-zinc-900 bg-zinc-900"
                   : "border-zinc-300 bg-white",
               )}
             >
               {selectedTargetId === wallet.id && (
-                <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                <div className="size-1.5 rounded-full bg-white" />
               )}
             </div>
 
             <div className="bg-white border border-zinc-200 p-1.5 rounded-lg flex items-center justify-center w-10 h-7 shadow-sm">
               {wallet.type === "card" ? (
-                <CreditCard className="h-4 w-4 text-zinc-700" />
+                <CreditCard className="size-4 text-zinc-700" />
               ) : (
-                <Landmark className="h-4 w-4 text-emerald-600" />
+                <Landmark className="size-4 text-emerald-600" />
               )}
             </div>
 
             <div className="flex-1">
-              <p className="text-sm font-bold text-zinc-900 uppercase tracking-tight">
+              <p className="text-sm font-semibold text-zinc-900 uppercase tracking-tight">
                 {wallet.brand} ••{wallet.last4}
               </p>
-              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+              <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">
                 Expires 12/26
               </p>
             </div>
@@ -578,9 +591,9 @@ function MovePledgeSelectContent({
       <Button
         variant="outline"
         onClick={() => onMoveViewChange("add")}
-        className="w-full border-dashed border-zinc-300 text-zinc-400 hover:text-zinc-900 hover:border-zinc-400 hover:bg-zinc-50 transition-all h-12 rounded-xl font-bold uppercase tracking-widest text-[10px]"
+        className="w-full border-dashed border-zinc-300 text-zinc-400 hover:text-zinc-900 hover:border-zinc-400 hover:bg-zinc-50 transition-all h-12 rounded-xl font-semibold uppercase tracking-widest text-[10px]"
       >
-        <Plus className="h-4 w-4 mr-2" /> Add New Payment Method
+        <Plus className="size-4 mr-2" /> Add New Payment Method
       </Button>
     </div>
   );
@@ -617,35 +630,35 @@ function MovePledgeAddContent({
         <button
           onClick={() => onNewMethodTypeChange("card")}
           className={cn(
-            "flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2",
+            "flex-1 py-2 text-[10px] font-semibold uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2",
             newMethodType === "card"
               ? "bg-white text-zinc-900 shadow-md"
               : "text-zinc-400 hover:text-zinc-600",
           )}
         >
-          <CreditCard className="h-3.5 w-3.5" /> Credit Card
+          <CreditCard className="size-3.5" /> Credit Card
         </button>
         <button
           onClick={() => onNewMethodTypeChange("bank")}
           className={cn(
-            "flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2",
+            "flex-1 py-2 text-[10px] font-semibold uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2",
             newMethodType === "bank"
               ? "bg-white text-zinc-900 shadow-md"
               : "text-zinc-400 hover:text-zinc-600",
           )}
         >
-          <Landmark className="h-3.5 w-3.5" /> Bank Account
+          <Landmark className="size-3.5" /> Bank Account
         </button>
       </div>
 
       {newMethodType === "card" ? (
         <div className="space-y-5">
           <div className="space-y-2 text-left">
-            <Label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">
+            <Label className="text-[9px] font-semibold uppercase tracking-[0.2em] text-zinc-400">
               Card Number
             </Label>
             <div className="relative">
-              <CreditCard className="absolute left-3 top-3.5 h-4 w-4 text-zinc-400" />
+              <CreditCard className="absolute left-3 top-3.5 size-4 text-zinc-400" />
               <Input
                 placeholder="0000 0000 0000 0000"
                 className="pl-9 h-11 bg-zinc-50 border-zinc-200 focus:bg-white transition-all font-mono rounded-lg"
@@ -658,7 +671,7 @@ function MovePledgeAddContent({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2 text-left">
-              <Label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">
+              <Label className="text-[9px] font-semibold uppercase tracking-[0.2em] text-zinc-400">
                 Expiry
               </Label>
               <Input
@@ -671,11 +684,11 @@ function MovePledgeAddContent({
               />
             </div>
             <div className="space-y-2 text-left">
-              <Label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">
+              <Label className="text-[9px] font-semibold uppercase tracking-[0.2em] text-zinc-400">
                 CVC
               </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3.5 h-3.5 w-3.5 text-zinc-400" />
+                <Lock className="absolute left-3 top-3.5 size-3.5 text-zinc-400" />
                 <Input
                   placeholder="123"
                   className="pl-8 h-11 bg-zinc-50 border-zinc-200 focus:bg-white text-center font-mono rounded-lg"
@@ -691,12 +704,12 @@ function MovePledgeAddContent({
       ) : (
         <div className="space-y-5">
           <div className="space-y-2 text-left">
-            <Label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">
+            <Label className="text-[9px] font-semibold uppercase tracking-[0.2em] text-zinc-400">
               Account Holder Name
             </Label>
             <Input
               placeholder="Full Name on Account"
-              className="h-11 bg-zinc-50 border-zinc-200 focus:bg-white rounded-lg font-bold uppercase tracking-tight"
+              className="h-11 bg-zinc-50 border-zinc-200 focus:bg-white rounded-lg font-semibold uppercase tracking-tight"
               value={newBank.holderName}
               onChange={(e) =>
                 onNewBankChange({ ...newBank, holderName: e.target.value })
@@ -704,11 +717,11 @@ function MovePledgeAddContent({
             />
           </div>
           <div className="space-y-2 text-left">
-            <Label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">
+            <Label className="text-[9px] font-semibold uppercase tracking-[0.2em] text-zinc-400">
               Routing Number
             </Label>
             <div className="relative">
-              <Landmark className="absolute left-3 top-3.5 h-4 w-4 text-zinc-400" />
+              <Landmark className="absolute left-3 top-3.5 size-4 text-zinc-400" />
               <Input
                 placeholder="9 Digit Routing"
                 className="pl-9 h-11 bg-zinc-50 border-zinc-200 focus:bg-white transition-all font-mono rounded-lg"
@@ -720,7 +733,7 @@ function MovePledgeAddContent({
             </div>
           </div>
           <div className="space-y-2 text-left">
-            <Label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">
+            <Label className="text-[9px] font-semibold uppercase tracking-[0.2em] text-zinc-400">
               Account Number
             </Label>
             <Input
@@ -732,7 +745,7 @@ function MovePledgeAddContent({
               }
             />
           </div>
-          <div className="bg-zinc-100 text-zinc-600 text-[10px] font-bold uppercase tracking-widest p-4 rounded-xl border border-zinc-200">
+          <div className="bg-zinc-100 text-zinc-600 text-[10px] font-semibold uppercase tracking-widest p-4 rounded-xl border border-zinc-200">
             <p className="leading-relaxed">
               By providing your bank information, you authorize Give Hope to
               debit your account for this pledge.
@@ -745,11 +758,11 @@ function MovePledgeAddContent({
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <Label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2">
-            <MapPin className="h-3 w-3" /> Billing Address
+          <Label className="text-[9px] font-semibold uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2">
+            <MapPin className="size-3" /> Billing Address
           </Label>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
               Use profile address?
             </span>
             <Switch
@@ -761,15 +774,15 @@ function MovePledgeAddContent({
         </div>
 
         {useProfileAddress ? (
-          <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-200 text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex items-start gap-2 shadow-inner">
-            <Check className="h-4 w-4 text-emerald-500 mt-0.5" />
+          <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-200 text-[10px] font-semibold uppercase tracking-widest text-zinc-500 flex items-start gap-2 shadow-inner">
+            <Check className="size-4 text-emerald-500 mt-0.5" />
             <span className="leading-relaxed">{profileAddress}</span>
           </div>
         ) : (
           <div className="space-y-3 animate-in slide-in-from-top-2 fade-in">
             <Input
               placeholder="Street Address"
-              className="h-10 bg-zinc-50 border-zinc-200 focus:bg-white rounded-lg text-xs font-bold uppercase tracking-tight"
+              className="h-10 bg-zinc-50 border-zinc-200 focus:bg-white rounded-lg text-xs font-semibold uppercase tracking-tight"
               value={billingAddress.street}
               onChange={(e) =>
                 onSetBillingAddress({
@@ -781,7 +794,7 @@ function MovePledgeAddContent({
             <div className="grid grid-cols-2 gap-3">
               <Input
                 placeholder="City"
-                className="h-10 bg-zinc-50 border-zinc-200 focus:bg-white rounded-lg text-xs font-bold uppercase tracking-tight"
+                className="h-10 bg-zinc-50 border-zinc-200 focus:bg-white rounded-lg text-xs font-semibold uppercase tracking-tight"
                 value={billingAddress.city}
                 onChange={(e) =>
                   onSetBillingAddress({
@@ -792,7 +805,7 @@ function MovePledgeAddContent({
               />
               <Input
                 placeholder="State"
-                className="h-10 bg-zinc-50 border-zinc-200 focus:bg-white rounded-lg text-xs font-bold uppercase tracking-tight"
+                className="h-10 bg-zinc-50 border-zinc-200 focus:bg-white rounded-lg text-xs font-semibold uppercase tracking-tight"
                 value={billingAddress.state}
                 onChange={(e) =>
                   onSetBillingAddress({
@@ -805,7 +818,7 @@ function MovePledgeAddContent({
             <div className="grid grid-cols-2 gap-3">
               <Input
                 placeholder="Zip Code"
-                className="h-10 bg-zinc-50 border-zinc-200 focus:bg-white rounded-lg text-xs font-bold uppercase tracking-tight"
+                className="h-10 bg-zinc-50 border-zinc-200 focus:bg-white rounded-lg text-xs font-semibold uppercase tracking-tight"
                 value={billingAddress.zip}
                 onChange={(e) =>
                   onSetBillingAddress({
@@ -820,25 +833,25 @@ function MovePledgeAddContent({
                   onSetBillingAddress({ ...billingAddress, country: value })
                 }
               >
-                <SelectTrigger className="h-10 bg-zinc-50 border-zinc-200 focus:bg-white rounded-lg text-[10px] font-black uppercase tracking-widest">
+                <SelectTrigger className="h-10 bg-zinc-50 border-zinc-200 focus:bg-white rounded-lg text-[10px] font-semibold uppercase tracking-widest">
                   <SelectValue placeholder="Country" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem
                     value="USA"
-                    className="text-[10px] font-bold uppercase tracking-widest"
+                    className="text-[10px] font-semibold uppercase tracking-widest"
                   >
                     USA
                   </SelectItem>
                   <SelectItem
                     value="CAN"
-                    className="text-[10px] font-bold uppercase tracking-widest"
+                    className="text-[10px] font-semibold uppercase tracking-widest"
                   >
                     Canada
                   </SelectItem>
                   <SelectItem
                     value="UK"
-                    className="text-[10px] font-bold uppercase tracking-widest"
+                    className="text-[10px] font-semibold uppercase tracking-widest"
                   >
                     UK
                   </SelectItem>
@@ -849,9 +862,9 @@ function MovePledgeAddContent({
         )}
       </div>
 
-      <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-300 pt-2 pb-2">
-        <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" /> Securely
-        encrypted by Stripe
+      <div className="flex items-center justify-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-300 pt-2 pb-2">
+        <ShieldCheck className="size-3.5 text-emerald-500" /> Securely encrypted
+        by Stripe
       </div>
     </div>
   );
@@ -899,18 +912,18 @@ function EditPledgeDialog({
       <DialogContent className="sm:max-w-[500px] p-0 gap-0 overflow-hidden shadow-2xl border-none rounded-2xl">
         <div className="bg-zinc-900 p-6 text-white relative overflow-hidden text-left">
           <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none text-white">
-            <ShieldCheck className="h-32 w-32 -rotate-12" />
+            <ShieldCheck className="size-32 -rotate-12" />
           </div>
           <div className="relative z-10 flex gap-4 items-center">
-            <Avatar className="h-16 w-16 border-2 border-white/20 shadow-lg">
+            <Avatar className="size-16 border-2 border-white/20 shadow-lg">
               <AvatarImage src={editingPledge?.recipientAvatar} />
               <AvatarFallback>GH</AvatarFallback>
             </Avatar>
             <div>
-              <DialogTitle className="text-xl font-bold text-white uppercase tracking-tight">
+              <DialogTitle className="text-xl font-semibold text-white uppercase tracking-tight">
                 {editingPledge?.recipientName}
               </DialogTitle>
-              <DialogDescription className="text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-1">
+              <DialogDescription className="text-zinc-400 text-[10px] font-semibold uppercase tracking-[0.2em] mt-1">
                 Update your commitment
               </DialogDescription>
             </div>
@@ -919,7 +932,7 @@ function EditPledgeDialog({
             onClick={onClose}
             className="absolute top-4 right-4 text-zinc-400 hover:text-white transition-colors"
           >
-            <X className="h-5 w-5" />
+            <X className="size-5" />
           </button>
         </div>
 
@@ -929,11 +942,11 @@ function EditPledgeDialog({
               <div className="p-6 space-y-6">
                 <div className="grid grid-cols-2 gap-5">
                   <div className="space-y-2">
-                    <Label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">
+                    <Label className="text-[9px] font-semibold uppercase tracking-[0.2em] text-zinc-400">
                       Amount
                     </Label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-bold">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-semibold">
                         $
                       </span>
                       <Input
@@ -945,12 +958,12 @@ function EditPledgeDialog({
                             amount: parseFloat(e.target.value),
                           })
                         }
-                        className="pl-8 text-lg font-bold text-zinc-900 bg-white shadow-sm h-11 border-zinc-200 rounded-lg"
+                        className="pl-8 text-lg font-semibold text-zinc-900 bg-white shadow-sm h-11 border-zinc-200 rounded-lg"
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">
+                    <Label className="text-[9px] font-semibold uppercase tracking-[0.2em] text-zinc-400">
                       Frequency
                     </Label>
                     <Select
@@ -964,25 +977,25 @@ function EditPledgeDialog({
                         }))
                       }
                     >
-                      <SelectTrigger className="bg-white shadow-sm h-11 border-zinc-200 rounded-lg text-xs font-bold uppercase">
+                      <SelectTrigger className="bg-white shadow-sm h-11 border-zinc-200 rounded-lg text-xs font-semibold uppercase">
                         <SelectValue placeholder="Select frequency" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem
                           value="Monthly"
-                          className="text-xs font-bold uppercase"
+                          className="text-xs font-semibold uppercase"
                         >
                           Monthly
                         </SelectItem>
                         <SelectItem
                           value="Quarterly"
-                          className="text-xs font-bold uppercase"
+                          className="text-xs font-semibold uppercase"
                         >
                           Quarterly
                         </SelectItem>
                         <SelectItem
                           value="Annually"
-                          className="text-xs font-bold uppercase"
+                          className="text-xs font-semibold uppercase"
                         >
                           Annually
                         </SelectItem>
@@ -992,7 +1005,7 @@ function EditPledgeDialog({
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">
+                  <Label className="text-[9px] font-semibold uppercase tracking-[0.2em] text-zinc-400">
                     Payment Method
                   </Label>
                   <button
@@ -1002,10 +1015,10 @@ function EditPledgeDialog({
                   >
                     <div className="flex items-center gap-3">
                       <div className="bg-zinc-100 p-1.5 rounded-lg text-zinc-600 border border-zinc-200">
-                        <CreditCard className="h-4 w-4" />
+                        <CreditCard className="size-4" />
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-zinc-900 uppercase tracking-tight">
+                        <p className="text-sm font-semibold text-zinc-900 uppercase tracking-tight">
                           {
                             wallets.find(
                               (wallet) =>
@@ -1020,21 +1033,21 @@ function EditPledgeDialog({
                             )?.last4
                           }
                         </p>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
                           Click to change method
                         </p>
                       </div>
                     </div>
-                    <ArrowRightLeft className="h-4 w-4 text-zinc-300 group-hover:text-zinc-900 transition-colors" />
+                    <ArrowRightLeft className="size-4 text-zinc-300 group-hover:text-zinc-900 transition-colors" />
                   </button>
                 </div>
 
                 <div className="bg-white p-4 rounded-xl border border-zinc-200 shadow-sm flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-900 block">
+                    <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-900 block">
                       Pledge Status
                     </span>
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-tight mt-0.5 block">
+                    <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-tight mt-0.5 block">
                       {editingPledge?.status === "Active"
                         ? "Currently active and processing."
                         : `Paused until ${editingPledge?.pausedUntil}`}
@@ -1045,9 +1058,9 @@ function EditPledgeDialog({
                       size="sm"
                       variant="outline"
                       onClick={() => onSetPauseOpen(true)}
-                      className="text-amber-600 hover:bg-amber-50 hover:text-amber-700 border-amber-200 font-bold uppercase tracking-widest text-[9px] h-8 rounded-lg px-3"
+                      className="text-amber-600 hover:bg-amber-50 hover:text-amber-700 border-amber-200 font-semibold uppercase tracking-widest text-[9px] h-8 rounded-lg px-3"
                     >
-                      <PauseCircle className="mr-1.5 h-3.5 w-3.5" /> Pause
+                      <PauseCircle className="mr-1.5 size-3.5" /> Pause
                     </Button>
                   ) : (
                     <Button
@@ -1055,9 +1068,9 @@ function EditPledgeDialog({
                       onClick={() =>
                         editingPledge && onResumePledge(editingPledge.id)
                       }
-                      className="bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm font-bold uppercase tracking-widest text-[9px] h-8 rounded-lg px-3"
+                      className="bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm font-semibold uppercase tracking-widest text-[9px] h-8 rounded-lg px-3"
                     >
-                      <PlayCircle className="mr-1.5 h-3.5 w-3.5" /> Resume
+                      <PlayCircle className="mr-1.5 size-3.5" /> Resume
                     </Button>
                   )}
                 </div>
@@ -1066,7 +1079,7 @@ function EditPledgeDialog({
               <div className="p-6 bg-white border-t border-zinc-100 flex justify-between items-center">
                 <Button
                   variant="ghost"
-                  className="text-red-500 hover:text-red-700 hover:bg-red-50 font-bold uppercase tracking-widest text-[9px] h-9 px-3"
+                  className="text-red-500 hover:text-red-700 hover:bg-red-50 font-semibold uppercase tracking-widest text-[9px] h-9 px-3"
                   onClick={() =>
                     editingPledge && onStopPledge(editingPledge.id)
                   }
@@ -1077,13 +1090,13 @@ function EditPledgeDialog({
                   <Button
                     variant="outline"
                     onClick={onClose}
-                    className="font-bold uppercase tracking-widest text-[9px] h-9 px-4 rounded-lg"
+                    className="font-semibold uppercase tracking-widest text-[9px] h-9 px-4 rounded-lg"
                   >
                     Cancel
                   </Button>
                   <Button
                     onClick={onSaveChanges}
-                    className="bg-zinc-900 text-white shadow-md font-bold uppercase tracking-widest text-[9px] h-9 px-4 rounded-lg"
+                    className="bg-zinc-900 text-white shadow-md font-semibold uppercase tracking-widest text-[9px] h-9 px-4 rounded-lg"
                   >
                     Save Changes
                   </Button>
@@ -1180,10 +1193,10 @@ function MovePledgeDialog({
       <DialogContent className="sm:max-w-[550px] p-0 gap-0 overflow-hidden shadow-2xl border-none rounded-2xl max-h-[90vh] overflow-y-auto text-left">
         <div className="bg-zinc-50 p-6 border-b border-zinc-100 flex items-center justify-between sticky top-0 z-10">
           <div>
-            <DialogTitle className="text-lg font-bold text-zinc-900 uppercase tracking-tight">
+            <DialogTitle className="text-lg font-semibold text-zinc-900 uppercase tracking-tight">
               {moveView === "select" ? "Move Pledge" : "Add New Payment Method"}
             </DialogTitle>
-            <DialogDescription className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-1">
+            <DialogDescription className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 mt-1">
               {moveView === "select"
                 ? `Select a payment method for ${movingPledge?.recipientName}.`
                 : "Enter your new payment details securely."}
@@ -1194,9 +1207,9 @@ function MovePledgeDialog({
               variant="ghost"
               size="sm"
               onClick={() => onMoveViewChange("select")}
-              className="h-8 text-[9px] font-black uppercase tracking-widest hover:bg-zinc-100 rounded-md"
+              className="h-8 text-[9px] font-semibold uppercase tracking-widest hover:bg-zinc-100 rounded-md"
             >
-              <ArrowLeft className="h-3 w-3 mr-1.5" /> Back
+              <ArrowLeft className="size-3 mr-1.5" /> Back
             </Button>
           )}
         </div>
@@ -1230,7 +1243,7 @@ function MovePledgeDialog({
           <Button
             variant="ghost"
             onClick={onClose}
-            className="font-bold uppercase tracking-widest text-[9px] h-10 px-4 rounded-lg"
+            className="font-semibold uppercase tracking-widest text-[9px] h-10 px-4 rounded-lg"
           >
             Cancel
           </Button>
@@ -1238,14 +1251,14 @@ function MovePledgeDialog({
             <Button
               onClick={onConfirmMove}
               disabled={!selectedTargetId}
-              className="bg-zinc-900 text-white shadow-lg font-bold uppercase tracking-widest text-[9px] h-10 px-6 rounded-lg transition-transform active:scale-[0.98]"
+              className="bg-zinc-900 text-white shadow-lg font-semibold uppercase tracking-widest text-[9px] h-10 px-6 rounded-lg transition-transform active:scale-[0.98]"
             >
               Confirm Move
             </Button>
           ) : (
             <Button
               onClick={onSaveNewMethod}
-              className="bg-zinc-900 text-white shadow-lg font-bold uppercase tracking-widest text-[9px] h-10 px-6 rounded-lg transition-transform active:scale-[0.98]"
+              className="bg-zinc-900 text-white shadow-lg font-semibold uppercase tracking-widest text-[9px] h-10 px-6 rounded-lg transition-transform active:scale-[0.98]"
             >
               Save & Use {newMethodType === "card" ? "Card" : "Account"}
             </Button>
@@ -1260,15 +1273,15 @@ function PledgesHeader() {
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-1 text-left">
       <div>
-        <h1 className="text-3xl md:text-4xl font-bold text-zinc-900 tracking-tight uppercase">
+        <h1 className="text-3xl md:text-4xl font-semibold text-zinc-900 tracking-tight uppercase">
           Recurring Pledges
         </h1>
-        <p className="text-zinc-500 mt-2 text-lg font-bold uppercase tracking-widest text-[10px]">
+        <p className="text-zinc-500 mt-2 text-lg font-semibold uppercase tracking-widest text-[10px]">
           Manage your ongoing commitments and impact.
         </p>
       </div>
-      <Button className="bg-zinc-900 text-white hover:bg-zinc-800 shadow-lg hover:shadow-xl transition-all h-12 px-6 rounded-lg font-bold uppercase tracking-widest text-[10px]">
-        <DollarSign className="mr-2 h-5 w-5" /> New Pledge
+      <Button className="bg-zinc-900 text-white hover:bg-zinc-800 shadow-lg hover:shadow-xl transition-all h-12 px-6 rounded-lg font-semibold uppercase tracking-widest text-[10px]">
+        <DollarSign className="mr-2 size-5" /> New Pledge
       </Button>
     </div>
   );
@@ -1411,7 +1424,7 @@ export default function DonorPledgesPage() {
   };
 
   const handleSaveNewMethod = () => {
-    const newMethodId = `pm_new_${Date.now()}`;
+    const newMethodId = `pm_new_${makeDisplayTimestamp()}`;
     let newMethod: PaymentMethod;
 
     if (newMethodType === "card") {
@@ -1441,8 +1454,8 @@ export default function DonorPledgesPage() {
     if (!editingPledge) return;
 
     const resumeDate = customResumeDate
-      ? new Date(customResumeDate)
-      : addMonths(new Date(), parseInt(pauseDuration));
+      ? makeDisplayDate(customResumeDate)
+      : addMonths(makeDisplayDate(), parseInt(pauseDuration));
 
     const updatedPledges = pledges.map((p) => {
       if (p.id === editingPledge.id) {
@@ -1464,7 +1477,7 @@ export default function DonorPledgesPage() {
   const handleResumePledge = (id: string) => {
     const updatedPledges = pledges.map((p) => {
       if (p.id === id) {
-        const nextDate = format(addMonths(new Date(), 1), "yyyy-MM-01");
+        const nextDate = format(addMonths(makeDisplayDate(), 1), "yyyy-MM-01");
         return {
           ...p,
           status: "Active" as PledgeStatus,

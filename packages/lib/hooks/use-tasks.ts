@@ -200,24 +200,23 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
   useEffect(() => {
     if (!profile?.id) return;
 
-    const channel = supabase
-      .channel("missionary_tasks_changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "missionary_tasks",
-          filter: `missionary_id=eq.${profile.id}`,
-        },
-        () => {
-          fetchTasks();
-        },
-      )
-      .subscribe();
+    const channel = supabase.channel("missionary_tasks_changes").on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "missionary_tasks",
+        filter: `missionary_id=eq.${profile.id}`,
+      },
+      () => {
+        fetchTasks();
+      },
+    );
+
+    channel.subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      void channel.unsubscribe();
     };
   }, [profile?.id, supabase, fetchTasks]);
 

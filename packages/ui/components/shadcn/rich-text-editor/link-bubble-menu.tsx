@@ -134,7 +134,7 @@ function PreviewView({
           className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-primary hover:bg-muted truncate max-w-[220px]"
           title={safeHref}
         >
-          <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+          <ExternalLink className="size-3.5 shrink-0" />
           <span className="truncate">{safeHref}</span>
         </a>
       ) : (
@@ -142,7 +142,7 @@ function PreviewView({
           className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-muted-foreground truncate max-w-[220px]"
           title={href}
         >
-          <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+          <ExternalLink className="size-3.5 shrink-0" />
           <span className="truncate">{href}</span>
         </div>
       )}
@@ -152,18 +152,18 @@ function PreviewView({
         variant="ghost"
         size="icon-xs"
         onClick={onEdit}
-        className="h-6 w-6 text-muted-foreground hover:text-foreground"
+        className="size-6 text-muted-foreground hover:text-foreground"
       >
-        <Pencil className="h-3 w-3" />
+        <Pencil className="size-3" />
       </Button>
       <Button
         aria-label="Remove link"
         variant="ghost"
         size="icon-xs"
         onClick={onRemove}
-        className="h-6 w-6 text-destructive/70 hover:text-destructive hover:bg-destructive/10"
+        className="size-6 text-destructive/70 hover:text-destructive hover:bg-destructive/10"
       >
-        <Trash2 className="h-3 w-3" />
+        <Trash2 className="size-3" />
       </Button>
     </>
   );
@@ -205,9 +205,9 @@ const EditView = React.forwardRef<
         type="submit"
         variant="ghost"
         size="icon-xs"
-        className="h-6 w-6 text-primary hover:text-primary"
+        className="size-6 text-primary hover:text-primary"
       >
-        <Check className="h-3.5 w-3.5" />
+        <Check className="size-3.5" />
       </Button>
       <Button
         aria-label="Cancel link edit"
@@ -215,9 +215,9 @@ const EditView = React.forwardRef<
         variant="ghost"
         size="icon-xs"
         onClick={onCancel}
-        className="h-6 w-6 text-muted-foreground hover:text-foreground"
+        className="size-6 text-muted-foreground hover:text-foreground"
       >
-        <X className="h-3.5 w-3.5" />
+        <X className="size-3.5" />
       </Button>
     </form>
   );

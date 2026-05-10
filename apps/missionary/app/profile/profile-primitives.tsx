@@ -146,7 +146,7 @@ export function FormField({
   return (
     <motion.div className={cn("space-y-1.5", className)} variants={fadeInUp}>
       <Label className="text-xs font-medium text-zinc-500 flex items-center gap-1.5">
-        {Icon && <Icon className="h-3.5 w-3.5" />}
+        {Icon && <Icon className="size-3.5" />}
         {label}
       </Label>
       {children}
@@ -160,7 +160,7 @@ export function FormField({
             exit={{ opacity: 0, height: 0, y: -4 }}
             transition={{ duration: 0.2 }}
           >
-            <AlertCircle className="h-3 w-3 flex-shrink-0" />
+            <AlertCircle className="size-3 flex-shrink-0" />
             {error}
           </motion.p>
         ) : helperText ? (
@@ -208,7 +208,7 @@ export function SocialIcon({
       whileTap={{ scale: 0.98 }}
       transition={springTransition}
     >
-      <Icon className="h-4 w-4 text-zinc-400 hover:text-zinc-600 transition-colors" />
+      <Icon className="size-4 text-zinc-400 hover:text-zinc-600 transition-colors" />
     </motion.div>
   );
 }
@@ -228,7 +228,7 @@ export function AvatarUploadArea({
       transition={springTransition}
     >
       <SharedNamedViewTransition name={MISSIONARY_SHELL_AVATAR_VT_NAME}>
-        <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-white shadow-lg">
+        <Avatar className="size-24 sm:h-28 sm:w-28 border-4 border-white shadow-lg">
           <AvatarImage src={avatarUrl} />
           <AvatarFallback className="bg-zinc-900 text-lg sm:text-xl font-bold text-white uppercase">
             {initials || "U"}
@@ -244,16 +244,16 @@ export function AvatarUploadArea({
           className="opacity-0 group-hover:opacity-100 transition-opacity"
           initial={false}
         >
-          <Camera className="h-6 w-6 text-white drop-shadow-lg" />
+          <Camera className="size-6 text-white drop-shadow-lg" />
         </motion.div>
       </motion.div>
 
       <motion.div
-        className="absolute -bottom-1 -right-1 h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-zinc-900 text-white flex items-center justify-center shadow-lg border-2 border-white"
+        className="absolute -bottom-1 -right-1 size-8 sm:h-9 sm:w-9 rounded-full bg-zinc-900 text-white flex items-center justify-center shadow-lg border-2 border-white"
         whileHover={{ scale: 1.1 }}
         transition={springTransition}
       >
-        <Camera className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+        <Camera className="size-3.5 sm:h-4 sm:w-4" />
       </motion.div>
     </motion.div>
   );
@@ -277,7 +277,7 @@ export function CoverUploadArea({ coverUrl }: { coverUrl: string }) {
           <motion.img
             src={coverUrl}
             alt="Cover"
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 size-full object-cover"
             initial={{ opacity: 0, scale: 1.02 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={gentleTransition}
@@ -288,7 +288,7 @@ export function CoverUploadArea({ coverUrl }: { coverUrl: string }) {
           >
             <motion.div className="bg-white rounded-lg px-3 py-1.5 shadow-lg opacity-0 hover:opacity-100 transition-opacity">
               <span className="text-xs font-medium flex items-center gap-1.5">
-                <Camera className="h-3.5 w-3.5" />
+                <Camera className="size-3.5" />
                 Change Cover
               </span>
             </motion.div>
@@ -301,8 +301,8 @@ export function CoverUploadArea({ coverUrl }: { coverUrl: string }) {
           animate={{ opacity: 1, y: 0 }}
           transition={smoothTransition}
         >
-          <motion.div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-white shadow-sm border border-zinc-100 flex items-center justify-center mb-2 sm:mb-3">
-            <ImageIcon className="h-5 w-5 sm:h-6 sm:w-6 text-zinc-300" />
+          <motion.div className="size-10 sm:h-12 sm:w-12 rounded-xl bg-white shadow-sm border border-zinc-100 flex items-center justify-center mb-2 sm:mb-3">
+            <ImageIcon className="size-5 sm:h-6 sm:w-6 text-zinc-300" />
           </motion.div>
           <p className="text-xs sm:text-sm font-medium text-zinc-700">
             Click to upload cover photo
@@ -345,7 +345,7 @@ export function PreviewToggle({
         )}
         aria-label="Mobile preview"
       >
-        <Smartphone className="h-4 w-4" />
+        <Smartphone className="size-4" />
       </button>
       <button
         type="button"
@@ -358,7 +358,7 @@ export function PreviewToggle({
         )}
         aria-label="Desktop preview"
       >
-        <Monitor className="h-4 w-4" />
+        <Monitor className="size-4" />
       </button>
     </div>
   );
@@ -521,7 +521,7 @@ export function ProfileHeaderActions({
                     exit={{ scale: 0.95, rotate: 90, opacity: 0 }}
                     transition={springTransition}
                   >
-                    <Check className="h-4 w-4 text-emerald-600" />
+                    <Check className="size-4 text-emerald-600" />
                   </motion.div>
                 ) : (
                   <motion.div
@@ -531,7 +531,7 @@ export function ProfileHeaderActions({
                     exit={{ scale: 0.95, opacity: 0 }}
                     transition={springTransition}
                   >
-                    <Copy className="h-4 w-4" />
+                    <Copy className="size-4" />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -555,10 +555,10 @@ export function ProfileHeaderActions({
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <Eye className="mr-1.5 h-4 w-4" />
+                <Eye className="mr-1.5 size-4" />
                 <span className="hidden sm:inline">View Public Page</span>
                 <span className="sm:hidden">View</span>
-                <ExternalLink className="ml-1 h-3 w-3 opacity-50" />
+                <ExternalLink className="ml-1 size-3 opacity-50" />
               </a>
             </Button>
           </motion.div>
@@ -580,7 +580,7 @@ export function ProfileHeaderActions({
               onClick={handleDiscard}
               className="h-9 px-3 text-xs font-medium text-zinc-500 hover:text-zinc-900"
             >
-              <RotateCcw className="mr-1.5 h-4 w-4" />
+              <RotateCcw className="mr-1.5 size-4" />
               Discard
             </Button>
           </motion.div>
@@ -610,7 +610,7 @@ export function ProfileHeaderActions({
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
               >
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="size-4 animate-spin" />
               </motion.div>
             ) : saveSuccess ? (
               <motion.div
@@ -621,7 +621,7 @@ export function ProfileHeaderActions({
                 className="flex items-center"
                 transition={springTransition}
               >
-                <CheckCircle2 className="mr-1.5 h-4 w-4" />
+                <CheckCircle2 className="mr-1.5 size-4" />
                 Saved!
               </motion.div>
             ) : (
@@ -633,7 +633,7 @@ export function ProfileHeaderActions({
                 className="flex items-center"
                 transition={{ duration: 0.15 }}
               >
-                <Save className="mr-1.5 h-4 w-4" />
+                <Save className="mr-1.5 size-4" />
                 Save Changes
               </motion.div>
             )}

@@ -80,7 +80,7 @@ export function ChartCard({
         ) : isError ? (
           <div className="flex flex-col items-center justify-center py-10 text-center animate-in fade-in zoom-in-95 duration-300">
             <div className="bg-destructive/10 p-3 rounded-full mb-3">
-              <AlertCircle className="h-6 w-6 text-destructive" />
+              <AlertCircle className="size-6 text-destructive" />
             </div>
             <h3 className="text-sm font-semibold text-foreground mb-1">
               {errorTitle}
@@ -92,13 +92,13 @@ export function ChartCard({
         ) : isEmpty ? (
           <div className="flex flex-col items-center justify-center py-10 text-center animate-in fade-in zoom-in-95 duration-300">
             <div className="bg-muted p-3 rounded-full mb-3">
-              <Inbox className="h-6 w-6 text-muted-foreground" />
+              <Inbox className="size-6 text-muted-foreground" />
             </div>
             <p className="text-xs text-muted-foreground mb-4">{emptyMessage}</p>
             {emptyCTA}
           </div>
         ) : (
-          <div className="w-full h-full animate-in fade-in duration-500">
+          <div className="size-full animate-in fade-in duration-500">
             {children}
           </div>
         )}
@@ -147,15 +147,15 @@ export function ChartLegend({ items, className }: ChartLegendProps) {
           className="flex items-center gap-2 group"
         >
           <div
-            className="h-2 w-2 rounded-full shrink-0"
+            className="size-2 rounded-full shrink-0"
             style={{ backgroundColor: item.color }}
           />
           <div className="flex items-baseline gap-1.5">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground group-hover:text-foreground transition-colors">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground group-hover:text-foreground transition-colors">
               {item.label}
             </span>
             {item.value !== undefined && (
-              <span className="text-xs font-bold">{item.value}</span>
+              <span className="text-xs font-semibold">{item.value}</span>
             )}
           </div>
         </div>
@@ -171,7 +171,7 @@ export function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
 
   return (
     <div className="bg-popover text-popover-foreground border-border/70 min-w-[120px] rounded-lg border p-3 shadow-xl animate-in fade-in zoom-in-95 duration-200">
-      <p className="text-muted-foreground border-border/50 mb-2 border-b pb-1.5 text-[10px] font-bold uppercase tracking-wider">
+      <p className="text-muted-foreground border-border/50 mb-2 border-b pb-1.5 text-[10px] font-semibold uppercase tracking-wider">
         {label}
       </p>
       <div className="space-y-1.5">
@@ -182,14 +182,14 @@ export function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
           >
             <div className="flex items-center gap-1.5">
               <div
-                className="h-1.5 w-1.5 rounded-full"
+                className="size-1.5 rounded-full"
                 style={{ backgroundColor: item.color || item.fill }}
               />
-              <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-tight">
+              <span className="text-muted-foreground text-[10px] font-semibold uppercase tracking-tight">
                 {item.name}
               </span>
             </div>
-            <span className="text-foreground tabular-nums text-xs font-bold">
+            <span className="text-foreground tabular-nums text-xs font-semibold">
               {typeof item.value === "number"
                 ? `$${item.value.toLocaleString()}`
                 : item.value}
@@ -235,7 +235,7 @@ export function KpiTile({
       <Card className={cn("p-6", className)}>
         <div className="flex items-center justify-between mb-4">
           <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-8 w-8 rounded-lg" />
+          <Skeleton className="size-8 rounded-lg" />
         </div>
         <Skeleton className="h-8 w-32 mb-2" />
         <Skeleton className="h-4 w-40" />
@@ -253,18 +253,18 @@ export function KpiTile({
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               {label}
             </p>
             <div className="flex items-baseline gap-2">
-              <h3 className="text-2xl font-bold tracking-tight text-foreground">
+              <h3 className="text-2xl font-semibold tracking-tight text-foreground">
                 {isEmpty ? "--" : value}
               </h3>
               {delta && !isEmpty && (
                 <Badge
                   variant="secondary"
                   className={cn(
-                    "h-5 px-1.5 text-[10px] font-bold border-none",
+                    "h-5 px-1.5 text-[10px] font-semibold border-none",
                     delta.trend === "up" && "bg-emerald-50 text-emerald-700",
                     delta.trend === "down" && "bg-rose-50 text-rose-700",
                     delta.trend === "neutral" &&
@@ -272,10 +272,10 @@ export function KpiTile({
                   )}
                 >
                   {delta.trend === "up" && (
-                    <TrendingUp className="mr-1 h-3 w-3" />
+                    <TrendingUp className="mr-1 size-3" />
                   )}
                   {delta.trend === "down" && (
-                    <TrendingDown className="mr-1 h-3 w-3" />
+                    <TrendingDown className="mr-1 size-3" />
                   )}
                   {delta.value}
                 </Badge>
@@ -292,14 +292,14 @@ export function KpiTile({
           </div>
           {Icon && (
             <div className="bg-muted border-border/60 rounded-xl border p-2 transition-colors group-hover:bg-accent">
-              <Icon className="text-muted-foreground h-5 w-5" />
+              <Icon className="text-muted-foreground size-5" />
             </div>
           )}
         </div>
         {isError && (
           <div className="bg-background/80 absolute inset-0 flex items-center justify-center p-4 text-center backdrop-blur-[1px]">
             <div className="flex items-center gap-2 text-destructive">
-              <AlertCircle className="h-4 w-4" />
+              <AlertCircle className="size-4" />
               <span className="text-xs font-semibold">Error loading data</span>
             </div>
           </div>

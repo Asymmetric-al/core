@@ -25,6 +25,12 @@ import React from "react";
 
 import type { Location } from "../hooks/use-locations";
 
+function makeDisplayDate(value?: string | number | Date): Date {
+  return value === undefined
+    ? new globalThis.Date()
+    : new globalThis.Date(value);
+}
+
 interface LocationTableProps {
   data: Location[];
   isLoading?: boolean;
@@ -112,11 +118,14 @@ export function LocationTable({
       ),
       cell: ({ row }) => (
         <div className="text-xs font-medium text-muted-foreground tabular-nums">
-          {new Date(row.original.updated_at).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })}
+          {makeDisplayDate(row.original.updated_at).toLocaleDateString(
+            "en-US",
+            {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            },
+          )}
         </div>
       ),
     },
@@ -129,10 +138,10 @@ export function LocationTable({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 rounded-lg"
+                className="size-8 rounded-lg"
                 aria-label={`Open actions for ${row.original.title}`}
               >
-                <MoreHorizontal className="h-4 w-4" />
+                <MoreHorizontal className="size-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -143,13 +152,13 @@ export function LocationTable({
                 onClick={() => onEdit(row.original)}
                 className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 focus:text-zinc-900"
               >
-                <Edit2 className="mr-2 h-3.5 w-3.5" /> Edit
+                <Edit2 className="mr-2 size-3.5" /> Edit
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => onDelete(row.original.id)}
                 className="text-[10px] font-bold uppercase tracking-widest text-red-600 focus:text-red-700"
               >
-                <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete
+                <Trash2 className="mr-2 size-3.5" /> Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

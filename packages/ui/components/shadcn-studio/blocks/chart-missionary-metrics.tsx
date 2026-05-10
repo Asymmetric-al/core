@@ -149,8 +149,8 @@ const MissionaryMetricsCard = ({ className }: { className?: string }) => {
           <div className="flex flex-col gap-7 lg:col-span-3">
             <span className="text-lg font-semibold">Ministry Metrics</span>
             <div className="flex items-center gap-3">
-              <div className="flex h-10.5 w-10.5 items-center justify-center rounded-lg bg-emerald-100">
-                <HeartHandshakeIcon className="h-6 w-6 text-emerald-700" />
+              <div className="flex size-10.5 items-center justify-center rounded-lg bg-emerald-100">
+                <HeartHandshakeIcon className="size-6 text-emerald-700" />
               </div>
               <div className="flex flex-col gap-0.5">
                 <span className="text-xl font-medium">Your Ministry</span>

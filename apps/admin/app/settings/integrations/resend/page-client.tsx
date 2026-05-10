@@ -321,8 +321,8 @@ export default function ResendSettingsPage() {
   if (isHydratingConnection) {
     return (
       <div className="container max-w-4xl py-8">
-        <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">
-          Loading Resend integration settings...
+        <div className="rounded-xl border border-zinc-200 bg-white p-6 text-sm text-zinc-600">
+          Loading Resend integration settings…
         </div>
       </div>
     );

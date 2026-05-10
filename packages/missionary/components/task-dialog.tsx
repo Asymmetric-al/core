@@ -291,11 +291,11 @@ function TaskTypeSelectField({ form }: { form: MissionaryTaskFormApi }) {
                     <div className="flex items-center gap-2">
                       <div
                         className={cn(
-                          "flex h-6 w-6 items-center justify-center rounded-lg",
+                          "flex size-6 items-center justify-center rounded-lg",
                           selectedTaskType.color,
                         )}
                       >
-                        <selectedTaskType.icon className="h-3.5 w-3.5" />
+                        <selectedTaskType.icon className="size-3.5" />
                       </div>
                       <span>{selectedTaskType.label}</span>
                     </div>
@@ -312,11 +312,11 @@ function TaskTypeSelectField({ form }: { form: MissionaryTaskFormApi }) {
                     <div className="flex items-center gap-2">
                       <div
                         className={cn(
-                          "flex h-6 w-6 items-center justify-center rounded-lg",
+                          "flex size-6 items-center justify-center rounded-lg",
                           taskType.color,
                         )}
                       >
-                        <taskType.icon className="h-3.5 w-3.5" />
+                        <taskType.icon className="size-3.5" />
                       </div>
                       <span className="font-medium">{taskType.label}</span>
                     </div>
@@ -359,7 +359,7 @@ function PrioritySelectField({ form }: { form: MissionaryTaskFormApi }) {
                   value={priority.value}
                 >
                   <div className="flex items-center gap-2">
-                    <Flag className={cn("h-4 w-4", priority.color)} />
+                    <Flag className={cn("size-4", priority.color)} />
                     <span className="font-medium">{priority.label}</span>
                   </div>
                 </SelectItem>
@@ -402,13 +402,13 @@ function DatePickerField({
                 type="button"
                 variant="outline"
               >
-                <Icon className="mr-2 h-4 w-4" />
+                <Icon className="mr-2 size-4" />
                 {field.state.value
                   ? format(field.state.value, "PPP")
                   : placeholder}
                 {field.state.value ? (
                   <X
-                    className="ml-auto h-4 w-4 text-zinc-400 hover:text-zinc-600"
+                    className="ml-auto size-4 text-zinc-400 hover:text-zinc-600"
                     onClick={(event) => {
                       event.stopPropagation();
                       field.handleChange(null);
@@ -515,7 +515,7 @@ function DonorSelectorField({
                 >
                   {selectedDonor ? (
                     <div className="flex items-center gap-2">
-                      <Avatar className="h-6 w-6">
+                      <Avatar className="size-6">
                         <AvatarImage
                           src={selectedDonor.avatar_url || undefined}
                         />
@@ -531,7 +531,7 @@ function DonorSelectorField({
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
+                      <User className="size-4" />
                       <span>Select partner (optional)</span>
                     </div>
                   )}
@@ -539,14 +539,14 @@ function DonorSelectorField({
                   <div className="flex items-center gap-1">
                     {field.state.value ? (
                       <X
-                        className="h-4 w-4 text-zinc-400 hover:text-zinc-600"
+                        className="size-4 text-zinc-400 hover:text-zinc-600"
                         onClick={(event) => {
                           event.stopPropagation();
                           field.handleChange("");
                         }}
                       />
                     ) : null}
-                    <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                    <ChevronsUpDown className="size-4 opacity-50" />
                   </div>
                 </Button>
               </PopoverTrigger>
@@ -564,7 +564,7 @@ function DonorSelectorField({
                     <CommandEmpty>
                       {loadingDonors ? (
                         <div className="flex items-center justify-center py-6">
-                          <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+                          <Loader2 className="size-4 animate-spin text-zinc-400" />
                         </div>
                       ) : (
                         "No partners found."
@@ -585,7 +585,7 @@ function DonorSelectorField({
                           value={donor.name}
                         >
                           <div className="flex flex-1 items-center gap-3">
-                            <Avatar className="h-8 w-8">
+                            <Avatar className="size-8">
                               <AvatarImage
                                 src={donor.avatar_url || undefined}
                               />
@@ -610,7 +610,7 @@ function DonorSelectorField({
                           </div>
                           <Check
                             className={cn(
-                              "h-4 w-4 shrink-0",
+                              "size-4 shrink-0",
                               field.state.value === donor.id
                                 ? "opacity-100"
                                 : "opacity-0",
@@ -771,7 +771,7 @@ export function TaskDialog({
     >
       {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
       <DialogContent className="max-h-[90vh] overflow-hidden rounded-[2rem] border-zinc-100 p-0 sm:max-w-[600px]">
-        <div className="bg-zinc-900 px-8 py-8 text-white">
+        <div className="bg-zinc-900 p-8 text-white">
           <DialogTitle className="text-2xl font-black tracking-tight">
             {isEditing ? "Edit Task" : "Create Task"}
           </DialogTitle>
@@ -851,7 +851,7 @@ export function TaskDialog({
                       type="submit"
                     >
                       {isSubmitting ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Loader2 className="size-4 animate-spin" />
                       ) : isEditing ? (
                         "Update Task"
                       ) : (

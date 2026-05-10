@@ -678,7 +678,7 @@ const RegistrationTrendsChart = dynamic(
     loading: () => (
       <Card className="col-span-4 overflow-hidden">
         <CardHeader className="border-b border-zinc-100 bg-zinc-50/30">
-          <CardTitle className="text-base font-bold">
+          <CardTitle className="text-base font-semibold">
             Registration Trends
           </CardTitle>
         </CardHeader>
@@ -722,14 +722,14 @@ function EventMetricCard({
 }) {
   return (
     <Card className="border-zinc-100 shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 px-5 py-4 pb-2">
+      <CardHeader className="flex flex-row items-center justify-between gap-y-0 px-5 py-4 pb-2">
         <CardTitle className="text-sm font-semibold text-zinc-700">
           {title}
         </CardTitle>
-        <Icon className={cn("h-4 w-4", iconClassName)} />
+        <Icon className={cn("size-4", iconClassName)} />
       </CardHeader>
       <CardContent className="px-5 pb-4 pt-0">
-        <div className="text-2xl font-bold tabular-nums text-zinc-950">
+        <div className="text-2xl font-semibold tabular-nums text-zinc-950">
           {value}
         </div>
         <p className="mt-1 text-xs font-medium text-zinc-500">{context}</p>
@@ -837,7 +837,7 @@ function EventsOverviewTab({ event }: { event: ConferenceEvent }) {
           <RegistrationTrendsChart />
           <Card className="col-span-3 overflow-hidden">
             <CardHeader className="border-b border-zinc-100 bg-zinc-50/30 px-5 py-4">
-              <CardTitle className="text-base font-bold">
+              <CardTitle className="text-base font-semibold">
                 Quick Actions
               </CardTitle>
             </CardHeader>
@@ -846,28 +846,28 @@ function EventsOverviewTab({ event }: { event: ConferenceEvent }) {
                 variant="outline"
                 className="flex h-18 flex-col gap-1.5 rounded-xl border-zinc-200 text-xs font-semibold"
               >
-                <Printer className="h-5 w-5 text-zinc-500" />
+                <Printer className="size-5 text-zinc-500" />
                 <span>Print Badges</span>
               </Button>
               <Button
                 variant="outline"
                 className="flex h-18 flex-col gap-1.5 rounded-xl border-zinc-200 text-xs font-semibold"
               >
-                <Mail className="h-5 w-5 text-zinc-500" />
+                <Mail className="size-5 text-zinc-500" />
                 <span>Email Attendees</span>
               </Button>
               <Button
                 variant="outline"
                 className="flex h-18 flex-col gap-1.5 rounded-xl border-zinc-200 text-xs font-semibold"
               >
-                <FileText className="h-5 w-5 text-zinc-500" />
+                <FileText className="size-5 text-zinc-500" />
                 <span>Run Reports</span>
               </Button>
               <Button
                 variant="outline"
                 className="flex h-18 flex-col gap-1.5 rounded-xl border-zinc-200 text-xs font-semibold"
               >
-                <Settings className="h-5 w-5 text-zinc-500" />
+                <Settings className="size-5 text-zinc-500" />
                 <span>Integrations</span>
               </Button>
             </CardContent>
@@ -892,31 +892,31 @@ function EventsConfigTab({ event }: { event: ConferenceEvent }) {
             variant="ghost"
             className="h-9 w-full justify-start gap-3 rounded-xl bg-zinc-900 text-sm font-semibold text-white hover:bg-zinc-800 hover:text-white"
           >
-            <Building className="h-4 w-4" /> Venues & Spaces
+            <Building className="size-4" /> Venues & Spaces
           </Button>
           <Button
             variant="ghost"
             className="h-9 w-full justify-start gap-3 rounded-xl text-sm font-medium text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950"
           >
-            <BedDouble className="h-4 w-4" /> Lodging & Travel
+            <BedDouble className="size-4" /> Lodging & Travel
           </Button>
           <Button
             variant="ghost"
             className="h-9 w-full justify-start gap-3 rounded-xl text-sm font-medium text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950"
           >
-            <Wifi className="h-4 w-4" /> Event Logistics
+            <Wifi className="size-4" /> Event Logistics
           </Button>
           <Button
             variant="ghost"
             className="h-9 w-full justify-start gap-3 rounded-xl text-sm font-medium text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950"
           >
-            <Layers className="h-4 w-4" /> Tracks & Types
+            <Layers className="size-4" /> Tracks & Types
           </Button>
         </div>
         <div className="flex-1 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
           <div className="mb-5 flex items-start justify-between gap-4">
             <div>
-              <h3 className="text-lg font-bold text-zinc-900">
+              <h3 className="text-lg font-semibold text-zinc-900">
                 Venues & Spaces
               </h3>
               <p className="text-zinc-500 text-sm">
@@ -924,7 +924,7 @@ function EventsConfigTab({ event }: { event: ConferenceEvent }) {
               </p>
             </div>
             <Button className="h-9 rounded-xl bg-zinc-900 px-4 text-xs font-semibold text-white hover:bg-zinc-800">
-              <Plus className="mr-2 h-4 w-4" /> Add Venue
+              <Plus className="mr-2 size-4" /> Add Venue
             </Button>
           </div>
           {event.venues.map((venue) => (
@@ -935,7 +935,7 @@ function EventsConfigTab({ event }: { event: ConferenceEvent }) {
               <CardHeader className="flex flex-row items-center justify-between border-b border-zinc-100 py-3">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-white rounded-lg border border-zinc-200 text-blue-600">
-                    <Building className="h-5 w-5" />
+                    <Building className="size-5" />
                   </div>
                   <CardTitle className="text-base">{venue.name}</CardTitle>
                 </div>
@@ -944,7 +944,7 @@ function EventsConfigTab({ event }: { event: ConferenceEvent }) {
                   size="icon"
                   aria-label={`Toggle details for ${venue.name}`}
                 >
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronDown className="size-4" />
                 </Button>
               </CardHeader>
               <CardContent className="grid gap-5 p-5 md:grid-cols-2">
@@ -1022,15 +1022,15 @@ function EventsSpeakersTab({
           >
             <Card className="group cursor-pointer overflow-hidden transition-shadow [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md">
               <CardHeader className="flex flex-row items-start gap-4 p-5">
-                <Avatar className="h-12 w-12 border-2 border-white shadow-sm transition-transform [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-105">
+                <Avatar className="size-12 border-2 border-white shadow-sm transition-transform [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-105">
                   <AvatarImage src={speaker.avatar} />
-                  <AvatarFallback className="bg-zinc-100 font-bold">
+                  <AvatarFallback className="bg-zinc-100 font-semibold">
                     {speaker.firstName[0]}
                     {speaker.lastName[0]}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 text-left">
-                  <h3 className="font-bold text-zinc-900 leading-none">
+                  <h3 className="font-semibold text-zinc-900 leading-none">
                     {speaker.firstName} {speaker.lastName}
                   </h3>
                   <p className="text-xs text-zinc-500 mt-1">
@@ -1071,7 +1071,7 @@ function EventsSpeakersTab({
                           key={sessId}
                           className="flex items-center gap-2 p-2 rounded-lg bg-zinc-50 border border-zinc-100"
                         >
-                          <Presentation className="h-3 w-3 text-zinc-400" />
+                          <Presentation className="size-3 text-zinc-400" />
                           <span className="text-xs font-medium text-zinc-700 truncate">
                             {session.title}
                           </span>
@@ -1084,25 +1084,25 @@ function EventsSpeakersTab({
               <CardFooter className="p-0 border-t border-zinc-100 divide-x divide-zinc-100 h-10">
                 <Button
                   variant="ghost"
-                  className="w-full h-full rounded-none text-xs font-semibold text-zinc-500 hover:text-blue-600"
+                  className="size-full rounded-none text-xs font-semibold text-zinc-500 hover:text-blue-600"
                 >
-                  <Mail className="h-3.5 w-3.5 mr-2" /> Message
+                  <Mail className="size-3.5 mr-2" /> Message
                 </Button>
                 <Button
                   variant="ghost"
-                  className="w-full h-full rounded-none text-xs font-semibold text-zinc-500 hover:text-zinc-900"
+                  className="size-full rounded-none text-xs font-semibold text-zinc-500 hover:text-zinc-900"
                 >
-                  <User className="h-3.5 w-3.5 mr-2" /> Details
+                  <User className="size-3.5 mr-2" /> Details
                 </Button>
               </CardFooter>
             </Card>
           </motion.div>
         ))}
         <button className="press-feedback group flex h-[220px] flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-zinc-200 text-zinc-500 transition-[background-color,border-color,color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] hover:border-blue-400 hover:bg-blue-50/30 hover:text-blue-600">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full border border-zinc-100 bg-zinc-50 [@media(hover:hover)_and_(pointer:fine)]:group-hover:bg-white [@media(hover:hover)_and_(pointer:fine)]:group-hover:shadow-sm">
-            <Plus className="h-6 w-6" />
+          <div className="flex size-12 items-center justify-center rounded-full border border-zinc-100 bg-zinc-50 [@media(hover:hover)_and_(pointer:fine)]:group-hover:bg-white [@media(hover:hover)_and_(pointer:fine)]:group-hover:shadow-sm">
+            <Plus className="size-6" />
           </div>
-          <span className="font-bold text-sm">Add New Speaker</span>
+          <span className="font-semibold text-sm">Add New Speaker</span>
         </button>
       </motion.div>
     </TabsContent>
@@ -1121,9 +1121,9 @@ function EventsAttendeesTab() {
         ),
         cell: ({ row }) => (
           <div className="flex items-center gap-3 py-1">
-            <Avatar className="h-8 w-8">
+            <Avatar className="size-8">
               <AvatarImage src={row.original.avatar} />
-              <AvatarFallback className="text-[10px] bg-zinc-100 font-bold">
+              <AvatarFallback className="text-[10px] bg-zinc-100 font-semibold">
                 {getInitials(row.original.name)}
               </AvatarFallback>
             </Avatar>
@@ -1175,7 +1175,7 @@ function EventsAttendeesTab() {
           <div className="flex items-center gap-1.5">
             <div
               className={cn(
-                "h-1.5 w-1.5 rounded-full",
+                "size-1.5 rounded-full",
                 getPaymentStatusColor(row.original.paymentStatus),
               )}
             />
@@ -1192,10 +1192,10 @@ function EventsAttendeesTab() {
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-zinc-500"
+              className="size-8 text-zinc-500"
               aria-label="Open attendee actions"
             >
-              <MoreHorizontal className="h-4 w-4" />
+              <MoreHorizontal className="size-4" />
             </Button>
           </div>
         ),
@@ -1214,7 +1214,7 @@ function EventsAttendeesTab() {
         <Card className="border-zinc-200 shadow-sm">
           <div className="p-4 border-b border-zinc-100 bg-zinc-50/50 flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="relative w-full md:w-96">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
+              <Search className="absolute left-3 top-2.5 size-4 text-zinc-400" />
               <Input
                 placeholder="Search attendees..."
                 className="pl-9 bg-white"
@@ -1225,10 +1225,10 @@ function EventsAttendeesTab() {
                 variant="outline"
                 className="rounded-xl border-zinc-200 bg-white text-xs font-semibold shadow-none"
               >
-                <Download className="mr-2 h-4 w-4" /> Export CSV
+                <Download className="mr-2 size-4" /> Export CSV
               </Button>
               <Button className="rounded-xl bg-zinc-900 text-xs font-semibold text-white hover:bg-zinc-800">
-                <UserPlus className="mr-2 h-4 w-4" /> Register Person
+                <UserPlus className="mr-2 size-4" /> Register Person
               </Button>
             </div>
           </div>
@@ -1270,10 +1270,10 @@ export default function EventsPage() {
             variant="outline"
             className="h-10 rounded-xl border-zinc-200 bg-white px-4 text-xs font-semibold shadow-sm hover:bg-zinc-50"
           >
-            <Eye className="mr-2 h-4 w-4" /> Preview Site
+            <Eye className="mr-2 size-4" /> Preview Site
           </Button>
           <Button className="h-10 rounded-xl bg-zinc-900 px-4 text-xs font-semibold text-white shadow-md shadow-zinc-200 hover:bg-zinc-800">
-            <Plus className="mr-2 h-4 w-4" /> New Event
+            <Plus className="mr-2 size-4" /> New Event
           </Button>
         </div>
       }

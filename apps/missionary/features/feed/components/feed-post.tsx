@@ -26,6 +26,16 @@ import { CommentsDialog } from "./comments-dialog";
 
 import type { PostWithAuthor } from "@asym/database/types";
 
+function makeDisplayDate(value?: string | number | Date): Date {
+  return value === undefined
+    ? new globalThis.Date()
+    : new globalThis.Date(value);
+}
+
+function makeDisplayTimestamp(): number {
+  return globalThis.Date.now();
+}
+
 interface FeedPostProps {
   post: PostWithAuthor;
   onLike: (postId: string, liked: boolean) => void;
@@ -147,9 +157,9 @@ const ReactionButton = ({
     },
     prayer: {
       emoji: "🙏",
-      activeColor: "text-indigo-600",
-      bg: "bg-indigo-50/80",
-      hoverBg: "hover:bg-indigo-50",
+      activeColor: "text-primary",
+      bg: "bg-primary/10/80",
+      hoverBg: "hover:bg-primary/10",
       glowColor: "rgba(79, 70, 229, 0.2)",
     },
   };
@@ -159,7 +169,7 @@ const ReactionButton = ({
   const handleClick = () => {
     if (!isActive) {
       const newParticles = Array.from({ length: 8 }).map((_, i) => ({
-        id: Date.now() + i,
+        id: makeDisplayTimestamp() + i,
         emoji: emoji,
         offsetX: (Math.random() - 0.5) * 80,
         offsetRotate: (Math.random() - 0.5) * 90,
@@ -201,7 +211,7 @@ const ReactionButton = ({
           "relative flex items-center gap-2.5 px-5 py-2.5 rounded-2xl transition-[background-color,color,box-shadow,border-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] font-black text-[10px] uppercase tracking-widest overflow-hidden group h-10",
           isActive
             ? cn(bg, activeColor, "shadow-lg ring-1 ring-black/5")
-            : "text-slate-400 hover:text-slate-600 bg-white border border-slate-100",
+            : "text-zinc-400 hover:text-zinc-600 bg-white border border-zinc-100",
           !isActive && hoverBg,
         )}
       >
@@ -292,7 +302,7 @@ export function FeedPost({ post, onLike, onPrayer }: FeedPostProps) {
               {post.author.first_name} {post.author.last_name}
             </p>
             <p className="text-xs text-muted-foreground">
-              {formatDistanceToNow(new Date(post.created_at), {
+              {formatDistanceToNow(makeDisplayDate(post.created_at), {
                 addSuffix: true,
               })}
             </p>
@@ -388,12 +398,12 @@ export function FeedPost({ post, onLike, onPrayer }: FeedPostProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full hover:bg-slate-100 transition-colors h-10 w-10"
+              className="rounded-full hover:bg-zinc-100 transition-colors size-10"
               onClick={() =>
                 dispatch({ type: "setShowComments", showComments: true })
               }
             >
-              <MessageCircle className="size-5 text-slate-400" />
+              <MessageCircle className="size-5 text-zinc-400" />
             </Button>
           </div>
 
@@ -401,7 +411,7 @@ export function FeedPost({ post, onLike, onPrayer }: FeedPostProps) {
             <span className={cn(liked && "text-rose-500 font-bold")}>
               {likeCount} likes
             </span>
-            <span className={cn(prayed && "text-indigo-500 font-bold")}>
+            <span className={cn(prayed && "text-primary font-bold")}>
               {prayerCount} prayers
             </span>
             <span>{post.comment_count} comments</span>

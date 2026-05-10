@@ -35,9 +35,9 @@ export function StandardPageFromTemplateView() {
 }
 
 function StandardPageFromTemplateViewContent() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const templateId = searchParams.get("template") ?? "";
+  const { get } = useSearchParams();
+  const { push } = useRouter();
+  const templateId = get("template") ?? "";
   const [submitError, setSubmitError] = useState<string | null>(null);
   const { user } = useAuth();
   const isSuperAdmin = isSuperAdminUser(user);
@@ -120,7 +120,7 @@ function StandardPageFromTemplateViewContent() {
           adminRoute: routes.admin,
           path: `/collections/${body.collectionSlug}/${body.id}`,
         });
-        router.push(editPath);
+        push(editPath);
       }
     },
   });

@@ -153,13 +153,13 @@ export function ResendPageHeader({ isConnected }: ResendPageHeaderProps) {
       <div>
         <div className="mb-2 flex items-center gap-3">
           <div className="rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 p-2.5 text-white shadow-lg shadow-blue-500/25">
-            <Mail className="h-6 w-6" />
+            <Mail className="size-6" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="text-2xl font-semibold text-zinc-900">
             Resend Integration
           </h1>
         </div>
-        <p className="max-w-xl text-slate-600">
+        <p className="max-w-xl text-zinc-600">
           Connect your Resend account to send transactional and campaign emails
           through your own verified domain.
         </p>
@@ -169,7 +169,7 @@ export function ResendPageHeader({ isConnected }: ResendPageHeaderProps) {
           className="gap-1.5 border-emerald-200 bg-emerald-50 px-3 py-1.5 text-emerald-700"
           variant="outline"
         >
-          <CheckCircle2 className="h-3.5 w-3.5" />
+          <CheckCircle2 className="size-3.5" />
           Connected
         </Badge>
       ) : null}
@@ -199,7 +199,7 @@ export function ResendConnectedView({
                 API Key: ********{connection.apiKeyHint ?? "----"}
               </CardDescription>
               {validatedAtLabel && connection.validatedAt ? (
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-zinc-500">
                   Last verified{" "}
                   <time dateTime={connection.validatedAt}>
                     {validatedAtLabel}
@@ -215,34 +215,34 @@ export function ResendConnectedView({
         <CardContent className="space-y-4">
           {connection.hasValidationMetadata ? (
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-              <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
-                <div className="text-2xl font-bold text-slate-900">
+              <div className="rounded-xl border border-zinc-200 bg-white p-4 text-center">
+                <div className="text-2xl font-semibold text-zinc-900">
                   {connection.senderIdentities.length}
                 </div>
-                <div className="mt-1 text-xs text-slate-500">
+                <div className="mt-1 text-xs text-zinc-500">
                   Suggested senders
                 </div>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
-                <div className="text-2xl font-bold text-slate-900">
+              <div className="rounded-xl border border-zinc-200 bg-white p-4 text-center">
+                <div className="text-2xl font-semibold text-zinc-900">
                   {authenticatedDomains}
                 </div>
-                <div className="mt-1 text-xs text-slate-500">
+                <div className="mt-1 text-xs text-zinc-500">
                   Verified domains
                 </div>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
-                <div className="text-2xl font-bold text-slate-900">
+              <div className="rounded-xl border border-zinc-200 bg-white p-4 text-center">
+                <div className="text-2xl font-semibold text-zinc-900">
                   {connection.deliverabilityScore}%
                 </div>
-                <div className="mt-1 text-xs text-slate-500">
+                <div className="mt-1 text-xs text-zinc-500">
                   Deliverability score
                 </div>
               </div>
             </div>
           ) : (
-            <Alert className="border-slate-200 bg-white">
-              <Info className="h-4 w-4 text-slate-500" />
+            <Alert className="border-zinc-200 bg-white">
+              <Info className="size-4 text-zinc-500" />
               <AlertTitle>Reconnect Required</AlertTitle>
               <AlertDescription>
                 Reconnect Resend once to refresh verified domains, sender
@@ -257,7 +257,7 @@ export function ResendConnectedView({
               disabled={!canSendTestEmail}
               onClick={onOpenTestDialog}
             >
-              <Send className="mr-2 h-4 w-4" />
+              <Send className="mr-2 size-4" />
               {canSendTestEmail
                 ? "Send Test Email"
                 : "Resolve Delivery Setup First"}
@@ -268,7 +268,7 @@ export function ResendConnectedView({
               }
               variant="outline"
             >
-              <ExternalLink className="mr-2 h-4 w-4" />
+              <ExternalLink className="mr-2 size-4" />
               Open Resend Dashboard
             </Button>
           </div>
@@ -277,8 +277,8 @@ export function ResendConnectedView({
 
       {connection.warnings.length > 0 ? (
         <div className="space-y-3">
-          <h3 className="flex items-center gap-2 font-semibold text-slate-900">
-            <AlertTriangle className="h-4 w-4 text-amber-500" />
+          <h3 className="flex items-center gap-2 font-semibold text-zinc-900">
+            <AlertTriangle className="size-4 text-amber-500" />
             Recommendations
           </h3>
           {connection.warnings.map((warning) => (
@@ -297,7 +297,7 @@ export function ResendConnectedView({
                     size="sm"
                     variant="link"
                   >
-                    Learn more <ArrowRight className="ml-1 h-3 w-3" />
+                    Learn more <ArrowRight className="ml-1 size-3" />
                   </Button>
                 ) : null}
               </AlertDescription>
@@ -311,22 +311,22 @@ export function ResendConnectedView({
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <Globe className="h-4 w-4 text-blue-600" />
+              <Globe className="size-4 text-blue-600" />
               Domain Authentication
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {connection.domainAuthentication.map((domain) => (
               <div
-                className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 p-3"
+                className="flex items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50 p-3"
                 key={domain.id}
               >
                 <div>
-                  <div className="font-medium text-slate-900">
+                  <div className="font-medium text-zinc-900">
                     {domain.domain}
                   </div>
                   {domain.subdomain ? (
-                    <div className="text-sm text-slate-500">
+                    <div className="text-sm text-zinc-500">
                       Subdomain: {domain.subdomain}
                     </div>
                   ) : null}
@@ -374,7 +374,7 @@ export function ResendDisconnectedView({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Key className="h-5 w-5 text-slate-600" />
+            <Key className="size-5 text-zinc-600" />
             Connect Resend
           </CardTitle>
           <CardDescription>
@@ -383,7 +383,7 @@ export function ResendDisconnectedView({
         </CardHeader>
         <CardContent className="space-y-6">
           <Alert className="border-blue-200 bg-blue-50">
-            <Info className="h-4 w-4 text-blue-600" />
+            <Info className="size-4 text-blue-600" />
             <AlertTitle className="text-blue-900">
               Getting your API key
             </AlertTitle>
@@ -436,9 +436,9 @@ export function ResendDisconnectedView({
                         variant="ghost"
                       >
                         {showApiKey ? (
-                          <EyeOff className="h-4 w-4 text-slate-400" />
+                          <EyeOff className="size-4 text-zinc-400" />
                         ) : (
-                          <Eye className="h-4 w-4 text-slate-400" />
+                          <Eye className="size-4 text-zinc-400" />
                         )}
                       </Button>
                     </div>
@@ -491,7 +491,7 @@ export function ResendDisconnectedView({
 
           {connectionStatus === "error" && connectionError ? (
             <Alert variant="destructive">
-              <XCircle className="h-4 w-4" />
+              <XCircle className="size-4" />
               <AlertTitle>Connection Failed</AlertTitle>
               <AlertDescription>{connectionError}</AlertDescription>
             </Alert>
@@ -508,13 +508,13 @@ export function ResendDisconnectedView({
             </Alert>
           ))}
         </CardContent>
-        <CardFooter className="flex items-center justify-between border-t bg-slate-50/50 pt-6">
+        <CardFooter className="flex items-center justify-between border-t bg-zinc-50/50 pt-6">
           <Button
             onClick={() => window.open("https://resend.com/signup", "_blank")}
             type="button"
             variant="outline"
           >
-            <ExternalLink className="mr-2 h-4 w-4" />
+            <ExternalLink className="mr-2 size-4" />
             Create Resend Account
           </Button>
           <form.Subscribe
@@ -532,8 +532,8 @@ export function ResendDisconnectedView({
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Connecting...
+                    <Loader2 className="mr-2 size-4 animate-spin" />
+                    Connecting…
                   </>
                 ) : (
                   "Connect Resend"
@@ -572,7 +572,7 @@ export function ResendTestDialog({
         >
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Send className="h-5 w-5 text-blue-600" />
+              <Send className="size-5 text-blue-600" />
               Send Test Email
             </DialogTitle>
             <DialogDescription>
@@ -591,20 +591,20 @@ export function ResendTestDialog({
               )}
             </form.AppField>
 
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
-              <div className="grid grid-cols-2 gap-2 text-slate-600">
-                <span className="text-slate-500">From:</span>
+            <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm">
+              <div className="grid grid-cols-2 gap-2 text-zinc-600">
+                <span className="text-zinc-500">From:</span>
                 <span className="font-medium">
                   {fromName} &lt;{fromEmail}&gt;
                 </span>
-                <span className="text-slate-500">Subject:</span>
+                <span className="text-zinc-500">Subject:</span>
                 <span className="font-medium">Resend Test Email</span>
               </div>
             </div>
 
             {testStatus === "success" ? (
               <Alert className="border-emerald-200 bg-emerald-50">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                <CheckCircle2 className="size-4 text-emerald-600" />
                 <AlertTitle className="text-emerald-800">
                   Email Sent!
                 </AlertTitle>
@@ -616,7 +616,7 @@ export function ResendTestDialog({
 
             {testStatus === "error" && testError ? (
               <Alert variant="destructive">
-                <XCircle className="h-4 w-4" />
+                <XCircle className="size-4" />
                 <AlertTitle>Failed to Send</AlertTitle>
                 <AlertDescription>{testError}</AlertDescription>
               </Alert>
@@ -646,17 +646,17 @@ export function ResendTestDialog({
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Sending...
+                      <Loader2 className="mr-2 size-4 animate-spin" />
+                      Sending…
                     </>
                   ) : testStatus === "success" ? (
                     <>
-                      <RefreshCw className="mr-2 h-4 w-4" />
+                      <RefreshCw className="mr-2 size-4" />
                       Send Another
                     </>
                   ) : (
                     <>
-                      <Send className="mr-2 h-4 w-4" />
+                      <Send className="mr-2 size-4" />
                       Send Test
                     </>
                   )}

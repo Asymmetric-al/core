@@ -66,7 +66,7 @@ export function MobileProfilePreview({
             key={profile.coverUrl || "placeholder"}
             src={profile.coverUrl || PLACEHOLDER_COVER}
             alt="Cover"
-            className="w-full h-full object-cover"
+            className="size-full object-cover"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.25 }}
@@ -80,7 +80,7 @@ export function MobileProfilePreview({
             layout
             transition={springTransition}
           >
-            <Avatar className="h-full w-full">
+            <Avatar className="size-full">
               <AvatarImage src={profile.avatarUrl || PLACEHOLDER_AVATAR} />
               <AvatarFallback className="bg-zinc-100 font-semibold text-base">
                 {initials || "U"}
@@ -92,15 +92,15 @@ export function MobileProfilePreview({
         <div className="absolute top-[152px] left-0 right-0 bottom-0 px-5 text-center flex flex-col overflow-hidden">
           <div className="flex-shrink-0">
             <div className="flex items-center justify-center gap-1.5">
-              <h2 className="text-lg font-bold text-zinc-900 tracking-tight">
+              <h2 className="text-lg font-semibold text-zinc-900 tracking-tight">
                 {profile.firstName || "First"} {profile.lastName || "Last"}
               </h2>
-              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-[8px] font-bold uppercase tracking-wider">
-                <Check className="h-2 w-2" /> Verified
+              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-[8px] font-semibold uppercase tracking-wider">
+                <Check className="size-2" /> Verified
               </div>
             </div>
             <div className="flex items-center justify-center gap-1 text-[10px] text-zinc-500 mt-0.5">
-              <MapPin className="h-2.5 w-2.5" />
+              <MapPin className="size-2.5" />
               <span>{profile.location || "Location"}</span>
             </div>
           </div>
@@ -150,14 +150,14 @@ export function MobileProfilePreview({
                 <div className="space-y-4 py-2">
                   <div className="p-3 rounded-xl border border-zinc-100 bg-zinc-50/50 text-left">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="h-5 w-5 rounded-full bg-zinc-200" />
+                      <div className="size-5 rounded-full bg-zinc-200" />
                       <div className="flex-1">
                         <div className="h-2 w-16 bg-zinc-200 rounded mb-1" />
                         <div className="h-1.5 w-10 bg-zinc-100 rounded" />
                       </div>
                     </div>
                     <div className="h-2 w-full bg-zinc-100 rounded mb-1.5" />
-                    <div className="h-2 w-2/3 bg-zinc-100 rounded" />
+                    <div className="size-2/3 bg-zinc-100 rounded" />
                   </div>
                   <p className="text-[10px] text-zinc-400 text-center italic">
                     Updates from your feed will appear here
@@ -238,9 +238,9 @@ export function DesktopProfilePreview({
         }}
       >
         <div className="h-[24px] bg-zinc-100 border-b border-zinc-200 flex items-center px-3 gap-1.5">
-          <div className="h-2 w-2 rounded-full bg-zinc-300" />
-          <div className="h-2 w-2 rounded-full bg-zinc-300" />
-          <div className="h-2 w-2 rounded-full bg-zinc-300" />
+          <div className="size-2 rounded-full bg-zinc-300" />
+          <div className="size-2 rounded-full bg-zinc-300" />
+          <div className="size-2 rounded-full bg-zinc-300" />
         </div>
 
         <div
@@ -254,14 +254,14 @@ export function DesktopProfilePreview({
               width={400}
               height={72}
               unoptimized
-              className="w-full h-full object-cover"
+              className="size-full object-cover"
             />
             <div className="absolute inset-x-0 top-0 h-[72px] bg-gradient-to-t from-white/40 via-transparent to-transparent" />
           </div>
 
           <div className="px-5 pb-4">
             <div className="flex items-end gap-3 -mt-6">
-              <Avatar className="h-12 w-12 border-2 border-white shadow-md ring-2 ring-white/50">
+              <Avatar className="size-12 border-2 border-white shadow-md ring-2 ring-white/50">
                 <AvatarImage src={profile.avatarUrl || PLACEHOLDER_AVATAR} />
                 <AvatarFallback className="bg-zinc-100 text-sm font-semibold">
                   {initials || "U"}
@@ -269,15 +269,15 @@ export function DesktopProfilePreview({
               </Avatar>
               <div className="flex-1 pb-0.5 min-w-0">
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <h2 className="text-base font-bold text-zinc-900 tracking-tight truncate">
+                  <h2 className="text-base font-semibold text-zinc-900 tracking-tight truncate">
                     {profile.firstName || "First"} {profile.lastName || "Last"}
                   </h2>
-                  <div className="flex-shrink-0 flex items-center gap-1 px-1 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-[6px] font-bold uppercase tracking-wider">
-                    <Check className="h-2 w-2" />
+                  <div className="flex-shrink-0 flex items-center gap-1 px-1 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-[6px] font-semibold uppercase tracking-wider">
+                    <Check className="size-2" />
                   </div>
                 </div>
                 <p className="text-[10px] text-zinc-500 flex items-center gap-0.5">
-                  <MapPin className="h-2.5 w-2.5 flex-shrink-0" />
+                  <MapPin className="size-2.5 flex-shrink-0" />
                   <span className="truncate">
                     {profile.location || "Location"}
                   </span>
@@ -370,9 +370,9 @@ export function ProfilePreviewColumn({
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          <span className="relative flex size-2">
+            <span className="animate-ping absolute inline-flex size-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full size-2 bg-emerald-500"></span>
           </span>
           Updates as you type
         </motion.p>

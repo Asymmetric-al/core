@@ -146,8 +146,8 @@ function TaskListSkeleton() {
           key={i}
           className="flex items-start gap-4 p-5 border border-zinc-200 rounded-2xl bg-white"
         >
-          <Skeleton className="h-5 w-5 rounded-md mt-1" />
-          <Skeleton className="h-10 w-10 rounded-xl" />
+          <Skeleton className="size-5 rounded-md mt-1" />
+          <Skeleton className="size-10 rounded-xl" />
           <div className="flex-1 space-y-2">
             <Skeleton className="h-4 w-3/4" />
             <Skeleton className="h-3 w-1/2" />
@@ -194,11 +194,11 @@ function StatCard({
           key={value}
           initial={{ scale: 1.2, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="text-3xl font-black tabular-nums tracking-tight"
+          className="text-3xl font-semibold tabular-nums tracking-tight"
         >
           {value}
         </motion.span>
-        <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60 mt-0.5">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.2em] opacity-60 mt-0.5">
           {label}
         </span>
       </div>
@@ -308,7 +308,7 @@ function TasksPageActions({
         }}
         onSuccess={refresh}
         trigger={
-          <Button className="h-11 px-6 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-zinc-200">
+          <Button className="h-11 px-6 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-semibold uppercase tracking-widest text-[10px] shadow-lg shadow-zinc-200">
             <Plus className="mr-2 size-4" />
             Add Task
           </Button>
@@ -414,19 +414,19 @@ function TasksFilterBar({
               <TabsList className="bg-zinc-100/80 p-1 h-11 rounded-xl border border-zinc-200/50">
                 <TabsTrigger
                   value="active"
-                  className="text-[9px] font-black uppercase tracking-widest px-4 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                  className="text-[9px] font-semibold uppercase tracking-widest px-4 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
                 >
                   Active
                 </TabsTrigger>
                 <TabsTrigger
                   value="completed"
-                  className="text-[9px] font-black uppercase tracking-widest px-4 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                  className="text-[9px] font-semibold uppercase tracking-widest px-4 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
                 >
                   Done
                 </TabsTrigger>
                 <TabsTrigger
                   value="all"
-                  className="text-[9px] font-black uppercase tracking-widest px-4 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                  className="text-[9px] font-semibold uppercase tracking-widest px-4 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
                 >
                   All
                 </TabsTrigger>
@@ -438,7 +438,7 @@ function TasksFilterBar({
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="h-11 rounded-xl border-zinc-200 font-bold uppercase tracking-widest text-[10px] gap-2"
+                className="h-11 rounded-xl border-zinc-200 font-semibold uppercase tracking-widest text-[10px] gap-2"
               >
                 <ListFilter className="size-4 text-zinc-400" />
                 Refine
@@ -448,7 +448,7 @@ function TasksFilterBar({
               align="end"
               className="w-56 rounded-2xl border-zinc-100 p-2 shadow-xl"
             >
-              <DropdownMenuLabel className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400">
+              <DropdownMenuLabel className="px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
                 Task Type
               </DropdownMenuLabel>
               {Object.entries(TASK_TYPE_CONFIG).map(([value, config]) => (
@@ -458,14 +458,12 @@ function TasksFilterBar({
                   onCheckedChange={() => setTypeFilter(value as TaskType)}
                   className="rounded-lg px-3 py-2 text-sm font-medium"
                 >
-                  <config.icon
-                    className={cn("h-3.5 w-3.5 mr-2", config.color)}
-                  />
+                  <config.icon className={cn("size-3.5 mr-2", config.color)} />
                   {config.label}
                 </DropdownMenuCheckboxItem>
               ))}
               <DropdownMenuSeparator className="bg-zinc-100 mx-1 my-2" />
-              <DropdownMenuLabel className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400">
+              <DropdownMenuLabel className="px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
                 Priority
               </DropdownMenuLabel>
               {Object.entries(PRIORITY_CONFIG).map(([value, config]) => (
@@ -477,7 +475,7 @@ function TasksFilterBar({
                   }
                   className="rounded-lg px-3 py-2 text-sm font-medium"
                 >
-                  <Flag className={cn("h-3.5 w-3.5 mr-2", config.color)} />
+                  <Flag className={cn("size-3.5 mr-2", config.color)} />
                   {config.label}
                 </DropdownMenuCheckboxItem>
               ))}
@@ -527,7 +525,7 @@ function TasksContent({
           <div className="size-16 bg-rose-50 rounded-2xl flex items-center justify-center mb-4 border border-rose-100">
             <AlertCircle className="size-8 text-rose-500" />
           </div>
-          <h3 className="text-lg font-black text-zinc-900 uppercase tracking-tight">
+          <h3 className="text-lg font-semibold text-zinc-900 uppercase tracking-tight">
             Sync failed
           </h3>
           <p className="text-sm text-zinc-500 mt-2 max-w-sm font-medium">
@@ -536,7 +534,7 @@ function TasksContent({
           <Button
             onClick={refresh}
             variant="outline"
-            className="mt-6 h-10 px-6 rounded-xl font-bold uppercase tracking-widest text-[10px]"
+            className="mt-6 h-10 px-6 rounded-xl font-semibold uppercase tracking-widest text-[10px]"
           >
             <RefreshCw className="mr-2 size-4" />
             Retry Sync
@@ -597,7 +595,7 @@ function TasksContent({
           <div className="size-20 bg-white rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-zinc-100">
             <CheckCircle2 className="size-10 text-zinc-200" />
           </div>
-          <h3 className="text-2xl font-black text-zinc-900 tracking-tight">
+          <h3 className="text-2xl font-semibold text-zinc-900 tracking-tight">
             All caught up
           </h3>
           <p className="text-sm text-zinc-500 mt-2 font-medium">
@@ -605,7 +603,7 @@ function TasksContent({
           </p>
           <Button
             onClick={() => setTaskDialogOpen(true)}
-            className="mt-8 h-12 px-8 rounded-xl bg-zinc-900 text-white font-black uppercase tracking-widest text-[10px]"
+            className="mt-8 h-12 px-8 rounded-xl bg-zinc-900 text-white font-semibold uppercase tracking-widest text-[10px]"
           >
             <Plus className="mr-2 size-4" />
             Create New Task
@@ -633,7 +631,7 @@ function DeleteTaskDialog({
     <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
       <AlertDialogContent className="rounded-4xl border-zinc-200">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-xl font-black tracking-tight text-zinc-900 uppercase">
+          <AlertDialogTitle className="text-xl font-semibold tracking-tight text-zinc-900 uppercase">
             Delete Task
           </AlertDialogTitle>
           <AlertDialogDescription className="text-sm font-medium text-zinc-500">
@@ -642,12 +640,12 @@ function DeleteTaskDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="gap-2">
-          <AlertDialogCancel className="rounded-xl border-zinc-200 font-bold uppercase tracking-widest text-[10px] h-11">
+          <AlertDialogCancel className="rounded-xl border-zinc-200 font-semibold uppercase tracking-widest text-[10px] h-11">
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleDeleteConfirm}
-            className="rounded-xl bg-rose-600 text-white hover:bg-rose-700 font-bold uppercase tracking-widest text-[10px] h-11 border-none"
+            className="rounded-xl bg-rose-600 text-white hover:bg-rose-700 font-semibold uppercase tracking-widest text-[10px] h-11 border-none"
           >
             Delete Task
           </AlertDialogAction>

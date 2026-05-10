@@ -12,6 +12,12 @@ import Image, { type ImageLoader } from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import { twMerge } from "tailwind-merge";
 
+function makeDisplayDate(value?: string | number | Date): Date {
+  return value === undefined
+    ? new globalThis.Date()
+    : new globalThis.Date(value);
+}
+
 const passthroughImageLoader: ImageLoader = ({ src }) => src;
 
 export function cn(...inputs: ClassValue[]) {
@@ -167,7 +173,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         </span>
         <ChevronDown
           className={cn(
-            "h-4 w-4 text-muted-foreground transition-transform duration-200 shrink-0",
+            "size-4 text-muted-foreground transition-transform duration-200 shrink-0",
             open && "rotate-180",
           )}
         />
@@ -195,8 +201,8 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
             >
               <span className="truncate">{option.label}</span>
               {value === option.value && (
-                <span className="absolute right-2.5 flex h-4 w-4 items-center justify-center">
-                  <Check className="h-4 w-4" />
+                <span className="absolute right-2.5 flex size-4 items-center justify-center">
+                  <Check className="size-4" />
                 </span>
               )}
             </button>
@@ -438,7 +444,7 @@ export const Dialog: React.FC<DialogProps> = ({
             onClick={() => onOpenChange(false)}
             className="absolute right-4 top-4 z-50 rounded-xl p-2 opacity-70 ring-offset-background transition-all hover:opacity-100 hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
           >
-            <X className="h-4 w-4" />
+            <X className="size-4" />
             <span className="sr-only">Close</span>
           </button>
         )}
@@ -551,7 +557,7 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
           ref={ref}
           data-slot="checkbox"
           className={cn(
-            "peer h-4 w-4 shrink-0 rounded-md border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer transition-all checked:bg-primary checked:text-primary-foreground",
+            "peer size-4 shrink-0 rounded-md border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer transition-all checked:bg-primary checked:text-primary-foreground",
             className,
           )}
           {...props}
@@ -643,7 +649,7 @@ export const SimpleTabsTrigger: React.FC<SimpleTabsTriggerProps> = ({
   onClick,
   children,
 }) => {
-  const context = React.useContext(TabsContext);
+  const context = React.use(TabsContext);
 
   if (!context) {
     console.warn("SimpleTabsTrigger must be used within a Tabs component");
@@ -678,7 +684,7 @@ export const TabsContent: React.FC<{
   className?: string;
   style?: React.CSSProperties;
 }> = ({ value, children, className, style }) => {
-  const context = React.useContext(TabsContext);
+  const context = React.use(TabsContext);
   if (!context || context.value !== value) return null;
   return (
     <div
@@ -704,7 +710,7 @@ export const ScrollArea: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
     className={cn("relative overflow-hidden", className)}
     {...props}
   >
-    <div className="h-full w-full overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+    <div className="size-full overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
       {children}
     </div>
   </div>
@@ -723,7 +729,7 @@ export const Calendar: React.FC<CalendarProps> = ({
   selected,
   onSelect,
   className,
-  defaultMonth = new Date(),
+  defaultMonth = makeDisplayDate(),
   disabled,
 }) => {
   const [monthOffset, setMonthOffset] = useState(0);
@@ -737,7 +743,11 @@ export const Calendar: React.FC<CalendarProps> = ({
   const daysInMonth = getDaysInMonth(viewDate);
 
   const handleDateClick = (day: number) => {
-    const newDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), day);
+    const newDate = new globalThis.Date(
+      viewDate.getFullYear(),
+      viewDate.getMonth(),
+      day,
+    );
     if (isDisabled(newDate)) return;
     onSelect?.(newDate);
   };
@@ -772,7 +782,7 @@ export const Calendar: React.FC<CalendarProps> = ({
             className="size-8 rounded-xl"
             onClick={handlePrevMonth}
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="size-4" />
           </Button>
           <Button
             variant="ghost"
@@ -780,7 +790,7 @@ export const Calendar: React.FC<CalendarProps> = ({
             className="size-8 rounded-xl"
             onClick={handleNextMonth}
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="size-4" />
           </Button>
         </div>
       </div>
@@ -803,13 +813,13 @@ export const Calendar: React.FC<CalendarProps> = ({
         )}
         {Array.from({ length: daysInMonth }).map((_, i) => {
           const day = i + 1;
-          const current = new Date(
+          const current = new globalThis.Date(
             viewDate.getFullYear(),
             viewDate.getMonth(),
             day,
           );
           const isSelected = selected && isSameDay(selected, current);
-          const isToday = isSameDay(new Date(), current);
+          const isToday = isSameDay(makeDisplayDate(), current);
           const disabledState = isDisabled(current);
 
           return (

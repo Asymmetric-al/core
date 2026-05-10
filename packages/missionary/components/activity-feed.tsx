@@ -29,8 +29,8 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
     <Card className="border-zinc-100 bg-white shadow-sm rounded-xl overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between p-5 pb-3 border-b border-zinc-50">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600 border border-blue-100/50">
-            <Sparkles className="h-4.5 w-4.5" />
+          <div className="flex size-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600 border border-blue-100/50">
+            <Sparkles className="size-4.5" />
           </div>
           <div>
             <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 leading-none mb-1">
@@ -48,7 +48,7 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
           asChild
         >
           <Link href="/donors">
-            Full Log <ArrowUpRight className="ml-1 h-3 w-3" />
+            Full Log <ArrowUpRight className="ml-1 size-3" />
           </Link>
         </Button>
       </CardHeader>
@@ -59,7 +59,7 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
               key={activity.id}
               className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-zinc-50/30"
             >
-              <Avatar className="h-9 w-9 border border-zinc-100 shadow-sm rounded-lg">
+              <Avatar className="size-9 border border-zinc-100 shadow-sm rounded-lg">
                 <AvatarFallback
                   className={`text-[10px] font-bold rounded-lg ${activity.type === "gift" ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-400"}`}
                 >

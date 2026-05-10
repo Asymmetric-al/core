@@ -37,6 +37,12 @@ import { TASK_PRIORITIES, TASK_STATUSES } from "./types";
 import type { StaffMember, Task, TaskPriority, TaskStatus } from "./types";
 import type { ComponentType } from "react";
 
+function makeDisplayDate(value?: string | number | Date): Date {
+  return value === undefined
+    ? new globalThis.Date()
+    : new globalThis.Date(value);
+}
+
 const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
   weekday: "long",
   year: "numeric",
@@ -61,7 +67,7 @@ const COMPACT_MUTED_META_TEXT_CLASS =
 
 function formatDate(dateStr?: string): string {
   if (!dateStr) return "No date";
-  return DATE_FORMATTER.format(new Date(dateStr));
+  return DATE_FORMATTER.format(makeDisplayDate(dateStr));
 }
 
 function formatTime(timeStr?: string): string | null {
@@ -415,7 +421,9 @@ function TaskRemindersSection({ reminders }: TaskRemindersSectionProps) {
             <div className="flex items-center gap-2">
               <Bell className="size-4 text-muted-foreground" />
               <span className="text-sm">
-                {TIME_AND_DATE_FORMATTER.format(new Date(reminder.remind_at))}
+                {TIME_AND_DATE_FORMATTER.format(
+                  makeDisplayDate(reminder.remind_at),
+                )}
               </span>
               <Badge
                 variant="secondary"
@@ -507,7 +515,7 @@ function TaskCommentsSection({
                   </span>
                   <span className={COMPACT_MUTED_META_TEXT_CLASS}>
                     {TIME_AND_DATE_FORMATTER.format(
-                      new Date(comment.created_at),
+                      makeDisplayDate(comment.created_at),
                     )}
                   </span>
                 </div>

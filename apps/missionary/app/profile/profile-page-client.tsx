@@ -29,18 +29,18 @@ export function ProfilePageClient() {
   if (vm.fetchError) {
     return (
       <motion.div
-        className="flex flex-col items-center justify-center py-20 space-y-4"
+        className="flex flex-col items-center justify-center py-20 gap-y-4"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={gentleTransition}
       >
         <motion.div
-          className="h-12 w-12 rounded-full bg-red-50 flex items-center justify-center"
+          className="size-12 rounded-full bg-red-50 flex items-center justify-center"
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1 }}
           transition={{ ...springTransition, delay: 0.1 }}
         >
-          <AlertCircle className="h-6 w-6 text-red-500" />
+          <AlertCircle className="size-6 text-red-500" />
         </motion.div>
         <p className="text-zinc-600">{vm.fetchError}</p>
         <Button onClick={() => window.location.reload()} variant="outline">

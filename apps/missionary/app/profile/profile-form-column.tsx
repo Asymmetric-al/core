@@ -66,7 +66,7 @@ export function ProfileFormColumn({
       <MotionCard>
         <CardHeader className="border-b border-zinc-100 px-4 sm:px-6 py-4">
           <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
-            <User className="h-4 w-4" />
+            <User className="size-4" />
             Personal Details
           </CardTitle>
         </CardHeader>
@@ -124,7 +124,7 @@ export function ProfileFormColumn({
               error={validationErrors.ministryFocus}
               helperText={
                 <p className="text-[11px] text-zinc-400 flex items-start gap-1.5">
-                  <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                  <Info className="size-3 mt-0.5 flex-shrink-0" />
                   <span>
                     A brief description of your work that appears next to your
                     name on the giving page and directory.
@@ -157,7 +157,7 @@ export function ProfileFormColumn({
               helperText={
                 <div className="space-y-1">
                   <p className="text-[11px] text-zinc-400 flex items-start gap-1.5">
-                    <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                    <Info className="size-3 mt-0.5 flex-shrink-0" />
                     <span>
                       Share your story, calling, and ministry work. This appears
                       on your public profile page. Include what you do, where
@@ -194,7 +194,7 @@ export function ProfileFormColumn({
       <MotionCard>
         <CardHeader className="border-b border-zinc-100 px-4 sm:px-6 py-4">
           <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
-            <ImageIcon className="h-4 w-4" />
+            <ImageIcon className="size-4" />
             Profile Photos
           </CardTitle>
         </CardHeader>
@@ -239,7 +239,7 @@ export function ProfileFormColumn({
                   size="sm"
                   className="h-8 text-xs"
                 >
-                  <Upload className="mr-1.5 h-3.5 w-3.5" />
+                  <Upload className="mr-1.5 size-3.5" />
                   Upload Photo
                 </Button>
               </ImageUpload>
@@ -272,7 +272,7 @@ export function ProfileFormColumn({
       <MotionCard>
         <CardHeader className="border-b border-zinc-100 px-4 sm:px-6 py-4">
           <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
-            <Globe className="h-4 w-4" />
+            <Globe className="size-4" />
             Social Links
           </CardTitle>
         </CardHeader>

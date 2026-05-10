@@ -130,7 +130,7 @@ export function SupportTipTapEditor({
         </div>
       ) : null}
       {beforeBody}
-      <EditorContent className="px-1 py-1" />
+      <EditorContent className="p-1" />
       {footer}
     </EditorRoot>
   );

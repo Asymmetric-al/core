@@ -252,7 +252,7 @@ function LocationSearchCommand({
         </DialogHeader>
         <Command className="rounded-lg border-0 shadow-none">
           <CommandInput
-            placeholder="Search locations, workers, projects..."
+            placeholder="Search locations, workers, projects…"
             className="h-14 text-base"
           />
           <CommandList className="max-h-[400px]">
@@ -402,7 +402,7 @@ function HoverTooltip({
             </p>
           </div>
           <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1">
-            <div className="w-2 h-2 bg-popover border-r border-b border-border rotate-45" />
+            <div className="size-2 bg-popover border-r border-b border-border rotate-45" />
           </div>
         </motion.div>
       )}
@@ -556,7 +556,7 @@ function DetailDialog({
             </Badge>
           </div>
 
-          <h2 className="text-xl font-bold text-foreground mb-2">
+          <h2 className="text-xl font-semibold text-foreground mb-2">
             {location.title}
           </h2>
 
@@ -671,7 +671,7 @@ function MobileDetailSheet({
             {colors.label}
           </Badge>
 
-          <h3 className="text-xl font-bold text-foreground mb-2">
+          <h3 className="text-xl font-semibold text-foreground mb-2">
             {location.title}
           </h3>
 
@@ -763,7 +763,7 @@ function MapHeaderControls({
           >
             <SearchIcon className="size-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground font-medium">
-              Search locations...
+              Search locations…
             </span>
             <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground ml-auto">
               <span className="text-xs">⌘</span>K
@@ -999,7 +999,7 @@ export function WhereWeWorkMap() {
           center={selectionState.mapCenter}
           zoom={selectionState.mapZoom}
           initialViewState={mapInitialViewState}
-          className="absolute inset-0 w-full h-full"
+          className="absolute inset-0 size-full"
         >
           <MapControls
             position="bottom-right"

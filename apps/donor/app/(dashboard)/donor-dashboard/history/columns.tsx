@@ -33,14 +33,20 @@ import { STATUS_COLORS } from "./types";
 
 import type { Transaction } from "./types";
 
+function makeDisplayDate(value?: string | number | Date): Date {
+  return value === undefined
+    ? new globalThis.Date()
+    : new globalThis.Date(value);
+}
+
 const getStatusIcon = (status: Transaction["status"]) => {
   switch (status) {
     case "Succeeded":
-      return <CheckCircle2 className="w-3.5 h-3.5" />;
+      return <CheckCircle2 className="size-3.5" />;
     case "Processing":
-      return <Clock className="w-3.5 h-3.5" />;
+      return <Clock className="size-3.5" />;
     case "Failed":
-      return <XCircle className="w-3.5 h-3.5" />;
+      return <XCircle className="size-3.5" />;
     default:
       return null;
   }
@@ -54,7 +60,7 @@ export const columns: ColumnDef<Transaction>[] = [
     ),
     cell: ({ row }) => (
       <span className="text-sm font-medium text-foreground whitespace-nowrap">
-        {format(new Date(row.getValue("date")), "MMM d, yyyy")}
+        {format(makeDisplayDate(row.getValue("date")), "MMM d, yyyy")}
       </span>
     ),
     meta: {
@@ -70,7 +76,7 @@ export const columns: ColumnDef<Transaction>[] = [
       const tx = row.original;
       return (
         <div className="flex items-center gap-3">
-          <Avatar className="h-9 w-9 border border-border">
+          <Avatar className="size-9 border border-border">
             <AvatarImage src={tx.recipientAvatar} alt={tx.recipient} />
             <AvatarFallback className="bg-primary text-primary-foreground font-bold text-xs">
               {tx.recipient[0]}
@@ -194,7 +200,7 @@ export const columns: ColumnDef<Transaction>[] = [
               size="sm"
               className="h-8 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg"
             >
-              <DownloadCloud className="w-3.5 h-3.5 mr-1.5" /> Receipt
+              <DownloadCloud className="size-3.5 mr-1.5" /> Receipt
             </Button>
           )}
           <DropdownMenu>
@@ -202,9 +208,9 @@ export const columns: ColumnDef<Transaction>[] = [
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-xl"
+                className="size-8 text-muted-foreground hover:text-foreground rounded-xl"
               >
-                <MoreHorizontal className="w-4 h-4" />
+                <MoreHorizontal className="size-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="rounded-xl">
@@ -217,7 +223,7 @@ export const columns: ColumnDef<Transaction>[] = [
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="rounded-lg">
-                <ExternalLink className="w-3 h-3 mr-2" /> Open Statement
+                <ExternalLink className="size-3 mr-2" /> Open Statement
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

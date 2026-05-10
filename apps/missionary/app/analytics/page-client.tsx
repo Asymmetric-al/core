@@ -112,11 +112,11 @@ export default function AnalyticsPage() {
           size="sm"
           className="h-9 px-4 text-xs font-medium"
         >
-          <Download className="mr-2 h-4 w-4" />
+          <Download className="mr-2 size-4" />
           Download
         </Button>
         <Button size="sm" className="h-9 px-4 text-xs font-medium">
-          <Sparkles className="mr-2 h-4 w-4" />
+          <Sparkles className="mr-2 size-4" />
           Insights
         </Button>
       </PageHeader>

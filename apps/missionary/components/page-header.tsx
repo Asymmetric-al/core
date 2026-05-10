@@ -35,7 +35,7 @@ export function PageHeader({
       )}
     >
       <div className="space-y-0.5 sm:space-y-1 min-w-0">
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-zinc-900 truncate">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold tracking-tight text-zinc-900 truncate">
           {titleNode}
         </h1>
         {description && (

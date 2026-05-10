@@ -36,7 +36,7 @@ export function TilePage({ tile, children }: TilePageProps) {
               >
                 <Button size="sm">
                   {action.icon && (
-                    <DynamicIcon name={action.icon} className="mr-2 h-4 w-4" />
+                    <DynamicIcon name={action.icon} className="mr-2 size-4" />
                   )}
                   {action.label}
                 </Button>
@@ -71,10 +71,7 @@ export function TilePage({ tile, children }: TilePageProps) {
                     className="w-full justify-start"
                   >
                     {action.icon && (
-                      <DynamicIcon
-                        name={action.icon}
-                        className="mr-2 h-4 w-4"
-                      />
+                      <DynamicIcon name={action.icon} className="mr-2 size-4" />
                     )}
                     {action.label}
                   </Button>

@@ -421,7 +421,7 @@ export function DataTableBodyWithTableState<TData, TValue>({
     }
 
     return (
-      <TableCell className="w-0 py-4 px-4 text-right">
+      <TableCell className="w-0 p-4 text-right">
         <DataTableRowActions row={row} actions={rowActions} />
       </TableCell>
     );
@@ -448,10 +448,7 @@ export function DataTableBodyWithTableState<TData, TValue>({
       {row.getVisibleCells().map((cell) => {
         const meta = cell.column.columnDef.meta;
         return (
-          <TableCell
-            key={cell.id}
-            className={cn("py-4 px-4", meta?.cellClassName)}
-          >
+          <TableCell key={cell.id} className={cn("p-4", meta?.cellClassName)}>
             {flexRender(cell.column.columnDef.cell, cell.getContext())}
           </TableCell>
         );

@@ -90,7 +90,7 @@ export function DataTableWrapper<TData, TValue>({
         <div className="rounded-2xl bg-destructive/10 p-4 mb-4">
           <AlertCircle className="size-10 text-destructive" />
         </div>
-        <h3 className="text-foreground text-lg font-black uppercase tracking-widest">
+        <h3 className="text-foreground text-lg font-semibold uppercase tracking-widest">
           Something went wrong
         </h3>
         <p className="text-muted-foreground mt-2 max-w-sm text-sm font-medium">
@@ -102,7 +102,7 @@ export function DataTableWrapper<TData, TValue>({
           <Button
             onClick={onRetry}
             variant="outline"
-            className="mt-6 h-11 px-6 rounded-xl font-black uppercase tracking-[0.2em] text-[10px]"
+            className="mt-6 h-11 px-6 rounded-xl font-semibold uppercase tracking-[0.2em] text-[10px]"
           >
             <RefreshCcw className="mr-2 size-4" />
             Retry
@@ -131,7 +131,7 @@ export function DataTableWrapper<TData, TValue>({
     <Empty className="py-20">
       <EmptyHeader>
         <EmptyMedia variant="icon">{emptyState.icon || <Inbox />}</EmptyMedia>
-        <EmptyTitle className="text-foreground font-black uppercase tracking-widest">
+        <EmptyTitle className="text-foreground font-semibold uppercase tracking-widest">
           {emptyState.title || "No data found"}
         </EmptyTitle>
         <EmptyDescription className="font-medium">

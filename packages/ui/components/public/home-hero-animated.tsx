@@ -37,7 +37,7 @@ export function HomeHeroAnimated({
     <LazyMotion features={domAnimation}>
       <section
         aria-labelledby="hero-heading"
-        className="relative h-[100svh] min-h-[700px] flex items-center justify-center overflow-hidden bg-slate-950 text-white"
+        className="relative h-[100svh] min-h-[700px] flex items-center justify-center overflow-hidden bg-zinc-950 text-white"
       >
         <div className="absolute inset-0 z-0 select-none">
           <Image
@@ -51,8 +51,8 @@ export function HomeHeroAnimated({
             placeholder="blur"
             blurDataURL={blurDataURL}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-slate-950/30" />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 to-transparent" />
+          <div className="absolute inset-0 to-zinc-950/30" />
+          <div className="absolute inset-0 to-transparent" />
         </div>
 
         <div className="container mx-auto px-6 relative z-10 pt-20">
@@ -60,19 +60,16 @@ export function HomeHeroAnimated({
             <m.div {...propsHeroEntrance(reduceMotion, 0)}>
               <h1
                 id="hero-heading"
-                className="text-6xl sm:text-7xl md:text-9xl lg:text-[11rem] font-bold tracking-tighter leading-[0.85] font-syne text-balance"
+                className="text-6xl sm:text-7xl md:text-9xl lg:text-[11rem] font-semibold tracking-tighter leading-[0.85] font-syne text-balance"
               >
                 Hope is a <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-white/20">
-                  verb.
-                </span>
+                <span className="to-white/20">verb.</span>
               </h1>
             </m.div>
 
             <m.div {...propsHeroEntrance(reduceMotion, STAGGER_TIGHT)}>
-              <p className="text-xl sm:text-2xl md:text-3xl text-slate-300 max-w-2xl leading-relaxed text-balance font-light tracking-tight">
-                Direct-to-field aid deployment.{" "}
-                <br className="hidden md:block" />
+              <p className="text-xl sm:text-2xl md:text-3xl text-zinc-300 max-w-2xl leading-relaxed text-balance font-light tracking-tight">
+                Direct-aid deployment. <br className="hidden md:block" />
                 <span className="text-white/60">
                   No red tape. No delays. Just uncompromising restoration.
                 </span>
@@ -86,13 +83,13 @@ export function HomeHeroAnimated({
               <Button
                 size="lg"
                 variant="ghost"
-                className="h-12 rounded-full border border-white/15 bg-white px-8 text-sm font-bold font-syne text-slate-950 shadow-lg hover:bg-zinc-100 hover:text-slate-950 hover-scale-subtle group"
+                className="h-12 rounded-full border border-white/15 bg-white px-8 text-sm font-semibold font-syne text-zinc-950 shadow-lg hover:bg-zinc-100 hover:text-zinc-950 hover-scale-subtle group"
                 asChild
               >
                 <Link href="/workers">
                   Support the Frontlines
                   <Zap
-                    className="ml-2 h-4 w-4 fill-current transition-transform duration-200 ease-out group-hover:rotate-12"
+                    className="ml-2 size-4 fill-current transition-transform duration-200 ease-out group-hover:rotate-12"
                     aria-hidden="true"
                   />
                 </Link>
@@ -100,13 +97,13 @@ export function HomeHeroAnimated({
               <Button
                 size="lg"
                 variant="outline"
-                className="bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 h-12 px-8 text-sm font-bold font-syne rounded-full backdrop-blur-md transition-colors duration-150 ease-out group"
+                className="bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 h-12 px-8 text-sm font-semibold font-syne rounded-full backdrop-blur-md transition-colors duration-150 ease-out group"
                 asChild
               >
                 <Link href="/about">
                   Our Methodology
                   <ArrowRight
-                    className="ml-2 h-4 w-4 text-white/50 transition-transform duration-200 ease-out group-hover:translate-x-2 group-hover:text-white"
+                    className="ml-2 size-4 text-white/50 transition-transform duration-200 ease-out group-hover:translate-x-2 group-hover:text-white"
                     aria-hidden="true"
                   />
                 </Link>
@@ -131,25 +128,25 @@ export function HomeHeroAnimated({
                 )}
                 className="bg-white/5 backdrop-blur-2xl border border-white/10 p-4 rounded-2xl flex items-center gap-4 w-56"
               >
-                <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center text-white">
-                  <Icon className="h-3 w-3" />
+                <div className="size-10 rounded-xl bg-white/10 flex items-center justify-center text-white">
+                  <Icon className="size-3" />
                 </div>
                 <div>
-                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">
+                  <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/40">
                     {stat.label}
                   </p>
-                  <p className="text-xl font-bold font-syne">{stat.val}</p>
+                  <p className="text-xl font-semibold font-syne">{stat.val}</p>
                 </div>
               </m.div>
             );
           })}
         </div>
 
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white/30 flex flex-col items-center gap-3 text-[10px] font-bold tracking-[0.3em] uppercase">
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white/30 flex flex-col items-center gap-3 text-[10px] font-semibold tracking-[0.3em] uppercase">
           <span className="sr-only">Scroll to explore more content</span>
           <span aria-hidden="true">Explore</span>
           <div
-            className="w-px h-16 bg-gradient-to-b from-white/0 via-white/40 to-white/0 animate-pulse [@media(prefers-reduced-motion:reduce)]:animate-none"
+            className="w-px h-16 animate-pulse [@media(prefers-reduced-motion:reduce)]:animate-none"
             aria-hidden="true"
           />
         </div>

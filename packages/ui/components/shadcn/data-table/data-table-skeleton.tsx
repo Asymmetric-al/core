@@ -96,7 +96,7 @@ export function DataTableLoadingOverlay({
       <div className="flex flex-col items-center gap-2">
         <Loader2 className="size-8 animate-spin text-primary" />
         <span className="text-sm font-medium text-muted-foreground">
-          Loading data...
+          Loading data…
         </span>
       </div>
     </div>

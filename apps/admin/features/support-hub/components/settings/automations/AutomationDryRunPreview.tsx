@@ -133,7 +133,7 @@ export function AutomationDryRunPreview({
               {result.unsupportedActions
                 .map((action: SupportAutomationAction) => action.kind)
                 .join(", ")}{" "}
-              will run server-side in Phase 7 — dry-run only logs the intent.
+              will run server-side in Phase 7, dry-run only logs the intent.
             </p>
           ) : null}
         </div>

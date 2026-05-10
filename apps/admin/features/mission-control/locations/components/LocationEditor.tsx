@@ -336,7 +336,7 @@ export function LocationEditor({
                   type="submit"
                 >
                   {(isSaving || isSubmitting) && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 size-4 animate-spin" />
                   )}
                   {location?.id ? "Update Location" : "Save Location"}
                 </Button>
@@ -354,7 +354,7 @@ export function LocationEditor({
                 type="button"
                 variant="outline"
               >
-                <Trash2 className="mr-2 h-4 w-4" /> Delete Marker
+                <Trash2 className="mr-2 size-4" /> Delete Marker
               </Button>
             ) : null}
           </SheetFooter>

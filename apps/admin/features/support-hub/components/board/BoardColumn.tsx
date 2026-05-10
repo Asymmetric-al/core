@@ -60,7 +60,7 @@ export function BoardColumn({
       <header className="mb-2 flex items-center justify-between gap-2">
         <span className="flex items-center gap-2">
           <span aria-hidden className={cn("size-2 rounded-full", tone.dot)} />
-          <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-700">
+          <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-700">
             {label}
           </h3>
           <Badge

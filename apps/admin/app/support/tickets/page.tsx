@@ -114,8 +114,8 @@ export default async function SupportTicketsPage({
           {queueSummaries.map((queue) => (
             <Card className="rounded-2xl" key={queue.id}>
               <CardContent className="p-4">
-                <p className="text-sm font-bold">{queue.label}</p>
-                <p className="mt-1 text-2xl font-black tabular-nums">
+                <p className="text-sm font-semibold">{queue.label}</p>
+                <p className="mt-1 text-2xl font-semibold tabular-nums">
                   {queue.total}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
@@ -139,15 +139,15 @@ export default async function SupportTicketsPage({
                 <article className="p-4" key={ticket.id}>
                   <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                     <div>
-                      <p className="font-mono text-xs font-bold text-muted-foreground">
+                      <p className="font-mono text-xs font-semibold text-muted-foreground">
                         {ticket.id}
                       </p>
-                      <h2 className="mt-1 font-bold">{ticket.subject}</h2>
+                      <h2 className="mt-1 font-semibold">{ticket.subject}</h2>
                       <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">
                         {ticket.summary}
                       </p>
                     </div>
-                    <div className="flex flex-wrap gap-2 text-xs font-bold">
+                    <div className="flex flex-wrap gap-2 text-xs font-semibold">
                       <span className="rounded-full bg-muted px-2 py-1">
                         {ticket.queueId}
                       </span>

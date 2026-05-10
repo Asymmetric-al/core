@@ -69,7 +69,7 @@ export function SupportFailureRecoveryProvider({ children }: ProviderProps) {
 }
 
 export function useSupportFailureRecovery(): SupportFailureRecoveryContextValue {
-  const value = React.useContext(SupportFailureRecoveryContext);
+  const value = React.use(SupportFailureRecoveryContext);
   if (!value) {
     throw new Error(
       "useSupportFailureRecovery must be used inside <SupportFailureRecoveryProvider />.",

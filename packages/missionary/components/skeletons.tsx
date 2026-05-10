@@ -17,7 +17,7 @@ export function MetricsSkeleton() {
           className="border-zinc-200 bg-white shadow-sm rounded-3xl"
         >
           <CardContent className="flex items-center gap-4 p-6">
-            <Skeleton className="h-12 w-12 rounded-2xl bg-zinc-100" />
+            <Skeleton className="size-12 rounded-2xl bg-zinc-100" />
             <div className="min-w-0 flex-1 space-y-2">
               <Skeleton className="h-3 w-20 bg-zinc-50" />
               <Skeleton className="h-6 w-24 bg-zinc-100" />
@@ -58,7 +58,7 @@ export function ActivityFeedSkeleton() {
     <Card className="border-zinc-200 bg-white shadow-sm rounded-3xl overflow-hidden">
       <CardHeader className="p-6">
         <div className="flex items-center gap-3">
-          <Skeleton className="h-12 w-12 rounded-2xl bg-zinc-100" />
+          <Skeleton className="size-12 rounded-2xl bg-zinc-100" />
           <div className="space-y-2">
             <Skeleton className="h-3 w-24 bg-zinc-50" />
             <Skeleton className="h-6 w-48 bg-zinc-100" />
@@ -72,7 +72,7 @@ export function ActivityFeedSkeleton() {
               key={key}
               className="flex items-center gap-4 px-6 md:px-8 py-5"
             >
-              <Skeleton className="h-11 w-11 rounded-full bg-zinc-100" />
+              <Skeleton className="size-11 rounded-full bg-zinc-100" />
               <div className="min-w-0 flex-1 space-y-2">
                 <Skeleton className="h-4 w-32 bg-zinc-100" />
                 <Skeleton className="h-3 w-48 bg-zinc-50" />

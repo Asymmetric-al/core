@@ -22,7 +22,7 @@ export function Header() {
       <Card className="border-border bg-card shadow-sm">
         <CardContent className="flex items-center justify-between gap-3 px-3 py-2">
           <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
-            <span className="inline-flex h-2 w-2 rounded-full bg-primary" />
+            <span className="inline-flex size-2 rounded-full bg-primary" />
             Tenant-safe publishing is active
           </div>
           <Badge

@@ -30,6 +30,12 @@ import { TASK_TYPE_CONFIG } from "./donors-model";
 
 import type { Task } from "@asym/lib/hooks/use-tasks";
 
+function makeDisplayDate(value?: string | number | Date): Date {
+  return value === undefined
+    ? new globalThis.Date()
+    : new globalThis.Date(value);
+}
+
 const fadeInUp = {
   initial: { opacity: 0, y: 10 },
   animate: { opacity: 1, y: 0 },
@@ -84,8 +90,8 @@ export function DonorTasks({
             key={index}
             className="flex items-start gap-3 rounded-xl border bg-white p-4"
           >
-            <div className="mt-0.5 h-5 w-5 rounded-md bg-zinc-200" />
-            <div className="h-9 w-9 rounded-lg bg-zinc-200" />
+            <div className="mt-0.5 size-5 rounded-md bg-zinc-200" />
+            <div className="size-9 rounded-lg bg-zinc-200" />
             <div className="flex-1 space-y-2">
               <div className="h-4 w-3/4 rounded bg-zinc-200" />
               <div className="h-3 w-1/2 rounded bg-zinc-200" />
@@ -100,7 +106,7 @@ export function DonorTasks({
     <div className="space-y-6">
       <motion.div {...fadeInUp} className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-bold text-zinc-900">Tasks</h3>
+          <h3 className="text-sm font-semibold text-zinc-900">Tasks</h3>
           <p className="mt-0.5 text-xs text-zinc-500">
             Follow-ups and actions for {donorName}
           </p>
@@ -119,7 +125,7 @@ export function DonorTasks({
           trigger={
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button size="sm" className="h-8 rounded-xl px-3 text-xs">
-                <Plus className="mr-1.5 h-3.5 w-3.5" /> Add Task
+                <Plus className="mr-1.5 size-3.5" /> Add Task
               </Button>
             </motion.div>
           }
@@ -131,10 +137,10 @@ export function DonorTasks({
           {...fadeInUp}
           className="flex flex-col items-center justify-center rounded-2xl border border-zinc-100 bg-zinc-50 py-12 text-center"
         >
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-white shadow-sm">
-            <ListTodo className="h-6 w-6 text-zinc-300" />
+          <div className="mb-4 flex size-14 items-center justify-center rounded-xl bg-white shadow-sm">
+            <ListTodo className="size-6 text-zinc-300" />
           </div>
-          <p className="text-sm font-bold text-zinc-900">No tasks yet</p>
+          <p className="text-sm font-semibold text-zinc-900">No tasks yet</p>
           <p className="mt-1 max-w-[240px] text-xs text-zinc-400">
             Create a task to track follow-ups with this partner.
           </p>
@@ -143,7 +149,7 @@ export function DonorTasks({
         <div className="space-y-4">
           {activeTasks.length > 0 ? (
             <div className="space-y-2">
-              <p className="px-1 text-[10px] font-black uppercase tracking-widest text-zinc-400">
+              <p className="px-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
                 Active ({activeTasks.length})
               </p>
               {activeTasks.map((task, index) => {
@@ -155,11 +161,12 @@ export function DonorTasks({
 
                 const Icon = typeConfig.icon;
                 const isOverdue =
-                  task.due_date && new Date(task.due_date) < new Date();
+                  task.due_date &&
+                  makeDisplayDate(task.due_date) < makeDisplayDate();
                 const isDueToday =
                   task.due_date &&
-                  new Date(task.due_date).toDateString() ===
-                    new Date().toDateString();
+                  makeDisplayDate(task.due_date).toDateString() ===
+                    makeDisplayDate().toDateString();
 
                 return (
                   <motion.div
@@ -173,25 +180,25 @@ export function DonorTasks({
                       <Checkbox
                         checked={false}
                         onCheckedChange={() => handleComplete(task)}
-                        className="h-5 w-5 rounded-md"
+                        className="size-5 rounded-md"
                       />
                     </motion.div>
                     <div
                       className={cn(
-                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
+                        "flex size-9 shrink-0 items-center justify-center rounded-lg",
                         typeConfig.bgColor,
                         typeConfig.color,
                       )}
                     >
-                      <Icon className="h-4 w-4" />
+                      <Icon className="size-4" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-sm font-bold text-zinc-900">
+                        <p className="text-sm font-semibold text-zinc-900">
                           {task.title}
                         </p>
                         {task.priority === "high" ? (
-                          <Badge className="h-4 border-0 bg-rose-50 px-1.5 text-[9px] font-black uppercase tracking-widest text-rose-600">
+                          <Badge className="h-4 border-0 bg-rose-50 px-1.5 text-[9px] font-semibold uppercase tracking-widest text-rose-600">
                             High
                           </Badge>
                         ) : null}
@@ -204,7 +211,7 @@ export function DonorTasks({
                       {task.due_date ? (
                         <div
                           className={cn(
-                            "mt-2 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                            "mt-2 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider",
                             isOverdue
                               ? "border-rose-100 bg-rose-50 text-rose-600"
                               : isDueToday
@@ -212,12 +219,12 @@ export function DonorTasks({
                                 : "border-zinc-200 bg-zinc-100 text-zinc-600",
                           )}
                         >
-                          <Clock className="h-3 w-3" />
+                          <Clock className="size-3" />
                           {isOverdue
                             ? "Overdue"
                             : isDueToday
                               ? "Due Today"
-                              : format(new Date(task.due_date), "MMM d")}
+                              : format(makeDisplayDate(task.due_date), "MMM d")}
                         </div>
                       ) : null}
                     </div>
@@ -226,9 +233,9 @@ export function DonorTasks({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 rounded-lg opacity-0 transition-opacity group-hover:opacity-100"
+                          className="size-8 rounded-lg opacity-0 transition-opacity group-hover:opacity-100"
                         >
-                          <MoreHorizontal className="h-4 w-4" />
+                          <MoreHorizontal className="size-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="rounded-xl">
@@ -239,20 +246,20 @@ export function DonorTasks({
                           }}
                           className="text-xs font-medium"
                         >
-                          <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
+                          <Pencil className="mr-2 size-3.5" /> Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleComplete(task)}
                           className="text-xs font-medium"
                         >
-                          <CheckCircle2 className="mr-2 h-3.5 w-3.5" /> Complete
+                          <CheckCircle2 className="mr-2 size-3.5" /> Complete
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={() => deleteTask(task.id)}
                           className="text-xs font-medium text-destructive focus:text-destructive"
                         >
-                          <X className="mr-2 h-3.5 w-3.5" /> Delete
+                          <X className="mr-2 size-3.5" /> Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -264,7 +271,7 @@ export function DonorTasks({
 
           {completedTasks.length > 0 ? (
             <div className="space-y-2">
-              <p className="px-1 text-[10px] font-black uppercase tracking-widest text-zinc-400">
+              <p className="px-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
                 Completed ({completedTasks.length})
               </p>
               {completedTasks.slice(0, 5).map((task, index) => {
@@ -288,17 +295,17 @@ export function DonorTasks({
                       <Checkbox
                         checked={true}
                         onCheckedChange={() => handleComplete(task)}
-                        className="h-5 w-5 rounded-md data-[state=checked]:border-emerald-500 data-[state=checked]:bg-emerald-500"
+                        className="size-5 rounded-md data-[state=checked]:border-emerald-500 data-[state=checked]:bg-emerald-500"
                       />
                     </motion.div>
                     <div
                       className={cn(
-                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg opacity-50",
+                        "flex size-9 shrink-0 items-center justify-center rounded-lg opacity-50",
                         typeConfig.bgColor,
                         typeConfig.color,
                       )}
                     >
-                      <Icon className="h-4 w-4" />
+                      <Icon className="size-4" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium text-zinc-400 line-through">
@@ -307,19 +314,22 @@ export function DonorTasks({
                       {task.completed_at ? (
                         <p className="mt-0.5 text-xs text-zinc-400">
                           Completed{" "}
-                          {formatDistanceToNow(new Date(task.completed_at), {
-                            addSuffix: true,
-                          })}
+                          {formatDistanceToNow(
+                            makeDisplayDate(task.completed_at),
+                            {
+                              addSuffix: true,
+                            },
+                          )}
                         </p>
                       ) : null}
                     </div>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 rounded-lg opacity-0 transition-opacity group-hover:opacity-100"
+                      className="size-8 rounded-lg opacity-0 transition-opacity group-hover:opacity-100"
                       onClick={() => deleteTask(task.id)}
                     >
-                      <X className="h-4 w-4 text-zinc-400" />
+                      <X className="size-4 text-zinc-400" />
                     </Button>
                   </motion.div>
                 );

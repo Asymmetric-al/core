@@ -70,10 +70,10 @@ function MetricTile({
       <CardContent className="p-0 flex flex-row items-stretch h-[72px] md:h-[80px]">
         <div className="flex flex-col justify-between p-2.5 pr-0 flex-shrink-0 min-w-[100px] sm:min-w-[120px] max-w-[60%]">
           <div className="space-y-0">
-            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest leading-none mb-0.5 truncate">
+            <p className="text-[9px] font-semibold text-zinc-400 uppercase tracking-widest leading-none mb-0.5 truncate">
               {title}
             </p>
-            <h3 className="text-lg md:text-xl font-black text-zinc-900 tracking-tighter leading-tight">
+            <h3 className="text-lg md:text-xl font-semibold text-zinc-900 tracking-tighter leading-tight">
               {amount}
             </h3>
           </div>
@@ -82,7 +82,7 @@ function MetricTile({
               <Badge
                 variant="secondary"
                 className={cn(
-                  "px-1 py-0 text-[8px] font-bold border-none shrink-0",
+                  "px-1 py-0 text-[8px] font-semibold border-none shrink-0",
                   trend === "up"
                     ? "bg-emerald-50 text-emerald-600"
                     : trend === "down"
@@ -93,7 +93,7 @@ function MetricTile({
                 {trend === "up" ? "+" : ""}
                 {change}
               </Badge>
-              <span className="text-[8px] text-zinc-400 font-bold uppercase tracking-tighter whitespace-nowrap truncate">
+              <span className="text-[8px] text-zinc-400 font-semibold uppercase tracking-tighter whitespace-nowrap truncate">
                 vs prior
               </span>
             </div>

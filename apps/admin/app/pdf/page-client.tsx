@@ -270,7 +270,7 @@ function PDFStudioHeaderSection({
       <div className="flex items-center gap-2 md:gap-3 min-w-0">
         <div className="flex items-center gap-2">
           <div className="p-1.5 rounded-lg bg-violet-500/10 text-violet-600">
-            <FileText className="h-4 w-4" />
+            <FileText className="size-4" />
           </div>
           <span className="hidden sm:inline text-xs font-semibold uppercase tracking-wider text-foreground">
             PDF Studio
@@ -285,14 +285,14 @@ function PDFStudioHeaderSection({
 
         <div className="hidden lg:flex items-center gap-1 text-xs text-muted-foreground min-w-0">
           <span className="shrink-0">Templates</span>
-          <ChevronRight className="h-3 w-3 shrink-0" />
+          <ChevronRight className="size-3 shrink-0" />
           <span className="font-medium text-foreground truncate max-w-[180px]">
             {metadata.name}
           </span>
           {hasUnsavedChanges && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className="ml-1 h-2 w-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+                <span className="ml-1 size-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
               </TooltipTrigger>
               <TooltipContent side="bottom">
                 <p>Unsaved changes</p>
@@ -309,11 +309,11 @@ function PDFStudioHeaderSection({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 w-7 p-0"
+                className="size-7 p-0"
                 onClick={onUndo}
                 disabled={!isEditorReady}
               >
-                <Undo2 className="h-3.5 w-3.5" />
+                <Undo2 className="size-3.5" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom">
@@ -326,11 +326,11 @@ function PDFStudioHeaderSection({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 w-7 p-0"
+                className="size-7 p-0"
                 onClick={onRedo}
                 disabled={!isEditorReady}
               >
-                <Redo2 className="h-3.5 w-3.5" />
+                <Redo2 className="size-3.5" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom">
@@ -357,7 +357,7 @@ function PDFStudioHeaderSection({
                   value="desktop"
                   className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
                 >
-                  <Monitor className="h-3.5 w-3.5" />
+                  <Monitor className="size-3.5" />
                   <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
                     Desktop
                   </span>
@@ -371,7 +371,7 @@ function PDFStudioHeaderSection({
                   value="mobile"
                   className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
                 >
-                  <Smartphone className="h-3.5 w-3.5" />
+                  <Smartphone className="size-3.5" />
                   <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
                     Mobile
                   </span>
@@ -395,9 +395,9 @@ function PDFStudioHeaderSection({
                   disabled={!isEditorReady || isExporting}
                 >
                   {isExporting ? (
-                    <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    <span className="size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
                   ) : (
-                    <Download className="h-3.5 w-3.5" />
+                    <Download className="size-3.5" />
                   )}
                   <span className="hidden sm:inline text-xs font-medium">
                     Export
@@ -409,12 +409,12 @@ function PDFStudioHeaderSection({
           </Tooltip>
           <DropdownMenuContent align="end" className="w-52">
             <DropdownMenuItem onClick={onExportPDF}>
-              <FileDown className="h-4 w-4 mr-2" />
+              <FileDown className="size-4 mr-2" />
               Export as PDF
               <DropdownMenuShortcut>⌘P</DropdownMenuShortcut>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onExportHtml}>
-              <FileCode className="h-4 w-4 mr-2" />
+              <FileCode className="size-4 mr-2" />
               Export as HTML
               <DropdownMenuShortcut>⌘E</DropdownMenuShortcut>
             </DropdownMenuItem>
@@ -422,7 +422,7 @@ function PDFStudioHeaderSection({
             <DropdownMenuItem
               onClick={() => toast.info("Print functionality coming soon")}
             >
-              <Printer className="h-4 w-4 mr-2" />
+              <Printer className="size-4 mr-2" />
               Print
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -436,14 +436,14 @@ function PDFStudioHeaderSection({
         >
           {isSaving ? (
             <>
-              <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              <span className="size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
               <span className="hidden sm:inline text-xs font-medium">
-                Saving...
+                Saving…
               </span>
             </>
           ) : (
             <>
-              <Save className="h-3.5 w-3.5" />
+              <Save className="size-3.5" />
               <span className="hidden sm:inline text-xs font-medium">Save</span>
             </>
           )}
@@ -451,50 +451,50 @@ function PDFStudioHeaderSection({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-              <MoreHorizontal className="h-4 w-4" />
+            <Button variant="ghost" size="sm" className="size-8 p-0">
+              <MoreHorizontal className="size-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-52">
             <DropdownMenuItem onClick={onNewTemplate}>
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="size-4 mr-2" />
               New Document
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => toast.info("Template settings coming soon")}
             >
-              <Settings className="h-4 w-4 mr-2" />
+              <Settings className="size-4 mr-2" />
               Settings
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => toast.info("Load template coming soon")}
             >
-              <FolderOpen className="h-4 w-4 mr-2" />
+              <FolderOpen className="size-4 mr-2" />
               Load Template
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => toast.info("Duplicate coming soon")}
             >
-              <Copy className="h-4 w-4 mr-2" />
+              <Copy className="size-4 mr-2" />
               Duplicate
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => toast.info("Version history coming soon")}
             >
-              <History className="h-4 w-4 mr-2" />
+              <History className="size-4 mr-2" />
               Version History
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onNewTemplate}>
-              <RotateCcw className="h-4 w-4 mr-2" />
+              <RotateCcw className="size-4 mr-2" />
               Reset Template
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onToggleFullscreen}>
               {isFullscreen ? (
-                <Minimize2 className="h-4 w-4 mr-2" />
+                <Minimize2 className="size-4 mr-2" />
               ) : (
-                <Maximize2 className="h-4 w-4 mr-2" />
+                <Maximize2 className="size-4 mr-2" />
               )}
               {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
               <DropdownMenuShortcut>Esc</DropdownMenuShortcut>
@@ -505,7 +505,7 @@ function PDFStudioHeaderSection({
               disabled={!metadata.id}
               onClick={onOpenDeleteDialog}
             >
-              <Trash2 className="h-4 w-4 mr-2" />
+              <Trash2 className="size-4 mr-2" />
               Delete Template
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -536,7 +536,7 @@ function PDFSaveDialogSection({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <div className="p-2 rounded-lg bg-violet-500/10">
-              <Save className="h-4 w-4 text-violet-600" />
+              <Save className="size-4 text-violet-600" />
             </div>
             {metadata.id ? "Update PDF Template" : "Save PDF Template"}
           </DialogTitle>
@@ -645,7 +645,7 @@ function PDFSaveDialogSection({
                   description: e.target.value,
                 }))
               }
-              placeholder="Brief description of this template's purpose..."
+              placeholder="Brief description of this template's purpose…"
               className="h-20 resize-none text-sm"
             />
             <p className="text-[11px] text-muted-foreground">
@@ -664,12 +664,12 @@ function PDFSaveDialogSection({
           >
             {isSaving ? (
               <>
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
-                Saving...
+                <span className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
+                Saving…
               </>
             ) : (
               <>
-                <Save className="h-4 w-4 mr-2" />
+                <Save className="size-4 mr-2" />
                 {metadata.id ? "Update Template" : "Save Template"}
               </>
             )}
@@ -703,7 +703,7 @@ function PDFExportDialogSection({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <div className="p-2 rounded-lg bg-violet-500/10">
-              <FileCode className="h-4 w-4 text-violet-600" />
+              <FileCode className="size-4 text-violet-600" />
             </div>
             Export HTML
           </DialogTitle>
@@ -711,7 +711,7 @@ function PDFExportDialogSection({
             Copy or download the generated HTML code for your document template.
             {studioConfig?.export.cleanupCss && (
               <span className="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full text-[10px] font-medium">
-                <Sparkles className="h-3 w-3" />
+                <Sparkles className="size-3" />
                 Optimized
               </span>
             )}
@@ -727,18 +727,18 @@ function PDFExportDialogSection({
                 onClick={onCopyHtml}
               >
                 {copiedHtml ? (
-                  <Check className="h-3.5 w-3.5 mr-1 text-emerald-600" />
+                  <Check className="size-3.5 mr-1 text-emerald-600" />
                 ) : (
-                  <Copy className="h-3.5 w-3.5 mr-1" />
+                  <Copy className="size-3.5 mr-1" />
                 )}
                 {copiedHtml ? "Copied!" : "Copy"}
               </Button>
             </div>
-            <pre className="bg-slate-950 text-slate-100 p-4 rounded-xl text-xs overflow-auto max-h-[320px] font-mono leading-relaxed">
+            <pre className="bg-zinc-950 text-zinc-100 p-4 rounded-xl text-xs overflow-auto max-h-[320px] font-mono leading-relaxed">
               {exportedHtml.slice(0, 3000)}
               {exportedHtml.length > 3000 && (
-                <span className="text-slate-500">
-                  {`\n\n... truncated (${(exportedHtml.length - 3000).toLocaleString()} more characters)`}
+                <span className="text-zinc-500">
+                  {`\n\n… truncated (${(exportedHtml.length - 3000).toLocaleString()} more characters)`}
                 </span>
               )}
             </pre>
@@ -746,7 +746,7 @@ function PDFExportDialogSection({
           <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
             <span>{exportedHtml.length.toLocaleString()} characters</span>
             <span className="flex items-center gap-1">
-              <Layers className="h-3 w-3" />
+              <Layers className="size-3" />
               Ready for PDF conversion
             </span>
           </div>
@@ -757,14 +757,14 @@ function PDFExportDialogSection({
           </Button>
           <Button variant="outline" onClick={onCopyHtml}>
             {copiedHtml ? (
-              <Check className="h-4 w-4 mr-2 text-emerald-600" />
+              <Check className="size-4 mr-2 text-emerald-600" />
             ) : (
-              <Copy className="h-4 w-4 mr-2" />
+              <Copy className="size-4 mr-2" />
             )}
             {copiedHtml ? "Copied!" : "Copy HTML"}
           </Button>
           <Button onClick={onDownloadHtml}>
-            <Download className="h-4 w-4 mr-2" />
+            <Download className="size-4 mr-2" />
             Download
           </Button>
         </DialogFooter>
@@ -789,7 +789,7 @@ function PDFDeleteDialogSection({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-destructive" />
+            <AlertCircle className="size-5 text-destructive" />
             Delete Template
           </AlertDialogTitle>
           <AlertDialogDescription>
@@ -970,7 +970,7 @@ function usePDFStudioController() {
         });
       } else {
         toast.info("PDF export initiated", {
-          description: "Your document is being prepared for download...",
+          description: "Your document is being prepared for download…",
           duration: 3000,
         });
       }

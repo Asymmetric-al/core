@@ -114,8 +114,8 @@ function NotificationRow({
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 py-6 group border-b border-zinc-50 last:border-0">
       <div className="flex items-start gap-4">
-        <div className="h-10 w-10 rounded-2xl bg-zinc-50 flex items-center justify-center shrink-0 border border-zinc-100 group-hover:bg-white transition-colors">
-          <Icon className="h-5 w-5 text-zinc-400 group-hover:text-zinc-900 transition-colors" />
+        <div className="size-10 rounded-2xl bg-zinc-50 flex items-center justify-center shrink-0 border border-zinc-100 group-hover:bg-white transition-colors">
+          <Icon className="size-5 text-zinc-400 group-hover:text-zinc-900 transition-colors" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-bold text-sm tracking-tight text-zinc-900 leading-none">
@@ -195,7 +195,7 @@ export default function SettingsPage() {
           size="sm"
           className="h-9 px-4 text-xs font-medium disabled:opacity-50"
         >
-          <Save className="mr-2 h-4 w-4" />
+          <Save className="mr-2 size-4" />
           Save Preferences
         </Button>
       </PageHeader>
@@ -226,7 +226,7 @@ export default function SettingsPage() {
                   </Label>
                   <div className="flex items-center justify-between h-12 px-4 rounded-xl border border-zinc-100 bg-zinc-50/50">
                     <div className="flex items-center gap-2">
-                      <div className="h-2 w-2 rounded-full bg-zinc-900" />
+                      <div className="size-2 rounded-full bg-zinc-900" />
                       <span className="text-xs font-bold text-zinc-900">
                         Active
                       </span>
@@ -246,7 +246,7 @@ export default function SettingsPage() {
                   variant="outline"
                   className="h-11 rounded-2xl border-zinc-200 px-6 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-900 transition-all"
                 >
-                  <ShieldCheck className="mr-2 h-4 w-4" />
+                  <ShieldCheck className="mr-2 size-4" />
                   Update Password
                 </Button>
               </div>
@@ -277,8 +277,8 @@ export default function SettingsPage() {
           <Card className="border-zinc-200 bg-white shadow-sm rounded-[2rem] overflow-hidden">
             <CardHeader className="pt-8 px-8">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-2xl bg-zinc-50 flex items-center justify-center">
-                  <Globe className="h-5 w-5 text-zinc-400" />
+                <div className="size-10 rounded-2xl bg-zinc-50 flex items-center justify-center">
+                  <Globe className="size-5 text-zinc-400" />
                 </div>
                 <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
                   Identity
@@ -305,7 +305,7 @@ export default function SettingsPage() {
                   rel="noopener noreferrer"
                 >
                   Visit Website
-                  <ExternalLink className="ml-2 h-3 w-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  <ExternalLink className="ml-2 size-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </a>
               </Button>
             </CardContent>
@@ -313,7 +313,7 @@ export default function SettingsPage() {
 
           <Card className="border-none bg-zinc-900 text-white shadow-2xl shadow-zinc-300/50 rounded-[2rem] overflow-hidden relative group">
             <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 group-hover:rotate-12 transition-all duration-700">
-              <Layout className="h-32 w-32" />
+              <Layout className="size-32" />
             </div>
             <CardHeader className="pt-8 px-8 relative z-10">
               <CardTitle className="text-2xl font-black tracking-tight">
@@ -326,8 +326,8 @@ export default function SettingsPage() {
             <CardContent className="px-8 pb-8 pt-2 space-y-4 relative z-10">
               <div className="p-5 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-between group cursor-pointer hover:bg-white/10 transition-all">
                 <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center">
-                    <Mail className="h-5 w-5 text-zinc-900" />
+                  <div className="size-10 rounded-xl bg-white flex items-center justify-center">
+                    <Mail className="size-5 text-zinc-900" />
                   </div>
                   <div className="flex flex-col">
                     <span className="text-sm font-black">Mailchimp</span>
@@ -336,13 +336,13 @@ export default function SettingsPage() {
                     </span>
                   </div>
                 </div>
-                <ChevronRight className="h-4 w-4 text-zinc-600 group-hover:text-white transition-colors" />
+                <ChevronRight className="size-4 text-zinc-600 group-hover:text-white transition-colors" />
               </div>
 
               <div className="p-5 bg-white/5 rounded-2xl border border-dashed border-white/20 flex items-center justify-between group cursor-pointer hover:bg-white/10 transition-all">
                 <div className="flex items-center gap-4 opacity-50">
-                  <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center">
-                    <Layout className="h-5 w-5 text-white" />
+                  <div className="size-10 rounded-xl bg-white/10 flex items-center justify-center">
+                    <Layout className="size-5 text-white" />
                   </div>
                   <div className="flex flex-col">
                     <span className="text-sm font-black">Zapier</span>
@@ -372,8 +372,8 @@ export default function SettingsPage() {
           <Card className="border-zinc-200 bg-white shadow-sm rounded-[2rem] overflow-hidden">
             <CardHeader className="pt-8 px-8">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-2xl bg-violet-50 flex items-center justify-center">
-                  <Sparkles className="h-5 w-5 text-violet-600" />
+                <div className="size-10 rounded-2xl bg-violet-50 flex items-center justify-center">
+                  <Sparkles className="size-5 text-violet-600" />
                 </div>
                 <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
                   System Preferences

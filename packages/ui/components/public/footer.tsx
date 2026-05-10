@@ -155,19 +155,19 @@ const legalLinks = [
 
 export function Footer() {
   return (
-    <footer className="bg-slate-950 text-white py-12 sm:py-16 lg:py-24 border-t border-white/5">
+    <footer className="bg-zinc-950 text-white py-12 sm:py-16 lg:py-24 border-t border-white/5">
       <div className="container-responsive">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-10 lg:gap-12 mb-12 lg:mb-16">
           <div className="sm:col-span-2 lg:col-span-1 space-y-4 sm:space-y-6">
             <Link href="/" className="flex items-center gap-2">
-              <div className="h-8 w-8 bg-white text-slate-950 rounded-lg flex items-center justify-center font-bold text-sm">
+              <div className="size-8 bg-white text-zinc-950 rounded-lg flex items-center justify-center font-semibold text-sm">
                 GH
               </div>
-              <span className="font-bold text-lg tracking-tight">
+              <span className="font-semibold text-lg tracking-tight">
                 GIVE<span className="font-light opacity-60">HOPE</span>
               </span>
             </Link>
-            <p className="text-slate-400 text-sm leading-relaxed max-w-xs">
+            <p className="text-zinc-400 text-sm leading-relaxed max-w-xs">
               Bridging the gap between compassion and action. Supporting
               verified field partners in the world&apos;s most fractured
               regions.
@@ -176,10 +176,10 @@ export function Footer() {
 
           {footerSections.map((section) => (
             <div key={section.title}>
-              <h4 className="font-bold text-xs uppercase tracking-[0.2em] mb-4 sm:mb-6 lg:mb-8 text-white/60">
+              <h4 className="font-semibold text-xs uppercase tracking-[0.2em] mb-4 sm:mb-6 lg:mb-8 text-white/60">
                 {section.title}
               </h4>
-              <ul className="space-y-3 sm:space-y-4 text-sm font-medium text-slate-300">
+              <ul className="space-y-3 sm:space-y-4 text-sm font-medium text-zinc-300">
                 {section.links.map((link) => (
                   <li key={link.href + link.label}>
                     <Link
@@ -200,7 +200,7 @@ export function Footer() {
           ))}
 
           <div>
-            <h4 className="font-bold text-xs uppercase tracking-[0.2em] mb-4 sm:mb-6 lg:mb-8 text-white/60">
+            <h4 className="font-semibold text-xs uppercase tracking-[0.2em] mb-4 sm:mb-6 lg:mb-8 text-white/60">
               Connect
             </h4>
             <div className="flex gap-3 sm:gap-4 mb-6 sm:mb-8">
@@ -209,13 +209,13 @@ export function Footer() {
                   key={label}
                   href={href}
                   aria-label={label}
-                  className="h-10 w-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 hover:border-white/20 transition-all touch-target"
+                  className="size-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 hover:border-white/20 transition-all touch-target"
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className="size-4" />
                 </a>
               ))}
             </div>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-zinc-400">
               © 2025 GiveHope. <br className="sm:hidden" />
               Registered 501(c)(3) nonprofit.
             </p>
@@ -227,13 +227,13 @@ export function Footer() {
             href="https://asymmetric.al/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors touch-target"
+            className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-400 hover:text-white transition-colors touch-target"
           >
             Made with{" "}
-            <HeartIcon className="h-3 w-3 text-rose-500 fill-current" /> by
+            <HeartIcon className="size-3 text-rose-500 fill-current" /> by
             Asymmetric.al
           </a>
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-8 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-8 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
             {legalLinks.map((link) => (
               <Link
                 key={link.label}

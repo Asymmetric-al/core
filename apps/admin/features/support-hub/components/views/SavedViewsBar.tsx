@@ -53,7 +53,7 @@ export function SavedViewsBar() {
 
       {savedViews.length === 0 ? (
         <span className="text-[12px] text-zinc-400">
-          No saved views yet — save a filter to find it again.
+          No saved views yet, save a filter to find it again.
         </span>
       ) : (
         savedViews.map((view) => (

@@ -40,9 +40,9 @@ export function ProjectPageCreateView() {
 }
 
 function ProjectPageCreateViewContent() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const templateId = searchParams.get("template") ?? "";
+  const { get } = useSearchParams();
+  const { push } = useRouter();
+  const templateId = get("template") ?? "";
   const [submitError, setSubmitError] = useState<string | null>(null);
   const { user } = useAuth();
 
@@ -120,7 +120,7 @@ function ProjectPageCreateViewContent() {
           adminRoute: routes.admin,
           path: `/collections/project-pages/${body.existingId}`,
         });
-        router.push(editPath);
+        push(editPath);
         return;
       }
 
@@ -134,7 +134,7 @@ function ProjectPageCreateViewContent() {
           adminRoute: routes.admin,
           path: `/collections/${body.collectionSlug}/${body.id}`,
         });
-        router.push(editPath);
+        push(editPath);
       }
     },
   });

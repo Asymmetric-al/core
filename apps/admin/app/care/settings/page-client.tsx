@@ -86,7 +86,7 @@ const ALERT_PREFERENCES: AlertPreference[] = [
 function CareSettingsHeader() {
   return (
     <div>
-      <h2 className="text-2xl font-black tracking-tight text-zinc-900 text-left">
+      <h2 className="text-2xl font-semibold tracking-tight text-zinc-900 text-left">
         Care Settings
       </h2>
       <p className="text-zinc-600 mt-1 text-sm font-medium text-left">
@@ -101,9 +101,9 @@ function RegionalLocalizationCard() {
     <Card className="border-zinc-200 shadow-sm overflow-hidden rounded-[2rem]">
       <CardHeader className="border-b border-zinc-50 bg-zinc-50/30">
         <div className="flex items-center gap-3">
-          <Globe className="h-5 w-5 text-zinc-400" />
+          <Globe className="size-5 text-zinc-400" />
           <div>
-            <CardTitle className="text-lg font-bold text-zinc-900">
+            <CardTitle className="text-lg font-semibold text-zinc-900">
               Regional Localization
             </CardTitle>
             <CardDescription className="text-xs font-medium text-zinc-500">
@@ -117,7 +117,7 @@ function RegionalLocalizationCard() {
           <div className="space-y-2 text-left">
             <Label
               htmlFor="region"
-              className="text-[10px] font-black uppercase tracking-wider text-zinc-400 px-1"
+              className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 px-1"
             >
               Default Region
             </Label>
@@ -136,7 +136,7 @@ function RegionalLocalizationCard() {
           <div className="space-y-2 text-left">
             <Label
               htmlFor="timezone"
-              className="text-[10px] font-black uppercase tracking-wider text-zinc-400 px-1"
+              className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 px-1"
             >
               My Timezone
             </Label>
@@ -163,9 +163,9 @@ function ConnectedServicesCard() {
     <Card className="border-zinc-200 shadow-sm overflow-hidden rounded-[2rem]">
       <CardHeader className="border-b border-zinc-50 bg-zinc-50/30">
         <div className="flex items-center gap-3">
-          <LinkIcon className="h-5 w-5 text-zinc-400" />
+          <LinkIcon className="size-5 text-zinc-400" />
           <div>
-            <CardTitle className="text-lg font-bold text-zinc-900">
+            <CardTitle className="text-lg font-semibold text-zinc-900">
               Connected Services
             </CardTitle>
             <CardDescription className="text-xs font-medium text-zinc-500">
@@ -182,11 +182,11 @@ function ConnectedServicesCard() {
           >
             <div className="space-y-1 text-left">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-zinc-900">
+                <span className="text-sm font-semibold text-zinc-900">
                   {service.name}
                 </span>
                 {service.connected && (
-                  <Check className="h-3 w-3 text-zinc-900" />
+                  <Check className="size-3 text-zinc-900" />
                 )}
               </div>
               <p className="text-xs font-medium text-zinc-400">
@@ -196,7 +196,7 @@ function ConnectedServicesCard() {
             {service.readonly ? (
               <Badge
                 variant="secondary"
-                className="text-[10px] font-bold uppercase tracking-widest bg-zinc-100 text-zinc-500 border-none"
+                className="text-[10px] font-semibold uppercase tracking-widest bg-zinc-100 text-zinc-500 border-none"
               >
                 System Link
               </Badge>
@@ -205,7 +205,7 @@ function ConnectedServicesCard() {
                 variant={service.connected ? "outline" : "default"}
                 size="sm"
                 className={cn(
-                  "h-8 text-[10px] font-black uppercase tracking-widest px-4 rounded-lg",
+                  "h-8 text-[10px] font-semibold uppercase tracking-widest px-4 rounded-lg",
                   service.connected
                     ? "border-zinc-200 text-zinc-500 hover:text-zinc-900"
                     : "bg-zinc-900 text-white hover:bg-zinc-800 shadow-lg shadow-zinc-200/50",
@@ -226,9 +226,9 @@ function AlertPreferencesCard() {
     <Card className="border-zinc-200 shadow-sm overflow-hidden rounded-[2rem]">
       <CardHeader className="border-b border-zinc-50 bg-zinc-50/30">
         <div className="flex items-center gap-3">
-          <Bell className="h-5 w-5 text-zinc-400" />
+          <Bell className="size-5 text-zinc-400" />
           <div>
-            <CardTitle className="text-lg font-bold text-zinc-900">
+            <CardTitle className="text-lg font-semibold text-zinc-900">
               Alert Preferences
             </CardTitle>
             <CardDescription className="text-xs font-medium text-zinc-500">
@@ -241,7 +241,7 @@ function AlertPreferencesCard() {
         {ALERT_PREFERENCES.map((pref) => (
           <div key={pref.label} className="flex items-center justify-between">
             <div className="space-y-0.5 text-left">
-              <Label className="text-sm font-bold text-zinc-900">
+              <Label className="text-sm font-semibold text-zinc-900">
                 {pref.label}
               </Label>
               <p className="text-xs font-medium text-zinc-400">{pref.desc}</p>
@@ -267,7 +267,7 @@ function SaveChangesCard({ saving, onSave }: SaveChangesCardProps) {
     <Card className="border-zinc-900 bg-zinc-900 text-white shadow-xl shadow-zinc-300/40 overflow-hidden rounded-2xl sticky top-6">
       <CardContent className="p-6 space-y-5">
         <div className="space-y-2">
-          <h3 className="font-black text-xl tracking-tight">Save Changes</h3>
+          <h3 className="font-semibold text-xl tracking-tight">Save Changes</h3>
           <p className="text-xs font-medium text-zinc-300 leading-relaxed">
             Update your global preferences. Changes apply immediately across the
             Member Care module.
@@ -282,12 +282,12 @@ function SaveChangesCard({ saving, onSave }: SaveChangesCardProps) {
             "Updating..."
           ) : (
             <>
-              <Save className="mr-2 h-4 w-4" /> Update Settings
+              <Save className="mr-2 size-4" /> Update Settings
             </>
           )}
         </Button>
         <div className="pt-5 border-t border-zinc-800 flex items-start gap-3">
-          <Shield className="h-4 w-4 text-zinc-300 shrink-0" />
+          <Shield className="size-4 text-zinc-300 shrink-0" />
           <p className="text-xs font-medium text-zinc-300 text-left leading-relaxed">
             Your data access is restricted to authorized personnel records.
             Pastoral notes are stored securely.
@@ -303,13 +303,13 @@ function ModuleInfoCard() {
     <Card className="border-zinc-200 bg-white shadow-sm overflow-hidden rounded-2xl">
       <CardContent className="p-6 space-y-5">
         <div className="flex items-center gap-2 text-zinc-900">
-          <Info className="h-4 w-4" />
-          <h4 className="text-sm font-bold">Module Info</h4>
+          <Info className="size-4" />
+          <h4 className="text-sm font-semibold">Module Info</h4>
         </div>
         <div className="space-y-4 text-left">
           <div className="flex justify-between items-center text-xs">
             <span className="text-zinc-400 font-medium">Active Module</span>
-            <span className="font-bold text-zinc-900">Member Care</span>
+            <span className="font-semibold text-zinc-900">Member Care</span>
           </div>
           <div className="flex justify-between items-center text-xs">
             <span className="text-zinc-500 font-medium">Status</span>
@@ -323,7 +323,7 @@ function ModuleInfoCard() {
               <span className="text-xs font-semibold text-zinc-500">
                 Tenant Website
               </span>
-              <span className="text-xs font-bold text-zinc-900">
+              <span className="text-xs font-semibold text-zinc-900">
                 {siteConfig.name}
               </span>
             </div>
@@ -338,7 +338,7 @@ function ModuleInfoCard() {
                 rel="noopener noreferrer"
               >
                 Visit Home Page
-                <ExternalLink className="ml-2 h-3 w-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                <ExternalLink className="ml-2 size-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </a>
             </Button>
           </div>

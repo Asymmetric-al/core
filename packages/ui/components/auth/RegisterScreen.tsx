@@ -45,7 +45,7 @@ export function RegisterScreen({
   subtitle = "Create your account to continue",
   loginHref = "/login",
 }: RegisterScreenProps) {
-  const router = useRouter();
+  const { replace, refresh } = useRouter();
   const defaultPostLoginPath = getDefaultPostLoginPathForApp(appId);
   const [firstName, setFirstName] = React.useState("");
   const [lastName, setLastName] = React.useState("");
@@ -85,8 +85,8 @@ export function RegisterScreen({
             if (signUpError) throw new Error(signUpError.message);
 
             if (data.session) {
-              router.replace(defaultPostLoginPath);
-              router.refresh();
+              replace(defaultPostLoginPath);
+              refresh();
               return;
             }
 
@@ -106,7 +106,8 @@ export function RegisterScreen({
       firstName,
       lastName,
       password,
-      router,
+      refresh,
+      replace,
       startSubmitting,
     ],
   );

@@ -45,9 +45,9 @@ export function DetailsDrawer({
                 variant="ghost"
                 size="icon"
                 aria-label="Open full page"
-                className="h-8 w-8"
+                className="size-8"
               >
-                <ExternalLink className="h-4 w-4" />
+                <ExternalLink className="size-4" />
               </Button>
             </Link>
           )}
@@ -55,10 +55,10 @@ export function DetailsDrawer({
             variant="ghost"
             size="icon"
             aria-label="Close details drawer"
-            className="h-8 w-8"
+            className="size-8"
             onClick={onClose}
           >
-            <X className="h-4 w-4" />
+            <X className="size-4" />
           </Button>
         </div>
       </div>

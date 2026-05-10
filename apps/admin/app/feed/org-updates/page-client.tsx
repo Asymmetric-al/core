@@ -182,7 +182,7 @@ const MOCK_DRAFTS: OrgPost[] = [
   {
     id: "d1",
     post_type: "Update",
-    content: "<p>Exciting news coming soon about our new initiative...</p>",
+    content: "<p>Exciting news coming soon about our new initiative…</p>",
     created_at: "2025-12-29T16:00:00Z",
     likes_count: 0,
     prayers_count: 0,
@@ -218,11 +218,11 @@ function FeedSettingsSheet({
       <SheetContent className="w-full sm:max-w-md p-0 flex flex-col">
         <SheetHeader className="p-6 pb-4 border-b">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center">
-              <Settings className="h-5 w-5 text-muted-foreground" />
+            <div className="size-10 rounded-xl bg-muted flex items-center justify-center">
+              <Settings className="size-5 text-muted-foreground" />
             </div>
             <div>
-              <SheetTitle className="text-base font-bold">
+              <SheetTitle className="text-base font-semibold">
                 Feed Settings
               </SheetTitle>
               <SheetDescription className="text-sm">
@@ -314,8 +314,8 @@ function FeedSettingsSheet({
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 rounded-xl border">
                   <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center">
-                      <Bell className="h-4 w-4 text-muted-foreground" />
+                    <div className="size-8 rounded-lg bg-muted flex items-center justify-center">
+                      <Bell className="size-4 text-muted-foreground" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-foreground">
@@ -350,9 +350,9 @@ function FeedSettingsSheet({
             className="w-full h-10 rounded-xl font-semibold"
           >
             {isSaving ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              <Loader2 className="size-4 animate-spin mr-2" />
             ) : (
-              <Check className="h-4 w-4 mr-2" />
+              <Check className="size-4 mr-2" />
             )}
             Save Settings
           </Button>
@@ -388,7 +388,7 @@ function PostCard({
         transition={springTransition}
         className="overflow-hidden border shadow-sm hover:shadow-lg transition-all duration-500 rounded-2xl sm:rounded-3xl bg-card"
       >
-        <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-4 flex flex-row items-start justify-between space-y-0">
+        <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-4 flex flex-row items-start justify-between gap-y-0">
           <div className="flex gap-3 sm:gap-4">
             <motion.div
               whileHover={{ scale: 1.05 }}
@@ -398,7 +398,7 @@ function PostCard({
             </motion.div>
             <div>
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                <h3 className="font-bold text-foreground text-base sm:text-lg tracking-tight">
+                <h3 className="font-semibold text-foreground text-base sm:text-lg tracking-tight">
                   {brandConfig.name}
                 </h3>
                 <Badge
@@ -412,7 +412,7 @@ function PostCard({
                     variant="outline"
                     className="text-[9px] px-2 py-0.5 gap-1 rounded-full font-semibold uppercase tracking-wider"
                   >
-                    <Pin className="h-2.5 w-2.5" /> Pinned
+                    <Pin className="size-2.5" /> Pinned
                   </Badge>
                 )}
               </div>
@@ -423,11 +423,11 @@ function PostCard({
                 <span className="text-border">•</span>
                 <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
                   {post.visibility === "public" ? (
-                    <Globe className="h-3 w-3" />
+                    <Globe className="size-3" />
                   ) : post.visibility === "partners" ? (
-                    <Users className="h-3 w-3" />
+                    <Users className="size-3" />
                   ) : (
-                    <Lock className="h-3 w-3" />
+                    <Lock className="size-3" />
                   )}
                   <span className="hidden xs:inline">{post.visibility}</span>
                 </span>
@@ -443,9 +443,9 @@ function PostCard({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl transition-all"
+                  className="size-9 sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl transition-all"
                 >
-                  <MoreHorizontal className="h-5 w-5 sm:h-6 sm:w-6" />
+                  <MoreHorizontal className="size-5 sm:h-6 sm:w-6" />
                 </Button>
               </motion.div>
             </DropdownMenuTrigger>
@@ -457,26 +457,26 @@ function PostCard({
                 onClick={onTogglePin}
                 className="font-medium text-xs rounded-lg py-2.5 cursor-pointer gap-2.5"
               >
-                <Pin className="h-3.5 w-3.5 text-muted-foreground" />{" "}
+                <Pin className="size-3.5 text-muted-foreground" />{" "}
                 {post.isPinned ? "Unpin" : "Pin to Top"}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={onEdit}
                 className="font-medium text-xs rounded-lg py-2.5 cursor-pointer gap-2.5"
               >
-                <Settings className="h-3.5 w-3.5 text-muted-foreground" /> Edit
+                <Settings className="size-3.5 text-muted-foreground" /> Edit
                 Post
               </DropdownMenuItem>
               <DropdownMenuItem className="font-medium text-xs rounded-lg py-2.5 cursor-pointer gap-2.5">
-                <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />{" "}
-                View Public
+                <ExternalLink className="size-3.5 text-muted-foreground" /> View
+                Public
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={onDelete}
                 className="font-medium text-xs rounded-lg py-2.5 text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer gap-2.5"
               >
-                <Trash2 className="h-3.5 w-3.5" /> Delete Post
+                <Trash2 className="size-3.5" /> Delete Post
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -492,7 +492,7 @@ function PostCard({
             <PostContent
               value={post.content}
               richTextClassName="text-foreground/80 leading-relaxed"
-              htmlClassName="prose prose-sm sm:prose-base max-w-none text-foreground/80 leading-relaxed prose-headings:font-bold prose-headings:text-foreground prose-headings:tracking-tight prose-strong:font-bold prose-strong:text-foreground prose-a:text-primary prose-a:font-bold prose-a:no-underline hover:prose-a:underline"
+              htmlClassName="prose prose-sm sm:prose-base max-w-none text-foreground/80 leading-relaxed prose-headings:font-semibold prose-headings:text-foreground prose-headings:tracking-tight prose-strong:font-semibold prose-strong:text-foreground prose-a:text-primary prose-a:font-semibold prose-a:no-underline hover:prose-a:underline"
             />
             {post.media && post.media.length > 0 && (
               <motion.div
@@ -504,7 +504,7 @@ function PostCard({
                 {post.media.slice(0, 4).map((item) => (
                   <div
                     key={`${post.id}-${item.type}-${item.url}`}
-                    className="relative h-24 w-24 sm:h-32 sm:w-32 rounded-xl overflow-hidden border shadow-sm"
+                    className="relative size-24 sm:h-32 sm:w-32 rounded-xl overflow-hidden border shadow-sm"
                   >
                     <Image
                       src={item.url}
@@ -535,7 +535,7 @@ function PostCard({
               <span className="text-base">🔥</span> {post.fires_count}
             </span>
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-              <MessageCircle className="h-4 w-4" /> {post.comments_count}
+              <MessageCircle className="size-4" /> {post.comments_count}
             </span>
           </motion.div>
         </CardContent>
@@ -597,7 +597,7 @@ function DraftCard({
                 onClick={onEdit}
                 className="w-full h-9 sm:h-10 px-4 sm:px-6 text-[10px] uppercase tracking-wider rounded-xl font-semibold"
               >
-                <ExternalLink className="h-3.5 w-3.5 mr-2" />
+                <ExternalLink className="size-3.5 mr-2" />
                 <span className="hidden sm:inline">Edit & Publish</span>
                 <span className="sm:hidden">Edit</span>
               </Button>
@@ -612,7 +612,7 @@ function DraftCard({
                 onClick={onDelete}
                 className="w-full h-9 sm:h-10 text-destructive hover:bg-destructive/10 font-semibold text-[10px] uppercase tracking-wider rounded-xl"
               >
-                <Trash2 className="h-3.5 w-3.5 mr-2" />
+                <Trash2 className="size-3.5 mr-2" />
                 Delete
               </Button>
             </motion.div>
@@ -827,7 +827,7 @@ function ComposeCardActions({
                   width={64}
                   height={64}
                   unoptimized
-                  className="h-14 w-14 sm:h-16 sm:w-16 object-cover rounded-lg border shadow-sm"
+                  className="size-14 sm:h-16 sm:w-16 object-cover rounded-lg border shadow-sm"
                 />
                 <motion.button
                   whileHover={{ scale: 1.1 }}
@@ -835,7 +835,7 @@ function ComposeCardActions({
                   onClick={() => onRemoveMedia(item)}
                   className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover/img:opacity-100 transition-opacity shadow-sm"
                 >
-                  <X className="h-3 w-3" />
+                  <X className="size-3" />
                 </motion.button>
               </motion.div>
             ))}
@@ -853,9 +853,9 @@ function ComposeCardActions({
             className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-all"
           >
             {isUploading ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
+              <Loader2 className="size-3 animate-spin" />
             ) : (
-              <ImageIcon className="h-3 w-3" />
+              <ImageIcon className="size-3" />
             )}
             <span className="hidden sm:inline">Media</span>
           </Button>
@@ -870,16 +870,16 @@ function ComposeCardActions({
                 className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-all"
               >
                 {visibility === "public" ? (
-                  <Globe className="h-3 w-3" />
+                  <Globe className="size-3" />
                 ) : visibility === "partners" ? (
-                  <Users className="h-3 w-3" />
+                  <Users className="size-3" />
                 ) : (
-                  <Lock className="h-3 w-3" />
+                  <Lock className="size-3" />
                 )}
                 <span className="hidden sm:inline capitalize">
                   {visibility === "partners" ? "Partners" : visibility}
                 </span>
-                <ChevronDown className="h-2.5 w-2.5 opacity-40" />
+                <ChevronDown className="size-2.5 opacity-40" />
               </Button>
             </motion.div>
           </DropdownMenuTrigger>
@@ -891,20 +891,19 @@ function ComposeCardActions({
               onClick={() => onSetVisibility("public")}
               className="font-medium text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
             >
-              <Globe className="h-3.5 w-3.5 text-muted-foreground" /> Public
+              <Globe className="size-3.5 text-muted-foreground" /> Public
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => onSetVisibility("partners")}
               className="font-medium text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
             >
-              <Users className="h-3.5 w-3.5 text-muted-foreground" /> Partners
-              Only
+              <Users className="size-3.5 text-muted-foreground" /> Partners Only
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => onSetVisibility("private")}
               className="font-medium text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
             >
-              <Lock className="h-3.5 w-3.5 text-muted-foreground" /> Private
+              <Lock className="size-3.5 text-muted-foreground" /> Private
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -920,9 +919,9 @@ function ComposeCardActions({
             className="h-8 px-2.5 sm:px-4 text-[9px] uppercase tracking-wider rounded-lg font-semibold"
           >
             {isPublishing ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
+              <Loader2 className="size-3 animate-spin" />
             ) : (
-              <Save className="h-3 w-3 sm:mr-1.5" />
+              <Save className="size-3 sm:mr-1.5" />
             )}
             <span className="hidden sm:inline">Draft</span>
           </Button>
@@ -936,9 +935,9 @@ function ComposeCardActions({
             className="h-8 px-3 sm:px-5 text-[9px] uppercase tracking-wider rounded-lg shadow-sm font-semibold"
           >
             {isPublishing ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
+              <Loader2 className="size-3 animate-spin" />
             ) : (
-              <Send className="h-3 w-3 sm:mr-1.5" />
+              <Send className="size-3 sm:mr-1.5" />
             )}
             <span className="hidden sm:inline">Publish</span>
           </Button>
@@ -1069,7 +1068,7 @@ function ComposeCard({
               onChange={(value) =>
                 dispatchCompose({ type: "set-content", value })
               }
-              placeholder={`Write your ${postType.toLowerCase()}...`}
+              placeholder={`Write your ${postType.toLowerCase()}…`}
               className="rounded-xl sm:rounded-2xl"
               contentClassName="py-3 sm:py-4 px-3 sm:px-4 text-sm sm:text-base text-foreground placeholder:text-muted-foreground min-h-[100px] sm:min-h-[140px] leading-relaxed"
               toolbarPosition="bottom"
@@ -1114,7 +1113,7 @@ function LoadingState() {
         animate={{ rotate: 360 }}
         transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
       >
-        <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground/30" />
+        <Loader2 className="size-10 sm:h-12 sm:w-12 text-muted-foreground/30" />
       </motion.div>
       <motion.p
         initial={{ opacity: 0, y: 10 }}
@@ -1122,7 +1121,7 @@ function LoadingState() {
         transition={{ delay: 0.2 }}
         className="font-semibold text-xs uppercase tracking-wider text-muted-foreground/50"
       >
-        Loading Updates...
+        Loading Updates…
       </motion.p>
     </motion.div>
   );
@@ -1148,15 +1147,15 @@ function EmptyState({
         initial={{ scale: 0.8 }}
         animate={{ scale: 1 }}
         transition={springTransition}
-        className="w-16 h-16 sm:w-20 sm:h-20 bg-card rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-md border"
+        className="size-16 sm:w-20 sm:h-20 bg-card rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-md border"
       >
-        <Icon className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground/30" />
+        <Icon className="size-6 sm:h-8 sm:w-8 text-muted-foreground/30" />
       </motion.div>
       <motion.h3
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="font-bold text-lg sm:text-xl text-foreground tracking-tight"
+        className="font-semibold text-lg sm:text-xl text-foreground tracking-tight"
       >
         {title}
       </motion.h3>
@@ -1292,8 +1291,8 @@ function OrgUpdatesTabsSection({
           transition={{ delay: 0.4 }}
           className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
         >
-          <Clock className="h-3.5 w-3.5" />
-          {lastSynced ? `Last synced: ${lastSynced}` : "Syncing..."}
+          <Clock className="size-3.5" />
+          {lastSynced ? `Last synced: ${lastSynced}` : "Syncing…"}
         </motion.div>
       </motion.div>
 
@@ -1422,7 +1421,7 @@ export default function OrgUpdatesPage() {
   const handleEdit = (post: OrgPost) => {
     dispatchUi({ type: "set_editing_post", value: post });
     window.scrollTo({ top: 0, behavior: "smooth" });
-    toast.info("Editing post...");
+    toast.info("Editing post…");
   };
 
   const handleDelete = (postId: string) => {
@@ -1461,22 +1460,22 @@ export default function OrgUpdatesPage() {
           <>
             <Button
               variant="outline"
-              className="h-11 rounded-xl border-zinc-200 bg-white font-bold uppercase tracking-widest text-[10px] shadow-sm hover:bg-zinc-50"
+              className="h-11 rounded-xl border-zinc-200 bg-white font-semibold uppercase tracking-widest text-[10px] shadow-sm hover:bg-zinc-50"
               asChild
             >
               <Link href="/feed">
-                <Eye className="mr-2 h-4 w-4" />
+                <Eye className="mr-2 size-4" />
                 Moderation
               </Link>
             </Button>
             <Button
               variant="outline"
-              className="h-11 rounded-xl border-zinc-200 bg-white font-bold uppercase tracking-widest text-[10px] shadow-sm hover:bg-zinc-50"
+              className="h-11 rounded-xl border-zinc-200 bg-white font-semibold uppercase tracking-widest text-[10px] shadow-sm hover:bg-zinc-50"
               onClick={() =>
                 dispatchUi({ type: "set_settings_open", value: true })
               }
             >
-              <Settings className="mr-2 h-4 w-4" />
+              <Settings className="mr-2 size-4" />
               Settings
             </Button>
           </>

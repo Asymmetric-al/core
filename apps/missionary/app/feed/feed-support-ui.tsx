@@ -27,8 +27,8 @@ export function LastSyncedDisplay() {
       transition={{ delay: 0.4 }}
       className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
     >
-      <Clock className="h-3.5 w-3.5" />
-      {lastSynced ? `Last synced: ${lastSynced}` : "Syncing..."}
+      <Clock className="size-3.5" />
+      {lastSynced ? `Last synced: ${lastSynced}` : "Syncing…"}
     </motion.div>
   );
 }
@@ -44,15 +44,15 @@ export function LoadingState() {
         animate={{ rotate: 360 }}
         transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
       >
-        <Loader2 className="h-10 w-10 text-muted-foreground/30 sm:h-12 sm:w-12" />
+        <Loader2 className="size-10 text-muted-foreground/30 sm:h-12 sm:w-12" />
       </motion.div>
       <motion.p
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="text-xs font-bold uppercase tracking-wider text-muted-foreground/50"
+        className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/50"
       >
-        Loading Ministry Updates...
+        Loading Ministry Updates…
       </motion.p>
     </motion.div>
   );
@@ -78,15 +78,15 @@ export function EmptyState({
         initial={{ scale: 0.8 }}
         animate={{ scale: 1 }}
         transition={springTransition}
-        className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-card shadow-md sm:mb-6 sm:h-20 sm:w-20"
+        className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-card shadow-md sm:mb-6 sm:h-20 sm:w-20"
       >
-        <Icon className="h-6 w-6 text-muted-foreground/30 sm:h-8 sm:w-8" />
+        <Icon className="size-6 text-muted-foreground/30 sm:h-8 sm:w-8" />
       </motion.div>
       <motion.h3
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="text-lg font-bold tracking-tight text-foreground sm:text-2xl"
+        className="text-lg font-semibold tracking-tight text-foreground sm:text-2xl"
       >
         {title}
       </motion.h3>

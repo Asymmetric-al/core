@@ -63,11 +63,11 @@ export function TimezoneScheduler({
   const working = isRemoteWorkingHours();
 
   return (
-    <Card className="border-slate-200 shadow-sm overflow-hidden bg-slate-50/50">
-      <CardHeader className="pb-2 border-b border-slate-100 bg-white">
+    <Card className="border-zinc-200 shadow-sm overflow-hidden bg-zinc-50/50">
+      <CardHeader className="pb-2 border-b border-zinc-100 bg-white">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-            <Clock className="h-3.5 w-3.5" /> Timezone Check
+          <CardTitle className="text-sm font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
+            <Clock className="size-3.5" /> Timezone Check
           </CardTitle>
           <Badge
             variant={working ? "default" : "outline"}
@@ -75,7 +75,7 @@ export function TimezoneScheduler({
               "text-[10px] font-bold h-5",
               working
                 ? "bg-emerald-500 text-white border-none"
-                : "bg-slate-100 text-slate-500 border-slate-200",
+                : "bg-zinc-100 text-zinc-500 border-zinc-200",
             )}
           >
             {working ? "Within Working Hours" : "Outside Working Hours"}
@@ -85,43 +85,43 @@ export function TimezoneScheduler({
       <CardContent className="pt-6">
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1 space-y-1">
-            <p className="text-[10px] font-bold text-slate-400 uppercase">
+            <p className="text-[10px] font-bold text-zinc-400 uppercase">
               My Time
             </p>
-            <p className="text-xl font-bold text-slate-900 tabular-nums">
+            <p className="text-xl font-bold text-zinc-900 tabular-nums">
               {localTimeStr}
             </p>
-            <p className="text-[10px] text-slate-500 font-medium truncate">
+            <p className="text-[10px] text-zinc-500 font-medium truncate">
               Local Timezone
             </p>
           </div>
 
-          <div className="h-10 w-10 rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-sm">
-            <ArrowRightLeft className="h-4 w-4 text-slate-400" />
+          <div className="size-10 rounded-full bg-white border border-zinc-200 flex items-center justify-center shadow-sm">
+            <ArrowRightLeft className="size-4 text-zinc-400" />
           </div>
 
           <div className="flex-1 text-right space-y-1">
-            <p className="text-[10px] font-bold text-slate-400 uppercase">
+            <p className="text-[10px] font-bold text-zinc-400 uppercase">
               {remoteName}&apos;s Time
             </p>
-            <p className="text-xl font-bold text-slate-900 tabular-nums">
+            <p className="text-xl font-bold text-zinc-900 tabular-nums">
               {remoteTime}
             </p>
-            <p className="text-[10px] text-slate-500 font-medium truncate">
+            <p className="text-[10px] text-zinc-500 font-medium truncate">
               {remoteTimezone}
             </p>
           </div>
         </div>
 
-        <div className="mt-6 p-3 rounded-lg bg-white border border-slate-100 flex items-center justify-between">
+        <div className="mt-6 p-3 rounded-lg bg-white border border-zinc-100 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div
               className={cn(
-                "h-2 w-2 rounded-full",
-                working ? "bg-emerald-500" : "bg-slate-300",
+                "size-2 rounded-full",
+                working ? "bg-emerald-500" : "bg-zinc-300",
               )}
             />
-            <span className="text-xs font-bold text-slate-700">
+            <span className="text-xs font-bold text-zinc-700">
               Recommended contact: 2PM - 4PM (Your Time)
             </span>
           </div>

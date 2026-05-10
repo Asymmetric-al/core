@@ -143,7 +143,7 @@ export function FilterRow({
           variant="ghost"
           size="icon"
           onClick={onRemove}
-          className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
+          className="size-8 text-muted-foreground hover:text-destructive shrink-0"
         >
           <Trash2Icon className="size-4" />
         </Button>

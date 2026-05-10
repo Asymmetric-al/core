@@ -32,11 +32,11 @@ import { PORTAL_BADGE_CLASS, type CrmGridRow } from "./types";
 import type { DataTableFilterOption } from "@asym/ui/components/shadcn/data-table";
 
 function formatShortDate(value: string | null | undefined) {
-  if (!value) return "—";
+  if (!value) return ",";
   try {
     return format(new Date(value), "MMM d, yyyy");
   } catch {
-    return "—";
+    return ",";
   }
 }
 
@@ -70,7 +70,7 @@ export function getCrmColumns({
             <SharedNamedViewTransition
               name={crmRecordAvatarTransitionName(record.id)}
             >
-              <Avatar className="h-9 w-9 rounded-xl border border-border">
+              <Avatar className="size-9 rounded-xl border border-border">
                 <AvatarImage src={record.avatarUrl ?? undefined} />
                 <AvatarFallback className="rounded-xl bg-primary text-[10px] font-semibold text-primary-foreground">
                   {initial}
@@ -105,7 +105,7 @@ export function getCrmColumns({
       ),
       cell: ({ row }) => (
         <span className="text-sm font-medium capitalize text-foreground">
-          {row.original.recordType ?? "—"}
+          {row.original.recordType ?? ","}
         </span>
       ),
       filterFn: (row, id, value) => {
@@ -129,7 +129,7 @@ export function getCrmColumns({
       ),
       cell: ({ row }) => (
         <span className="text-sm font-medium text-muted-foreground">
-          {row.original.assignedMissionaryName ?? "—"}
+          {row.original.assignedMissionaryName ?? ","}
         </span>
       ),
       meta: {
@@ -143,7 +143,7 @@ export function getCrmColumns({
       ),
       cell: ({ row }) => (
         <span className="line-clamp-2 max-w-[200px] text-sm text-muted-foreground">
-          {row.original.primaryContactLine ?? "—"}
+          {row.original.primaryContactLine ?? ","}
         </span>
       ),
       meta: {
@@ -157,7 +157,7 @@ export function getCrmColumns({
       ),
       cell: ({ row }) => (
         <span className="line-clamp-2 max-w-[160px] text-xs text-muted-foreground">
-          {row.original.location ?? "—"}
+          {row.original.location ?? ","}
         </span>
       ),
       meta: {
@@ -179,7 +179,7 @@ export function getCrmColumns({
             ] ?? "border-border bg-background text-muted-foreground",
           )}
         >
-          {row.original.lifecycleStatus ?? "—"}
+          {row.original.lifecycleStatus ?? ","}
         </Badge>
       ),
       filterFn: (row, id, value) => {
@@ -236,7 +236,7 @@ export function getCrmColumns({
       ),
       cell: ({ row }) => (
         <span className="line-clamp-2 max-w-[180px] text-xs text-muted-foreground">
-          {row.original.fundsGivenToSummary ?? "—"}
+          {row.original.fundsGivenToSummary ?? ","}
         </span>
       ),
       enableSorting: false,
@@ -265,7 +265,7 @@ export function getCrmColumns({
       ),
       cell: ({ row }) => (
         <span className="text-xs text-muted-foreground">
-          {row.original.nextTaskSummary ?? "—"}
+          {row.original.nextTaskSummary ?? ","}
         </span>
       ),
       enableSorting: false,
@@ -313,7 +313,7 @@ export function getCrmColumns({
       cell: ({ row }) => (
         <div className="flex flex-wrap gap-1 max-w-[200px]">
           {(row.original.tags ?? []).length === 0 ? (
-            <span className="text-xs text-muted-foreground">—</span>
+            <span className="text-xs text-muted-foreground">,</span>
           ) : (
             row.original.tags.map((t) => (
               <Badge
@@ -351,10 +351,10 @@ export function getCrmColumns({
                 <Button
                   aria-label={`Open actions for ${record.displayName ?? "CRM record"}`}
                   variant="ghost"
-                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground rounded-xl"
+                  className="size-8 p-0 text-muted-foreground hover:text-foreground rounded-xl"
                 >
                   <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-4 w-4" />
+                  <MoreHorizontal className="size-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 rounded-xl">

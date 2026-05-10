@@ -121,7 +121,7 @@ const SearchDialog = ({ defaultOpen = false, trigger, className }: Props) => {
                   Project management
                 </span>
               </div>
-              <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
+              <div className="*:data-[slot=avatar]:ring-background flex -gap-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
                 <Avatar>
                   <AvatarImage
                     src="https://cdn.shadcnstudio.com/ss-assets/avatar/avatar-1.png"
@@ -170,7 +170,7 @@ const SearchDialog = ({ defaultOpen = false, trigger, className }: Props) => {
                   Real-time photo sharing app
                 </span>
               </div>
-              <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
+              <div className="*:data-[slot=avatar]:ring-background flex -gap-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
                 <Avatar>
                   <AvatarImage
                     src="https://cdn.shadcnstudio.com/ss-assets/avatar/avatar-1.png"

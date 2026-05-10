@@ -73,39 +73,39 @@ const PUBLIC_UPDATES = [
 
 const UpdateCard = ({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) => (
   <div className="group relative pl-8 pb-12 last:pb-0">
-    <div className="absolute left-[11px] top-3 bottom-0 w-px bg-slate-100 group-last:hidden" />
-    <div className="absolute left-0 top-3 h-6 w-6 rounded-full border-4 border-white bg-slate-100 flex items-center justify-center z-10 group-hover:bg-blue-100 group-hover:scale-110 transition-all duration-300">
-      <div className="h-1.5 w-1.5 rounded-full bg-slate-400 group-hover:bg-blue-600 transition-colors" />
+    <div className="absolute left-[11px] top-3 bottom-0 w-px bg-zinc-100 group-last:hidden" />
+    <div className="absolute left-0 top-3 size-6 rounded-full border-4 border-white bg-zinc-100 flex items-center justify-center z-10 group-hover:bg-blue-100 group-hover:scale-110 transition-all duration-300">
+      <div className="size-1.5 rounded-full bg-zinc-400 group-hover:bg-blue-600 transition-colors" />
     </div>
 
     <div className="space-y-3">
       <div className="flex items-center gap-3">
-        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+        <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
           {update.date}
         </span>
         <Badge
           variant="secondary"
-          className="px-2 py-0 text-[10px] bg-slate-50 text-slate-600 border-slate-200"
+          className="px-2 py-0 text-[10px] bg-zinc-50 text-zinc-600 border-zinc-200"
         >
           {update.type}
         </Badge>
       </div>
 
-      <Card className="border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 bg-white group/card">
+      <Card className="border-zinc-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 bg-white group/card">
         <CardContent className="p-5">
           {update.title && (
-            <h4 className="font-bold text-slate-900 mb-2 text-lg">
+            <h4 className="font-semibold text-zinc-900 mb-2 text-lg">
               {update.title}
             </h4>
           )}
 
           <SafeHtml
-            className="prose prose-slate prose-sm max-w-none text-slate-600 mb-4 leading-relaxed"
+            className="prose prose-slate prose-sm max-w-none text-zinc-600 mb-4 leading-relaxed"
             html={update.content}
           />
 
           {update.image && (
-            <div className="rounded-lg overflow-hidden mb-4 border border-slate-100 relative h-[300px]">
+            <div className="rounded-lg overflow-hidden mb-4 border border-zinc-100 relative h-[300px]">
               <Image
                 src={update.image}
                 alt="Update visual"
@@ -116,13 +116,13 @@ const UpdateCard = ({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) => (
             </div>
           )}
 
-          <div className="flex items-center justify-between pt-2 border-t border-slate-100/50">
+          <div className="flex items-center justify-between pt-2 border-t border-zinc-100/50">
             <div className="flex items-center gap-4">
-              <button className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-rose-600 transition-colors">
-                <Heart className="w-3.5 h-3.5" /> {update.likes}
+              <button className="flex items-center gap-1.5 text-xs font-medium text-zinc-400 hover:text-rose-600 transition-colors">
+                <Heart className="size-3.5" /> {update.likes}
               </button>
-              <button className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-blue-600 transition-colors">
-                <MessageCircle className="w-3.5 h-3.5" /> {update.comments}
+              <button className="flex items-center gap-1.5 text-xs font-medium text-zinc-400 hover:text-blue-600 transition-colors">
+                <MessageCircle className="size-3.5" /> {update.comments}
               </button>
             </div>
           </div>
@@ -137,7 +137,7 @@ const GivingAmounts = [50, 100, 200, 500];
 function WorkerProfileHeaderSection({ worker }: { worker: FieldWorker }) {
   return (
     <div className="space-y-6">
-      <div className="rounded-3xl overflow-hidden shadow-sm border border-slate-100 bg-white aspect-video relative group">
+      <div className="rounded-3xl overflow-hidden shadow-sm border border-zinc-100 bg-white aspect-video relative group">
         <Image
           src={worker.image}
           alt={`${worker.title} - Missionary in ${worker.location}`}
@@ -148,7 +148,7 @@ function WorkerProfileHeaderSection({ worker }: { worker: FieldWorker }) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
         <div className="absolute bottom-6 left-6 text-white flex items-center gap-2">
-          <MapPin className="h-4 w-4 text-emerald-400" />
+          <MapPin className="size-4 text-emerald-400" />
           <span className="font-semibold tracking-wide drop-shadow-sm">
             {worker.location}
           </span>
@@ -156,23 +156,23 @@ function WorkerProfileHeaderSection({ worker }: { worker: FieldWorker }) {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-6 items-start">
-        <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-white shadow-lg -mt-12 sm:-mt-16 bg-white relative z-10">
+        <Avatar className="size-20 sm:h-24 sm:w-24 border-4 border-white shadow-lg -mt-12 sm:-mt-16 bg-white relative z-10">
           <AvatarImage src={worker.image} className="object-cover" />
           <AvatarFallback>{worker.title.substring(0, 2)}</AvatarFallback>
         </Avatar>
 
         <div className="space-y-2 flex-1 pt-2">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-3xl sm:text-4xl font-semibold text-zinc-900 tracking-tight">
               {worker.title}
             </h1>
-            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-[11px] font-bold uppercase tracking-wider">
-              <ShieldCheck className="h-3.5 w-3.5" /> Verified
+            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-[11px] font-semibold uppercase tracking-wider">
+              <ShieldCheck className="size-3.5" /> Verified
             </div>
           </div>
-          <div className="flex items-center gap-2 text-slate-500 font-medium text-sm">
+          <div className="flex items-center gap-2 text-zinc-500 font-medium text-sm">
             <span>{worker.category}</span>
-            <span className="w-1 h-1 rounded-full bg-slate-300" />
+            <span className="size-1 rounded-full bg-zinc-300" />
             <span>Partner since 2019</span>
           </div>
         </div>
@@ -183,8 +183,8 @@ function WorkerProfileHeaderSection({ worker }: { worker: FieldWorker }) {
 
 function WorkerStoryTabContent({ worker }: { worker: FieldWorker }) {
   return (
-    <div className="prose prose-lg prose-slate max-w-none text-slate-600 leading-relaxed font-light">
-      <p className="font-medium text-xl text-slate-900 leading-relaxed mb-8 border-l-4 border-emerald-500 pl-6 italic">
+    <div className="prose prose-lg prose-slate max-w-none text-zinc-600 leading-relaxed font-light">
+      <p className="font-medium text-xl text-zinc-900 leading-relaxed mb-8 border-l-4 border-emerald-500 pl-6 italic">
         &quot;{worker.description}&quot;
       </p>
       <h3>The Mission</h3>
@@ -203,16 +203,16 @@ function WorkerStoryTabContent({ worker }: { worker: FieldWorker }) {
       </p>
 
       <div className="my-8 grid grid-cols-1 sm:grid-cols-2 gap-4 not-prose">
-        <div className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm">
-          <h4 className="font-bold text-slate-900 mb-2">Direct Impact</h4>
-          <p className="text-sm text-slate-500">
+        <div className="p-6 bg-white rounded-2xl border border-zinc-100 shadow-sm">
+          <h4 className="font-semibold text-zinc-900 mb-2">Direct Impact</h4>
+          <p className="text-sm text-zinc-500">
             100% of your program donation goes directly to the field account
             after processing fees.
           </p>
         </div>
-        <div className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm">
-          <h4 className="font-bold text-slate-900 mb-2">Accountability</h4>
-          <p className="text-sm text-slate-500">
+        <div className="p-6 bg-white rounded-2xl border border-zinc-100 shadow-sm">
+          <h4 className="font-semibold text-zinc-900 mb-2">Accountability</h4>
+          <p className="text-sm text-zinc-500">
             We conduct quarterly site visits and financial audits to ensure
             integrity.
           </p>
@@ -227,19 +227,19 @@ function WorkerUpdatesTabContent({ workerTitle }: { workerTitle: string }) {
     <>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h3 className="text-xl font-bold text-slate-900">
+          <h3 className="text-xl font-semibold text-zinc-900">
             Latest from the Field
           </h3>
-          <p className="text-slate-500 text-sm mt-1 flex items-center gap-2">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          <p className="text-zinc-500 text-sm mt-1 flex items-center gap-2">
+            <span className="relative flex size-2">
+              <span className="animate-ping absolute inline-flex size-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full size-2 bg-emerald-500"></span>
             </span>
             Updates posted directly by {workerTitle}
           </p>
         </div>
         <Button variant="outline" size="sm" className="hidden sm:flex">
-          <Rss className="mr-2 h-4 w-4" /> Subscribe
+          <Rss className="mr-2 size-4" /> Subscribe
         </Button>
       </div>
 
@@ -250,7 +250,7 @@ function WorkerUpdatesTabContent({ workerTitle }: { workerTitle: string }) {
       </div>
 
       <div className="pt-8 text-center">
-        <Button variant="ghost" className="text-slate-500 hover:text-slate-900">
+        <Button variant="ghost" className="text-zinc-500 hover:text-zinc-900">
           Load older updates
         </Button>
       </div>
@@ -289,13 +289,13 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans pb-24">
-      <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200/60">
+      <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-zinc-200/60">
         <div className="container mx-auto px-4 h-16 flex items-center">
           <Link
             href="/workers"
-            className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
+            className="inline-flex items-center text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" /> Back to Partners
+            <ArrowLeft className="size-4 mr-2" /> Back to Partners
           </Link>
         </div>
       </div>
@@ -311,19 +311,19 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
             <WorkerProfileHeaderSection worker={worker} />
 
             <Tabs defaultValue="story" className="w-full">
-              <TabsList className="w-full justify-start border-b border-slate-200 bg-transparent h-auto p-0 mb-8 gap-8">
+              <TabsList className="w-full justify-start border-b border-zinc-200 bg-transparent h-auto p-0 mb-8 gap-8">
                 <TabsTrigger
                   value="story"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-slate-900 data-[state=active]:shadow-none px-0 py-3 font-semibold text-slate-500 data-[state=active]:text-slate-900 transition-all hover:text-slate-700 text-base"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:shadow-none px-0 py-3 font-semibold text-zinc-500 data-[state=active]:text-zinc-900 transition-all hover:text-zinc-700 text-base"
                 >
                   Our Story
                 </TabsTrigger>
                 <TabsTrigger
                   value="updates"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-slate-900 data-[state=active]:shadow-none px-0 py-3 font-semibold text-slate-500 data-[state=active]:text-slate-900 transition-all hover:text-slate-700 text-base flex items-center gap-2"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:shadow-none px-0 py-3 font-semibold text-zinc-500 data-[state=active]:text-zinc-900 transition-all hover:text-zinc-700 text-base flex items-center gap-2"
                 >
                   Field Journal{" "}
-                  <Badge className="bg-slate-100 text-slate-600 hover:bg-slate-200 border-none h-5 px-1.5 text-[10px]">
+                  <Badge className="bg-zinc-100 text-zinc-600 hover:bg-zinc-200 border-none h-5 px-1.5 text-[10px]">
                     New
                   </Badge>
                 </TabsTrigger>
@@ -352,25 +352,25 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
             className="lg:col-span-5 xl:col-span-4 relative mt-8 lg:mt-0"
           >
             <div className="sticky top-24 space-y-6">
-              <Card className="border-none shadow-xl shadow-slate-200/60 overflow-hidden relative bg-white ring-1 ring-slate-100 rounded-3xl">
+              <Card className="border-none shadow-xl shadow-zinc-200/60 overflow-hidden relative bg-white ring-1 ring-zinc-100 rounded-3xl">
                 <div className="p-6 sm:p-8 space-y-8">
                   <div className="text-center space-y-2">
-                    <h3 className="font-bold text-2xl text-slate-900 tracking-tight">
+                    <h3 className="font-semibold text-2xl text-zinc-900 tracking-tight">
                       Partner with Us
                     </h3>
-                    <p className="text-slate-500 text-sm">
+                    <p className="text-zinc-500 text-sm">
                       Empower this mission with your support.
                     </p>
                   </div>
 
-                  <div className="bg-slate-100 p-1.5 rounded-2xl flex relative">
+                  <div className="bg-zinc-100 p-1.5 rounded-2xl flex relative">
                     <button
                       onClick={() => setFrequency("one-time")}
                       className={cn(
-                        "flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 relative z-10",
+                        "flex-1 py-3 text-sm font-semibold rounded-xl transition-all duration-300 relative z-10",
                         frequency === "one-time"
-                          ? "bg-white text-slate-900 shadow-sm"
-                          : "text-slate-500 hover:text-slate-700",
+                          ? "bg-white text-zinc-900 shadow-sm"
+                          : "text-zinc-500 hover:text-zinc-700",
                       )}
                     >
                       One-Time
@@ -378,10 +378,10 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                     <button
                       onClick={() => setFrequency("monthly")}
                       className={cn(
-                        "flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 relative z-10",
+                        "flex-1 py-3 text-sm font-semibold rounded-xl transition-all duration-300 relative z-10",
                         frequency === "monthly"
                           ? "bg-white text-blue-600 shadow-sm"
-                          : "text-slate-500 hover:text-slate-700",
+                          : "text-zinc-500 hover:text-zinc-700",
                       )}
                     >
                       Monthly
@@ -394,15 +394,15 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                         "relative h-14 rounded-xl border-2 transition-all duration-300 bg-white flex items-center overflow-hidden cursor-text group",
                         isInputFocused
                           ? "border-blue-600 ring-4 ring-blue-50/50"
-                          : "border-slate-200 hover:border-slate-300",
+                          : "border-zinc-200 hover:border-zinc-300",
                       )}
                     >
                       <span
                         className={cn(
-                          "absolute left-5 text-xl font-bold transition-colors pointer-events-none",
+                          "absolute left-5 text-xl font-semibold transition-colors pointer-events-none",
                           isInputFocused || customAmount
-                            ? "text-slate-900"
-                            : "text-slate-300",
+                            ? "text-zinc-900"
+                            : "text-zinc-300",
                         )}
                       >
                         $
@@ -412,14 +412,14 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                         id="custom-amount-input"
                         type="number"
                         placeholder="0"
-                        className="w-full h-full bg-transparent border-none outline-none pl-10 pr-6 text-2xl font-bold text-slate-900 placeholder:text-slate-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none transition-all"
+                        className="size-full bg-transparent border-none outline-none pl-10 pr-6 text-2xl font-semibold text-zinc-900 placeholder:text-zinc-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none transition-all"
                         value={customAmount}
                         onChange={handleCustomAmountChange}
                         onFocus={() => setIsInputFocused(true)}
                         onBlur={() => setIsInputFocused(false)}
                       />
 
-                      <span className="absolute right-5 text-[9px] font-bold text-slate-400 pointer-events-none uppercase tracking-wider bg-slate-50 px-2 py-1 rounded">
+                      <span className="absolute right-5 text-[9px] font-semibold text-zinc-400 pointer-events-none uppercase tracking-wider bg-zinc-50 px-2 py-1 rounded">
                         USD
                       </span>
                     </div>
@@ -430,10 +430,10 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                           key={amt}
                           onClick={() => handleAmountClick(amt)}
                           className={cn(
-                            "py-2.5 rounded-xl border text-sm font-bold press-feedback",
+                            "py-2.5 rounded-xl border text-sm font-semibold press-feedback",
                             amount === amt && !customAmount
                               ? "border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-100"
-                              : "border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-slate-900 hover:bg-slate-50",
+                              : "border-zinc-200 bg-white text-zinc-600 hover:border-blue-300 hover:text-zinc-900 hover:bg-zinc-50",
                           )}
                         >
                           ${amt}
@@ -444,24 +444,24 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
 
                   <div className="space-y-3 pt-2">
                     <div className="flex justify-between items-end text-sm">
-                      <span className="font-bold text-slate-700">
+                      <span className="font-semibold text-zinc-700">
                         {percentRaised}% Funded
                       </span>
-                      <span className="text-slate-500 font-medium">
+                      <span className="text-zinc-500 font-medium">
                         {formatCurrency(worker.raised)}{" "}
-                        <span className="text-slate-300">/</span>{" "}
+                        <span className="text-zinc-300">/</span>{" "}
                         {formatCurrency(worker.goal || 0)}
                       </span>
                     </div>
                     <Progress
                       value={percentRaised}
-                      className="h-2.5 bg-slate-100"
+                      className="h-2.5 bg-zinc-100"
                     />
                   </div>
 
                   <Button
                     size="lg"
-                    className="w-full h-14 text-lg font-bold bg-slate-900 hover:bg-slate-800 shadow-xl shadow-slate-900/20 rounded-2xl hover-scale-subtle"
+                    className="w-full h-14 text-lg font-semibold bg-zinc-900 hover:bg-zinc-800 shadow-xl shadow-zinc-900/20 rounded-2xl hover-scale-subtle"
                     asChild
                   >
                     <Link
@@ -473,9 +473,9 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                     </Link>
                   </Button>
 
-                  <div className="flex items-center justify-center gap-2 text-xs text-slate-400 font-medium">
-                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />{" "}
-                    Secure Payment &bull; 100% Tax Deductible
+                  <div className="flex items-center justify-center gap-2 text-xs text-zinc-400 font-medium">
+                    <ShieldCheck className="size-3.5 text-emerald-500" /> Secure
+                    Payment &bull; 100% Tax Deductible
                   </div>
                 </div>
               </Card>
@@ -483,9 +483,9 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
               <div className="flex gap-4 justify-center">
                 <Button
                   variant="ghost"
-                  className="text-slate-500 hover:text-slate-900 hover:bg-white/50"
+                  className="text-zinc-500 hover:text-zinc-900 hover:bg-white/50"
                 >
-                  <Share2 className="mr-2 h-4 w-4" /> Share Profile
+                  <Share2 className="mr-2 size-4" /> Share Profile
                 </Button>
               </div>
             </div>

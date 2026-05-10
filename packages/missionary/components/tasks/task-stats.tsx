@@ -44,7 +44,7 @@ export function StatCard({
       {isActive && (
         <motion.div
           layoutId="active-stat-pill"
-          className="absolute top-3 right-3 h-2 w-2 rounded-full bg-primary"
+          className="absolute top-3 right-3 size-2 rounded-full bg-primary"
         />
       )}
       <ValueText value={value} />

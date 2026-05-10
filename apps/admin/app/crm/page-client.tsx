@@ -55,6 +55,12 @@ import { PORTAL_BADGE_CLASS, toCrmRecord } from "./types";
 
 import type { CrmGridRow, CrmRecord } from "./types";
 
+function makeDisplayDate(value?: string | number | Date): Date {
+  return value === undefined
+    ? new globalThis.Date()
+    : new globalThis.Date(value);
+}
+
 function DetailDrawer({
   contact,
   onClose,
@@ -86,14 +92,14 @@ function DetailDrawer({
     <Sheet open={!!contact} onOpenChange={(open) => !open && onClose()}>
       <SheetContent className="w-full sm:max-w-2xl p-0 gap-0 border-l border-border bg-background shadow-2xl overflow-hidden flex flex-col h-full text-left">
         <SheetTitle className="sr-only">
-          {display} — CRM record details
+          {display}, CRM record details
         </SheetTitle>
         <SheetDescription className="sr-only">
           Constituent summary, activity, and properties for this CRM record.
         </SheetDescription>
         <div className="h-14 bg-card border-b border-border flex items-center justify-between px-4 shrink-0 z-10">
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-            <User className="h-4 w-4 text-muted-foreground" />
+            <User className="size-4 text-muted-foreground" />
             <span className="truncate max-w-[200px] sm:max-w-md">
               {display}
             </span>
@@ -107,7 +113,7 @@ function DetailDrawer({
               disabled={isAnalyzing}
             >
               <FileText
-                className={cn("h-3.5 w-3.5", isAnalyzing && "animate-pulse")}
+                className={cn("size-3.5", isAnalyzing && "animate-pulse")}
               />
               {isAnalyzing ? "Summarizing..." : "Quick Summary"}
             </Button>
@@ -117,9 +123,9 @@ function DetailDrawer({
               size="icon"
               onClick={onClose}
               aria-label="Close CRM record details"
-              className="h-8 w-8 text-muted-foreground"
+              className="size-8 text-muted-foreground"
             >
-              <X className="h-4 w-4" />
+              <X className="size-4" />
             </Button>
           </div>
         </div>
@@ -130,9 +136,9 @@ function DetailDrawer({
               <SharedNamedViewTransition
                 name={crmRecordAvatarTransitionName(contact.id)}
               >
-                <Avatar className="h-20 w-20 border-4 border-background shadow-sm">
+                <Avatar className="size-20 border-4 border-background shadow-sm">
                   <AvatarImage src={contact.avatarUrl ?? undefined} />
-                  <AvatarFallback className="bg-muted text-muted-foreground font-bold text-xl">
+                  <AvatarFallback className="bg-muted text-muted-foreground font-semibold text-xl">
                     {display[0] ?? "?"}
                   </AvatarFallback>
                 </Avatar>
@@ -141,7 +147,7 @@ function DetailDrawer({
                 <SharedNamedViewTransition
                   name={crmRecordTitleTransitionName(contact.id)}
                 >
-                  <h2 className="text-2xl font-bold text-foreground tracking-tight">
+                  <h2 className="text-2xl font-semibold text-foreground tracking-tight">
                     {display}
                   </h2>
                 </SharedNamedViewTransition>
@@ -170,14 +176,14 @@ function DetailDrawer({
                 <div className="flex flex-wrap gap-2 pt-2">
                   <Badge
                     variant="outline"
-                    className="text-[10px] font-bold uppercase"
+                    className="text-[10px] font-semibold uppercase"
                   >
                     {contact.lifecycleStatus ?? "Unknown status"}
                   </Badge>
                   <Badge
                     variant="outline"
                     className={cn(
-                      "text-[10px] font-bold uppercase border shadow-none",
+                      "text-[10px] font-semibold uppercase border shadow-none",
                       PORTAL_BADGE_CLASS[contact.portalAccessLabel],
                     )}
                   >
@@ -187,7 +193,7 @@ function DetailDrawer({
                   </Badge>
                   <Badge
                     variant="secondary"
-                    className="h-5 text-[10px] font-bold uppercase tracking-wider border-none bg-muted text-muted-foreground"
+                    className="h-5 text-[10px] font-semibold uppercase tracking-wider border-none bg-muted text-muted-foreground"
                   >
                     {formatCurrency(contact.lifetimeGiving)}
                   </Badge>
@@ -202,21 +208,21 @@ function DetailDrawer({
                   animate={{ opacity: 1, y: 0 }}
                   className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-4"
                 >
-                  <div className="flex items-center gap-2 text-foreground font-bold text-[10px] uppercase tracking-[0.2em]">
-                    <FileText className="h-3.5 w-3.5 text-muted-foreground" />{" "}
+                  <div className="flex items-center gap-2 text-foreground font-semibold text-[10px] uppercase tracking-[0.2em]">
+                    <FileText className="size-3.5 text-muted-foreground" />{" "}
                     Highlights
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                      <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
                         Type
                       </span>
-                      <p className="text-sm font-bold text-foreground">
+                      <p className="text-sm font-semibold text-foreground">
                         {summary.category}
                       </p>
                     </div>
                     <div>
-                      <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                      <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
                         Notes
                       </span>
                       <p className="text-xs text-muted-foreground leading-relaxed font-medium">
@@ -224,10 +230,10 @@ function DetailDrawer({
                       </p>
                     </div>
                     <div>
-                      <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                      <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
                         Next step
                       </span>
-                      <p className="text-xs text-foreground font-bold">
+                      <p className="text-xs text-foreground font-semibold">
                         {summary.nextMove}
                       </p>
                     </div>
@@ -240,13 +246,13 @@ function DetailDrawer({
               <TabsList className="bg-transparent h-9 p-0 gap-6 border-b border-border w-full rounded-none justify-start">
                 <TabsTrigger
                   value="activity"
-                  className="bg-transparent border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground rounded-none px-0 py-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground shadow-none"
+                  className="bg-transparent border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shadow-none"
                 >
                   Activity
                 </TabsTrigger>
                 <TabsTrigger
                   value="properties"
-                  className="bg-transparent border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground rounded-none px-0 py-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground shadow-none"
+                  className="bg-transparent border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shadow-none"
                 >
                   Properties
                 </TabsTrigger>
@@ -263,21 +269,21 @@ function DetailDrawer({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                        className="size-7 text-muted-foreground hover:text-foreground"
                       >
-                        <Paperclip className="h-3.5 w-3.5" />
+                        <Paperclip className="size-3.5" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                        className="size-7 text-muted-foreground hover:text-foreground"
                       >
-                        <History className="h-3.5 w-3.5" />
+                        <History className="size-3.5" />
                       </Button>
                     </div>
                     <Button
                       size="sm"
-                      className="h-7 px-4 text-[10px] font-bold uppercase tracking-wider"
+                      className="h-7 px-4 text-[10px] font-semibold uppercase tracking-wider"
                     >
                       Save Note
                     </Button>
@@ -293,14 +299,14 @@ function DetailDrawer({
                   ) : (
                     contact.activities.map((act) => (
                       <div key={act.id} className="relative group">
-                        <div className="absolute -left-[21px] top-0 h-4 w-4 rounded-full border-2 border-background bg-muted z-10 transition-colors group-hover:bg-foreground" />
+                        <div className="absolute -left-[21px] top-0 size-4 rounded-full border-2 border-background bg-muted z-10 transition-colors group-hover:bg-foreground" />
                         <div className="pb-4 space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-foreground">
+                            <span className="text-xs font-semibold text-foreground">
                               {act.title}
                             </span>
-                            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
-                              {new Date(act.date).toLocaleDateString()}
+                            <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest">
+                              {makeDisplayDate(act.date).toLocaleDateString()}
                             </span>
                           </div>
                           {act.description && (
@@ -309,7 +315,7 @@ function DetailDrawer({
                             </p>
                           )}
                           {act.amount && (
-                            <p className="text-xs font-bold text-emerald-600">
+                            <p className="text-xs font-semibold text-emerald-600">
                               +{formatCurrency(act.amount)} gift received
                             </p>
                           )}
@@ -326,46 +332,46 @@ function DetailDrawer({
               >
                 <div className="space-y-6">
                   <div className="space-y-1">
-                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                    <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
                       Email
                     </p>
-                    <p className="text-sm font-bold text-foreground truncate hover:text-primary cursor-pointer">
-                      {contact.email ?? "—"}
+                    <p className="text-sm font-semibold text-foreground truncate hover:text-primary cursor-pointer">
+                      {contact.email ?? ","}
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                    <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
                       Phone
                     </p>
-                    <p className="text-sm font-bold text-foreground">
-                      {contact.phone ?? "—"}
+                    <p className="text-sm font-semibold text-foreground">
+                      {contact.phone ?? ","}
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                    <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
                       Location
                     </p>
-                    <p className="text-sm font-bold text-foreground">
-                      {contact.location ?? "—"}
+                    <p className="text-sm font-semibold text-foreground">
+                      {contact.location ?? ","}
                     </p>
                   </div>
                 </div>
                 <div className="space-y-6">
                   <div className="space-y-1">
-                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                    <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
                       Assigned missionary
                     </p>
-                    <p className="text-sm font-bold text-foreground">
-                      {contact.assignedMissionaryName ?? "—"}
+                    <p className="text-sm font-semibold text-foreground">
+                      {contact.assignedMissionaryName ?? ","}
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                    <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
                       Tags
                     </p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {(contact.tags ?? []).length === 0 ? (
-                        <span className="text-sm text-muted-foreground">—</span>
+                        <span className="text-sm text-muted-foreground">,</span>
                       ) : (
                         contact.tags.map((t) => (
                           <Badge
@@ -407,7 +413,7 @@ function KanbanView({
   if (rows.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground text-sm">
-        Load records in table view first, or adjust filters — nothing to show on
+        Load records in table view first, or adjust filters, nothing to show on
         the board yet.
       </div>
     );
@@ -423,11 +429,11 @@ function KanbanView({
           <div className="p-3 bg-muted/50 border-b border-border flex items-center justify-between">
             <Badge
               variant="secondary"
-              className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.15em] rounded shadow-none border"
+              className="px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.15em] rounded shadow-none border"
             >
               {status}
             </Badge>
-            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
               {
                 rows.filter((r) => (r.lifecycleStatus ?? "Unknown") === status)
                   .length
@@ -452,30 +458,30 @@ function KanbanView({
                       <SharedNamedViewTransition
                         name={crmRecordTitleTransitionName(c.id)}
                       >
-                        <span className="font-bold text-foreground text-xs truncate leading-none inline-block max-w-[85%]">
+                        <span className="font-semibold text-foreground text-xs truncate leading-none inline-block max-w-[85%]">
                           {name}
                         </span>
                       </SharedNamedViewTransition>
-                      <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
+                      <MoreHorizontal className="size-3.5 text-muted-foreground" />
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="h-4 w-4 rounded bg-muted flex items-center justify-center text-[8px] font-bold text-muted-foreground border border-border">
+                      <div className="size-4 rounded bg-muted flex items-center justify-center text-[8px] font-semibold text-muted-foreground border border-border">
                         {orgInitial}
                       </div>
                       <span className="text-[10px] text-muted-foreground font-medium truncate">
-                        {org || "—"}
+                        {org || ","}
                       </span>
                     </div>
                     <div className="flex items-center justify-between pt-2 border-t border-muted">
-                      <span className="text-[10px] font-bold text-foreground tabular-nums">
+                      <span className="text-[10px] font-semibold text-foreground tabular-nums">
                         {formatCurrency(c.lifetimeGiving)}
                       </span>
                       <SharedNamedViewTransition
                         name={crmRecordAvatarTransitionName(c.id)}
                       >
-                        <Avatar className="h-4 w-4">
+                        <Avatar className="size-4">
                           <AvatarImage src={c.avatarUrl ?? undefined} />
-                          <AvatarFallback className="text-[8px] font-bold">
+                          <AvatarFallback className="text-[8px] font-semibold">
                             {name[0] ?? "?"}
                           </AvatarFallback>
                         </Avatar>
@@ -597,7 +603,7 @@ export default function MissionControlCRM() {
                     : "text-muted-foreground",
                 )}
               >
-                <List className="h-4 w-4" />
+                <List className="size-4" />
               </button>
               <button
                 type="button"
@@ -610,11 +616,11 @@ export default function MissionControlCRM() {
                     : "text-muted-foreground",
                 )}
               >
-                <Columns className="h-4 w-4" />
+                <Columns className="size-4" />
               </button>
             </div>
             <Button className="h-10 gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90">
-              <Plus className="h-3.5 w-3.5" /> New Record
+              <Plus className="size-3.5" /> New Record
             </Button>
           </div>
         }
@@ -738,7 +744,7 @@ export default function MissionControlCRM() {
                               <SharedNamedViewTransition
                                 name={crmRecordAvatarTransitionName(c.id)}
                               >
-                                <Avatar className="h-10 w-10 border border-border">
+                                <Avatar className="size-10 border border-border">
                                   <AvatarImage src={c.avatarUrl ?? undefined} />
                                   <AvatarFallback className="text-xs font-semibold bg-primary text-primary-foreground">
                                     {name[0] ?? "?"}
@@ -754,7 +760,7 @@ export default function MissionControlCRM() {
                                   </div>
                                 </SharedNamedViewTransition>
                                 <div className="text-xs text-muted-foreground">
-                                  {c.primaryOrganization ?? "—"}
+                                  {c.primaryOrganization ?? ","}
                                 </div>
                               </div>
                             </div>
@@ -762,14 +768,14 @@ export default function MissionControlCRM() {
                               variant="outline"
                               className="text-[9px] uppercase"
                             >
-                              {c.lifecycleStatus ?? "—"}
+                              {c.lifecycleStatus ?? ","}
                             </Badge>
                           </div>
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-muted-foreground line-clamp-1">
-                              {c.recordType ?? "—"}
+                              {c.recordType ?? ","}
                             </span>
-                            <span className="font-bold tabular-nums">
+                            <span className="font-semibold tabular-nums">
                               {formatCurrency(c.lifetimeGiving)}
                             </span>
                           </div>

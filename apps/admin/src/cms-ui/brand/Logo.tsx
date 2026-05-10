@@ -4,7 +4,7 @@ import { Badge } from "@asym/ui/components/shadcn/badge";
 export function Logo() {
   return (
     <div className="flex items-center gap-2 text-foreground">
-      <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-xs font-black text-primary-foreground">
+      <span className="inline-flex size-8 items-center justify-center rounded-lg bg-primary text-xs font-black text-primary-foreground">
         {brandConfig.shortName}
       </span>
       <div className="flex flex-col leading-none">

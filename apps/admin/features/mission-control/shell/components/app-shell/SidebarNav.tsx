@@ -47,18 +47,18 @@ const NavLink = memo(function NavLink({
       className={cn(
         "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
         isActive
-          ? "bg-slate-100 text-slate-900 font-semibold"
-          : "text-slate-500 hover:bg-slate-100/60 hover:text-slate-900",
+          ? "bg-zinc-100 text-zinc-900 font-semibold"
+          : "text-zinc-500 hover:bg-zinc-100/60 hover:text-zinc-900",
         collapsed && "justify-center px-2",
       )}
     >
       <DynamicIcon
         name={item.icon}
         className={cn(
-          "h-5 w-5 shrink-0 transition-colors",
+          "size-5 shrink-0 transition-colors",
           isActive
-            ? "text-slate-900"
-            : "text-slate-400 group-hover:text-slate-900",
+            ? "text-zinc-900"
+            : "text-zinc-400 group-hover:text-zinc-900",
         )}
       />
       {!collapsed && <span className="truncate">{item.title}</span>}
@@ -99,11 +99,11 @@ const NavSection = memo(function NavSection({
   return (
     <>
       {label && !collapsed && (
-        <span className="mb-2 mt-6 px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400/80">
+        <span className="mb-2 mt-6 px-3 text-[11px] font-bold uppercase tracking-wider text-zinc-400/80">
           {label}
         </span>
       )}
-      {label && collapsed && <div className="my-2 mx-2 h-px bg-slate-100" />}
+      {label && collapsed && <div className="my-2 mx-2 h-px bg-zinc-100" />}
       {items.map((item) => (
         <NavLink
           key={item.id}
@@ -133,16 +133,16 @@ const SidebarHeader = memo(function SidebarHeader({
           href={resolveMissionControlHref("/mc")}
           className="flex items-center gap-3"
         >
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-white shadow-sm ring-1 ring-slate-900/5">
-            <LayoutDashboard className="h-5 w-5" />
+          <div className="flex size-9 items-center justify-center rounded-xl bg-zinc-900 text-white shadow-sm ring-1 ring-zinc-900/5">
+            <LayoutDashboard className="size-5" />
           </div>
-          <span className="text-base font-bold tracking-tight text-slate-900">
+          <span className="text-base font-bold tracking-tight text-zinc-900">
             Mission Control
           </span>
         </Link>
       ) : (
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-white shadow-sm">
-          <LayoutDashboard className="h-5 w-5" />
+        <div className="flex size-9 items-center justify-center rounded-xl bg-zinc-900 text-white shadow-sm">
+          <LayoutDashboard className="size-5" />
         </div>
       )}
     </div>
@@ -157,21 +157,21 @@ const CollapseButton = memo(function CollapseButton({
   onToggle: () => void;
 }) {
   return (
-    <div className="border-t border-slate-100 p-3">
+    <div className="border-t border-zinc-100 p-3">
       <Button
         variant="ghost"
         size="sm"
         className={cn(
-          "w-full justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-900 rounded-xl h-9",
+          "w-full justify-center text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900 rounded-xl h-9",
           !collapsed && "justify-start px-3",
         )}
         onClick={onToggle}
       >
         {collapsed ? (
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="size-4" />
         ) : (
           <>
-            <ChevronLeft className="h-4 w-4 mr-2" />
+            <ChevronLeft className="size-4 mr-2" />
             <span className="text-xs font-medium">Collapse</span>
           </>
         )}
@@ -204,7 +204,7 @@ export const SidebarNav = memo(function SidebarNav() {
     <TooltipProvider delayDuration={0}>
       <aside
         className={cn(
-          "flex flex-col border-r border-slate-200/60 bg-white/80 backdrop-blur-xl transition-all duration-300 ease-in-out",
+          "flex flex-col border-r border-zinc-200/60 bg-white/80 backdrop-blur-xl transition-all duration-300 ease-in-out",
           sidebarCollapsed ? "w-[70px]" : "w-[260px]",
         )}
       >

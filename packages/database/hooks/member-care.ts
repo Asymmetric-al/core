@@ -3,10 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 
-import {
-  getAdminSurfaceQueryKey,
-  invalidateAdminSurfaceQuery,
-} from "../query-keys";
+import { getAdminSurfaceQueryKey } from "../query-keys";
 
 export type MemberCarePriority =
   | "Healthy"
@@ -237,24 +234,6 @@ export function useCarePrivateNotes(personnelId: string) {
   };
 }
 
-async function invalidateMemberCareQueries(
-  queryClient: ReturnType<typeof useQueryClient>,
-  personnelId?: string,
-) {
-  await Promise.all([
-    invalidateAdminSurfaceQuery(queryClient, "memberCareDashboard"),
-  ]);
-  if (personnelId) {
-    await queryClient.invalidateQueries({
-      queryKey: getAdminSurfaceQueryKey("memberCareDetail").concat(personnelId),
-    });
-  } else {
-    await queryClient.invalidateQueries({
-      queryKey: getAdminSurfaceQueryKey("memberCareDetail"),
-    });
-  }
-}
-
 export function useCreateCareThreadPost() {
   const queryClient = useQueryClient();
 
@@ -262,7 +241,16 @@ export function useCreateCareThreadPost() {
     mutationFn: (input: { personnelId: string; content: string }) =>
       requestMutation("/api/admin/member-care/thread", "POST", input),
     onSuccess: async (_result, variables) => {
-      await invalidateMemberCareQueries(queryClient, variables.personnelId);
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: getAdminSurfaceQueryKey("memberCareDashboard"),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: getAdminSurfaceQueryKey("memberCareDetail").concat(
+            variables.personnelId,
+          ),
+        }),
+      ]);
     },
   });
 }
@@ -274,7 +262,16 @@ export function useCreateCarePrivateNote() {
     mutationFn: (input: { personnelId: string; content: string }) =>
       requestMutation("/api/admin/member-care/private-notes", "POST", input),
     onSuccess: async (_result, variables) => {
-      await invalidateMemberCareQueries(queryClient, variables.personnelId);
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: getAdminSurfaceQueryKey("memberCareDashboard"),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: getAdminSurfaceQueryKey("memberCareDetail").concat(
+            variables.personnelId,
+          ),
+        }),
+      ]);
     },
   });
 }
@@ -295,7 +292,16 @@ export function useCreateOrUpdateCareGoal() {
       targetDate?: string;
     }) => requestMutation("/api/admin/member-care/goals", "POST", input),
     onSuccess: async (_result, variables) => {
-      await invalidateMemberCareQueries(queryClient, variables.personnelId);
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: getAdminSurfaceQueryKey("memberCareDashboard"),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: getAdminSurfaceQueryKey("memberCareDetail").concat(
+            variables.personnelId,
+          ),
+        }),
+      ]);
     },
   });
 }
@@ -310,7 +316,16 @@ export function useLogCareActivity() {
       content: string;
     }) => requestMutation("/api/admin/member-care/activity", "POST", input),
     onSuccess: async (_result, variables) => {
-      await invalidateMemberCareQueries(queryClient, variables.personnelId);
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: getAdminSurfaceQueryKey("memberCareDashboard"),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: getAdminSurfaceQueryKey("memberCareDetail").concat(
+            variables.personnelId,
+          ),
+        }),
+      ]);
     },
   });
 }
@@ -327,7 +342,16 @@ export function useUpsertCareRequirement() {
       notes?: string;
     }) => requestMutation("/api/admin/member-care/requirements", "POST", input),
     onSuccess: async (_result, variables) => {
-      await invalidateMemberCareQueries(queryClient, variables.personnelId);
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: getAdminSurfaceQueryKey("memberCareDashboard"),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: getAdminSurfaceQueryKey("memberCareDetail").concat(
+            variables.personnelId,
+          ),
+        }),
+      ]);
     },
   });
 }
@@ -339,7 +363,16 @@ export function useSetManualAttentionFlag() {
     mutationFn: (input: { personnelId: string; manualAttention: boolean }) =>
       requestMutation("/api/admin/member-care/attention", "PATCH", input),
     onSuccess: async (_result, variables) => {
-      await invalidateMemberCareQueries(queryClient, variables.personnelId);
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: getAdminSurfaceQueryKey("memberCareDashboard"),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: getAdminSurfaceQueryKey("memberCareDetail").concat(
+            variables.personnelId,
+          ),
+        }),
+      ]);
     },
   });
 }

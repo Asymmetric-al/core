@@ -38,7 +38,7 @@ export function AutomationConditionRow({
   };
 
   return (
-    <li className="flex flex-wrap items-center gap-2 rounded-lg bg-zinc-50/60 px-2 py-2">
+    <li className="flex flex-wrap items-center gap-2 rounded-lg bg-zinc-50/60 p-2">
       <Select
         value={condition.kind}
         onValueChange={(value) =>

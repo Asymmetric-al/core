@@ -12,13 +12,19 @@ import type { Metadata } from "next";
 
 import { fetchPublishedCmsUpdates } from "@/lib/cms/client";
 
+function makeDisplayDate(value?: string | number | Date): Date {
+  return value === undefined
+    ? new globalThis.Date()
+    : new globalThis.Date(value);
+}
+
 export const metadata: Metadata = pageMetadata.home;
 
 export default async function HomePage() {
   const latestUpdates = await fetchPublishedCmsUpdates(3);
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50 selection:bg-zinc-900/10 selection:text-zinc-900">
+    <div className="flex flex-col min-h-screen bg-zinc-50 selection:bg-zinc-900/10 selection:text-zinc-900">
       <DonateActionJsonLd />
       <HomeHero />
       <LiveTicker />
@@ -31,7 +37,7 @@ export default async function HomePage() {
             <p className="text-xs font-semibold tracking-[0.2em] uppercase text-zinc-500">
               From Site Studio
             </p>
-            <h2 className="mt-2 text-2xl font-bold text-zinc-900">
+            <h2 className="mt-2 text-2xl font-semibold text-zinc-900">
               Latest Ministry Updates
             </h2>
           </div>
@@ -43,7 +49,7 @@ export default async function HomePage() {
               >
                 <p className="text-xs font-medium text-zinc-500">
                   {typeof update.publishedAt === "string"
-                    ? new Date(update.publishedAt).toLocaleDateString()
+                    ? makeDisplayDate(update.publishedAt).toLocaleDateString()
                     : "Published"}
                 </p>
                 <h3 className="mt-2 text-lg font-semibold text-zinc-900">

@@ -85,7 +85,7 @@ export function TaskRow({
         <Checkbox
           checked={isCompleted}
           onCheckedChange={onComplete}
-          className="h-6 w-6 rounded-lg border-[oklch(0.915_0.003_265)] data-[state=checked]:bg-[oklch(0.205_0.015_265)] data-[state=checked]:border-[oklch(0.205_0.015_265)] transition-colors cursor-pointer"
+          className="size-6 rounded-lg border-[oklch(0.915_0.003_265)] data-[state=checked]:bg-[oklch(0.205_0.015_265)] data-[state=checked]:border-[oklch(0.205_0.015_265)] transition-colors cursor-pointer"
         />
       </div>
 
@@ -105,7 +105,7 @@ export function TaskRow({
                   "bg-white",
                 )}
               >
-                <Icon className="h-3 w-3" />
+                <Icon className="size-3" />
                 {typeConfig.label}
               </div>
             </div>
@@ -140,9 +140,9 @@ export function TaskRow({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-10 w-10 shrink-0 text-[oklch(0.915_0.003_265)] hover:text-[oklch(0.145_0.015_265)] hover:bg-[oklch(0.965_0.003_265)] rounded-xl"
+                className="size-10 shrink-0 text-[oklch(0.915_0.003_265)] hover:text-[oklch(0.145_0.015_265)] hover:bg-[oklch(0.965_0.003_265)] rounded-xl"
               >
-                <MoreHorizontal className="h-5 w-5" />
+                <MoreHorizontal className="size-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -153,14 +153,14 @@ export function TaskRow({
                 onClick={onEdit}
                 className="rounded-xl text-[10px] font-black uppercase tracking-widest py-3 cursor-pointer"
               >
-                <Pencil className="mr-3 h-4 w-4 text-[oklch(0.45_0.008_265)]" />
+                <Pencil className="mr-3 size-4 text-[oklch(0.45_0.008_265)]" />
                 Edit Task
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={onComplete}
                 className="rounded-xl text-[10px] font-black uppercase tracking-widest py-3 cursor-pointer"
               >
-                <CheckCircle2 className="mr-3 h-4 w-4 text-[oklch(0.45_0.008_265)]" />
+                <CheckCircle2 className="mr-3 size-4 text-[oklch(0.45_0.008_265)]" />
                 {isCompleted ? "Reopen Task" : "Mark Complete"}
               </DropdownMenuItem>
               <DropdownMenuSeparator className="my-2 bg-[oklch(0.965_0.003_265)]" />
@@ -168,7 +168,7 @@ export function TaskRow({
                 onClick={onDelete}
                 className="rounded-xl text-[10px] font-black uppercase tracking-widest py-3 text-[oklch(0.55_0.2_25)] focus:text-rose-600 focus:bg-rose-50 cursor-pointer"
               >
-                <Trash2 className="mr-3 h-4 w-4" />
+                <Trash2 className="mr-3 size-4" />
                 Delete Task
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -179,7 +179,7 @@ export function TaskRow({
           {task.donor && (
             <Link href={`/donors?selected=${task.donor.id}`}>
               <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-[oklch(0.985_0.002_265)] border border-[oklch(0.915_0.003_265)] hover:bg-white hover:border-[oklch(0.205_0.015_265)] transition-colors cursor-pointer group/donor">
-                <Avatar className="h-5 w-5 border-2 border-white shadow-sm">
+                <Avatar className="size-5 border-2 border-white shadow-sm">
                   <AvatarImage src={task.donor.avatar_url || undefined} />
                   <AvatarFallback className="text-[8px] font-black bg-[oklch(0.915_0.003_265)] text-[oklch(0.45_0.008_265)]">
                     {task.donor.name
@@ -205,7 +205,7 @@ export function TaskRow({
                   : "bg-[oklch(0.985_0.002_265)] border-[oklch(0.915_0.003_265)] text-[oklch(0.45_0.008_265)]",
               )}
             >
-              <Clock className="h-3.5 w-3.5" />
+              <Clock className="size-3.5" />
               {dueDateStatus.label}
             </div>
           )}
@@ -217,7 +217,7 @@ export function TaskRow({
                 priorityConfig.badgeColor,
               )}
             >
-              <Sparkles className="h-3.5 w-3.5" />
+              <Sparkles className="size-3.5" />
               {priorityConfig.label} Priority
             </div>
           )}

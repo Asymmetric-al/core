@@ -22,7 +22,7 @@ interface CareToolsProps {
 
 export function CareTools({ personnel }: CareToolsProps) {
   const [open, setOpen] = React.useState(false);
-  const router = useRouter();
+  const { push } = useRouter();
 
   // Handle keyboard shortcut (Ctrl+K or Cmd+K)
   React.useEffect(() => {
@@ -40,9 +40,9 @@ export function CareTools({ personnel }: CareToolsProps) {
   const navigate = useCallback(
     (path: string) => {
       setOpen(false);
-      router.push(path);
+      push(path);
     },
-    [router],
+    [push],
   );
 
   return (
@@ -51,9 +51,9 @@ export function CareTools({ personnel }: CareToolsProps) {
       <div className="fixed bottom-8 right-8 z-50 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500">
         <Button
           onClick={() => setOpen(true)}
-          className="h-14 w-14 rounded-2xl bg-primary text-primary-foreground shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 group border-none"
+          className="size-14 rounded-2xl bg-primary text-primary-foreground shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 group border-none"
         >
-          <Zap className="h-6 w-6 transition-transform group-hover:rotate-12 fill-current" />
+          <Zap className="size-6 transition-transform group-hover:rotate-12 fill-current" />
           <span className="sr-only">Open Care Tools</span>
 
           {/* Keycap Hint - Hidden on mobile */}
@@ -72,8 +72,8 @@ export function CareTools({ personnel }: CareToolsProps) {
         </div>
         <CommandList className="max-h-[400px] p-2">
           <CommandEmpty className="py-12 text-center">
-            <div className="h-12 w-12 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
-              <Search className="h-6 w-6 text-muted-foreground/40" />
+            <div className="size-12 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
+              <Search className="size-6 text-muted-foreground/40" />
             </div>
             <p className="text-sm font-bold text-primary">
               No matching results
@@ -96,7 +96,7 @@ export function CareTools({ personnel }: CareToolsProps) {
                 onSelect={() => navigate(`/mc/care/directory/${p.id}`)}
                 className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-muted transition-colors group"
               >
-                <div className="h-8 w-8 rounded-lg bg-primary/5 text-primary flex items-center justify-center text-[10px] font-black border border-primary/10 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                <div className="size-8 rounded-lg bg-primary/5 text-primary flex items-center justify-center text-[10px] font-black border border-primary/10 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                   {p.initials}
                 </div>
                 <div className="flex flex-col">
@@ -128,8 +128,8 @@ export function CareTools({ personnel }: CareToolsProps) {
               onSelect={() => navigate("/mc/care/directory")}
               className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-muted transition-colors group"
             >
-              <div className="h-8 w-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                <Search className="h-4 w-4" />
+              <div className="size-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                <Search className="size-4" />
               </div>
               <span className="text-sm font-bold">Browse All Personnel</span>
             </CommandItem>
@@ -137,8 +137,8 @@ export function CareTools({ personnel }: CareToolsProps) {
               onSelect={() => {}}
               className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-muted transition-colors group"
             >
-              <div className="h-8 w-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                <Heart className="h-4 w-4" />
+              <div className="size-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                <Heart className="size-4" />
               </div>
               <span className="text-sm font-bold">
                 Log Quick Wellness Check
@@ -148,8 +148,8 @@ export function CareTools({ personnel }: CareToolsProps) {
               onSelect={() => {}}
               className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-muted transition-colors group"
             >
-              <div className="h-8 w-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                <MessageSquare className="h-4 w-4" />
+              <div className="size-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                <MessageSquare className="size-4" />
               </div>
               <span className="text-sm font-bold">Send Team Broadcast</span>
             </CommandItem>
@@ -166,8 +166,8 @@ export function CareTools({ personnel }: CareToolsProps) {
               onSelect={() => navigate("/mc/care/settings")}
               className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-muted transition-colors group"
             >
-              <div className="h-8 w-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                <Settings className="h-4 w-4" />
+              <div className="size-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                <Settings className="size-4" />
               </div>
               <span className="text-sm font-bold">Member Care Settings</span>
             </CommandItem>

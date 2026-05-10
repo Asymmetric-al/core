@@ -36,6 +36,12 @@ import { TASK_TYPE_CONFIG, PRIORITY_CONFIG } from "./task-config";
 
 import type { Task } from "../../types";
 
+function makeDisplayDate(value?: string | number | Date): Date {
+  return value === undefined
+    ? new globalThis.Date()
+    : new globalThis.Date(value);
+}
+
 interface TaskDetailsSheetProps {
   task: Task | null;
   open: boolean;
@@ -66,11 +72,11 @@ export function TaskDetailsSheet({
           <div className="flex items-start gap-3">
             <div
               className={cn(
-                "h-10 w-10 rounded-xl flex items-center justify-center shrink-0",
+                "size-10 rounded-xl flex items-center justify-center shrink-0",
                 typeConfig.bgColor,
               )}
             >
-              <typeConfig.icon className={cn("h-5 w-5", typeConfig.color)} />
+              <typeConfig.icon className={cn("size-5", typeConfig.color)} />
             </div>
             <div className="flex-1 min-w-0 pr-8">
               <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
@@ -86,9 +92,9 @@ export function TaskDetailsSheet({
               variant="ghost"
               size="icon"
               onClick={() => onOpenChange(false)}
-              className="h-8 w-8 shrink-0 absolute top-4 right-4"
+              className="size-8 shrink-0 absolute top-4 right-4"
             >
-              <X className="h-4 w-4" />
+              <X className="size-4" />
               <span className="sr-only">Close</span>
             </Button>
           </div>
@@ -106,11 +112,11 @@ export function TaskDetailsSheet({
             >
               {isCompleted ? (
                 <>
-                  <CheckCircle2 className="mr-2 h-4 w-4" /> Completed
+                  <CheckCircle2 className="mr-2 size-4" /> Completed
                 </>
               ) : (
                 <>
-                  <Circle className="mr-2 h-4 w-4" /> Mark Done
+                  <Circle className="mr-2 size-4" /> Mark Done
                 </>
               )}
             </Button>
@@ -121,7 +127,7 @@ export function TaskDetailsSheet({
               onClick={() => onEdit(task)}
               className="h-9"
             >
-              <Edit2 className="mr-2 h-4 w-4" /> Edit
+              <Edit2 className="mr-2 size-4" /> Edit
             </Button>
 
             <div className="flex-1" />
@@ -130,9 +136,9 @@ export function TaskDetailsSheet({
               variant="ghost"
               size="icon"
               onClick={() => onDelete(task)}
-              className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10"
+              className="size-9 text-destructive hover:text-destructive hover:bg-destructive/10"
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="size-4" />
               <span className="sr-only">Delete task</span>
             </Button>
           </div>
@@ -170,7 +176,7 @@ export function TaskDetailsSheet({
                 <div className="flex items-center gap-2">
                   <div
                     className={cn(
-                      "h-2 w-2 rounded-full",
+                      "size-2 rounded-full",
                       task.priority === "high"
                         ? "bg-destructive"
                         : task.priority === "medium"
@@ -191,10 +197,10 @@ export function TaskDetailsSheet({
                   Due Date
                 </p>
                 <div className="flex items-center gap-2 text-foreground">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <Calendar className="size-4 text-muted-foreground" />
                   <span className="text-sm">
                     {task.due_date
-                      ? format(new Date(task.due_date), "MMM d, yyyy")
+                      ? format(makeDisplayDate(task.due_date), "MMM d, yyyy")
                       : "No deadline"}
                   </span>
                 </div>
@@ -205,9 +211,9 @@ export function TaskDetailsSheet({
                   Created
                 </p>
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <Clock className="h-4 w-4" />
+                  <Clock className="size-4" />
                   <span className="text-sm">
-                    {format(new Date(task.created_at), "MMM d, yyyy")}
+                    {format(makeDisplayDate(task.created_at), "MMM d, yyyy")}
                   </span>
                 </div>
               </div>
@@ -222,7 +228,7 @@ export function TaskDetailsSheet({
               {task.donor ? (
                 <div className="p-3 sm:p-4 rounded-xl bg-muted/50 border flex items-center justify-between group hover:bg-muted transition-colors">
                   <div className="flex items-center gap-3 min-w-0">
-                    <Avatar className="h-10 w-10 shrink-0">
+                    <Avatar className="size-10 shrink-0">
                       <AvatarImage src={task.donor.avatar_url || undefined} />
                       <AvatarFallback className="text-sm font-medium bg-background">
                         {task.donor.name
@@ -246,14 +252,14 @@ export function TaskDetailsSheet({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="size-8 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
                   >
-                    <ExternalLink className="h-4 w-4" />
+                    <ExternalLink className="size-4" />
                   </Button>
                 </div>
               ) : (
                 <div className="p-6 rounded-xl border-2 border-dashed flex flex-col items-center justify-center text-center">
-                  <User className="h-6 w-6 text-muted-foreground/50 mb-2" />
+                  <User className="size-6 text-muted-foreground/50 mb-2" />
                   <p className="text-sm text-muted-foreground">
                     No partner linked
                   </p>
@@ -263,7 +269,7 @@ export function TaskDetailsSheet({
 
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-muted-foreground" />
+                <FileText className="size-4 text-muted-foreground" />
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Description
                 </p>
@@ -280,7 +286,7 @@ export function TaskDetailsSheet({
             {task.notes && (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <StickyNote className="h-4 w-4 text-amber-500" />
+                  <StickyNote className="size-4 text-amber-500" />
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                     Internal Notes
                   </p>
@@ -296,11 +302,12 @@ export function TaskDetailsSheet({
         <div className="p-4 border-t bg-muted/30 shrink-0">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>
-              Updated {format(new Date(task.updated_at), "MMM d, h:mm a")}
+              Updated{" "}
+              {format(makeDisplayDate(task.updated_at), "MMM d, h:mm a")}
             </span>
             {task.completed_at && (
               <span className="text-emerald-600 dark:text-emerald-400">
-                Completed {format(new Date(task.completed_at), "MMM d")}
+                Completed {format(makeDisplayDate(task.completed_at), "MMM d")}
               </span>
             )}
           </div>

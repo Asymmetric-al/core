@@ -55,7 +55,7 @@ export default function SignStudioPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <Search className="h-4 w-4" />
+            <Search className="size-4" />
             Search Documents
           </CardTitle>
         </CardHeader>
@@ -73,8 +73,8 @@ export default function SignStudioPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card className="group cursor-pointer transition-all hover:shadow-md hover:border-primary/30">
           <CardHeader className="pb-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600">
-              <FileText className="h-5 w-5" />
+            <div className="flex size-10 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600">
+              <FileText className="size-5" />
             </div>
             <CardTitle className="text-base">Packet Templates</CardTitle>
             <CardDescription>
@@ -92,8 +92,8 @@ export default function SignStudioPage() {
 
         <Card className="group cursor-pointer transition-all hover:shadow-md hover:border-primary/30">
           <CardHeader className="pb-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600">
-              <Send className="h-5 w-5" />
+            <div className="flex size-10 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600">
+              <Send className="size-5" />
             </div>
             <CardTitle className="text-base">Active Sends</CardTitle>
             <CardDescription>Documents out for signature</CardDescription>
@@ -109,8 +109,8 @@ export default function SignStudioPage() {
 
         <Card className="group cursor-pointer transition-all hover:shadow-md hover:border-primary/30">
           <CardHeader className="pb-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
-              <CheckCircle className="h-5 w-5" />
+            <div className="flex size-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
+              <CheckCircle className="size-5" />
             </div>
             <CardTitle className="text-base">Completed Docs</CardTitle>
             <CardDescription>Signed and archived documents</CardDescription>
@@ -126,8 +126,8 @@ export default function SignStudioPage() {
 
         <Card className="group cursor-pointer transition-all hover:shadow-md hover:border-primary/30">
           <CardHeader className="pb-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-500/10 text-violet-600">
-              <Download className="h-5 w-5" />
+            <div className="flex size-10 items-center justify-center rounded-lg bg-violet-500/10 text-violet-600">
+              <Download className="size-5" />
             </div>
             <CardTitle className="text-base">Export</CardTitle>
             <CardDescription>Bulk download and audit exports</CardDescription>

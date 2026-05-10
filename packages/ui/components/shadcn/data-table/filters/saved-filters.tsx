@@ -210,7 +210,7 @@ export function SavedFilters({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 shrink-0"
+                          className="size-7 shrink-0"
                           onClick={handleUpdate}
                         >
                           <CheckIcon className="size-3" />
@@ -218,7 +218,7 @@ export function SavedFilters({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 shrink-0"
+                          className="size-7 shrink-0"
                           onClick={handleCancelEdit}
                         >
                           <Trash2Icon className="size-3" />
@@ -252,7 +252,7 @@ export function SavedFilters({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100"
+                              className="size-7 shrink-0 opacity-0 group-hover:opacity-100"
                             >
                               <MoreHorizontalIcon className="size-3" />
                             </Button>

@@ -41,29 +41,29 @@ export default function SignStudioPublicSigningPage({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans pt-16">
+    <div className="min-h-screen bg-zinc-50 flex flex-col font-sans pt-16">
       {/* Top Bar (Duplicate of legacy header but inside the page) */}
-      <header className="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 md:px-8 sticky top-16 z-20 shadow-sm">
+      <header className="bg-white border-b border-zinc-200 h-16 flex items-center justify-between px-4 md:px-8 sticky top-16 z-20 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 bg-slate-900 text-white rounded-lg flex items-center justify-center font-bold text-sm">
+          <div className="size-8 bg-zinc-900 text-white rounded-lg flex items-center justify-center font-semibold text-sm">
             GH
           </div>
-          <div className="hidden md:block w-px h-6 bg-slate-200 mx-1" />
-          <h1 className="font-semibold text-slate-700 truncate max-w-[200px] md:max-w-md">
+          <div className="hidden md:block w-px h-6 bg-zinc-200 mx-1" />
+          <h1 className="font-semibold text-zinc-700 truncate max-w-[200px] md:max-w-md">
             Employment Agreement - John Doe
           </h1>
         </div>
 
         {step !== "completed" && (
           <div className="flex items-center gap-3">
-            <div className="text-xs text-slate-500 hidden sm:block">
+            <div className="text-xs text-zinc-500 hidden sm:block">
               1 field remaining
             </div>
             <Button
               onClick={() => setIsSignatureModalOpen(true)}
               className="bg-blue-600 hover:bg-blue-700 text-white shadow-md animate-pulse font-semibold"
             >
-              Sign Now <PenTool className="ml-2 h-4 w-4" />
+              Sign Now <PenTool className="ml-2 size-4" />
             </Button>
           </div>
         )}
@@ -77,44 +77,44 @@ export default function SignStudioPublicSigningPage({
             animate={{ opacity: 1, scale: 1 }}
             className="max-w-lg w-full text-center mt-20"
           >
-            <div className="h-24 w-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-              <CheckCircle2 className="h-12 w-12 text-emerald-600" />
+            <div className="size-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <CheckCircle2 className="size-12 text-emerald-600" />
             </div>
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">
+            <h2 className="text-3xl font-semibold text-zinc-900 mb-4">
               You&apos;re all set!
             </h2>
-            <p className="text-slate-600 mb-8 leading-relaxed text-lg">
+            <p className="text-zinc-600 mb-8 leading-relaxed text-lg">
               The document has been signed successfully. A copy has been emailed
               to you and the sender.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-slate-900 text-white hover:bg-slate-800 shadow-lg"
+                className="bg-zinc-900 text-white hover:bg-zinc-800 shadow-lg"
               >
-                <Download className="mr-2 h-4 w-4" /> Download Signed Copy
+                <Download className="mr-2 size-4" /> Download Signed Copy
               </Button>
               <Button variant="outline" size="lg" asChild className="bg-white">
                 <Link href="/">Return Home</Link>
               </Button>
             </div>
-            <div className="mt-12 flex items-center justify-center gap-2 text-xs text-slate-400">
-              <ShieldCheck className="h-4 w-4" /> Securely signed with GiveHope
+            <div className="mt-12 flex items-center justify-center gap-2 text-xs text-zinc-400">
+              <ShieldCheck className="size-4" /> Securely signed with GiveHope
               Sign Studio
             </div>
           </motion.div>
         ) : (
-          <div className="max-w-4xl w-full bg-white shadow-2xl shadow-slate-200/50 rounded-xl border border-slate-200 min-h-[800px] relative p-8 md:p-16 flex flex-col gap-8">
+          <div className="max-w-4xl w-full bg-white shadow-2xl shadow-zinc-200/50 rounded-xl border border-zinc-200 min-h-[800px] relative p-8 md:p-16 flex flex-col gap-8">
             {/* Fake Document Content */}
-            <div className="h-8 w-1/3 bg-slate-200 mb-8" />
+            <div className="h-8 w-1/3 bg-zinc-200 mb-8" />
 
-            <div className="space-y-4 text-slate-300">
+            <div className="space-y-4 text-zinc-300">
               <div className="h-3 w-full bg-current rounded" />
               <div className="h-3 w-full bg-current rounded" />
               <div className="h-3 w-2/3 bg-current rounded" />
             </div>
 
-            <div className="space-y-4 text-slate-300 pt-8">
+            <div className="space-y-4 text-zinc-300 pt-8">
               <div className="h-3 w-full bg-current rounded" />
               <div className="h-3 w-full bg-current rounded" />
               <div className="h-3 w-full bg-current rounded" />
@@ -122,7 +122,7 @@ export default function SignStudioPublicSigningPage({
             </div>
 
             {/* Signature Field */}
-            <div className="mt-12 border-t border-slate-200 pt-12 flex justify-between items-end">
+            <div className="mt-12 border-t border-zinc-200 pt-12 flex justify-between items-end">
               <div className="relative">
                 <button
                   type="button"
@@ -135,33 +135,33 @@ export default function SignStudioPublicSigningPage({
                   )}
                 >
                   {signature ? (
-                    <span className="text-2xl text-slate-900 transform -rotate-2 italic font-serif">
+                    <span className="text-2xl text-zinc-900 transform -rotate-2 italic font-serif">
                       {signature}
                     </span>
                   ) : (
                     <span className="text-sm font-semibold text-blue-600 flex items-center gap-2">
-                      Click to Sign <PenTool className="h-3 w-3" />
+                      Click to Sign <PenTool className="size-3" />
                     </span>
                   )}
 
                   {/* Tooltip */}
                   {!signature && (
-                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs px-3 py-1.5 rounded shadow-lg whitespace-nowrap animate-bounce">
+                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-zinc-900 text-white text-xs px-3 py-1.5 rounded shadow-lg whitespace-nowrap animate-bounce">
                       Sign Here
-                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-900 rotate-45" />
+                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 size-2 bg-zinc-900 rotate-45" />
                     </div>
                   )}
                 </button>
-                <p className="text-xs text-slate-400 mt-2 font-medium uppercase tracking-wider">
+                <p className="text-xs text-zinc-400 mt-2 font-medium uppercase tracking-wider">
                   Signature
                 </p>
               </div>
 
               <div className="text-right">
-                <div className="text-sm font-medium text-slate-900 border-b border-slate-300 pb-1 mb-2 px-2">
+                <div className="text-sm font-medium text-zinc-900 border-b border-zinc-300 pb-1 mb-2 px-2">
                   {currentDate || "\u00A0"}
                 </div>
-                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">
+                <p className="text-xs text-zinc-400 font-medium uppercase tracking-wider">
                   Date
                 </p>
               </div>
@@ -180,12 +180,12 @@ export default function SignStudioPublicSigningPage({
             <DialogTitle>Create your signature</DialogTitle>
           </DialogHeader>
           <div className="py-6">
-            <div className="border rounded-xl bg-slate-50 p-8 text-center cursor-text hover:bg-white transition-colors">
-              <span className="text-4xl text-slate-900 italic font-serif">
+            <div className="border rounded-xl bg-zinc-50 p-8 text-center cursor-text hover:bg-white transition-colors">
+              <span className="text-4xl text-zinc-900 italic font-serif">
                 John Doe
               </span>
             </div>
-            <p className="text-xs text-center text-slate-400 mt-4 max-w-xs mx-auto">
+            <p className="text-xs text-center text-zinc-400 mt-4 max-w-xs mx-auto">
               By clicking <strong>Adopt & Sign</strong>, you agree to the
               electronic signature disclosure and to do business electronically.
             </p>

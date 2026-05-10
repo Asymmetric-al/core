@@ -39,10 +39,10 @@ export function MissionaryGivingCreateView() {
 }
 
 function MissionaryGivingCreateViewContent() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const templateId = searchParams.get("template") ?? "";
-  const preselectedMissionaryId = searchParams.get("missionaryId") ?? "";
+  const { get } = useSearchParams();
+  const { push } = useRouter();
+  const templateId = get("template") ?? "";
+  const preselectedMissionaryId = get("missionaryId") ?? "";
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const {
@@ -116,7 +116,7 @@ function MissionaryGivingCreateViewContent() {
           adminRoute: routes.admin,
           path: `/collections/missionary-giving-pages/${body.existingId}`,
         });
-        router.push(editPath);
+        push(editPath);
         return;
       }
 
@@ -130,7 +130,7 @@ function MissionaryGivingCreateViewContent() {
           adminRoute: routes.admin,
           path: `/collections/${body.collectionSlug}/${body.id}`,
         });
-        router.push(editPath);
+        push(editPath);
       }
     },
   });

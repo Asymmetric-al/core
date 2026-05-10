@@ -66,7 +66,7 @@ const statusConfig: Record<
   refunded: {
     icon: RotateCcw,
     className:
-      "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-950/50 dark:text-slate-400 dark:border-slate-800",
+      "bg-zinc-50 text-zinc-700 border-zinc-200 dark:bg-zinc-950/50 dark:text-zinc-400 dark:border-zinc-800",
   },
 };
 
@@ -114,7 +114,7 @@ export function getContributionColumns({
 
         return (
           <div className="flex items-center gap-3 min-w-[240px]">
-            <Avatar className="h-9 w-9 border border-border/60">
+            <Avatar className="size-9 border border-border/60">
               <AvatarImage
                 src={contribution.donorAvatar ?? undefined}
                 alt={donorName}
@@ -204,7 +204,7 @@ export function getContributionColumns({
               config.className,
             )}
           >
-            <Icon className="h-3 w-3" />
+            <Icon className="size-3" />
             {statusLabels[status]}
           </Badge>
         );
@@ -275,7 +275,7 @@ export function getContributionColumns({
 
         return (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Icon className="h-4 w-4" />
+            <Icon className="size-4" />
             <span>{method}</span>
           </div>
         );
@@ -312,15 +312,15 @@ export function getContributionColumns({
             variant="outline"
             className="gap-1 bg-emerald-50 text-emerald-700 border-emerald-200 text-xs"
           >
-            <CircleCheck className="h-3 w-3" />
+            <CircleCheck className="size-3" />
             Sent
           </Badge>
         ) : (
           <Badge
             variant="outline"
-            className="gap-1 bg-slate-50 text-slate-500 border-slate-200 text-xs"
+            className="gap-1 bg-zinc-50 text-zinc-500 border-zinc-200 text-xs"
           >
-            <Clock className="h-3 w-3" />
+            <Clock className="size-3" />
             Pending
           </Badge>
         );
@@ -406,9 +406,9 @@ export function getContributionColumns({
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
+              <Button variant="ghost" className="size-8 p-0">
                 <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
+                <MoreHorizontal className="size-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
@@ -420,27 +420,27 @@ export function getContributionColumns({
                   )
                 }
               >
-                <Copy className="mr-2 h-4 w-4" />
+                <Copy className="mr-2 size-4" />
                 Copy Transaction ID
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => onViewContribution(contribution)}
               >
-                <Eye className="mr-2 h-4 w-4" />
+                <Eye className="mr-2 size-4" />
                 View Details
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Mail className="mr-2 h-4 w-4" />
+                <Mail className="mr-2 size-4" />
                 Email Donor
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Receipt className="mr-2 h-4 w-4" />
+                <Receipt className="mr-2 size-4" />
                 Send Receipt
               </DropdownMenuItem>
               {contribution.status === "failed" && (
                 <DropdownMenuItem>
-                  <RefreshCcw className="mr-2 h-4 w-4" />
+                  <RefreshCcw className="mr-2 size-4" />
                   Retry Payment
                 </DropdownMenuItem>
               )}
