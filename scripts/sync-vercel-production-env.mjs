@@ -67,6 +67,7 @@ const commonProviderEnv = [
     inputKey: "RESEND_WEBHOOK_SECRET",
     reason: "must start with whsec_",
     sensitive: true,
+    defaultSync: false,
     validate: hasPrefix("whsec_"),
   },
   {
@@ -115,10 +116,14 @@ export function providerRequirementsForProject(projectKey) {
   ];
 }
 
-export function allInputRequirements() {
+export function allInputRequirements(options = {}) {
+  const includeTargetedOnly = options.includeTargetedOnly === true;
   const byInputKey = new Map();
   for (const project of PROJECTS) {
     for (const requirement of providerRequirementsForProject(project.key)) {
+      if (!includeTargetedOnly && requirement.defaultSync === false) {
+        continue;
+      }
       if (!byInputKey.has(requirement.inputKey)) {
         byInputKey.set(requirement.inputKey, requirement);
       }
@@ -142,7 +147,7 @@ function selectedInputRequirements(inputKeys) {
   if (!inputKeys) return allInputRequirements();
 
   const byInputKey = new Map(
-    allInputRequirements().map((requirement) => [
+    allInputRequirements({ includeTargetedOnly: true }).map((requirement) => [
       requirement.inputKey,
       requirement,
     ]),
@@ -160,7 +165,9 @@ function selectedInputRequirements(inputKeys) {
 }
 
 function requirementMatchesSelection(requirement, inputKeys) {
-  return !inputKeys || inputKeys.includes(requirement.inputKey);
+  if (inputKeys) return inputKeys.includes(requirement.inputKey);
+
+  return requirement.defaultSync !== false;
 }
 
 export function validateInputEnv(env, options = {}) {

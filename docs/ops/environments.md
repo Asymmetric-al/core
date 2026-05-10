@@ -257,9 +257,14 @@ defaults to dry-run. The workflow reads these GitHub secret names:
 - `SENTRY_DSN`
 - `NEXT_PUBLIC_SENTRY_DSN`
 - `RESEND_API_KEY`
-- `RESEND_WEBHOOK_SECRET`
 - `RESEND_ENCRYPTION_KEY`
 - `VERCEL_TOKEN`
+
+`RESEND_WEBHOOK_SECRET` is intentionally not required for the default full sync
+because the guarded `Configure Resend Production Webhook` workflow sources that
+value directly from Resend and writes it to Vercel Production without storing it
+as a GitHub repository secret. The sync script still supports
+`--keys RESEND_WEBHOOK_SECRET` for that targeted handoff path.
 
 Local equivalent:
 
