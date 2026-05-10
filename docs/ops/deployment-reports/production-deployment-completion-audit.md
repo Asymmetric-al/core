@@ -10,7 +10,9 @@ for `admin`, `donor`, and `missionary` are still blocked by missing external
 provider values, stale `main`, and absent READY production deployments for the
 current target commit.
 
-Target commit audited: `1fd4daa490d3f6b7293f68b1cc2e5eead6f73861`
+Deployment implementation commit audited:
+`1fd4daa490d3f6b7293f68b1cc2e5eead6f73861`. Later commits may refresh this
+report without changing the deployment implementation.
 
 ## Objective Checklist
 
