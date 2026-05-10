@@ -12,6 +12,8 @@ This remediation branch fixes the repo-side deploy wiring, adds the missing prod
 
 This report has also been replayed onto current `origin/epic` because GitHub still reports `epic` as the default branch and `origin/epic` is ahead of `origin/main`. A credible production release must not deploy stale `main` code; it must first either merge the current `epic` lineage into `main` or explicitly change the production contract away from `main`.
 
+The repo-side remediation is now merged to remote `epic` at commit `ddb558ce50ece088a359f2c29456604e48f733b7`. GitHub reports `ci-gate`, `format`, `lint`, `typecheck`, `test-unit`, `build`, and `source-check` as successful for that commit. No current Vercel Production deployment exists for that commit because legacy `epic` deployments are intentionally disabled and the intended Production branch remains `main`.
+
 ## Current Vercel Project Facts
 
 - Project: `donor`
@@ -116,7 +118,7 @@ GitHub branch-state audit on 2026-05-10:
 
 - Default branch: `epic`
 - Production branch protection exists on `main` and requires `Production - admin`, `Production - donor`, and `Production - missionary`.
-- `origin/epic` is ahead of `origin/main`; this remediation has been ported onto `origin/epic` so it can be merged forward without losing current code.
+- `origin/epic` is ahead of `origin/main`; this remediation is merged to `origin/epic` so it can be merged forward without losing current code.
 - Do not switch the default branch or production deploy source to `main` until `main` includes the current `epic` lineage.
 
 ## What Must Happen For Donor To Deploy Successfully
