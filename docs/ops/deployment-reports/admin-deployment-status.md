@@ -49,21 +49,22 @@ After the branch-gating fix was pushed to `epic`, Vercel created a new
 Production build for the target commit. This proves the repo-side Production
 Branch block is resolved.
 
-- Deployment: `admin-kqhkvr39o-asymmetric-al.vercel.app`
+- Deployment: `admin-gj32wxwch-asymmetric-al.vercel.app`
 - Target: `production`
 - State: `ERROR`
-- Commit metadata: `3340ac23edc7a70aa3f158039b1e5e67429a64fd`
+- Commit metadata: `81d718335ab6afc5988e05a84eaeca1e77f27fd5`
 - Ref metadata: `epic`
 - Build result: failed during Next.js page-data collection because required
   external Production env values are still absent. This attempt happened after
   the targeted `RESEND_API_KEY`, `RESEND_ENCRYPTION_KEY`, and
-  `RESEND_WEBHOOK_SECRET` Production backfills, so Resend absence is no longer
-  part of the build failure.
+  `RESEND_WEBHOOK_SECRET` Production backfills and after the default full sync
+  path was fixed so `RESEND_WEBHOOK_SECRET` is targeted-only, so Resend absence
+  is no longer part of the build failure.
 
 Use `bun run verify:vercel-production -- --commit <sha>` for the newest
 deployment state after each later push; this report intentionally records the
-post-fix evidence rather than treating any docs-only follow-up push as a new
-source of product readiness.
+latest code/config remediation evidence rather than treating any docs-only
+follow-up push as a new source of product readiness.
 
 ## Production Alias Smoke Check
 
@@ -80,7 +81,7 @@ The failed deployment reached Next.js compilation and TypeScript successfully, t
 - `STRIPE_SECRET_KEY is required for staging and production deployments.`
 - `STRIPE_WEBHOOK_SECRET is required for staging and production deployments.`
 - `SENTRY_DSN is required for staging and production deployments.`
-- Build error: `Failed to collect page data for /api/admin/comments/[commentId]`
+- Build error: `Failed to collect page data for /api/admin/comments`
 
 The same log also showed non-blocking warnings:
 
@@ -104,6 +105,11 @@ Those warnings did not stop this deployment. The env validation did.
   `RESEND_WEBHOOK_SECRET` into all three Vercel Production projects.
 - Unit coverage exists in
   `tests/unit/scripts/configure-resend-production-webhook.test.ts`.
+- `scripts/sync-vercel-production-env.mjs` keeps `RESEND_WEBHOOK_SECRET`
+  available for targeted Resend handoff only; the default full provider sync no
+  longer requires that value from GitHub Secrets.
+- Unit coverage exists in
+  `tests/unit/scripts/sync-vercel-production-env.test.ts`.
 
 ## Production Environment Variables
 
@@ -147,6 +153,13 @@ Additional secret-source audit on 2026-05-10:
   `52e90eb0-21e3-422e-8683-974629cd1517`, masked its signing secret, and
   synced `RESEND_WEBHOOK_SECRET` into this Vercel Production project. Vercel now
   reports it as present but sensitive/unreadable.
+- `Sync Vercel Production Env` dry-run `25618854696` now fails only on missing
+  Stripe/Sentry inputs:
+  `ADMIN_STRIPE_WEBHOOK_SECRET`, `DONOR_STRIPE_WEBHOOK_SECRET`,
+  `MISSIONARY_STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_SENTRY_DSN`,
+  `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `SENTRY_DSN`, and
+  `STRIPE_SECRET_KEY`. It no longer requires `RESEND_WEBHOOK_SECRET` in the
+  default full sync path.
 - Vercel Preview and Development env scopes are empty, so there are no existing non-Production Vercel provider values to promote.
 - Vercel Marketplace integrations list no connected integration resource that can supply Stripe, Sentry, or Resend values.
 - Production Supabase `public.tenants` currently has one tenant and zero populated tenant Stripe secret, publishable, or webhook-secret fields.
@@ -192,7 +205,10 @@ GitHub branch-state audit on 2026-05-10:
 
 ## What Must Happen For Admin To Deploy Successfully
 
-1. Add the remaining live Stripe and Sentry values listed above, then run the guarded `Sync Vercel Production Env` workflow first as a dry-run and then as a write.
+1. Add the remaining live Stripe and Sentry values listed above as GitHub
+   Secrets, using `ADMIN_STRIPE_WEBHOOK_SECRET` for the admin-specific Stripe
+   webhook signing secret, then run the guarded `Sync Vercel Production Env`
+   workflow first as a dry-run and then as a write.
 2. Create or verify the live Stripe webhook endpoint for `https://admin.asymmetric.al/api/webhooks/stripe`.
 3. Confirm the admin database URL is reachable from Vercel, preferably through Supavisor if direct Supabase DNS fails.
 4. Push or merge the approved release commit to `epic`, the current Vercel Production Branch.
