@@ -148,7 +148,7 @@ GitHub branch-state audit on 2026-05-10:
 
 - Default branch: `epic`
 - Production branch protection exists on `main` and requires `Production - admin`, `Production - donor`, and `Production - missionary`.
-- `origin/epic` is ahead of `origin/main` by `916` commits and behind by `1` commit (`git rev-list --left-right --count origin/main...origin/epic` returned `1 916`); this remediation is merged to `origin/epic` so it can be merged forward without losing current code.
+- `origin/epic` remains substantially ahead of `origin/main`; run `git rev-list --left-right --count origin/main...origin/epic` for the current count before release. This remediation is merged to `origin/epic` so it can be merged forward without losing current code.
 - Do not switch the default branch or production deploy source to `main` until `main` includes the current `epic` lineage.
 
 ## What Must Happen For Admin To Deploy Successfully
