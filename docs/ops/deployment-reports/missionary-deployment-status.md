@@ -51,10 +51,10 @@ Production build for the target commit. This proves the repo-side Production
 Branch block and the stale missing-root-directory failure are resolved for the
 current source tree.
 
-- Deployment: `missionary-7zu4pru5r-asymmetric-al.vercel.app`
+- Deployment: `missionary-1fzatlg81-asymmetric-al.vercel.app`
 - Target: `production`
 - State: `ERROR`
-- Commit metadata: `8c2c6fda1372155a2b89f76dfb333a38c9ae6f6d`
+- Commit metadata: `a3eed2981b211252deeeca694df24bc1b94beb4b`
 - Ref metadata: `epic`
 - Build result: failed during Next.js page-data collection because required
   external Production env values are still absent. This attempt happened after
@@ -95,7 +95,6 @@ then failed while collecting page data. The relevant failure was:
 - `STRIPE_SECRET_KEY is required for staging and production deployments.`
 - `STRIPE_WEBHOOK_SECRET is required for staging and production deployments.`
 - `RESEND_WEBHOOK_SECRET is required for staging and production deployments.`
-- `RESEND_ENCRYPTION_KEY is required for staging and production deployments.`
 - `SENTRY_DSN is required for staging and production deployments.`
 - Build error: `Failed to collect page data for /manifest.webmanifest`
 
@@ -120,6 +119,7 @@ Production env vars were initially empty. The following Vercel Production variab
 - `NEXT_PUBLIC_MAIN_DOMAIN`
 - `NEXT_PUBLIC_CLOUDINARY_ENABLED`
 - `RESEND_API_KEY`
+- `RESEND_ENCRYPTION_KEY`
 
 The following required external values are still missing and must be added before a real production deployment can succeed:
 
@@ -129,13 +129,13 @@ The following required external values are still missing and must be added befor
 - `SENTRY_DSN`
 - `NEXT_PUBLIC_SENTRY_DSN`
 - `RESEND_WEBHOOK_SECRET` with a `whsec_` prefix
-- `RESEND_ENCRYPTION_KEY` with at least 32 characters
 
 Additional secret-source audit on 2026-05-10:
 
 - Local root `.env.local` has `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, and `NEXT_PUBLIC_SENTRY_DSN` present but empty; `STRIPE_WEBHOOK_SECRET`, `SENTRY_DSN`, `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, and `RESEND_ENCRYPTION_KEY` are absent.
-- GitHub repository secrets include Vercel and Supabase values plus `RESEND_API_KEY`, but no Stripe, Sentry, `RESEND_WEBHOOK_SECRET`, or `RESEND_ENCRYPTION_KEY` secret names.
+- GitHub repository secrets include Vercel and Supabase values plus `RESEND_API_KEY` and `RESEND_ENCRYPTION_KEY`, but no Stripe, Sentry, or `RESEND_WEBHOOK_SECRET` secret names.
 - `RESEND_API_KEY` was backfilled into Vercel Production for this project by `Sync Vercel Production Env` write run `25617834101`; Vercel now reports it as present but sensitive/unreadable.
+- `RESEND_ENCRYPTION_KEY` was generated as a new managed production secret, stored in GitHub Secrets, and synced to this Vercel Production project by `Sync Vercel Production Env` write run `25618153850`; Vercel now reports it as present but sensitive/unreadable.
 - Vercel Preview and Development env scopes are empty, so there are no existing non-Production Vercel provider values to promote.
 - Vercel Marketplace integrations list no connected integration resource that can supply Stripe, Sentry, or Resend values.
 - Production Supabase `public.tenants` currently has one tenant and zero populated tenant Stripe secret, publishable, or webhook-secret fields.
@@ -179,7 +179,7 @@ GitHub branch-state audit on 2026-05-10:
 
 ## What Must Happen For Missionary To Deploy Successfully
 
-1. Add the remaining live Stripe, Sentry, Resend webhook, and Resend encryption values listed above, then run the guarded `Sync Vercel Production Env` workflow first as a dry-run and then as a write.
+1. Add the remaining live Stripe, Sentry, and Resend webhook values listed above, then run the guarded `Sync Vercel Production Env` workflow first as a dry-run and then as a write.
 2. Create or verify the live Stripe webhook endpoint for `https://missionary.asymmetric.al/api/webhooks/stripe`.
 3. Confirm Supabase production values point to the production project, not preview or staging.
 4. Push or merge the approved release commit to `epic`, the current Vercel Production Branch.
