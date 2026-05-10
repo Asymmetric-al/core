@@ -12,6 +12,11 @@ on:
         default: true
         required: true
         type: boolean
+      only_keys:
+        description: Optional comma-separated GitHub secret input names to sync; leave empty for the full production provider set.
+        default: ""
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -34,6 +39,7 @@ jobs:
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       RESEND_WEBHOOK_SECRET: ${{ secrets.RESEND_WEBHOOK_SECRET }}
       RESEND_ENCRYPTION_KEY: ${{ secrets.RESEND_ENCRYPTION_KEY }}
+      ONLY_KEYS: ${{ inputs.only_keys }}
 
     steps:
       - uses: actions/checkout@v6
@@ -46,5 +52,8 @@ jobs:
           args=()
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             args+=(--dry-run)
+          fi
+          if [[ -n "${ONLY_KEYS:-}" ]]; then
+            args+=(--keys "$ONLY_KEYS")
           fi
           node scripts/sync-vercel-production-env.mjs "${args[@]}"

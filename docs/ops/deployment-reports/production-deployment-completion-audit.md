@@ -74,9 +74,12 @@ not work.
    documented in `docs/ops/environments.md`.
 4. Run the `Sync Vercel Production Env` workflow first as a dry-run and then as
    a write. `RESEND_API_KEY` already exists in GitHub secrets, but it is not
-   currently in Vercel Production. `RESEND_WEBHOOK_SECRET` must come from the
-   Resend webhook configuration, and `RESEND_ENCRYPTION_KEY` must be a managed
-   production secret because it protects tenant email API keys.
+   currently in Vercel Production; it can be backfilled with the workflow's
+   targeted `only_keys=RESEND_API_KEY` mode, but that does not make Production
+   deployable until the remaining provider values exist. `RESEND_WEBHOOK_SECRET`
+   must come from the Resend webhook configuration, and
+   `RESEND_ENCRYPTION_KEY` must be a managed production secret because it
+   protects tenant email API keys.
 5. Re-run `bun run verify:vercel-production -- --commit <target-commit>`.
 6. Push or merge the approved release commit to `epic`, the current Vercel
    Production Branch.

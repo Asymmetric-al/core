@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   allInputRequirements,
   envEntriesForProject,
+  parseInputKeySelection,
   providerRequirementsForProject,
   validateInputEnv,
 } from "../../../scripts/sync-vercel-production-env.mjs";
@@ -22,6 +23,14 @@ const validEnv = {
 };
 
 describe("sync Vercel production env helpers", () => {
+  it("parses targeted input key selections", () => {
+    expect(parseInputKeySelection("RESEND_API_KEY, SENTRY_DSN")).toEqual([
+      "RESEND_API_KEY",
+      "SENTRY_DSN",
+    ]);
+    expect(parseInputKeySelection("")).toBeNull();
+  });
+
   it("deduplicates common input requirements while preserving app-specific webhook secrets", () => {
     expect(allInputRequirements().map((entry) => entry.inputKey)).toEqual([
       "ADMIN_STRIPE_WEBHOOK_SECRET",
@@ -88,6 +97,33 @@ describe("sync Vercel production env helpers", () => {
       "RESEND_WEBHOOK_SECRET",
       "VERCEL_TOKEN",
     ]);
+  });
+
+  it("can validate and map a targeted subset without requiring unrelated provider secrets", () => {
+    const env = {
+      VERCEL_TOKEN: "vercel-token",
+      RESEND_API_KEY: "re_123",
+    };
+    const options = { inputKeys: ["RESEND_API_KEY"] };
+
+    expect(validateInputEnv(env, options)).toEqual({
+      missing: [],
+      invalid: [],
+    });
+    expect(envEntriesForProject("admin", env, options)).toEqual([
+      {
+        vercelKey: "RESEND_API_KEY",
+        inputKey: "RESEND_API_KEY",
+        value: "re_123",
+        sensitive: true,
+      },
+    ]);
+  });
+
+  it("rejects unknown targeted input names", () => {
+    expect(() =>
+      validateInputEnv(validEnv, { inputKeys: ["UNKNOWN_SECRET"] }),
+    ).toThrow(/Unknown input env names: UNKNOWN_SECRET/);
   });
 
   it("maps provider inputs to the production Vercel env names without exposing values in names", () => {

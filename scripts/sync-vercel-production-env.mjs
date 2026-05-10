@@ -129,11 +129,45 @@ export function allInputRequirements() {
   );
 }
 
-export function validateInputEnv(env) {
+export function parseInputKeySelection(value) {
+  if (!isNonEmpty(value)) return null;
+
+  return value
+    .split(",")
+    .map((key) => key.trim())
+    .filter(Boolean);
+}
+
+function selectedInputRequirements(inputKeys) {
+  if (!inputKeys) return allInputRequirements();
+
+  const byInputKey = new Map(
+    allInputRequirements().map((requirement) => [
+      requirement.inputKey,
+      requirement,
+    ]),
+  );
+  const unknown = inputKeys.filter((inputKey) => !byInputKey.has(inputKey));
+  if (unknown.length > 0) {
+    throw new Error(
+      `Unknown input env names: ${unknown.join(", ")}. Expected one or more of: ${[
+        ...byInputKey.keys(),
+      ].join(", ")}`,
+    );
+  }
+
+  return inputKeys.map((inputKey) => byInputKey.get(inputKey));
+}
+
+function requirementMatchesSelection(requirement, inputKeys) {
+  return !inputKeys || inputKeys.includes(requirement.inputKey);
+}
+
+export function validateInputEnv(env, options = {}) {
   const missing = [];
   const invalid = [];
 
-  for (const requirement of allInputRequirements()) {
+  for (const requirement of selectedInputRequirements(options.inputKeys)) {
     const value = env[requirement.inputKey];
     if (!isNonEmpty(value)) {
       missing.push(requirement.inputKey);
@@ -155,13 +189,17 @@ export function validateInputEnv(env) {
   return { missing, invalid };
 }
 
-export function envEntriesForProject(projectKey, env) {
-  return providerRequirementsForProject(projectKey).map((requirement) => ({
-    vercelKey: requirement.vercelKey,
-    inputKey: requirement.inputKey,
-    value: env[requirement.inputKey],
-    sensitive: requirement.sensitive,
-  }));
+export function envEntriesForProject(projectKey, env, options = {}) {
+  return providerRequirementsForProject(projectKey)
+    .filter((requirement) =>
+      requirementMatchesSelection(requirement, options.inputKeys),
+    )
+    .map((requirement) => ({
+      vercelKey: requirement.vercelKey,
+      inputKey: requirement.inputKey,
+      value: env[requirement.inputKey],
+      sensitive: requirement.sensitive,
+    }));
 }
 
 function run(command, args, options = {}) {
@@ -255,6 +293,7 @@ function printValidationFailure({ missing, invalid }) {
 function parseArgs(argv) {
   const args = {
     dryRun: false,
+    inputKeys: null,
     scope: process.env.VERCEL_SCOPE || DEFAULT_SCOPE,
   };
 
@@ -262,6 +301,9 @@ function parseArgs(argv) {
     const arg = argv[index];
     if (arg === "--dry-run") {
       args.dryRun = true;
+    } else if (arg === "--keys") {
+      args.inputKeys = parseInputKeySelection(argv.at(index + 1) ?? "");
+      index += 1;
     } else if (arg === "--scope") {
       args.scope = argv.at(index + 1) ?? args.scope;
       index += 1;
@@ -280,9 +322,11 @@ Synchronizes provider-backed Production environment variables to the admin,
 donor, and missionary Vercel projects without printing secret values.
 
 Options:
-  --dry-run        Validate inputs and print planned Vercel env names only
-  --scope <team>   Vercel team scope. Default: ${DEFAULT_SCOPE}
-  -h, --help       Show this help
+  --dry-run       Validate inputs and print planned Vercel env names only
+  --keys <keys>   Optional comma-separated GitHub secret input names to sync
+                  instead of the full required Production provider set
+  --scope <team>  Vercel team scope. Default: ${DEFAULT_SCOPE}
+  -h, --help      Show this help
 `);
 }
 
@@ -293,7 +337,15 @@ async function main() {
     return;
   }
 
-  const validation = validateInputEnv(process.env);
+  let validation;
+  try {
+    validation = validateInputEnv(process.env, { inputKeys: args.inputKeys });
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exitCode = 1;
+    return;
+  }
+
   if (validation.missing.length > 0 || validation.invalid.length > 0) {
     printValidationFailure(validation);
     process.exitCode = 1;
@@ -301,7 +353,16 @@ async function main() {
   }
 
   for (const project of PROJECTS) {
-    const entries = envEntriesForProject(project.key, process.env);
+    const entries = envEntriesForProject(project.key, process.env, {
+      inputKeys: args.inputKeys,
+    });
+    if (entries.length === 0) {
+      console.log(
+        `No selected Production env values apply to ${project.project}; skipping.`,
+      );
+      continue;
+    }
+
     console.log(
       `${args.dryRun ? "Would sync" : "Syncing"} ${entries.length} Production env values for ${project.project}: ${entries
         .map((entry) => entry.vercelKey)

@@ -248,6 +248,19 @@ bun run sync:vercel-production-env -- --dry-run
 bun run sync:vercel-production-env
 ```
 
+For a known-good GitHub secret that already exists, the workflow also supports
+targeted backfill with the optional `only_keys` input. Use GitHub secret input
+names, not Vercel env names. Targeted sync does not prove Production readiness;
+the default full sync and `bun run verify:vercel-production -- --commit <sha>`
+remain the release gates.
+
+Example targeted dry-run/write for the existing Resend API key:
+
+```bash
+bun run sync:vercel-production-env -- --dry-run --keys RESEND_API_KEY
+bun run sync:vercel-production-env -- --keys RESEND_API_KEY
+```
+
 ## 6. Deploy Flows
 
 Non-local environments are branch-triggered and map to deploy targets as follows:
