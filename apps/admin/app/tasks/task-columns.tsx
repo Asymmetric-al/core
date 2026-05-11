@@ -123,6 +123,9 @@ export function getTaskColumns({
         const isCompleted = task.status === "completed";
         return (
           <button
+            aria-label={
+              isCompleted ? "Mark task incomplete" : "Mark task complete"
+            }
             onClick={(e) => {
               e.stopPropagation();
               onToggleComplete(task);
@@ -205,7 +208,7 @@ export function getTaskColumns({
           <Badge
             variant="outline"
             className={cn(
-              "text-[9px] uppercase font-semibold tracking-wide px-2 py-0.5 h-5 shadow-none rounded-lg border",
+              "h-5 rounded-lg border px-2 py-0.5 text-[11px] font-semibold shadow-none",
               config.color,
             )}
           >
@@ -237,7 +240,7 @@ export function getTaskColumns({
           <Badge
             variant="outline"
             className={cn(
-              "text-[9px] uppercase font-semibold tracking-wide px-2 py-0.5 h-5 shadow-none rounded-lg border",
+              "h-5 rounded-lg border px-2 py-0.5 text-[11px] font-semibold shadow-none",
               config.color,
             )}
           >
@@ -375,6 +378,7 @@ export function getTaskColumns({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
+                  aria-label={`Open actions for ${task.title}`}
                   variant="ghost"
                   className="size-8 p-0 text-muted-foreground hover:text-foreground rounded-xl"
                 >

@@ -43,6 +43,42 @@ For every `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}` file while
 | admin      | `/api/admin/org-settings`                                      | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/admin/posts`                                             | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/admin/posts/[postId]`                                    | Node.js (no `runtime` segment export) | Admin client                               |
+| admin      | `/api/admin/support`                                           | Node.js (no `runtime` segment export) | Admin client                               |
+| admin      | `/api/admin/support/agents`                                    | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/automation-rules`                          | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/automation-rules/[id]`                     | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/business-hours`                            | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/business-hours/[id]`                       | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/canned-responses`                          | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/canned-responses/[id]`                     | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/conversations`                             | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/conversations/[id]`                        | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/conversations/[id]/assign`                 | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/conversations/[id]/labels`                 | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/conversations/[id]/messages`               | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/conversations/[id]/notes`                  | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/conversations/[id]/replies`                | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/conversations/[id]/run-macro`              | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/conversations/[id]/snooze`                 | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/conversations/[id]/status`                 | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/counts`                                    | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/inbox-settings`                            | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/labels`                                    | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/labels/[id]`                               | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/macros`                                    | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/macros/[id]`                               | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/notification-preferences`                  | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/reports`                                   | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/saved-views`                               | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/saved-views/[id]`                          | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/signatures`                                | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/signatures/[id]`                           | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/sla-policies`                              | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/sla-policies/[id]`                         | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/teams`                                     | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/teams/[id]`                                | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/tickets`                                   | Node.js (no `runtime` segment export) | Admin client                               |
+| admin      | `/api/admin/support/tickets/[id]`                              | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/admin/users`                                             | Node.js (no `runtime` segment export) | Admin client (`SUPABASE_SERVICE_ROLE_KEY`) |
 | admin      | `/api/auth/demo-account`                                       | Node.js (no `runtime` segment export) | Demo auth server action                    |
 | admin      | `/api/auth/signout`                                            | Node.js (no `runtime` segment export) | Auth/session cleanup                       |
@@ -66,6 +102,7 @@ For every `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}` file while
 | admin      | `/api/health`                                                  | Node.js (no `runtime` segment export) | Health probe                               |
 | admin      | `/api/health/db`                                               | Node.js (no `runtime` segment export) | Database health probe                      |
 | admin      | `/api/missionaries/[id]/metrics`                               | Node.js (no `runtime` segment export) | Admin client                               |
+| admin      | `/api/webhooks/stripe`                                         | Node.js (no `runtime` segment export) | Stripe SDK, admin client                   |
 | donor      | `/api/auth/cleanup-demo-users`                                 | Node.js (no `runtime` segment export) | Admin client                               |
 | donor      | `/api/auth/demo-account`                                       | Node.js (no `runtime` segment export) | Demo auth server action                    |
 | donor      | `/api/auth/signout`                                            | Node.js (no `runtime` segment export) | Auth/session cleanup                       |
@@ -85,6 +122,7 @@ For every `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}` file while
 | donor      | `/api/posts/[postId]/prayer`                                   | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |
 | donor      | `/api/profile`                                                 | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |
 | donor      | `/api/upload/image`                                            | Node.js (no `runtime` segment export) | Node.js `Buffer`, server client            |
+| donor      | `/api/webhooks/stripe`                                         | Node.js (no `runtime` segment export) | Stripe SDK, admin client                   |
 | missionary | `/api/auth/demo-account`                                       | Node.js (no `runtime` segment export) | Demo auth server action                    |
 | missionary | `/api/auth/signout`                                            | Node.js (no `runtime` segment export) | Auth/session cleanup                       |
 | missionary | `/api/follower-requests`                                       | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |
@@ -99,3 +137,4 @@ For every `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}` file while
 | missionary | `/api/posts/[postId]/like`                                     | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |
 | missionary | `/api/posts/[postId]/prayer`                                   | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |
 | missionary | `/api/profile`                                                 | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |
+| missionary | `/api/webhooks/stripe`                                         | Node.js (no `runtime` segment export) | Stripe SDK, admin client                   |

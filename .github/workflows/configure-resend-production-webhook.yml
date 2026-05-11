@@ -1,0 +1,60 @@
+name: Configure Resend Production Webhook
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: Type configure-resend-production-webhook to confirm Production webhook configuration.
+        required: true
+        type: string
+      dry_run:
+        description: Inspect Resend and print planned action without writing.
+        default: true
+        required: true
+        type: boolean
+      endpoint:
+        description: Production Resend webhook endpoint.
+        default: https://admin.asymmetric.al/api/email/webhooks/resend
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  configure:
+    if: inputs.confirm == 'configure-resend-production-webhook'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      RESEND_WEBHOOK_ENDPOINT: ${{ inputs.endpoint }}
+      VERCEL_SCOPE: asymmetric-al
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Configure Resend webhook
+        run: |
+          args=(--github-env "$GITHUB_ENV")
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            args+=(--dry-run)
+          fi
+          if [[ -n "${RESEND_WEBHOOK_ENDPOINT:-}" ]]; then
+            args+=(--endpoint "$RESEND_WEBHOOK_ENDPOINT")
+          fi
+          node scripts/configure-resend-production-webhook.mjs "${args[@]}"
+
+      - name: Install Vercel CLI
+        if: ${{ inputs.dry_run == false }}
+        run: npm install --global vercel
+
+      - name: Sync Resend webhook secret to Vercel Production
+        if: ${{ inputs.dry_run == false }}
+        run: |
+          if [[ -z "${RESEND_WEBHOOK_SECRET:-}" ]]; then
+            echo "::error::RESEND_WEBHOOK_SECRET was not exported by the Resend configuration step."
+            exit 1
+          fi
+          node scripts/sync-vercel-production-env.mjs --keys RESEND_WEBHOOK_SECRET

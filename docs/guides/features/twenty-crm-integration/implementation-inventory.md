@@ -127,15 +127,15 @@ Evidence:
 
 ### Twenty environment contract
 
-- No server env schema entries exist for `TWENTY_API_URL`, `TWENTY_API_KEY`, `TWENTY_WEBHOOK_SECRET`, `TWENTY_WORKSPACE_ID`, `TWENTY_RATE_LIMIT_RPM`, or sync flags.
-- No `.env.example` contract for Twenty was found.
+- Server env schema entries now exist for `TWENTY_API_URL`, `TWENTY_API_KEY`, `TWENTY_WEBHOOK_SECRET`, `TWENTY_WORKSPACE_ID`, `TWENTY_RATE_LIMIT_RPM`, and the CRM sync flags in `packages/env/src/schema.ts`.
+- `.env.example`, `packages/env/README.md`, and `docs/env-var-audit.md` document the Twenty server-only env contract.
 
 ### CRM gateway root subsystem
 
-- No root `packages/api/src/crm/*` subsystem exists.
-- No Twenty Core API client exists.
+- The root `packages/api/src/crm/*` subsystem now exists.
+- The Twenty Core API client now exists for gateway/sync use.
 - No Twenty Metadata API client exists.
-- No Twenty auth, rate limit, pagination, batching, or error mapping helpers exist.
+- Twenty auth, rate limit, pagination, batching, and error mapping helpers now exist for the implemented Core API paths.
 - The existing `packages/api/src/admin/crm/*` code is admin-specific and Supabase-backed.
 
 ### Supabase Auth to CRM authorization bridge

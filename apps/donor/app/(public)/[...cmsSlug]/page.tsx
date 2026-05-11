@@ -1,9 +1,12 @@
+import { renderPublicCmsPageContent } from "@asym/lib/cms/public-page-renderer";
 import { notFound } from "next/navigation";
 
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
 
-import { fetchPublishedCmsPage } from "@/lib/cms/client";
+import {
+  fetchPublishedCmsPageResult,
+  resolvePublishedCmsPageRouteState,
+} from "@/lib/cms/client";
 
 type PageProps = {
   params: Promise<{
@@ -15,10 +18,17 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { cmsSlug } = await params;
-  const page = await fetchPublishedCmsPage(cmsSlug);
-  if (!page) {
+  const result = await fetchPublishedCmsPageResult(cmsSlug);
+
+  if (result.status === "unavailable") {
+    return { title: "Page unavailable" };
+  }
+
+  if (result.status !== "found") {
     return { title: "Page not found" };
   }
+
+  const { page } = result;
   return {
     title: page.title,
     description: page.summary ?? undefined,
@@ -27,13 +37,19 @@ export async function generateMetadata({
 
 export default async function CmsPublicPage({ params }: PageProps) {
   const { cmsSlug } = await params;
-  const page = await fetchPublishedCmsPage(cmsSlug);
+  const result = await fetchPublishedCmsPageResult(cmsSlug);
+  const routeState = resolvePublishedCmsPageRouteState(result);
 
-  if (!page) {
+  if (routeState.status === "unavailable") {
+    throw new Error(routeState.error);
+  }
+
+  if (routeState.status === "not-found") {
     notFound();
   }
 
-  const renderedContent = renderLexicalDocument(page.content, page.id);
+  const { page } = routeState;
+  const renderedContent = renderPublicCmsPageContent(page.content, page.id);
 
   return (
     <article className="mx-auto w-full max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
@@ -61,103 +77,4 @@ export default async function CmsPublicPage({ params }: PageProps) {
       </section>
     </article>
   );
-}
-
-type LexicalNode = {
-  children?: LexicalNode[];
-  format?: number;
-  tag?: string;
-  text?: string;
-  type?: string;
-  url?: string;
-};
-
-function renderInlineText(node: LexicalNode, key: string): ReactNode {
-  let content: ReactNode = node.text ?? null;
-
-  if (node.format && (node.format & 1) === 1) {
-    content = <strong key={`${key}-strong`}>{content}</strong>;
-  }
-
-  if (node.format && (node.format & 2) === 2) {
-    content = <em key={`${key}-em`}>{content}</em>;
-  }
-
-  return content;
-}
-
-function renderChildren(children: LexicalNode[] | undefined, key: string) {
-  return (children ?? []).map((child, index) =>
-    renderLexicalNode(child, `${key}-${index}`),
-  );
-}
-
-function renderLexicalNode(node: LexicalNode, key: string): ReactNode {
-  switch (node.type) {
-    case "text":
-      return renderInlineText(node, key);
-    case "linebreak":
-      return <br key={key} />;
-    case "link":
-      return (
-        <a key={key} href={node.url ?? "#"}>
-          {renderChildren(node.children, key)}
-        </a>
-      );
-    case "heading":
-      return renderHeading(node, key);
-    case "ul":
-      return <ul key={key}>{renderChildren(node.children, key)}</ul>;
-    case "ol":
-      return <ol key={key}>{renderChildren(node.children, key)}</ol>;
-    case "listitem":
-      return <li key={key}>{renderChildren(node.children, key)}</li>;
-    case "quote":
-      return (
-        <blockquote key={key}>{renderChildren(node.children, key)}</blockquote>
-      );
-    case "paragraph":
-      return <p key={key}>{renderChildren(node.children, key)}</p>;
-    default:
-      return node.children?.length ? (
-        <div key={key}>{renderChildren(node.children, key)}</div>
-      ) : null;
-  }
-}
-
-function renderHeading(node: LexicalNode, key: string) {
-  const children = renderChildren(node.children, key);
-
-  switch (node.tag) {
-    case "h1":
-      return <h1 key={key}>{children}</h1>;
-    case "h3":
-      return <h3 key={key}>{children}</h3>;
-    case "h4":
-      return <h4 key={key}>{children}</h4>;
-    case "h5":
-      return <h5 key={key}>{children}</h5>;
-    case "h6":
-      return <h6 key={key}>{children}</h6>;
-    default:
-      return <h2 key={key}>{children}</h2>;
-  }
-}
-
-function renderLexicalDocument(content: unknown, pageId: string) {
-  if (!content || typeof content !== "object") {
-    return null;
-  }
-
-  const root = (content as { root?: LexicalNode }).root;
-  if (!root?.children?.length) {
-    return null;
-  }
-
-  const rendered = root.children.flatMap((node, index) => {
-    const result = renderLexicalNode(node, `${pageId}-${index}`);
-    return result ? [result] : [];
-  });
-
-  return rendered.length ? rendered : null;
 }

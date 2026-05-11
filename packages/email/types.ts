@@ -638,6 +638,7 @@ export interface EmailSendResult {
   messageId?: string;
   correlationId: string;
   recipientCount: number;
+  retryCount?: number;
   errors?: EmailError[];
   rateLimited?: boolean;
   retryAfter?: number;
@@ -879,6 +880,7 @@ export interface RetryConfig {
   maxRetries: number;
   baseDelayMs: number;
   maxDelayMs: number;
+  jitterRatio: number;
   retryableStatuses: number[];
   retryableErrors: string[];
 }
@@ -920,24 +922,25 @@ export const TRANSACTIONAL_EMAIL_TYPES = [
 export type TransactionalEmailType = (typeof TRANSACTIONAL_EMAIL_TYPES)[number];
 
 export const DEFAULT_RATE_LIMIT_CONFIG: RateLimitConfig = {
-  maxRequestsPerMinute: 500,
-  maxRecipientsPerRequest: 1000,
+  maxRequestsPerMinute: 300,
+  maxRecipientsPerRequest: 50,
   maxDailyEmails: 10000,
-  burstSize: 100,
+  burstSize: 25,
 };
 
 export const DEFAULT_RETRY_CONFIG: RetryConfig = {
   maxRetries: 3,
   baseDelayMs: 1000,
   maxDelayMs: 30000,
+  jitterRatio: 0.2,
   retryableStatuses: [429, 500, 502, 503, 504],
   retryableErrors: ["ETIMEDOUT", "ECONNRESET", "ENOTFOUND"],
 };
 
 export const DEFAULT_BATCH_CONFIG: BatchConfig = {
-  recipientsPerBatch: 500,
+  recipientsPerBatch: 100,
   delayBetweenBatchesMs: 1000,
-  maxConcurrentBatches: 5,
+  maxConcurrentBatches: 1,
   pauseOnErrorThreshold: 0.1,
 };
 

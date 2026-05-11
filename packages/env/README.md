@@ -51,6 +51,8 @@ gateway/sync phases:
 Do not add `NEXT_PUBLIC_TWENTY_*` variables. Browser and app source must use
 Asym API contracts, not raw Twenty credentials.
 
+`DOCRAPTOR_API_KEY` is optional and server-only. DocRaptor examples authenticate with the API key as `user_credentials` or Basic Auth username, so keep it out of `NEXT_PUBLIC_*` variables.
+
 ## Migration Policy
 
 | Change      | Required updates                                                                      | Notes                                                      |

@@ -1,0 +1,59 @@
+name: Sync Vercel Production Env
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: Type sync-production-env to confirm Production env sync.
+        required: true
+        type: string
+      dry_run:
+        description: Validate inputs and print planned env names without writing to Vercel.
+        default: true
+        required: true
+        type: boolean
+      only_keys:
+        description: Optional comma-separated GitHub secret input names to sync; leave empty for the full production provider set.
+        default: ""
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    if: inputs.confirm == 'sync-production-env'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      VERCEL_SCOPE: asymmetric-al
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+      ADMIN_STRIPE_WEBHOOK_SECRET: ${{ secrets.ADMIN_STRIPE_WEBHOOK_SECRET }}
+      DONOR_STRIPE_WEBHOOK_SECRET: ${{ secrets.DONOR_STRIPE_WEBHOOK_SECRET }}
+      MISSIONARY_STRIPE_WEBHOOK_SECRET: ${{ secrets.MISSIONARY_STRIPE_WEBHOOK_SECRET }}
+      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+      NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      RESEND_WEBHOOK_SECRET: ${{ secrets.RESEND_WEBHOOK_SECRET }}
+      RESEND_ENCRYPTION_KEY: ${{ secrets.RESEND_ENCRYPTION_KEY }}
+      ONLY_KEYS: ${{ inputs.only_keys }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel
+
+      - name: Sync provider env values
+        run: |
+          args=()
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            args+=(--dry-run)
+          fi
+          if [[ -n "${ONLY_KEYS:-}" ]]; then
+            args+=(--keys "$ONLY_KEYS")
+          fi
+          node scripts/sync-vercel-production-env.mjs "${args[@]}"

@@ -76,8 +76,6 @@ type MissionaryGivingPageCreateData = MissionaryGivingPageCreateFields;
 type ProjectPageCreateData = ProjectPageCreateFields;
 type MinistryUpdateCreateData = MinistryUpdateCreateFields;
 
-const emptyRichTextContent = defaultRichTextValue as CmsRichTextValue;
-
 function jsonResponse(body: unknown, status = 200) {
   return Response.json(body, { status });
 }
@@ -133,6 +131,10 @@ function readTemplateKey(template: PageTemplateForCreate): string {
   return typeof template.templateKey === "string"
     ? template.templateKey
     : "template";
+}
+
+function createDefaultRichTextValue(): CmsRichTextValue {
+  return defaultRichTextValue as unknown as CmsRichTextValue;
 }
 
 function readTenantIdFromDoc(doc: {
@@ -232,7 +234,7 @@ async function createPageFromTemplate(
     pageType,
     template: Number(parsed.templateId),
     layout: defaultLayout,
-    content: emptyRichTextContent,
+    content: createDefaultRichTextValue(),
     legacyContentFallback: true,
   };
 
@@ -598,7 +600,7 @@ async function createMinistryUpdateFromTemplate(
       typeof template.defaultSummary === "string"
         ? template.defaultSummary
         : undefined,
-    content: emptyRichTextContent,
+    content: createDefaultRichTextValue(),
   };
 
   const doc = await payload.create({

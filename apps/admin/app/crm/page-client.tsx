@@ -96,7 +96,7 @@ function DetailDrawer({
           Constituent summary, activity, and properties for this CRM record.
         </SheetDescription>
         <div className="h-14 bg-card border-b border-border flex items-center justify-between px-4 shrink-0 z-10">
-          <div className="flex items-center gap-2 text-sm font-bold text-foreground uppercase tracking-wider">
+          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
             <User className="h-4 w-4 text-muted-foreground" />
             <span className="truncate max-w-[200px] sm:max-w-md">
               {display}
@@ -106,7 +106,7 @@ function DetailDrawer({
             <Button
               variant="ghost"
               size="sm"
-              className="h-9 text-[10px] font-bold uppercase tracking-wider gap-2 border border-border bg-card text-muted-foreground hover:bg-muted"
+              className="h-9 gap-2 rounded-xl border border-border bg-card text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground"
               onClick={summarizeContact}
               disabled={isAnalyzing}
             >
@@ -120,6 +120,7 @@ function DetailDrawer({
               variant="ghost"
               size="icon"
               onClick={onClose}
+              aria-label="Close CRM record details"
               className="h-8 w-8 text-muted-foreground"
             >
               <X className="h-4 w-4" />
@@ -585,14 +586,16 @@ export default function MissionControlCRM() {
       <PageShell
         title="CRM"
         description="Manage contacts, donors, and partner relationships."
+        density="compact"
         actions={
           <div className="flex items-center gap-3">
             <div className="flex bg-muted p-0.5 rounded-lg border border-border">
               <button
                 type="button"
+                aria-label="Show CRM table view"
                 onClick={() => setView("table")}
                 className={cn(
-                  "p-1.5 rounded-md transition-all",
+                  "p-1.5 rounded-md transition-colors",
                   view === "table"
                     ? "bg-card shadow-sm text-foreground"
                     : "text-muted-foreground",
@@ -602,9 +605,10 @@ export default function MissionControlCRM() {
               </button>
               <button
                 type="button"
+                aria-label="Show CRM kanban view"
                 onClick={() => setView("kanban")}
                 className={cn(
-                  "p-1.5 rounded-md transition-all",
+                  "p-1.5 rounded-md transition-colors",
                   view === "kanban"
                     ? "bg-card shadow-sm text-foreground"
                     : "text-muted-foreground",
@@ -613,7 +617,7 @@ export default function MissionControlCRM() {
                 <Columns className="h-4 w-4" />
               </button>
             </div>
-            <Button className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-black uppercase tracking-widest text-[10px] shadow-md gap-2">
+            <Button className="h-10 gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90">
               <Plus className="h-3.5 w-3.5" /> New Record
             </Button>
             <Button variant="outline" className="h-11 gap-2" asChild>

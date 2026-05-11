@@ -1,7 +1,9 @@
 "use client";
 
-import { signOutOnServer } from "@asym/auth/client-signout";
-import { createBrowserClient } from "@asym/database/supabase";
+import {
+  signOutClientSession,
+  subscribeToClientAuthState,
+} from "@asym/auth/client-session";
 import { runtimeEnvFlags } from "@asym/env";
 import {
   createContext,
@@ -9,6 +11,7 @@ import {
   useCallback,
   useReducer,
   useEffect,
+  useRef,
   type ReactNode,
 } from "react";
 
@@ -107,6 +110,11 @@ export function MCProvider({
   );
   const { user, tenant, role, sidebarCollapsed, loading } = state;
   const isDevMode = runtimeEnvFlags.NODE_ENV === "development";
+  const currentUserRef = useRef(user);
+
+  useEffect(() => {
+    currentUserRef.current = user;
+  }, [user]);
 
   const setRole = useCallback((nextRole: Role) => {
     dispatch({ type: "setRole", role: nextRole });
@@ -125,38 +133,24 @@ export function MCProvider({
   }, []);
 
   useEffect(() => {
-    const supabase = createBrowserClient();
+    return subscribeToClientAuthState(
+      ({ user: sessionUser }) => {
+        if (!sessionUser) {
+          applySignedOutState();
+          return;
+        }
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!session?.user) {
-        applySignedOutState();
-        return;
-      }
+        if (!currentUserRef.current) {
+          markLoadingComplete();
+        }
+      },
+      { includeProfile: false },
+    );
+  }, [applySignedOutState, markLoadingComplete]);
 
-      if (!user) {
-        markLoadingComplete();
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [applySignedOutState, markLoadingComplete, user]);
-
-  const signOut = async () => {
-    const serverSignOut = await signOutOnServer();
-    if (!serverSignOut.ok) {
-      window.alert(
-        serverSignOut.message ?? "Unable to sign out. Please try again.",
-      );
-    }
-
-    const supabase = createBrowserClient();
-    void supabase.auth.signOut().catch((error) => {
-      console.warn("[auth] browser signout cleanup failed", error);
-    });
-    window.location.href = "/login";
-  };
+  const signOut = useCallback(async () => {
+    await signOutClientSession();
+  }, []);
 
   return (
     <MCContext.Provider

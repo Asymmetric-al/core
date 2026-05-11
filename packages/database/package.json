@@ -32,6 +32,10 @@
       "types": "./collections/index.ts",
       "default": "./collections/index.ts"
     },
+    "./collections/support-workspace": {
+      "types": "./collections/support-workspace.ts",
+      "default": "./collections/support-workspace.ts"
+    },
     "./hooks": {
       "types": "./hooks/index.ts",
       "default": "./hooks/index.ts"

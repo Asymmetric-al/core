@@ -49,5 +49,19 @@ next-env.d.ts
 # agent use
 .reference/
 docs/ai/working-set.md
+.nia-sync/
+.nia_sync_local/
 .env*
 .cursor/settings.json
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Orchids.app (external AI builder) — not part of this monorepo
+.orchids/
+
+# Traycer / scratch — local agent artifacts (must not be committed)
+.traycer/
+/.tmp/
+/~/

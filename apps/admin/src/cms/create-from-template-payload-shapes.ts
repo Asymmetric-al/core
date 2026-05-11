@@ -2,27 +2,33 @@
  * Structural types for `create-from-template-endpoint.ts`.
  *
  * Payload writes the full definitions to `apps/admin/payload-types.ts` via
- * `payload generate:types` (file is gitignored). These shapes must stay aligned
- * with that output so `tsc` works in CI and fresh clones without codegen.
+ * `payload generate:types` (file is gitignored). These committed structural
+ * shapes must stay aligned with the subset this endpoint reads and writes so
+ * `tsc` works in CI and fresh clones without codegen.
  */
 
-/** Block array copied from a page template into new documents. */
-export type CmsRichTextValue = {
-  [k: string]: unknown;
+type CmsRelationship = string | number | { id: string | number } | null;
+export type CmsPageType =
+  | "standard"
+  | "missionary_giving"
+  | "project"
+  | "ministry_update";
+type PayloadPageType = Exclude<CmsPageType, "ministry_update">;
+export type CmsRichTextDocument = {
   root: {
     type: string;
-    children: {
-      [k: string]: unknown;
+    children: Array<{
       type: unknown;
       version: number;
-    }[];
+      [key: string]: unknown;
+    }>;
     direction: "ltr" | "rtl" | null;
     format: "left" | "start" | "center" | "right" | "end" | "justify" | "";
     indent: number;
     version: number;
   };
+  [key: string]: unknown;
 };
-
 export type CmsLayoutBlock =
   | {
       eyebrow?: string | null;
@@ -37,7 +43,7 @@ export type CmsLayoutBlock =
     }
   | {
       heading?: string | null;
-      body: CmsRichTextValue;
+      body: CmsRichTextDocument;
       id?: string | null;
       blockName?: string | null;
       blockType: "rich-text";
@@ -63,23 +69,23 @@ export type CmsLayoutBlock =
     }
   | {
       heading?: string | null;
-      items: {
+      items: Array<{
         question: string;
         answer: string;
         id?: string | null;
-      }[];
+      }>;
       id?: string | null;
       blockName?: string | null;
       blockType: "faq";
     }
   | {
       heading?: string | null;
-      items: {
+      items: Array<{
         label: string;
         value: string;
         description?: string | null;
         id?: string | null;
-      }[];
+      }>;
       id?: string | null;
       blockName?: string | null;
       blockType: "impact-stats";
@@ -94,14 +100,12 @@ export type CmsLayoutBlock =
     };
 
 export type CmsLayoutBlocks = CmsLayoutBlock[];
-
-export type CmsPageType = "standard" | "missionary_giving" | "project";
-export type CmsTemplatePageType = CmsPageType | "ministry_update";
+export type CmsRichTextValue = CmsRichTextDocument;
 
 export type PageTemplateForCreate = {
-  tenant?: unknown;
-  pageType?: CmsTemplatePageType;
-  defaultLayout?: unknown;
+  tenant?: CmsRelationship;
+  pageType?: CmsPageType;
+  defaultLayout?: CmsLayoutBlocks | null;
   templateKey?: string;
   defaultSummary?: string | null;
 };
@@ -111,7 +115,7 @@ export type PageCreateFields = {
   title: string;
   slug: string;
   summary?: string | null;
-  pageType: CmsPageType;
+  pageType: PayloadPageType;
   template: number;
   layout: CmsLayoutBlocks;
   content: CmsRichTextValue;
@@ -127,7 +131,7 @@ export type MissionaryGivingPageCreateFields = {
   title: string;
   slug: string;
   summary?: string | null;
-  pageType: CmsPageType;
+  pageType: "missionary_giving";
   layout: CmsLayoutBlocks;
 };
 
@@ -139,7 +143,7 @@ export type ProjectPageCreateFields = {
   title: string;
   slug: string;
   summary?: string | null;
-  pageType: CmsPageType;
+  pageType: "project";
   layout: CmsLayoutBlocks;
 };
 

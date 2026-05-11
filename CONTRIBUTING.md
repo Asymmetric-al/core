@@ -15,6 +15,7 @@ Thanks for contributing to asymmetric.al. We welcome pull requests, bug reports,
 - **Package manager:** `bun` (see `package.json#packageManager`).
 - **Conventions:** `docs/conventions.md` (folder structure, code style, and pre-commit checklist).
 - **Setup (macOS/Linux):** `bun run setup` (creates/validates `.env.local`, installs deps, runs verification).
+- **Mission Control in Cursor Cloud:** `bun run setup:mission-control:cloud && bun run dev:mission-control` (writes gitignored dev placeholders only).
 - **Pre-push hook:** runs `bun run ci:preflight` (same order as blocking GitHub CI checks).
 - **Run before pushing (recommended):**
   - `bun run ci:preflight`

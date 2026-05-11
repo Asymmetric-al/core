@@ -83,7 +83,10 @@ class FakeQuery {
     if (!next) {
       throw new Error(`No fake Supabase response for ${this.table}`);
     }
-    return Promise.resolve({ data: next.data ?? null, error: next.error ?? null });
+    return Promise.resolve({
+      data: next.data ?? null,
+      error: next.error ?? null,
+    });
   }
 }
 
