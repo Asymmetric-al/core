@@ -27,6 +27,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@next/env": "16.2.6",
+    "@sentry/nextjs": "^10.32.1",
     "@tanstack/react-query": "^5.96.2",
     "boneyard-js": "^1.7.6",
     "date-fns": "^4.1.0",

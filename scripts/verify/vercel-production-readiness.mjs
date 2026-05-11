@@ -41,15 +41,11 @@ const COMMON_REQUIRED_ENV = [
     "must be true or false",
     isBooleanString,
   ),
-  required(
-    "STRIPE_SECRET_KEY",
-    "must start with sk_live_",
-    hasPrefix("sk_live_"),
-  ),
+  required("STRIPE_SECRET_KEY", "must start with sk_", hasPrefix("sk_")),
   required(
     "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
-    "must start with pk_live_",
-    hasPrefix("pk_live_"),
+    "must start with pk_",
+    hasPrefix("pk_"),
   ),
   required(
     "STRIPE_WEBHOOK_SECRET",

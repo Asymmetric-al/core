@@ -31,6 +31,7 @@
     "@openpolicy/sdk": "0.0.17",
     "@next/env": "16.2.6",
     "@radix-ui/react-tabs": "^1.1.13",
+    "@sentry/nextjs": "^10.32.1",
     "@stripe/react-stripe-js": "^3.10.0",
     "@stripe/stripe-js": "^5.10.0",
     "@tanstack/react-query": "^5.96.2",

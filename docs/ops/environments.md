@@ -170,26 +170,26 @@ contains the current `epic` lineage, update this guide, and only then disable
 
 Set these Vercel variables in the **Production** scope before deploying:
 
-| Variable                             | Admin | Donor | Missionary | Notes                                                   |
-| ------------------------------------ | ----- | ----- | ---------- | ------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`           | Yes   | Yes   | Yes        | Production Supabase project URL                         |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY`      | Yes   | Yes   | Yes        | Client-safe production key                              |
-| `SUPABASE_SERVICE_ROLE_KEY`          | Yes   | Yes   | Yes        | Server-only production key                              |
-| `STRIPE_SECRET_KEY`                  | Yes   | Yes   | Yes        | Live-mode key; use `sk_live_...` in production          |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Yes   | Yes   | Yes        | Live-mode publishable key; use `pk_live_...`            |
-| `STRIPE_WEBHOOK_SECRET`              | Yes   | Yes   | Yes        | Signing secret for the app-specific production endpoint |
-| `SENTRY_DSN`                         | Yes   | Yes   | Yes        | Required by protected deployment env validation         |
-| `NEXT_PUBLIC_SENTRY_DSN`             | Yes   | Yes   | Yes        | Public client DSN when browser reporting is enabled     |
-| `RESEND_API_KEY`                     | Yes   | Yes   | Yes        | Production Resend API key; use `re_...`                 |
-| `RESEND_WEBHOOK_SECRET`              | Yes   | Yes   | Yes        | Production Resend webhook signing secret                |
-| `RESEND_ENCRYPTION_KEY`              | Yes   | Yes   | Yes        | At least 32 characters; protects tenant email secrets   |
-| `NEXT_PUBLIC_APP_URL`                | Yes   | Yes   | Yes        | App canonical origin                                    |
-| `NEXT_PUBLIC_SITE_URL`               | Yes   | Yes   | Yes        | Same origin as the app unless a split site exists       |
-| `NEXT_PUBLIC_MAIN_DOMAIN`            | Yes   | Yes   | Yes        | `asymmetric.al`                                         |
-| `PAYLOAD_SECRET`                     | Yes   | No    | No         | Required by admin Web Studio outside local/test         |
-| `PAYLOAD_DATABASE_URI`               | Yes   | No    | No         | Prefer Supavisor session pooler for Vercel              |
-| `NEXT_PUBLIC_DONOR_URL`              | Yes   | No    | No         | `https://donor.asymmetric.al` for Web Studio previews   |
-| `DONOR_APP_URL`                      | Yes   | No    | No         | Server-side donor origin for Web Studio previews        |
+| Variable                             | Admin | Donor | Missionary | Notes                                                                                 |
+| ------------------------------------ | ----- | ----- | ---------- | ------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`           | Yes   | Yes   | Yes        | Production Supabase project URL                                                       |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`      | Yes   | Yes   | Yes        | Client-safe production key                                                            |
+| `SUPABASE_SERVICE_ROLE_KEY`          | Yes   | Yes   | Yes        | Server-only production key                                                            |
+| `STRIPE_SECRET_KEY`                  | Yes   | Yes   | Yes        | Stripe key; current deployment uses test-mode `sk_test_...` until go-live             |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Yes   | Yes   | Yes        | Stripe publishable key; current deployment uses test-mode `pk_test_...` until go-live |
+| `STRIPE_WEBHOOK_SECRET`              | Yes   | Yes   | Yes        | Signing secret for the app-specific production endpoint                               |
+| `SENTRY_DSN`                         | Yes   | Yes   | Yes        | Required by protected deployment env validation                                       |
+| `NEXT_PUBLIC_SENTRY_DSN`             | Yes   | Yes   | Yes        | Public client DSN when browser reporting is enabled                                   |
+| `RESEND_API_KEY`                     | Yes   | Yes   | Yes        | Production Resend API key; use `re_...`                                               |
+| `RESEND_WEBHOOK_SECRET`              | Yes   | Yes   | Yes        | Production Resend webhook signing secret                                              |
+| `RESEND_ENCRYPTION_KEY`              | Yes   | Yes   | Yes        | At least 32 characters; protects tenant email secrets                                 |
+| `NEXT_PUBLIC_APP_URL`                | Yes   | Yes   | Yes        | App canonical origin                                                                  |
+| `NEXT_PUBLIC_SITE_URL`               | Yes   | Yes   | Yes        | Same origin as the app unless a split site exists                                     |
+| `NEXT_PUBLIC_MAIN_DOMAIN`            | Yes   | Yes   | Yes        | `asymmetric.al`                                                                       |
+| `PAYLOAD_SECRET`                     | Yes   | No    | No         | Required by admin Web Studio outside local/test                                       |
+| `PAYLOAD_DATABASE_URI`               | Yes   | No    | No         | Prefer Supavisor session pooler for Vercel                                            |
+| `NEXT_PUBLIC_DONOR_URL`              | Yes   | No    | No         | `https://donor.asymmetric.al` for Web Studio previews                                 |
+| `DONOR_APP_URL`                      | Yes   | No    | No         | Server-side donor origin for Web Studio previews                                      |
 
 Production Stripe webhook endpoints:
 
@@ -199,7 +199,7 @@ Production Stripe webhook endpoints:
 | Donor      | `https://donor.asymmetric.al/api/webhooks/stripe`      |
 | Missionary | `https://missionary.asymmetric.al/api/webhooks/stripe` |
 
-Configure each endpoint for at least these live-mode events:
+Configure each endpoint in the active Stripe mode for at least these events:
 
 - `payment_intent.succeeded`
 - `payment_intent.payment_failed`
