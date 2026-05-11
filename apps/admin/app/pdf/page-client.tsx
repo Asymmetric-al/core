@@ -50,8 +50,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@asym/ui/components/shadcn/tooltip";
+import { LegacyUnlayerDocumentEditor } from "@asym/ui/components/studio/legacy/UnlayerDocumentEditor";
 import { PDFStudioSetupStatus } from "@asym/ui/components/studio/PDFStudioSetupStatus";
-import { UnlayerEditor } from "@asym/ui/components/studio/UnlayerEditor";
 import { cn } from "@asym/ui/lib/utils";
 import {
   FileText,
@@ -91,7 +91,7 @@ import { toast } from "sonner";
 
 import type { PDFTemplateCategory } from "@/lib/pdf-studio";
 import type { UnlayerDesignJSON } from "@asym/email/email-studio-types";
-import type { UnlayerEditorHandle } from "@asym/ui/components/studio/UnlayerEditor";
+import type { LegacyUnlayerDocumentEditorHandle } from "@asym/ui/components/studio/legacy/UnlayerDocumentEditor";
 
 import {
   PDF_TEMPLATE_CATEGORIES,
@@ -816,7 +816,7 @@ type ExportPdfResult =
   | { ok: false; error: unknown };
 
 async function runExportPdf(
-  editor: UnlayerEditorHandle,
+  editor: LegacyUnlayerDocumentEditorHandle,
 ): Promise<ExportPdfResult> {
   try {
     const pdfResult = await editor.exportPdf();
@@ -857,7 +857,7 @@ type SaveTemplateResult =
   | { ok: false; error: string };
 
 async function runSaveTemplate(options: {
-  editor: UnlayerEditorHandle;
+  editor: LegacyUnlayerDocumentEditorHandle;
   metadata: PDFMetadata;
 }): Promise<SaveTemplateResult> {
   try {
@@ -909,7 +909,7 @@ async function runSaveTemplate(options: {
 }
 
 function usePDFStudioController() {
-  const editorRef = useRef<UnlayerEditorHandle>(null);
+  const editorRef = useRef<LegacyUnlayerDocumentEditorHandle>(null);
   const [ui, dispatchUi] = useReducer(
     pdfStudioUiReducer,
     INITIAL_PDF_STUDIO_UI_STATE,
@@ -1235,8 +1235,7 @@ export default function PDFStudio() {
       />
 
       <div className="flex-1 relative overflow-hidden bg-muted/30">
-        <UnlayerEditor
-          mode="document"
+        <LegacyUnlayerDocumentEditor
           editorId="pdf-studio-editor"
           onReady={handleEditorReady}
           onDesignUpdate={handleDesignUpdate}

@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS authz.memberships (
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS authz_memberships_user_tenant_role_uq
-  ON authz.memberships (user_id, tenant_id, role, COALESCE(staff_role::text, ''));
+  ON authz.memberships (user_id, tenant_id, role, staff_role) NULLS NOT DISTINCT;
 
 CREATE INDEX IF NOT EXISTS authz_memberships_user_tenant_active_idx
   ON authz.memberships (user_id, tenant_id)
@@ -113,7 +113,7 @@ SELECT
 FROM public.profiles p
 WHERE p.user_id IS NOT NULL
   AND p.tenant_id IS NOT NULL
-ON CONFLICT (user_id, tenant_id, role, COALESCE(staff_role::text, ''))
+ON CONFLICT (user_id, tenant_id, role, staff_role)
 DO UPDATE
 SET
   is_active = true,
@@ -293,7 +293,7 @@ BEGIN
     membership_staff_role,
     true
   )
-  ON CONFLICT (user_id, tenant_id, role, COALESCE(staff_role::text, ''))
+  ON CONFLICT (user_id, tenant_id, role, staff_role)
   DO UPDATE
   SET
     is_active = true,

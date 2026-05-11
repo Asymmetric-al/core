@@ -350,7 +350,7 @@ Note: unit tests are currently run repo-wide with `bun run test:unit`.
 1. Read docs from the nearest matching install for the app you are changing:
    - `apps/<app>/node_modules/next/dist/docs/` (if present)
    - then `node_modules/next/dist/docs/` at repo root
-2. This monorepo currently uses `next@16.2.1` across all Next.js apps (root and app `package.json` files; workspace packages align on the same version).
+2. This monorepo currently uses `next@16.2.6` across all Next.js apps (root and app `package.json` files; workspace packages align on the same version).
 3. **Upstream note:** Next.js 16.2+ docs describe adding the minimal `AGENTS.md` block directly when on `v16.2.0-canary.37` or later; on 16.1.x the `npx @next/codemod@latest agents-md` flow may still emit `.next-docs/` — this repo keeps both bundled `node_modules` docs (when installed) and committed `.next-docs/` for sandboxes.
 4. If `node_modules` docs are unavailable or unreadable:
    - run `bunx @next/codemod@canary agents-md`
@@ -396,8 +396,7 @@ Docker and Supabase CLI must be installed and running before starting local Supa
 4. Apply foundation migration: `docker exec -i supabase_db_asymmetrical-platform psql -U postgres -d postgres --single-transaction < supabase/migrations/20260214090000_foundation_1_schema.sql`
 5. Record it in the migration table: `docker exec -i supabase_db_asymmetrical-platform psql -U postgres -d postgres -c "INSERT INTO supabase_migrations.schema_migrations (version) VALUES ('20260214090000');"`
 6. Apply remaining migrations in order (without `--single-transaction` for those with explicit `BEGIN`/`COMMIT`); record each version in `supabase_migrations.schema_migrations`
-7. **Note**: Migration `20260226113000_authz_memberships_foundation.sql` has an index expression (`COALESCE(staff_role::text, '')`) that Postgres rejects as non-IMMUTABLE. Create the `authz` schema, types, table, and functions manually (see the migration SQL for definitions), skipping the problematic index expression. If that migration file changes, re-derive these manual steps from the file so local state does not silently drift.
-8. Apply seed: `docker exec -i supabase_db_asymmetrical-platform psql -U postgres -d postgres < supabase/seed.sql` (use without `--single-transaction` since the seed contains its own `BEGIN`/`COMMIT`)
+7. Apply seed: `docker exec -i supabase_db_asymmetrical-platform psql -U postgres -d postgres < supabase/seed.sql` (use without `--single-transaction` since the seed contains its own `BEGIN`/`COMMIT`)
 
 ### Environment variables
 

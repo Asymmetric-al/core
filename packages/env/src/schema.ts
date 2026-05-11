@@ -115,6 +115,20 @@ export const env = createEnv({
     /** Server-only donor origin for CMS preview links (fallback after `NEXT_PUBLIC_DONOR_URL`). */
     DONOR_APP_URL: z.string().url().optional(),
     CMS_BASE_URL: z.string().url().optional(),
+    TWENTY_API_URL: z.string().url().optional(),
+    TWENTY_API_KEY: z.string().min(1).optional(),
+    TWENTY_WEBHOOK_SECRET: z.string().min(1).optional(),
+    TWENTY_WORKSPACE_ID: z.string().min(1).optional(),
+    TWENTY_RATE_LIMIT_RPM: z.coerce.number().int().positive().optional(),
+    CRM_SYNC_INBOUND_ENABLED: optionalBoolean,
+    CRM_SYNC_OUTBOUND_ENABLED: optionalBoolean,
+    CRM_SYNC_REPLAY_ENABLED: optionalBoolean,
+    CRM_SYNC_RECONCILIATION_ENABLED: optionalBoolean,
+    CRM_SYNC_WEBHOOK_TOLERANCE_SECONDS: z.coerce
+      .number()
+      .int()
+      .positive()
+      .optional(),
     APP_VERSION: z.string().optional(),
     GIT_REF: z.string().optional(),
     GIT_SHA: z.string().optional(),
@@ -136,6 +150,11 @@ export const env = createEnv({
     NEXT_PUBLIC_GIT_SHA: z.string().optional(),
     NEXT_PUBLIC_BUILD_DATE: z.string().optional(),
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().startsWith("pk_").optional(),
+    NEXT_PUBLIC_EMAIL_STUDIO_BUILDER: z
+      .enum(["react_email", "unlayer", "auto"])
+      .optional()
+      .default("react_email"),
+    NEXT_PUBLIC_EMAIL_STUDIO_LEGACY_UNLAYER_ENABLED: optionalBoolean,
     NEXT_PUBLIC_UNLAYER_PROJECT_ID: z.string().optional(),
     NEXT_PUBLIC_UNLAYER_WHITE_LABEL: optionalBoolean,
     NEXT_PUBLIC_UNLAYER_ALLOWED_DOMAINS: z.string().optional(),
@@ -194,6 +213,18 @@ export const env = createEnv({
     PAYLOAD_DATABASE_URI: process.env.PAYLOAD_DATABASE_URI,
     DONOR_APP_URL: process.env.DONOR_APP_URL,
     CMS_BASE_URL: process.env.CMS_BASE_URL,
+    TWENTY_API_URL: process.env.TWENTY_API_URL,
+    TWENTY_API_KEY: process.env.TWENTY_API_KEY,
+    TWENTY_WEBHOOK_SECRET: process.env.TWENTY_WEBHOOK_SECRET,
+    TWENTY_WORKSPACE_ID: process.env.TWENTY_WORKSPACE_ID,
+    TWENTY_RATE_LIMIT_RPM: process.env.TWENTY_RATE_LIMIT_RPM,
+    CRM_SYNC_INBOUND_ENABLED: process.env.CRM_SYNC_INBOUND_ENABLED,
+    CRM_SYNC_OUTBOUND_ENABLED: process.env.CRM_SYNC_OUTBOUND_ENABLED,
+    CRM_SYNC_REPLAY_ENABLED: process.env.CRM_SYNC_REPLAY_ENABLED,
+    CRM_SYNC_RECONCILIATION_ENABLED:
+      process.env.CRM_SYNC_RECONCILIATION_ENABLED,
+    CRM_SYNC_WEBHOOK_TOLERANCE_SECONDS:
+      process.env.CRM_SYNC_WEBHOOK_TOLERANCE_SECONDS,
     APP_VERSION: process.env.APP_VERSION,
     GIT_REF: process.env.GIT_REF,
     GIT_SHA: process.env.GIT_SHA,
@@ -211,6 +242,10 @@ export const env = createEnv({
     NEXT_PUBLIC_BUILD_DATE: process.env.NEXT_PUBLIC_BUILD_DATE,
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
       process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+    NEXT_PUBLIC_EMAIL_STUDIO_BUILDER:
+      process.env.NEXT_PUBLIC_EMAIL_STUDIO_BUILDER,
+    NEXT_PUBLIC_EMAIL_STUDIO_LEGACY_UNLAYER_ENABLED:
+      process.env.NEXT_PUBLIC_EMAIL_STUDIO_LEGACY_UNLAYER_ENABLED,
     NEXT_PUBLIC_UNLAYER_PROJECT_ID: process.env.NEXT_PUBLIC_UNLAYER_PROJECT_ID,
     NEXT_PUBLIC_UNLAYER_WHITE_LABEL:
       process.env.NEXT_PUBLIC_UNLAYER_WHITE_LABEL,

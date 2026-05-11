@@ -108,13 +108,15 @@ Nia keywords:
 
 ## Email, Templates, and PDFs
 
-- Unlayer (react-email-editor)
+- React Email Editor (`@react-email/editor`) for Email Studio
+- Legacy Unlayer (`react-email-editor`) for existing legacy templates and PDF Studio
 - Resend (mail + webhooks)
-- Shared template source for email + PDF rendering pipeline
+- Provider-neutral email template storage and versions
 
 Nia keywords:
 
-- unlayer, email editor, react-email-editor
+- react_email, @react-email/editor, email_templates, email_template_versions
+- legacy unlayer, react-email-editor, PDF Studio
 - resend, webhook
 - pdf render, template pipeline
 
@@ -175,7 +177,7 @@ Nia keywords:
 - "db/schema/migration" -> Postgres, Supabase
 - "dashboard/table" -> TanStack Table, Query, Tailwind/shadcn
 - "payment/checkout/webhook" -> Stripe
-- "email/template/pdf" -> Unlayer, Resend
+- "email/template/pdf" -> React Email Editor, legacy Unlayer, Resend
 - "charts/visualization" -> Recharts
 - "motion/animation" -> motion
 - "rich text/editor/tiptap" -> Tiptap, @tiptap/react, StarterKit

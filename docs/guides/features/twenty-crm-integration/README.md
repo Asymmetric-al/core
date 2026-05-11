@@ -20,6 +20,7 @@ Do not reorder or weaken the phase sequence just because some implementation pie
 - `openspec/specs/platform-principles/spec.md`
 - `openspec/specs/platform-boundaries/spec.md`
 - `docs/guides/architecture/data-access-boundary.md`
+- `docs/guides/operations/twenty-crm-cutover.md`
 - `docs/guides/development/tanstack-integration.md`
 - `docs/ai/rules/backend.md`
 - Official Twenty docs checked during planning:
@@ -58,3 +59,5 @@ Do not reorder or weaken the phase sequence just because some implementation pie
 3. Use `implementation-inventory.md` only for sizing and task discovery.
 4. Keep active implementation issues small enough to complete within one phase.
 5. Update OpenSpec and architecture docs before behavior becomes durable.
+6. Use `docs/guides/operations/twenty-crm-cutover.md` for Phase 07 cutover,
+   rollback, restore, and secret-rotation execution.

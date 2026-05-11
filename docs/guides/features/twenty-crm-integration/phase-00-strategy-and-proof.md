@@ -31,10 +31,25 @@ Make the integration decision explicit, document ownership, and prove Twenty can
 - `openspec/changes/integrate-twenty-crm-core/proposal.md`
 - `openspec/changes/integrate-twenty-crm-core/design.md`
 - `openspec/changes/integrate-twenty-crm-core/tasks.md`
+- Proposed spec deltas under
+  `openspec/changes/integrate-twenty-crm-core/specs/`
 - Ownership matrix inside the design doc.
-- Written Twenty infrastructure proof.
+- Written Twenty infrastructure proof plan.
 - Written yes/no decision for using Supabase Postgres as Twenty's backing Postgres.
 - First-domain recommendation for Phase 04.
+
+## Phase 00 Artifact Status
+
+The Phase 00 documentation gate is in place in
+`openspec/changes/integrate-twenty-crm-core/`.
+
+- Integration strategy: `proposal.md` and `design.md`
+- Ownership matrix: `design.md`
+- Non-production Twenty proof plan: `design.md`
+- Supabase Postgres versus dedicated Postgres decision: `design.md`
+- Proposed OpenSpec deltas: `specs/platform-boundaries/spec.md` and
+  `specs/platform-surfaces/spec.md`
+- Phase 01 status: not started by this package
 
 ## Workflow
 

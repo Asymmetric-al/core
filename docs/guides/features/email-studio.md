@@ -1,448 +1,131 @@
 # Email Studio
 
-A professional drag-and-drop email editor powered by Unlayer, integrated with Resend for email delivery.
+Email Studio authors tenant email templates with React Email Editor and sends through the existing Resend integration. Resend remains the delivery provider; the editor runtime is separate from delivery, webhook ingestion, tenant validation, and audit logging.
 
-## Overview
+## Triggers
 
-Email Studio provides a visual email builder that enables non-technical users to create beautiful, responsive email templates. The editor is embedded via the `react-email-editor` package and supports multiple display modes, merge tags, and export options.
+Use this guide when changing:
 
-## Current Implementation Status
-
-| Feature                    | Status   | Location                                           |
-| -------------------------- | -------- | -------------------------------------------------- |
-| Unlayer Editor Integration | Complete | `src/components/studio/UnlayerEditor.tsx`          |
-| Email Studio Page          | Complete | `src/app/(admin)/mc/email/page.tsx`                |
-| Configuration System       | Complete | `src/config/email-studio.ts`                       |
-| Type Definitions           | Complete | `src/types/email-studio.ts`                        |
-| Setup Status Component     | Complete | `src/components/studio/EmailStudioSetupStatus.tsx` |
-| HTML Export                | Complete | Via `exportHtml()` method                          |
-| PDF Export                 | Complete | Via `exportPdf()` method                           |
-| Template Save              | Partial  | UI complete, API stubbed                           |
-| Resend Integration         | Complete | `packages/email/resend.ts`                         |
-| Template Database Storage  | Planned  | Requires Supabase table                            |
-| Campaign Management        | Planned  | Bulk sends with scheduling                         |
-
----
+- Admin Email Studio UI, template save/load/export, preview, image upload, or test-send.
+- Email template database schema, template versions, or generated database types.
+- Merge-tag definitions, validation, substitution, or campaign send behavior.
+- Resend delivery behavior that is called from Email Studio.
+- Legacy Unlayer template handling.
 
 ## Architecture
 
-### Component Hierarchy
-
-```
-EmailStudio (page.tsx)
-├── EmailStudioSetupStatus
-├── Header (toolbar)
-│   ├── Undo/Redo controls
-│   ├── Preview toggle (desktop/mobile)
-│   ├── Export dropdown
-│   └── Save button
-└── UnlayerEditor
-    └── react-email-editor (EmailEditor)
+```txt
+Editor/runtime        React Email Editor or legacy Unlayer adapter
+Template model        Asym provider-neutral builder envelope
+Personalization       Asym merge-tag registry and renderer
+Persistence           Supabase email_templates + email_template_versions
+Delivery              Existing Resend service layer
+Events/audit          email_send_logs + Resend webhook ingestion
 ```
 
-### File Structure
+Primary files:
 
-```
-src/
-├── app/(admin)/mc/email/
-│   └── page.tsx                    # Email Studio page
-├── components/studio/
-│   ├── UnlayerEditor.tsx           # Core editor wrapper
-│   └── EmailStudioSetupStatus.tsx  # Setup status badge
-├── config/
-│   └── email-studio.ts             # Configuration & constants
-├── types/
-│   └── email-studio.ts             # TypeScript definitions
-└── lib/email/
-    ├── index.ts                    # Public exports
-    ├── constants.ts                # API endpoints, error codes
-    └── resend.ts                   # Resend service
-```
+- `apps/admin/app/email/page-client.tsx` - admin Email Studio shell.
+- `packages/ui/components/studio/EmailStudioEditor.tsx` - provider switch.
+- `packages/ui/components/studio/ReactEmailEditor.tsx` - React Email Editor wrapper.
+- `packages/ui/components/studio/legacy/UnlayerEmailEditor.tsx` - controlled legacy email path.
+- `packages/email/email-builder-types.ts` - provider-neutral builder contract.
+- `packages/email/merge-tags.ts` and `packages/email/merge-tag-render.ts` - merge-tag registry, validation, and substitution.
+- `packages/api/src/email/templates.ts` and `packages/api/src/email/template-store.ts` - template CRUD/versioning.
+- `packages/api/src/email/template-test-send.ts` - actual-template test-send through Resend.
+- `packages/api/src/email/assets.ts` - authenticated image upload.
 
----
+## Runtime Flags
 
-## Tenant Setup Guide
-
-### Prerequisites
-
-1. **Unlayer Account** - Required for advanced features
-2. **Resend Account** - Required for email delivery
-3. **Verified Sender** - Domain or single sender verification
-
-### Step 1: Unlayer Configuration
-
-#### Free Mode (No Setup Required)
-
-Email Studio works out-of-the-box in free mode with these features:
-
-- Drag-and-drop editor
-- Basic templates
-- HTML export
-- Mobile preview
-
-#### Paid Mode (Recommended for Production)
-
-1. Create account at [dashboard.unlayer.com](https://dashboard.unlayer.com)
-2. Create a new project (select "Email" as project type)
-3. Copy your Project ID from Project > Settings
-4. Add to `.env.local`:
-
-```bash
-# Unlayer Project ID (numeric)
-NEXT_PUBLIC_UNLAYER_PROJECT_ID=123456
+```env
+NEXT_PUBLIC_EMAIL_STUDIO_BUILDER=react_email
+NEXT_PUBLIC_EMAIL_STUDIO_LEGACY_UNLAYER_ENABLED=true
 ```
 
-5. Add production domain to allowed list:
-   - Developer > Builder > Settings > Allowed Domains
+`react_email` is the default for new templates. `unlayer` is allowed only for existing legacy templates or rollback. `auto` may be used during rollout to choose React Email for new templates and legacy Unlayer for rows already stored with `builder='unlayer'`.
 
-#### White-Label Mode (Remove Unlayer Branding)
+Legacy Unlayer env vars are retained only while legacy templates or PDF Studio still depend on Unlayer:
 
-1. Upgrade to a paid plan at [unlayer.com/pricing](https://unlayer.com/pricing)
-2. Enable white-label in Project > Settings > White Label
-3. Add to `.env.local`:
-
-```bash
-NEXT_PUBLIC_UNLAYER_WHITE_LABEL=true
+```env
+NEXT_PUBLIC_UNLAYER_PROJECT_ID=
+NEXT_PUBLIC_UNLAYER_WHITE_LABEL=false
+NEXT_PUBLIC_UNLAYER_ALLOWED_DOMAINS=
+UNLAYER_API_KEY=
 ```
 
-### Step 2: Resend Configuration
+## Template Model
 
-See [Resend Integration](./resend-integration.md) for complete setup instructions.
+Templates are provider-neutral:
 
-Quick setup:
+- `builder`: `react_email` or `unlayer`.
+- `builder_version`: editor package/runtime version.
+- `design_json`: editor JSON source of truth.
+- `html_content` and `text_content`: cached export used by preview/test-send/campaign sends.
+- `default_subject` and `default_preheader`: persisted delivery metadata.
+- `email_template_versions`: immutable versions used for audit and rollback.
 
-1. Create Resend account at [resend.com/signup](https://resend.com/signup)
-2. Create API key with sending access
-3. Verify sender email or authenticate domain
-4. Connect via Settings > Integrations > Resend in the admin panel
+Manual save exports the current editor output, validates merge tags, writes the template row, and creates a version. Local storage may be used only for transient draft recovery; it is not a production template store.
 
-### Step 3: Branding Configuration
-
-Customize the editor experience:
-
-```bash
-# .env.local
-
-# Organization name (used in merge tags)
-NEXT_PUBLIC_BRAND_NAME=YourOrganization
-
-# Primary brand color (hex)
-NEXT_PUBLIC_BRAND_PRIMARY_COLOR=#0f172a
-
-# Accent color for CTAs
-NEXT_PUBLIC_BRAND_ACCENT_COLOR=#2563eb
-
-# Optional: Logo URL for email headers
-NEXT_PUBLIC_BRAND_LOGO_URL=https://yourdomain.com/logo.png
-
-# Optional: Default footer text
-NEXT_PUBLIC_EMAIL_FOOTER_TEXT=YourOrg | 123 Main St | City, ST 12345
-```
-
----
-
-## Environment Variables Reference
-
-| Variable                              | Required | Description                                |
-| ------------------------------------- | -------- | ------------------------------------------ |
-| `NEXT_PUBLIC_UNLAYER_PROJECT_ID`      | No       | Unlayer project ID (enables paid features) |
-| `NEXT_PUBLIC_UNLAYER_WHITE_LABEL`     | No       | Set `true` for white-label mode            |
-| `NEXT_PUBLIC_UNLAYER_ALLOWED_DOMAINS` | No       | Comma-separated list of allowed domains    |
-| `NEXT_PUBLIC_BRAND_NAME`              | No       | Organization name (default: "GiveHope")    |
-| `NEXT_PUBLIC_BRAND_PRIMARY_COLOR`     | No       | Primary color hex (default: "#0f172a")     |
-| `NEXT_PUBLIC_BRAND_ACCENT_COLOR`      | No       | Accent color hex (default: "#2563eb")      |
-| `NEXT_PUBLIC_BRAND_LOGO_URL`          | No       | Logo URL for email headers                 |
-| `NEXT_PUBLIC_EMAIL_FOOTER_TEXT`       | No       | Default footer text                        |
-
----
-
-## Developer Guide
-
-### Using the UnlayerEditor Component
-
-```tsx
-import {
-  UnlayerEditor,
-  UnlayerEditorHandle,
-} from "@/components/studio/UnlayerEditor";
-
-function MyEmailEditor() {
-  const editorRef = useRef<UnlayerEditorHandle>(null);
-
-  const handleExport = async () => {
-    const { html, design } = await editorRef.current.exportHtml();
-    console.log("HTML:", html);
-    console.log("Design JSON:", design);
-  };
-
-  return (
-    <UnlayerEditor
-      ref={editorRef}
-      mode="email"
-      editorId="my-editor"
-      onReady={(config) => console.log("Editor ready", config)}
-      onDesignUpdate={(design) => console.log("Design changed")}
-      className="h-full"
-      appearance={{
-        theme: "modern_light",
-        panels: { tools: { dock: "right" } },
-      }}
-    />
-  );
-}
-```
-
-### Editor Handle Methods
-
-| Method                 | Returns                           | Description                          |
-| ---------------------- | --------------------------------- | ------------------------------------ |
-| `exportHtml(options?)` | `Promise<UnlayerExportHTML>`      | Export design as HTML                |
-| `exportPdf(options?)`  | `Promise<UnlayerPdfExportResult>` | Export as PDF (requires project ID)  |
-| `exportDesign()`       | `Promise<UnlayerDesignJSON>`      | Get raw design JSON                  |
-| `loadDesign(design)`   | `void`                            | Load a design into the editor        |
-| `saveDesign()`         | `Promise<UnlayerDesignJSON>`      | Save current design                  |
-| `setMergeTags(tags)`   | `void`                            | Update merge tags dynamically        |
-| `showPreview(device)`  | `void`                            | Show preview ('desktop' or 'mobile') |
-| `undo()`               | `void`                            | Undo last action                     |
-| `redo()`               | `void`                            | Redo last undone action              |
-| `getConfig()`          | `StudioConfig`                    | Get current configuration            |
-
-### UnlayerEditor Props
-
-| Prop             | Type                                        | Default        | Description                       |
-| ---------------- | ------------------------------------------- | -------------- | --------------------------------- |
-| `mode`           | `'email' \| 'web' \| 'popup' \| 'document'` | `'email'`      | Editor display mode               |
-| `initialDesign`  | `UnlayerDesignJSON`                         | Blank template | Initial design to load            |
-| `projectId`      | `number`                                    | From env       | Override Unlayer project ID       |
-| `editorId`       | `string`                                    | Auto-generated | Unique editor instance ID         |
-| `onReady`        | `(config) => void`                          | -              | Called when editor is ready       |
-| `onLoad`         | `() => void`                                | -              | Called when editor starts loading |
-| `onDesignUpdate` | `(design) => void`                          | -              | Called on any design change       |
-| `onSave`         | `(data) => void`                            | -              | Called when save is triggered     |
-| `onExport`       | `(data) => void`                            | -              | Called after HTML export          |
-| `className`      | `string`                                    | -              | CSS classes for wrapper           |
-| `appearance`     | `UnlayerAppearance`                         | Default        | Editor appearance settings        |
-| `mergeTags`      | `UnlayerMergeTags`                          | Default        | Merge tags configuration          |
-| `user`           | `{ id?, email?, name? }`                    | -              | Current user info                 |
-| `locale`         | `string`                                    | `'en-US'`      | Editor locale                     |
-| `customCSS`      | `string[]`                                  | `[]`           | Custom CSS to inject              |
-| `customJS`       | `string[]`                                  | `[]`           | Custom JS to inject               |
-
-### Export Options
-
-```typescript
-// HTML Export
-const { html, design } = await editorRef.current.exportHtml({
-  minify: true, // Minify HTML output
-  cleanup: true, // Clean up CSS
-  mergeTags: {
-    // Replace merge tags with values
-    first_name: "John",
-    last_name: "Doe",
-  },
-});
-
-// PDF Export (requires Unlayer project ID)
-const { url, design } = await editorRef.current.exportPdf({
-  mergeTags: {
-    first_name: "John",
-  },
-});
-```
-
----
+`tests/unit/packages/api/email/templates.test.ts` covers the tenant-scoped template route contract: create, list, read, patch, delete, duplicate, export, version list, version restore, missing-template handling, missing-export handling, invalid restore versions, and merge-tag rejection before persistence.
 
 ## Merge Tags
 
-Merge tags allow dynamic content insertion. The system provides pre-configured tags organized by category:
+Merge tags are Asym domain primitives, not editor-vendor features. The canonical token syntax remains:
 
-### Available Categories
-
-| Category       | Tags                                                                                                     | Description               |
-| -------------- | -------------------------------------------------------------------------------------------------------- | ------------------------- |
-| `organization` | `org_name`, `org_address`, `org_phone`, `org_email`, `org_website`                                       | Organization details      |
-| `recipient`    | `first_name`, `last_name`, `full_name`, `email`, `salutation`                                            | Recipient personalization |
-| `donation`     | `donation_amount`, `donation_date`, `donation_method`, `donation_id`, `ytd_giving`, `tax_receipt_number` | Donation details          |
-| `missionary`   | `missionary_name`, `missionary_location`, `missionary_bio`, `support_level`, `support_goal`              | Missionary info           |
-| `links`        | `unsubscribe_link`, `view_in_browser`, `donate_link`, `profile_link`, `preferences_link`                 | Action links              |
-| `campaign`     | `campaign_name`, `campaign_goal`, `campaign_raised`, `campaign_end_date`                                 | Campaign details          |
-
-### Merge Tag Format
-
-Tags use double curly brace syntax: `{{tag_name}}`
-
-Example email content:
-
-```html
-<p>Dear {{first_name}},</p>
-<p>Thank you for your gift of {{donation_amount}} on {{donation_date}}.</p>
+```txt
+{{first_name}}
+{{donation_amount}}
+{{unsubscribe_link}}
 ```
 
-### Custom Merge Tags
+Server sends must validate known tags, required marketing tags, and URL safety before calling Resend. Substitution escapes values by default. Marketing sends must include `unsubscribe_link`.
 
-```typescript
-const customMergeTags: UnlayerMergeTags = {
-  custom: {
-    name: 'Custom Fields',
-    mergeTags: {
-      custom_field: {
-        name: 'Custom Field',
-        value: '{{custom_field}}',
-        sample: 'Sample Value'
-      }
-    }
-  }
-}
+The React Email editor uses `packages/ui/components/studio/merge-tag-extension.tsx` to insert merge tags as atomic inline nodes. The node renders as a protected pill in the editor and serializes back to `{{tag_key}}` for exported HTML/text and server-side validation.
 
-<UnlayerEditor mergeTags={customMergeTags} />
-```
+## Preview And Test Send
 
----
+Preview exports the current editor HTML/text and renders HTML in a sandboxed iframe. The test-send flow sends the current edited template through `sendEmail(...)` in `packages/email/resend.ts`; it does not call the generic Resend connection-test email.
 
-## Layout & Height Handling
+Generic connection testing remains at `/api/email/test-send`. Actual template testing uses:
 
-The editor fills its container using CSS flexbox. The layout chain:
+- `POST /api/email/templates/test-send`
+- `POST /api/email/templates/[templateId]/test-send`
 
-```
-<main className="flex-1 flex flex-col min-h-0 overflow-hidden">
-  <div className="flex-1 min-h-0 overflow-hidden">           // Page container
-    <header className="h-12 md:h-14 shrink-0">               // Fixed toolbar
-    <div className="flex-1 relative overflow-hidden">         // Editor container
-      <UnlayerEditor className="absolute inset-0" />          // Editor fills container
-    </div>
-  </div>
-</main>
-```
+## Image Upload
 
-Critical CSS in `globals.css`:
+React Email Editor image upload calls `POST /api/email/assets/upload`. The route requires admin/super_admin auth, validates MIME/size, and stores assets under tenant-scoped paths. Cloudinary is used only when enabled; otherwise Supabase Storage bucket `email-assets` is used.
 
-```css
-.unlayer-editor-wrapper {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
-  height: 100%;
-  width: 100%;
-}
+## Legacy Unlayer
 
-.unlayer-editor-wrapper iframe {
-  flex: 1 1 auto !important;
-  width: 100% !important;
-  height: 100% !important;
-}
-```
+Existing Unlayer email templates must not be silently converted. They open through `packages/ui/components/studio/legacy/UnlayerEmailEditor.tsx` while the legacy flag is enabled. PDF Studio uses `packages/ui/components/studio/legacy/UnlayerDocumentEditor.tsx` until a separate PDF/document migration removes that dependency.
 
----
+Do not remove the `react-email-editor` dependency until:
 
-## Keyboard Shortcuts
+1. No active email template needs the legacy Unlayer adapter.
+2. PDF Studio has been migrated or explicitly disabled.
+3. Static grep shows no active references outside the approved legacy allowlist.
 
-| Shortcut               | Action               |
-| ---------------------- | -------------------- |
-| `Cmd/Ctrl + S`         | Open save dialog     |
-| `Cmd/Ctrl + Z`         | Undo                 |
-| `Cmd/Ctrl + Shift + Z` | Redo                 |
-| `Cmd/Ctrl + E`         | Export HTML          |
-| `Esc`                  | Exit fullscreen mode |
+Use `bun run verify:email-studio-legacy` during rollout. For the final decommission PR, run `EMAIL_STUDIO_UNLAYER_MODE=zero bun run verify:email-studio-legacy` and expect zero references.
 
----
+## Checklist
 
-## Feature Availability by Tier
+- [ ] Read the current Next.js docs for App Router routes/components before changing route or page code.
+- [ ] Keep App Router route files thin; put business logic in `packages/api/src/email/*`.
+- [ ] Keep Resend delivery in the existing `packages/email/resend.ts` path.
+- [ ] Persist React Email designs with `builder='react_email'`, HTML, text, subject, preheader, and a version row.
+- [ ] Validate and render merge tags server-side before sending.
+- [ ] Keep legacy Unlayer explicit and isolated.
+- [ ] Update `.env.example`, `docs/env-var-audit.md`, and runtime-map docs when adding routes/env vars.
+- [ ] Run focused unit/component tests, the Email Studio Playwright smoke, typecheck, and `bun run verify:email-studio-legacy` before release.
 
-| Feature                 | Free | Configured | White-Label |
-| ----------------------- | ---- | ---------- | ----------- |
-| Drag-and-drop editor    | Yes  | Yes        | Yes         |
-| Basic templates         | Yes  | Yes        | Yes         |
-| HTML export             | Yes  | Yes        | Yes         |
-| Mobile preview          | Yes  | Yes        | Yes         |
-| Stock images            | No   | Yes        | Yes         |
-| Custom blocks           | No   | Yes        | Yes         |
-| Team collaboration      | No   | Yes        | Yes         |
-| Remove Unlayer branding | No   | No         | Yes         |
-| AI writing assistant    | No   | No         | Yes         |
-| Custom fonts            | No   | No         | Yes         |
+Focused regression tests:
 
----
-
-## Troubleshooting
-
-### Editor Shows Only 1/5 of Viewport Height
-
-**Cause**: Missing height chain from parent containers.
-
-**Solution**: Ensure parent elements use `flex-1 min-h-0` and the editor wrapper uses `absolute inset-0`.
-
-### "Free mode - Limited features" Warning
-
-**Cause**: No Unlayer project ID configured.
-
-**Solution**: Add `NEXT_PUBLIC_UNLAYER_PROJECT_ID` to `.env.local`.
-
-### PDF Export Fails
-
-**Cause**: PDF export requires a valid Unlayer project ID.
-
-**Solution**: Configure Unlayer project ID and ensure you're on a plan that supports PDF export.
-
-### Hydration Errors
-
-**Cause**: Client/server rendering mismatch, often from `ClientOnly` wrappers.
-
-**Solution**: The editor uses `useSyncExternalStore` to handle SSR safely. Ensure no conditional rendering based on `typeof window`.
-
-### Stock Images Not Available
-
-**Cause**: Stock images require a configured Unlayer project.
-
-**Solution**: Add your Unlayer project ID to enable stock image library.
-
----
-
-## Resend Integration
-
-Email Studio integrates with Resend for delivery. See [Resend Integration](./resend-integration.md) for:
-
-- API key setup
-- Sender verification
-- Test email sending
-- Webhook configuration
-- Error handling
-
----
-
-## Security Considerations
-
-1. **API Keys**: Never expose Resend API keys to the client. All email sending happens server-side.
-2. **Merge Tags**: Sanitize merge tag values before rendering to prevent XSS.
-3. **Content**: The editor allows HTML content; ensure proper sanitization if displaying user-generated emails.
-4. **Domain Verification**: Always use authenticated domains in production for deliverability.
-
----
-
-## Future Enhancements
-
-1. **Template Database** - Persist templates to Supabase
-2. **Campaign Management** - Schedule and send bulk emails
-3. **A/B Testing** - Test different email variants
-4. **Analytics Dashboard** - Track opens, clicks, bounces
-5. **Suppression Management** - Handle unsubscribes and bounces
-6. **Template Library** - Pre-built templates for common use cases
-7. **Version History** - Track template changes over time
-
----
-
-## API Reference
-
-### Unlayer Official Documentation
-
-- [React Component Guide](https://docs.unlayer.com/builder/react-component)
-- [Options Reference](https://docs.unlayer.com/builder/options)
-- [Export Methods](https://docs.unlayer.com/builder/export)
-- [Merge Tags](https://docs.unlayer.com/builder/merge-tags)
-- [Appearance](https://docs.unlayer.com/builder/appearance)
-
-### Resend Documentation
-
-- [Getting Started](https://resend.com/docs/send-with-nodejs)
-- [API Reference](https://resend.com/docs/api-reference/emails/send-email)
-- [Webhooks](https://resend.com/docs/dashboard/webhooks/introduction)
+- `tests/unit/packages/email/email-builder-types.test.ts`
+- `tests/unit/packages/email/merge-tags.test.ts`
+- `tests/unit/packages/email/merge-tag-render.test.ts`
+- `tests/unit/packages/api/email/templates.test.ts`
+- `tests/unit/packages/api/email/template-test-send.test.ts`
+- `tests/unit/packages/api/email/assets.test.ts`
+- `tests/unit/packages/ui/studio/react-email-editor.test.tsx`
+- `tests/unit/packages/ui/studio/email-studio-preview.test.tsx`
+- `tests/e2e/admin-email-studio.spec.ts`

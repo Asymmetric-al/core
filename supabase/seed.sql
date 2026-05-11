@@ -189,7 +189,7 @@ VALUES
     NULL,
     true
   )
-ON CONFLICT (user_id, tenant_id, role, COALESCE(staff_role::text, ''))
+ON CONFLICT (user_id, tenant_id, role, staff_role)
 DO UPDATE
 SET
   is_active = true,
@@ -254,6 +254,35 @@ SELECT
   format('Field Team %s', gs),
   location,
   format('+1-555-02%02s', gs),
+  (ARRAY[
+    'Africa/Nairobi',
+    'Asia/Bangkok',
+    'Africa/Kampala',
+    'Asia/Amman',
+    'Europe/Lisbon',
+    'America/Sao_Paulo'
+  ])[gs],
+  (ARRAY[
+    'Africa',
+    'SE Asia',
+    'Africa',
+    'Middle East',
+    'Europe',
+    'Latin America'
+  ])[gs],
+  CASE
+    WHEN gs IN (4, 6) THEN 'needs_attention'
+    ELSE 'healthy'
+  END,
+  '2026-02-10T09:00:00Z'::timestamptz - ((gs - 1) * interval '18 hours'),
+  gs IN (4, 6),
+  jsonb_build_object(
+    'emotional', 58 + gs,
+    'spiritual', 64 + gs,
+    'physical', 55 + gs,
+    'financial', 50 + (gs * 2)
+  ),
+  ('1984-01-01'::date + (gs * interval '370 days'))::date,
   CASE WHEN gs = 6 THEN NULL ELSE format('https://images.unsplash.com/photo-%s', 1500000000000 + gs) END,
   CASE
     WHEN gs = 6 THEN '{}'::jsonb
@@ -278,6 +307,13 @@ INSERT INTO public.missionaries (
   tagline,
   location,
   phone,
+  timezone,
+  region,
+  health_status,
+  last_check_in,
+  manual_attention,
+  health_signals,
+  birth_date,
   cover_url,
   social_links,
   created_at,

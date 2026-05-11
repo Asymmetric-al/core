@@ -34,6 +34,23 @@ These become required for protected deployments (production or custom staging ta
 
 Cloudinary server/client keys are conditionally required only when Cloudinary is enabled in protected deployments.
 
+Twenty CRM variables are server-only and optional during the non-production
+gateway/sync phases:
+
+- `TWENTY_API_URL`
+- `TWENTY_API_KEY`
+- `TWENTY_WEBHOOK_SECRET`
+- `TWENTY_WORKSPACE_ID`
+- `TWENTY_RATE_LIMIT_RPM` (defaults in callers to `100` when unset)
+- `CRM_SYNC_INBOUND_ENABLED` (defaults off)
+- `CRM_SYNC_OUTBOUND_ENABLED` (defaults off)
+- `CRM_SYNC_REPLAY_ENABLED` (defaults off)
+- `CRM_SYNC_RECONCILIATION_ENABLED` (defaults off)
+- `CRM_SYNC_WEBHOOK_TOLERANCE_SECONDS` (defaults to `300`)
+
+Do not add `NEXT_PUBLIC_TWENTY_*` variables. Browser and app source must use
+Asym API contracts, not raw Twenty credentials.
+
 ## Migration Policy
 
 | Change      | Required updates                                                                      | Notes                                                      |

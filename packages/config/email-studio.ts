@@ -1,9 +1,17 @@
+import {
+  DEFAULT_MERGE_TAG_REGISTRY,
+  toLegacyUnlayerMergeTags,
+  type MergeTagRegistry,
+} from "@asym/email/merge-tags";
 import { clientEnv, runtimeEnvFlags } from "@asym/env";
 
+import type { EmailBuilderKind } from "@asym/email/email-builder-types";
 import type {
   UnlayerAppearance,
   UnlayerMergeTags,
 } from "@asym/email/email-studio-types";
+
+export type EmailStudioBuilderMode = EmailBuilderKind | "auto";
 
 export interface UnlayerAccountConfig {
   projectId: number | null;
@@ -23,8 +31,14 @@ export interface EmailStudioBrandConfig {
 
 export interface EmailStudioFullConfig {
   account: UnlayerAccountConfig;
+  builder: {
+    requestedBuilder: EmailStudioBuilderMode;
+    defaultBuilder: EmailBuilderKind;
+    legacyUnlayerEnabled: boolean;
+  };
   brand: EmailStudioBrandConfig;
   appearance: UnlayerAppearance;
+  mergeTagRegistry: MergeTagRegistry;
   mergeTags: UnlayerMergeTags;
   features: {
     preview: boolean;
@@ -42,6 +56,12 @@ export interface EmailStudioFullConfig {
     cleanupCss: boolean;
     inlineCss: boolean;
   };
+}
+
+function isEmailStudioBuilderMode(
+  value: unknown,
+): value is EmailStudioBuilderMode {
+  return value === "react_email" || value === "unlayer" || value === "auto";
 }
 
 function getEnvironment(): "development" | "staging" | "production" {
@@ -133,197 +153,38 @@ export const DEFAULT_APPEARANCE: UnlayerAppearance = {
   },
 };
 
-export const DEFAULT_MERGE_TAGS: UnlayerMergeTags = {
-  organization: {
-    name: "Organization",
-    mergeTags: {
-      org_name: {
-        name: "Organization Name",
-        value: "{{org_name}}",
-        sample: "Give Hope International",
-      },
-      org_address: {
-        name: "Organization Address",
-        value: "{{org_address}}",
-        sample: "123 Ministry Lane, Springfield, IL 62701",
-      },
-      org_phone: {
-        name: "Organization Phone",
-        value: "{{org_phone}}",
-        sample: "(555) 123-4567",
-      },
-      org_email: {
-        name: "Organization Email",
-        value: "{{org_email}}",
-        sample: "support@givehope.org",
-      },
-      org_website: {
-        name: "Website",
-        value: "{{org_website}}",
-        sample: "https://givehope.org",
-      },
-    },
-  },
-  recipient: {
-    name: "Recipient",
-    mergeTags: {
-      first_name: {
-        name: "First Name",
-        value: "{{first_name}}",
-        sample: "John",
-      },
-      last_name: {
-        name: "Last Name",
-        value: "{{last_name}}",
-        sample: "Smith",
-      },
-      full_name: {
-        name: "Full Name",
-        value: "{{full_name}}",
-        sample: "John Smith",
-      },
-      email: {
-        name: "Email Address",
-        value: "{{email}}",
-        sample: "john.smith@example.com",
-      },
-      salutation: {
-        name: "Salutation",
-        value: "{{salutation}}",
-        sample: "Dear John",
-      },
-    },
-  },
-  donation: {
-    name: "Donation",
-    mergeTags: {
-      donation_amount: {
-        name: "Donation Amount",
-        value: "{{donation_amount}}",
-        sample: "$100.00",
-      },
-      donation_date: {
-        name: "Donation Date",
-        value: "{{donation_date}}",
-        sample: "December 31, 2024",
-      },
-      donation_method: {
-        name: "Payment Method",
-        value: "{{donation_method}}",
-        sample: "Credit Card",
-      },
-      donation_id: {
-        name: "Donation ID",
-        value: "{{donation_id}}",
-        sample: "DON-2024-12345",
-      },
-      ytd_giving: {
-        name: "Year-to-Date Giving",
-        value: "{{ytd_giving}}",
-        sample: "$2,500.00",
-      },
-      tax_receipt_number: {
-        name: "Tax Receipt Number",
-        value: "{{tax_receipt_number}}",
-        sample: "TR-2024-00123",
-      },
-    },
-  },
-  missionary: {
-    name: "Missionary",
-    mergeTags: {
-      missionary_name: {
-        name: "Missionary Name",
-        value: "{{missionary_name}}",
-        sample: "Sarah Johnson",
-      },
-      missionary_location: {
-        name: "Field Location",
-        value: "{{missionary_location}}",
-        sample: "Southeast Asia",
-      },
-      missionary_bio: {
-        name: "Missionary Bio",
-        value: "{{missionary_bio}}",
-        sample: "Serving families in remote villages...",
-      },
-      support_level: {
-        name: "Support Level",
-        value: "{{support_level}}",
-        sample: "85%",
-      },
-      support_goal: {
-        name: "Support Goal",
-        value: "{{support_goal}}",
-        sample: "$5,000/month",
-      },
-    },
-  },
-  links: {
-    name: "Links",
-    mergeTags: {
-      unsubscribe_link: {
-        name: "Unsubscribe Link",
-        value: "{{unsubscribe_link}}",
-        sample: "https://givehope.org/unsubscribe",
-      },
-      view_in_browser: {
-        name: "View in Browser",
-        value: "{{view_in_browser}}",
-        sample: "https://givehope.org/email/view",
-      },
-      donate_link: {
-        name: "Donate Link",
-        value: "{{donate_link}}",
-        sample: "https://givehope.org/donate",
-      },
-      profile_link: {
-        name: "Profile Link",
-        value: "{{profile_link}}",
-        sample: "https://givehope.org/profile",
-      },
-      preferences_link: {
-        name: "Email Preferences",
-        value: "{{preferences_link}}",
-        sample: "https://givehope.org/preferences",
-      },
-    },
-  },
-  campaign: {
-    name: "Campaign",
-    mergeTags: {
-      campaign_name: {
-        name: "Campaign Name",
-        value: "{{campaign_name}}",
-        sample: "Year-End Giving 2024",
-      },
-      campaign_goal: {
-        name: "Campaign Goal",
-        value: "{{campaign_goal}}",
-        sample: "$100,000",
-      },
-      campaign_raised: {
-        name: "Amount Raised",
-        value: "{{campaign_raised}}",
-        sample: "$75,000",
-      },
-      campaign_end_date: {
-        name: "Campaign End Date",
-        value: "{{campaign_end_date}}",
-        sample: "December 31, 2024",
-      },
-    },
-  },
-};
+export const DEFAULT_MERGE_TAGS: UnlayerMergeTags = toLegacyUnlayerMergeTags(
+  DEFAULT_MERGE_TAG_REGISTRY,
+);
+
+export function getEmailStudioBuilderConfig(): EmailStudioFullConfig["builder"] {
+  const requestedBuilder = isEmailStudioBuilderMode(
+    clientEnv.NEXT_PUBLIC_EMAIL_STUDIO_BUILDER,
+  )
+    ? clientEnv.NEXT_PUBLIC_EMAIL_STUDIO_BUILDER
+    : "react_email";
+  const defaultBuilder =
+    requestedBuilder === "unlayer" ? "unlayer" : "react_email";
+
+  return {
+    requestedBuilder,
+    defaultBuilder,
+    legacyUnlayerEnabled:
+      clientEnv.NEXT_PUBLIC_EMAIL_STUDIO_LEGACY_UNLAYER_ENABLED ?? true,
+  };
+}
 
 export function getEmailStudioConfig(): EmailStudioFullConfig {
   const account = getUnlayerAccountConfig();
+  const builder = getEmailStudioBuilderConfig();
   const brand = getEmailStudioBrandConfig();
 
   return {
     account,
+    builder,
     brand,
     appearance: DEFAULT_APPEARANCE,
+    mergeTagRegistry: DEFAULT_MERGE_TAG_REGISTRY,
     mergeTags: DEFAULT_MERGE_TAGS,
     features: {
       preview: true,
@@ -476,6 +337,7 @@ export const UNLAYER_SETUP_INSTRUCTIONS = {
 export const emailStudioConfig = {
   getConfig: getEmailStudioConfig,
   getAccountConfig: getUnlayerAccountConfig,
+  getBuilderConfig: getEmailStudioBuilderConfig,
   getBrandConfig: getEmailStudioBrandConfig,
   getSetupStatus: getUnlayerSetupStatus,
   setupInstructions: UNLAYER_SETUP_INSTRUCTIONS,

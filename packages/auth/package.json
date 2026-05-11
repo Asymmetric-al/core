@@ -25,7 +25,7 @@
     "@asym/env": "workspace:*",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.89.0",
-    "next": "16.2.1",
+    "next": "16.2.6",
     "react": "^19.0.0"
   },
   "devDependencies": {

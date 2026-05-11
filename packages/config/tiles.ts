@@ -96,7 +96,7 @@ export const tiles: Tile[] = [
     icon: "Mail",
     purpose: "Design and send. Auth and logs stay nested.",
     inside:
-      "White label Unlayer · Templates · Layouts · Brand styles · Variables · Mail auth · Mail logs",
+      "React Email templates · Brand styles · Merge tags · Mail auth · Mail logs",
     quickActions: [
       {
         label: "New campaign",
@@ -119,7 +119,7 @@ export const tiles: Tile[] = [
     icon: "FileText",
     purpose: "Build documents and themes once and reuse everywhere.",
     inside:
-      "White label Unlayer PDF builder · Templates · Themes · Data bindings · Statements and receipt packs",
+      "Legacy PDF builder · Templates · Themes · Data bindings · Statements and receipt packs",
     quickActions: [
       { label: "New template", href: "/pdf/templates/new", icon: "Plus" },
       {

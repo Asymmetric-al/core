@@ -42,6 +42,11 @@ The admin integration UI now uses:
 - `POST /api/email/connect`
 - `DELETE /api/email/connect`
 - `POST /api/email/test-send`
+- `GET /api/email/templates`
+- `POST /api/email/templates`
+- `POST /api/email/templates/test-send`
+- `POST /api/email/templates/[templateId]/test-send`
+- `POST /api/email/assets/upload`
 - `POST /api/email/webhooks/resend`
 
 `POST /api/email/connect` validates the API key with Resend and persists tenant
@@ -79,6 +84,27 @@ trail.
 `POST /api/email/webhooks/resend` verifies Svix signatures before branching by
 event type and persisting event/suppression/inbound metadata.
 
+## Email Studio Template Sends
+
+Email Studio stores templates in Asym tables and sends exported HTML/text through
+the existing Resend service layer. React Email Editor is the editor runtime, but
+it does not own delivery. The production path is:
+
+```txt
+email_templates/email_template_versions
+  -> merge-tag validation and substitution
+  -> sendEmail(...) in packages/email/resend.ts
+  -> email_send_logs
+  -> Resend webhook events
+```
+
+`POST /api/email/test-send` remains the generic Resend connection test.
+Template-specific testing uses `POST /api/email/templates/test-send` for current
+draft editor output or `POST /api/email/templates/[templateId]/test-send` for a
+stored template. These routes send the actual edited HTML/text, write
+`email_send_logs.metadata.source = "email_studio_template_test_send"`, and never
+expose decrypted API keys to the client.
+
 ## Where to Change What
 
 Use this map when extending behavior:
@@ -91,6 +117,11 @@ Use this map when extending behavior:
   - `packages/api/src/email/connect.ts`
   - `packages/api/src/email/settings-store.ts`
   - `packages/api/src/email/crypto.ts`
+- Email Studio templates:
+  - `packages/api/src/email/templates.ts`
+  - `packages/api/src/email/template-store.ts`
+  - `packages/api/src/email/template-test-send.ts`
+  - `packages/api/src/email/assets.ts`
 - Webhook ingestion and tenant resolution:
   - `packages/api/src/email/webhooks/resend.ts`
 - Inbound retrieval and attachment handling:
@@ -99,17 +130,23 @@ Use this map when extending behavior:
 - Admin integration routes/UI wiring:
   - `apps/admin/app/api/email/connect/route.ts`
   - `apps/admin/app/api/email/test-send/route.ts`
+  - `apps/admin/app/api/email/templates/**/route.ts`
+  - `apps/admin/app/api/email/assets/upload/route.ts`
   - `apps/admin/app/api/email/webhooks/resend/route.ts`
   - `apps/admin/app/settings/integrations/resend/page.tsx`
 - Persistence/schema/types:
   - `supabase/schema.sql`
   - `supabase/migrations/20260223120000_resend_email_foundation.sql`
   - `supabase/migrations/20260402100000_resend_validation_snapshot.sql`
+  - `supabase/migrations/20260511023547_email_studio_react_email_builder.sql`
   - `packages/database/types/database.ts`
 - Regression tests:
   - `tests/unit/packages/api/email/webhooks-resend.test.ts`
   - `tests/unit/packages/api/email/connect.test.ts`
   - `tests/unit/packages/api/email/test-send.test.ts`
+  - `tests/unit/packages/api/email/templates.test.ts`
+  - `tests/unit/packages/api/email/template-test-send.test.ts`
+  - `tests/unit/packages/api/email/assets.test.ts`
 
 ## Environment Variables
 

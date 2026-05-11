@@ -341,9 +341,6 @@ GRANT EXECUTE ON FUNCTION public.atomic_delete_comment_thread(UUID, UUID, UUID, 
 REVOKE EXECUTE ON FUNCTION public.begin_donation_saga(UUID, UUID, UUID, BIGINT, TEXT, UUID, UUID, TEXT, TEXT, TEXT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.begin_donation_saga(UUID, UUID, UUID, BIGINT, TEXT, UUID, UUID, TEXT, TEXT, TEXT) TO service_role;
 
-REVOKE EXECUTE ON FUNCTION public.record_donation_saga_failure(UUID, UUID, TEXT, TEXT, INTEGER, INTEGER, UUID) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.record_donation_saga_failure(UUID, UUID, TEXT, TEXT, INTEGER, INTEGER, UUID) TO service_role;
-
 CREATE OR REPLACE FUNCTION public.record_donation_saga_failure(
   p_outbox_id UUID,
   p_lock_id UUID,
@@ -429,3 +426,6 @@ BEGIN
   );
 END;
 $function$;
+
+REVOKE EXECUTE ON FUNCTION public.record_donation_saga_failure(UUID, UUID, TEXT, TEXT, INTEGER, INTEGER, UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.record_donation_saga_failure(UUID, UUID, TEXT, TEXT, INTEGER, INTEGER, UUID) TO service_role;

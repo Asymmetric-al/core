@@ -94,7 +94,7 @@ BEGIN
     SELECT tablename
     FROM pg_tables
     WHERE schemaname = 'public'
-      AND tablename LIKE 'backup\_%' ESCAPE '\\'
+      AND tablename LIKE 'backup\_%' ESCAPE '\'
   LOOP
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', internal_table);
 

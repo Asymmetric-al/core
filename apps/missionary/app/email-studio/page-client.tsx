@@ -22,9 +22,9 @@ import { PageHeader } from "@/components/page-header";
 const features = [
   {
     icon: Palette,
-    title: "Drag & Drop Editor",
+    title: "React Email Editor",
     description:
-      "Create beautiful emails with an intuitive visual editor. No coding required.",
+      "Author supporter emails with the same React Email editor used in admin.",
   },
   {
     icon: Layout,
@@ -34,9 +34,9 @@ const features = [
   },
   {
     icon: Send,
-    title: "Smart Scheduling",
+    title: "Resend Delivery",
     description:
-      "Schedule emails to send at optimal times for maximum engagement.",
+      "Send through the tenant Resend connection with audit logs and webhooks.",
   },
   {
     icon: Sparkles,
@@ -56,7 +56,7 @@ export default function EmailStudioPage() {
     >
       <PageHeader
         title="Email Studio"
-        description="Create and send beautiful emails to your supporters."
+        description="Create supporter emails with React Email and send them through Resend."
       />
 
       <div className="space-y-8">
@@ -86,8 +86,8 @@ export default function EmailStudioPage() {
               transition={{ delay: 0.2 }}
               className="text-muted-foreground max-w-md mb-6"
             >
-              We&apos;re building a powerful email studio with drag-and-drop
-              editing, beautiful templates, and smart analytics. Stay tuned!
+              We&apos;re preparing a campaign-ready Email Studio backed by React
+              Email templates, Asym merge tags, and Resend delivery.
             </motion.p>
 
             <motion.div

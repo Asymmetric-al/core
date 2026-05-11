@@ -1,6 +1,6 @@
 # TanStack Integration Guide
 
-This guide documents the project-standard integration for TanStack Query v5, Table v8, DB, and Virtual v3 in this Next.js 16.2.1 monorepo.
+This guide documents the project-standard integration for TanStack Query v5, Table v8, DB, and Virtual v3 in this Next.js 16.2.6 monorepo.
 
 ## Version Matrix
 

@@ -179,7 +179,7 @@ Tenant order: `resolveTenantFromRequest` — **query `?tenant=` → forwarded ho
 | Topic                        | Fact                                                                                           |
 | ---------------------------- | ---------------------------------------------------------------------------------------------- |
 | Global Payload editor        | `lexicalEditor()` in `apps/admin/payload.config.ts`                                            |
-| Package                      | `@payloadcms/richtext-lexical@^3.77.0`                                                         |
+| Package                      | `@payloadcms/richtext-lexical@^3.84.1`                                                         |
 | TipTap in Web Studio tree    | **Not used** — no imports under `cms-ui/web-studio/`                                           |
 | TipTap in monorepo           | Root `package.json` / skills support **other** surfaces; **not** the Payload admin editor path |
 | Rich text in `layout` blocks | Block fields of type `richText` use the same Lexical editor                                    |
@@ -280,11 +280,11 @@ Handled inside Payload’s default edit view and field components. **Risk:** rep
 
 | Package                        | Version  |
 | ------------------------------ | -------- |
-| `payload`                      | ^3.77.0  |
-| `@payloadcms/next`             | ^3.77.0  |
-| `@payloadcms/db-postgres`      | ^3.77.0  |
-| `@payloadcms/richtext-lexical` | ^3.77.0  |
-| `next`                         | 16.2.1   |
+| `payload`                      | ^3.84.1  |
+| `@payloadcms/next`             | ^3.84.1  |
+| `@payloadcms/db-postgres`      | ^3.84.1  |
+| `@payloadcms/richtext-lexical` | ^3.84.1  |
+| `next`                         | 16.2.6   |
 | `react` / `react-dom`          | 19.2.3   |
 | `@base-ui/react`               | 1.3.0    |
 | `@tanstack/react-form`         | 1.28.6   |

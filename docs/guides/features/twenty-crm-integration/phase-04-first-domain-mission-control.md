@@ -49,16 +49,83 @@ These domains exercise the integration without moving payment truth, receipts, s
 
 ## Checklist
 
-- [ ] Native Mission Control route exists for the first domain.
-- [ ] Staff auth and tenant scope are enforced server-side.
-- [ ] Query keys include filters, sort, pagination, and search.
-- [ ] Tables use stable row IDs.
-- [ ] Large lists use virtualization where needed.
-- [ ] Writes create command log entries.
-- [ ] Webhook side effects are replayable.
-- [ ] Permission-denied states are clear.
-- [ ] No donor or missionary staff controls leak into narrow surfaces.
-- [ ] Existing Asym paths can be restored if the domain rolls back.
+- [x] Native Mission Control route exists for the first domain.
+- [x] Staff auth and tenant scope are enforced server-side.
+- [x] Query keys include filters, sort, pagination, and search.
+- [x] Tables use stable row IDs.
+- [x] Large lists use virtualization where needed.
+- [x] Writes create command log entries.
+- [x] Webhook side effects are replayable.
+- [x] Permission-denied states are clear.
+- [x] No donor or missionary staff controls leak into narrow surfaces.
+- [x] Existing Asym paths can be restored if the domain rolls back.
+
+## Phase 04 Artifact Status
+
+The first native Mission Control CRM domain is Notes.
+
+### Native Surface
+
+- Route: `apps/admin/app/crm/notes/page.tsx`
+- Client: `apps/admin/app/crm/notes/page-client.tsx`
+- Columns: `apps/admin/app/crm/notes/columns.tsx`
+- Entry point: `apps/admin/app/crm/page-client.tsx` links the CRM dashboard to
+  `/crm/notes`
+
+The surface keeps the existing Mission Control shell and shared table patterns.
+It does not expose raw Twenty UI, donor controls, missionary controls, care
+controls, finance controls, CMS controls, or public-surface CRM controls.
+
+### Server Boundary
+
+- Thin route handler: `apps/admin/app/api/admin/crm/notes/route.ts`
+- Package API: `packages/api/src/admin/crm/notes/index.ts`
+- Service boundary: `packages/api/src/admin/crm/notes/service.ts`
+- Query parsing: `packages/api/src/admin/crm/notes/query.ts`
+- Read model normalization: `packages/api/src/admin/crm/notes/model.ts`
+
+The app route only re-exports `GET` and `POST` from `@asym/api`. Twenty access
+stays server-side behind `packages/api`, and browser code uses only the
+Mission Control route handler.
+
+### Read Path
+
+`GET /api/admin/crm/notes` requires staff/admin/super-admin access and
+`crm.note.read`. It reads Twenty notes only when the server-only Twenty env
+contract is configured. In non-configured environments it returns an empty,
+queue-only response with missing configuration metadata instead of exposing
+credentials or failing the page.
+
+The service sends a tenant filter to Twenty and applies a second server-side
+tenant filter after normalizing the response. Search, sort, cursor, and limit
+state are included in the TanStack Query key in
+`packages/database/hooks/admin-crm-notes.ts`.
+
+### Write, Audit, Replay
+
+`POST /api/admin/crm/notes` requires staff/admin/super-admin access and
+`crm.note.create`. It validates the body, writes a `crm.note.create` command
+log entry, queues a `notes` outbound job with a deterministic idempotency key,
+and appends a CRM sync log entry.
+
+Replay uses the existing Phase 03 outbound replay path:
+`/api/admin/crm/sync/replay` with the returned outbound job id. Webhook side
+effects remain replayable through the durable webhook event path added in
+Phase 03.
+
+### Rollback
+
+The existing `/crm` Mission Control path remains intact. To roll back the
+Notes cutover, pause the `notes` domain in `crm_sync_settings` for outbound and
+replay, remove or hide the `/crm/notes` entry point, and continue operating on
+the previous CRM surface. No donor, missionary, finance, CMS, care, public, or
+payment authority is moved by this phase.
+
+### Tests
+
+- `tests/unit/packages/api/admin/crm-notes-query.test.ts`
+- `tests/unit/packages/api/crm-notes.test.ts`
+- `tests/unit/packages/api/crm-boundary.test.ts`
 
 ## Exit Gate
 

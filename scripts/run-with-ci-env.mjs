@@ -88,7 +88,19 @@ export function loadLocalEnvFiles({
   }
 }
 
-function getEnv() {
+export function normalizeEnvForCommand(env, commandParts = []) {
+  const launchesPlaywright = commandParts.some((part) =>
+    part.includes("@playwright/test/cli.js"),
+  );
+
+  if (launchesPlaywright || env.FORCE_COLOR !== undefined) {
+    delete env.NO_COLOR;
+  }
+
+  return env;
+}
+
+function getEnv(commandParts = []) {
   loadLocalEnvFiles();
   const env = { ...process.env };
   for (const [key, value] of Object.entries(DEFAULT_ENV)) {
@@ -96,7 +108,7 @@ function getEnv() {
       env[key] = value;
     }
   }
-  return env;
+  return normalizeEnvForCommand(env, commandParts);
 }
 
 const commandParts = getCommandParts();
@@ -115,7 +127,7 @@ if (isDirectExecution) {
   const [command, ...commandArgs] = commandParts;
   const child = spawn(command, commandArgs, {
     stdio: "inherit",
-    env: getEnv(),
+    env: getEnv(commandParts),
   });
 
   child.on("error", (error) => {

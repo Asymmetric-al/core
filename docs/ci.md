@@ -29,13 +29,38 @@ bun run ci:preflight
 1. `format:check`
 2. `skills:verify`
 3. `lint`
-4. `verify:workspace-contract`
-5. `verify:eslint`
-6. `typecheck`
-7. `build` (with CI-compatible env defaults for local parity)
-8. `test:unit`
+4. `verify:data-boundary`
+5. `verify:workspace-contract`
+6. `verify:eslint`
+7. `verify:shadcn-diff`
+8. `typecheck`
+9. `build` (with CI-compatible env defaults for local parity)
+10. `test:unit`
 
 This command is wired into `.husky/pre-push` so pushes fail fast when a blocking CI gate would fail in GitHub.
+
+### CRM production cutover gate
+
+Twenty CRM production cutovers use the same fast CI gate plus OpenSpec and
+data-boundary checks before any domain can depend on Twenty in production.
+
+Run this sequence for Phase 07 cutover evidence:
+
+```bash
+bun run format:check
+bun run skills:verify
+bun run verify:data-boundary
+bun run lint
+bun run typecheck
+bun run build
+bun run test:unit
+bunx @fission-ai/openspec@latest validate integrate-twenty-crm-core --strict
+```
+
+Record the command results in the domain evidence note described by
+`docs/guides/operations/twenty-crm-cutover.md`. This gate does not replace the
+domain-specific production requirements for monitoring, backup/restore proof,
+rollback rehearsal, security review, and support ownership.
 
 ### Tooling warning audit (periodic)
 
@@ -108,7 +133,7 @@ Current coverage caveat: the repo's custom raw V8 fallback provider writes cover
 
 ### `migrate`
 
-- _What it does:_ Spins up a fresh `postgres:15-alpine` container, applies every file in `supabase/migrations/*.sql` in lexicographic order (using `psql` with `ON_ERROR_STOP=1`), then runs Payload migrations via `bun run cms:migrate` and verifies status with `bun run cms:migrate:status`, then applies `supabase/seed.sql`. Verifies that `public.profiles` has exactly 1 row after seeding.
+- _What it does:_ Spins up a fresh `postgres:15-alpine` container, runs `node scripts/verify/supabase-migrations.mjs` to bootstrap the minimal Supabase `auth`/`storage` compatibility schemas and apply timestamped forward migrations from `supabase/migrations/`, then runs Payload migrations via `bun run cms:migrate` and verifies status with `bun run cms:migrate:status`, then applies `supabase/seed.sql`. Verifies that `public.profiles` has exactly 1 row after seeding.
 - _Why it matters:_ Catches migration ordering conflicts across both SQL + Payload migration systems, plus FK/seed incompatibilities, before they reach a hosted Supabase project.
 - _Debug locally:_ Run `bun run db:migrate:local` (applies migrations without seed) or `bun run seed:demo:local` (migrate + seed via helper script).
 
@@ -120,7 +145,7 @@ Current coverage caveat: the repo's custom raw V8 fallback provider writes cover
 
 ### `test-e2e` (needs: `smoke`)
 
-- _What it does:_ Re-applies SQL migrations against a fresh Postgres container, runs Payload migrations + status checks, then applies seed data, starts `apps/donor` on port 3005, enables deterministic test auth mode (`E2E_AUTH_BYPASS=true`) for Playwright web servers, executes demo-auth preflight (`bun run test:e2e:auth-preflight`), then runs two suites:
+- _What it does:_ Re-applies SQL migrations against a fresh Postgres container through `node scripts/verify/supabase-migrations.mjs`, runs Payload migrations + status checks, then applies seed data, starts `apps/donor` on port 3005, enables deterministic test auth mode (`E2E_AUTH_BYPASS=true`) for Playwright web servers, executes demo-auth preflight (`bun run test:e2e:auth-preflight`), then runs two suites:
   1. `bun run test:e2e --project=chromium` (core donor suite, excludes `@cms`, `@perf`, `@manual`)
   2. `bun run test:e2e:cms --project=chromium` (CMS/admin suite tagged `@cms`, excludes `@manual`)
      Uploads `playwright-report/` as an artifact on failure (retained 7 days).

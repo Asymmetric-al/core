@@ -1,13 +1,14 @@
 import { useState, useCallback } from "react";
 
 import type {
-  UnlayerDesignJSON,
   EmailTemplate,
   EmailCampaign,
 } from "@asym/email/email-studio-types";
 
-const STORAGE_KEY = "email_studio_templates";
-const CAMPAIGNS_KEY = "email_studio_campaigns";
+type EmailStudioDesign = Record<string, unknown>;
+
+const STORAGE_KEY = "email_studio_draft_templates";
+const CAMPAIGNS_KEY = "email_studio_draft_campaigns";
 
 export function useEmailTemplates() {
   const [templates, setTemplates] = useState<EmailTemplate[]>(() => {
@@ -24,8 +25,8 @@ export function useEmailTemplates() {
   const createTemplate = useCallback(
     async (
       name: string,
-      design: UnlayerDesignJSON,
-      html?: string,
+      design: EmailStudioDesign,
+      html?: string | null,
       options?: Partial<EmailTemplate>,
     ): Promise<EmailTemplate> => {
       setIsLoading(true);
@@ -33,8 +34,11 @@ export function useEmailTemplates() {
         const newTemplate: EmailTemplate = {
           id: crypto.randomUUID(),
           name,
+          builder: options?.builder ?? "react_email",
+          builderVersion: options?.builderVersion ?? "unknown",
           design,
           html,
+          text: options?.text ?? null,
           createdAt: new Date(),
           updatedAt: new Date(),
           status: "draft",
@@ -153,7 +157,7 @@ export function useEmailCampaigns() {
     async (
       name: string,
       subject: string,
-      design: UnlayerDesignJSON,
+      design: EmailStudioDesign,
       options?: Partial<EmailCampaign>,
     ): Promise<EmailCampaign> => {
       setIsLoading(true);
@@ -162,7 +166,11 @@ export function useEmailCampaigns() {
           id: crypto.randomUUID(),
           name,
           subject,
+          builder: options?.builder ?? "react_email",
+          builderVersion: options?.builderVersion ?? "unknown",
           design,
+          html: options?.html ?? null,
+          text: options?.text ?? null,
           status: "draft",
           createdAt: new Date(),
           updatedAt: new Date(),

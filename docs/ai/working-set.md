@@ -1,5 +1,446 @@
 # Working Set
 
+## 2026-05-11 (Email Studio React Email Editor migration)
+
+- Date: 2026-05-11
+- Repo: Asymmetric-al/core
+- Goal: Replace the Unlayer email editing runtime with `@react-email/editor`
+  while preserving Resend delivery, provider-neutral template storage,
+  merge-tag validation/rendering, template persistence/test-send, image upload,
+  and explicit legacy Unlayer handling for existing email templates and PDF
+  Studio/document mode.
+- Primary area:
+  - `apps/admin/app/email/*`
+  - `apps/admin/app/api/email/*`
+  - `packages/ui/components/studio/*`
+  - `packages/email/*`
+  - `packages/api/src/email/*`
+  - `packages/config/email-studio.ts`
+  - `packages/env/src/schema.ts`
+  - `supabase/migrations/*`
+  - `docs/guides/features/{email-studio,resend-integration,pdf-studio}.md`
+- Stack:
+  - Next.js 16 App Router route handlers and client components
+  - React 19
+  - TypeScript
+  - Tiptap 3 / ProseMirror
+  - React Email Editor
+  - Resend
+  - Supabase Auth
+  - Supabase Postgres / Storage
+  - Bun
+  - Vitest
+  - Playwright
+- Constraints:
+  - Keep Resend as the only delivery provider path.
+  - Keep App Router API route handlers thin; business logic belongs under
+    `packages/api/src/email/*`.
+  - Keep server-only Resend keys and Supabase service-role access out of client
+    code.
+  - Use additive migrations and avoid destructive DB rollback requirements.
+  - Preserve existing Unlayer email templates through an explicit legacy adapter
+    until migrated or archived.
+  - Preserve PDF Studio/document mode as explicit legacy Unlayer behavior unless
+    a separate PDF migration removes it.
+  - No production template save path may rely on localStorage as source of
+    truth.
+  - Nia tools are unavailable in this session; use repo-scoped `rg`, direct
+    file reads, bundled Next.js docs, official React Email/Resend docs, and
+    local package metadata as fallback evidence.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/ai/{working-set,stack-registry}.md`
+  - `docs/ai/rules/{general,frontend,backend,testing}.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `docs/ai/skills/{nextjs-app-router,react-component-dev,supabase,nextjs-supabase-auth,supabase-postgres-best-practices,tiptap}/SKILL.md`
+  - `node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/route.md`
+  - `node_modules/next/dist/docs/01-app/03-api-reference/01-directives/use-client.md`
+  - `node_modules/next/dist/docs/01-app/01-getting-started/05-server-and-client-components.md`
+  - `node_modules/next/dist/docs/01-app/02-guides/environment-variables.md`
+  - `node_modules/next/dist/docs/01-app/02-guides/forms.md`
+  - `node_modules/next/dist/docs/01-app/01-getting-started/11-css.md`
+  - React Email Editor docs for overview, `EmailEditor`, export,
+    `composeReactEmail`, and image upload
+  - Resend embed guide for React Email Editor
+  - `packages/ui/components/studio/UnlayerEditor.tsx`
+  - `apps/admin/app/email/page-client.tsx`
+  - `apps/admin/app/pdf/page-client.tsx`
+  - `packages/email/{email-studio-types,types,resend,index}.ts`
+  - `packages/api/src/email/{connect,test-send,settings-store}.ts`
+  - `supabase/{schema.sql,migrations/20260223120000_resend_email_foundation.sql}`
+
+## 2026-05-08 (Twenty CRM Phase 07 production cutover and operations)
+
+- Date: 2026-05-08
+- Repo: Asymmetric-al/core
+- Goal: Complete only Phase 07 for the Twenty CRM integration by documenting
+  domain-by-domain production cutover readiness, monitoring, runbooks,
+  rollback rehearsals, backup/restore proof, secret rotation, and final
+  OpenSpec/architecture alignment without adding new CRM domains.
+- Primary area:
+  - `docs/guides/features/twenty-crm-integration/phase-07-production-cutover-and-operations.md`
+  - `openspec/changes/integrate-twenty-crm-core/*`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `docs/ci.md`
+- Stack:
+  - OpenSpec
+  - Twenty CRM
+  - Supabase Auth
+  - Supabase Postgres / RLS
+  - PostgreSQL
+  - Sentry
+  - Bun
+  - Turborepo
+- Constraints:
+  - Use implementation inventory only as current-status context.
+  - Do not change phase sequence based on existing implementation.
+  - Do not add new CRM domains during Phase 07.
+  - Do not move finance, CMS publish, care, auth, payment, receipt, statement,
+    refund, reconciliation, or automation authority to Twenty.
+  - Keep raw Twenty access behind `packages/api`.
+  - Treat production cutover as domain-gated: no domain is live unless staging
+    parity, monitoring, rollback rehearsal, backup/restore evidence, and
+    support ownership are recorded.
+  - Nia tools are unavailable in this session; use repo-scoped `rg`, direct
+    file reads, and existing OpenSpec/change docs as fallback evidence.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/guides/features/twenty-crm-integration/{README,implementation-inventory,phase-07-production-cutover-and-operations}.md`
+  - `docs/ai/{working-set,stack-registry}.md`
+  - `openspec/project.md`
+  - `openspec/specs/{platform-product-intent,platform-surfaces,platform-principles,platform-boundaries}/spec.md`
+  - `openspec/changes/integrate-twenty-crm-core/*`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `docs/ai/rules/{general,backend,testing}.md`
+  - `docs/ai/skills/{supabase,supabase-postgres-best-practices}/SKILL.md`
+  - `docs/ci.md`
+
+## 2026-05-08 (Twenty CRM Phase 06 cross-surface projections)
+
+- Date: 2026-05-08
+- Repo: Asymmetric-al/core
+- Goal: Complete only Phase 06 for the Twenty CRM integration by building
+  cross-surface projection contracts, shadow mode, drift monitoring, and
+  rollback state for donor, missionary, CMS, event, and reporting contexts
+  without starting Phase 07.
+- Primary area:
+  - `apps/admin/app/crm/projections/*`
+  - `apps/admin/app/api/admin/crm/projections/route.ts`
+  - `packages/api/src/admin/crm/projections/*`
+  - `packages/api/src/crm/projections/*`
+  - `packages/database/hooks/admin-crm-projections.ts`
+  - `packages/database/types/crm-projections.ts`
+  - `supabase/migrations/*_crm_projection_shadow_surfaces.sql`
+  - `openspec/changes/integrate-twenty-crm-core/*`
+  - `docs/guides/features/twenty-crm-integration/phase-06-cross-surface-projections-and-shadow-mode.md`
+- Stack:
+  - Next.js 16 App Router pages and route handlers
+  - React
+  - TypeScript
+  - TanStack Query and Table
+  - Supabase Auth
+  - Supabase Postgres / RLS
+  - Twenty CRM projections
+  - Bun
+  - Vitest
+- Constraints:
+  - Use implementation inventory only as current-status context.
+  - Do not change phase sequence based on existing implementation.
+  - Do not proceed to Phase 07.
+  - Keep projections role-scoped and source-of-truth explicit.
+  - Keep target surfaces in shadow mode; no donor, missionary, CMS, event, or
+    reporting surface depends on Twenty yet.
+  - Keep raw Twenty access behind `packages/api`.
+  - Keep route handlers thin.
+  - Nia tools are unavailable in this session; use repo-scoped `rg`, direct file
+    reads, and bundled `.next-docs` fallback evidence.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/guides/features/twenty-crm-integration/{README,implementation-inventory,phase-06-cross-surface-projections-and-shadow-mode}.md`
+  - `docs/ai/{working-set,stack-registry}.md`
+  - `openspec/project.md`
+  - `openspec/specs/{platform-product-intent,platform-surfaces,platform-principles,platform-boundaries}/spec.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `docs/guides/development/tanstack-integration.md`
+  - `docs/ai/rules/{general,backend,frontend,testing}.md`
+  - `docs/ai/skills/{nextjs-app-router,react-component-dev,supabase,nextjs-supabase-auth}/SKILL.md`
+  - `docs/ci.md`
+  - Bundled `.next-docs` App Router page, route-handler, server/client
+    component, and authentication docs
+
+## 2026-05-08 (Twenty CRM Phase 05 relationship expansion)
+
+- Date: 2026-05-08
+- Repo: Asymmetric-al/core
+- Goal: Complete only Phase 05 for the Twenty CRM integration by expanding
+  relationship domains to churches, organizations, households, pledges as CRM
+  relationship records, CRM search, and relationship reporting while keeping
+  finance, care, CMS publish state, and auth authority in Asym.
+- Primary area:
+  - `apps/admin/app/crm/*`
+  - `apps/admin/app/api/admin/crm/*`
+  - `packages/api/src/admin/crm/*`
+  - `packages/api/src/crm/*`
+  - `packages/database/hooks/*`
+  - `packages/database/types/*`
+  - `openspec/changes/integrate-twenty-crm-core/*`
+  - `docs/guides/features/twenty-crm-integration/phase-05-relationship-expansion.md`
+- Stack:
+  - Next.js 16 App Router pages and route handlers
+  - React
+  - TypeScript
+  - TanStack Query and Table
+  - Supabase Auth
+  - Supabase Postgres / RLS
+  - Twenty CRM Core API
+  - Bun
+  - Vitest
+- Constraints:
+  - Use implementation inventory only as current-status context.
+  - Do not change phase sequence based on existing implementation.
+  - Do not proceed to Phase 06.
+  - Keep finance, care, CMS publish state, and auth authority in Asym.
+  - Keep pledges as CRM relationship commitments only, never payment truth.
+  - Keep raw Twenty access behind `packages/api`.
+  - Keep Mission Control native; do not embed raw Twenty UI as staff CRM.
+  - Keep route handlers thin.
+  - Nia tools are unavailable in this session; use repo-scoped `rg`, direct file
+    reads, bundled `.next-docs`, and official Twenty docs as fallback evidence.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/guides/features/twenty-crm-integration/{README,implementation-inventory,phase-05-relationship-expansion}.md`
+  - `docs/ai/{working-set,stack-registry}.md`
+  - `openspec/project.md`
+  - `openspec/specs/{platform-product-intent,platform-surfaces,platform-principles,platform-boundaries}/spec.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `docs/guides/development/tanstack-integration.md`
+  - `docs/ai/rules/{general,backend,frontend,testing}.md`
+  - `docs/ai/skills/{nextjs-app-router,react-component-dev,supabase,supabase-postgres-best-practices}/SKILL.md`
+  - `docs/ci.md`
+  - Bundled `.next-docs` App Router page, route-handler,
+    server/client-component, fetching-data, and updating-data docs
+
+## 2026-05-08 (Twenty CRM Phase 04 first Mission Control domain)
+
+- Date: 2026-05-08
+- Repo: Asymmetric-al/core
+- Goal: Complete only Phase 04 for the Twenty CRM integration by moving one
+  safe CRM domain into native Mission Control using Twenty behind `packages/api`
+  while preserving tenant scope, staff auth, auditability, replay, and rollback
+  readiness without proceeding to Phase 05.
+- Primary area:
+  - `apps/admin/app/crm/*`
+  - `apps/admin/app/api/admin/crm/*`
+  - `packages/api/src/admin/crm/*`
+  - `packages/api/src/crm/*`
+  - `packages/database/hooks/*`
+  - `packages/database/types/*`
+  - `openspec/changes/integrate-twenty-crm-core/*`
+  - `docs/guides/features/twenty-crm-integration/phase-04-first-domain-mission-control.md`
+- Stack:
+  - Next.js 16 App Router pages and route handlers
+  - React
+  - TypeScript
+  - TanStack Query and Table
+  - Supabase Auth
+  - Supabase Postgres / RLS
+  - Twenty CRM Core API
+  - Bun
+  - Vitest
+- Constraints:
+  - Use implementation inventory only as current-status context.
+  - Do not change phase sequence based on existing implementation.
+  - Do not proceed to Phase 05.
+  - Prefer notes/tasks before people read or write.
+  - Keep raw Twenty access behind `packages/api`.
+  - Keep Mission Control native; do not embed raw Twenty UI as the staff CRM.
+  - Keep route handlers thin.
+  - Nia tools are unavailable in this session; use repo-scoped `rg`, direct file
+    reads, bundled `.next-docs`, and official Twenty docs as fallback evidence.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/guides/features/twenty-crm-integration/{README,implementation-inventory,phase-04-first-domain-mission-control}.md`
+  - `docs/ai/{working-set,stack-registry}.md`
+  - `openspec/project.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `docs/guides/development/tanstack-integration.md`
+  - `docs/ai/rules/{general,backend,frontend,testing}.md`
+  - `docs/ai/skills/{nextjs-app-router,react-component-dev,supabase,nextjs-supabase-auth}/SKILL.md`
+  - `docs/ci.md`
+  - Bundled `.next-docs` App Router page, route-handler,
+    server/client-component, fetching-data, and updating-data docs
+  - Official Twenty API docs
+
+## 2026-05-08 (Twenty CRM Phase 03 sync, eventing, and replay)
+
+- Date: 2026-05-08
+- Repo: Asymmetric-al/core
+- Goal: Complete only Phase 03 for the Twenty CRM integration by adding signed
+  webhook ingress, durable inbound event storage, outbound sync queueing,
+  replay/idempotency, reconciliation, and safe pause controls without Phase 04
+  cutover work.
+- Primary area:
+  - `apps/admin/app/api/admin/crm/webhooks/twenty/route.ts`
+  - `packages/api/src/crm/webhooks/*`
+  - `packages/api/src/crm/sync/*`
+  - `packages/api/src/crm/reconciliation/*`
+  - `supabase/migrations/*_crm_sync_eventing_replay.sql`
+  - `openspec/changes/integrate-twenty-crm-core/*`
+  - `docs/guides/features/twenty-crm-integration/phase-03-sync-eventing-and-replay.md`
+- Stack:
+  - Next.js 16 App Router route handlers
+  - TypeScript
+  - Supabase Postgres / RLS
+  - Supabase Auth
+  - Twenty CRM webhooks/Core API
+  - Bun
+  - Vitest
+- Constraints:
+  - Use implementation inventory only as current-status context.
+  - Do not change phase sequence based on existing implementation.
+  - Do not run production imports.
+  - Do not proceed to Phase 04 or add user-facing cutover behavior.
+  - Keep webhook and sync behavior behind `packages/api`.
+  - Keep Twenty credentials and webhook secrets server-only.
+  - Nia tools are unavailable in this session; use repo-scoped `rg`, direct file
+    reads, bundled `.next-docs`, and official Twenty docs as fallback evidence.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/guides/features/twenty-crm-integration/{README,implementation-inventory,phase-03-sync-eventing-and-replay}.md`
+  - `openspec/project.md`
+  - `openspec/changes/integrate-twenty-crm-core/*`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `docs/ai/rules/{general,backend,testing}.md`
+  - `docs/ai/skills/{supabase,nextjs-supabase-auth,supabase-postgres-best-practices}/SKILL.md`
+  - `docs/ci.md`
+  - Bundled `.next-docs` route-handler and environment-variable docs
+  - Official Twenty webhook docs
+
+## 2026-05-07 (Twenty CRM Phase 02 identity, schema, and mapping)
+
+- Date: 2026-05-07
+- Repo: Asymmetric-al/core
+- Goal: Complete only Phase 02 for the Twenty CRM integration by defining
+  identity concepts, adding CRM link/merge/projection schema, designing the
+  Twenty object model, choosing the schema management path, and implementing
+  tested mapping and duplicate rules without production imports or Phase 03
+  sync/eventing.
+- Primary area:
+  - `packages/api/src/crm/identity/*`
+  - `packages/api/src/crm/schema/*`
+  - `packages/api/src/crm/mapping/*`
+  - `supabase/migrations/20260508000413_crm_identity_mapping.sql`
+  - `openspec/changes/integrate-twenty-crm-core/*`
+  - `docs/guides/features/twenty-crm-integration/phase-02-identity-schema-and-mapping.md`
+- Stack:
+  - TypeScript
+  - Supabase Postgres / RLS
+  - Twenty CRM Metadata API
+  - Twenty CRM data model
+  - Bun
+  - Vitest
+- Constraints:
+  - Use implementation inventory only as current-status context.
+  - Do not change phase sequence based on existing implementation.
+  - Do not run production imports.
+  - Do not implement webhooks, outbound jobs, replay, or Phase 03 sync.
+  - Nia tools are unavailable in this session; use repo-scoped `rg`, direct file
+    reads, and official Twenty docs as fallback evidence.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/guides/features/twenty-crm-integration/{README,implementation-inventory,phase-02-identity-schema-and-mapping}.md`
+  - `openspec/project.md`
+  - `openspec/specs/{platform-product-intent,platform-surfaces,platform-principles,platform-boundaries}/spec.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `docs/ai/rules/{general,backend,testing}.md`
+  - `docs/ai/skills/{supabase,supabase-postgres-best-practices}/SKILL.md`
+  - `docs/ci.md`
+  - Official Twenty API, data model, custom objects, and apps docs
+
+## 2026-05-07 (Twenty CRM Phase 01 core seam and authorization)
+
+- Date: 2026-05-07
+- Repo: Asymmetric-al/core
+- Goal: Complete only Phase 01 for the Twenty CRM integration by building the
+  server-side CRM gateway, internal Twenty client wrappers, server-only env
+  contract, Supabase Auth to CRM authorization bridge, and CRM command log
+  boundary without proceeding to Phase 02.
+- Primary area:
+  - `packages/api/src/crm/*`
+  - `packages/api/src/admin/crm/gateway.ts`
+  - `apps/admin/app/api/admin/crm/gateway/status/route.ts`
+  - `packages/env/src/schema.ts`
+  - `supabase/migrations/20260507234343_crm_command_logs.sql`
+  - `scripts/verify/data-boundary-check.mjs`
+  - `eslint.config.mjs`
+- Stack:
+  - Next.js 16 App Router route handlers
+  - TypeScript
+  - Supabase Auth
+  - Supabase Postgres / RLS
+  - Twenty CRM Core API
+  - Twenty CRM Metadata API
+  - Bun
+  - Vitest
+- Constraints:
+  - Keep all raw Twenty access behind `packages/api`.
+  - Keep credentials server-only; do not add `NEXT_PUBLIC_TWENTY_*`.
+  - Use `implementation-inventory.md` only as current-status context.
+  - Do not change phase sequence or proceed to Phase 02.
+  - Nia tools are unavailable in this session; use repo-scoped `rg`, direct file
+    reads, bundled Next.js docs, and official Twenty docs as fallback evidence.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/guides/features/twenty-crm-integration/{README,implementation-inventory,phase-01-core-seam-and-authorization}.md`
+  - `openspec/project.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `docs/ai/rules/{general,backend,testing}.md`
+  - `docs/ai/skills/{supabase,nextjs-supabase-auth,supabase-postgres-best-practices}/SKILL.md`
+  - `docs/ci.md`
+  - Next.js bundled route-handler and environment-variable docs
+  - Official Twenty API and webhook docs
+
+## 2026-05-07 (Twenty CRM Phase 00 strategy and proof)
+
+- Date: 2026-05-07
+- Repo: Asymmetric-al/core
+- Goal: Complete only Phase 00 for the Twenty CRM integration by creating the
+  OpenSpec package, ownership matrix, non-production proof plan, and Supabase
+  Postgres versus dedicated Postgres decision path without implementing
+  production integration code or starting Phase 01.
+- Primary area:
+  - `openspec/changes/integrate-twenty-crm-core/*`
+  - `docs/guides/features/twenty-crm-integration/phase-00-strategy-and-proof.md`
+  - `docs/guides/features/twenty-crm-integration/implementation-inventory.md`
+  - `openspec/specs/{platform-product-intent,platform-surfaces,platform-principles,platform-boundaries}/spec.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+- Stack:
+  - OpenSpec
+  - Twenty CRM
+  - Supabase Auth
+  - Supabase Postgres
+  - PostgreSQL
+  - Bun
+  - Turborepo
+- Constraints:
+  - Use implementation inventory only as current-status context.
+  - Do not change the phase sequence based on existing implementation.
+  - No production integration code, migrations, env schema, app routes, UI, or
+    runtime behavior changes.
+  - Nia tools are unavailable in this session; use repo-scoped `rg`, direct file
+    reads, and official Twenty docs as fallback evidence.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/guides/features/twenty-crm-integration/{README,implementation-inventory,phase-00-strategy-and-proof}.md`
+  - `openspec/project.md`
+  - `openspec/specs/{platform-product-intent,platform-surfaces,platform-principles,platform-boundaries}/spec.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `docs/ai/rules/{general,backend,testing}.md`
+  - `docs/ai/skills/{supabase,supabase-postgres-best-practices}/SKILL.md`
+  - `docs/ci.md`
+  - Official Twenty API, webhooks, Docker Compose, apps, and docker source
+    references
+
 ## 2026-05-07 (Twenty CRM integration phase pack)
 
 - Date: 2026-05-07

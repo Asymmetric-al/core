@@ -1,15 +1,43 @@
 # Data Access Boundary
 
+## Trigger
+
+Use this guide when adding or changing App Router API routes, business data
+access, server-only vendor integrations, or CRM/Twenty access paths.
+
 ## Rule
 
 `packages/api/src/*` is the single canonical layer for business database logic. Route handlers in `apps/*/app/api/` must remain thin re-exports only, and must never import `@asym/database/supabase/*`, `@supabase/ssr`, or `@supabase/supabase-js` directly.
 
+Twenty CRM follows the same boundary. App source must not import raw Twenty
+client wrappers from `packages/api/src/crm/client/*`, must not import
+`@asym/api/crm/client*`, and must never reference server-only Twenty secrets
+such as `TWENTY_API_KEY` or `TWENTY_WEBHOOK_SECRET`.
+
 ## Enforcement
 
 1. Primary: ESLint `no-restricted-imports` rules in `eslint.config.mjs` (see ticket 2.2.2) catch violations during linting.
-2. Secondary: `scripts/verify/data-boundary-check.sh` runs in CI as a belt-and-suspenders guard.
+2. Secondary: `scripts/verify/data-boundary-check.mjs` runs in CI as a belt-and-suspenders guard.
 
-The CI script currently scans `apps/*/app/api/**/*.ts`. This is why `apps/donor/app/auth/callback/route.ts` is not included in grep scope: it lives under `app/auth/`, not `app/api/`.
+The CI script scans API route handlers for direct Supabase imports and app
+source for raw Twenty client imports or server-only Twenty credential usage.
+This is why `apps/donor/app/auth/callback/route.ts` is not included in the API
+route Supabase scope: it lives under `app/auth/`, not `app/api/`.
+
+## Workflow
+
+1. Put business logic and vendor calls in `packages/api/src/*`.
+2. Export stable route or service contracts from `@asym/api`.
+3. Keep `apps/*/app/api/**/route.ts` files as thin re-exports.
+4. Use `@asym/env` for server-only credentials inside packages, not raw
+   `process.env` reads in app/runtime modules.
+5. Run `bun run verify:data-boundary` after changing routes or CRM/Twenty
+   access paths.
+
+Phase 07 CRM production cutover does not weaken this boundary. Operational
+runbooks, rollback, replay, restore, and support workflows must use Asym
+server-side contracts and durable CRM tables; raw Twenty UI is diagnostic only
+and cannot become the normal Mission Control product or support path.
 
 ## Approved Exceptions
 
@@ -24,7 +52,17 @@ The CI script currently scans `apps/*/app/api/**/*.ts`. This is why `apps/donor/
 
 1. Justify in the PR why the file cannot delegate to `packages/api/src/*`.
 2. Add the file and rationale to the Approved Exceptions table in this document.
-3. If the file is under `apps/*/app/api/`, add an explicit exclusion comment/pattern in `scripts/verify/data-boundary-check.sh`.
+3. If the file is under `apps/*/app/api/`, add an explicit exclusion comment/pattern in `scripts/verify/data-boundary-check.mjs`.
+
+## Checklist
+
+- [ ] App API route handlers are thin re-exports from `@asym/api`.
+- [ ] Business database logic lives under `packages/api/src/*`.
+- [ ] Supabase clients are not imported directly from `apps/*/app/api/**`.
+- [ ] Raw Twenty clients stay under `packages/api/src/crm/client/*`.
+- [ ] App source does not reference `TWENTY_API_KEY`,
+      `TWENTY_WEBHOOK_SECRET`, or any `NEXT_PUBLIC_TWENTY_*` secret.
+- [ ] `bun run verify:data-boundary` passes.
 
 ## Correct pattern
 

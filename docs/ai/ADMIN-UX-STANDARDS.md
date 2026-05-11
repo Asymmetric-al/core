@@ -493,13 +493,13 @@ import { DollarSign, Users, ... } from "lucide-react";
 
 These pages use different layout paradigms and are excluded from the PageShell standard:
 
-| Page           | Reason                       |
-| -------------- | ---------------------------- |
-| Email Studio   | Full-screen Unlayer editor   |
-| PDF Studio     | Full-screen Unlayer editor   |
-| Web Studio     | Editor + preview rail layout |
-| Sign Studio    | TilePage-based layout        |
-| Login/Register | Auth flow                    |
+| Page           | Reason                             |
+| -------------- | ---------------------------------- |
+| Email Studio   | Full-screen React Email editor     |
+| PDF Studio     | Full-screen legacy document editor |
+| Web Studio     | Editor + preview rail layout       |
+| Sign Studio    | TilePage-based layout              |
+| Login/Register | Auth flow                          |
 
 ---
 
