@@ -1,9 +1,9 @@
 # Phase 3 Evidence - Payments and Giving Pipeline Final Verification
 
-Generated: 2026-05-13 21:51:09 +07
+Generated: 2026-05-13 22:12:11 +07
 Phase: 3 - Payments and Giving Pipeline
 Branch: epic
-Commit: c19c0be4ec8b9d5125c2c2294855cdd2ab2cef7d (latest provider-proof deployment verified at write time)
+Commit: 4ba4a3321d3ec688797d511cedf3360db3aa7a99
 Status: complete-except-admin-provider-proof
 
 ## Summary
@@ -15,9 +15,9 @@ dashboard session to advance Resend setup without printing or committing
 secrets.
 
 The phase remains `complete-except-admin-provider-proof`, not `complete`,
-because Resend still needs domain verification to finish propagation plus live
-test-send/send-log/signed-webhook ingestion proof, and Twenty Cloud still needs
-an authenticated runtime proof path or restricted server-side API key.
+because Resend still needs live test-send/send-log/signed-webhook ingestion
+proof, and Twenty Cloud still needs an authenticated runtime proof path or
+restricted server-side API key.
 
 Stripe remains complete and was not reopened. `SENTRY_AUTH_TOKEN` remains out
 of Phase 3 scope unless a build/deploy explicitly fails on sourcemap upload.
@@ -51,11 +51,11 @@ Current repo state for the provider-proof evidence commit:
 
 ```txt
 branch: epic
-HEAD: c19c0be4ec8b9d5125c2c2294855cdd2ab2cef7d
+HEAD: 4ba4a3321d3ec688797d511cedf3360db3aa7a99
 latest commits:
+4ba4a3321d docs: update phase 3 provider deployment status
 c19c0be4ec docs: record phase 3 provider proof update
 f1b3ae9781 docs: add phase 3 completion assessment
-5b6c313793 docs: record phase 3 final provider proof status
 ```
 
 Vercel production env names for `admin` include:
@@ -264,13 +264,13 @@ Commands passed:
 ## Deployment Verification
 
 Vercel production readiness passed for commit
-`c19c0be4ec8b9d5125c2c2294855cdd2ab2cef7d`:
+`4ba4a3321d3ec688797d511cedf3360db3aa7a99`:
 
 | App        | Production deployment                           | Status | Health check |
 | ---------- | ----------------------------------------------- | ------ | ------------ |
-| admin      | `admin-lut53q9y5-asymmetric-al.vercel.app`      | READY  | HTTP 200     |
-| donor      | `donor-nvntl1oxv-asymmetric-al.vercel.app`      | READY  | HTTP 200     |
-| missionary | `missionary-ggi6pg6o1-asymmetric-al.vercel.app` | READY  | HTTP 200     |
+| admin      | `admin-aqw3qf44m-asymmetric-al.vercel.app`      | READY  | HTTP 200     |
+| donor      | `donor-f16odzqgl-asymmetric-al.vercel.app`      | READY  | HTTP 200     |
+| missionary | `missionary-r6pp9zh2k-asymmetric-al.vercel.app` | READY  | HTTP 200     |
 
 The admin production runtime was redeployed after the Resend webhook secret
 update, so the remaining Resend blocker is not deployment. It is the
@@ -297,9 +297,6 @@ This pass did not mutate Stripe, donor, payment, or CRM production data.
 
 Resend:
 
-- Wait for `send.asymmetric.al` domain verification to complete in Resend.
-- If the `send.send.asymmetric.al` SPF `TXT` remains absent from public DNS,
-  fix the Lightsail/Route 53 record visibility for that host.
 - Run an authenticated app test-send to `will@risencode.org`.
 - Confirm `email_send_logs` persistence and signed webhook delivery-status
   ingestion.
