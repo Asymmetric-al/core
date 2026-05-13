@@ -3,7 +3,7 @@
 Generated: 2026-05-13 21:51:09 +07
 Phase: 3 - Payments and Giving Pipeline
 Branch: epic
-Commit: f1b3ae9781b01d7028b20b2694f19c0be2a37a50
+Commit: c19c0be4ec8b9d5125c2c2294855cdd2ab2cef7d (latest provider-proof deployment verified at write time)
 Status: complete-except-admin-provider-proof
 
 ## Summary
@@ -47,15 +47,15 @@ The official status entering this pass was
 
 ## Vercel Env Scope Verification
 
-Current repo state at the start of this pass:
+Current repo state for the provider-proof evidence commit:
 
 ```txt
 branch: epic
-HEAD: f1b3ae9781b01d7028b20b2694f19c0be2a37a50
+HEAD: c19c0be4ec8b9d5125c2c2294855cdd2ab2cef7d
 latest commits:
+c19c0be4ec docs: record phase 3 provider proof update
 f1b3ae9781 docs: add phase 3 completion assessment
 5b6c313793 docs: record phase 3 final provider proof status
-65b7a8252c feat: complete phase 3 giving pipeline
 ```
 
 Vercel production env names for `admin` include:
@@ -68,7 +68,8 @@ The new Resend webhook signing secret was copied from the Resend dashboard into
 Vercel `admin` production `RESEND_WEBHOOK_SECRET` via
 `vercel env add RESEND_WEBHOOK_SECRET production --sensitive --force --yes`.
 The value was never printed, and the local clipboard was cleared immediately
-after the update.
+after the update. The pushed evidence commit then triggered an admin production
+redeploy so the new value is available to the deployed route.
 
 Vercel CLI cannot read sensitive production values back into the shell. It
 therefore cannot be used from Codex to prove sensitive Resend/Twenty values by
@@ -205,13 +206,11 @@ DNS propagation details:
 
 What remains to close Resend:
 
-1. Redeploy or otherwise ensure the production admin runtime has the new
-   `RESEND_WEBHOOK_SECRET`.
-2. Run a safe app test-send to `will@risencode.org` through an authenticated
+1. Run a safe app test-send to `will@risencode.org` through an authenticated
    admin/staff operator session, or provide a safe runtime path that can call
    the app route without exposing the API key.
-3. Confirm the `email_send_logs` row for that test send.
-4. Trigger/replay a signed Resend webhook and confirm `email_events` plus
+2. Confirm the `email_send_logs` row for that test send.
+3. Trigger/replay a signed Resend webhook and confirm `email_events` plus
    delivery-status ingestion.
 
 ## Supabase Migration Verification
@@ -264,18 +263,18 @@ Commands passed:
 
 ## Deployment Verification
 
-Vercel production readiness passed for current HEAD
-`f1b3ae9781b01d7028b20b2694f19c0be2a37a50`:
+Vercel production readiness passed for commit
+`c19c0be4ec8b9d5125c2c2294855cdd2ab2cef7d`:
 
 | App        | Production deployment                           | Status | Health check |
 | ---------- | ----------------------------------------------- | ------ | ------------ |
-| admin      | `admin-it8851fb4-asymmetric-al.vercel.app`      | READY  | HTTP 200     |
-| donor      | `donor-946os8c9t-asymmetric-al.vercel.app`      | READY  | HTTP 200     |
-| missionary | `missionary-hx821asqk-asymmetric-al.vercel.app` | READY  | HTTP 200     |
+| admin      | `admin-lut53q9y5-asymmetric-al.vercel.app`      | READY  | HTTP 200     |
+| donor      | `donor-nvntl1oxv-asymmetric-al.vercel.app`      | READY  | HTTP 200     |
+| missionary | `missionary-ggi6pg6o1-asymmetric-al.vercel.app` | READY  | HTTP 200     |
 
-The Resend webhook secret was updated after that deployed commit. A production
-admin redeploy is still required before signed webhook ingestion can be proven
-against the deployed route with the new Resend webhook secret.
+The admin production runtime was redeployed after the Resend webhook secret
+update, so the remaining Resend blocker is not deployment. It is the
+app-authenticated safe test-send/send-log/signed-webhook ingestion proof.
 
 This pass did not mutate Stripe, donor, payment, or CRM production data.
 
@@ -301,8 +300,6 @@ Resend:
 - Wait for `send.asymmetric.al` domain verification to complete in Resend.
 - If the `send.send.asymmetric.al` SPF `TXT` remains absent from public DNS,
   fix the Lightsail/Route 53 record visibility for that host.
-- Redeploy the admin production runtime so the new `RESEND_WEBHOOK_SECRET` is
-  available to the deployed webhook route.
 - Run an authenticated app test-send to `will@risencode.org`.
 - Confirm `email_send_logs` persistence and signed webhook delivery-status
   ingestion.
