@@ -230,6 +230,7 @@ describe("api/email/webhooks/resend", () => {
       expect(body.code).toBe("webhook_persistence_unavailable");
       expect(body.accepted).toBe(false);
       expect(upsertEmailEventsMock).not.toHaveBeenCalled();
+      expect(insertEmailEventsMock).not.toHaveBeenCalled();
     } finally {
       consoleErrorSpy.mockRestore();
     }
@@ -264,7 +265,7 @@ describe("api/email/webhooks/resend", () => {
     expect(body.resolutionSource).toBe("payload");
     expect(emailSendLogsSelectMock).not.toHaveBeenCalled();
     expect(tenantSettingsSelectMock).not.toHaveBeenCalled();
-    expect(upsertEmailEventsMock).toHaveBeenCalledTimes(1);
+    expect(insertEmailEventsMock).toHaveBeenCalledTimes(1);
     expect(updateSendLogsMock).toHaveBeenCalledTimes(1);
     expect(updateSendLogsEqFirstMock).toHaveBeenCalledWith(
       "tenant_id",
@@ -276,7 +277,7 @@ describe("api/email/webhooks/resend", () => {
     );
     expect(upsertSuppressionsMock).not.toHaveBeenCalled();
     expect(upsertInboundMock).not.toHaveBeenCalled();
-    expect(insertEmailEventsMock).not.toHaveBeenCalled();
+    expect(upsertEmailEventsMock).not.toHaveBeenCalled();
   });
 
   it("returns 503 when core event persistence fails", async () => {
@@ -284,9 +285,9 @@ describe("api/email/webhooks/resend", () => {
       .spyOn(console, "error")
       .mockImplementation(() => undefined);
     try {
-      upsertEmailEventsMock.mockResolvedValueOnce({
+      insertEmailEventsMock.mockResolvedValueOnce({
         data: null,
-        error: { code: "23505", message: "event write failed" },
+        error: { code: "XX000", message: "event write failed" },
       });
       verifyResendWebhookSignatureMock.mockReturnValueOnce({
         success: true,
@@ -316,6 +317,38 @@ describe("api/email/webhooks/resend", () => {
     } finally {
       consoleErrorSpy.mockRestore();
     }
+  });
+
+  it("treats duplicate Resend event inserts as idempotent replays", async () => {
+    insertEmailEventsMock.mockResolvedValueOnce({
+      data: null,
+      error: {
+        code: "23505",
+        message: "duplicate key value violates unique constraint",
+      },
+    });
+    verifyResendWebhookSignatureMock.mockReturnValueOnce({
+      success: true,
+      event: {
+        type: "email.delivered",
+        created_at: "2026-02-23T10:00:00.000Z",
+        data: {
+          tenant_id: "tenant_direct",
+          resend_event_id: "evt_duplicate",
+          email_id: "msg_duplicate",
+          email: "recipient@example.com",
+        },
+      },
+    });
+
+    const response = await POST(createWebhookRequest({ hello: "world" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.accepted).toBe(true);
+    expect(insertEmailEventsMock).toHaveBeenCalledTimes(1);
+    expect(updateSendLogsMock).toHaveBeenCalledTimes(1);
+    expect(upsertEmailEventsMock).not.toHaveBeenCalled();
   });
 
   it("falls back to email_send_logs tenant lookup for outbound events", async () => {
@@ -375,11 +408,11 @@ describe("api/email/webhooks/resend", () => {
     expect(secondResponse.status).toBe(200);
     expect(firstBody.accepted).toBe(true);
     expect(secondBody.accepted).toBe(true);
-    expect(upsertEmailEventsMock).toHaveBeenCalledTimes(2);
-    const firstEventPayload = upsertEmailEventsMock.mock.calls[0]?.[0] as
+    expect(insertEmailEventsMock).toHaveBeenCalledTimes(2);
+    const firstEventPayload = insertEmailEventsMock.mock.calls[0]?.[0] as
       | { resend_event_id?: string }
       | undefined;
-    const secondEventPayload = upsertEmailEventsMock.mock.calls[1]?.[0] as
+    const secondEventPayload = insertEmailEventsMock.mock.calls[1]?.[0] as
       | { resend_event_id?: string }
       | undefined;
     expect(firstEventPayload?.resend_event_id).toMatch(
@@ -388,7 +421,7 @@ describe("api/email/webhooks/resend", () => {
     expect(secondEventPayload?.resend_event_id).toBe(
       firstEventPayload?.resend_event_id,
     );
-    expect(insertEmailEventsMock).not.toHaveBeenCalled();
+    expect(upsertEmailEventsMock).not.toHaveBeenCalled();
   });
 
   it("returns sorted candidate tenant ids for ambiguous outbound send-log lookup", async () => {
@@ -417,6 +450,7 @@ describe("api/email/webhooks/resend", () => {
     expect(body.code).toBe("tenant_resolution_ambiguous");
     expect(body.candidateTenantIds).toEqual(["tenant_a", "tenant_z"]);
     expect(upsertEmailEventsMock).not.toHaveBeenCalled();
+    expect(insertEmailEventsMock).not.toHaveBeenCalled();
     expect(updateSendLogsMock).not.toHaveBeenCalled();
   });
 
@@ -473,6 +507,7 @@ describe("api/email/webhooks/resend", () => {
     expect(body.accepted).toBe(false);
     expect(body.code).toBe("tenant_resolution_dependency_unavailable");
     expect(upsertEmailEventsMock).not.toHaveBeenCalled();
+    expect(insertEmailEventsMock).not.toHaveBeenCalled();
   });
 
   it("resolves inbound tenant from recipient domain", async () => {
