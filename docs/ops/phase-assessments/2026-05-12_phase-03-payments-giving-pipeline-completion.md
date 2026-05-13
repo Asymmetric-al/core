@@ -67,18 +67,27 @@ Completed in this pass:
 Still required:
 
 1. Run a safe authenticated app test-send to `will@risencode.org`.
-2. Confirm `email_send_logs` persistence.
-3. Trigger/replay a signed Resend webhook and confirm delivery-status ingestion.
+2. Confirm `email_send_logs` persistence for the app-created send.
+3. Trigger/replay a signed Resend webhook and confirm `email_events` plus
+   delivery-status ingestion for that app-created send.
 
 Final closure attempt result:
 
 - The deployed `POST /api/email/test-send` route returned `401` without an
   admin/super_admin app session.
 - Safari also did not have an authenticated admin app session.
-- `RESEND_API_KEY` was not present in the local shell, and the Resend CLI was
-  unavailable/unauthenticated.
-- No direct provider send was run, because that would not prove app
-  `email_send_logs` without app/database proof.
+- Resend API verification confirmed `send.asymmetric.al` is verified, the
+  webhook is enabled at `https://admin.asymmetric.al/api/email/webhooks/resend`,
+  and all 11 Email events are selected.
+- A safe direct provider test email to `will@risencode.org` was accepted by
+  Resend and reached `delivered` status.
+- The direct provider send did not prove app persistence. A read-only production
+  query found 0 `email_send_logs` rows and 0 `email_events` rows for the direct
+  provider message id.
+- Resend webhook POSTs reached `/api/email/webhooks/resend`, but Vercel logs
+  showed HTTP 422 responses. In the current code path, 422 occurs after
+  signature verification when tenant/message resolution fails, which is
+  expected for a direct provider send with no app-created send-log row.
 
 ### Twenty Cloud
 

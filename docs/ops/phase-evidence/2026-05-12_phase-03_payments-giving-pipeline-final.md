@@ -1,23 +1,24 @@
 # Phase 3 Evidence - Payments and Giving Pipeline Final Verification
 
-Generated: 2026-05-13 22:44:57 +07
+Generated: 2026-05-13 23:16:00 +07
 Phase: 3 - Payments and Giving Pipeline
 Branch: epic
-Commit under final closure proof: 143d480058a51eba1f45cedf580140f5f85e3b88
+Commit under final closure proof: e415b365f89c25dd93a4c941af208663f24caba6
 Status: complete-except-admin-provider-proof
 
 ## Summary
 
 Phase 3 implementation, Stripe proof, migration verification, deployment
 readiness, and prior local gates are complete. This provider-proof pass used
-the newly available AWS Lightsail DNS access and the authenticated Resend
-dashboard session to advance Resend setup without printing or committing
-secrets.
+AWS Lightsail DNS access, the authenticated Resend dashboard session, and a
+safe in-memory Resend API proof path to verify the Resend domain, webhook
+configuration, event subscription list, and direct provider delivery without
+printing or committing secrets.
 
 The phase remains `complete-except-admin-provider-proof`, not `complete`,
-because Resend still needs live test-send/send-log/signed-webhook ingestion
-proof, and Twenty Cloud still needs an authenticated runtime proof path or
-restricted server-side API key.
+because Resend still needs app-authenticated test-send/send-log/signed-webhook
+ingestion proof, and Twenty Cloud still needs an authenticated runtime proof
+path or restricted server-side API key.
 
 Stripe remains complete and was not reopened. `SENTRY_AUTH_TOKEN` remains out
 of Phase 3 scope unless a build/deploy explicitly fails on sourcemap upload.
@@ -189,16 +190,21 @@ Provider status at evidence time:
 Resend API key printed? no
 Domain: send.asymmetric.al
 Domain id: f72e0ee2-7ff0-40ff-a466-1872a6148598
-Domain status: Verified
+Domain status: verified by Resend API
 DNS records added? yes
 AWS Lightsail zone: asymmetric.al
 Webhook endpoint: https://admin.asymmetric.al/api/email/webhooks/resend
-Webhook events: all Email events selected in Resend UI
+Webhook status: enabled by Resend API
+Webhook events: email.bounced, email.clicked, email.complained, email.delivered, email.delivery_delayed, email.failed, email.opened, email.received, email.scheduled, email.sent, email.suppressed
 Test recipient: will@risencode.org
-Test-send result: not run
-email_send_logs proof: not completed
-Signed webhook proof: not completed
-Remaining Resend blocker: app-auth or usable runtime proof path for test-send/log/signed webhook ingestion
+Direct provider test-send: accepted by Resend and delivered
+Direct provider message id: da1a9400-0193-4b26-8773-a5728b381ba2
+Direct provider created_at: 2026-05-13 15:59:29.35649+00
+App-authenticated test-send: not completed; deployed route returned 401 without admin/super_admin app auth
+email_send_logs proof: failed for direct provider send; production query returned 0 rows for message id da1a9400-0193-4b26-8773-a5728b381ba2
+email_events proof: failed for direct provider send; production query returned 0 rows for message id da1a9400-0193-4b26-8773-a5728b381ba2
+Signed webhook proof: Resend delivered signed webhook attempts to the admin endpoint, and the app reached post-signature tenant/message resolution, but ingestion failed with HTTP 422 because no app send-log row existed for the direct provider message id
+Remaining Resend blocker: authenticated app test-send path, or an approved app-runtime proof path that creates email_send_logs before provider webhook delivery/replay
 ```
 
 Final closure attempt:
@@ -210,8 +216,11 @@ Test-send writes email_send_logs: yes, after Resend send attempt
 Webhook route verifies signed raw payload: yes, Svix headers over raw body
 Webhook route updates delivery/event state: yes, after tenant/message resolution
 App-authenticated test-send: no, deployed route returned 401 without app auth
-Direct provider test-send: no, RESEND_API_KEY was not present in shell and Resend CLI was unavailable/unauthenticated
-Dashboard webhook replay/test event: not completed; no safe provider event was available without app test-send or API key
+Direct provider test-send: yes, Resend accepted and delivered one safe email to will@risencode.org
+Direct provider test-send limitation: direct provider sends bypass the app route and do not create email_send_logs
+Signed webhook delivery: yes, Vercel production logs show Resend POSTs to /api/email/webhooks/resend after the direct provider send
+Signed webhook ingestion: no, Vercel production logs show HTTP 422 for those POSTs, and production database queries found no email_events row for the direct provider message id
+Dashboard webhook replay/test event: not completed; replaying the direct provider event would continue to fail until a matching app-created email_send_logs row exists
 ```
 
 DNS propagation details:
@@ -350,6 +359,11 @@ Complete:
 - Resend domain was created and DNS records were added in AWS Lightsail.
 - Resend webhook endpoint was created with all Email events selected.
 - Resend domain verification passed for `send.asymmetric.al`.
+- Resend API verification confirmed the webhook endpoint is enabled at
+  `https://admin.asymmetric.al/api/email/webhooks/resend` with all 11 Email
+  events selected.
+- Resend accepted and delivered one safe direct provider test email to
+  `will@risencode.org`.
 - Resend webhook secret was updated in Vercel production without printing it.
 - Full local gate and Vercel production readiness passed for the current HEAD.
 - No production donor, payment, or CRM data was mutated.
@@ -357,8 +371,11 @@ Complete:
 
 Not complete:
 
-- Resend safe test-send, `email_send_logs`, and signed webhook ingestion proof
-  are not complete because app auth/runtime key access is still unavailable.
+- Resend app-authenticated test-send, `email_send_logs`, and signed webhook
+  ingestion proof are not complete. The safe direct provider send delivered,
+  but it bypassed the app route, production database queries found 0
+  `email_send_logs`/`email_events` rows for the provider message id, and
+  Resend webhook POSTs returned HTTP 422 after tenant/message resolution.
 - Twenty Cloud authenticated read and gift-posting provider proof are not
   complete because app auth/runtime key access is still unavailable.
 
