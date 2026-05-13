@@ -1,9 +1,9 @@
 # Phase 3 Evidence - Payments and Giving Pipeline Final Verification
 
-Generated: 2026-05-13 22:12:11 +07
+Generated: 2026-05-13 22:44:57 +07
 Phase: 3 - Payments and Giving Pipeline
 Branch: epic
-Commit: 4ba4a3321d3ec688797d511cedf3360db3aa7a99
+Commit under final closure proof: 143d480058a51eba1f45cedf580140f5f85e3b88
 Status: complete-except-admin-provider-proof
 
 ## Summary
@@ -47,15 +47,15 @@ The official status entering this pass was
 
 ## Vercel Env Scope Verification
 
-Current repo state for the provider-proof evidence commit:
+Current repo state for the final closure attempt:
 
 ```txt
 branch: epic
-HEAD: 4ba4a3321d3ec688797d511cedf3360db3aa7a99
+HEAD: 143d480058a51eba1f45cedf580140f5f85e3b88
 latest commits:
+143d480058 docs: refresh phase 3 provider evidence
 4ba4a3321d docs: update phase 3 provider deployment status
 c19c0be4ec docs: record phase 3 provider proof update
-f1b3ae9781 docs: add phase 3 completion assessment
 ```
 
 Vercel production env names for `admin` include:
@@ -106,6 +106,10 @@ Runtime scope evidence:
   authenticated read.
 - No app-authenticated admin operator session was available to Codex for
   `/api/admin/crm/gateway/status?probe=1`.
+- `curl` against the deployed gateway route without app auth returned `401`.
+- Safari also had no authenticated admin app session for the deployed gateway
+  route and returned `401`.
+- `TWENTY_API_KEY` was not present in the local shell.
 
 Proof status:
 
@@ -197,6 +201,19 @@ Signed webhook proof: not completed
 Remaining Resend blocker: app-auth or usable runtime proof path for test-send/log/signed webhook ingestion
 ```
 
+Final closure attempt:
+
+```txt
+Test-send route exists: yes
+Test-send route requires app auth: yes, admin/super_admin
+Test-send writes email_send_logs: yes, after Resend send attempt
+Webhook route verifies signed raw payload: yes, Svix headers over raw body
+Webhook route updates delivery/event state: yes, after tenant/message resolution
+App-authenticated test-send: no, deployed route returned 401 without app auth
+Direct provider test-send: no, RESEND_API_KEY was not present in shell and Resend CLI was unavailable/unauthenticated
+Dashboard webhook replay/test event: not completed; no safe provider event was available without app test-send or API key
+```
+
 DNS propagation details:
 
 - `dig TXT resend._domainkey.send.asymmetric.al` returned the DKIM record.
@@ -207,8 +224,8 @@ DNS propagation details:
 What remains to close Resend:
 
 1. Run a safe app test-send to `will@risencode.org` through an authenticated
-   admin/staff operator session, or provide a safe runtime path that can call
-   the app route without exposing the API key.
+   admin/super_admin operator session, or provide a safe runtime path that can
+   call the app route without exposing the API key.
 2. Confirm the `email_send_logs` row for that test send.
 3. Trigger/replay a signed Resend webhook and confirm `email_events` plus
    delivery-status ingestion.
@@ -264,13 +281,13 @@ Commands passed:
 ## Deployment Verification
 
 Vercel production readiness passed for commit
-`4ba4a3321d3ec688797d511cedf3360db3aa7a99`:
+`143d480058a51eba1f45cedf580140f5f85e3b88`:
 
 | App        | Production deployment                           | Status | Health check |
 | ---------- | ----------------------------------------------- | ------ | ------------ |
-| admin      | `admin-aqw3qf44m-asymmetric-al.vercel.app`      | READY  | HTTP 200     |
-| donor      | `donor-f16odzqgl-asymmetric-al.vercel.app`      | READY  | HTTP 200     |
-| missionary | `missionary-r6pp9zh2k-asymmetric-al.vercel.app` | READY  | HTTP 200     |
+| admin      | `admin-1e9g6rek2-asymmetric-al.vercel.app`      | READY  | HTTP 200     |
+| donor      | `donor-5dpg4injm-asymmetric-al.vercel.app`      | READY  | HTTP 200     |
+| missionary | `missionary-qnux0c23c-asymmetric-al.vercel.app` | READY  | HTTP 200     |
 
 The admin production runtime was redeployed after the Resend webhook secret
 update, so the remaining Resend blocker is not deployment. It is the
@@ -300,6 +317,9 @@ Resend:
 - Run an authenticated app test-send to `will@risencode.org`.
 - Confirm `email_send_logs` persistence and signed webhook delivery-status
   ingestion.
+- If app auth remains unavailable, provide a safe shell-only `RESEND_API_KEY` or
+  approved Resend operator flow for a direct provider send; this still will not
+  close app log proof without app/database verification.
 
 Twenty Cloud:
 
@@ -338,9 +358,9 @@ Complete:
 Not complete:
 
 - Resend safe test-send, `email_send_logs`, and signed webhook ingestion proof
-  are not complete.
+  are not complete because app auth/runtime key access is still unavailable.
 - Twenty Cloud authenticated read and gift-posting provider proof are not
-  complete.
+  complete because app auth/runtime key access is still unavailable.
 
 Phase 3 should not be marked `complete` until the remaining admin/provider proof
 items above are completed.
