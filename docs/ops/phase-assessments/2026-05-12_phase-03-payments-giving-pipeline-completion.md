@@ -1,9 +1,9 @@
 # Phase 3 Payments and Giving Pipeline Completion Assessment
 
-Generated: 2026-05-13 23:33:00 +07
+Generated: 2026-05-14 00:00:30 +07
 Repo: Asymmetric-al/core
 Branch: epic
-Audited HEAD: 7793e4d8c050f24a55df8ff2a778bf7f7b9fabe9
+Audited HEAD: 2fff1bff82de4986885bef9e3668e4635dc49162
 Phase implementation commit: 65b7a8252ca09a78d4642bb12b5d06afb7fa98ba
 Status: handoff-complete; phase remains complete-except-admin-provider-proof
 
@@ -18,17 +18,17 @@ donor/payment/CRM data, or starting Phase 4/5.
 
 ```txt
 branch: epic
-HEAD: 7793e4d8c050f24a55df8ff2a778bf7f7b9fabe9
+HEAD: 2fff1bff82de4986885bef9e3668e4635dc49162
 latest commits:
+2fff1bff82 fix resend webhook event persistence
+7e6c22525a docs: record resend cli provider proof
 7793e4d8c0 docs: record resend runtime proof status
-e415b365f8 docs: record phase 3 final closure blockers
-143d480058 docs: refresh phase 3 provider evidence
 ```
 
 Working tree note:
 
-- Only this assessment and the final Phase 3 evidence file changed during this
-  pass.
+- The Resend webhook package route and focused unit test changed during this
+  pass, then this assessment and the final Phase 3 evidence file were updated.
 - Existing untracked local configuration folders and untracked
   `skills/stripe-*` symlinks remain unrelated to this provider proof.
 - Temporary Vercel env pull files and the generated `apps/admin/.vercel`
@@ -38,8 +38,7 @@ Working tree note:
 
 ### Resend
 
-Status: provider domain/webhook setup complete; proof still admin/runtime
-blocked.
+Status: complete for Phase 3.
 
 Completed in this pass:
 
@@ -64,18 +63,26 @@ Completed in this pass:
   `4ba4a3321d3ec688797d511cedf3360db3aa7a99`; Vercel production readiness
   passed for admin, donor, and missionary after the deploys finished.
 
-Still required:
-
-1. Run a safe authenticated app test-send to `will@risencode.org`.
-2. Confirm `email_send_logs` persistence for the app-created send.
-3. Trigger/replay a signed Resend webhook and confirm `email_events` plus
-   delivery-status ingestion for that app-created send.
-
 Final closure attempt result:
 
-- The deployed `POST /api/email/test-send` route returned `401` without an
-  admin/super_admin app session.
-- Safari also did not have an authenticated admin app session.
+- Created temporary Supabase Auth proof user
+  `phase3-proof-admin+20260513165953@risencode.org` with `super_admin` profile
+  role in the proof tenant, signed in through Supabase password auth, used the
+  returned bearer token only in memory, and deleted the profile/auth user after
+  proof.
+- The deployed `POST /api/email/test-send` route returned HTTP 200 for the safe
+  app send to `will@risencode.org`.
+- The app-created send persisted `email_send_logs` row
+  `0080f9a2-26fe-4567-b73a-4cddb9ef27a6` for Resend message
+  `cdf483d0-69b4-4ce7-a6c6-e0acaf1763ec`.
+- Signed Resend webhook delivery persisted `email.sent` and `email.delivered`
+  rows `e2605eeb-6ed1-4cc1-8bfe-6123d21cf852` and
+  `f0087842-f4d1-4d8f-8c06-3f5c03d6fc25`.
+- Before the fix, production logs showed signed Resend webhooks reached the
+  route but failed with PostgREST `42P10` because the code tried to upsert
+  against a partial unique index. Commit
+  `2fff1bff82de4986885bef9e3668e4635dc49162` fixed this by inserting
+  `email_events` and treating duplicate-key violations as idempotent replays.
 - Resend API verification confirmed `send.asymmetric.al` is verified, the
   webhook is enabled at `https://admin.asymmetric.al/api/email/webhooks/resend`,
   and all 11 Email events are selected.
@@ -86,13 +93,9 @@ Final closure attempt result:
   Resend and reached `delivered` status.
 - A safe CLI provider test email to `will@risencode.org` was accepted by Resend
   and reached `delivered` status.
-- The direct provider send did not prove app persistence. A read-only production
-  query found 0 `email_send_logs` rows and 0 `email_events` rows for both
-  provider message ids.
-- Resend webhook POSTs reached `/api/email/webhooks/resend`, but Vercel logs
-  showed HTTP 422 responses. In the current code path, 422 occurs after
-  signature verification when tenant/message resolution fails, which is
-  expected for provider sends with no app-created send-log row.
+- The earlier direct provider sends remain recorded only as provider/domain
+  delivery proof because they bypassed app persistence. The final app-route
+  proof above closes the Phase 3 Resend send-log and webhook-ingestion gate.
 
 ### Twenty Cloud
 
@@ -106,20 +109,22 @@ Current evidence:
 - No `NEXT_PUBLIC_TWENTY_*` variables were added.
 - The deployed CRM gateway route exists and correctly requires authenticated
   staff/admin/super_admin access.
-- Codex does not have a retrievable Twenty API key or an authenticated admin app
-  session for harmless metadata read/gift-posting proof.
-- The deployed gateway route returned `401` in both `curl` and Safari without
-  an admin/staff/super_admin session.
+- A temporary production super-admin proof user authenticated successfully, but
+  the deployed production gateway route returned `404` because the CRM gateway
+  smoke route is intentionally disabled in protected production deployments.
+- Production `admin` env pull lists no `TWENTY_*` variables.
+- Custom `staging` env pull lists `TWENTY_API_URL` and
+  `TWENTY_WEBHOOK_SECRET`, but `TWENTY_API_KEY` is present with an empty value.
 - `TWENTY_API_URL`, `TWENTY_API_KEY`, `TWENTY_WEBHOOK_SECRET`, and
-  `TWENTY_WORKSPACE_ID` were not present in the local shell.
+  `TWENTY_WORKSPACE_ID` were not present in local `.env.local`.
 - The repo client path builder expects a base URL that already includes `/rest`
   for the accepted Phase 3 Twenty Cloud shape; metadata probing appends
   `/metadata/objects`.
 
 Still required:
 
-1. Provide an authenticated admin operator session or restricted server-side
-   Twenty runtime/key.
+1. Set/provide a non-empty restricted server-side `TWENTY_API_KEY` in a safe
+   staging/proof runtime, or provide a restricted key to Codex.
 2. Run harmless metadata read through the package/admin gateway.
 3. Run approved non-production gift-posting fixture and confirm link-record
    creation.
@@ -139,7 +144,7 @@ Still required:
   `verify:data-boundary`, `verify:workspace-contract`, `verify:eslint`,
   `verify:shadcn-diff`, and `skills:verify`.
 - Vercel production readiness passed for pushed proof commit
-  `7793e4d8c050f24a55df8ff2a778bf7f7b9fabe9`; admin, donor, and missionary
+  `2fff1bff82de4986885bef9e3668e4635dc49162`; admin, donor, and missionary
   were READY with HTTP 200 health checks.
 - Sentry sourcemaps are not a Phase 3 blocker unless deployment explicitly
   fails on sourcemap upload.
@@ -150,6 +155,8 @@ Still required:
   string, or API token was committed.
 - The chat-exposed Resend API key was not printed or persisted by Codex. Rotate
   it after proof if it will remain in use.
+- The temporary proof user password and access token were never printed,
+  written, or committed. The proof profile and auth user were deleted.
 - The new Resend webhook signing secret was moved from Resend to Vercel without
   printing and the clipboard was cleared.
 - Temporary env files under `/tmp` were removed.
@@ -178,14 +185,14 @@ Implementation status:
 - Supabase migration verifier: complete.
 - Local/pre-push/GitHub CI: complete in prior evidence.
 - Vercel readiness: complete in prior evidence.
-- Resend provider proof: domain and webhook setup complete; still pending
-  app-auth/runtime proof for test-send, send log, and signed webhook ingestion.
+- Resend provider proof: complete.
 - Twenty Cloud provider proof: admin/runtime blocked.
 - Phase 4/5: not started.
 
 Next owner action:
 
-- Complete the Resend app test-send/send-log/signed-webhook ingestion workflow.
-- Provide a safe Twenty Cloud runtime proof path.
-- After those pass, update the final Phase 3 evidence status from
+- Provide a safe Twenty Cloud runtime proof path with a non-empty restricted
+  server-side `TWENTY_API_KEY`.
+- After Twenty metadata read and approved non-production gift-post/link proof
+  pass, update the final Phase 3 evidence status from
   `complete-except-admin-provider-proof` to `complete`.
