@@ -1,9 +1,9 @@
 # Phase 3 Payments and Giving Pipeline Completion Assessment
 
-Generated: 2026-05-13 22:44:57 +07
+Generated: 2026-05-13 23:33:00 +07
 Repo: Asymmetric-al/core
 Branch: epic
-Audited HEAD: 143d480058a51eba1f45cedf580140f5f85e3b88
+Audited HEAD: 7793e4d8c050f24a55df8ff2a778bf7f7b9fabe9
 Phase implementation commit: 65b7a8252ca09a78d4642bb12b5d06afb7fa98ba
 Status: handoff-complete; phase remains complete-except-admin-provider-proof
 
@@ -18,11 +18,11 @@ donor/payment/CRM data, or starting Phase 4/5.
 
 ```txt
 branch: epic
-HEAD: 143d480058a51eba1f45cedf580140f5f85e3b88
+HEAD: 7793e4d8c050f24a55df8ff2a778bf7f7b9fabe9
 latest commits:
+7793e4d8c0 docs: record resend runtime proof status
+e415b365f8 docs: record phase 3 final closure blockers
 143d480058 docs: refresh phase 3 provider evidence
-4ba4a3321d docs: update phase 3 provider deployment status
-c19c0be4ec docs: record phase 3 provider proof update
 ```
 
 Working tree note:
@@ -79,15 +79,20 @@ Final closure attempt result:
 - Resend API verification confirmed `send.asymmetric.al` is verified, the
   webhook is enabled at `https://admin.asymmetric.al/api/email/webhooks/resend`,
   and all 11 Email events are selected.
+- Resend CLI verification confirmed CLI v2.2.1 is authenticated from macOS
+  Keychain profile `default`, `send.asymmetric.al` is verified with sending
+  enabled, and the same webhook endpoint/events are enabled.
 - A safe direct provider test email to `will@risencode.org` was accepted by
   Resend and reached `delivered` status.
+- A safe CLI provider test email to `will@risencode.org` was accepted by Resend
+  and reached `delivered` status.
 - The direct provider send did not prove app persistence. A read-only production
-  query found 0 `email_send_logs` rows and 0 `email_events` rows for the direct
-  provider message id.
+  query found 0 `email_send_logs` rows and 0 `email_events` rows for both
+  provider message ids.
 - Resend webhook POSTs reached `/api/email/webhooks/resend`, but Vercel logs
   showed HTTP 422 responses. In the current code path, 422 occurs after
   signature verification when tenant/message resolution fails, which is
-  expected for a direct provider send with no app-created send-log row.
+  expected for provider sends with no app-created send-log row.
 
 ### Twenty Cloud
 
@@ -105,7 +110,11 @@ Current evidence:
   session for harmless metadata read/gift-posting proof.
 - The deployed gateway route returned `401` in both `curl` and Safari without
   an admin/staff/super_admin session.
-- `TWENTY_API_KEY` was not present in the local shell.
+- `TWENTY_API_URL`, `TWENTY_API_KEY`, `TWENTY_WEBHOOK_SECRET`, and
+  `TWENTY_WORKSPACE_ID` were not present in the local shell.
+- The repo client path builder expects a base URL that already includes `/rest`
+  for the accepted Phase 3 Twenty Cloud shape; metadata probing appends
+  `/metadata/objects`.
 
 Still required:
 
@@ -129,8 +138,8 @@ Still required:
   `format:check`, `lint`, `typecheck`, `build`, `test:unit`,
   `verify:data-boundary`, `verify:workspace-contract`, `verify:eslint`,
   `verify:shadcn-diff`, and `skills:verify`.
-- Vercel production readiness passed for current HEAD
-  `143d480058a51eba1f45cedf580140f5f85e3b88`; admin, donor, and missionary
+- Vercel production readiness passed for pushed proof commit
+  `7793e4d8c050f24a55df8ff2a778bf7f7b9fabe9`; admin, donor, and missionary
   were READY with HTTP 200 health checks.
 - Sentry sourcemaps are not a Phase 3 blocker unless deployment explicitly
   fails on sourcemap upload.

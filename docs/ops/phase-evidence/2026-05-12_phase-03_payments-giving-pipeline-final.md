@@ -1,19 +1,19 @@
 # Phase 3 Evidence - Payments and Giving Pipeline Final Verification
 
-Generated: 2026-05-13 23:16:00 +07
+Generated: 2026-05-13 23:33:00 +07
 Phase: 3 - Payments and Giving Pipeline
 Branch: epic
-Commit under final closure proof: e415b365f89c25dd93a4c941af208663f24caba6
+Commit under final closure proof: 7793e4d8c050f24a55df8ff2a778bf7f7b9fabe9
 Status: complete-except-admin-provider-proof
 
 ## Summary
 
 Phase 3 implementation, Stripe proof, migration verification, deployment
 readiness, and prior local gates are complete. This provider-proof pass used
-AWS Lightsail DNS access, the authenticated Resend dashboard session, and a
-safe in-memory Resend API proof path to verify the Resend domain, webhook
-configuration, event subscription list, and direct provider delivery without
-printing or committing secrets.
+AWS Lightsail DNS access, the authenticated Resend dashboard session, the
+authenticated Resend CLI, and a safe in-memory Resend API proof path to verify
+the Resend domain, webhook configuration, event subscription list, and direct
+provider delivery without printing or committing secrets.
 
 The phase remains `complete-except-admin-provider-proof`, not `complete`,
 because Resend still needs app-authenticated test-send/send-log/signed-webhook
@@ -52,11 +52,11 @@ Current repo state for the final closure attempt:
 
 ```txt
 branch: epic
-HEAD: 143d480058a51eba1f45cedf580140f5f85e3b88
+HEAD: 7793e4d8c050f24a55df8ff2a778bf7f7b9fabe9
 latest commits:
+7793e4d8c0 docs: record resend runtime proof status
+e415b365f8 docs: record phase 3 final closure blockers
 143d480058 docs: refresh phase 3 provider evidence
-4ba4a3321d docs: update phase 3 provider deployment status
-c19c0be4ec docs: record phase 3 provider proof update
 ```
 
 Vercel production env names for `admin` include:
@@ -110,7 +110,12 @@ Runtime scope evidence:
 - `curl` against the deployed gateway route without app auth returned `401`.
 - Safari also had no authenticated admin app session for the deployed gateway
   route and returned `401`.
-- `TWENTY_API_KEY` was not present in the local shell.
+- `TWENTY_API_URL`, `TWENTY_API_KEY`, `TWENTY_WEBHOOK_SECRET`, and
+  `TWENTY_WORKSPACE_ID` were not present in the local shell.
+- The current repo client expects `TWENTY_API_URL` to include the path prefix it
+  should call. With `https://api.twenty.com/rest`, metadata probing calls
+  `/metadata/objects`, resulting in the Twenty Cloud URL
+  `https://api.twenty.com/rest/metadata/objects`.
 
 Proof status:
 
@@ -118,7 +123,7 @@ Proof status:
 TWENTY_API_URL present: not proven in production admin runtime
 TWENTY_API_KEY present: not retrievable to Codex
 TWENTY_WEBHOOK_SECRET present: not proven in production admin runtime
-Harmless metadata read: blocked by missing app-auth/runtime key
+Harmless metadata read: blocked by missing app-auth/runtime key; unauthenticated deployed gateway returned 401
 Gift-posting fixture: not run; no production CRM data was mutated
 Link-record proof: not run; no production CRM data was mutated
 Webhook secret rotation: owner declined rotation for now; recorded residual risk
@@ -183,6 +188,14 @@ Provider/dashboard work completed in this pass:
 - Copied the new webhook signing secret directly from Resend into Vercel
   `admin` production `RESEND_WEBHOOK_SECRET` without printing it, then cleared
   the clipboard.
+- Ran `resend doctor --json`; CLI v2.2.1 passed, credentials came from macOS
+  Keychain profile `default`, and the domain check reported 1 verified domain.
+- Ran `resend domains list --json`; `send.asymmetric.al` is `verified`, region
+  `us-east-1`, with sending enabled and receiving disabled.
+- Ran `resend webhooks list --json`; webhook
+  `e0aa0690-a2a3-48f6-80a2-36904a47880b` is `enabled` at
+  `https://admin.asymmetric.al/api/email/webhooks/resend` with all 11 expected
+  Email events selected.
 
 Provider status at evidence time:
 
@@ -200,10 +213,14 @@ Test recipient: will@risencode.org
 Direct provider test-send: accepted by Resend and delivered
 Direct provider message id: da1a9400-0193-4b26-8773-a5728b381ba2
 Direct provider created_at: 2026-05-13 15:59:29.35649+00
+CLI provider test-send: accepted by Resend and delivered
+CLI provider message id: 1d80b616-9633-4c78-b4d1-69bff02a7630
+CLI provider from: Asymmetric.al <no-reply@send.asymmetric.al>
+CLI provider created_at: 2026-05-13 16:18:50.647845+00
 App-authenticated test-send: not completed; deployed route returned 401 without admin/super_admin app auth
-email_send_logs proof: failed for direct provider send; production query returned 0 rows for message id da1a9400-0193-4b26-8773-a5728b381ba2
-email_events proof: failed for direct provider send; production query returned 0 rows for message id da1a9400-0193-4b26-8773-a5728b381ba2
-Signed webhook proof: Resend delivered signed webhook attempts to the admin endpoint, and the app reached post-signature tenant/message resolution, but ingestion failed with HTTP 422 because no app send-log row existed for the direct provider message id
+email_send_logs proof: failed for direct/CLI provider sends; production query returned 0 rows for message ids da1a9400-0193-4b26-8773-a5728b381ba2 and 1d80b616-9633-4c78-b4d1-69bff02a7630
+email_events proof: failed for direct/CLI provider sends; production query returned 0 rows for message ids da1a9400-0193-4b26-8773-a5728b381ba2 and 1d80b616-9633-4c78-b4d1-69bff02a7630
+Signed webhook proof: Resend delivered signed webhook attempts to the admin endpoint, and the app reached post-signature tenant/message resolution, but ingestion failed with HTTP 422 because no app send-log row existed for the direct/CLI provider message ids
 Remaining Resend blocker: authenticated app test-send path, or an approved app-runtime proof path that creates email_send_logs before provider webhook delivery/replay
 ```
 
@@ -217,9 +234,10 @@ Webhook route verifies signed raw payload: yes, Svix headers over raw body
 Webhook route updates delivery/event state: yes, after tenant/message resolution
 App-authenticated test-send: no, deployed route returned 401 without app auth
 Direct provider test-send: yes, Resend accepted and delivered one safe email to will@risencode.org
+CLI provider test-send: yes, Resend CLI accepted and delivered one safe email to will@risencode.org
 Direct provider test-send limitation: direct provider sends bypass the app route and do not create email_send_logs
-Signed webhook delivery: yes, Vercel production logs show Resend POSTs to /api/email/webhooks/resend after the direct provider send
-Signed webhook ingestion: no, Vercel production logs show HTTP 422 for those POSTs, and production database queries found no email_events row for the direct provider message id
+Signed webhook delivery: yes, Vercel production logs show Resend POSTs to /api/email/webhooks/resend after provider sends
+Signed webhook ingestion: no, Vercel production logs show HTTP 422 for those POSTs, and production database queries found no email_events rows for the provider message ids
 Dashboard webhook replay/test event: not completed; replaying the direct provider event would continue to fail until a matching app-created email_send_logs row exists
 ```
 
@@ -273,30 +291,31 @@ and provider setup state.
 
 Commands passed:
 
-| Command                                                              | Result |
-| -------------------------------------------------------------------- | ------ |
-| `bun run format:check`                                               | passed |
-| `bun run lint`                                                       | passed |
-| `bun run typecheck`                                                  | passed |
-| `bun run build`                                                      | passed |
-| `bun run test:unit`                                                  | passed |
-| `bun run verify:data-boundary`                                       | passed |
-| `bun run verify:workspace-contract`                                  | passed |
-| `bun run verify:eslint`                                              | passed |
-| `bun run verify:shadcn-diff`                                         | passed |
-| `bun run skills:verify`                                              | passed |
-| `bun run verify:vercel-production -- --commit $(git rev-parse HEAD)` | passed |
+| Command                                                                                 | Result |
+| --------------------------------------------------------------------------------------- | ------ |
+| `bun run format:check`                                                                  | passed |
+| `bun run lint`                                                                          | passed |
+| `bun run typecheck`                                                                     | passed |
+| `bun run build`                                                                         | passed |
+| `bun run test:unit`                                                                     | passed |
+| `bun run verify:data-boundary`                                                          | passed |
+| `bun run verify:workspace-contract`                                                     | passed |
+| `bun run verify:eslint`                                                                 | passed |
+| `bun run verify:shadcn-diff`                                                            | passed |
+| `bun run skills:verify`                                                                 | passed |
+| `bun run verify:vercel-production -- --commit 7793e4d8c050f24a55df8ff2a778bf7f7b9fabe9` | passed |
 
 ## Deployment Verification
 
 Vercel production readiness passed for commit
-`143d480058a51eba1f45cedf580140f5f85e3b88`:
+`7793e4d8c050f24a55df8ff2a778bf7f7b9fabe9` after the commit was pushed to
+`epic` and Vercel completed all three production deployments:
 
 | App        | Production deployment                           | Status | Health check |
 | ---------- | ----------------------------------------------- | ------ | ------------ |
-| admin      | `admin-1e9g6rek2-asymmetric-al.vercel.app`      | READY  | HTTP 200     |
-| donor      | `donor-5dpg4injm-asymmetric-al.vercel.app`      | READY  | HTTP 200     |
-| missionary | `missionary-qnux0c23c-asymmetric-al.vercel.app` | READY  | HTTP 200     |
+| admin      | `admin-3gs5kbsn2-asymmetric-al.vercel.app`      | READY  | HTTP 200     |
+| donor      | `donor-qv9mi86tm-asymmetric-al.vercel.app`      | READY  | HTTP 200     |
+| missionary | `missionary-luqrtr61j-asymmetric-al.vercel.app` | READY  | HTTP 200     |
 
 The admin production runtime was redeployed after the Resend webhook secret
 update, so the remaining Resend blocker is not deployment. It is the
@@ -362,7 +381,11 @@ Complete:
 - Resend API verification confirmed the webhook endpoint is enabled at
   `https://admin.asymmetric.al/api/email/webhooks/resend` with all 11 Email
   events selected.
+- Resend CLI verification confirmed the same domain and webhook status from
+  macOS Keychain profile `default`.
 - Resend accepted and delivered one safe direct provider test email to
+  `will@risencode.org`.
+- Resend CLI accepted and delivered one additional safe provider proof email to
   `will@risencode.org`.
 - Resend webhook secret was updated in Vercel production without printing it.
 - Full local gate and Vercel production readiness passed for the current HEAD.
@@ -372,9 +395,9 @@ Complete:
 Not complete:
 
 - Resend app-authenticated test-send, `email_send_logs`, and signed webhook
-  ingestion proof are not complete. The safe direct provider send delivered,
-  but it bypassed the app route, production database queries found 0
-  `email_send_logs`/`email_events` rows for the provider message id, and
+  ingestion proof are not complete. The safe provider sends delivered, but they
+  bypassed the app route, production database queries found 0
+  `email_send_logs`/`email_events` rows for the provider message ids, and
   Resend webhook POSTs returned HTTP 422 after tenant/message resolution.
 - Twenty Cloud authenticated read and gift-posting provider proof are not
   complete because app auth/runtime key access is still unavailable.
