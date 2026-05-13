@@ -1,0 +1,278 @@
+import { serverEnv } from "@asym/env";
+import { NextResponse } from "next/server";
+import { z } from "zod";
+
+import { resolveCrmSyncRuntimeConfig } from "../../crm/sync/config";
+import { sendStagedGiftReceipt } from "../../giving/receipts";
+import {
+  loadStagedGiftById,
+  queueStagedGiftPostingToTwenty,
+  retryStagedGiftPostingToTwenty,
+} from "../../giving/staged-gifts";
+import {
+  ApiHttpError,
+  ensureJsonBody,
+  toErrorResponse,
+} from "../../shared/http-errors";
+import { withOperation } from "../../shared/with-operation";
+
+const allocationSchema = z.object({
+  fundId: z.string().uuid().nullable().optional(),
+  missionaryId: z.string().uuid().nullable().optional(),
+  amount: z.number().int().nonnegative(),
+  memo: z.string().max(500).nullable().optional(),
+});
+
+const reviewPatchSchema = z.object({
+  donorId: z.string().uuid().nullable().optional(),
+  allocations: z.array(allocationSchema).min(1).optional(),
+  status: z
+    .enum(["received", "needs_review", "ready_to_post", "failed", "voided"])
+    .optional(),
+  note: z.string().max(1000).nullable().optional(),
+});
+
+const actionSchema = z.object({
+  note: z.string().max(1000).nullable().optional(),
+});
+
+function getStagedGiftIdFromPath(request: Request) {
+  const pathname = new URL(request.url).pathname;
+  const segments = pathname.split("/").filter(Boolean);
+  const index = segments.indexOf("staged-gifts");
+  const stagedGiftId = index >= 0 ? segments[index + 1] : null;
+
+  if (!stagedGiftId) {
+    throw new ApiHttpError(400, "Missing staged gift id.");
+  }
+
+  return stagedGiftId;
+}
+
+async function appendReviewAudit(input: {
+  supabaseAdmin: Parameters<typeof loadStagedGiftById>[0]["supabaseAdmin"];
+  tenantId: string;
+  stagedGiftId: string;
+  actorProfileId: string | null;
+  action: string;
+  note?: string | null;
+  details?: Record<string, unknown>;
+}) {
+  const { error } = await input.supabaseAdmin
+    .from("staged_gift_audit_events")
+    .insert({
+      tenant_id: input.tenantId,
+      staged_gift_id: input.stagedGiftId,
+      actor_profile_id: input.actorProfileId,
+      action: input.action,
+      note: input.note ?? null,
+      details: input.details ?? {},
+    });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export const GET = withOperation(
+  async ({ request, supabaseAdmin, auth, requestId }) => {
+    try {
+      const searchParams = new URL(request.url).searchParams;
+      const statuses = searchParams
+        .getAll("status")
+        .flatMap((value) => value.split(","))
+        .map((value) => value.trim())
+        .filter(Boolean);
+      let query = supabaseAdmin
+        .from("staged_gifts")
+        .select("*")
+        .eq("tenant_id", auth.tenantId)
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (statuses.length > 0) {
+        query = query.in("status", Array.from(new Set(statuses)));
+      }
+
+      const { data, error } = await query;
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return NextResponse.json({ rows: data ?? [], requestId });
+    } catch (error) {
+      return toErrorResponse(error, "Failed to load staged gifts.", requestId);
+    }
+  },
+  { roles: ["staff", "admin", "super_admin"] },
+);
+
+export const PATCH = withOperation(
+  async ({ request, supabaseAdmin, auth, requestId }) => {
+    try {
+      const stagedGiftId = getStagedGiftIdFromPath(request);
+      const body = reviewPatchSchema.parse(await ensureJsonBody(request));
+      const gift = await loadStagedGiftById({
+        supabaseAdmin,
+        stagedGiftId,
+        tenantId: auth.tenantId,
+      });
+
+      const patch = {
+        ...(body.donorId !== undefined
+          ? {
+              donor_id: body.donorId,
+              donor_match_status: body.donorId ? "corrected" : "needs_review",
+            }
+          : {}),
+        ...(body.status ? { status: body.status } : {}),
+        ...(body.note !== undefined ? { review_reason: body.note } : {}),
+        updated_at: new Date().toISOString(),
+      };
+      const updated = await supabaseAdmin
+        .from("staged_gifts")
+        .update(patch)
+        .eq("id", gift.id)
+        .select("*")
+        .single();
+      if (updated.error) {
+        throw new Error(updated.error.message);
+      }
+
+      if (body.allocations) {
+        const total = body.allocations.reduce(
+          (sum, allocation) => sum + allocation.amount,
+          0,
+        );
+        if (total !== gift.amount) {
+          throw new ApiHttpError(
+            400,
+            "Allocation split must equal staged gift amount.",
+          );
+        }
+
+        const deleteResult = await supabaseAdmin
+          .from("staged_gift_allocations")
+          .delete()
+          .eq("staged_gift_id", gift.id);
+        if (deleteResult.error) {
+          throw new Error(deleteResult.error.message);
+        }
+
+        const insertResult = await supabaseAdmin
+          .from("staged_gift_allocations")
+          .insert(
+            body.allocations.map((allocation) => ({
+              tenant_id: gift.tenantId,
+              staged_gift_id: gift.id,
+              fund_id: allocation.fundId ?? null,
+              missionary_id: allocation.missionaryId ?? null,
+              amount: allocation.amount,
+              memo: allocation.memo ?? null,
+            })),
+          );
+        if (insertResult.error) {
+          throw new Error(insertResult.error.message);
+        }
+
+        const allocationStatus =
+          body.allocations.length > 1 ? "split" : "corrected";
+        const allocationPatch = await supabaseAdmin
+          .from("staged_gifts")
+          .update({
+            allocation_status: allocationStatus,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", gift.id);
+        if (allocationPatch.error) {
+          throw new Error(allocationPatch.error.message);
+        }
+      }
+
+      await appendReviewAudit({
+        supabaseAdmin,
+        tenantId: gift.tenantId,
+        stagedGiftId: gift.id,
+        actorProfileId: auth.profileId,
+        action: "staged_gift_review_updated",
+        note: body.note,
+        details: {
+          donorCorrected: body.donorId !== undefined,
+          allocationCount: body.allocations?.length ?? null,
+          status: body.status ?? null,
+        },
+      });
+
+      return NextResponse.json({ stagedGift: updated.data, requestId });
+    } catch (error) {
+      return toErrorResponse(error, "Failed to update staged gift.", requestId);
+    }
+  },
+  { roles: ["staff", "admin", "super_admin"] },
+);
+
+export const POST_APPROVE = withOperation(
+  async ({ request, supabaseAdmin, auth, requestId }) => {
+    try {
+      const stagedGiftId = getStagedGiftIdFromPath(request);
+      const body = actionSchema.parse(await ensureJsonBody(request));
+      const stagedGift = await queueStagedGiftPostingToTwenty({
+        supabaseAdmin,
+        stagedGiftId,
+        tenantId: auth.tenantId,
+        actorProfileId: auth.profileId,
+        note: body.note,
+        crmConfig: resolveCrmSyncRuntimeConfig(serverEnv),
+      });
+
+      return NextResponse.json({ stagedGift, requestId });
+    } catch (error) {
+      return toErrorResponse(
+        error,
+        "Failed to approve staged gift.",
+        requestId,
+      );
+    }
+  },
+  { roles: ["staff", "admin", "super_admin"] },
+);
+
+export const POST_RETRY = withOperation(
+  async ({ request, supabaseAdmin, auth, requestId }) => {
+    try {
+      const stagedGiftId = getStagedGiftIdFromPath(request);
+      const body = actionSchema.parse(await ensureJsonBody(request));
+      const stagedGift = await retryStagedGiftPostingToTwenty({
+        supabaseAdmin,
+        stagedGiftId,
+        tenantId: auth.tenantId,
+        actorProfileId: auth.profileId,
+        note: body.note,
+        crmConfig: resolveCrmSyncRuntimeConfig(serverEnv),
+      });
+
+      return NextResponse.json({ stagedGift, requestId });
+    } catch (error) {
+      return toErrorResponse(error, "Failed to retry staged gift.", requestId);
+    }
+  },
+  { roles: ["staff", "admin", "super_admin"] },
+);
+
+export const POST_RECEIPT = withOperation(
+  async ({ request, supabaseAdmin, auth, requestId }) => {
+    try {
+      const stagedGiftId = getStagedGiftIdFromPath(request);
+      const receipt = await sendStagedGiftReceipt({
+        supabaseAdmin,
+        stagedGiftId,
+        tenantId: auth.tenantId,
+      });
+
+      return NextResponse.json({ receipt, requestId });
+    } catch (error) {
+      return toErrorResponse(error, "Failed to send gift receipt.", requestId);
+    }
+  },
+  { roles: ["staff", "admin", "super_admin"] },
+);

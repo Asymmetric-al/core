@@ -16,7 +16,15 @@ import {
   SheetTitle,
 } from "@asym/ui/components/shadcn/sheet";
 import { cn } from "@asym/ui/lib/utils";
-import { Copy, DollarSign, Mail, Receipt, RefreshCcw, X } from "lucide-react";
+import {
+  CheckCircle2,
+  Copy,
+  DollarSign,
+  Mail,
+  Receipt,
+  RefreshCcw,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import type { Contribution, ContributionStatus } from "./types";
@@ -69,17 +77,35 @@ function DetailField({
 interface ContributionDetailSheetProps {
   contribution: Contribution | null;
   onClose: () => void;
+  onApproveStagedGift?: (stagedGiftId: string) => void;
+  onRetryStagedGift?: (stagedGiftId: string) => void;
+  onSendReceipt?: (stagedGiftId: string) => void;
+  isActionPending?: boolean;
 }
 
 export function ContributionDetailSheet({
   contribution,
   onClose,
+  onApproveStagedGift,
+  onRetryStagedGift,
+  onSendReceipt,
+  isActionPending = false,
 }: ContributionDetailSheetProps) {
   if (!contribution) return null;
 
   const { donorName, donorEmail, donorAvatar, isAnonymous } = contribution;
   const date = new Date(contribution.date);
   const donorDisplayName = isAnonymous ? "Anonymous" : (donorName ?? "Unknown");
+  const stagedGiftId = contribution.stagedGiftId;
+  const canApproveGift =
+    stagedGiftId &&
+    (contribution.stagedGiftStatus === "received" ||
+      contribution.stagedGiftStatus === "needs_review");
+  const canRetryGift =
+    stagedGiftId &&
+    (contribution.stagedGiftStatus === "failed" ||
+      contribution.crmPostStatus === "failed" ||
+      contribution.crmPostStatus === "blocked");
 
   const handleCopyTxn = async () => {
     const tid = contribution.transactionId;
@@ -214,6 +240,30 @@ export function ContributionDetailSheet({
                 </span>
               </DetailField>
 
+              {contribution.stagedGiftStatus && (
+                <DetailField label="Review">
+                  <span className="flex items-center gap-2">
+                    <span
+                      className={cn(
+                        "h-2 w-2 shrink-0 rounded-full",
+                        contribution.stagedGiftStatus === "posted"
+                          ? "bg-emerald-500"
+                          : contribution.stagedGiftStatus === "failed"
+                            ? "bg-destructive"
+                            : "bg-amber-500",
+                      )}
+                    />
+                    {contribution.stagedGiftStatus.replace(/_/g, " ")}
+                  </span>
+                </DetailField>
+              )}
+
+              {contribution.crmPostStatus && (
+                <DetailField label="Twenty">
+                  {contribution.crmPostStatus.replace(/_/g, " ")}
+                </DetailField>
+              )}
+
               {contribution.missionaryName && (
                 <DetailField label="Missionary">
                   {contribution.missionaryName}
@@ -232,6 +282,22 @@ export function ContributionDetailSheet({
                   <div className="rounded-lg border border-border bg-muted/30 p-4">
                     <p className="text-sm text-muted-foreground leading-relaxed font-medium">
                       {contribution.notes}
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {contribution.stagedGiftReviewReason && (
+              <>
+                <Separator />
+                <div className="space-y-2">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Review reason
+                  </p>
+                  <div className="rounded-lg border border-border bg-amber-50/50 p-4">
+                    <p className="text-sm text-muted-foreground leading-relaxed font-medium">
+                      {contribution.stagedGiftReviewReason.replace(/,/g, ", ")}
                     </p>
                   </div>
                 </div>
@@ -269,10 +335,42 @@ export function ContributionDetailSheet({
                   <Button
                     variant="outline"
                     size="sm"
+                    disabled={!stagedGiftId || isActionPending}
                     className="gap-2 rounded-xl font-bold uppercase tracking-widest text-[10px] h-9"
+                    onClick={() =>
+                      stagedGiftId && onSendReceipt?.(stagedGiftId)
+                    }
                   >
                     <Receipt className="size-3.5" />
                     Send Receipt
+                  </Button>
+                )}
+                {canApproveGift && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={isActionPending}
+                    className="gap-2 rounded-xl font-bold uppercase tracking-widest text-[10px] h-9"
+                    onClick={() =>
+                      stagedGiftId && onApproveStagedGift?.(stagedGiftId)
+                    }
+                  >
+                    <CheckCircle2 className="size-3.5" />
+                    Approve/Post
+                  </Button>
+                )}
+                {canRetryGift && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={isActionPending}
+                    className="gap-2 rounded-xl font-bold uppercase tracking-widest text-[10px] h-9"
+                    onClick={() =>
+                      stagedGiftId && onRetryStagedGift?.(stagedGiftId)
+                    }
+                  >
+                    <RefreshCcw className="size-3.5" />
+                    Retry Posting
                   </Button>
                 )}
                 {contribution.status === "failed" && (

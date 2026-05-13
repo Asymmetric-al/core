@@ -1,5 +1,54 @@
 # Working Set
 
+## 2026-05-12 (Phase 3 payments and giving pipeline)
+
+- Date: 2026-05-12
+- Repo: Asymmetric-al/core
+- Goal: Execute Phase 3 payments and giving pipeline as local/dev
+  implementation work, preserving existing donation saga/outbox and Stripe
+  webhook foundations while stopping short of provider-dashboard and production
+  completion gates.
+- Primary area:
+  - `apps/{admin,donor,missionary}/app/api/**/route.ts`
+  - `apps/admin/app/contributions/*`
+  - `apps/donor/app/{api/donate,checkout,donor-dashboard/history}/*`
+  - `packages/api/src/{stripe,donations,contributions,email,crm}/*`
+  - `packages/database/types/*`
+  - `supabase/migrations/*`
+  - `tests/unit/**/*`
+  - `tests/e2e/**/*`
+  - `docs/ops/phase-evidence/*`
+- Stack:
+  - Next.js 16 App Router route handlers and pages
+  - React 19
+  - TypeScript
+  - Supabase Auth
+  - Supabase Postgres / RLS
+  - Stripe webhooks
+  - Resend
+  - Twenty CRM server-side gateway
+  - Bun
+  - Vitest
+  - Playwright
+- Constraints:
+  - Keep app API routes thin; business logic belongs in `packages/api`.
+  - Store and process Stripe events idempotently; never print Stripe or
+    webhook secret values.
+  - Keep Twenty CRM headless/server-side behind `packages/api`; never add
+    `NEXT_PUBLIC_TWENTY_*`.
+  - Treat provider dashboard checks and production deployment completion as
+    gates, not assumptions.
+  - Use additive migrations and include rollback notes.
+  - Create/update a phase evidence note under `docs/ops/phase-evidence/`.
+  - Nia tools are unavailable in this session; use repo-scoped `rg`, direct
+    file reads, bundled Next.js docs, and local package/source evidence.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/ops/phase-assessments/2026-05-12_secrets-access-readiness.md`
+  - `docs/ai/{working-set,stack-registry}.md`
+  - `docs/ai/rules/{general,backend,testing}.md`
+  - `docs/ai/skills/{repo-entry,supabase}/SKILL.md`
+
 ## 2026-05-11 (Email Studio React Email Editor migration)
 
 - Date: 2026-05-11

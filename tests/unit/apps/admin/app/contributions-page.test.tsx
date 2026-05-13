@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 
 import React from "react";
+import { QueryProvider } from "@asym/database/providers";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -50,6 +51,14 @@ function mockQuery(partial: Record<string, unknown>) {
   };
 }
 
+function renderContributionsPage() {
+  return render(
+    <QueryProvider>
+      <ContributionsPage />
+    </QueryProvider>,
+  );
+}
+
 describe("apps/admin/app/contributions/page", () => {
   afterEach(() => {
     cleanup();
@@ -97,7 +106,7 @@ describe("apps/admin/app/contributions/page", () => {
   });
 
   it("renders contributions shell with empty data", async () => {
-    render(<ContributionsPage />);
+    renderContributionsPage();
 
     await waitFor(() => {
       expect(
@@ -119,7 +128,7 @@ describe("apps/admin/app/contributions/page", () => {
       }),
     );
 
-    render(<ContributionsPage />);
+    renderContributionsPage();
 
     expect(screen.getByRole("heading", { name: "Load failed" })).toBeTruthy();
     expect(screen.getByText("Upstream unavailable")).toBeTruthy();
@@ -138,7 +147,7 @@ describe("apps/admin/app/contributions/page", () => {
       }),
     );
 
-    render(<ContributionsPage />);
+    renderContributionsPage();
 
     expect(screen.getByText(rows[0]!.donorName!)).toBeTruthy();
     expect(screen.queryByRole("heading", { name: "Load failed" })).toBeNull();
@@ -154,7 +163,7 @@ describe("apps/admin/app/contributions/page", () => {
       }),
     );
 
-    const { container } = render(<ContributionsPage />);
+    const { container } = renderContributionsPage();
 
     expect(screen.queryByRole("heading", { name: "Load failed" })).toBeNull();
     expect(

@@ -2,6 +2,17 @@ import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
+import {
+  claimStripeRawEvent,
+  completeStripeRawEvent,
+  recordStripeRawEventFailure,
+  storeStripeRawEvent,
+} from "./event-store";
+import {
+  markStagedGiftRefunded,
+  stageGiftFromStripeDonation,
+} from "../giving/staged-gifts";
+
 const STRIPE_API_VERSION = "2025-02-24.acacia";
 const TERMINAL_PAID_STATUSES = new Set(["completed", "refunded"]);
 
@@ -11,9 +22,15 @@ type SupabaseAdminClient = NonNullable<
 
 interface DonationWebhookRow {
   id: string;
+  tenant_id: string | null;
+  donor_id: string | null;
+  missionary_id: string | null;
+  fund_id: string | null;
   amount: number;
+  currency: string | null;
   status: string;
   stripe_payment_intent_id: string | null;
+  stripe_charge_id: string | null;
 }
 
 interface StripeWebhookOutcome {
@@ -22,6 +39,12 @@ interface StripeWebhookOutcome {
   handled: boolean;
   paymentIntentId?: string;
   reason?: string;
+  stagedGiftId?: string | null;
+}
+
+interface StripeWebhookProcessingContext {
+  rawEventId?: string | null;
+  stripeEventId?: string | null;
 }
 
 function getStripeClient(secretKey: string) {
@@ -65,7 +88,9 @@ async function findDonationByPaymentIntentId(
 ) {
   const { data, error } = await supabaseAdmin
     .from("donations")
-    .select("id, amount, status, stripe_payment_intent_id")
+    .select(
+      "id, tenant_id, donor_id, missionary_id, fund_id, amount, currency, status, stripe_payment_intent_id, stripe_charge_id",
+    )
     .eq("stripe_payment_intent_id", paymentIntentId)
     .maybeSingle();
 
@@ -95,8 +120,9 @@ async function updatePaymentIntentDonation(params: {
   supabaseAdmin: SupabaseAdminClient;
   paymentIntent: Stripe.PaymentIntent;
   status: "completed" | "failed" | "processing";
+  context?: StripeWebhookProcessingContext;
 }) {
-  const { supabaseAdmin, paymentIntent, status } = params;
+  const { supabaseAdmin, paymentIntent, status, context } = params;
   const donation = await findDonationByPaymentIntentId(
     supabaseAdmin,
     paymentIntent.id,
@@ -142,12 +168,32 @@ async function updatePaymentIntentDonation(params: {
   }
 
   await updateDonation(supabaseAdmin, donation.id, updateValues);
+  let stagedGiftId: string | null = null;
+
+  if (status === "completed") {
+    const stagedGift = await stageGiftFromStripeDonation({
+      supabaseAdmin,
+      donation: {
+        ...donation,
+        status,
+        stripe_charge_id:
+          getPaymentIntentLatestChargeId(paymentIntent) ??
+          donation.stripe_charge_id,
+      },
+      rawEventId: context?.rawEventId ?? null,
+      stripeEventId: context?.stripeEventId ?? "",
+      stripePaymentIntentId: paymentIntent.id,
+      stripeChargeId: getPaymentIntentLatestChargeId(paymentIntent),
+    });
+    stagedGiftId = stagedGift.id;
+  }
 
   return {
     action: `payment_intent_${status}`,
     donationId: donation.id,
     handled: true,
     paymentIntentId: paymentIntent.id,
+    stagedGiftId,
   } satisfies StripeWebhookOutcome;
 }
 
@@ -189,18 +235,27 @@ async function updateRefundedChargeDonation(
     stripe_charge_id: charge.id,
     updated_at: timestamp,
   });
+  const stagedGift = await markStagedGiftRefunded({
+    supabaseAdmin,
+    donationId: donation.id,
+    tenantId: donation.tenant_id,
+    stripeChargeId: charge.id,
+    fullRefund: isFullRefund,
+  });
 
   return {
     action: isFullRefund ? "charge_refunded" : "charge_partially_refunded",
     donationId: donation.id,
     handled: true,
     paymentIntentId,
+    stagedGiftId: stagedGift?.id ?? null,
   } satisfies StripeWebhookOutcome;
 }
 
 export async function handleStripeWebhookEvent(
   supabaseAdmin: SupabaseAdminClient,
   event: Stripe.Event,
+  context: StripeWebhookProcessingContext = {},
 ): Promise<StripeWebhookOutcome> {
   switch (event.type) {
     case "payment_intent.succeeded":
@@ -208,6 +263,10 @@ export async function handleStripeWebhookEvent(
         supabaseAdmin,
         paymentIntent: event.data.object as Stripe.PaymentIntent,
         status: "completed",
+        context: {
+          rawEventId: context.rawEventId,
+          stripeEventId: context.stripeEventId ?? event.id,
+        },
       });
     case "payment_intent.payment_failed":
     case "payment_intent.canceled":
@@ -215,12 +274,14 @@ export async function handleStripeWebhookEvent(
         supabaseAdmin,
         paymentIntent: event.data.object as Stripe.PaymentIntent,
         status: "failed",
+        context,
       });
     case "payment_intent.processing":
       return updatePaymentIntentDonation({
         supabaseAdmin,
         paymentIntent: event.data.object as Stripe.PaymentIntent,
         status: "processing",
+        context,
       });
     case "charge.refunded":
       return updateRefundedChargeDonation(
@@ -272,15 +333,81 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: adminError }, { status: 503 });
   }
 
+  let processingClaim: { rawEventId: string; lockId: string } | null = null;
+
   try {
-    const outcome = await handleStripeWebhookEvent(supabaseAdmin, event);
+    const storedEvent = await storeStripeRawEvent({
+      supabaseAdmin,
+      event,
+      rawBody,
+      signatureHeader: signature,
+    });
+    const claim = await claimStripeRawEvent({
+      supabaseAdmin,
+      rawEventId: storedEvent.id,
+    });
+
+    if (!claim.claimed) {
+      return NextResponse.json({
+        action: "stripe_event_already_recorded",
+        eventId: event.id,
+        eventType: event.type,
+        handled: true,
+        rawEventId: storedEvent.id,
+        received: true,
+        reason: `Stripe event is already ${claim.rawEvent.processingStatus}.`,
+      });
+    }
+
+    processingClaim = {
+      rawEventId: storedEvent.id,
+      lockId: claim.lockId,
+    };
+    const outcome = await handleStripeWebhookEvent(supabaseAdmin, event, {
+      rawEventId: storedEvent.id,
+      stripeEventId: event.id,
+    });
+    await completeStripeRawEvent({
+      supabaseAdmin,
+      rawEventId: storedEvent.id,
+      lockId: claim.lockId,
+      status: outcome.handled ? "processed" : "ignored",
+      outcome: {
+        action: outcome.action,
+        donationId: outcome.donationId,
+        handled: outcome.handled,
+        paymentIntentId: outcome.paymentIntentId,
+        reason: outcome.reason,
+        stagedGiftId: outcome.stagedGiftId,
+      },
+      stagedGiftId: outcome.stagedGiftId ?? null,
+    });
+    processingClaim = null;
+
     return NextResponse.json({
       eventId: event.id,
       eventType: event.type,
+      rawEventId: storedEvent.id,
       received: true,
       ...outcome,
     });
-  } catch {
+  } catch (error) {
+    // A raw event can only be marked failed after it has been claimed. If
+    // storage or claiming failed there is no safe durable lock to update;
+    // Stripe will retry from the non-2xx response.
+    if (processingClaim) {
+      try {
+        await recordStripeRawEventFailure({
+          supabaseAdmin,
+          rawEventId: processingClaim.rawEventId,
+          lockId: processingClaim.lockId,
+          error,
+        });
+      } catch {
+        // Preserve the original processing failure for the HTTP response.
+      }
+    }
+
     return NextResponse.json(
       { error: "Stripe webhook processing failed." },
       { status: 500 },

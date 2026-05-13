@@ -23,22 +23,152 @@ vi.mock("@asym/database/supabase/admin", () => ({
 
 function createSupabaseDonationMock(row: Record<string, unknown> | null) {
   const updateValues: Record<string, unknown>[] = [];
-  const maybeSingle = vi.fn().mockResolvedValue({ data: row, error: null });
-  const selectEq = vi.fn(() => ({ maybeSingle }));
-  const select = vi.fn(() => ({ eq: selectEq }));
+  const rawEvents: Record<string, unknown>[] = [];
+  const stagedGifts: Record<string, unknown>[] = [];
+  const donationMaybeSingle = vi
+    .fn()
+    .mockResolvedValue({ data: row, error: null });
+  const donationSelectEq = vi.fn(() => ({ maybeSingle: donationMaybeSingle }));
+  const donationSelect = vi.fn(() => ({ eq: donationSelectEq }));
   const updateEq = vi.fn().mockResolvedValue({ error: null });
   const update = vi.fn((values: Record<string, unknown>) => {
     updateValues.push(values);
     return { eq: updateEq };
   });
-  const from = vi.fn(() => ({ select, update }));
+  const rpc = vi.fn((fn: string) => {
+    if (fn === "claim_stripe_raw_event") {
+      if (rawEvents[0]) {
+        rawEvents[0] = {
+          ...rawEvents[0],
+          lock_id: "lock-1",
+          processing_status: "processing",
+        };
+      }
+
+      return Promise.resolve({ data: { claimed: true }, error: null });
+    }
+    return Promise.resolve({ data: {}, error: null });
+  });
+  const from = vi.fn((table: string) => {
+    if (table === "donations") {
+      return { select: donationSelect, update };
+    }
+
+    if (table === "stripe_raw_events") {
+      const makeFilter = () => {
+        const filter = {
+          eq: vi.fn(() => filter),
+          maybeSingle: vi.fn(async () => ({
+            data: rawEvents[0] ?? null,
+            error: null,
+          })),
+          single: vi.fn(async () => ({
+            data: rawEvents[0] ?? null,
+            error: rawEvents[0] ? null : { message: "not found" },
+          })),
+        };
+        return filter;
+      };
+
+      return {
+        insert: vi.fn((values: Record<string, unknown>) => {
+          const inserted = {
+            id: "raw-event-1",
+            correlation_id: "correlation-1",
+            process_attempts: 0,
+            processing_status: "received",
+            raw_payload: values.raw_payload,
+            ...values,
+          };
+          rawEvents[0] = inserted;
+          return {
+            select: vi.fn(() => ({
+              single: vi.fn(async () => ({ data: inserted, error: null })),
+            })),
+          };
+        }),
+        select: vi.fn(() => makeFilter()),
+      };
+    }
+
+    if (table === "staged_gifts") {
+      const makeFilter = () => {
+        const filter = {
+          eq: vi.fn(() => filter),
+          maybeSingle: vi.fn(async () => ({
+            data: stagedGifts[0] ?? null,
+            error: null,
+          })),
+          single: vi.fn(async () => ({
+            data: stagedGifts[0] ?? null,
+            error: stagedGifts[0] ? null : { message: "not found" },
+          })),
+        };
+        return filter;
+      };
+      return {
+        insert: vi.fn((values: Record<string, unknown>) => {
+          const inserted = {
+            id: "staged-gift-1",
+            allocation_status: "single_allocation",
+            crm_post_status: "not_required",
+            donor_match_status: "matched",
+            metadata: {},
+            receipt_status: "pending",
+            status: "received",
+            ...values,
+          };
+          stagedGifts[0] = inserted;
+          return {
+            select: vi.fn(() => ({
+              single: vi.fn(async () => ({ data: inserted, error: null })),
+            })),
+          };
+        }),
+        select: vi.fn(() => makeFilter()),
+        update: vi.fn((values: Record<string, unknown>) => ({
+          eq: vi.fn(() => {
+            stagedGifts[0] = { ...(stagedGifts[0] ?? {}), ...values };
+            return {
+              select: vi.fn(() => ({
+                single: vi.fn(async () => ({
+                  data: stagedGifts[0] ?? null,
+                  error: null,
+                })),
+              })),
+            };
+          }),
+        })),
+      };
+    }
+
+    if (
+      table === "staged_gift_allocations" ||
+      table === "staged_gift_audit_events"
+    ) {
+      return {
+        insert: vi.fn(async () => ({ error: null })),
+      };
+    }
+
+    return {
+      insert: vi.fn(async () => ({ error: null })),
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          maybeSingle: vi.fn(async () => ({ data: null, error: null })),
+        })),
+      })),
+      update: vi.fn(() => ({ eq: vi.fn(async () => ({ error: null })) })),
+    };
+  });
 
   return {
-    client: { from },
+    client: { from, rpc },
     from,
-    maybeSingle,
-    select,
-    selectEq,
+    maybeSingle: donationMaybeSingle,
+    rpc,
+    select: donationSelect,
+    selectEq: donationSelectEq,
     update,
     updateEq,
     updateValues,
@@ -94,9 +224,15 @@ describe("Stripe webhook handler", () => {
   it("verifies the Stripe signature and completes a matched donation", async () => {
     const supabase = createSupabaseDonationMock({
       amount: 5000,
+      currency: "usd",
+      donor_id: "donor-1",
+      fund_id: "fund-1",
       id: "donation-1",
+      missionary_id: null,
       status: "pending",
       stripe_payment_intent_id: "pi_1",
+      stripe_charge_id: null,
+      tenant_id: "tenant-1",
     });
     mockState.adminClient = supabase.client;
 

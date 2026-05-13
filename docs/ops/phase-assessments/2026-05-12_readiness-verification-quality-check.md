@@ -14,7 +14,7 @@ COMPLETE WITH MINOR GAPS
 
 The readiness verification package is now complete enough to hand off for implementation planning and Phase 3 local/dev work. The required markdown report, JSON summary, and this quality-check report exist, parse/check correctly, and contain the required phase, provider, env/access, command, blocker, security, and final verdict coverage.
 
-The package does **not** claim Phase 3 can complete through deployment. It explicitly marks Phase 3 as `READY FOR LOCAL/DEV ONLY` because Stripe, Resend, Twenty, Supabase migration, Sentry sourcemap, and E2E provider/runtime proof still need external/manual verification.
+The package does **not** claim Phase 3 can complete through deployment. It explicitly marks Phase 3 as `READY FOR LOCAL/DEV ONLY` because Stripe, Resend, Twenty, Supabase migration, and E2E provider/runtime proof still need external/manual verification. Sentry sourcemaps are Phase 11 observability work unless build/deploy explicitly fails because upload is required.
 
 Minor gaps remaining:
 
@@ -171,7 +171,7 @@ The dedicated Phase 3 section clearly answers:
 
 - Can Phase 3 begin now? Yes, local/dev only.
 - Can Phase 3 complete through deployment now? No.
-- What blocks Phase 3? Twenty workspace/env proof, Stripe dashboard verification, Resend dashboard verification, Supabase migration verifier, Sentry sourcemap proof, and skipped E2E runtime checks.
+- What blocks Phase 3? Twenty workspace/env proof, Stripe dashboard verification, Resend dashboard verification, Supabase migration verifier, and skipped E2E runtime checks. Sentry runtime DSNs are relevant for Phase 3; sourcemap proof is Phase 11 unless build/deploy explicitly requires upload.
 - Which Stripe keys/webhooks are ready? Vercel/GitHub env names are present; dashboard endpoint/events are not verified.
 - Which Resend keys/webhooks are ready? Vercel/GitHub env names are present; dashboard domain/event proof is not verified.
 - Whether Twenty staging/proof credentials are available for gift posting. Not ready because workspace ID/project-scope env proof is missing.
@@ -309,7 +309,7 @@ No `.env.local` values, provider keys, webhook secrets, service-role values, dat
 - Stripe webhook endpoint/event setup is not verified in provider dashboard/CLI.
 - Resend domain/webhook event setup is not verified in provider dashboard/CLI.
 - Supabase migration verifier needs disposable `DATABASE_URL`.
-- Sentry sourcemap upload readiness is not verified.
+- Sentry sourcemap upload readiness is not verified and is tracked as Phase 11 observability work unless build/deploy explicitly fails because upload is required.
 - E2E auth/CMS/smoke flows were skipped due missing runtime/provider setup.
 - Expected phase handoff files are external/missing; placeholder index added.
 - `format:check` still reports ignored local Supabase temp JSON outside the allowed edit scope.
@@ -324,7 +324,7 @@ Required fixes before handing off Phase 3 for deployment completion:
 - Verify Stripe webhooks and required events in Stripe Dashboard.
 - Verify Resend domain and webhook events in Resend Dashboard.
 - Run `verify:supabase-migrations` with disposable local `DATABASE_URL`.
-- Decide whether Sentry sourcemap upload is required; if yes, add/verify `SENTRY_AUTH_TOKEN`.
+- Track Sentry sourcemap upload and `SENTRY_AUTH_TOKEN` as Phase 11 observability work unless build/deploy explicitly fails because upload is required.
 - Run skipped E2E auth/CMS/smoke checks in a prepared runtime.
 - Attach the external phase handoff files or generate implementation-specific phase handoffs.
 

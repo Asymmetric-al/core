@@ -5,6 +5,8 @@ import type {
   ContributionGridType,
   ContributionGridPaymentMethod,
   ContributionGridSource,
+  StagedGiftCrmPostStatus,
+  StagedGiftGridStatus,
 } from "./model";
 import type {
   AdminContributionsFilters,
@@ -22,6 +24,8 @@ export type {
   ContributionGridStatus,
   ContributionGridType,
   ContributionReceiptStatus,
+  StagedGiftCrmPostStatus,
+  StagedGiftGridStatus,
   ContributionSortDirection,
   ContributionSortField,
 };

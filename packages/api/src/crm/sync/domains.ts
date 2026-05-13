@@ -9,6 +9,7 @@ export const CRM_SYNC_DOMAINS = [
   "notes",
   "ministry_activities",
   "relationship_commitments",
+  "gifts",
 ] as const satisfies readonly CrmSyncDomain[];
 
 const OBJECT_DOMAIN_BY_NAME = new Map<string, CrmSyncDomain>([
@@ -32,6 +33,12 @@ const OBJECT_DOMAIN_BY_NAME = new Map<string, CrmSyncDomain>([
   ["relationshipcommitments", "relationship_commitments"],
   ["relationship_commitment", "relationship_commitments"],
   ["relationship_commitments", "relationship_commitments"],
+  ["gift", "gifts"],
+  ["gifts", "gifts"],
+  ["giftsummary", "gifts"],
+  ["giftsummaries", "gifts"],
+  ["gift_summary", "gifts"],
+  ["gift_summaries", "gifts"],
 ]);
 
 function normalizeObjectName(value: string): string {

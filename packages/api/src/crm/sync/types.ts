@@ -8,7 +8,8 @@ export type CrmSyncDomain =
   | "tasks"
   | "notes"
   | "ministry_activities"
-  | "relationship_commitments";
+  | "relationship_commitments"
+  | "gifts";
 
 export type CrmSyncDirection =
   | "inbound"

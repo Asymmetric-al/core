@@ -32,6 +32,22 @@ export type ContributionReceiptStatus =
   | "failed"
   | "not_sent";
 
+export type StagedGiftGridStatus =
+  | "received"
+  | "needs_review"
+  | "ready_to_post"
+  | "posted"
+  | "failed"
+  | "refunded"
+  | "voided";
+
+export type StagedGiftCrmPostStatus =
+  | "not_required"
+  | "queued"
+  | "posted"
+  | "failed"
+  | "blocked";
+
 export interface ContributionGridRow {
   id: string;
   donorId: string | null;
@@ -68,6 +84,10 @@ export interface ContributionGridRow {
   receiptStatus: ContributionReceiptStatus;
   receiptSent: boolean;
   receiptSentAt: string | null;
+  stagedGiftId: string | null;
+  stagedGiftStatus: StagedGiftGridStatus | null;
+  stagedGiftReviewReason: string | null;
+  crmPostStatus: StagedGiftCrmPostStatus | null;
   annualStatementEligible: boolean;
   entryMethod: "api" | "manual" | "import";
   reconciliationStatus: "unreconciled" | "review" | "reconciled";
@@ -136,6 +156,15 @@ type RawFund = {
 type RawMissionary = {
   id: string;
   display_name: string | null;
+} | null;
+
+type RawStagedGift = {
+  id: string;
+  status: string | null;
+  review_reason: string | null;
+  receipt_status: string | null;
+  receipt_send_log_id: string | null;
+  crm_post_status: string | null;
 } | null;
 
 function normalizeStatus(
@@ -256,24 +285,87 @@ function normalizeEntryMethod(source: string | null | undefined) {
   return "api" as const;
 }
 
+function normalizeReceiptStatus(
+  stagedGift: RawStagedGift,
+): ContributionReceiptStatus {
+  switch (stagedGift?.receipt_status) {
+    case "sent":
+      return "sent";
+    case "failed":
+      return "failed";
+    case "not_required":
+    case "suppressed":
+      return "not_sent";
+    default:
+      return "pending";
+  }
+}
+
+function normalizeStagedGiftStatus(
+  status: string | null | undefined,
+): StagedGiftGridStatus | null {
+  if (
+    status === "received" ||
+    status === "needs_review" ||
+    status === "ready_to_post" ||
+    status === "posted" ||
+    status === "failed" ||
+    status === "refunded" ||
+    status === "voided"
+  ) {
+    return status;
+  }
+
+  return null;
+}
+
+function normalizeCrmPostStatus(
+  status: string | null | undefined,
+): StagedGiftCrmPostStatus | null {
+  if (
+    status === "not_required" ||
+    status === "queued" ||
+    status === "posted" ||
+    status === "failed" ||
+    status === "blocked"
+  ) {
+    return status;
+  }
+
+  return null;
+}
+
+function normalizeReconciliationStatus(stagedGift: RawStagedGift) {
+  const crmPostStatus = normalizeCrmPostStatus(stagedGift?.crm_post_status);
+  if (crmPostStatus === "posted") {
+    return "reconciled" as const;
+  }
+  if (crmPostStatus === "failed" || crmPostStatus === "blocked") {
+    return "review" as const;
+  }
+  return "unreconciled" as const;
+}
+
 export function buildContributionGridRow({
   donation,
   donor,
   profile,
   fund,
   missionary,
+  stagedGift,
 }: {
   donation: RawDonation;
   donor: RawDonor;
   profile: RawProfile;
   fund: RawFund;
   missionary: RawMissionary;
+  stagedGift?: RawStagedGift;
 }): ContributionGridRow {
   const donorName = buildDonorDisplayName(donor, profile);
   const donorEmail = donor?.email?.trim() || profile?.email?.trim() || "";
   const status = normalizeStatus(donation.status);
-  const receiptStatus: ContributionReceiptStatus = "pending";
-  const receiptSent = false;
+  const receiptStatus = normalizeReceiptStatus(stagedGift ?? null);
+  const receiptSent = receiptStatus === "sent";
 
   return {
     id: donation.id,
@@ -310,10 +402,14 @@ export function buildContributionGridRow({
     campaignId: donation.campaign_id,
     receiptStatus,
     receiptSent,
-    receiptSentAt: null,
+    receiptSentAt: receiptSent ? donation.completed_at : null,
+    stagedGiftId: stagedGift?.id ?? null,
+    stagedGiftStatus: normalizeStagedGiftStatus(stagedGift?.status),
+    stagedGiftReviewReason: stagedGift?.review_reason ?? null,
+    crmPostStatus: normalizeCrmPostStatus(stagedGift?.crm_post_status),
     annualStatementEligible: true,
     entryMethod: normalizeEntryMethod(donation.source),
-    reconciliationStatus: "unreconciled",
+    reconciliationStatus: normalizeReconciliationStatus(stagedGift ?? null),
     transactionId:
       donation.stripe_payment_intent_id ??
       donation.stripe_charge_id ??

@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { mockContributions } from "./data";
 
 import type { Contribution } from "./types";
+import type { AdminContributionsListResponse } from "@asym/api/admin/contributions/types";
 
 export const ADMIN_CONTRIBUTIONS_QUERY_KEY = [
   "admin",
@@ -25,10 +26,28 @@ export function loadMockAdminContributions(): Contribution[] {
   return mockContributions.map(cloneContribution);
 }
 
+async function loadAdminContributions(): Promise<Contribution[]> {
+  const response = await fetch("/api/admin/contributions", {
+    headers: {
+      accept: "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as {
+      error?: string;
+    } | null;
+    throw new Error(body?.error ?? "Could not load contributions.");
+  }
+
+  const data = (await response.json()) as AdminContributionsListResponse;
+  return data.rows.map(cloneContribution);
+}
+
 export function useAdminContributions() {
   return useQuery({
     queryKey: ADMIN_CONTRIBUTIONS_QUERY_KEY,
-    queryFn: () => Promise.resolve(loadMockAdminContributions()),
+    queryFn: loadAdminContributions,
     staleTime: 60_000,
     gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,

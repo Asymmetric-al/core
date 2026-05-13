@@ -19,6 +19,13 @@ For every `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}` file while
 | admin      | `/api/admin/comments`                                          | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/admin/comments/[commentId]`                              | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/admin/contributions`                                     | Node.js (no `runtime` segment export) | Admin client                               |
+| admin      | `/api/admin/contributions/reconcile`                           | Node.js (no `runtime` segment export) | Giving reconciliation, admin client        |
+| admin      | `/api/admin/contributions/replay`                              | Node.js (no `runtime` segment export) | Giving replay tooling, Stripe SDK          |
+| admin      | `/api/admin/contributions/staged-gifts`                        | Node.js (no `runtime` segment export) | Finance review queue, admin client         |
+| admin      | `/api/admin/contributions/staged-gifts/[stagedGiftId]`         | Node.js (no `runtime` segment export) | Finance review queue, admin client         |
+| admin      | `/api/admin/contributions/staged-gifts/[stagedGiftId]/approve` | Node.js (no `runtime` segment export) | Finance approval, CRM outbound queue       |
+| admin      | `/api/admin/contributions/staged-gifts/[stagedGiftId]/receipt` | Node.js (no `runtime` segment export) | Resend receipt sending, admin client       |
+| admin      | `/api/admin/contributions/staged-gifts/[stagedGiftId]/retry`   | Node.js (no `runtime` segment export) | Giving replay/CRM retry, admin client      |
 | admin      | `/api/admin/contributions/summary`                             | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/admin/crm/gateway/status`                                | Node.js (no `runtime` segment export) | Staff-only CRM gateway smoke route         |
 | admin      | `/api/admin/crm/notes`                                         | Node.js (no `runtime` segment export) | Staff-only native CRM notes                |
