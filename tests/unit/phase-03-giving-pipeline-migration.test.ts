@@ -9,6 +9,20 @@ const migration = readFileSync(
   ),
   "utf8",
 );
+const restExposureMigration = readFileSync(
+  new URL(
+    "../../supabase/migrations/20260513173739_expose_phase_03_service_tables_to_rest.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
+const restDenyPolicyMigration = readFileSync(
+  new URL(
+    "../../supabase/migrations/20260513173938_add_phase_03_rest_visibility_deny_policies.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
 
 describe("phase 03 giving pipeline migration", () => {
   it("adds durable raw Stripe event and staged gift tables", () => {
@@ -39,5 +53,19 @@ describe("phase 03 giving pipeline migration", () => {
     expect(migration).toContain(
       "GRANT SELECT, INSERT, UPDATE ON TABLE public.staged_gifts TO service_role",
     );
+  });
+
+  it("keeps Phase 3 tables visible to the service-role REST client without adding browser RLS policies", () => {
+    expect(restExposureMigration).toContain(
+      "GRANT SELECT, INSERT, UPDATE ON TABLE public.staged_gifts TO authenticated",
+    );
+    expect(restExposureMigration).toContain(
+      "GRANT SELECT, INSERT, UPDATE ON TABLE public.donation_crm_links TO authenticated",
+    );
+    expect(restDenyPolicyMigration).toContain(
+      'CREATE POLICY "phase3 staged gifts deny authenticated"',
+    );
+    expect(restDenyPolicyMigration).toContain("USING (false)");
+    expect(restDenyPolicyMigration).toContain("WITH CHECK (false)");
   });
 });

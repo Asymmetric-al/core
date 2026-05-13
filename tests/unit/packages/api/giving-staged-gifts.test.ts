@@ -44,7 +44,7 @@ describe("giving staged gift helpers", () => {
       asymDonationId: "donation-1",
       asymStagedGiftId: "staged-gift-1",
       asymTenantId: "tenant-1",
-      currency: "usd",
+      currencyCode: "usd",
       donorId: "donor-1",
       fundId: "fund-1",
       missionaryId: "missionary-1",

@@ -411,7 +411,7 @@ export function buildTwentyGiftSummaryPayload(gift: StagedGiftRow): JsonRecord {
     missionaryId: gift.missionaryId,
     fundId: gift.fundId,
     amountCents: gift.amount,
-    currency: gift.currency,
+    currencyCode: gift.currency,
     stripePaymentIntentId: gift.stripePaymentIntentId,
     stripeChargeId: gift.stripeChargeId,
     receiptStatus: gift.receiptStatus,
