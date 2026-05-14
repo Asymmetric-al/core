@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 
 let getTenantContext: (req: unknown) => {
   isAuthenticated: boolean;
+  publicTenantId: string | null;
   role: string | null;
   tenantId: string | null;
   userId: string | null;
@@ -24,6 +25,7 @@ describe("tenant-context", () => {
 
     expect(context).toEqual({
       isAuthenticated: false,
+      publicTenantId: null,
       role: null,
       tenantId: null,
       userId: null,
@@ -34,15 +36,17 @@ describe("tenant-context", () => {
     const context = getTenantContext({
       user: {
         id: "cms_user_1",
+        publicTenantId: "public_tenant_1",
         role: "staff",
-        tenantId: "tenant_1",
+        tenantId: "17",
       },
     } as never);
 
     expect(context).toEqual({
       isAuthenticated: true,
+      publicTenantId: "public_tenant_1",
       role: "staff",
-      tenantId: "tenant_1",
+      tenantId: "17",
       userId: "cms_user_1",
     });
   });
@@ -50,8 +54,9 @@ describe("tenant-context", () => {
   it("detects staff and super-admin roles correctly", () => {
     const staffContext = {
       isAuthenticated: true,
+      publicTenantId: "public_tenant_1",
       role: "staff" as const,
-      tenantId: "tenant_1",
+      tenantId: "17",
       userId: "user_1",
     };
     const superAdminContext = {

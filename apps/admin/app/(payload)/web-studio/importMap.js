@@ -50,6 +50,7 @@ import { ProjectPageCreateView as ProjectPageCreateView_94786e79bca1b62db27cfe5a
 import { MinistryUpdateCreateView as MinistryUpdateCreateView_d83db835455a052213c8588bac1de0d2 } from "../../../src/cms-ui/web-studio/flows/MinistryUpdateCreateView.tsx";
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from "@payloadcms/next/rsc";
 
+/** @type import('payload').ImportMap */
 /** @type {Record<string, unknown>} */
 export const importMap = {
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell":

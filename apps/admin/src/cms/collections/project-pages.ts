@@ -3,7 +3,7 @@ import {
   buildPageBuilderHooks,
   buildPageBuilderVersions,
 } from "./page-builders";
-import { pagesGeneratePreviewURL } from "../../cms-ui/web-studio/adapters/preview-url";
+import { createWebStudioAuthenticatedPreviewURL } from "../../cms-ui/web-studio/adapters/preview-url";
 import { isNativeCollectionWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
 import {
   tenantScopedCreateAccess,
@@ -40,7 +40,7 @@ export const ProjectPages: CollectionConfig = {
   slug: PROJECT_PAGES_SLUG,
   admin: {
     defaultColumns: ["title", "fundId", "tenant", "updatedAt"],
-    preview: pagesGeneratePreviewURL,
+    preview: createWebStudioAuthenticatedPreviewURL("project-pages"),
     useAsTitle: "title",
     ...nativeProjectPagesAdmin,
   },

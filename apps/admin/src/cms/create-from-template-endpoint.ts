@@ -75,6 +75,14 @@ type PageCreateData = PageCreateFields;
 type MissionaryGivingPageCreateData = MissionaryGivingPageCreateFields;
 type ProjectPageCreateData = ProjectPageCreateFields;
 type MinistryUpdateCreateData = MinistryUpdateCreateFields;
+type SupabaseAdminClient = NonNullable<
+  ReturnType<typeof getAdminClient>["client"]
+>;
+type ResolvedTenant = {
+  cmsTenantId: string;
+  publicTenantId: string | null;
+  slug: string | null;
+};
 
 function jsonResponse(body: unknown, status = 200) {
   return Response.json(body, { status });
@@ -153,7 +161,9 @@ async function resolveRequestedTenantId(
   req: PayloadRequest,
   ctx: TenantCtx,
   parsed: ParsedBody,
-): Promise<{ ok: true; tenantId: string } | { ok: false; response: Response }> {
+): Promise<
+  { ok: true; tenant: ResolvedTenant } | { ok: false; response: Response }
+> {
   if (!isSuperAdmin(ctx)) {
     if (!ctx.tenantId) {
       return {
@@ -169,7 +179,14 @@ async function resolveRequestedTenantId(
       };
     }
 
-    return { ok: true, tenantId: ctx.tenantId };
+    return {
+      ok: true,
+      tenant: {
+        cmsTenantId: ctx.tenantId,
+        publicTenantId: ctx.publicTenantId,
+        slug: null,
+      },
+    };
   }
 
   if (!parsed.tenantId) {
@@ -196,18 +213,72 @@ async function resolveRequestedTenantId(
     };
   }
 
-  return { ok: true, tenantId: String(tenant.id) };
+  const tenantDoc = tenant as { id: string | number; slug?: unknown };
+
+  return {
+    ok: true,
+    tenant: {
+      cmsTenantId: String(tenantDoc.id),
+      publicTenantId: null,
+      slug: typeof tenantDoc.slug === "string" ? tenantDoc.slug : null,
+    },
+  };
+}
+
+async function readCmsTenantSlug(req: PayloadRequest, cmsTenantId: string) {
+  const tenant = await req.payload.findByID({
+    collection: "tenants",
+    id: cmsTenantId,
+    depth: 0,
+    req,
+  });
+
+  return tenant &&
+    typeof tenant === "object" &&
+    "slug" in tenant &&
+    typeof tenant.slug === "string"
+    ? tenant.slug
+    : null;
+}
+
+async function resolvePublicTenantIdForGiving({
+  req,
+  supabase,
+  tenant,
+}: {
+  req: PayloadRequest;
+  supabase: SupabaseAdminClient;
+  tenant: ResolvedTenant;
+}) {
+  if (tenant.publicTenantId) {
+    return tenant.publicTenantId;
+  }
+
+  const tenantSlug =
+    tenant.slug ?? (await readCmsTenantSlug(req, tenant.cmsTenantId));
+  if (!tenantSlug) {
+    return null;
+  }
+
+  const { data } = await supabase
+    .from("tenants")
+    .select("id")
+    .eq("slug", tenantSlug)
+    .maybeSingle();
+
+  return data && typeof data.id === "string" ? data.id : null;
 }
 
 async function createPageFromTemplate(
   req: PayloadRequest,
-  tenantId: string,
+  tenant: ResolvedTenant,
   parsed: Extract<ParsedBody, { targetCollection: "pages" }>,
   template: PageTemplateForCreate,
   defaultLayout: CmsLayoutBlocks,
   _templateKey: string,
 ): Promise<Response> {
   const { payload } = req;
+  const { cmsTenantId } = tenant;
   const pageType =
     typeof template.pageType === "string"
       ? template.pageType
@@ -224,7 +295,7 @@ async function createPageFromTemplate(
   }
 
   const data: PageCreateData = {
-    tenant: Number(tenantId),
+    tenant: Number(cmsTenantId),
     title: parsed.title,
     slug: slugifySegment(parsed.slug),
     summary:
@@ -253,7 +324,7 @@ async function createPageFromTemplate(
 
 async function createMissionaryGivingPageFromTemplate(
   req: PayloadRequest,
-  tenantId: string,
+  tenant: ResolvedTenant,
   parsed: Extract<
     ParsedBody,
     { targetCollection: typeof MISSIONARY_GIVING_PAGES_SLUG }
@@ -264,8 +335,9 @@ async function createMissionaryGivingPageFromTemplate(
   templateKey: string,
 ): Promise<Response> {
   const { payload } = req;
+  const { cmsTenantId } = tenant;
 
-  if (templateTenant && templateTenant !== tenantId) {
+  if (templateTenant && templateTenant !== cmsTenantId) {
     return jsonResponse({ error: "Template is not in your tenant" }, 403);
   }
 
@@ -284,8 +356,17 @@ async function createMissionaryGivingPageFromTemplate(
     );
   }
 
+  const publicTenantId = await resolvePublicTenantIdForGiving({
+    req,
+    supabase,
+    tenant,
+  });
+  if (!publicTenantId) {
+    return jsonResponse({ error: "Tenant is not linked to giving data" }, 422);
+  }
+
   const { data: missionaryRowForTenant, error: missionaryError } =
-    await findMissionaryById(supabase, parsed.missionaryId, tenantId);
+    await findMissionaryById(supabase, parsed.missionaryId, publicTenantId);
   if (missionaryError || !missionaryRowForTenant?.id) {
     return jsonResponse({ error: "Missionary not found for tenant" }, 404);
   }
@@ -298,7 +379,7 @@ async function createMissionaryGivingPageFromTemplate(
     where: {
       and: [
         { missionaryId: { equals: parsed.missionaryId } },
-        { tenant: { equals: tenantId } },
+        { tenant: { equals: cmsTenantId } },
       ],
     },
   });
@@ -317,7 +398,10 @@ async function createMissionaryGivingPageFromTemplate(
     .select("id, profile_id")
     .eq("id", parsed.missionaryId);
 
-  const scopedMissionaryRowQuery = missionaryRowQuery.eq("tenant_id", tenantId);
+  const scopedMissionaryRowQuery = missionaryRowQuery.eq(
+    "tenant_id",
+    publicTenantId,
+  );
 
   const missionaryLookupResult = await scopedMissionaryRowQuery.single();
   const missionaryRow = missionaryLookupResult?.data;
@@ -354,7 +438,7 @@ async function createMissionaryGivingPageFromTemplate(
     req,
     where: {
       and: [
-        { tenant: { equals: tenantId } },
+        { tenant: { equals: cmsTenantId } },
         { supabaseMissionaryId: { equals: parsed.missionaryId } },
       ],
     },
@@ -371,7 +455,7 @@ async function createMissionaryGivingPageFromTemplate(
       : undefined;
 
   const data: MissionaryGivingPageCreateData = {
-    tenant: Number(tenantId),
+    tenant: Number(cmsTenantId),
     missionaryId: parsed.missionaryId,
     missionaryProfile:
       missionaryProfileId === undefined || missionaryProfileId === null
@@ -406,7 +490,7 @@ async function createMissionaryGivingPageFromTemplate(
       where: {
         and: [
           { missionaryId: { equals: parsed.missionaryId } },
-          { tenant: { equals: tenantId } },
+          { tenant: { equals: cmsTenantId } },
         ],
       },
     });
@@ -430,7 +514,7 @@ async function createMissionaryGivingPageFromTemplate(
 
 async function createProjectPageFromTemplate(
   req: PayloadRequest,
-  tenantId: string,
+  tenant: ResolvedTenant,
   parsed: Extract<ParsedBody, { targetCollection: typeof PROJECT_PAGES_SLUG }>,
   template: PageTemplateForCreate,
   templateTenant: string | null,
@@ -438,8 +522,9 @@ async function createProjectPageFromTemplate(
   templateKey: string,
 ): Promise<Response> {
   const { payload } = req;
+  const { cmsTenantId } = tenant;
 
-  if (templateTenant && templateTenant !== tenantId) {
+  if (templateTenant && templateTenant !== cmsTenantId) {
     return jsonResponse({ error: "Template is not in your tenant" }, 403);
   }
 
@@ -455,12 +540,21 @@ async function createProjectPageFromTemplate(
     );
   }
 
+  const publicTenantId = await resolvePublicTenantIdForGiving({
+    req,
+    supabase,
+    tenant,
+  });
+  if (!publicTenantId) {
+    return jsonResponse({ error: "Tenant is not linked to giving data" }, 422);
+  }
+
   const fundQuery = supabase
     .from("funds")
     .select("id, name, description, missionary_id")
     .eq("id", parsed.fundId);
 
-  const scopedFundQuery = fundQuery.eq("tenant_id", tenantId);
+  const scopedFundQuery = fundQuery.eq("tenant_id", publicTenantId);
 
   const { data: fund, error: fundError } = await scopedFundQuery.single();
   if (fundError || !fund?.id) {
@@ -475,7 +569,7 @@ async function createProjectPageFromTemplate(
     where: {
       and: [
         { fundId: { equals: parsed.fundId } },
-        { tenant: { equals: tenantId } },
+        { tenant: { equals: cmsTenantId } },
       ],
     },
   });
@@ -498,7 +592,7 @@ async function createProjectPageFromTemplate(
     slugifySegment(parsed.fundId);
 
   const data: ProjectPageCreateData = {
-    tenant: Number(tenantId),
+    tenant: Number(cmsTenantId),
     fundId: parsed.fundId,
     templateKey,
     template: Number(parsed.templateId),
@@ -531,7 +625,7 @@ async function createProjectPageFromTemplate(
       where: {
         and: [
           { fundId: { equals: parsed.fundId } },
-          { tenant: { equals: tenantId } },
+          { tenant: { equals: cmsTenantId } },
         ],
       },
     });
@@ -555,14 +649,15 @@ async function createProjectPageFromTemplate(
 
 async function createMinistryUpdateFromTemplate(
   req: PayloadRequest,
-  tenantId: string,
+  tenant: ResolvedTenant,
   parsed: Extract<ParsedBody, { targetCollection: "ministry-updates" }>,
   template: PageTemplateForCreate,
   templateTenant: string | null,
 ): Promise<Response> {
   const { payload } = req;
+  const { cmsTenantId } = tenant;
 
-  if (templateTenant && templateTenant !== tenantId) {
+  if (templateTenant && templateTenant !== cmsTenantId) {
     return jsonResponse({ error: "Template is not in your tenant" }, 403);
   }
 
@@ -587,12 +682,12 @@ async function createMinistryUpdateFromTemplate(
         profileCheck as { tenant?: number | { id: string | number } | null },
       )
     : null;
-  if (!profileCheck || profileTenant !== tenantId) {
+  if (!profileCheck || profileTenant !== cmsTenantId) {
     return jsonResponse({ error: "Missionary profile not found" }, 404);
   }
 
   const data: MinistryUpdateCreateData = {
-    tenant: Number(tenantId),
+    tenant: Number(cmsTenantId),
     missionary: Number(parsed.missionaryProfileId),
     title: parsed.title,
     slug: slugifySegment(parsed.slug),
@@ -656,9 +751,9 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
       return tenantResolution.response;
     }
 
-    const { tenantId } = tenantResolution;
+    const { tenant } = tenantResolution;
 
-    if (templateTenant && templateTenant !== tenantId) {
+    if (templateTenant && templateTenant !== tenant.cmsTenantId) {
       return jsonResponse({ error: "Template is not in your tenant" }, 403);
     }
 
@@ -668,7 +763,7 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
     if (parsed.targetCollection === "pages") {
       return createPageFromTemplate(
         req,
-        tenantId,
+        tenant,
         parsed,
         templateDoc,
         defaultLayout,
@@ -679,7 +774,7 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
     if (parsed.targetCollection === MISSIONARY_GIVING_PAGES_SLUG) {
       return createMissionaryGivingPageFromTemplate(
         req,
-        tenantId,
+        tenant,
         parsed,
         templateDoc,
         templateTenant,
@@ -691,7 +786,7 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
     if (parsed.targetCollection === PROJECT_PAGES_SLUG) {
       return createProjectPageFromTemplate(
         req,
-        tenantId,
+        tenant,
         parsed,
         templateDoc,
         templateTenant,
@@ -703,7 +798,7 @@ export const webStudioCreateFromTemplateEndpoint: Endpoint = {
     if (parsed.targetCollection === "ministry-updates") {
       return createMinistryUpdateFromTemplate(
         req,
-        tenantId,
+        tenant,
         parsed,
         templateDoc,
         templateTenant,

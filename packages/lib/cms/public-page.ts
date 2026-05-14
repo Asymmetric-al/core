@@ -66,6 +66,12 @@ export type PublicCmsReadCachePolicy = {
 };
 
 const PUBLIC_CMS_REVALIDATE_SECONDS = 60;
+const SAFE_PUBLIC_CMS_HREF_PROTOCOLS = new Set([
+  "http:",
+  "https:",
+  "mailto:",
+  "tel:",
+]);
 
 export function normalizePublicCmsLookupValue(value: string | undefined) {
   const rawValue = value ?? "";
@@ -138,6 +144,99 @@ export function buildPublicCmsReadCachePolicy(
     revalidate: PUBLIC_CMS_REVALIDATE_SECONDS,
     tags,
   };
+}
+
+export function sanitizePublicCmsHref(value: unknown) {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed || /[\u0000-\u001f\u007f]/.test(trimmed)) {
+    return null;
+  }
+
+  if (trimmed.startsWith("/") && !trimmed.startsWith("//")) {
+    return trimmed;
+  }
+
+  if (trimmed.startsWith("#")) {
+    return trimmed;
+  }
+
+  try {
+    const parsed = new URL(trimmed);
+    return SAFE_PUBLIC_CMS_HREF_PROTOCOLS.has(parsed.protocol) ? trimmed : null;
+  } catch {
+    return null;
+  }
+}
+
+export function buildGivingCheckoutHref({
+  missionaryId,
+  fundId,
+  amount,
+  frequency,
+}: {
+  missionaryId?: string | null;
+  fundId?: string | null;
+  amount?: string | number | null;
+  frequency?: string | null;
+}) {
+  const params = new URLSearchParams();
+  const normalizedMissionaryId = normalizePublicCmsLookupValue(
+    missionaryId ?? undefined,
+  );
+  const normalizedFundId = normalizePublicCmsLookupValue(fundId ?? undefined);
+
+  if (normalizedMissionaryId) {
+    params.set("missionary_id", normalizedMissionaryId);
+  }
+
+  if (normalizedFundId) {
+    params.set("fund_id", normalizedFundId);
+  }
+
+  const normalizedAmount =
+    typeof amount === "number"
+      ? String(amount)
+      : typeof amount === "string"
+        ? amount.trim()
+        : "";
+  if (normalizedAmount) {
+    params.set("amount", normalizedAmount);
+  }
+
+  const normalizedFrequency =
+    typeof frequency === "string" ? frequency.trim() : "";
+  if (normalizedFrequency) {
+    params.set("frequency", normalizedFrequency);
+  }
+
+  const suffix = params.toString();
+  return suffix ? `/checkout?${suffix}` : "/checkout";
+}
+
+export function resolvePublicCmsCtaHref({
+  rawHref,
+  pageType,
+  missionaryId,
+  fundId,
+}: {
+  rawHref?: unknown;
+  pageType?: string | null;
+  missionaryId?: string | null;
+  fundId?: string | null;
+}) {
+  if (pageType === "missionary_giving" && missionaryId) {
+    return buildGivingCheckoutHref({ missionaryId });
+  }
+
+  if (pageType === "project" && fundId) {
+    return buildGivingCheckoutHref({ fundId });
+  }
+
+  return sanitizePublicCmsHref(rawHref);
 }
 
 export function isPublicCmsPublishedPagePayload(

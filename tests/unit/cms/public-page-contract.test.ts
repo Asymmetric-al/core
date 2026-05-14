@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildGivingCheckoutHref,
   buildPublicCmsReadCachePolicy,
   buildPublicCmsReadPath,
   normalizePublicCmsPageSlug,
+  resolvePublicCmsCtaHref,
+  sanitizePublicCmsHref,
 } from "@asym/lib/cms/public-page";
 
 describe("public CMS page contract", () => {
@@ -51,5 +54,34 @@ describe("public CMS page contract", () => {
         "public-cms:page:About%2FTeam",
       ],
     });
+  });
+
+  it("keeps CMS-authored CTA targets inside safe public URL protocols", () => {
+    expect(sanitizePublicCmsHref("/give/monthly")).toBe("/give/monthly");
+    expect(sanitizePublicCmsHref("https://example.org/give")).toBe(
+      "https://example.org/give",
+    );
+    expect(sanitizePublicCmsHref("javascript:alert(1)")).toBeNull();
+    expect(sanitizePublicCmsHref("//evil.example")).toBeNull();
+  });
+
+  it("builds giving checkout URLs from CMS references instead of payment facts", () => {
+    expect(
+      buildGivingCheckoutHref({
+        amount: 50,
+        frequency: "monthly",
+        missionaryId: "123e4567-e89b-42d3-a456-426614174111",
+      }),
+    ).toBe(
+      "/checkout?missionary_id=123e4567-e89b-42d3-a456-426614174111&amount=50&frequency=monthly",
+    );
+
+    expect(
+      resolvePublicCmsCtaHref({
+        fundId: "123e4567-e89b-42d3-a456-426614174222",
+        pageType: "project",
+        rawHref: "https://example.org/manual",
+      }),
+    ).toBe("/checkout?fund_id=123e4567-e89b-42d3-a456-426614174222");
   });
 });

@@ -1,14 +1,22 @@
+import { findMissionaryById } from "@asym/api/missionaries/queries";
+import { getAdminClient } from "@asym/database/supabase/admin";
+
 import {
   tenantScopedCreateAccess,
   tenantScopedDeleteAccess,
   tenantScopedReadAccess,
   tenantScopedUpdateAccess,
 } from "../access/tenant-access";
+import {
+  getTenantContext,
+  isStaffRole,
+  isSuperAdmin,
+} from "../access/tenant-context";
 import { PAGE_TEMPLATES_SLUG } from "../constants";
 import { logCmsChangeAudit, logCmsDeleteAudit } from "../hooks/audit";
 import { applyTenantFromContext } from "../hooks/tenant";
 
-import type { Block, Field } from "payload";
+import type { Block, Field, PayloadRequest, Validate } from "payload";
 
 export const STANDARD_PAGE_TYPE = "standard";
 export const MISSIONARY_GIVING_PAGE_TYPE = "missionary_giving";
@@ -38,6 +46,160 @@ export const PAGE_LAYOUT_BLOCK_SLUGS = {
   richText: "rich-text",
   testimonial: "testimonial",
 } as const;
+
+const UUID_REFERENCE_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export function validateUuidReference(value: unknown) {
+  if (typeof value === "string" && UUID_REFERENCE_PATTERN.test(value.trim())) {
+    return true;
+  }
+
+  return "Must be a valid UUID reference.";
+}
+
+function readRelationshipId(value: unknown) {
+  if (typeof value === "string" || typeof value === "number") {
+    return String(value);
+  }
+
+  if (value && typeof value === "object" && "id" in value) {
+    const id = (value as { id?: unknown }).id;
+    if (typeof id === "string" || typeof id === "number") {
+      return String(id);
+    }
+  }
+
+  return null;
+}
+
+async function resolvePublicTenantIdFromCmsTenant({
+  cmsTenantId,
+  req,
+}: {
+  cmsTenantId: string | null;
+  req: PayloadRequest;
+}) {
+  if (!cmsTenantId) {
+    return null;
+  }
+
+  const tenant = await req.payload.findByID({
+    collection: "tenants",
+    depth: 0,
+    disableErrors: true,
+    id: cmsTenantId,
+    overrideAccess: true,
+    req,
+  });
+
+  const slug =
+    tenant && typeof tenant === "object" && "slug" in tenant
+      ? tenant.slug
+      : null;
+  if (typeof slug !== "string" || !slug.trim()) {
+    return null;
+  }
+
+  const { client: supabase } = getAdminClient();
+  if (!supabase) {
+    return null;
+  }
+
+  const { data } = await supabase
+    .from("tenants")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  return data && typeof data.id === "string" ? data.id : null;
+}
+
+async function resolvePublicTenantIdForValidation(options: {
+  data?: Partial<Record<string, unknown>>;
+  req: PayloadRequest;
+  siblingData?: Partial<Record<string, unknown>>;
+}) {
+  const context = getTenantContext(options.req);
+  if (context.publicTenantId) {
+    return context.publicTenantId;
+  }
+
+  const cmsTenantId =
+    readRelationshipId(options.siblingData?.tenant) ??
+    readRelationshipId(options.data?.tenant) ??
+    context.tenantId;
+
+  return resolvePublicTenantIdFromCmsTenant({
+    cmsTenantId,
+    req: options.req,
+  });
+}
+
+async function validateGivingSourceReference(
+  value: unknown,
+  options:
+    | {
+        data?: Partial<Record<string, unknown>>;
+        req?: PayloadRequest;
+        siblingData?: Partial<Record<string, unknown>>;
+      }
+    | undefined,
+  source: "fund" | "missionary",
+) {
+  const uuidResult = validateUuidReference(value);
+  if (uuidResult !== true) {
+    return uuidResult;
+  }
+
+  if (!options?.req || typeof value !== "string") {
+    return true;
+  }
+
+  const context = getTenantContext(options.req);
+  if (!context.isAuthenticated || !isStaffRole(context)) {
+    return "Staff access required to validate this reference.";
+  }
+
+  const { client: supabase, error } = getAdminClient();
+  if (!supabase || error) {
+    return "Unable to validate this reference right now.";
+  }
+
+  const publicTenantId = await resolvePublicTenantIdForValidation({
+    data: options.data,
+    req: options.req,
+    siblingData: options.siblingData,
+  });
+
+  if (!publicTenantId && !isSuperAdmin(context)) {
+    return "Tenant is not linked to giving data.";
+  }
+
+  if (!publicTenantId) {
+    return "Choose a tenant before validating this reference.";
+  }
+
+  if (source === "missionary") {
+    const { data } = await findMissionaryById(supabase, value, publicTenantId);
+    return data?.id ? true : "Missionary not found for tenant.";
+  }
+
+  const { data } = await supabase
+    .from("funds")
+    .select("id")
+    .eq("id", value)
+    .eq("tenant_id", publicTenantId)
+    .maybeSingle();
+
+  return data?.id ? true : "Fund not found for tenant.";
+}
+
+const validateMissionarySourceReference: Validate = (value, options) =>
+  validateGivingSourceReference(value, options, "missionary");
+
+const validateFundSourceReference: Validate = (value, options) =>
+  validateGivingSourceReference(value, options, "fund");
 
 const pageLayoutBlocks: Block[] = [
   {
@@ -322,9 +484,11 @@ export function buildPageBuilderCollectionFields(
           type: "text",
           required: true,
           index: true,
+          validate: validateMissionarySourceReference,
           admin: {
             description:
               "Canonical missionary ID from public.missionaries. Prefilled by the create flow.",
+            readOnly: true,
           },
         } satisfies Field)
       : ({
@@ -332,9 +496,11 @@ export function buildPageBuilderCollectionFields(
           type: "text",
           required: true,
           index: true,
+          validate: validateFundSourceReference,
           admin: {
             description:
               "Canonical fund ID from public.funds. Prefilled by the create flow.",
+            readOnly: true,
           },
         } satisfies Field);
 

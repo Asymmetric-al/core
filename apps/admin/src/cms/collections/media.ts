@@ -58,6 +58,14 @@ export const Media: CollectionConfig = {
         height: 540,
       },
     ],
+    mimeTypes: [
+      "image/avif",
+      "image/gif",
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+    ],
+    pasteURL: false,
     staticDir: "media",
   },
   fields: [

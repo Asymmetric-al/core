@@ -45,12 +45,18 @@ type PaymentMethod = "card" | "ach" | "wallet";
 type SearchParamInput = string | string[] | undefined;
 type CheckoutPageSearchParams = {
   amount?: SearchParamInput;
+  frequency?: SearchParamInput;
   fund?: SearchParamInput;
+  fund_id?: SearchParamInput;
+  missionary_id?: SearchParamInput;
   workerId?: SearchParamInput;
 };
 type CheckoutSearchParams = {
   amount: string | null;
+  frequency: Frequency | null;
   fund: string | null;
+  fundId: string | null;
+  missionaryId: string | null;
   workerId: string | null;
 };
 type DonorInfo = {
@@ -83,11 +89,27 @@ const readSearchParam = (value: SearchParamInput): string | null => {
   return null;
 };
 
+const readCheckoutFrequency = (value: SearchParamInput): Frequency | null => {
+  const normalized = readSearchParam(value)?.trim().toLowerCase();
+  if (normalized === "monthly") {
+    return "monthly";
+  }
+
+  if (normalized === "one-time" || normalized === "one_time") {
+    return "one-time";
+  }
+
+  return null;
+};
+
 const normalizeCheckoutSearchParams = (
   searchParams: CheckoutPageSearchParams,
 ): CheckoutSearchParams => ({
   amount: readSearchParam(searchParams.amount),
+  frequency: readCheckoutFrequency(searchParams.frequency),
   fund: readSearchParam(searchParams.fund),
+  fundId: readSearchParam(searchParams.fund_id),
+  missionaryId: readSearchParam(searchParams.missionary_id),
   workerId: readSearchParam(searchParams.workerId),
 });
 
@@ -1075,9 +1097,11 @@ function CheckoutContent({
 }: {
   searchParams: CheckoutSearchParams;
 }) {
-  const workerId = searchParams.workerId;
+  const workerId = searchParams.workerId ?? searchParams.missionaryId;
   const initialAmount = searchParams.amount;
   const worker = workerId ? getFieldWorkerById(workerId) : null;
+  const fundId = searchParams.fundId ?? searchParams.fund;
+  const hasGivingTarget = Boolean(workerId || fundId);
   const [checkoutState, setCheckoutState] = useState<CheckoutState>(() => ({
     amount: initialAmount ? Number(initialAmount) : 100,
     coverFees: false,
@@ -1088,7 +1112,7 @@ function CheckoutContent({
       lastName: "",
     },
     endDate: "",
-    frequency: "monthly",
+    frequency: searchParams.frequency ?? "monthly",
     hasEndDate: false,
     isProcessing: false,
     paymentMethod: "card",
@@ -1180,7 +1204,7 @@ function CheckoutContent({
     window.scrollTo(0, 0);
   };
 
-  if (!worker && step !== "success" && !searchParams.fund) {
+  if (!worker && step !== "success" && !hasGivingTarget) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center space-y-6">
@@ -1274,9 +1298,11 @@ function CheckoutContent({
               worker={
                 worker || {
                   title:
-                    searchParams.fund === "general"
+                    fundId === "general"
                       ? "General Mission Fund"
-                      : "Urgent Needs",
+                      : searchParams.missionaryId
+                        ? "Missionary Support"
+                        : "Urgent Needs",
                 }
               }
               amount={amount}
