@@ -10,18 +10,17 @@ Commit: 691afecd98e5bc8e089da237bacd168dce8f87b9
 Phase 4 implementation and evidence were still local at the start of this
 follow-up. This pass prepared the Phase 4/follow-up evidence for commit,
 archived Phase 3 proof cleanup by evidence, configured safe production/admin
-Twenty non-write env values in Vercel, and kept Twenty webhook delivery
-unchanged.
+Twenty env values in Vercel without enabling writes, and kept Twenty webhook
+delivery unchanged.
 
 Production CRM posting was not enabled. No real donor, payment, gift, or CRM
 records were mutated. No Phase 5 implementation was started.
 
-Final status is blocked on a production/admin `TWENTY_API_KEY` value that can
-be supplied only by a safe owner/provider credential path. The staging
-`TWENTY_API_KEY` exists in Vercel as a sensitive value, but Vercel does not
-materialize it through CLI pull/run output. Twenty UI access confirms existing
-keys can be regenerated, but regeneration would disrupt the existing staging
-key unless the full rotation chain is deliberately approved.
+Final status is complete-with-owner-accepted-risk. The production/admin
+`TWENTY_API_KEY` was configured by adding the existing Vercel sensitive staging
+env entry to the Production target through a metadata-only Vercel API edit. The
+secret value was not read, printed, copied, or regenerated, and the staging
+custom-environment association was preserved.
 
 ## Phase 4 Evidence Commit/Push
 
@@ -57,26 +56,29 @@ Values set or verified without printing secrets:
 
 - `TWENTY_API_URL`: present in production/admin.
 - `TWENTY_WEBHOOK_SECRET`: present in production/admin.
-- `TWENTY_API_KEY`: blocked; not present in production/admin.
+- `TWENTY_API_KEY`: present in production/admin and staging as the same Vercel
+  sensitive env entry.
 - `CRM_SYNC_INBOUND_ENABLED`: present as disabled.
 - `CRM_SYNC_OUTBOUND_ENABLED`: present as disabled.
 - `CRM_SYNC_REPLAY_ENABLED`: present as disabled.
 - `CRM_SYNC_RECONCILIATION_ENABLED`: present as disabled.
 - `CRM_SYNC_WEBHOOK_TOLERANCE_SECONDS`: present as repo default `300`.
 
-The production/admin `TWENTY_API_KEY` was not set because the existing staging
-key is stored as a Vercel sensitive value that is not materialized. The Twenty
-UI was checked and shows existing API keys can be regenerated, but regeneration
-would interrupt the existing key. Creating a new API key would likely expose a
-one-time value in the browser/clipboard workflow, which is not a clean no-leak
-credential path in this agent session.
+The production/admin `TWENTY_API_KEY` was set without reading the secret value.
+Vercel CLI/API checks showed the staging value is a `sensitive` env entry whose
+decrypted value is not retrievable after creation. A temporary dummy env var
+proved Vercel accepts metadata-only target edits without sending a value. The
+same metadata-only edit was then applied to `TWENTY_API_KEY`, preserving staging
+and adding Production targeting.
 
-Admin redeployed: yes, production deployment
-`admin-63lfru8mf-asymmetric-al.vercel.app` is `READY` for commit
-`691afecd98e5bc8e089da237bacd168dce8f87b9`.
+Admin redeployed: yes. Earlier production deployment
+`admin-63lfru8mf-asymmetric-al.vercel.app` was `READY` for commit
+`691afecd98e5bc8e089da237bacd168dce8f87b9`; the final evidence update push
+will trigger the final production deployment for the current commit.
 
 Vercel readiness: passed for admin, donor, and missionary production
-deployments on commit `691afecd98e5bc8e089da237bacd168dce8f87b9`.
+deployments on commit `691afecd98e5bc8e089da237bacd168dce8f87b9`. Re-run the
+same readiness command after the final evidence commit push.
 
 Secrets printed: no.
 
@@ -151,13 +153,10 @@ HTTP 200.
 
 ## Remaining Owner Decisions
 
-- Provide a secure, non-chat path for the existing verified Twenty API key, or
-  approve creating a new production API key with a human-controlled secret
-  capture path so `TWENTY_API_KEY` can be set in production/admin.
 - Keep the current Twenty webhook secret as owner-accepted residual risk, or
   approve a deliberate future rotation with staging and production delivery
   verification.
 
 ## Final Status
 
-blocked-provider-access
+complete-with-owner-accepted-risk
