@@ -40,6 +40,13 @@ export interface ListMissionControlCrmNotesOptions {
 export interface CreateMissionControlCrmNoteInput {
   title: string;
   body: string;
+  linkedRecordId?: string | null;
+  linkedRecordType?:
+    | "donor_profile"
+    | "missionary_profile"
+    | "organization"
+    | null;
+  visibility?: "standard" | "restricted";
 }
 
 export interface CreateMissionControlCrmNoteOptions {
@@ -152,6 +159,18 @@ export async function createMissionControlCrmNote(
 ): Promise<AdminCrmNoteCreateResponse> {
   const title = options.input.title.trim();
   const body = options.input.body.trim();
+  const visibility = options.input.visibility ?? "standard";
+  const linkedRecordId = options.input.linkedRecordId?.trim() || null;
+  const linkedRecordType = options.input.linkedRecordType ?? null;
+
+  if (
+    visibility === "restricted" &&
+    options.actor.role !== "admin" &&
+    options.actor.role !== "super_admin"
+  ) {
+    throw new Error("Restricted CRM notes require an admin role.");
+  }
+
   const outboundInput = {
     domain: "notes" as const,
     jobType: "create" as const,
@@ -159,7 +178,10 @@ export async function createMissionControlCrmNote(
     payload: {
       asymCreatedByProfileId: options.actor.profileId,
       asymCreatedByUserId: options.actor.userId,
+      asymLinkedRecordId: linkedRecordId,
+      asymLinkedRecordType: linkedRecordType,
       asymTenantId: options.actor.tenantId,
+      asymVisibility: visibility,
       body,
       source: "mission_control",
       title,
@@ -216,10 +238,13 @@ export async function createMissionControlCrmNote(
     commandLogId: commandLog.id,
     note: buildQueuedCrmNoteRow({
       body,
+      linkedRecordId,
+      linkedRecordType,
       now: options.now,
       outboundJobId: job.id,
       tenantId: options.actor.tenantId,
       title,
+      visibility,
     }),
     outboundJobId: job.id,
     outboundStatus: job.status,

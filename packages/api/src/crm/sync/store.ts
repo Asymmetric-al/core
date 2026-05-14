@@ -603,6 +603,13 @@ export function createSupabaseCrmSyncStore(clientInput: unknown): CrmSyncStore {
         .select("id,status,last_error")
         .eq("tenant_id", input.tenantId)
         .in("status", ["failed", "dead_letter"]);
+      const giftLinkDrift = await client
+        .from("donation_crm_links")
+        .select(
+          "id,donation_id,staged_gift_id,link_status,twenty_record_id,metadata",
+        )
+        .eq("tenant_id", input.tenantId)
+        .in("link_status", ["queued", "failed"]);
 
       requireNoError(orphanLinks.error, "Failed to read orphan CRM links.");
       requireNoError(
@@ -617,6 +624,10 @@ export function createSupabaseCrmSyncStore(clientInput: unknown): CrmSyncStore {
       requireNoError(
         failedWebhooks.error,
         "Failed to read failed CRM webhooks.",
+      );
+      requireNoError(
+        giftLinkDrift.error,
+        "Failed to read gift CRM link drift.",
       );
 
       return {
@@ -643,6 +654,14 @@ export function createSupabaseCrmSyncStore(clientInput: unknown): CrmSyncStore {
         failedWebhooks: (failedWebhooks.data ?? []).map((row) => ({
           id: rowString(row, "id"),
           reason: "failed_or_dead_letter_webhook",
+          details: row,
+        })),
+        giftLinkDrift: (giftLinkDrift.data ?? []).map((row) => ({
+          id: rowString(row, "id"),
+          reason:
+            rowString(row, "link_status") === "queued"
+              ? "gift_link_still_queued"
+              : "gift_link_failed",
           details: row,
         })),
       };

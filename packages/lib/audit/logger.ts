@@ -14,6 +14,7 @@ export type AuditAction =
   | "donation_failed"
   | "donation_refunded"
   | "donation_initiated"
+  | "crm_export_created"
   | "post_created"
   | "post_updated"
   | "post_deleted"

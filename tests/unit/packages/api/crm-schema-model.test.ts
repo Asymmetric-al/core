@@ -26,6 +26,10 @@ describe("Twenty CRM object model", () => {
         "notes",
         "ministryActivities",
         "relationshipCommitments",
+        "designations",
+        "giftSummaries",
+        "giftAllocations",
+        "mobilizationCandidates",
       ]),
     );
     expect(objectNames).not.toEqual(
@@ -56,6 +60,52 @@ describe("Twenty CRM object model", () => {
         "paymentMethodId",
         "totalPaid",
       ]),
+    );
+  });
+
+  it("keeps gift summaries stable and uses currencyCode for gift context", () => {
+    const giftObject = getTwentyObjectDefinition("giftSummaries");
+    const allocationObject = getTwentyObjectDefinition("giftAllocations");
+
+    expect(giftObject.namePlural).toBe("giftSummaries");
+    expect(giftObject.fields.map((field) => field.name)).toEqual(
+      expect.arrayContaining([
+        "asymDonationId",
+        "asymStagedGiftId",
+        "amountCents",
+        "currencyCode",
+        "receiptStatus",
+        "paymentStatus",
+      ]),
+    );
+    expect(giftObject.fields.map((field) => field.name)).not.toContain(
+      "currency",
+    );
+    expect(allocationObject.fields.map((field) => field.name)).toEqual(
+      expect.arrayContaining([
+        "asymAllocationId",
+        "amountCents",
+        "currencyCode",
+      ]),
+    );
+  });
+
+  it("models nonprofit designations and deferred mobilization explicitly", () => {
+    const designationObject = getTwentyObjectDefinition("designations");
+    const candidateObject = getTwentyObjectDefinition("mobilizationCandidates");
+
+    expect(designationObject.fields.map((field) => field.name)).toEqual(
+      expect.arrayContaining([
+        "asymDesignationId",
+        "designationKind",
+        "goalAmountCents",
+        "currencyCode",
+        "status",
+      ]),
+    );
+    expect(candidateObject.purpose).toContain("deferred submodule");
+    expect(candidateObject.fields.map((field) => field.name)).toEqual(
+      expect.arrayContaining(["asymCandidateId", "stage", "assignedOwnerId"]),
     );
   });
 });

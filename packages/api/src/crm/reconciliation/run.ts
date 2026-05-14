@@ -17,6 +17,7 @@ export function getCrmReconciliationCounts(
     stalledJobs: snapshot.stalledJobs.length,
     duplicateCandidates: snapshot.duplicateCandidates.length,
     failedWebhooks: snapshot.failedWebhooks.length,
+    giftLinkDrift: snapshot.giftLinkDrift.length,
   };
 }
 
@@ -49,6 +50,7 @@ export async function runCrmReconciliation(
       findings: {
         duplicateCandidates: [],
         failedWebhooks: [],
+        giftLinkDrift: [],
         orphanLinks: [],
         staleProjections: [],
         stalledJobs: [],

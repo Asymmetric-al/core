@@ -15,6 +15,7 @@ import type { CrmSyncStore } from "../../../../packages/api/src/crm/sync/store";
 const emptySnapshot = (): CrmReconciliationSnapshot => ({
   duplicateCandidates: [],
   failedWebhooks: [],
+  giftLinkDrift: [],
   orphanLinks: [],
   staleProjections: [],
   stalledJobs: [],

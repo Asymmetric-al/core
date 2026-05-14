@@ -13,6 +13,11 @@ export {
 export { useContributionsLiveRows } from "./admin-contributions";
 export { useAdminContributionsInfiniteGrid } from "./admin-contributions-infinite";
 export { useAdminCrmRecordsInfiniteGrid } from "./admin-crm-infinite";
+export {
+  useAdminCrmRecordDetail,
+  useCreateLinkedCrmNote,
+  useResendCrmGiftReceipt,
+} from "./admin-crm-detail";
 export { useAdminCrmNotesGrid } from "./admin-crm-notes";
 export {
   CRM_RELATIONSHIP_DOMAIN_OPTIONS,
