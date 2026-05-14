@@ -1,3 +1,4 @@
+import { validateUuidReference } from "./page-builders";
 import { isNativeCollectionWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
 import {
   tenantScopedCreateAccess,
@@ -72,9 +73,17 @@ export const MissionaryProfiles: CollectionConfig = {
       name: "supabaseMissionaryId",
       type: "text",
       index: true,
+      validate: (value: unknown) => {
+        if (value === null || value === undefined || value === "") {
+          return true;
+        }
+
+        return validateUuidReference(value);
+      },
       admin: {
         description:
           "Canonical missionary UUID from public.missionaries. Used for cross-reference lookup when creating missionary giving pages.",
+        readOnly: true,
       },
     },
     {

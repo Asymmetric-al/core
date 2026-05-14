@@ -5,12 +5,18 @@ type CmsRequestUser = {
   id?: string;
   role?: UserRole | null;
   tenantId?: string | null;
+  publicTenantId?: string | null;
 };
 
 export type TenantContext = {
   isAuthenticated: boolean;
   userId: string | null;
+  /**
+   * Payload CMS tenant document id. This is intentionally separate from the
+   * public Supabase tenant UUID used by giving/CRM tables.
+   */
   tenantId: string | null;
+  publicTenantId: string | null;
   role: UserRole | null;
 };
 
@@ -19,11 +25,13 @@ export function getTenantContext(req: PayloadRequest): TenantContext {
   const userId = user?.id ?? null;
   const role = user?.role ?? null;
   const tenantId = user?.tenantId ?? null;
+  const publicTenantId = user?.publicTenantId ?? null;
 
   return {
     isAuthenticated: Boolean(userId),
     userId,
     tenantId,
+    publicTenantId,
     role,
   };
 }

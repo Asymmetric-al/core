@@ -4,6 +4,12 @@ import type { GeneratePreviewURL } from "payload";
 
 export { resolveDonorOrigin };
 
+type PreviewCollectionSlug =
+  | "ministry-updates"
+  | "missionary-giving-pages"
+  | "pages"
+  | "project-pages";
+
 function normalizeSlugPath(slug: string) {
   const trimmed = slug.trim();
   if (!trimmed || trimmed === "home") {
@@ -23,13 +29,43 @@ export function buildDonorPreviewPathForPageSlug(slug: string): string {
   return path ? `/${path}` : "/";
 }
 
+function readDocumentId(doc: Record<string, unknown>) {
+  if (typeof doc.id === "string" || typeof doc.id === "number") {
+    return String(doc.id);
+  }
+
+  return null;
+}
+
+export function buildWebStudioAuthenticatedPreviewPath({
+  collectionSlug,
+  id,
+}: {
+  collectionSlug: PreviewCollectionSlug;
+  id: string | number;
+}): string {
+  return `/web-studio/preview/${encodeURIComponent(collectionSlug)}/${encodeURIComponent(
+    String(id),
+  )}`;
+}
+
+export function createWebStudioAuthenticatedPreviewURL(
+  collectionSlug: PreviewCollectionSlug,
+): GeneratePreviewURL {
+  return (doc) => {
+    const id = readDocumentId(doc as Record<string, unknown>);
+    if (!id) {
+      return `/web-studio/collections/${encodeURIComponent(collectionSlug)}`;
+    }
+
+    return buildWebStudioAuthenticatedPreviewPath({ collectionSlug, id });
+  };
+}
+
 /**
  * Payload `admin.preview` handler for the Pages collection.
- * Opens the donor-facing published page route (drafts are not previewed here in Phase 1).
+ * Opens the authenticated Web Studio preview route. Public donor routes stay
+ * published-only and never receive draft content.
  */
-export const pagesGeneratePreviewURL: GeneratePreviewURL = (doc) => {
-  const slug = typeof doc.slug === "string" ? doc.slug : "";
-  const path = buildDonorPreviewPathForPageSlug(slug);
-  const origin = resolveDonorOrigin();
-  return `${origin}${path}`;
-};
+export const pagesGeneratePreviewURL =
+  createWebStudioAuthenticatedPreviewURL("pages");

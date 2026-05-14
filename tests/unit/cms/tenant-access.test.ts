@@ -58,14 +58,14 @@ describe("tenant-access", () => {
         user: {
           id: "cms_user_1",
           role: "staff",
-          tenantId: "tenant_1",
+          tenantId: "17",
         },
       },
     } as never);
 
     expect(result).toEqual({
       tenant: {
-        equals: "tenant_1",
+        equals: "17",
       },
     });
   });
@@ -79,7 +79,7 @@ describe("tenant-access", () => {
         user: {
           id: "cms_user_1",
           role: "staff",
-          tenantId: "tenant_1",
+          tenantId: "17",
         },
       },
     } as never);
@@ -93,19 +93,19 @@ describe("tenant-access", () => {
         user: {
           id: "cms_user_1",
           role: "admin",
-          tenantId: "tenant_1",
+          tenantId: "17",
         },
       },
     } as never;
 
     expect(tenantScopedUpdateAccess("tenant")(args)).toEqual({
       tenant: {
-        equals: "tenant_1",
+        equals: "17",
       },
     });
     expect(tenantScopedDeleteAccess("tenant")(args)).toEqual({
       tenant: {
-        equals: "tenant_1",
+        equals: "17",
       },
     });
   });
@@ -120,13 +120,13 @@ describe("tenant-access", () => {
         user: {
           id: "cms_user_1",
           role: "staff",
-          tenantId: "tenant_1",
+          tenantId: "17",
         },
       },
     } as never);
 
     expect(result).toEqual({
-      tenant: "tenant_1",
+      tenant: "17",
       title: "About",
     });
   });

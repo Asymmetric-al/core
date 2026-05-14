@@ -1,9 +1,13 @@
 import { beforeAll, describe, expect, it } from "vitest";
 
 type FieldDef = {
+  admin?: {
+    readOnly?: boolean;
+  };
   name?: string;
   type?: string;
   required?: boolean;
+  validate?: (value: unknown) => true | string | Promise<true | string>;
 };
 
 type CollectionDef = {
@@ -20,6 +24,8 @@ type CollectionDef = {
   upload?: {
     staticDir?: string;
     imageSizes?: Array<{ name?: string; width?: number; height?: number }>;
+    mimeTypes?: string[];
+    pasteURL?: boolean;
   };
   auth?: {
     disableLocalStrategy?: boolean;
@@ -46,9 +52,11 @@ type CollectionDef = {
 let CmsUsers: CollectionDef;
 let Media: CollectionDef;
 let MinistryUpdates: CollectionDef;
+let MissionaryGivingPages: CollectionDef;
 let MissionaryProfiles: CollectionDef;
 let Navigation: CollectionDef;
 let Pages: CollectionDef;
+let ProjectPages: CollectionDef;
 let Tenants: CollectionDef;
 let CMS_USERS_SLUG: string;
 
@@ -63,18 +71,22 @@ beforeAll(async () => {
     cmsUsersModule,
     mediaModule,
     ministryUpdatesModule,
+    missionaryGivingPagesModule,
     missionaryProfilesModule,
     navigationModule,
     pagesModule,
+    projectPagesModule,
     tenantsModule,
     constantsModule,
   ] = await Promise.all([
     import("../../../apps/admin/src/cms/collections/cms-users"),
     import("../../../apps/admin/src/cms/collections/media"),
     import("../../../apps/admin/src/cms/collections/ministry-updates"),
+    import("../../../apps/admin/src/cms/collections/missionary-giving-pages"),
     import("../../../apps/admin/src/cms/collections/missionary-profiles"),
     import("../../../apps/admin/src/cms/collections/navigation"),
     import("../../../apps/admin/src/cms/collections/pages"),
+    import("../../../apps/admin/src/cms/collections/project-pages"),
     import("../../../apps/admin/src/cms/collections/tenants"),
     import("../../../apps/admin/src/cms/constants"),
   ]);
@@ -82,9 +94,11 @@ beforeAll(async () => {
   CmsUsers = cmsUsersModule.CmsUsers;
   Media = mediaModule.Media;
   MinistryUpdates = ministryUpdatesModule.MinistryUpdates;
+  MissionaryGivingPages = missionaryGivingPagesModule.MissionaryGivingPages;
   MissionaryProfiles = missionaryProfilesModule.MissionaryProfiles;
   Navigation = navigationModule.Navigation;
   Pages = pagesModule.Pages;
+  ProjectPages = projectPagesModule.ProjectPages;
   Tenants = tenantsModule.Tenants;
   CMS_USERS_SLUG = constantsModule.CMS_USERS_SLUG;
 });
@@ -168,6 +182,14 @@ describe("CMS collection contracts", () => {
     expect(Media.upload).toEqual(
       expect.objectContaining({
         staticDir: "media",
+        mimeTypes: [
+          "image/avif",
+          "image/gif",
+          "image/jpeg",
+          "image/png",
+          "image/webp",
+        ],
+        pasteURL: false,
         imageSizes: expect.arrayContaining([
           expect.objectContaining({
             name: "thumbnail",
@@ -191,6 +213,37 @@ describe("CMS collection contracts", () => {
     expect(CmsUsers.auth?.strategies).toHaveLength(1);
     expect(getField(CmsUsers, "email").type).toBe("email");
     expect(getField(CmsUsers, "role").type).toBe("select");
+  });
+
+  it("validates giving CTA source references as UUIDs", async () => {
+    const missionaryIdField = getField(MissionaryGivingPages, "missionaryId");
+    const fundIdField = getField(ProjectPages, "fundId");
+    const missionaryProfileSourceField = getField(
+      MissionaryProfiles,
+      "supabaseMissionaryId",
+    );
+
+    expect(missionaryIdField.validate).toBeTypeOf("function");
+    expect(fundIdField.validate).toBeTypeOf("function");
+    expect(missionaryIdField.admin?.readOnly).toBe(true);
+    expect(fundIdField.admin?.readOnly).toBe(true);
+    expect(missionaryProfileSourceField.admin?.readOnly).toBe(true);
+    expect(
+      await missionaryIdField.validate?.(
+        "123e4567-e89b-42d3-a456-426614174111",
+      ),
+    ).toBe(true);
+    expect(
+      await missionaryProfileSourceField.validate?.(
+        "123e4567-e89b-42d3-a456-426614174111",
+      ),
+    ).toBe(true);
+    expect(await fundIdField.validate?.("not-a-uuid")).toBe(
+      "Must be a valid UUID reference.",
+    );
+    expect(await missionaryProfileSourceField.validate?.("not-a-uuid")).toBe(
+      "Must be a valid UUID reference.",
+    );
   });
 
   it("registers native Mission Control list/edit views for editorial collections", () => {

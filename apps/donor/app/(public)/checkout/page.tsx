@@ -9,7 +9,10 @@ export const metadata: Metadata = pageMetadata.checkout;
 interface CheckoutPageProps {
   searchParams: Promise<{
     amount?: string | string[];
+    frequency?: string | string[];
     fund?: string | string[];
+    fund_id?: string | string[];
+    missionary_id?: string | string[];
     workerId?: string | string[];
   }>;
 }

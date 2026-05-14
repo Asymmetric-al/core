@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
+  buildWebStudioAuthenticatedPreviewPath,
+  createWebStudioAuthenticatedPreviewURL,
   buildDonorPreviewPathForPageSlug,
   pagesGeneratePreviewURL,
   resolveDonorOrigin,
@@ -44,32 +46,36 @@ describe("buildDonorPreviewPathForPageSlug", () => {
 });
 
 describe("pagesGeneratePreviewURL", () => {
-  it("returns an absolute donor URL", () => {
+  it("returns an authenticated Web Studio preview path", () => {
+    const url = pagesGeneratePreviewURL(
+      { id: 123, slug: "about" },
+      { locale: "en", req: {} as never, token: null },
+    );
+    expect(url).toBe("/web-studio/preview/pages/123");
+  });
+
+  it("falls back to the authenticated collection when the document is unsaved", () => {
     const url = pagesGeneratePreviewURL(
       { slug: "about" },
       { locale: "en", req: {} as never, token: null },
     );
-    expect(url).toMatch(/^https?:\/\//);
-    expect(String(url)).toContain("/about");
+    expect(url).toBe("/web-studio/collections/pages");
   });
 
-  it("uses DONOR_APP_URL when NEXT_PUBLIC_DONOR_URL is unset (aligned with resolveDonorOrigin)", () => {
-    const prev = snapshotDonorEnv();
-    delete process.env.NEXT_PUBLIC_DONOR_URL;
-    process.env.DONOR_APP_URL = "https://donor.example.test/";
+  it("can build authenticated preview URLs for page-like collections", () => {
+    expect(
+      buildWebStudioAuthenticatedPreviewPath({
+        collectionSlug: "project-pages",
+        id: "project 1",
+      }),
+    ).toBe("/web-studio/preview/project-pages/project%201");
 
-    try {
-      const origin = resolveDonorOrigin();
-      expect(origin).toBe("https://donor.example.test");
-
-      const previewUrl = pagesGeneratePreviewURL(
-        { slug: "about" },
+    expect(
+      createWebStudioAuthenticatedPreviewURL("ministry-updates")(
+        { id: "update_1" },
         { locale: "en", req: {} as never, token: null },
-      );
-      expect(previewUrl).toBe(`${origin}/about`);
-    } finally {
-      restoreDonorEnv(prev);
-    }
+      ),
+    ).toBe("/web-studio/preview/ministry-updates/update_1");
   });
 });
 

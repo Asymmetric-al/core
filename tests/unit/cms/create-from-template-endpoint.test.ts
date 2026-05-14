@@ -50,7 +50,12 @@ function makeReq({
   body,
   payloadOverrides,
 }: {
-  user: { id: string; role: string; tenantId: string | null };
+  user: {
+    id: string;
+    publicTenantId?: string | null;
+    role: string;
+    tenantId: string | null;
+  };
   body: unknown;
   payloadOverrides?: Partial<{
     findByID: (...args: any[]) => Promise<unknown>;

@@ -3,7 +3,7 @@ import {
   buildPageBuilderHooks,
   buildPageBuilderVersions,
 } from "./page-builders";
-import { pagesGeneratePreviewURL } from "../../cms-ui/web-studio/adapters/preview-url";
+import { createWebStudioAuthenticatedPreviewURL } from "../../cms-ui/web-studio/adapters/preview-url";
 import { isNativeCollectionWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
 import {
   tenantScopedCreateAccess,
@@ -39,7 +39,7 @@ export const MissionaryGivingPages: CollectionConfig = {
   slug: "missionary-giving-pages",
   admin: {
     defaultColumns: ["title", "slug", "missionaryId", "tenant", "updatedAt"],
-    preview: pagesGeneratePreviewURL,
+    preview: createWebStudioAuthenticatedPreviewURL("missionary-giving-pages"),
     useAsTitle: "title",
     ...nativeMissionaryGivingPagesAdmin,
   },
