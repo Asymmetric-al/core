@@ -35,7 +35,7 @@ test.describe("@cms Web Studio templates gallery", () => {
 
     await expect(page.getByTestId("web-studio-native-shell")).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: /templates/i }).first(),
+      page.getByRole("heading", { name: /template/i }).first(),
     ).toBeVisible();
   });
 });

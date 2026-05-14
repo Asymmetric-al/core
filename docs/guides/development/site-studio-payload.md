@@ -8,22 +8,27 @@ This guide explains how to run and validate the Site Studio integration that liv
 
 - Payload admin UI mounted at `/web-studio` in Mission Control
 - Payload admin theming bridged to shared Maia + Zinc design tokens from `@asym/ui`
-- **Web Studio Phase 2 editorial shell:** Mission Control–native list/edit workspaces for:
+- **Web Studio editorial shell:** Mission Control–native list/edit workspaces for:
   - `pages`
   - `navigation`
   - `missionary-profiles`
   - `ministry-updates`
   - `media`
+  - `page-templates`
+  - `missionary-giving-pages`
+  - `project-pages`
 - Collection-specific native rollout flags (see rollback section) so each collection can fall back to stock Payload independently
+- Authenticated draft preview at `/web-studio/preview/:collection/:id` for page-like collections and ministry updates
+- Editor state strip for dirty, saving, autosave, validation, lock, trash, preview, and publish state
 - CMS tables in Postgres `cms` schema
 - Tenant-aware collection access controls
 - Public read endpoints under `/api/cms/public/*`
 - Donor-side CMS consumption fallback for unmatched public routes
 
-### Current parity boundary (Phase 2+)
+### Current parity boundary (Phase 7)
 
-- Native by default for editorial collections (including Phase 3: `page-templates`, `missionary-giving-pages`, `project-pages`) — see the **living spec** for the full list.
-- Still stock Payload for most:
+- Native by default for editorial collections — see the **living spec** for the full list.
+- Still stock Payload for:
   - nested `versions`, `version`, `api`, and `live preview` document subviews
   - `tenants` and `cms-users`
 
@@ -37,9 +42,9 @@ Add these values to `.env.local`:
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 PAYLOAD_SECRET=local-payload-secret
-PAYLOAD_DATABASE_URI=postgresql://postgres:postgres@127.0.0.1:54322/postgres
+PAYLOAD_DATABASE_URI=<payload-database-uri>
 CMS_BASE_URL=http://127.0.0.1:3030
-# Optional: donor origin for “Preview” links from Pages (defaults to http://127.0.0.1:3000)
+# Optional: donor origin for published public links from editor chrome (defaults to http://127.0.0.1:3000)
 NEXT_PUBLIC_DONOR_URL=http://127.0.0.1:3000
 # Optional: server-only donor origin (same resolution order as preview-url; use when NEXT_PUBLIC_* is unset in CI)
 # DONOR_APP_URL=http://127.0.0.1:3000
@@ -120,6 +125,8 @@ bun run dev:donor
   - `/web-studio/collections/missionary-profiles`
   - `/web-studio/collections/ministry-updates`
   - `/web-studio/collections/media`
+- Open a saved draft from `pages`, `ministry-updates`, `missionary-giving-pages`, or `project-pages` and confirm Payload's preview button opens `/web-studio/preview/<collection>/<id>` while unauthenticated access redirects to `/login`.
+- Confirm the edit shell state strip changes for unsaved edits, save/publish, autosave, validation errors, and preview availability.
 - Confirm collection lists are tenant-filtered for non-super-admin users.
 - Call:
   - `GET /api/cms/public/pages/<slug>?tenant=<tenant-slug>`
@@ -165,18 +172,28 @@ Output is written under `site-studio-review/<date>/cloud-agent/`:
 
 Tenant resolution priority:
 
-1. `?tenant=<slug>`
-2. `x-forwarded-host` or `host` exact domain match
-3. subdomain slug fallback
+1. `x-forwarded-host` or `host` exact domain match
+2. subdomain slug fallback
+3. `?tenant=<slug>` only when the host does not resolve a tenant
 
 ### Staff endpoints (auth required)
 
 - `GET/POST/PATCH/PUT/DELETE /api/*` (Payload REST)
 - `POST /api/graphql` (Payload GraphQL)
 - `POST /api/web-studio/create-from-template` (Payload custom endpoint — template instantiation)
+- `GET /web-studio/preview/:collection/:id` (authenticated draft preview; uses Payload access control with `overrideAccess: false`)
 - `GET /api/admin/missionaries`, `GET /api/admin/funds` (thin re-exports to `@asym/api` — Web Studio wizards)
 
 These are guarded by Mission Control auth middleware and require `staff`, `admin`, or `super_admin` (except Payload’s own auth rules where applicable).
+
+### Ownership boundary
+
+- Payload/Web Studio owns content structure, drafts, versions, media, navigation, templates, preview, and publish state.
+- Twenty/CRM owns donor relationships, notes, donor detail, donor reports, and CRM workflow records.
+- Stripe/Supabase giving owns gifts, staged gifts, allocations, receipt facts, reconciliation, and payment state.
+- Resend/app email services own send logs, receipt sends, and delivery events.
+- CMS giving CTAs may store copy and content references, but public CTA URLs resolve to the donor checkout flow by validated `missionary_id` / `fund_id` references; CMS must not create gifts or store payment truth.
+- Payload/CMS tenant ids and public Supabase tenant UUIDs stay separate. Payload writes use CMS tenant document ids; giving/CRM reference validation uses `publicTenantId` from authenticated request context.
 
 ## Rollback notes
 

@@ -12,19 +12,43 @@ import {
   UnpublishButton,
   useDocumentInfo,
   useDocumentTitle,
+  useForm,
+  useFormBackgroundProcessing,
+  useFormInitializing,
+  useFormModified,
+  useFormProcessing,
+  useFormSubmitted,
   useLivePreviewContext,
   usePreferences,
 } from "@payloadcms/ui";
-import { ExternalLink, ImageIcon, Link2, Settings2 } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Clock3,
+  ExternalLink,
+  Eye,
+  FileWarning,
+  ImageIcon,
+  Link2,
+  Loader2,
+  LockKeyhole,
+  Settings2,
+  ShieldCheck,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { buildNativeDocumentStateItems } from "./editor-state";
 import { NativeDocumentWorkspaceSettingsDialog } from "./NativeDocumentWorkspaceSettingsDialog";
-import { resolveDonorOrigin } from "../../../adapters/preview-url";
+import {
+  buildWebStudioAuthenticatedPreviewPath,
+  resolveDonorOrigin,
+} from "../../../adapters/preview-url";
 import { StudioLayout } from "../../../shell/studio-layout";
 import { getWebStudioCollectionConfig } from "../../config";
 
+import type { NativeDocumentStateTone } from "./editor-state";
 import type { WebStudioCollectionSlug } from "../../config";
 import type { DocumentViewClientProps } from "payload";
 
@@ -48,19 +72,56 @@ export function NativeCollectionEditView({
     collectionSlug,
     data,
     docPermissions,
+    documentIsLocked,
+    hasPublishedDoc,
     hasPublishPermission,
     hasSavePermission,
+    isInitializing: documentIsInitializing,
+    isTrashed,
+    mostRecentVersionIsAutosaved,
     unpublishedVersionCount,
+    uploadStatus,
     versionCount,
   } = useDocumentInfo();
   const { isLivePreviewEnabled, previewURL, setPreviewURL } =
     useLivePreviewContext();
   const { getPreference, setPreference } = usePreferences();
+  const form = useForm();
+  const backgroundProcessing = useFormBackgroundProcessing();
+  const formInitializing = useFormInitializing();
+  const modified = useFormModified();
+  const processing = useFormProcessing();
+  const submitted = useFormSubmitted();
   const [workspace, setWorkspace] = useState({
     inspectorOpen: true,
     showSlugChip: true,
   });
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const documentId =
+    typeof data?.id === "string" || typeof data?.id === "number"
+      ? String(data.id)
+      : null;
+  const previewSupported = studioConfig.previewMode !== "none";
+  const authenticatedPreviewURL =
+    previewSupported && documentId
+      ? buildWebStudioAuthenticatedPreviewPath({
+          collectionSlug:
+            studioCollection === "ministry-updates"
+              ? "ministry-updates"
+              : studioCollection === "missionary-giving-pages"
+                ? "missionary-giving-pages"
+                : studioCollection === "project-pages"
+                  ? "project-pages"
+                  : "pages",
+          id: documentId,
+        })
+      : null;
+  const publicPreviewPath = studioConfig.previewPathForData?.(
+    data as Record<string, unknown> | undefined,
+  );
+  const publicPreviewURL = publicPreviewPath
+    ? `${resolveDonorOrigin()}${publicPreviewPath}`
+    : null;
 
   const handleSettingsOpenChange = useCallback(
     (open: boolean) => {
@@ -89,7 +150,12 @@ export function NativeCollectionEditView({
         })();
       }
     },
-    [getPreference, studioConfig.preferences.workspace],
+    [
+      getPreference,
+      setSettingsOpen,
+      setWorkspace,
+      studioConfig.preferences.workspace,
+    ],
   );
 
   useEffect(() => {
@@ -170,22 +236,14 @@ export function NativeCollectionEditView({
   ]);
 
   useEffect(() => {
-    if (!studioConfig.previewPathForData) {
+    if (!authenticatedPreviewURL) {
       return;
     }
 
-    const path = studioConfig.previewPathForData(
-      data as Record<string, unknown> | undefined,
-    );
-    if (!path) {
-      return;
+    if (previewURL !== authenticatedPreviewURL) {
+      setPreviewURL(authenticatedPreviewURL);
     }
-
-    const nextUrl = `${resolveDonorOrigin()}${path}`;
-    if (previewURL !== nextUrl) {
-      setPreviewURL(nextUrl);
-    }
-  }, [data, previewURL, setPreviewURL, studioConfig]);
+  }, [authenticatedPreviewURL, previewURL, setPreviewURL]);
 
   const slugOrIdentifier = useMemo(() => {
     if (typeof data?.slug === "string" && data.slug.length > 0) {
@@ -213,11 +271,6 @@ export function NativeCollectionEditView({
   const readOnly = !hasSavePermission;
   const heading =
     title || `Untitled ${studioConfig.titleSingular.toLowerCase()}`;
-  const previewSupported = Boolean(studioConfig.previewPathForData);
-  const documentId =
-    typeof data?.id === "string" || typeof data?.id === "number"
-      ? String(data.id)
-      : null;
   const actionMode = studioConfig.hasDrafts
     ? {
         showPublish: true,
@@ -324,6 +377,25 @@ export function NativeCollectionEditView({
     studioCollection === "media" && typeof data?.url === "string"
       ? data.url
       : null;
+  const stateItems = buildNativeDocumentStateItems({
+    backgroundProcessing,
+    documentId,
+    documentIsLocked: Boolean(documentIsLocked),
+    hasDrafts: studioConfig.hasDrafts,
+    hasPublishedDoc: Boolean(hasPublishedDoc),
+    isTrashed: Boolean(isTrashed),
+    isValid: form.isValid,
+    modified,
+    mostRecentVersionIsAutosaved: Boolean(mostRecentVersionIsAutosaved),
+    previewSupported,
+    previewURL: authenticatedPreviewURL,
+    processing: processing || documentIsInitializing || formInitializing,
+    status: data?._status,
+    submitted,
+    unpublishedVersionCount,
+    uploadStatus,
+  });
+  const primaryState = stateItems[0];
 
   return (
     <div data-web-studio-native-document="true">
@@ -348,6 +420,16 @@ export function NativeCollectionEditView({
                 ) : null}
                 <Badge variant="outline" className="text-[10px] uppercase">
                   {statusLabel}
+                </Badge>
+                <Badge
+                  variant={
+                    primaryState?.tone === "danger"
+                      ? "destructive"
+                      : "secondary"
+                  }
+                  className="text-[10px] uppercase"
+                >
+                  {primaryState?.label}
                 </Badge>
               </div>
               <p className="text-muted-foreground text-xs">
@@ -422,6 +504,7 @@ export function NativeCollectionEditView({
           )}
         >
           <div className="payload-native-edit min-w-0 rounded-xl border border-border bg-card shadow-sm">
+            <NativeDocumentStateStrip items={stateItems} />
             <DefaultEditView
               {...props}
               BeforeDocumentControls={undefined}
@@ -491,10 +574,82 @@ export function NativeCollectionEditView({
                   </a>
                 </Button>
               ) : null}
+              {publicPreviewURL && data?._status === "published" ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="mt-2 w-full"
+                  asChild
+                >
+                  <a href={publicPreviewURL} target="_blank" rel="noreferrer">
+                    <ExternalLink className="mr-2 size-4" />
+                    Open published page
+                  </a>
+                </Button>
+              ) : null}
             </aside>
           ) : null}
         </div>
       </StudioLayout>
     </div>
+  );
+}
+
+const stateToneClass: Record<NativeDocumentStateTone, string> = {
+  danger: "border-destructive/30 bg-destructive/10 text-destructive",
+  info: "border-primary/25 bg-primary/10 text-primary",
+  muted: "border-border bg-muted/40 text-muted-foreground",
+  success: "border-emerald-500/25 bg-emerald-500/10 text-emerald-700",
+  warning: "border-amber-500/25 bg-amber-500/10 text-amber-700",
+};
+
+function NativeDocumentStateStrip({
+  items,
+}: {
+  items: ReturnType<typeof buildNativeDocumentStateItems>;
+}) {
+  const iconMap = {
+    autosave: Clock3,
+    editing: Loader2,
+    preview: Eye,
+    publication: ShieldCheck,
+  } as const;
+
+  return (
+    <section
+      aria-label="Document state"
+      className="grid gap-2 border-border border-b bg-muted/20 p-3 sm:grid-cols-2 xl:grid-cols-4"
+    >
+      {items.map((item) => {
+        const Icon =
+          item.id === "editing" && item.tone === "danger"
+            ? AlertTriangle
+            : item.id === "editing" && item.tone === "warning"
+              ? FileWarning
+              : item.id === "editing" && item.label === "Locked"
+                ? LockKeyhole
+                : item.tone === "success"
+                  ? CheckCircle2
+                  : iconMap[item.id];
+
+        return (
+          <div
+            key={item.id}
+            className={cn(
+              "min-w-0 rounded-lg border px-3 py-2",
+              stateToneClass[item.tone],
+            )}
+          >
+            <p className="flex items-center gap-2 font-semibold text-[10px] uppercase tracking-wide">
+              <Icon className="size-3.5 shrink-0" />
+              <span className="truncate">{item.label}</span>
+            </p>
+            <p className="mt-1 line-clamp-2 text-[11px] leading-snug">
+              {item.description}
+            </p>
+          </div>
+        );
+      })}
+    </section>
   );
 }

@@ -23,7 +23,7 @@ Minimum for Payload + admin (from `.env.local` symlinked per app if needed):
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY`             | Anon key                                                                                    |
 | `PAYLOAD_SECRET`                            | Payload signing (**required** in prod; dev/test may use defaults — see `payload.config.ts`) |
 | `PAYLOAD_DATABASE_URI` or `SUPABASE_DB_URL` | Postgres for Payload `cms` schema                                                           |
-| `NEXT_PUBLIC_DONOR_URL`                     | Origin for preview links from admin (optional; defaults in preview helper)                  |
+| `NEXT_PUBLIC_DONOR_URL`                     | Origin for published public links from admin (optional; defaults in preview helper)         |
 | `CMS_BASE_URL`                              | On **donor**: admin origin for public CMS fetches                                           |
 
 **Per-collection rollback** (optional, default = native on):
@@ -71,6 +71,7 @@ Unauthenticated visit to `/web-studio` should redirect to login.
 ## 6. Quick verification
 
 - Native shell: `data-testid="web-studio-native-shell"` on `/web-studio/collections/pages`
+- Authenticated preview: `/web-studio/preview/pages/<id>` redirects unauthenticated users to `/login`; signed-in staff/admin can preview drafts through Payload access control.
 - Public: `curl` or browser `GET /api/cms/public/pages/home?tenant=<slug>` on admin port
 - Template gallery: `/web-studio/templates`
 
@@ -78,7 +79,9 @@ Unauthenticated visit to `/web-studio` should redirect to login.
 
 ## 7. Preview / live preview gotchas
 
-- **Preview URL** for pages is built in `apps/admin/src/cms-ui/web-studio/adapters/preview-url.ts` using `NEXT_PUBLIC_DONOR_URL` / `DONOR_APP_URL`.
+- **Draft preview URL** for page-like collections and ministry updates is built in `apps/admin/src/cms-ui/web-studio/adapters/preview-url.ts` and opens `/web-studio/preview/:collection/:id`.
+- The authenticated preview route reads drafts with Payload Local API, `overrideAccess: false`, and the current Web Studio user. Do not convert it to a public route.
+- Public donor links in the native editor inspector use `NEXT_PUBLIC_DONOR_URL` / `DONOR_APP_URL` and are shown only for published documents.
 - **Live preview** depends on Payload live preview config and donor app availability; nested live preview may still be **stock Payload UI** (see living spec).
 - If preview opens wrong host, check env and that donor dev server matches.
 
@@ -104,7 +107,7 @@ Unauthenticated visit to `/web-studio` should redirect to login.
 
 - **Docker is required** for `supabase start` locally (`npx supabase start` talks to Docker). Sandboxes without Docker cannot bring up `127.0.0.1:54322` automatically.
 - **IPv4-only runners** often cannot open Supabase **direct** DB URLs (`db.<ref>.supabase.co` resolves to **IPv6**). Use a **Supavisor session pooler** connection string in `PAYLOAD_DATABASE_URI` (see root `.env.example` notes).
-- **`test:e2e:smoke:cms` / `test:e2e:cms`:** Web Studio specs skip when Payload cannot reach Postgres (see `tests/e2e/cms-skip-if-no-payload.ts`). With a working `PAYLOAD_DATABASE_URI`, those tests should **run** (not skip) and assert the native shell.
+- **`test:e2e:smoke:cms` / `test:e2e:cms`:** Web Studio specs skip when Payload cannot reach Postgres (see `tests/e2e/cms-skip-if-no-payload.ts`). With a working `PAYLOAD_DATABASE_URI`, the admin `E2E_AUTH_BYPASS` cookie is mirrored into a normal Payload CMS user/tenant in the local CMS database, so shell tests should **run** and still go through Payload access control.
 
 ### Admin dev: Contributions live query + stderr noise
 
