@@ -1,3 +1,4 @@
+import { createWebStudioAuthenticatedPreviewURL } from "../../cms-ui/web-studio/adapters/preview-url";
 import { isNativeCollectionWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
 import {
   tenantScopedCreateAccess,
@@ -35,6 +36,7 @@ export const MinistryUpdates: CollectionConfig = {
   slug: "ministry-updates",
   admin: {
     defaultColumns: ["title", "tenant", "updatedAt"],
+    preview: createWebStudioAuthenticatedPreviewURL("ministry-updates"),
     useAsTitle: "title",
     ...nativeMinistryUpdatesAdmin,
   },

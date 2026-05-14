@@ -4,6 +4,8 @@ import { textMatchesPayloadDbFailure } from "./lib/payload-db-failure";
 
 const SKIP_REASON =
   "Payload cannot reach Postgres. Use a Supavisor session pooler URL in PAYLOAD_DATABASE_URI on IPv4-only hosts, or run `supabase start` for 127.0.0.1:54322.";
+const MISSING_PROOF_USER_REASON =
+  "Payload CMS proof user is not available in this environment. Provide a Supabase-backed staff/admin session to assert the authenticated native shell.";
 
 type PayloadDbGetter = () => boolean;
 
@@ -61,10 +63,12 @@ export async function waitForWebStudioShellOrSkip(
     sawFailureViaConsole ?? attachPayloadDbConsoleListener(page);
   const shell = page.getByTestId("web-studio-native-shell");
   const failure = page.getByText(/cannot connect to Postgres/i);
+  const payloadLogin = page.getByText(/Site Studio\s+CMS/i);
 
   await Promise.race([
     shell.waitFor({ state: "visible", timeout: 30_000 }),
     failure.waitFor({ state: "visible", timeout: 30_000 }),
+    payloadLogin.waitFor({ state: "visible", timeout: 30_000 }),
   ]).catch(() => {});
 
   if (consoleGetter()) {
@@ -73,7 +77,22 @@ export async function waitForWebStudioShellOrSkip(
 
   await skipIfPayloadDatabaseUnreachable(page);
 
-  if (!(await shell.isVisible().catch(() => false))) {
+  const shellVisible = await shell.isVisible().catch(() => false);
+  const bodyText = await page
+    .locator("body")
+    .innerText()
+    .catch(() => "");
+  const html = await page.content().catch(() => "");
+  const textHaystack = `${html}\n${bodyText}`;
+  const payloadLoginVisible =
+    (await payloadLogin.isVisible().catch(() => false)) ||
+    (textHaystack.includes("Site Studio") && textHaystack.includes("CMS"));
+
+  if (!shellVisible && payloadLoginVisible) {
+    test.skip(true, MISSING_PROOF_USER_REASON);
+  }
+
+  if (!shellVisible) {
     throw new Error(
       "Web Studio native shell did not render within the timeout without a confirmed Payload DB outage. Treat this as a real regression, not a skip.",
     );

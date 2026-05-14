@@ -16,7 +16,7 @@
 
 **What still relies on Payload:** field widgets, document form state, save / save draft / publish, Lexical rich text inside Payload fields, relationship and upload pickers, **nested** document subviews (versions, API JSON, live preview tabs) where not wrapped—those still use Payload’s stock routing/components for stability.
 
-**What remains to be built (confirmed partial / deferred):** deeper native wrappers for every versions/live-preview subview; donor pages that **call** the new public missionary/project helpers (helpers exist, pages may still use mock data); optional API **versioning** for public JSON (today: unversioned contract, additive fields only).
+**What remains to be built (confirmed partial / deferred):** deeper native wrappers for every versions/live-preview subview; full donor landing-page use of the new public missionary/project helpers (helpers exist, checkout accepts CMS `missionary_id` / `fund_id` CTA targets); optional API **versioning** for public JSON (today: unversioned contract, additive fields only).
 
 ---
 
@@ -39,23 +39,23 @@
 
 Legend: **shipped** | **partial** | **fallback-backed** | **not started** | **deferred**
 
-| Area                                                                                                  | State           | Notes                                                                                                                                           |
-| ----------------------------------------------------------------------------------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| Shell, nav, recent docs, prefs                                                                        | **shipped**     | `apps/admin/src/cms-ui/web-studio/shell/*`                                                                                                      |
-| Native list + default edit: `pages`, `navigation`, `missionary-profiles`, `ministry-updates`, `media` | **shipped**     | Env can disable per collection → **fallback-backed**                                                                                            |
-| Native list + edit: `page-templates`, `missionary-giving-pages`, `project-pages`                      | **shipped**     | Same flags: `CMS_WEB_STUDIO_NATIVE_*`                                                                                                           |
-| Template gallery `/web-studio/templates`                                                              | **shipped**     | Draft templates included in gallery fetch (`draft=true` query)                                                                                  |
-| Wizards: standard / give / project / ministry update starter                                          | **shipped**     | `apps/admin/src/cms-ui/web-studio/flows/*`                                                                                                      |
-| `create-from-template` endpoint                                                                       | **shipped**     | Staff auth + tenant checks; Supabase validation for missionary/fund                                                                             |
-| Staff directory APIs                                                                                  | **shipped**     | Thin routes → `@asym/api/admin/missionary-directory`, `fund-directory` (data boundary)                                                          |
-| Public: pages, navigation, updates                                                                    | **shipped**     | Existing contracts                                                                                                                              |
-| Public: missionary-pages, project-pages                                                               | **shipped**     | Additive routes                                                                                                                                 |
-| Serialized `pages` public JSON                                                                        | **shipped**     | `serializePublishedPageLike` — extra fields, backward compatible                                                                                |
-| Nested Payload subviews (versions, live preview UI)                                                   | **partial**     | Stock Payload; links from native chrome                                                                                                         |
-| Donor consumption of new public routes                                                                | **partial**     | `fetchPublishedMissionaryGivingPage` / `fetchPublishedProjectPage` in `client.ts`; **Inference:** worker/project pages may not all be wired yet |
-| E2E coverage for every Phase 3 click path                                                             | **partial**     | Unit tests extended; full Playwright needs DB + ports (Phase 4 notes)                                                                           |
-| TipTap inside Web Studio CMS fields                                                                   | **not started** | Payload editor is Lexical                                                                                                                       |
-| TanStack DB in Web Studio                                                                             | **not started** | **Confirmed:** `@tanstack/db` not imported under `cms-ui/web-studio/`; used elsewhere (e.g. contributions live query)                           |
+| Area                                                                                                  | State           | Notes                                                                                                                                       |
+| ----------------------------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Shell, nav, recent docs, prefs                                                                        | **shipped**     | `apps/admin/src/cms-ui/web-studio/shell/*`                                                                                                  |
+| Native list + default edit: `pages`, `navigation`, `missionary-profiles`, `ministry-updates`, `media` | **shipped**     | Env can disable per collection → **fallback-backed**                                                                                        |
+| Native list + edit: `page-templates`, `missionary-giving-pages`, `project-pages`                      | **shipped**     | Same flags: `CMS_WEB_STUDIO_NATIVE_*`                                                                                                       |
+| Template gallery `/web-studio/templates`                                                              | **shipped**     | Draft templates included in gallery fetch (`draft=true` query)                                                                              |
+| Wizards: standard / give / project / ministry update starter                                          | **shipped**     | `apps/admin/src/cms-ui/web-studio/flows/*`                                                                                                  |
+| `create-from-template` endpoint                                                                       | **shipped**     | Staff auth + tenant checks; Supabase validation for missionary/fund                                                                         |
+| Staff directory APIs                                                                                  | **shipped**     | Thin routes → `@asym/api/admin/missionary-directory`, `fund-directory` (data boundary)                                                      |
+| Public: pages, navigation, updates                                                                    | **shipped**     | Existing contracts                                                                                                                          |
+| Public: missionary-pages, project-pages                                                               | **shipped**     | Additive routes                                                                                                                             |
+| Serialized `pages` public JSON                                                                        | **shipped**     | `serializePublishedPageLike` — extra fields, backward compatible                                                                            |
+| Nested Payload subviews (versions, live preview UI)                                                   | **partial**     | Stock Payload; links from native chrome                                                                                                     |
+| Donor consumption of new public routes                                                                | **partial**     | `fetchPublishedMissionaryGivingPage` / `fetchPublishedProjectPage` in `client.ts`; checkout accepts CMS `missionary_id` / `fund_id` targets |
+| E2E coverage for every Phase 3 click path                                                             | **partial**     | Unit tests extended; full Playwright needs DB + ports (Phase 4 notes)                                                                       |
+| TipTap inside Web Studio CMS fields                                                                   | **not started** | Payload editor is Lexical                                                                                                                   |
+| TanStack DB in Web Studio                                                                             | **not started** | **Confirmed:** `@tanstack/db` not imported under `cms-ui/web-studio/`; used elsewhere (e.g. contributions live query)                       |
 
 ---
 
@@ -162,6 +162,24 @@ Tenant order: `resolveTenantFromRequest` — **forwarded host / host primary-dom
 
 ---
 
+## 6a. Data ownership boundary
+
+Payload/Web Studio is the durable **content** runtime. It owns page structure, navigation, media, templates, draft / publish / version state, preview URLs, and editor experience.
+
+Payload/Web Studio is **not** the source of truth for giving, CRM, donor care, or email delivery facts:
+
+| Domain                                                                         | Source of truth                                       | CMS relationship                                 |
+| ------------------------------------------------------------------------------ | ----------------------------------------------------- | ------------------------------------------------ |
+| Content, media, navigation, templates, preview, publish state                  | Payload `cms` schema                                  | Owns and mutates                                 |
+| Donor relationships, notes, donor detail, reports, CRM workflow records        | Twenty/CRM projections and package-layer CRM services | May display read-only projections                |
+| Gifts, staged gifts, allocations, payment state, reconciliation, receipt facts | Stripe/Supabase giving pipeline                       | May store CTA copy and validated references only |
+| Receipt sends, send logs, delivery events                                      | Resend/app email services                             | No direct provider sends from CMS                |
+| Mobilization stage transitions                                                 | Deferred mobilization workstream                      | Read-only/deferred; not a CMS foundation blocker |
+
+Giving CTAs on CMS pages resolve into the donor checkout flow with validated `missionary_id` / `fund_id` references. Missionary giving and project page source-reference fields reject non-UUID values at the collection layer; create-from-template still validates tenant ownership against Supabase before creating those drafts. CMS must not create gifts, mutate giving tables, store payment truth, or write CRM donor-care records.
+
+---
+
 ## 7. Form architecture
 
 | Use case                       | Stack                                                                                       |
@@ -191,17 +209,21 @@ Tenant order: `resolveTenantFromRequest` — **forwarded host / host primary-dom
 
 ## 9. Content model inventory
 
-| Collection slug           | Purpose                                        | Tenant       | Drafts / versions | Preview (admin)             | Public                         |
-| ------------------------- | ---------------------------------------------- | ------------ | ----------------- | --------------------------- | ------------------------------ |
-| `pages`                   | Standard site pages + optional `layout` blocks | `tenant` rel | Yes               | `pagesGeneratePreviewURL`   | `GET .../public/pages/*`       |
-| `navigation`              | Nav trees                                      | `tenant`     | No                | —                           | `GET .../navigation`           |
-| `missionary-profiles`     | CMS-facing profiles                            | `tenant`     | No                | —                           | —                              |
-| `ministry-updates`        | Articles                                       | `tenant`     | Yes               | collection config           | `GET .../updates`              |
-| `media`                   | Uploads                                        | `tenant`     | No                | —                           | —                              |
-| `page-templates`          | Editorial templates                            | `tenant`     | Yes               | —                           | —                              |
-| `missionary-giving-pages` | Giving landings; `missionaryId` UUID           | `tenant`     | Yes               | same helper family as pages | `GET .../missionary-pages/:id` |
-| `project-pages`           | Fund landings; `fundId` UUID                   | `tenant`     | Yes               | same                        | `GET .../project-pages/:slug`  |
-| `tenants`, `cms-users`    | Ops / auth                                     | —            | —                 | —                           | —                              |
+| Collection slug           | Purpose                                                | Tenant       | Drafts / versions | Preview (admin)                  | Public                         |
+| ------------------------- | ------------------------------------------------------ | ------------ | ----------------- | -------------------------------- | ------------------------------ |
+| `pages`                   | Standard site pages + optional `layout` blocks         | `tenant` rel | Yes               | Authenticated Web Studio preview | `GET .../public/pages/*`       |
+| `navigation`              | Nav trees                                              | `tenant`     | No                | —                                | `GET .../navigation`           |
+| `missionary-profiles`     | CMS-facing profiles; Supabase source UUID is read-only | `tenant`     | No                | —                                | —                              |
+| `ministry-updates`        | Articles                                               | `tenant`     | Yes               | Authenticated Web Studio preview | `GET .../updates`              |
+| `media`                   | Uploads                                                | `tenant`     | No                | —                                | —                              |
+| `page-templates`          | Editorial templates                                    | `tenant`     | Yes               | —                                | —                              |
+| `missionary-giving-pages` | Giving landings; `missionaryId` UUID                   | `tenant`     | Yes               | Authenticated Web Studio preview | `GET .../missionary-pages/:id` |
+| `project-pages`           | Fund landings; `fundId` UUID                           | `tenant`     | Yes               | Authenticated Web Studio preview | `GET .../project-pages/:slug`  |
+| `tenants`, `cms-users`    | Ops / auth                                             | —            | —                 | —                                | —                              |
+
+Media uploads are limited to image MIME types (`avif`, `gif`, `jpeg`, `png`, `webp`), do not allow pasted remote URLs, and keep tenant access controls on upload documents.
+
+Giving source-reference fields (`missionaryId`, `fundId`, `supabaseMissionaryId`) remain content references, not payment/CRM facts. Missionary and fund references validate UUID shape and, when request context is available, validate against the authenticated request's public Supabase tenant UUID. The Payload tenant document id remains the relationship used for CMS writes.
 
 **Inference:** public donor rendering of layout blocks vs legacy `content` is app-specific; Payload stores both during rollout (`legacyContentFallback` on pages).
 
@@ -212,21 +234,24 @@ Tenant order: `resolveTenantFromRequest` — **forwarded host / host primary-dom
 - **Versioning:** Public JSON is **not** URL-versioned (`/v1/...`); contract evolves by **additive** fields and careful consumer updates. **Document versions** are a Payload CMS feature, not HTTP API versioning.
 - **Consumers:** `apps/donor/lib/cms/client.ts` — forward `x-forwarded-host` for tenant resolution on admin origin, apply public CMS cache tags, and distinguish `found` / `not-found` / `tenant-not-found` / `bad-request` / `unavailable`.
 - **Backward compatibility:** `pages` response shape preserved; serializer **adds** fields.
+- **Public serialization:** CTA hrefs are sanitized. Missionary/project page CTAs resolve to `/checkout?missionary_id=...` or `/checkout?fund_id=...`; media relationship objects are reduced to public id/alt/url/size fields before leaving the admin API.
 
 ---
 
 ## 11. Internal adapter and service map
 
-| Concern                | Path                                                                                                                        |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Preview URL builder    | `apps/admin/src/cms-ui/web-studio/adapters/preview-url.ts`                                                                  |
-| Feature flags          | `apps/admin/src/cms-ui/web-studio/feature-flags.ts`                                                                         |
-| Collection registry    | `.../collections/config.ts`                                                                                                 |
-| List/edit shared       | `.../collections/shared/list-workspace/NativeCollectionListView.tsx`, `.../document-workspace/NativeCollectionEditView.tsx` |
-| Template instantiate   | `apps/admin/src/cms/create-from-template-endpoint.ts`                                                                       |
-| Public page shape      | `apps/admin/src/cms/public/serialize-published-page.ts`                                                                     |
-| Tenant resolution      | `apps/admin/src/cms/public/resolve-tenant.ts`                                                                               |
-| Import map postprocess | `scripts/dev/postprocess-payload-importmap.mjs`                                                                             |
+| Concern                | Path                                                                                                                            |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Preview URL builder    | `apps/admin/src/cms-ui/web-studio/adapters/preview-url.ts`                                                                      |
+| Feature flags          | `apps/admin/src/cms-ui/web-studio/feature-flags.ts`                                                                             |
+| Collection registry    | `.../collections/config.ts`                                                                                                     |
+| List/edit shared       | `.../collections/shared/list-workspace/NativeCollectionListView.tsx`, `.../document-workspace/NativeCollectionEditView.tsx`     |
+| Editor state adapter   | `.../collections/shared/document-workspace/editor-state.ts`                                                                     |
+| Auth preview model     | `apps/admin/src/cms/preview/authenticated-preview.ts`, `apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx` |
+| Template instantiate   | `apps/admin/src/cms/create-from-template-endpoint.ts`                                                                           |
+| Public page shape      | `apps/admin/src/cms/public/serialize-published-page.ts`                                                                         |
+| Tenant resolution      | `apps/admin/src/cms/public/resolve-tenant.ts`                                                                                   |
+| Import map postprocess | `scripts/dev/postprocess-payload-importmap.mjs`                                                                                 |
 
 ---
 
@@ -245,17 +270,21 @@ Tenant order: `resolveTenantFromRequest` — **forwarded host / host primary-dom
 - **Identity:** Supabase for Mission Control users; Payload `CmsUsers` collection with custom strategies.
 - **Web Studio gate:** middleware / proxy in `apps/admin` — staff/admin/super_admin for `/web-studio` (see `apps/admin/proxy.ts` and auth docs).
 - **Public routes:** No session; tenant derived from request metadata only.
+- **Tenant identity split:** `CmsUsers.tenantId` is the Payload tenant document id used for CMS relationships and access filters. The Supabase public tenant UUID is carried separately as `publicTenantId` during authenticated requests and is only used when validating giving/CRM references.
 
 ---
 
 ## 14. Preview, live preview, versions
 
-| Topic             | State                                                                                                        |
-| ----------------- | ------------------------------------------------------------------------------------------------------------ |
-| Preview button    | Native chrome opens donor URLs where `admin.preview` / config supplies `GeneratePreviewURL`                  |
-| Live preview      | Payload context (`useLivePreviewContext`) in native edit view; **nested** live preview UI may still be stock |
-| Versions          | Payload versions enabled on draft collections; restore flows stock unless wrapped                            |
-| Drafts / autosave | Per collection `versions.drafts` in configs                                                                  |
+| Topic             | State                                                                                                                                                      |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Preview button    | Native chrome opens `/web-studio/preview/:collection/:id`, which requires an authenticated Web Studio user and reads drafts through Payload access control |
+| Public link       | Native inspector exposes donor public URL only as "Open published page" and only when the document is published                                            |
+| Live preview      | Payload context (`useLivePreviewContext`) in native edit view; **nested** live preview UI may still be stock                                               |
+| Versions          | Payload versions enabled on draft collections; restore flows stock unless wrapped                                                                          |
+| Drafts / autosave | Per collection `versions.drafts` in configs                                                                                                                |
+
+The native edit shell now reports loading, dirty, saving, autosave, validation, lock, trash, preview, and publish states without replacing Payload's document form. The authenticated preview route uses `overrideAccess: false`; public routes stay published-only and never receive draft data.
 
 ---
 
@@ -314,13 +343,13 @@ Handled inside Payload’s default edit view and field components. **Risk:** rep
 
 ---
 
-## 19. Testing and validation status (Phase 4 snapshot)
+## 19. Testing and validation status (Phase 7 snapshot)
 
-**Confirmed run (agent / CI-like):** `cms:importmap`, `lint:admin`, `typecheck:admin`, admin **production build**, `test:unit` (full), `test:unit:cms`, `verify:*` including **data-boundary**, donor + missionary **builds**.
+**Confirmed run (agent / CI-like):** `lint:admin`, `typecheck:admin`, `test:unit:cms`. Phase evidence records the full gate status for the current run.
 
 **Gaps:** Full `test:e2e:cms` requires local Postgres + free ports + Playwright webServer; treat as **release gate** in real CI. See `docs/guides/development/web-studio-runbook.md`.
 
-**Confidence:** **Ready with caveats** — static gates green; E2E and hosted migration checks remain environment-dependent.
+**Confidence:** **Ready with caveats** — static gates green; E2E, hosted migration checks, and production Vercel readiness remain environment-dependent.
 
 ---
 

@@ -16,7 +16,7 @@ Mission Control–native UI that wraps **Payload CMS** (mounted at `/web-studio`
 | `collections/config.ts` | Per-collection labels, paths, preview hints, preference keys              |
 | `collections/shared/`   | `NativeCollectionListView`, `NativeCollectionEditView`, workspace dialogs |
 | `flows/`                | TanStack Form wizards + template gallery (top-level Payload admin views)  |
-| `adapters/`             | Preview URL helpers (`preview-url.ts`)                                    |
+| `adapters/`             | Authenticated preview + published public URL helpers (`preview-url.ts`)   |
 | `feature-flags.ts`      | `CMS_WEB_STUDIO_NATIVE_*` kill switches                                   |
 | `preferences/keys.ts`   | Payload preference key strings                                            |
 
@@ -26,3 +26,4 @@ Mission Control–native UI that wraps **Payload CMS** (mounted at `/web-studio`
 2. **Do** use TanStack Form (or `useAsymForm` from `@asym/ui`) for wizards and Mission Control–only dialogs.
 3. After changing Payload component paths: `NODE_ENV=test bun run cms:importmap` from repo root.
 4. New **staff** HTTP handlers that touch Supabase belong in `packages/api` with thin re-exports under `apps/admin/app/api/`.
+5. Keep draft preview authenticated under `/web-studio/preview/:collection/:id`; public donor routes stay published-only.
