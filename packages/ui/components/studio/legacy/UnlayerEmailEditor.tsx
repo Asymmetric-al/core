@@ -92,7 +92,7 @@ export interface PdfExportOptions {
   mergeTags?: Record<string, string>;
 }
 
-export interface UnlayerEditorHandle {
+export interface LegacyUnlayerEditorHandle {
   exportHtml: (options?: ExportOptions) => Promise<UnlayerExportHTML>;
   exportPdf: (options?: PdfExportOptions) => Promise<UnlayerPdfExportResult>;
   exportDesign: () => Promise<UnlayerDesignJSON>;
@@ -111,7 +111,7 @@ interface ExportOptions {
   mergeTags?: Record<string, string>;
 }
 
-interface UnlayerEditorProps {
+export interface LegacyUnlayerEmailEditorProps {
   mode?: "email" | "web" | "popup" | "document";
   initialDesign?: UnlayerDesignJSON;
   projectId?: number;
@@ -139,10 +139,10 @@ const emptySubscribe = () => () => {};
 const getClientSnapshot = () => true;
 const getServerSnapshot = () => false;
 
-export const UnlayerEditor = forwardRef<
-  UnlayerEditorHandle,
-  UnlayerEditorProps
->(function UnlayerEditor(
+export const LegacyUnlayerEmailEditor = forwardRef<
+  LegacyUnlayerEditorHandle,
+  LegacyUnlayerEmailEditorProps
+>(function LegacyUnlayerEmailEditor(
   {
     mode = "email",
     initialDesign,
@@ -569,4 +569,4 @@ export const UnlayerEditor = forwardRef<
   );
 });
 
-export default UnlayerEditor;
+export default LegacyUnlayerEmailEditor;

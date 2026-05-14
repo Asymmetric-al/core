@@ -1,162 +1,45 @@
-export interface UnlayerDesignTag {
-  id: number;
-  name: string;
-}
+import type {
+  EmailBuilderKind,
+  EmailDesignEnvelope,
+  EmailStudioTemplateStatus,
+} from "./email-builder-types";
+import type { MergeTagRegistry } from "./merge-tags";
 
-export interface UnlayerDesignTagsConfig {
-  enabled?: boolean;
-  data?: UnlayerDesignTag[];
-}
+export type {
+  UnlayerAppearance,
+  UnlayerDesignJSON,
+  UnlayerDesignTag,
+  UnlayerDesignTagsConfig,
+  UnlayerEditorConfig,
+  UnlayerEditorMode,
+  UnlayerExportHTML,
+  UnlayerExportImage,
+  UnlayerExportPlainText,
+  UnlayerFeaturesConfig,
+  UnlayerMergeTags,
+  UnlayerOptions,
+  UnlayerProjectSettings,
+  UnlayerSpecialLink,
+  UnlayerStockImagesConfig,
+  UnlayerTextEditorFeatures,
+  UnlayerToolConfig,
+  UnlayerToolProperty,
+  UnlayerUserConfig,
+  UnlayerWhiteLabelConfig,
+} from "./legacy/unlayer-types";
 
-export interface UnlayerMergeTags {
-  [category: string]: {
-    name: string;
-    mergeTags: {
-      [key: string]: {
-        name: string;
-        value: string;
-        sample?: string;
-      };
-    };
-  };
-}
-
-export interface UnlayerDesignJSON {
-  counters?: Record<string, number>;
-  body: {
-    id?: string;
-    rows: unknown[];
-    headers?: unknown[];
-    footers?: unknown[];
-    values: Record<string, unknown>;
-  };
-  schemaVersion?: number;
-}
-
-export interface UnlayerExportHTML {
-  design: UnlayerDesignJSON;
-  html: string;
-  chunks?: {
-    body: string;
-    css: string;
-    js?: string;
-    fonts?: string[];
-  };
-}
-
-export interface UnlayerExportPlainText {
-  design: UnlayerDesignJSON;
-  text: string;
-}
-
-export interface UnlayerExportImage {
-  design: UnlayerDesignJSON;
-  url: string;
-}
-
-export interface UnlayerTextEditorFeatures {
-  spellChecker?: boolean;
-  tables?: boolean;
-  cleanPaste?: boolean;
-  emojis?: boolean;
-}
-
-export interface UnlayerAppearance {
-  theme?: "modern_light" | "modern_dark" | "classic_light" | "classic_dark";
-  panels?: {
-    tools?: {
-      dock?: "left" | "right";
-      collapsible?: boolean;
-      defaultUncollapsed?: boolean;
-    };
-  };
-  features?: {
-    preview?: boolean;
-    imageEditor?: boolean;
-    stockImages?: boolean;
-    userUploads?: boolean;
-    audit?: boolean;
-    undoRedo?: boolean;
-    textEditor?: UnlayerTextEditorFeatures;
-  };
-  loader?: {
-    html?: string;
-    css?: string;
-  };
-}
-
-export interface UnlayerToolProperty {
-  value?: unknown;
-  editor?: {
-    data?: unknown;
-  };
-}
-
-export interface UnlayerToolConfig {
-  enabled?: boolean;
-  position?: number;
-  properties?: Record<string, UnlayerToolProperty>;
-}
-
-export interface UnlayerSpecialLink {
-  name: string;
-  href: string;
-  target?: "_blank" | "_self" | "_parent" | "_top";
-}
-
-export interface UnlayerStockImagesConfig {
-  enabled?: boolean;
-  safeSearch?: boolean;
-}
-
-export interface UnlayerFeaturesConfig {
-  audit?: boolean;
-  preview?: boolean;
-  imageEditor?: boolean;
-  undoRedo?: boolean;
-  stockImages?: UnlayerStockImagesConfig;
-  userUploads?: boolean;
-}
-
-export interface UnlayerEditorConfig {
-  minRows?: number;
-  maxRows?: number;
-  confirmOnDelete?: boolean;
-}
-
-export interface UnlayerUserConfig {
-  id?: string;
-  email?: string;
-  name?: string;
-  signature?: string;
-}
-
-export interface UnlayerOptions {
-  id?: string;
-  projectId?: number;
-  displayMode?: "email" | "web" | "popup" | "document";
-  locale?: string;
-  appearance?: UnlayerAppearance;
-  user?: UnlayerUserConfig;
-  mergeTags?: UnlayerMergeTags;
-  designTags?: UnlayerDesignTagsConfig;
-  designTagsConfig?: UnlayerDesignTagsConfig;
-  specialLinks?: UnlayerSpecialLink[];
-  tools?: Record<string, UnlayerToolConfig>;
-  blocks?: object[];
-  editor?: UnlayerEditorConfig;
-  features?: UnlayerFeaturesConfig;
-  customCSS?: string[];
-  customJS?: string[];
-  version?: string;
-}
+export type EmailStudioMode = "email" | "web" | "popup" | "document";
 
 export interface EmailTemplate {
   id: string;
   name: string;
   description?: string;
-  design: UnlayerDesignJSON;
-  html?: string;
+  builder: EmailBuilderKind;
+  builderVersion?: string;
+  design: Record<string, unknown>;
+  envelope?: EmailDesignEnvelope;
+  html?: string | null;
+  text?: string | null;
   thumbnail?: string;
   category?: string;
   tags?: string[];
@@ -164,7 +47,7 @@ export interface EmailTemplate {
   updatedAt: Date;
   createdBy?: string;
   isDefault?: boolean;
-  status?: "draft" | "published" | "archived";
+  status?: EmailStudioTemplateStatus;
 }
 
 export interface EmailRecipientConfig {
@@ -190,8 +73,11 @@ export interface EmailCampaign {
   subject: string;
   preheader?: string;
   templateId?: string;
-  design: UnlayerDesignJSON;
-  html?: string;
+  builder: EmailBuilderKind;
+  builderVersion?: string;
+  design: Record<string, unknown>;
+  html?: string | null;
+  text?: string | null;
   status: "draft" | "scheduled" | "sending" | "sent" | "paused" | "cancelled";
   recipients?: EmailRecipientConfig;
   scheduledAt?: Date;
@@ -200,8 +86,6 @@ export interface EmailCampaign {
   updatedAt: Date;
   stats?: EmailCampaignStats;
 }
-
-export type UnlayerEditorMode = "email" | "web" | "popup" | "document";
 
 export interface EmailStudioFeatures {
   preview: boolean;
@@ -213,41 +97,11 @@ export interface EmailStudioFeatures {
 }
 
 export interface EmailStudioConfig {
-  projectId?: number;
-  mode: UnlayerEditorMode;
-  appearance: UnlayerAppearance;
+  builder: EmailBuilderKind;
+  legacyUnlayerEnabled: boolean;
+  mode: EmailStudioMode;
   features: EmailStudioFeatures;
-  mergeTags?: UnlayerMergeTags;
-}
-
-export interface UnlayerWhiteLabelConfig {
-  enabled: boolean;
-  removeBranding: boolean;
-  customLogo?: string;
-  customColors?: {
-    primary?: string;
-    secondary?: string;
-    accent?: string;
-  };
-  customFonts?: Array<{
-    name: string;
-    url: string;
-  }>;
-  hideUnlayerBranding: boolean;
-}
-
-export interface UnlayerProjectSettings {
-  projectId: number;
-  projectName?: string;
-  allowedDomains: string[];
-  whiteLabelEnabled: boolean;
-  customFeatures: {
-    aiAssistant: boolean;
-    stockImages: boolean;
-    userUploads: boolean;
-    customBlocks: boolean;
-    customTools: boolean;
-  };
+  mergeTags?: MergeTagRegistry;
 }
 
 export interface EmailStudioExportOptions {
@@ -257,8 +111,11 @@ export interface EmailStudioExportOptions {
 }
 
 export interface EmailStudioSavePayload {
-  design: UnlayerDesignJSON;
+  builder: EmailBuilderKind;
+  builderVersion?: string | null;
+  design: Record<string, unknown>;
   html: string;
+  text?: string | null;
   metadata: {
     name: string;
     subject?: string;
@@ -271,10 +128,11 @@ export interface EmailTemplateListItem {
   id: string;
   name: string;
   description?: string;
+  builder: EmailBuilderKind;
   thumbnail?: string;
   category?: string;
   tags?: string[];
-  status: "draft" | "published" | "archived";
+  status: EmailStudioTemplateStatus;
   createdAt: Date;
   updatedAt: Date;
 }

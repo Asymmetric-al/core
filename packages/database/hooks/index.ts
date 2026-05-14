@@ -13,6 +13,15 @@ export {
 export { useContributionsLiveRows } from "./admin-contributions";
 export { useAdminContributionsInfiniteGrid } from "./admin-contributions-infinite";
 export { useAdminCrmRecordsInfiniteGrid } from "./admin-crm-infinite";
+export { useAdminCrmNotesGrid } from "./admin-crm-notes";
+export {
+  CRM_RELATIONSHIP_DOMAIN_OPTIONS,
+  useAdminCrmRelationshipsGrid,
+} from "./admin-crm-relationships";
+export {
+  CRM_PROJECTION_TARGET_SURFACE_OPTIONS,
+  useAdminCrmProjectionShadowGrid,
+} from "./admin-crm-projections";
 export { useDonorHistoryTransactions } from "./donor-history";
 export {
   useCareDashboard,
@@ -178,6 +187,9 @@ export type {
   LocationType,
 } from "./admin-locations";
 export type { CrmGridRow } from "@asym/database/types";
+export type { CrmNoteRow } from "@asym/database/types";
+export type { CrmRelationshipRow } from "@asym/database/types";
+export type { CrmProjectionShadowRow } from "@asym/database/types";
 export type {
   ActivityType,
   GiftType,

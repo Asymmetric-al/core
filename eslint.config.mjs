@@ -26,6 +26,22 @@ const crossAppImportRestrictions = [
   },
 ];
 
+const rawTwentyClientImportRestrictions = [
+  {
+    group: [
+      "@asym/api/crm/client",
+      "@asym/api/crm/client/*",
+      "@asym/api/src/crm/client",
+      "@asym/api/src/crm/client/*",
+      "**/packages/api/src/crm/client",
+      "**/packages/api/src/crm/client/*",
+      "**/packages/api/src/crm/client/**",
+    ],
+    message:
+      "App code must not import raw Twenty clients. Use stable @asym/api CRM contracts and route re-exports instead.",
+  },
+];
+
 const eslintConfig = defineConfig([
   // Root fallback/orchestrator config.
   // Individual apps/packages should define local eslint.config.mjs files.
@@ -43,6 +59,17 @@ const eslintConfig = defineConfig([
     },
   },
   {
+    files: ["apps/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: rawTwentyClientImportRestrictions,
+        },
+      ],
+    },
+  },
+  {
     files: [
       "apps/*/components/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}",
       "apps/*/features/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}",
@@ -54,6 +81,7 @@ const eslintConfig = defineConfig([
         {
           patterns: [
             ...crossAppImportRestrictions,
+            ...rawTwentyClientImportRestrictions,
             {
               group: ["@supabase/*"],
               message:
@@ -84,6 +112,7 @@ const eslintConfig = defineConfig([
         {
           patterns: [
             ...crossAppImportRestrictions,
+            ...rawTwentyClientImportRestrictions,
             {
               group: [
                 "@asym/database/supabase",

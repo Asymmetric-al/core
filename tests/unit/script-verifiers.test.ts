@@ -505,4 +505,24 @@ describe("data-boundary-check", () => {
       runNodeScript(tempRoot, "scripts/verify/data-boundary-check.mjs"),
     ).toThrow(/Data access boundary violations detected/);
   });
+
+  it("fails when app source imports raw Twenty clients or server-only credentials", async () => {
+    const tempRoot = await createDataBoundaryRepo();
+    const pagePath = path.join(tempRoot, "apps/demo/app/crm/page.tsx");
+    await mkdir(path.dirname(pagePath), { recursive: true });
+    await writeFile(
+      pagePath,
+      [
+        'import { TwentyCoreClient } from "@asym/api/crm/client/core";',
+        "",
+        "export default function Page() {",
+        "  return process.env.TWENTY_API_KEY;",
+        "}",
+      ].join("\n"),
+    );
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/verify/data-boundary-check.mjs"),
+    ).toThrow(/Twenty CRM boundary violations detected/);
+  });
 });

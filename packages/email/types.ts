@@ -8,6 +8,8 @@
  * - Compliance and preferences
  */
 
+import type { EmailBuilderKind } from "./email-builder-types";
+
 // =============================================================================
 // CORE ENUMS AND CONSTANTS
 // =============================================================================
@@ -169,12 +171,18 @@ export interface EmailTemplate {
   description: string | null;
   category: EmailTemplateCategory;
 
-  // Unlayer design (source of truth)
+  // Provider-neutral builder document (source of truth).
+  builder: EmailBuilderKind;
+  builder_version: string | null;
   design_json: Record<string, unknown>;
+  editor_metadata: Record<string, unknown>;
+  legacy_unlayer_project_id: number | null;
 
-  // Exported HTML (cached for sending)
+  // Exported content cache used for sending and previews.
   html_content: string | null;
   html_exported_at: string | null;
+  text_content: string | null;
+  text_exported_at: string | null;
 
   // Email metadata
   default_subject: string | null;
@@ -198,10 +206,16 @@ export interface EmailTemplateInsert {
   name: string;
   description?: string | null;
   category?: EmailTemplateCategory;
+  builder: EmailBuilderKind;
+  builder_version?: string | null;
   design_json: Record<string, unknown>;
+  editor_metadata?: Record<string, unknown>;
+  legacy_unlayer_project_id?: number | null;
   html_content?: string | null;
   default_subject?: string | null;
   default_preheader?: string | null;
+  text_content?: string | null;
+  text_exported_at?: string | null;
   is_active?: boolean;
   is_system?: boolean;
   created_by?: string | null;
@@ -211,9 +225,15 @@ export interface EmailTemplateUpdate {
   name?: string;
   description?: string | null;
   category?: EmailTemplateCategory;
+  builder?: EmailBuilderKind;
+  builder_version?: string | null;
   design_json?: Record<string, unknown>;
+  editor_metadata?: Record<string, unknown>;
+  legacy_unlayer_project_id?: number | null;
   html_content?: string | null;
   html_exported_at?: string | null;
+  text_content?: string | null;
+  text_exported_at?: string | null;
   default_subject?: string | null;
   default_preheader?: string | null;
   is_active?: boolean;

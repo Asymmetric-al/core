@@ -10,8 +10,8 @@ import {
 
 const validEnv = {
   VERCEL_TOKEN: "vercel-token",
-  STRIPE_SECRET_KEY: "sk_live_123",
-  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "pk_live_123",
+  STRIPE_SECRET_KEY: "sk_test_123",
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "pk_test_123",
   ADMIN_STRIPE_WEBHOOK_SECRET: "whsec_admin",
   DONOR_STRIPE_WEBHOOK_SECRET: "whsec_donor",
   MISSIONARY_STRIPE_WEBHOOK_SECRET: "whsec_missionary",
@@ -88,7 +88,7 @@ describe("sync Vercel production env helpers", () => {
     expect(
       validateInputEnv({
         ...validEnv,
-        STRIPE_SECRET_KEY: "sk_test_123",
+        STRIPE_SECRET_KEY: "invalid_secret",
         RESEND_ENCRYPTION_KEY: "short",
         SENTRY_DSN: "not-a-url",
       }).invalid,
@@ -98,7 +98,7 @@ describe("sync Vercel production env helpers", () => {
         reason: "must be at least 32 characters",
       },
       { inputKey: "SENTRY_DSN", reason: "must be a URL" },
-      { inputKey: "STRIPE_SECRET_KEY", reason: "must start with sk_live_" },
+      { inputKey: "STRIPE_SECRET_KEY", reason: "must start with sk_" },
     ]);
   });
 
@@ -166,13 +166,13 @@ describe("sync Vercel production env helpers", () => {
       {
         vercelKey: "STRIPE_SECRET_KEY",
         inputKey: "STRIPE_SECRET_KEY",
-        value: "sk_live_123",
+        value: "sk_test_123",
         sensitive: true,
       },
       {
         vercelKey: "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
         inputKey: "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
-        value: "pk_live_123",
+        value: "pk_test_123",
         sensitive: false,
       },
       {

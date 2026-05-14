@@ -8,13 +8,13 @@
  */
 
 type CmsRelationship = string | number | { id: string | number } | null;
-type CmsPageType =
+export type CmsPageType =
   | "standard"
   | "missionary_giving"
   | "project"
   | "ministry_update";
 type PayloadPageType = Exclude<CmsPageType, "ministry_update">;
-type CmsRichTextDocument = {
+export type CmsRichTextDocument = {
   root: {
     type: string;
     children: Array<{
@@ -29,7 +29,7 @@ type CmsRichTextDocument = {
   };
   [key: string]: unknown;
 };
-type CmsLayoutBlock =
+export type CmsLayoutBlock =
   | {
       eyebrow?: string | null;
       headline: string;
@@ -99,7 +99,6 @@ type CmsLayoutBlock =
       blockType: "testimonial";
     };
 
-/** Block array copied from a page template into new documents. */
 export type CmsLayoutBlocks = CmsLayoutBlock[];
 export type CmsRichTextValue = CmsRichTextDocument;
 
@@ -115,7 +114,7 @@ export type PageCreateFields = {
   tenant: number;
   title: string;
   slug: string;
-  summary?: string;
+  summary?: string | null;
   pageType: PayloadPageType;
   template: number;
   layout: CmsLayoutBlocks;
@@ -131,7 +130,7 @@ export type MissionaryGivingPageCreateFields = {
   template: number;
   title: string;
   slug: string;
-  summary?: string;
+  summary?: string | null;
   pageType: "missionary_giving";
   layout: CmsLayoutBlocks;
 };
@@ -143,7 +142,7 @@ export type ProjectPageCreateFields = {
   template: number;
   title: string;
   slug: string;
-  summary?: string;
+  summary?: string | null;
   pageType: "project";
   layout: CmsLayoutBlocks;
 };
@@ -153,6 +152,6 @@ export type MinistryUpdateCreateFields = {
   missionary: number;
   title: string;
   slug: string;
-  excerpt?: string;
+  excerpt?: string | null;
   content: CmsRichTextValue;
 };

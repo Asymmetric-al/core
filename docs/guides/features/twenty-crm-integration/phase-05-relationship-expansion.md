@@ -48,16 +48,108 @@ If a pledge can trigger money movement or donor-visible financial state, treat t
 
 ## Checklist
 
-- [ ] Each domain has an ownership matrix row.
-- [ ] Each domain has rollback instructions.
-- [ ] Churches and organizations do not create duplicate company records.
-- [ ] Households have deterministic membership rules.
-- [ ] Relationship activity does not duplicate care truth.
-- [ ] Pledges do not become payment truth.
-- [ ] CRM search respects tenant scope.
-- [ ] Reports cite source systems clearly.
-- [ ] Recent donor views combine CRM and finance data without moving finance truth.
-- [ ] Tests cover mapping, permissions, and rollback for each new domain.
+- [x] Each domain has an ownership matrix row.
+- [x] Each domain has rollback instructions.
+- [x] Churches and organizations do not create duplicate company records.
+- [x] Households have deterministic membership rules.
+- [x] Relationship activity does not duplicate care truth.
+- [x] Pledges do not become payment truth.
+- [x] CRM search respects tenant scope.
+- [x] Reports cite source systems clearly.
+- [x] Recent donor views combine CRM and finance data without moving finance
+      truth.
+- [x] Tests cover mapping, permissions, and rollback for each new domain.
+
+## Phase 05 Artifact Status
+
+Phase 05 expands the native Mission Control CRM read model to relationship
+domains without enabling relationship-domain writes.
+
+### Native Surface
+
+- Route: `apps/admin/app/crm/relationships/page.tsx`
+- Client: `apps/admin/app/crm/relationships/page-client.tsx`
+- Columns: `apps/admin/app/crm/relationships/columns.tsx`
+- Entry point: `apps/admin/app/crm/page-client.tsx` links the CRM dashboard to
+  `/crm/relationships`
+
+The surface includes tenant-scoped search, domain filters, source-system
+reporting, stable row ids, and virtualized tables. It does not expose raw
+Twenty UI and does not add donor, missionary, finance, care, CMS, public, or
+payment controls.
+
+### Server Boundary
+
+- Thin route handler:
+  `apps/admin/app/api/admin/crm/relationships/route.ts`
+- Package API:
+  `packages/api/src/admin/crm/relationships/index.ts`
+- Service boundary:
+  `packages/api/src/admin/crm/relationships/service.ts`
+- Query parsing:
+  `packages/api/src/admin/crm/relationships/query.ts`
+- Relationship read model:
+  `packages/api/src/admin/crm/relationships/model.ts`
+
+The app route only re-exports `GET` from `@asym/api`. Twenty access stays
+server-side behind `packages/api`, and browser code receives only the native
+Asym response model from `@asym/database/types`.
+
+### Domains
+
+| Domain        | Twenty object(s)                         | Owner and guardrail                                                                  |
+| ------------- | ---------------------------------------- | ------------------------------------------------------------------------------------ |
+| People        | `people`                                 | CRM relationship context only; Supabase Auth and Asym memberships remain auth truth. |
+| Organizations | `companies`                              | CRM organization context; churches are deduped out of generic company duplicates.    |
+| Churches      | `churches`, church-like `companies`      | Custom church rows win over duplicate company rows for the same tenant/name key.     |
+| Households    | `households`                             | Membership keys are deterministic from sorted unique member ids.                     |
+| Pledges       | `relationshipCommitments`                | Relationship commitment context only; Asym finance owns payment truth.               |
+| Activity      | `ministryActivities` excluding care rows | CRM activity context only; care plans and private care notes stay Asym-owned.        |
+
+### Search And Reporting
+
+`GET /api/admin/crm/relationships` requires staff/admin/super-admin access and
+`crm.relationship.read`. It sends a tenant filter to Twenty and applies a
+second server-side tenant filter after normalizing and deduping records.
+
+Search covers people, churches, organizations, households, pledges, and
+relationship activity. Domain filters, search, sort, cursor, and limit state
+are included in the TanStack Query key in
+`packages/database/hooks/admin-crm-relationships.ts`.
+
+Reports cite source systems explicitly:
+
+- Twenty CRM owns relationship context.
+- Asym owns payment execution, receipts, statements, refunds, and
+  reconciliation.
+- Asym owns care plans and private care notes.
+- Supabase Auth and Asym memberships own identity and authorization.
+
+### Finance And Care Separation
+
+Pledge rows expose relationship commitment terms such as amount, currency,
+frequency, and status for CRM context. They intentionally do not project
+payment status, payment intent ids, receipts, statements, refunds, or
+reconciliation records.
+
+Relationship activity excludes care-sensitive activity rows before the native
+CRM read model is returned. Care-sensitive records remain in Asym care systems.
+
+### Rollback
+
+The existing `/crm` and `/crm/notes` Mission Control paths remain intact. To
+roll back Phase 05, hide `/crm/relationships` and pause these domains in
+`crm_sync_settings` as needed: `people`, `companies`, `churches`,
+`households`, `ministry_activities`, and `relationship_commitments`.
+
+No donor, missionary, finance, CMS, care, public, auth, or payment authority is
+moved by this phase.
+
+### Tests
+
+- `tests/unit/packages/api/admin/crm-relationships-query.test.ts`
+- `tests/unit/packages/api/crm-relationships.test.ts`
+- `tests/unit/packages/api/crm-boundary.test.ts`
 
 ## Exit Gate
 

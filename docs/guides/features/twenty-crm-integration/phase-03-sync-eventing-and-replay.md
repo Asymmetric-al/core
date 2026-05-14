@@ -42,16 +42,53 @@ Move CRM data between Twenty and Asym safely, visibly, and replayably. Twenty do
 
 ## Checklist
 
-- [ ] Webhooks reject missing, stale, or invalid signatures.
-- [ ] Accepted events are stored durably before processing.
-- [ ] Event processing is idempotent.
-- [ ] Outbound writes are queued when they should not block user-facing flows.
-- [ ] Stripe, receipt, statement, and reconciliation flows do not depend on Twenty availability.
-- [ ] Failed events and jobs are visible.
-- [ ] Replay does not duplicate records.
-- [ ] Sync can be paused per domain.
-- [ ] Reconciliation detects orphan links, stale projections, stalled jobs, and duplicate candidates.
-- [ ] Operators can distinguish ignored events from failed events.
+- [x] Webhooks reject missing, stale, or invalid signatures.
+- [x] Accepted events are stored durably before processing.
+- [x] Event processing is idempotent.
+- [x] Outbound writes are queued when they should not block user-facing flows.
+- [x] Stripe, receipt, statement, and reconciliation flows do not depend on
+      Twenty availability.
+- [x] Failed events and jobs are visible.
+- [x] Replay does not duplicate records.
+- [x] Sync can be paused per domain.
+- [x] Reconciliation detects orphan links, stale projections, stalled jobs, and
+      duplicate candidates.
+- [x] Operators can distinguish ignored events from failed events.
+
+## Phase 03 Artifact Status
+
+Phase 03 is complete as a non-production sync/eventing foundation:
+
+- Signed Twenty webhook ingress is exposed by the thin admin route
+  `apps/admin/app/api/admin/crm/webhooks/twenty/route.ts`, which delegates to
+  `@asym/api/admin/crm/webhooks/twenty`.
+- Signature verification, timestamp tolerance, raw-body parsing, and payload
+  normalization live under `packages/api/src/crm/webhooks/*`.
+- Durable event, outbound job, sync pause, reconciliation, and sync log tables
+  are created by `supabase/migrations/20260508001923_crm_sync_eventing_replay.sql`.
+- Outbound job idempotency and retry/dead-letter handling live in
+  `packages/api/src/crm/sync/outbound.ts`.
+- Replay helpers for inbound events and outbound jobs live in
+  `packages/api/src/crm/sync/replay.ts`.
+- Reconciliation detection for orphan links, stale projections, stalled jobs,
+  duplicate candidates, and failed webhooks lives in
+  `packages/api/src/crm/reconciliation/run.ts`.
+- Staff-only non-production replay and reconciliation endpoints are thin admin
+  route exports under `apps/admin/app/api/admin/crm/sync/*`.
+- Unit coverage lives in
+  `tests/unit/packages/api/crm-{webhook-signature,webhook-ingress,outbound-sync,replay-reconciliation}.test.ts`.
+
+Sync flags default off through server-only environment variables:
+
+- `CRM_SYNC_INBOUND_ENABLED`
+- `CRM_SYNC_OUTBOUND_ENABLED`
+- `CRM_SYNC_REPLAY_ENABLED`
+- `CRM_SYNC_RECONCILIATION_ENABLED`
+- `CRM_SYNC_WEBHOOK_TOLERANCE_SECONDS`
+
+Per-tenant, per-domain pause controls live in `crm_sync_settings`. This phase
+does not run production imports, move money/CMS/care truth to Twenty, add
+user-facing CRM cutover behavior, or proceed to Phase 04.
 
 ## Exit Gate
 

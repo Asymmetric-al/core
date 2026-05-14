@@ -53,12 +53,12 @@ describe("vercel production readiness helpers", () => {
       parseDotEnv(`
 # comment
 NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co
-STRIPE_SECRET_KEY="sk_live_hidden"
+STRIPE_SECRET_KEY="sk_test_hidden"
 export RESEND_API_KEY='re_hidden'
       `),
     ).toEqual({
       NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-      STRIPE_SECRET_KEY: "sk_live_hidden",
+      STRIPE_SECRET_KEY: "sk_test_hidden",
       RESEND_API_KEY: "re_hidden",
     });
   });
@@ -68,8 +68,8 @@ export RESEND_API_KEY='re_hidden'
       "NEXT_PUBLIC_SUPABASE_URL",
       {
         key: "STRIPE_SECRET_KEY",
-        reason: "must start with sk_live_",
-        validate: (value: string) => value.startsWith("sk_live_"),
+        reason: "must start with sk_",
+        validate: (value: string) => value.startsWith("sk_"),
       },
     ];
 
@@ -80,14 +80,14 @@ export RESEND_API_KEY='re_hidden'
       invalidEnvValues(
         {
           NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-          STRIPE_SECRET_KEY: "sk_test_hidden",
+          STRIPE_SECRET_KEY: "invalid_secret",
         },
         requirements,
       ),
     ).toEqual([
       {
         key: "STRIPE_SECRET_KEY",
-        reason: "must start with sk_live_",
+        reason: "must start with sk_",
       },
     ]);
   });
@@ -210,7 +210,7 @@ export RESEND_API_KEY='re_hidden'
       project,
       envValues: {
         NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-        STRIPE_SECRET_KEY: "sk_live_hidden",
+        STRIPE_SECRET_KEY: "sk_test_hidden",
       },
       deployments: [
         {
@@ -239,7 +239,7 @@ export RESEND_API_KEY='re_hidden'
       project,
       envValues: {
         NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-        STRIPE_SECRET_KEY: "sk_live_hidden",
+        STRIPE_SECRET_KEY: "sk_test_hidden",
       },
       deployments: [
         {

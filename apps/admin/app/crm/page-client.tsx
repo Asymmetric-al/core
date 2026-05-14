@@ -44,9 +44,13 @@ import {
   History,
   FileText,
   MoreHorizontal,
+  Network,
   Receipt,
   Trash2,
+  StickyNote,
+  GitCompareArrows,
 } from "lucide-react";
+import Link from "next/link";
 import React, { useState, useMemo } from "react";
 import { toast } from "sonner";
 
@@ -625,6 +629,24 @@ export default function MissionControlCRM() {
             </div>
             <Button className="h-10 gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90">
               <Plus className="size-3.5" /> New Record
+            </Button>
+            <Button variant="outline" className="h-11 gap-2" asChild>
+              <Link href="/crm/relationships">
+                <Network className="h-4 w-4" />
+                Relationships
+              </Link>
+            </Button>
+            <Button variant="outline" className="h-11 gap-2" asChild>
+              <Link href="/crm/notes">
+                <StickyNote className="h-4 w-4" />
+                Notes
+              </Link>
+            </Button>
+            <Button variant="outline" className="h-11 gap-2" asChild>
+              <Link href="/crm/projections">
+                <GitCompareArrows className="h-4 w-4" />
+                Projections
+              </Link>
             </Button>
           </div>
         }

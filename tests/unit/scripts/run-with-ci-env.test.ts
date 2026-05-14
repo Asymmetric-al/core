@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
   loadLocalEnvFiles,
+  normalizeEnvForCommand,
   parseEnvFile,
 } from "../../../scripts/run-with-ci-env.mjs";
 import { applyMissionControlCloudEnvDefaults } from "../../../scripts/dev/setup-mission-control-cloud.mjs";
@@ -86,6 +87,18 @@ describe("run-with-ci-env", () => {
     expect(env.EXISTING).toBe("already-set");
     expect(env.LOCAL_ONLY).toBe("");
     expect(env.SHARED).toBe("from-local");
+  });
+
+  it("removes inherited NO_COLOR when launching Playwright", () => {
+    const env = normalizeEnvForCommand(
+      {
+        FORCE_COLOR: "",
+        NO_COLOR: "1",
+      },
+      ["node", "node_modules/@playwright/test/cli.js", "test"],
+    );
+
+    expect(env).toEqual({ FORCE_COLOR: "" });
   });
 });
 

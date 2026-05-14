@@ -1,7 +1,16 @@
 "use client";
 "use no memo";
 
-import { type EmailStudioFullConfig } from "@asym/config/email-studio";
+import {
+  getEmailStudioConfig,
+  type EmailStudioFullConfig,
+} from "@asym/config/email-studio";
+import {
+  EMPTY_REACT_EMAIL_DESIGN,
+  type EmailBuilderKind,
+  type EmailStudioEditorHandle,
+  type EmailStudioExportResult,
+} from "@asym/email/email-builder-types";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Dialog,
@@ -33,8 +42,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@asym/ui/components/shadcn/tooltip";
-import { EmailStudioSetupStatus } from "@asym/ui/components/studio/EmailStudioSetupStatus";
-import { UnlayerEditor } from "@asym/ui/components/studio/UnlayerEditor";
+import { EmailStudioEditor } from "@asym/ui/components/studio/EmailStudioEditor";
+import { EmailStudioMergeTagMenu } from "@asym/ui/components/studio/EmailStudioMergeTagMenu";
+import { EmailStudioPreviewDialog } from "@asym/ui/components/studio/EmailStudioPreview";
+import { EmailStudioProviderStatus } from "@asym/ui/components/studio/EmailStudioProviderStatus";
 import { cn } from "@asym/ui/lib/utils";
 import {
   Mail,
@@ -68,11 +79,10 @@ import React, {
   useCallback,
   useEffect,
   useEffectEvent,
+  useMemo,
   useReducer,
 } from "react";
 import { toast } from "sonner";
-
-import type { UnlayerEditorHandle } from "@asym/ui/components/studio/UnlayerEditor";
 
 type PreviewDevice = "desktop" | "mobile";
 
@@ -81,6 +91,20 @@ interface EmailMetadata {
   name: string;
   subject: string;
   preheader: string;
+}
+
+interface EmailTemplateListEntry {
+  id: string;
+  name: string;
+  builder: EmailBuilderKind;
+  builder_version: string | null;
+  design_json: Record<string, unknown>;
+  html_content: string | null;
+  text_content: string | null;
+  default_subject: string | null;
+  default_preheader: string | null;
+  version: number;
+  updated_at: string;
 }
 
 interface EmailStudioUiState {
@@ -161,6 +185,8 @@ function emailStudioUiReducer(
 
 interface EmailStudioHeaderProps {
   metadata: EmailMetadata;
+  builder: EmailBuilderKind;
+  legacyUnlayerEnabled: boolean;
   hasUnsavedChanges: boolean;
   isEditorReady: boolean;
   isSaving: boolean;
@@ -170,13 +196,18 @@ interface EmailStudioHeaderProps {
   onRedo: () => void;
   onPreview: (device: PreviewDevice) => void;
   onExportHtml: () => void;
+  onTestSend: () => void;
+  onInsertMergeTag: (key: string) => void;
   onSaveClick: () => void;
   onNewTemplate: () => void;
+  onLoadTemplate: () => void;
   onToggleFullscreen: () => void;
 }
 
 function EmailStudioHeader({
   metadata,
+  builder,
+  legacyUnlayerEnabled,
   hasUnsavedChanges,
   isEditorReady,
   isSaving,
@@ -186,8 +217,11 @@ function EmailStudioHeader({
   onRedo,
   onPreview,
   onExportHtml,
+  onTestSend,
+  onInsertMergeTag,
   onSaveClick,
   onNewTemplate,
+  onLoadTemplate,
   onToggleFullscreen,
 }: EmailStudioHeaderProps) {
   return (
@@ -203,7 +237,11 @@ function EmailStudioHeader({
         </div>
 
         <div className="hidden md:block">
-          <EmailStudioSetupStatus variant="badge" />
+          <EmailStudioProviderStatus
+            builder={builder}
+            legacyUnlayerEnabled={legacyUnlayerEnabled}
+            variant="badge"
+          />
         </div>
 
         <Separator orientation="vertical" className="h-5 hidden md:block" />
@@ -235,6 +273,7 @@ function EmailStudioHeader({
                 variant="ghost"
                 size="sm"
                 className="size-7 p-0"
+                aria-label="Undo"
                 onClick={onUndo}
                 disabled={!isEditorReady}
               >
@@ -252,6 +291,7 @@ function EmailStudioHeader({
                 variant="ghost"
                 size="sm"
                 className="size-7 p-0"
+                aria-label="Redo"
                 onClick={onRedo}
                 disabled={!isEditorReady}
               >
@@ -309,6 +349,13 @@ function EmailStudioHeader({
 
         <Separator orientation="vertical" className="h-5 hidden md:block" />
 
+        <div className="hidden lg:block">
+          <EmailStudioMergeTagMenu
+            disabled={!isEditorReady}
+            onInsert={onInsertMergeTag}
+          />
+        </div>
+
         <DropdownMenu>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -341,9 +388,7 @@ function EmailStudioHeader({
               Export as PDF
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => toast.info("Coming soon: Send test email")}
-            >
+            <DropdownMenuItem onClick={onTestSend}>
               <Send className="size-4 mr-2" />
               Send Test Email
             </DropdownMenuItem>
@@ -373,7 +418,12 @@ function EmailStudioHeader({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="size-8 p-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="size-8 p-0"
+              aria-label="More email template actions"
+            >
               <MoreHorizontal className="size-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -388,9 +438,7 @@ function EmailStudioHeader({
               <Settings className="size-4 mr-2" />
               Settings
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => toast.info("Coming soon: Load template")}
-            >
+            <DropdownMenuItem onClick={onLoadTemplate}>
               <FolderOpen className="size-4 mr-2" />
               Load Template
             </DropdownMenuItem>
@@ -624,32 +672,263 @@ function EmailExportDialog({
   );
 }
 
-async function simulateSaveTemplate(): Promise<boolean> {
-  try {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    return true;
-  } catch {
-    return false;
-  }
+function EmailTestSendDialog({
+  open,
+  onOpenChange,
+  toEmail,
+  onToEmailChange,
+  isSending,
+  onSend,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  toEmail: string;
+  onToEmailChange: (value: string) => void;
+  isSending: boolean;
+  onSend: () => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[420px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <div className="rounded-lg bg-primary/10 p-2">
+              <Send className="h-4 w-4 text-primary" />
+            </div>
+            Send test email
+          </DialogTitle>
+          <DialogDescription>
+            Sends the current editor output through the tenant Resend
+            connection.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-2 py-4">
+          <Label htmlFor="test-to-email" className="text-xs font-medium">
+            Recipient email
+          </Label>
+          <Input
+            id="test-to-email"
+            value={toEmail}
+            onChange={(event) => onToEmailChange(event.target.value)}
+            placeholder="you@example.com"
+            type="email"
+          />
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button disabled={isSending || !toEmail.trim()} onClick={onSend}>
+            {isSending ? (
+              <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            ) : (
+              <Send className="mr-2 h-4 w-4" />
+            )}
+            Send
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
-async function runSaveEmailDesign(
-  editor: UnlayerEditorHandle,
-): Promise<boolean> {
-  try {
-    await editor.saveDesign();
-    return true;
-  } catch {
-    return false;
+function EmailTemplatePickerDialog({
+  open,
+  onOpenChange,
+  templates,
+  isLoading,
+  onSelect,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  templates: EmailTemplateListEntry[];
+  isLoading: boolean;
+  onSelect: (template: EmailTemplateListEntry) => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[560px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <div className="rounded-lg bg-primary/10 p-2">
+              <FolderOpen className="h-4 w-4 text-primary" />
+            </div>
+            Open template
+          </DialogTitle>
+          <DialogDescription>
+            Reopen a saved template from the tenant template store.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="max-h-[420px] overflow-y-auto py-2">
+          {isLoading ? (
+            <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              Loading templates...
+            </div>
+          ) : templates.length === 0 ? (
+            <div className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
+              No saved templates yet.
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {templates.map((template) => (
+                <button
+                  key={template.id}
+                  type="button"
+                  className="flex w-full items-center justify-between rounded-md border bg-background px-3 py-3 text-left transition-colors hover:bg-muted"
+                  onClick={() => onSelect(template)}
+                >
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium">
+                      {template.name}
+                    </div>
+                    <div className="mt-0.5 text-xs text-muted-foreground">
+                      {template.builder === "react_email"
+                        ? "React Email"
+                        : "Legacy Unlayer"}{" "}
+                      · v{template.version}
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+interface PersistTemplateResponse {
+  success: boolean;
+  template?: {
+    id: string;
+    name: string;
+    builder: EmailBuilderKind;
+    version: number;
+  };
+  error?: string;
+}
+
+async function fetchEmailTemplates(): Promise<EmailTemplateListEntry[]> {
+  const response = await fetch("/api/email/templates", {
+    method: "GET",
+  });
+  const body = (await response.json().catch(() => null)) as {
+    success?: boolean;
+    templates?: EmailTemplateListEntry[];
+    error?: string;
+  } | null;
+
+  if (!response.ok || !body?.success) {
+    throw new Error(body?.error ?? "Failed to load templates");
   }
+
+  return body.templates ?? [];
+}
+
+async function persistEmailTemplate(
+  metadata: EmailMetadata,
+  exportResult: EmailStudioExportResult,
+): Promise<PersistTemplateResponse> {
+  const payload = {
+    name: metadata.name.trim(),
+    category: "campaign",
+    builder: exportResult.builder,
+    builderVersion: exportResult.builderVersion,
+    designJson: exportResult.design,
+    htmlContent: exportResult.html,
+    textContent: exportResult.text,
+    defaultSubject: metadata.subject || null,
+    defaultPreheader: metadata.preheader || null,
+    editorMetadata: {
+      source: "admin_email_studio",
+      savedAt: new Date().toISOString(),
+    },
+  };
+
+  const response = await fetch(
+    metadata.id
+      ? `/api/email/templates/${metadata.id}`
+      : "/api/email/templates",
+    {
+      method: metadata.id ? "PATCH" : "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+  );
+
+  const body = (await response
+    .json()
+    .catch(() => null)) as PersistTemplateResponse | null;
+
+  if (!response.ok || !body?.success) {
+    throw new Error(body?.error ?? "Failed to save template");
+  }
+
+  return body;
+}
+
+async function sendTemplateTestEmail(input: {
+  toEmail: string;
+  metadata: EmailMetadata;
+  exportResult: EmailStudioExportResult;
+}) {
+  const response = await fetch(
+    input.metadata.id
+      ? `/api/email/templates/${input.metadata.id}/test-send`
+      : "/api/email/templates/test-send",
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        toEmail: input.toEmail,
+        subject: input.metadata.subject || input.metadata.name,
+        preheader: input.metadata.preheader || undefined,
+        builder: input.exportResult.builder,
+        builderVersion: input.exportResult.builderVersion,
+        designJson: input.exportResult.design,
+        html: input.exportResult.html,
+        text: input.exportResult.text,
+      }),
+    },
+  );
+
+  const body = (await response.json().catch(() => null)) as {
+    success?: boolean;
+    error?: string;
+    messageId?: string | null;
+  } | null;
+
+  if (!response.ok || !body?.success) {
+    throw new Error(body?.error ?? "Failed to send test email");
+  }
+
+  return body;
 }
 
 export default function EmailStudio() {
-  const editorRef = useRef<UnlayerEditorHandle>(null);
+  const editorRef = useRef<EmailStudioEditorHandle>(null);
+  const runtimeConfig = useMemo(() => getEmailStudioConfig(), []);
   const [ui, dispatchUi] = useReducer(
     emailStudioUiReducer,
     INITIAL_EMAIL_STUDIO_UI_STATE,
   );
+  const [builder, setBuilder] = useState<EmailBuilderKind>(
+    runtimeConfig.builder.defaultBuilder,
+  );
+  const [initialDesign, setInitialDesign] = useState<Record<string, unknown>>(
+    EMPTY_REACT_EMAIL_DESIGN,
+  );
+  const [previewResult, setPreviewResult] =
+    useState<EmailStudioExportResult | null>(null);
+  const [showTestSendDialog, setShowTestSendDialog] = useState(false);
+  const [testToEmail, setTestToEmail] = useState("");
+  const [isSendingTest, setIsSendingTest] = useState(false);
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false);
+  const [templates, setTemplates] = useState<EmailTemplateListEntry[]>([]);
+  const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
   const [metadata, setMetadata] = useState<EmailMetadata>({
     id: null,
     name: "Untitled Email",
@@ -685,15 +964,16 @@ export default function EmailStudio() {
   const handleExportHtml = useCallback(async () => {
     if (!editorRef.current) return;
     try {
-      const data = await editorRef.current.exportHtml({
+      const data = await editorRef.current.exportEmail({
+        subject: metadata.subject,
+        preheader: metadata.preheader,
         minify: studioConfig?.export.minifyHtml ?? true,
-        cleanup: studioConfig?.export.cleanupCss ?? true,
       });
       dispatchUi({ type: "open_export_dialog", html: data.html });
     } catch {
       toast.error("Failed to export HTML");
     }
-  }, [studioConfig]);
+  }, [metadata.preheader, metadata.subject, studioConfig]);
 
   const handleKeyDown = useEffectEvent((e: KeyboardEvent) => {
     if ((e.metaKey || e.ctrlKey) && e.key === "s") {
@@ -724,46 +1004,17 @@ export default function EmailStudio() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const handleEditorReady = useCallback((config: EmailStudioFullConfig) => {
-    dispatchUi({ type: "editor_ready", config });
-
-    if (!config.account.isConfigured) {
-      toast.info("Email Studio is running in free mode", {
-        description: "Configure your Unlayer account for full features",
-        duration: 4000,
-        action: {
-          label: "Setup",
-          onClick: () => {},
-        },
-      });
-    }
-  }, []);
+  const handleEditorReady = useCallback(
+    (readyBuilder: EmailBuilderKind) => {
+      setBuilder(readyBuilder);
+      dispatchUi({ type: "editor_ready", config: runtimeConfig });
+    },
+    [runtimeConfig],
+  );
 
   const handleDesignUpdate = useCallback(() => {
     dispatchUi({ type: "set_unsaved_changes", value: true });
   }, []);
-
-  const handleSave = useCallback(async () => {
-    dispatchUi({ type: "set_saving", value: true });
-    const saved = await simulateSaveTemplate();
-    if (saved) {
-      if (!metadata.id) {
-        setMetadata((prev) => ({ ...prev, id: crypto.randomUUID() }));
-      }
-
-      dispatchUi({ type: "set_unsaved_changes", value: false });
-      toast.success("Template saved", {
-        description: `"${metadata.name}" has been saved successfully`,
-        duration: 3000,
-      });
-    } else {
-      toast.error("Failed to save template", {
-        description: "Please try again",
-        duration: 3000,
-      });
-    }
-    dispatchUi({ type: "set_saving", value: false });
-  }, [metadata.id, metadata.name]);
 
   const handleConfirmSave = useCallback(async () => {
     if (!editorRef.current) return;
@@ -771,23 +1022,36 @@ export default function EmailStudio() {
     dispatchUi({ type: "set_show_save_dialog", value: false });
     dispatchUi({ type: "set_saving", value: true });
 
-    const saved = await runSaveEmailDesign(editorRef.current);
-    if (saved) {
+    try {
+      const exportResult = await editorRef.current.exportEmail({
+        subject: metadata.subject,
+        preheader: metadata.preheader,
+        minify: studioConfig?.export.minifyHtml ?? true,
+      });
+      const result = await persistEmailTemplate(metadata, exportResult);
+
       dispatchUi({ type: "set_unsaved_changes", value: false });
 
-      if (!metadata.id) {
-        setMetadata((prev) => ({ ...prev, id: crypto.randomUUID() }));
+      if (result.template?.id) {
+        setMetadata((prev) => ({
+          ...prev,
+          id: result.template?.id ?? prev.id,
+          name: result.template?.name ?? prev.name,
+        }));
       }
 
       toast.success("Template saved", {
         description: `"${metadata.name}" has been saved successfully`,
         duration: 3000,
       });
-    } else {
-      toast.error("Failed to save template");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to save template",
+      );
+    } finally {
+      dispatchUi({ type: "set_saving", value: false });
     }
-    dispatchUi({ type: "set_saving", value: false });
-  }, [metadata.name, metadata.id]);
+  }, [metadata, studioConfig]);
 
   const handleCopyHtml = useCallback(() => {
     navigator.clipboard.writeText(exportedHtml);
@@ -812,11 +1076,24 @@ export default function EmailStudio() {
     toast.success("HTML downloaded");
   }, [exportedHtml, metadata.name]);
 
-  const handlePreview = useCallback((device: PreviewDevice) => {
-    if (!editorRef.current) return;
-    dispatchUi({ type: "set_preview_device", value: device });
-    editorRef.current.showPreview(device);
-  }, []);
+  const handlePreview = useCallback(
+    async (device: PreviewDevice) => {
+      if (!editorRef.current) return;
+      dispatchUi({ type: "set_preview_device", value: device });
+
+      try {
+        const result = await editorRef.current.exportEmail({
+          subject: metadata.subject,
+          preheader: metadata.preheader,
+          minify: studioConfig?.export.minifyHtml ?? true,
+        });
+        setPreviewResult(result);
+      } catch {
+        toast.error("Failed to generate preview");
+      }
+    },
+    [metadata.preheader, metadata.subject, studioConfig],
+  );
 
   const handleNewTemplate = useCallback(() => {
     setMetadata({
@@ -826,20 +1103,88 @@ export default function EmailStudio() {
       preheader: "",
     });
     if (editorRef.current) {
-      editorRef.current.loadDesign({
-        counters: { u_column: 1, u_row: 1 },
-        body: {
-          rows: [],
-          values: {
-            backgroundColor: "#ffffff",
-            contentWidth: "600px",
-          },
-        },
-      });
+      editorRef.current.loadDesign(EMPTY_REACT_EMAIL_DESIGN);
     }
+    setInitialDesign(EMPTY_REACT_EMAIL_DESIGN);
+    setBuilder(runtimeConfig.builder.defaultBuilder);
     dispatchUi({ type: "set_unsaved_changes", value: false });
     toast.info("New template created");
+  }, [runtimeConfig.builder.defaultBuilder]);
+
+  const handleInsertMergeTag = useCallback((key: string) => {
+    editorRef.current?.insertMergeTag?.(key);
+    dispatchUi({ type: "set_unsaved_changes", value: true });
   }, []);
+
+  const handleOpenTestSend = useCallback(() => {
+    if (!editorRef.current) return;
+    setShowTestSendDialog(true);
+  }, []);
+
+  const handleOpenTemplatePicker = useCallback(async () => {
+    setShowTemplatePicker(true);
+    setIsLoadingTemplates(true);
+    try {
+      setTemplates(await fetchEmailTemplates());
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to load templates",
+      );
+    } finally {
+      setIsLoadingTemplates(false);
+    }
+  }, []);
+
+  const handleSelectTemplate = useCallback(
+    (template: EmailTemplateListEntry) => {
+      const isSameBuilder = template.builder === builder;
+      setInitialDesign(template.design_json);
+      setBuilder(template.builder);
+      setMetadata({
+        id: template.id,
+        name: template.name,
+        subject: template.default_subject ?? "",
+        preheader: template.default_preheader ?? "",
+      });
+      if (isSameBuilder) {
+        editorRef.current?.loadDesign(template.design_json);
+      }
+      dispatchUi({ type: "set_unsaved_changes", value: false });
+      setShowTemplatePicker(false);
+      toast.success("Template opened", {
+        description: template.name,
+      });
+    },
+    [builder],
+  );
+
+  const handleSendTestEmail = useCallback(async () => {
+    if (!editorRef.current) return;
+    setIsSendingTest(true);
+    try {
+      const exportResult = await editorRef.current.exportEmail({
+        subject: metadata.subject || metadata.name,
+        preheader: metadata.preheader,
+        minify: studioConfig?.export.minifyHtml ?? true,
+      });
+      const result = await sendTemplateTestEmail({
+        toEmail: testToEmail,
+        metadata,
+        exportResult,
+      });
+
+      setShowTestSendDialog(false);
+      toast.success("Test email sent", {
+        description: result.messageId ?? undefined,
+      });
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to send test email",
+      );
+    } finally {
+      setIsSendingTest(false);
+    }
+  }, [metadata, studioConfig, testToEmail]);
 
   return (
     <div
@@ -852,6 +1197,8 @@ export default function EmailStudio() {
     >
       <EmailStudioHeader
         metadata={metadata}
+        builder={builder}
+        legacyUnlayerEnabled={runtimeConfig.builder.legacyUnlayerEnabled}
         hasUnsavedChanges={hasUnsavedChanges}
         isEditorReady={isEditorReady}
         isSaving={isSaving}
@@ -861,30 +1208,25 @@ export default function EmailStudio() {
         onRedo={handleRedo}
         onPreview={handlePreview}
         onExportHtml={handleExportHtml}
+        onTestSend={handleOpenTestSend}
+        onInsertMergeTag={handleInsertMergeTag}
         onSaveClick={handleSaveClick}
         onNewTemplate={handleNewTemplate}
+        onLoadTemplate={handleOpenTemplatePicker}
         onToggleFullscreen={() => dispatchUi({ type: "toggle_fullscreen" })}
       />
 
       <div className="flex-1 relative overflow-hidden bg-muted/30">
-        <UnlayerEditor
-          mode="email"
-          editorId="email-studio-editor"
+        <EmailStudioEditor
+          key={`${builder}:${metadata.id ?? "draft"}`}
+          builder={builder}
+          legacyUnlayerEnabled={runtimeConfig.builder.legacyUnlayerEnabled}
+          initialDesign={initialDesign}
+          templateId={metadata.id}
           onReady={handleEditorReady}
           onDesignUpdate={handleDesignUpdate}
-          onSave={handleSave}
           ref={editorRef}
           className="absolute inset-0"
-          appearance={{
-            theme: "modern_light",
-            panels: {
-              tools: {
-                dock: "right",
-                collapsible: true,
-                defaultUncollapsed: true,
-              },
-            },
-          }}
         />
       </div>
 
@@ -908,6 +1250,34 @@ export default function EmailStudio() {
         copiedHtml={copiedHtml}
         onCopyHtml={handleCopyHtml}
         onDownloadHtml={handleDownloadHtml}
+      />
+
+      <EmailStudioPreviewDialog
+        open={previewResult !== null}
+        onOpenChange={(open) => {
+          if (!open) setPreviewResult(null);
+        }}
+        html={previewResult?.html ?? ""}
+        text={previewResult?.text ?? ""}
+        subject={metadata.subject}
+        preheader={metadata.preheader}
+      />
+
+      <EmailTestSendDialog
+        open={showTestSendDialog}
+        onOpenChange={setShowTestSendDialog}
+        toEmail={testToEmail}
+        onToEmailChange={setTestToEmail}
+        isSending={isSendingTest}
+        onSend={handleSendTestEmail}
+      />
+
+      <EmailTemplatePickerDialog
+        open={showTemplatePicker}
+        onOpenChange={setShowTemplatePicker}
+        templates={templates}
+        isLoading={isLoadingTemplates}
+        onSelect={handleSelectTemplate}
       />
     </div>
   );

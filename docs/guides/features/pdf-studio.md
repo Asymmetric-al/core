@@ -1,6 +1,10 @@
 # PDF Studio
 
-A professional drag-and-drop document editor powered by Unlayer, optimized for creating PDF documents like tax receipts, donation statements, and letters.
+A professional drag-and-drop document editor for tax receipts, donation statements, and letters.
+
+## Current migration status
+
+PDF Studio is intentionally isolated on the legacy Unlayer document adapter while Email Studio migrates to React Email Editor. React Email Editor is not a PDF/document editor, and Resend is not a PDF export system, so removing Unlayer globally requires a separate PDF Studio migration or explicit product decision to disable PDF Studio.
 
 ## Overview
 
@@ -8,21 +12,21 @@ PDF Studio provides a visual document builder using Unlayer's `displayMode: 'doc
 
 ## Current Implementation Status
 
-| Feature                    | Status   | Location                                         |
-| -------------------------- | -------- | ------------------------------------------------ |
-| Unlayer Editor Integration | Complete | `src/components/studio/UnlayerEditor.tsx`        |
-| PDF Studio Page            | Complete | `src/app/(admin)/mc/pdf/page.tsx`                |
-| Configuration System       | Complete | `src/config/pdf-studio.ts`                       |
-| Type Definitions           | Complete | `src/types/pdf-studio.ts`                        |
-| Setup Status Component     | Complete | `src/components/studio/PDFStudioSetupStatus.tsx` |
-| HTML Export                | Complete | Via `exportHtml()` method                        |
-| PDF Export                 | Complete | Via `exportPdf()` method (requires project ID)   |
-| Template Save (API)        | Complete | `src/app/api/pdf-templates/route.ts`             |
-| Template CRUD              | Complete | Create, Read, Update, Delete                     |
-| Database Storage           | Complete | `pdf_templates` table in Supabase                |
-| Template Categories        | Complete | Tax receipt, donation receipt, statements, etc.  |
-| Page Size Options          | Complete | Letter, A4, Legal                                |
-| Orientation Options        | Complete | Portrait, Landscape                              |
+| Feature                        | Status   | Location                                                         |
+| ------------------------------ | -------- | ---------------------------------------------------------------- |
+| Legacy Unlayer Document Editor | Complete | `packages/ui/components/studio/legacy/UnlayerDocumentEditor.tsx` |
+| PDF Studio Page                | Complete | `apps/admin/app/pdf/page-client.tsx`                             |
+| Configuration System           | Complete | `packages/config/pdf-studio.ts`                                  |
+| Type Definitions               | Complete | `apps/admin/lib/pdf-studio.ts`                                   |
+| Setup Status Component         | Complete | `packages/ui/components/studio/PDFStudioSetupStatus.tsx`         |
+| HTML Export                    | Complete | Via `exportHtml()` method                                        |
+| PDF Export                     | Complete | Via `exportPdf()` method (requires project ID)                   |
+| Template Save (API)            | Legacy   | Existing `/api/pdf-templates` calls remain a PDF workstream item |
+| Template CRUD                  | Legacy   | Keep current behavior; do not change in Email Studio migration   |
+| Database Storage               | Complete | `pdf_templates` table in Supabase                                |
+| Template Categories            | Complete | Tax receipt, donation receipt, statements, etc.                  |
+| Page Size Options              | Complete | Letter, A4, Legal                                                |
+| Orientation Options            | Complete | Portrait, Landscape                                              |
 
 ---
 
@@ -38,26 +42,23 @@ PDFStudio (page.tsx)
 │   ├── Preview toggle (desktop/mobile)
 │   ├── Export dropdown (PDF/HTML)
 │   └── Save button
-└── UnlayerEditor (mode="document")
-    └── react-email-editor (EmailEditor)
+└── LegacyUnlayerDocumentEditor
+    └── react-email-editor (legacy Unlayer runtime)
 ```
 
 ### File Structure
 
 ```
-src/
-├── app/(admin)/mc/pdf/
-│   └── page.tsx                    # PDF Studio page
-├── app/api/pdf-templates/
-│   ├── route.ts                    # List & Create templates
-│   └── [templateId]/route.ts       # Get, Update, Delete template
-├── components/studio/
-│   ├── UnlayerEditor.tsx           # Core editor wrapper
-│   └── PDFStudioSetupStatus.tsx    # Setup status badge
-├── config/
-│   └── pdf-studio.ts               # Configuration & constants
-└── types/
-    └── pdf-studio.ts               # TypeScript definitions
+apps/admin/
+├── app/pdf/
+│   ├── page.tsx                    # App Router page wrapper
+│   └── page-client.tsx             # PDF Studio client shell
+└── lib/pdf-studio.ts               # PDF Studio categories and options
+packages/
+├── config/pdf-studio.ts            # Legacy Unlayer document config
+└── ui/components/studio/
+    ├── legacy/UnlayerDocumentEditor.tsx # Legacy document editor wrapper
+    └── PDFStudioSetupStatus.tsx    # Setup status badge
 ```
 
 ---
@@ -94,7 +95,9 @@ NEXT_PUBLIC_UNLAYER_PROJECT_ID=123456
 5. Add production domain to allowed list:
    - Developer > Builder > Settings > Allowed Domains
 
-> **Important**: The same Unlayer project ID is shared between Email Studio and PDF Studio. You only need one project configured.
+> **Important**: Unlayer configuration is legacy-only for PDF Studio and
+> existing legacy email templates. New Email Studio templates use React Email
+> Editor and Resend, not Unlayer.
 
 ### Step 2: Database Setup
 
@@ -161,16 +164,16 @@ NEXT_PUBLIC_PDF_FOOTER_TEXT=YourOrg | 123 Main St | City, ST 12345 | EIN: 12-345
 
 ## Developer Guide
 
-### Using the UnlayerEditor for Documents
+### Using the Legacy Document Editor
 
 ```tsx
 import {
-  UnlayerEditor,
-  UnlayerEditorHandle,
-} from "@/components/studio/UnlayerEditor";
+  LegacyUnlayerDocumentEditor,
+  type LegacyUnlayerDocumentEditorHandle,
+} from "@asym/ui/components/studio/legacy/UnlayerDocumentEditor";
 
 function MyPDFEditor() {
-  const editorRef = useRef<UnlayerEditorHandle>(null);
+  const editorRef = useRef<LegacyUnlayerDocumentEditorHandle>(null);
 
   const handleExportPdf = async () => {
     const { url, design } = await editorRef.current.exportPdf({
@@ -186,9 +189,8 @@ function MyPDFEditor() {
   };
 
   return (
-    <UnlayerEditor
+    <LegacyUnlayerDocumentEditor
       ref={editorRef}
-      mode="document" // Critical: use "document" mode for PDFs
       editorId="pdf-editor"
       onReady={(config) => console.log("Editor ready", config)}
       onDesignUpdate={(design) => console.log("Design changed")}
@@ -279,7 +281,12 @@ PDF Studio supports predefined template categories for common nonprofit use case
 
 ---
 
-## API Endpoints
+## Legacy API Endpoints
+
+The Email Studio React Email migration does not add or replace PDF template
+APIs. The current PDF Studio client still targets the legacy
+`/api/pdf-templates` contract shown below; completing or replacing that
+contract belongs to a separate PDF Studio persistence workstream.
 
 ### List Templates
 
@@ -394,8 +401,7 @@ PDF Studio uses the same layout pattern as Email Studio:
   <div className="flex-1 min-h-0 overflow-hidden">           // Page container
     <header className="h-12 md:h-14 shrink-0">               // Fixed toolbar
     <div className="flex-1 relative overflow-hidden">         // Editor container
-      <UnlayerEditor
-        mode="document"
+      <LegacyUnlayerDocumentEditor
         className="absolute inset-0"
       />
     </div>

@@ -41,10 +41,31 @@ async function expectMissionControlChrome(page: Page) {
 
 const TABLE_ROUTES = [
   { path: "/crm", name: "CRM" },
+  { path: "/crm/notes", name: "CRM Notes" },
+  { path: "/crm/relationships", name: "CRM Relationships" },
+  { path: "/crm/projections", name: "CRM Projections" },
   { path: "/contributions", name: "Contributions" },
   { path: "/tasks", name: "Tasks" },
   { path: "/care", name: "Care" },
   { path: "/mobilize/locations", name: "Locations" },
+] as const;
+
+const CRM_TWENTY_SURFACES = [
+  {
+    path: "/crm/notes",
+    heading: "CRM Notes",
+    emptyState: /No CRM notes|CRM reads are not configured/i,
+  },
+  {
+    path: "/crm/relationships",
+    heading: "CRM Relationships",
+    emptyState: /No CRM relationships|CRM reads are not configured/i,
+  },
+  {
+    path: "/crm/projections",
+    heading: "CRM Projections",
+    emptyState: /No CRM projections|Projection names can be disabled/i,
+  },
 ] as const;
 
 const SUPPORT_ROUTES = [
@@ -70,6 +91,27 @@ test.describe("Admin table pages smoke", () => {
       await expectMissionControlChrome(page);
     });
   }
+
+  test.describe("Twenty-backed CRM surfaces", () => {
+    for (const { emptyState, heading, path } of CRM_TWENTY_SURFACES) {
+      test(`${heading} (${path}) handles missing Twenty env without overlay`, async ({
+        page,
+      }) => {
+        await ensureAdminDemo(page);
+        await page.goto(path);
+        await page.waitForLoadState("domcontentloaded");
+
+        await expect(page.locator("#__next_error__")).toHaveCount(0);
+        await expectMissionControlChrome(page);
+        await expect(
+          page.getByRole("heading", { name: heading }),
+        ).toBeVisible();
+        await expect(page.getByText(emptyState).first()).toBeVisible({
+          timeout: 120_000,
+        });
+      });
+    }
+  });
 
   test.describe("CRM table interactions", () => {
     test.beforeEach(async ({ page }) => {

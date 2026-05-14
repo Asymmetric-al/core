@@ -1,4 +1,7 @@
--- Resend foundation tables for tenant settings, send logs, events, suppressions, and inbound metadata.
+-- Backfill Resend foundation tables for hosted databases that already recorded
+-- migration version 20260223120000 from add_user_post_interactions_rpc.sql.
+-- The original resend_email_foundation migration shares that timestamp, so
+-- Supabase hosted db push cannot apply both files by migration version.
 
 CREATE TABLE IF NOT EXISTS public.tenant_email_settings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -77,6 +77,16 @@ type MissionaryRow = {
   profile_id: string | null;
 };
 
+type StagedGiftRow = {
+  id: string;
+  donation_id: string;
+  status: string | null;
+  review_reason: string | null;
+  receipt_status: string | null;
+  receipt_send_log_id: string | null;
+  crm_post_status: string | null;
+};
+
 const PENDING_STATUSES = ["pending", "processing"] as const;
 
 const SORT_COLUMN_BY_FIELD: Record<ContributionSortField, string> = {
@@ -303,30 +313,40 @@ async function fetchContributionRelations(
   rows: DonationRow[],
 ) {
   const donorIds = normalizeSearchIds(rows.map((row) => row.donor_id || ""));
+  const donationIds = normalizeSearchIds(rows.map((row) => row.id));
   const fundIds = normalizeSearchIds(rows.map((row) => row.fund_id || ""));
   const missionaryIds = normalizeSearchIds(
     rows.map((row) => row.missionary_id || ""),
   );
 
-  const [donorsResult, fundsResult, missionariesResult] = await Promise.all([
-    donorIds.length > 0
-      ? supabaseAdmin
-          .from("donors")
-          .select(
-            "id, profile_id, name, email, phone, type, location, organization, notes",
-          )
-          .in("id", donorIds)
-      : Promise.resolve({ data: [], error: null }),
-    fundIds.length > 0
-      ? supabaseAdmin.from("funds").select("id, name").in("id", fundIds)
-      : Promise.resolve({ data: [], error: null }),
-    missionaryIds.length > 0
-      ? supabaseAdmin
-          .from("missionaries")
-          .select("id, profile_id")
-          .in("id", missionaryIds)
-      : Promise.resolve({ data: [], error: null }),
-  ]);
+  const [donorsResult, fundsResult, missionariesResult, stagedGiftsResult] =
+    await Promise.all([
+      donorIds.length > 0
+        ? supabaseAdmin
+            .from("donors")
+            .select(
+              "id, profile_id, name, email, phone, type, location, organization, notes",
+            )
+            .in("id", donorIds)
+        : Promise.resolve({ data: [], error: null }),
+      fundIds.length > 0
+        ? supabaseAdmin.from("funds").select("id, name").in("id", fundIds)
+        : Promise.resolve({ data: [], error: null }),
+      missionaryIds.length > 0
+        ? supabaseAdmin
+            .from("missionaries")
+            .select("id, profile_id")
+            .in("id", missionaryIds)
+        : Promise.resolve({ data: [], error: null }),
+      donationIds.length > 0
+        ? supabaseAdmin
+            .from("staged_gifts")
+            .select(
+              "id, donation_id, status, review_reason, receipt_status, receipt_send_log_id, crm_post_status",
+            )
+            .in("donation_id", donationIds)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
 
   if (donorsResult.error) {
     throw new ApiHttpError(500, donorsResult.error.message);
@@ -336,6 +356,9 @@ async function fetchContributionRelations(
   }
   if (missionariesResult.error) {
     throw new ApiHttpError(500, missionariesResult.error.message);
+  }
+  if (stagedGiftsResult.error) {
+    throw new ApiHttpError(500, stagedGiftsResult.error.message);
   }
 
   const donorRows = (donorsResult.data ?? []) as DonorRow[];
@@ -369,6 +392,12 @@ async function fetchContributionRelations(
       ((profilesResult.data ?? []) as ProfileRow[]).map((profile) => [
         profile.id,
         profile,
+      ]),
+    ),
+    stagedGiftsByDonationId: new Map(
+      ((stagedGiftsResult.data ?? []) as StagedGiftRow[]).map((gift) => [
+        gift.donation_id,
+        gift,
       ]),
     ),
   };
@@ -460,6 +489,7 @@ export async function listAdminContributions(
       missionary?.profile_id != null
         ? (relationData.profilesById.get(missionary.profile_id) ?? null)
         : null;
+    const stagedGift = relationData.stagedGiftsByDonationId.get(donation.id);
 
     return buildContributionGridRow({
       donation,
@@ -479,6 +509,7 @@ export async function listAdminContributions(
               missionaryProfile.email,
           }
         : null,
+      stagedGift: stagedGift ?? null,
     });
   });
 

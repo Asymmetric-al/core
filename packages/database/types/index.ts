@@ -1,5 +1,35 @@
 export type { CrmGridRow, AdminCrmListResponse } from "./crm-grid";
 export type {
+  AdminCrmNoteCreateResponse,
+  AdminCrmNotesListResponse,
+  CrmNoteRow,
+  CrmNoteSortDirection,
+  CrmNoteSortField,
+} from "./crm-notes";
+export type {
+  AdminCrmRelationshipsListResponse,
+  CrmRelationshipAuthorityScope,
+  CrmRelationshipDomain,
+  CrmRelationshipReport,
+  CrmRelationshipRow,
+  CrmRelationshipSortDirection,
+  CrmRelationshipSortField,
+} from "./crm-relationships";
+export type {
+  AdminCrmProjectionShadowResponse,
+  CrmProjectionContext,
+  CrmProjectionContract,
+  CrmProjectionDriftStatus,
+  CrmProjectionRoleScope,
+  CrmProjectionShadowCounts,
+  CrmProjectionShadowReport,
+  CrmProjectionShadowRow,
+  CrmProjectionSourceOwnership,
+  CrmProjectionState,
+  CrmProjectionSyncStatus,
+  CrmProjectionTargetSurface,
+} from "./crm-projections";
+export type {
   Membership,
   MembershipRole,
   StaffSubrole,

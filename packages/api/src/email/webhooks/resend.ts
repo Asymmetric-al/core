@@ -78,6 +78,38 @@ async function assertSupabaseWrite(
   throw new WebhookPersistenceError(operation, context, error);
 }
 
+function isDuplicateEmailEvent(error: SupabaseErrorLike | null): boolean {
+  return error?.code === "23505";
+}
+
+async function insertEmailEvent(
+  supabaseAdmin: AdminSupabaseClient,
+  emailEventPayload: JsonRecord,
+  context: JsonRecord,
+): Promise<void> {
+  // PostgREST cannot use the partial unique index on resend_event_id as an
+  // upsert target, so duplicate webhooks are handled as replayed inserts.
+  const { error } = await supabaseAdmin
+    .from("email_events")
+    .insert(emailEventPayload);
+
+  if (!error) {
+    return;
+  }
+
+  if (isDuplicateEmailEvent(error)) {
+    return;
+  }
+
+  console.error("Failed to persist Resend webhook data", {
+    operation: "email_events.insert",
+    ...context,
+    code: error.code,
+    message: error.message,
+  });
+  throw new WebhookPersistenceError("email_events.insert", context, error);
+}
+
 function toWebhookPersistenceResponse(error: WebhookPersistenceError) {
   const correlationId = randomUUID();
 
@@ -664,18 +696,12 @@ export async function POST(request: NextRequest) {
         raw_event: eventData,
       };
 
-      await assertSupabaseWrite(
-        "email_events.upsert",
-        supabaseAdmin.from("email_events").upsert(emailEventPayload, {
-          onConflict: "tenant_id,resend_event_id",
-        }),
-        {
-          eventType: event.type,
-          messageId,
-          tenantId,
-          resendEventId: resolvedEventId,
-        },
-      );
+      await insertEmailEvent(supabaseAdmin, emailEventPayload, {
+        eventType: event.type,
+        messageId,
+        tenantId,
+        resendEventId: resolvedEventId,
+      });
 
       const suppressionType = suppressionTypeForEventType(event.type);
       if (suppressionType && recipientEmail) {

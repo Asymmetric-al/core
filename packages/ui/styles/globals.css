@@ -3,6 +3,7 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 @import "tw-animate-css";
+@import "@react-email/editor/themes/default.css";
 
 /* Tailwind v4 content sources - tells Tailwind where to scan for classes */
 @source "../**/*.{js,ts,jsx,tsx,mdx}";
@@ -861,7 +862,49 @@
   width: fit-content;
 }
 
-/* Unlayer Email Editor - Proper full-height rendering */
+/* React Email Editor - full-height rendering */
+.react-email-builder-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+  background: var(--background);
+}
+
+.react-email-builder-wrapper.absolute {
+  position: absolute;
+}
+
+.react-email-builder-wrapper.inset-0 {
+  inset: 0;
+}
+
+.react-email-builder-wrapper .tiptap {
+  margin: 0 auto;
+  min-height: 100%;
+  width: min(100%, 760px);
+  outline: none;
+}
+
+.react-email-merge-tag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--primary) 32%, transparent);
+  background: color-mix(in oklab, var(--primary) 10%, transparent);
+  color: var(--primary);
+  font-size: 0.82em;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0.18rem 0.38rem;
+  white-space: nowrap;
+}
+
+/* Legacy Unlayer editor - kept for existing templates and PDF Studio. */
 .unlayer-editor-wrapper {
   display: flex;
   flex-direction: column;

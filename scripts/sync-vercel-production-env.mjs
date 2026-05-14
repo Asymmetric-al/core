@@ -30,16 +30,16 @@ const commonProviderEnv = [
   {
     vercelKey: "STRIPE_SECRET_KEY",
     inputKey: "STRIPE_SECRET_KEY",
-    reason: "must start with sk_live_",
+    reason: "must start with sk_",
     sensitive: true,
-    validate: hasPrefix("sk_live_"),
+    validate: hasPrefix("sk_"),
   },
   {
     vercelKey: "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
     inputKey: "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
-    reason: "must start with pk_live_",
+    reason: "must start with pk_",
     sensitive: false,
-    validate: hasPrefix("pk_live_"),
+    validate: hasPrefix("pk_"),
   },
   {
     vercelKey: "SENTRY_DSN",

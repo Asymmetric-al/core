@@ -45,10 +45,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-client
       - name: Apply migrations
-        run: |
-          for f in $(ls -1 supabase/migrations/*.sql | sort); do
-            psql "$DATABASE_URL" -f "$f" -v ON_ERROR_STOP=1
-          done
+        run: node scripts/verify/supabase-migrations.mjs
       - name: Apply Payload migrations
         run: bun run cms:migrate
       - name: Verify Payload migration status
@@ -149,10 +146,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-client
       - name: Apply migrations
-        run: |
-          for f in $(ls -1 supabase/migrations/*.sql | sort); do
-            psql "$DATABASE_URL" -f "$f" -v ON_ERROR_STOP=1
-          done
+        run: node scripts/verify/supabase-migrations.mjs
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.3.4"

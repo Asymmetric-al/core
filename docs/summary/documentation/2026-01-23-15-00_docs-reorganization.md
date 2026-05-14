@@ -66,7 +66,7 @@ docs/guides/
 
 Moved all feature documentation from `docs/modules/` to `docs/guides/features/`:
 
-- ✅ `email-studio.md` - Unlayer email editor (449 lines)
+- ✅ `email-studio.md` - Email Studio guide
 - ✅ `pdf-studio.md` - Document/PDF editor (550 lines)
 - ✅ `care-hub.md` - Member care system (82 lines)
 - ✅ `teams-and-permissions.md` - Access control (52 lines)

@@ -5,14 +5,21 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..", "..");
 
-const bannedImports = [
+const bannedApiRouteImports = [
   "@asym/database/supabase/admin",
   "@asym/database/supabase/server",
   "@asym/database/supabase/client",
   "@supabase/ssr",
   "@supabase/supabase-js",
 ];
-const API_ROUTE_SOURCE_EXTENSIONS = new Set([".ts", ".tsx"]);
+const bannedAppSourcePatterns = [
+  "@asym/api/crm/client",
+  "@asym/api/src/crm/client",
+  "packages/api/src/crm/client",
+  "TWENTY_API_KEY",
+  "TWENTY_WEBHOOK_SECRET",
+];
+const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs"]);
 
 function toRepoRelative(filePath) {
   return path.relative(repoRoot, filePath).split(path.sep).join("/");
@@ -29,10 +36,7 @@ function collectTypeScriptFiles(directoryPath) {
       continue;
     }
 
-    if (
-      entry.isFile() &&
-      API_ROUTE_SOURCE_EXTENSIONS.has(path.extname(entry.name))
-    ) {
+    if (entry.isFile() && SOURCE_EXTENSIONS.has(path.extname(entry.name))) {
       files.push(entryPath);
     }
   }
@@ -65,6 +69,19 @@ function collectApiRouteFiles() {
   );
 }
 
+function collectAppSourceFiles() {
+  const appsRoot = path.join(repoRoot, "apps");
+  if (!statExists(appsRoot)) {
+    return [];
+  }
+
+  return collectTypeScriptFiles(appsRoot).filter(
+    (filePath) =>
+      !toRepoRelative(filePath).includes("/.next/") &&
+      !toRepoRelative(filePath).includes("/node_modules/"),
+  );
+}
+
 function statExists(targetPath) {
   try {
     return statSync(targetPath).isDirectory() || statSync(targetPath).isFile();
@@ -73,13 +90,13 @@ function statExists(targetPath) {
   }
 }
 
-function collectViolations(filePath) {
+function collectViolations(filePath, bannedPatterns) {
   const relativePath = toRepoRelative(filePath);
   const lines = readFileSync(filePath, "utf8").split(/\r?\n/);
   const violations = [];
 
   for (const [index, line] of lines.entries()) {
-    const matchedImport = bannedImports.find((importPath) =>
+    const matchedImport = bannedPatterns.find((importPath) =>
       line.includes(importPath),
     );
     if (!matchedImport) {
@@ -93,21 +110,33 @@ function collectViolations(filePath) {
 }
 
 const apiRouteFiles = collectApiRouteFiles();
+const appSourceFiles = collectAppSourceFiles();
 
-if (apiRouteFiles.length === 0) {
+if (apiRouteFiles.length === 0 && appSourceFiles.length === 0) {
   console.log(
-    "No app API route source files found under apps/*/app/api/**/*.{ts,tsx} (after exclusions); data boundary check skipped.",
+    "No app source files found under apps/**/*.{ts,tsx,js,jsx,mjs}; data boundary check skipped.",
   );
   process.exit(0);
 }
 
-const violations = apiRouteFiles.flatMap(collectViolations);
+if (apiRouteFiles.length === 0) {
+  console.log(
+    "No app API route source files found under apps/*/app/api/**/*.{ts,tsx} (after exclusions); Supabase route boundary check skipped.",
+  );
+}
 
-if (violations.length > 0) {
+const apiRouteViolations = apiRouteFiles.flatMap((filePath) =>
+  collectViolations(filePath, bannedApiRouteImports),
+);
+const appTwentyViolations = appSourceFiles.flatMap((filePath) =>
+  collectViolations(filePath, bannedAppSourcePatterns),
+);
+
+if (apiRouteViolations.length > 0) {
   console.error(
     "Data access boundary violations detected in apps/*/app/api/**/*.{ts,tsx}:",
   );
-  console.error(violations.join("\n"));
+  console.error(apiRouteViolations.join("\n"));
   console.error("");
   console.error(
     "Route handlers under apps/*/app/api/ must be thin re-exports and must not import Supabase clients directly.",
@@ -118,6 +147,21 @@ if (violations.length > 0) {
   process.exit(1);
 }
 
+if (appTwentyViolations.length > 0) {
+  console.error(
+    "Twenty CRM boundary violations detected in apps/**/*.{ts,tsx,js,jsx,mjs}:",
+  );
+  console.error(appTwentyViolations.join("\n"));
+  console.error("");
+  console.error(
+    "App source must not import raw Twenty clients or reference server-only Twenty credentials.",
+  );
+  console.error(
+    "Use stable @asym/api CRM contracts and thin route re-exports instead.",
+  );
+  process.exit(1);
+}
+
 console.log(
-  "Data access boundary check passed: no direct Supabase imports found in apps/*/app/api/**/*.{ts,tsx}.",
+  "Data access boundary check passed: no direct Supabase imports in app API routes and no raw Twenty access in app source.",
 );

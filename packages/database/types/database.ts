@@ -57,6 +57,8 @@ export type DonationSource =
   | "import"
   | string;
 export type MoneyCents = number;
+export type EmailTemplateBuilder = "unlayer" | "react_email";
+export type EmailTemplateCategory = "transactional" | "campaign" | "system";
 
 export interface Profile {
   id: string;
@@ -530,5 +532,269 @@ export interface AuditLog {
   details: Record<string, unknown>;
   ip_address: string | null;
   user_agent: string | null;
+  created_at: string;
+}
+
+export interface EmailTemplate {
+  id: string;
+  tenant_id: string;
+  name: string;
+  description: string | null;
+  category: EmailTemplateCategory;
+  builder: EmailTemplateBuilder;
+  builder_version: string | null;
+  design_json: Record<string, unknown>;
+  html_content: string | null;
+  html_exported_at: string | null;
+  text_content: string | null;
+  text_exported_at: string | null;
+  editor_metadata: Record<string, unknown>;
+  legacy_unlayer_project_id: number | null;
+  default_subject: string | null;
+  default_preheader: string | null;
+  is_active: boolean;
+  is_system: boolean;
+  version: number;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+}
+
+export interface EmailTemplateVersion {
+  id: string;
+  template_id: string;
+  tenant_id: string;
+  version: number;
+  builder: EmailTemplateBuilder;
+  builder_version: string | null;
+  design_json: Record<string, unknown>;
+  html_content: string | null;
+  text_content: string | null;
+  subject: string | null;
+  preheader: string | null;
+  editor_metadata: Record<string, unknown>;
+  created_at: string;
+  created_by: string | null;
+}
+
+export interface CrmCommandLog {
+  id: string;
+  tenant_id: string;
+  actor_user_id: string;
+  actor_profile_id: string | null;
+  request_id: string | null;
+  action: string;
+  resource_type: string;
+  resource_id: string | null;
+  idempotency_key: string | null;
+  status: "queued" | "attempted" | "succeeded" | "failed" | "skipped";
+  command_payload: Record<string, unknown>;
+  result_summary: Record<string, unknown>;
+  error_message: string | null;
+  created_at: string;
+}
+
+export type CrmLinkEntityType =
+  | "supabase_auth_user"
+  | "asym_profile"
+  | "tenant_membership"
+  | "crm_person"
+  | "donor_profile"
+  | "missionary_profile"
+  | "cms_public_entity"
+  | "stripe_customer"
+  | "fund_or_project"
+  | "pledge_or_relationship_commitment"
+  | "payment_record"
+  | "receipt_record"
+  | "refund_record"
+  | "statement_record"
+  | "reconciliation_record";
+
+export interface CrmRecordLink {
+  id: string;
+  tenant_id: string;
+  crm_provider: "twenty";
+  twenty_object_name: string;
+  twenty_record_id: string;
+  asym_entity_type: CrmLinkEntityType;
+  asym_entity_id: string;
+  relationship_type: string;
+  link_status:
+    | "active"
+    | "suspected_duplicate"
+    | "merged"
+    | "archived"
+    | "rejected";
+  confidence: number;
+  verified_at: string | null;
+  verified_by_profile_id: string | null;
+  last_seen_at: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CrmMergeCandidate {
+  id: string;
+  tenant_id: string;
+  crm_provider: "twenty";
+  source_entity_type: CrmLinkEntityType;
+  source_entity_id: string;
+  candidate_twenty_object_name: string;
+  candidate_twenty_record_id: string;
+  candidate_link_id: string | null;
+  score: number;
+  confidence: "low" | "medium" | "high";
+  match_reasons: string[];
+  match_values: Record<string, unknown>;
+  status: "pending" | "approved" | "rejected" | "merged" | "superseded";
+  reviewed_by_profile_id: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CrmProjectionState {
+  id: string;
+  tenant_id: string;
+  projection_name: string;
+  source_system: string;
+  source_entity_type: CrmLinkEntityType;
+  source_entity_id: string;
+  target_surface:
+    | "mission_control"
+    | "donor"
+    | "missionary"
+    | "public"
+    | "cms"
+    | "event"
+    | "reporting";
+  crm_record_link_id: string | null;
+  crm_provider: "twenty";
+  twenty_object_name: string | null;
+  twenty_record_id: string | null;
+  sync_status: "pending" | "synced" | "stale" | "failed" | "disabled";
+  source_hash: string | null;
+  projected_hash: string | null;
+  last_projected_at: string | null;
+  last_error: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export type CrmSyncDomain =
+  | "people"
+  | "companies"
+  | "churches"
+  | "households"
+  | "tasks"
+  | "notes"
+  | "ministry_activities"
+  | "relationship_commitments";
+
+export type CrmSyncRecordStatus =
+  | "received"
+  | "queued"
+  | "processing"
+  | "processed"
+  | "succeeded"
+  | "ignored"
+  | "failed"
+  | "dead_letter"
+  | "paused";
+
+export interface CrmSyncSettings {
+  id: string;
+  tenant_id: string;
+  domain: CrmSyncDomain;
+  inbound_paused: boolean;
+  outbound_paused: boolean;
+  replay_paused: boolean;
+  paused_reason: string | null;
+  paused_by_profile_id: string | null;
+  paused_at: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CrmWebhookEvent {
+  id: string;
+  tenant_id: string | null;
+  crm_provider: "twenty";
+  webhook_event_key: string;
+  twenty_event_type: string;
+  twenty_object_name: string;
+  twenty_record_id: string | null;
+  domain: CrmSyncDomain | null;
+  event_action: string;
+  webhook_timestamp: string;
+  received_at: string;
+  signature_hash: string;
+  payload_hash: string;
+  payload: Record<string, unknown>;
+  status: CrmSyncRecordStatus;
+  process_attempts: number;
+  replay_count: number;
+  ignored_reason: string | null;
+  last_error: string | null;
+  processed_at: string | null;
+  replayed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CrmOutboundJob {
+  id: string;
+  tenant_id: string;
+  domain: CrmSyncDomain;
+  job_type: "create" | "update" | "delete" | "upsert" | "reconcile";
+  twenty_object_name: string;
+  source_entity_type: CrmLinkEntityType | null;
+  source_entity_id: string | null;
+  crm_record_link_id: string | null;
+  idempotency_key: string;
+  status: CrmSyncRecordStatus;
+  priority: number;
+  attempt_count: number;
+  max_attempts: number;
+  next_attempt_at: string;
+  locked_at: string | null;
+  locked_by: string | null;
+  payload: Record<string, unknown>;
+  result_summary: Record<string, unknown>;
+  last_error: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CrmReconciliationRun {
+  id: string;
+  tenant_id: string | null;
+  domain: CrmSyncDomain | null;
+  reconciliation_type: string;
+  status: "queued" | "running" | "succeeded" | "failed";
+  checked_counts: Record<string, number>;
+  findings: Record<string, unknown>;
+  last_error: string | null;
+  requested_by_profile_id: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CrmSyncLog {
+  id: string;
+  tenant_id: string | null;
+  direction: "inbound" | "outbound" | "replay" | "reconciliation";
+  domain: CrmSyncDomain | null;
+  status: CrmSyncRecordStatus;
+  source_table: string;
+  source_id: string;
+  message: string;
+  details: Record<string, unknown>;
   created_at: string;
 }

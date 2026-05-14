@@ -27,7 +27,7 @@ Organized documentation for developers working on this project:
 
 #### **Features**
 
-- **[Email Studio](./guides/features/email-studio.md)** - Unlayer email editor integration and setup
+- **[Email Studio](./guides/features/email-studio.md)** - React Email template builder with Resend delivery
 - **[PDF Studio](./guides/features/pdf-studio.md)** - Document/PDF editor for receipts and statements
 - **[Care Hub](./guides/features/care-hub.md)** - Member care and personnel management
 - **[Teams & Permissions](./guides/features/teams-and-permissions.md)** - Access control and team management
