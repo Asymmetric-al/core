@@ -164,6 +164,7 @@ export interface CrmReconciliationSnapshot {
   stalledJobs: CrmReconciliationFinding[];
   duplicateCandidates: CrmReconciliationFinding[];
   failedWebhooks: CrmReconciliationFinding[];
+  giftLinkDrift: CrmReconciliationFinding[];
 }
 
 export interface CrmReconciliationRun {

@@ -92,6 +92,7 @@ describe("CRM replay and reconciliation", () => {
       stalledJobs: [{ id: "job-1", reason: "stalled_job" }],
       duplicateCandidates: [{ id: "duplicate-1", reason: "pending_duplicate" }],
       failedWebhooks: [{ id: "webhook-1", reason: "failed_webhook" }],
+      giftLinkDrift: [{ id: "gift-link-1", reason: "gift_link_failed" }],
     };
 
     const run = await runCrmReconciliation(store, config, {
@@ -104,6 +105,7 @@ describe("CRM replay and reconciliation", () => {
     expect(run.checkedCounts).toEqual({
       duplicateCandidates: 1,
       failedWebhooks: 1,
+      giftLinkDrift: 1,
       orphanLinks: 1,
       staleProjections: 1,
       stalledJobs: 1,

@@ -15,7 +15,13 @@ import { withOperation } from "../../../shared/with-operation";
 
 const createNoteSchema = z.object({
   body: z.string().trim().min(1, "Note body is required.").max(10_000),
+  linkedRecordId: z.string().trim().min(1).max(160).nullable().optional(),
+  linkedRecordType: z
+    .enum(["donor_profile", "missionary_profile", "organization"])
+    .nullable()
+    .optional(),
   title: z.string().trim().min(1, "Note title is required.").max(160),
+  visibility: z.enum(["standard", "restricted"]).default("standard"),
 });
 
 export const GET = withOperation(

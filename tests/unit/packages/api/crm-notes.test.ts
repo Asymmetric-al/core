@@ -43,9 +43,12 @@ describe("CRM notes Mission Control domain", () => {
             },
             {
               asymTenantId: "tenant-1",
+              asymVisibility: "restricted",
               body: "Follow up about annual pledge",
               createdAt: "2026-05-01T10:00:00.000Z",
               id: "note-1",
+              linkedRecordId: "donor-1",
+              linkedRecordType: "donor_profile",
               title: "Pledge follow-up",
               updatedAt: "2026-05-02T10:00:00.000Z",
             },
@@ -74,6 +77,11 @@ describe("CRM notes Mission Control domain", () => {
 
     expect(response.mode).toBe("twenty");
     expect(response.rows.map((row) => row.id)).toEqual(["note-1"]);
+    expect(response.rows[0]).toMatchObject({
+      linkedRecordId: "donor-1",
+      linkedRecordType: "donor_profile",
+      visibility: "restricted",
+    });
     expect(coreClient.listRecords).toHaveBeenCalledWith(
       "notes",
       expect.objectContaining({
@@ -119,6 +127,8 @@ describe("CRM notes Mission Control domain", () => {
       commandClient: {} as never,
       input: {
         body: "Met after Sunday service.",
+        linkedRecordId: "donor-1",
+        linkedRecordType: "donor_profile",
         title: "Church partner note",
       },
       logCommand,
@@ -148,11 +158,17 @@ describe("CRM notes Mission Control domain", () => {
     expect(job?.payload).toMatchObject({
       asymTenantId: "tenant-1",
       body: "Met after Sunday service.",
+      asymLinkedRecordId: "donor-1",
+      asymLinkedRecordType: "donor_profile",
+      asymVisibility: "standard",
       title: "Church partner note",
     });
     expect(result.note).toMatchObject({
+      linkedRecordId: "donor-1",
+      linkedRecordType: "donor_profile",
       outboundJobId: result.outboundJobId,
       source: "queued",
+      visibility: "standard",
     });
     expect(result.replay.outboundJobId).toBe(result.outboundJobId);
     expect(store.logs).toContainEqual(
@@ -162,6 +178,25 @@ describe("CRM notes Mission Control domain", () => {
         sourceId: result.outboundJobId,
       }),
     );
+  });
+
+  it("requires an admin role for restricted donor-care notes", async () => {
+    await expect(
+      createMissionControlCrmNote({
+        actor: {
+          ...actor,
+          action: "crm.note.create",
+        },
+        commandClient: {} as never,
+        input: {
+          body: "Care-sensitive context.",
+          title: "Restricted care note",
+          visibility: "restricted",
+        },
+        store: new MemoryCrmSyncStore(),
+        syncConfig,
+      }),
+    ).rejects.toThrow("Restricted CRM notes require an admin role.");
   });
 
   it("keeps malformed Twenty notes out of the native read model", () => {

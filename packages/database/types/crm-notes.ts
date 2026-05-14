@@ -8,7 +8,10 @@ export interface CrmNoteRow {
   body: string;
   bodyPreview: string;
   authorName: string | null;
+  linkedRecordId: string | null;
   linkedRecordLabel: string | null;
+  linkedRecordType: string | null;
+  visibility: "standard" | "restricted";
   source: "twenty" | "queued";
   outboundJobId: string | null;
   createdAt: string;

@@ -32,7 +32,10 @@ For every `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}` file while
 | admin      | `/api/admin/crm/notes`                                         | Node.js (no `runtime` segment export) | Staff-only native CRM notes                |
 | admin      | `/api/admin/crm/projections`                                   | Node.js (no `runtime` segment export) | Staff-only CRM projection shadow mode      |
 | admin      | `/api/admin/crm/records`                                       | Node.js (no `runtime` segment export) | Admin client                               |
+| admin      | `/api/admin/crm/records/[recordId]`                            | Node.js (no `runtime` segment export) | Staff-only donor CRM detail                |
 | admin      | `/api/admin/crm/relationships`                                 | Node.js (no `runtime` segment export) | Staff-only native CRM relationships        |
+| admin      | `/api/admin/crm/reports`                                       | Node.js (no `runtime` segment export) | Staff-only CRM reporting                   |
+| admin      | `/api/admin/crm/reports/export`                                | Node.js (no `runtime` segment export) | Audited CRM CSV export                     |
 | admin      | `/api/admin/crm/sync/reconcile`                                | Node.js (no `runtime` segment export) | Staff-only CRM reconciliation              |
 | admin      | `/api/admin/crm/sync/replay`                                   | Node.js (no `runtime` segment export) | Staff-only CRM replay                      |
 | admin      | `/api/admin/crm/webhooks/twenty`                               | Node.js (no `runtime` segment export) | Twenty HMAC webhook, admin client          |

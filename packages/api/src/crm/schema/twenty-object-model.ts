@@ -74,6 +74,23 @@ export const TWENTY_OBJECT_MODEL = [
         type: "select",
         description: "CRM contact preference copied from relationship context.",
       },
+      {
+        name: "donorStatus",
+        type: "select",
+        description: "Donor lifecycle status for Mission Control workflows.",
+      },
+      {
+        name: "missionaryStatus",
+        type: "select",
+        description:
+          "Missionary lifecycle status when the person also represents field staff.",
+      },
+      {
+        name: "supportStage",
+        type: "select",
+        description:
+          "Support relationship stage used for donor care and mobilization context.",
+      },
     ],
   },
   {
@@ -227,6 +244,49 @@ export const TWENTY_OBJECT_MODEL = [
     ],
   },
   {
+    namePlural: "designations",
+    nameSingular: "designation",
+    kind: "custom",
+    purpose:
+      "Fund, campaign, missionary-support, or church designation context used for CRM workflows. Financial balances remain platform-owned.",
+    fields: [
+      {
+        name: "asymTenantId",
+        type: "text",
+        required: true,
+        description: "Tenant scope used for Asym link repair and replay.",
+      },
+      {
+        name: "asymDesignationId",
+        type: "text",
+        required: true,
+        description: "Asym fund, missionary, or campaign id.",
+      },
+      {
+        name: "designationKind",
+        type: "select",
+        required: true,
+        description: "Fund, missionary, church, campaign, or special appeal.",
+      },
+      {
+        name: "goalAmountCents",
+        type: "number",
+        description:
+          "Published goal amount in cents for CRM planning; donations remain platform truth.",
+      },
+      {
+        name: "currencyCode",
+        type: "text",
+        description: "ISO currency code for the designation goal.",
+      },
+      {
+        name: "status",
+        type: "select",
+        description: "Designation lifecycle status.",
+      },
+    ],
+  },
+  {
     namePlural: "giftSummaries",
     nameSingular: "giftSummary",
     kind: "custom",
@@ -300,6 +360,97 @@ export const TWENTY_OBJECT_MODEL = [
         type: "text",
         required: true,
         description: "Staged gift lifecycle state copied for CRM context.",
+      },
+    ],
+  },
+  {
+    namePlural: "giftAllocations",
+    nameSingular: "giftAllocation",
+    kind: "custom",
+    purpose:
+      "CRM-visible allocation split for an approved gift. It does not replace the platform donation ledger.",
+    fields: [
+      {
+        name: "asymTenantId",
+        type: "text",
+        required: true,
+        description: "Tenant scope used for Asym link repair and replay.",
+      },
+      {
+        name: "asymStagedGiftId",
+        type: "text",
+        required: true,
+        description: "Asym staged gift id that owns the allocation.",
+      },
+      {
+        name: "asymAllocationId",
+        type: "text",
+        required: true,
+        description: "Asym allocation row id.",
+      },
+      {
+        name: "donorId",
+        type: "text",
+        description: "Optional Asym donor id linked to the allocation.",
+      },
+      {
+        name: "missionaryId",
+        type: "text",
+        description: "Optional Asym missionary id linked to the allocation.",
+      },
+      {
+        name: "fundId",
+        type: "text",
+        description: "Optional Asym fund id linked to the allocation.",
+      },
+      {
+        name: "amountCents",
+        type: "number",
+        required: true,
+        description: "Allocation amount in minor units for CRM display.",
+      },
+      {
+        name: "currencyCode",
+        type: "text",
+        required: true,
+        description: "ISO currency code for the allocation.",
+      },
+    ],
+  },
+  {
+    namePlural: "mobilizationCandidates",
+    nameSingular: "mobilizationCandidate",
+    kind: "custom",
+    purpose:
+      "Candidate and onboarding pipeline context. Phase 5 documents this as the deferred submodule before production schema mutation.",
+    fields: [
+      {
+        name: "asymTenantId",
+        type: "text",
+        required: true,
+        description: "Tenant scope used for Asym link repair and replay.",
+      },
+      {
+        name: "asymCandidateId",
+        type: "text",
+        required: true,
+        description: "Asym mobilization candidate id.",
+      },
+      {
+        name: "stage",
+        type: "select",
+        required: true,
+        description: "Candidate pipeline stage.",
+      },
+      {
+        name: "readinessPercent",
+        type: "number",
+        description: "Operational readiness progress for staff workflow.",
+      },
+      {
+        name: "assignedOwnerId",
+        type: "text",
+        description: "Asym profile id responsible for candidate follow-up.",
       },
     ],
   },

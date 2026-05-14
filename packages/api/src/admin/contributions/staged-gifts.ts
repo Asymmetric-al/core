@@ -263,10 +263,39 @@ export const POST_RECEIPT = withOperation(
   async ({ request, supabaseAdmin, auth, requestId }) => {
     try {
       const stagedGiftId = getStagedGiftIdFromPath(request);
-      const receipt = await sendStagedGiftReceipt({
+      const gift = await loadStagedGiftById({
         supabaseAdmin,
         stagedGiftId,
         tenantId: auth.tenantId,
+      });
+      await appendReviewAudit({
+        action: "staged_gift_receipt_resend_requested",
+        actorProfileId: auth.profileId,
+        details: {
+          receiptStatus: gift.receiptStatus,
+          source: "mission_control_crm",
+        },
+        stagedGiftId: gift.id,
+        supabaseAdmin,
+        tenantId: gift.tenantId,
+      });
+
+      const receipt = await sendStagedGiftReceipt({
+        supabaseAdmin,
+        stagedGiftId: gift.id,
+        tenantId: auth.tenantId,
+      });
+      await appendReviewAudit({
+        action: "staged_gift_receipt_resent",
+        actorProfileId: auth.profileId,
+        details: {
+          receiptStatus: receipt.status,
+          sendLogId: receipt.sendLogId,
+          source: "mission_control_crm",
+        },
+        stagedGiftId: gift.id,
+        supabaseAdmin,
+        tenantId: gift.tenantId,
       });
 
       return NextResponse.json({ receipt, requestId });

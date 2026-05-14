@@ -151,15 +151,28 @@ export function normalizeTwentyNotesResponse(response: unknown): CrmNoteRow[] {
         bodyPreview: previewBody(body || title),
         createdAt,
         id,
+        linkedRecordId: findFirstString(record, [
+          "linkedRecordId",
+          "asymLinkedRecordId",
+        ]),
         linkedRecordLabel:
           findFirstString(record, ["linkedRecordLabel", "relatedRecordName"]) ??
           getNestedName(record.person) ??
           getNestedName(record.company),
+        linkedRecordType: findFirstString(record, [
+          "linkedRecordType",
+          "asymLinkedRecordType",
+        ]),
         outboundJobId: null,
         source: "twenty",
         tenantId,
         title,
         updatedAt,
+        visibility:
+          findFirstString(record, ["visibility", "asymVisibility"]) ===
+          "restricted"
+            ? "restricted"
+            : "standard",
       },
     ];
   });
@@ -186,7 +199,9 @@ export function filterCrmNotesForTenant(
       row.body,
       row.bodyPreview,
       row.authorName,
+      row.linkedRecordId,
       row.linkedRecordLabel,
+      row.linkedRecordType,
     ]
       .filter(Boolean)
       .some((value) => value!.toLowerCase().includes(normalizedSearch));
@@ -228,9 +243,12 @@ export function sortCrmNotes(
 
 export function buildQueuedCrmNoteRow(input: {
   body: string;
+  linkedRecordId?: string | null;
+  linkedRecordType?: string | null;
   outboundJobId: string;
   tenantId: string;
   title: string;
+  visibility?: "standard" | "restricted";
   now?: Date;
 }): CrmNoteRow {
   const timestamp = (input.now ?? new Date()).toISOString();
@@ -240,11 +258,14 @@ export function buildQueuedCrmNoteRow(input: {
     bodyPreview: previewBody(input.body || input.title),
     createdAt: timestamp,
     id: `queued:${input.outboundJobId}`,
+    linkedRecordId: input.linkedRecordId ?? null,
     linkedRecordLabel: null,
+    linkedRecordType: input.linkedRecordType ?? null,
     outboundJobId: input.outboundJobId,
     source: "queued",
     tenantId: input.tenantId,
     title: input.title,
     updatedAt: timestamp,
+    visibility: input.visibility ?? "standard",
   };
 }

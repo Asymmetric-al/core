@@ -1,5 +1,13 @@
 export type { CrmGridRow, AdminCrmListResponse } from "./crm-grid";
 export type {
+  CrmDonorDetailResponse,
+  CrmDuplicateWarning,
+  CrmGiftHistoryRow,
+  CrmSupportSummary,
+  CrmTimelineEntry,
+  CrmTimelineEntryKind,
+} from "./crm-detail";
+export type {
   AdminCrmNoteCreateResponse,
   AdminCrmNotesListResponse,
   CrmNoteRow,
@@ -29,6 +37,12 @@ export type {
   CrmProjectionSyncStatus,
   CrmProjectionTargetSurface,
 } from "./crm-projections";
+export type {
+  AdminCrmReportResponse,
+  CrmReportFilters,
+  CrmReportRow,
+  CrmReportSlice,
+} from "./crm-reports";
 export type {
   Membership,
   MembershipRole,

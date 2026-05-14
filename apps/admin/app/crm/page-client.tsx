@@ -1,6 +1,11 @@
 "use client";
 
-import { useAdminCrmRecordsInfiniteGrid } from "@asym/database/hooks";
+import {
+  useAdminCrmRecordDetail,
+  useAdminCrmRecordsInfiniteGrid,
+  useCreateLinkedCrmNote,
+  useResendCrmGiftReceipt,
+} from "@asym/database/hooks";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { formatCurrency } from "@asym/lib/utils";
 import {
@@ -75,24 +80,89 @@ function DetailDrawer({
   onClose: () => void;
 }) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [noteBody, setNoteBody] = useState("");
   const [summary, setSummary] = useState<{
     category: string;
     focus: string;
     nextMove: string;
   } | null>(null);
+  const detailQuery = useAdminCrmRecordDetail(contact.id);
+  const createNoteMutation = useCreateLinkedCrmNote(contact.id);
+  const receiptMutation = useResendCrmGiftReceipt(contact.id);
 
   const summarizeContact = async () => {
     setIsAnalyzing(true);
-    await new Promise((r) => setTimeout(r, 1000));
+    let detail = detailQuery.data;
+    if (!detailQuery.data && !detailQuery.isFetching) {
+      const refetched = await detailQuery.refetch();
+      detail = refetched.data;
+    }
+    const primaryFund = detail?.support.byFund[0]?.fundName;
+    const duplicateCount = detail?.duplicateWarnings.length ?? 0;
     setSummary({
-      category: "Constituent",
-      focus: contact.notesPreview ?? "No notes on file yet.",
-      nextMove: "Review giving history and schedule a touchpoint.",
+      category: contact.recordType ?? "Constituent",
+      focus:
+        detail?.donor.notesPreview ??
+        contact.notesPreview ??
+        (primaryFund ? `Primary designation: ${primaryFund}.` : null) ??
+        "No notes on file yet.",
+      nextMove:
+        duplicateCount > 0
+          ? "Review duplicate warnings before outreach."
+          : "Review gift history and schedule the next touchpoint.",
     });
     setIsAnalyzing(false);
   };
 
   const display = contact.displayName || "Unnamed record";
+  const detail = detailQuery.data;
+  const timeline =
+    detail?.timeline ??
+    contact.activities.map((activity) => ({
+      amountCents: activity.amount ?? null,
+      currencyCode: null,
+      description: activity.description ?? null,
+      id: activity.id,
+      kind: activity.type,
+      occurredAt: activity.date,
+      source: "platform" as const,
+      title: activity.title,
+      visibility: "standard" as const,
+    }));
+
+  const saveNote = async () => {
+    const trimmed = noteBody.trim();
+    if (!trimmed) {
+      return;
+    }
+
+    try {
+      await createNoteMutation.mutateAsync({
+        body: trimmed,
+        linkedRecordId: contact.id,
+        linkedRecordType: "donor_profile",
+        title: `Donor care note: ${display}`,
+        visibility: "standard",
+      });
+      setNoteBody("");
+      toast.success("CRM note queued.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to save note.",
+      );
+    }
+  };
+
+  const resendReceipt = async (stagedGiftId: string) => {
+    try {
+      await receiptMutation.mutateAsync({ stagedGiftId });
+      toast.success("Receipt resend queued.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to resend receipt.",
+      );
+    }
+  };
 
   return (
     <Sheet open={!!contact} onOpenChange={(open) => !open && onClose()}>
@@ -268,7 +338,9 @@ function DetailDrawer({
                 <div className="bg-card p-4 rounded-xl border border-border shadow-sm space-y-3">
                   <textarea
                     placeholder="Log a note, call, or meeting..."
-                    className="w-full h-20 bg-muted border-none focus:ring-0 text-sm resize-none p-0 rounded-lg"
+                    value={noteBody}
+                    onChange={(event) => setNoteBody(event.target.value)}
+                    className="w-full h-20 bg-muted border-none focus:ring-0 text-sm resize-none p-3 rounded-lg"
                   />
                   <div className="flex justify-between items-center pt-2 border-t border-muted">
                     <div className="flex gap-1">
@@ -290,20 +362,92 @@ function DetailDrawer({
                     <Button
                       size="sm"
                       className="h-7 px-4 text-[10px] font-semibold uppercase tracking-wider"
+                      disabled={
+                        createNoteMutation.isPending || !noteBody.trim()
+                      }
+                      onClick={() => void saveNote()}
                     >
-                      Save Note
+                      {createNoteMutation.isPending ? "Saving..." : "Save Note"}
                     </Button>
                   </div>
                 </div>
 
+                {detail?.duplicateWarnings.length ? (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em]">
+                      Duplicate warning
+                    </p>
+                    <div className="mt-2 space-y-2">
+                      {detail.duplicateWarnings.map((warning) => (
+                        <p key={warning.id} className="text-xs leading-relaxed">
+                          {warning.reason}
+                          {warning.score != null ? ` (${warning.score})` : ""}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {detail?.giftHistory.length ? (
+                  <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                        Gift history
+                      </p>
+                      <Badge variant="secondary" className="text-[10px]">
+                        {detail.giftHistory.length}
+                      </Badge>
+                    </div>
+                    <div className="mt-3 divide-y divide-border">
+                      {detail.giftHistory.slice(0, 6).map((gift) => (
+                        <div
+                          key={gift.id}
+                          className="flex items-center justify-between gap-4 py-3"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-foreground">
+                              {formatCurrency(gift.amountCents)}
+                            </p>
+                            <p className="truncate text-xs text-muted-foreground">
+                              {gift.fundName ?? gift.missionaryName ?? "Gift"}
+                            </p>
+                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                              {gift.receiptStatus ?? "receipt unknown"} /{" "}
+                              {gift.crmPostStatus ?? "crm pending"}
+                            </p>
+                          </div>
+                          {gift.canResendReceipt && gift.stagedGiftId ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 shrink-0 gap-2 text-xs"
+                              disabled={receiptMutation.isPending}
+                              onClick={() =>
+                                void resendReceipt(gift.stagedGiftId!)
+                              }
+                            >
+                              <Receipt className="size-3.5" />
+                              Resend
+                            </Button>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : detailQuery.isLoading ? (
+                  <div className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
+                    Loading donor workflow history...
+                  </div>
+                ) : null}
+
                 <div className="space-y-6 pl-4 border-l border-border ml-2">
-                  {contact.activities.length === 0 ? (
+                  {timeline.length === 0 ? (
                     <p className="text-sm text-muted-foreground">
                       No timeline entries yet. Activity from donations and tasks
                       will appear here as the CRM read model expands.
                     </p>
                   ) : (
-                    contact.activities.map((act) => (
+                    timeline.map((act) => (
                       <div key={act.id} className="relative group">
                         <div className="absolute -left-[21px] top-0 size-4 rounded-full border-2 border-background bg-muted z-10 transition-colors group-hover:bg-foreground" />
                         <div className="pb-4 space-y-1">
@@ -312,7 +456,9 @@ function DetailDrawer({
                               {act.title}
                             </span>
                             <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest">
-                              {makeDisplayDate(act.date).toLocaleDateString()}
+                              {makeDisplayDate(
+                                act.occurredAt,
+                              ).toLocaleDateString()}
                             </span>
                           </div>
                           {act.description && (
@@ -320,9 +466,9 @@ function DetailDrawer({
                               {act.description}
                             </p>
                           )}
-                          {act.amount && (
+                          {act.amountCents && (
                             <p className="text-xs font-semibold text-emerald-600">
-                              +{formatCurrency(act.amount)} gift received
+                              +{formatCurrency(act.amountCents)}
                             </p>
                           )}
                         </div>
@@ -368,7 +514,36 @@ function DetailDrawer({
                       Assigned missionary
                     </p>
                     <p className="text-sm font-semibold text-foreground">
-                      {contact.assignedMissionaryName ?? EMPTY_CELL_VALUE}
+                      {detail?.support.byMissionary[0]?.missionaryName ??
+                        contact.assignedMissionaryName ??
+                        EMPTY_CELL_VALUE}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
+                      Support status
+                    </p>
+                    <div className="space-y-1 text-sm font-semibold text-foreground">
+                      <p>
+                        {detail
+                          ? formatCurrency(detail.support.lifetimeGivingCents)
+                          : formatCurrency(contact.lifetimeGiving)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {detail
+                          ? `${detail.support.activeRecurringCommitments} recurring / ${detail.support.atRiskCommitments} at risk`
+                          : "Recurring support not loaded"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
+                      Privacy
+                    </p>
+                    <p className="text-xs font-medium text-muted-foreground">
+                      {detail?.privacy.missionaryContactDataExposed === false
+                        ? "Missionary users do not receive restricted donor contact data."
+                        : "Staff-only donor data."}
                     </p>
                   </div>
                   <div className="space-y-1">
@@ -587,8 +762,12 @@ export default function MissionControlCRM() {
     toast.info("Bulk archive is not available yet.");
   };
 
-  const handleBulkExport = (_selected: CrmGridRow[]) => {
-    toast.info("Export is not available yet.");
+  const handleBulkExport = (selected: CrmGridRow[]) => {
+    const params = new URLSearchParams({ slice: "donors" });
+    if (selected.length > 0) {
+      toast.info("Export includes the current donor report slice.");
+    }
+    window.location.assign(`/api/admin/crm/reports/export?${params}`);
   };
 
   return (

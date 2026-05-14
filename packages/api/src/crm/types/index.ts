@@ -12,6 +12,8 @@ export type CrmAction =
   | "crm.note.create"
   | "crm.relationship.read"
   | "crm.projection.read"
+  | "crm.report.read"
+  | "crm.report.export"
   | "crm.person.create"
   | "crm.person.update"
   | "crm.sync.replay"
@@ -28,6 +30,7 @@ export type CrmResourceType =
   | "note"
   | "relationship"
   | "projection"
+  | "report"
   | "sync";
 
 export type CrmCommandStatus =
