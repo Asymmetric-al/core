@@ -86,7 +86,7 @@ export const SuggestionList = React.forwardRef<
         </p>
       ) : null}
       {items.length === 0 ? (
-        <p className="px-3 py-3 text-[12px] text-zinc-400">{emptyHint}</p>
+        <p className="p-3 text-[12px] text-zinc-400">{emptyHint}</p>
       ) : (
         <ul className="max-h-64 overflow-y-auto py-1">
           {items.map((item, index) => {

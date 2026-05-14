@@ -28,12 +28,12 @@ export function MissionControlHome() {
 
   return (
     <div className="relative isolate min-h-full">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-slate-50 via-white to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-zinc-50 via-white to-transparent" />
 
       <div className="relative space-y-12">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1.5">
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">
+            <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">
               Mission Control
             </h1>
             <p className="text-base font-medium text-zinc-500 max-w-2xl">
@@ -44,7 +44,7 @@ export function MissionControlHome() {
         </div>
 
         <div className="space-y-6">
-          <h2 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+          <h2 className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
             Quick Actions
           </h2>
           <QuickActionsRow />
@@ -53,7 +53,9 @@ export function MissionControlHome() {
         <div className="space-y-8">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <h2 className="text-lg font-bold text-zinc-900">Your Tools</h2>
+              <h2 className="text-lg font-semibold text-zinc-900">
+                Your Tools
+              </h2>
               <p className="text-sm font-medium text-zinc-500">
                 Access your enabled modules and features.
               </p>
@@ -101,13 +103,13 @@ export function MissionControlHome() {
                           />
                         </div>
                         <div className="flex-1 min-w-0 space-y-1">
-                          <p className="text-sm font-bold text-zinc-900">
+                          <p className="text-sm font-semibold text-zinc-900">
                             {tile.title}
                           </p>
                           <div className="flex items-center gap-2">
                             <Badge
                               variant="secondary"
-                              className={`h-5 px-1.5 text-[10px] font-bold uppercase tracking-wider ${
+                              className={`h-5 px-1.5 text-[10px] font-semibold uppercase tracking-wider ${
                                 hasAccess
                                   ? "bg-zinc-100 text-zinc-900"
                                   : "bg-zinc-100 text-zinc-400"

@@ -248,7 +248,7 @@ function UserFooter() {
   const { user } = useMC();
 
   return (
-    <SidebarFooter className="px-3 py-3 border-t border-zinc-100">
+    <SidebarFooter className="p-3 border-t border-zinc-100">
       <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
         <Avatar className="size-7 rounded-md ring-1 ring-zinc-950/5">
           <AvatarImage
@@ -284,7 +284,7 @@ function AppSidebar() {
       collapsible="icon"
       className="border-r border-zinc-200/60 bg-white"
     >
-      <SidebarHeader className="px-3 py-3">
+      <SidebarHeader className="p-3">
         <Link href="/" className="flex items-center gap-2 group">
           <div className="flex size-7 items-center justify-center rounded-md bg-zinc-900 text-white font-semibold text-xs shadow-sm ring-1 ring-zinc-950/5 group-hover:ring-zinc-950/10 transition-shadow">
             G
@@ -342,7 +342,7 @@ function AppHeader() {
                 >
                   <Search className="size-4" />
                   <span className="text-sm text-muted-foreground/60">
-                    Search...
+                    Search…
                   </span>
                   <kbd className="pointer-events-none ml-auto hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
                     <span className="text-xs">⌘</span>K

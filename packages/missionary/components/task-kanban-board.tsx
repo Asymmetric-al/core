@@ -46,6 +46,12 @@ import type {
   DragEndEvent,
 } from "@dnd-kit/core";
 
+function makeDisplayDate(value?: string | number | Date): Date {
+  return value === undefined
+    ? new globalThis.Date()
+    : new globalThis.Date(value);
+}
+
 const COLUMNS: {
   id: TaskStatus;
   label: string;
@@ -287,9 +293,11 @@ function KanbanColumn({
           <div className={cn("p-2 rounded-xl", color)}>
             <Icon className="size-4" />
           </div>
-          <h3 className="text-xs font-black uppercase tracking-widest text-zinc-900">
+          <h3 className="text-xs font-semibold uppercase tracking-widest text-zinc-900">
             {title}
-            <span className="ml-2 text-zinc-400 font-bold">{tasks.length}</span>
+            <span className="ml-2 text-zinc-400 font-semibold">
+              {tasks.length}
+            </span>
           </h3>
         </div>
         <Button
@@ -318,7 +326,7 @@ function KanbanColumn({
             />
           ))}
           {tasks.length === 0 && (
-            <div className="h-24 rounded-2xl border-2 border-dashed border-zinc-200 flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-zinc-300">
+            <div className="h-24 rounded-2xl border-2 border-dashed border-zinc-200 flex items-center justify-center text-[10px] font-semibold uppercase tracking-widest text-zinc-300">
               Drop tasks here
             </div>
           )}
@@ -384,7 +392,7 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete }: KanbanCardProps) {
           <div className="flex-1">
             <h4
               className={cn(
-                "text-sm font-bold leading-tight line-clamp-2",
+                "text-sm font-semibold leading-tight line-clamp-2",
                 task.status === "completed" && "text-zinc-400 line-through",
               )}
             >
@@ -412,7 +420,7 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete }: KanbanCardProps) {
             <Badge
               variant="outline"
               className={cn(
-                "text-[8px] h-5 font-black uppercase tracking-widest px-2 border",
+                "text-[8px] h-5 font-semibold uppercase tracking-widest px-2 border",
                 priorityColor,
               )}
             >
@@ -420,9 +428,9 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete }: KanbanCardProps) {
             </Badge>
           )}
           {task.due_date && (
-            <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-zinc-400 bg-zinc-50 px-2 py-0.5 rounded-lg border border-zinc-100">
+            <div className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-widest text-zinc-400 bg-zinc-50 px-2 py-0.5 rounded-lg border border-zinc-100">
               <Calendar className="size-3" />
-              {format(new Date(task.due_date), "MMM d")}
+              {format(makeDisplayDate(task.due_date), "MMM d")}
             </div>
           )}
         </div>
@@ -433,11 +441,11 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete }: KanbanCardProps) {
               <div className="flex items-center gap-2 max-w-[140px]">
                 <Avatar className="size-5 ring-2 ring-white">
                   <AvatarImage src={task.donor.avatar_url ?? undefined} />
-                  <AvatarFallback className="text-[8px] font-black uppercase">
+                  <AvatarFallback className="text-[8px] font-semibold uppercase">
                     {task.donor.name[0]}
                   </AvatarFallback>
                 </Avatar>
-                <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500 truncate">
+                <span className="text-[9px] font-semibold uppercase tracking-widest text-zinc-500 truncate">
                   {task.donor.name}
                 </span>
               </div>
@@ -448,7 +456,7 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete }: KanbanCardProps) {
             variant="ghost"
             size="sm"
             className={cn(
-              "h-7 px-2 rounded-lg text-[8px] font-black uppercase tracking-widest",
+              "h-7 px-2 rounded-lg text-[8px] font-semibold uppercase tracking-widest",
               task.status === "completed"
                 ? "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
                 : "text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50",

@@ -106,7 +106,7 @@ export function QuickGive({
   minAmount = 1,
   size = "default",
 }: QuickGiveProps) {
-  const router = useRouter();
+  const { push } = useRouter();
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const [isFocused, setIsFocused] = React.useState(false);
@@ -165,7 +165,7 @@ export function QuickGive({
       amount: String(safeAmount),
     });
 
-    router.push(`/checkout?${qs.toString()}`);
+    push(`/checkout?${qs.toString()}`);
   }
 
   return (

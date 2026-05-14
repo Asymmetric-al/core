@@ -187,10 +187,10 @@ function ResizableImageView({
             <Button
               variant="destructive"
               size="icon"
-              className="absolute top-2 right-2 z-20 h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100"
+              className="absolute top-2 right-2 z-20 size-7 opacity-0 transition-opacity group-hover:opacity-100"
               onClick={deleteNode}
             >
-              <Trash className="h-3.5 w-3.5" />
+              <Trash className="size-3.5" />
             </Button>
           </>
         )}

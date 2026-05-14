@@ -25,7 +25,7 @@ export default function AboutPage() {
   return (
     <div className="space-y-8 pb-20">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
           About asymmetric.al
         </h1>
         <p className="text-muted-foreground mt-1">
@@ -35,7 +35,7 @@ export default function AboutPage() {
 
       <Card className="max-w-2xl">
         <CardHeader className="border-b">
-          <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+          <CardTitle className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
             Deployment
           </CardTitle>
         </CardHeader>
@@ -55,7 +55,7 @@ export default function AboutPage() {
 
           <div className="space-y-4">
             <div>
-              <div className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest">
+              <div className="text-muted-foreground text-[10px] font-semibold uppercase tracking-widest">
                 Source for this deployment
               </div>
               <a
@@ -75,7 +75,7 @@ export default function AboutPage() {
             </div>
 
             <div>
-              <div className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest">
+              <div className="text-muted-foreground text-[10px] font-semibold uppercase tracking-widest">
                 License
               </div>
               <p className="text-sm mt-1">
@@ -93,7 +93,7 @@ export default function AboutPage() {
             </div>
 
             <div>
-              <div className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest">
+              <div className="text-muted-foreground text-[10px] font-semibold uppercase tracking-widest">
                 Warranty
               </div>
               <p className="text-sm mt-1">

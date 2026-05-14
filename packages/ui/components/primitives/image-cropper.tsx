@@ -224,9 +224,9 @@ export function ImageCropper({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex flex-col items-center justify-center space-y-4 py-8">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50">
-              <AlertCircle className="h-6 w-6 text-red-500" />
+          <div className="flex flex-col items-center justify-center gap-y-4 py-8">
+            <div className="flex size-12 items-center justify-center rounded-full bg-red-50">
+              <AlertCircle className="size-6 text-red-500" />
             </div>
 
             <p className="text-muted-foreground text-center text-sm">
@@ -247,7 +247,7 @@ export function ImageCropper({
       <DialogContent className="border-border bg-background flex h-[90vh] max-h-[700px] flex-col overflow-hidden p-0 sm:max-w-[600px]">
         <DialogHeader className="border-border/70 shrink-0 border-b p-4 sm:p-6">
           <DialogTitle className="flex items-center gap-2 text-lg font-bold uppercase tracking-tight sm:text-xl">
-            <Scissors className="text-foreground h-4 w-4 sm:h-5 sm:w-5" />
+            <Scissors className="text-foreground size-4 sm:h-5 sm:w-5" />
             Crop Image
           </DialogTitle>
           <DialogDescription className="text-muted-foreground text-xs">
@@ -276,7 +276,7 @@ export function ImageCropper({
         <div className="border-border/70 bg-background shrink-0 space-y-4 border-t p-4 sm:space-y-6 sm:p-6">
           <div className="space-y-3 sm:space-y-4">
             <div className="flex items-center gap-3 sm:gap-4">
-              <ZoomOut className="text-muted-foreground h-4 w-4 flex-shrink-0" />
+              <ZoomOut className="text-muted-foreground size-4 flex-shrink-0" />
               <Slider
                 value={[state.zoom]}
                 min={minZoom}
@@ -289,11 +289,11 @@ export function ImageCropper({
                 }}
                 className="flex-1"
               />
-              <ZoomIn className="text-muted-foreground h-4 w-4 flex-shrink-0" />
+              <ZoomIn className="text-muted-foreground size-4 flex-shrink-0" />
             </div>
 
             <div className="flex items-center gap-3 sm:gap-4">
-              <RotateCw className="text-muted-foreground h-4 w-4 flex-shrink-0" />
+              <RotateCw className="text-muted-foreground size-4 flex-shrink-0" />
               <Slider
                 value={[state.rotation]}
                 min={0}
@@ -330,7 +330,7 @@ export function ImageCropper({
             >
               {state.isProcessing ? (
                 <>
-                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                  <Loader2 className="mr-1.5 size-3.5 animate-spin" />
                   Processing
                 </>
               ) : (

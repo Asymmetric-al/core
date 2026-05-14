@@ -18,7 +18,7 @@ export default function AboutPage() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900">
+        <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">
           About asymmetric.al
         </h1>
         <p className="text-zinc-500 mt-1">
@@ -28,7 +28,7 @@ export default function AboutPage() {
 
       <Card className="shadow-sm border-zinc-200 max-w-2xl">
         <CardHeader className="border-b border-zinc-100">
-          <CardTitle className="text-sm font-bold uppercase tracking-widest text-zinc-500">
+          <CardTitle className="text-sm font-semibold uppercase tracking-widest text-zinc-500">
             Deployment
           </CardTitle>
         </CardHeader>
@@ -48,7 +48,7 @@ export default function AboutPage() {
 
           <div className="space-y-4">
             <div>
-              <div className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">
+              <div className="text-zinc-500 text-[10px] font-semibold uppercase tracking-widest">
                 Source for this deployment
               </div>
               <a
@@ -68,7 +68,7 @@ export default function AboutPage() {
             </div>
 
             <div>
-              <div className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">
+              <div className="text-zinc-500 text-[10px] font-semibold uppercase tracking-widest">
                 License
               </div>
               <p className="text-zinc-700 text-sm mt-1">
@@ -86,7 +86,7 @@ export default function AboutPage() {
             </div>
 
             <div>
-              <div className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">
+              <div className="text-zinc-500 text-[10px] font-semibold uppercase tracking-widest">
                 Warranty
               </div>
               <p className="text-zinc-700 text-sm mt-1">

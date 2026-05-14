@@ -29,7 +29,7 @@ export function mergeTimeline(
   messages: SupportMessage[],
   options: MergeOptions,
 ): TimelineEntry[] {
-  const sorted = [...messages].sort((left, right) => {
+  const sorted = Array.from(messages).sort((left, right) => {
     if (left.postedAt === right.postedAt) {
       return left.id.localeCompare(right.id);
     }

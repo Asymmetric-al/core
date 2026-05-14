@@ -17,8 +17,8 @@ export function TaskErrorState({ message, onRetry }: TaskErrorStateProps) {
       animate={{ opacity: 1, scale: 1 }}
       className="flex flex-col items-center justify-center py-16 px-4 text-center"
     >
-      <div className="h-16 w-16 rounded-2xl bg-destructive/10 flex items-center justify-center mb-6">
-        <AlertCircle className="h-8 w-8 text-destructive" />
+      <div className="size-16 rounded-2xl bg-destructive/10 flex items-center justify-center mb-6">
+        <AlertCircle className="size-8 text-destructive" />
       </div>
 
       <h3 className="text-lg font-semibold text-foreground mb-2">
@@ -31,7 +31,7 @@ export function TaskErrorState({ message, onRetry }: TaskErrorStateProps) {
       </p>
 
       <Button onClick={onRetry}>
-        <RefreshCw className="mr-2 h-4 w-4" />
+        <RefreshCw className="mr-2 size-4" />
         Try again
       </Button>
     </motion.div>

@@ -37,7 +37,7 @@ export function TilePage({ tile, children }: TilePageProps) {
                   href={resolveMissionControlHref(action.href)}
                 >
                   <Button size="sm">
-                    {Icon && <Icon className="mr-2 h-4 w-4" />}
+                    {Icon && <Icon className="mr-2 size-4" />}
                     {action.label}
                   </Button>
                 </Link>
@@ -73,7 +73,7 @@ export function TilePage({ tile, children }: TilePageProps) {
                       size="sm"
                       className="w-full justify-start"
                     >
-                      {Icon && <Icon className="mr-2 h-4 w-4" />}
+                      {Icon && <Icon className="mr-2 size-4" />}
                       {action.label}
                     </Button>
                   </Link>

@@ -20,6 +20,7 @@ Organized documentation for developers working on this project:
 - **[TypeScript 6 / 7 readiness](./guides/typescript-6-readiness.md)** - Prep policy for future TypeScript upgrades (not the upgrade itself)
 - **[Getting Started](./guides/development/getting-started.md)** - Development setup, workflow, and best practices
 - **[Contributing Guide](./guides/development/contributing.md)** - How to contribute to the project
+- **[React Doctor](./guides/development/react-doctor.md)** - Configured first-party React Doctor audit workflow and documented exceptions
 - **[Mock Data Guide](./guides/development/mock-data.md)** - Working with mock data and seeding
 - **[TanStack Integration](./guides/development/tanstack-integration.md)** - TanStack Table and Query integration guide
 - **[MCP Config Example](./guides/development/mcp-config.example.toml)** - Model Context Protocol configuration template

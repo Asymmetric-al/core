@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Trash2, Download } from "lucide-react";
+import { X } from "lucide-react";
 import { AnimatePresence, LazyMotion, domAnimation, m } from "motion/react";
 import * as React from "react";
 
@@ -32,32 +32,9 @@ export function DataTableActionBar<TData>({
 
   if (selectedCount === 0) return null;
 
-  const defaultActions = [
-    {
-      label: "Export",
-      icon: Download,
-      onClick: () => {
-        console.log(
-          "Export selected rows:",
-          selectedRows.map((r) => r.original),
-        );
-      },
-      variant: "default" as const,
-    },
-    {
-      label: "Delete",
-      icon: Trash2,
-      onClick: () => {
-        console.log(
-          "Delete selected rows:",
-          selectedRows.map((r) => r.original),
-        );
-      },
-      variant: "destructive" as const,
-    },
-  ];
-
-  const allActions = actions || defaultActions;
+  const selectedOriginalRows = selectedRows.map((row) => row.original);
+  const visibleActions = actions ?? [];
+  const hasActions = visibleActions.length > 0;
 
   return (
     <LazyMotion features={domAnimation}>
@@ -78,35 +55,38 @@ export function DataTableActionBar<TData>({
             <span className="text-sm font-semibold">{selectedCount}</span>
             <span className="text-sm">selected</span>
           </div>
-          <Separator
-            orientation="vertical"
-            className="h-5 bg-primary-foreground/20"
-          />
-          <div className="flex items-center gap-1">
-            {allActions.map((action) => (
-              <Button
-                key={action.label}
-                variant="ghost"
-                size="sm"
-                onClick={() =>
-                  action.onClick(selectedRows.map((row) => row.original))
-                }
-                className={cn(
-                  "h-8 gap-2 rounded-xl text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground",
-                  action.variant === "destructive" && "hover:bg-destructive/20",
-                )}
-              >
-                {action.icon && (
-                  <action.icon className="size-4" aria-hidden="true" />
-                )}
-                {action.label}
-              </Button>
-            ))}
-          </div>
-          <Separator
-            orientation="vertical"
-            className="h-5 bg-primary-foreground/20"
-          />
+          {hasActions && (
+            <>
+              <Separator
+                orientation="vertical"
+                className="h-5 bg-primary-foreground/20"
+              />
+              <div className="flex items-center gap-1">
+                {visibleActions.map((action) => (
+                  <Button
+                    key={action.label}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => action.onClick(selectedOriginalRows)}
+                    className={cn(
+                      "h-8 gap-2 rounded-xl text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground",
+                      action.variant === "destructive" &&
+                        "hover:bg-destructive/20",
+                    )}
+                  >
+                    {action.icon && (
+                      <action.icon className="size-4" aria-hidden="true" />
+                    )}
+                    {action.label}
+                  </Button>
+                ))}
+              </div>
+              <Separator
+                orientation="vertical"
+                className="h-5 bg-primary-foreground/20"
+              />
+            </>
+          )}
           <Button
             variant="ghost"
             size="icon"

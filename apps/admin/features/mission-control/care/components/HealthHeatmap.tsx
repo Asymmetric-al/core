@@ -25,7 +25,7 @@ export function HealthHeatmap({ data, days = 90 }: HeatmapProps) {
   const getColor = (intensity: number) => {
     switch (intensity) {
       case 0:
-        return "bg-slate-100 dark:bg-slate-800";
+        return "bg-zinc-100 dark:bg-zinc-800";
       case 1:
         return "bg-emerald-200 dark:bg-emerald-900/40";
       case 2:
@@ -35,7 +35,7 @@ export function HealthHeatmap({ data, days = 90 }: HeatmapProps) {
       case 4:
         return "bg-emerald-800 dark:bg-emerald-300";
       default:
-        return "bg-slate-100";
+        return "bg-zinc-100";
     }
   };
 
@@ -51,14 +51,14 @@ export function HealthHeatmap({ data, days = 90 }: HeatmapProps) {
               <TooltipTrigger asChild>
                 <div
                   className={cn(
-                    "w-3 h-3 rounded-sm cursor-pointer transition-colors hover:ring-1 hover:ring-slate-400",
+                    "w-3 h-3 rounded-sm cursor-pointer transition-colors hover:ring-1 hover:ring-zinc-400",
                     getColor(intensity),
                   )}
                 />
               </TooltipTrigger>
               <TooltipContent side="top">
                 <p className="text-xs font-medium">{date}</p>
-                <p className="text-[10px] text-slate-500">
+                <p className="text-[10px] text-zinc-500">
                   {intensity > 0
                     ? `${entry?.type} intensity: ${intensity}`
                     : "No activity logged"}

@@ -247,7 +247,7 @@ export function NativeCollectionEditView({
     value: string;
   }> = [
     {
-      icon: <Link2 className="h-3.5 w-3.5" />,
+      icon: <Link2 className="size-3.5" />,
       label: "Document ID",
       value:
         typeof data?.id === "string" || typeof data?.id === "number"
@@ -258,7 +258,7 @@ export function NativeCollectionEditView({
 
   if (typeof data?.tenant === "string") {
     inspectorItems.push({
-      icon: <Link2 className="h-3.5 w-3.5" />,
+      icon: <Link2 className="size-3.5" />,
       label: "Tenant",
       value: data.tenant,
     });
@@ -268,7 +268,7 @@ export function NativeCollectionEditView({
     "id" in data.tenant
   ) {
     inspectorItems.push({
-      icon: <Link2 className="h-3.5 w-3.5" />,
+      icon: <Link2 className="size-3.5" />,
       label: "Tenant",
       value: String(data.tenant.id),
     });
@@ -276,7 +276,7 @@ export function NativeCollectionEditView({
 
   if (studioCollection === "navigation" && Array.isArray(data?.items)) {
     inspectorItems.push({
-      icon: <Link2 className="h-3.5 w-3.5" />,
+      icon: <Link2 className="size-3.5" />,
       label: "Nav items",
       value: String(data.items.length),
     });
@@ -284,7 +284,7 @@ export function NativeCollectionEditView({
 
   if (studioCollection === "missionary-profiles") {
     inspectorItems.push({
-      icon: <ImageIcon className="h-3.5 w-3.5" />,
+      icon: <ImageIcon className="size-3.5" />,
       label: "Portrait",
       value: data?.portrait ? "Linked" : "Missing",
     });
@@ -292,7 +292,7 @@ export function NativeCollectionEditView({
 
   if (studioCollection === "ministry-updates") {
     inspectorItems.push({
-      icon: <Link2 className="h-3.5 w-3.5" />,
+      icon: <Link2 className="size-3.5" />,
       label: "Missionary",
       value: data?.missionary ? "Linked" : "Missing",
     });
@@ -300,7 +300,7 @@ export function NativeCollectionEditView({
 
   if (studioCollection === "media") {
     inspectorItems.push({
-      icon: <ImageIcon className="h-3.5 w-3.5" />,
+      icon: <ImageIcon className="size-3.5" />,
       label: "Asset",
       value:
         typeof data?.filename === "string" ? data.filename : "Upload pending",
@@ -309,12 +309,12 @@ export function NativeCollectionEditView({
 
   if (studioConfig.hasVersions) {
     inspectorItems.push({
-      icon: <Link2 className="h-3.5 w-3.5" />,
+      icon: <Link2 className="size-3.5" />,
       label: "Versions",
       value: String(versionCount),
     });
     inspectorItems.push({
-      icon: <Link2 className="h-3.5 w-3.5" />,
+      icon: <Link2 className="size-3.5" />,
       label: "Unpublished",
       value: String(unpublishedVersionCount),
     });
@@ -335,7 +335,7 @@ export function NativeCollectionEditView({
           <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
             <div className="min-w-0 space-y-2">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="truncate font-black text-2xl text-foreground tracking-tight uppercase sm:text-3xl">
+                <h1 className="truncate font-semibold text-2xl text-foreground tracking-tight uppercase sm:text-3xl">
                   {heading}
                 </h1>
                 {workspace.showSlugChip && slugOrIdentifier ? (
@@ -378,7 +378,7 @@ export function NativeCollectionEditView({
                 className="font-semibold"
                 onClick={() => setSettingsOpen(true)}
               >
-                <Settings2 className="mr-2 h-4 w-4" />
+                <Settings2 className="mr-2 size-4" />
                 Workspace
               </Button>
               {collectionSlug ? (
@@ -435,7 +435,7 @@ export function NativeCollectionEditView({
           </div>
           {workspace.inspectorOpen ? (
             <aside className="mt-6 hidden rounded-xl border border-border bg-muted/30 p-4 text-muted-foreground text-xs lg:mt-0 lg:block">
-              <p className="mb-2 font-bold text-foreground uppercase tracking-wide">
+              <p className="mb-2 font-semibold text-foreground uppercase tracking-wide">
                 Inspector
               </p>
               <p>
@@ -486,7 +486,7 @@ export function NativeCollectionEditView({
                   asChild
                 >
                   <a href={previewURL} target="_blank" rel="noreferrer">
-                    <ExternalLink className="mr-2 h-4 w-4" />
+                    <ExternalLink className="mr-2 size-4" />
                     Open preview
                   </a>
                 </Button>

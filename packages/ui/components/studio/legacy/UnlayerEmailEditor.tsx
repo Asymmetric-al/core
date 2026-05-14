@@ -499,14 +499,14 @@ export const LegacyUnlayerEmailEditor = forwardRef<
           <div className="relative">
             <div className="absolute inset-0 rounded-2xl bg-primary/20 blur-xl animate-pulse" />
             <div className="relative p-4 rounded-2xl bg-primary/10 border border-primary/20">
-              <LoadingIcon className="h-8 w-8 text-primary" />
+              <LoadingIcon className="size-8 text-primary" />
             </div>
           </div>
           <div className="space-y-2 w-full">
             <div className="flex items-center justify-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              <Loader2 className="size-4 animate-spin text-primary" />
               <span className="text-sm font-medium text-foreground">
-                Initializing {loadingLabel} editor...
+                Initializing {loadingLabel} editor…
               </span>
             </div>
             <Progress value={10} className="h-1.5 w-48" />
@@ -524,17 +524,17 @@ export const LegacyUnlayerEmailEditor = forwardRef<
             <div className="relative">
               <div className="absolute inset-0 rounded-2xl bg-primary/20 blur-xl animate-pulse" />
               <div className="relative p-4 rounded-2xl bg-primary/10 border border-primary/20">
-                <LoadingIcon className="h-8 w-8 text-primary" />
+                <LoadingIcon className="size-8 text-primary" />
               </div>
             </div>
 
             <div className="space-y-2 w-full">
               <div className="flex items-center justify-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                <Loader2 className="size-4 animate-spin text-primary" />
                 <span className="text-sm font-medium text-foreground">
                   {loadingState === "mounting"
-                    ? `Preparing ${loadingLabel} editor...`
-                    : "Loading components..."}
+                    ? `Preparing ${loadingLabel} editor…`
+                    : "Loading components…"}
                 </span>
               </div>
               <Progress value={progress} className="h-1.5 w-48" />
@@ -542,7 +542,7 @@ export const LegacyUnlayerEmailEditor = forwardRef<
 
             {!accountConfig.isConfigured && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 px-3 py-2 rounded-full">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                <span className="size-1.5 rounded-full bg-amber-500" />
                 Free mode - Limited features
               </div>
             )}

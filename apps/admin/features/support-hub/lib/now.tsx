@@ -43,7 +43,7 @@ export function SupportNowProvider({
  * `SupportNowProvider` from `SupportInbox`.
  */
 export function useSupportNow(): string {
-  const value = React.useContext(SupportNowContext);
+  const value = React.use(SupportNowContext);
   return value ?? FALLBACK_NOW;
 }
 

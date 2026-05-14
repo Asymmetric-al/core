@@ -89,9 +89,7 @@ export function DynamicIcon({ name, fallback, ...props }: DynamicIconProps) {
   return (
     <Suspense
       fallback={
-        fallback || (
-          <div className="w-4 h-4 animate-pulse bg-slate-200 rounded" />
-        )
+        fallback || <div className="size-4 animate-pulse bg-zinc-200 rounded" />
       }
     >
       {lazyIconElement}

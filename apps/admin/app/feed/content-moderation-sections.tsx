@@ -166,7 +166,7 @@ function StatCard({
                 key={value}
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="text-2xl font-bold tracking-tight text-foreground tabular-nums"
+                className="text-2xl font-semibold tracking-tight text-foreground tabular-nums"
               >
                 {value}
               </motion.p>
@@ -182,7 +182,7 @@ function StatCard({
                   )}
                 >
                   <TrendingUp
-                    className={cn("h-3 w-3", trend < 0 && "rotate-180")}
+                    className={cn("size-3", trend < 0 && "rotate-180")}
                   />
                   {trend > 0 ? "+" : ""}
                   {trend}% {trendLabel}
@@ -193,11 +193,11 @@ function StatCard({
               whileHover={{ scale: 1.1, rotate: 5 }}
               transition={springTransition}
               className={cn(
-                "h-9 w-9 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center border",
+                "size-9 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center border",
                 toneClass,
               )}
             >
-              <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+              <Icon className="size-4 sm:h-5 sm:w-5" />
             </motion.div>
           </div>
         </CardContent>
@@ -253,7 +253,7 @@ function ModerationQueueDialogs({
             <Input
               value={actionReason}
               onChange={(e) => onActionReasonChange(e.target.value)}
-              placeholder="Add a reason for this action..."
+              placeholder="Add a reason for this action…"
               className="mt-2 rounded-xl"
             />
           </div>
@@ -291,14 +291,14 @@ function ModerationQueueDialogs({
               className="space-y-4"
             >
               <div className="flex items-center gap-3">
-                <Avatar className="h-12 w-12 border-2 border-background shadow-md">
+                <Avatar className="size-12 border-2 border-background shadow-md">
                   <AvatarImage src={selectedPost.author.avatar_url} />
-                  <AvatarFallback className="font-bold">
+                  <AvatarFallback className="font-semibold">
                     {selectedPost.author.name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-bold text-foreground">
+                  <p className="font-semibold text-foreground">
                     {selectedPost.author.name}
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -348,7 +348,7 @@ function ModerationQueueDialogs({
                     transition={{ delay: idx * 0.05 }}
                     className="p-3 bg-muted/50 rounded-xl"
                   >
-                    <p className="text-xl sm:text-2xl font-bold text-foreground">
+                    <p className="text-xl sm:text-2xl font-semibold text-foreground">
                       {stat.value}
                     </p>
                     <p className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -376,7 +376,7 @@ function ModerationQueueDialogs({
               }}
               className="rounded-xl"
             >
-              <Check className="h-4 w-4 mr-2" /> Approve
+              <Check className="size-4 mr-2" /> Approve
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -431,10 +431,10 @@ function ModerationQueue({
           animate={{ rotate: 360 }}
           transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
         >
-          <Loader2 className="h-10 w-10 text-muted-foreground/30" />
+          <Loader2 className="size-10 text-muted-foreground/30" />
         </motion.div>
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/50">
-          Loading queue...
+          Loading queue…
         </p>
       </motion.div>
     );
@@ -452,15 +452,15 @@ function ModerationQueue({
           initial={{ scale: 0.8 }}
           animate={{ scale: 1 }}
           transition={springTransition}
-          className="w-16 h-16 sm:w-20 sm:h-20 bg-card rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-md border"
+          className="size-16 sm:w-20 sm:h-20 bg-card rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-md border"
         >
-          <CheckCircle2 className="h-8 w-8 sm:h-10 sm:w-10 text-emerald-500" />
+          <CheckCircle2 className="size-8 sm:h-10 sm:w-10 text-emerald-500" />
         </motion.div>
         <motion.h3
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="font-bold text-lg sm:text-xl text-foreground tracking-tight"
+          className="font-semibold text-lg sm:text-xl text-foreground tracking-tight"
         >
           All Clear!
         </motion.h3>
@@ -544,9 +544,9 @@ function AllPostsFeedPostCard({
               {post.author.role === "organization" ? (
                 <BrandAvatar size="md" />
               ) : (
-                <Avatar className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 border-2 border-background shadow-md ring-1 ring-border">
+                <Avatar className="size-10 sm:h-12 sm:w-12 shrink-0 border-2 border-background shadow-md ring-1 ring-border">
                   <AvatarImage src={post.author.avatar_url} />
-                  <AvatarFallback className="text-xs font-bold bg-muted text-muted-foreground">
+                  <AvatarFallback className="text-xs font-semibold bg-muted text-muted-foreground">
                     {post.author.name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
@@ -557,7 +557,7 @@ function AllPostsFeedPostCard({
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-sm sm:text-base text-foreground truncate">
+                    <span className="font-semibold text-sm sm:text-base text-foreground truncate">
                       {post.author.name}
                     </span>
                     {post.author.role === "organization" && (
@@ -576,7 +576,7 @@ function AllPostsFeedPostCard({
                         variant="outline"
                         className="text-[8px] sm:text-[9px] h-5 px-2 gap-1 shrink-0 rounded-full font-semibold uppercase tracking-wider"
                       >
-                        <EyeOff className="h-2.5 w-2.5" /> Hidden
+                        <EyeOff className="size-2.5" /> Hidden
                       </Badge>
                     )}
                     {post.isFlagged && (
@@ -584,7 +584,7 @@ function AllPostsFeedPostCard({
                         variant="destructive"
                         className="text-[8px] sm:text-[9px] h-5 px-2 gap-1 shrink-0 rounded-full font-semibold uppercase tracking-wider"
                       >
-                        <Flag className="h-2.5 w-2.5" /> Flagged
+                        <Flag className="size-2.5" /> Flagged
                       </Badge>
                     )}
                     {post.isPinned && (
@@ -592,7 +592,7 @@ function AllPostsFeedPostCard({
                         variant="outline"
                         className="text-[8px] sm:text-[9px] h-5 px-2 gap-1 shrink-0 rounded-full font-semibold uppercase tracking-wider"
                       >
-                        <Pin className="h-2.5 w-2.5" /> Pinned
+                        <Pin className="size-2.5" /> Pinned
                       </Badge>
                     )}
                   </div>
@@ -620,9 +620,9 @@ function AllPostsFeedPostCard({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 sm:h-9 sm:w-9 shrink-0 rounded-xl"
+                        className="size-8 sm:h-9 sm:w-9 shrink-0 rounded-xl"
                       >
-                        <MoreHorizontal className="h-4 w-4" />
+                        <MoreHorizontal className="size-4" />
                       </Button>
                     </motion.div>
                   </DropdownMenuTrigger>
@@ -638,17 +638,17 @@ function AllPostsFeedPostCard({
                       onClick={() => onAction(post.id, "edit")}
                       className="rounded-lg py-2.5 cursor-pointer gap-2.5"
                     >
-                      <Edit3 className="h-4 w-4 text-muted-foreground" /> Edit
+                      <Edit3 className="size-4 text-muted-foreground" /> Edit
                       Post
                     </DropdownMenuItem>
                     {post.isPinned ? (
                       <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
-                        <Pin className="h-4 w-4 text-muted-foreground" /> Unpin
+                        <Pin className="size-4 text-muted-foreground" /> Unpin
                         Post
                       </DropdownMenuItem>
                     ) : (
                       <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
-                        <Pin className="h-4 w-4 text-muted-foreground" /> Pin to
+                        <Pin className="size-4 text-muted-foreground" /> Pin to
                         Top
                       </DropdownMenuItem>
                     )}
@@ -657,25 +657,25 @@ function AllPostsFeedPostCard({
                         onClick={() => onAction(post.id, "approve")}
                         className="rounded-lg py-2.5 cursor-pointer gap-2.5"
                       >
-                        <Eye className="h-4 w-4 text-muted-foreground" />{" "}
-                        Restore Post
+                        <Eye className="size-4 text-muted-foreground" /> Restore
+                        Post
                       </DropdownMenuItem>
                     ) : (
                       <DropdownMenuItem
                         onClick={() => onAction(post.id, "hide")}
                         className="rounded-lg py-2.5 cursor-pointer gap-2.5"
                       >
-                        <EyeOff className="h-4 w-4 text-muted-foreground" />{" "}
-                        Hide Post
+                        <EyeOff className="size-4 text-muted-foreground" /> Hide
+                        Post
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
-                      <ExternalLink className="h-4 w-4 text-muted-foreground" />{" "}
+                      <ExternalLink className="size-4 text-muted-foreground" />{" "}
                       View Public Post
                     </DropdownMenuItem>
                     <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
-                      <UserX className="h-4 w-4 text-muted-foreground" /> View
+                      <UserX className="size-4 text-muted-foreground" /> View
                       Author
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -683,7 +683,7 @@ function AllPostsFeedPostCard({
                       className="text-destructive rounded-lg py-2.5 cursor-pointer gap-2.5"
                       onClick={() => onAction(post.id, "delete")}
                     >
-                      <Trash2 className="h-4 w-4" /> Delete Post
+                      <Trash2 className="size-4" /> Delete Post
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -706,7 +706,7 @@ function AllPostsFeedPostCard({
                     <motion.div
                       key={`${post.id}-${item.type}-${item.url}`}
                       whileHover={{ scale: 1.05 }}
-                      className="relative h-16 w-16 sm:h-20 sm:w-20 rounded-xl overflow-hidden border shadow-sm"
+                      className="relative size-16 sm:h-20 sm:w-20 rounded-xl overflow-hidden border shadow-sm"
                     >
                       <Image
                         src={item.url}
@@ -734,16 +734,15 @@ function AllPostsFeedPostCard({
                   {post.fires_count}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <MessageCircle className="h-3.5 w-3.5" />{" "}
-                  {post.comments_count}
+                  <MessageCircle className="size-3.5" /> {post.comments_count}
                 </span>
                 <span className="ml-auto flex items-center gap-1.5">
                   {post.visibility === "public" ? (
-                    <Globe className="h-3.5 w-3.5" />
+                    <Globe className="size-3.5" />
                   ) : post.visibility === "partners" ? (
-                    <Users className="h-3.5 w-3.5" />
+                    <Users className="size-3.5" />
                   ) : (
-                    <Lock className="h-3.5 w-3.5" />
+                    <Lock className="size-3.5" />
                   )}
                   <span className="capitalize hidden xs:inline">
                     {post.visibility}
@@ -830,15 +829,15 @@ function AllPostsFeed({
           initial={{ scale: 0.8 }}
           animate={{ scale: 1 }}
           transition={springTransition}
-          className="w-16 h-16 sm:w-20 sm:h-20 bg-card rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-md border"
+          className="size-16 sm:w-20 sm:h-20 bg-card rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-md border"
         >
-          <Search className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground/30" />
+          <Search className="size-6 sm:h-8 sm:w-8 text-muted-foreground/30" />
         </motion.div>
         <motion.h3
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="font-bold text-lg sm:text-xl text-foreground tracking-tight"
+          className="font-semibold text-lg sm:text-xl text-foreground tracking-tight"
         >
           No posts found
         </motion.h3>
@@ -891,9 +890,9 @@ function FlaggedCommentsPanel({
           animate={{ scale: 1 }}
           transition={springTransition}
         >
-          <CheckCircle2 className="h-10 w-10 text-emerald-500 mx-auto mb-3" />
+          <CheckCircle2 className="size-10 text-emerald-500 mx-auto mb-3" />
         </motion.div>
-        <h3 className="font-bold text-foreground">No flagged comments</h3>
+        <h3 className="font-semibold text-foreground">No flagged comments</h3>
         <p className="text-xs text-muted-foreground mt-1">
           All comments are approved.
         </p>
@@ -920,15 +919,15 @@ function FlaggedCommentsPanel({
                     whileHover={{ scale: 1.1 }}
                     transition={springTransition}
                   >
-                    <Avatar className="h-8 w-8 sm:h-9 sm:w-9 shrink-0 border border-background shadow-sm">
-                      <AvatarFallback className="text-[10px] font-bold bg-muted">
+                    <Avatar className="size-8 sm:h-9 sm:w-9 shrink-0 border border-background shadow-sm">
+                      <AvatarFallback className="text-[10px] font-semibold bg-muted">
                         {comment.author.name.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                   </motion.div>
                   <div className="flex-1 min-w-0 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-foreground">
+                      <span className="font-semibold text-xs text-foreground">
                         {comment.author.name}
                       </span>
                       <span className="text-[10px] text-muted-foreground font-medium">
@@ -949,7 +948,7 @@ function FlaggedCommentsPanel({
                           className="h-7 px-3 text-[10px] text-emerald-600 hover:bg-emerald-100 rounded-lg font-semibold uppercase tracking-wider"
                           onClick={() => onAction(comment.id, "approve")}
                         >
-                          <Check className="h-3 w-3 mr-1.5" /> Approve
+                          <Check className="size-3 mr-1.5" /> Approve
                         </Button>
                       </motion.div>
                       <motion.div
@@ -962,7 +961,7 @@ function FlaggedCommentsPanel({
                           className="h-7 px-3 text-[10px] text-rose-600 hover:bg-rose-100 rounded-lg font-semibold uppercase tracking-wider"
                           onClick={() => onAction(comment.id, "delete")}
                         >
-                          <Trash2 className="h-3 w-3 mr-1.5" /> Delete
+                          <Trash2 className="size-3 mr-1.5" /> Delete
                         </Button>
                       </motion.div>
                     </div>
@@ -1031,11 +1030,11 @@ function RecentActivityPanel() {
             whileHover={{ scale: 1.1, rotate: 5 }}
             transition={springTransition}
             className={cn(
-              "h-8 w-8 rounded-lg flex items-center justify-center",
+              "size-8 rounded-lg flex items-center justify-center",
               variantStyles[item.variant],
             )}
           >
-            <item.icon className="h-4 w-4" />
+            <item.icon className="size-4" />
           </motion.div>
           <div className="flex-1 min-w-0">
             <p className="font-medium text-xs text-foreground truncate">
@@ -1150,7 +1149,7 @@ export function ContentModerationTabsSection({
             value="moderation"
             className="rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 font-semibold text-[9px] sm:text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all"
           >
-            <ShieldAlert className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+            <ShieldAlert className="size-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
             Queue
             <AnimatePresence>
               {flaggedPosts.length > 0 && (
@@ -1171,7 +1170,7 @@ export function ContentModerationTabsSection({
             value="all"
             className="rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 font-semibold text-[9px] sm:text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all"
           >
-            <Globe className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+            <Globe className="size-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
             All Posts
           </TabsTrigger>
         </TabsList>
@@ -1185,9 +1184,9 @@ export function ContentModerationTabsSection({
               className="flex items-center gap-2 w-full sm:w-auto"
             >
               <div className="relative flex-1 sm:flex-none">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search posts..."
+                  placeholder="Search posts…"
                   value={searchQuery}
                   onChange={(e) =>
                     dispatchUi({
@@ -1207,7 +1206,7 @@ export function ContentModerationTabsSection({
                     }
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
-                    <X className="h-3.5 w-3.5" />
+                    <X className="size-3.5" />
                   </motion.button>
                 )}
               </div>
@@ -1222,7 +1221,7 @@ export function ContentModerationTabsSection({
                       size="sm"
                       className="h-9 sm:h-10 gap-2 rounded-xl"
                     >
-                      <Filter className="h-4 w-4" />
+                      <Filter className="size-4" />
                       <span className="hidden sm:inline">Filter</span>
                     </Button>
                   </motion.div>
@@ -1358,7 +1357,7 @@ export function ContentModerationTabsSection({
                 }
               >
                 <SelectTrigger className="h-9 sm:h-10 w-28 sm:w-36 rounded-xl">
-                  <ArrowUpDown className="h-4 w-4 mr-2" />
+                  <ArrowUpDown className="size-4 mr-2" />
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -1424,12 +1423,12 @@ export function ContentModerationSidebarSection({
             <motion.div
               whileHover={{ scale: 1.1, rotate: 5 }}
               transition={springTransition}
-              className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-amber-100 flex items-center justify-center"
+              className="size-10 sm:h-11 sm:w-11 rounded-xl bg-amber-100 flex items-center justify-center"
             >
-              <MessageCircle className="h-5 w-5 text-amber-600" />
+              <MessageCircle className="size-5 text-amber-600" />
             </motion.div>
             <div>
-              <h3 className="font-bold text-sm text-foreground">
+              <h3 className="font-semibold text-sm text-foreground">
                 Flagged Comments
               </h3>
               <p className="text-xs text-muted-foreground">
@@ -1456,12 +1455,12 @@ export function ContentModerationSidebarSection({
             <motion.div
               whileHover={{ scale: 1.1, rotate: 5 }}
               transition={springTransition}
-              className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-muted flex items-center justify-center"
+              className="size-10 sm:h-11 sm:w-11 rounded-xl bg-muted flex items-center justify-center"
             >
-              <Clock className="h-5 w-5 text-muted-foreground" />
+              <Clock className="size-5 text-muted-foreground" />
             </motion.div>
             <div>
-              <h3 className="font-bold text-sm text-foreground">
+              <h3 className="font-semibold text-sm text-foreground">
                 Recent Activity
               </h3>
               <p className="text-xs text-muted-foreground">
@@ -1485,12 +1484,12 @@ export function ContentModerationSidebarSection({
             <motion.div
               whileHover={{ scale: 1.1, rotate: 10 }}
               transition={springTransition}
-              className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0"
+              className="size-10 sm:h-11 sm:w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0"
             >
-              <Sparkles className="h-5 w-5 text-primary" />
+              <Sparkles className="size-5 text-primary" />
             </motion.div>
             <div className="space-y-2">
-              <h3 className="font-bold text-sm text-foreground">
+              <h3 className="font-semibold text-sm text-foreground">
                 AI Moderation
               </h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
@@ -1503,7 +1502,7 @@ export function ContentModerationSidebarSection({
                   size="sm"
                   className="h-auto p-0 text-xs font-semibold"
                 >
-                  Configure Settings <ChevronRight className="h-3 w-3 ml-1" />
+                  Configure Settings <ChevronRight className="size-3 ml-1" />
                 </Button>
               </motion.div>
             </div>
@@ -1550,9 +1549,9 @@ function ModerationQueuePostCard({
               {post.author.role === "organization" ? (
                 <BrandAvatar size="md" />
               ) : (
-                <Avatar className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 border-2 border-background shadow-md ring-1 ring-border">
+                <Avatar className="size-10 sm:h-12 sm:w-12 shrink-0 border-2 border-background shadow-md ring-1 ring-border">
                   <AvatarImage src={post.author.avatar_url} />
-                  <AvatarFallback className="text-xs font-bold bg-muted text-muted-foreground">
+                  <AvatarFallback className="text-xs font-semibold bg-muted text-muted-foreground">
                     {post.author.name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
@@ -1563,7 +1562,7 @@ function ModerationQueuePostCard({
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-sm sm:text-base text-foreground truncate">
+                    <span className="font-semibold text-sm sm:text-base text-foreground truncate">
                       {post.author.name}
                     </span>
                     <Badge
@@ -1582,7 +1581,7 @@ function ModerationQueuePostCard({
                           variant="destructive"
                           className="text-[8px] sm:text-[9px] h-5 px-2 gap-1 rounded-full shrink-0 font-semibold uppercase tracking-wider"
                         >
-                          <Flag className="h-2.5 w-2.5" /> Flagged
+                          <Flag className="size-2.5" /> Flagged
                         </Badge>
                       </motion.div>
                     )}
@@ -1591,7 +1590,7 @@ function ModerationQueuePostCard({
                         variant="outline"
                         className="text-[8px] sm:text-[9px] h-5 px-2 gap-1 rounded-full shrink-0 font-semibold uppercase tracking-wider"
                       >
-                        <Pin className="h-2.5 w-2.5" /> Pinned
+                        <Pin className="size-2.5" /> Pinned
                       </Badge>
                     )}
                   </div>
@@ -1602,11 +1601,11 @@ function ModerationQueuePostCard({
                     <span className="text-border">•</span>
                     <span className="text-[10px] text-muted-foreground flex items-center gap-1 font-medium">
                       {post.visibility === "public" ? (
-                        <Globe className="h-3 w-3" />
+                        <Globe className="size-3" />
                       ) : post.visibility === "partners" ? (
-                        <Users className="h-3 w-3" />
+                        <Users className="size-3" />
                       ) : (
-                        <Lock className="h-3 w-3" />
+                        <Lock className="size-3" />
                       )}
                       <span className="capitalize hidden xs:inline">
                         {post.visibility}
@@ -1626,10 +1625,10 @@ function ModerationQueuePostCard({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 sm:h-9 sm:w-9 text-emerald-600 hover:bg-emerald-100 rounded-xl"
+                            className="size-8 sm:h-9 sm:w-9 text-emerald-600 hover:bg-emerald-100 rounded-xl"
                             onClick={() => onActionClick(post.id, "approve")}
                           >
-                            <Check className="h-4 w-4" />
+                            <Check className="size-4" />
                           </Button>
                         </motion.div>
                       </TooltipTrigger>
@@ -1649,10 +1648,10 @@ function ModerationQueuePostCard({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 sm:h-9 sm:w-9 text-amber-600 hover:bg-amber-100 rounded-xl"
+                            className="size-8 sm:h-9 sm:w-9 text-amber-600 hover:bg-amber-100 rounded-xl"
                             onClick={() => onActionClick(post.id, "hide")}
                           >
-                            <EyeOff className="h-4 w-4" />
+                            <EyeOff className="size-4" />
                           </Button>
                         </motion.div>
                       </TooltipTrigger>
@@ -1672,10 +1671,10 @@ function ModerationQueuePostCard({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 sm:h-9 sm:w-9 text-rose-600 hover:bg-rose-100 rounded-xl"
+                            className="size-8 sm:h-9 sm:w-9 text-rose-600 hover:bg-rose-100 rounded-xl"
                             onClick={() => onActionClick(post.id, "delete")}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="size-4" />
                           </Button>
                         </motion.div>
                       </TooltipTrigger>
@@ -1694,9 +1693,9 @@ function ModerationQueuePostCard({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl"
+                          className="size-8 sm:h-9 sm:w-9 rounded-xl"
                         >
-                          <MoreHorizontal className="h-4 w-4" />
+                          <MoreHorizontal className="size-4" />
                         </Button>
                       </motion.div>
                     </DropdownMenuTrigger>
@@ -1708,20 +1707,20 @@ function ModerationQueuePostCard({
                         onClick={() => onSelectPost(post)}
                         className="rounded-lg py-2.5 cursor-pointer gap-2.5"
                       >
-                        <Eye className="h-4 w-4 text-muted-foreground" /> View
+                        <Eye className="size-4 text-muted-foreground" /> View
                         Details
                       </DropdownMenuItem>
                       <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
-                        <Edit3 className="h-4 w-4 text-muted-foreground" /> Edit
+                        <Edit3 className="size-4 text-muted-foreground" /> Edit
                         Post
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
-                        <UserX className="h-4 w-4 text-muted-foreground" /> View
+                        <UserX className="size-4 text-muted-foreground" /> View
                         Author
                       </DropdownMenuItem>
                       <DropdownMenuItem className="text-amber-600 rounded-lg py-2.5 cursor-pointer gap-2.5">
-                        <AlertTriangle className="h-4 w-4" /> Warn Author
+                        <AlertTriangle className="size-4" /> Warn Author
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -1736,7 +1735,7 @@ function ModerationQueuePostCard({
                     exit={{ opacity: 0, height: 0 }}
                     className="flex items-center gap-2 px-3 py-2.5 bg-amber-50 rounded-xl text-amber-800 border border-amber-200"
                   >
-                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    <AlertCircle className="size-4 shrink-0" />
                     <span className="text-xs font-medium">
                       {post.flagReason}
                     </span>
@@ -1761,7 +1760,7 @@ function ModerationQueuePostCard({
                     <motion.div
                       key={`${post.id}-${item.type}-${item.url}`}
                       whileHover={{ scale: 1.05 }}
-                      className="relative h-14 w-14 sm:h-16 sm:w-16 rounded-xl overflow-hidden border shadow-sm"
+                      className="relative size-14 sm:h-16 sm:w-16 rounded-xl overflow-hidden border shadow-sm"
                     >
                       <Image
                         src={item.url}
@@ -1773,7 +1772,7 @@ function ModerationQueuePostCard({
                     </motion.div>
                   ))}
                   {post.media.length > 3 && (
-                    <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-xl bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground">
+                    <div className="size-14 sm:h-16 sm:w-16 rounded-xl bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground">
                       +{post.media.length - 3}
                     </div>
                   )}
@@ -1794,8 +1793,7 @@ function ModerationQueuePostCard({
                   {post.fires_count}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <MessageCircle className="h-3.5 w-3.5" />{" "}
-                  {post.comments_count}
+                  <MessageCircle className="size-3.5" /> {post.comments_count}
                 </span>
               </div>
             </div>

@@ -146,7 +146,7 @@ function AutomationStatsRow() {
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
                 {stat.label}
               </span>
-              <stat.icon className={cn("h-4 w-4", stat.iconClassName)} />
+              <stat.icon className={cn("size-4", stat.iconClassName)} />
             </div>
             <div>
               <div
@@ -159,7 +159,7 @@ function AutomationStatsRow() {
               </div>
               <div className="flex items-center gap-1 mt-1">
                 {stat.hasCheck && (
-                  <CheckCircle className="h-3 w-3 text-emerald-600" />
+                  <CheckCircle className="size-3 text-emerald-600" />
                 )}
                 <span className="text-xs text-zinc-500">{stat.sub}</span>
               </div>
@@ -187,7 +187,7 @@ function RecentFlowsCard() {
             </CardDescription>
           </div>
           <div className="relative w-48">
-            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-zinc-400" />
+            <Search className="absolute left-2.5 top-2.5 size-3.5 text-zinc-400" />
             <Input
               placeholder="Filter flows..."
               className="pl-8 h-8 text-xs bg-zinc-50 border-none"
@@ -204,13 +204,13 @@ function RecentFlowsCard() {
                 <div className="flex items-center gap-3">
                   <div
                     className={cn(
-                      "h-8 w-8 rounded-lg flex items-center justify-center border",
+                      "size-8 rounded-lg flex items-center justify-center border",
                       flow.status === "Active"
                         ? "bg-emerald-50 text-emerald-600 border-emerald-100"
                         : "bg-zinc-50 text-zinc-400 border-zinc-100",
                     )}
                   >
-                    <Zap className="h-4 w-4" />
+                    <Zap className="size-4" />
                   </div>
                   <div>
                     <p className="text-sm font-bold text-zinc-900">
@@ -236,9 +236,9 @@ function RecentFlowsCard() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-zinc-400 group-hover:text-zinc-900"
+                    className="size-8 text-zinc-400 group-hover:text-zinc-900"
                   >
-                    <MoreHorizontal className="h-4 w-4" />
+                    <MoreHorizontal className="size-4" />
                   </Button>
                 </div>
               </div>
@@ -252,7 +252,7 @@ function RecentFlowsCard() {
             className="text-xs text-zinc-500 hover:text-zinc-900 w-full h-8 group"
           >
             View All Flows{" "}
-            <ArrowUpRight className="ml-1 h-3 w-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            <ArrowUpRight className="ml-1 size-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
           </Button>
         </div>
       </Card>
@@ -285,11 +285,11 @@ function IntegrationHealthCard() {
               <div className="flex items-center gap-3">
                 <div
                   className={cn(
-                    "h-8 w-8 rounded-lg flex items-center justify-center",
+                    "size-8 rounded-lg flex items-center justify-center",
                     conn.iconContainerClassName,
                   )}
                 >
-                  <conn.icon className="h-4 w-4" />
+                  <conn.icon className="size-4" />
                 </div>
                 <span className="text-sm font-semibold text-zinc-700">
                   {conn.name}
@@ -311,7 +311,7 @@ function IntegrationHealthCard() {
             variant="outline"
             className="w-full h-11 px-4 rounded-xl border-zinc-200 hover:bg-zinc-50 font-bold uppercase tracking-widest text-[10px] text-zinc-600 gap-2 mt-2"
           >
-            <Settings className="mr-2 h-3.5 w-3.5" /> Manage Connections
+            <Settings className="mr-2 size-3.5" /> Manage Connections
           </Button>
         </CardContent>
       </Card>
@@ -375,10 +375,10 @@ export default function AutomationsPage() {
             variant="outline"
             className="h-11 px-4 rounded-xl border-zinc-200 hover:bg-zinc-50 font-bold uppercase tracking-widest text-[10px] gap-2"
           >
-            <History className="h-4 w-4 text-zinc-400" /> History
+            <History className="size-4 text-zinc-400" /> History
           </Button>
           <Button className="h-11 px-6 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-zinc-200 gap-2">
-            <Plus className="h-4 w-4" /> New Flow
+            <Plus className="size-4" /> New Flow
           </Button>
         </div>
       }

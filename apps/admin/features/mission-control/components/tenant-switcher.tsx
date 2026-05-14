@@ -64,12 +64,12 @@ export const TenantSwitcher = memo(function TenantSwitcher() {
           className="h-9 w-48 justify-between"
         >
           <div className="flex items-center gap-2 truncate">
-            <Building2 className="h-4 w-4 shrink-0" />
+            <Building2 className="size-4 shrink-0" />
             <span className="truncate">
               {selectedTenant?.name || "Select tenant..."}
             </span>
           </div>
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-48 p-0">
@@ -82,7 +82,7 @@ export const TenantSwitcher = memo(function TenantSwitcher() {
                 <CommandItem key={t.id} onSelect={() => handleSelect(t)}>
                   <Check
                     className={cn(
-                      "mr-2 h-4 w-4",
+                      "mr-2 size-4",
                       selectedTenant?.id === t.id ? "opacity-100" : "opacity-0",
                     )}
                   />

@@ -32,8 +32,8 @@ export function MissionBriefing({
       <CardContent className="p-4 sm:p-6 md:p-8 relative z-10">
         <div className="flex items-center justify-between mb-6 sm:mb-8 pb-4 border-b border-white/5">
           <div className="flex items-center gap-2.5">
-            <Info className="h-4 w-4 text-emerald-400" />
-            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">
+            <Info className="size-4 text-emerald-400" />
+            <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
               Ministry Impact Summary
             </h3>
           </div>
@@ -49,20 +49,20 @@ export function MissionBriefing({
               className="space-y-3 sm:space-y-4"
             >
               <div className="flex items-center gap-3">
-                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                <span className="text-[10px] font-bold text-white uppercase tracking-widest">
+                <div className="size-1.5 rounded-full bg-emerald-500" />
+                <span className="text-[10px] font-semibold text-white uppercase tracking-widest">
                   {item.workerName}
                 </span>
               </div>
-              <p className="text-base sm:text-lg text-zinc-300 leading-tight font-bold tracking-tight">
+              <p className="text-base sm:text-lg text-zinc-300 leading-tight font-semibold tracking-tight">
                 {item.impact}
               </p>
-              <div className="flex items-center gap-4 sm:gap-6 text-[9px] font-bold text-zinc-600 uppercase tracking-widest flex-wrap">
+              <div className="flex items-center gap-4 sm:gap-6 text-[9px] font-semibold text-zinc-600 uppercase tracking-widest flex-wrap">
                 <span className="flex items-center gap-2 transition-colors hover:text-zinc-400 cursor-default">
-                  <MapPin className="h-3.5 w-3.5" /> {item.location}
+                  <MapPin className="size-3.5" /> {item.location}
                 </span>
                 <span className="flex items-center gap-2 transition-colors hover:text-zinc-400 cursor-default">
-                  <Activity className="h-3.5 w-3.5" /> {item.activity}
+                  <Activity className="size-3.5" /> {item.activity}
                 </span>
               </div>
             </motion.div>

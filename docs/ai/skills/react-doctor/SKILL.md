@@ -9,32 +9,27 @@ Run an automated audit of a React/Next.js codebase and turn the diagnostics into
 
 ## Quick Start
 
-Install or refresh the skill package if needed:
+In this repository, use the repo-owned first-party helper from the repo root:
 
 ```bash
-npx skills add millionco/react-doctor
+bun run react-doctor:first-party -- --full --offline --fail-on none
 ```
 
-Run React Doctor from the repo root:
-
-```bash
-npx -y react-doctor@latest . --verbose
-```
+The human guide is `docs/guides/development/react-doctor.md`. It is the source of truth for configured ignores, advisory `failOn` behavior, and PR wording.
 
 ## Workflow
 
 1. Confirm you are at the project root (the directory containing `package.json`).
-2. If the skill is missing or outdated, run:
-   - `npx skills add millionco/react-doctor`
-3. Run the audit:
-   - `npx -y react-doctor@latest . --verbose`
+2. Read `docs/guides/development/react-doctor.md`.
+3. Run the configured repo audit:
+   - `bun run react-doctor:first-party -- --full --offline --fail-on none`
 4. Convert the output into an actionable plan:
    - Capture the overall score (0-100).
    - List the top issues by severity (errors first).
    - For each issue, include the file path, what to change, and why it matters.
 5. Fix issues starting with highest severity and highest leverage (security/correctness before perf polish).
-6. Re-run the audit and confirm the score improves:
-   - `npx -y react-doctor@latest . --verbose`
+6. Re-run the configured audit and confirm the result for `apps` and `packages`.
+7. Report results honestly as the configured first-party audit. Do not imply that ignored rules were fixed.
 
 ## Next.js App Router Notes
 
@@ -65,7 +60,7 @@ Fix plan:
 
 Verification:
 
-- npx -y react-doctor@latest . --verbose
+- bun run react-doctor:first-party -- --full --offline --fail-on none
 ```
 
 ## Triggers
@@ -76,8 +71,9 @@ Verification:
 
 ## Checklist
 
-- [ ] (Optional) `npx skills add millionco/react-doctor`
-- [ ] `npx -y react-doctor@latest . --verbose`
+- [ ] Read `docs/guides/development/react-doctor.md`
+- [ ] `bun run react-doctor:first-party -- --full --offline --fail-on none`
 - [ ] Findings summarized with file paths
 - [ ] Fixes applied in severity order
-- [ ] Audit re-run and score verified improved
+- [ ] Audit re-run and configured-audit score verified
+- [ ] Known ignores and advisory `failOn` behavior reported honestly

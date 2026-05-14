@@ -1,7 +1,11 @@
 "use client";
 
 import { supportHubQueryKeys } from "@asym/database/query-keys";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
 
 import { logSupportActivity } from "../lib/activity-log";
 import {
@@ -74,27 +78,17 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
+function invalidateSupportHubCaches(queryClient: QueryClient): Promise<void> {
+  return queryClient.invalidateQueries({
+    queryKey: [...supportHubQueryKeys.root],
+  });
+}
+
 function genId(prefix: string): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return `${prefix}-${crypto.randomUUID()}`;
   }
   return `${prefix}-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
-}
-
-/**
- * Optimistic transaction wrapper. Mirrors the `useLogActivity` precedent in
- * `packages/database/hooks/admin-workspace.ts`: parse with Zod, mutate the
- * collection, await persistence, then ripple invalidations through
- * TanStack Query so any non-collection consumer (e.g. `useSupportInboxStats`
- * memoization fallback) refreshes too.
- */
-function useInvalidateSupportCaches() {
-  const queryClient = useQueryClient();
-  return async () => {
-    await queryClient.invalidateQueries({
-      queryKey: [...supportHubQueryKeys.root],
-    });
-  };
 }
 
 function lookupAgentAssignee(
@@ -108,7 +102,7 @@ function lookupAgentAssignee(
 }
 
 export function useAssignSupportConversation() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: AssignConversationInput) => {
       const input = supportStore.inputs.assignConversation.parse(raw);
@@ -142,12 +136,12 @@ export function useAssignSupportConversation() {
 
       return input.conversationId;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useSetSupportConversationStatus() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: SetConversationStatusInput) => {
       const input = supportStore.inputs.setConversationStatus.parse(raw);
@@ -190,12 +184,12 @@ export function useSetSupportConversationStatus() {
 
       return input.conversationId;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useSnoozeSupportConversation() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: SnoozeConversationInput) => {
       const input = supportStore.inputs.snoozeConversation.parse(raw);
@@ -224,12 +218,12 @@ export function useSnoozeSupportConversation() {
 
       return input.conversationId;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useUnsnoozeSupportConversation() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: UnsnoozeConversationInput) => {
       const input = supportStore.inputs.unsnoozeConversation.parse(raw);
@@ -263,12 +257,12 @@ export function useUnsnoozeSupportConversation() {
 
       return input.conversationId;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useSetSupportConversationPriority() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: SetConversationPriorityInput) => {
       const input = supportStore.inputs.setConversationPriority.parse(raw);
@@ -299,12 +293,12 @@ export function useSetSupportConversationPriority() {
 
       return input.conversationId;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useToggleSupportLabel() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: ToggleConversationLabelInput) => {
       const input = supportStore.inputs.toggleConversationLabel.parse(raw);
@@ -361,7 +355,7 @@ export function useToggleSupportLabel() {
 
       return input.conversationId;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -373,7 +367,7 @@ function labelMapFromCollection(): Map<string, SupportLabel> {
 }
 
 export function useAddSupportPrivateNote() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: AddPrivateNoteInput) => {
       const input = supportStore.inputs.addPrivateNote.parse(raw);
@@ -424,12 +418,12 @@ export function useAddSupportPrivateNote() {
 
       return message.id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useSendSupportReply() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: SendReplyInput) => {
       const input = supportStore.inputs.sendReply.parse(raw);
@@ -506,12 +500,12 @@ export function useSendSupportReply() {
 
       return messageId;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useSaveSupportMacro() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: SaveMacroInput) => {
       const input = supportStore.inputs.saveMacro.parse(raw);
@@ -545,12 +539,12 @@ export function useSaveSupportMacro() {
       await tx.isPersisted.promise;
       return id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useSaveSupportCannedResponse() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: SaveCannedResponseInput) => {
       const input = supportStore.inputs.saveCannedResponse.parse(raw);
@@ -586,12 +580,12 @@ export function useSaveSupportCannedResponse() {
       await tx.isPersisted.promise;
       return id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useSaveSupportSavedView() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: SaveSavedViewInput) => {
       const input = supportStore.inputs.saveSavedView.parse(raw);
@@ -627,7 +621,7 @@ export function useSaveSupportSavedView() {
       await tx.isPersisted.promise;
       return id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -650,7 +644,7 @@ function defaultTenantIdFromCollection(): string {
 /* ------------------------------------------------------------------------ */
 
 export function useSaveSupportLabel() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: SaveLabelInput) => {
       const input = supportStore.inputs.saveLabel.parse(raw);
@@ -680,12 +674,12 @@ export function useSaveSupportLabel() {
       await tx.isPersisted.promise;
       return id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useDeleteSupportLabel() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: DeleteLabelInput) => {
       const input = supportStore.inputs.deleteLabel.parse(raw);
@@ -710,12 +704,12 @@ export function useDeleteSupportLabel() {
       }
       return input.id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useDeleteSupportSavedView() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: DeleteSavedViewInput) => {
       const input = supportStore.inputs.deleteSavedView.parse(raw);
@@ -723,12 +717,12 @@ export function useDeleteSupportSavedView() {
       await tx.isPersisted.promise;
       return input.id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useDeleteSupportMacro() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: DeleteMacroInput) => {
       const input = supportStore.inputs.deleteMacro.parse(raw);
@@ -736,12 +730,12 @@ export function useDeleteSupportMacro() {
       await tx.isPersisted.promise;
       return input.id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useDeleteSupportCannedResponse() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: DeleteCannedResponseInput) => {
       const input = supportStore.inputs.deleteCannedResponse.parse(raw);
@@ -749,7 +743,7 @@ export function useDeleteSupportCannedResponse() {
       await tx.isPersisted.promise;
       return input.id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -766,7 +760,7 @@ interface RunMacroInputWithSlot extends RunMacroInput {
 export function useRunSupportMacro(): ReturnType<
   typeof useMutation<MacroRunResult, Error, RunMacroInputWithSlot>
 > {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   const setStatus = useSetSupportConversationStatus();
   const setPriority = useSetSupportConversationPriority();
   const assign = useAssignSupportConversation();
@@ -823,12 +817,12 @@ export function useRunSupportMacro(): ReturnType<
         },
       });
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useApplyRoundRobinAssignment() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   const assign = useAssignSupportConversation();
   return useMutation({
     mutationFn: async (raw: ApplyRoundRobinAssignmentInput) => {
@@ -877,7 +871,7 @@ export function useApplyRoundRobinAssignment() {
       });
       return next.id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -902,7 +896,7 @@ void HOUR_MS;
 /* ------------------------------------------------------------------------ */
 
 export function useSaveSupportInboxSettings() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: SaveInboxSettingsInput) => {
       const input = supportStore.inputs.saveInboxSettings.parse(raw);
@@ -922,12 +916,12 @@ export function useSaveSupportInboxSettings() {
       await tx.isPersisted.promise;
       return input.id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useSaveSupportBusinessHours() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: SaveBusinessHoursInput) => {
       const input = supportStore.inputs.saveBusinessHours.parse(raw);
@@ -962,12 +956,12 @@ export function useSaveSupportBusinessHours() {
       await tx.isPersisted.promise;
       return row.id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useDeleteSupportBusinessHours() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: DeleteBusinessHoursInput) => {
       const input = supportStore.inputs.deleteBusinessHours.parse(raw);
@@ -975,12 +969,12 @@ export function useDeleteSupportBusinessHours() {
       await tx.isPersisted.promise;
       return input.id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useSaveSupportSlaPolicy() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: SaveSlaPolicyInput) => {
       const input = supportStore.inputs.saveSlaPolicy.parse(raw);
@@ -1021,12 +1015,12 @@ export function useSaveSupportSlaPolicy() {
       if (row.isDefault) await clearOtherDefaultSlas(row.id);
       return row.id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useDeleteSupportSlaPolicy() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: DeleteSlaPolicyInput) => {
       const input = supportStore.inputs.deleteSlaPolicy.parse(raw);
@@ -1034,12 +1028,12 @@ export function useDeleteSupportSlaPolicy() {
       await tx.isPersisted.promise;
       return input.id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useSetDefaultSupportSlaPolicy() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: SetDefaultSlaPolicyInput) => {
       const input = supportStore.inputs.setDefaultSlaPolicy.parse(raw);
@@ -1059,7 +1053,7 @@ export function useSetDefaultSupportSlaPolicy() {
       }
       return input.id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -1081,7 +1075,7 @@ async function clearOtherDefaultSlas(keepId: string): Promise<void> {
 }
 
 export function useSaveSupportTeam() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: SaveTeamInput) => {
       const input = supportStore.inputs.saveTeam.parse(raw);
@@ -1109,12 +1103,12 @@ export function useSaveSupportTeam() {
       await tx.isPersisted.promise;
       return row.id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useDeleteSupportTeam() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: DeleteTeamInput) => {
       const input = supportStore.inputs.deleteTeam.parse(raw);
@@ -1122,12 +1116,12 @@ export function useDeleteSupportTeam() {
       await tx.isPersisted.promise;
       return input.id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useSaveSupportSignature() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: SaveSignatureInput) => {
       const input = supportStore.inputs.saveSignature.parse(raw);
@@ -1166,12 +1160,12 @@ export function useSaveSupportSignature() {
         await clearOtherDefaultSignatures(row.id, row.ownerAgentId);
       return row.id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useDeleteSupportSignature() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: DeleteSignatureInput) => {
       const input = supportStore.inputs.deleteSignature.parse(raw);
@@ -1179,12 +1173,12 @@ export function useDeleteSupportSignature() {
       await tx.isPersisted.promise;
       return input.id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useSetDefaultSupportSignature() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: SetDefaultSignatureInput) => {
       const input = supportStore.inputs.setDefaultSignature.parse(raw);
@@ -1209,7 +1203,7 @@ export function useSetDefaultSupportSignature() {
       }
       return input.id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
@@ -1235,7 +1229,7 @@ async function clearOtherDefaultSignatures(
 }
 
 export function useSaveSupportAutomationRule() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: SaveAutomationRuleInput) => {
       const input = supportStore.inputs.saveAutomationRule.parse(raw);
@@ -1273,12 +1267,12 @@ export function useSaveSupportAutomationRule() {
       await tx.isPersisted.promise;
       return row.id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useDeleteSupportAutomationRule() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: DeleteAutomationRuleInput) => {
       const input = supportStore.inputs.deleteAutomationRule.parse(raw);
@@ -1286,12 +1280,12 @@ export function useDeleteSupportAutomationRule() {
       await tx.isPersisted.promise;
       return input.id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useToggleSupportAutomationRule() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: ToggleAutomationRuleInput) => {
       const input = supportStore.inputs.toggleAutomationRule.parse(raw);
@@ -1305,12 +1299,12 @@ export function useToggleSupportAutomationRule() {
       await tx.isPersisted.promise;
       return input.id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }
 
 export function useSaveSupportNotificationPreferences() {
-  const invalidate = useInvalidateSupportCaches();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (raw: SaveNotificationPreferencesInput) => {
       const input = supportStore.inputs.saveNotificationPreferences.parse(raw);
@@ -1351,6 +1345,6 @@ export function useSaveSupportNotificationPreferences() {
       await tx.isPersisted.promise;
       return row.id;
     },
-    onSuccess: () => invalidate(),
+    onSuccess: () => invalidateSupportHubCaches(queryClient),
   });
 }

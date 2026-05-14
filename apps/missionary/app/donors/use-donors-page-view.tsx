@@ -89,6 +89,7 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import { DonorTasks } from "./donor-tasks";
+import { filterAndSortDonors, type SortOption } from "./donors-list-model";
 import {
   AVAILABLE_TAGS,
   formatCurrency,
@@ -110,9 +111,17 @@ import type {
   Address,
   Donor,
   RecurringStatus,
-} from "./donors-model";
+} from "./donor-types";
 
 import { PageHeader } from "@/components/page-header";
+
+function currentDisplayDate(): Date {
+  return new globalThis.Date();
+}
+
+function parseDisplayDate(value: string | number | Date): Date {
+  return new globalThis.Date(value);
+}
 
 const fadeInUp = {
   initial: { opacity: 0, y: 10 },
@@ -162,7 +171,7 @@ function DonorListSkeleton() {
           transition={{ delay: i * 0.03 }}
           className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-zinc-100"
         >
-          <Skeleton className="h-11 w-11 rounded-full" />
+          <Skeleton className="size-11 rounded-full" />
           <div className="flex-1 space-y-2">
             <Skeleton className="h-4 w-3/4" />
             <Skeleton className="h-3 w-1/2" />
@@ -190,11 +199,11 @@ function ErrorState({
         initial={{ scale: 0.8 }}
         animate={{ scale: 1 }}
         transition={springTransition}
-        className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center mb-4 border border-rose-100"
+        className="size-16 bg-rose-50 rounded-2xl flex items-center justify-center mb-4 border border-rose-100"
       >
-        <AlertCircle className="h-7 w-7 text-rose-500" />
+        <AlertCircle className="size-7 text-rose-500" />
       </motion.div>
-      <p className="text-sm font-bold text-zinc-900 mb-1">
+      <p className="text-sm font-semibold text-zinc-900 mb-1">
         Something went wrong
       </p>
       <p className="text-xs text-zinc-500 mb-4">{message}</p>
@@ -203,9 +212,9 @@ function ErrorState({
           variant="outline"
           size="sm"
           onClick={onRetry}
-          className="h-9 rounded-2xl border-zinc-200 bg-white text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-900"
+          className="h-9 rounded-2xl border-zinc-200 bg-white text-[10px] font-semibold uppercase tracking-widest text-zinc-500 hover:text-zinc-900"
         >
-          <RefreshCw className="h-3.5 w-3.5 mr-2" />
+          <RefreshCw className="size-3.5 mr-2" />
           Try Again
         </Button>
       </motion.div>
@@ -252,14 +261,14 @@ function StatCard({
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="space-y-0.5">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
               {label}
             </p>
             <motion.p
               key={value}
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-xl font-bold tracking-tight text-zinc-900"
+              className="text-xl font-semibold tracking-tight text-zinc-900"
             >
               {value}
             </motion.p>
@@ -271,11 +280,11 @@ function StatCard({
             whileHover={{ scale: 1.1, rotate: 5 }}
             transition={springTransition}
             className={cn(
-              "h-9 w-9 rounded-lg border flex items-center justify-center",
+              "size-9 rounded-lg border flex items-center justify-center",
               iconBg,
             )}
           >
-            <Icon className={cn("h-4 w-4", iconColor)} />
+            <Icon className={cn("size-4", iconColor)} />
           </motion.div>
         </div>
       </CardContent>
@@ -291,8 +300,6 @@ function StatCard({
   }
   return content;
 }
-
-type SortOption = "name" | "last_gift" | "total_given" | "joined_date";
 
 type DonorActivityType = "note" | "call" | "meeting" | "email";
 type DonorMutationResult = { ok: true } | { ok: false; error: unknown };
@@ -318,7 +325,7 @@ async function insertDonorActivity(options: {
         type: options.activityType,
         title: DONOR_ACTIVITY_TITLES[options.activityType],
         description: options.note,
-        date: new Date().toISOString(),
+        date: currentDisplayDate().toISOString(),
       });
     if (insertError) return { ok: false, error: insertError };
     return { ok: true };
@@ -337,7 +344,7 @@ async function updateDonorTags(options: {
       .from("donors")
       .update({
         tags: options.tags,
-        updated_at: new Date().toISOString(),
+        updated_at: currentDisplayDate().toISOString(),
       })
       .eq("id", options.donorId);
     if (updateError) return { ok: false, error: updateError };
@@ -453,65 +460,26 @@ export function useDonorsPageView(): DonorsPageViewModel {
     ]);
   }, [queryClient]);
 
-  const filteredDonors = React.useMemo(() => {
-    const result = donors.filter((donor) => {
-      const matchesSearch =
-        (donor.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (donor.email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (donor.location || "")
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        (donor.organization || "")
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase());
-      const matchesStatus =
-        statusFilter === "All" || donor.status === statusFilter;
-      const matchesTags =
-        tagFilter.length === 0 || tagFilter.some((t) => donor.tags.includes(t));
-      const matchesPledge =
-        pledgeFilter === "All" ||
-        (pledgeFilter === "Active" && donor.has_active_pledge) ||
-        (pledgeFilter === "Inactive" && !donor.has_active_pledge);
-      return matchesSearch && matchesStatus && matchesTags && matchesPledge;
-    });
-
-    result.sort((a, b) => {
-      let comparison = 0;
-      switch (sortBy) {
-        case "name":
-          comparison = (a.name || "").localeCompare(b.name || "");
-          break;
-        case "last_gift":
-          const dateA = a.last_gift_date
-            ? new Date(a.last_gift_date).getTime()
-            : 0;
-          const dateB = b.last_gift_date
-            ? new Date(b.last_gift_date).getTime()
-            : 0;
-          comparison = dateB - dateA;
-          break;
-        case "total_given":
-          comparison = (b.total_given || 0) - (a.total_given || 0);
-          break;
-        case "joined_date":
-          const joinA = a.joined_date ? new Date(a.joined_date).getTime() : 0;
-          const joinB = b.joined_date ? new Date(b.joined_date).getTime() : 0;
-          comparison = joinB - joinA;
-          break;
-      }
-      return sortAsc ? -comparison : comparison;
-    });
-
-    return result;
-  }, [
-    donors,
-    searchTerm,
-    statusFilter,
-    tagFilter,
-    pledgeFilter,
-    sortBy,
-    sortAsc,
-  ]);
+  const filteredDonors = React.useMemo(
+    () =>
+      filterAndSortDonors(donors, {
+        searchTerm,
+        statusFilter,
+        tagFilter,
+        pledgeFilter,
+        sortBy,
+        sortAsc,
+      }),
+    [
+      donors,
+      searchTerm,
+      statusFilter,
+      tagFilter,
+      pledgeFilter,
+      sortBy,
+      sortAsc,
+    ],
+  );
 
   const selectedDonor = React.useMemo(
     () => donors.find((d) => d.id === selectedDonorId) || null,
@@ -534,14 +502,14 @@ export function useDonorsPageView(): DonorsPageViewModel {
               <div className="relative shrink-0">
                 <Avatar
                   className={cn(
-                    "h-10 w-10 border-2",
+                    "size-10 border-2",
                     isSelected ? "border-zinc-700" : "border-white shadow-sm",
                   )}
                 >
                   <AvatarImage src={donor.avatar_url} />
                   <AvatarFallback
                     className={cn(
-                      "text-xs font-bold",
+                      "text-xs font-semibold",
                       isSelected
                         ? "bg-zinc-800 text-zinc-300"
                         : "bg-zinc-100 text-zinc-500",
@@ -552,7 +520,7 @@ export function useDonorsPageView(): DonorsPageViewModel {
                 </Avatar>
                 <div
                   className={cn(
-                    "absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2",
+                    "absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2",
                     isSelected ? "border-zinc-900" : "border-white",
                     getStatusColor(donor.status),
                   )}
@@ -560,12 +528,12 @@ export function useDonorsPageView(): DonorsPageViewModel {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-0.5">
-                  <span className="font-bold text-sm truncate text-zinc-900">
+                  <span className="font-semibold text-sm truncate text-zinc-900">
                     {donor.name}
                   </span>
                   {donor.has_active_pledge && (
                     <div
-                      className="h-2 w-2 rounded-full shrink-0 ml-1 bg-emerald-500"
+                      className="size-2 rounded-full shrink-0 ml-1 bg-emerald-500"
                       title="Active recurring donation"
                     />
                   )}
@@ -574,7 +542,7 @@ export function useDonorsPageView(): DonorsPageViewModel {
                   <span className="text-[10px] truncate max-w-[100px] font-medium uppercase tracking-wider text-zinc-400">
                     {donor.location || "Unknown"}
                   </span>
-                  <span className="text-xs font-black text-zinc-900">
+                  <span className="text-xs font-semibold text-zinc-900">
                     {formatCurrency(donor.total_given)}
                   </span>
                 </div>
@@ -602,7 +570,7 @@ export function useDonorsPageView(): DonorsPageViewModel {
           </div>
         ),
         cell: ({ row }) => (
-          <div className="text-right font-black text-zinc-900 tabular-nums">
+          <div className="text-right font-semibold text-zinc-900 tabular-nums">
             {formatCurrency(row.original.total_given)}
           </div>
         ),
@@ -775,7 +743,8 @@ export function useDonorsPageView(): DonorsPageViewModel {
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title="Date" />
         ),
-        cell: ({ row }) => format(new Date(row.original.date), "MMM d, yyyy"),
+        cell: ({ row }) =>
+          format(parseDisplayDate(row.original.date), "MMM d, yyyy"),
       },
       {
         accessorKey: "title",
@@ -807,7 +776,7 @@ export function useDonorsPageView(): DonorsPageViewModel {
           </div>
         ),
         cell: ({ row }) => (
-          <div className="text-right font-bold text-zinc-900">
+          <div className="text-right font-semibold text-zinc-900">
             {formatCurrency(row.original.amount || 0)}
           </div>
         ),
@@ -820,7 +789,7 @@ export function useDonorsPageView(): DonorsPageViewModel {
         cell: ({ row }) => (
           <Badge
             className={cn(
-              "font-black rounded-full text-[9px] uppercase tracking-widest border-0",
+              "font-semibold rounded-full text-[9px] uppercase tracking-widest border-0",
               row.original.status === "Failed"
                 ? "bg-rose-50 text-rose-600"
                 : "bg-emerald-50 text-emerald-700",
@@ -963,7 +932,7 @@ export function DonorsPageContent({
             size="sm"
             className="h-9 px-4 text-xs font-medium"
           >
-            <Download className="mr-2 h-4 w-4" />
+            <Download className="mr-2 size-4" />
             Export
           </Button>
         </motion.div>
@@ -977,7 +946,7 @@ export function DonorsPageContent({
                 whileTap={{ scale: 0.98 }}
               >
                 <Button size="sm" className="h-9 px-4 text-xs font-medium">
-                  <Plus className="mr-2 h-4 w-4" />
+                  <Plus className="mr-2 size-4" />
                   Add Partner
                 </Button>
               </motion.div>
@@ -1039,7 +1008,7 @@ export function DonorsPageContent({
           <Card className="border-zinc-200 bg-white rounded-2xl overflow-hidden shadow-sm h-full flex flex-col">
             <div className="p-4 border-b border-zinc-100 space-y-4 shrink-0">
               <div className="flex items-center justify-between">
-                <h2 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                <h2 className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
                   Partner List{" "}
                   {hasActiveFilters && (
                     <span className="text-blue-600">
@@ -1053,16 +1022,16 @@ export function DonorsPageContent({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-zinc-400 hover:text-zinc-900 rounded-lg"
+                        className="size-8 text-zinc-400 hover:text-zinc-900 rounded-lg"
                       >
-                        <ArrowDownUp className="h-4 w-4" />
+                        <ArrowDownUp className="size-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                       align="end"
                       className="w-48 rounded-xl border-zinc-100 shadow-xl"
                     >
-                      <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                      <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
                         Sort By
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator className="bg-zinc-100" />
@@ -1099,20 +1068,20 @@ export function DonorsPageContent({
                         variant="ghost"
                         size="icon"
                         className={cn(
-                          "h-8 w-8 rounded-lg",
+                          "size-8 rounded-lg",
                           hasActiveFilters
                             ? "text-blue-600 bg-blue-50"
                             : "text-zinc-400 hover:text-zinc-900",
                         )}
                       >
-                        <Filter className="h-4 w-4" />
+                        <Filter className="size-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                       align="end"
                       className="w-56 rounded-xl border-zinc-100 shadow-xl max-h-[400px] overflow-y-auto"
                     >
-                      <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                      <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
                         Filter by Status
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator className="bg-zinc-100" />
@@ -1129,7 +1098,7 @@ export function DonorsPageContent({
                         ),
                       )}
                       <DropdownMenuSeparator className="bg-zinc-100" />
-                      <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                      <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
                         Filter by Recurring
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator className="bg-zinc-100" />
@@ -1148,7 +1117,7 @@ export function DonorsPageContent({
                         </DropdownMenuCheckboxItem>
                       ))}
                       <DropdownMenuSeparator className="bg-zinc-100" />
-                      <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                      <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
                         Filter by Tag
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator className="bg-zinc-100" />
@@ -1184,7 +1153,7 @@ export function DonorsPageContent({
                 </div>
               </div>
               <div className="relative">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
+                <Search className="absolute left-3 top-2.5 size-4 text-zinc-400" />
                 <Input
                   placeholder="Search partners..."
                   className="pl-9 bg-zinc-50 border-zinc-100 focus:bg-white focus:border-zinc-300 transition-all h-10 rounded-xl text-sm"
@@ -1208,14 +1177,14 @@ export function DonorsPageContent({
                       >
                         <Badge
                           variant="outline"
-                          className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 border-zinc-200"
+                          className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 border-zinc-200"
                         >
                           {statusFilter}
                           <button
                             onClick={() => setStatusFilter("All")}
                             className="ml-1 hover:text-zinc-900"
                           >
-                            <X className="h-2.5 w-2.5" />
+                            <X className="size-2.5" />
                           </button>
                         </Badge>
                       </motion.div>
@@ -1228,7 +1197,7 @@ export function DonorsPageContent({
                       >
                         <Badge
                           variant="outline"
-                          className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border-blue-200"
+                          className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border-blue-200"
                         >
                           {pledgeFilter === "Active"
                             ? "Recurring"
@@ -1237,7 +1206,7 @@ export function DonorsPageContent({
                             onClick={() => setPledgeFilter("All")}
                             className="ml-1 hover:text-blue-900"
                           >
-                            <X className="h-2.5 w-2.5" />
+                            <X className="size-2.5" />
                           </button>
                         </Badge>
                       </motion.div>
@@ -1252,7 +1221,7 @@ export function DonorsPageContent({
                         <Badge
                           variant="outline"
                           className={cn(
-                            "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border",
+                            "text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full border",
                             getTagStyle(tag),
                           )}
                         >
@@ -1265,7 +1234,7 @@ export function DonorsPageContent({
                             }
                             className="ml-1"
                           >
-                            <X className="h-2.5 w-2.5" />
+                            <X className="size-2.5" />
                           </button>
                         </Badge>
                       </motion.div>
@@ -1275,7 +1244,7 @@ export function DonorsPageContent({
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={clearAllFilters}
-                      className="text-[9px] font-black uppercase tracking-widest text-rose-500 hover:text-rose-700 px-2"
+                      className="text-[9px] font-semibold uppercase tracking-widest text-rose-500 hover:text-rose-700 px-2"
                     >
                       Clear All
                     </motion.button>
@@ -1300,11 +1269,11 @@ export function DonorsPageContent({
                       initial={{ scale: 0.8 }}
                       animate={{ scale: 1 }}
                       transition={springTransition}
-                      className="w-14 h-14 bg-zinc-100 rounded-2xl flex items-center justify-center mb-4"
+                      className="size-14 bg-zinc-100 rounded-2xl flex items-center justify-center mb-4"
                     >
-                      <Search className="h-6 w-6 text-zinc-300" />
+                      <Search className="size-6 text-zinc-300" />
                     </motion.div>
-                    <p className="text-sm font-bold text-zinc-900">
+                    <p className="text-sm font-semibold text-zinc-900">
                       No partners found
                     </p>
                     <p className="text-xs text-zinc-400 mt-1">
@@ -1353,7 +1322,7 @@ export function DonorsPageContent({
                     onRowClick={(row) => setSelectedDonorId(row.original.id)}
                     emptyState={
                       <div className="flex flex-col items-center justify-center py-12 text-center">
-                        <p className="text-sm font-bold text-zinc-900">
+                        <p className="text-sm font-semibold text-zinc-900">
                           No partners found
                         </p>
                         <p className="text-xs text-zinc-400 mt-1">
@@ -1394,10 +1363,10 @@ export function DonorsPageContent({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="lg:hidden h-9 w-9 text-zinc-400 rounded-xl hover:bg-zinc-100"
+                            className="lg:hidden size-9 text-zinc-400 rounded-xl hover:bg-zinc-100"
                             onClick={() => setSelectedDonorId(null)}
                           >
-                            <ArrowLeft className="h-5 w-5" />
+                            <ArrowLeft className="size-5" />
                           </Button>
                         </motion.div>
                         <motion.div
@@ -1405,9 +1374,9 @@ export function DonorsPageContent({
                           animate={{ scale: 1, opacity: 1 }}
                           transition={springTransition}
                         >
-                          <Avatar className="h-14 w-14 border-2 border-white shadow-lg rounded-2xl">
+                          <Avatar className="size-14 border-2 border-white shadow-lg rounded-2xl">
                             <AvatarImage src={selectedDonor.avatar_url} />
-                            <AvatarFallback className="text-lg font-bold bg-zinc-100 text-zinc-500">
+                            <AvatarFallback className="text-lg font-semibold bg-zinc-100 text-zinc-500">
                               {selectedDonor.initials}
                             </AvatarFallback>
                           </Avatar>
@@ -1418,23 +1387,23 @@ export function DonorsPageContent({
                           transition={{ ...smoothTransition, delay: 0.1 }}
                         >
                           <div className="flex items-center gap-3 mb-1">
-                            <h2 className="text-lg font-bold text-zinc-900 tracking-tight">
+                            <h2 className="text-lg font-semibold text-zinc-900 tracking-tight">
                               {selectedDonor.name}
                             </h2>
                             {getStatusBadge(selectedDonor.status)}
                           </div>
                           <div className="flex items-center gap-3 text-xs text-zinc-500">
                             <span className="flex items-center gap-1">
-                              <MapPin className="h-3 w-3" />{" "}
+                              <MapPin className="size-3" />{" "}
                               {selectedDonor.location || "Unknown"}
                             </span>
                             <span className="flex items-center gap-1 capitalize">
                               {selectedDonor.type === "Church" ? (
-                                <Building2 className="h-3 w-3" />
+                                <Building2 className="size-3" />
                               ) : selectedDonor.type === "Organization" ? (
-                                <Briefcase className="h-3 w-3" />
+                                <Briefcase className="size-3" />
                               ) : (
-                                <User className="h-3 w-3" />
+                                <User className="size-3" />
                               )}
                               {selectedDonor.type}
                             </span>
@@ -1461,7 +1430,7 @@ export function DonorsPageContent({
                               setIsNoteDialogOpen(true);
                             }}
                           >
-                            <Pencil className="h-3.5 w-3.5 mr-1.5" /> Note
+                            <Pencil className="size-3.5 mr-1.5" /> Note
                           </Button>
                         </motion.div>
                         <motion.div
@@ -1478,7 +1447,7 @@ export function DonorsPageContent({
                             <a
                               href={`tel:${selectedDonor.phone || selectedDonor.mobile}`}
                             >
-                              <Phone className="h-3.5 w-3.5 mr-1.5" /> Call
+                              <Phone className="size-3.5 mr-1.5" /> Call
                             </a>
                           </Button>
                         </motion.div>
@@ -1493,7 +1462,7 @@ export function DonorsPageContent({
                             asChild
                           >
                             <a href={`mailto:${selectedDonor.email}`}>
-                              <Mail className="h-3.5 w-3.5 mr-1.5" /> Email
+                              <Mail className="size-3.5 mr-1.5" /> Email
                             </a>
                           </Button>
                         </motion.div>
@@ -1502,16 +1471,16 @@ export function DonorsPageContent({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-9 w-9 text-zinc-400 rounded-xl hover:bg-zinc-100"
+                              className="size-9 text-zinc-400 rounded-xl hover:bg-zinc-100"
                             >
-                              <MoreHorizontal className="h-5 w-5" />
+                              <MoreHorizontal className="size-5" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent
                             align="end"
                             className="rounded-xl border-zinc-100 shadow-xl"
                           >
-                            <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                            <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
                               Actions
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator className="bg-zinc-100" />
@@ -1519,14 +1488,13 @@ export function DonorsPageContent({
                               onClick={openEditDialog}
                               className="text-xs font-medium"
                             >
-                              <Pencil className="h-3.5 w-3.5 mr-2" /> Edit
-                              Profile
+                              <Pencil className="size-3.5 mr-2" /> Edit Profile
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => setIsTagDialogOpen(true)}
                               className="text-xs font-medium"
                             >
-                              <Tag className="h-3.5 w-3.5 mr-2" /> Manage Tags
+                              <Tag className="size-3.5 mr-2" /> Manage Tags
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="bg-zinc-100" />
                             <DropdownMenuItem
@@ -1536,7 +1504,7 @@ export function DonorsPageContent({
                               }}
                               className="text-xs font-medium"
                             >
-                              <Phone className="h-3.5 w-3.5 mr-2" /> Log Call
+                              <Phone className="size-3.5 mr-2" /> Log Call
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => {
@@ -1545,7 +1513,7 @@ export function DonorsPageContent({
                               }}
                               className="text-xs font-medium"
                             >
-                              <Briefcase className="h-3.5 w-3.5 mr-2" /> Log
+                              <Briefcase className="size-3.5 mr-2" /> Log
                               Meeting
                             </DropdownMenuItem>
                             <DropdownMenuItem
@@ -1555,7 +1523,7 @@ export function DonorsPageContent({
                               }}
                               className="text-xs font-medium"
                             >
-                              <Mail className="h-3.5 w-3.5 mr-2" /> Log Email
+                              <Mail className="size-3.5 mr-2" /> Log Email
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -1578,15 +1546,15 @@ export function DonorsPageContent({
                           value: formatCurrency(selectedDonor.last_gift_amount),
                           extra: selectedDonor.last_gift_date
                             ? formatDistanceToNow(
-                                new Date(selectedDonor.last_gift_date),
+                                parseDisplayDate(selectedDonor.last_gift_date),
                                 { addSuffix: true },
                               )
                             : null,
                           showPulse:
                             selectedDonor.last_gift_date &&
                             differenceInMonths(
-                              new Date(),
-                              new Date(selectedDonor.last_gift_date),
+                              currentDisplayDate(),
+                              parseDisplayDate(selectedDonor.last_gift_date),
                             ) < 1,
                         },
                         {
@@ -1598,7 +1566,7 @@ export function DonorsPageContent({
                           label: "Partner Since",
                           value: selectedDonor.joined_date
                             ? format(
-                                new Date(selectedDonor.joined_date),
+                                parseDisplayDate(selectedDonor.joined_date),
                                 "MMM yyyy",
                               )
                             : "N/A",
@@ -1614,12 +1582,12 @@ export function DonorsPageContent({
                           whileHover={{ y: -2 }}
                           className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100"
                         >
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+                          <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 mb-1">
                             {stat.label}
                           </p>
                           <div className="flex items-center gap-2">
                             {stat.icon && (
-                              <stat.icon className="h-3.5 w-3.5 text-emerald-600" />
+                              <stat.icon className="size-3.5 text-emerald-600" />
                             )}
                             <p
                               className={cn(
@@ -1627,7 +1595,7 @@ export function DonorsPageContent({
                                   stat.label === "Last Gift"
                                   ? "text-lg"
                                   : "text-sm",
-                                "font-bold text-zinc-900",
+                                "font-semibold text-zinc-900",
                               )}
                             >
                               {stat.value}
@@ -1639,7 +1607,7 @@ export function DonorsPageContent({
                                   opacity: [1, 0.7, 1],
                                 }}
                                 transition={{ duration: 1.5, repeat: Infinity }}
-                                className="w-2 h-2 bg-emerald-500 rounded-full"
+                                className="size-2 bg-emerald-500 rounded-full"
                               />
                             )}
                           </div>
@@ -1674,7 +1642,7 @@ export function DonorsPageContent({
                             <Badge
                               variant="outline"
                               className={cn(
-                                "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border",
+                                "text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full border",
                                 getTagStyle(tag),
                               )}
                             >
@@ -1690,10 +1658,10 @@ export function DonorsPageContent({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-6 px-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900"
+                          className="h-6 px-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-400 hover:text-zinc-900"
                           onClick={() => setIsTagDialogOpen(true)}
                         >
-                          <Plus className="h-3 w-3 mr-1" /> Add Tag
+                          <Plus className="size-3 mr-1" /> Add Tag
                         </Button>
                       </motion.div>
                     </motion.div>
@@ -1716,7 +1684,7 @@ export function DonorsPageContent({
                           <TabsTrigger
                             key={tab}
                             value={tab}
-                            className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 sm:px-6 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 transition-all"
+                            className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 sm:px-6 py-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 transition-all"
                           >
                             {tab === "overview"
                               ? "Overview"
@@ -1779,7 +1747,7 @@ export function DonorsPageContent({
                                         variant="ghost"
                                         size="sm"
                                         className={cn(
-                                          "h-8 rounded-lg text-[10px] font-black uppercase tracking-widest",
+                                          "h-8 rounded-lg text-[10px] font-semibold uppercase tracking-widest",
                                           hidden,
                                           activityType === type
                                             ? bg
@@ -1791,7 +1759,7 @@ export function DonorsPageContent({
                                           )
                                         }
                                       >
-                                        <Icon className="h-3.5 w-3.5 mr-1.5" />{" "}
+                                        <Icon className="size-3.5 mr-1.5" />{" "}
                                         {type.charAt(0).toUpperCase() +
                                           type.slice(1)}
                                       </Button>
@@ -1804,15 +1772,15 @@ export function DonorsPageContent({
                                 >
                                   <Button
                                     size="sm"
-                                    className="h-8 rounded-xl px-4 text-[10px] font-black uppercase tracking-widest"
+                                    className="h-8 rounded-xl px-4 text-[10px] font-semibold uppercase tracking-widest"
                                     onClick={handleAddNote}
                                     disabled={!noteInput.trim() || isSavingNote}
                                   >
                                     {isSavingNote ? (
-                                      <Loader2 className="h-3 w-3 animate-spin" />
+                                      <Loader2 className="size-3 animate-spin" />
                                     ) : (
                                       <>
-                                        Post <Send className="h-3 w-3 ml-1.5" />
+                                        Post <Send className="size-3 ml-1.5" />
                                       </>
                                     )}
                                   </Button>
@@ -1832,11 +1800,11 @@ export function DonorsPageContent({
                                     initial={{ scale: 0.8 }}
                                     animate={{ scale: 1 }}
                                     transition={springTransition}
-                                    className="w-16 h-16 bg-zinc-100 rounded-2xl flex items-center justify-center mb-4"
+                                    className="size-16 bg-zinc-100 rounded-2xl flex items-center justify-center mb-4"
                                   >
-                                    <Calendar className="h-7 w-7 text-zinc-300" />
+                                    <Calendar className="size-7 text-zinc-300" />
                                   </motion.div>
-                                  <p className="text-sm font-bold text-zinc-900">
+                                  <p className="text-sm font-semibold text-zinc-900">
                                     No activity recorded yet
                                   </p>
                                   <p className="text-xs text-zinc-400 mt-1">
@@ -1860,7 +1828,7 @@ export function DonorsPageContent({
                                         <motion.div
                                           whileHover={{ scale: 1.15 }}
                                           className={cn(
-                                            "absolute left-0 top-1 h-8 w-8 rounded-xl flex items-center justify-center shadow-sm z-10",
+                                            "absolute left-0 top-1 size-8 rounded-xl flex items-center justify-center shadow-sm z-10",
                                             getActivityBg(
                                               activity.type as ActivityType,
                                             ),
@@ -1882,13 +1850,13 @@ export function DonorsPageContent({
                                           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-1">
                                             <div className="space-y-1">
                                               <div className="flex flex-wrap items-center gap-2">
-                                                <span className="text-sm font-bold text-zinc-900">
+                                                <span className="text-sm font-semibold text-zinc-900">
                                                   {activity.title}
                                                 </span>
                                                 {activity.amount && (
                                                   <Badge
                                                     className={cn(
-                                                      "font-black px-2 h-5 rounded-lg text-[9px] uppercase tracking-widest border-0",
+                                                      "font-semibold px-2 h-5 rounded-lg text-[9px] uppercase tracking-widest border-0",
                                                       activity.status ===
                                                         "Failed"
                                                         ? "bg-rose-50 text-rose-600"
@@ -1910,7 +1878,7 @@ export function DonorsPageContent({
                                                 )}
                                                 {activity.status ===
                                                   "Failed" && (
-                                                  <Badge className="bg-rose-50 text-rose-600 border-0 text-[9px] font-black uppercase tracking-widest">
+                                                  <Badge className="bg-rose-50 text-rose-600 border-0 text-[9px] font-semibold uppercase tracking-widest">
                                                     Failed
                                                   </Badge>
                                                 )}
@@ -1926,9 +1894,9 @@ export function DonorsPageContent({
                                                 </p>
                                               )}
                                             </div>
-                                            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 whitespace-nowrap">
+                                            <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 whitespace-nowrap">
                                               {format(
-                                                new Date(activity.date),
+                                                parseDisplayDate(activity.date),
                                                 "MMM d, yyyy",
                                               )}
                                             </span>
@@ -1958,7 +1926,7 @@ export function DonorsPageContent({
                               transition={smoothTransition}
                               className="flex items-center justify-between mb-2"
                             >
-                              <h3 className="text-sm font-bold text-zinc-900">
+                              <h3 className="text-sm font-semibold text-zinc-900">
                                 Contact Information
                               </h3>
                               <motion.div
@@ -1971,7 +1939,7 @@ export function DonorsPageContent({
                                   onClick={openEditDialog}
                                   className="h-8 px-3 text-xs rounded-xl border-zinc-200"
                                 >
-                                  <Pencil className="h-3.5 w-3.5 mr-1.5" /> Edit
+                                  <Pencil className="size-3.5 mr-1.5" /> Edit
                                 </Button>
                               </motion.div>
                             </motion.div>
@@ -2028,22 +1996,22 @@ export function DonorsPageContent({
                                     <div className="flex items-center gap-3">
                                       <div
                                         className={cn(
-                                          "h-10 w-10 rounded-xl flex items-center justify-center shrink-0",
+                                          "size-10 rounded-xl flex items-center justify-center shrink-0",
                                           `bg-${item.color}-50 text-${item.color}-600`,
                                         )}
                                       >
-                                        <item.icon className="h-4 w-4" />
+                                        <item.icon className="size-4" />
                                       </div>
                                       <div className="min-w-0">
                                         <div className="flex items-center gap-2">
-                                          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                                          <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
                                             {item.label}
                                           </p>
                                           {item.preferred && (
                                             <Badge
                                               className={cn(
                                                 `bg-${item.color}-50 text-${item.color}-600`,
-                                                "border-0 text-[8px] font-black uppercase tracking-widest px-1.5 py-0",
+                                                "border-0 text-[8px] font-semibold uppercase tracking-widest px-1.5 py-0",
                                               )}
                                             >
                                               Preferred
@@ -2064,7 +2032,7 @@ export function DonorsPageContent({
                                           variant="ghost"
                                           size="icon"
                                           className={cn(
-                                            "h-9 w-9 rounded-xl shrink-0",
+                                            "size-9 rounded-xl shrink-0",
                                             `text-zinc-400 hover:text-${item.color}-600 hover:bg-${item.color}-50`,
                                           )}
                                           onClick={() =>
@@ -2074,7 +2042,7 @@ export function DonorsPageContent({
                                             )
                                           }
                                         >
-                                          <Copy className="h-4 w-4" />
+                                          <Copy className="size-4" />
                                         </Button>
                                       </motion.div>
                                     )}
@@ -2087,11 +2055,11 @@ export function DonorsPageContent({
                                     className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-all"
                                   >
                                     <div className="flex items-center gap-3">
-                                      <div className="h-10 w-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-                                        <Globe className="h-4 w-4" />
+                                      <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                                        <Globe className="size-4" />
                                       </div>
                                       <div className="min-w-0">
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                                        <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
                                           Website
                                         </p>
                                         <p className="text-sm font-medium text-zinc-900 truncate">
@@ -2106,7 +2074,7 @@ export function DonorsPageContent({
                                       <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-9 w-9 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl shrink-0"
+                                        className="size-9 text-zinc-400 hover:text-primary hover:bg-primary/10 rounded-xl shrink-0"
                                         asChild
                                       >
                                         <a
@@ -2120,7 +2088,7 @@ export function DonorsPageContent({
                                           target="_blank"
                                           rel="noopener noreferrer"
                                         >
-                                          <ExternalLink className="h-4 w-4" />
+                                          <ExternalLink className="size-4" />
                                         </a>
                                       </Button>
                                     </motion.div>
@@ -2141,11 +2109,11 @@ export function DonorsPageContent({
                                 >
                                   <div className="flex items-start justify-between">
                                     <div className="flex items-start gap-3">
-                                      <div className="h-10 w-10 rounded-xl bg-zinc-100 text-zinc-500 flex items-center justify-center shrink-0">
-                                        <Home className="h-4 w-4" />
+                                      <div className="size-10 rounded-xl bg-zinc-100 text-zinc-500 flex items-center justify-center shrink-0">
+                                        <Home className="size-4" />
                                       </div>
                                       <div>
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">
+                                        <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 mb-1">
                                           Mailing Address
                                         </p>
                                         {selectedDonor.address?.street ? (
@@ -2181,7 +2149,7 @@ export function DonorsPageContent({
                                         <Button
                                           variant="ghost"
                                           size="icon"
-                                          className="h-9 w-9 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl shrink-0"
+                                          className="size-9 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl shrink-0"
                                           asChild
                                         >
                                           <a
@@ -2189,7 +2157,7 @@ export function DonorsPageContent({
                                             target="_blank"
                                             rel="noopener noreferrer"
                                           >
-                                            <ExternalLink className="h-4 w-4" />
+                                            <ExternalLink className="size-4" />
                                           </a>
                                         </Button>
                                       </motion.div>
@@ -2205,11 +2173,11 @@ export function DonorsPageContent({
                                     className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100"
                                   >
                                     <div className="flex items-start gap-3">
-                                      <div className="h-10 w-10 rounded-xl bg-zinc-100 text-zinc-500 flex items-center justify-center shrink-0">
-                                        <Building2 className="h-4 w-4" />
+                                      <div className="size-10 rounded-xl bg-zinc-100 text-zinc-500 flex items-center justify-center shrink-0">
+                                        <Building2 className="size-4" />
                                       </div>
                                       <div>
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">
+                                        <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 mb-1">
                                           Organization
                                         </p>
                                         {selectedDonor.organization && (
@@ -2235,11 +2203,11 @@ export function DonorsPageContent({
                                       className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100"
                                     >
                                       <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
-                                          <Heart className="h-4 w-4" />
+                                        <div className="size-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
+                                          <Heart className="size-4" />
                                         </div>
                                         <div>
-                                          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                                          <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
                                             Spouse
                                           </p>
                                           <p className="text-sm font-medium text-zinc-900">
@@ -2256,16 +2224,18 @@ export function DonorsPageContent({
                                       className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100"
                                     >
                                       <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
-                                          <Star className="h-4 w-4" />
+                                        <div className="size-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+                                          <Star className="size-4" />
                                         </div>
                                         <div>
-                                          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                                          <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
                                             Birthday
                                           </p>
                                           <p className="text-sm font-medium text-zinc-900">
                                             {format(
-                                              new Date(selectedDonor.birthday),
+                                              parseDisplayDate(
+                                                selectedDonor.birthday,
+                                              ),
                                               "MMMM d",
                                             )}
                                           </p>
@@ -2280,16 +2250,16 @@ export function DonorsPageContent({
                                       className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100"
                                     >
                                       <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 rounded-xl bg-purple-50 text-purple-500 flex items-center justify-center shrink-0">
-                                          <Calendar className="h-4 w-4" />
+                                        <div className="size-10 rounded-xl bg-purple-50 text-purple-500 flex items-center justify-center shrink-0">
+                                          <Calendar className="size-4" />
                                         </div>
                                         <div>
-                                          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                                          <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
                                             Anniversary
                                           </p>
                                           <p className="text-sm font-medium text-zinc-900">
                                             {format(
-                                              new Date(
+                                              parseDisplayDate(
                                                 selectedDonor.anniversary,
                                               ),
                                               "MMMM d",
@@ -2307,7 +2277,7 @@ export function DonorsPageContent({
                                     whileHover={{ y: -2 }}
                                     className="p-4 bg-amber-50/50 rounded-2xl border border-amber-100"
                                   >
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-amber-600 mb-2">
+                                    <p className="text-[10px] font-semibold uppercase tracking-widest text-amber-600 mb-2">
                                       Internal Notes
                                     </p>
                                     <p className="text-sm text-zinc-700">
@@ -2329,7 +2299,7 @@ export function DonorsPageContent({
                               className="flex items-center justify-between mb-2"
                             >
                               <div>
-                                <h3 className="text-sm font-bold text-zinc-900">
+                                <h3 className="text-sm font-semibold text-zinc-900">
                                   Recurring Donations
                                 </h3>
                                 <p className="text-xs text-zinc-500 mt-0.5">
@@ -2347,11 +2317,11 @@ export function DonorsPageContent({
                                   initial={{ scale: 0.8 }}
                                   animate={{ scale: 1 }}
                                   transition={springTransition}
-                                  className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-sm"
+                                  className="size-16 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-sm"
                                 >
-                                  <Repeat className="h-7 w-7 text-zinc-300" />
+                                  <Repeat className="size-7 text-zinc-300" />
                                 </motion.div>
-                                <p className="text-sm font-bold text-zinc-900">
+                                <p className="text-sm font-semibold text-zinc-900">
                                   No recurring donations
                                 </p>
                                 <p className="text-xs text-zinc-400 mt-1 max-w-[280px]">
@@ -2388,7 +2358,7 @@ export function DonorsPageContent({
                                               rotate: 5,
                                             }}
                                             className={cn(
-                                              "h-12 w-12 rounded-xl flex items-center justify-center shrink-0",
+                                              "size-12 rounded-xl flex items-center justify-center shrink-0",
                                               recurring.status === "active"
                                                 ? "bg-emerald-100"
                                                 : "bg-zinc-100",
@@ -2400,7 +2370,7 @@ export function DonorsPageContent({
                                           </motion.div>
                                           <div>
                                             <div className="flex items-center gap-3 mb-1">
-                                              <h4 className="text-xl font-bold text-zinc-900">
+                                              <h4 className="text-xl font-semibold text-zinc-900">
                                                 {formatCurrency(
                                                   Number(recurring.amount),
                                                 )}
@@ -2415,10 +2385,10 @@ export function DonorsPageContent({
                                             </div>
                                             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-zinc-500">
                                               <span className="flex items-center gap-1">
-                                                <Calendar className="h-3.5 w-3.5" />
+                                                <Calendar className="size-3.5" />
                                                 Started{" "}
                                                 {format(
-                                                  new Date(
+                                                  parseDisplayDate(
                                                     recurring.start_date,
                                                   ),
                                                   "MMM d, yyyy",
@@ -2426,10 +2396,10 @@ export function DonorsPageContent({
                                               </span>
                                               {recurring.end_date ? (
                                                 <span className="flex items-center gap-1 text-amber-600">
-                                                  <Clock className="h-3.5 w-3.5" />
+                                                  <Clock className="size-3.5" />
                                                   Ends{" "}
                                                   {format(
-                                                    new Date(
+                                                    parseDisplayDate(
                                                       recurring.end_date,
                                                     ),
                                                     "MMM d, yyyy",
@@ -2453,12 +2423,12 @@ export function DonorsPageContent({
                                               animate={{ opacity: 1, scale: 1 }}
                                               className="bg-white p-3 rounded-xl border border-emerald-100 text-center lg:text-right"
                                             >
-                                              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                                              <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
                                                 Next Payment
                                               </p>
-                                              <p className="text-lg font-bold text-zinc-900">
+                                              <p className="text-lg font-semibold text-zinc-900">
                                                 {format(
-                                                  new Date(
+                                                  parseDisplayDate(
                                                     recurring.next_payment_date,
                                                   ),
                                                   "MMM d",
@@ -2466,7 +2436,7 @@ export function DonorsPageContent({
                                               </p>
                                               <p className="text-xs text-zinc-500">
                                                 {formatDistanceToNow(
-                                                  new Date(
+                                                  parseDisplayDate(
                                                     recurring.next_payment_date,
                                                   ),
                                                   { addSuffix: true },
@@ -2511,7 +2481,7 @@ export function DonorsPageContent({
                                           },
                                         ].map((item) => (
                                           <div key={item.label}>
-                                            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">
+                                            <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 mb-1">
                                               {item.label}
                                             </p>
                                             <div className="flex items-center gap-1.5">
@@ -2521,7 +2491,7 @@ export function DonorsPageContent({
                                                 )}
                                               <p
                                                 className={cn(
-                                                  "text-sm font-bold",
+                                                  "text-sm font-semibold",
                                                   item.color || "text-zinc-900",
                                                 )}
                                               >
@@ -2534,10 +2504,10 @@ export function DonorsPageContent({
 
                                       <div className="mt-4">
                                         <div className="flex items-center justify-between mb-1.5">
-                                          <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                                          <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
                                             Progress
                                           </span>
-                                          <span className="text-xs font-bold text-zinc-600">
+                                          <span className="text-xs font-semibold text-zinc-600">
                                             {Number(recurring.total_expected) >
                                             0
                                               ? `${Math.round((Number(recurring.total_paid) / Number(recurring.total_expected)) * 100)}%`
@@ -2591,7 +2561,7 @@ export function DonorsPageContent({
                               }}
                               emptyState={
                                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                                  <p className="text-sm font-bold text-zinc-900">
+                                  <p className="text-sm font-semibold text-zinc-900">
                                     No giving history available
                                   </p>
                                   <p className="text-xs text-zinc-400 mt-1">
@@ -2620,15 +2590,15 @@ export function DonorsPageContent({
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={springTransition}
-                      className="h-20 w-20 rounded-3xl bg-white shadow-sm border border-zinc-100 flex items-center justify-center mx-auto mb-8"
+                      className="size-20 rounded-3xl bg-white shadow-sm border border-zinc-100 flex items-center justify-center mx-auto mb-8"
                     >
-                      <User className="h-10 w-10 text-zinc-200" />
+                      <User className="size-10 text-zinc-200" />
                     </motion.div>
                     <motion.h3
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 }}
-                      className="font-black text-2xl text-zinc-900 tracking-tight"
+                      className="font-semibold text-2xl text-zinc-900 tracking-tight"
                     >
                       Select a Partner
                     </motion.h3>
@@ -2653,8 +2623,8 @@ export function DonorsPageContent({
                           missionaryId={profile.id}
                           onSuccess={handleRefreshDonors}
                           trigger={
-                            <Button className="mt-10 h-11 px-8 rounded-2xl bg-zinc-900 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:bg-zinc-800">
-                              <Plus className="h-4 w-4 mr-2" /> Add Partner
+                            <Button className="mt-10 h-11 px-8 rounded-2xl bg-zinc-900 text-[10px] font-semibold uppercase tracking-[0.2em] text-white hover:bg-zinc-800">
+                              <Plus className="size-4 mr-2" /> Add Partner
                             </Button>
                           }
                         />
@@ -2671,7 +2641,7 @@ export function DonorsPageContent({
       <Dialog open={isNoteDialogOpen} onOpenChange={setIsNoteDialogOpen}>
         <DialogContent className="sm:max-w-[500px] rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold tracking-tight">
+            <DialogTitle className="text-lg font-semibold tracking-tight">
               {activityType === "note"
                 ? "Add Note"
                 : activityType === "call"
@@ -2712,7 +2682,7 @@ export function DonorsPageContent({
               className="h-10 px-6 rounded-xl"
             >
               {isSavingNote ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="size-4 animate-spin" />
               ) : (
                 "Save"
               )}
@@ -2724,7 +2694,7 @@ export function DonorsPageContent({
       <Dialog open={isTagDialogOpen} onOpenChange={setIsTagDialogOpen}>
         <DialogContent className="sm:max-w-[500px] rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold tracking-tight">
+            <DialogTitle className="text-lg font-semibold tracking-tight">
               Manage Tags
             </DialogTitle>
             <DialogDescription className="text-sm text-zinc-500">
@@ -2748,7 +2718,7 @@ export function DonorsPageContent({
                   whileTap={{ scale: 0.98 }}
                   onClick={() => toggleTag(tag.id)}
                   className={cn(
-                    "px-3 py-1.5 rounded-full text-xs font-bold border transition-all",
+                    "px-3 py-1.5 rounded-full text-xs font-semibold border transition-all",
                     selectedTags.includes(tag.id)
                       ? cn(tag.color, "ring-2 ring-offset-1 ring-zinc-400")
                       : "bg-zinc-50 text-zinc-400 border-zinc-200 hover:bg-zinc-100",
@@ -2762,7 +2732,7 @@ export function DonorsPageContent({
                         exit={{ width: 0, opacity: 0 }}
                         className="inline-flex overflow-hidden"
                       >
-                        <Check className="h-3 w-3 mr-1" />
+                        <Check className="size-3 mr-1" />
                       </motion.span>
                     )}
                   </AnimatePresence>
@@ -2785,7 +2755,7 @@ export function DonorsPageContent({
               className="h-10 px-6 rounded-xl"
             >
               {isSavingTags ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="size-4 animate-spin" />
               ) : (
                 "Save Tags"
               )}

@@ -2,6 +2,10 @@ import { siteConfig } from "@asym/config/site";
 
 const SITE_URL = siteConfig.url;
 
+function serializeJsonLd(value: unknown): string {
+  return JSON.stringify(value).replace(/</g, "\\u003c");
+}
+
 export function OrganizationJsonLd() {
   const org = siteConfig.organization;
   const social = siteConfig.social;
@@ -46,12 +50,7 @@ export function OrganizationJsonLd() {
     nonprofitStatus: org.nonprofitStatus,
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-    />
-  );
+  return <script type="application/ld+json">{serializeJsonLd(jsonLd)}</script>;
 }
 
 export function WebsiteJsonLd() {
@@ -76,12 +75,7 @@ export function WebsiteJsonLd() {
     },
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-    />
-  );
+  return <script type="application/ld+json">{serializeJsonLd(jsonLd)}</script>;
 }
 
 export function DonateActionJsonLd() {
@@ -108,12 +102,7 @@ export function DonateActionJsonLd() {
     },
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-    />
-  );
+  return <script type="application/ld+json">{serializeJsonLd(jsonLd)}</script>;
 }
 
 interface WorkerJsonLdProps {
@@ -154,12 +143,7 @@ export function WorkerJsonLd({
     },
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-    />
-  );
+  return <script type="application/ld+json">{serializeJsonLd(jsonLd)}</script>;
 }
 
 interface FAQJsonLdProps {
@@ -185,12 +169,7 @@ export function FAQJsonLd({ questions }: FAQJsonLdProps) {
     })),
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-    />
-  );
+  return <script type="application/ld+json">{serializeJsonLd(jsonLd)}</script>;
 }
 
 interface BreadcrumbJsonLdProps {
@@ -212,12 +191,7 @@ export function BreadcrumbJsonLd({ items }: BreadcrumbJsonLdProps) {
     })),
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-    />
-  );
+  return <script type="application/ld+json">{serializeJsonLd(jsonLd)}</script>;
 }
 
 export function WebPageJsonLd({
@@ -251,12 +225,7 @@ export function WebPageJsonLd({
     inLanguage: siteConfig.language,
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-    />
-  );
+  return <script type="application/ld+json">{serializeJsonLd(jsonLd)}</script>;
 }
 
 export function ItemListJsonLd({
@@ -287,10 +256,5 @@ export function ItemListJsonLd({
     })),
   };
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-    />
-  );
+  return <script type="application/ld+json">{serializeJsonLd(jsonLd)}</script>;
 }

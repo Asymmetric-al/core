@@ -26,7 +26,7 @@ export function WorkerProfileHeroWithViewTransitions({
       <SharedNamedViewTransition
         name={workerHeroImageTransitionName(worker.id)}
       >
-        <figure className="rounded-2xl overflow-hidden shadow-sm border border-slate-200 bg-white aspect-video relative group">
+        <figure className="rounded-2xl overflow-hidden shadow-sm border border-zinc-200 bg-white aspect-video relative group">
           <Image
             src={worker.image}
             alt={`${worker.title} - Missionary serving in ${worker.location}`}
@@ -41,7 +41,7 @@ export function WorkerProfileHeroWithViewTransitions({
             aria-hidden="true"
           />
           <figcaption className="absolute bottom-5 left-5 text-white flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-emerald-400" aria-hidden="true" />
+            <MapPin className="size-4 text-emerald-400" aria-hidden="true" />
             <span className="font-medium tracking-wide drop-shadow-sm">
               {worker.location}
             </span>
@@ -51,9 +51,9 @@ export function WorkerProfileHeroWithViewTransitions({
 
       <div className="flex flex-col sm:flex-row gap-5 items-start">
         <SharedNamedViewTransition name={workerAvatarTransitionName(worker.id)}>
-          <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-white shadow-lg -mt-14 sm:-mt-16 bg-white relative z-10 ring-1 ring-slate-100">
+          <Avatar className="size-20 sm:h-24 sm:w-24 border-4 border-white shadow-lg -mt-14 sm:-mt-16 bg-white relative z-10 ring-1 ring-zinc-100">
             <AvatarImage src={worker.image} alt="" className="object-cover" />
-            <AvatarFallback className="text-lg font-bold bg-slate-100 text-slate-700">
+            <AvatarFallback className="text-lg font-semibold bg-zinc-100 text-zinc-700">
               {worker.title.substring(0, 2)}
             </AvatarFallback>
           </Avatar>
@@ -64,19 +64,18 @@ export function WorkerProfileHeroWithViewTransitions({
             <SharedNamedViewTransition
               name={workerTitleTransitionName(worker.id)}
             >
-              <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
+              <h1 className="text-3xl sm:text-4xl font-semibold text-zinc-900 tracking-tight">
                 {worker.title}
               </h1>
             </SharedNamedViewTransition>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-[11px] font-bold uppercase tracking-wider">
-              <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />{" "}
-              Verified
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-[11px] font-semibold uppercase tracking-wider">
+              <ShieldCheck className="size-3.5" aria-hidden="true" /> Verified
             </div>
           </div>
-          <div className="flex items-center gap-2 text-slate-500 font-medium text-sm">
+          <div className="flex items-center gap-2 text-zinc-500 font-medium text-sm">
             <span>{worker.category}</span>
             <span
-              className="w-1 h-1 rounded-full bg-slate-300"
+              className="size-1 rounded-full bg-zinc-300"
               aria-hidden="true"
             />
             <span>Partner since 2019</span>

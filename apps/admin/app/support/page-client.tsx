@@ -122,13 +122,13 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
         <>
           <Button asChild className="rounded-2xl">
             <Link href={supportHubRoutes.newTicket}>
-              <Send className="mr-2 h-4 w-4" aria-hidden="true" />
+              <Send className="mr-2 size-4" aria-hidden="true" />
               New ticket
             </Link>
           </Button>
           <Button asChild className="rounded-2xl" variant="outline">
             <Link href={supportHubRoutes.knowledge}>
-              <BookOpen className="mr-2 h-4 w-4" aria-hidden="true" />
+              <BookOpen className="mr-2 size-4" aria-hidden="true" />
               Knowledge base
             </Link>
           </Button>
@@ -151,15 +151,15 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
               <Card key={stat.label} className="min-h-24 rounded-2xl">
                 <CardContent className="flex h-full items-center justify-between py-3 pl-4 pr-3">
                   <div>
-                    <p className="text-[9px] font-black uppercase tracking-[0.16em] text-muted-foreground">
+                    <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                       {stat.label}
                     </p>
-                    <p className="mt-1 text-2xl font-black tabular-nums">
+                    <p className="mt-1 text-2xl font-semibold tabular-nums">
                       {stat.value}
                     </p>
                   </div>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                    <Icon className="h-4 w-4" aria-hidden="true" />
+                  <div className="flex size-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                    <Icon className="size-4" aria-hidden="true" />
                   </div>
                 </CardContent>
               </Card>
@@ -170,7 +170,7 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
         <div className="grid gap-6 xl:grid-cols-[260px_minmax(0,1fr)_340px]">
           <section className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold uppercase tracking-[0.16em] text-muted-foreground">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                 Support tracks
               </h3>
               <Link
@@ -198,7 +198,7 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
                   >
                     <span className="flex items-center justify-between gap-3">
                       <span className="font-semibold">{queue.label}</span>
-                      <span className="rounded-full bg-background/20 px-2 py-0.5 text-xs font-bold tabular-nums">
+                      <span className="rounded-full bg-background/20 px-2 py-0.5 text-xs font-semibold tabular-nums">
                         {queue.total}
                       </span>
                     </span>
@@ -230,7 +230,7 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
                     </CardDescription>
                   </div>
                   <label className="flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
-                    <Search className="h-4 w-4" aria-hidden="true" />
+                    <Search className="size-4" aria-hidden="true" />
                     <span className="sr-only">Search support tickets</span>
                     <Input
                       className="h-auto border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
@@ -253,23 +253,23 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
                         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                           <div className="min-w-0 space-y-2">
                             <div className="flex flex-wrap items-center gap-2">
-                              <span className="font-mono text-xs font-bold text-muted-foreground">
+                              <span className="font-mono text-xs font-semibold text-muted-foreground">
                                 {ticket.id}
                               </span>
                               <span
                                 aria-label={`Priority: ${ticket.priority}`}
-                                className={`rounded-full border px-2 py-0.5 text-xs font-bold ${priorityClasses[ticket.priority]}`}
+                                className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${priorityClasses[ticket.priority]}`}
                               >
                                 Priority: {ticket.priority}
                               </span>
                               <span
                                 aria-label={`Status: ${ticket.status}`}
-                                className={`rounded-full border px-2 py-0.5 text-xs font-bold ${statusClasses[ticket.status]}`}
+                                className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${statusClasses[ticket.status]}`}
                               >
                                 Status: {ticket.status}
                               </span>
                               {ticket.followUpAt ? (
-                                <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-bold text-muted-foreground">
+                                <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
                                   Follow-up{" "}
                                   {formatSupportRelativeTime(
                                     ticket.followUpAt,
@@ -278,7 +278,7 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
                                 </span>
                               ) : null}
                             </div>
-                            <h3 className="text-base font-bold text-foreground">
+                            <h3 className="text-base font-semibold text-foreground">
                               {ticket.subject}
                             </h3>
                             <p className="text-sm leading-6 text-muted-foreground">
@@ -287,7 +287,7 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
                             <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                               <span className="inline-flex items-center gap-1">
                                 <UserRound
-                                  className="h-3.5 w-3.5"
+                                  className="size-3.5"
                                   aria-hidden="true"
                                 />
                                 {contact?.name ??
@@ -297,7 +297,7 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
                               </span>
                               <span className="inline-flex items-center gap-1">
                                 <ChannelIcon
-                                  className="h-3.5 w-3.5"
+                                  className="size-3.5"
                                   aria-hidden="true"
                                 />
                                 {ticket.channel}
@@ -335,7 +335,7 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
                               <Link href={supportHubRoutes.ticket(ticket.id)}>
                                 Open thread
                                 <ArrowUpRight
-                                  className="ml-2 h-4 w-4"
+                                  className="ml-2 size-4"
                                   aria-hidden="true"
                                 />
                               </Link>
@@ -366,10 +366,10 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
                 {selectedTicket ? (
                   <>
                     <div>
-                      <p className="font-mono text-xs font-bold text-muted-foreground">
+                      <p className="font-mono text-xs font-semibold text-muted-foreground">
                         {selectedTicket.id}
                       </p>
-                      <h3 className="mt-1 font-bold">
+                      <h3 className="mt-1 font-semibold">
                         {selectedTicket.subject}
                       </h3>
                       <p className="mt-2 text-sm leading-6 text-muted-foreground">
@@ -377,7 +377,7 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
                       </p>
                     </div>
                     <div className="rounded-2xl bg-muted p-3">
-                      <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                         Contact
                       </p>
                       <p className="mt-1 font-semibold">
@@ -401,10 +401,10 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
                     >
                       <div className="flex items-center gap-2">
                         <Sparkles
-                          className="h-4 w-4 text-primary"
+                          className="size-4 text-primary"
                           aria-hidden="true"
                         />
-                        <p className="text-sm font-bold">Suggested macro</p>
+                        <p className="text-sm font-semibold">Suggested macro</p>
                       </div>
                       <p className="mt-2 text-sm text-muted-foreground">
                         {suggestedMacro?.title}
@@ -418,7 +418,7 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
                       className="w-full rounded-2xl"
                       disabled
                     >
-                      <Reply className="mr-2 h-4 w-4" aria-hidden="true" />
+                      <Reply className="mr-2 size-4" aria-hidden="true" />
                       Draft response
                     </Button>
                     <p
@@ -451,8 +451,8 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
                     href={`${supportHubRoutes.knowledge}?article=${entry.id}`}
                     key={entry.id}
                   >
-                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                      <Tag className="h-3.5 w-3.5" aria-hidden="true" />
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      <Tag className="size-3.5" aria-hidden="true" />
                       {entry.category}
                     </div>
                     <p className="mt-1 text-sm font-semibold">{entry.title}</p>
@@ -478,8 +478,8 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
                     href={supportHubRoutes.contacts}
                     key={contact.id}
                   >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-background">
-                      <Users className="h-4 w-4" aria-hidden="true" />
+                    <div className="flex size-9 items-center justify-center rounded-full bg-background">
+                      <Users className="size-4" aria-hidden="true" />
                     </div>
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold">

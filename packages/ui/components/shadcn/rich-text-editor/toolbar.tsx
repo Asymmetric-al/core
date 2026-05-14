@@ -156,7 +156,7 @@ export function EditorToolbar({
             active={toolbarState.isBold}
             tooltip="Bold (Ctrl+B)"
           >
-            <Bold className="h-3.5 w-3.5" />
+            <Bold className="size-3.5" />
           </ToolbarButton>
         )}
         {has("italic") && (
@@ -165,7 +165,7 @@ export function EditorToolbar({
             active={toolbarState.isItalic}
             tooltip="Italic (Ctrl+I)"
           >
-            <Italic className="h-3.5 w-3.5" />
+            <Italic className="size-3.5" />
           </ToolbarButton>
         )}
         {has("underline") && (
@@ -174,7 +174,7 @@ export function EditorToolbar({
             active={toolbarState.isUnderline}
             tooltip="Underline (Ctrl+U)"
           >
-            <Underline className="h-3.5 w-3.5" />
+            <Underline className="size-3.5" />
           </ToolbarButton>
         )}
       </div>,
@@ -193,7 +193,7 @@ export function EditorToolbar({
               active={toolbarState.isHeading1}
               tooltip="Heading 1"
             >
-              <Heading1 className="h-3.5 w-3.5" />
+              <Heading1 className="size-3.5" />
             </ToolbarButton>
             <ToolbarButton
               onClick={() =>
@@ -202,7 +202,7 @@ export function EditorToolbar({
               active={toolbarState.isHeading2}
               tooltip="Heading 2"
             >
-              <Heading2 className="h-3.5 w-3.5" />
+              <Heading2 className="size-3.5" />
             </ToolbarButton>
           </>
         )}
@@ -212,7 +212,7 @@ export function EditorToolbar({
             active={toolbarState.isBlockquote}
             tooltip="Quote"
           >
-            <Quote className="h-3.5 w-3.5" />
+            <Quote className="size-3.5" />
           </ToolbarButton>
         )}
       </div>,
@@ -228,7 +228,7 @@ export function EditorToolbar({
             active={toolbarState.isBulletList}
             tooltip="Bullet List"
           >
-            <List className="h-3.5 w-3.5" />
+            <List className="size-3.5" />
           </ToolbarButton>
         )}
         {has("orderedList") && (
@@ -237,7 +237,7 @@ export function EditorToolbar({
             active={toolbarState.isOrderedList}
             tooltip="Numbered List"
           >
-            <ListOrdered className="h-3.5 w-3.5" />
+            <ListOrdered className="size-3.5" />
           </ToolbarButton>
         )}
       </div>,
@@ -274,7 +274,7 @@ export function EditorToolbar({
             disabled={!toolbarState.canUndo}
             tooltip="Undo (Ctrl+Z)"
           >
-            <Undo2 className="h-3.5 w-3.5" />
+            <Undo2 className="size-3.5" />
           </ToolbarButton>
         )}
         {has("redo") && (
@@ -284,7 +284,7 @@ export function EditorToolbar({
             disabled={!toolbarState.canRedo}
             tooltip="Redo (Ctrl+Shift+Z)"
           >
-            <Redo2 className="h-3.5 w-3.5" />
+            <Redo2 className="size-3.5" />
           </ToolbarButton>
         )}
       </div>,
@@ -348,7 +348,7 @@ function ToolbarButton({
           onPressedChange={onClick}
           disabled={disabled}
           className={cn(
-            "h-7 w-7 p-0 rounded-md transition-colors",
+            "size-7 p-0 rounded-md transition-colors",
             active
               ? "bg-primary text-primary-foreground"
               : "hover:bg-muted text-muted-foreground hover:text-foreground",
@@ -419,13 +419,13 @@ function LinkButton({
               variant="ghost"
               size="sm"
               className={cn(
-                "h-7 w-7 p-0 rounded-md transition-colors",
+                "size-7 p-0 rounded-md transition-colors",
                 isActive
                   ? "bg-primary text-primary-foreground"
                   : "hover:bg-muted text-muted-foreground hover:text-foreground",
               )}
             >
-              <LinkIcon className="h-3.5 w-3.5" />
+              <LinkIcon className="size-3.5" />
             </Button>
           </PopoverTrigger>
         </TooltipTrigger>
@@ -489,11 +489,11 @@ function ImageClickButton({ onClick }: { onClick: () => void }) {
           aria-label="Insert image"
           variant="ghost"
           size="sm"
-          className="h-7 w-7 p-0 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+          className="size-7 p-0 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
           type="button"
           onClick={onClick}
         >
-          <ImageIcon className="h-3.5 w-3.5" />
+          <ImageIcon className="size-3.5" />
         </Button>
       </TooltipTrigger>
       <TooltipContent side="top" className="text-xs">
@@ -548,7 +548,7 @@ function ImageButton({
             variant="ghost"
             size="sm"
             className={cn(
-              "h-7 w-7 p-0 rounded-md transition-colors",
+              "size-7 p-0 rounded-md transition-colors",
               "hover:bg-muted text-muted-foreground hover:text-foreground",
               isUploading && "animate-pulse",
             )}
@@ -556,7 +556,7 @@ function ImageButton({
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
           >
-            <ImageIcon className="h-3.5 w-3.5" />
+            <ImageIcon className="size-3.5" />
           </Button>
         </TooltipTrigger>
         <TooltipContent side="top" className="text-xs">

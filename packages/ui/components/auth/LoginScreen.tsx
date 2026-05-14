@@ -58,7 +58,7 @@ export function LoginScreen({
   forgotPasswordHref = "/forgot-password",
   showRegisterLink = true,
 }: LoginScreenProps) {
-  const router = useRouter();
+  const { replace, refresh } = useRouter();
   const demoRole = getDemoRoleForApp(appId);
   const defaultPostLoginPath = getDefaultPostLoginPathForApp(appId);
   const sanitizedNextPath = safeNextParam(nextPath);
@@ -104,9 +104,9 @@ export function LoginScreen({
 
   React.useEffect(() => {
     if (!existingUser) return;
-    router.replace(targetPath);
-    router.refresh();
-  }, [existingUser, router, targetPath]);
+    replace(targetPath);
+    refresh();
+  }, [existingUser, refresh, replace, targetPath]);
 
   const handleDemoLogin = React.useCallback(async () => {
     setError(null);
@@ -128,14 +128,14 @@ export function LoginScreen({
         throw new Error(payload.error ?? "Demo login unavailable.");
       }
 
-      router.replace(targetPath);
-      router.refresh();
+      replace(targetPath);
+      refresh();
     } catch (cause) {
       setError(toSafeUiError(cause, "Demo login unavailable."));
     } finally {
       setIsDemoSubmitting(false);
     }
-  }, [demoRole, router, targetPath]);
+  }, [demoRole, refresh, replace, targetPath]);
 
   const handleFullLogin = React.useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
@@ -154,15 +154,15 @@ export function LoginScreen({
           throw new Error(signInError.message);
         }
 
-        router.replace(targetPath);
-        router.refresh();
+        replace(targetPath);
+        refresh();
       } catch (cause) {
         setError(toSafeUiError(cause, "Unable to sign in."));
       } finally {
         setIsSubmitting(false);
       }
     },
-    [email, password, router, setError, setIsSubmitting, targetPath],
+    [email, password, refresh, replace, targetPath],
   );
 
   return (

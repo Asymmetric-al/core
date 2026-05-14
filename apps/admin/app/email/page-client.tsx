@@ -78,6 +78,7 @@ import React, {
   useState,
   useCallback,
   useEffect,
+  useEffectEvent,
   useMemo,
   useReducer,
 } from "react";
@@ -228,7 +229,7 @@ function EmailStudioHeader({
       <div className="flex items-center gap-2 md:gap-3 min-w-0">
         <div className="flex items-center gap-2">
           <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
-            <Mail className="h-4 w-4" />
+            <Mail className="size-4" />
           </div>
           <span className="hidden sm:inline text-xs font-semibold uppercase tracking-wider text-foreground">
             Email Studio
@@ -247,14 +248,14 @@ function EmailStudioHeader({
 
         <div className="hidden lg:flex items-center gap-1 text-xs text-muted-foreground min-w-0">
           <span className="shrink-0">Templates</span>
-          <ChevronRight className="h-3 w-3 shrink-0" />
+          <ChevronRight className="size-3 shrink-0" />
           <span className="font-medium text-foreground truncate max-w-[180px]">
             {metadata.name}
           </span>
           {hasUnsavedChanges && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className="ml-1 h-2 w-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+                <span className="ml-1 size-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
               </TooltipTrigger>
               <TooltipContent side="bottom">
                 <p>Unsaved changes</p>
@@ -271,12 +272,12 @@ function EmailStudioHeader({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 w-7 p-0"
+                className="size-7 p-0"
                 aria-label="Undo"
                 onClick={onUndo}
                 disabled={!isEditorReady}
               >
-                <Undo2 className="h-3.5 w-3.5" />
+                <Undo2 className="size-3.5" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom">
@@ -289,12 +290,12 @@ function EmailStudioHeader({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 w-7 p-0"
+                className="size-7 p-0"
                 aria-label="Redo"
                 onClick={onRedo}
                 disabled={!isEditorReady}
               >
-                <Redo2 className="h-3.5 w-3.5" />
+                <Redo2 className="size-3.5" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom">
@@ -321,7 +322,7 @@ function EmailStudioHeader({
                   value="desktop"
                   className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
                 >
-                  <Monitor className="h-3.5 w-3.5" />
+                  <Monitor className="size-3.5" />
                   <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
                     Desktop
                   </span>
@@ -335,7 +336,7 @@ function EmailStudioHeader({
                   value="mobile"
                   className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
                 >
-                  <Smartphone className="h-3.5 w-3.5" />
+                  <Smartphone className="size-3.5" />
                   <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
                     Mobile
                   </span>
@@ -365,7 +366,7 @@ function EmailStudioHeader({
                   className="h-8 gap-1.5"
                   disabled={!isEditorReady}
                 >
-                  <Download className="h-3.5 w-3.5" />
+                  <Download className="size-3.5" />
                   <span className="hidden sm:inline text-xs font-medium">
                     Export
                   </span>
@@ -376,19 +377,19 @@ function EmailStudioHeader({
           </Tooltip>
           <DropdownMenuContent align="end" className="w-52">
             <DropdownMenuItem onClick={onExportHtml}>
-              <FileCode className="h-4 w-4 mr-2" />
+              <FileCode className="size-4 mr-2" />
               Export as HTML
               <DropdownMenuShortcut>⌘E</DropdownMenuShortcut>
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => toast.info("Coming soon: Export as PDF")}
             >
-              <FileText className="h-4 w-4 mr-2" />
+              <FileText className="size-4 mr-2" />
               Export as PDF
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onTestSend}>
-              <Send className="h-4 w-4 mr-2" />
+              <Send className="size-4 mr-2" />
               Send Test Email
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -402,14 +403,14 @@ function EmailStudioHeader({
         >
           {isSaving ? (
             <>
-              <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              <span className="size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
               <span className="hidden sm:inline text-xs font-medium">
-                Saving...
+                Saving…
               </span>
             </>
           ) : (
             <>
-              <Save className="h-3.5 w-3.5" />
+              <Save className="size-3.5" />
               <span className="hidden sm:inline text-xs font-medium">Save</span>
             </>
           )}
@@ -420,59 +421,59 @@ function EmailStudioHeader({
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0"
+              className="size-8 p-0"
               aria-label="More email template actions"
             >
-              <MoreHorizontal className="h-4 w-4" />
+              <MoreHorizontal className="size-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-52">
             <DropdownMenuItem onClick={onNewTemplate}>
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="size-4 mr-2" />
               New Template
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => toast.info("Coming soon: Template settings")}
             >
-              <Settings className="h-4 w-4 mr-2" />
+              <Settings className="size-4 mr-2" />
               Settings
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onLoadTemplate}>
-              <FolderOpen className="h-4 w-4 mr-2" />
+              <FolderOpen className="size-4 mr-2" />
               Load Template
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => toast.info("Coming soon: Duplicate")}
             >
-              <Copy className="h-4 w-4 mr-2" />
+              <Copy className="size-4 mr-2" />
               Duplicate
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => toast.info("Coming soon: Version history")}
             >
-              <History className="h-4 w-4 mr-2" />
+              <History className="size-4 mr-2" />
               Version History
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => toast.info("Coming soon: Schedule send")}
             >
-              <Clock className="h-4 w-4 mr-2" />
+              <Clock className="size-4 mr-2" />
               Schedule Send
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onToggleFullscreen}>
               {isFullscreen ? (
-                <Minimize2 className="h-4 w-4 mr-2" />
+                <Minimize2 className="size-4 mr-2" />
               ) : (
-                <Maximize2 className="h-4 w-4 mr-2" />
+                <Maximize2 className="size-4 mr-2" />
               )}
               {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
               <DropdownMenuShortcut>Esc</DropdownMenuShortcut>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive focus:text-destructive">
-              <Trash2 className="h-4 w-4 mr-2" />
+              <Trash2 className="size-4 mr-2" />
               Delete Template
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -501,7 +502,7 @@ function EmailSaveDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <div className="p-2 rounded-lg bg-primary/10">
-              <Save className="h-4 w-4 text-primary" />
+              <Save className="size-4 text-primary" />
             </div>
             Save Email Template
           </DialogTitle>
@@ -555,7 +556,7 @@ function EmailSaveDialog({
                   preheader: e.target.value,
                 }))
               }
-              placeholder="Preview text shown in email clients alongside the subject..."
+              placeholder="Preview text shown in email clients alongside the subject…"
               className="h-20 resize-none text-sm"
             />
             <p className="text-[11px] text-muted-foreground">
@@ -569,7 +570,7 @@ function EmailSaveDialog({
             Cancel
           </Button>
           <Button onClick={onConfirmSave} disabled={!metadata.name.trim()}>
-            <Save className="h-4 w-4 mr-2" />
+            <Save className="size-4 mr-2" />
             Save Template
           </Button>
         </DialogFooter>
@@ -601,7 +602,7 @@ function EmailExportDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <div className="p-2 rounded-lg bg-primary/10">
-              <FileCode className="h-4 w-4 text-primary" />
+              <FileCode className="size-4 text-primary" />
             </div>
             Export HTML
           </DialogTitle>
@@ -609,7 +610,7 @@ function EmailExportDialog({
             Copy or download the generated HTML code for your email template.
             {studioConfig?.export.minifyHtml && (
               <span className="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full text-[10px] font-medium">
-                <Sparkles className="h-3 w-3" />
+                <Sparkles className="size-3" />
                 Minified
               </span>
             )}
@@ -625,18 +626,18 @@ function EmailExportDialog({
                 onClick={onCopyHtml}
               >
                 {copiedHtml ? (
-                  <Check className="h-3.5 w-3.5 mr-1 text-emerald-600" />
+                  <Check className="size-3.5 mr-1 text-emerald-600" />
                 ) : (
-                  <Copy className="h-3.5 w-3.5 mr-1" />
+                  <Copy className="size-3.5 mr-1" />
                 )}
                 {copiedHtml ? "Copied!" : "Copy"}
               </Button>
             </div>
-            <pre className="bg-slate-950 text-slate-100 p-4 rounded-xl text-xs overflow-auto max-h-[320px] font-mono leading-relaxed">
+            <pre className="bg-zinc-950 text-zinc-100 p-4 rounded-xl text-xs overflow-auto max-h-[320px] font-mono leading-relaxed">
               {exportedHtml.slice(0, 3000)}
               {exportedHtml.length > 3000 && (
-                <span className="text-slate-500">
-                  {`\n\n... truncated (${(exportedHtml.length - 3000).toLocaleString()} more characters)`}
+                <span className="text-zinc-500">
+                  {`\n\n… truncated (${(exportedHtml.length - 3000).toLocaleString()} more characters)`}
                 </span>
               )}
             </pre>
@@ -644,7 +645,7 @@ function EmailExportDialog({
           <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
             <span>{exportedHtml.length.toLocaleString()} characters</span>
             <span className="flex items-center gap-1">
-              <Layers className="h-3 w-3" />
+              <Layers className="size-3" />
               Ready for email clients
             </span>
           </div>
@@ -655,14 +656,14 @@ function EmailExportDialog({
           </Button>
           <Button variant="outline" onClick={onCopyHtml}>
             {copiedHtml ? (
-              <Check className="h-4 w-4 mr-2 text-emerald-600" />
+              <Check className="size-4 mr-2 text-emerald-600" />
             ) : (
-              <Copy className="h-4 w-4 mr-2" />
+              <Copy className="size-4 mr-2" />
             )}
             {copiedHtml ? "Copied!" : "Copy HTML"}
           </Button>
           <Button onClick={onDownloadHtml}>
-            <Download className="h-4 w-4 mr-2" />
+            <Download className="size-4 mr-2" />
             Download
           </Button>
         </DialogFooter>
@@ -974,42 +975,34 @@ export default function EmailStudio() {
     }
   }, [metadata.preheader, metadata.subject, studioConfig]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
-        e.preventDefault();
-        if (isEditorReady && !isSaving) {
-          handleSaveClick();
-        }
+  const handleKeyDown = useEffectEvent((e: KeyboardEvent) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+      e.preventDefault();
+      if (isEditorReady && !isSaving) {
+        handleSaveClick();
       }
-      if ((e.metaKey || e.ctrlKey) && e.key === "z" && !e.shiftKey) {
-        e.preventDefault();
-        handleUndo();
-      }
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "z") {
-        e.preventDefault();
-        handleRedo();
-      }
-      if ((e.metaKey || e.ctrlKey) && e.key === "e") {
-        e.preventDefault();
-        handleExportHtml();
-      }
-      if (e.key === "Escape" && isFullscreen) {
-        dispatchUi({ type: "set_fullscreen", value: false });
-      }
-    };
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key === "z" && !e.shiftKey) {
+      e.preventDefault();
+      handleUndo();
+    }
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "z") {
+      e.preventDefault();
+      handleRedo();
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key === "e") {
+      e.preventDefault();
+      handleExportHtml();
+    }
+    if (e.key === "Escape" && isFullscreen) {
+      dispatchUi({ type: "set_fullscreen", value: false });
+    }
+  });
 
+  useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [
-    isEditorReady,
-    isSaving,
-    isFullscreen,
-    handleSaveClick,
-    handleUndo,
-    handleRedo,
-    handleExportHtml,
-  ]);
+  }, []);
 
   const handleEditorReady = useCallback(
     (readyBuilder: EmailBuilderKind) => {

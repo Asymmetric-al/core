@@ -22,11 +22,11 @@ const ShortcutRow = ({
     <div className="flex items-center gap-1.5">
       {keys.map((key, i) => (
         <React.Fragment key={`${description}-${key}`}>
-          <kbd className="min-w-[28px] h-7 px-2 flex items-center justify-center bg-white border-2 border-stone-100 rounded-xl text-[10px] font-black text-stone-500 shadow-sm font-sans uppercase">
-            {key === "cmd" ? <Command className="h-3 w-3" /> : key}
+          <kbd className="min-w-[28px] h-7 px-2 flex items-center justify-center bg-white border-2 border-stone-100 rounded-xl text-[10px] font-semibold text-stone-500 shadow-sm font-sans uppercase">
+            {key === "cmd" ? <Command className="size-3" /> : key}
           </kbd>
           {i < keys.length - 1 && (
-            <span className="text-[10px] text-stone-300 mx-0.5 font-bold">
+            <span className="text-[10px] text-stone-300 mx-0.5 font-semibold">
               &plus;
             </span>
           )}
@@ -49,9 +49,9 @@ export const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({
       <DialogHeader>
         <div className="flex items-center gap-4 mb-4">
           <div className="p-3 bg-stone-100 rounded-2xl text-stone-600 shadow-inner">
-            <Keyboard className="h-6 w-6" />
+            <Keyboard className="size-6" />
           </div>
-          <DialogTitle className="text-2xl font-black text-stone-900 font-serif">
+          <DialogTitle className="text-2xl font-semibold text-stone-900 font-serif">
             Keyboard Shortcuts
           </DialogTitle>
         </div>
@@ -59,7 +59,7 @@ export const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({
 
       <div className="space-y-8 pt-4">
         <div>
-          <h4 className="text-[10px] font-black text-stone-400 uppercase tracking-[0.2em] mb-4 px-1">
+          <h4 className="text-[10px] font-semibold text-stone-400 uppercase tracking-[0.2em] mb-4 px-1">
             Global Controls
           </h4>
           <div className="space-y-1">
@@ -69,7 +69,7 @@ export const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({
         </div>
 
         <div>
-          <h4 className="text-[10px] font-black text-stone-400 uppercase tracking-[0.2em] mb-4 px-1">
+          <h4 className="text-[10px] font-semibold text-stone-400 uppercase tracking-[0.2em] mb-4 px-1">
             Quick Navigation
           </h4>
           <div className="space-y-1">
@@ -80,7 +80,7 @@ export const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({
         </div>
 
         <div>
-          <h4 className="text-[10px] font-black text-stone-400 uppercase tracking-[0.2em] mb-4 px-1">
+          <h4 className="text-[10px] font-semibold text-stone-400 uppercase tracking-[0.2em] mb-4 px-1">
             Profile Actions
           </h4>
           <div className="space-y-1">
@@ -92,10 +92,10 @@ export const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({
       </div>
 
       <div className="mt-8 p-4 bg-stone-50 rounded-2xl border border-stone-100 flex items-center justify-between group">
-        <span className="text-xs text-stone-500 font-bold font-sans">
+        <span className="text-xs text-stone-500 font-semibold font-sans">
           Pro Tip
         </span>
-        <div className="flex items-center gap-2 text-[10px] font-black text-stone-400 font-sans tracking-tight">
+        <div className="flex items-center gap-2 text-[10px] font-semibold text-stone-400 font-sans tracking-tight">
           PRESS{" "}
           <kbd className="bg-white px-2 py-1 border-2 border-stone-100 rounded-lg shadow-sm text-stone-600 group-hover:border-stone-200 transition-colors">
             ESC

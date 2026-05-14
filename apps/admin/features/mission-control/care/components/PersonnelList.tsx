@@ -18,6 +18,16 @@ import React from "react";
 
 import type { CarePersonnel } from "../types";
 
+function makeDisplayDate(value?: string | number | Date): Date {
+  return value === undefined
+    ? new globalThis.Date()
+    : new globalThis.Date(value);
+}
+
+function makeDisplayTimestamp(): number {
+  return globalThis.Date.now();
+}
+
 interface PersonnelListProps {
   data: CarePersonnel[];
   isLoading?: boolean;
@@ -28,7 +38,10 @@ function getLastContactAgeDays(lastCheckIn: string): number {
   if (Number.isNaN(timestamp)) return 0;
 
   const millisecondsPerDay = 24 * 60 * 60 * 1000;
-  return Math.max(0, Math.floor((Date.now() - timestamp) / millisecondsPerDay));
+  return Math.max(
+    0,
+    Math.floor((makeDisplayTimestamp() - timestamp) / millisecondsPerDay),
+  );
 }
 
 function getPriorityLabel(
@@ -49,7 +62,7 @@ const columns: ColumnDef<CarePersonnel>[] = [
     ),
     cell: ({ row }) => (
       <div className="flex items-center gap-3 py-1">
-        <Avatar className="h-9 w-9 border border-border/50 shadow-sm ring-2 ring-background">
+        <Avatar className="size-9 border border-border/50 shadow-sm ring-2 ring-background">
           <AvatarImage src={row.original.avatarUrl} />
           <AvatarFallback className="text-[10px] font-black bg-primary text-primary-foreground">
             {row.original.initials}
@@ -76,7 +89,7 @@ const columns: ColumnDef<CarePersonnel>[] = [
     ),
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
-        <Globe className="h-3 w-3 text-muted-foreground/60" />
+        <Globe className="size-3 text-muted-foreground/60" />
         <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
           {row.original.region}
         </span>
@@ -138,8 +151,8 @@ const columns: ColumnDef<CarePersonnel>[] = [
                   : "bg-muted text-muted-foreground",
           )}
         >
-          {status === "Healthy" && <HeartPulse className="mr-1 h-3 w-3" />}
-          {status === "Crisis" && <ShieldAlert className="mr-1 h-3 w-3" />}
+          {status === "Healthy" && <HeartPulse className="mr-1 size-3" />}
+          {status === "Crisis" && <ShieldAlert className="mr-1 size-3" />}
           {status}
         </Badge>
       );
@@ -179,7 +192,7 @@ const columns: ColumnDef<CarePersonnel>[] = [
     ),
     cell: ({ row }) => (
       <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider tabular-nums">
-        {new Date(row.original.lastCheckIn).toLocaleDateString("en-US", {
+        {makeDisplayDate(row.original.lastCheckIn).toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
           year: "numeric",
@@ -198,9 +211,9 @@ const columns: ColumnDef<CarePersonnel>[] = [
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 rounded-lg hover:bg-primary hover:text-primary-foreground transition-all duration-300"
+            className="size-8 rounded-lg hover:bg-primary hover:text-primary-foreground transition-all duration-300"
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="size-4" />
           </Button>
         </Link>
       </div>

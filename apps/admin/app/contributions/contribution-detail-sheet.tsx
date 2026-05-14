@@ -29,6 +29,12 @@ import { toast } from "sonner";
 
 import type { Contribution, ContributionStatus } from "./types";
 
+function makeDisplayDate(value?: string | number | Date): Date {
+  return value === undefined
+    ? new globalThis.Date()
+    : new globalThis.Date(value);
+}
+
 /* ------------------------------------------------------------------ */
 /*  Status dot colors — accent colors for semantic meaning              */
 /* ------------------------------------------------------------------ */
@@ -55,12 +61,12 @@ function DetailField({
 }) {
   return (
     <div className="space-y-1">
-      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+      <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
         {label}
       </p>
       <p
         className={cn(
-          "text-sm font-bold text-foreground",
+          "text-sm font-semibold text-foreground",
           mono && "font-mono tabular-nums",
         )}
       >
@@ -94,7 +100,7 @@ export function ContributionDetailSheet({
   if (!contribution) return null;
 
   const { donorName, donorEmail, donorAvatar, isAnonymous } = contribution;
-  const date = new Date(contribution.date);
+  const date = makeDisplayDate(contribution.date);
   const donorDisplayName = isAnonymous ? "Anonymous" : (donorName ?? "Unknown");
   const stagedGiftId = contribution.stagedGiftId;
   const canApproveGift =
@@ -126,7 +132,7 @@ export function ContributionDetailSheet({
       <SheetContent className="w-full sm:max-w-lg p-0 gap-0 border-l border-border bg-background shadow-2xl overflow-hidden flex flex-col h-full text-left">
         {/* ---- Header ---- */}
         <div className="h-14 bg-card border-b border-border flex items-center justify-between px-4 shrink-0 z-10">
-          <SheetTitle className="m-0 flex items-center gap-2 text-sm font-bold text-foreground uppercase tracking-wider">
+          <SheetTitle className="m-0 flex items-center gap-2 text-sm font-semibold text-foreground uppercase tracking-wider">
             <DollarSign className="size-4 text-muted-foreground" aria-hidden />
             Contribution Details
           </SheetTitle>
@@ -134,7 +140,7 @@ export function ContributionDetailSheet({
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            className="size-8 text-muted-foreground hover:text-foreground"
           >
             <X className="size-4" />
           </Button>
@@ -145,17 +151,17 @@ export function ContributionDetailSheet({
           <div className="p-6 space-y-8">
             {/* ---- Donor + Status ---- */}
             <div className="flex items-start gap-4">
-              <Avatar className="h-16 w-16 border-4 border-background shadow-sm">
+              <Avatar className="size-16 border-4 border-background shadow-sm">
                 <AvatarImage
                   src={donorAvatar ?? undefined}
                   alt={donorDisplayName}
                 />
-                <AvatarFallback className="bg-muted text-muted-foreground font-bold text-xl">
+                <AvatarFallback className="bg-muted text-muted-foreground font-semibold text-xl">
                   {isAnonymous ? "?" : getInitials(donorDisplayName)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 space-y-1 pt-1">
-                <h3 className="text-2xl font-bold text-foreground tracking-tight">
+                <h3 className="text-2xl font-semibold text-foreground tracking-tight">
                   {isAnonymous ? "Anonymous Donor" : donorDisplayName}
                 </h3>
                 {!isAnonymous && donorEmail && (
@@ -166,11 +172,11 @@ export function ContributionDetailSheet({
                 <div className="flex items-center gap-2 pt-2">
                   <Badge
                     variant="outline"
-                    className="h-5 text-[10px] font-bold uppercase tracking-wider border shadow-none"
+                    className="h-5 text-[10px] font-semibold uppercase tracking-wider border shadow-none"
                   >
                     <span
                       className={cn(
-                        "h-1.5 w-1.5 shrink-0 rounded-full mr-1.5",
+                        "size-1.5 shrink-0 rounded-full mr-1.5",
                         statusDotColor[contribution.status],
                       )}
                     />
@@ -178,7 +184,7 @@ export function ContributionDetailSheet({
                   </Badge>
                   <Badge
                     variant="secondary"
-                    className="h-5 text-[10px] font-bold uppercase tracking-wider border-none bg-muted text-muted-foreground"
+                    className="h-5 text-[10px] font-semibold uppercase tracking-wider border-none bg-muted text-muted-foreground"
                   >
                     {contribution.type}
                   </Badge>
@@ -188,10 +194,10 @@ export function ContributionDetailSheet({
 
             {/* ---- Amount display ---- */}
             <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1">
+              <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest mb-1">
                 Amount
               </p>
-              <p className="text-3xl font-black font-mono tabular-nums text-foreground tracking-tight">
+              <p className="text-3xl font-semibold font-mono tabular-nums text-foreground tracking-tight">
                 {formatCurrency(contribution.amount)}
               </p>
             </div>
@@ -230,7 +236,7 @@ export function ContributionDetailSheet({
                 <span className="flex items-center gap-2">
                   <span
                     className={cn(
-                      "h-2 w-2 shrink-0 rounded-full",
+                      "size-2 shrink-0 rounded-full",
                       contribution.receiptSent
                         ? "bg-emerald-500"
                         : "bg-muted-foreground/40",
@@ -276,7 +282,7 @@ export function ContributionDetailSheet({
               <>
                 <Separator />
                 <div className="space-y-2">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                     Notes
                   </p>
                   <div className="rounded-lg border border-border bg-muted/30 p-4">
@@ -308,14 +314,14 @@ export function ContributionDetailSheet({
 
             {/* ---- Actions ---- */}
             <div className="space-y-3">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                 Actions
               </p>
               <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="gap-2 rounded-xl font-bold uppercase tracking-widest text-[10px] h-9"
+                  className="gap-2 rounded-xl font-semibold uppercase tracking-widest text-[10px] h-9"
                   onClick={handleCopyTxn}
                 >
                   <Copy className="size-3.5" />
@@ -325,7 +331,7 @@ export function ContributionDetailSheet({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="gap-2 rounded-xl font-bold uppercase tracking-widest text-[10px] h-9"
+                    className="gap-2 rounded-xl font-semibold uppercase tracking-widest text-[10px] h-9"
                   >
                     <Mail className="size-3.5" />
                     Email Donor
@@ -335,8 +341,8 @@ export function ContributionDetailSheet({
                   <Button
                     variant="outline"
                     size="sm"
+                    className="gap-2 rounded-xl font-semibold uppercase tracking-widest text-[10px] h-9"
                     disabled={!stagedGiftId || isActionPending}
-                    className="gap-2 rounded-xl font-bold uppercase tracking-widest text-[10px] h-9"
                     onClick={() =>
                       stagedGiftId && onSendReceipt?.(stagedGiftId)
                     }
@@ -377,7 +383,7 @@ export function ContributionDetailSheet({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="gap-2 rounded-xl font-bold uppercase tracking-widest text-[10px] h-9"
+                    className="gap-2 rounded-xl font-semibold uppercase tracking-widest text-[10px] h-9"
                   >
                     <RefreshCcw className="size-3.5" />
                     Retry Payment
@@ -388,26 +394,32 @@ export function ContributionDetailSheet({
 
             {/* ---- Metadata ---- */}
             <div className="pt-2 space-y-1">
-              <p className="text-[10px] text-muted-foreground font-bold">
+              <p className="text-[10px] text-muted-foreground font-semibold">
                 Created{" "}
-                {new Date(contribution.createdAt).toLocaleString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                  hour: "numeric",
-                  minute: "2-digit",
-                })}
-              </p>
-              {contribution.updatedAt !== contribution.createdAt && (
-                <p className="text-[10px] text-muted-foreground font-bold">
-                  Updated{" "}
-                  {new Date(contribution.updatedAt).toLocaleString("en-US", {
+                {makeDisplayDate(contribution.createdAt).toLocaleString(
+                  "en-US",
+                  {
                     month: "short",
                     day: "numeric",
                     year: "numeric",
                     hour: "numeric",
                     minute: "2-digit",
-                  })}
+                  },
+                )}
+              </p>
+              {contribution.updatedAt !== contribution.createdAt && (
+                <p className="text-[10px] text-muted-foreground font-semibold">
+                  Updated{" "}
+                  {makeDisplayDate(contribution.updatedAt).toLocaleString(
+                    "en-US",
+                    {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit",
+                    },
+                  )}
                 </p>
               )}
             </div>

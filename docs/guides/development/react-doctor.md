@@ -1,0 +1,56 @@
+# React Doctor
+
+## Triggers
+
+- Run React Doctor before React, Next.js, or shared UI changes are considered ready.
+- Run it after broad refactors, component cleanup, or before opening a UI-heavy PR.
+- Use the first-party helper for this monorepo instead of scanning vendored code.
+
+## Workflow
+
+1. Run `bun run react-doctor:first-party -- --full --offline --fail-on none`.
+2. Read the `apps` and `packages` sections separately; both targets run with the same root `react-doctor.config.json`.
+3. Treat the result as a configured first-party audit, not a claim that every possible React Doctor rule is enabled.
+4. Fix errors and high-confidence warnings in source code first.
+5. Keep repo-level exceptions in `react-doctor.config.json` so repeated scans are deterministic.
+6. Pair React Doctor with the normal repo gates: format, lint, typecheck, build, unit tests, and relevant browser checks.
+
+## Result Language
+
+Use precise wording in PRs and release notes:
+
+- Correct: "React Doctor passes for the configured first-party audit."
+- Correct: "Known ignores are documented in `docs/guides/development/react-doctor.md`."
+- Correct: "`failOn` is advisory unless CI runs a stricter mode."
+- Avoid: "React Doctor proves the repo is 100/100 clean" unless every enabled and disabled rule has been audited and there are no ignored findings.
+
+The default command passes `--fail-on none` and `react-doctor.config.json` also sets `"failOn": "none"`. That keeps the audit useful during cleanup without turning every advisory rule into a local blocker. CI or a focused cleanup PR may choose a stricter mode later.
+
+## Configured Ignores
+
+The ignore list is intentionally human-readable here because `react-doctor.config.json` is JSON and cannot carry comments.
+
+| Group                             | Rules or files                                                                                                                                                                                                                                                                               | Reason                                                                                                                                                                                          | Status                                                         | Owner / area      |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ----------------- |
+| Covered by another gate           | `.next/**`, `dist/**`, `coverage/**`, `node_modules/**`, `vendor/**`                                                                                                                                                                                                                         | Generated, vendored, or build output should not affect first-party source audits.                                                                                                               | Permanent                                                      | Platform tooling  |
+| Covered by another gate           | `tests/**`, `scripts/**`, `tooling/**`, `supabase/**`                                                                                                                                                                                                                                        | These areas use dedicated Vitest, script, workspace-contract, data-boundary, migration, and lint checks. React Doctor is scoped to app and package React source.                                | Permanent, revisit if React Doctor gains better non-UI support | Platform tooling  |
+| Repo policy exception             | `docs/**`, `.next-docs/**`                                                                                                                                                                                                                                                                   | Documentation and generated Next.js docs are not runtime React surfaces.                                                                                                                        | Permanent                                                      | Documentation     |
+| Tool false positive or noisy rule | `knip/duplicates`, `knip/exports`, `knip/files`, `knip/types`                                                                                                                                                                                                                                | Workspace exports, route files, generated mirrors, and app/package boundaries are noisy in React Doctor. Use dedicated dependency and workspace audits for unused-code cleanup.                 | Revisit periodically                                           | Platform tooling  |
+| Covered by another gate           | `jsx-a11y/*` ignored in config                                                                                                                                                                                                                                                               | Accessibility is checked through code review and Playwright/axe flows where the rendered UI can be evaluated with real semantics.                                                               | Revisit as pages stabilize                                     | Frontend          |
+| Repo policy exception             | `react/no-danger`                                                                                                                                                                                                                                                                            | Some surfaces render pre-sanitized or generated HTML. Keep uses reviewed locally instead of blanket-failing the configured audit.                                                               | Revisit each new use                                           | Frontend/security |
+| Temporary debt to re-enable later | React component shape rules such as `no-giant-component`, `prefer-useReducer`, `no-many-boolean-props`, `no-generic-handler-names`, `no-derived-state-effect`, `no-derived-useState`, `no-cascading-set-state`, `no-prop-callback-in-effect`                                                 | The current PR reduced high-risk patterns without rewriting large feature areas. These remain cleanup candidates where local behavior tests exist.                                              | Temporary                                                      | App owners        |
+| Tool false positive or noisy rule | Rendering and memoization rules such as `rendering-hoist-jsx`, `rendering-conditional-render`, `rerender-memo-before-early-return`, `rerender-state-only-in-handlers`, `rendering-hydration-mismatch-time`, `rendering-svg-precision`                                                        | Several findings are stylistic or need route-specific proof. Keep targeted fixes when a real render bug or measurable churn is found.                                                           | Revisit per feature                                            | Frontend          |
+| Temporary debt to re-enable later | Async/data rules such as `no-fetch-in-effect`, `async-await-in-loop`, `async-defer-await`, `async-parallel`, `server-sequential-independent-await`                                                                                                                                           | Some client-only Supabase/TanStack and mutation flows intentionally fetch from effects or preserve sequencing. Fix obvious independent work, but do not change data semantics solely for score. | Temporary                                                      | Data/app owners   |
+| Temporary debt to re-enable later | Next.js rules such as `nextjs-no-img-element`, `nextjs-no-client-side-redirect`, metadata-related findings when present                                                                                                                                                                      | Prefer fixing active route issues when scoped. Boneyard/deprecated flows can stay documented rather than forcing broad rewrites.                                                                | Temporary                                                      | App owners        |
+| Tool false positive or noisy rule | Micro-optimization rules such as `js-batch-dom-css`, `js-cache-property-access`, `js-combine-iterations`, `js-flatmap-filter`, `js-hoist-intl`, `js-min-max-loop`, `js-tosorted-immutable`, `prefer-dynamic-import`, `use-lazy-motion`                                                       | These are useful prompts but can make code harder to read or widen scope. Apply only when the local code remains clearer.                                                                       | Revisit opportunistically                                      | Frontend/platform |
+| Covered by another gate           | Design/aesthetic rules such as `design-no-redundant-size-axes`, `no-gray-on-colored-background`, `no-inline-bounce-easing`, `no-inline-exhaustive-style`, `no-pure-black-background`, `no-side-tab-border`, `no-tiny-text`, `design-no-vague-button-label`, `client-passive-event-listeners` | Visual, UX, and accessibility review should happen on real screens with Tailwind/shadcn conventions and browser checks.                                                                         | Revisit per UI pass                                            | Design/frontend   |
+| Temporary debt to re-enable later | Correctness-suspicion rules such as `no-array-index-as-key`, `no-effect-event-handler`, `no-prevent-default`, `no-react19-deprecated-apis`, `no-render-in-render`, `advanced-event-handler-refs`                                                                                             | Treat these as cleanup leads. Re-enable one family at a time after targeted fixes and regression coverage.                                                                                      | Temporary                                                      | App owners        |
+
+## Checklist
+
+- [ ] React Doctor reports the expected score for `apps` under the configured audit.
+- [ ] React Doctor reports the expected score for `packages` under the configured audit.
+- [ ] Any remaining findings are either fixed or documented as known exceptions.
+- [ ] Any new ignored rule has a repo-specific reason and is not masking a known bug.
+- [ ] `failOn` behavior is described honestly in the PR summary.
+- [ ] Relevant format/lint/typecheck/build/test commands have been run for touched surfaces.

@@ -201,7 +201,7 @@ const TileIcon = React.memo(function TileIcon({
 }: {
   iconName: string;
 }) {
-  return <DynamicIcon name={iconName} className="h-4 w-4" />;
+  return <DynamicIcon name={iconName} className="size-4" />;
 });
 
 function getPermissionColor(level: string) {
@@ -222,8 +222,8 @@ export function TeamsPageActions() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="h-11 rounded-xl bg-zinc-900 font-black uppercase tracking-widest text-[10px] text-white shadow-xl hover:bg-zinc-800">
-          <Plus className="mr-2 h-4 w-4" />
+        <Button className="h-11 rounded-xl bg-zinc-900 font-semibold uppercase tracking-widest text-[10px] text-white shadow-xl hover:bg-zinc-800">
+          <Plus className="mr-2 size-4" />
           Create Team
         </Button>
       </DialogTrigger>
@@ -260,10 +260,10 @@ function TeamPermissionsTab({ selectedTeam }: { selectedTeam: Team }) {
         <div className="flex items-center justify-between bg-blue-50 border border-blue-100 p-4 rounded-xl">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-600 rounded-lg text-white">
-              <Info className="h-4 w-4" />
+              <Info className="size-4" />
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-bold text-blue-900">
+              <span className="text-sm font-semibold text-blue-900">
                 Granular Access Control
               </span>
               <span className="text-xs text-blue-700 font-medium leading-relaxed">
@@ -274,7 +274,7 @@ function TeamPermissionsTab({ selectedTeam }: { selectedTeam: Team }) {
         </div>
 
         <div className="space-y-3">
-          <h3 className="text-sm font-black uppercase tracking-widest text-zinc-400">
+          <h3 className="text-sm font-semibold uppercase tracking-widest text-zinc-400">
             Module Access
           </h3>
           <div className="grid gap-2">
@@ -286,11 +286,11 @@ function TeamPermissionsTab({ selectedTeam }: { selectedTeam: Team }) {
                   className="flex items-center justify-between p-4 rounded-xl border border-zinc-100 hover:border-zinc-200 bg-white shadow-sm transition-all hover:shadow-md group"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-50 text-zinc-500 border border-zinc-100 group-hover:bg-zinc-900 group-hover:text-white transition-colors">
+                    <div className="flex size-10 items-center justify-center rounded-lg bg-zinc-50 text-zinc-500 border border-zinc-100 group-hover:bg-zinc-900 group-hover:text-white transition-colors">
                       <TileIcon iconName={tile.icon} />
                     </div>
                     <div className="flex flex-col">
-                      <span className="font-bold text-zinc-900">
+                      <span className="font-semibold text-zinc-900">
                         {tile.title}
                       </span>
                       <span className="text-[11px] text-zinc-500 font-medium">
@@ -300,41 +300,41 @@ function TeamPermissionsTab({ selectedTeam }: { selectedTeam: Team }) {
                   </div>
                   <div className="flex items-center gap-3">
                     <Select defaultValue={currentLevel}>
-                      <SelectTrigger className="w-[110px] h-8 text-[11px] font-bold border-zinc-200">
+                      <SelectTrigger className="w-[110px] h-8 text-[11px] font-semibold border-zinc-200">
                         <SelectValue placeholder="Access Level" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem
                           value="None"
-                          className="text-[11px] font-bold"
+                          className="text-[11px] font-semibold"
                         >
                           None
                         </SelectItem>
                         <SelectItem
                           value="View"
-                          className="text-[11px] font-bold"
+                          className="text-[11px] font-semibold"
                         >
                           View
                         </SelectItem>
                         <SelectItem
                           value="Manage"
-                          className="text-[11px] font-bold"
+                          className="text-[11px] font-semibold"
                         >
                           Manage
                         </SelectItem>
                         <SelectItem
                           value="Admin"
-                          className="text-[11px] font-bold"
+                          className="text-[11px] font-semibold"
                         >
                           Admin
                         </SelectItem>
                       </SelectContent>
                     </Select>
-                    <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-zinc-50 border border-zinc-100 text-zinc-400">
+                    <div className="flex items-center justify-center size-8 rounded-lg bg-zinc-50 border border-zinc-100 text-zinc-400">
                       {currentLevel === "Admin" ? (
-                        <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                        <ShieldCheck className="size-4 text-emerald-600" />
                       ) : (
-                        <Lock className="h-4 w-4" />
+                        <Lock className="size-4" />
                       )}
                     </div>
                   </div>
@@ -359,7 +359,7 @@ function TeamMembersTab({
     <TabsContent value="members" className="flex-1 overflow-y-auto p-6 m-0">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-black uppercase tracking-widest text-zinc-400">
+          <h3 className="text-sm font-semibold uppercase tracking-widest text-zinc-400">
             Team Members
           </h3>
           <Button
@@ -367,7 +367,7 @@ function TeamMembersTab({
             size="sm"
             className="h-8 rounded-lg border-zinc-200 text-xs font-semibold"
           >
-            <UserPlus className="h-3.5 w-3.5 mr-1" /> Add Member
+            <UserPlus className="size-3.5 mr-1" /> Add Member
           </Button>
         </div>
         <div className="grid gap-3">
@@ -379,13 +379,13 @@ function TeamMembersTab({
                 className="flex items-center justify-between p-3 rounded-xl border border-zinc-100 bg-white shadow-sm"
               >
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
-                    <AvatarFallback className="bg-zinc-100 text-zinc-600 font-bold text-xs">
+                  <Avatar className="size-9 border-2 border-white shadow-sm">
+                    <AvatarFallback className="bg-zinc-100 text-zinc-600 font-semibold text-xs">
                       {member.name.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col">
-                    <span className="font-bold text-zinc-900 text-sm">
+                    <span className="font-semibold text-zinc-900 text-sm">
                       {member.name}
                     </span>
                     <span className="text-[11px] text-zinc-500 font-medium">
@@ -396,7 +396,7 @@ function TeamMembersTab({
                 <div className="flex items-center gap-2">
                   <Badge
                     variant="secondary"
-                    className="text-[10px] font-bold px-1.5 py-0 bg-zinc-100 text-zinc-600 border-transparent shadow-none"
+                    className="text-[10px] font-semibold px-1.5 py-0 bg-zinc-100 text-zinc-600 border-transparent shadow-none"
                   >
                     {member.role}
                   </Badge>
@@ -404,9 +404,9 @@ function TeamMembersTab({
                     variant="ghost"
                     size="icon"
                     aria-label={`Open actions for ${member.name}`}
-                    className="h-7 w-7 text-zinc-500 hover:text-zinc-900"
+                    className="size-7 text-zinc-500 hover:text-zinc-900"
                   >
-                    <MoreHorizontal className="h-3.5 w-3.5" />
+                    <MoreHorizontal className="size-3.5" />
                   </Button>
                 </div>
               </div>
@@ -423,16 +423,16 @@ function TeamSettingsTab({ selectedTeam }: { selectedTeam: Team }) {
       <div className="space-y-6">
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <Label className="text-xs font-bold text-zinc-500 uppercase">
+            <Label className="text-xs font-semibold text-zinc-500 uppercase">
               Team Branding Name
             </Label>
             <Input
               defaultValue={selectedTeam.name}
-              className="h-10 font-bold border-zinc-200"
+              className="h-10 font-semibold border-zinc-200"
             />
           </div>
           <div className="grid gap-2">
-            <Label className="text-xs font-bold text-zinc-500 uppercase">
+            <Label className="text-xs font-semibold text-zinc-500 uppercase">
               Team Description
             </Label>
             <Input
@@ -444,8 +444,8 @@ function TeamSettingsTab({ selectedTeam }: { selectedTeam: Team }) {
         <Separator className="border-zinc-100" />
         <div className="bg-rose-50/50 border border-rose-100 p-4 rounded-xl space-y-3">
           <div className="flex items-center gap-2 text-rose-800">
-            <Trash2 className="h-4 w-4" />
-            <span className="text-sm font-bold">Danger Zone</span>
+            <Trash2 className="size-4" />
+            <span className="text-sm font-semibold">Danger Zone</span>
           </div>
           <p className="text-[11px] text-rose-700 font-medium">
             Deleting this team will immediately revoke access for all members
@@ -454,7 +454,7 @@ function TeamSettingsTab({ selectedTeam }: { selectedTeam: Team }) {
           <Button
             variant="destructive"
             size="sm"
-            className="h-8 text-[11px] font-bold bg-rose-600 hover:bg-rose-700 shadow-sm"
+            className="h-8 text-[11px] font-semibold bg-rose-600 hover:bg-rose-700 shadow-sm"
           >
             Permanently Delete Team
           </Button>
@@ -480,12 +480,12 @@ function TeamManagementSheet({
           <SheetHeader className="p-6 pb-2 bg-zinc-50/80 border-b border-zinc-100">
             <div className="flex items-center gap-4">
               <div
-                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl font-bold text-lg shadow-md ${selectedTeam.color}`}
+                className={`flex size-12 shrink-0 items-center justify-center rounded-2xl font-semibold text-lg shadow-md ${selectedTeam.color}`}
               >
                 {selectedTeam.avatar}
               </div>
               <div>
-                <SheetTitle className="text-2xl font-black text-zinc-900">
+                <SheetTitle className="text-2xl font-semibold text-zinc-900">
                   {selectedTeam.name}
                 </SheetTitle>
                 <SheetDescription className="text-zinc-500 font-medium">
@@ -503,22 +503,22 @@ function TeamManagementSheet({
               <TabsList className="bg-transparent h-12 gap-6 rounded-none p-0 border-b-0">
                 <TabsTrigger
                   value="permissions"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:bg-transparent data-[state=active]:shadow-none font-bold text-zinc-500 data-[state=active]:text-zinc-900 px-0 h-12"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:bg-transparent data-[state=active]:shadow-none font-semibold text-zinc-500 data-[state=active]:text-zinc-900 px-0 h-12"
                 >
-                  <ShieldCheck className="h-4 w-4 mr-2" /> Permissions
+                  <ShieldCheck className="size-4 mr-2" /> Permissions
                 </TabsTrigger>
                 <TabsTrigger
                   value="members"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:bg-transparent data-[state=active]:shadow-none font-bold text-zinc-500 data-[state=active]:text-zinc-900 px-0 h-12"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:bg-transparent data-[state=active]:shadow-none font-semibold text-zinc-500 data-[state=active]:text-zinc-900 px-0 h-12"
                 >
-                  <Users className="h-4 w-4 mr-2" /> Members (
+                  <Users className="size-4 mr-2" /> Members (
                   {selectedTeam.membersCount})
                 </TabsTrigger>
                 <TabsTrigger
                   value="settings"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:bg-transparent data-[state=active]:shadow-none font-bold text-zinc-500 data-[state=active]:text-zinc-900 px-0 h-12"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:bg-transparent data-[state=active]:shadow-none font-semibold text-zinc-500 data-[state=active]:text-zinc-900 px-0 h-12"
                 >
-                  <Settings2 className="h-4 w-4 mr-2" /> Settings
+                  <Settings2 className="size-4 mr-2" /> Settings
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -531,7 +531,7 @@ function TeamManagementSheet({
           <SheetFooter className="p-6 pt-4 bg-zinc-50/80 border-t border-zinc-100 mt-auto">
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-2 text-zinc-500">
-                <Activity className="h-3.5 w-3.5" />
+                <Activity className="size-3.5" />
                 <span className="text-xs font-medium">
                   Last edit: 2 mins ago
                 </span>
@@ -541,14 +541,14 @@ function TeamManagementSheet({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-9 px-4 text-xs font-bold border-zinc-200 shadow-none"
+                    className="h-9 px-4 text-xs font-semibold border-zinc-200 shadow-none"
                   >
                     Cancel
                   </Button>
                 </SheetClose>
                 <Button
                   size="sm"
-                  className="h-9 px-6 text-xs font-bold bg-zinc-900 text-white shadow-lg shadow-zinc-200"
+                  className="h-9 px-6 text-xs font-semibold bg-zinc-900 text-white shadow-lg shadow-zinc-200"
                   onClick={onClose}
                 >
                   Save Changes
@@ -591,12 +591,12 @@ export function TeamsTableCard({
         cell: ({ row }) => (
           <div className="flex items-center gap-3 py-1">
             <div
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-bold text-xs shadow-sm ${row.original.color}`}
+              className={`flex size-10 shrink-0 items-center justify-center rounded-xl font-semibold text-xs shadow-sm ${row.original.color}`}
             >
               {row.original.avatar}
             </div>
             <div className="flex flex-col">
-              <span className="font-bold text-zinc-900">
+              <span className="font-semibold text-zinc-900">
                 {row.original.name}
               </span>
               <span className="text-xs text-zinc-500 line-clamp-1">
@@ -642,17 +642,17 @@ export function TeamsTableCard({
         ),
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <div className="flex -space-x-2 mr-2">
+            <div className="flex -gap-x-2 mr-2">
               {["A", "B", "C"].map((initial) => (
                 <div
                   key={initial}
-                  className="size-6 rounded-full border-2 border-white bg-zinc-200 flex items-center justify-center text-[10px] font-bold text-zinc-500 shadow-sm"
+                  className="size-6 rounded-full border-2 border-white bg-zinc-200 flex items-center justify-center text-[10px] font-semibold text-zinc-500 shadow-sm"
                 >
                   {initial}
                 </div>
               ))}
             </div>
-            <span className="text-xs font-bold text-zinc-600">
+            <span className="text-xs font-semibold text-zinc-600">
               {row.original.membersCount}
             </span>
           </div>
@@ -667,10 +667,10 @@ export function TeamsTableCard({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 hover:bg-zinc-200/50 font-bold text-zinc-600 gap-1"
+                  className="h-8 hover:bg-zinc-200/50 font-semibold text-zinc-600 gap-1"
                   onClick={() => onSelectTeam(row.original)}
                 >
-                  Manage <ChevronRight className="h-4 w-4" />
+                  Manage <ChevronRight className="size-4" />
                 </Button>
               </SheetTrigger>
               <TeamManagementSheet
@@ -688,9 +688,9 @@ export function TeamsTableCard({
 
   return (
     <Card className="border-zinc-200 shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-zinc-50/50 border-b border-zinc-100 py-4">
+      <CardHeader className="flex flex-row items-center justify-between gap-y-0 bg-zinc-50/50 border-b border-zinc-100 py-4">
         <div>
-          <CardTitle className="text-lg font-bold">
+          <CardTitle className="text-lg font-semibold">
             Organization Teams
           </CardTitle>
           <CardDescription>
@@ -698,7 +698,7 @@ export function TeamsTableCard({
           </CardDescription>
         </div>
         <div className="relative w-64">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-500" />
+          <Search className="absolute left-2.5 top-2.5 size-4 text-zinc-500" />
           <Input
             placeholder="Search teams..."
             className="pl-9 bg-white border-zinc-200 h-9"
@@ -732,9 +732,9 @@ export function TeamsTableCard({
 export function SystemUsersCard({ members }: { members: Member[] }) {
   return (
     <Card className="border-zinc-200 shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-zinc-50 py-4">
+      <CardHeader className="flex flex-row items-center justify-between gap-y-0 border-b border-zinc-50 py-4">
         <div>
-          <CardTitle className="text-lg font-bold">System Users</CardTitle>
+          <CardTitle className="text-lg font-semibold">System Users</CardTitle>
           <CardDescription>
             Manage individual user access and roles across teams.
           </CardDescription>
@@ -742,9 +742,9 @@ export function SystemUsersCard({ members }: { members: Member[] }) {
         <Button
           variant="outline"
           size="sm"
-          className="bg-white border-zinc-200 h-9 font-bold text-zinc-700"
+          className="bg-white border-zinc-200 h-9 font-semibold text-zinc-700"
         >
-          <UserPlus className="mr-2 h-4 w-4" /> Invite User
+          <UserPlus className="mr-2 size-4" /> Invite User
         </Button>
       </CardHeader>
       <CardContent className="p-0">
@@ -755,42 +755,42 @@ export function SystemUsersCard({ members }: { members: Member[] }) {
               className="flex items-center justify-between p-4 transition-all hover:bg-zinc-50/50"
             >
               <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
-                  <AvatarFallback className="bg-zinc-200 text-zinc-600 font-bold">
+                <Avatar className="size-10 border-2 border-white shadow-sm">
+                  <AvatarFallback className="bg-zinc-200 text-zinc-600 font-semibold">
                     {member.name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-zinc-900">
+                    <span className="font-semibold text-zinc-900">
                       {member.name}
                     </span>
                     {member.role === "Owner" && (
-                      <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200 text-[10px] h-4 font-black">
+                      <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200 text-[10px] h-4 font-semibold">
                         OWNER
                       </Badge>
                     )}
                   </div>
                   <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 font-medium">
-                    <Mail className="h-3 w-3" />
+                    <Mail className="size-3" />
                     {member.email}
                   </div>
                 </div>
               </div>
               <div className="flex items-center gap-6">
                 <div className="hidden sm:flex flex-col items-end">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">
+                  <span className="text-[9px] font-semibold uppercase tracking-widest text-zinc-400">
                     Team
                   </span>
-                  <span className="text-xs font-bold text-zinc-700">
+                  <span className="text-xs font-semibold text-zinc-700">
                     {member.team}
                   </span>
                 </div>
                 <div className="hidden sm:flex flex-col items-end mr-4">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">
+                  <span className="text-[9px] font-semibold uppercase tracking-widest text-zinc-400">
                     Role
                   </span>
-                  <span className="text-xs font-bold text-zinc-700">
+                  <span className="text-xs font-semibold text-zinc-700">
                     {member.role}
                   </span>
                 </div>
@@ -798,8 +798,8 @@ export function SystemUsersCard({ members }: { members: Member[] }) {
                   variant={member.status === "Active" ? "secondary" : "outline"}
                   className={
                     member.status === "Active"
-                      ? "bg-blue-50 text-blue-700 hover:bg-blue-50 border-blue-100 text-[10px] font-bold"
-                      : "text-zinc-400 border-zinc-200 text-[10px] font-bold"
+                      ? "bg-blue-50 text-blue-700 hover:bg-blue-50 border-blue-100 text-[10px] font-semibold"
+                      : "text-zinc-400 border-zinc-200 text-[10px] font-semibold"
                   }
                 >
                   {member.status}
@@ -809,31 +809,31 @@ export function SystemUsersCard({ members }: { members: Member[] }) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-zinc-400 hover:text-zinc-900"
+                      className="size-8 text-zinc-400 hover:text-zinc-900"
                     >
-                      <MoreHorizontal className="h-4 w-4" />
+                      <MoreHorizontal className="size-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuLabel className="font-bold text-xs">
+                    <DropdownMenuLabel className="font-semibold text-xs">
                       User Options
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="cursor-pointer font-bold text-xs py-2">
-                      <UserCog className="mr-2 h-4 w-4 text-zinc-400" /> Change
+                    <DropdownMenuItem className="cursor-pointer font-semibold text-xs py-2">
+                      <UserCog className="mr-2 size-4 text-zinc-400" /> Change
                       Role
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="cursor-pointer font-bold text-xs py-2">
-                      <Shield className="mr-2 h-4 w-4 text-zinc-400" /> Assign
+                    <DropdownMenuItem className="cursor-pointer font-semibold text-xs py-2">
+                      <Shield className="mr-2 size-4 text-zinc-400" /> Assign
                       Team
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="cursor-pointer font-bold text-xs py-2">
-                      <Settings2 className="mr-2 h-4 w-4 text-zinc-400" /> User
+                    <DropdownMenuItem className="cursor-pointer font-semibold text-xs py-2">
+                      <Settings2 className="mr-2 size-4 text-zinc-400" /> User
                       Settings
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer font-bold text-xs py-2">
-                      <Trash2 className="mr-2 h-4 w-4" /> Remove Access
+                    <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer font-semibold text-xs py-2">
+                      <Trash2 className="mr-2 size-4" /> Remove Access
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -845,10 +845,9 @@ export function SystemUsersCard({ members }: { members: Member[] }) {
           <Button
             variant="ghost"
             size="sm"
-            className="text-zinc-500 hover:text-zinc-900 font-bold text-xs"
+            className="text-zinc-500 hover:text-zinc-900 font-semibold text-xs"
           >
-            View All 124 System Users{" "}
-            <ExternalLink className="ml-2 h-3.5 w-3.5" />
+            View All 124 System Users <ExternalLink className="ml-2 size-3.5" />
           </Button>
         </div>
       </CardContent>

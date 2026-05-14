@@ -66,16 +66,16 @@ export default function EmailStudioPage() {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.1, type: "spring", stiffness: 300 }}
-              className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center mb-6"
+              className="size-20 bg-primary/10 rounded-2xl flex items-center justify-center mb-6"
             >
-              <Mail className="h-10 w-10 text-primary" />
+              <Mail className="size-10 text-primary" />
             </motion.div>
 
             <motion.h2
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="text-2xl font-bold tracking-tight mb-2"
+              className="text-2xl font-semibold tracking-tight mb-2"
             >
               Coming Soon
             </motion.h2>
@@ -96,7 +96,7 @@ export default function EmailStudioPage() {
               transition={{ delay: 0.25 }}
             >
               <Button variant="outline" disabled className="gap-2">
-                <Sparkles className="h-4 w-4" />
+                <Sparkles className="size-4" />
                 Notify Me When Ready
               </Button>
             </motion.div>
@@ -114,8 +114,8 @@ export default function EmailStudioPage() {
               <Card className="h-full">
                 <CardHeader className="pb-2">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                      <feature.icon className="h-5 w-5 text-muted-foreground" />
+                    <div className="size-10 rounded-lg bg-muted flex items-center justify-center">
+                      <feature.icon className="size-5 text-muted-foreground" />
                     </div>
                     <CardTitle className="text-base">{feature.title}</CardTitle>
                   </div>

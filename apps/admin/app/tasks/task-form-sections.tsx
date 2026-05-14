@@ -151,7 +151,7 @@ function TaskBasicsSection({ form }: { form: TaskFormApi }) {
             inputClassName="text-sm rounded-xl"
             label="Task Title *"
             labelClassName="text-[9px] font-bold uppercase tracking-widest text-muted-foreground"
-            placeholder="Enter task title..."
+            placeholder="Enter task title…"
           />
         )}
       </form.AppField>
@@ -162,7 +162,7 @@ function TaskBasicsSection({ form }: { form: TaskFormApi }) {
             inputClassName="min-h-[80px] text-sm resize-none rounded-xl"
             label="Description"
             labelClassName="text-[9px] font-bold uppercase tracking-widest text-muted-foreground"
-            placeholder="Add more details about this task..."
+            placeholder="Add more details about this task…"
           />
         )}
       </form.AppField>
@@ -324,7 +324,7 @@ function TaskAssigneeSection({
             ),
             value: staff.id,
           }))}
-          placeholder="Select team member..."
+          placeholder="Select team member…"
           triggerClassName="text-sm rounded-xl"
         />
       )}
@@ -390,7 +390,7 @@ function TaskLinkedRecordSection({
                     variant="outline"
                   >
                     <Plus className="mr-2 size-4" />
-                    Link a donor, missionary, or contact...
+                    Link a donor, missionary, or contact…
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent
@@ -398,10 +398,7 @@ function TaskLinkedRecordSection({
                   className="w-[400px] rounded-2xl p-0"
                 >
                   <Command className="rounded-2xl">
-                    <CommandInput
-                      popoverChrome
-                      placeholder="Search records..."
-                    />
+                    <CommandInput popoverChrome placeholder="Search records…" />
                     <CommandList>
                       <CommandEmpty>No records found.</CommandEmpty>
                       <CommandGroup heading="Donors">
@@ -682,7 +679,7 @@ function TaskTagsSection({
                     variant="outline"
                   >
                     <Plus className="mr-2 size-4" />
-                    Add tags...
+                    Add tags…
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent
@@ -693,7 +690,7 @@ function TaskTagsSection({
                     <CommandInput
                       popoverChrome
                       onValueChange={onTagSearchValueChange}
-                      placeholder="Search or create tags..."
+                      placeholder="Search or create tags…"
                       value={tagSearchValue}
                     />
                     <CommandList className="max-h-[300px]">
@@ -867,11 +864,7 @@ export function TaskFormDialogFooter({
             disabled={!canSubmit || isSubmitting}
             type="submit"
           >
-            {isSubmitting
-              ? "Saving..."
-              : isEdit
-                ? "Save Changes"
-                : "Create Task"}
+            {isSubmitting ? "Saving…" : isEdit ? "Save Changes" : "Create Task"}
           </Button>
         )}
       </form.Subscribe>

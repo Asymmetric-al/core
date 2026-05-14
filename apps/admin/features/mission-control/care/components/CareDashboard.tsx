@@ -128,11 +128,11 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
                 </div>
                 <div
                   className={cn(
-                    "h-9 w-9 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105",
+                    "size-9 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105",
                     stat.bg,
                   )}
                 >
-                  <stat.icon className={cn("h-4 w-4", stat.color)} />
+                  <stat.icon className={cn("size-4", stat.color)} />
                 </div>
               </div>
             </CardContent>
@@ -159,7 +159,7 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
                 className="h-9 font-semibold text-primary"
               >
                 View History
-                <ArrowUpRight className="ml-2 h-3.5 w-3.5" />
+                <ArrowUpRight className="ml-2 size-3.5" />
               </Button>
             </div>
           </CardHeader>
@@ -174,7 +174,7 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
           <Card className="border-destructive/20 shadow-sm bg-destructive/[0.02] overflow-hidden">
             <CardHeader className="border-b border-destructive/10 bg-destructive/[0.03] px-5 py-4">
               <CardTitle className="text-base font-bold text-destructive flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-destructive animate-pulse" />
+                <div className="size-2 rounded-full bg-destructive animate-pulse" />
                 Urgent Care Alerts
               </CardTitle>
               <CardDescription className="text-xs font-semibold text-destructive/70">
@@ -188,8 +188,8 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
                     key={`${alert.personnelId}-${alert.reason}`}
                     className="p-3 rounded-xl border border-destructive/15 bg-background shadow-sm flex items-start gap-3 hover:border-destructive/35 transition-colors cursor-pointer group"
                   >
-                    <div className="h-9 w-9 rounded-xl bg-destructive/5 text-destructive flex items-center justify-center border border-destructive/10 shrink-0">
-                      <AlertTriangle className="h-4 w-4" />
+                    <div className="size-9 rounded-xl bg-destructive/5 text-destructive flex items-center justify-center border border-destructive/10 shrink-0">
+                      <AlertTriangle className="size-4" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
@@ -241,11 +241,11 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
                     >
                       <div className="flex items-center gap-4">
                         <div className="relative">
-                          <div className="h-10 w-10 rounded-full bg-primary/5 flex items-center justify-center text-[10px] font-bold text-primary border border-primary/10">
+                          <div className="size-10 rounded-full bg-primary/5 flex items-center justify-center text-[10px] font-bold text-primary border border-primary/10">
                             {p.initials}
                           </div>
-                          <div className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-background flex items-center justify-center border border-border/50 shadow-sm">
-                            <Clock className="h-2 w-2 text-muted-foreground" />
+                          <div className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-background flex items-center justify-center border border-border/50 shadow-sm">
+                            <Clock className="size-2 text-muted-foreground" />
                           </div>
                         </div>
                         <div>
@@ -260,10 +260,10 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 transition-all text-muted-foreground hover:text-primary"
+                        className="size-8 rounded-lg opacity-0 group-hover:opacity-100 transition-all text-muted-foreground hover:text-primary"
                         aria-label={`Open ${p.name} care profile`}
                       >
-                        <ArrowUpRight className="h-4 w-4" />
+                        <ArrowUpRight className="size-4" />
                       </Button>
                     </div>
                   );

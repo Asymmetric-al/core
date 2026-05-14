@@ -173,7 +173,7 @@ export function NativeCollectionListView(props: NativeCollectionListViewProps) {
                 asChild
               >
                 <Link href={createHref}>
-                  <Plus className="mr-2 h-4 w-4" />
+                  <Plus className="mr-2 size-4" />
                   {studioConfig.createLabel}
                 </Link>
               </Button>

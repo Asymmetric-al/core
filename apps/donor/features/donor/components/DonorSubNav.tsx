@@ -64,7 +64,7 @@ export function DonorSubNav() {
                     : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900",
                 )}
               >
-                <Icon className="h-3.5 w-3.5" />
+                <Icon className="size-3.5" />
                 <span className="hidden sm:inline">{item.label}</span>
               </Link>
             );
@@ -76,7 +76,7 @@ export function DonorSubNav() {
             disabled={isSigningOut}
             className="ml-auto flex items-center gap-2 rounded-lg px-4 py-3 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap text-zinc-500 transition-all hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-60"
           >
-            <LogOut className="h-3.5 w-3.5" />
+            <LogOut className="size-3.5" />
             <span className="hidden sm:inline">
               {isSigningOut ? "Signing out…" : "Sign out"}
             </span>

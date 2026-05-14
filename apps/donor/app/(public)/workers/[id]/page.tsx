@@ -95,44 +95,44 @@ function UpdateCard({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) {
   return (
     <article className="group relative pl-8 pb-12 last:pb-0">
       <div
-        className="absolute left-[11px] top-3 bottom-0 w-px bg-slate-100 group-last:hidden"
+        className="absolute left-[11px] top-3 bottom-0 w-px bg-zinc-100 group-last:hidden"
         aria-hidden="true"
       />
       <div
-        className="absolute left-0 top-3 h-6 w-6 rounded-full border-4 border-white bg-slate-100 flex items-center justify-center z-10 group-hover:bg-emerald-100 group-hover:scale-110 transition-all duration-300"
+        className="absolute left-0 top-3 size-6 rounded-full border-4 border-white bg-zinc-100 flex items-center justify-center z-10 group-hover:bg-emerald-100 group-hover:scale-110 transition-all duration-300"
         aria-hidden="true"
       >
-        <div className="h-1.5 w-1.5 rounded-full bg-slate-400 group-hover:bg-emerald-600 transition-colors" />
+        <div className="size-1.5 rounded-full bg-zinc-400 group-hover:bg-emerald-600 transition-colors" />
       </div>
 
       <div className="space-y-3">
         <div className="flex items-center gap-3">
-          <time className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+          <time className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
             {update.date}
           </time>
           <Badge
             variant="secondary"
-            className="px-2 py-0 text-[10px] bg-slate-100 text-slate-600 border-none"
+            className="px-2 py-0 text-[10px] bg-zinc-100 text-zinc-600 border-none"
           >
             {update.type}
           </Badge>
         </div>
 
-        <Card className="border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 bg-white">
+        <Card className="border-zinc-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 bg-white">
           <CardContent className="p-5">
             {update.title && (
-              <h4 className="font-bold text-slate-900 mb-2 text-lg">
+              <h4 className="font-semibold text-zinc-900 mb-2 text-lg">
                 {update.title}
               </h4>
             )}
 
             <SafeHtml
-              className="prose prose-slate prose-sm max-w-none text-slate-600 mb-4 leading-relaxed"
+              className="prose prose-slate prose-sm max-w-none text-zinc-600 mb-4 leading-relaxed"
               html={update.content}
             />
 
             {update.image && (
-              <figure className="rounded-xl overflow-hidden mb-4 border border-slate-100 relative h-[280px]">
+              <figure className="rounded-xl overflow-hidden mb-4 border border-zinc-100 relative h-[280px]">
                 <Image
                   src={update.image}
                   alt={`Visual from ${update.title}`}
@@ -144,14 +144,14 @@ function UpdateCard({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) {
               </figure>
             )}
 
-            <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+            <div className="flex items-center justify-between pt-3 border-t border-zinc-100">
               <div className="flex items-center gap-4">
-                <span className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-rose-500 cursor-pointer transition-colors">
-                  <Heart className="w-3.5 h-3.5" aria-hidden="true" />{" "}
+                <span className="flex items-center gap-1.5 text-xs font-medium text-zinc-400 hover:text-rose-500 cursor-pointer transition-colors">
+                  <Heart className="size-3.5" aria-hidden="true" />{" "}
                   {update.likes}
                 </span>
-                <span className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-slate-600 cursor-pointer transition-colors">
-                  <MessageCircle className="w-3.5 h-3.5" aria-hidden="true" />{" "}
+                <span className="flex items-center gap-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-600 cursor-pointer transition-colors">
+                  <MessageCircle className="size-3.5" aria-hidden="true" />{" "}
                   {update.comments}
                 </span>
               </div>
@@ -165,8 +165,8 @@ function UpdateCard({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) {
 
 function StoryContent({ worker }: { worker: { description: string } }) {
   return (
-    <div className="prose prose-lg prose-slate max-w-none text-slate-600 leading-relaxed font-light">
-      <blockquote className="font-medium text-xl text-slate-900 leading-relaxed mb-8 border-l-4 border-emerald-500 pl-6 italic not-prose">
+    <div className="prose prose-lg prose-slate max-w-none text-zinc-600 leading-relaxed font-light">
+      <blockquote className="font-medium text-xl text-zinc-900 leading-relaxed mb-8 border-l-4 border-emerald-500 pl-6 italic not-prose">
         &quot;{worker.description}&quot;
       </blockquote>
       <h3>The Mission</h3>
@@ -185,16 +185,16 @@ function StoryContent({ worker }: { worker: { description: string } }) {
       </p>
 
       <div className="my-8 grid grid-cols-1 sm:grid-cols-2 gap-4 not-prose">
-        <div className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm">
-          <h4 className="font-bold text-slate-900 mb-2">Direct Impact</h4>
-          <p className="text-sm text-slate-500">
+        <div className="p-6 bg-white rounded-2xl border border-zinc-100 shadow-sm">
+          <h4 className="font-semibold text-zinc-900 mb-2">Direct Impact</h4>
+          <p className="text-sm text-zinc-500">
             100% of your program donation goes directly to the field account
             after processing fees.
           </p>
         </div>
-        <div className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm">
-          <h4 className="font-bold text-slate-900 mb-2">Accountability</h4>
-          <p className="text-sm text-slate-500">
+        <div className="p-6 bg-white rounded-2xl border border-zinc-100 shadow-sm">
+          <h4 className="font-semibold text-zinc-900 mb-2">Accountability</h4>
+          <p className="text-sm text-zinc-500">
             We conduct quarterly site visits and financial audits to ensure
             integrity.
           </p>
@@ -209,13 +209,13 @@ function UpdatesContent({ workerTitle }: { workerTitle: string }) {
     <>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h3 className="text-xl font-bold text-slate-900">
+          <h3 className="text-xl font-semibold text-zinc-900">
             Latest from the Field
           </h3>
-          <p className="text-slate-500 text-sm mt-1 flex items-center gap-2">
-            <span className="relative flex h-2 w-2" aria-hidden="true">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          <p className="text-zinc-500 text-sm mt-1 flex items-center gap-2">
+            <span className="relative flex size-2" aria-hidden="true">
+              <span className="animate-ping absolute inline-flex size-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full size-2 bg-emerald-500"></span>
             </span>
             Updates posted directly by {workerTitle}
           </p>
@@ -225,7 +225,7 @@ function UpdatesContent({ workerTitle }: { workerTitle: string }) {
           size="sm"
           className="hidden sm:flex rounded-full"
         >
-          <Rss className="mr-2 h-4 w-4" aria-hidden="true" /> Subscribe
+          <Rss className="mr-2 size-4" aria-hidden="true" /> Subscribe
         </Button>
       </div>
 
@@ -238,7 +238,7 @@ function UpdatesContent({ workerTitle }: { workerTitle: string }) {
       <div className="pt-8 text-center">
         <Button
           variant="ghost"
-          className="text-slate-500 hover:text-slate-900 rounded-full"
+          className="text-zinc-500 hover:text-zinc-900 rounded-full"
         >
           Load older updates
         </Button>
@@ -249,23 +249,23 @@ function UpdatesContent({ workerTitle }: { workerTitle: string }) {
 
 function GivingWidgetSkeleton() {
   return (
-    <Card className="border-none shadow-xl shadow-slate-200/60 overflow-hidden relative bg-white ring-1 ring-slate-100 rounded-3xl animate-pulse">
+    <Card className="border-none shadow-xl shadow-zinc-200/60 overflow-hidden relative bg-white ring-1 ring-zinc-100 rounded-3xl animate-pulse">
       <div className="p-6 sm:p-8 space-y-8">
         <div className="text-center space-y-2">
-          <div className="h-8 bg-slate-200 rounded w-48 mx-auto" />
-          <div className="h-4 bg-slate-100 rounded w-64 mx-auto" />
+          <div className="h-8 bg-zinc-200 rounded w-48 mx-auto" />
+          <div className="h-4 bg-zinc-100 rounded w-64 mx-auto" />
         </div>
-        <div className="h-12 bg-slate-100 rounded-2xl" />
-        <div className="h-14 bg-slate-200 rounded-xl" />
+        <div className="h-12 bg-zinc-100 rounded-2xl" />
+        <div className="h-14 bg-zinc-200 rounded-xl" />
         <div className="grid grid-cols-4 gap-2">
           {[1, 2, 3, 4].map((slot) => (
             <div
               key={`amount-slot-${slot}`}
-              className="h-10 bg-slate-100 rounded-xl"
+              className="h-10 bg-zinc-100 rounded-xl"
             />
           ))}
         </div>
-        <div className="h-14 bg-slate-900 rounded-2xl" />
+        <div className="h-14 bg-zinc-900 rounded-2xl" />
       </div>
     </Card>
   );
@@ -303,14 +303,14 @@ export default async function WorkerProfilePage({ params }: PageProps) {
         ]}
       />
 
-      <div className="min-h-screen bg-slate-50 font-sans pt-16">
-        <div className="bg-white border-b border-slate-100">
+      <div className="min-h-screen bg-zinc-50 font-sans pt-16">
+        <div className="bg-white border-b border-zinc-100">
           <div className="container mx-auto px-4 h-12 flex items-center">
             <Link
               href="/workers"
-              className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
+              className="inline-flex items-center text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" /> Back to
+              <ArrowLeft className="size-4 mr-2" aria-hidden="true" /> Back to
               Partners
             </Link>
           </div>
@@ -344,9 +344,9 @@ export default async function WorkerProfilePage({ params }: PageProps) {
                 <div className="flex gap-4 justify-center">
                   <Button
                     variant="ghost"
-                    className="text-slate-500 hover:text-slate-900 hover:bg-white rounded-full"
+                    className="text-zinc-500 hover:text-zinc-900 hover:bg-white rounded-full"
                   >
-                    <Share2 className="mr-2 h-4 w-4" aria-hidden="true" /> Share
+                    <Share2 className="mr-2 size-4" aria-hidden="true" /> Share
                     Profile
                   </Button>
                 </div>

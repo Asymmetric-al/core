@@ -29,6 +29,11 @@ export default defineConfig({
       "packages/auth/**/*.test.ts",
     ],
     environment: "node",
+    env: {
+      SKIP_ENV_VALIDATION: "1",
+      NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "test-anon-key",
+    },
     clearMocks: true,
     /** TipTap React ships ESM subpaths; inline so `vi.mock` replaces the same module graph under coverage. */
     server: {

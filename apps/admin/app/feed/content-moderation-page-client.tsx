@@ -44,13 +44,13 @@ export default function ContentModerationPage() {
             <Button
               variant="outline"
               size="icon"
-              className="h-9 w-9 rounded-xl"
+              className="size-9 rounded-xl"
               onClick={handleRefresh}
               disabled={isRefreshing}
               aria-label="Refresh moderation queue"
             >
               <RefreshCw
-                className={cn("h-4 w-4", isRefreshing && "animate-spin")}
+                className={cn("size-4", isRefreshing && "animate-spin")}
               />
             </Button>
           </motion.div>
@@ -60,14 +60,14 @@ export default function ContentModerationPage() {
               size="sm"
               className="h-9 gap-2 rounded-xl border-border text-sm font-medium"
             >
-              <Download className="h-4 w-4" />
+              <Download className="size-4" />
               <span className="hidden sm:inline">Export</span>
             </Button>
           </motion.div>
           <Link href="/mc/feed/org-updates">
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button className="h-9 gap-2 rounded-xl font-semibold">
-                <PenSquare className="h-4 w-4" />
+                <PenSquare className="size-4" />
                 <span className="hidden sm:inline">Org Updates</span>
               </Button>
             </motion.div>

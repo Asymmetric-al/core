@@ -163,7 +163,7 @@ const StatCard = ({
   <div className="rounded-2xl border border-zinc-100 bg-white px-5 py-4 shadow-sm">
     <div className="flex items-center justify-between">
       <div className="text-left">
-        <h3 className="text-3xl font-black tabular-nums tracking-tight text-zinc-900 mt-0.5">
+        <h3 className="text-3xl font-semibold tabular-nums tracking-tight text-zinc-900 mt-0.5">
           {value}
         </h3>
         <p className="mt-1 text-sm font-semibold text-zinc-900">{title}</p>
@@ -173,10 +173,10 @@ const StatCard = ({
       </div>
       <div
         className={cn(
-          "h-10 w-10 rounded-lg flex items-center justify-center bg-muted",
+          "size-10 rounded-lg flex items-center justify-center bg-muted",
         )}
       >
-        <Icon className={cn("h-5 w-5", color)} />
+        <Icon className={cn("size-5", color)} />
       </div>
     </div>
   </div>
@@ -293,13 +293,13 @@ export function MobilizePipelineTable({
             onClick={() => onSelectCandidate(row.original)}
             className="flex w-full items-center gap-2.5 py-1 text-left"
           >
-            <Avatar className="h-8 w-8 bg-zinc-100 border border-zinc-200 rounded-lg">
-              <AvatarFallback className="text-[10px] font-bold text-zinc-600">
+            <Avatar className="size-8 bg-zinc-100 border border-zinc-200 rounded-lg">
+              <AvatarFallback className="text-[10px] font-semibold text-zinc-600">
                 {row.original.name.substring(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div className="text-left">
-              <div className="text-sm font-bold text-zinc-900 leading-tight">
+              <div className="text-sm font-semibold text-zinc-900 leading-tight">
                 {row.original.name}
               </div>
               <div className="mt-0.5 text-xs text-zinc-600 leading-tight">
@@ -320,7 +320,7 @@ export function MobilizePipelineTable({
               {row.original.role}
             </span>
             <span className="text-xs text-zinc-600 flex items-center gap-1 mt-0.5">
-              <MapPin className="h-3 w-3" /> {row.original.location}
+              <MapPin className="size-3" /> {row.original.location}
             </span>
           </div>
         ),
@@ -367,10 +367,10 @@ export function MobilizePipelineTable({
               aria-label={`Open ${row.original.name}`}
               variant="ghost"
               size="icon"
-              className="h-8 w-8 rounded-lg"
+              className="size-8 rounded-lg"
               onClick={() => onSelectCandidate(row.original)}
             >
-              <MoreHorizontal className="h-4 w-4 text-zinc-400" />
+              <MoreHorizontal className="size-4 text-zinc-400" />
             </Button>
           </div>
         ),
@@ -427,7 +427,7 @@ export function MobilizePipelineTable({
 
         <div className="flex items-center gap-2 w-full lg:w-auto">
           <div className="relative flex-1 lg:w-60">
-            <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-zinc-400" />
+            <Search className="absolute left-2.5 top-2 size-3.5 text-zinc-400" />
             <Input
               placeholder="Search candidates..."
               className="pl-8 bg-white h-8 text-xs rounded-lg"
@@ -439,9 +439,9 @@ export function MobilizePipelineTable({
             aria-label="Open candidate filters"
             variant="outline"
             size="icon"
-            className="bg-white border-zinc-200 shadow-none h-8 w-8 rounded-lg"
+            className="bg-white border-zinc-200 shadow-none size-8 rounded-lg"
           >
-            <Filter className="h-3.5 w-3.5 text-zinc-500" />
+            <Filter className="size-3.5 text-zinc-500" />
           </Button>
         </div>
       </div>
@@ -480,8 +480,8 @@ export function MobilizeAddCandidateSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-xl p-0 gap-0 bg-zinc-50 flex flex-col h-full">
         <SheetHeader className="px-6 py-5 bg-white border-b border-zinc-100">
-          <SheetTitle className="text-xl font-bold flex items-center gap-2">
-            <Plus className="h-5 w-5 text-zinc-600" /> New Candidate Profile
+          <SheetTitle className="text-xl font-semibold flex items-center gap-2">
+            <Plus className="size-5 text-zinc-600" /> New Candidate Profile
           </SheetTitle>
           <SheetDescription>Start a new mobilization file.</SheetDescription>
         </SheetHeader>
@@ -508,12 +508,12 @@ export function MobilizeAddCandidateSheet({
         <SheetFooter className="p-6 border-t bg-white mt-auto">
           <Button
             variant="outline"
-            className="rounded-xl border-zinc-200 font-bold uppercase tracking-widest text-[10px]"
+            className="rounded-xl border-zinc-200 font-semibold uppercase tracking-widest text-[10px]"
             onClick={() => onOpenChange(false)}
           >
             Cancel
           </Button>
-          <Button className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-black uppercase tracking-widest text-[10px]">
+          <Button className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-semibold uppercase tracking-widest text-[10px]">
             Create Profile
           </Button>
         </SheetFooter>
@@ -546,17 +546,17 @@ export function MobilizeCandidateDetailSheet({
             <div className="bg-white border-b border-zinc-200 p-8 pb-0">
               <div className="flex justify-between items-start mb-6">
                 <div className="flex gap-5">
-                  <Avatar className="h-20 w-20 border-4 border-zinc-50 shadow-sm">
-                    <AvatarFallback className="text-xl bg-zinc-100 text-zinc-600 font-bold">
+                  <Avatar className="size-20 border-4 border-zinc-50 shadow-sm">
+                    <AvatarFallback className="text-xl bg-zinc-100 text-zinc-600 font-semibold">
                       {candidate.name.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="text-left">
-                    <h2 className="text-2xl font-bold text-zinc-900">
+                    <h2 className="text-2xl font-semibold text-zinc-900">
                       {candidate.name}
                     </h2>
                     <div className="flex items-center gap-2 text-zinc-500 mt-1">
-                      <MapPin className="h-4 w-4" /> {candidate.location}
+                      <MapPin className="size-4" /> {candidate.location}
                       <span className="text-zinc-300">•</span>
                       <span>{candidate.role}</span>
                     </div>
@@ -586,13 +586,13 @@ export function MobilizeCandidateDetailSheet({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-9 rounded-xl border-zinc-200 font-bold uppercase tracking-widest text-[10px]"
+                    className="h-9 rounded-xl border-zinc-200 font-semibold uppercase tracking-widest text-[10px]"
                   >
                     Edit
                   </Button>
                   <Button
                     size="sm"
-                    className="h-9 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-black uppercase tracking-widest text-[10px]"
+                    className="h-9 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-semibold uppercase tracking-widest text-[10px]"
                   >
                     Contact
                   </Button>
@@ -627,30 +627,30 @@ export function MobilizeCandidateDetailSheet({
               <div className="space-y-6">
                 <Card className="text-left shadow-sm">
                   <CardHeader className="pb-3 border-b border-zinc-100">
-                    <CardTitle className="text-sm font-bold uppercase tracking-wider text-zinc-500">
+                    <CardTitle className="text-sm font-semibold uppercase tracking-wider text-zinc-500">
                       Contact Information
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-4 grid grid-cols-2 gap-6">
                     <div>
-                      <div className="flex items-center gap-2 text-zinc-500 text-xs uppercase font-bold mb-1">
-                        <Mail className="h-3 w-3" /> Email
+                      <div className="flex items-center gap-2 text-zinc-500 text-xs uppercase font-semibold mb-1">
+                        <Mail className="size-3" /> Email
                       </div>
                       <div className="text-sm font-medium text-zinc-900">
                         {candidate.email}
                       </div>
                     </div>
                     <div>
-                      <div className="flex items-center gap-2 text-zinc-500 text-xs uppercase font-bold mb-1">
-                        <Phone className="h-3 w-3" /> Phone
+                      <div className="flex items-center gap-2 text-zinc-500 text-xs uppercase font-semibold mb-1">
+                        <Phone className="size-3" /> Phone
                       </div>
                       <div className="text-sm font-medium text-zinc-900">
                         {candidate.phone}
                       </div>
                     </div>
                     <div>
-                      <div className="flex items-center gap-2 text-zinc-500 text-xs uppercase font-bold mb-1">
-                        <Calendar className="h-3 w-3" /> Applied Date
+                      <div className="flex items-center gap-2 text-zinc-500 text-xs uppercase font-semibold mb-1">
+                        <Calendar className="size-3" /> Applied Date
                       </div>
                       <div className="text-sm font-medium text-zinc-900">
                         {candidate.appliedDate}
@@ -661,13 +661,13 @@ export function MobilizeCandidateDetailSheet({
 
                 <Card className="text-left shadow-sm">
                   <CardHeader className="pb-3 border-b border-zinc-100">
-                    <CardTitle className="text-sm font-bold uppercase tracking-wider text-zinc-500">
+                    <CardTitle className="text-sm font-semibold uppercase tracking-wider text-zinc-500">
                       Readiness Score
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-6">
                     <div className="flex items-end justify-between mb-2">
-                      <span className="text-3xl font-bold text-zinc-900">
+                      <span className="text-3xl font-semibold text-zinc-900">
                         {candidate.readiness}%
                       </span>
                       <span className="text-sm text-zinc-500 font-medium mb-1">
@@ -683,11 +683,11 @@ export function MobilizeCandidateDetailSheet({
                 </Card>
 
                 <div className="space-y-3 text-left">
-                  <h3 className="text-sm font-bold text-zinc-900">
+                  <h3 className="text-sm font-semibold text-zinc-900">
                     Recent Activity
                   </h3>
                   <div className="bg-white border border-zinc-200 rounded-lg p-4 flex gap-4 items-start shadow-sm">
-                    <div className="mt-1 h-2 w-2 rounded-full bg-blue-500 shrink-0" />
+                    <div className="mt-1 size-2 rounded-full bg-blue-500 shrink-0" />
                     <div>
                       <p className="text-sm text-zinc-900 font-medium">
                         Background Check Cleared
@@ -698,7 +698,7 @@ export function MobilizeCandidateDetailSheet({
                     </div>
                   </div>
                   <div className="bg-white border border-zinc-200 rounded-lg p-4 flex gap-4 items-start shadow-sm">
-                    <div className="mt-1 h-2 w-2 rounded-full bg-zinc-300 shrink-0" />
+                    <div className="mt-1 size-2 rounded-full bg-zinc-300 shrink-0" />
                     <div>
                       <p className="text-sm text-zinc-900 font-medium">
                         Application Submitted
@@ -715,19 +715,19 @@ export function MobilizeCandidateDetailSheet({
             <SheetFooter className="p-4 border-t bg-white flex justify-between items-center sm:justify-between">
               <Button
                 variant="outline"
-                className="rounded-xl font-bold uppercase tracking-widest text-[10px] text-red-600 hover:text-red-700 border-red-100 hover:bg-red-50"
+                className="rounded-xl font-semibold uppercase tracking-widest text-[10px] text-red-600 hover:text-red-700 border-red-100 hover:bg-red-50"
               >
                 Reject
               </Button>
               <div className="flex gap-3">
                 <Button
                   variant="ghost"
-                  className="rounded-xl font-bold uppercase tracking-widest text-[10px]"
+                  className="rounded-xl font-semibold uppercase tracking-widest text-[10px]"
                   onClick={() => onOpenChange(false)}
                 >
                   Close
                 </Button>
-                <Button className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-black uppercase tracking-widest text-[10px]">
+                <Button className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-semibold uppercase tracking-widest text-[10px]">
                   Advance Stage
                 </Button>
               </div>

@@ -1,12 +1,13 @@
 import { spawnSync } from "node:child_process";
 
-const baseArgs = ["-y", "react-doctor@latest"];
+const bun = process.platform === "win32" ? "bun.exe" : "bun";
+const baseArgs = ["x", "--bun", "react-doctor@latest"];
 const extraArgs = process.argv.slice(2);
 const targets = ["apps", "packages"];
 
 for (const target of targets) {
   const result = spawnSync(
-    "npx",
+    bun,
     [...baseArgs, target, "--verbose", ...extraArgs],
     {
       cwd: process.cwd(),

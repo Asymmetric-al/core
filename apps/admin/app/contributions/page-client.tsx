@@ -125,7 +125,7 @@ export default function ContributionsPage() {
             <div className="size-16 bg-rose-50 rounded-2xl flex items-center justify-center mb-4 border border-rose-100">
               <AlertCircle className="size-8 text-rose-500" />
             </div>
-            <h3 className="text-lg font-black text-zinc-900 uppercase tracking-tight">
+            <h3 className="text-lg font-semibold text-zinc-900 uppercase tracking-tight">
               Load failed
             </h3>
             <p className="text-sm text-zinc-500 mt-2 max-w-sm font-medium">
@@ -135,7 +135,7 @@ export default function ContributionsPage() {
               type="button"
               onClick={() => void contributionsQuery.refetch()}
               variant="outline"
-              className="mt-6 h-10 px-6 rounded-xl font-bold uppercase tracking-widest text-[10px]"
+              className="mt-6 h-10 px-6 rounded-xl font-semibold uppercase tracking-widest text-[10px]"
             >
               <RefreshCw className="mr-2 size-4" />
               Retry

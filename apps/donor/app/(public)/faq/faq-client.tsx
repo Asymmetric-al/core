@@ -132,12 +132,12 @@ const CategoryButton = ({
     className={cn(
       "flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold press-feedback border",
       active
-        ? "bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-slate-900/10"
-        : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50",
+        ? "bg-zinc-900 text-white border-zinc-900 shadow-md ring-2 ring-zinc-900/10"
+        : "bg-white text-zinc-600 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50",
     )}
   >
     <Icon
-      className={cn("w-4 h-4", active ? "text-emerald-400" : "text-slate-400")}
+      className={cn("size-4", active ? "text-emerald-400" : "text-zinc-400")}
     />
     {label}
   </button>
@@ -159,7 +159,7 @@ const AccordionItem = ({
         "border rounded-2xl overflow-hidden transition-all duration-300",
         isOpen
           ? "border-blue-200 bg-blue-50/30 shadow-sm"
-          : "border-slate-200 bg-white hover:border-slate-300",
+          : "border-zinc-200 bg-white hover:border-zinc-300",
       )}
     >
       <button
@@ -169,24 +169,24 @@ const AccordionItem = ({
         <div className="flex gap-4">
           <div
             className={cn(
-              "mt-1 w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors",
+              "mt-1 size-6 rounded-full flex items-center justify-center shrink-0 transition-colors",
               isOpen
                 ? "bg-blue-600 text-white"
-                : "bg-slate-100 text-slate-400 group-hover:bg-slate-200",
+                : "bg-zinc-100 text-zinc-400 group-hover:bg-zinc-200",
             )}
           >
             {isOpen ? (
-              <Minus className="w-3.5 h-3.5" />
+              <Minus className="size-3.5" />
             ) : (
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="size-3.5" />
             )}
           </div>
           <span
             className={cn(
-              "text-lg font-bold transition-colors",
+              "text-lg font-semibold transition-colors",
               isOpen
                 ? "text-blue-900"
-                : "text-slate-900 group-hover:text-slate-700",
+                : "text-zinc-900 group-hover:text-zinc-700",
             )}
           >
             {item.question}
@@ -201,14 +201,14 @@ const AccordionItem = ({
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
           >
-            <div className="px-6 pb-6 pl-[3.5rem] pr-8 text-slate-600 leading-relaxed font-light">
+            <div className="px-6 pb-6 pl-[3.5rem] pr-8 text-zinc-600 leading-relaxed font-light">
               {typeof item.answer === "string" ? (
                 <p>
                   {item.answer.split("**").map((part, i) =>
                     i % 2 === 1 ? (
                       <strong
                         key={`${item.question}-highlight-${part}`}
-                        className="font-semibold text-slate-800"
+                        className="font-semibold text-zinc-800"
                       >
                         {part}
                       </strong>
@@ -247,11 +247,11 @@ export function FAQPageClient() {
   }, [searchQuery, activeCategory]);
 
   return (
-    <div className="bg-slate-50 min-h-screen pt-20 pb-32">
-      <section className="bg-white border-b border-slate-200 pb-16 pt-12 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-[0.03]">
-          <div className="absolute -top-20 -right-20 w-96 h-96 bg-blue-600 rounded-full blur-3xl" />
-          <div className="absolute top-40 -left-20 w-72 h-72 bg-emerald-500 rounded-full blur-3xl" />
+    <div className="bg-zinc-50 min-h-screen pt-20 pb-32">
+      <section className="bg-white border-b border-zinc-200 pb-16 pt-12 relative overflow-hidden">
+        <div className="absolute top-0 left-0 size-full overflow-hidden pointer-events-none opacity-[0.03]">
+          <div className="absolute -top-20 -right-20 size-96 bg-blue-600 rounded-full blur-3xl" />
+          <div className="absolute top-40 -left-20 size-72 bg-emerald-500 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-6 relative z-10 text-center max-w-3xl">
@@ -260,23 +260,23 @@ export function FAQPageClient() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="inline-flex items-center justify-center p-2 bg-slate-50 border border-slate-200 rounded-2xl mb-6 shadow-sm">
+            <div className="inline-flex items-center justify-center p-2 bg-zinc-50 border border-zinc-200 rounded-2xl mb-6 shadow-sm">
               <div className="bg-white p-2 rounded-xl text-blue-600">
-                <HelpCircle className="h-6 w-6" />
+                <HelpCircle className="size-6" />
               </div>
             </div>
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tighter text-slate-900 mb-6">
+            <h1 className="text-4xl md:text-6xl font-semibold tracking-tighter text-zinc-900 mb-6">
               How can we help?
             </h1>
-            <p className="text-xl text-slate-500 font-light mb-10 text-balance">
+            <p className="text-xl text-zinc-500 font-light mb-10 text-balance">
               Transparency and trust are our currency. Everything you need to
               know about our mission, financials, and operations.
             </p>
 
             <div className="relative max-w-lg mx-auto group">
               <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative bg-white rounded-full shadow-xl shadow-slate-200/50 flex items-center p-2 border border-slate-200 group-focus-within:border-blue-400 group-focus-within:ring-4 group-focus-within:ring-blue-100 transition-all duration-300">
-                <Search className="ml-4 h-5 w-5 text-slate-400" />
+              <div className="relative bg-white rounded-full shadow-xl shadow-zinc-200/50 flex items-center p-2 border border-zinc-200 group-focus-within:border-blue-400 group-focus-within:ring-4 group-focus-within:ring-blue-100 transition-all duration-300">
+                <Search className="ml-4 size-5 text-zinc-400" />
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -286,10 +286,10 @@ export function FAQPageClient() {
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery("")}
-                    className="p-2 text-slate-400 hover:text-slate-600"
+                    className="p-2 text-zinc-400 hover:text-zinc-600"
                   >
                     <span className="sr-only">Clear</span>
-                    <div className="h-5 w-5 bg-slate-100 rounded-full flex items-center justify-center">
+                    <div className="size-5 bg-zinc-100 rounded-full flex items-center justify-center">
                       ×
                     </div>
                   </button>
@@ -351,13 +351,13 @@ export function FAQPageClient() {
                 animate={{ opacity: 1 }}
                 className="text-center py-20"
               >
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-slate-100">
-                  <Search className="h-8 w-8 text-slate-300" />
+                <div className="size-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-zinc-100">
+                  <Search className="size-8 text-zinc-300" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900">
+                <h3 className="text-lg font-semibold text-zinc-900">
                   No results found
                 </h3>
-                <p className="text-slate-500">
+                <p className="text-zinc-500">
                   Try adjusting your search terms or browse by category.
                 </p>
                 <Button
@@ -377,7 +377,7 @@ export function FAQPageClient() {
       </section>
 
       <section className="container mx-auto px-6 mt-24 max-w-5xl">
-        <div className="bg-slate-900 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl shadow-slate-900/20">
+        <div className="bg-zinc-900 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl shadow-zinc-900/20">
           <div
             className="absolute inset-0 opacity-10"
             style={{
@@ -386,13 +386,13 @@ export function FAQPageClient() {
               backgroundSize: "32px 32px",
             }}
           />
-          <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-600 rounded-full blur-[100px] opacity-50" />
+          <div className="absolute -top-24 -left-24 size-64 bg-blue-600 rounded-full blur-[100px] opacity-50" />
 
           <div className="relative z-10 text-center md:text-left">
-            <h2 className="text-3xl font-bold mb-3 tracking-tight">
+            <h2 className="text-3xl font-semibold mb-3 tracking-tight">
               Still have questions?
             </h2>
-            <p className="text-slate-300 text-lg max-w-md font-light leading-relaxed">
+            <p className="text-zinc-300 text-lg max-w-md font-light leading-relaxed">
               Can&apos;t find the answer you&apos;re looking for? Our Donor
               Relations team is here to help personally.
             </p>
@@ -400,18 +400,18 @@ export function FAQPageClient() {
 
           <div className="flex flex-col sm:flex-row gap-4 relative z-10 w-full md:w-auto">
             <Button
-              className="h-14 px-8 bg-white text-slate-950 hover:bg-slate-100 font-bold text-base rounded-full shadow-lg hover-scale-subtle"
+              className="h-14 px-8 bg-white text-zinc-950 hover:bg-zinc-100 font-semibold text-base rounded-full shadow-lg hover-scale-subtle"
               asChild
             >
               <Link href="/contact">
-                <Mail className="mr-2 h-5 w-5" /> Email Support
+                <Mail className="mr-2 size-5" /> Email Support
               </Link>
             </Button>
             <Button
               variant="outline"
               className="h-14 px-8 border-white/20 text-white hover:bg-white/10 hover:text-white font-semibold text-base rounded-full backdrop-blur-sm hover-scale-subtle"
             >
-              <MessageCircle className="mr-2 h-5 w-5" /> Chat with Us
+              <MessageCircle className="mr-2 size-5" /> Chat with Us
             </Button>
           </div>
         </div>

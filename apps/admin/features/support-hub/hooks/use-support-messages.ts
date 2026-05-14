@@ -36,7 +36,7 @@ export function useSupportMessages(
     const filtered = options.excludePrivate
       ? rows.filter((row) => !row.isPrivate)
       : rows;
-    return [...filtered].sort((left, right) => {
+    return Array.from(filtered).sort((left, right) => {
       if (left.postedAt === right.postedAt) {
         return left.id.localeCompare(right.id);
       }

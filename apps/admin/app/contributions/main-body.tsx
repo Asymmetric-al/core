@@ -27,6 +27,12 @@ import {
 
 import type { Contribution, ContributionStatus } from "./types";
 
+function makeDisplayDate(value?: string | number | Date): Date {
+  return value === undefined
+    ? new globalThis.Date()
+    : new globalThis.Date(value);
+}
+
 const smoothTransition = {
   duration: 0.25,
   ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
@@ -65,10 +71,10 @@ function StatCard({
       className="flex items-center gap-4 px-6 py-5 rounded-2xl border border-zinc-100 bg-white shadow-sm cursor-default min-w-[140px]"
     >
       <div className="flex flex-col">
-        <span className="text-3xl font-black tabular-nums tracking-tight text-zinc-900">
+        <span className="text-3xl font-semibold tabular-nums tracking-tight text-zinc-900">
           {value}
         </span>
-        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mt-1">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400 mt-1">
           {label}
         </span>
       </div>
@@ -218,7 +224,7 @@ export function ContributionsMainBody({
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10 border border-border">
+                      <Avatar className="size-10 border border-border">
                         {!contribution.isAnonymous && avatarSrc ? (
                           <AvatarImage src={avatarSrc} alt={donorLabel} />
                         ) : null}
@@ -229,7 +235,7 @@ export function ContributionsMainBody({
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="text-sm font-bold text-foreground">
+                        <div className="text-sm font-semibold text-foreground">
                           {donorLabel}
                         </div>
                         <div className="text-xs text-muted-foreground font-medium">
@@ -240,25 +246,28 @@ export function ContributionsMainBody({
                     <div className="flex items-center gap-1.5">
                       <span
                         className={cn(
-                          "h-2 w-2 shrink-0 rounded-full",
+                          "size-2 shrink-0 rounded-full",
                           statusDotColor[contribution.status] ??
                             "bg-muted-foreground",
                         )}
                       />
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-foreground">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground">
                         {statusShortLabel[contribution.status]}
                       </span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-xs text-muted-foreground">
-                      {new Date(contribution.date).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
+                      {makeDisplayDate(contribution.date).toLocaleDateString(
+                        "en-US",
+                        {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        },
+                      )}
                     </span>
-                    <span className="font-mono font-black tabular-nums tracking-tight">
+                    <span className="font-mono font-semibold tabular-nums tracking-tight">
                       {formatCurrency(contribution.amount)}
                     </span>
                   </div>
@@ -271,14 +280,14 @@ export function ContributionsMainBody({
               <div className="size-20 bg-white rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-zinc-100">
                 <DollarSign className="size-10 text-zinc-200" />
               </div>
-              <h3 className="text-2xl font-black text-zinc-900 tracking-tight">
+              <h3 className="text-2xl font-semibold text-zinc-900 tracking-tight">
                 No contributions found
               </h3>
               <p className="text-sm text-zinc-500 mt-2 font-medium">
                 Get started by recording your first contribution or importing
                 from another source.
               </p>
-              <Button className="mt-8 h-12 px-8 rounded-xl bg-zinc-900 text-white font-black uppercase tracking-widest text-[10px]">
+              <Button className="mt-8 h-12 px-8 rounded-xl bg-zinc-900 text-white font-semibold uppercase tracking-widest text-[10px]">
                 <Plus className="mr-2 size-4" />
                 Add Contribution
               </Button>
@@ -299,13 +308,13 @@ export function ContributionsPageActions() {
     <div className="flex items-center gap-3">
       <Button
         variant="outline"
-        className="h-11 px-4 rounded-xl border-zinc-200 hover:bg-zinc-50 transition-all font-bold uppercase tracking-widest text-[10px] gap-2"
+        className="h-11 px-4 rounded-xl border-zinc-200 hover:bg-zinc-50 transition-all font-semibold uppercase tracking-widest text-[10px] gap-2"
         onClick={handleExport}
       >
         <Download className="size-4" />
         Export
       </Button>
-      <Button className="h-11 px-6 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-zinc-200 gap-2">
+      <Button className="h-11 px-6 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-semibold uppercase tracking-widest text-[10px] shadow-lg shadow-zinc-200 gap-2">
         <Plus className="size-4" />
         Add Contribution
       </Button>

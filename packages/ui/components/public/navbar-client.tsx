@@ -72,7 +72,7 @@ export function NavbarClient({
     <header>
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-4 focus:left-4 focus:bg-white focus:text-slate-900 focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-4 focus:left-4 focus:bg-white focus:text-zinc-900 focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-zinc-900"
       >
         Skip to main content
       </a>
@@ -80,7 +80,7 @@ export function NavbarClient({
         className={cn(
           "fixed top-0 z-50 w-full transition-[background-color,backdrop-filter,padding,border-color] duration-[var(--duration-standard)] ease-[var(--ease-out-soft)]",
           showScrolledStyles
-            ? "bg-white/95 backdrop-blur-md border-b border-slate-200 py-2 sm:py-3"
+            ? "bg-white/95 backdrop-blur-md border-b border-zinc-200 py-2 sm:py-3"
             : "bg-transparent py-4 sm:py-6",
         )}
         aria-label="Main navigation"
@@ -93,10 +93,10 @@ export function NavbarClient({
             <div
               className={cn(
                 // Logo: gate hover-scale for hover devices only.
-                "h-8 w-8 rounded-lg flex items-center justify-center font-bold text-sm shadow-sm transition-[transform,background-color,color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-105",
+                "size-8 rounded-lg flex items-center justify-center font-bold text-sm shadow-sm transition-[transform,background-color,color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-105",
                 showScrolledStyles
-                  ? "bg-slate-900 text-white"
-                  : "bg-white text-slate-900",
+                  ? "bg-zinc-900 text-white"
+                  : "bg-white text-zinc-900",
               )}
             >
               {shortName}
@@ -105,7 +105,7 @@ export function NavbarClient({
               className={cn(
                 "font-bold text-lg tracking-tight transition-colors",
                 showScrolledStyles || isMobileMenuOpen
-                  ? "text-slate-900"
+                  ? "text-zinc-900"
                   : "text-white",
               )}
             >
@@ -124,7 +124,7 @@ export function NavbarClient({
                 className={cn(
                   "text-sm font-semibold tracking-tight hover:opacity-70 transition-opacity touch-target flex items-center",
                   showScrolledStyles
-                    ? "text-slate-600 hover:text-slate-900"
+                    ? "text-zinc-600 hover:text-zinc-900"
                     : "text-white/90",
                 )}
               >
@@ -137,8 +137,8 @@ export function NavbarClient({
               className={cn(
                 "rounded-full px-5 lg:px-6 font-bold uppercase tracking-widest text-[10px] h-10 shadow-lg",
                 showScrolledStyles
-                  ? "bg-slate-900 text-white hover:bg-slate-800"
-                  : "bg-white text-slate-900 hover:bg-slate-100",
+                  ? "bg-zinc-900 text-white hover:bg-zinc-800"
+                  : "bg-white text-zinc-900 hover:bg-zinc-100",
               )}
             >
               <Link href={ctaHref}>{ctaLabel}</Link>
@@ -150,7 +150,7 @@ export function NavbarClient({
             className={cn(
               "md:hidden p-2 touch-target flex items-center justify-center relative z-50 -mr-2",
               showScrolledStyles || isMobileMenuOpen
-                ? "text-slate-900"
+                ? "text-zinc-900"
                 : "text-white",
             )}
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -159,9 +159,9 @@ export function NavbarClient({
             aria-controls="mobile-menu"
           >
             {isMobileMenuOpen ? (
-              <X className="h-6 w-6" />
+              <X className="size-6" />
             ) : (
-              <Menu className="h-6 w-6" />
+              <Menu className="size-6" />
             )}
           </button>
         </div>
@@ -184,7 +184,7 @@ export function NavbarClient({
                   href={link.href}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
-                    "text-xl font-bold text-slate-900 py-4 border-b border-slate-100 touch-target flex items-center",
+                    "text-xl font-bold text-zinc-900 py-4 border-b border-zinc-100 touch-target flex items-center",
                     "transition-[opacity,transform] duration-[var(--duration-standard)] ease-[var(--ease-out-soft)]",
                     isMobileMenuOpen
                       ? "opacity-100 translate-x-0"
@@ -204,7 +204,7 @@ export function NavbarClient({
               <Button
                 asChild
                 variant="ghost"
-                className="w-full h-14 rounded-xl bg-slate-900 text-white font-bold uppercase tracking-widest text-xs shadow-lg hover:bg-slate-800"
+                className="w-full h-14 rounded-xl bg-zinc-900 text-white font-bold uppercase tracking-widest text-xs shadow-lg hover:bg-zinc-800"
               >
                 <Link href={ctaHref} onClick={() => setIsMobileMenuOpen(false)}>
                   {ctaLabel}

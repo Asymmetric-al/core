@@ -55,10 +55,10 @@ export function ImpactTile({
           </div>
         </div>
         <div>
-          <h4 className="text-[9px] sm:text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-0.5 sm:mb-1">
+          <h4 className="text-[9px] sm:text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-0.5 sm:mb-1">
             {title}
           </h4>
-          <p className="text-2xl sm:text-3xl font-bold tracking-tighter text-zinc-900">
+          <p className="text-2xl sm:text-3xl font-semibold tracking-tighter text-zinc-900">
             {displayValue || "---"}
           </p>
         </div>

@@ -41,18 +41,18 @@ export function DetailsDrawer({
         <div className="flex items-center gap-1">
           {fullPageHref && (
             <Link href={fullPageHref}>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <ExternalLink className="h-4 w-4" />
+              <Button variant="ghost" size="icon" className="size-8">
+                <ExternalLink className="size-4" />
               </Button>
             </Link>
           )}
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="size-8"
             onClick={onClose}
           >
-            <X className="h-4 w-4" />
+            <X className="size-4" />
           </Button>
         </div>
       </div>

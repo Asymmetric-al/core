@@ -75,10 +75,10 @@ export function LiveTicker() {
         {tickerActivities.map((activity) => (
           <div
             key={activity.key}
-            className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-zinc-900"
+            className="flex items-center gap-3 text-xs font-semibold uppercase tracking-widest text-zinc-900"
           >
             <span
-              className="h-1.5 w-1.5 rounded-full bg-zinc-900 shadow-[0_0_8px_rgba(0,0,0,0.2)]"
+              className="size-1.5 rounded-full bg-zinc-900 shadow-[0_0_8px_rgba(0,0,0,0.2)]"
               aria-hidden="true"
             />
             <span>{activity.text}</span>
@@ -114,50 +114,50 @@ export function HomeMission() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-32 items-center">
           <div className="space-y-12">
             <header className="space-y-6">
-              <span className="text-zinc-900 font-black tracking-[0.3em] uppercase text-xs">
+              <span className="text-zinc-900 font-semibold tracking-[0.3em] uppercase text-xs">
                 Our Protocol
               </span>
               <h2
                 id="mission-heading"
-                className="text-5xl sm:text-6xl md:text-8xl font-bold tracking-tighter text-slate-950 leading-[0.85] font-syne"
+                className="text-5xl sm:text-6xl md:text-8xl font-semibold tracking-tighter text-zinc-950 leading-[0.85] font-syne"
               >
                 Precision <br />
-                <span className="text-slate-700">Philanthropy.</span>
+                <span className="text-zinc-700">Philanthropy.</span>
               </h2>
             </header>
 
-            <div className="space-y-8 text-xl sm:text-2xl text-slate-600 leading-relaxed font-light tracking-tight">
+            <div className="space-y-8 text-xl sm:text-2xl text-zinc-600 leading-relaxed font-light tracking-tight">
               <p>
                 In a world of increasing volatility, traditional charity models
                 are too slow.{" "}
-                <strong className="text-slate-900 font-bold">
+                <strong className="text-zinc-900 font-semibold">
                   {siteConfig.name}
                 </strong>{" "}
                 operates on a zero-friction, direct-support model.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                <article className="space-y-3 p-5 rounded-2xl bg-slate-50 border border-slate-100">
+                <article className="space-y-3 p-5 rounded-2xl bg-zinc-50 border border-zinc-100">
                   <ShieldCheck
-                    className="h-6 w-6 text-zinc-900"
+                    className="size-6 text-zinc-900"
                     aria-hidden="true"
                   />
-                  <h3 className="font-bold text-slate-900 font-syne">
+                  <h3 className="font-semibold text-zinc-900 font-syne">
                     100% Direct
                   </h3>
-                  <p className="text-sm leading-relaxed text-slate-500">
+                  <p className="text-sm leading-relaxed text-zinc-500">
                     Every dollar of your program donation reaches the field
                     account of your chosen partner.
                   </p>
                 </article>
-                <article className="space-y-3 p-5 rounded-2xl bg-slate-50 border border-slate-100">
+                <article className="space-y-3 p-5 rounded-2xl bg-zinc-50 border border-zinc-100">
                   <Activity
-                    className="h-6 w-6 text-zinc-600"
+                    className="size-6 text-zinc-600"
                     aria-hidden="true"
                   />
-                  <h3 className="font-bold text-slate-900 font-syne">
+                  <h3 className="font-semibold text-zinc-900 font-syne">
                     Real-Time Data
                   </h3>
-                  <p className="text-sm leading-relaxed text-slate-500">
+                  <p className="text-sm leading-relaxed text-zinc-500">
                     Monitor impact with live updates, GPS-tagged reports, and
                     transparent financial auditing.
                   </p>
@@ -168,21 +168,21 @@ export function HomeMission() {
             <div className="pt-10">
               <Link
                 href="/about"
-                className="group inline-flex items-center text-xs font-black text-slate-950 uppercase tracking-[0.3em]"
+                className="group inline-flex items-center text-xs font-semibold text-zinc-950 uppercase tracking-[0.3em]"
               >
-                <span className="border-b-2 border-slate-950 pb-2 group-hover:border-zinc-900 group-hover:text-zinc-900 transition-colors duration-150 ease-out">
+                <span className="border-b-2 border-zinc-950 pb-2 group-hover:border-zinc-900 group-hover:text-zinc-900 transition-colors duration-150 ease-out">
                   Audit Our Process
                 </span>
                 <ArrowRight
-                  className="ml-5 h-5 w-5 text-slate-950 group-hover:translate-x-2 transition-transform duration-200 ease-out group-hover:text-zinc-900"
+                  className="ml-5 size-5 text-zinc-950 group-hover:translate-x-2 transition-transform duration-200 ease-out group-hover:text-zinc-900"
                   aria-hidden="true"
                 />
               </Link>
             </div>
           </div>
 
-          <figure className="relative lg:ml-auto group w-full h-full">
-            <div className="relative z-10 h-[420px] sm:h-[520px] lg:h-[640px] w-full rounded-3xl overflow-hidden bg-slate-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)]">
+          <figure className="relative lg:ml-auto group size-full">
+            <div className="relative z-10 h-[420px] sm:h-[520px] lg:h-[640px] w-full rounded-3xl overflow-hidden bg-zinc-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)]">
               <Image
                 src={MISSION_IMAGE}
                 alt="Field workers providing humanitarian aid in communities"
@@ -192,38 +192,38 @@ export function HomeMission() {
                 loading="eager"
                 quality={75}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+              <div className="absolute inset-0 to-transparent" />
 
               <figcaption className="absolute bottom-0 left-0 p-8 text-white">
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/50 mb-2">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-white/50 mb-2">
                   Live Deployment
                 </p>
-                <p className="text-3xl font-bold font-syne tracking-tight">
+                <p className="text-3xl font-semibold font-syne tracking-tight">
                   Bekaa Valley, <br />
                   Lebanon
                 </p>
               </figcaption>
             </div>
 
-            <div className="absolute z-20 -top-6 -right-6 bg-white p-6 rounded-2xl shadow-xl border border-slate-100 max-w-[200px] hidden xl:block">
+            <div className="absolute z-20 -top-6 -right-6 bg-white p-6 rounded-2xl shadow-xl border border-zinc-100 max-w-[200px] hidden xl:block">
               <Sparkles
-                className="h-5 w-5 text-zinc-400 mb-3"
+                className="size-5 text-zinc-400 mb-3"
                 aria-hidden="true"
               />
-              <blockquote className="text-xs font-bold text-slate-900 leading-tight">
+              <blockquote className="text-xs font-semibold text-zinc-900 leading-tight">
                 &quot;Our fastest deployment yet. Resources reached the field in{" "}
                 <span className="text-zinc-900">under 4 hours</span>.&quot;
               </blockquote>
               <footer className="mt-4 flex items-center gap-3">
                 <div
-                  className="h-7 w-7 rounded-full bg-slate-200"
+                  className="size-7 rounded-full bg-zinc-200"
                   aria-hidden="true"
                 />
                 <div>
-                  <cite className="text-[9px] font-black uppercase tracking-wider text-slate-900 not-italic">
+                  <cite className="text-[9px] font-semibold uppercase tracking-wider text-zinc-900 not-italic">
                     Dr. Elias H.
                   </cite>
-                  <p className="text-[9px] text-slate-600">Field Lead</p>
+                  <p className="text-[9px] text-zinc-600">Field Lead</p>
                 </div>
               </footer>
             </div>
@@ -238,7 +238,7 @@ export function HomeStats() {
   return (
     <section
       aria-labelledby="stats-heading"
-      className="py-24 md:py-40 bg-slate-950 text-white relative overflow-hidden"
+      className="py-24 md:py-40 bg-zinc-950 text-white relative overflow-hidden"
     >
       <div
         className="absolute inset-0 opacity-[0.1] mix-blend-screen"
@@ -253,18 +253,18 @@ export function HomeStats() {
       <div className="container mx-auto px-6 relative z-10">
         <header className="flex flex-col md:flex-row md:items-end justify-between mb-16 md:mb-32 gap-12">
           <div className="space-y-6">
-            <span className="text-zinc-400 font-black tracking-[0.4em] uppercase text-xs">
+            <span className="text-zinc-400 font-semibold tracking-[0.4em] uppercase text-xs">
               The Ledger
             </span>
             <h2
               id="stats-heading"
-              className="text-5xl sm:text-6xl md:text-8xl font-bold tracking-tighter font-syne"
+              className="text-5xl sm:text-6xl md:text-8xl font-semibold tracking-tighter font-syne"
             >
               Global <br />
               Impact Score.
             </h2>
           </div>
-          <p className="text-slate-400 max-w-md text-xl sm:text-2xl leading-relaxed font-light tracking-tight">
+          <p className="text-zinc-400 max-w-md text-xl sm:text-2xl leading-relaxed font-light tracking-tight">
             Radical transparency is our core infrastructure. We track every cent
             from pledge to payload.
           </p>
@@ -274,30 +274,32 @@ export function HomeStats() {
           <article className="md:col-span-8 group bg-white/5 backdrop-blur-3xl border border-white/10 p-8 md:p-10 rounded-2xl hover:bg-white/10 transition-colors duration-300 ease-out flex flex-col justify-between min-h-[300px] md:min-h-[400px]">
             <div>
               <Activity
-                className="h-8 w-8 text-zinc-400 mb-8"
+                className="size-8 text-zinc-400 mb-8"
                 aria-hidden="true"
               />
-              <h3 className="text-xl font-bold font-syne mb-2">
+              <h3 className="text-xl font-semibold font-syne mb-2">
                 Operational Liquidity
               </h3>
-              <p className="text-slate-400 max-w-md text-base leading-relaxed">
+              <p className="text-zinc-400 max-w-md text-base leading-relaxed">
                 Active capital deployed across infrastructure, logistics, and
                 emergency response in this fiscal quarter.
               </p>
             </div>
-            <p className="text-6xl md:text-7xl lg:text-9xl font-bold tracking-tighter leading-none text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-white/5 font-syne">
+            <p className="text-6xl md:text-7xl lg:text-9xl font-semibold tracking-tighter leading-none font-syne">
               $26M+
             </p>
           </article>
 
-          <article className="md:col-span-4 group bg-white p-8 md:p-10 rounded-2xl transition-transform duration-300 ease-out [@media(hover:hover)_and_(pointer:fine)]:hover:scale-[1.02] flex flex-col justify-between text-slate-950">
-            <Users className="h-8 w-8 mb-8" aria-hidden="true" />
+          <article className="md:col-span-4 group bg-white p-8 md:p-10 rounded-2xl transition-transform duration-300 ease-out [@media(hover:hover)_and_(pointer:fine)]:hover:scale-[1.02] flex flex-col justify-between text-zinc-950">
+            <Users className="size-8 mb-8" aria-hidden="true" />
             <div>
-              <p className="text-6xl md:text-7xl font-bold tracking-tighter font-syne mb-4">
+              <p className="text-6xl md:text-7xl font-semibold tracking-tighter font-syne mb-4">
                 42k
               </p>
-              <h3 className="text-xl font-black font-syne mb-2">Sustainers</h3>
-              <p className="text-slate-600 text-sm font-medium leading-relaxed">
+              <h3 className="text-xl font-semibold font-syne mb-2">
+                Sustainers
+              </h3>
+              <p className="text-zinc-600 text-sm font-medium leading-relaxed">
                 A global coalition of monthly partners providing the bedrock for
                 long-term field stability.
               </p>
@@ -305,18 +307,20 @@ export function HomeStats() {
           </article>
 
           <article className="md:col-span-4 group bg-white/5 backdrop-blur-3xl border border-white/10 p-8 md:p-10 rounded-2xl hover:bg-white/10 transition-colors duration-300 ease-out">
-            <Globe className="h-8 w-8 text-zinc-400 mb-8" aria-hidden="true" />
-            <p className="text-5xl md:text-6xl font-bold font-syne mb-4">64</p>
-            <h3 className="text-lg font-bold font-syne mb-2 text-white">
+            <Globe className="size-8 text-zinc-400 mb-8" aria-hidden="true" />
+            <p className="text-5xl md:text-6xl font-semibold font-syne mb-4">
+              64
+            </p>
+            <h3 className="text-lg font-semibold font-syne mb-2 text-white">
               Jurisdictions
             </h3>
-            <p className="text-slate-500 text-sm leading-relaxed">
+            <p className="text-zinc-500 text-sm leading-relaxed">
               Active operations in diverse geopolitical environments, from
               stable hubs to the deep frontlines.
             </p>
           </article>
 
-          <article className="md:col-span-8 group bg-slate-900 border border-white/5 p-8 md:p-10 rounded-2xl hover:bg-slate-800 transition-colors duration-300 ease-out flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12">
+          <article className="md:col-span-8 group bg-zinc-900 border border-white/5 p-8 md:p-10 rounded-2xl hover:bg-zinc-800 transition-colors duration-300 ease-out flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12">
             <div className="space-y-4">
               <div
                 className="flex gap-1.5"
@@ -326,21 +330,21 @@ export function HomeStats() {
                 {ratingStars.map((star) => (
                   <Heart
                     key={star}
-                    className="h-4 w-4 text-zinc-400 fill-current"
+                    className="size-4 text-zinc-400 fill-current"
                     aria-hidden="true"
                   />
                 ))}
               </div>
-              <h3 className="text-2xl font-bold font-syne">
+              <h3 className="text-2xl font-semibold font-syne">
                 100% Program Ratio
               </h3>
-              <p className="text-slate-400 text-sm max-w-sm">
+              <p className="text-zinc-400 text-sm max-w-sm">
                 Every program dollar goes to the field. Our operational overhead
                 is covered by a dedicated group of private investors.
               </p>
             </div>
             <div
-              className="h-24 w-24 rounded-full border-4 border-white/20 flex items-center justify-center text-2xl font-bold font-syne text-white shrink-0"
+              className="size-24 rounded-full border-4 border-white/20 flex items-center justify-center text-2xl font-semibold font-syne text-white shrink-0"
               aria-label="A+ Rating"
             >
               A+
@@ -356,28 +360,28 @@ export function HomeFeatured() {
   return (
     <section
       aria-labelledby="featured-heading"
-      className="py-24 md:py-40 bg-slate-50 overflow-hidden"
+      className="py-24 md:py-40 bg-zinc-50 overflow-hidden"
     >
       <div className="container mx-auto px-6">
         <header className="flex flex-col md:flex-row justify-between items-end mb-16 md:mb-24 gap-8 md:gap-12">
           <div className="space-y-6">
-            <span className="text-sm font-black text-slate-700 uppercase tracking-[0.4em]">
+            <span className="text-sm font-semibold text-zinc-700 uppercase tracking-[0.4em]">
               Active Deployments
             </span>
             <h2
               id="featured-heading"
-              className="text-5xl sm:text-6xl md:text-8xl font-bold tracking-tighter text-slate-950 font-syne"
+              className="text-5xl sm:text-6xl md:text-8xl font-semibold tracking-tighter text-zinc-950 font-syne"
             >
               Current Priorities.
             </h2>
           </div>
           <Link
             href="/workers"
-            className="group hidden md:flex items-center text-xs font-black text-slate-950 hover:text-zinc-600 transition-colors duration-150 ease-out uppercase tracking-[0.3em]"
+            className="group hidden md:flex items-center text-xs font-semibold text-zinc-950 hover:text-zinc-600 transition-colors duration-150 ease-out uppercase tracking-[0.3em]"
           >
             View Full Directory{" "}
             <ArrowRight
-              className="ml-5 h-5 w-5 transition-transform duration-200 ease-out group-hover:translate-x-1"
+              className="ml-5 size-5 transition-transform duration-200 ease-out group-hover:translate-x-1"
               aria-hidden="true"
             />
           </Link>
@@ -394,7 +398,7 @@ export function HomeFeatured() {
               role="listitem"
             >
               <Link href="/workers" className="block">
-                <div className="relative aspect-[3/4] rounded-3xl overflow-hidden mb-6 bg-slate-200 shadow-xl group-hover:shadow-zinc-500/10 transition-[box-shadow] duration-300 ease-out">
+                <div className="relative aspect-[3/4] rounded-3xl overflow-hidden mb-6 bg-zinc-200 shadow-xl group-hover:shadow-zinc-500/10 transition-[box-shadow] duration-300 ease-out">
                   <Image
                     src={item.img}
                     alt={`${item.title} project - ${item.loc}`}
@@ -404,17 +408,16 @@ export function HomeFeatured() {
                     loading="lazy"
                     quality={75}
                   />
-                  <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/0 transition-colors duration-300 ease-out" />
-                  <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-xl text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-full shadow-lg border border-white/50">
+                  <div className="absolute inset-0 bg-zinc-950/20 group-hover:bg-zinc-950/0 transition-colors duration-300 ease-out" />
+                  <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-xl text-[9px] font-semibold uppercase tracking-widest px-4 py-2 rounded-full shadow-lg border border-white/50">
                     {item.raised} Deployed
                   </div>
 
                   <div className="absolute bottom-8 left-8 right-8">
-                    <div className="flex items-center gap-2 text-[9px] font-black text-white/70 uppercase tracking-[0.2em] mb-3">
-                      <Globe className="h-3 w-3" aria-hidden="true" />{" "}
-                      {item.loc}
+                    <div className="flex items-center gap-2 text-[9px] font-semibold text-white/70 uppercase tracking-[0.2em] mb-3">
+                      <Globe className="size-3" aria-hidden="true" /> {item.loc}
                     </div>
-                    <h3 className="text-2xl sm:text-3xl font-bold text-white font-syne leading-none mb-4 group-hover:translate-x-1 transition-transform duration-200 ease-out">
+                    <h3 className="text-2xl sm:text-3xl font-semibold text-white font-syne leading-none mb-4 group-hover:translate-x-1 transition-transform duration-200 ease-out">
                       {item.title}
                     </h3>
                     <div
@@ -431,7 +434,7 @@ export function HomeFeatured() {
                         width and scale it horizontally based on raised %.
                       */}
                       <div
-                        className="h-full w-full origin-left bg-white transition-transform duration-700 ease-[var(--ease-out-soft)]"
+                        className="size-full origin-left bg-white transition-transform duration-700 ease-[var(--ease-out-soft)]"
                         style={{
                           transform: `scaleX(${parseInt(item.raised) / 100})`,
                         }}
@@ -439,9 +442,9 @@ export function HomeFeatured() {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center text-[10px] font-black text-zinc-900 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-[opacity,transform] duration-200 ease-out uppercase tracking-[0.2em]">
+                <div className="flex items-center text-[10px] font-semibold text-zinc-900 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-[opacity,transform] duration-200 ease-out uppercase tracking-[0.2em]">
                   Join the Mission{" "}
-                  <ArrowRight className="h-3 w-3 ml-2" aria-hidden="true" />
+                  <ArrowRight className="size-3 ml-2" aria-hidden="true" />
                 </div>
               </Link>
             </article>
@@ -451,7 +454,7 @@ export function HomeFeatured() {
         <div className="mt-16 md:mt-20 text-center md:hidden">
           <Button
             variant="outline"
-            className="w-full h-16 md:h-20 rounded-full border-slate-200 text-slate-950 font-black font-syne text-base md:text-lg tracking-widest uppercase"
+            className="w-full h-16 md:h-20 rounded-full border-zinc-200 text-zinc-950 font-semibold font-syne text-base md:text-lg tracking-widest uppercase"
             asChild
           >
             <Link href="/workers">View Directory</Link>
@@ -466,25 +469,25 @@ export function HomeCTA() {
   return (
     <section
       aria-labelledby="cta-heading"
-      className="py-24 md:py-32 bg-slate-950 relative overflow-hidden text-center flex flex-col items-center justify-center"
+      className="py-24 md:py-32 bg-zinc-950 relative overflow-hidden text-center flex flex-col items-center justify-center"
     >
       <div
         className="absolute inset-0 opacity-40 pointer-events-none"
         aria-hidden="true"
       >
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1200px] bg-zinc-600/30 rounded-full blur-[200px]" />
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-slate-600/20 rounded-full blur-[180px]" />
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-zinc-600/20 rounded-full blur-[180px]" />
       </div>
 
       <div className="container mx-auto px-6 relative z-10 max-w-5xl">
         <h2
           id="cta-heading"
-          className="text-5xl sm:text-6xl md:text-8xl font-bold text-white tracking-tighter mb-8 leading-[0.8] font-syne"
+          className="text-5xl sm:text-6xl md:text-8xl font-semibold text-white tracking-tighter mb-8 leading-[0.8] font-syne"
         >
           Be the <br />
           <span className="text-white">response.</span>
         </h2>
-        <p className="text-lg sm:text-xl md:text-2xl text-slate-300 max-w-2xl mx-auto mb-12 md:mb-16 text-balance font-light leading-relaxed tracking-tight">
+        <p className="text-lg sm:text-xl md:text-2xl text-zinc-300 max-w-2xl mx-auto mb-12 md:mb-16 text-balance font-light leading-relaxed tracking-tight">
           The world doesn&apos;t need more awareness. It needs action. Join a
           movement of people who refuse to look away.
         </p>
@@ -492,7 +495,7 @@ export function HomeCTA() {
           <Button
             size="lg"
             variant="ghost"
-            className="h-14 rounded-full border border-white/15 bg-white px-10 text-lg font-bold font-syne text-slate-950 shadow-lg hover:bg-zinc-100 hover:text-slate-950 hover-scale-subtle"
+            className="h-14 rounded-full border border-white/15 bg-white px-10 text-lg font-semibold font-syne text-zinc-950 shadow-lg hover:bg-zinc-100 hover:text-zinc-950 hover-scale-subtle"
             asChild
           >
             <Link href="/workers">Initiate Support</Link>
@@ -500,7 +503,7 @@ export function HomeCTA() {
           <Button
             size="lg"
             variant="outline"
-            className="h-14 px-10 rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 text-lg font-bold font-syne backdrop-blur-xl"
+            className="h-14 px-10 rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 text-lg font-semibold font-syne backdrop-blur-xl"
             asChild
           >
             <Link href="/about">Our Framework</Link>

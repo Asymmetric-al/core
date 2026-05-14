@@ -169,7 +169,7 @@ export default function MissionControlReports() {
                     variant="ghost"
                     size="icon"
                     onClick={() => setReport(null)}
-                    className="h-9 w-9 text-zinc-500 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+                    className="size-9 text-zinc-500 hover:text-white hover:bg-white/10 rounded-full transition-colors"
                   >
                     <X className="size-5" />
                   </Button>
@@ -229,7 +229,7 @@ export default function MissionControlReports() {
                     {kpi.context}
                   </span>
                 </div>
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-zinc-600">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-zinc-600">
                   <kpi.icon className="size-4" />
                 </div>
               </div>

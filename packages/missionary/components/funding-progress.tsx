@@ -24,8 +24,8 @@ export function FundingProgress({
     <Card className="border-zinc-100 bg-white shadow-sm rounded-xl">
       <CardHeader className="flex flex-row items-center justify-between p-5 pb-2">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-900 text-white">
-            <Target className="h-4.5 w-4.5" />
+          <div className="flex size-9 items-center justify-center rounded-lg bg-zinc-900 text-white">
+            <Target className="size-4.5" />
           </div>
           <div>
             <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 leading-none mb-1">
@@ -70,7 +70,7 @@ export function FundingProgress({
                 Trend
               </p>
               <p className="mt-0.5 flex items-center gap-1 text-sm font-bold text-zinc-900 tracking-tight">
-                <TrendingUp className="h-3 w-3" /> +12%
+                <TrendingUp className="size-3" /> +12%
               </p>
             </div>
             <div className="rounded-lg bg-zinc-50/50 p-2.5 border border-zinc-100">

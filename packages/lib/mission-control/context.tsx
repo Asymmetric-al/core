@@ -7,7 +7,7 @@ import {
 import { runtimeEnvFlags } from "@asym/env";
 import {
   createContext,
-  useContext,
+  use,
   useCallback,
   useReducer,
   useEffect,
@@ -172,7 +172,7 @@ export function MCProvider({
 }
 
 export function useMC() {
-  const ctx = useContext(MCContext);
+  const ctx = use(MCContext);
   if (!ctx) throw new Error("useMC must be used within MCProvider");
   return ctx;
 }

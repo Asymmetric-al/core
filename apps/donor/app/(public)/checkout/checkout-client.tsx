@@ -33,6 +33,12 @@ import React, { useMemo, useState } from "react";
 
 import { getFieldWorkerById } from "@/lib/mock-data";
 
+function makeDisplayDate(value?: string | number | Date): Date {
+  return value === undefined
+    ? new globalThis.Date()
+    : new globalThis.Date(value);
+}
+
 type Step = "config" | "details" | "payment" | "success";
 type Frequency = "one-time" | "monthly";
 type PaymentMethod = "card" | "ach" | "wallet";
@@ -87,8 +93,8 @@ const normalizeCheckoutSearchParams = (
 
 const formatDatePretty = (dateStr: string) => {
   if (!dateStr) return "Today";
-  const date = new Date(dateStr);
-  const today = new Date();
+  const date = makeDisplayDate(dateStr);
+  const today = makeDisplayDate();
 
   date.setHours(0, 0, 0, 0);
   today.setHours(0, 0, 0, 0);
@@ -124,27 +130,28 @@ function SummaryCard({
   endDate,
 }: SummaryCardProps) {
   const isFutureStart =
-    new Date(startDate).setHours(0, 0, 0, 0) > new Date().setHours(0, 0, 0, 0);
+    makeDisplayDate(startDate).setHours(0, 0, 0, 0) >
+    makeDisplayDate().setHours(0, 0, 0, 0);
   const dueToday = isFutureStart ? 0 : total;
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] overflow-hidden sticky top-32">
-      <div className="p-8 bg-slate-50/50 border-b border-slate-100">
-        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-6">
+    <div className="bg-white rounded-3xl border border-zinc-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] overflow-hidden sticky top-32">
+      <div className="p-8 bg-zinc-50/50 border-b border-zinc-100">
+        <h3 className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.3em] mb-6">
           Contribution Summary
         </h3>
         <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16 border-4 border-white shadow-xl">
+          <Avatar className="size-16 border-4 border-white shadow-xl">
             <AvatarImage src={worker?.image} className="object-cover" />
-            <AvatarFallback className="bg-zinc-100 text-zinc-900 font-bold">
+            <AvatarFallback className="bg-zinc-100 text-zinc-900 font-semibold">
               GH
             </AvatarFallback>
           </Avatar>
           <div className="space-y-1">
-            <p className="text-[10px] font-black text-zinc-900 uppercase tracking-widest">
+            <p className="text-[10px] font-semibold text-zinc-900 uppercase tracking-widest">
               Supporting
             </p>
-            <p className="text-xl font-bold text-slate-950 font-syne leading-tight">
+            <p className="text-xl font-semibold text-zinc-950 font-syne leading-tight">
               {worker?.title || "General Mission Fund"}
             </p>
           </div>
@@ -154,33 +161,33 @@ function SummaryCard({
       <div className="p-8 space-y-6">
         <div className="space-y-4">
           <div className="flex justify-between items-center text-sm">
-            <span className="text-slate-500 font-medium">Base Amount</span>
-            <span className="font-bold text-slate-950 font-syne">
+            <span className="text-zinc-500 font-medium">Base Amount</span>
+            <span className="font-semibold text-zinc-950 font-syne">
               {formatCurrency(amount)}
             </span>
           </div>
 
           {coverFees && (
             <div className="flex justify-between items-center text-sm animate-in fade-in slide-in-from-top-2">
-              <span className="text-slate-500 font-medium flex items-center gap-2">
-                <Zap className="w-3.5 h-3.5 text-zinc-900 fill-zinc-900" />{" "}
+              <span className="text-zinc-500 font-medium flex items-center gap-2">
+                <Zap className="size-3.5 text-zinc-900 fill-zinc-900" />{" "}
                 Processing Fee
               </span>
-              <span className="font-bold text-zinc-900 font-syne">
+              <span className="font-semibold text-zinc-900 font-syne">
                 {formatCurrency(fees)}
               </span>
             </div>
           )}
 
           <div className="flex justify-between items-center text-sm">
-            <span className="text-slate-500 font-medium">Frequency</span>
+            <span className="text-zinc-500 font-medium">Frequency</span>
             <Badge
               variant="outline"
               className={cn(
-                "uppercase text-[10px] font-black tracking-[0.2em] px-4 py-1.5 rounded-full border-none shadow-none",
+                "uppercase text-[10px] font-semibold tracking-[0.2em] px-4 py-1.5 rounded-full border-none shadow-none",
                 frequency === "monthly"
                   ? "bg-zinc-900 text-white"
-                  : "bg-slate-100 text-slate-500",
+                  : "bg-zinc-100 text-zinc-500",
               )}
             >
               {frequency}
@@ -189,39 +196,39 @@ function SummaryCard({
         </div>
 
         {frequency === "monthly" && (
-          <div className="bg-slate-50 rounded-2xl p-5 space-y-3 border border-slate-100">
-            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-              <span className="text-slate-400">Start Date</span>
-              <span className="text-slate-900">
+          <div className="bg-zinc-50 rounded-2xl p-5 space-y-3 border border-zinc-100">
+            <div className="flex justify-between text-[10px] font-semibold uppercase tracking-widest">
+              <span className="text-zinc-400">Start Date</span>
+              <span className="text-zinc-900">
                 {formatDatePretty(startDate)}
               </span>
             </div>
-            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-              <span className="text-slate-400">Duration</span>
-              <span className="text-slate-900 flex items-center gap-2">
+            <div className="flex justify-between text-[10px] font-semibold uppercase tracking-widest">
+              <span className="text-zinc-400">Duration</span>
+              <span className="text-zinc-900 flex items-center gap-2">
                 {endDate ? formatDatePretty(endDate) : "Ongoing"}
               </span>
             </div>
           </div>
         )}
 
-        <Separator className="bg-slate-100" />
+        <Separator className="bg-zinc-100" />
 
         <div className="flex justify-between items-end pt-2">
           <div className="space-y-1">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">
+            <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.3em]">
               Amount Due Today
             </span>
-            <span className="block text-3xl font-bold text-slate-950 font-syne tracking-tighter">
+            <span className="block text-3xl font-semibold text-zinc-950 font-syne tracking-tighter">
               {formatCurrency(dueToday)}
             </span>
           </div>
           {isFutureStart && (
             <div className="text-right pb-1">
-              <span className="text-[9px] font-black text-zinc-900 uppercase tracking-widest block mb-1">
+              <span className="text-[9px] font-semibold text-zinc-900 uppercase tracking-widest block mb-1">
                 Set Recurring
               </span>
-              <span className="text-sm font-bold text-slate-400 font-syne">
+              <span className="text-sm font-semibold text-zinc-400 font-syne">
                 {formatCurrency(total)}
               </span>
             </div>
@@ -229,12 +236,12 @@ function SummaryCard({
         </div>
       </div>
 
-      <div className="px-8 py-4 bg-slate-950 flex items-center justify-between text-[9px] font-black uppercase tracking-[0.2em] text-white/40">
+      <div className="px-8 py-4 bg-zinc-950 flex items-center justify-between text-[9px] font-semibold uppercase tracking-[0.2em] text-white/40">
         <div className="flex items-center gap-2">
-          <Shield className="h-3.5 w-3.5 text-zinc-500" /> Secure SSL
+          <Shield className="size-3.5 text-zinc-500" /> Secure SSL
         </div>
         <div className="flex items-center gap-2">
-          <Lock className="h-3.5 w-3.5 text-zinc-500" /> PCI Compliant
+          <Lock className="size-3.5 text-zinc-500" /> PCI Compliant
         </div>
       </div>
     </div>
@@ -263,22 +270,22 @@ function StepIndicator({ currentStep }: { currentStep: Step }) {
                 currentIdx === idx
                   ? "bg-zinc-900 w-12"
                   : currentIdx > idx
-                    ? "bg-slate-900 w-6"
-                    : "bg-slate-200 w-6",
+                    ? "bg-zinc-900 w-6"
+                    : "bg-zinc-200 w-6",
               )}
               aria-hidden="true"
             />
             <span
               className={cn(
-                "text-[9px] font-black uppercase tracking-[0.3em]",
-                currentIdx === idx ? "text-slate-950" : "text-slate-300",
+                "text-[9px] font-semibold uppercase tracking-[0.3em]",
+                currentIdx === idx ? "text-zinc-950" : "text-zinc-300",
               )}
             >
               {s.label}
             </span>
           </div>
           {idx < steps.length - 1 && (
-            <div className="h-px w-8 bg-slate-100 mb-6" aria-hidden="true" />
+            <div className="h-px w-8 bg-zinc-100 mb-6" aria-hidden="true" />
           )}
         </div>
       ))}
@@ -298,67 +305,69 @@ function SuccessView({
   workerTitle: string;
 }) {
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6">
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         className="bg-white max-w-2xl w-full rounded-[3.5rem] shadow-[0_100px_150px_-50px_rgba(0,0,0,0.1)] overflow-hidden text-center"
       >
-        <div className="bg-slate-950 pt-24 pb-32 px-12 text-white relative overflow-hidden">
+        <div className="bg-zinc-950 pt-24 pb-32 px-12 text-white relative overflow-hidden">
           <div className="absolute inset-0 opacity-20" aria-hidden="true">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-zinc-500 rounded-full blur-[100px]" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-slate-500 rounded-full blur-[100px]" />
+            <div className="absolute top-0 right-0 size-64 bg-zinc-500 rounded-full blur-[100px]" />
+            <div className="absolute bottom-0 left-0 size-64 bg-zinc-500 rounded-full blur-[100px]" />
           </div>
 
           <motion.div
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.3, type: "spring" }}
-            className="w-24 h-24 bg-white rounded-[2rem] flex items-center justify-center mx-auto mb-10 shadow-[0_0_50px_rgba(255,255,255,0.1)]"
+            className="size-24 bg-white rounded-[2rem] flex items-center justify-center mx-auto mb-10 shadow-[0_0_50px_rgba(255,255,255,0.1)]"
           >
             <Check
-              className="w-12 h-12 text-slate-950"
+              className="size-12 text-zinc-950"
               strokeWidth={3}
               aria-hidden="true"
             />
           </motion.div>
 
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 font-syne tracking-tighter">
+          <h1 className="text-5xl md:text-6xl font-semibold mb-4 font-syne tracking-tighter">
             Contribution Logged.
           </h1>
-          <p className="text-zinc-400 font-black text-xs uppercase tracking-[0.4em]">
+          <p className="text-zinc-400 font-semibold text-xs uppercase tracking-[0.4em]">
             Thank you for your support
           </p>
         </div>
 
         <div className="px-16 py-20 space-y-12">
           <div className="space-y-4">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">
+            <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.3em]">
               Total Contribution
             </p>
-            <p className="text-7xl font-bold text-slate-950 font-syne tracking-tighter">
+            <p className="text-7xl font-semibold text-zinc-950 font-syne tracking-tighter">
               {formatCurrency(total)}
             </p>
             {frequency === "monthly" && (
-              <div className="inline-flex items-center gap-3 bg-zinc-100 text-zinc-900 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest">
-                <Activity className="h-3.5 w-3.5" aria-hidden="true" /> Ongoing
+              <div className="inline-flex items-center gap-3 bg-zinc-100 text-zinc-900 px-6 py-2 rounded-full text-[10px] font-semibold uppercase tracking-widest">
+                <Activity className="size-3.5" aria-hidden="true" /> Ongoing
                 Monthly Support
               </div>
             )}
           </div>
 
-          <p className="text-xl text-slate-500 leading-relaxed font-light tracking-tight">
+          <p className="text-xl text-zinc-500 leading-relaxed font-light tracking-tight">
             A secure receipt has been sent to{" "}
-            <span className="text-slate-950 font-bold">{donorInfo.email}</span>.
-            Your gift is being routed to{" "}
-            <span className="text-slate-950 font-bold">{workerTitle}</span>.
+            <span className="text-zinc-950 font-semibold">
+              {donorInfo.email}
+            </span>
+            . Your gift is being routed to{" "}
+            <span className="text-zinc-950 font-semibold">{workerTitle}</span>.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <Button
               asChild
               size="lg"
-              className="flex-1 h-20 rounded-3xl bg-slate-950 text-white hover:bg-zinc-800 transition-all font-black font-syne text-[11px] uppercase tracking-widest"
+              className="flex-1 h-20 rounded-3xl bg-zinc-950 text-white hover:bg-zinc-800 transition-all font-semibold font-syne text-[11px] uppercase tracking-widest"
             >
               <Link href="/donor-dashboard">Enter Dashboard</Link>
             </Button>
@@ -366,7 +375,7 @@ function SuccessView({
               asChild
               variant="outline"
               size="lg"
-              className="flex-1 h-20 rounded-3xl border-slate-100 hover:bg-slate-50 font-black font-syne text-[11px] uppercase tracking-widest"
+              className="flex-1 h-20 rounded-3xl border-zinc-100 hover:bg-zinc-50 font-semibold font-syne text-[11px] uppercase tracking-widest"
             >
               <Link href="/">Back to Home</Link>
             </Button>
@@ -406,20 +415,20 @@ function MonthlyScheduleSection({
       <div className="bg-zinc-50 rounded-[2rem] p-8 border border-zinc-100">
         <div className="flex items-start justify-between mb-8">
           <div className="space-y-1">
-            <h4 className="font-black text-zinc-900 text-[10px] uppercase tracking-[0.2em] flex items-center gap-3">
-              <CalendarDays className="w-4 h-4" aria-hidden="true" /> Support
+            <h4 className="font-semibold text-zinc-900 text-[10px] uppercase tracking-[0.2em] flex items-center gap-3">
+              <CalendarDays className="size-4" aria-hidden="true" /> Support
               Schedule
             </h4>
             <p className="text-sm text-zinc-600 font-medium">
               First contribution scheduled for{" "}
-              <span className="text-zinc-900 font-bold">
+              <span className="text-zinc-900 font-semibold">
                 {formatDatePretty(startDate)}
               </span>
               .
             </p>
           </div>
           <button
-            className="h-10 px-5 rounded-full border border-zinc-200 text-zinc-700 font-black text-[9px] uppercase tracking-widest hover:bg-zinc-100 transition-colors"
+            className="h-10 px-5 rounded-full border border-zinc-200 text-zinc-700 font-semibold text-[9px] uppercase tracking-widest hover:bg-zinc-100 transition-colors"
             onClick={onToggleScheduleConfig}
             aria-expanded={showScheduleConfig}
           >
@@ -439,7 +448,7 @@ function MonthlyScheduleSection({
                 <div className="space-y-3">
                   <Label
                     htmlFor="start-date"
-                    className="text-[10px] font-black text-slate-400 uppercase tracking-widest"
+                    className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest"
                   >
                     Start Date
                   </Label>
@@ -447,7 +456,7 @@ function MonthlyScheduleSection({
                     id="start-date"
                     type="date"
                     value={startDate}
-                    min={new Date().toISOString().split("T")[0]}
+                    min={makeDisplayDate().toISOString().split("T")[0]}
                     onChange={(e) => onStartDateChange(e.target.value)}
                     className="h-14 rounded-2xl bg-white border-zinc-100 font-medium"
                   />
@@ -456,7 +465,7 @@ function MonthlyScheduleSection({
                   <div className="flex items-center justify-between">
                     <Label
                       htmlFor="end-date"
-                      className="text-[10px] font-black text-slate-400 uppercase tracking-widest"
+                      className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest"
                     >
                       Ending Date
                     </Label>
@@ -475,10 +484,10 @@ function MonthlyScheduleSection({
                       value={endDate}
                       min={startDate}
                       onChange={(e) => onEndDateChange(e.target.value)}
-                      className="h-14 rounded-2xl bg-white border-slate-100"
+                      className="h-14 rounded-2xl bg-white border-zinc-100"
                     />
                   ) : (
-                    <div className="h-14 flex items-center px-4 bg-slate-50 rounded-2xl text-xs text-slate-400 font-bold uppercase tracking-widest">
+                    <div className="h-14 flex items-center px-4 bg-zinc-50 rounded-2xl text-xs text-zinc-400 font-semibold uppercase tracking-widest">
                       Continual Support
                     </div>
                   )}
@@ -541,24 +550,24 @@ function ConfigStep({
       className="space-y-12"
     >
       <header className="space-y-4">
-        <span className="text-xs font-black text-zinc-900 uppercase tracking-[0.4em]">
+        <span className="text-xs font-semibold text-zinc-900 uppercase tracking-[0.4em]">
           Set Up Support
         </span>
-        <h1 className="text-5xl md:text-7xl font-bold text-slate-950 font-syne tracking-tighter">
+        <h1 className="text-5xl md:text-7xl font-semibold text-zinc-950 font-syne tracking-tighter">
           Your Gift.
         </h1>
-        <p className="text-2xl text-slate-400 font-light tracking-tight">
+        <p className="text-2xl text-zinc-400 font-light tracking-tight">
           Configure the amount and frequency of your impact.
         </p>
       </header>
 
       <div className="space-y-8">
         <fieldset className="space-y-4">
-          <legend className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">
+          <legend className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.3em]">
             Contribution Frequency
           </legend>
           <div
-            className="flex p-1.5 bg-slate-50 rounded-2xl border border-slate-100"
+            className="flex p-1.5 bg-zinc-50 rounded-2xl border border-zinc-100"
             role="radiogroup"
           >
             <button
@@ -566,10 +575,10 @@ function ConfigStep({
               role="radio"
               aria-checked={frequency === "one-time"}
               className={cn(
-                "flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-500",
+                "flex-1 py-3 text-[10px] font-semibold uppercase tracking-widest rounded-xl transition-all duration-500",
                 frequency === "one-time"
-                  ? "bg-white text-slate-950 shadow-md"
-                  : "text-slate-400 hover:text-slate-600",
+                  ? "bg-white text-zinc-950 shadow-md"
+                  : "text-zinc-400 hover:text-zinc-600",
               )}
             >
               One-Time
@@ -579,10 +588,10 @@ function ConfigStep({
               role="radio"
               aria-checked={frequency === "monthly"}
               className={cn(
-                "flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-500 relative",
+                "flex-1 py-3 text-[10px] font-semibold uppercase tracking-widest rounded-xl transition-all duration-500 relative",
                 frequency === "monthly"
                   ? "bg-white text-zinc-900 shadow-md"
-                  : "text-slate-400 hover:text-slate-600",
+                  : "text-zinc-400 hover:text-zinc-600",
               )}
             >
               Monthly Partner
@@ -591,7 +600,7 @@ function ConfigStep({
         </fieldset>
 
         <fieldset className="space-y-6">
-          <legend className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">
+          <legend className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.3em]">
             Support Amount
           </legend>
           <div
@@ -605,10 +614,10 @@ function ConfigStep({
                 role="radio"
                 aria-checked={amount === val && !customAmount}
                 className={cn(
-                  "h-24 rounded-[1.8rem] border-2 font-bold font-syne text-2xl press-feedback",
+                  "h-24 rounded-[1.8rem] border-2 font-semibold font-syne text-2xl press-feedback",
                   amount === val && !customAmount
-                    ? "border-slate-950 bg-slate-950 text-white shadow-2xl ring-4 ring-slate-950/15"
-                    : "border-slate-50 bg-slate-50 text-slate-400 hover:border-slate-200 hover:bg-slate-100",
+                    ? "border-zinc-950 bg-zinc-950 text-white shadow-2xl ring-4 ring-zinc-950/15"
+                    : "border-zinc-50 bg-zinc-50 text-zinc-400 hover:border-zinc-200 hover:bg-zinc-100",
                 )}
               >
                 ${val}
@@ -618,7 +627,7 @@ function ConfigStep({
 
           <div className="relative mt-8">
             <span
-              className="absolute left-8 top-1/2 -translate-y-1/2 text-slate-300 font-bold font-syne text-3xl"
+              className="absolute left-8 top-1/2 -translate-y-1/2 text-zinc-300 font-semibold font-syne text-3xl"
               aria-hidden="true"
             >
               $
@@ -634,10 +643,10 @@ function ConfigStep({
               value={customAmount}
               onChange={onCustomAmountChange}
               className={cn(
-                "w-full h-24 pl-16 pr-8 rounded-[1.8rem] text-3xl font-bold font-syne transition-all duration-500 outline-none border-2",
+                "w-full h-24 pl-16 pr-8 rounded-[1.8rem] text-3xl font-semibold font-syne transition-all duration-500 outline-none border-2",
                 customAmount
-                  ? "border-slate-950 bg-white"
-                  : "border-slate-50 bg-slate-50 focus:border-slate-200",
+                  ? "border-zinc-950 bg-white"
+                  : "border-zinc-50 bg-zinc-50 focus:border-zinc-200",
               )}
             />
           </div>
@@ -661,7 +670,7 @@ function ConfigStep({
             "rounded-[2rem] p-8 border-2 flex gap-6 items-center cursor-pointer transition-all duration-500",
             coverFees
               ? "bg-zinc-900 border-zinc-900 text-white"
-              : "bg-white border-slate-100 text-slate-950 hover:border-slate-200",
+              : "bg-white border-zinc-100 text-zinc-950 hover:border-zinc-200",
           )}
           onClick={() => onCoverFeesChange(!coverFees)}
           role="checkbox"
@@ -671,24 +680,26 @@ function ConfigStep({
         >
           <div
             className={cn(
-              "h-14 w-14 rounded-2xl flex items-center justify-center transition-colors",
-              coverFees ? "bg-white/20" : "bg-slate-50",
+              "size-14 rounded-2xl flex items-center justify-center transition-colors",
+              coverFees ? "bg-white/20" : "bg-zinc-50",
             )}
           >
             <Heart
               className={cn(
-                "h-6 w-6",
+                "size-6",
                 coverFees ? "text-white fill-current" : "text-zinc-900",
               )}
               aria-hidden="true"
             />
           </div>
           <div className="flex-1">
-            <p className="font-bold font-syne text-xl">Cover Processing Fees</p>
+            <p className="font-semibold font-syne text-xl">
+              Cover Processing Fees
+            </p>
             <p
               className={cn(
                 "text-xs font-medium mt-1 leading-relaxed",
-                coverFees ? "text-white/80" : "text-slate-400",
+                coverFees ? "text-white/80" : "text-zinc-400",
               )}
             >
               Add <strong>{formatCurrency(calculatedFees)}</strong> so 100% of
@@ -707,9 +718,9 @@ function ConfigStep({
         onClick={onNext}
         disabled={amount <= 0}
         size="lg"
-        className="w-full h-24 text-2xl font-black font-syne bg-slate-950 hover:bg-zinc-800 text-white shadow-2xl rounded-full hover-scale-subtle uppercase tracking-widest"
+        className="w-full h-24 text-2xl font-semibold font-syne bg-zinc-950 hover:bg-zinc-800 text-white shadow-2xl rounded-full hover-scale-subtle uppercase tracking-widest"
       >
-        Next Step <ArrowRight className="ml-4 h-8 w-8" aria-hidden="true" />
+        Next Step <ArrowRight className="ml-4 size-8" aria-hidden="true" />
       </Button>
     </motion.div>
   );
@@ -736,23 +747,23 @@ function DetailsStep({
       className="space-y-12"
     >
       <header className="space-y-4">
-        <span className="text-xs font-black text-zinc-900 uppercase tracking-[0.4em]">
+        <span className="text-xs font-semibold text-zinc-900 uppercase tracking-[0.4em]">
           Donor Information
         </span>
-        <h1 className="text-5xl md:text-7xl font-bold text-slate-950 font-syne tracking-tighter">
+        <h1 className="text-5xl md:text-7xl font-semibold text-zinc-950 font-syne tracking-tighter">
           Your Details.
         </h1>
-        <p className="text-2xl text-slate-400 font-light tracking-tight">
+        <p className="text-2xl text-zinc-400 font-light tracking-tight">
           Information for tax receipts and donation tracking.
         </p>
       </header>
 
-      <div className="bg-slate-50 p-12 rounded-[3rem] border border-slate-100 space-y-10">
+      <div className="bg-zinc-50 p-12 rounded-[3rem] border border-zinc-100 space-y-10">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           <div className="space-y-4">
             <Label
               htmlFor="first-name"
-              className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2"
+              className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest pl-2"
             >
               First Name
             </Label>
@@ -768,7 +779,7 @@ function DetailsStep({
           <div className="space-y-4">
             <Label
               htmlFor="last-name"
-              className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2"
+              className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest pl-2"
             >
               Last Name
             </Label>
@@ -785,7 +796,7 @@ function DetailsStep({
         <div className="space-y-4">
           <Label
             htmlFor="email"
-            className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2"
+            className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest pl-2"
           >
             Email Address
           </Label>
@@ -806,7 +817,7 @@ function DetailsStep({
           variant="outline"
           onClick={onBack}
           size="lg"
-          className="h-20 px-12 rounded-full border-slate-100 text-slate-400 font-black font-syne text-xs uppercase tracking-widest hover:bg-slate-50"
+          className="h-20 px-12 rounded-full border-zinc-100 text-zinc-400 font-semibold font-syne text-xs uppercase tracking-widest hover:bg-zinc-50"
         >
           Back
         </Button>
@@ -816,7 +827,7 @@ function DetailsStep({
             !donorInfo.firstName || !donorInfo.lastName || !donorInfo.email
           }
           size="lg"
-          className="flex-1 h-20 text-xl font-black font-syne bg-slate-950 hover:bg-zinc-800 text-white shadow-2xl rounded-full transition-all uppercase tracking-widest"
+          className="flex-1 h-20 text-xl font-semibold font-syne bg-zinc-950 hover:bg-zinc-800 text-white shadow-2xl rounded-full transition-all uppercase tracking-widest"
         >
           Continue to Payment
         </Button>
@@ -850,20 +861,20 @@ function PaymentStep({
       className="space-y-12"
     >
       <header className="space-y-4">
-        <span className="text-xs font-black text-zinc-900 uppercase tracking-[0.4em]">
+        <span className="text-xs font-semibold text-zinc-900 uppercase tracking-[0.4em]">
           Payment Information
         </span>
-        <h1 className="text-5xl md:text-7xl font-bold text-slate-950 font-syne tracking-tighter">
+        <h1 className="text-5xl md:text-7xl font-semibold text-zinc-950 font-syne tracking-tighter">
           Secure Payment.
         </h1>
-        <p className="text-2xl text-slate-400 font-light tracking-tight">
+        <p className="text-2xl text-zinc-400 font-light tracking-tight">
           Safely authorize your contribution.
         </p>
       </header>
 
-      <div className="bg-slate-50 p-12 rounded-[3.5rem] border border-slate-100 space-y-10">
+      <div className="bg-zinc-50 p-12 rounded-[3.5rem] border border-zinc-100 space-y-10">
         <div
-          className="flex p-2 bg-white rounded-[2rem] border border-slate-100"
+          className="flex p-2 bg-white rounded-[2rem] border border-zinc-100"
           role="tablist"
         >
           <button
@@ -871,10 +882,10 @@ function PaymentStep({
             aria-selected={paymentMethod === "card"}
             onClick={() => onPaymentMethodChange("card")}
             className={cn(
-              "flex-1 py-4 text-[10px] font-black uppercase tracking-widest rounded-3xl transition-all",
+              "flex-1 py-4 text-[10px] font-semibold uppercase tracking-widest rounded-3xl transition-all",
               paymentMethod === "card"
-                ? "bg-slate-950 text-white shadow-xl"
-                : "text-slate-400",
+                ? "bg-zinc-950 text-white shadow-xl"
+                : "text-zinc-400",
             )}
           >
             Card
@@ -884,10 +895,10 @@ function PaymentStep({
             aria-selected={paymentMethod === "ach"}
             onClick={() => onPaymentMethodChange("ach")}
             className={cn(
-              "flex-1 py-4 text-[10px] font-black uppercase tracking-widest rounded-3xl transition-all",
+              "flex-1 py-4 text-[10px] font-semibold uppercase tracking-widest rounded-3xl transition-all",
               paymentMethod === "ach"
-                ? "bg-slate-950 text-white shadow-xl"
-                : "text-slate-400",
+                ? "bg-zinc-950 text-white shadow-xl"
+                : "text-zinc-400",
             )}
           >
             Bank
@@ -897,10 +908,10 @@ function PaymentStep({
             aria-selected={paymentMethod === "wallet"}
             onClick={() => onPaymentMethodChange("wallet")}
             className={cn(
-              "flex-1 py-4 text-[10px] font-black uppercase tracking-widest rounded-3xl transition-all",
+              "flex-1 py-4 text-[10px] font-semibold uppercase tracking-widest rounded-3xl transition-all",
               paymentMethod === "wallet"
-                ? "bg-slate-950 text-white shadow-xl"
-                : "text-slate-400",
+                ? "bg-zinc-950 text-white shadow-xl"
+                : "text-zinc-400",
             )}
           >
             Apple/Google
@@ -922,14 +933,14 @@ function PaymentStep({
                 <div className="space-y-3">
                   <Label
                     htmlFor="card-number"
-                    className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2"
+                    className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest pl-2"
                   >
                     Card Details
                   </Label>
-                  <div className="bg-white rounded-[2rem] border border-slate-100 overflow-hidden shadow-sm">
-                    <div className="relative border-b border-slate-50">
+                  <div className="bg-white rounded-[2rem] border border-zinc-100 overflow-hidden shadow-sm">
+                    <div className="relative border-b border-zinc-50">
                       <CreditCard
-                        className="absolute left-6 top-6 h-6 w-6 text-slate-300"
+                        className="absolute left-6 top-6 size-6 text-zinc-300"
                         aria-hidden="true"
                       />
                       <Input
@@ -941,7 +952,7 @@ function PaymentStep({
                     </div>
                     <div className="flex">
                       <Input
-                        className="h-20 border-none border-r border-slate-50 text-lg font-medium bg-transparent focus-visible:ring-0 px-8"
+                        className="h-20 border-none border-r border-zinc-50 text-lg font-medium bg-transparent focus-visible:ring-0 px-8"
                         placeholder="MM/YY"
                         autoComplete="cc-exp"
                         aria-label="Expiration date"
@@ -957,7 +968,7 @@ function PaymentStep({
                 </div>
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-3">
-                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">
+                    <Label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest pl-2">
                       Country
                     </Label>
                     <Input
@@ -969,7 +980,7 @@ function PaymentStep({
                   <div className="space-y-3">
                     <Label
                       htmlFor="postal-code"
-                      className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2"
+                      className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest pl-2"
                     >
                       Postal Code
                     </Label>
@@ -991,23 +1002,23 @@ function PaymentStep({
                 animate={{ opacity: 1, scale: 1 }}
                 className="space-y-12 text-center"
               >
-                <div className="w-24 h-24 bg-zinc-100 rounded-[2rem] flex items-center justify-center mx-auto">
+                <div className="size-24 bg-zinc-100 rounded-[2rem] flex items-center justify-center mx-auto">
                   <Landmark
-                    className="h-10 w-10 text-zinc-900"
+                    className="size-10 text-zinc-900"
                     aria-hidden="true"
                   />
                 </div>
                 <div className="space-y-4">
-                  <h3 className="text-2xl font-bold font-syne">
+                  <h3 className="text-2xl font-semibold font-syne">
                     Instant Bank Link
                   </h3>
-                  <p className="text-slate-500 max-w-sm mx-auto leading-relaxed">
+                  <p className="text-zinc-500 max-w-sm mx-auto leading-relaxed">
                     Securely connect your bank account via Stripe Financial
                     Connections to maximize your impact with 0% credit card
                     fees.
                   </p>
                 </div>
-                <Button className="h-20 px-12 rounded-full bg-slate-950 text-white font-black font-syne text-xs uppercase tracking-widest shadow-2xl hover:bg-zinc-800">
+                <Button className="h-20 px-12 rounded-full bg-zinc-950 text-white font-semibold font-syne text-xs uppercase tracking-widest shadow-2xl hover:bg-zinc-800">
                   Connect Securely
                 </Button>
               </motion.div>
@@ -1020,8 +1031,8 @@ function PaymentStep({
                 animate={{ opacity: 1, scale: 1 }}
                 className="flex items-center justify-center h-full min-h-[300px]"
               >
-                <button className="h-20 px-12 rounded-full bg-black text-white font-bold text-2xl flex items-center gap-4 press-feedback hover-scale-subtle shadow-2xl">
-                  <Wallet className="h-8 w-8" aria-hidden="true" /> Pay with
+                <button className="h-20 px-12 rounded-full bg-black text-white font-semibold text-2xl flex items-center gap-4 press-feedback hover-scale-subtle shadow-2xl">
+                  <Wallet className="size-8" aria-hidden="true" /> Pay with
                   Apple Pay
                 </button>
               </motion.div>
@@ -1035,7 +1046,7 @@ function PaymentStep({
           variant="outline"
           onClick={onBack}
           size="lg"
-          className="h-24 px-12 rounded-full border-slate-100 text-slate-400 font-black font-syne text-xs uppercase tracking-widest"
+          className="h-24 px-12 rounded-full border-zinc-100 text-zinc-400 font-semibold font-syne text-xs uppercase tracking-widest"
         >
           Back
         </Button>
@@ -1043,11 +1054,11 @@ function PaymentStep({
           onClick={onConfirmPayment}
           disabled={isProcessing}
           size="lg"
-          className="flex-1 h-24 text-2xl font-black font-syne bg-zinc-900 hover:bg-zinc-800 text-white shadow-2xl rounded-full hover-scale-subtle uppercase tracking-widest"
+          className="flex-1 h-24 text-2xl font-semibold font-syne bg-zinc-900 hover:bg-zinc-800 text-white shadow-2xl rounded-full hover-scale-subtle uppercase tracking-widest"
         >
           {isProcessing ? (
             <Loader2
-              className="animate-spin h-8 w-8"
+              className="animate-spin size-8"
               aria-label="Processing payment"
             />
           ) : (
@@ -1082,7 +1093,7 @@ function CheckoutContent({
     isProcessing: false,
     paymentMethod: "card",
     showScheduleConfig: false,
-    startDate: new Date().toISOString().split("T")[0] ?? "",
+    startDate: makeDisplayDate().toISOString().split("T")[0] ?? "",
     step: "config",
   }));
   const {
@@ -1173,15 +1184,15 @@ function CheckoutContent({
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center space-y-6">
-          <div className="h-20 w-20 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto border border-slate-100 shadow-xl">
-            <Activity className="h-8 w-8 text-slate-300" />
+          <div className="size-20 bg-zinc-50 rounded-3xl flex items-center justify-center mx-auto border border-zinc-100 shadow-xl">
+            <Activity className="size-8 text-zinc-300" />
           </div>
-          <h2 className="text-3xl font-bold text-slate-950 font-syne">
+          <h2 className="text-3xl font-semibold text-zinc-950 font-syne">
             Target Unspecified
           </h2>
           <Button
             asChild
-            className="rounded-full px-8 h-12 font-black font-syne text-[10px] uppercase tracking-widest bg-zinc-900 hover:bg-zinc-800"
+            className="rounded-full px-8 h-12 font-semibold font-syne text-[10px] uppercase tracking-widest bg-zinc-900 hover:bg-zinc-800"
           >
             <Link href="/workers">View Missionaries</Link>
           </Button>

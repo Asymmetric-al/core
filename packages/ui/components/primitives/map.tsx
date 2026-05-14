@@ -5,7 +5,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { useTheme } from "next-themes";
 import {
   createContext,
-  useContext,
+  use,
   useLayoutEffect,
   useEffect,
   useMemo,
@@ -27,7 +27,7 @@ type MapContextValue = {
 const MapContext = createContext<MapContextValue | null>(null);
 
 export function useMap() {
-  const context = useContext(MapContext);
+  const context = use(MapContext);
   if (!context) {
     throw new Error("useMap must be used within a Map component");
   }
@@ -157,31 +157,37 @@ export function Map({
         onLoadRef.current?.(map);
       };
 
+      const onMapError = (e: maplibregl.ErrorEvent) => {
+        console.error("MapLibre error:", e);
+        markMapReady();
+      };
+
+      const onMapClick = (e: maplibregl.MapMouseEvent) => {
+        onClickRef.current?.(e);
+      };
+
       if (map.loaded()) {
         onMapLoad();
       } else {
         map.on("load", onMapLoad);
       }
 
-      map.on("error", (e) => {
-        console.error("MapLibre error:", e);
-        markMapReady();
-      });
+      map.on("error", onMapError);
+      map.on("click", onMapClick);
 
-      map.on("click", (e) => onClickRef.current?.(e));
+      return () => {
+        map.off("load", onMapLoad);
+        map.off("error", onMapError);
+        map.off("click", onMapClick);
+        map.remove();
+        mapInstanceRef.current = null;
+        hasInitializedRef.current = false;
+        resetMapState();
+      };
     } catch (error) {
       console.error("Failed to initialize map:", error);
       markMapReady();
     }
-
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-      hasInitializedRef.current = false;
-      resetMapState();
-    };
   }, [
     center,
     darkStyle,
@@ -241,7 +247,7 @@ type MarkerContextValue = {
 const MarkerContext = createContext<MarkerContextValue | null>(null);
 
 function useMarkerContext() {
-  const ctx = useContext(MarkerContext);
+  const ctx = use(MarkerContext);
   if (!ctx) throw new Error("Must be used within MapMarker");
   return ctx;
 }

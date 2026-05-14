@@ -47,19 +47,19 @@ export function GivingWidget({
   const hasGoal = goal !== null && percentRaised !== null;
 
   return (
-    <Card className="border-none shadow-xl shadow-slate-200/60 overflow-hidden relative bg-white ring-1 ring-slate-100 rounded-2xl">
+    <Card className="border-none shadow-xl shadow-zinc-200/60 overflow-hidden relative bg-white ring-1 ring-zinc-100 rounded-2xl">
       <div className="p-6 sm:p-8 space-y-6">
         <div className="text-center space-y-2">
-          <h3 className="font-bold text-2xl text-slate-900 tracking-tight">
+          <h3 className="font-semibold text-2xl text-zinc-900 tracking-tight">
             Partner with Us
           </h3>
-          <p className="text-slate-500 text-sm">
+          <p className="text-zinc-500 text-sm">
             Empower this mission with your support.
           </p>
         </div>
 
         <div
-          className="bg-slate-100 p-1.5 rounded-xl flex relative"
+          className="bg-zinc-100 p-1.5 rounded-xl flex relative"
           role="radiogroup"
           aria-label="Giving frequency"
         >
@@ -68,10 +68,10 @@ export function GivingWidget({
             role="radio"
             aria-checked={frequency === "one-time"}
             className={cn(
-              "flex-1 py-3 text-sm font-bold rounded-lg transition-all duration-300 relative z-10",
+              "flex-1 py-3 text-sm font-semibold rounded-lg transition-all duration-300 relative z-10",
               frequency === "one-time"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-500 hover:text-slate-700",
+                ? "bg-white text-zinc-900 shadow-sm"
+                : "text-zinc-500 hover:text-zinc-700",
             )}
           >
             One-Time
@@ -81,10 +81,10 @@ export function GivingWidget({
             role="radio"
             aria-checked={frequency === "monthly"}
             className={cn(
-              "flex-1 py-3 text-sm font-bold rounded-lg transition-all duration-300 relative z-10",
+              "flex-1 py-3 text-sm font-semibold rounded-lg transition-all duration-300 relative z-10",
               frequency === "monthly"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-500 hover:text-slate-700",
+                ? "bg-white text-zinc-900 shadow-sm"
+                : "text-zinc-500 hover:text-zinc-700",
             )}
           >
             Monthly
@@ -96,16 +96,16 @@ export function GivingWidget({
             className={cn(
               "relative h-14 rounded-xl border-2 transition-all duration-300 bg-white flex items-center overflow-hidden cursor-text group",
               isInputFocused
-                ? "border-slate-900 ring-4 ring-slate-900/5"
-                : "border-slate-200 hover:border-slate-300",
+                ? "border-zinc-900 ring-4 ring-zinc-900/5"
+                : "border-zinc-200 hover:border-zinc-300",
             )}
           >
             <span
               className={cn(
-                "absolute left-5 text-xl font-bold transition-colors pointer-events-none",
+                "absolute left-5 text-xl font-semibold transition-colors pointer-events-none",
                 isInputFocused || customAmount
-                  ? "text-slate-900"
-                  : "text-slate-300",
+                  ? "text-zinc-900"
+                  : "text-zinc-300",
               )}
               aria-hidden="true"
             >
@@ -119,7 +119,7 @@ export function GivingWidget({
               id="custom-amount-input"
               type="number"
               placeholder="0"
-              className="w-full h-full bg-transparent border-none outline-none pl-10 pr-6 text-2xl font-bold text-slate-900 placeholder:text-slate-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none transition-all"
+              className="size-full bg-transparent border-none outline-none pl-10 pr-6 text-2xl font-semibold text-zinc-900 placeholder:text-zinc-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none transition-all"
               value={customAmount}
               onChange={handleCustomAmountChange}
               onFocus={() => setIsInputFocused(true)}
@@ -128,7 +128,7 @@ export function GivingWidget({
             />
 
             <span
-              className="absolute right-5 text-[9px] font-bold text-slate-400 pointer-events-none uppercase tracking-wider bg-slate-50 px-2 py-1 rounded"
+              className="absolute right-5 text-[9px] font-semibold text-zinc-400 pointer-events-none uppercase tracking-wider bg-zinc-50 px-2 py-1 rounded"
               aria-hidden="true"
             >
               USD
@@ -147,10 +147,10 @@ export function GivingWidget({
                 role="radio"
                 aria-checked={amount === amt && !customAmount}
                 className={cn(
-                  "py-2.5 rounded-xl border text-sm font-bold press-feedback",
+                  "py-2.5 rounded-xl border text-sm font-semibold press-feedback",
                   amount === amt && !customAmount
-                    ? "border-slate-900 bg-slate-50 text-slate-900"
-                    : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900 hover:bg-slate-50",
+                    ? "border-zinc-900 bg-zinc-50 text-zinc-900"
+                    : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:text-zinc-900 hover:bg-zinc-50",
                 )}
               >
                 ${amt}
@@ -162,12 +162,12 @@ export function GivingWidget({
         {hasGoal && (
           <div className="space-y-3 pt-2">
             <div className="flex justify-between items-end text-sm">
-              <span className="font-bold text-slate-700">
+              <span className="font-semibold text-zinc-700">
                 {percentRaised}% Funded
               </span>
-              <span className="text-slate-500 font-medium">
+              <span className="text-zinc-500 font-medium">
                 {formatCurrency(raised)}{" "}
-                <span className="text-slate-300" aria-hidden="true">
+                <span className="text-zinc-300" aria-hidden="true">
                   /
                 </span>{" "}
                 {formatCurrency(goal)}
@@ -175,7 +175,7 @@ export function GivingWidget({
             </div>
             <Progress
               value={percentRaised}
-              className="h-2.5 bg-slate-100"
+              className="h-2.5 bg-zinc-100"
               aria-label={`${percentRaised}% of funding goal reached`}
             />
           </div>
@@ -183,7 +183,7 @@ export function GivingWidget({
 
         <Button
           size="lg"
-          className="w-full h-14 text-lg font-bold bg-slate-900 hover:bg-slate-800 shadow-xl shadow-slate-900/20 rounded-xl hover-scale-subtle"
+          className="w-full h-14 text-lg font-semibold bg-zinc-900 hover:bg-zinc-800 shadow-xl shadow-zinc-900/20 rounded-xl hover-scale-subtle"
           asChild
         >
           <Link
@@ -195,9 +195,9 @@ export function GivingWidget({
           </Link>
         </Button>
 
-        <div className="flex items-center justify-center gap-2 text-xs text-slate-400 font-medium">
+        <div className="flex items-center justify-center gap-2 text-xs text-zinc-400 font-medium">
           <ShieldCheck
-            className="h-3.5 w-3.5 text-emerald-500"
+            className="size-3.5 text-emerald-500"
             aria-hidden="true"
           />{" "}
           Secure Payment &bull; 100% Tax Deductible

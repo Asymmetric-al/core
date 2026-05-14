@@ -20,6 +20,12 @@ import { formatDistanceToNow } from "date-fns";
 import { Send } from "lucide-react";
 import { useState } from "react";
 
+function makeDisplayDate(value?: string | number | Date): Date {
+  return value === undefined
+    ? new globalThis.Date()
+    : new globalThis.Date(value);
+}
+
 interface Comment {
   id: string;
   content: string;
@@ -120,9 +126,12 @@ export function CommentsDialog({
                       {comment.content}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(comment.created_at), {
-                        addSuffix: true,
-                      })}
+                      {formatDistanceToNow(
+                        makeDisplayDate(comment.created_at),
+                        {
+                          addSuffix: true,
+                        },
+                      )}
                     </p>
                   </div>
                 </div>

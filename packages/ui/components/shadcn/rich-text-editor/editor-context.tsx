@@ -13,11 +13,11 @@ export const EditorContext = React.createContext<EditorContextValue | null>(
 );
 
 export function useOptionalEditorContext(): EditorContextValue | null {
-  return React.useContext(EditorContext);
+  return React.use(EditorContext);
 }
 
 export function useEditorContext(): EditorContextValue {
-  const context = React.useContext(EditorContext);
+  const context = React.use(EditorContext);
   if (!context) {
     throw new Error(
       "Editor components must be used within <EditorRoot> (or <RichTextEditor> alias).",

@@ -18,6 +18,16 @@ import {
 
 import type { SupportConversation } from "../../types";
 
+function makeDisplayDate(value?: string | number | Date): Date {
+  return value === undefined
+    ? new globalThis.Date()
+    : new globalThis.Date(value);
+}
+
+function makeDisplayTimestamp(): number {
+  return globalThis.Date.now();
+}
+
 interface ConversationSnoozeMenuProps {
   conversation: SupportConversation;
 }
@@ -67,8 +77,8 @@ export function ConversationSnoozeMenu({
             onSelect={() =>
               snooze.mutate({
                 conversationId: conversation.id,
-                snoozedUntil: new Date(
-                  Date.now() + option.hours * HOUR_MS,
+                snoozedUntil: makeDisplayDate(
+                  makeDisplayTimestamp() + option.hours * HOUR_MS,
                 ).toISOString(),
               })
             }

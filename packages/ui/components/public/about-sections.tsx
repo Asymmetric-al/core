@@ -23,9 +23,9 @@ export function AboutHero() {
 
   return (
     <LazyMotion features={domAnimation}>
-      <section className="relative pt-48 pb-64 overflow-hidden isolate bg-slate-950">
+      <section className="relative pt-48 pb-64 overflow-hidden isolate bg-zinc-950">
         <div className="absolute inset-0 z-0 opacity-40 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-b from-blue-600/10 via-slate-950/80 to-slate-950" />
+          <div className="absolute inset-0 to-zinc-950" />
           <div className="absolute top-0 right-0 w-[1000px] h-[1000px] bg-emerald-600/10 rounded-full blur-[200px]" />
           <div className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-blue-600/10 rounded-full blur-[180px]" />
         </div>
@@ -33,23 +33,21 @@ export function AboutHero() {
         <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-6xl space-y-12">
             <m.div {...propsHeroEntrance(reduceMotion, 0)}>
-              <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-white/60 text-[10px] font-black uppercase tracking-[0.4em] backdrop-blur-xl">
-                <Sparkles className="w-4 h-4 text-amber-500" /> The Asymmetric
+              <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-white/60 text-[10px] font-semibold uppercase tracking-[0.4em] backdrop-blur-xl">
+                <Sparkles className="size-4 text-amber-500" /> The Asymmetric
                 Method
               </div>
             </m.div>
 
             <m.div {...propsHeroEntrance(reduceMotion, STAGGER_TIGHT)}>
-              <h1 className="text-6xl md:text-[10rem] font-bold tracking-tighter text-white leading-[0.85] font-syne text-balance">
+              <h1 className="text-6xl md:text-[10rem] font-semibold tracking-tighter text-white leading-[0.85] font-syne text-balance">
                 Engineered <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-white/20">
-                  Restoration.
-                </span>
+                <span className="to-white/20">Restoration.</span>
               </h1>
             </m.div>
 
             <m.div {...propsHeroEntrance(reduceMotion, STAGGER_TIGHT * 2)}>
-              <p className="text-2xl md:text-3xl text-slate-400 max-w-3xl font-light leading-relaxed tracking-tight text-balance">
+              <p className="text-2xl md:text-3xl text-zinc-400 max-w-3xl font-light leading-relaxed tracking-tight text-balance">
                 Geography should not dictate destiny. We build the
                 infrastructure that connects{" "}
                 <span className="text-white font-medium">global capital</span>{" "}
@@ -79,16 +77,16 @@ export function AboutBelief() {
               className="space-y-12"
             >
               <div className="space-y-6">
-                <span className="text-emerald-600 font-black tracking-[0.4em] uppercase text-xs">
+                <span className="text-emerald-600 font-semibold tracking-[0.4em] uppercase text-xs">
                   Our Thesis
                 </span>
-                <h2 className="text-6xl md:text-8xl font-bold tracking-tighter text-slate-950 leading-[0.85] font-syne">
+                <h2 className="text-6xl md:text-8xl font-semibold tracking-tighter text-zinc-950 leading-[0.85] font-syne">
                   Hope as <br />
-                  <span className="text-slate-300">Infrastructure.</span>
+                  <span className="text-zinc-300">Infrastructure.</span>
                 </h2>
               </div>
 
-              <p className="text-2xl text-slate-600 leading-relaxed font-light tracking-tight">
+              <p className="text-2xl text-zinc-600 leading-relaxed font-light tracking-tight">
                 Most aid organizations are built for a world that no longer
                 exists. They are slow, opaque, and hierarchical.{" "}
                 <strong>GiveHope</strong> is built for the now. We are a lean,
@@ -99,7 +97,7 @@ export function AboutBelief() {
               <div className="pt-8">
                 <Button
                   size="lg"
-                  className="h-14 px-10 rounded-full bg-slate-950 text-white hover:bg-emerald-500 transition-colors duration-200 ease-out font-bold font-syne text-xs uppercase tracking-widest"
+                  className="h-14 px-10 rounded-full bg-zinc-950 text-white hover:bg-emerald-500 transition-colors duration-200 ease-out font-semibold font-syne text-xs uppercase tracking-widest"
                   asChild
                 >
                   <Link href="/workers">Explore the Frontlines</Link>
@@ -108,7 +106,7 @@ export function AboutBelief() {
             </m.div>
 
             <m.div {...propsScaleFadeInView(reduceMotion)} className="relative">
-              <div className="aspect-square bg-slate-50 rounded-3xl p-8 flex items-center justify-center border border-slate-100 shadow-xl overflow-hidden relative group">
+              <div className="aspect-square bg-zinc-50 rounded-3xl p-8 flex items-center justify-center border border-zinc-100 shadow-xl overflow-hidden relative group">
                 <div className="absolute inset-0 opacity-20 pointer-events-none grayscale group-hover:grayscale-0 transition-[filter] duration-500 ease-out">
                   <Image
                     src="https://images.unsplash.com/photo-1509099836639-18ba1795216d?q=80&w=2000"
@@ -119,13 +117,13 @@ export function AboutBelief() {
                   />
                 </div>
                 <div className="relative z-10 text-center space-y-4">
-                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto shadow-xl border border-slate-100">
-                    <Globe className="h-8 w-8 text-emerald-500" />
+                  <div className="size-16 bg-white rounded-2xl flex items-center justify-center mx-auto shadow-xl border border-zinc-100">
+                    <Globe className="size-8 text-emerald-500" />
                   </div>
-                  <p className="text-3xl font-bold font-syne text-slate-950 tracking-tighter">
-                    100% Direct-to-Field
+                  <p className="text-3xl font-semibold font-syne text-zinc-950 tracking-tighter">
+                    100% Direct-
                   </p>
-                  <p className="text-slate-500 max-w-xs mx-auto text-sm font-medium">
+                  <p className="text-zinc-500 max-w-xs mx-auto text-sm font-medium">
                     No middle-management. No administrative leakage. Your
                     support goes exactly where it&apos;s needed.
                   </p>
@@ -171,16 +169,16 @@ export function AboutValues() {
 
   return (
     <LazyMotion features={domAnimation}>
-      <section className="py-40 bg-slate-50">
+      <section className="py-40 bg-zinc-50">
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-end mb-32 gap-12">
             <div className="space-y-6">
-              <span className="text-slate-400 font-black tracking-[0.4em] uppercase text-xs">
+              <span className="text-zinc-400 font-semibold tracking-[0.4em] uppercase text-xs">
                 The Protocol
               </span>
-              <h2 className="text-6xl md:text-8xl font-bold tracking-tighter text-slate-950 leading-[0.85] font-syne">
+              <h2 className="text-6xl md:text-8xl font-semibold tracking-tighter text-zinc-950 leading-[0.85] font-syne">
                 Operational <br />
-                <span className="text-slate-300">Principles.</span>
+                <span className="text-zinc-300">Principles.</span>
               </h2>
             </div>
           </div>
@@ -200,10 +198,10 @@ export function AboutValues() {
                 }}
               >
                 <Card className="group border-none bg-white rounded-2xl shadow-lg hover:-translate-y-1 transition-[transform,box-shadow] duration-300 ease-out h-full">
-                  <CardContent className="pt-10 pb-8 px-8 flex flex-col items-center text-center space-y-6 h-full">
+                  <CardContent className="pt-10 pb-8 px-8 flex flex-col items-center text-center gap-y-6 h-full">
                     <div
                       className={cn(
-                        "h-12 w-12 rounded-xl flex items-center justify-center transition-transform duration-200 ease-out group-hover:rotate-6",
+                        "size-12 rounded-xl flex items-center justify-center transition-transform duration-200 ease-out group-hover:rotate-6",
                         item.color === "emerald"
                           ? "bg-emerald-50 text-emerald-600"
                           : item.color === "blue"
@@ -213,13 +211,13 @@ export function AboutValues() {
                               : "bg-red-50 text-red-600",
                       )}
                     >
-                      <item.icon className="h-6 w-6" />
+                      <item.icon className="size-6" />
                     </div>
                     <div className="space-y-3">
-                      <h3 className="text-xl font-bold text-slate-950 font-syne">
+                      <h3 className="text-xl font-semibold text-zinc-950 font-syne">
                         {item.title}
                       </h3>
-                      <p className="text-slate-500 leading-relaxed font-light text-sm">
+                      <p className="text-zinc-500 leading-relaxed font-light text-sm">
                         {item.text}
                       </p>
                     </div>
@@ -260,10 +258,10 @@ export function AboutLeadership() {
       <section className="py-40 bg-white">
         <div className="container mx-auto px-6">
           <div className="text-center mb-32 space-y-6">
-            <span className="text-emerald-600 font-black tracking-[0.4em] uppercase text-xs">
+            <span className="text-emerald-600 font-semibold tracking-[0.4em] uppercase text-xs">
               The Board
             </span>
-            <h2 className="text-6xl md:text-8xl font-bold tracking-tighter text-slate-950 font-syne">
+            <h2 className="text-6xl md:text-8xl font-semibold tracking-tighter text-zinc-950 font-syne">
               Trustees of Hope.
             </h2>
           </div>
@@ -286,7 +284,7 @@ export function AboutLeadership() {
                 }}
                 className="group cursor-pointer"
               >
-                <div className="relative aspect-[3/4] mb-8 overflow-hidden rounded-2xl bg-slate-100 shadow-xl group-hover:shadow-emerald-500/10 transition-shadow duration-300 ease-out">
+                <div className="relative aspect-[3/4] mb-8 overflow-hidden rounded-2xl bg-zinc-100 shadow-xl group-hover:shadow-emerald-500/10 transition-shadow duration-300 ease-out">
                   <Image
                     src={person.img}
                     alt={`${person.name}, ${person.role} at GiveHope`}
@@ -294,13 +292,13 @@ export function AboutLeadership() {
                     className="object-cover saturate-0 group-hover:saturate-[0.8] contrast-[1.1] transition-[transform,filter] duration-500 ease-out [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.02]"
                     sizes="(max-width: 768px) 100vw, 25vw"
                   />
-                  <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/0 transition-colors duration-300 ease-out" />
+                  <div className="absolute inset-0 bg-zinc-950/20 group-hover:bg-zinc-950/0 transition-colors duration-300 ease-out" />
                 </div>
                 <div className="space-y-1 text-center">
-                  <h3 className="text-2xl font-bold text-slate-950 font-syne group-hover:text-emerald-600 transition-colors duration-200 ease-out">
+                  <h3 className="text-2xl font-semibold text-zinc-950 font-syne group-hover:text-emerald-600 transition-colors duration-200 ease-out">
                     {person.name}
                   </h3>
-                  <p className="text-slate-400 font-black text-[9px] uppercase tracking-[0.3em]">
+                  <p className="text-zinc-400 font-semibold text-[9px] uppercase tracking-[0.3em]">
                     {person.role}
                   </p>
                 </div>
@@ -318,7 +316,7 @@ export function AboutCTA() {
 
   return (
     <LazyMotion features={domAnimation}>
-      <section className="py-60 bg-slate-950 relative overflow-hidden text-center">
+      <section className="py-60 bg-zinc-950 relative overflow-hidden text-center">
         <div className="absolute inset-0 opacity-40 pointer-events-none">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1200px] bg-emerald-600/30 rounded-full blur-[200px]" />
         </div>
@@ -327,18 +325,18 @@ export function AboutCTA() {
           <m.div
             {...propsFadeRiseInView(reduceMotion, { y: 12, duration: 0.35 })}
           >
-            <h2 className="text-6xl md:text-8xl font-bold text-white tracking-tighter mb-8 leading-[0.8] font-syne">
+            <h2 className="text-6xl md:text-8xl font-semibold text-white tracking-tighter mb-8 leading-[0.8] font-syne">
               Join the <br />
               <span className="text-emerald-500">Method.</span>
             </h2>
-            <p className="text-xl md:text-2xl text-slate-300 max-w-2xl mx-auto mb-16 font-light leading-relaxed tracking-tight">
+            <p className="text-xl md:text-2xl text-zinc-300 max-w-2xl mx-auto mb-16 font-light leading-relaxed tracking-tight">
               Don&apos;t just watch the world change. Be the reason it does.
               Join our global sustainer community today.
             </p>
             <div className="flex flex-col md:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="h-14 px-10 rounded-full bg-white text-slate-950 hover:bg-emerald-400 hover:text-emerald-950 text-lg font-bold font-syne shadow-xl hover-scale-subtle"
+                className="h-14 px-10 rounded-full bg-white text-zinc-950 hover:bg-emerald-400 hover:text-emerald-950 text-lg font-semibold font-syne shadow-xl hover-scale-subtle"
                 asChild
               >
                 <Link href="/workers">View Directory</Link>
@@ -346,7 +344,7 @@ export function AboutCTA() {
               <Button
                 size="lg"
                 variant="outline"
-                className="h-14 px-10 rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 text-lg font-bold font-syne backdrop-blur-xl transition-colors duration-200 ease-out"
+                className="h-14 px-10 rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 text-lg font-semibold font-syne backdrop-blur-xl transition-colors duration-200 ease-out"
                 asChild
               >
                 <Link href="/checkout?fund=general">Support Urgent Needs</Link>

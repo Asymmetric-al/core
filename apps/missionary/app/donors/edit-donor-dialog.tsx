@@ -53,7 +53,7 @@ export interface EditDonorDialogProps {
 }
 
 const LABEL_CLASS_NAME =
-  "text-[10px] font-black uppercase tracking-widest text-zinc-400";
+  "text-[10px] font-semibold uppercase tracking-widest text-zinc-400";
 
 const FIELD_CLASS_NAME =
   "h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5";
@@ -128,7 +128,7 @@ export function EditDonorDialog({
     >
       <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl sm:max-w-[700px]">
         <DialogHeader>
-          <DialogTitle className="text-lg font-bold tracking-tight">
+          <DialogTitle className="text-lg font-semibold tracking-tight">
             Edit Partner
           </DialogTitle>
           <DialogDescription className="text-sm text-zinc-500">
@@ -145,7 +145,7 @@ export function EditDonorDialog({
           }}
         >
           <div className="space-y-4">
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+            <h4 className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
               Basic Information
             </h4>
             <div className="grid grid-cols-2 gap-4">
@@ -185,7 +185,7 @@ export function EditDonorDialog({
           </div>
 
           <div className="space-y-4">
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+            <h4 className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
               Contact Information
             </h4>
             <div className="grid grid-cols-2 gap-4">
@@ -254,7 +254,7 @@ export function EditDonorDialog({
           </div>
 
           <div className="space-y-4">
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+            <h4 className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
               Address
             </h4>
             <div className="grid grid-cols-2 gap-4">
@@ -327,7 +327,7 @@ export function EditDonorDialog({
           </div>
 
           <div className="space-y-4">
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+            <h4 className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
               Personal Details
             </h4>
             <div className="grid grid-cols-2 gap-4">
@@ -418,7 +418,7 @@ export function EditDonorDialog({
                   type="submit"
                 >
                   {isSubmitting ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="size-4 animate-spin" />
                   ) : (
                     "Save Changes"
                   )}

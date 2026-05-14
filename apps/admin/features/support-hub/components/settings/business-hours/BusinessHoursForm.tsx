@@ -15,6 +15,16 @@ import { SettingsToolbar } from "../SettingsToolbar";
 
 import type { SupportBusinessHours } from "../../../types";
 
+function makeDisplayDate(value?: string | number | Date): Date {
+  return value === undefined
+    ? new globalThis.Date()
+    : new globalThis.Date(value);
+}
+
+function makeDisplayTimestamp(): number {
+  return globalThis.Date.now();
+}
+
 const DAYS = [
   "monday",
   "tuesday",
@@ -176,8 +186,8 @@ export function BusinessHoursForm({
               setHolidays((prev) => [
                 ...prev,
                 {
-                  id: `holiday-${Date.now()}`,
-                  date: new Date().toISOString(),
+                  id: `holiday-${makeDisplayTimestamp()}`,
+                  date: makeDisplayDate().toISOString(),
                   label: "New holiday",
                 },
               ])
@@ -189,8 +199,8 @@ export function BusinessHoursForm({
           </Button>
         </div>
         {holidays.length === 0 ? (
-          <p className="px-3 py-3 text-[12px] text-zinc-500">
-            No holidays set — business hours apply year-round.
+          <p className="p-3 text-[12px] text-zinc-500">
+            No holidays set, business hours apply year-round.
           </p>
         ) : (
           <ul className="flex flex-col divide-y divide-zinc-100">
@@ -203,7 +213,7 @@ export function BusinessHoursForm({
                   type="date"
                   value={holiday.date.slice(0, 10)}
                   onChange={(event) => {
-                    const iso = new Date(
+                    const iso = makeDisplayDate(
                       `${event.target.value}T00:00:00.000Z`,
                     ).toISOString();
                     setHolidays((prev) =>

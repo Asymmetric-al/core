@@ -100,7 +100,7 @@ export function AppSidebar({
       collapsible="icon"
       className="border-r border-zinc-200/60 bg-white"
     >
-      <SidebarHeader className="px-3 py-3">
+      <SidebarHeader className="p-3">
         <Link href="/" className="flex items-center gap-2 group">
           {tenantLogo ? (
             <Avatar className="size-7 rounded-md shadow-sm ring-1 ring-zinc-950/5 group-hover:ring-zinc-950/10 transition-all">
@@ -167,7 +167,7 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="px-3 py-3 mt-auto border-t border-zinc-100">
+      <SidebarFooter className="p-3 mt-auto border-t border-zinc-100">
         <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
           <Avatar className="size-7 rounded-md ring-1 ring-zinc-950/5">
             <AvatarFallback className="rounded-md bg-zinc-100 text-zinc-600 text-xs font-medium">

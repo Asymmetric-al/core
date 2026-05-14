@@ -186,9 +186,9 @@ function FollowerRequestItem({
     >
       <div className="flex items-start gap-3">
         <motion.div whileHover={{ scale: 1.02 }} transition={springTransition}>
-          <Avatar className="h-9 w-9 shrink-0 border border-border/50 shadow-sm">
+          <Avatar className="size-9 shrink-0 border border-border/50 shadow-sm">
             <AvatarImage src={request.avatar_url || undefined} />
-            <AvatarFallback className="bg-gradient-to-br from-muted to-muted/50 text-muted-foreground text-[10px] font-bold">
+            <AvatarFallback className="bg-gradient-to-br from-muted to-muted/50 text-muted-foreground text-[10px] font-semibold">
               {request.initials}
             </AvatarFallback>
           </Avatar>
@@ -212,7 +212,7 @@ function FollowerRequestItem({
                   >
                     <Badge
                       variant="secondary"
-                      className="text-[7px] h-3.5 px-1 bg-emerald-50 text-emerald-600 border-none font-bold uppercase tracking-wider"
+                      className="text-[7px] h-3.5 px-1 bg-emerald-50 text-emerald-600 border-none font-semibold uppercase tracking-wider"
                     >
                       Donor
                     </Badge>
@@ -244,7 +244,7 @@ function FollowerRequestItem({
                     <Button
                       size="sm"
                       variant="maia"
-                      className="w-full h-8 text-[9px] uppercase tracking-wider rounded-lg font-bold"
+                      className="w-full h-8 text-[9px] uppercase tracking-wider rounded-lg font-semibold"
                       onClick={() => handleAction("approve")}
                     >
                       Accept
@@ -258,7 +258,7 @@ function FollowerRequestItem({
                     <Button
                       size="sm"
                       variant="maia-outline"
-                      className="w-full h-8 text-[9px] uppercase tracking-wider rounded-lg font-bold"
+                      className="w-full h-8 text-[9px] uppercase tracking-wider rounded-lg font-semibold"
                       onClick={() => handleAction("ignore")}
                     >
                       Ignore
@@ -283,7 +283,7 @@ function FollowerRequestItem({
                       ease: "linear",
                     }}
                   >
-                    <Loader2 className="h-4 w-4 text-muted-foreground" />
+                    <Loader2 className="size-4 text-muted-foreground" />
                   </motion.div>
                 </motion.div>
               )}
@@ -303,9 +303,9 @@ function FollowerRequestItem({
                     transition={{ ...springTransition, delay: 0.1 }}
                     className="bg-emerald-100 rounded-full p-0.5"
                   >
-                    <Check className="h-3 w-3" />
+                    <Check className="size-3" />
                   </motion.div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider">
+                  <span className="text-[9px] font-semibold uppercase tracking-wider">
                     Accepted
                   </span>
                 </motion.div>
@@ -326,9 +326,9 @@ function FollowerRequestItem({
                     transition={{ ...springTransition, delay: 0.1 }}
                     className="bg-muted rounded-full p-0.5"
                   >
-                    <X className="h-3 w-3" />
+                    <X className="size-3" />
                   </motion.div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider">
+                  <span className="text-[9px] font-semibold uppercase tracking-wider">
                     Removed
                   </span>
                 </motion.div>
@@ -404,9 +404,9 @@ function ReactionButton({
     },
     prayer: {
       emoji: "🙏",
-      activeColor: "text-indigo-600",
-      bg: "bg-indigo-50",
-      hoverBg: "hover:bg-indigo-50",
+      activeColor: "text-primary",
+      bg: "bg-primary/10",
+      hoverBg: "hover:bg-primary/10",
     },
   };
 
@@ -450,7 +450,7 @@ function ReactionButton({
           handleClick();
         }}
         className={cn(
-          "relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl transition-all duration-300 font-bold text-[11px] sm:text-xs uppercase tracking-wide overflow-hidden",
+          "relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl transition-all duration-300 font-semibold text-[11px] sm:text-xs uppercase tracking-wide overflow-hidden",
           isActive
             ? cn(bg, activeColor, "shadow-sm ring-1 ring-black/5")
             : "text-muted-foreground bg-card border border-border",
@@ -538,8 +538,8 @@ function CommentSection({
                   whileHover={{ scale: 1.02 }}
                   transition={springTransition}
                 >
-                  <Avatar className="h-8 w-8 sm:h-9 sm:w-9 bg-card border border-border mt-1 shadow-sm">
-                    <AvatarFallback className="text-[10px] text-muted-foreground font-bold">
+                  <Avatar className="size-8 sm:h-9 sm:w-9 bg-card border border-border mt-1 shadow-sm">
+                    <AvatarFallback className="text-[10px] text-muted-foreground font-semibold">
                       {comment.avatar || "U"}
                     </AvatarFallback>
                   </Avatar>
@@ -550,7 +550,7 @@ function CommentSection({
                     className="bg-card p-3 sm:p-4 rounded-2xl rounded-tl-none border border-border shadow-sm inline-block min-w-[200px] sm:min-w-[240px] relative"
                   >
                     <div className="flex items-center justify-between gap-2 sm:gap-4 mb-1">
-                      <span className="font-bold text-foreground text-xs">
+                      <span className="font-semibold text-foreground text-xs">
                         {comment.author?.full_name || "Anonymous"}
                       </span>
                       <div className="flex items-center gap-2">
@@ -561,7 +561,7 @@ function CommentSection({
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <button className="text-muted-foreground/50 hover:text-destructive transition-colors">
-                                <MoreHorizontal className="h-3 w-3" />
+                                <MoreHorizontal className="size-3" />
                               </button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
@@ -570,9 +570,9 @@ function CommentSection({
                             >
                               <DropdownMenuItem
                                 onClick={() => onDeleteComment(comment.id)}
-                                className="text-destructive font-bold text-[10px] uppercase tracking-wider rounded-lg"
+                                className="text-destructive font-semibold text-[10px] uppercase tracking-wider rounded-lg"
                               >
-                                <Trash2 className="h-3 w-3 mr-2" /> Delete
+                                <Trash2 className="size-3 mr-2" /> Delete
                                 Comment
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -588,7 +588,7 @@ function CommentSection({
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="text-[10px] font-bold text-muted-foreground hover:text-foreground uppercase tracking-wider transition-colors"
+                      className="text-[10px] font-semibold text-muted-foreground hover:text-foreground uppercase tracking-wider transition-colors"
                       onClick={() =>
                         setReplyingTo(
                           replyingTo === comment.id ? null : comment.id,
@@ -600,7 +600,7 @@ function CommentSection({
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="text-[10px] font-bold text-muted-foreground hover:text-rose-600 uppercase tracking-wider transition-colors"
+                      className="text-[10px] font-semibold text-muted-foreground hover:text-rose-600 uppercase tracking-wider transition-colors"
                     >
                       Like
                     </motion.button>
@@ -622,8 +622,8 @@ function CommentSection({
                       transition={{ delay: replyIndex * 0.05 }}
                       className="flex gap-3 sm:gap-4 text-sm"
                     >
-                      <Avatar className="h-6 w-6 sm:h-7 sm:w-7 bg-card border border-border shadow-sm mt-1">
-                        <AvatarFallback className="text-[9px] text-muted-foreground font-bold">
+                      <Avatar className="size-6 sm:h-7 sm:w-7 bg-card border border-border shadow-sm mt-1">
+                        <AvatarFallback className="text-[9px] text-muted-foreground font-semibold">
                           {reply.author?.avatar_url || "U"}
                         </AvatarFallback>
                       </Avatar>
@@ -638,13 +638,13 @@ function CommentSection({
                         >
                           <div className="flex items-center justify-between gap-2 sm:gap-4 mb-0.5">
                             <div className="flex items-center gap-2">
-                              <span className="font-bold text-[11px]">
+                              <span className="font-semibold text-[11px]">
                                 {reply.author?.full_name || "Anonymous"}
                               </span>
                               {reply.isWorker && (
                                 <Badge
                                   variant="secondary"
-                                  className="text-[8px] h-3.5 px-1.5 bg-blue-100 text-blue-700 border-none font-bold uppercase tracking-wider"
+                                  className="text-[8px] h-3.5 px-1.5 bg-blue-100 text-blue-700 border-none font-semibold uppercase tracking-wider"
                                 >
                                   Author
                                 </Badge>
@@ -657,7 +657,7 @@ function CommentSection({
                                 }
                                 className="text-muted-foreground/50 hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
                               >
-                                <Trash2 className="h-2.5 w-2.5" />
+                                <Trash2 className="size-2.5" />
                               </button>
                             )}
                           </div>
@@ -691,7 +691,7 @@ function CommentSection({
                         onKeyDown={(e) =>
                           e.key === "Enter" && submitReply(comment.id)
                         }
-                        placeholder={`Reply to ${comment.author?.full_name || "user"}...`}
+                        placeholder={`Reply to ${comment.author?.full_name || "user"}…`}
                         className="h-10 text-sm bg-card pr-10 rounded-xl shadow-sm border-border"
                       />
                       <motion.button
@@ -701,7 +701,7 @@ function CommentSection({
                         disabled={!replyText}
                         className="absolute right-2 top-2 p-1.5 text-primary hover:bg-muted rounded-lg disabled:opacity-50 transition-all"
                       >
-                        <CornerDownRight className="h-4 w-4" />
+                        <CornerDownRight className="size-4" />
                       </motion.button>
                     </div>
                   </motion.div>
@@ -729,7 +729,7 @@ function CommentSection({
         <Input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Write a comment..."
+          placeholder="Write a comment…"
           className="h-11 sm:h-12 pr-12 bg-card shadow-sm border-border focus:border-ring rounded-xl transition-all"
           onKeyDown={(e) =>
             e.key === "Enter" && text && (onAddComment(text), setText(""))
@@ -738,7 +738,7 @@ function CommentSection({
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
             size="icon"
-            className="absolute right-1.5 top-1.5 h-8 w-8 sm:h-9 sm:w-9 bg-primary hover:bg-primary/90 transition-all shadow-sm rounded-lg"
+            className="absolute right-1.5 top-1.5 size-8 sm:h-9 sm:w-9 bg-primary hover:bg-primary/90 transition-all shadow-sm rounded-lg"
             onClick={() => {
               if (text) {
                 onAddComment(text);
@@ -746,7 +746,7 @@ function CommentSection({
               }
             }}
           >
-            <Send className="h-4 w-4" />
+            <Send className="size-4" />
           </Button>
         </motion.div>
       </motion.div>
@@ -800,13 +800,13 @@ function PostCard({
         transition={springTransition}
         className="overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-500 rounded-2xl sm:rounded-3xl group bg-card"
       >
-        <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-4 flex flex-row items-start justify-between space-y-0">
+        <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-4 flex flex-row items-start justify-between gap-y-0">
           <div className="flex gap-3 sm:gap-4">
             <motion.div
               whileHover={{ scale: 1.02 }}
               transition={springTransition}
             >
-              <Avatar className="h-10 w-10 sm:h-12 sm:w-12 border-2 border-background shadow-md ring-1 ring-border">
+              <Avatar className="size-10 sm:h-12 sm:w-12 border-2 border-background shadow-md ring-1 ring-border">
                 <AvatarImage src={authorAvatar} />
                 <AvatarFallback>
                   {post.author?.first_name?.[0] || "M"}
@@ -815,7 +815,7 @@ function PostCard({
             </motion.div>
             <div>
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                <h3 className="font-bold text-foreground text-base sm:text-lg tracking-tight">
+                <h3 className="font-semibold text-foreground text-base sm:text-lg tracking-tight">
                   {authorName}
                 </h3>
                 <motion.div
@@ -823,7 +823,7 @@ function PostCard({
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <Badge className="bg-muted text-muted-foreground border-none font-bold text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full">
+                  <Badge className="bg-muted text-muted-foreground border-none font-semibold text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full">
                     {post.post_type}
                   </Badge>
                 </motion.div>
@@ -835,11 +835,11 @@ function PostCard({
                 <span className="text-border">•</span>
                 <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
                   {post.visibility === "public" ? (
-                    <Globe className="h-3 w-3" />
+                    <Globe className="size-3" />
                   ) : post.visibility === "partners" ? (
-                    <Users className="h-3 w-3" />
+                    <Users className="size-3" />
                   ) : (
-                    <Lock className="h-3 w-3" />
+                    <Lock className="size-3" />
                   )}
                   <span className="hidden xs:inline">{post.visibility}</span>
                 </span>
@@ -855,9 +855,9 @@ function PostCard({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl transition-all"
+                  className="size-9 sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl transition-all"
                 >
-                  <MoreHorizontal className="h-5 w-5 sm:h-6 sm:w-6" />
+                  <MoreHorizontal className="size-5 sm:h-6 sm:w-6" />
                 </Button>
               </motion.div>
             </DropdownMenuTrigger>
@@ -865,22 +865,22 @@ function PostCard({
               align="end"
               className="rounded-xl border-border shadow-lg p-2 min-w-[160px] sm:min-w-[180px]"
             >
-              <DropdownMenuItem className="font-bold text-[10px] uppercase tracking-wider rounded-lg py-2.5 sm:py-3 cursor-pointer gap-2.5 sm:gap-3">
-                <Pin className="h-3.5 w-3.5 text-muted-foreground" /> Pin to Top
+              <DropdownMenuItem className="font-semibold text-[10px] uppercase tracking-wider rounded-lg py-2.5 sm:py-3 cursor-pointer gap-2.5 sm:gap-3">
+                <Pin className="size-3.5 text-muted-foreground" /> Pin to Top
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={onEdit}
-                className="font-bold text-[10px] uppercase tracking-wider rounded-lg py-2.5 sm:py-3 cursor-pointer gap-2.5 sm:gap-3"
+                className="font-semibold text-[10px] uppercase tracking-wider rounded-lg py-2.5 sm:py-3 cursor-pointer gap-2.5 sm:gap-3"
               >
-                <Settings className="h-3.5 w-3.5 text-muted-foreground" /> Edit
+                <Settings className="size-3.5 text-muted-foreground" /> Edit
                 Post
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-border" />
               <DropdownMenuItem
                 onClick={onDelete}
-                className="font-bold text-[10px] uppercase tracking-wider rounded-lg py-2.5 sm:py-3 text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer gap-2.5 sm:gap-3"
+                className="font-semibold text-[10px] uppercase tracking-wider rounded-lg py-2.5 sm:py-3 text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer gap-2.5 sm:gap-3"
               >
-                <Trash2 className="h-3.5 w-3.5" /> Delete Post
+                <Trash2 className="size-3.5" /> Delete Post
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -897,9 +897,9 @@ function PostCard({
               value={post.content}
               richTextClassName="text-foreground/80 leading-relaxed"
               htmlClassName="prose prose-sm sm:prose-base max-w-none text-foreground/80 leading-relaxed
-                        prose-headings:font-bold prose-headings:text-foreground prose-headings:tracking-tight
-                        prose-strong:font-bold prose-strong:text-foreground
-                        prose-a:text-primary prose-a:font-bold prose-a:no-underline hover:prose-a:underline
+                        prose-headings:font-semibold prose-headings:text-foreground prose-headings:tracking-tight
+                        prose-strong:font-semibold prose-strong:text-foreground
+                        prose-a:text-primary prose-a:font-semibold prose-a:no-underline hover:prose-a:underline
                         prose-blockquote:border-l-4 prose-blockquote:border-border prose-blockquote:italic prose-blockquote:text-muted-foreground"
             />
             {post.media && post.media.length > 0 && (
@@ -976,7 +976,7 @@ function PostCard({
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="flex items-center gap-2 sm:gap-3 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-all group/comm"
+              className="flex items-center gap-2 sm:gap-3 text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-all group/comm"
               onClick={() =>
                 setExpandedComments(
                   expandedComments === post.id ? null : post.id,
@@ -987,7 +987,7 @@ function PostCard({
                 animate={{ rotate: expandedComments === post.id ? 180 : 0 }}
                 transition={springTransition}
               >
-                <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground/50" />
+                <MessageCircle className="size-4 sm:h-5 sm:w-5 text-muted-foreground/50" />
               </motion.div>
               {(post.comments || []).length} comments
             </motion.button>
@@ -1091,7 +1091,7 @@ function SecurityAccessDialog({
             size="sm"
             className="h-9 px-4 text-xs font-medium gap-2"
           >
-            <ShieldCheck className="h-4 w-4" />
+            <ShieldCheck className="size-4" />
             <span className="hidden sm:inline">Security & Access</span>
             <span className="sm:hidden">Security</span>
           </Button>
@@ -1100,11 +1100,11 @@ function SecurityAccessDialog({
       <DialogContent className="sm:max-w-[520px] p-0 overflow-hidden gap-0 rounded-2xl border-border">
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-border bg-muted/30">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <ShieldCheck className="h-5 w-5 text-primary" />
+            <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <ShieldCheck className="size-5 text-primary" />
             </div>
             <div>
-              <DialogTitle className="text-lg font-bold tracking-tight">
+              <DialogTitle className="text-lg font-semibold tracking-tight">
                 Security & Access
               </DialogTitle>
               <DialogDescription className="text-sm text-muted-foreground">
@@ -1116,7 +1116,7 @@ function SecurityAccessDialog({
 
         <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
           <div className="space-y-3">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+            <Label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
               Security Level
             </Label>
             <div className="space-y-3">
@@ -1150,19 +1150,19 @@ function SecurityAccessDialog({
                       <div className="flex items-start gap-3">
                         <div
                           className={cn(
-                            "h-10 w-10 rounded-lg flex items-center justify-center shrink-0 transition-colors",
+                            "size-10 rounded-lg flex items-center justify-center shrink-0 transition-colors",
                             isSelected
                               ? cn(bgColor, color)
                               : "bg-muted text-muted-foreground",
                           )}
                         >
-                          <Icon className="h-5 w-5" />
+                          <Icon className="size-5" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             <span
                               className={cn(
-                                "font-bold text-sm",
+                                "font-semibold text-sm",
                                 isSelected ? color : "text-foreground",
                               )}
                             >
@@ -1176,7 +1176,7 @@ function SecurityAccessDialog({
                               >
                                 <Badge
                                   className={cn(
-                                    "h-5 px-1.5 text-[8px] font-black uppercase tracking-wider border-0",
+                                    "h-5 px-1.5 text-[8px] font-semibold uppercase tracking-wider border-0",
                                     bgColor,
                                     color,
                                   )}
@@ -1194,7 +1194,7 @@ function SecurityAccessDialog({
                               <span
                                 key={feature}
                                 className={cn(
-                                  "text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full",
+                                  "text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full",
                                   isSelected
                                     ? cn(bgColor, color)
                                     : "bg-muted text-muted-foreground",
@@ -1207,7 +1207,7 @@ function SecurityAccessDialog({
                         </div>
                         <div
                           className={cn(
-                            "h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
+                            "size-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
                             isSelected
                               ? cn(borderColor, bgColor)
                               : "border-border",
@@ -1219,7 +1219,7 @@ function SecurityAccessDialog({
                               animate={{ scale: 1 }}
                               transition={springTransition}
                             >
-                              <Check className={cn("h-3 w-3", color)} />
+                              <Check className={cn("size-3", color)} />
                             </motion.div>
                           )}
                         </div>
@@ -1232,18 +1232,18 @@ function SecurityAccessDialog({
           </div>
 
           <div className="space-y-4 pt-4 border-t border-border">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+            <Label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
               Quick Settings
             </Label>
 
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border">
                 <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-lg bg-indigo-50 flex items-center justify-center">
-                    <Globe className="h-4 w-4 text-indigo-600" />
+                  <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Globe className="size-4 text-primary" />
                   </div>
                   <div>
-                    <Label className="text-xs font-bold cursor-pointer">
+                    <Label className="text-xs font-semibold cursor-pointer">
                       Public Mirror
                     </Label>
                     <p className="text-[10px] text-muted-foreground">
@@ -1259,11 +1259,11 @@ function SecurityAccessDialog({
 
               <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border">
                 <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-lg bg-purple-50 flex items-center justify-center">
-                    <Users className="h-4 w-4 text-purple-600" />
+                  <div className="size-8 rounded-lg bg-purple-50 flex items-center justify-center">
+                    <Users className="size-4 text-purple-600" />
                   </div>
                   <div>
-                    <Label className="text-xs font-bold cursor-pointer">
+                    <Label className="text-xs font-semibold cursor-pointer">
                       Auto-Approve Donors
                     </Label>
                     <p className="text-[10px] text-muted-foreground">
@@ -1285,7 +1285,7 @@ function SecurityAccessDialog({
             <Button
               variant="outline"
               onClick={() => setIsOpen(false)}
-              className="flex-1 h-10 rounded-xl text-xs font-bold"
+              className="flex-1 h-10 rounded-xl text-xs font-semibold"
             >
               Cancel
             </Button>
@@ -1297,12 +1297,12 @@ function SecurityAccessDialog({
               <Button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="w-full h-10 rounded-xl text-xs font-bold"
+                className="w-full h-10 rounded-xl text-xs font-semibold"
               >
                 {isSaving ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Saving...
+                    <Loader2 className="size-4 mr-2 animate-spin" />
+                    Saving…
                   </>
                 ) : (
                   "Save Changes"
@@ -1384,7 +1384,7 @@ function PostComposerActions({
                   width={64}
                   height={64}
                   unoptimized
-                  className="h-14 w-14 sm:h-16 sm:w-16 object-cover rounded-lg border border-border shadow-sm"
+                  className="size-14 sm:h-16 sm:w-16 object-cover rounded-lg border border-border shadow-sm"
                 />
                 <motion.button
                   whileHover={{ scale: 1.1 }}
@@ -1394,7 +1394,7 @@ function PostComposerActions({
                   }
                   className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover/img:opacity-100 transition-opacity shadow-sm"
                 >
-                  <X className="h-3 w-3" />
+                  <X className="size-3" />
                 </motion.button>
               </motion.div>
             ))}
@@ -1425,7 +1425,7 @@ function PostComposerActions({
             size="sm"
             disabled={isUploading}
             onClick={simulateUpload}
-            className="h-8 text-muted-foreground gap-1.5 font-bold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-all"
+            className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-all"
           >
             {isUploading ? (
               <motion.div
@@ -1436,10 +1436,10 @@ function PostComposerActions({
                   ease: "linear",
                 }}
               >
-                <Loader2 className="h-3 w-3" />
+                <Loader2 className="size-3" />
               </motion.div>
             ) : (
-              <ImageIcon className="h-3 w-3" />
+              <ImageIcon className="size-3" />
             )}
             <span className="hidden sm:inline">Media</span>
           </Button>
@@ -1451,19 +1451,19 @@ function PostComposerActions({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 text-muted-foreground gap-1.5 font-bold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-all"
+                className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-all"
               >
                 {postPrivacy === "public" ? (
-                  <Globe className="h-3 w-3" />
+                  <Globe className="size-3" />
                 ) : postPrivacy === "partners" ? (
-                  <Users className="h-3 w-3" />
+                  <Users className="size-3" />
                 ) : (
-                  <Lock className="h-3 w-3" />
+                  <Lock className="size-3" />
                 )}
                 <span className="hidden sm:inline capitalize">
                   {postPrivacy === "partners" ? "Partners" : postPrivacy}
                 </span>
-                <ChevronDown className="h-2.5 w-2.5 opacity-40" />
+                <ChevronDown className="size-2.5 opacity-40" />
               </Button>
             </motion.div>
           </DropdownMenuTrigger>
@@ -1473,23 +1473,23 @@ function PostComposerActions({
           >
             <DropdownMenuItem
               onClick={() => setPostPrivacy("public")}
-              className="font-bold text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
+              className="font-semibold text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
             >
-              <Globe className="h-3.5 w-3.5 text-muted-foreground" />
+              <Globe className="size-3.5 text-muted-foreground" />
               Public
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setPostPrivacy("partners")}
-              className="font-bold text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
+              className="font-semibold text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
             >
-              <Users className="h-3.5 w-3.5 text-muted-foreground" />
+              <Users className="size-3.5 text-muted-foreground" />
               Partners Only
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setPostPrivacy("private")}
-              className="font-bold text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
+              className="font-semibold text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
             >
-              <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+              <Lock className="size-3.5 text-muted-foreground" />
               Private
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -1514,10 +1514,10 @@ function PostComposerActions({
                   ease: "linear",
                 }}
               >
-                <Loader2 className="h-3 w-3" />
+                <Loader2 className="size-3" />
               </motion.div>
             ) : (
-              <Save className="h-3 w-3 sm:mr-1.5" />
+              <Save className="size-3 sm:mr-1.5" />
             )}
             <span className="hidden sm:inline">Draft</span>
           </Button>
@@ -1540,7 +1540,7 @@ function PostComposerActions({
                   ease: "linear",
                 }}
               >
-                <Loader2 className="h-3 w-3" />
+                <Loader2 className="size-3" />
               </motion.div>
             ) : (
               "Publish"
@@ -1596,7 +1596,7 @@ function PostComposerCard({
                   variant={postType === type ? "maia" : "maia-outline"}
                   onClick={() => setPostType(type)}
                   className={cn(
-                    "px-3 sm:px-5 py-2 h-8 sm:h-9 text-[9px] sm:text-[10px] uppercase tracking-wider font-bold",
+                    "px-3 sm:px-5 py-2 h-8 sm:h-9 text-[9px] sm:text-[10px] uppercase tracking-wider font-semibold",
                     postType === type && "shadow-md",
                   )}
                 >
@@ -1621,7 +1621,7 @@ function PostComposerCard({
                     setEditingPostId(null);
                     setPostContent("");
                   }}
-                  className="ml-auto text-destructive font-bold text-[10px] uppercase tracking-wider hover:bg-destructive/10 rounded-xl"
+                  className="ml-auto text-destructive font-semibold text-[10px] uppercase tracking-wider hover:bg-destructive/10 rounded-xl"
                 >
                   Cancel Edit
                 </Button>
@@ -1637,9 +1637,11 @@ function PostComposerCard({
             transition={{ delay: 0.25 }}
             className="hidden sm:flex"
           >
-            <Avatar className="h-9 w-9 sm:h-11 sm:w-11 border-2 border-border shadow-sm shrink-0">
+            <Avatar className="size-9 sm:h-11 sm:w-11 border-2 border-border shadow-sm shrink-0">
               <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80" />
-              <AvatarFallback className="font-bold text-sm">MF</AvatarFallback>
+              <AvatarFallback className="font-semibold text-sm">
+                MF
+              </AvatarFallback>
             </Avatar>
           </motion.div>
           <motion.div
@@ -1651,7 +1653,7 @@ function PostComposerCard({
             <RichTextEditor
               value={postContent}
               onChange={setPostContent}
-              placeholder={`What's happening? Share a ${postType.toLowerCase()}...`}
+              placeholder={`What's happening? Share a ${postType.toLowerCase()}…`}
               className="rounded-xl sm:rounded-2xl"
               contentClassName="py-3 sm:py-4 px-3 sm:px-4 text-sm sm:text-base text-foreground placeholder:text-muted-foreground min-h-[100px] sm:min-h-[140px] leading-relaxed"
               toolbarPosition="bottom"
@@ -1731,13 +1733,13 @@ function FeedPostsTabsSection({
           <TabsList className="bg-muted/50 p-1 rounded-xl h-auto border border-border backdrop-blur-sm">
             <TabsTrigger
               value="published"
-              className="rounded-lg px-4 sm:px-6 py-2 font-bold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all"
+              className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all"
             >
               Published
             </TabsTrigger>
             <TabsTrigger
               value="draft"
-              className="rounded-lg px-4 sm:px-6 py-2 font-bold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all flex items-center gap-2"
+              className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all flex items-center gap-2"
             >
               Drafts
               <AnimatePresence>
@@ -1748,7 +1750,7 @@ function FeedPostsTabsSection({
                     exit={{ scale: 0.95, opacity: 0 }}
                     transition={springTransition}
                   >
-                    <Badge className="bg-primary text-primary-foreground border-none h-4 px-1 text-[8px] font-bold">
+                    <Badge className="bg-primary text-primary-foreground border-none h-4 px-1 text-[8px] font-semibold">
                       {drafts.length}
                     </Badge>
                   </motion.div>
@@ -1823,7 +1825,7 @@ function FeedPostsTabsSection({
                                 animate={{ scale: 1, opacity: 1 }}
                                 transition={{ delay: 0.1 }}
                               >
-                                <Badge className="bg-muted text-muted-foreground border-none font-bold text-[8px] uppercase tracking-wider px-2 py-0.5 rounded-full">
+                                <Badge className="bg-muted text-muted-foreground border-none font-semibold text-[8px] uppercase tracking-wider px-2 py-0.5 rounded-full">
                                   Draft • {draft.post_type}
                                 </Badge>
                               </motion.div>
@@ -1852,7 +1854,7 @@ function FeedPostsTabsSection({
                                 onClick={() => handleEditDraft(draft)}
                                 className="w-full h-9 sm:h-10 px-4 sm:px-6 text-[10px] uppercase tracking-wider rounded-xl"
                               >
-                                <ExternalLink className="h-3.5 w-3.5 mr-2" />
+                                <ExternalLink className="size-3.5 mr-2" />
                                 <span className="hidden sm:inline">
                                   Edit & Publish
                                 </span>
@@ -1868,9 +1870,9 @@ function FeedPostsTabsSection({
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleDeletePost(draft.id)}
-                                className="w-full h-9 sm:h-10 text-destructive hover:bg-destructive/10 font-bold text-[10px] uppercase tracking-wider rounded-xl"
+                                className="w-full h-9 sm:h-10 text-destructive hover:bg-destructive/10 font-semibold text-[10px] uppercase tracking-wider rounded-xl"
                               >
-                                <Trash2 className="h-3.5 w-3.5 mr-2" />
+                                <Trash2 className="size-3.5 mr-2" />
                                 Delete
                               </Button>
                             </motion.div>
@@ -1914,7 +1916,7 @@ function FollowerRequestsCard({
       className="rounded-2xl sm:rounded-3xl border border-border shadow-sm overflow-hidden bg-card"
     >
       <div className="px-4 py-3 flex items-center justify-between">
-        <h3 className="font-bold text-[11px] uppercase tracking-wider text-foreground">
+        <h3 className="font-semibold text-[11px] uppercase tracking-wider text-foreground">
           Follow Requests
         </h3>
         <AnimatePresence>
@@ -1925,7 +1927,7 @@ function FollowerRequestsCard({
               exit={{ scale: 0.95, opacity: 0 }}
               transition={springTransition}
             >
-              <Badge className="bg-primary text-primary-foreground border-none font-bold text-[10px] h-5 min-w-5 px-1.5 rounded-full flex items-center justify-center">
+              <Badge className="bg-primary text-primary-foreground border-none font-semibold text-[10px] h-5 min-w-5 px-1.5 rounded-full flex items-center justify-center">
                 {pendingRequests.length}
               </Badge>
             </motion.div>
@@ -1948,7 +1950,7 @@ function FollowerRequestsCard({
                 ease: "linear",
               }}
             >
-              <Loader2 className="h-5 w-5 text-muted-foreground" />
+              <Loader2 className="size-5 text-muted-foreground" />
             </motion.div>
           </motion.div>
         ) : pendingRequests.length > 0 ? (
@@ -1980,11 +1982,11 @@ function FollowerRequestsCard({
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               transition={springTransition}
-              className="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3 border border-emerald-100"
+              className="size-10 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3 border border-emerald-100"
             >
-              <Check className="h-5 w-5 text-emerald-500" />
+              <Check className="size-5 text-emerald-500" />
             </motion.div>
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
               All caught up!
             </p>
           </motion.div>

@@ -25,11 +25,11 @@ export function EmptyState({
       exit={{ opacity: 0, scale: 0.98 }}
       className="flex flex-col items-center justify-center py-16 px-4 text-center"
     >
-      <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mb-6">
+      <div className="size-16 rounded-2xl bg-muted flex items-center justify-center mb-6">
         {hasFilters ? (
-          <FilterX className="h-8 w-8 text-muted-foreground" />
+          <FilterX className="size-8 text-muted-foreground" />
         ) : (
-          <CheckCircle2 className="h-8 w-8 text-muted-foreground" />
+          <CheckCircle2 className="size-8 text-muted-foreground" />
         )}
       </div>
 
@@ -56,7 +56,7 @@ export function EmptyState({
           </Button>
         )}
         <Button onClick={onCreateTask}>
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="mr-2 size-4" />
           New Task
         </Button>
       </div>

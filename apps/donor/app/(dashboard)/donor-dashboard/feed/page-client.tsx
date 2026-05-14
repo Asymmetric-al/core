@@ -222,7 +222,7 @@ const FeedFilter = ({
             key={type}
             onClick={() => onChange(type)}
             className={cn(
-              "px-5 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-[background-color,border-color,color,box-shadow,transform] duration-200 border select-none whitespace-nowrap flex items-center gap-2",
+              "px-5 py-2 rounded-full text-xs font-semibold uppercase tracking-widest transition-[background-color,border-color,color,box-shadow,transform] duration-200 border select-none whitespace-nowrap flex items-center gap-2",
               current === type
                 ? "bg-zinc-900 text-white border-zinc-900 shadow-lg hover:shadow-xl transform scale-[1.02]"
                 : "bg-white text-zinc-500 border-zinc-200/60 hover:bg-zinc-50 hover:border-zinc-300 hover:text-zinc-900 shadow-sm",
@@ -231,7 +231,7 @@ const FeedFilter = ({
             {type === "Saved" && (
               <BookmarkCheck
                 className={cn(
-                  "w-3.5 h-3.5",
+                  "size-3.5",
                   current === type ? "text-white" : "text-zinc-400",
                 )}
               />
@@ -292,14 +292,14 @@ const PostActions = ({
         >
           <Heart
             className={cn(
-              "h-5 w-5 transition-transform duration-150",
+              "size-5 transition-transform duration-150",
               post.liked
                 ? "fill-current scale-110"
                 : "[@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-110",
             )}
             strokeWidth={post.liked ? 0 : 1.5}
           />
-          <span className="text-xs font-bold">{post.likes}</span>
+          <span className="text-xs font-semibold">{post.likes}</span>
         </motion.button>
 
         <motion.button
@@ -312,14 +312,14 @@ const PostActions = ({
         >
           <Globe
             className={cn(
-              "h-5 w-5 transition-transform duration-150",
+              "size-5 transition-transform duration-150",
               post.prayed
                 ? "scale-110"
                 : "[@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-110",
             )}
             strokeWidth={1.5}
           />
-          <span className="text-xs font-bold">{post.prayers}</span>
+          <span className="text-xs font-semibold">{post.prayers}</span>
         </motion.button>
 
         <motion.button
@@ -328,10 +328,10 @@ const PostActions = ({
           className="flex items-center gap-2 px-3 py-2 rounded-full text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition-colors duration-150 group"
         >
           <MessageCircle
-            className="h-5 w-5 [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-110 transition-transform"
+            className="size-5 [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-110 transition-transform"
             strokeWidth={1.5}
           />
-          <span className="text-xs font-bold">{post.comments.length}</span>
+          <span className="text-xs font-semibold">{post.comments.length}</span>
         </motion.button>
       </div>
 
@@ -349,7 +349,7 @@ const PostActions = ({
         >
           <Bookmark
             className={cn(
-              "h-4 w-4 transition-transform duration-150",
+              "size-4 transition-transform duration-150",
               post.saved ? "fill-current scale-110" : "",
             )}
             strokeWidth={1.5}
@@ -363,25 +363,25 @@ const PostActions = ({
               whileTap={{ scale: 0.9 }}
               className="p-2.5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-full transition-colors"
             >
-              <Share2 className="h-4 w-4" strokeWidth={1.5} />
+              <Share2 className="size-4" strokeWidth={1.5} />
             </motion.button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+            <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
               Share Update
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             {typeof navigator !== "undefined" &&
               typeof navigator.share === "function" && (
                 <DropdownMenuItem onClick={handleNativeShare}>
-                  <Share2 className="mr-2 h-4 w-4" /> Share via...
+                  <Share2 className="mr-2 size-4" /> Share via…
                 </DropdownMenuItem>
               )}
             <DropdownMenuItem onClick={handleCopyLink}>
               {copied ? (
-                <Check className="mr-2 h-4 w-4 text-green-600" />
+                <Check className="mr-2 size-4 text-green-600" />
               ) : (
-                <LinkIcon className="mr-2 h-4 w-4" />
+                <LinkIcon className="mr-2 size-4" />
               )}
               {copied ? "Copied!" : "Copy Link"}
             </DropdownMenuItem>
@@ -394,7 +394,7 @@ const PostActions = ({
                 )
               }
             >
-              <Facebook className="mr-2 h-4 w-4 text-blue-600" /> Facebook
+              <Facebook className="mr-2 size-4 text-blue-600" /> Facebook
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() =>
@@ -404,7 +404,7 @@ const PostActions = ({
                 )
               }
             >
-              <Twitter className="mr-2 h-4 w-4 text-sky-500" /> X / Twitter
+              <Twitter className="mr-2 size-4 text-sky-500" /> X / Twitter
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() =>
@@ -414,7 +414,7 @@ const PostActions = ({
                 )
               }
             >
-              <Linkedin className="mr-2 h-4 w-4 text-blue-700" /> LinkedIn
+              <Linkedin className="mr-2 size-4 text-blue-700" /> LinkedIn
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() =>
@@ -423,7 +423,7 @@ const PostActions = ({
                 )
               }
             >
-              <Mail className="mr-2 h-4 w-4" /> Email
+              <Mail className="mr-2 size-4" /> Email
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -465,7 +465,7 @@ const CommentsSection = ({
       exit={{ opacity: 0, height: 0 }}
       className="bg-zinc-50/50 rounded-2xl p-6 mt-4 border border-zinc-100/50"
     >
-      <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-6">
+      <h4 className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-6">
         Discussion ({comments.length})
       </h4>
 
@@ -473,28 +473,28 @@ const CommentsSection = ({
         {comments.map((comment) => (
           <div key={comment.id} className="group">
             <div className="flex gap-4">
-              <Avatar className="h-9 w-9 border border-white shadow-sm mt-1">
+              <Avatar className="size-9 border border-white shadow-sm mt-1">
                 <AvatarImage src={comment.avatar} />
-                <AvatarFallback className="bg-white text-zinc-700 text-xs font-bold border border-zinc-100">
+                <AvatarFallback className="bg-white text-zinc-700 text-xs font-semibold border border-zinc-100">
                   {comment.author[0]}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 space-y-1 text-left">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-zinc-900 uppercase tracking-tight">
+                    <span className="text-sm font-semibold text-zinc-900 uppercase tracking-tight">
                       {comment.author}
                     </span>
                     {comment.authorTitle && (
                       <Badge
                         variant="secondary"
-                        className="text-[9px] h-4 px-1.5 bg-zinc-200/50 text-zinc-600 font-bold uppercase tracking-widest"
+                        className="text-[9px] h-4 px-1.5 bg-zinc-200/50 text-zinc-600 font-semibold uppercase tracking-widest"
                       >
                         {comment.authorTitle}
                       </Badge>
                     )}
                   </div>
-                  <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest">
+                  <span className="text-[10px] font-semibold text-zinc-300 uppercase tracking-widest">
                     {comment.time}
                   </span>
                 </div>
@@ -502,7 +502,7 @@ const CommentsSection = ({
                   {comment.text}
                 </p>
                 <button
-                  className="text-[10px] font-bold text-zinc-400 hover:text-zinc-900 transition-colors uppercase tracking-widest"
+                  className="text-[10px] font-semibold text-zinc-400 hover:text-zinc-900 transition-colors uppercase tracking-widest"
                   onClick={() =>
                     setReplyingTo(replyingTo === comment.id ? null : comment.id)
                   }
@@ -517,26 +517,26 @@ const CommentsSection = ({
               <div className="ml-12 mt-3 space-y-3 pl-3 border-l-2 border-zinc-200">
                 {comment.replies.map((reply) => (
                   <div key={reply.id} className="flex gap-3 text-left">
-                    <Avatar className="h-7 w-7 border border-white shadow-sm mt-1">
+                    <Avatar className="size-7 border border-white shadow-sm mt-1">
                       <AvatarImage src={reply.avatar} />
-                      <AvatarFallback className="bg-white text-zinc-700 text-[10px] font-bold border border-zinc-100">
+                      <AvatarFallback className="bg-white text-zinc-700 text-[10px] font-semibold border border-zinc-100">
                         {reply.author[0]}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-zinc-900 uppercase tracking-tight">
+                        <span className="text-sm font-semibold text-zinc-900 uppercase tracking-tight">
                           {reply.author}
                         </span>
                         {reply.authorTitle && (
                           <Badge
                             variant="secondary"
-                            className="text-[9px] h-4 px-1.5 bg-zinc-900 text-white font-bold uppercase tracking-widest"
+                            className="text-[9px] h-4 px-1.5 bg-zinc-900 text-white font-semibold uppercase tracking-widest"
                           >
                             {reply.authorTitle}
                           </Badge>
                         )}
-                        <span className="text-[9px] font-bold text-zinc-300 uppercase tracking-widest">
+                        <span className="text-[9px] font-semibold text-zinc-300 uppercase tracking-widest">
                           • {reply.time}
                         </span>
                       </div>
@@ -554,7 +554,7 @@ const CommentsSection = ({
               <div className="ml-12 mt-3 pl-3">
                 <div className="relative group">
                   <Input
-                    placeholder={`Reply to ${comment.author}...`}
+                    placeholder={`Reply to ${comment.author}…`}
                     className="pr-10 bg-white border-zinc-200 h-9 text-xs shadow-sm pl-3 rounded-lg"
                     value={replyText}
                     onChange={(e) => setReplyText(e.target.value)}
@@ -567,7 +567,7 @@ const CommentsSection = ({
                     disabled={!replyText.trim()}
                     className="absolute right-1 top-1 p-1 text-zinc-400 hover:text-zinc-900 transition-colors"
                   >
-                    <CornerDownRight className="h-3.5 w-3.5" />
+                    <CornerDownRight className="size-3.5" />
                   </button>
                 </div>
               </div>
@@ -582,14 +582,14 @@ const CommentsSection = ({
       </div>
 
       <div className="flex gap-3 items-center">
-        <Avatar className="h-9 w-9 border border-zinc-200 hidden sm:block">
-          <AvatarFallback className="bg-zinc-900 text-white text-xs font-bold">
+        <Avatar className="size-9 border border-zinc-200 hidden sm:block">
+          <AvatarFallback className="bg-zinc-900 text-white text-xs font-semibold">
             ME
           </AvatarFallback>
         </Avatar>
         <div className="relative flex-1 group">
           <Input
-            placeholder="Write a supportive comment..."
+            placeholder="Write a supportive comment…"
             className="pr-12 bg-white border-zinc-200/80 focus:border-zinc-300 focus:ring-4 focus:ring-zinc-100 rounded-xl h-12 transition-colors duration-150 shadow-sm pl-5"
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -598,9 +598,9 @@ const CommentsSection = ({
           <button
             onClick={handleSubmit}
             disabled={!text.trim()}
-            className="absolute right-1.5 top-1.5 p-2 text-white bg-zinc-900 hover:bg-zinc-800 rounded-lg disabled:opacity-0 disabled:scale-90 transition-[background-color,opacity,transform,box-shadow] duration-150 shadow-sm w-9 h-9 flex items-center justify-center"
+            className="absolute right-1.5 top-1.5 p-2 text-white bg-zinc-900 hover:bg-zinc-800 rounded-lg disabled:opacity-0 disabled:scale-90 transition-[background-color,opacity,transform,box-shadow] duration-150 shadow-sm size-9 flex items-center justify-center"
           >
-            <Send className="h-4 w-4" />
+            <Send className="size-4" />
           </button>
         </div>
       </div>
@@ -631,23 +631,23 @@ const PostCard: React.FC<{
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="relative group cursor-pointer">
-            <Avatar className="h-10 w-10 border border-zinc-100 shadow-sm transition-transform [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.02]">
+            <Avatar className="size-10 border border-zinc-100 shadow-sm transition-transform [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.02]">
               <AvatarImage src={post.workerAvatar} />
-              <AvatarFallback className="bg-zinc-100 font-bold text-zinc-600 uppercase">
+              <AvatarFallback className="bg-zinc-100 font-semibold text-zinc-600 uppercase">
                 {post.workerName[0]}
               </AvatarFallback>
             </Avatar>
           </div>
           <div className="text-left">
             <div className="flex items-center gap-2">
-              <h3 className="font-bold text-zinc-900 text-sm leading-none cursor-pointer hover:underline decoration-2 decoration-zinc-200 underline-offset-4 uppercase tracking-tight">
+              <h3 className="font-semibold text-zinc-900 text-sm leading-none cursor-pointer hover:underline decoration-2 decoration-zinc-200 underline-offset-4 uppercase tracking-tight">
                 {post.workerName}
               </h3>
-              <button className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 transition-colors">
+              <button className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 hover:text-zinc-900 transition-colors">
                 Follow
               </button>
             </div>
-            <div className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-400 mt-1 uppercase tracking-widest">
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold text-zinc-400 mt-1 uppercase tracking-widest">
               <span>{post.readTime || "3 min read"}</span>
               <span className="text-zinc-200">•</span>
               <span>{post.time}</span>
@@ -664,18 +664,18 @@ const PostCard: React.FC<{
                 size="icon"
                 className="text-zinc-300 hover:text-zinc-600 hover:bg-transparent -mr-2"
               >
-                <MoreHorizontal className="h-5 w-5" />
+                <MoreHorizontal className="size-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem className="text-[10px] font-bold uppercase tracking-widest">
+              <DropdownMenuItem className="text-[10px] font-semibold uppercase tracking-widest">
                 Mute Updates
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-[10px] font-bold uppercase tracking-widest text-rose-600">
+              <DropdownMenuItem className="text-[10px] font-semibold uppercase tracking-widest text-rose-600">
                 Report
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-[10px] font-bold uppercase tracking-widest">
+              <DropdownMenuItem className="text-[10px] font-semibold uppercase tracking-widest">
                 Copy Link
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -686,7 +686,7 @@ const PostCard: React.FC<{
       {/* Content */}
       <div className="space-y-6 text-left">
         {post.title && (
-          <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 tracking-tighter leading-tight uppercase">
+          <h2 className="text-2xl sm:text-3xl font-semibold text-zinc-900 tracking-tighter leading-tight uppercase">
             {post.title}
           </h2>
         )}
@@ -712,8 +712,8 @@ const PostCard: React.FC<{
         {imageError && (
           <div className="rounded-xl overflow-hidden border border-zinc-100 bg-zinc-50 h-32 flex items-center justify-center text-zinc-400">
             <div className="flex flex-col items-center gap-2">
-              <ImageOff className="h-6 w-6" />
-              <span className="text-[10px] font-bold uppercase tracking-widest">
+              <ImageOff className="size-6" />
+              <span className="text-[10px] font-semibold uppercase tracking-widest">
                 Image unavailable
               </span>
             </div>
@@ -722,8 +722,8 @@ const PostCard: React.FC<{
 
         <PostContent
           value={post.content}
-          richTextClassName="prose prose-zinc prose-sm sm:prose-base max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-p:leading-relaxed prose-p:text-zinc-600 prose-p:font-medium prose-blockquote:border-l-4 prose-blockquote:border-zinc-900 prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:font-bold prose-blockquote:text-zinc-800 prose-a:text-zinc-900 prose-a:underline hover:prose-a:opacity-70 prose-img:rounded-xl uppercase tracking-tight"
-          htmlClassName="prose prose-zinc prose-sm sm:prose-base max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-p:leading-relaxed prose-p:text-zinc-600 prose-p:font-medium prose-blockquote:border-l-4 prose-blockquote:border-zinc-900 prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:font-bold prose-blockquote:text-zinc-800 prose-a:text-zinc-900 prose-a:underline hover:prose-a:opacity-70 prose-img:rounded-xl uppercase tracking-tight"
+          richTextClassName="prose prose-zinc prose-sm sm:prose-base max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-p:leading-relaxed prose-p:text-zinc-600 prose-p:font-medium prose-blockquote:border-l-4 prose-blockquote:border-zinc-900 prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:font-semibold prose-blockquote:text-zinc-800 prose-a:text-zinc-900 prose-a:underline hover:prose-a:opacity-70 prose-img:rounded-xl uppercase tracking-tight"
+          htmlClassName="prose prose-zinc prose-sm sm:prose-base max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-p:leading-relaxed prose-p:text-zinc-600 prose-p:font-medium prose-blockquote:border-l-4 prose-blockquote:border-zinc-900 prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:font-semibold prose-blockquote:text-zinc-800 prose-a:text-zinc-900 prose-a:underline hover:prose-a:opacity-70 prose-img:rounded-xl uppercase tracking-tight"
         />
       </div>
 
@@ -833,10 +833,10 @@ export default function DonorFeedPage() {
     <div className="max-w-2xl mx-auto pb-20">
       {/* Hero Header */}
       <div className="px-1 mb-8 pt-8 text-center sm:text-left">
-        <h1 className="text-4xl md:text-6xl font-bold tracking-tighter text-zinc-900 mb-4 uppercase">
+        <h1 className="text-4xl md:text-6xl font-semibold tracking-tighter text-zinc-900 mb-4 uppercase">
           Ministry Updates
         </h1>
-        <p className="text-lg text-zinc-400 font-bold uppercase tracking-widest leading-relaxed max-w-lg">
+        <p className="text-lg text-zinc-400 font-semibold uppercase tracking-widest leading-relaxed max-w-lg">
           Field stories, urgent needs, and joyful updates from the partners you
           empower.
         </p>
@@ -862,13 +862,13 @@ export default function DonorFeedPage() {
 
         {filteredPosts.length === 0 && (
           <div className="py-32 text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-zinc-50 text-zinc-200 mb-6">
-              <BookmarkCheck className="h-10 w-10" />
+            <div className="inline-flex items-center justify-center size-20 rounded-full bg-zinc-50 text-zinc-200 mb-6">
+              <BookmarkCheck className="size-10" />
             </div>
-            <h3 className="text-xl font-bold text-zinc-900 mb-2 uppercase tracking-tighter">
+            <h3 className="text-xl font-semibold text-zinc-900 mb-2 uppercase tracking-tighter">
               No posts found
             </h3>
-            <p className="text-zinc-400 max-w-xs mx-auto text-xs font-bold uppercase tracking-widest">
+            <p className="text-zinc-400 max-w-xs mx-auto text-xs font-semibold uppercase tracking-widest">
               {filter === "Saved"
                 ? "You haven't bookmarked any updates yet. Tap the bookmark icon on any post to save it here."
                 : "Try changing the filter or check back later for new stories."}
@@ -877,7 +877,7 @@ export default function DonorFeedPage() {
               <Button
                 variant="link"
                 onClick={() => setFilter("All")}
-                className="mt-4 text-zinc-900 font-black uppercase tracking-widest text-[10px]"
+                className="mt-4 text-zinc-900 font-semibold uppercase tracking-widest text-[10px]"
               >
                 Browse All Updates
               </Button>
@@ -888,13 +888,13 @@ export default function DonorFeedPage() {
 
       {/* End of Feed Indicator */}
       {filteredPosts.length > 0 && (
-        <div className="flex flex-col items-center py-20 space-y-4 opacity-40 hover:opacity-100 transition-opacity">
+        <div className="flex flex-col items-center py-20 gap-y-4 opacity-40 hover:opacity-100 transition-opacity">
           <div className="flex gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
-            <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
-            <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
+            <div className="size-1.5 rounded-full bg-zinc-400" />
+            <div className="size-1.5 rounded-full bg-zinc-400" />
+            <div className="size-1.5 rounded-full bg-zinc-400" />
           </div>
-          <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest pt-2">
+          <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest pt-2">
             You&apos;re all caught up
           </p>
         </div>

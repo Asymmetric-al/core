@@ -46,17 +46,17 @@ export const ProfileMenu = memo(function ProfileMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="h-8 gap-2 px-2 hover:bg-secondary">
-          <Avatar className="h-6 w-6">
+          <Avatar className="size-6">
             <AvatarFallback className="bg-foreground text-background text-[10px] font-medium">
               {initials}
             </AvatarFallback>
           </Avatar>
-          <ChevronDown className="h-3 w-3 text-muted-foreground" />
+          <ChevronDown className="size-3 text-muted-foreground" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
+          <div className="flex flex-col gap-y-1">
             <p className="text-sm font-medium leading-none">{user?.name}</p>
             <p className="text-xs leading-none text-muted-foreground">
               {user?.email}
@@ -65,11 +65,11 @@ export const ProfileMenu = memo(function ProfileMenu() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="gap-2">
-          <User className="h-4 w-4" />
+          <User className="size-4" />
           Profile
         </DropdownMenuItem>
         <DropdownMenuItem className="gap-2">
-          <Settings className="h-4 w-4" />
+          <Settings className="size-4" />
           Settings
         </DropdownMenuItem>
         {isDevMode && (
@@ -103,7 +103,7 @@ export const ProfileMenu = memo(function ProfileMenu() {
           className="gap-2 text-destructive focus:text-destructive"
           onClick={handleSignOut}
         >
-          <LogOut className="h-4 w-4" />
+          <LogOut className="size-4" />
           Sign out
         </DropdownMenuItem>
       </DropdownMenuContent>

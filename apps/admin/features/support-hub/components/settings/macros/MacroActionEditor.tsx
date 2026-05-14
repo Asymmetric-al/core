@@ -101,7 +101,7 @@ export function MacroActionEditor({
           {actions.map((action, index) => (
             <li
               key={index}
-              className="flex flex-wrap items-center gap-2 rounded-lg bg-zinc-50/60 px-2 py-2"
+              className="flex flex-wrap items-center gap-2 rounded-lg bg-zinc-50/60 p-2"
             >
               <Select
                 value={action.kind}

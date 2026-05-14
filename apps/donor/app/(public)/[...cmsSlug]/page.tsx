@@ -57,7 +57,7 @@ export default async function CmsPublicPage({ params }: PageProps) {
         <p className="text-xs font-semibold tracking-[0.2em] uppercase text-zinc-500">
           Site Studio Page
         </p>
-        <h1 className="text-balance text-4xl font-bold text-zinc-900 sm:text-5xl">
+        <h1 className="text-balance text-4xl font-semibold text-zinc-900 sm:text-5xl">
           {page.title}
         </h1>
         {page.summary ? (

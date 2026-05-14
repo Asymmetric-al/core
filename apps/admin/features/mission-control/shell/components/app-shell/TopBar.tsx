@@ -11,7 +11,7 @@ import { TenantSwitcher } from "./TenantSwitcher";
 
 export const TopBar = memo(function TopBar() {
   return (
-    <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b border-slate-200/60 bg-white/80 px-6 backdrop-blur-md">
+    <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b border-zinc-200/60 bg-white/80 px-6 backdrop-blur-md">
       <div className="flex items-center gap-4">
         <MobileSidebar />
         <GlobalSearch />

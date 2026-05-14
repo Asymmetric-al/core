@@ -30,20 +30,20 @@ export function ThemeToggle({
       {collapsed ? (
         <button
           onClick={() => setTheme(isDark ? "light" : "dark")}
-          className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+          className="flex size-9 items-center justify-center rounded-xl text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
           aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
         >
-          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
         </button>
       ) : (
         <>
-          <Sun className="h-4 w-4 text-muted-foreground" />
+          <Sun className="size-4 text-muted-foreground" />
           <Switch
             checked={isDark}
             onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
             aria-label="Toggle dark mode"
           />
-          <Moon className="h-4 w-4 text-muted-foreground" />
+          <Moon className="size-4 text-muted-foreground" />
         </>
       )}
     </div>

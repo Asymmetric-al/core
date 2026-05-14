@@ -41,9 +41,9 @@ export function TaskBulkActionsBar({
             variant="ghost"
             size="icon"
             onClick={onClear}
-            className="h-8 w-8 text-primary-foreground/60 hover:text-primary-foreground hover:bg-primary-foreground/10"
+            className="size-8 text-primary-foreground/60 hover:text-primary-foreground hover:bg-primary-foreground/10"
           >
-            <X className="h-4 w-4" />
+            <X className="size-4" />
             <span className="sr-only">Clear selection</span>
           </Button>
 
@@ -57,7 +57,7 @@ export function TaskBulkActionsBar({
             onClick={() => onUpdateStatus("completed")}
             className="h-8 text-primary-foreground hover:text-primary-foreground hover:bg-primary-foreground/10"
           >
-            <CheckCircle2 className="h-4 w-4 mr-2" />
+            <CheckCircle2 className="size-4 mr-2" />
             Complete
           </Button>
 
@@ -69,7 +69,7 @@ export function TaskBulkActionsBar({
                 className="h-8 text-primary-foreground hover:text-primary-foreground hover:bg-primary-foreground/10"
               >
                 Status
-                <ChevronDown className="h-4 w-4 ml-1" />
+                <ChevronDown className="size-4 ml-1" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="center">
@@ -96,7 +96,7 @@ export function TaskBulkActionsBar({
             onClick={onDelete}
             className="h-8 text-destructive-foreground hover:text-destructive-foreground hover:bg-destructive/80"
           >
-            <Trash2 className="h-4 w-4 mr-2" />
+            <Trash2 className="size-4 mr-2" />
             Delete
           </Button>
         </div>

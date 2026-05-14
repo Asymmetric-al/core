@@ -47,7 +47,7 @@ const NavLink = memo(function NavLink({
     >
       <item.icon
         className={cn(
-          "h-5 w-5 shrink-0 transition-colors",
+          "size-5 shrink-0 transition-colors",
           isActive
             ? "text-foreground"
             : "text-muted-foreground/70 group-hover:text-foreground",
@@ -125,16 +125,16 @@ const SidebarHeader = memo(function SidebarHeader({
           href={resolveMissionControlHref("/mc")}
           className="flex items-center gap-3"
         >
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm ring-1 ring-primary/5">
-            <LayoutDashboard className="h-5 w-5" />
+          <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm ring-1 ring-primary/5">
+            <LayoutDashboard className="size-5" />
           </div>
           <span className="text-base font-bold tracking-tight text-foreground">
             Mission Control
           </span>
         </Link>
       ) : (
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-          <LayoutDashboard className="h-5 w-5" />
+        <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+          <LayoutDashboard className="size-5" />
         </div>
       )}
     </div>
@@ -160,10 +160,10 @@ const CollapseButton = memo(function CollapseButton({
         onClick={onToggle}
       >
         {collapsed ? (
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="size-4" />
         ) : (
           <>
-            <ChevronLeft className="h-4 w-4 mr-2" />
+            <ChevronLeft className="size-4 mr-2" />
             <span className="text-xs font-medium">Collapse</span>
           </>
         )}

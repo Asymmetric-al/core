@@ -81,22 +81,25 @@ This table mirrors `.env.example`. Internal-only vars (for example `NODE_ENV`, `
 
 ## Common Commands
 
-| Command                  | Description                              |
-| ------------------------ | ---------------------------------------- |
-| `bun run setup`          | Initial setup (env + deps + verify)      |
-| `bun run verify`         | Validate dev server + basic connectivity |
-| `bun run dev`            | Start all apps in dev mode               |
-| `bun run dev:admin`      | Start admin app only                     |
-| `bun run dev:donor`      | Start donor app only                     |
-| `bun run dev:missionary` | Start missionary app only                |
-| `bun run lint`           | Lint all apps and packages               |
-| `bun run typecheck`      | Type-check all apps and packages         |
-| `bun run build`          | Build all apps and packages              |
-| `bun run test:e2e`       | Run Playwright E2E tests                 |
+| Command                                                               | Description                                       |
+| --------------------------------------------------------------------- | ------------------------------------------------- |
+| `bun run setup`                                                       | Initial setup (env + deps + verify)               |
+| `bun run verify`                                                      | Validate dev server + basic connectivity          |
+| `bun run dev`                                                         | Start all apps in dev mode                        |
+| `bun run dev:admin`                                                   | Start admin app only                              |
+| `bun run dev:donor`                                                   | Start donor app only                              |
+| `bun run dev:missionary`                                              | Start missionary app only                         |
+| `bun run lint`                                                        | Lint all apps and packages                        |
+| `bun run typecheck`                                                   | Type-check all apps and packages                  |
+| `bun run build`                                                       | Build all apps and packages                       |
+| `bun run test:e2e`                                                    | Run Playwright E2E tests                          |
+| `bun run react-doctor:first-party -- --full --offline --fail-on none` | Run the configured first-party React Doctor audit |
 
 Build troubleshooting and CI-parity commands are documented in `docs/guides/development/build-runbook.md`.
 Internal package `build` tasks are source-first TypeScript validation (`tsc --noEmit`), while app builds compile through Next.js.
 If you see Next.js lockfile/workspace-root warnings, follow `Multiple lockfile warnings during Next.js build` in the runbook.
+
+React/Next.js cleanup audits are documented in `docs/guides/development/react-doctor.md`. The configured audit is advisory unless CI or a focused task chooses stricter `failOn` behavior.
 
 ## Project Structure
 

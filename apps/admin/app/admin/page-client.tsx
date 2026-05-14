@@ -112,10 +112,10 @@ export default function AdminPage() {
             variant="outline"
             className="h-10 rounded-xl border-zinc-200 px-4 text-sm font-semibold hover:bg-zinc-50"
           >
-            <Activity className="h-4 w-4 text-zinc-600" /> Audit Logs
+            <Activity className="size-4 text-zinc-600" /> Audit Logs
           </Button>
           <Button className="h-10 rounded-xl bg-zinc-900 px-5 text-sm font-semibold text-white shadow-sm hover:bg-zinc-800">
-            <Shield className="h-4 w-4" /> Security Scan
+            <Shield className="size-4" /> Security Scan
           </Button>
         </div>
       }
@@ -133,8 +133,8 @@ export default function AdminPage() {
               <Link href={item.href} className="group block">
                 <Card className="h-full overflow-hidden border border-zinc-100 bg-white shadow-sm transition-[border-color,box-shadow] duration-200 hover:border-zinc-200 hover:shadow-md">
                   <CardHeader className="pb-3">
-                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-100 text-zinc-700 transition-colors group-hover:bg-zinc-900 group-hover:text-white">
-                      <item.icon className="h-5 w-5" />
+                    <div className="mb-3 flex size-10 items-center justify-center rounded-xl bg-zinc-100 text-zinc-700 transition-colors group-hover:bg-zinc-900 group-hover:text-white">
+                      <item.icon className="size-5" />
                     </div>
                     <CardTitle className="text-base font-bold text-zinc-900 transition-colors group-hover:text-zinc-700 text-left">
                       {item.title}
@@ -146,7 +146,7 @@ export default function AdminPage() {
                   <CardContent className="pt-0">
                     <div className="flex items-center text-sm font-semibold text-zinc-600 group-hover:text-zinc-900 transition-colors mt-auto">
                       {item.action}
-                      <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      <ArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
                     </div>
                   </CardContent>
                 </Card>
@@ -179,7 +179,7 @@ export default function AdminPage() {
                     variant="secondary"
                     className="border-emerald-200 bg-emerald-50 text-emerald-700 shadow-none hover:bg-emerald-50"
                   >
-                    <div className="mr-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    <div className="mr-1.5 size-1.5 rounded-full bg-emerald-500" />
                     {service.status}
                   </Badge>
                 </div>
@@ -200,7 +200,7 @@ export default function AdminPage() {
               <div className="rounded-xl bg-zinc-50/50 border border-zinc-100 p-4 space-y-3">
                 {SECURITY_TIPS.map((tip) => (
                   <div key={tip.id} className="flex items-start gap-3">
-                    <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-600 shadow-sm">
+                    <div className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-600 shadow-sm">
                       <span className="text-[10px] font-bold">{tip.order}</span>
                     </div>
                     <span className="text-sm text-zinc-600">{tip.text}</span>

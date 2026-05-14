@@ -37,11 +37,11 @@ export function ContributionsBoneyardFallback() {
           {Array.from({ length: 8 }).map((_, i) => (
             <div
               key={i}
-              className="flex items-center gap-4 px-4 py-4 border-t border-border"
+              className="flex items-center gap-4 p-4 border-t border-border"
             >
-              <Skeleton className="h-4 w-4 rounded" />
+              <Skeleton className="size-4 rounded" />
               <div className="flex items-center gap-3 flex-1">
-                <Skeleton className="h-9 w-9 rounded-full" />
+                <Skeleton className="size-9 rounded-full" />
                 <div className="space-y-1.5">
                   <Skeleton className="h-3.5 w-28" />
                   <Skeleton className="h-3 w-36" />

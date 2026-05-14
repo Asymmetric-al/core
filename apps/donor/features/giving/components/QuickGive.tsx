@@ -12,7 +12,7 @@ export function QuickGive({ workerId }: { workerId: string }) {
       asChild
     >
       <Link href={`/checkout?workerId=${workerId}`}>
-        <Zap className="mr-2 h-4 w-4 fill-current group-hover:animate-pulse" />{" "}
+        <Zap className="mr-2 size-4 fill-current group-hover:animate-pulse" />{" "}
         Quick Give $100
       </Link>
     </Button>

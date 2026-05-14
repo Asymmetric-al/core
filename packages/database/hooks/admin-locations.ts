@@ -1,7 +1,12 @@
 "use client";
 
 import { useLiveQuery } from "@tanstack/react-db";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
 
 import {
   adminLocationsCollection,
@@ -31,6 +36,15 @@ type LocationMutationPayload = {
   summary?: string | null;
   status: LocationStatus;
 };
+
+async function invalidateAdminLocationCaches(
+  queryClient: QueryClient,
+): Promise<void> {
+  await Promise.all([
+    invalidateAdminSurfaceQuery(queryClient, "locations"),
+    invalidateAdminSurfaceQuery(queryClient, "locationLinkedEntities"),
+  ]);
+}
 
 async function parseJsonResponse<T>(response: Response): Promise<T> {
   const payload = (await response.json().catch(() => null)) as
@@ -78,12 +92,7 @@ export function useUpsertLocation() {
 
       return parseJsonResponse<{ location: Location }>(response);
     },
-    onSuccess: async () => {
-      await Promise.all([
-        invalidateAdminSurfaceQuery(queryClient, "locations"),
-        invalidateAdminSurfaceQuery(queryClient, "locationLinkedEntities"),
-      ]);
-    },
+    onSuccess: () => invalidateAdminLocationCaches(queryClient),
   });
 }
 
@@ -104,11 +113,6 @@ export function useDeleteLocation() {
 
       await parseJsonResponse<{ success: true }>(response);
     },
-    onSuccess: async () => {
-      await Promise.all([
-        invalidateAdminSurfaceQuery(queryClient, "locations"),
-        invalidateAdminSurfaceQuery(queryClient, "locationLinkedEntities"),
-      ]);
-    },
+    onSuccess: () => invalidateAdminLocationCaches(queryClient),
   });
 }

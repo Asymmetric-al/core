@@ -50,6 +50,12 @@ import {
 import type { CarePersonnel, ActivityLogEntry } from "../types";
 import type { MemberCarePrivateNote } from "@asym/database/hooks";
 
+function makeDisplayDate(value?: string | number | Date): Date {
+  return value === undefined
+    ? new globalThis.Date()
+    : new globalThis.Date(value);
+}
+
 interface PersonnelProfileProps {
   personnel: CarePersonnel;
   activities: ActivityLogEntry[];
@@ -72,24 +78,24 @@ function PersonnelProfileHeaderCard({
   isUpdatingAttention: boolean;
 }) {
   return (
-    <Card className="border-slate-200 shadow-sm overflow-hidden">
-      <div className="h-24 bg-gradient-to-r from-slate-900 to-slate-800" />
+    <Card className="border-zinc-200 shadow-sm overflow-hidden">
+      <div className="h-24 bg-gradient-to-r from-zinc-900 to-zinc-800" />
       <CardContent className="relative pt-0 pb-6 px-6">
         <div className="flex flex-col md:flex-row items-start md:items-end gap-4 -mt-10">
-          <Avatar className="h-24 w-24 border-4 border-white shadow-lg bg-white">
+          <Avatar className="size-24 border-4 border-white shadow-lg bg-white">
             <AvatarImage src={personnel.avatarUrl} />
-            <AvatarFallback className="text-2xl font-bold">
+            <AvatarFallback className="text-2xl font-semibold">
               {personnel.initials}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 space-y-1">
             <div className="flex items-center gap-3">
-              <h2 className="text-2xl font-bold text-slate-900">
+              <h2 className="text-2xl font-semibold text-zinc-900">
                 {personnel.name}
               </h2>
               <Badge
                 className={cn(
-                  "font-bold",
+                  "font-semibold",
                   personnel.status === "Healthy"
                     ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                     : personnel.status === "At Risk"
@@ -100,15 +106,15 @@ function PersonnelProfileHeaderCard({
                 {personnel.status}
               </Badge>
             </div>
-            <div className="flex flex-wrap gap-4 text-xs text-slate-500 font-medium">
+            <div className="flex flex-wrap gap-4 text-xs text-zinc-500 font-medium">
               <div className="flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5" /> {personnel.location}
+                <MapPin className="size-3.5" /> {personnel.location}
               </div>
               <div className="flex items-center gap-1.5">
-                <Globe className="h-3.5 w-3.5" /> {personnel.region}
+                <Globe className="size-3.5" /> {personnel.region}
               </div>
               <div className="flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5" /> {localTime || "--:--"} (Local)
+                <Clock className="size-3.5" /> {localTime || "--:--"} (Local)
               </div>
             </div>
           </div>
@@ -116,11 +122,11 @@ function PersonnelProfileHeaderCard({
             <Button
               variant="outline"
               size="sm"
-              className="h-9 px-4 font-bold border-slate-200"
+              className="h-9 px-4 font-semibold border-zinc-200"
               onClick={onToggleManualAttention}
               disabled={isUpdatingAttention}
             >
-              <AlertTriangle className="mr-2 h-4 w-4 text-slate-400" />
+              <AlertTriangle className="mr-2 size-4 text-zinc-400" />
               {isUpdatingAttention
                 ? "Updating..."
                 : personnel.manualAttention
@@ -128,11 +134,11 @@ function PersonnelProfileHeaderCard({
                   : "Flag Attention"}
             </Button>
             <Button
-              className="h-9 px-4 font-bold bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-200"
+              className="h-9 px-4 font-semibold bg-zinc-900 text-white hover:bg-zinc-800 shadow-lg shadow-zinc-200"
               onClick={onLogCheckIn}
               disabled={isLoggingCheckIn}
             >
-              <Heart className="mr-2 h-4 w-4" /> Log Check-in
+              <Heart className="mr-2 size-4" /> Log Check-in
             </Button>
           </div>
         </div>
@@ -156,9 +162,9 @@ function OverviewTabContentSection({
       className="space-y-6 animate-in fade-in duration-300"
     >
       <div className="grid gap-6 md:grid-cols-3">
-        <Card className="md:col-span-2 border-slate-200 shadow-sm">
-          <CardHeader className="pb-3 border-b border-slate-50">
-            <CardTitle className="text-base font-bold">
+        <Card className="md:col-span-2 border-zinc-200 shadow-sm">
+          <CardHeader className="pb-3 border-b border-zinc-50">
+            <CardTitle className="text-base font-semibold">
               Wellness Heatmap
             </CardTitle>
             <CardDescription className="text-xs">
@@ -168,35 +174,35 @@ function OverviewTabContentSection({
           <CardContent className="pt-6">
             <HealthHeatmap data={heatmapData} />
             <div className="mt-6 space-y-4">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
                 Recent Activity
               </h4>
               <div className="space-y-3">
                 {activities.map((activity) => (
                   <div
                     key={activity.id}
-                    className="flex gap-3 p-3 rounded-lg border border-slate-100 bg-slate-50/30"
+                    className="flex gap-3 p-3 rounded-lg border border-zinc-100 bg-zinc-50/30"
                   >
                     <div className="mt-0.5">
                       {activity.type === "Video Call" ? (
-                        <Phone className="h-4 w-4 text-blue-500" />
+                        <Phone className="size-4 text-blue-500" />
                       ) : (
-                        <MessageCircle className="h-4 w-4 text-emerald-500" />
+                        <MessageCircle className="size-4 text-emerald-500" />
                       )}
                     </div>
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-bold text-slate-900">
+                        <span className="text-sm font-semibold text-zinc-900">
                           {activity.type}
                         </span>
-                        <span className="text-[10px] text-slate-400 font-medium">
-                          {new Date(activity.date).toLocaleDateString()}
+                        <span className="text-[10px] text-zinc-400 font-medium">
+                          {makeDisplayDate(activity.date).toLocaleDateString()}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-600 leading-relaxed">
+                      <p className="text-xs text-zinc-600 leading-relaxed">
                         {activity.content}
                       </p>
-                      <div className="text-[10px] text-slate-400 font-bold uppercase">
+                      <div className="text-[10px] text-zinc-400 font-semibold uppercase">
                         By {activity.authorName}
                       </div>
                     </div>
@@ -208,16 +214,16 @@ function OverviewTabContentSection({
         </Card>
 
         <div className="space-y-6">
-          <Card className="border-slate-200 shadow-sm">
-            <CardHeader className="pb-3 border-b border-slate-50">
-              <CardTitle className="text-base font-bold">
+          <Card className="border-zinc-200 shadow-sm">
+            <CardHeader className="pb-3 border-b border-zinc-50">
+              <CardTitle className="text-base font-semibold">
                 Health Signals
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6 space-y-4">
               {Object.entries(personnel.healthSignals).map(([key, value]) => (
                 <div key={key} className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs font-bold capitalize">
+                  <div className="flex items-center justify-between text-xs font-semibold capitalize">
                     <span>{key}</span>
                     <span
                       className={cn(
@@ -231,7 +237,7 @@ function OverviewTabContentSection({
                       {value}%
                     </span>
                   </div>
-                  <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full bg-zinc-100 rounded-full overflow-hidden">
                     <div
                       className={cn(
                         "h-full rounded-full transition-all",
@@ -253,8 +259,8 @@ function OverviewTabContentSection({
             <Card className="border-rose-100 bg-rose-50/30 shadow-sm">
               <CardHeader className="pb-2">
                 <div className="flex items-center gap-2 text-rose-900">
-                  <AlertTriangle className="h-4 w-4" />
-                  <CardTitle className="text-sm font-bold uppercase">
+                  <AlertTriangle className="size-4" />
+                  <CardTitle className="text-sm font-semibold uppercase">
                     Active Care Gaps
                   </CardTitle>
                 </div>
@@ -266,7 +272,7 @@ function OverviewTabContentSection({
                       key={gap}
                       className="text-xs font-medium text-rose-700 flex items-center gap-2"
                     >
-                      <div className="h-1 w-1 rounded-full bg-rose-400" />
+                      <div className="size-1 rounded-full bg-rose-400" />
                       {gap}
                     </li>
                   ))}
@@ -275,27 +281,27 @@ function OverviewTabContentSection({
             </Card>
           )}
 
-          <Card className="border-slate-200 shadow-sm">
-            <CardHeader className="pb-3 border-b border-slate-50">
-              <CardTitle className="text-base font-bold">
+          <Card className="border-zinc-200 shadow-sm">
+            <CardHeader className="pb-3 border-b border-zinc-50">
+              <CardTitle className="text-base font-semibold">
                 Personal & Family Info
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-6 space-y-3 text-xs text-slate-600">
+            <CardContent className="pt-6 space-y-3 text-xs text-zinc-600">
               <div className="flex justify-between gap-4">
-                <span className="font-bold uppercase tracking-wider text-slate-400">
+                <span className="font-semibold uppercase tracking-wider text-zinc-400">
                   Household
                 </span>
                 <span>Not provided</span>
               </div>
               <div className="flex justify-between gap-4">
-                <span className="font-bold uppercase tracking-wider text-slate-400">
+                <span className="font-semibold uppercase tracking-wider text-zinc-400">
                   Dependents
                 </span>
                 <span>Not provided</span>
               </div>
               <div className="flex justify-between gap-4">
-                <span className="font-bold uppercase tracking-wider text-slate-400">
+                <span className="font-semibold uppercase tracking-wider text-zinc-400">
                   Preferred language
                 </span>
                 <span>Not provided</span>
@@ -303,15 +309,15 @@ function OverviewTabContentSection({
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200 shadow-sm">
-            <CardHeader className="pb-3 border-b border-slate-50">
-              <CardTitle className="text-base font-bold">
+          <Card className="border-zinc-200 shadow-sm">
+            <CardHeader className="pb-3 border-b border-zinc-50">
+              <CardTitle className="text-base font-semibold">
                 Emergency Contact
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6 space-y-2 text-xs">
-              <p className="font-bold text-slate-900">Not yet recorded</p>
-              <p className="text-slate-500">
+              <p className="font-semibold text-zinc-900">Not yet recorded</p>
+              <p className="text-zinc-500">
                 Add emergency contact information in profile editing flows.
               </p>
             </CardContent>
@@ -338,30 +344,30 @@ function CareThreadTabContent({
       value="care-thread"
       className="animate-in fade-in duration-300"
     >
-      <Card className="border-slate-200 shadow-sm min-h-[400px]">
-        <CardHeader className="border-b border-slate-50">
-          <CardTitle className="text-base font-bold">Care Thread</CardTitle>
+      <Card className="border-zinc-200 shadow-sm min-h-[400px]">
+        <CardHeader className="border-b border-zinc-50">
+          <CardTitle className="text-base font-semibold">Care Thread</CardTitle>
           <CardDescription className="text-xs">
             Shared updates and contextual care notes for {personnel.name}.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6 space-y-4">
           {threadEntries.length === 0 ? (
-            <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-xs text-slate-500">
+            <div className="rounded-xl border border-zinc-100 bg-zinc-50 p-4 text-xs text-zinc-500">
               No thread updates yet.
             </div>
           ) : (
             threadEntries.map((entry) => (
               <div
                 key={entry.id}
-                className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm"
+                className="rounded-xl border border-zinc-100 bg-white p-4 shadow-sm"
               >
                 <div className="mb-2 flex items-center justify-between text-[11px]">
-                  <span className="font-bold uppercase tracking-wider text-slate-500">
+                  <span className="font-semibold uppercase tracking-wider text-zinc-500">
                     {entry.authorName}
                   </span>
-                  <span className="text-slate-400">
-                    {new Date(entry.date).toLocaleString()}
+                  <span className="text-zinc-400">
+                    {makeDisplayDate(entry.date).toLocaleString()}
                   </span>
                 </div>
                 <RichTextViewer value={entry.content} />
@@ -369,7 +375,7 @@ function CareThreadTabContent({
             ))
           )}
 
-          <div className="rounded-xl border border-slate-200 p-4">
+          <div className="rounded-xl border border-zinc-200 p-4">
             <LegacyRichTextEditor
               value={draft}
               onChange={setDraft}
@@ -378,7 +384,7 @@ function CareThreadTabContent({
             <div className="mt-3 flex justify-end">
               <Button
                 size="sm"
-                className="h-8 font-bold bg-slate-900 text-white"
+                className="h-8 font-semibold bg-zinc-900 text-white"
                 onClick={async () => {
                   if (!draft.trim()) return;
                   await createThreadPost.mutateAsync({
@@ -418,22 +424,24 @@ function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
 
   return (
     <TabsContent value="care-plan" className="animate-in fade-in duration-300">
-      <Card className="border-slate-200 shadow-sm min-h-[400px]">
-        <CardHeader className="border-b border-slate-50">
+      <Card className="border-zinc-200 shadow-sm min-h-[400px]">
+        <CardHeader className="border-b border-zinc-50">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <CardTitle className="text-base font-bold">Care Plan</CardTitle>
+              <CardTitle className="text-base font-semibold">
+                Care Plan
+              </CardTitle>
               <CardDescription className="text-xs">
                 Goals, interventions, and due care tasks for this member.
               </CardDescription>
             </div>
             <Button
               size="sm"
-              className="h-8 bg-slate-900 text-white"
+              className="h-8 bg-zinc-900 text-white"
               onClick={async () => {
                 await upsertCareGoal.mutateAsync({
                   personnelId: personnel.id,
-                  title: `Follow-up plan (${new Date().toLocaleDateString()})`,
+                  title: `Follow-up plan (${makeDisplayDate().toLocaleDateString()})`,
                   status: "active",
                 });
               }}
@@ -465,11 +473,13 @@ function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
           {planItems.map((item) => (
             <div
               key={item.id}
-              className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-4"
+              className="flex items-center justify-between rounded-xl border border-zinc-100 bg-white p-4"
             >
               <div>
-                <p className="text-sm font-bold text-slate-900">{item.title}</p>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-sm font-semibold text-zinc-900">
+                  {item.title}
+                </p>
+                <p className="text-[11px] text-zinc-500">
                   Owner: Member Care Team
                 </p>
               </div>
@@ -503,9 +513,11 @@ function ActivityTabContent({
       value="activity"
       className="space-y-6 animate-in fade-in duration-300"
     >
-      <Card className="border-slate-200 shadow-sm">
-        <CardHeader className="border-b border-slate-50">
-          <CardTitle className="text-base font-bold">Activity Log</CardTitle>
+      <Card className="border-zinc-200 shadow-sm">
+        <CardHeader className="border-b border-zinc-50">
+          <CardTitle className="text-base font-semibold">
+            Activity Log
+          </CardTitle>
           <CardDescription className="text-xs">
             Full chronological care activity timeline.
           </CardDescription>
@@ -514,25 +526,25 @@ function ActivityTabContent({
           {activities.map((activity) => (
             <div
               key={activity.id}
-              className="rounded-xl border border-slate-100 bg-slate-50/40 p-4"
+              className="rounded-xl border border-zinc-100 bg-zinc-50/40 p-4"
             >
               <div className="mb-1 flex items-center justify-between">
-                <p className="text-sm font-bold text-slate-900">
+                <p className="text-sm font-semibold text-zinc-900">
                   {activity.type}
                 </p>
-                <p className="text-[11px] text-slate-400">
-                  {new Date(activity.date).toLocaleString()}
+                <p className="text-[11px] text-zinc-400">
+                  {makeDisplayDate(activity.date).toLocaleString()}
                 </p>
               </div>
-              <p className="text-xs text-slate-600">{activity.content}</p>
+              <p className="text-xs text-zinc-600">{activity.content}</p>
             </div>
           ))}
         </CardContent>
       </Card>
 
-      <Card className="border-slate-200 shadow-sm">
-        <CardHeader className="border-b border-slate-50">
-          <CardTitle className="text-base font-bold">
+      <Card className="border-zinc-200 shadow-sm">
+        <CardHeader className="border-b border-zinc-50">
+          <CardTitle className="text-base font-semibold">
             Activity Heatmap
           </CardTitle>
           <CardDescription className="text-xs">
@@ -562,14 +574,14 @@ function SecureNotesTabContent({
       value="secure-notes"
       className="animate-in fade-in duration-300"
     >
-      <Card className="border-slate-200 shadow-sm min-h-[400px] border-amber-100 bg-amber-50/5">
+      <Card className="border-zinc-200 shadow-sm min-h-[400px] border-amber-100 bg-amber-50/5">
         <CardHeader className="flex flex-row items-center justify-between border-b border-amber-50">
           <div>
             <div className="flex items-center gap-2">
-              <CardTitle className="text-base font-bold">
+              <CardTitle className="text-base font-semibold">
                 Private Pastoral Notes
               </CardTitle>
-              <Lock className="h-3.5 w-3.5 text-amber-600" />
+              <Lock className="size-3.5 text-amber-600" />
             </div>
             <CardDescription className="text-xs text-amber-700/60">
               Only visible to you and platform super admins.
@@ -578,9 +590,9 @@ function SecureNotesTabContent({
           <Button
             size="sm"
             variant="outline"
-            className="h-8 font-bold border-amber-200 text-amber-700 hover:bg-amber-100"
+            className="h-8 font-semibold border-amber-200 text-amber-700 hover:bg-amber-100"
           >
-            <Plus className="mr-2 h-3.5 w-3.5" /> Add Private Note
+            <Plus className="mr-2 size-3.5" /> Add Private Note
           </Button>
         </CardHeader>
         <CardContent className="space-y-4 p-6">
@@ -598,11 +610,11 @@ function SecureNotesTabContent({
                   className="p-4 rounded-xl border border-amber-100 bg-white shadow-sm space-y-2"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-amber-900">
+                    <span className="text-xs font-semibold text-amber-900">
                       {note.authorName}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-medium">
-                      {new Date(note.date).toLocaleDateString()}
+                    <span className="text-[10px] text-zinc-400 font-medium">
+                      {makeDisplayDate(note.date).toLocaleDateString()}
                     </span>
                   </div>
                   <RichTextViewer value={note.content} />
@@ -611,7 +623,7 @@ function SecureNotesTabContent({
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-amber-400">
-              <Lock className="h-12 w-12 mb-4 opacity-20" />
+              <Lock className="size-12 mb-4 opacity-20" />
               <p className="text-sm font-medium">No private notes yet</p>
             </div>
           )}
@@ -625,7 +637,7 @@ function SecureNotesTabContent({
             <div className="mt-3 flex justify-end">
               <Button
                 size="sm"
-                className="h-8 font-bold bg-amber-600 text-white hover:bg-amber-500"
+                className="h-8 font-semibold bg-amber-600 text-white hover:bg-amber-500"
                 onClick={async () => {
                   if (!draft.trim()) return;
                   await createPrivateNote.mutateAsync({
@@ -668,7 +680,7 @@ export function PersonnelProfile({
   useEffect(() => {
     const updateTime = () => {
       setLocalTime(
-        new Date().toLocaleTimeString("en-US", {
+        makeDisplayDate().toLocaleTimeString("en-US", {
           timeZone: personnel.timezone,
           hour: "2-digit",
           minute: "2-digit",
@@ -703,7 +715,7 @@ export function PersonnelProfile({
       />
 
       <Tabs defaultValue="overview" className="w-full">
-        <div className="flex items-center justify-between border-b border-slate-200 mb-6 pb-px">
+        <div className="flex items-center justify-between border-b border-zinc-200 mb-6 pb-px">
           <div className="flex gap-8">
             {[
               "overview",
@@ -715,7 +727,7 @@ export function PersonnelProfile({
               <TabsTrigger
                 key={tab}
                 value={tab}
-                className="px-0 py-3 text-sm font-bold text-slate-500 data-[state=active]:text-slate-900 data-[state=active]:shadow-[0_2px_0_0_#0f172a] rounded-none transition-none capitalize"
+                className="px-0 py-3 text-sm font-semibold text-zinc-500 data-[state=active]:text-zinc-900 data-[state=active]:shadow-[0_2px_0_0_#0f172a] rounded-none transition-none capitalize"
               >
                 {tab.replace("-", " ")}
               </TabsTrigger>

@@ -222,7 +222,7 @@ function TileSummaryCard({ tile }: { tile: Tile }) {
             </Badge>
           </div>
           <div className="min-w-0 space-y-1">
-            <h3 className="text-sm font-bold leading-tight text-foreground">
+            <h3 className="text-sm font-semibold leading-tight text-foreground">
               {tile.title}
             </h3>
             <p className="line-clamp-2 text-xs font-medium leading-5 text-muted-foreground">
@@ -267,14 +267,14 @@ export function MissionControlHome({
         <section className="grid gap-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.55fr)]">
           <Card className="overflow-hidden border-zinc-900 bg-zinc-950 text-white shadow-xl">
             <CardContent className="relative p-5 sm:p-6">
-              <div className="pointer-events-none absolute right-0 top-0 h-64 w-64 translate-x-1/3 -translate-y-1/2 rounded-full bg-white/10 blur-3xl" />
+              <div className="pointer-events-none absolute right-0 top-0 size-64 translate-x-1/3 -translate-y-1/2 rounded-full bg-white/10 blur-3xl" />
               <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                 <div className="max-w-3xl space-y-3">
                   <Badge className="h-6 w-fit border border-white/10 bg-white/10 px-2 text-xs font-semibold text-zinc-100 hover:bg-white/10">
                     Mission Control dashboard
                   </Badge>
                   <div className="space-y-2">
-                    <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl">
+                    <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl">
                       Start here. See the whole ministry picture.
                     </h1>
                     <p className="max-w-2xl text-sm font-medium leading-6 text-zinc-300">
@@ -292,7 +292,7 @@ export function MissionControlHome({
                       <p className="text-xs font-medium text-zinc-400">
                         {item.label}
                       </p>
-                      <p className="mt-1 text-sm font-bold text-white">
+                      <p className="mt-1 text-sm font-semibold text-white">
                         {item.value}
                       </p>
                       <p className="mt-1 line-clamp-2 text-xs leading-5 text-zinc-400">
@@ -318,7 +318,7 @@ export function MissionControlHome({
             <CardContent className="space-y-3">
               <div className="grid grid-cols-2 gap-2">
                 <div className="rounded-xl border border-border bg-muted/20 p-3">
-                  <p className="text-2xl font-black tabular-nums">
+                  <p className="text-2xl font-semibold tabular-nums">
                     {visibleTiles.length}
                   </p>
                   <p className="text-xs font-medium text-muted-foreground">
@@ -326,7 +326,7 @@ export function MissionControlHome({
                   </p>
                 </div>
                 <div className="rounded-xl border border-border bg-muted/20 p-3">
-                  <p className="text-2xl font-black tabular-nums">
+                  <p className="text-2xl font-semibold tabular-nums">
                     {TILES.length}
                   </p>
                   <p className="text-xs font-medium text-muted-foreground">
@@ -374,7 +374,7 @@ export function MissionControlHome({
                             <Icon className="size-4" />
                           </div>
                           <div className="min-w-0 flex-1 space-y-1">
-                            <p className="text-sm font-bold text-foreground">
+                            <p className="text-sm font-semibold text-foreground">
                               {tile.title}
                             </p>
                             <Badge
@@ -408,7 +408,7 @@ export function MissionControlHome({
                     <p className="text-sm font-semibold text-foreground">
                       {metric.label}
                     </p>
-                    <p className="mt-1 text-2xl font-black tracking-tight text-foreground tabular-nums">
+                    <p className="mt-1 text-2xl font-semibold tracking-tight text-foreground tabular-nums">
                       {metric.value}
                     </p>
                     <p className="mt-1 text-xs font-medium leading-5 text-muted-foreground">
@@ -491,7 +491,7 @@ export function MissionControlHome({
         <section className="space-y-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <h2 className="text-lg font-bold text-foreground">
+              <h2 className="text-lg font-semibold text-foreground">
                 Ministry health widgets
               </h2>
               <p className="text-sm font-medium text-muted-foreground">
@@ -722,7 +722,7 @@ export function MissionControlHome({
                       key={label}
                       className="rounded-xl border border-border bg-muted/20 p-2"
                     >
-                      <p className={cn("text-xs font-bold", className)}>
+                      <p className={cn("text-xs font-semibold", className)}>
                         {label}
                       </p>
                       <p className="text-[10px] font-medium text-muted-foreground">
@@ -739,7 +739,7 @@ export function MissionControlHome({
         <section className="space-y-3">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <h2 className="text-lg font-bold text-foreground">
+              <h2 className="text-lg font-semibold text-foreground">
                 Quick actions
               </h2>
               <p className="text-sm font-medium text-muted-foreground">
@@ -754,7 +754,7 @@ export function MissionControlHome({
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <h2 className="text-lg font-bold text-foreground">
+              <h2 className="text-lg font-semibold text-foreground">
                 Operational map
               </h2>
               <p className="text-sm font-medium text-zinc-500">
@@ -773,7 +773,7 @@ export function MissionControlHome({
         <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
           <div className="space-y-4">
             <div>
-              <h2 className="text-lg font-bold text-foreground">
+              <h2 className="text-lg font-semibold text-foreground">
                 Enabled tools
               </h2>
               <p className="text-sm font-medium text-muted-foreground">

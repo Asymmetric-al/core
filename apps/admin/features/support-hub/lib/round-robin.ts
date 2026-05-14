@@ -45,7 +45,7 @@ export function selectNextRoundRobinAgent({
     eligibleAgents,
   );
 
-  const sorted = [...eligibleAgents].sort((left, right) => {
+  const sorted = Array.from(eligibleAgents).sort((left, right) => {
     const leftLoad = loadCounts.get(left.id) ?? 0;
     const rightLoad = loadCounts.get(right.id) ?? 0;
     if (leftLoad !== rightLoad) return leftLoad - rightLoad;

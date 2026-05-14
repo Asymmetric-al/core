@@ -105,7 +105,7 @@ export function AppShell({
                 >
                   <item.icon
                     className={cn(
-                      "h-4 w-4",
+                      "size-4",
                       isActive ? "text-white" : "text-zinc-300",
                     )}
                   />
@@ -118,7 +118,7 @@ export function AppShell({
         <div className="p-4 border-t border-zinc-100">
           <div className="rounded-2xl bg-zinc-50 p-4 border border-zinc-100">
             <div className="flex items-center gap-3">
-              <Avatar className="h-9 w-9 border border-white shadow-sm">
+              <Avatar className="size-9 border border-white shadow-sm">
                 <AvatarFallback className="bg-white text-[10px] font-bold text-zinc-400">
                   AD
                 </AvatarFallback>
@@ -134,9 +134,9 @@ export function AppShell({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-zinc-400"
+                className="size-8 text-zinc-400"
               >
-                <Settings className="h-4 w-4" />
+                <Settings className="size-4" />
               </Button>
             </div>
           </div>
@@ -153,9 +153,9 @@ export function AppShell({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="lg:hidden h-9 w-9 rounded-xl border border-zinc-200 bg-white"
+                  className="lg:hidden size-9 rounded-xl border border-zinc-200 bg-white"
                 >
-                  <Menu className="h-5 w-5" />
+                  <Menu className="size-5" />
                 </Button>
               </SheetTrigger>
               <SheetContent
@@ -182,7 +182,7 @@ export function AppShell({
                               : "text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100",
                           )}
                         >
-                          <item.icon className="h-4 w-4" />
+                          <item.icon className="size-4" />
                           {item.name}
                         </Link>
                       );
@@ -219,7 +219,7 @@ export function AppShell({
 
           <div className="flex items-center gap-2 sm:gap-4">
             <div className="hidden md:flex relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
               <input
                 type="text"
                 placeholder="Search command center..."
@@ -230,10 +230,10 @@ export function AppShell({
             <Button
               variant="ghost"
               size="icon"
-              className="h-9 w-9 rounded-xl border border-zinc-200 bg-white relative"
+              className="size-9 rounded-xl border border-zinc-200 bg-white relative"
             >
-              <Bell className="h-4 w-4 text-zinc-600" />
-              <span className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-rose-500 border border-white" />
+              <Bell className="size-4 text-zinc-600" />
+              <span className="absolute top-2 right-2 size-1.5 rounded-full bg-rose-500 border border-white" />
             </Button>
 
             <DropdownMenu>
@@ -241,9 +241,9 @@ export function AppShell({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 rounded-xl border border-zinc-200 bg-white overflow-hidden"
+                  className="size-9 rounded-xl border border-zinc-200 bg-white overflow-hidden"
                 >
-                  <Avatar className="h-full w-full rounded-none">
+                  <Avatar className="size-full rounded-none">
                     <AvatarFallback className="bg-white text-[10px] font-bold text-zinc-400">
                       AD
                     </AvatarFallback>
@@ -264,14 +264,14 @@ export function AppShell({
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-zinc-100" />
                 <DropdownMenuItem className="rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-widest text-zinc-600 focus:bg-zinc-50 focus:text-zinc-900">
-                  <User className="mr-3 h-4 w-4" /> Profile
+                  <User className="mr-3 size-4" /> Profile
                 </DropdownMenuItem>
                 <DropdownMenuItem className="rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-widest text-zinc-600 focus:bg-zinc-50 focus:text-zinc-900">
-                  <Settings className="mr-3 h-4 w-4" /> Settings
+                  <Settings className="mr-3 size-4" /> Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-zinc-100" />
                 <DropdownMenuItem className="rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-widest text-rose-600 focus:bg-rose-50 focus:text-rose-700">
-                  <LogOut className="mr-3 h-4 w-4" /> Sign Out
+                  <LogOut className="mr-3 size-4" /> Sign Out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

@@ -5,7 +5,7 @@ export function TileCardSkeleton() {
   return (
     <Card className="flex flex-col">
       <CardHeader className="pb-2">
-        <Skeleton className="h-10 w-10 rounded-lg" />
+        <Skeleton className="size-10 rounded-lg" />
         <Skeleton className="mt-3 h-5 w-3/4" />
         <Skeleton className="mt-1 h-4 w-full" />
       </CardHeader>
@@ -35,7 +35,7 @@ export function TableSkeleton({ rows = 5 }: { rows?: number }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-4 border-b border-border pb-3">
-        <Skeleton className="h-4 w-4" />
+        <Skeleton className="size-4" />
         <Skeleton className="h-4 w-32" />
         <Skeleton className="h-4 w-24" />
         <Skeleton className="h-4 w-20" />
@@ -44,7 +44,7 @@ export function TableSkeleton({ rows = 5 }: { rows?: number }) {
       </div>
       {Array.from({ length: rows }).map((_, i) => (
         <div key={i} className="flex items-center gap-4 py-3">
-          <Skeleton className="h-4 w-4" />
+          <Skeleton className="size-4" />
           <Skeleton className="h-4 w-40" />
           <Skeleton className="h-4 w-24" />
           <Skeleton className="h-4 w-20" />

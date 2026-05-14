@@ -18,96 +18,18 @@ import {
   Users,
 } from "lucide-react";
 
+import type { ActivityType, GiftType, RecurringStatus } from "./donor-types";
 import type { ElementType } from "react";
 
-export type ActivityType =
-  | "gift"
-  | "note"
-  | "call"
-  | "email"
-  | "meeting"
-  | "pledge_started"
-  | "pledge_completed";
-
-export type GiftType =
-  | "Online"
-  | "Check"
-  | "Cash"
-  | "Bank Transfer"
-  | "Stock"
-  | "In-Kind";
-
-export type RecurringStatus = "active" | "completed" | "paused" | "cancelled";
-
-export interface Activity {
-  id: string;
-  type: ActivityType;
-  date: string;
-  title: string;
-  description?: string;
-  amount?: number;
-  status?: string;
-  gift_type?: GiftType;
-  note?: string;
-}
-
-export interface RecurringDonation {
-  id: string;
-  amount: number;
-  frequency: string;
-  status: RecurringStatus;
-  start_date: string;
-  end_date?: string;
-  next_payment_date?: string;
-  total_paid: number;
-  total_expected: number;
-  payments_completed: number;
-  payments_remaining: number;
-  payment_method?: string;
-}
-
-export interface Address {
-  street?: string;
-  street2?: string;
-  city?: string;
-  state?: string;
-  zip?: string;
-  country?: string;
-}
-
-export interface Donor {
-  id: string;
-  name: string;
-  initials: string;
-  type: "Individual" | "Organization" | "Church";
-  status: "Active" | "Lapsed" | "New" | "At Risk";
-  total_given: number;
-  last_gift_date: string | null;
-  last_gift_amount: number | null;
-  frequency: string;
-  email: string;
-  phone: string;
-  mobile?: string;
-  work_phone?: string;
-  preferred_contact: "email" | "phone" | "text";
-  avatar_url?: string;
-  location: string;
-  address: Address;
-  work_address?: Address;
-  website?: string;
-  organization?: string;
-  title?: string;
-  joined_date: string;
-  birthday?: string;
-  anniversary?: string;
-  spouse?: string;
-  notes?: string;
-  tags: string[];
-  score: number;
-  activities: Activity[];
-  recurring_donations: RecurringDonation[];
-  has_active_pledge: boolean;
-}
+export type {
+  Activity,
+  ActivityType,
+  Address,
+  Donor,
+  GiftType,
+  RecurringDonation,
+  RecurringStatus,
+} from "./donor-types";
 
 export const AVAILABLE_TAGS = [
   {
@@ -143,7 +65,7 @@ export const AVAILABLE_TAGS = [
   {
     id: "first-time-giver",
     label: "First-Time Giver",
-    color: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    color: "bg-primary/10 text-indigo-700 border-indigo-200",
   },
   {
     id: "legacy-giver",
@@ -158,7 +80,7 @@ export const AVAILABLE_TAGS = [
   {
     id: "board-member",
     label: "Board Member",
-    color: "bg-slate-100 text-slate-700 border-slate-200",
+    color: "bg-zinc-100 text-zinc-700 border-zinc-200",
   },
   {
     id: "needs-followup",
@@ -168,7 +90,7 @@ export const AVAILABLE_TAGS = [
   {
     id: "lapsed-donor",
     label: "Lapsed Donor",
-    color: "bg-gray-100 text-gray-600 border-gray-200",
+    color: "bg-zinc-100 text-zinc-600 border-zinc-200",
   },
 ] as const;
 
@@ -242,21 +164,21 @@ export function getRecurringStatusBadge(status: RecurringStatus) {
 export function getActivityIcon(type: ActivityType) {
   switch (type) {
     case "gift":
-      return <Heart className="h-3.5 w-3.5 text-white" />;
+      return <Heart className="size-3.5 text-white" />;
     case "call":
-      return <Phone className="h-3.5 w-3.5 text-white" />;
+      return <Phone className="size-3.5 text-white" />;
     case "email":
-      return <Mail className="h-3.5 w-3.5 text-white" />;
+      return <Mail className="size-3.5 text-white" />;
     case "note":
-      return <MessageSquare className="h-3.5 w-3.5 text-white" />;
+      return <MessageSquare className="size-3.5 text-white" />;
     case "meeting":
-      return <Briefcase className="h-3.5 w-3.5 text-white" />;
+      return <Briefcase className="size-3.5 text-white" />;
     case "pledge_started":
-      return <TrendingUp className="h-3.5 w-3.5 text-white" />;
+      return <TrendingUp className="size-3.5 text-white" />;
     case "pledge_completed":
-      return <Check className="h-3.5 w-3.5 text-white" />;
+      return <Check className="size-3.5 text-white" />;
     default:
-      return <Clock className="h-3.5 w-3.5 text-white" />;
+      return <Clock className="size-3.5 text-white" />;
   }
 }
 
@@ -284,34 +206,34 @@ export function getActivityBg(type: ActivityType) {
 export function getGiftTypeIcon(type: GiftType | string | undefined) {
   switch (type) {
     case "Online":
-      return <CreditCard className="h-3.5 w-3.5" />;
+      return <CreditCard className="size-3.5" />;
     case "Check":
-      return <Mail className="h-3.5 w-3.5" />;
+      return <Mail className="size-3.5" />;
     case "Cash":
-      return <DollarSign className="h-3.5 w-3.5" />;
+      return <DollarSign className="size-3.5" />;
     case "Bank Transfer":
-      return <Building2 className="h-3.5 w-3.5" />;
+      return <Building2 className="size-3.5" />;
     case "Stock":
-      return <TrendingUp className="h-3.5 w-3.5" />;
+      return <TrendingUp className="size-3.5" />;
     case "In-Kind":
-      return <Gift className="h-3.5 w-3.5" />;
+      return <Gift className="size-3.5" />;
     default:
-      return <DollarSign className="h-3.5 w-3.5" />;
+      return <DollarSign className="size-3.5" />;
   }
 }
 
 export function getPaymentMethodIcon(method: string | undefined) {
   switch (method) {
     case "Online":
-      return <CreditCard className="h-4 w-4 text-blue-500" />;
+      return <CreditCard className="size-4 text-blue-500" />;
     case "Check":
-      return <Mail className="h-4 w-4 text-zinc-500" />;
+      return <Mail className="size-4 text-zinc-500" />;
     case "Cash":
-      return <DollarSign className="h-4 w-4 text-emerald-500" />;
+      return <DollarSign className="size-4 text-emerald-500" />;
     case "Bank Transfer":
-      return <Building2 className="h-4 w-4 text-indigo-500" />;
+      return <Building2 className="size-4 text-primary" />;
     default:
-      return <CreditCard className="h-4 w-4 text-zinc-400" />;
+      return <CreditCard className="size-4 text-zinc-400" />;
   }
 }
 

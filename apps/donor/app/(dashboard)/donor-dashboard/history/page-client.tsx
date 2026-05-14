@@ -291,10 +291,10 @@ function HistoryPageHeader({
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 text-left">
       <div>
-        <h1 className="text-3xl font-bold text-zinc-900 tracking-tight uppercase">
+        <h1 className="text-3xl font-semibold text-zinc-900 tracking-tight uppercase">
           Giving History
         </h1>
-        <p className="text-zinc-500 mt-2 text-lg font-bold uppercase tracking-widest text-[10px]">
+        <p className="text-zinc-500 mt-2 text-lg font-semibold uppercase tracking-widest text-[10px]">
           Your complete record of impact and tax-deductible contributions.
         </p>
       </div>
@@ -302,7 +302,7 @@ function HistoryPageHeader({
         <div className="relative w-[140px]">
           <Select value={yearFilter} onValueChange={onYearFilterChange}>
             <SelectTrigger className="pl-10 bg-white border-zinc-200 shadow-sm">
-              <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500 z-10 pointer-events-none" />
+              <Calendar className="absolute left-3 top-2.5 size-4 text-zinc-500 z-10 pointer-events-none" />
               <SelectValue placeholder="Year" />
             </SelectTrigger>
             <SelectContent>
@@ -312,8 +312,8 @@ function HistoryPageHeader({
             </SelectContent>
           </Select>
         </div>
-        <Button className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-md font-bold uppercase tracking-widest text-[10px] h-10 px-6 rounded-lg">
-          <DownloadCloud className="mr-2 h-4 w-4" /> Download Statement
+        <Button className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-md font-semibold uppercase tracking-widest text-[10px] h-10 px-6 rounded-lg">
+          <DownloadCloud className="mr-2 size-4" /> Download Statement
         </Button>
       </div>
     </div>
@@ -338,20 +338,20 @@ function HistoryStatsColumn({
       <Card className="bg-zinc-950 text-white border-none shadow-2xl overflow-hidden relative group rounded-2xl">
         <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 to-zinc-950 z-0" />
         <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity duration-300">
-          <TrendingUp className="w-40 h-40 text-emerald-400" />
+          <TrendingUp className="size-40 text-emerald-400" />
         </div>
 
         <CardContent className="p-8 relative z-10 text-left">
           <div className="flex items-center justify-between mb-6">
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 bg-white/5 px-2.5 py-1 rounded-md">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400 bg-white/5 px-2.5 py-1 rounded-md">
               Total Giving {yearFilter}
             </span>
-            <DollarSign className="h-5 w-5 text-emerald-400" />
+            <DollarSign className="size-5 text-emerald-400" />
           </div>
-          <div className="text-5xl font-bold tracking-tighter mb-2">
+          <div className="text-5xl font-semibold tracking-tighter mb-2">
             {formatCurrency(totalGiven)}
           </div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-8">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-500 mb-8">
             100% Tax Deductible
           </p>
 
@@ -364,26 +364,26 @@ function HistoryStatsColumn({
       <div className="grid grid-cols-2 gap-4">
         <Card className="bg-white border-zinc-100 shadow-sm hover:shadow-md transition-shadow rounded-xl">
           <CardContent className="p-5 flex flex-col items-center text-center justify-center h-full">
-            <div className="w-10 h-10 rounded-full bg-zinc-50 text-zinc-900 flex items-center justify-center mb-3 border border-zinc-100 shadow-sm">
-              <FileText className="h-5 w-5" />
+            <div className="size-10 rounded-full bg-zinc-50 text-zinc-900 flex items-center justify-center mb-3 border border-zinc-100 shadow-sm">
+              <FileText className="size-5" />
             </div>
-            <div className="text-2xl font-bold text-zinc-900">
+            <div className="text-2xl font-semibold text-zinc-900">
               {receiptCount}
             </div>
-            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1">
+            <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mt-1">
               Receipts
             </p>
           </CardContent>
         </Card>
         <Card className="bg-white border-zinc-100 shadow-sm hover:shadow-md transition-shadow rounded-xl">
           <CardContent className="p-5 flex flex-col items-center text-center justify-center h-full">
-            <div className="w-10 h-10 rounded-full bg-zinc-50 text-zinc-900 flex items-center justify-center mb-3 border border-zinc-100 shadow-sm">
-              <CheckCircle2 className="h-5 w-5" />
+            <div className="size-10 rounded-full bg-zinc-50 text-zinc-900 flex items-center justify-center mb-3 border border-zinc-100 shadow-sm">
+              <CheckCircle2 className="size-5" />
             </div>
-            <div className="text-2xl font-bold text-zinc-900">
+            <div className="text-2xl font-semibold text-zinc-900">
               {filteredTransactionCount}
             </div>
-            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1">
+            <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mt-1">
               Total Gifts
             </p>
           </CardContent>
@@ -411,10 +411,10 @@ function HistoryFiltersToolbar({
   return (
     <div className="flex flex-col sm:flex-row gap-4">
       <div className="relative flex-1">
-        <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+        <Search className="absolute left-3 top-3 size-4 text-zinc-400" />
         <Input
           placeholder="Search recipient or transaction ID..."
-          className="pl-10 bg-white border-zinc-200 h-10 shadow-sm focus:ring-2 focus:ring-zinc-100 rounded-lg text-xs font-bold uppercase tracking-tight"
+          className="pl-10 bg-white border-zinc-200 h-10 shadow-sm focus:ring-2 focus:ring-zinc-100 rounded-lg text-xs font-semibold uppercase tracking-tight"
           value={searchTerm}
           onChange={(e) => onSearchTermChange(e.target.value)}
         />
@@ -424,9 +424,9 @@ function HistoryFiltersToolbar({
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="h-10 border-zinc-200 bg-white text-zinc-700 shadow-sm text-[10px] font-bold uppercase tracking-widest px-4 rounded-lg"
+              className="h-10 border-zinc-200 bg-white text-zinc-700 shadow-sm text-[10px] font-semibold uppercase tracking-widest px-4 rounded-lg"
             >
-              <SlidersHorizontal className="mr-2 h-3.5 w-3.5" /> Type{" "}
+              <SlidersHorizontal className="mr-2 size-3.5" /> Type{" "}
               {typeFilter !== "All" && (
                 <Badge variant="secondary" className="ml-2 h-4 px-1">
                   {typeFilter}
@@ -435,28 +435,28 @@ function HistoryFiltersToolbar({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+            <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
               Filter by Type
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuCheckboxItem
               checked={typeFilter === "All"}
               onCheckedChange={() => onTypeFilterChange("All")}
-              className="text-xs font-bold uppercase tracking-widest"
+              className="text-xs font-semibold uppercase tracking-widest"
             >
               All Types
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={typeFilter === "Recurring"}
               onCheckedChange={() => onTypeFilterChange("Recurring")}
-              className="text-xs font-bold uppercase tracking-widest"
+              className="text-xs font-semibold uppercase tracking-widest"
             >
               Recurring
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={typeFilter === "One-Time"}
               onCheckedChange={() => onTypeFilterChange("One-Time")}
-              className="text-xs font-bold uppercase tracking-widest"
+              className="text-xs font-semibold uppercase tracking-widest"
             >
               One-Time
             </DropdownMenuCheckboxItem>
@@ -467,7 +467,7 @@ function HistoryFiltersToolbar({
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="h-10 border-zinc-200 bg-white text-zinc-700 shadow-sm text-[10px] font-bold uppercase tracking-widest px-4 rounded-lg"
+              className="h-10 border-zinc-200 bg-white text-zinc-700 shadow-sm text-[10px] font-semibold uppercase tracking-widest px-4 rounded-lg"
             >
               Status{" "}
               {statusFilter !== "All" && (
@@ -478,35 +478,35 @@ function HistoryFiltersToolbar({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+            <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
               Filter by Status
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuCheckboxItem
               checked={statusFilter === "All"}
               onCheckedChange={() => onStatusFilterChange("All")}
-              className="text-xs font-bold uppercase tracking-widest"
+              className="text-xs font-semibold uppercase tracking-widest"
             >
               All Statuses
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={statusFilter === "Succeeded"}
               onCheckedChange={() => onStatusFilterChange("Succeeded")}
-              className="text-xs font-bold uppercase tracking-widest text-emerald-600"
+              className="text-xs font-semibold uppercase tracking-widest text-emerald-600"
             >
               Succeeded
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={statusFilter === "Processing"}
               onCheckedChange={() => onStatusFilterChange("Processing")}
-              className="text-xs font-bold uppercase tracking-widest text-blue-600"
+              className="text-xs font-semibold uppercase tracking-widest text-blue-600"
             >
               Processing
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={statusFilter === "Failed"}
               onCheckedChange={() => onStatusFilterChange("Failed")}
-              className="text-xs font-bold uppercase tracking-widest text-rose-600"
+              className="text-xs font-semibold uppercase tracking-widest text-rose-600"
             >
               Failed
             </DropdownMenuCheckboxItem>
@@ -545,10 +545,10 @@ function HistoryTransactionsCard({
         }}
         emptyState={
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="font-bold text-zinc-900 uppercase tracking-tighter">
+            <p className="font-semibold text-zinc-900 uppercase tracking-tighter">
               No transactions found
             </p>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-1">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 mt-1">
               Try adjusting the current filters.
             </p>
           </div>

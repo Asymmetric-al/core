@@ -117,7 +117,7 @@ export function AutomationRuleForm({
   return (
     <SettingsPanel
       title={rule ? `Edit "${rule.name}"` : "New automation rule"}
-      description="Trigger + conditions + actions — all ANDed together. Use dry-run below to preview results before saving."
+      description="Trigger + conditions + actions, all ANDed together. Use dry-run below to preview results before saving."
     >
       <SettingsRow label="Name" htmlFor="automation-name">
         <Input
@@ -197,7 +197,7 @@ export function AutomationRuleForm({
         </div>
         {conditions.length === 0 ? (
           <p className="text-[12px] text-zinc-500">
-            No conditions — the rule fires for every event.
+            No conditions, the rule fires for every event.
           </p>
         ) : (
           <ul className="flex flex-col gap-2">

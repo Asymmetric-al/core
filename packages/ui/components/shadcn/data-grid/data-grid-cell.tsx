@@ -16,6 +16,12 @@ import {
 
 import type { DataGridCellType, DataGridColumnOption } from "./types";
 
+function makeDisplayDate(value?: string | number | Date): Date {
+  return value === undefined
+    ? new globalThis.Date()
+    : new globalThis.Date(value);
+}
+
 interface DataGridCellProps {
   value: unknown;
   cellType: DataGridCellType;
@@ -152,7 +158,7 @@ export function DataGridCell({
         {cellType === "number" && typeof value === "number"
           ? value.toLocaleString()
           : cellType === "date" && value
-            ? new Date(String(value)).toLocaleDateString()
+            ? makeDisplayDate(String(value)).toLocaleDateString()
             : String(value ?? "")}
       </div>
     );
