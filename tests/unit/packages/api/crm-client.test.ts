@@ -10,7 +10,7 @@ import { resolveTwentyRuntimeConfig } from "../../../../packages/api/src/crm/cli
 describe("Twenty CRM client wrappers", () => {
   it("resolves server-only Twenty configuration without exposing the API key", () => {
     const config = resolveTwentyRuntimeConfig({
-      TWENTY_API_URL: "https://twenty.example.test",
+      TWENTY_API_URL: "https://twenty.example.test/rest",
       TWENTY_API_KEY: "twenty-secret-key",
       TWENTY_WEBHOOK_SECRET: "twenty-webhook-secret",
       TWENTY_WORKSPACE_ID: "workspace-1",
@@ -19,7 +19,8 @@ describe("Twenty CRM client wrappers", () => {
 
     expect(config).toMatchObject({
       configured: true,
-      apiBaseUrl: "https://twenty.example.test",
+      apiBaseUrl: "https://twenty.example.test/rest",
+      apiBaseUrlKind: "custom_rest",
       workspaceId: "workspace-1",
       rateLimitRpm: 42,
       hasWebhookSecret: true,
@@ -31,7 +32,9 @@ describe("Twenty CRM client wrappers", () => {
   it("reports missing API URL or key as unconfigured", () => {
     expect(resolveTwentyRuntimeConfig({ TWENTY_API_URL: undefined })).toEqual({
       configured: false,
+      status: "missing",
       missing: ["TWENTY_API_URL", "TWENTY_API_KEY"],
+      invalid: [],
       rateLimitRpm: TWENTY_RATE_LIMIT_RPM,
     });
   });

@@ -35,6 +35,7 @@
     "./crm": "./src/crm/index.ts",
     "./admin/crm": "./src/admin/crm/index.ts",
     "./admin/crm/gateway": "./src/admin/crm/gateway.ts",
+    "./admin/crm/twenty-health": "./src/admin/crm/twenty-health.ts",
     "./admin/crm/notes": "./src/admin/crm/notes/index.ts",
     "./admin/crm/projections": "./src/admin/crm/projections/index.ts",
     "./admin/crm/relationships": "./src/admin/crm/relationships/index.ts",

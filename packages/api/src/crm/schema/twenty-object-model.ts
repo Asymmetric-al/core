@@ -226,6 +226,83 @@ export const TWENTY_OBJECT_MODEL = [
       },
     ],
   },
+  {
+    namePlural: "giftSummaries",
+    nameSingular: "giftSummary",
+    kind: "custom",
+    purpose:
+      "Read-only CRM context for approved gifts. Supabase remains the payment, receipt, refund, statement, and reconciliation source of truth.",
+    fields: [
+      {
+        name: "asymTenantId",
+        type: "text",
+        required: true,
+        description: "Tenant scope used for Asym link repair and replay.",
+      },
+      {
+        name: "asymDonationId",
+        type: "text",
+        required: true,
+        description: "Asym donation id. This is not the Twenty id.",
+      },
+      {
+        name: "asymStagedGiftId",
+        type: "text",
+        required: true,
+        description: "Asym staged gift id used for retry and proof cleanup.",
+      },
+      {
+        name: "donorId",
+        type: "text",
+        description: "Optional Asym donor id linked to the gift.",
+      },
+      {
+        name: "missionaryId",
+        type: "text",
+        description: "Optional Asym missionary id linked to the gift.",
+      },
+      {
+        name: "fundId",
+        type: "text",
+        description: "Optional Asym fund id linked to the gift.",
+      },
+      {
+        name: "amountCents",
+        type: "number",
+        required: true,
+        description: "Gift amount in minor units for CRM display only.",
+      },
+      {
+        name: "currencyCode",
+        type: "text",
+        required: true,
+        description:
+          "ISO currency code. Uses currencyCode because currency is reserved in Twenty metadata.",
+      },
+      {
+        name: "stripePaymentIntentId",
+        type: "text",
+        description: "Stripe payment intent id for support correlation.",
+      },
+      {
+        name: "stripeChargeId",
+        type: "text",
+        description: "Stripe charge id for support correlation.",
+      },
+      {
+        name: "receiptStatus",
+        type: "text",
+        required: true,
+        description: "Receipt status copied from Asym staged gift state.",
+      },
+      {
+        name: "paymentStatus",
+        type: "text",
+        required: true,
+        description: "Staged gift lifecycle state copied for CRM context.",
+      },
+    ],
+  },
 ] as const satisfies readonly TwentyObjectDefinition[];
 
 export function getTwentyObjectDefinition(

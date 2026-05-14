@@ -50,8 +50,9 @@ export async function getCrmGatewayStatus(
     return {
       ...baseStatus,
       configured: false,
-      mode: "not_configured",
+      mode: config.status === "missing" ? "missing_config" : "degraded",
       missing: config.missing,
+      invalid: config.invalid,
     };
   }
 
@@ -60,8 +61,8 @@ export async function getCrmGatewayStatus(
       ...baseStatus,
       configured: true,
       mode: "ready",
-      apiBaseUrl: config.apiBaseUrl,
-      workspaceId: config.workspaceId,
+      apiBaseUrlKind: config.apiBaseUrlKind,
+      workspaceConfigured: Boolean(config.workspaceId),
       hasWebhookSecret: config.hasWebhookSecret,
     };
   }
@@ -71,8 +72,9 @@ export async function getCrmGatewayStatus(
     return {
       ...baseStatus,
       configured: false,
-      mode: "not_configured",
+      mode: "missing_config",
       missing: ["TWENTY_API_URL", "TWENTY_API_KEY"],
+      invalid: [],
     };
   }
 
@@ -82,8 +84,8 @@ export async function getCrmGatewayStatus(
       ...baseStatus,
       configured: true,
       mode: "probe_succeeded",
-      apiBaseUrl: config.apiBaseUrl,
-      workspaceId: config.workspaceId,
+      apiBaseUrlKind: config.apiBaseUrlKind,
+      workspaceConfigured: Boolean(config.workspaceId),
       hasWebhookSecret: config.hasWebhookSecret,
       probe: {
         ok: true,
@@ -98,9 +100,9 @@ export async function getCrmGatewayStatus(
     return {
       ...baseStatus,
       configured: true,
-      mode: "probe_failed",
-      apiBaseUrl: config.apiBaseUrl,
-      workspaceId: config.workspaceId,
+      mode: "provider_error",
+      apiBaseUrlKind: config.apiBaseUrlKind,
+      workspaceConfigured: Boolean(config.workspaceId),
       hasWebhookSecret: config.hasWebhookSecret,
       probe: {
         ok: false,

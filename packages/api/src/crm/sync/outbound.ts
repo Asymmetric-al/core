@@ -113,6 +113,29 @@ function jobMethod(job: CrmOutboundJob) {
   return "POST";
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function readRecordId(value: unknown, depth = 0): string | null {
+  if (!isRecord(value) || depth > 4) {
+    return null;
+  }
+
+  if (typeof value.id === "string" && value.id.trim()) {
+    return value.id.trim();
+  }
+
+  for (const child of Object.values(value)) {
+    const nested = readRecordId(child, depth + 1);
+    if (nested) {
+      return nested;
+    }
+  }
+
+  return null;
+}
+
 export async function processCrmOutboundJob(
   store: CrmSyncStore,
   client: TwentyCoreClient,
@@ -157,6 +180,13 @@ export async function processCrmOutboundJob(
       },
       lastError: null,
     });
+    await store.recordOutboundSuccess({
+      job,
+      resultSummary: {
+        result: result as Record<string, unknown>,
+      },
+      twentyRecordId: readRecordId(result),
+    });
     await store.appendSyncLog({
       tenantId: job.tenantId,
       direction: "outbound",
@@ -187,6 +217,11 @@ export async function processCrmOutboundJob(
       status,
       attemptCount,
       lastError: message,
+    });
+    await store.recordOutboundFailure({
+      job,
+      status,
+      error: message,
     });
     await store.appendSyncLog({
       tenantId: job.tenantId,

@@ -27,6 +27,7 @@ For every `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}` file while
 | admin      | `/api/admin/contributions/staged-gifts/[stagedGiftId]/receipt` | Node.js (no `runtime` segment export) | Resend receipt sending, admin client       |
 | admin      | `/api/admin/contributions/staged-gifts/[stagedGiftId]/retry`   | Node.js (no `runtime` segment export) | Giving replay/CRM retry, admin client      |
 | admin      | `/api/admin/contributions/summary`                             | Node.js (no `runtime` segment export) | Admin client                               |
+| admin      | `/api/admin/crm/gateway/staging-health`                        | Node.js (no `runtime` segment export) | Staging-only Twenty metadata health proof  |
 | admin      | `/api/admin/crm/gateway/status`                                | Node.js (no `runtime` segment export) | Staff-only CRM gateway smoke route         |
 | admin      | `/api/admin/crm/notes`                                         | Node.js (no `runtime` segment export) | Staff-only native CRM notes                |
 | admin      | `/api/admin/crm/projections`                                   | Node.js (no `runtime` segment export) | Staff-only CRM projection shadow mode      |

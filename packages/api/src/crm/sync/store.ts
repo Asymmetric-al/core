@@ -6,6 +6,8 @@ import type {
   CrmSyncLogInput,
   CrmSyncPauseState,
   EnqueueCrmOutboundJobInput,
+  RecordCrmOutboundFailureInput,
+  RecordCrmOutboundSuccessInput,
   StoreCrmWebhookEventInput,
   StoredCrmWebhookEvent,
   UpdateCrmWebhookEventInput,
@@ -79,6 +81,8 @@ export interface CrmSyncStore {
       >
     >,
   ): Promise<void>;
+  recordOutboundSuccess(input: RecordCrmOutboundSuccessInput): Promise<void>;
+  recordOutboundFailure(input: RecordCrmOutboundFailureInput): Promise<void>;
   loadReconciliationSnapshot(input: {
     tenantId: string;
     domain?: CrmSyncDomain | null;
@@ -171,6 +175,22 @@ function toOutboundJob(row: JsonRecord): CrmOutboundJob {
     tenantId: rowString(row, "tenant_id"),
     twentyObjectName: rowString(row, "twenty_object_name"),
   };
+}
+
+function isGiftSummaryPaymentRecord(job: CrmOutboundJob): boolean {
+  return (
+    job.twentyObjectName === "giftSummaries" &&
+    job.sourceEntityType === "payment_record" &&
+    Boolean(job.sourceEntityId)
+  );
+}
+
+function safeErrorCode(
+  status: RecordCrmOutboundFailureInput["status"],
+): string {
+  return status === "dead_letter"
+    ? "twenty_outbound_dead_letter"
+    : "twenty_outbound_failed";
 }
 
 async function selectExistingByIdempotency(
@@ -418,6 +438,141 @@ export function createSupabaseCrmSyncStore(clientInput: unknown): CrmSyncStore {
         .update(rowPatch)
         .eq("id", id);
       requireNoError(error, "Failed to update CRM outbound job.");
+    },
+
+    async recordOutboundSuccess(input) {
+      if (!isGiftSummaryPaymentRecord(input.job)) {
+        return;
+      }
+
+      const stagedGiftId = input.job.sourceEntityId;
+      const now = new Date().toISOString();
+      const correlation = {
+        crmOutboundJobId: input.job.id,
+        crmOutboundIdempotencyKey: input.job.idempotencyKey,
+        crmOutboundStatus: "succeeded",
+        twentyObjectName: input.job.twentyObjectName,
+        ...(input.twentyRecordId
+          ? { twentyRecordId: input.twentyRecordId }
+          : {}),
+      };
+
+      const { error: giftError } = await client
+        .from("staged_gifts")
+        .update({
+          status: "posted",
+          crm_post_status: "posted",
+          crm_outbound_job_id: input.job.id,
+          twenty_record_id: input.twentyRecordId,
+          posted_at: now,
+          last_error_code: null,
+          last_error_message: null,
+          updated_at: now,
+        })
+        .eq("tenant_id", input.job.tenantId)
+        .eq("id", stagedGiftId);
+      requireNoError(giftError, "Failed to promote staged gift CRM post.");
+
+      const existing = await client
+        .from("donation_crm_links")
+        .select("*")
+        .eq("tenant_id", input.job.tenantId)
+        .eq("staged_gift_id", stagedGiftId)
+        .eq("crm_provider", "twenty")
+        .maybeSingle();
+      requireNoError(existing.error, "Failed to read donation CRM link.");
+
+      if (existing.data) {
+        const { error: linkError } = await client
+          .from("donation_crm_links")
+          .update({
+            link_status: "active",
+            twenty_object_name: input.job.twentyObjectName,
+            twenty_record_id: input.twentyRecordId,
+            metadata: {
+              ...rowRecord(existing.data, "metadata"),
+              ...correlation,
+            },
+            updated_at: now,
+          })
+          .eq("id", rowString(existing.data, "id"));
+        requireNoError(linkError, "Failed to promote donation CRM link.");
+        return;
+      }
+
+      const { error: insertError } = await client
+        .from("donation_crm_links")
+        .insert({
+          tenant_id: input.job.tenantId,
+          donation_id:
+            typeof input.job.payload.asymDonationId === "string"
+              ? input.job.payload.asymDonationId
+              : null,
+          staged_gift_id: stagedGiftId,
+          crm_provider: "twenty",
+          twenty_object_name: input.job.twentyObjectName,
+          twenty_record_id: input.twentyRecordId,
+          link_status: "active",
+          metadata: correlation,
+        });
+      requireNoError(insertError, "Failed to create donation CRM link.");
+    },
+
+    async recordOutboundFailure(input) {
+      if (!isGiftSummaryPaymentRecord(input.job)) {
+        return;
+      }
+
+      const stagedGiftId = input.job.sourceEntityId;
+      const now = new Date().toISOString();
+      const errorCode = safeErrorCode(input.status);
+      const correlation = {
+        crmOutboundJobId: input.job.id,
+        crmOutboundIdempotencyKey: input.job.idempotencyKey,
+        crmOutboundStatus: input.status,
+        twentyObjectName: input.job.twentyObjectName,
+        lastError: input.error,
+      };
+
+      const { error: giftError } = await client
+        .from("staged_gifts")
+        .update({
+          status: "failed",
+          crm_post_status: "failed",
+          crm_outbound_job_id: input.job.id,
+          last_error_code: errorCode,
+          last_error_message: input.error,
+          updated_at: now,
+        })
+        .eq("tenant_id", input.job.tenantId)
+        .eq("id", stagedGiftId);
+      requireNoError(giftError, "Failed to mark staged gift CRM post failure.");
+
+      const existing = await client
+        .from("donation_crm_links")
+        .select("*")
+        .eq("tenant_id", input.job.tenantId)
+        .eq("staged_gift_id", stagedGiftId)
+        .eq("crm_provider", "twenty")
+        .maybeSingle();
+      requireNoError(existing.error, "Failed to read donation CRM link.");
+
+      if (!existing.data) {
+        return;
+      }
+
+      const { error: linkError } = await client
+        .from("donation_crm_links")
+        .update({
+          link_status: "failed",
+          metadata: {
+            ...rowRecord(existing.data, "metadata"),
+            ...correlation,
+          },
+          updated_at: now,
+        })
+        .eq("id", rowString(existing.data, "id"));
+      requireNoError(linkError, "Failed to mark donation CRM link failed.");
     },
 
     async loadReconciliationSnapshot(input) {

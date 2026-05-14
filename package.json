@@ -79,6 +79,7 @@
     "verify:shadcn-diff": "node scripts/verify/shadcn-diff.mjs",
     "tsconfig:future-audit": "node scripts/tsconfig-future-audit.mjs",
     "verify:data-boundary": "node scripts/verify/data-boundary-check.mjs",
+    "verify:twenty-crm-health": "bun scripts/verify/twenty-crm-health.ts",
     "verify:workspace-contract": "node scripts/verify-workspace-contract.mjs",
     "skills:sync": "node scripts/sync-agent-skills.mjs",
     "skills:verify": "node scripts/verify-skills-sync.mjs",

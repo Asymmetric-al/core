@@ -116,6 +116,18 @@ export interface CrmOutboundJob {
   lastError: string | null;
 }
 
+export interface RecordCrmOutboundSuccessInput {
+  job: CrmOutboundJob;
+  twentyRecordId: string | null;
+  resultSummary: Record<string, unknown>;
+}
+
+export interface RecordCrmOutboundFailureInput {
+  job: CrmOutboundJob;
+  status: Extract<CrmSyncRecordStatus, "failed" | "dead_letter">;
+  error: string;
+}
+
 export interface EnqueueCrmOutboundJobInput {
   tenantId: string;
   domain: CrmSyncDomain;

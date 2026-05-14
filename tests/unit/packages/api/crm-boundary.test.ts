@@ -10,6 +10,7 @@ const bannedAppPatterns = [
   /packages\/api\/src\/crm\/client/,
   /TWENTY_API_KEY/,
   /TWENTY_WEBHOOK_SECRET/,
+  /NEXT_PUBLIC_TWENTY_/,
 ];
 
 function readRepoFile(relativePath: string) {
@@ -51,6 +52,9 @@ describe("Twenty CRM package and app boundary", () => {
     expect(packageJson.exports["./crm"]).toBe("./src/crm/index.ts");
     expect(packageJson.exports["./admin/crm/gateway"]).toBe(
       "./src/admin/crm/gateway.ts",
+    );
+    expect(packageJson.exports["./admin/crm/twenty-health"]).toBe(
+      "./src/admin/crm/twenty-health.ts",
     );
     expect(packageJson.exports["./admin/crm/notes"]).toBe(
       "./src/admin/crm/notes/index.ts",
@@ -113,12 +117,44 @@ describe("Twenty CRM package and app boundary", () => {
     ).toBe('export { GET } from "@asym/api/admin/crm/projections";');
   });
 
+  it("keeps CRM gateway, webhook, records, and sync routes as thin API re-exports", () => {
+    expect(
+      readRepoFile(
+        "apps/admin/app/api/admin/crm/gateway/status/route.ts",
+      ).trim(),
+    ).toBe('export { GET } from "@asym/api/admin/crm/gateway";');
+    expect(
+      readRepoFile(
+        "apps/admin/app/api/admin/crm/gateway/staging-health/route.ts",
+      ).trim(),
+    ).toBe('export { GET } from "@asym/api/admin/crm/twenty-health";');
+    expect(
+      readRepoFile(
+        "apps/admin/app/api/admin/crm/webhooks/twenty/route.ts",
+      ).trim(),
+    ).toBe('export { POST } from "@asym/api/admin/crm/webhooks/twenty";');
+    expect(
+      readRepoFile("apps/admin/app/api/admin/crm/records/route.ts").trim(),
+    ).toBe('export { GET } from "@asym/api/admin/crm";');
+    expect(
+      readRepoFile("apps/admin/app/api/admin/crm/sync/replay/route.ts").trim(),
+    ).toBe('export { POST } from "@asym/api/admin/crm/sync/replay";');
+    expect(
+      readRepoFile(
+        "apps/admin/app/api/admin/crm/sync/reconcile/route.ts",
+      ).trim(),
+    ).toBe('export { POST } from "@asym/api/admin/crm/sync/reconcile";');
+  });
+
   it("enforces the raw Twenty client import boundary in ESLint and the verifier", () => {
     expect(readRepoFile("eslint.config.mjs")).toMatch(
       /@asym\/api\/crm\/client/,
     );
     expect(readRepoFile("scripts/verify/data-boundary-check.mjs")).toMatch(
       /TWENTY_API_KEY/,
+    );
+    expect(readRepoFile("scripts/verify/data-boundary-check.mjs")).toMatch(
+      /NEXT_PUBLIC_TWENTY_/,
     );
   });
 });

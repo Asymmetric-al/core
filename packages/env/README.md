@@ -37,10 +37,12 @@ Cloudinary server/client keys are conditionally required only when Cloudinary is
 Twenty CRM variables are server-only and optional during the non-production
 gateway/sync phases:
 
-- `TWENTY_API_URL`
+- `TWENTY_API_URL` (Phase 4 Twenty Cloud shape:
+  `https://api.twenty.com/rest`; custom/self-hosted values must still point at
+  a `/rest` API base)
 - `TWENTY_API_KEY`
 - `TWENTY_WEBHOOK_SECRET`
-- `TWENTY_WORKSPACE_ID`
+- `TWENTY_WORKSPACE_ID` (optional metadata in the current repo client)
 - `TWENTY_RATE_LIMIT_RPM` (defaults in callers to `100` when unset)
 - `CRM_SYNC_INBOUND_ENABLED` (defaults off)
 - `CRM_SYNC_OUTBOUND_ENABLED` (defaults off)
@@ -50,6 +52,15 @@ gateway/sync phases:
 
 Do not add `NEXT_PUBLIC_TWENTY_*` variables. Browser and app source must use
 Asym API contracts, not raw Twenty credentials.
+
+For staging-only CRM health proof, run `bun run verify:twenty-crm-health` from
+a server runtime or shell where the server-only Twenty variables are present.
+The script prints sanitized configuration state, object inventory, and
+`giftSummaries` field gaps without printing credential values.
+The admin app also exposes a staging-only
+`/api/admin/crm/gateway/staging-health` adapter for protected Vercel proof
+deployments. It returns 404 for production target envs and only reports
+sanitized metadata-read status.
 
 `DOCRAPTOR_API_KEY` is optional and server-only. DocRaptor examples authenticate with the API key as `user_credentials` or Basic Auth username, so keep it out of `NEXT_PUBLIC_*` variables.
 

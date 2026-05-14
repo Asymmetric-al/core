@@ -18,6 +18,7 @@ const bannedAppSourcePatterns = [
   "packages/api/src/crm/client",
   "TWENTY_API_KEY",
   "TWENTY_WEBHOOK_SECRET",
+  "NEXT_PUBLIC_TWENTY_",
 ];
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs"]);
 

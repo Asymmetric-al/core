@@ -25,6 +25,15 @@ export class MemoryCrmSyncStore implements CrmSyncStore {
   readonly jobs = new Map<string, CrmOutboundJob>();
   readonly logs: CrmSyncLogInput[] = [];
   readonly appliedEvents: string[] = [];
+  readonly outboundSuccesses: Array<{
+    jobId: string;
+    twentyRecordId: string | null;
+  }> = [];
+  readonly outboundFailures: Array<{
+    jobId: string;
+    status: "failed" | "dead_letter";
+    error: string;
+  }> = [];
   pause: Partial<Record<CrmSyncDomain, Partial<CrmSyncPauseState>>> = {};
   snapshot: CrmReconciliationSnapshot = emptySnapshot();
   private eventCounter = 0;
@@ -136,6 +145,28 @@ export class MemoryCrmSyncStore implements CrmSyncStore {
     const job = this.jobs.get(id);
     if (!job) return;
     this.jobs.set(id, { ...job, ...patch });
+  }
+
+  async recordOutboundSuccess(input: {
+    job: CrmOutboundJob;
+    twentyRecordId: string | null;
+  }): Promise<void> {
+    this.outboundSuccesses.push({
+      jobId: input.job.id,
+      twentyRecordId: input.twentyRecordId,
+    });
+  }
+
+  async recordOutboundFailure(input: {
+    job: CrmOutboundJob;
+    status: "failed" | "dead_letter";
+    error: string;
+  }): Promise<void> {
+    this.outboundFailures.push({
+      jobId: input.job.id,
+      status: input.status,
+      error: input.error,
+    });
   }
 
   async loadReconciliationSnapshot(): Promise<CrmReconciliationSnapshot> {

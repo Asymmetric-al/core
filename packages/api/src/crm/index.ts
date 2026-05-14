@@ -1,5 +1,6 @@
 export { requireCrmAccess } from "./auth/access";
 export { getCrmGatewayStatus, isCrmGatewaySmokeRouteEnabled } from "./gateway";
+export { getTwentyCrmHealth } from "./health";
 export { logCrmCommand } from "./commands/log";
 export { runCrmReconciliation } from "./reconciliation/run";
 export {
@@ -74,6 +75,8 @@ export type {
   CrmSyncRuntimeConfig,
   EnqueueCrmOutboundJobInput,
   ParsedTwentyWebhookEvent,
+  RecordCrmOutboundFailureInput,
+  RecordCrmOutboundSuccessInput,
   StoredCrmWebhookEvent,
   TwentyWebhookEnvelope,
 } from "./sync/types";
@@ -85,3 +88,4 @@ export type {
   CrmGatewayStatus,
   CrmResourceType,
 } from "./types";
+export type { TwentyCrmHealthResult } from "./health";

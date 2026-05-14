@@ -103,6 +103,12 @@ describe("CRM outbound sync queue", () => {
     expect(
       new Headers(fetchImpl.mock.calls[0]?.[1]?.headers).get("idempotency-key"),
     ).toBe(job.idempotencyKey);
+    expect(store.outboundSuccesses).toEqual([
+      {
+        jobId: job.id,
+        twentyRecordId: "person-1",
+      },
+    ]);
 
     const failedJob = await enqueueCrmOutboundJob(store, outboundConfig, {
       tenantId: "tenant-1",
@@ -121,5 +127,59 @@ describe("CRM outbound sync queue", () => {
 
     expect(failed.status).toBe("dead_letter");
     expect(failed.lastError).toMatch(/status 500/);
+    expect(store.outboundFailures).toMatchObject([
+      {
+        error: expect.stringMatching(/status 500/),
+        jobId: failedJob.id,
+        status: "dead_letter",
+      },
+    ]);
+  });
+
+  it("promotes gift summary job correlation after Twenty accepts the write", async () => {
+    const store = new MemoryCrmSyncStore();
+    const fetchImpl = vi.fn(async () =>
+      Response.json({
+        data: {
+          createGiftSummary: {
+            id: "twenty-gift-1",
+          },
+        },
+      }),
+    );
+    const client = new TwentyCoreClient({
+      apiBaseUrl: "https://api.twenty.com/rest",
+      apiKey: "twenty-secret",
+      fetchImpl,
+    });
+
+    const job = await enqueueCrmOutboundJob(store, outboundConfig, {
+      tenantId: "tenant-1",
+      domain: "gifts",
+      jobType: "upsert",
+      twentyObjectName: "giftSummaries",
+      sourceEntityType: "payment_record",
+      sourceEntityId: "staged-gift-1",
+      payload: {
+        asymDonationId: "donation-1",
+        asymStagedGiftId: "staged-gift-1",
+        asymTenantId: "tenant-1",
+      },
+    });
+
+    const processed = await processCrmOutboundJob(
+      store,
+      client,
+      outboundConfig,
+      job,
+    );
+
+    expect(processed.status).toBe("succeeded");
+    expect(store.outboundSuccesses).toEqual([
+      {
+        jobId: job.id,
+        twentyRecordId: "twenty-gift-1",
+      },
+    ]);
   });
 });

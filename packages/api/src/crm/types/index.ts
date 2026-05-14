@@ -51,7 +51,12 @@ export interface CrmGatewayStatus {
   service: "twenty";
   configured: boolean;
   enabled: boolean;
-  mode: "not_configured" | "ready" | "probe_succeeded" | "probe_failed";
+  mode:
+    | "missing_config"
+    | "degraded"
+    | "ready"
+    | "probe_succeeded"
+    | "provider_error";
   requestId?: string;
   actor: {
     userId: string;
@@ -61,8 +66,12 @@ export interface CrmGatewayStatus {
     isSuperAdmin: boolean;
   };
   missing?: string[];
-  apiBaseUrl?: string;
-  workspaceId?: string;
+  invalid?: Array<{
+    key: string;
+    reason: string;
+  }>;
+  apiBaseUrlKind?: "twenty_cloud_rest" | "custom_rest";
+  workspaceConfigured?: boolean;
   rateLimitRpm: number;
   hasWebhookSecret?: boolean;
   probe?: {
