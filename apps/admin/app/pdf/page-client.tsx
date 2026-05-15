@@ -3,6 +3,12 @@
 import { type EmailStudioFullConfig } from "@asym/config/email-studio";
 import { type PDFStudioFullConfig } from "@asym/config/pdf-studio";
 import {
+  DocumentTemplateV1Schema,
+  starterPdfTemplateFixtureByCategory,
+  type DocumentTemplateV1,
+  type TemplateCategory,
+} from "@asym/pdf-template-schema";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -89,7 +95,7 @@ import React, {
 } from "react";
 import { toast } from "sonner";
 
-import type { PDFTemplateCategory } from "@/lib/pdf-studio";
+import type { PDFTemplateCategory, PDFTemplateEngine } from "@/lib/pdf-studio";
 import type { UnlayerDesignJSON } from "@asym/email/email-studio-types";
 import type { LegacyUnlayerDocumentEditorHandle } from "@asym/ui/components/studio/legacy/UnlayerDocumentEditor";
 
@@ -108,6 +114,7 @@ interface PDFMetadata {
   category: PDFTemplateCategory;
   pageSize: "A4" | "Letter" | "Legal";
   orientation: "portrait" | "landscape";
+  engine: PDFTemplateEngine;
 }
 
 interface PDFTemplateListEntry {
@@ -120,7 +127,21 @@ interface PDFTemplateListEntry {
   page_size: "A4" | "Letter" | "Legal";
   orientation: "portrait" | "landscape";
   status: "draft" | "published" | "archived";
+  engine?: PDFTemplateEngine;
+  native_schema_version?: number | null;
   updated_at: string;
+}
+
+interface NativePreviewState {
+  html: string;
+  diagnostics: Array<{
+    code: string;
+    severity: "info" | "warning" | "error";
+    message: string;
+    path?: string[];
+  }>;
+  status: "idle" | "loading" | "success" | "error";
+  error: string | null;
 }
 
 interface PDFStudioUiState {
@@ -170,7 +191,110 @@ const DEFAULT_PDF_METADATA: PDFMetadata = {
   category: "custom",
   pageSize: "Letter",
   orientation: "portrait",
+  engine: "unlayer",
 };
+
+const EMPTY_NATIVE_PREVIEW_STATE: NativePreviewState = {
+  diagnostics: [],
+  error: null,
+  html: "",
+  status: "idle",
+};
+
+const nativeBuilderPublicEnabled =
+  process.env.NEXT_PUBLIC_PDF_STUDIO_NATIVE_BUILDER_ENABLED === "true";
+
+const coreToNativeCategory: Record<PDFTemplateCategory, TemplateCategory> = {
+  annual_statement: "annual_giving_statement",
+  certificate: "certificate",
+  custom: "custom",
+  donation_receipt: "donation_receipt",
+  invoice: "invoice",
+  letter: "donor_letter",
+  missionary_report: "missionary_report",
+  report: "financial_report",
+  tax_receipt: "tax_receipt",
+};
+
+const nativeToCoreCategory: Record<TemplateCategory, PDFTemplateCategory> = {
+  annual_giving_statement: "annual_statement",
+  certificate: "certificate",
+  custom: "custom",
+  donation_receipt: "donation_receipt",
+  donor_letter: "letter",
+  financial_report: "report",
+  invoice: "invoice",
+  missionary_report: "missionary_report",
+  tax_receipt: "tax_receipt",
+};
+
+function createNativeTemplateFromMetadata(
+  metadata: PDFMetadata,
+): DocumentTemplateV1 {
+  const nativeCategory = coreToNativeCategory[metadata.category];
+  const fixtureCategory =
+    nativeCategory === "custom" ? "donation_receipt" : nativeCategory;
+  const fixture = starterPdfTemplateFixtureByCategory[fixtureCategory];
+  const now = new Date().toISOString();
+
+  return {
+    ...fixture.template,
+    category: nativeCategory,
+    id: metadata.id ?? crypto.randomUUID(),
+    metadata: {
+      ...fixture.template.metadata,
+      description: metadata.description || undefined,
+      tags: fixture.template.metadata.tags,
+      updatedAt: now,
+    },
+    name: metadata.name,
+    pageSettings: {
+      ...fixture.template.pageSettings,
+      orientation: metadata.orientation,
+      pageSize: corePageSizeToNative(metadata.pageSize),
+    },
+    status: "draft",
+  };
+}
+
+function stringifyNativeTemplate(template: DocumentTemplateV1): string {
+  return JSON.stringify(template, null, 2);
+}
+
+function parseNativeTemplateJson(value: string): DocumentTemplateV1 {
+  return DocumentTemplateV1Schema.parse(JSON.parse(value));
+}
+
+function corePageSizeToNative(
+  pageSize: PDFMetadata["pageSize"],
+): DocumentTemplateV1["pageSettings"]["pageSize"] {
+  if (pageSize === "A4") return "a4";
+  if (pageSize === "Legal") return "legal";
+  return "letter";
+}
+
+function nativePageSizeToCore(
+  pageSize: DocumentTemplateV1["pageSettings"]["pageSize"],
+): PDFMetadata["pageSize"] {
+  if (pageSize === "a4") return "A4";
+  if (pageSize === "legal") return "Legal";
+  return "Letter";
+}
+
+function metadataFromNativeTemplate(
+  template: DocumentTemplateV1,
+  existingId: string | null,
+): PDFMetadata {
+  return {
+    category: nativeToCoreCategory[template.category],
+    description: template.metadata.description ?? "",
+    engine: "asym_pdf_document_builder",
+    id: existingId,
+    name: template.name,
+    orientation: template.pageSettings.orientation,
+    pageSize: nativePageSizeToCore(template.pageSettings.pageSize),
+  };
+}
 
 const INITIAL_PDF_STUDIO_UI_STATE: PDFStudioUiState = {
   isEditorReady: false,
@@ -236,6 +360,8 @@ interface PDFStudioHeaderStatus {
   isExporting: boolean;
   previewDevice: PreviewDevice;
   isFullscreen: boolean;
+  engine: PDFTemplateEngine;
+  nativeBuilderEnabled: boolean;
 }
 
 interface PDFStudioHeaderActions {
@@ -246,6 +372,7 @@ interface PDFStudioHeaderActions {
   onExportHtml: () => void;
   onSaveClick: () => void;
   onNewTemplate: () => void;
+  onNewNativeTemplate: () => void;
   onLoadTemplate: () => void;
   onToggleFullscreen: () => void;
   onOpenDeleteDialog: () => void;
@@ -266,6 +393,8 @@ function PDFStudioHeaderSection({
     isExporting,
     previewDevice,
     isFullscreen,
+    engine,
+    nativeBuilderEnabled,
   },
   actions: {
     onUndo,
@@ -275,6 +404,7 @@ function PDFStudioHeaderSection({
     onExportHtml,
     onSaveClick,
     onNewTemplate,
+    onNewNativeTemplate,
     onLoadTemplate,
     onToggleFullscreen,
     onOpenDeleteDialog,
@@ -399,6 +529,11 @@ function PDFStudioHeaderSection({
 
         <Separator orientation="vertical" className="h-5 hidden md:block" />
 
+        <div className="hidden lg:flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] font-medium uppercase text-muted-foreground">
+          <FileCode className="size-3" />
+          {engine === "asym_pdf_document_builder" ? "Native" : "Unlayer"}
+        </div>
+
         <DropdownMenu>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -475,6 +610,12 @@ function PDFStudioHeaderSection({
               <Plus className="size-4 mr-2" />
               New Document
             </DropdownMenuItem>
+            {nativeBuilderEnabled && (
+              <DropdownMenuItem onClick={onNewNativeTemplate}>
+                <Sparkles className="size-4 mr-2" />
+                New Native Document
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem
               onClick={() => toast.info("Template settings coming soon")}
             >
@@ -696,6 +837,7 @@ function PDFSaveDialogSection({
 function PDFExportDialogSection({
   open,
   onOpenChange,
+  engine,
   studioConfig,
   exportedHtml,
   copiedHtml,
@@ -704,6 +846,7 @@ function PDFExportDialogSection({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  engine: PDFTemplateEngine;
   studioConfig: PDFStudioFullConfig | null;
   exportedHtml: string;
   copiedHtml: boolean;
@@ -718,10 +861,14 @@ function PDFExportDialogSection({
             <div className="p-2 rounded-lg bg-violet-500/10">
               <FileCode className="size-4 text-violet-600" />
             </div>
-            Export HTML
+            {engine === "asym_pdf_document_builder"
+              ? "Export Native JSON"
+              : "Export HTML"}
           </DialogTitle>
           <DialogDescription className="flex items-center gap-2">
-            Copy or download the generated HTML code for your document template.
+            {engine === "asym_pdf_document_builder"
+              ? "Copy or download the native document source."
+              : "Copy or download the generated HTML code for your document template."}
             {studioConfig?.export.cleanupCss && (
               <span className="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full text-[10px] font-medium">
                 <Sparkles className="size-3" />
@@ -760,7 +907,9 @@ function PDFExportDialogSection({
             <span>{exportedHtml.length.toLocaleString()} characters</span>
             <span className="flex items-center gap-1">
               <Layers className="size-3" />
-              Ready for PDF conversion
+              {engine === "asym_pdf_document_builder"
+                ? "Native source"
+                : "Ready for PDF conversion"}
             </span>
           </div>
         </div>
@@ -774,7 +923,11 @@ function PDFExportDialogSection({
             ) : (
               <Copy className="size-4 mr-2" />
             )}
-            {copiedHtml ? "Copied!" : "Copy HTML"}
+            {copiedHtml
+              ? "Copied!"
+              : engine === "asym_pdf_document_builder"
+                ? "Copy JSON"
+                : "Copy HTML"}
           </Button>
           <Button onClick={onDownloadHtml}>
             <Download className="size-4 mr-2" />
@@ -877,7 +1030,10 @@ function PDFTemplatePickerDialog({
                     <div className="mt-0.5 text-xs text-muted-foreground">
                       {template.category.replace(/_/g, " ")} ·{" "}
                       {template.page_size} · {template.orientation} ·{" "}
-                      {template.status}
+                      {template.engine === "asym_pdf_document_builder"
+                        ? "native"
+                        : "unlayer"}{" "}
+                      · {template.status}
                     </div>
                   </div>
                   <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -888,6 +1044,90 @@ function PDFTemplatePickerDialog({
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function NativePdfDocumentBuilderSection({
+  templateText,
+  preview,
+  onTemplateTextChange,
+  onPreview,
+}: {
+  templateText: string;
+  preview: NativePreviewState;
+  onTemplateTextChange: (value: string) => void;
+  onPreview: () => void;
+}) {
+  return (
+    <div className="absolute inset-0 grid min-h-0 grid-cols-1 bg-background lg:grid-cols-[minmax(360px,0.92fr)_minmax(420px,1.08fr)]">
+      <section className="flex min-h-0 flex-col border-r bg-background">
+        <div className="flex h-12 shrink-0 items-center justify-between border-b px-3">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <FileCode className="size-4 text-muted-foreground" />
+            Document JSON
+          </div>
+          <Button size="sm" variant="outline" onClick={onPreview}>
+            <Monitor className="mr-2 size-4" />
+            Preview
+          </Button>
+        </div>
+        <Textarea
+          value={templateText}
+          onChange={(event) => onTemplateTextChange(event.target.value)}
+          spellCheck={false}
+          className="min-h-0 flex-1 resize-none rounded-none border-0 font-mono text-xs leading-relaxed shadow-none focus-visible:ring-0"
+        />
+      </section>
+
+      <section className="flex min-h-0 flex-col bg-muted/30">
+        <div className="flex h-12 shrink-0 items-center justify-between border-b bg-background px-3">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <Monitor className="size-4 text-muted-foreground" />
+            Authoring Preview
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            {preview.status === "loading" && (
+              <span className="size-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            )}
+            {preview.status}
+          </div>
+        </div>
+        <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto]">
+          <iframe
+            title="Native PDF authoring preview"
+            srcDoc={preview.html}
+            className="h-full w-full bg-white"
+          />
+          <div className="max-h-40 overflow-y-auto border-t bg-background p-3">
+            {preview.error ? (
+              <div className="flex items-start gap-2 text-sm text-destructive">
+                <AlertCircle className="mt-0.5 size-4 shrink-0" />
+                <span>{preview.error}</span>
+              </div>
+            ) : preview.diagnostics.length > 0 ? (
+              <div className="space-y-2">
+                {preview.diagnostics.map((diagnostic, index) => (
+                  <div
+                    key={`${diagnostic.code}-${index}`}
+                    className="flex items-start gap-2 text-xs text-muted-foreground"
+                  >
+                    <AlertCircle className="mt-0.5 size-3.5 shrink-0" />
+                    <span>
+                      {diagnostic.severity}: {diagnostic.message}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Check className="size-3.5" />
+                Preview ready
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }
 
@@ -1005,6 +1245,96 @@ async function runSaveTemplate(options: {
   }
 }
 
+async function runSaveNativeTemplate(options: {
+  template: DocumentTemplateV1;
+  metadata: PDFMetadata;
+}): Promise<SaveTemplateResult> {
+  try {
+    const payload = {
+      id: options.metadata.id ?? options.template.id,
+      name: options.metadata.name,
+      description: options.metadata.description || undefined,
+      design: options.template,
+      html: null,
+      category: options.metadata.category,
+      page_size: options.metadata.pageSize,
+      orientation: options.metadata.orientation,
+      status: "draft",
+      engine: "asym_pdf_document_builder",
+      native_schema_version: options.template.version,
+      migration_status: "rebuilt",
+    };
+
+    const url = options.metadata.id
+      ? `/api/pdf-templates/${options.metadata.id}`
+      : "/api/pdf-templates";
+    const method = options.metadata.id ? "PUT" : "POST";
+
+    const response = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorData = (await response.json().catch(() => ({}))) as {
+        error?: string;
+      };
+      return {
+        ok: false,
+        error: errorData.error ?? "Failed to save native template",
+      };
+    }
+
+    const { template } = await response.json();
+    return { ok: true, templateId: template.id };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to save native template";
+    return { ok: false, error: message };
+  }
+}
+
+async function runNativePreview(template: DocumentTemplateV1) {
+  const sampleDataCategory =
+    template.category === "custom" ? "donation_receipt" : template.category;
+  const response = await fetch("/api/pdf-templates/native/preview", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      dataContext:
+        starterPdfTemplateFixtureByCategory[sampleDataCategory].sampleData,
+      previewId: `native_preview_${template.id}`,
+      template,
+    }),
+  });
+  const body = (await response.json().catch(() => null)) as {
+    success?: boolean;
+    preflight?: {
+      diagnostics?: NativePreviewState["diagnostics"];
+    };
+    preview?: {
+      diagnostics?: NativePreviewState["diagnostics"];
+      snapshots?: {
+        html?: string;
+      };
+    };
+    error?: string;
+  } | null;
+
+  if (!response.ok || !body?.success) {
+    throw new Error(body?.error ?? "Failed to preview native template");
+  }
+
+  return {
+    diagnostics: [
+      ...(body.preflight?.diagnostics ?? []),
+      ...(body.preview?.diagnostics ?? []),
+    ],
+    html: body.preview?.snapshots?.html ?? "",
+  };
+}
+
 function usePDFStudioController() {
   const editorRef = useRef<LegacyUnlayerDocumentEditorHandle>(null);
   const [ui, dispatchUi] = useReducer(
@@ -1016,6 +1346,14 @@ function usePDFStudioController() {
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [templates, setTemplates] = useState<PDFTemplateListEntry[]>([]);
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
+  const [nativeTemplateText, setNativeTemplateText] = useState(() =>
+    stringifyNativeTemplate(
+      createNativeTemplateFromMetadata(DEFAULT_PDF_METADATA),
+    ),
+  );
+  const [nativePreview, setNativePreview] = useState<NativePreviewState>(
+    EMPTY_NATIVE_PREVIEW_STATE,
+  );
   const {
     isEditorReady,
     isSaving,
@@ -1040,11 +1378,17 @@ function usePDFStudioController() {
   }, []);
 
   const handleSaveClick = useCallback(() => {
-    if (!editorRef.current) return;
+    if (metadata.engine !== "asym_pdf_document_builder" && !editorRef.current) {
+      return;
+    }
     dispatchUi({ type: "set_show_save_dialog", value: true });
-  }, []);
+  }, [metadata.engine]);
 
   const handleExportHtml = useCallback(async () => {
+    if (metadata.engine === "asym_pdf_document_builder") {
+      dispatchUi({ type: "open_export_dialog", html: nativeTemplateText });
+      return;
+    }
     if (!editorRef.current) return;
     try {
       const data = await editorRef.current.exportHtml({
@@ -1055,9 +1399,54 @@ function usePDFStudioController() {
     } catch {
       toast.error("Failed to export HTML");
     }
-  }, [studioConfig]);
+  }, [metadata.engine, nativeTemplateText, studioConfig]);
 
   const handleExportPDF = useCallback(async () => {
+    if (metadata.engine === "asym_pdf_document_builder") {
+      try {
+        dispatchUi({ type: "set_exporting", value: true });
+        const template = parseNativeTemplateJson(nativeTemplateText);
+        const response = await fetch("/api/pdf-templates/native/render", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            dataContext:
+              starterPdfTemplateFixtureByCategory[
+                template.category === "custom"
+                  ? "donation_receipt"
+                  : template.category
+              ].sampleData,
+            renderId: `native_render_${template.id}`,
+            template,
+          }),
+        });
+        const body = (await response.json().catch(() => null)) as {
+          render?: { status?: string; errors?: Array<{ message: string }> };
+          error?: string;
+        } | null;
+        const renderStatus = body?.render?.status;
+
+        if (!response.ok || renderStatus === "error") {
+          toast.error("Native render unavailable", {
+            description:
+              body?.render?.errors?.[0]?.message ??
+              body?.error ??
+              "Official output requires native render rollout and DocRaptor server config.",
+          });
+        } else {
+          toast.success("Native render completed");
+        }
+      } catch (error) {
+        toast.error("Native render failed", {
+          description:
+            error instanceof Error ? error.message : "Invalid native template",
+        });
+      } finally {
+        dispatchUi({ type: "set_exporting", value: false });
+      }
+      return;
+    }
+
     if (!editorRef.current) return;
     dispatchUi({ type: "set_exporting", value: true });
     const result = await runExportPdf(editorRef.current);
@@ -1082,7 +1471,7 @@ function usePDFStudioController() {
       });
     }
     dispatchUi({ type: "set_exporting", value: false });
-  }, []);
+  }, [metadata.engine, nativeTemplateText]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -1152,19 +1541,63 @@ function usePDFStudioController() {
     dispatchUi({ type: "set_unsaved_changes", value: true });
   }, []);
 
+  const handleNativeTemplateTextChange = useCallback((value: string) => {
+    setNativeTemplateText(value);
+    dispatchUi({ type: "set_unsaved_changes", value: true });
+  }, []);
+
   const handleConfirmSave = useCallback(async () => {
-    if (!editorRef.current) return;
+    if (metadata.engine !== "asym_pdf_document_builder" && !editorRef.current) {
+      return;
+    }
 
     dispatchUi({ type: "set_show_save_dialog", value: false });
     dispatchUi({ type: "set_saving", value: true });
 
-    const result = await runSaveTemplate({
-      editor: editorRef.current,
-      metadata,
-    });
+    let result: SaveTemplateResult;
+    let normalizedNativeTemplateText: string | null = null;
+
+    if (metadata.engine === "asym_pdf_document_builder") {
+      try {
+        const template = parseNativeTemplateJson(nativeTemplateText);
+        const normalizedTemplate = {
+          ...template,
+          category: coreToNativeCategory[metadata.category],
+          name: metadata.name,
+          pageSettings: {
+            ...template.pageSettings,
+            orientation: metadata.orientation,
+            pageSize: corePageSizeToNative(metadata.pageSize),
+          },
+          status: "draft" as const,
+        };
+        normalizedNativeTemplateText =
+          stringifyNativeTemplate(normalizedTemplate);
+        result = await runSaveNativeTemplate({
+          metadata,
+          template: normalizedTemplate,
+        });
+      } catch (error) {
+        result = {
+          ok: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : "Native template JSON is invalid",
+        };
+      }
+    } else {
+      result = await runSaveTemplate({
+        editor: editorRef.current!,
+        metadata,
+      });
+    }
 
     if (result.ok) {
       setMetadata((prev) => ({ ...prev, id: result.templateId }));
+      if (normalizedNativeTemplateText) {
+        setNativeTemplateText(normalizedNativeTemplateText);
+      }
       dispatchUi({ type: "set_unsaved_changes", value: false });
 
       toast.success("Template saved", {
@@ -1175,7 +1608,7 @@ function usePDFStudioController() {
       toast.error("Save failed", { description: result.error });
     }
     dispatchUi({ type: "set_saving", value: false });
-  }, [metadata]);
+  }, [metadata, nativeTemplateText]);
 
   const handleDelete = useCallback(async () => {
     if (!metadata.id) return;
@@ -1187,6 +1620,12 @@ function usePDFStudioController() {
       toast.success("Template archived");
       setMetadata(DEFAULT_PDF_METADATA);
       currentDesignRef.current = null;
+      setNativeTemplateText(
+        stringifyNativeTemplate(
+          createNativeTemplateFromMetadata(DEFAULT_PDF_METADATA),
+        ),
+      );
+      setNativePreview(EMPTY_NATIVE_PREVIEW_STATE);
       if (editorRef.current) {
         editorRef.current.loadDesign(DEFAULT_DESIGN);
       }
@@ -1199,40 +1638,97 @@ function usePDFStudioController() {
   const handleCopyHtml = useCallback(() => {
     navigator.clipboard.writeText(exportedHtml);
     dispatchUi({ type: "set_copied_html", value: true });
-    toast.success("HTML copied to clipboard");
+    toast.success(
+      metadata.engine === "asym_pdf_document_builder"
+        ? "JSON copied to clipboard"
+        : "HTML copied to clipboard",
+    );
     setTimeout(
       () => dispatchUi({ type: "set_copied_html", value: false }),
       2000,
     );
-  }, [exportedHtml]);
+  }, [exportedHtml, metadata.engine]);
 
   const handleDownloadHtml = useCallback(() => {
-    const blob = new Blob([exportedHtml], { type: "text/html" });
+    const isNative = metadata.engine === "asym_pdf_document_builder";
+    const blob = new Blob([exportedHtml], {
+      type: isNative ? "application/json" : "text/html",
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${metadata.name.toLowerCase().replace(/\s+/g, "-")}.html`;
+    a.download = `${metadata.name.toLowerCase().replace(/\s+/g, "-")}.${
+      isNative ? "json" : "html"
+    }`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     toast.success("HTML downloaded");
-  }, [exportedHtml, metadata.name]);
+  }, [exportedHtml, metadata.engine, metadata.name]);
 
-  const handlePreview = useCallback((device: PreviewDevice) => {
-    if (!editorRef.current) return;
-    dispatchUi({ type: "set_preview_device", value: device });
-    editorRef.current.showPreview(device);
-  }, []);
+  const handlePreview = useCallback(
+    async (device: PreviewDevice) => {
+      if (metadata.engine === "asym_pdf_document_builder") {
+        dispatchUi({ type: "set_preview_device", value: device });
+        try {
+          const template = parseNativeTemplateJson(nativeTemplateText);
+          setNativePreview((prev) => ({
+            ...prev,
+            error: null,
+            status: "loading",
+          }));
+          const preview = await runNativePreview(template);
+          setNativePreview({
+            diagnostics: preview.diagnostics,
+            error: null,
+            html: preview.html,
+            status: "success",
+          });
+        } catch (error) {
+          setNativePreview((prev) => ({
+            ...prev,
+            error:
+              error instanceof Error
+                ? error.message
+                : "Failed to preview native template",
+            status: "error",
+          }));
+        }
+        return;
+      }
+
+      if (!editorRef.current) return;
+      dispatchUi({ type: "set_preview_device", value: device });
+      editorRef.current.showPreview(device);
+    },
+    [metadata.engine, nativeTemplateText],
+  );
 
   const handleNewTemplate = useCallback(() => {
     setMetadata(DEFAULT_PDF_METADATA);
     currentDesignRef.current = null;
+    setNativePreview(EMPTY_NATIVE_PREVIEW_STATE);
     if (editorRef.current) {
       editorRef.current.loadDesign(DEFAULT_DESIGN);
     }
     dispatchUi({ type: "set_unsaved_changes", value: false });
     toast.info("New document created");
+  }, []);
+
+  const handleNewNativeTemplate = useCallback(() => {
+    const nextMetadata: PDFMetadata = {
+      ...DEFAULT_PDF_METADATA,
+      engine: "asym_pdf_document_builder",
+    };
+    const template = createNativeTemplateFromMetadata(nextMetadata);
+
+    setMetadata(metadataFromNativeTemplate(template, null));
+    setNativeTemplateText(stringifyNativeTemplate(template));
+    setNativePreview(EMPTY_NATIVE_PREVIEW_STATE);
+    currentDesignRef.current = null;
+    dispatchUi({ type: "set_unsaved_changes", value: false });
+    toast.info("Native document created");
   }, []);
 
   const handleOpenTemplatePicker = useCallback(async () => {
@@ -1250,16 +1746,25 @@ function usePDFStudioController() {
   }, []);
 
   const handleSelectTemplate = useCallback((template: PDFTemplateListEntry) => {
-    setMetadata({
-      id: template.id,
-      name: template.name,
-      description: template.description ?? "",
-      category: template.category,
-      pageSize: template.page_size,
-      orientation: template.orientation,
-    });
-    currentDesignRef.current = template.design;
-    editorRef.current?.loadDesign(template.design);
+    if (template.engine === "asym_pdf_document_builder") {
+      const nativeTemplate = DocumentTemplateV1Schema.parse(template.design);
+      setMetadata(metadataFromNativeTemplate(nativeTemplate, template.id));
+      setNativeTemplateText(stringifyNativeTemplate(nativeTemplate));
+      setNativePreview(EMPTY_NATIVE_PREVIEW_STATE);
+      currentDesignRef.current = null;
+    } else {
+      setMetadata({
+        id: template.id,
+        name: template.name,
+        description: template.description ?? "",
+        category: template.category,
+        pageSize: template.page_size,
+        orientation: template.orientation,
+        engine: "unlayer",
+      });
+      currentDesignRef.current = template.design;
+      editorRef.current?.loadDesign(template.design);
+    }
     dispatchUi({ type: "set_unsaved_changes", value: false });
     setShowTemplatePicker(false);
     toast.success("PDF template opened", {
@@ -1288,6 +1793,8 @@ function usePDFStudioController() {
     studioConfig,
     isFullscreen,
     copiedHtml,
+    nativeTemplateText,
+    nativePreview,
     handleUndo,
     handleRedo,
     handleSaveClick,
@@ -1295,12 +1802,14 @@ function usePDFStudioController() {
     handleExportPDF,
     handleEditorReady,
     handleDesignUpdate,
+    handleNativeTemplateTextChange,
     handleConfirmSave,
     handleDelete,
     handleCopyHtml,
     handleDownloadHtml,
     handlePreview,
     handleNewTemplate,
+    handleNewNativeTemplate,
     handleOpenTemplatePicker,
     handleSelectTemplate,
   };
@@ -1328,6 +1837,8 @@ export default function PDFStudio() {
     studioConfig,
     isFullscreen,
     copiedHtml,
+    nativeTemplateText,
+    nativePreview,
     handleUndo,
     handleRedo,
     handleSaveClick,
@@ -1335,15 +1846,19 @@ export default function PDFStudio() {
     handleExportPDF,
     handleEditorReady,
     handleDesignUpdate,
+    handleNativeTemplateTextChange,
     handleConfirmSave,
     handleDelete,
     handleCopyHtml,
     handleDownloadHtml,
     handlePreview,
     handleNewTemplate,
+    handleNewNativeTemplate,
     handleOpenTemplatePicker,
     handleSelectTemplate,
   } = usePDFStudioController();
+  const isNativeBuilder = metadata.engine === "asym_pdf_document_builder";
+  const effectiveEditorReady = isNativeBuilder || isEditorReady;
 
   return (
     <div
@@ -1358,11 +1873,13 @@ export default function PDFStudio() {
         metadata={metadata}
         status={{
           hasUnsavedChanges,
-          isEditorReady,
+          isEditorReady: effectiveEditorReady,
           isSaving,
           isExporting,
           previewDevice,
           isFullscreen,
+          engine: metadata.engine,
+          nativeBuilderEnabled: nativeBuilderPublicEnabled,
         }}
         actions={{
           onUndo: handleUndo,
@@ -1372,6 +1889,7 @@ export default function PDFStudio() {
           onExportHtml: handleExportHtml,
           onSaveClick: handleSaveClick,
           onNewTemplate: handleNewTemplate,
+          onNewNativeTemplate: handleNewNativeTemplate,
           onLoadTemplate: handleOpenTemplatePicker,
           onToggleFullscreen: () => dispatchUi({ type: "toggle_fullscreen" }),
           onOpenDeleteDialog: () =>
@@ -1380,23 +1898,32 @@ export default function PDFStudio() {
       />
 
       <div className="flex-1 relative overflow-hidden bg-muted/30">
-        <LegacyUnlayerDocumentEditor
-          editorId="pdf-studio-editor"
-          onReady={handleEditorReady}
-          onDesignUpdate={handleDesignUpdate}
-          ref={editorRef}
-          className="absolute inset-0"
-          appearance={{
-            theme: "modern_light",
-            panels: {
-              tools: {
-                dock: "right",
-                collapsible: true,
-                defaultUncollapsed: true,
+        {isNativeBuilder ? (
+          <NativePdfDocumentBuilderSection
+            templateText={nativeTemplateText}
+            preview={nativePreview}
+            onTemplateTextChange={handleNativeTemplateTextChange}
+            onPreview={() => handlePreview(previewDevice)}
+          />
+        ) : (
+          <LegacyUnlayerDocumentEditor
+            editorId="pdf-studio-editor"
+            onReady={handleEditorReady}
+            onDesignUpdate={handleDesignUpdate}
+            ref={editorRef}
+            className="absolute inset-0"
+            appearance={{
+              theme: "modern_light",
+              panels: {
+                tools: {
+                  dock: "right",
+                  collapsible: true,
+                  defaultUncollapsed: true,
+                },
               },
-            },
-          }}
-        />
+            }}
+          />
+        )}
       </div>
 
       <PDFSaveDialogSection
@@ -1415,6 +1942,7 @@ export default function PDFStudio() {
         onOpenChange={(open) =>
           dispatchUi({ type: "set_show_export_dialog", value: open })
         }
+        engine={metadata.engine}
         studioConfig={studioConfig}
         exportedHtml={exportedHtml}
         copiedHtml={copiedHtml}

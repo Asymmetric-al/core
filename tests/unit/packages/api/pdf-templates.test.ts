@@ -140,6 +140,50 @@ describe("api/pdf-templates", () => {
     });
   });
 
+  it("accepts native missionary report templates while keeping DocRaptor server-only", async () => {
+    createPdfTemplateMock.mockResolvedValueOnce({
+      id: TEMPLATE_ID,
+      tenant_id: "tenant_1",
+      name: "Missionary report",
+      category: "missionary_report",
+      engine: "asym_pdf_document_builder",
+      status: "draft",
+    });
+
+    const response = await POST(
+      jsonRequest("/api/pdf-templates", {
+        name: "Missionary report",
+        design: {
+          version: 1,
+          content: { type: "doc", content: [] },
+        },
+        html: null,
+        category: "missionary_report",
+        engine: "asym_pdf_document_builder",
+        native_schema_version: 1,
+        migration_status: "manual_rebuild_required",
+        migration_report: {
+          unsupportedFeatures: ["legacy custom HTML block"],
+        },
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(201);
+    expect(body.template.engine).toBe("asym_pdf_document_builder");
+    expect(createPdfTemplateMock).toHaveBeenCalledWith({
+      tenantId: "tenant_1",
+      profileId: "profile_1",
+      template: expect.objectContaining({
+        category: "missionary_report",
+        engine: "asym_pdf_document_builder",
+        html: null,
+        migration_status: "manual_rebuild_required",
+        native_schema_version: 1,
+      }),
+    });
+  });
+
   it("rejects invalid template ids before touching storage", async () => {
     const response = await GET_TEMPLATE(
       request("/api/pdf-templates/not-a-uuid"),

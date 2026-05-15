@@ -13,7 +13,8 @@
     "./payouts": "./payouts.ts",
     "./tiles": "./tiles.ts",
     "./email-studio": "./email-studio.ts",
-    "./pdf-studio": "./pdf-studio.ts"
+    "./pdf-studio": "./pdf-studio.ts",
+    "./pdf-studio-native": "./pdf-studio-native.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

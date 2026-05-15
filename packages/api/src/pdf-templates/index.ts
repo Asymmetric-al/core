@@ -26,12 +26,26 @@ const pdfTemplateCategorySchema = z.enum([
   "annual_statement",
   "letter",
   "certificate",
+  "missionary_report",
   "report",
   "invoice",
   "custom",
 ]);
 
 const pdfTemplateStatusSchema = z.enum(["draft", "published", "archived"]);
+const pdfTemplateEngineSchema = z.enum([
+  "unlayer",
+  "asym_pdf_document_builder",
+]);
+const pdfTemplateMigrationStatusSchema = z.enum([
+  "not_started",
+  "manual_rebuild_required",
+  "in_progress",
+  "rebuilt",
+  "validated",
+  "published",
+  "archived",
+]);
 const pdfTemplatePageSizeSchema = z.enum(["A4", "Letter", "Legal"]);
 const pdfTemplateOrientationSchema = z.enum(["portrait", "landscape"]);
 const jsonRecordSchema = z.record(z.string(), z.unknown());
@@ -44,6 +58,7 @@ const pdfTemplateMarginsSchema = z.object({
 });
 
 const pdfTemplateMutationSchema = z.object({
+  id: z.string().uuid().optional(),
   name: z.string().min(1, "Template name is required").max(160),
   description: z.string().max(1000).nullable().optional(),
   thumbnail: z.string().url().nullable().optional(),
@@ -56,6 +71,21 @@ const pdfTemplateMutationSchema = z.object({
   tags: z.array(z.string().min(1).max(80)).max(24).optional(),
   status: pdfTemplateStatusSchema.optional(),
   is_default: z.boolean().optional(),
+  engine: pdfTemplateEngineSchema.optional(),
+  native_schema_version: z.number().int().positive().nullable().optional(),
+  native_template_current_draft_version_id: z
+    .string()
+    .uuid()
+    .nullable()
+    .optional(),
+  native_template_current_published_version_id: z
+    .string()
+    .uuid()
+    .nullable()
+    .optional(),
+  legacy_unlayer_project_id: z.string().max(160).nullable().optional(),
+  migration_status: pdfTemplateMigrationStatusSchema.optional(),
+  migration_report: jsonRecordSchema.optional(),
 });
 
 const pdfTemplatePatchSchema = pdfTemplateMutationSchema.partial().extend({

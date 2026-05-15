@@ -9,6 +9,8 @@ describe("PDF Studio operator guide", () => {
     );
 
     expect(guide).toContain("NEXT_PUBLIC_UNLAYER_PROJECT_ID");
+    expect(guide).toContain("PDF_STUDIO_NATIVE_BUILDER_ROLLOUT=legacy_only");
+    expect(guide).toContain("server-side DocRaptor");
     expect(guide).toContain("status='archived'");
     expect(guide).toContain("Restore the prior admin Vercel deployment");
   });

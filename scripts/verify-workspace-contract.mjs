@@ -7,6 +7,13 @@ const rootPkg = JSON.parse(await fs.readFile("package.json", "utf8"));
 const requiredGlobs = ["apps/*", "packages/*", "packages/env", "tooling/*"];
 const globs = Array.isArray(rootPkg.workspaces) ? rootPkg.workspaces : [];
 const violations = [];
+const allowedVendoredAsymTarballs = new Map([
+  ["@asym/docraptor-client", "asym-docraptor-client-0.0.0.tgz"],
+  ["@asym/pdf-editor", "asym-pdf-editor-0.0.0.tgz"],
+  ["@asym/pdf-renderer", "asym-pdf-renderer-0.0.0.tgz"],
+  ["@asym/pdf-studio-adapter", "asym-pdf-studio-adapter-0.0.0.tgz"],
+  ["@asym/pdf-template-schema", "asym-pdf-template-schema-0.0.0.tgz"],
+]);
 
 function getScriptKind(filePath) {
   if (filePath.endsWith(".tsx")) {
@@ -73,13 +80,36 @@ function verifyAsymDeps(pkg, pkgPath) {
       continue;
     }
     for (const [name, version] of Object.entries(deps)) {
-      if (name.startsWith("@asym/") && version !== "workspace:*") {
+      if (
+        name.startsWith("@asym/") &&
+        version !== "workspace:*" &&
+        !isAllowedVendoredAsymDependency(name, version)
+      ) {
         violations.push(
-          `${pkgPath}:1: ${depType}.${name}: '${version}' != 'workspace:*'`,
+          `${pkgPath}:1: ${depType}.${name}: '${version}' != 'workspace:*' or approved vendored tarball`,
         );
       }
     }
   }
+}
+
+function isAllowedVendoredAsymDependency(name, version) {
+  const expectedTarball = allowedVendoredAsymTarballs.get(name);
+  if (!expectedTarball || typeof version !== "string") {
+    return false;
+  }
+
+  const filePrefix = "file:";
+  if (!version.startsWith(filePrefix)) {
+    return false;
+  }
+
+  const normalizedPath = version
+    .slice(filePrefix.length)
+    .replaceAll("\\", "/")
+    .replace(/^(\.\.\/)+/, "");
+
+  return normalizedPath === `vendor/react-pdf-packages/${expectedTarball}`;
 }
 
 const missingGlobs = requiredGlobs.filter((g) => !globs.includes(g));

@@ -127,6 +127,9 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/missionaries/[id]/metrics`                               | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/pdf-templates`                                           | Node.js (no `runtime` segment export) | PDF Studio template store                  |
 | admin      | `/api/pdf-templates/[templateId]`                              | Node.js (no `runtime` segment export) | PDF Studio template store                  |
+| admin      | `/api/pdf-templates/native/migration-report`                   | Node.js (no `runtime` segment export) | Native PDF Studio migration report         |
+| admin      | `/api/pdf-templates/native/preview`                            | Node.js (no `runtime` segment export) | Native PDF Studio browser preview          |
+| admin      | `/api/pdf-templates/native/render`                             | Node.js (no `runtime` segment export) | Native PDF Studio server render adapter    |
 | admin      | `/api/webhooks/stripe`                                         | Node.js (no `runtime` segment export) | Stripe SDK, admin client                   |
 | donor      | `/api/auth/cleanup-demo-users`                                 | Node.js (no `runtime` segment export) | Admin client                               |
 | donor      | `/api/auth/demo-account`                                       | Node.js (no `runtime` segment export) | Demo auth server action                    |

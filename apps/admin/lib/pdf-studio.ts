@@ -29,6 +29,8 @@ export interface PDFTemplate {
   created_by?: string;
   is_default?: boolean;
   status: "draft" | "published" | "archived";
+  engine?: PDFTemplateEngine;
+  native_schema_version?: number | null;
 }
 
 export type PDFTemplateCategory =
@@ -37,9 +39,12 @@ export type PDFTemplateCategory =
   | "annual_statement"
   | "letter"
   | "certificate"
+  | "missionary_report"
   | "report"
   | "invoice"
   | "custom";
+
+export type PDFTemplateEngine = "unlayer" | "asym_pdf_document_builder";
 
 export interface PDFTemplateListItem {
   id: string;
@@ -51,6 +56,8 @@ export interface PDFTemplateListItem {
   page_size: "A4" | "Letter" | "Legal";
   orientation: "portrait" | "landscape";
   status: "draft" | "published" | "archived";
+  engine?: PDFTemplateEngine;
+  native_schema_version?: number | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -87,6 +94,7 @@ export interface PDFStudioMetadata {
   category: PDFTemplateCategory;
   pageSize: "A4" | "Letter" | "Legal";
   orientation: "portrait" | "landscape";
+  engine?: PDFTemplateEngine;
 }
 
 export interface PDFStudioState {
@@ -166,6 +174,11 @@ export const PDF_TEMPLATE_CATEGORIES: {
     value: "certificate",
     label: "Certificate",
     description: "Certificates and awards",
+  },
+  {
+    value: "missionary_report",
+    label: "Missionary Report",
+    description: "Missionary support and ministry reports",
   },
   {
     value: "report",
