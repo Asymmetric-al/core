@@ -3,14 +3,15 @@
 Generated: 2026-05-15
 Repo: `Asymmetric-al/core`
 Branch: `epic`
-Baseline commit: `c3e3144413`
-Status: `queued-after-phase-10`
+Baseline commit: `b28ac0cc09`
+Status: `ready-to-start`
 
 ## Purpose
 
-This is the repo-local Codex handoff for Phase 11. Do not begin Phase 11 until
-Phase 10 has a dated evidence report, any needed repo-finalization evidence, and
-the branch baseline has been updated.
+This is the repo-local Codex handoff for Phase 11 after Phase 10 evidence was
+committed and pushed. Use this file before beginning implementation. Do not
+reopen Phases 3-10 unless current verification proves a regression that
+directly blocks Phase 11.
 
 Phase 11 closes the scale, observability, reliability, and v2 expansion work
 left intentionally out of earlier phases. This is the proper home for Sentry
@@ -29,7 +30,7 @@ readiness, and explicitly selected optional v2 providers.
 - `docs/ops/phase-evidence/2026-05-15_phase-09_donor-missionary-portals.md`
 - `docs/ops/phase-evidence/2026-05-15_phase-09_implementation-report.md`
 - `docs/ops/phase-evidence/2026-05-15_phase-09_repo-finalization.md`
-- Phase 10 evidence and repo-finalization evidence once written.
+- `docs/ops/phase-evidence/2026-05-15_phase-10_studios-operational-hubs.md`
 
 Product and architecture references:
 
@@ -44,7 +45,12 @@ Product and architecture references:
 
 ## Settled Baseline Decisions
 
-- Phase 11 is not safe to begin until Phase 10 closes.
+- Phase 10 is complete and evidence-backed at `b28ac0cc09`.
+- Phase 10 selected the Mission Control PDF Studio template persistence hub.
+- Phase 10 added no Supabase migration; it used the existing `pdf_templates`
+  table and proved production readiness for product commit `7ba815f72b`.
+- PDF Studio template persistence, provider boundaries, and rollback docs must
+  remain intact through Phase 11.
 - Phase 9 donor and missionary portal BFF boundaries are complete and must
   remain intact through observability work.
 - Sentry sourcemaps belong here unless an earlier build/deploy required them.
@@ -107,7 +113,8 @@ phases may add new runtime surfaces that Phase 11 must observe and back up.
 
 ## Recommended Work Sequence
 
-1. Confirm Phase 10 is complete, pushed, and evidence-backed.
+1. Confirm `git status` and keep unrelated deployment-control scratch separate
+   from Phase 11 work.
 2. Inventory current Sentry, deployment, health, backup, restore, CI, and
    provider docs.
 3. Verify required env var names by environment without printing values.

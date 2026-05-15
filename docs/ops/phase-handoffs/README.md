@@ -3,7 +3,7 @@
 Generated: 2026-05-15
 Repo: `Asymmetric-al/core`
 Branch: `epic`
-Current baseline: `c3e3144413` (`docs(phase-09): finalize repo evidence`)
+Current baseline: `b28ac0cc09` (`docs(phase-10): record studios operational hubs evidence`)
 
 This directory contains the repo-local phase handoffs recreated from the
 committed evidence baseline. Use these files before starting a phase. Do not
@@ -21,8 +21,8 @@ finalization evidence when needed, and the required verification gates.
 
 - Phase 8 is complete and repo-finalized at `3a164ff16f`.
 - Phase 9 is complete and repo-finalized at `c3e3144413`.
-- Phase 10 is the next phase to implement.
-- Phase 11 remains queued until Phase 10 is complete and repo-finalized.
+- Phase 10 is complete and evidence-backed at `b28ac0cc09`.
+- Phase 11 is the next phase to implement.
 
 ## Still External Or Historical
 
@@ -45,3 +45,4 @@ Relevant evidence chain:
 - `docs/ops/phase-evidence/2026-05-15_phase-09_donor-missionary-portals.md`
 - `docs/ops/phase-evidence/2026-05-15_phase-09_implementation-report.md`
 - `docs/ops/phase-evidence/2026-05-15_phase-09_repo-finalization.md`
+- `docs/ops/phase-evidence/2026-05-15_phase-10_studios-operational-hubs.md`
