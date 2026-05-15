@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildReportSeries,
-  defaultReportRange,
   filterConversationsByScope,
   isIsoWithinRange,
 } from "../../../../../../apps/admin/features/support-hub/lib/report-aggregations";
@@ -77,7 +76,10 @@ function buildMessage(overrides: Partial<SupportMessage> = {}): SupportMessage {
   };
 }
 
-const RANGE = defaultReportRange(30);
+const RANGE = {
+  from: "2026-04-01T00:00:00.000Z",
+  to: "2026-05-01T00:00:00.000Z",
+};
 
 function buildRequest(
   overrides: Partial<SupportReportRequest> = {},
