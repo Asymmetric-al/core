@@ -121,6 +121,13 @@ function templateRow(overrides: Partial<PdfTemplateRow> = {}): PdfTemplateRow {
     tags: [],
     status: "draft",
     is_default: false,
+    engine: "unlayer",
+    native_schema_version: null,
+    native_template_current_draft_version_id: null,
+    native_template_current_published_version_id: null,
+    legacy_unlayer_project_id: null,
+    migration_status: "not_started",
+    migration_report: {},
     created_by: "profile_1",
     created_at: "2026-05-15T00:00:00.000Z",
     updated_at: "2026-05-15T00:00:00.000Z",
@@ -177,7 +184,54 @@ describe("pdf template store", () => {
         page_size: "Letter",
         orientation: "portrait",
         status: "draft",
+        engine: "unlayer",
+        migration_status: "not_started",
         created_by: "profile_1",
+      }),
+    });
+  });
+
+  it("creates native missionary report templates without generated HTML as source", async () => {
+    const row = templateRow({
+      category: "missionary_report",
+      engine: "asym_pdf_document_builder",
+      html: null,
+      migration_status: "rebuilt",
+      native_schema_version: 1,
+    });
+    const { client, records } = createFakeSupabase([{ data: row }]);
+    getAdminClientMock.mockReturnValue({ client });
+
+    const result = await createPdfTemplate({
+      tenantId: "tenant_1",
+      profileId: "profile_1",
+      template: {
+        name: "Missionary report",
+        design: { version: 1, content: { type: "doc", content: [] } },
+        category: "missionary_report",
+        engine: "asym_pdf_document_builder",
+        html: null,
+        migration_status: "rebuilt",
+        migration_report: {
+          unsupportedFeatures: [],
+        },
+        native_schema_version: 1,
+      },
+    });
+
+    expect(result).toEqual(row);
+    expect(records[0]).toMatchObject({
+      table: "pdf_templates",
+      action: "insert",
+      payload: expect.objectContaining({
+        category: "missionary_report",
+        engine: "asym_pdf_document_builder",
+        html: null,
+        migration_report: {
+          unsupportedFeatures: [],
+        },
+        migration_status: "rebuilt",
+        native_schema_version: 1,
       }),
     });
   });

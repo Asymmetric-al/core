@@ -19,6 +19,13 @@ const PDF_TEMPLATE_COLUMNS = [
   "tags",
   "status",
   "is_default",
+  "engine",
+  "native_schema_version",
+  "native_template_current_draft_version_id",
+  "native_template_current_published_version_id",
+  "legacy_unlayer_project_id",
+  "migration_status",
+  "migration_report",
   "created_by",
   "created_at",
   "updated_at",
@@ -34,11 +41,21 @@ export type PdfTemplateCategory =
   | "annual_statement"
   | "letter"
   | "certificate"
+  | "missionary_report"
   | "report"
   | "invoice"
   | "custom";
 
 export type PdfTemplateStatus = "draft" | "published" | "archived";
+export type PdfTemplateEngine = "unlayer" | "asym_pdf_document_builder";
+export type PdfTemplateMigrationStatus =
+  | "not_started"
+  | "manual_rebuild_required"
+  | "in_progress"
+  | "rebuilt"
+  | "validated"
+  | "published"
+  | "archived";
 export type PdfTemplatePageSize = "A4" | "Letter" | "Legal";
 export type PdfTemplateOrientation = "portrait" | "landscape";
 
@@ -64,6 +81,13 @@ export interface PdfTemplateRow {
   tags: string[];
   status: PdfTemplateStatus;
   is_default: boolean;
+  engine: PdfTemplateEngine;
+  native_schema_version: number | null;
+  native_template_current_draft_version_id: string | null;
+  native_template_current_published_version_id: string | null;
+  legacy_unlayer_project_id: string | null;
+  migration_status: PdfTemplateMigrationStatus;
+  migration_report: Record<string, unknown>;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -82,6 +106,13 @@ export interface PdfTemplateMutationInput {
   tags?: string[];
   status?: PdfTemplateStatus;
   is_default?: boolean;
+  engine?: PdfTemplateEngine;
+  native_schema_version?: number | null;
+  native_template_current_draft_version_id?: string | null;
+  native_template_current_published_version_id?: string | null;
+  legacy_unlayer_project_id?: string | null;
+  migration_status?: PdfTemplateMigrationStatus;
+  migration_report?: Record<string, unknown>;
 }
 
 export interface PdfTemplatePatchInput extends Partial<PdfTemplateMutationInput> {
@@ -155,6 +186,15 @@ function toTemplatePayload(
     tags: input.tags ?? [],
     status: input.status ?? "draft",
     is_default: input.is_default ?? false,
+    engine: input.engine ?? "unlayer",
+    native_schema_version: input.native_schema_version ?? null,
+    native_template_current_draft_version_id:
+      input.native_template_current_draft_version_id ?? null,
+    native_template_current_published_version_id:
+      input.native_template_current_published_version_id ?? null,
+    legacy_unlayer_project_id: input.legacy_unlayer_project_id ?? null,
+    migration_status: input.migration_status ?? "not_started",
+    migration_report: input.migration_report ?? {},
     created_by: profileId,
     updated_at: now,
   };
@@ -177,6 +217,27 @@ function toPatchPayload(input: PdfTemplatePatchInput) {
   if (input.tags !== undefined) payload.tags = input.tags;
   if (input.status !== undefined) payload.status = input.status;
   if (input.is_default !== undefined) payload.is_default = input.is_default;
+  if (input.engine !== undefined) payload.engine = input.engine;
+  if (input.native_schema_version !== undefined) {
+    payload.native_schema_version = input.native_schema_version;
+  }
+  if (input.native_template_current_draft_version_id !== undefined) {
+    payload.native_template_current_draft_version_id =
+      input.native_template_current_draft_version_id;
+  }
+  if (input.native_template_current_published_version_id !== undefined) {
+    payload.native_template_current_published_version_id =
+      input.native_template_current_published_version_id;
+  }
+  if (input.legacy_unlayer_project_id !== undefined) {
+    payload.legacy_unlayer_project_id = input.legacy_unlayer_project_id;
+  }
+  if (input.migration_status !== undefined) {
+    payload.migration_status = input.migration_status;
+  }
+  if (input.migration_report !== undefined) {
+    payload.migration_report = input.migration_report;
+  }
 
   return payload;
 }
