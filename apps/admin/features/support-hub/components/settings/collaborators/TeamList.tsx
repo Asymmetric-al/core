@@ -1,12 +1,12 @@
 "use client";
 
-import { useSupportTeamsLive } from "@asym/database/hooks";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Pencil, Plus, Trash2, Users } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
 import { TeamForm } from "./TeamForm";
+import { useSupportTeams } from "../../../hooks/use-support-agents";
 import { useDeleteSupportTeam } from "../../../hooks/use-support-mutations";
 import { SupportEmptySection } from "../../workspace/SupportEmptySection";
 import { SettingsPanel } from "../SettingsPanel";
@@ -14,7 +14,7 @@ import { SettingsPanel } from "../SettingsPanel";
 import type { SupportTeam } from "../../../types";
 
 export function TeamList() {
-  const teams = useSupportTeamsLive();
+  const teams = useSupportTeams();
   const deleteTeam = useDeleteSupportTeam();
   const [editing, setEditing] = React.useState<SupportTeam | "new" | null>(
     null,

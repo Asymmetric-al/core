@@ -1,9 +1,5 @@
 "use client";
 
-import {
-  useSupportBusinessHoursLive,
-  useSupportSlaPoliciesLive,
-} from "@asym/database/hooks";
 import { Input } from "@asym/ui/components/shadcn/input";
 import {
   Select,
@@ -17,8 +13,10 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import {
+  useSupportBusinessHours,
   useSupportInboxes,
   useSupportInboxSettings,
+  useSupportSlaPolicies,
 } from "../../../hooks/use-support-inbox-settings";
 import { useSaveSupportInboxSettings } from "../../../hooks/use-support-mutations";
 import { useSupportSignatures } from "../../../hooks/use-support-signatures";
@@ -32,8 +30,8 @@ export function InboxSettingsForm() {
   const { data: inboxes } = useSupportInboxes();
   const { data: activeSettings } = useSupportInboxSettings();
   const { data: signatures } = useSupportSignatures();
-  const slaPolicies = useSupportSlaPoliciesLive();
-  const businessHours = useSupportBusinessHoursLive();
+  const slaPolicies = useSupportSlaPolicies();
+  const businessHours = useSupportBusinessHours();
   const saveSettings = useSaveSupportInboxSettings();
 
   const [draft, setDraft] = React.useState<SupportInboxSettings | null>(

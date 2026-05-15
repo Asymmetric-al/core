@@ -1,13 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { SUPPORT_HUB_DEMO_TENANT_ID } from "../../../../../../packages/api/src/admin/support-hub/adapter/fixtures";
-import { __resetInMemorySupportHubStore } from "../../../../../../packages/api/src/admin/support-hub/adapter";
-import {
-  listSupportConversationMessages,
-  listSupportConversations,
-  saveSupportMacro,
-} from "../../../../../../packages/api/src/admin/support-hub";
-
 const getAuthContextMock = vi.hoisted(() => vi.fn());
 const hasAnyContextRoleMock = vi.hoisted(() => vi.fn());
 
@@ -16,6 +8,24 @@ vi.mock("@asym/auth/context", () => ({
   hasAnyContextRole: hasAnyContextRoleMock,
 }));
 
+vi.mock(
+  "../../../../../../packages/api/src/admin/support-hub/adapter",
+  async () => {
+    const actual = await vi.importActual<
+      typeof import("../../../../../../packages/api/src/admin/support-hub/adapter")
+    >("../../../../../../packages/api/src/admin/support-hub/adapter");
+    return {
+      ...actual,
+      supportHubAdapter: actual.inMemorySupportHubAdapter,
+    };
+  },
+);
+
+import { SUPPORT_HUB_DEMO_TENANT_ID } from "../../../../../../packages/api/src/admin/support-hub/adapter/fixtures";
+import {
+  __resetInMemorySupportHubStore,
+  inMemorySupportHubAdapter,
+} from "../../../../../../packages/api/src/admin/support-hub/adapter";
 import { POST } from "../../../../../../apps/admin/app/api/admin/support/conversations/[id]/run-macro/route";
 
 beforeEach(() => {
@@ -40,9 +50,11 @@ afterEach(() => {
 
 describe("POST /api/admin/support/conversations/[id]/run-macro", () => {
   it("ignores spoofed authorAgentId and attributes notes to the authenticated agent", async () => {
-    const [conversation] = await listSupportConversations({});
+    const [conversation] = await inMemorySupportHubAdapter.conversations.list(
+      {},
+    );
     if (!conversation) throw new Error("seed missing");
-    const macro = await saveSupportMacro({
+    const macro = await inMemorySupportHubAdapter.macros.save({
       name: "Add internal note",
       description: null,
       ownerAgentId: null,
@@ -71,7 +83,9 @@ describe("POST /api/admin/support/conversations/[id]/run-macro", () => {
     );
 
     expect(response.status).toBe(200);
-    const messages = await listSupportConversationMessages(conversation.id);
+    const messages = await inMemorySupportHubAdapter.conversations.listMessages(
+      conversation.id,
+    );
     const note = messages.find((message) =>
       message.body.text.includes("Server-side attribution check."),
     );

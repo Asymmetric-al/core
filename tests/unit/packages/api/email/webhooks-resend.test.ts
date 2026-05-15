@@ -20,6 +20,7 @@ const {
   tenantSettingsSelectMock,
   tenantSettingsEqMock,
   tenantSettingsIlikeMock,
+  routeInboundToSupportHubMock,
   serverEnvMock,
 } = vi.hoisted(() => {
   const upsertEmailEvents = vi
@@ -31,7 +32,11 @@ const {
   const upsertSuppressions = vi
     .fn()
     .mockResolvedValue({ data: null, error: null });
-  const upsertInbound = vi.fn().mockResolvedValue({ data: null, error: null });
+  const inboundSingle = vi
+    .fn()
+    .mockResolvedValue({ data: { id: "inbound-row-1" }, error: null });
+  const inboundSelect = vi.fn(() => ({ single: inboundSingle }));
+  const upsertInbound = vi.fn(() => ({ select: inboundSelect }));
   const emailSendLogsSelectLimit = vi
     .fn()
     .mockResolvedValue({ data: [], error: null });
@@ -107,6 +112,7 @@ const {
     tenantSettingsSelectMock: tenantSettingsSelect,
     tenantSettingsEqMock: tenantSettingsEq,
     tenantSettingsIlikeMock: tenantSettingsIlike,
+    routeInboundToSupportHubMock: vi.fn(),
     serverEnvMock: serverEnv,
   };
 });
@@ -124,6 +130,17 @@ vi.mock("@asym/database/supabase/admin", () => ({
 vi.mock("@asym/env", () => ({
   serverEnv: serverEnvMock,
 }));
+
+vi.mock("@asym/api/admin/support-hub/inbound-router", () => ({
+  routeInboundToSupportHub: routeInboundToSupportHubMock,
+}));
+
+vi.mock(
+  "../../../../../packages/api/src/admin/support-hub/inbound-router",
+  () => ({
+    routeInboundToSupportHub: routeInboundToSupportHubMock,
+  }),
+);
 
 import { POST } from "../../../../../packages/api/src/email/webhooks/resend";
 
@@ -155,6 +172,12 @@ describe("api/email/webhooks/resend", () => {
     });
     emailSendLogsSelectLimitMock.mockResolvedValue({ data: [], error: null });
     tenantSettingsIlikeMock.mockResolvedValue({ data: [], error: null });
+    routeInboundToSupportHubMock.mockResolvedValue({
+      status: "skipped",
+      conversationId: null,
+      messageId: null,
+      reason: "No Support Hub inbox matched the inbound recipients.",
+    });
     getAdminClientMock.mockReturnValue({
       client: { from: fromMock },
       error: null,
@@ -749,7 +772,7 @@ describe("api/email/webhooks/resend", () => {
     expect(firstUpsertCall?.[0]).toMatchObject({
       tenant_id: "tenant_inbound",
       resend_email_id: "inbound_partial_2",
-      parsed_text: null,
+      parsed_text: "",
       attachment_count: 1,
     });
   });

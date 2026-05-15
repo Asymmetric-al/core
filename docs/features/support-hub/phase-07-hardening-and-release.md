@@ -1,5 +1,9 @@
 # Support Hub — Phase 7: hardening and release prep
 
+> Historical note: Phase 8 has now activated the Supabase adapter, route-backed
+> UI hooks, and Resend inbound routing. This Phase 7 document remains useful for
+> the adapter-boundary rationale and the pre-cutover implementation map.
+
 Phases 1–6 are stacked. Phase 7 makes the donor care Support Hub production-shaped: a real `packages/api/src/admin/support-hub/*` adapter layer with a single swap point for the Phase 8 Supabase implementation, 30 thin route handlers under `apps/admin/app/api/admin/support/**`, CRM-ready cross-link chips into `/crm` and `/contributions`, accessibility + performance + failure-recovery audits, ~47 new unit / component tests, an e2e smoke spec, and the operator + admin + release-note docs.
 
 > **The API surface is a swap point, not the live runtime today.** Phase 7

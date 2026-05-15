@@ -1,8 +1,15 @@
 "use client";
 
-import { useSupportMacrosLive } from "@asym/database/hooks";
+import { useQuery } from "@tanstack/react-query";
+
+import { supportApiGet, supportApiQueryDefaults } from "../lib/api-client";
+import { supportHubQueryKeys } from "../lib/query-keys";
 
 import type { SupportMacro } from "@asym/database/hooks";
+
+interface MacrosResponse {
+  macros: SupportMacro[];
+}
 
 export function useSupportMacros(): {
   data: SupportMacro[];
@@ -10,11 +17,16 @@ export function useSupportMacros(): {
   isReady: boolean;
   isError: boolean;
 } {
-  const query = useSupportMacrosLive();
+  const query = useQuery({
+    queryKey: supportHubQueryKeys.macros,
+    queryFn: async () =>
+      (await supportApiGet<MacrosResponse>("/api/admin/support/macros")).macros,
+    ...supportApiQueryDefaults,
+  });
   return {
     data: query.data ?? [],
     isLoading: query.isLoading,
-    isReady: query.isReady,
+    isReady: query.isSuccess,
     isError: query.isError,
   };
 }

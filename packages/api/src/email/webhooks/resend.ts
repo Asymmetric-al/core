@@ -14,6 +14,8 @@ import {
 import { serverEnv } from "@asym/env";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { routeInboundToSupportHub } from "@asym/api/admin/support-hub/inbound-router";
+
 type JsonRecord = Record<string, unknown>;
 type AdminSupabaseClient = NonNullable<
   ReturnType<typeof getAdminClient>["client"]
@@ -154,6 +156,44 @@ function asStringArray(value: unknown): string[] {
   return value
     .map((entry) => asString(entry))
     .filter((entry): entry is string => Boolean(entry));
+}
+
+function getHeaderValue(
+  headers: unknown,
+  names: readonly string[],
+): string | null {
+  const normalizedNames = new Set(names.map((name) => name.toLowerCase()));
+
+  if (Array.isArray(headers)) {
+    for (const entry of headers) {
+      if (!isJsonRecord(entry)) continue;
+      const name = asString(entry.name)?.toLowerCase();
+      if (!name || !normalizedNames.has(name)) continue;
+      const value = asString(entry.value);
+      if (value) return value;
+    }
+    return null;
+  }
+
+  if (!isJsonRecord(headers)) {
+    return null;
+  }
+
+  for (const [key, value] of Object.entries(headers)) {
+    if (!normalizedNames.has(key.toLowerCase())) continue;
+    const stringValue = asString(value);
+    if (stringValue) return stringValue;
+  }
+
+  return null;
+}
+
+function splitHeaderList(value: string | null): string[] {
+  if (!value) return [];
+  return value
+    .split(/\s+/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
 }
 
 function normalizeToken(value: string): string {
@@ -794,9 +834,34 @@ export async function POST(request: NextRequest) {
               data: [],
             };
 
-      await assertSupabaseWrite(
-        "email_inbound_messages.upsert",
-        supabaseAdmin.from("email_inbound_messages").upsert(
+      const receivedHeaders = receivedEmail.success
+        ? receivedEmail.data?.headers
+        : null;
+      const messageIdHeader =
+        getHeaderValue(receivedHeaders, ["message-id", "message_id"]) ??
+        asString(eventData.message_id) ??
+        asString(eventData.messageId);
+      const inReplyToHeader =
+        getHeaderValue(receivedHeaders, ["in-reply-to", "in_reply_to"]) ??
+        asString(eventData.in_reply_to) ??
+        asString(eventData.inReplyTo);
+      const referencesHeader =
+        getHeaderValue(receivedHeaders, ["references"]) ??
+        asString(eventData.references);
+      const referencesHeaders = [
+        ...splitHeaderList(referencesHeader),
+        ...asStringArray(eventData.references),
+      ];
+      const parsedText = receivedEmail.success
+        ? (asString(receivedEmail.data?.text) ?? "")
+        : "";
+      const parsedHtml = receivedEmail.success
+        ? asString(receivedEmail.data?.html)
+        : null;
+
+      const inboundWrite = await supabaseAdmin
+        .from("email_inbound_messages")
+        .upsert(
           {
             tenant_id: tenantId,
             resend_email_id: emailId,
@@ -809,25 +874,72 @@ export async function POST(request: NextRequest) {
             attachment_count: attachments.data?.length ?? 0,
             received_at: occurredAt,
             payload: eventData,
-            parsed_text: receivedEmail.success
-              ? asString(receivedEmail.data?.text)
-              : null,
-            parsed_html: receivedEmail.success
-              ? asString(receivedEmail.data?.html)
-              : null,
+            parsed_text: parsedText,
+            parsed_html: parsedHtml,
+            message_id_header: messageIdHeader,
+            in_reply_to_header: inReplyToHeader,
+            references_headers: referencesHeaders,
           },
           {
             onConflict: "resend_email_id",
           },
-        ),
-        {
-          eventType: event.type,
-          emailId,
-          tenantId,
-          receivedEmailLoaded: receivedEmail.success,
-          attachmentsLoaded: attachments.success,
-        },
-      );
+        )
+        .select("id")
+        .single();
+
+      await assertSupabaseWrite("email_inbound_messages.upsert", inboundWrite, {
+        eventType: event.type,
+        emailId,
+        tenantId,
+        receivedEmailLoaded: receivedEmail.success,
+        attachmentsLoaded: attachments.success,
+      });
+
+      const inboundRowId = asString(inboundWrite.data?.id);
+      const supportHubRouting = await routeInboundToSupportHub({
+        tenantId,
+        resendEmailId: emailId,
+        inboundEmailRowId: inboundRowId,
+        inboxId: null,
+        fromAddress: asString(eventData.from) ?? "unknown@example.invalid",
+        fromName: null,
+        toAddresses: asStringArray(eventData.to),
+        ccAddresses: asStringArray(eventData.cc),
+        bccAddresses: asStringArray(eventData.bcc),
+        subject: asString(eventData.subject),
+        messageIdHeader,
+        inReplyToHeader,
+        referencesHeaders,
+        bodyText: parsedText,
+        bodyHtml: parsedHtml,
+        receivedAt: occurredAt,
+      });
+
+      if (
+        inboundRowId &&
+        supportHubRouting.status === "routed" &&
+        supportHubRouting.conversationId &&
+        supportHubRouting.messageId
+      ) {
+        await assertSupabaseWrite(
+          "email_inbound_messages.support_hub_bridge",
+          supabaseAdmin
+            .from("email_inbound_messages")
+            .update({
+              conversation_id: supportHubRouting.conversationId,
+              support_message_id: supportHubRouting.messageId,
+            })
+            .eq("tenant_id", tenantId)
+            .eq("id", inboundRowId),
+          {
+            eventType: event.type,
+            emailId,
+            tenantId,
+            conversationId: supportHubRouting.conversationId,
+            supportMessageId: supportHubRouting.messageId,
+          },
+        );
+      }
 
       return NextResponse.json(
         {
@@ -839,36 +951,11 @@ export async function POST(request: NextRequest) {
           receivedEmailLoaded: receivedEmail.success,
           attachmentsLoaded: attachments.success,
           attachmentCount: attachments.data?.length ?? 0,
+          supportHub: supportHubRouting,
         },
         { status: 200 },
       );
     }
-
-    // TODO(Phase 8 — Support Hub inbound wiring):
-    //
-    // Right here, after the inbound message has been verified, the body
-    // has been hydrated from Resend, and the row has been persisted to
-    // `email_inbound_messages`, route the message into the donor-care
-    // Support Hub. Today no client of this webhook does that — the
-    // typed stub `routeInboundToSupportHub()` in
-    // `packages/api/src/admin/support-hub/inbound-router.ts` returns
-    // `{ status: "deferred" }` and is reachable only via its unit test.
-    //
-    // Phase 8 plan:
-    //   1. Resolve the donor-care inbox via the recipient address (see
-    //      `collectInboundRecipients(eventData)` above).
-    //   2. Resolve / create the donor participant + thread the message
-    //      onto an existing conversation when `In-Reply-To` /
-    //      `References` matches; otherwise open a new conversation.
-    //   3. Call `routeInboundToSupportHub({ tenantId, inboxId, ... })`
-    //      from `@asym/api/admin/support-hub/inbound-router`. The
-    //      adapter export in
-    //      `packages/api/src/admin/support-hub/adapter/index.ts` will
-    //      already point at the Supabase implementation by the time this
-    //      branch wires up.
-    //
-    // See `docs/features/support-hub/final-audit-and-wrap-up.md` for the
-    // full Phase 8 follow-up checklist.
 
     return NextResponse.json(
       {

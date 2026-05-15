@@ -1,9 +1,15 @@
 "use client";
 
-import { useSupportConversationsLive } from "@asym/database/hooks";
-import * as React from "react";
+import { useQuery } from "@tanstack/react-query";
+
+import { supportApiGet, supportApiQueryDefaults } from "../lib/api-client";
+import { supportHubQueryKeys } from "../lib/query-keys";
 
 import type { SupportConversation } from "@asym/database/hooks";
+
+interface ConversationResponse {
+  conversation: SupportConversation;
+}
 
 interface UseSupportConversationReturn {
   data: SupportConversation | undefined;
@@ -21,17 +27,24 @@ interface UseSupportConversationReturn {
 export function useSupportConversation(
   conversationId: string | null | undefined,
 ): UseSupportConversationReturn {
-  const query = useSupportConversationsLive();
-
-  const data = React.useMemo<SupportConversation | undefined>(() => {
-    if (!conversationId) return undefined;
-    return (query.data ?? []).find((row) => row.id === conversationId);
-  }, [conversationId, query.data]);
+  const query = useQuery({
+    queryKey: conversationId
+      ? supportHubQueryKeys.conversation(conversationId)
+      : [...supportHubQueryKeys.conversations, "empty"],
+    queryFn: async () =>
+      (
+        await supportApiGet<ConversationResponse>(
+          `/api/admin/support/conversations/${conversationId}`,
+        )
+      ).conversation,
+    enabled: Boolean(conversationId),
+    ...supportApiQueryDefaults,
+  });
 
   return {
-    data,
+    data: query.data,
     isLoading: query.isLoading,
-    isReady: query.isReady,
+    isReady: query.isSuccess,
     isError: query.isError,
   };
 }

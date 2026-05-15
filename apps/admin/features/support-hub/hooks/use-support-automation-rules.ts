@@ -1,8 +1,15 @@
 "use client";
 
-import { useSupportAutomationRulesLive } from "@asym/database/hooks";
+import { useQuery } from "@tanstack/react-query";
+
+import { supportApiGet, supportApiQueryDefaults } from "../lib/api-client";
+import { supportHubQueryKeys } from "../lib/query-keys";
 
 import type { SupportAutomationRule } from "../types";
+
+interface AutomationRulesResponse {
+  automationRules: SupportAutomationRule[];
+}
 
 interface UseSupportAutomationRulesReturn {
   data: SupportAutomationRule[];
@@ -12,16 +19,24 @@ interface UseSupportAutomationRulesReturn {
 }
 
 /**
- * Thin wrapper around the live automation-rules collection. Keeps the support
- * feature the single consumer of `@asym/database/hooks` so Phase 7 can swap
- * the seed query for a Supabase fetch without touching the settings UI.
+ * Thin wrapper around the server-owned automation-rules route. Keeps the
+ * support feature on the same shape while persistence lives in `packages/api`.
  */
 export function useSupportAutomationRules(): UseSupportAutomationRulesReturn {
-  const query = useSupportAutomationRulesLive();
+  const query = useQuery({
+    queryKey: supportHubQueryKeys.automationRules,
+    queryFn: async () =>
+      (
+        await supportApiGet<AutomationRulesResponse>(
+          "/api/admin/support/automation-rules",
+        )
+      ).automationRules,
+    ...supportApiQueryDefaults,
+  });
   return {
-    data: (query.data ?? []) as SupportAutomationRule[],
+    data: query.data ?? [],
     isLoading: query.isLoading,
-    isReady: query.isReady,
+    isReady: query.isSuccess,
     isError: query.isError,
   };
 }

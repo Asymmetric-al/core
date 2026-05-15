@@ -161,7 +161,7 @@ function SupportInboxBody() {
             state.selectedConversationId ? "lg:col-span-8" : "lg:col-span-12",
           )}
         >
-          {isEmpty ? (
+          {isEmpty && state.layout !== "board" ? (
             <SupportInboxEmptyState onResetFilters={resetState} />
           ) : state.layout === "board" ? (
             <SupportBoardView

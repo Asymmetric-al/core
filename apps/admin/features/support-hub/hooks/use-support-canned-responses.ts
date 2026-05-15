@@ -1,8 +1,15 @@
 "use client";
 
-import { useSupportCannedResponsesLive } from "@asym/database/hooks";
+import { useQuery } from "@tanstack/react-query";
+
+import { supportApiGet, supportApiQueryDefaults } from "../lib/api-client";
+import { supportHubQueryKeys } from "../lib/query-keys";
 
 import type { SupportCannedResponse } from "@asym/database/hooks";
+
+interface CannedResponsesResponse {
+  cannedResponses: SupportCannedResponse[];
+}
 
 export function useSupportCannedResponses(): {
   data: SupportCannedResponse[];
@@ -10,11 +17,20 @@ export function useSupportCannedResponses(): {
   isReady: boolean;
   isError: boolean;
 } {
-  const query = useSupportCannedResponsesLive();
+  const query = useQuery({
+    queryKey: supportHubQueryKeys.cannedResponses,
+    queryFn: async () =>
+      (
+        await supportApiGet<CannedResponsesResponse>(
+          "/api/admin/support/canned-responses",
+        )
+      ).cannedResponses,
+    ...supportApiQueryDefaults,
+  });
   return {
     data: query.data ?? [],
     isLoading: query.isLoading,
-    isReady: query.isReady,
+    isReady: query.isSuccess,
     isError: query.isError,
   };
 }

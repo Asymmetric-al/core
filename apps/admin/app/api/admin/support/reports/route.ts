@@ -21,7 +21,13 @@ export async function GET(request: Request) {
       const conversations = await listSupportConversations({});
       const messages = conversationId
         ? await listSupportConversationMessages(conversationId)
-        : [];
+        : (
+            await Promise.all(
+              conversations.map((conversation) =>
+                listSupportConversationMessages(conversation.id),
+              ),
+            )
+          ).flat();
       return Response.json({ conversations, messages });
     } catch (error) {
       return toApiErrorResponse(error, "Failed to load report data.");

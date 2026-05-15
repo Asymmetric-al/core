@@ -1,6 +1,5 @@
 "use client";
 
-import { useSupportConversationsLive } from "@asym/database/hooks";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Select,
@@ -12,6 +11,7 @@ import {
 import { CheckCircle2, FlaskConical, XCircle } from "lucide-react";
 import * as React from "react";
 
+import { useSupportConversations } from "../../../hooks/use-support-conversations";
 import { evaluateSupportAutomationRule } from "../../../lib/automation-engine";
 import { MacroPreviewLine } from "../../macros/MacroPreviewLine";
 
@@ -28,7 +28,7 @@ interface AutomationDryRunPreviewProps {
 export function AutomationDryRunPreview({
   rule,
 }: AutomationDryRunPreviewProps) {
-  const conversations = useSupportConversationsLive();
+  const conversations = useSupportConversations();
   const rows = React.useMemo<SupportConversation[]>(
     () => (conversations.data ?? []) as SupportConversation[],
     [conversations.data],

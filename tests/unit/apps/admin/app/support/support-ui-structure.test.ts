@@ -100,9 +100,14 @@ describe("support hub UI structure", () => {
     expect(source).toMatch(/article/);
   });
 
-  it("uses DB-backed loaders for hub, list, and detail read paths", () => {
+  it("uses persistent support reads for inbox, list, and detail paths", () => {
+    const inboxSource = readRepoFile("apps/admin/app/support/page.tsx");
+
+    expect(inboxSource).not.toMatch(/supportHubDemoModel/);
+    expect(inboxSource).toMatch(/SupportInbox/);
+    expect(inboxSource).toMatch(/SupportWorkspaceShell/);
+
     for (const path of [
-      "apps/admin/app/support/page.tsx",
       "apps/admin/app/support/tickets/page.tsx",
       "apps/admin/app/support/tickets/[id]/page.tsx",
     ]) {

@@ -62,6 +62,13 @@ export const supportHubQueryKeys = {
   teams: ["admin", "support", "teams"] as const,
   businessHours: ["admin", "support", "business-hours"] as const,
   slaPolicies: ["admin", "support", "sla-policies"] as const,
+  signatures: ["admin", "support", "signatures"] as const,
+  automationRules: ["admin", "support", "automation-rules"] as const,
+  notificationPreferences: [
+    "admin",
+    "support",
+    "notification-preferences",
+  ] as const,
   stats: (inboxId: string | null) =>
     ["admin", "support", "stats", inboxId ?? "all"] as const,
   reports: (slice: string, inboxId: string | null) =>

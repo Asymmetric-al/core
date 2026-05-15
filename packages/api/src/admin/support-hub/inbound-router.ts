@@ -1,34 +1,25 @@
 import { z } from "zod";
 
+import { routeInboundEmailToSupabaseSupportHub } from "./adapter/supabase";
+import { listSupportInboxes } from "./reads/registry";
+import { runWithSupportHubTenant } from "./request-context";
+
 /**
  * Inbound email → Support Hub conversation routing.
- *
- * Phase 7 — STUB. The body is intentionally a no-op. The seam exists so
- * Phase 8 can wire `packages/api/src/email/webhooks/resend.ts`'s
- * `email.received` branch into the support hub without a contract change at
- * the call site.
- *
- * Phase 8 work (planned):
- *   1. Pull the Resend `email.received` payload (body, headers, attachments).
- *   2. Resolve the tenant via `tenant_email_settings` + recipient address.
- *   3. Thread the message via `In-Reply-To` → `References` → `(tenant,
- *      external_email, normalized_subject)` lookup, otherwise create a new
- *      `support_conversations` row.
- *   4. Insert a `support_messages` row with `direction = "inbound"`,
- *      `type = "email"`, the parsed body, and the message-id headers.
- *   5. Re-evaluate enabled automation rules whose `trigger` is
- *      `message_received`; dispatch matched actions through the existing
- *      `runSupportMacro` helper (the planned actions already speak the
- *      `SupportMacroAction` shape — see Phase 6 automation engine).
  */
 
 export const inboundEmailEnvelopeSchema = z.object({
   tenantId: z.string().min(1).nullable(),
   resendEmailId: z.string().min(1),
+  inboundEmailRowId: z.string().min(1).nullable().optional(),
   inboxId: z.string().min(1).nullable(),
   fromAddress: z.string().min(1),
+  fromName: z.string().min(1).nullable().optional(),
   toAddresses: z.array(z.string().min(1)),
+  ccAddresses: z.array(z.string().min(1)).default([]),
+  bccAddresses: z.array(z.string().min(1)).default([]),
   subject: z.string().nullable(),
+  messageIdHeader: z.string().min(1).nullable().optional(),
   inReplyToHeader: z.string().nullable(),
   referencesHeaders: z.array(z.string()),
   bodyText: z.string(),
@@ -46,10 +37,10 @@ export interface InboundRouterResult {
 }
 
 /**
- * Phase 7 stub: validates the envelope so callers can rely on a typed result
- * shape, then returns `status: "deferred"` so the existing Resend webhook
- * keeps logging "warning: stored, not threaded yet". Phase 8 fills in the
- * real implementation.
+ * Routes a verified Resend inbound email into the tenant's Support Hub inbox.
+ * Tenant resolution must happen before this function is called; this function
+ * then resolves the inbox, threads by email headers or subject/contact fallback,
+ * and inserts the support message through the active adapter.
  */
 export async function routeInboundToSupportHub(
   envelope: InboundEmailEnvelope,
@@ -63,11 +54,84 @@ export async function routeInboundToSupportHub(
       reason: `invalid envelope: ${parsed.error.issues[0]?.message ?? "shape mismatch"}`,
     };
   }
+
+  if (!parsed.data.tenantId) {
+    return {
+      status: "skipped",
+      conversationId: null,
+      messageId: null,
+      reason: "tenantId is required before routing inbound support email.",
+    };
+  }
+
+  const inboxId = await resolveInboxId(parsed.data);
+  if (!inboxId) {
+    return {
+      status: "skipped",
+      conversationId: null,
+      messageId: null,
+      reason: "no Support Hub inbox matched the inbound recipients.",
+    };
+  }
+
+  const routed = await routeInboundEmailToSupabaseSupportHub({
+    tenantId: parsed.data.tenantId,
+    resendEmailId: parsed.data.resendEmailId,
+    inboundEmailRowId: parsed.data.inboundEmailRowId ?? null,
+    inboxId,
+    fromAddress: parsed.data.fromAddress,
+    fromName: parsed.data.fromName ?? null,
+    toAddresses: parsed.data.toAddresses,
+    ccAddresses: parsed.data.ccAddresses,
+    bccAddresses: parsed.data.bccAddresses,
+    subject: parsed.data.subject,
+    messageIdHeader: parsed.data.messageIdHeader ?? null,
+    inReplyToHeader: parsed.data.inReplyToHeader,
+    referencesHeaders: parsed.data.referencesHeaders,
+    bodyText: parsed.data.bodyText,
+    bodyHtml: parsed.data.bodyHtml,
+    receivedAt: parsed.data.receivedAt,
+  });
+
   return {
-    status: "deferred",
-    conversationId: null,
-    messageId: null,
-    reason:
-      "support hub inbound router is stubbed in Phase 7; Phase 8 wires the Supabase migration + threading logic.",
+    status: "routed",
+    conversationId: routed.conversationId,
+    messageId: routed.messageId,
+    reason: routed.created
+      ? "created a new Support Hub conversation."
+      : "threaded inbound email into an existing Support Hub conversation.",
   };
+}
+
+async function resolveInboxId(
+  envelope: z.infer<typeof inboundEmailEnvelopeSchema>,
+): Promise<string | null> {
+  if (envelope.inboxId) {
+    return envelope.inboxId;
+  }
+
+  return runWithSupportHubTenant(envelope.tenantId!, async () => {
+    const inboxes = await listSupportInboxes();
+    const recipients = new Set(
+      [
+        ...envelope.toAddresses,
+        ...envelope.ccAddresses,
+        ...envelope.bccAddresses,
+      ]
+        .map((address) => extractEmailAddress(address))
+        .filter((address): address is string => Boolean(address)),
+    );
+    const match = inboxes.find((inbox) =>
+      recipients.has(inbox.inboundAddress.toLowerCase()),
+    );
+    return match?.id ?? null;
+  });
+}
+
+function extractEmailAddress(value: string): string | null {
+  const trimmed = value.trim().toLowerCase();
+  if (!trimmed) return null;
+  const bracketMatch = trimmed.match(/<([^>]+)>/);
+  const candidate = bracketMatch?.[1] ?? trimmed;
+  return candidate.includes("@") ? candidate : null;
 }

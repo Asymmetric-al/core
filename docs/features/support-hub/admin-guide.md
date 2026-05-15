@@ -1,6 +1,8 @@
 # Support Hub — Admin guide
 
-The Support Hub admin surface lives under `/support/settings/*` and `/support/reports/*`. This guide walks the admin UI, the contracts each surface posts to, and the Phase 8 backend story for each.
+The Support Hub admin surface lives under `/support/settings/*` and
+`/support/reports/*`. This guide walks the admin UI and the server routes each
+surface uses after the Phase 8 Supabase persistence cutover.
 
 ## Sub-navigation
 
@@ -31,23 +33,20 @@ The Support Hub admin surface lives under `/support/settings/*` and `/support/re
 
 Every filter writes to the URL so reports are shareable + deep-linkable. The export menu builds CSV / JSON in-browser via `Blob` + `URL.createObjectURL` — no network round trip.
 
-### Phase 8 server-side story
+### Server-side story
 
-Today the report aggregator (`apps/admin/features/support-hub/lib/report-aggregations.ts`) runs in the browser against TanStack DB collections. Phase 8 introduces `/api/admin/support/reports` server-side aggregation when conversation volumes outgrow the in-browser pass. The route handler already exists — it returns the raw conversation + message data so the existing aggregator stays the single source of truth.
+The report hooks load raw conversation + message data from
+`GET /api/admin/support/reports` and keep the existing pure report aggregator
+(`apps/admin/features/support-hub/lib/report-aggregations.ts`) as the single
+calculation source.
 
 ## Settings
 
-> **What runs today vs Phase 8 endpoint targets.** Each settings panel
-> writes through a Phase 5/6 client-side mutation hook (e.g.
-> `useSaveSupportSlaPolicy`) that calls the in-memory TanStack DB
-> collection directly via `supportStore.collections.*`. The endpoint
-> column below shows the route handler each mutation will call once
-> Phase 8 swaps the data layer (`packages/api/src/admin/support-hub/adapter/index.ts`)
-> and rewires the hooks to `useQuery` against the new routes. Today,
-> those endpoints exist + are auth-gated, but the UI does not call them
-> — see [`final-audit-and-wrap-up.md`](./final-audit-and-wrap-up.md).
+Each settings panel writes through a feature hook that calls the route handler
+listed below. Business logic stays in `packages/api/src/admin/support-hub/*`;
+route handlers stay thin and tenant-scoped.
 
-| Path                                 | Surface                                                                                                                         | Phase 8 target endpoint                                                                             |
+| Path                                 | Surface                                                                                                                         | Endpoint                                                                                            |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | `/support/settings/inbox`            | Inbox identity, default sender / signature / SLA / business hours, round-robin toggle, auto-resolve, contact sidecar visibility | `PATCH /api/admin/support/inbox-settings`                                                           |
 | `/support/settings/collaborators`    | Read-only agent list + teams CRUD                                                                                               | `GET /api/admin/support/agents`, `POST` / `PATCH` / `DELETE /api/admin/support/teams[/:id]`         |
@@ -62,12 +61,9 @@ Today the report aggregator (`apps/admin/features/support-hub/lib/report-aggrega
 | `/support/settings/automations`      | Typed event → condition → action rules with dry-run                                                                             | `POST` / `PATCH` / `DELETE /api/admin/support/automation-rules[/:id]`; toggle via `?toggle=true`    |
 | `/support/settings/notifications`    | Per-agent email + in-app channel toggles                                                                                        | `PATCH /api/admin/support/notification-preferences`                                                 |
 
-Today the in-memory collection writers return the saved row synchronously
-so the UI can echo it back without a round trip; sonner toasts surface
-on the success path and the inbox-wide failure banner picks up
-donor-visible mutations. Once Phase 8 swaps the hooks to `useQuery`
-against the route handlers, every endpoint above will return the saved
-row in the same shape.
+Every endpoint returns the saved row in the same shape the UI already renders.
+Sonner toasts surface success paths and the inbox-wide failure banner picks up
+donor-visible mutation failures.
 
 ## Automations
 
@@ -103,36 +99,37 @@ A rule is a typed `(trigger, conditions[], actions[])` triple. Conditions are AN
 
 Every rule form mounts a `<AutomationDryRunPreview>` block that picks a sample conversation from the live collection and runs the rule via the pure `evaluateSupportAutomationRule` function. Reasons + planned actions render inline; nothing is dispatched. Use it to validate every rule before saving.
 
-### Phase 8 runtime
+### Runtime
 
-Phase 8 wires `evaluateSupportAutomationRule` into the Resend `email.received` webhook (`packages/api/src/email/webhooks/resend.ts`) via `routeInboundToSupportHub` — the planned actions go straight into the existing macro runner so the dispatch path is identical to the dry-run preview.
+Inbound email now reaches the Support Hub through
+`routeInboundToSupportHub()`. The automation authoring surface is persistent,
+but full server-side automation dispatch remains a follow-up.
 
 ## Provider secrets
 
-| Variable                   | Phase              | Notes                                                       |
-| -------------------------- | ------------------ | ----------------------------------------------------------- |
-| `RESEND_API_KEY`           | Already configured | Used by the Phase 5 outbound flow + Phase 8 inbound webhook |
-| `RESEND_INBOUND_DOMAIN`    | Phase 8            | Configured at `tenant_email_settings` per tenant            |
-| `SUPPORT_HUB_USE_SUPABASE` | Phase 8            | Optional override flag during the supabase swap             |
+| Variable                | Notes                                                |
+| ----------------------- | ---------------------------------------------------- |
+| `RESEND_API_KEY`        | Used by outbound email and inbound message retrieval |
+| `RESEND_INBOUND_DOMAIN` | Configured at `tenant_email_settings` per tenant     |
 
-## Adapter swap (Phase 8)
+## Adapter
 
-The single point of swap is `packages/api/src/admin/support-hub/adapter/index.ts`:
+The single live adapter point is `packages/api/src/admin/support-hub/adapter/index.ts`:
 
 ```ts
-// Phase 7
-export { inMemorySupportHubAdapter as supportHubAdapter } from "./in-memory";
-
-// Phase 8
-export { supabaseSupportHubAdapter as supportHubAdapter } from "./supabase";
+export const supportHubAdapter = supabaseSupportHubAdapter;
 ```
 
-The `SupportHubAdapter` interface in `adapter/types.ts` is the contract the Supabase implementation must satisfy. Every reads + mutations function delegates to `supportHubAdapter.*` — when the export flips, every route handler + every Phase 7-built unit test continues to pass against the real database.
+The `SupportHubAdapter` interface in `adapter/types.ts` is the contract the
+Supabase implementation satisfies. The in-memory adapter remains available for
+unit parity tests.
 
 ## Failure recovery
 
 Mutations that touch donor-visible state (send-reply, save-draft, add-note) report into `useSupportFailureRecovery` so the failure banner at the top of the inbox can surface a Retry. The banner is `aria-live="assertive"` so screen readers announce it without losing focus context.
 
-Conversation-level mutations (assign / set-status / toggle-label / snooze) keep the existing optimistic + invalidate path; their failures fall back to the cache invalidation in `useInvalidateSupportCaches`, which re-fetches the source of truth so the UI snaps back to a consistent state.
+Conversation-level mutations (assign / set-status / toggle-label / snooze)
+invalidate the Support Hub query root after the route handler returns, so the
+UI re-fetches the persisted source of truth.
 
 Macro runner failures are surfaced via the per-action outcome list returned from `runSupportMacro`. The first failed step appears in a sonner toast; subsequent actions still run unless `stopOnError: true` was passed.

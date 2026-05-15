@@ -1,12 +1,18 @@
 "use client";
 
-import { useSupportConversationsLive } from "@asym/database/hooks";
+import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 
+import { supportApiGet, supportApiQueryDefaults } from "../lib/api-client";
+import { supportHubQueryKeys } from "../lib/query-keys";
 import { selectConversations } from "../lib/selectors";
 
 import type { SupportConversationFilter } from "../lib/selectors";
 import type { SupportConversation } from "@asym/database/hooks";
+
+interface ConversationsResponse {
+  conversations: SupportConversation[];
+}
 
 interface UseSupportConversationsOptions {
   filter?: SupportConversationFilter;
@@ -27,7 +33,16 @@ interface UseSupportConversationsReturn {
 export function useSupportConversations(
   options: UseSupportConversationsOptions = {},
 ): UseSupportConversationsReturn {
-  const query = useSupportConversationsLive();
+  const query = useQuery({
+    queryKey: supportHubQueryKeys.conversations,
+    queryFn: async () =>
+      (
+        await supportApiGet<ConversationsResponse>(
+          "/api/admin/support/conversations",
+        )
+      ).conversations,
+    ...supportApiQueryDefaults,
+  });
 
   const data = React.useMemo<SupportConversation[]>(() => {
     const rows = query.data ?? [];
@@ -38,7 +53,7 @@ export function useSupportConversations(
   return {
     data,
     isLoading: query.isLoading,
-    isReady: query.isReady,
+    isReady: query.isSuccess,
     isError: query.isError,
   };
 }

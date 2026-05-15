@@ -1,8 +1,8 @@
 "use client";
 
-import { useSupportConversationsLive } from "@asym/database/hooks";
 import * as React from "react";
 
+import { useSupportConversations } from "./use-support-conversations";
 import { computeInboxStats } from "../lib/selectors";
 
 import type { SupportInboxStats } from "../types";
@@ -28,7 +28,7 @@ interface UseSupportInboxStatsReturn {
 export function useSupportInboxStats(
   options: UseSupportInboxStatsOptions = {},
 ): UseSupportInboxStatsReturn {
-  const query = useSupportConversationsLive();
+  const query = useSupportConversations();
   const inboxId = options.inboxId ?? null;
   const now = options.now;
 

@@ -1,5 +1,6 @@
 import {
   getSupportInboxSettings,
+  listSupportInboxSettings,
   readJsonBody,
   withSupportHubAccess,
   saveSupportInboxSettings,
@@ -11,6 +12,10 @@ export async function GET(request: Request) {
   return withSupportHubAccess(async () => {
     try {
       const url = new URL(request.url);
+      if (url.searchParams.get("list") === "true") {
+        const settings = await listSupportInboxSettings();
+        return Response.json({ settings });
+      }
       const settings = await getSupportInboxSettings(
         url.searchParams.get("inboxId"),
       );

@@ -1,21 +1,27 @@
 "use client";
 
-import {
-  useSupportBusinessHoursLive,
-  useSupportConversationsLive,
-  useSupportLabelsLive,
-  useSupportMessagesLive,
-} from "@asym/database/hooks";
+import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 
+import { useSupportBusinessHours } from "./use-support-inbox-settings";
+import { useSupportLabels } from "./use-support-labels";
+import { supportApiGet, supportApiQueryDefaults } from "../lib/api-client";
+import { supportHubQueryKeys } from "../lib/query-keys";
 import { buildReportSeries } from "../lib/report-aggregations";
 import { computeReportSlice } from "../lib/selectors";
 
 import type {
+  SupportConversation,
+  SupportMessage,
   SupportReportRequest,
   SupportReportSeries,
   SupportReportSlice,
 } from "../types";
+
+interface ReportsResponse {
+  conversations: SupportConversation[];
+  messages: SupportMessage[];
+}
 
 interface UseSupportReportsOptions {
   inboxId?: string | null;
@@ -41,22 +47,27 @@ export function useSupportReports(
   slice: SupportReportSlice,
   options: UseSupportReportsOptions = {},
 ): UseSupportReportsReturn {
-  const conversations = useSupportConversationsLive();
-  const labels = useSupportLabelsLive();
+  const query = useQuery({
+    queryKey: supportHubQueryKeys.reports(slice, options.inboxId ?? null),
+    queryFn: async () =>
+      supportApiGet<ReportsResponse>("/api/admin/support/reports"),
+    ...supportApiQueryDefaults,
+  });
+  const labels = useSupportLabels();
   const inboxId = options.inboxId ?? null;
   const now = options.now;
 
   const data = React.useMemo<SupportReportSeries>(() => {
-    return computeReportSlice(conversations.data ?? [], slice, {
+    return computeReportSlice(query.data?.conversations ?? [], slice, {
       inboxId,
       now: now ?? new Date(),
       labels: labels.data ?? [],
     });
-  }, [conversations.data, inboxId, labels.data, now, slice]);
+  }, [inboxId, labels.data, now, query.data?.conversations, slice]);
 
-  const isLoading = conversations.isLoading || labels.isLoading;
-  const isReady = conversations.isReady && labels.isReady;
-  const isError = conversations.isError || labels.isError;
+  const isLoading = query.isLoading || labels.isLoading;
+  const isReady = query.isSuccess && labels.isReady;
+  const isError = query.isError || labels.isError;
 
   return { data, isLoading, isReady, isError };
 }
@@ -74,10 +85,17 @@ export function useSupportReport(
   request: SupportReportRequest,
   options: UseSupportReportOptions = {},
 ): UseSupportReportsReturn {
-  const conversations = useSupportConversationsLive();
-  const messages = useSupportMessagesLive();
-  const labels = useSupportLabelsLive();
-  const businessHours = useSupportBusinessHoursLive();
+  const query = useQuery({
+    queryKey: supportHubQueryKeys.reports(
+      request.slice,
+      request.scope.kind === "inbox" ? (request.scope.id ?? null) : null,
+    ),
+    queryFn: async () =>
+      supportApiGet<ReportsResponse>("/api/admin/support/reports"),
+    ...supportApiQueryDefaults,
+  });
+  const labels = useSupportLabels();
+  const businessHours = useSupportBusinessHours();
 
   const data = React.useMemo<SupportReportSeries>(() => {
     const defaultBiz =
@@ -85,36 +103,25 @@ export function useSupportReport(
       (businessHours.data ?? [])[0] ??
       null;
     return buildReportSeries(request, {
-      conversations: conversations.data ?? [],
-      messages: messages.data ?? [],
+      conversations: query.data?.conversations ?? [],
+      messages: query.data?.messages ?? [],
       labels: labels.data ?? [],
       businessHours: defaultBiz,
       now: options.now,
     });
   }, [
     businessHours.data,
-    conversations.data,
     labels.data,
-    messages.data,
     options.now,
+    query.data?.conversations,
+    query.data?.messages,
     request,
   ]);
 
   const isLoading =
-    conversations.isLoading ||
-    messages.isLoading ||
-    labels.isLoading ||
-    businessHours.isLoading;
-  const isReady =
-    conversations.isReady &&
-    messages.isReady &&
-    labels.isReady &&
-    businessHours.isReady;
-  const isError =
-    conversations.isError ||
-    messages.isError ||
-    labels.isError ||
-    businessHours.isError;
+    query.isLoading || labels.isLoading || businessHours.isLoading;
+  const isReady = query.isSuccess && labels.isReady && businessHours.isReady;
+  const isError = query.isError || labels.isError || businessHours.isError;
 
   return { data, isLoading, isReady, isError };
 }

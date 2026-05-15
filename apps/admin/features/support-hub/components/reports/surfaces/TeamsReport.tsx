@@ -1,11 +1,9 @@
 "use client";
 
-import {
-  useSupportConversationsLive,
-  useSupportTeamsLive,
-} from "@asym/database/hooks";
 import * as React from "react";
 
+import { useSupportTeams } from "../../../hooks/use-support-agents";
+import { useSupportConversations } from "../../../hooks/use-support-conversations";
 import {
   filterConversationsByScope,
   isIsoWithinRange,
@@ -24,8 +22,8 @@ import type {
 
 export function TeamsReport() {
   const { request, range, scope } = useSupportReportRouteState();
-  const conversations = useSupportConversationsLive();
-  const teams = useSupportTeamsLive();
+  const conversations = useSupportConversations();
+  const teams = useSupportTeams();
 
   const series = React.useMemo<SupportReportSeries>(() => {
     const scoped = filterConversationsByScope(conversations.data ?? [], scope);

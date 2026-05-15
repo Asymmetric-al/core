@@ -68,12 +68,14 @@ For every `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}` file while
 | admin      | `/api/admin/support/conversations/[id]/labels`                 | Node.js (no `runtime` segment export) | Support hub adapter                        |
 | admin      | `/api/admin/support/conversations/[id]/messages`               | Node.js (no `runtime` segment export) | Support hub adapter                        |
 | admin      | `/api/admin/support/conversations/[id]/notes`                  | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/conversations/[id]/priority`               | Node.js (no `runtime` segment export) | Support hub adapter                        |
 | admin      | `/api/admin/support/conversations/[id]/replies`                | Node.js (no `runtime` segment export) | Support hub adapter                        |
 | admin      | `/api/admin/support/conversations/[id]/run-macro`              | Node.js (no `runtime` segment export) | Support hub adapter                        |
 | admin      | `/api/admin/support/conversations/[id]/snooze`                 | Node.js (no `runtime` segment export) | Support hub adapter                        |
 | admin      | `/api/admin/support/conversations/[id]/status`                 | Node.js (no `runtime` segment export) | Support hub adapter                        |
 | admin      | `/api/admin/support/counts`                                    | Node.js (no `runtime` segment export) | Support hub adapter                        |
 | admin      | `/api/admin/support/inbox-settings`                            | Node.js (no `runtime` segment export) | Support hub adapter                        |
+| admin      | `/api/admin/support/inboxes`                                   | Node.js (no `runtime` segment export) | Support hub adapter                        |
 | admin      | `/api/admin/support/labels`                                    | Node.js (no `runtime` segment export) | Support hub adapter                        |
 | admin      | `/api/admin/support/labels/[id]`                               | Node.js (no `runtime` segment export) | Support hub adapter                        |
 | admin      | `/api/admin/support/macros`                                    | Node.js (no `runtime` segment export) | Support hub adapter                        |

@@ -88,7 +88,11 @@ If a macro action fails (e.g. the canned response was deleted), the runner skips
 
 ## CRM cross-links
 
-When a donor conversation has CRM links (donor / contribution / missionary / church), chips appear under the donor email in the contact sidecar. Click a chip to open the related Mission Control surface (CRM list with the contact selected, contributions list filtered to the donor, etc.). Phase 8 will replace these with typed deep-links once the underlying detail pages ship.
+When a donor conversation has CRM links (donor / contribution / missionary /
+church), chips appear under the donor email in the contact sidecar. Click a chip
+to open the related Mission Control surface (CRM list with the contact selected,
+contributions list filtered to the donor, etc.). Typed detail deep-links remain
+deferred until the underlying detail pages ship.
 
 If no chips appear and you have the donor email, click **Find in CRM** to jump into the CRM list pre-filtered to that email — you can then manually link the donor.
 

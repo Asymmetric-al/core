@@ -1,6 +1,5 @@
 "use client";
 
-import { useSupportBusinessHoursLive } from "@asym/database/hooks";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import {
@@ -14,6 +13,7 @@ import { Switch } from "@asym/ui/components/shadcn/switch";
 import * as React from "react";
 import { toast } from "sonner";
 
+import { useSupportBusinessHours } from "../../../hooks/use-support-inbox-settings";
 import { useSaveSupportSlaPolicy } from "../../../hooks/use-support-mutations";
 import { SettingsPanel } from "../SettingsPanel";
 import { SettingsRow } from "../SettingsRow";
@@ -33,7 +33,7 @@ export function SlaPolicyForm({
   onCancel,
 }: SlaPolicyFormProps) {
   const save = useSaveSupportSlaPolicy();
-  const businessHours = useSupportBusinessHoursLive();
+  const businessHours = useSupportBusinessHours();
 
   const [name, setName] = React.useState(policy?.name ?? "");
   const [description, setDescription] = React.useState(

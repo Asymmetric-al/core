@@ -3,7 +3,6 @@
 import {
   SUPPORT_CONVERSATION_STATUSES,
   SUPPORT_PRIORITIES,
-  useSupportTeamsLive,
 } from "@asym/database/hooks";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
@@ -17,7 +16,10 @@ import {
 import { Plus, Trash2 } from "lucide-react";
 import * as React from "react";
 
-import { useSupportAgents } from "../../../hooks/use-support-agents";
+import {
+  useSupportAgents,
+  useSupportTeams,
+} from "../../../hooks/use-support-agents";
 import { useSupportCannedResponses } from "../../../hooks/use-support-canned-responses";
 import { useSupportLabels } from "../../../hooks/use-support-labels";
 
@@ -47,7 +49,7 @@ export function MacroActionEditor({
   const { data: labels } = useSupportLabels();
   const { data: cannedResponses } = useSupportCannedResponses();
   const { data: agents } = useSupportAgents();
-  const teams = useSupportTeamsLive();
+  const teams = useSupportTeams();
 
   const handleAdd = () => {
     onChange([...actions, defaultActionForKind("set_status")]);

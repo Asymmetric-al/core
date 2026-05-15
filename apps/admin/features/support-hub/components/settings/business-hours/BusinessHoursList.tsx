@@ -1,12 +1,12 @@
 "use client";
 
-import { useSupportBusinessHoursLive } from "@asym/database/hooks";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Clock, Pencil, Plus, Trash2 } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
 import { BusinessHoursForm } from "./BusinessHoursForm";
+import { useSupportBusinessHours } from "../../../hooks/use-support-inbox-settings";
 import { useDeleteSupportBusinessHours } from "../../../hooks/use-support-mutations";
 import { SupportEmptySection } from "../../workspace/SupportEmptySection";
 import { SettingsPanel } from "../SettingsPanel";
@@ -14,7 +14,7 @@ import { SettingsPanel } from "../SettingsPanel";
 import type { SupportBusinessHours } from "../../../types";
 
 export function BusinessHoursList() {
-  const query = useSupportBusinessHoursLive();
+  const query = useSupportBusinessHours();
   const deleteHours = useDeleteSupportBusinessHours();
   const [editing, setEditing] = React.useState<
     SupportBusinessHours | "new" | null

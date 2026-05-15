@@ -1,12 +1,12 @@
 "use client";
 
-import { useSupportSlaPoliciesLive } from "@asym/database/hooks";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Gauge, Pencil, Plus, Star, Trash2 } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
 import { SlaPolicyForm } from "./SlaPolicyForm";
+import { useSupportSlaPolicies } from "../../../hooks/use-support-inbox-settings";
 import {
   useDeleteSupportSlaPolicy,
   useSetDefaultSupportSlaPolicy,
@@ -17,7 +17,7 @@ import { SettingsPanel } from "../SettingsPanel";
 import type { SupportSlaPolicy } from "../../../types";
 
 export function SlaPolicyList() {
-  const query = useSupportSlaPoliciesLive();
+  const query = useSupportSlaPolicies();
   const deletePolicy = useDeleteSupportSlaPolicy();
   const setDefault = useSetDefaultSupportSlaPolicy();
   const [editing, setEditing] = React.useState<SupportSlaPolicy | "new" | null>(

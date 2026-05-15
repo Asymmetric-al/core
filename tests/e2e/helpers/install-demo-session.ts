@@ -23,8 +23,12 @@ export type DemoAccountRole =
 export async function installDemoSessionInBrowser(
   page: Page,
   role: DemoAccountRole,
+  baseURL?: string,
 ): Promise<{ ok: boolean; status: number }> {
-  const res = await page.request.post("/api/auth/demo-account", {
+  const url = baseURL
+    ? new URL("/api/auth/demo-account", baseURL).toString()
+    : "/api/auth/demo-account";
+  const res = await page.request.post(url, {
     data: JSON.stringify({ role }),
     headers: { "Content-Type": "application/json" },
   });

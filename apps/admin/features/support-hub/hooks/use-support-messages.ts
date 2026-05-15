@@ -1,9 +1,16 @@
 "use client";
 
-import { useSupportMessagesLive } from "@asym/database/hooks";
+import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 
+import { supportApiGet, supportApiQueryDefaults } from "../lib/api-client";
+import { supportHubQueryKeys } from "../lib/query-keys";
+
 import type { SupportMessage } from "@asym/database/hooks";
+
+interface MessagesResponse {
+  messages: SupportMessage[];
+}
 
 interface UseSupportMessagesOptions {
   /** When true, drops `type === "note"` rows. Defaults to false (show all). */
@@ -26,13 +33,23 @@ export function useSupportMessages(
   conversationId: string | null | undefined,
   options: UseSupportMessagesOptions = {},
 ): UseSupportMessagesReturn {
-  const query = useSupportMessagesLive();
+  const query = useQuery({
+    queryKey: conversationId
+      ? supportHubQueryKeys.messages(conversationId)
+      : [...supportHubQueryKeys.messagesAll, "empty"],
+    queryFn: async () =>
+      (
+        await supportApiGet<MessagesResponse>(
+          `/api/admin/support/conversations/${conversationId}/messages`,
+        )
+      ).messages,
+    enabled: Boolean(conversationId),
+    ...supportApiQueryDefaults,
+  });
 
   const data = React.useMemo<SupportMessage[]>(() => {
     if (!conversationId) return [];
-    const rows = (query.data ?? []).filter(
-      (row) => row.conversationId === conversationId,
-    );
+    const rows = query.data ?? [];
     const filtered = options.excludePrivate
       ? rows.filter((row) => !row.isPrivate)
       : rows;
@@ -47,7 +64,7 @@ export function useSupportMessages(
   return {
     data,
     isLoading: query.isLoading,
-    isReady: query.isReady,
+    isReady: query.isSuccess,
     isError: query.isError,
   };
 }

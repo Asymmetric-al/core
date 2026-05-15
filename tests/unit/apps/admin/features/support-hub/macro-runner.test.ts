@@ -5,7 +5,6 @@ import {
   type MacroLookup,
   type MacroMutationBag,
 } from "../../../../../../apps/admin/features/support-hub/lib/macro-runner";
-import { supportStore } from "../../../../../../apps/admin/features/support-hub/stores/support-store";
 import type {
   SupportAssignee,
   SupportCannedResponse,
@@ -127,13 +126,20 @@ function buildMockMutations(): MacroMutationBag & {
 }
 
 beforeEach(() => {
-  vi.spyOn(supportStore.collections.messages, "insert").mockReturnValue({
-    isPersisted: { promise: Promise.resolve() as unknown },
-  } as unknown as ReturnType<typeof supportStore.collections.messages.insert>);
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => {
+      return new Response(JSON.stringify({ message: { id: "msg-activity" } }), {
+        status: 201,
+        headers: { "content-type": "application/json" },
+      });
+    }),
+  );
 });
 
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 describe("runSupportMacro", () => {
@@ -169,8 +175,7 @@ describe("runSupportMacro", () => {
   });
 
   it("logs an activity row per action", async () => {
-    const insertSpy = supportStore.collections.messages
-      .insert as unknown as ReturnType<typeof vi.fn>;
+    const fetchSpy = globalThis.fetch as unknown as ReturnType<typeof vi.fn>;
     const mutations = buildMockMutations();
     const macro = buildMacro([
       { kind: "set_status", status: "resolved" },
@@ -183,7 +188,11 @@ describe("runSupportMacro", () => {
       mutations,
       lookup: buildLookup(),
     });
-    expect(insertSpy).toHaveBeenCalledTimes(2);
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    expect(fetchSpy).toHaveBeenCalledWith(
+      "/api/admin/support/conversations/conv-1/notes",
+      expect.objectContaining({ method: "POST" }),
+    );
   });
 
   it("skips unknown labels gracefully", async () => {

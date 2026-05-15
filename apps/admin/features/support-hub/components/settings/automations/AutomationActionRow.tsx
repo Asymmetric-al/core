@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  useSupportTeamsLive,
   SUPPORT_AUTOMATION_ACTION_KINDS,
   SUPPORT_CONVERSATION_STATUSES,
   SUPPORT_PRIORITIES,
@@ -18,7 +17,10 @@ import {
 import { Trash2 } from "lucide-react";
 import * as React from "react";
 
-import { useSupportAgents } from "../../../hooks/use-support-agents";
+import {
+  useSupportAgents,
+  useSupportTeams,
+} from "../../../hooks/use-support-agents";
 import { useSupportLabels } from "../../../hooks/use-support-labels";
 import { useSupportMacros } from "../../../hooks/use-support-macros";
 
@@ -38,7 +40,7 @@ export function AutomationActionRow({
   const { data: agents } = useSupportAgents();
   const { data: labels } = useSupportLabels();
   const { data: macros } = useSupportMacros();
-  const teams = useSupportTeamsLive();
+  const teams = useSupportTeams();
 
   const handleKindChange = (kind: SupportAutomationAction["kind"]) => {
     onChange(defaultForKind(kind));
