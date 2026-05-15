@@ -110,6 +110,19 @@ interface PDFMetadata {
   orientation: "portrait" | "landscape";
 }
 
+interface PDFTemplateListEntry {
+  id: string;
+  name: string;
+  description: string | null;
+  design: UnlayerDesignJSON;
+  html: string | null;
+  category: PDFTemplateCategory;
+  page_size: "A4" | "Letter" | "Legal";
+  orientation: "portrait" | "landscape";
+  status: "draft" | "published" | "archived";
+  updated_at: string;
+}
+
 interface PDFStudioUiState {
   isEditorReady: boolean;
   isSaving: boolean;
@@ -233,6 +246,7 @@ interface PDFStudioHeaderActions {
   onExportHtml: () => void;
   onSaveClick: () => void;
   onNewTemplate: () => void;
+  onLoadTemplate: () => void;
   onToggleFullscreen: () => void;
   onOpenDeleteDialog: () => void;
 }
@@ -261,6 +275,7 @@ function PDFStudioHeaderSection({
     onExportHtml,
     onSaveClick,
     onNewTemplate,
+    onLoadTemplate,
     onToggleFullscreen,
     onOpenDeleteDialog,
   },
@@ -466,9 +481,7 @@ function PDFStudioHeaderSection({
               <Settings className="size-4 mr-2" />
               Settings
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => toast.info("Load template coming soon")}
-            >
+            <DropdownMenuItem onClick={onLoadTemplate}>
               <FolderOpen className="size-4 mr-2" />
               Load Template
             </DropdownMenuItem>
@@ -506,7 +519,7 @@ function PDFStudioHeaderSection({
               onClick={onOpenDeleteDialog}
             >
               <Trash2 className="size-4 mr-2" />
-              Delete Template
+              Archive Template
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -790,11 +803,11 @@ function PDFDeleteDialogSection({
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
             <AlertCircle className="size-5 text-destructive" />
-            Delete Template
+            Archive Template
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete &ldquo;{templateName}&rdquo;? This
-            action cannot be undone.
+            Archive &ldquo;{templateName}&rdquo;? It will disappear from the
+            active template list without deleting historical database rows.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -803,11 +816,78 @@ function PDFDeleteDialogSection({
             onClick={onDelete}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            Delete
+            Archive
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  );
+}
+
+function PDFTemplatePickerDialog({
+  open,
+  onOpenChange,
+  templates,
+  isLoading,
+  onSelect,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  templates: PDFTemplateListEntry[];
+  isLoading: boolean;
+  onSelect: (template: PDFTemplateListEntry) => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[560px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <div className="rounded-lg bg-violet-500/10 p-2">
+              <FolderOpen className="h-4 w-4 text-violet-600" />
+            </div>
+            Open PDF template
+          </DialogTitle>
+          <DialogDescription>
+            Reopen a tenant PDF template from Mission Control storage.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="max-h-[420px] overflow-y-auto py-2">
+          {isLoading ? (
+            <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              Loading templates...
+            </div>
+          ) : templates.length === 0 ? (
+            <div className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
+              No saved PDF templates yet.
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {templates.map((template) => (
+                <button
+                  key={template.id}
+                  type="button"
+                  className="flex w-full items-center justify-between rounded-md border bg-background px-3 py-3 text-left transition-colors hover:bg-muted"
+                  onClick={() => onSelect(template)}
+                >
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium">
+                      {template.name}
+                    </div>
+                    <div className="mt-0.5 text-xs text-muted-foreground">
+                      {template.category.replace(/_/g, " ")} ·{" "}
+                      {template.page_size} · {template.orientation} ·{" "}
+                      {template.status}
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -828,6 +908,23 @@ async function runExportPdf(
 
 type DeleteTemplateResult = { ok: true } | { ok: false; error: string };
 
+async function fetchPdfTemplates(): Promise<PDFTemplateListEntry[]> {
+  const response = await fetch("/api/pdf-templates", {
+    method: "GET",
+  });
+  const body = (await response.json().catch(() => null)) as {
+    success?: boolean;
+    templates?: PDFTemplateListEntry[];
+    error?: string;
+  } | null;
+
+  if (!response.ok || !body?.success) {
+    throw new Error(body?.error ?? "Failed to load PDF templates");
+  }
+
+  return body.templates ?? [];
+}
+
 async function runDeletePdfTemplate(
   templateId: string,
 ): Promise<DeleteTemplateResult> {
@@ -841,13 +938,13 @@ async function runDeletePdfTemplate(
       };
       return {
         ok: false,
-        error: errorData.error ?? "Failed to delete template",
+        error: errorData.error ?? "Failed to archive template",
       };
     }
     return { ok: true };
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Failed to delete template";
+      error instanceof Error ? error.message : "Failed to archive template";
     return { ok: false, error: message };
   }
 }
@@ -916,6 +1013,9 @@ function usePDFStudioController() {
   );
   const currentDesignRef = useRef<UnlayerDesignJSON | null>(null);
   const [metadata, setMetadata] = useState<PDFMetadata>(DEFAULT_PDF_METADATA);
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false);
+  const [templates, setTemplates] = useState<PDFTemplateListEntry[]>([]);
+  const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
   const {
     isEditorReady,
     isSaving,
@@ -1084,7 +1184,7 @@ function usePDFStudioController() {
 
     const result = await runDeletePdfTemplate(metadata.id);
     if (result.ok) {
-      toast.success("Template deleted");
+      toast.success("Template archived");
       setMetadata(DEFAULT_PDF_METADATA);
       currentDesignRef.current = null;
       if (editorRef.current) {
@@ -1092,7 +1192,7 @@ function usePDFStudioController() {
       }
       dispatchUi({ type: "set_unsaved_changes", value: false });
     } else {
-      toast.error("Delete failed", { description: result.error });
+      toast.error("Archive failed", { description: result.error });
     }
   }, [metadata.id]);
 
@@ -1135,6 +1235,38 @@ function usePDFStudioController() {
     toast.info("New document created");
   }, []);
 
+  const handleOpenTemplatePicker = useCallback(async () => {
+    setShowTemplatePicker(true);
+    setIsLoadingTemplates(true);
+    try {
+      setTemplates(await fetchPdfTemplates());
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to load PDF templates",
+      );
+    } finally {
+      setIsLoadingTemplates(false);
+    }
+  }, []);
+
+  const handleSelectTemplate = useCallback((template: PDFTemplateListEntry) => {
+    setMetadata({
+      id: template.id,
+      name: template.name,
+      description: template.description ?? "",
+      category: template.category,
+      pageSize: template.page_size,
+      orientation: template.orientation,
+    });
+    currentDesignRef.current = template.design;
+    editorRef.current?.loadDesign(template.design);
+    dispatchUi({ type: "set_unsaved_changes", value: false });
+    setShowTemplatePicker(false);
+    toast.success("PDF template opened", {
+      description: template.name,
+    });
+  }, []);
+
   return {
     editorRef,
     metadata,
@@ -1148,6 +1280,10 @@ function usePDFStudioController() {
     showSaveDialog,
     showExportDialog,
     showDeleteDialog,
+    showTemplatePicker,
+    setShowTemplatePicker,
+    templates,
+    isLoadingTemplates,
     exportedHtml,
     studioConfig,
     isFullscreen,
@@ -1165,6 +1301,8 @@ function usePDFStudioController() {
     handleDownloadHtml,
     handlePreview,
     handleNewTemplate,
+    handleOpenTemplatePicker,
+    handleSelectTemplate,
   };
 }
 
@@ -1182,6 +1320,10 @@ export default function PDFStudio() {
     showSaveDialog,
     showExportDialog,
     showDeleteDialog,
+    showTemplatePicker,
+    setShowTemplatePicker,
+    templates,
+    isLoadingTemplates,
     exportedHtml,
     studioConfig,
     isFullscreen,
@@ -1199,6 +1341,8 @@ export default function PDFStudio() {
     handleDownloadHtml,
     handlePreview,
     handleNewTemplate,
+    handleOpenTemplatePicker,
+    handleSelectTemplate,
   } = usePDFStudioController();
 
   return (
@@ -1228,6 +1372,7 @@ export default function PDFStudio() {
           onExportHtml: handleExportHtml,
           onSaveClick: handleSaveClick,
           onNewTemplate: handleNewTemplate,
+          onLoadTemplate: handleOpenTemplatePicker,
           onToggleFullscreen: () => dispatchUi({ type: "toggle_fullscreen" }),
           onOpenDeleteDialog: () =>
             dispatchUi({ type: "set_show_delete_dialog", value: true }),
@@ -1284,6 +1429,14 @@ export default function PDFStudio() {
         }
         templateName={metadata.name}
         onDelete={handleDelete}
+      />
+
+      <PDFTemplatePickerDialog
+        open={showTemplatePicker}
+        onOpenChange={setShowTemplatePicker}
+        templates={templates}
+        isLoading={isLoadingTemplates}
+        onSelect={handleSelectTemplate}
       />
     </div>
   );

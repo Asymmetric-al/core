@@ -21,8 +21,8 @@ PDF Studio provides a visual document builder using Unlayer's `displayMode: 'doc
 | Setup Status Component         | Complete | `packages/ui/components/studio/PDFStudioSetupStatus.tsx`         |
 | HTML Export                    | Complete | Via `exportHtml()` method                                        |
 | PDF Export                     | Complete | Via `exportPdf()` method (requires project ID)                   |
-| Template Save (API)            | Legacy   | Existing `/api/pdf-templates` calls remain a PDF workstream item |
-| Template CRUD                  | Legacy   | Keep current behavior; do not change in Email Studio migration   |
+| Template Save (API)            | Complete | `apps/admin/app/api/pdf-templates/**` thin routes                |
+| Template CRUD                  | Complete | `@asym/api/pdf-templates` with tenant-scoped storage             |
 | Database Storage               | Complete | `pdf_templates` table in Supabase                                |
 | Template Categories            | Complete | Tax receipt, donation receipt, statements, etc.                  |
 | Page Size Options              | Complete | Letter, A4, Legal                                                |
@@ -56,6 +56,7 @@ apps/admin/
 └── lib/pdf-studio.ts               # PDF Studio categories and options
 packages/
 ├── config/pdf-studio.ts            # Legacy Unlayer document config
+├── api/src/pdf-templates/           # Mission Control template handlers/store
 └── ui/components/studio/
     ├── legacy/UnlayerDocumentEditor.tsx # Legacy document editor wrapper
     └── PDFStudioSetupStatus.tsx    # Setup status badge
@@ -281,12 +282,17 @@ PDF Studio supports predefined template categories for common nonprofit use case
 
 ---
 
-## Legacy API Endpoints
+## Mission Control API Endpoints
 
-The Email Studio React Email migration does not add or replace PDF template
-APIs. The current PDF Studio client still targets the legacy
-`/api/pdf-templates` contract shown below; completing or replacing that
-contract belongs to a separate PDF Studio persistence workstream.
+PDF Studio template persistence is a Mission Control-owned operational path.
+App Router files under `apps/admin/app/api/pdf-templates/**` are thin exports
+to `@asym/api/pdf-templates`; business database logic stays in
+`packages/api/src/pdf-templates/*`.
+
+The API is tenant-scoped through the authenticated admin context. It stores only
+document template metadata, Unlayer document design JSON, cached HTML, and
+document layout settings. It does not write donor, missionary, giving, payment,
+receipt, CMS, or CRM facts.
 
 ### List Templates
 
@@ -334,11 +340,53 @@ PUT /api/pdf-templates/:templateId
 }
 ```
 
-### Delete Template
+### Archive Template
 
 ```http
 DELETE /api/pdf-templates/:templateId
 ```
+
+The delete endpoint archives the template by setting `status='archived'`. It
+does not hard-delete rows, which keeps operational recovery possible and keeps
+template history out of donor/payment/CRM ownership.
+
+---
+
+## Provider Boundary
+
+PDF Studio remains on the explicit legacy Unlayer document editor path. The
+template API does not call Unlayer, DocRaptor, Cloudinary, Resend, Stripe, or
+Twenty. Provider behavior is limited to the browser editor runtime and
+client-side Unlayer PDF export when `NEXT_PUBLIC_UNLAYER_PROJECT_ID` is
+configured.
+
+Operationally:
+
+- Missing `NEXT_PUBLIC_UNLAYER_PROJECT_ID` keeps PDF Studio in free mode.
+- HTML export and template save/load remain available without Unlayer provider
+  credentials.
+- PDF export requires a configured Unlayer document project and allowed domain.
+- `UNLAYER_API_KEY` and `DOCRAPTOR_API_KEY` remain optional and server-only;
+  they are not required for the current Mission Control template API.
+
+## Rollback
+
+1. Disable provider PDF export by unsetting `NEXT_PUBLIC_UNLAYER_PROJECT_ID` or
+   rolling back to a deployment where it is unset.
+2. Keep `/api/pdf-templates` deployed if operators only need template
+   save/load/archive; it has no provider dependency.
+3. If a bad template was saved, archive it through PDF Studio or:
+
+   ```sql
+   update public.pdf_templates
+   set status = 'archived', updated_at = now()
+   where tenant_id = '<tenant_uuid>'::uuid
+     and id = '<template_uuid>'::uuid;
+   ```
+
+4. If the new API route must be rolled back, restore the previous Vercel admin
+   deployment. Existing `pdf_templates` rows remain compatible with the prior
+   database shape because Phase 10 adds no migration.
 
 ---
 

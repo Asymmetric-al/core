@@ -115,6 +115,8 @@ For every `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}` file while
 | admin      | `/api/health`                                                  | Node.js (no `runtime` segment export) | Health probe                               |
 | admin      | `/api/health/db`                                               | Node.js (no `runtime` segment export) | Database health probe                      |
 | admin      | `/api/missionaries/[id]/metrics`                               | Node.js (no `runtime` segment export) | Admin client                               |
+| admin      | `/api/pdf-templates`                                           | Node.js (no `runtime` segment export) | PDF Studio template store                  |
+| admin      | `/api/pdf-templates/[templateId]`                              | Node.js (no `runtime` segment export) | PDF Studio template store                  |
 | admin      | `/api/webhooks/stripe`                                         | Node.js (no `runtime` segment export) | Stripe SDK, admin client                   |
 | donor      | `/api/auth/cleanup-demo-users`                                 | Node.js (no `runtime` segment export) | Admin client                               |
 | donor      | `/api/auth/demo-account`                                       | Node.js (no `runtime` segment export) | Demo auth server action                    |
