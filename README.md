@@ -217,6 +217,9 @@ Conventions:
 
 - Workspace package names use `@asym/<name>` (admin app is `@asym/admin`, missionary app is `@asym/missionary-app`).
 - Internal deps use `workspace:*` (not `file:`).
+- Exception: the native PDF Studio migration intentionally consumes the five
+  vendored Phase 47 React PDF tarballs under `vendor/react-pdf-packages/*.tgz`
+  until those packages are published or promoted into this monorepo.
 - Workspace globs in root `package.json`: `apps/*`, `packages/*`, `packages/env`, `tooling/*`.
 
 Guardrail:
