@@ -1,8 +1,5 @@
-// NOTE: This file has missionary-specific types
-// The types should be exported from @asym/lib or defined locally
 "use client";
 
-import { createBrowserClient } from "@asym/database/supabase";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { toast } from "sonner";
 
@@ -110,10 +107,48 @@ interface UseTasksReturn {
   refresh: () => Promise<void>;
 }
 
+async function parseJsonResponse<T>(response: Response): Promise<T> {
+  const payload = (await response.json().catch(() => null)) as
+    | (T & { error?: string })
+    | null;
+
+  if (!response.ok) {
+    throw new Error(
+      payload?.error || `Request failed with status ${response.status}`,
+    );
+  }
+
+  if (!payload) {
+    throw new Error("Request returned an empty response.");
+  }
+
+  return payload;
+}
+
+function taskPayloadFromFormData(
+  data: Partial<TaskFormData | { sort_key: number }>,
+): Record<string, unknown> {
+  const payload: Record<string, unknown> = {};
+
+  if ("title" in data) payload.title = data.title;
+  if ("description" in data) payload.description = data.description || null;
+  if ("task_type" in data) payload.task_type = data.task_type;
+  if ("status" in data) payload.status = data.status;
+  if ("priority" in data) payload.priority = data.priority;
+  if ("due_date" in data && data.due_date instanceof Date) {
+    payload.due_date = data.due_date.toISOString();
+  } else if ("due_date" in data) {
+    payload.due_date = data.due_date ?? null;
+  }
+  if ("donor_id" in data) payload.donor_id = data.donor_id || null;
+  if ("sort_key" in data) payload.sort_key = data.sort_key;
+
+  return payload;
+}
+
 export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
   const { donorId, autoFetch = true } = options;
   const { profile } = useAuth();
-  const supabase = useMemo(() => createBrowserClient(), []);
   const mountedRef = useRef(true);
   const initialFetchDone = useRef(false);
 
@@ -145,30 +180,18 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
     setError(null);
 
     try {
-      let query = supabase
-        .from("missionary_tasks")
-        .select(
-          `
-          *,
-          donor:donors!missionary_tasks_donor_id_fkey(id, name, email, avatar_url)
-        `,
-        )
-        .eq("missionary_id", profile.id)
-        .order("sort_key", { ascending: true })
-        .order("created_at", { ascending: false });
-
-      if (donorId) {
-        query = query.eq("donor_id", donorId);
-      }
-
-      const { data, error: fetchError } = await query;
-
-      if (fetchError) throw fetchError;
-
-      const formattedTasks: Task[] = (data || []).map((task) => ({
-        ...task,
-        donor: task.donor || null,
-      }));
+      const params = new URLSearchParams();
+      if (donorId) params.set("donorId", donorId);
+      const response = await fetch(`/api/missionary/tasks?${params}`, {
+        credentials: "same-origin",
+        headers: {
+          Accept: "application/json",
+        },
+        method: "GET",
+      });
+      const { tasks: formattedTasks } = await parseJsonResponse<{
+        tasks: Task[];
+      }>(response);
 
       if (mountedRef.current) {
         setTasks(formattedTasks);
@@ -186,7 +209,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
         setLoading(false);
       }
     }
-  }, [profile?.id, supabase, donorId]);
+  }, [profile?.id, donorId]);
 
   useEffect(() => {
     if (autoFetch && profile?.id && !initialFetchDone.current) {
@@ -195,31 +218,6 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
       setLoading(false);
     }
   }, [fetchTasks, autoFetch, profile?.id]);
-
-  // Realtime subscription
-  useEffect(() => {
-    if (!profile?.id) return;
-
-    const channel = supabase.channel("missionary_tasks_changes").on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "missionary_tasks",
-        filter: `missionary_id=eq.${profile.id}`,
-      },
-      () => {
-        fetchTasks();
-      },
-    );
-
-    channel.subscribe();
-
-    return () => {
-      // `removeChannel` unsubscribes and removes this channel from the Supabase client.
-      void supabase.removeChannel(channel);
-    };
-  }, [profile?.id, supabase, fetchTasks]);
 
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
@@ -326,37 +324,22 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
             : Date.now() / 1000;
 
         const insertData = {
-          missionary_id: profile.id,
-          title: data.title,
-          description: data.description || null,
-          notes: data.notes || null,
-          task_type: data.task_type,
-          status: data.status,
-          priority: data.priority,
-          due_date: data.due_date?.toISOString() || null,
-          reminder_date: data.reminder_date?.toISOString() || null,
-          donor_id: data.donor_id || null,
+          ...taskPayloadFromFormData(data),
           sort_key: maxSortKey + 100,
-          is_auto_generated: false,
         };
 
-        const { data: newTask, error: insertError } = await supabase
-          .from("missionary_tasks")
-          .insert(insertData)
-          .select(
-            `
-          *,
-          donor:donors!missionary_tasks_donor_id_fkey(id, name, email, avatar_url)
-        `,
-          )
-          .single();
-
-        if (insertError) throw insertError;
-
-        const formattedTask: Task = {
-          ...newTask,
-          donor: newTask.donor || null,
-        };
+        const response = await fetch("/api/missionary/tasks", {
+          body: JSON.stringify(insertData),
+          credentials: "same-origin",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+        });
+        const { task: formattedTask } = await parseJsonResponse<{ task: Task }>(
+          response,
+        );
 
         if (mountedRef.current) {
           setTasks((prev) =>
@@ -373,7 +356,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
         return null;
       }
     },
-    [profile?.id, supabase, tasks],
+    [profile?.id, tasks],
   );
 
   const updateTask = useCallback(
@@ -382,35 +365,17 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
       data: Partial<TaskFormData | { sort_key: number }>,
     ): Promise<boolean> => {
       try {
-        const updateData: Record<string, unknown> = {
-          updated_at: new Date().toISOString(),
-        };
+        const response = await fetch(`/api/missionary/tasks/${id}`, {
+          body: JSON.stringify(taskPayloadFromFormData(data)),
+          credentials: "same-origin",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          method: "PATCH",
+        });
 
-        if ("title" in data) updateData.title = data.title;
-        if ("description" in data)
-          updateData.description = data.description || null;
-        if ("notes" in data) updateData.notes = data.notes || null;
-        if ("task_type" in data) updateData.task_type = data.task_type;
-        if ("status" in data) updateData.status = data.status;
-        if ("priority" in data) updateData.priority = data.priority;
-        if ("due_date" in data && data.due_date instanceof Date)
-          updateData.due_date = data.due_date.toISOString();
-        else if ("due_date" in data) updateData.due_date = data.due_date;
-
-        if ("reminder_date" in data && data.reminder_date instanceof Date)
-          updateData.reminder_date = data.reminder_date.toISOString();
-        else if ("reminder_date" in data)
-          updateData.reminder_date = data.reminder_date;
-
-        if ("donor_id" in data) updateData.donor_id = data.donor_id || null;
-        if ("sort_key" in data) updateData.sort_key = data.sort_key;
-
-        const { error: updateError } = await supabase
-          .from("missionary_tasks")
-          .update(updateData)
-          .eq("id", id);
-
-        if (updateError) throw updateError;
+        await parseJsonResponse<{ task: Task }>(response);
 
         await fetchTasks();
         return true;
@@ -422,7 +387,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
         return false;
       }
     },
-    [supabase, fetchTasks],
+    [fetchTasks],
   );
 
   const moveTask = useCallback(
@@ -470,16 +435,20 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
       setTasks(newTasks);
 
       try {
-        const { error: updateError } = await supabase
-          .from("missionary_tasks")
-          .update({
+        const response = await fetch(`/api/missionary/tasks/${taskId}`, {
+          body: JSON.stringify({
             status: newStatus,
             sort_key: newSortKey,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", taskId);
+          }),
+          credentials: "same-origin",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          method: "PATCH",
+        });
 
-        if (updateError) throw updateError;
+        await parseJsonResponse<{ task: Task }>(response);
         return true;
       } catch (err) {
         setTasks(oldTasks);
@@ -488,114 +457,110 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
         return false;
       }
     },
-    [tasks, supabase],
+    [tasks],
   );
 
-  const deleteTask = useCallback(
-    async (id: string): Promise<boolean> => {
-      try {
-        const { error: deleteError } = await supabase
-          .from("missionary_tasks")
-          .delete()
-          .eq("id", id);
+  const deleteTask = useCallback(async (id: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`/api/missionary/tasks/${id}`, {
+        credentials: "same-origin",
+        headers: {
+          Accept: "application/json",
+        },
+        method: "DELETE",
+      });
 
-        if (deleteError) throw deleteError;
+      await parseJsonResponse<{ success: true }>(response);
 
-        if (mountedRef.current) {
-          setTasks((prev) => prev.filter((t) => t.id !== id));
-        }
-        toast.success("Task deleted");
-        return true;
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Failed to delete task";
-        toast.error(message);
-        console.error("Task delete error:", err);
-        return false;
+      if (mountedRef.current) {
+        setTasks((prev) => prev.filter((t) => t.id !== id));
       }
-    },
-    [supabase],
-  );
+      toast.success("Task deleted");
+      return true;
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to delete task";
+      toast.error(message);
+      console.error("Task delete error:", err);
+      return false;
+    }
+  }, []);
 
-  const completeTask = useCallback(
-    async (id: string): Promise<boolean> => {
-      try {
-        const { error: updateError } = await supabase
-          .from("missionary_tasks")
-          .update({
-            status: "completed",
-            completed_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", id);
+  const completeTask = useCallback(async (id: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`/api/missionary/tasks/${id}`, {
+        body: JSON.stringify({ status: "completed" }),
+        credentials: "same-origin",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        method: "PATCH",
+      });
 
-        if (updateError) throw updateError;
+      await parseJsonResponse<{ task: Task }>(response);
 
-        if (mountedRef.current) {
-          setTasks((prev) =>
-            prev.map((t) =>
-              t.id === id
-                ? {
-                    ...t,
-                    status: "completed" as TaskStatus,
-                    completed_at: new Date().toISOString(),
-                  }
-                : t,
-            ),
-          );
-        }
-        toast.success("Task completed");
-        return true;
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Failed to complete task";
-        toast.error(message);
-        console.error("Task complete error:", err);
-        return false;
+      if (mountedRef.current) {
+        setTasks((prev) =>
+          prev.map((t) =>
+            t.id === id
+              ? {
+                  ...t,
+                  status: "completed" as TaskStatus,
+                  completed_at: new Date().toISOString(),
+                }
+              : t,
+          ),
+        );
       }
-    },
-    [supabase],
-  );
+      toast.success("Task completed");
+      return true;
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to complete task";
+      toast.error(message);
+      console.error("Task complete error:", err);
+      return false;
+    }
+  }, []);
 
-  const reopenTask = useCallback(
-    async (id: string): Promise<boolean> => {
-      try {
-        const { error: updateError } = await supabase
-          .from("missionary_tasks")
-          .update({
-            status: "not_started",
-            completed_at: null,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", id);
+  const reopenTask = useCallback(async (id: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`/api/missionary/tasks/${id}`, {
+        body: JSON.stringify({ status: "not_started" }),
+        credentials: "same-origin",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        method: "PATCH",
+      });
 
-        if (updateError) throw updateError;
+      await parseJsonResponse<{ task: Task }>(response);
 
-        if (mountedRef.current) {
-          setTasks((prev) =>
-            prev.map((t) =>
-              t.id === id
-                ? {
-                    ...t,
-                    status: "not_started" as TaskStatus,
-                    completed_at: null,
-                  }
-                : t,
-            ),
-          );
-        }
-        toast.success("Task reopened");
-        return true;
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Failed to reopen task";
-        toast.error(message);
-        console.error("Task reopen error:", err);
-        return false;
+      if (mountedRef.current) {
+        setTasks((prev) =>
+          prev.map((t) =>
+            t.id === id
+              ? {
+                  ...t,
+                  status: "not_started" as TaskStatus,
+                  completed_at: null,
+                }
+              : t,
+          ),
+        );
       }
-    },
-    [supabase],
-  );
+      toast.success("Task reopened");
+      return true;
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to reopen task";
+      toast.error(message);
+      console.error("Task reopen error:", err);
+      return false;
+    }
+  }, []);
 
   return {
     tasks,

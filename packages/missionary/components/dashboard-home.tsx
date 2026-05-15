@@ -1,6 +1,7 @@
 "use client";
 
 import { DEMO_PROFILE_ID } from "@asym/auth/constants";
+import { useMissionaryPortalSnapshot } from "@asym/database/hooks";
 import { useAuth } from "@asym/lib/hooks";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
@@ -84,6 +85,14 @@ const MOCK_POSTS = [
   },
 ];
 
+function formatSupportAmount(cents: number): string {
+  const dollars = cents / 100;
+  if (dollars >= 1000) {
+    return `$${(dollars / 1000).toFixed(dollars % 1000 === 0 ? 0 : 1)}k`;
+  }
+  return `$${dollars.toLocaleString()}`;
+}
+
 interface DashboardHomeProps {
   setActiveTab?: (tab: string) => void;
   missionaryId?: string;
@@ -100,11 +109,32 @@ function DashboardHomeContent({
   setActiveTab?: (tab: string) => void;
   belowHeaderSlot?: React.ReactNode;
 }) {
+  const portalQuery = useMissionaryPortalSnapshot();
+  const portal = portalQuery.data;
+  const support = portal?.support;
+  const goalCents = support?.goalCents ?? 600_000;
+  const raisedCents = support?.raisedCents ?? 456_000;
+  const percentFunded = support?.percentFunded ?? 76;
+  const remainingCents = Math.max(0, goalCents - raisedCents);
+  const pendingTasks =
+    portal?.tasks.filter((task) => task.status !== "completed") ?? MOCK_TASKS;
+  const latestUpdates =
+    portal?.ministryUpdates.map((update) => ({
+      id: update.id,
+      content: update.excerpt,
+      timestamp: update.createdAt
+        ? new Date(update.createdAt).toLocaleDateString()
+        : "Draft",
+    })) ?? MOCK_POSTS;
   const alerts = [
-    { id: 1, text: "3 recurring gifts failed this week", severity: "high" },
+    {
+      id: 1,
+      text: `${pendingTasks.length} support tasks need attention`,
+      severity: "high",
+    },
     {
       id: 2,
-      text: "Pledge from Church of Grace is past due",
+      text: `${support?.activeDonorCount ?? 0} active donor relationships`,
       severity: "medium",
     },
   ];
@@ -165,10 +195,10 @@ function DashboardHomeContent({
                   </h2>
                   <div className="flex items-baseline gap-2">
                     <span className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tighter text-white leading-none">
-                      $4,560
+                      {formatSupportAmount(raisedCents)}
                     </span>
                     <span className="text-zinc-600 text-sm sm:text-base font-medium leading-none">
-                      / $6,000
+                      / {formatSupportAmount(goalCents)}
                     </span>
                   </div>
                 </div>
@@ -183,12 +213,14 @@ function DashboardHomeContent({
               <div className="mt-2.5">
                 <div className="flex justify-between text-[9px] mb-1 text-zinc-500 font-semibold leading-none">
                   <span>76% Funded</span>
-                  <span className="text-zinc-400">$1,440 remaining</span>
+                  <span className="text-zinc-400">
+                    {formatSupportAmount(remainingCents)} remaining
+                  </span>
                 </div>
                 <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-white rounded-full transition-all duration-1000 ease-out"
-                    style={{ width: "76%" }}
+                    style={{ width: `${percentFunded}%` }}
                   />
                 </div>
               </div>
@@ -199,7 +231,7 @@ function DashboardHomeContent({
                     New Partners
                   </span>
                   <span className="text-sm sm:text-base font-semibold text-white mt-0.5 leading-none">
-                    +12
+                    {support?.giftCount ?? 0}
                   </span>
                 </div>
                 <div className="flex flex-col gap-0">
@@ -207,7 +239,7 @@ function DashboardHomeContent({
                     Active Donors
                   </span>
                   <span className="text-sm sm:text-base font-semibold text-white mt-0.5 leading-none">
-                    142
+                    {support?.activeDonorCount ?? 0}
                   </span>
                 </div>
                 <div className="flex flex-col gap-0">
@@ -215,7 +247,7 @@ function DashboardHomeContent({
                     MoM Growth
                   </span>
                   <span className="text-sm sm:text-base font-semibold text-emerald-400 flex items-center gap-1 mt-0.5 leading-none">
-                    <TrendingUp size={14} /> 12%
+                    <TrendingUp size={14} /> {percentFunded}%
                   </span>
                 </div>
               </div>
@@ -242,7 +274,7 @@ function DashboardHomeContent({
               )}
             </CardHeader>
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2.5 sm:px-4 sm:pb-3">
-              {MOCK_POSTS.map((post) => (
+              {latestUpdates.slice(0, 2).map((post) => (
                 <div
                   key={post.id}
                   className="group flex gap-2 p-1.5 rounded-lg border border-zinc-100 hover:border-zinc-200 hover:bg-zinc-50 transition-all cursor-pointer"
@@ -287,7 +319,7 @@ function DashboardHomeContent({
                   variant="secondary"
                   className="bg-white text-zinc-600 border border-zinc-100 text-[8px] font-semibold px-1 py-0"
                 >
-                  {MOCK_TASKS.filter((t) => !t.completed).length} Pending
+                  {pendingTasks.length} Pending
                 </Badge>
               </div>
             </CardHeader>
@@ -310,31 +342,33 @@ function DashboardHomeContent({
                 )}
 
                 <div className="divide-y divide-zinc-50">
-                  {MOCK_TASKS.filter((t) => !t.completed)
-                    .slice(0, 4)
-                    .map((task) => (
-                      <div
-                        key={task.id}
-                        className="group p-2 px-3 sm:px-3.5 hover:bg-zinc-50/50 transition-all flex items-start gap-2 cursor-pointer touch-target"
-                      >
-                        <Circle className="size-3 text-zinc-300 group-hover:text-zinc-600 mt-0.5 shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[10px] font-semibold text-zinc-800 truncate tracking-tight leading-none">
-                            {task.title}
-                          </p>
-                          <div className="flex items-center gap-1.5 mt-0.5 leading-none flex-wrap">
-                            {task.priority === "high" && (
-                              <Badge className="bg-red-50 text-red-600 hover:bg-red-50 border-none text-[7px] h-3 font-semibold uppercase tracking-widest px-1">
-                                Urgent
-                              </Badge>
-                            )}
-                            <span className="text-[8px] text-zinc-400 font-semibold uppercase tracking-wider">
-                              Due {task.dueDate}
-                            </span>
-                          </div>
+                  {pendingTasks.slice(0, 4).map((task) => (
+                    <div
+                      key={task.id}
+                      className="group p-2 px-3 sm:px-3.5 hover:bg-zinc-50/50 transition-all flex items-start gap-2 cursor-pointer touch-target"
+                    >
+                      <Circle className="size-3 text-zinc-300 group-hover:text-zinc-600 mt-0.5 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] font-semibold text-zinc-800 truncate tracking-tight leading-none">
+                          {task.title}
+                        </p>
+                        <div className="flex items-center gap-1.5 mt-0.5 leading-none flex-wrap">
+                          {task.priority === "high" && (
+                            <Badge className="bg-red-50 text-red-600 hover:bg-red-50 border-none text-[7px] h-3 font-semibold uppercase tracking-widest px-1">
+                              Urgent
+                            </Badge>
+                          )}
+                          <span className="text-[8px] text-zinc-400 font-semibold uppercase tracking-wider">
+                            {"dueDate" in task
+                              ? `Due ${task.dueDate}`
+                              : task.due_date
+                                ? `Due ${new Date(task.due_date).toLocaleDateString()}`
+                                : "No due date"}
+                          </span>
                         </div>
                       </div>
-                    ))}
+                    </div>
+                  ))}
                 </div>
               </div>
               <div className="p-1.5 bg-zinc-50/10 border-t border-zinc-50">
@@ -359,10 +393,10 @@ function DashboardHomeWithAuth({
   setActiveTab,
   belowHeaderSlot,
 }: DashboardHomeProps) {
-  const { user, loading } = useAuth();
+  const { profile, loading } = useAuth();
 
   const resolvedMissionaryId =
-    !loading && user?.id ? user.id : DEMO_MISSIONARY_ID;
+    !loading && profile?.id ? profile.id : DEMO_MISSIONARY_ID;
 
   return (
     <DashboardHomeContent

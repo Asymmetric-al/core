@@ -122,7 +122,11 @@ For every `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}` file while
 | donor      | `/api/donate`                                                  | Node.js (no `runtime` segment export) | Stripe SDK, admin client                   |
 | donor      | `/api/donate/outbox`                                           | Node.js (no `runtime` segment export) | Donation outbox processing                 |
 | donor      | `/api/donations`                                               | Node.js (no `runtime` segment export) | Admin client                               |
+| donor      | `/api/donor/billing-portal`                                    | Node.js (no `runtime` segment export) | Stripe Billing Portal, admin client        |
 | donor      | `/api/donor/feed-preferences`                                  | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |
+| donor      | `/api/donor/portal`                                            | Node.js (no `runtime` segment export) | Donor self-service BFF, admin client       |
+| donor      | `/api/donor/receipts/[donationId]`                             | Node.js (no `runtime` segment export) | Owned donor receipt download, admin client |
+| donor      | `/api/donor/statements/[year]`                                 | Node.js (no `runtime` segment export) | Owned donor statement download             |
 | donor      | `/api/follower-requests`                                       | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |
 | donor      | `/api/follower-requests/[requestId]`                           | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |
 | donor      | `/api/graphql`                                                 | Node.js (no `runtime` segment export) | graphql-yoga, `next/headers` cookies()     |
@@ -141,6 +145,9 @@ For every `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}` file while
 | missionary | `/api/follower-requests`                                       | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |
 | missionary | `/api/follower-requests/[requestId]`                           | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |
 | missionary | `/api/health`                                                  | Node.js (no `runtime` segment export) | Health probe                               |
+| missionary | `/api/missionary/portal`                                       | Node.js (no `runtime` segment export) | Missionary workspace BFF, admin client     |
+| missionary | `/api/missionary/tasks`                                        | Node.js (no `runtime` segment export) | Missionary task CRUD, admin client         |
+| missionary | `/api/missionary/tasks/[taskId]`                               | Node.js (no `runtime` segment export) | Missionary-owned task mutation             |
 | missionary | `/api/missionaries`                                            | Node.js (no `runtime` segment export) | Admin client                               |
 | missionary | `/api/missionaries/[id]/metrics`                               | Node.js (no `runtime` segment export) | Admin client                               |
 | missionary | `/api/posts`                                                   | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |

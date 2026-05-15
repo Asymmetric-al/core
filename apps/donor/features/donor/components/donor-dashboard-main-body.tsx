@@ -1,3 +1,6 @@
+"use client";
+
+import { useDonorPortalSnapshot } from "@asym/database/hooks";
 import { formatCurrency } from "@asym/lib/utils";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -25,12 +28,21 @@ import { ImpactTile } from "./ImpactTile";
 import { RECENT_UPDATES } from "@/lib/mock-data";
 
 export function DonorDashboardMainBody() {
+  const portalQuery = useDonorPortalSnapshot();
+  const portal = portalQuery.data;
+  const displayName = portal?.profile.displayName.split(" ")[0] ?? "Partner";
+  const yearToDate = portal ? portal.summary.yearToDateCents / 100 : 0;
+  const activeSupportLabel = portal
+    ? `${portal.summary.activeRecurringGiftCount} Recurring`
+    : "0 Recurring";
+  const latestImpact = portal?.summary.latestImpactLabel ?? "General Fund";
+
   return (
     <div className="space-y-8 pb-20 animate-in fade-in duration-700">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 sm:gap-6 pb-6 border-b border-zinc-100">
         <div className="min-w-0">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-zinc-900 tracking-tighter flex items-center gap-2 sm:gap-3 flex-wrap">
-            <Greeting />, John.
+            <Greeting />, {displayName}.
           </h1>
           <p className="text-zinc-400 font-semibold uppercase tracking-widest text-[10px] mt-1.5">
             Thank you for your partnership.
@@ -52,21 +64,21 @@ export function DonorDashboardMainBody() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
         <ImpactTile
           title="Total Given YTD"
-          value={formatCurrency(12500)}
+          value={formatCurrency(yearToDate)}
           icon={Heart}
           colorClass="text-zinc-900"
           bgClass="bg-zinc-100"
         />
         <ImpactTile
           title="Active Support"
-          value="4 Missionaries"
+          value={activeSupportLabel}
           icon={Map}
           colorClass="text-zinc-900"
           bgClass="bg-zinc-100"
         />
         <ImpactTile
           title="Latest Impact"
-          value="Clean Water"
+          value={latestImpact}
           icon={Activity}
           colorClass="text-zinc-500"
           bgClass="bg-zinc-50"

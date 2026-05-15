@@ -185,8 +185,8 @@ export async function GET(
 
     const { data: missionary, error: missionaryError } = await dataReader
       .from("missionaries")
-      .select("id, tenant_id")
-      .eq("id", missionaryId)
+      .select("id, tenant_id, profile_id")
+      .or(`id.eq.${missionaryId},profile_id.eq.${missionaryId}`)
       .maybeSingle();
 
     if (missionaryError) {
@@ -214,13 +214,25 @@ export async function GET(
       );
     }
 
+    if (
+      hasAnyContextRole(auth, ["missionary"]) &&
+      !hasAnyContextRole(auth, ["staff", "admin", "super_admin"]) &&
+      missionary.profile_id !== auth.profileId
+    ) {
+      return jsonWithCookies(
+        { error: "Missionary not found" },
+        { status: 404 },
+        pendingCookies,
+      );
+    }
+
     const thirteenMonthsAgo = new Date();
     thirteenMonthsAgo.setMonth(thirteenMonthsAgo.getMonth() - 13);
 
     const { data, error } = await dataReader
       .from("donations")
       .select("id, amount, donation_type, created_at, status")
-      .eq("missionary_id", missionaryId)
+      .eq("missionary_id", missionary.id)
       .gte("created_at", thirteenMonthsAgo.toISOString())
       .order("created_at", { ascending: true });
 

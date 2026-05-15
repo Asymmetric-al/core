@@ -101,6 +101,62 @@ const DONOR_HISTORY_TRANSACTIONS_SEED: DonorHistoryTransaction[] = [
   },
 ];
 
+type DonorPortalResponse = {
+  portal: {
+    donations: Array<{
+      id: string;
+      date: string;
+      amount: number;
+      designation: {
+        name: string;
+        type: "missionary" | "fund" | "general";
+        avatarUrl: string | null;
+      };
+      type: "Recurring" | "One-Time";
+      method: string;
+      status: "Succeeded" | "Processing" | "Failed";
+      receiptUrl: string;
+    }>;
+  };
+};
+
+async function fetchDonorHistoryTransactions(): Promise<
+  DonorHistoryTransaction[]
+> {
+  const response = await fetch("/api/donor/portal", {
+    credentials: "same-origin",
+    headers: {
+      Accept: "application/json",
+    },
+    method: "GET",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Unable to load donor portal (${response.status})`);
+  }
+
+  const payload = (await response.json()) as DonorPortalResponse;
+
+  return payload.portal.donations.map((donation) => ({
+    id: donation.id,
+    date: donation.date,
+    amount: donation.amount,
+    recipient: donation.designation.name,
+    recipientAvatar: donation.designation.avatarUrl ?? undefined,
+    category:
+      donation.designation.type === "fund"
+        ? "Project"
+        : donation.designation.type === "missionary"
+          ? "Missionary"
+          : "General",
+    type: donation.type,
+    method: donation.method,
+    last4: "Stripe",
+    status: donation.status,
+    receiptUrl: donation.receiptUrl,
+  }));
+}
+
 export const donorHistoryTransactionsCollection = createCollection(
   queryCollectionOptions({
     id: "donor_history_transactions",
@@ -108,6 +164,12 @@ export const donorHistoryTransactionsCollection = createCollection(
     queryClient: getQueryClient(),
     schema: donorHistoryTransactionSchema,
     getKey: (item) => item.id,
-    queryFn: async () => cloneValue(DONOR_HISTORY_TRANSACTIONS_SEED),
+    queryFn: async () => {
+      if (process.env.NODE_ENV === "test") {
+        return cloneValue(DONOR_HISTORY_TRANSACTIONS_SEED);
+      }
+
+      return fetchDonorHistoryTransactions();
+    },
   }),
 );

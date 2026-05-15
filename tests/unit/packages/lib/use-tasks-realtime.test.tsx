@@ -45,29 +45,19 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.channel.on.mockReturnValue(mocks.channel);
   mocks.channel.subscribe.mockReturnValue(mocks.channel);
+  vi.stubGlobal("fetch", vi.fn());
 });
 
-describe("useTasks realtime subscription", () => {
-  it("removes the Supabase channel when the hook unmounts", () => {
+describe("useTasks server boundary", () => {
+  it("does not open a browser Supabase realtime channel", () => {
     const { unmount } = render(<TasksProbe />);
 
-    expect(mocks.supabase.channel).toHaveBeenCalledWith(
-      "missionary_tasks_changes",
-    );
-    expect(mocks.channel.on).toHaveBeenCalledWith(
-      "postgres_changes",
-      expect.objectContaining({
-        event: "*",
-        schema: "public",
-        table: "missionary_tasks",
-        filter: "missionary_id=eq.missionary-1",
-      }),
-      expect.any(Function),
-    );
+    expect(mocks.supabase.channel).not.toHaveBeenCalled();
+    expect(mocks.channel.on).not.toHaveBeenCalled();
 
     unmount();
 
-    expect(mocks.supabase.removeChannel).toHaveBeenCalledWith(mocks.channel);
-    expect(mocks.channel.unsubscribe).not.toHaveBeenCalled();
+    expect(mocks.supabase.removeChannel).not.toHaveBeenCalled();
+    expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 });

@@ -75,122 +75,6 @@ type HistoryFiltersAction =
   | { type: "set_type_filter"; value: string }
   | { type: "set_status_filter"; value: string };
 
-// --- Mock Data ---
-const TRANSACTIONS: Transaction[] = [
-  {
-    id: "TX-10492",
-    date: "2024-10-24T10:30:00",
-    amount: 100.0,
-    recipient: "The Miller Family",
-    recipientAvatar:
-      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80",
-    category: "Missionary",
-    type: "Recurring",
-    method: "Visa",
-    last4: "4242",
-    status: "Succeeded",
-    receiptUrl: "#",
-  },
-  {
-    id: "TX-10491",
-    date: "2024-09-24T10:30:00",
-    amount: 100.0,
-    recipient: "The Miller Family",
-    recipientAvatar:
-      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80",
-    category: "Missionary",
-    type: "Recurring",
-    method: "Visa",
-    last4: "4242",
-    status: "Succeeded",
-    receiptUrl: "#",
-  },
-  {
-    id: "TX-10355",
-    date: "2024-09-12T14:15:00",
-    amount: 500.0,
-    recipient: "Clean Water Initiative",
-    recipientAvatar:
-      "https://images.unsplash.com/photo-1538300342682-cf57afb97285?fit=crop&w=256&h=256&q=80",
-    category: "Project",
-    type: "One-Time",
-    method: "Mastercard",
-    last4: "8821",
-    status: "Succeeded",
-    receiptUrl: "#",
-  },
-  {
-    id: "TX-10290",
-    date: "2024-08-24T10:30:00",
-    amount: 100.0,
-    recipient: "The Miller Family",
-    recipientAvatar:
-      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80",
-    category: "Missionary",
-    type: "Recurring",
-    method: "Visa",
-    last4: "4242",
-    status: "Succeeded",
-    receiptUrl: "#",
-  },
-  {
-    id: "TX-10210",
-    date: "2024-07-24T10:30:00",
-    amount: 100.0,
-    recipient: "The Miller Family",
-    recipientAvatar:
-      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80",
-    category: "Missionary",
-    type: "Recurring",
-    method: "Visa",
-    last4: "4242",
-    status: "Succeeded",
-    receiptUrl: "#",
-  },
-  {
-    id: "TX-10150",
-    date: "2024-06-15T09:00:00",
-    amount: 250.0,
-    recipient: "Refugee Crisis Fund",
-    recipientAvatar:
-      "https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?fit=crop&w=256&h=256&q=80",
-    category: "Emergency",
-    type: "One-Time",
-    method: "Bank",
-    last4: "9921",
-    status: "Processing",
-    receiptUrl: "#",
-  },
-  {
-    id: "TX-9982",
-    date: "2024-05-24T10:30:00",
-    amount: 100.0,
-    recipient: "The Miller Family",
-    recipientAvatar:
-      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80",
-    category: "Missionary",
-    type: "Recurring",
-    method: "Visa",
-    last4: "4242",
-    status: "Failed",
-    receiptUrl: "#",
-  },
-  {
-    id: "TX-9840",
-    date: "2024-04-10T16:20:00",
-    amount: 1000.0,
-    recipient: "Building Fund",
-    recipientAvatar:
-      "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?fit=crop&w=256&h=256&q=80",
-    category: "Capital",
-    type: "One-Time",
-    method: "Check",
-    last4: "1024",
-    status: "Succeeded",
-    receiptUrl: "#",
-  },
-];
-
 const MONTHLY_DATA = [
   { month: "May", amount: 100 },
   { month: "Jun", amount: 350 },
@@ -200,9 +84,14 @@ const MONTHLY_DATA = [
   { month: "Oct", amount: 100 },
 ];
 
+const CURRENT_YEAR = new Date().getFullYear();
+const HISTORY_YEAR_OPTIONS = Array.from({ length: 5 }, (_, index) =>
+  String(CURRENT_YEAR - index),
+);
+
 const DEFAULT_HISTORY_FILTERS: HistoryFiltersState = {
   searchTerm: "",
-  yearFilter: "2024",
+  yearFilter: String(CURRENT_YEAR),
   typeFilter: "All",
   statusFilter: "All",
 };
@@ -306,14 +195,24 @@ function HistoryPageHeader({
               <SelectValue placeholder="Year" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="2024">2024</SelectItem>
-              <SelectItem value="2023">2023</SelectItem>
-              <SelectItem value="2022">2022</SelectItem>
+              {HISTORY_YEAR_OPTIONS.map((year) => (
+                <SelectItem key={year} value={year}>
+                  {year}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
-        <Button className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-md font-semibold uppercase tracking-widest text-[10px] h-10 px-6 rounded-lg">
-          <DownloadCloud className="mr-2 size-4" /> Download Statement
+        <Button
+          asChild
+          className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-md font-semibold uppercase tracking-widest text-[10px] h-10 px-6 rounded-lg"
+        >
+          <a
+            className="inline-flex items-center"
+            href={`/api/donor/statements/${yearFilter}`}
+          >
+            <DownloadCloud className="mr-2 size-4" /> Download Statement
+          </a>
         </Button>
       </div>
     </div>
@@ -569,7 +468,10 @@ export default function DonorHistoryPage() {
   );
   const transactionsQuery = useDonorHistoryTransactions();
   const { searchTerm, statusFilter, typeFilter, yearFilter } = filters;
-  const transactions = transactionsQuery.data ?? TRANSACTIONS;
+  const transactions = useMemo(
+    () => transactionsQuery.data ?? [],
+    [transactionsQuery.data],
+  );
 
   useEffect(() => {
     let isMounted = true;
