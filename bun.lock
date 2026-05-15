@@ -226,6 +226,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@asym/auth": "workspace:*",
+        "@asym/config": "workspace:*",
         "@asym/database": "workspace:*",
         "@asym/docraptor-client": "file:../../vendor/react-pdf-packages/asym-docraptor-client-0.0.0.tgz",
         "@asym/email": "workspace:*",

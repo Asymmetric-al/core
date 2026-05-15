@@ -6,6 +6,11 @@ const optionalBoolean = z
   .optional()
   .transform((value) => value === "true");
 
+const optionalBooleanDefaultTrue = z
+  .enum(["true", "false"])
+  .optional()
+  .transform((value) => value === undefined || value === "true");
+
 const nodeEnvSchema = z
   .enum(["development", "test", "production"])
   .optional()
@@ -14,6 +19,18 @@ const nodeEnvSchema = z
 const vercelEnvSchema = z
   .enum(["production", "preview", "development"])
   .optional();
+
+const pdfStudioNativeBuilderRolloutSchema = z
+  .enum([
+    "legacy_only",
+    "native_preview",
+    "native_render_test",
+    "native_publish",
+    "native_batch",
+    "native_default",
+  ])
+  .optional()
+  .default("legacy_only");
 
 const runtimeContext = {
   nodeEnv: nodeEnvSchema.parse(process.env.NODE_ENV),
@@ -109,6 +126,28 @@ export const env = createEnv({
       "STRIPE_WEBHOOK_SECRET must start with whsec_",
     ),
     DOCRAPTOR_API_KEY: z.string().optional(),
+    PDF_STUDIO_NATIVE_BUILDER_ENABLED: optionalBoolean,
+    PDF_STUDIO_NATIVE_BUILDER_ROLLOUT: pdfStudioNativeBuilderRolloutSchema,
+    PDF_STUDIO_NATIVE_BUILDER_TENANTS: z.string().optional(),
+    PDF_STUDIO_NATIVE_BUILDER_CATEGORIES: z.string().optional(),
+    PDF_STUDIO_LEGACY_UNLAYER_FALLBACK_ENABLED: optionalBooleanDefaultTrue,
+    PDF_STUDIO_DOCRAPTOR_MODE: z
+      .enum(["test", "production"])
+      .optional()
+      .default("test"),
+    PDF_STUDIO_DOCRAPTOR_TIMEOUT_MS: z.coerce
+      .number()
+      .int()
+      .positive()
+      .optional(),
+    PDF_STUDIO_RENDER_BASE_URL: z.string().url().optional(),
+    PDF_STUDIO_RENDER_ASSET_URL_TTL_SECONDS: z.coerce
+      .number()
+      .int()
+      .positive()
+      .optional(),
+    PDF_STUDIO_NATIVE_RENDER_CALLBACK_SECRET: z.string().min(1).optional(),
+    PDF_STUDIO_NATIVE_RENDER_CALLBACK_URL: z.string().url().optional(),
     RESEND_API_KEY: resendApiKeySchema,
     RESEND_WEBHOOK_SECRET: resendWebhookSecretSchema,
     RESEND_ENCRYPTION_KEY: resendEncryptionKeySchema,
@@ -198,6 +237,7 @@ export const env = createEnv({
     NEXT_PUBLIC_BRAND_ACCENT_COLOR: z.string().optional().default("#2563eb"),
     NEXT_PUBLIC_EMAIL_FOOTER_TEXT: z.string().optional(),
     NEXT_PUBLIC_PDF_FOOTER_TEXT: z.string().optional(),
+    NEXT_PUBLIC_PDF_STUDIO_NATIVE_BUILDER_ENABLED: optionalBoolean,
     NEXT_PUBLIC_CLOUDINARY_ENABLED: optionalBoolean,
     NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: requireCloudinaryWhenEnabled(
       "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME",
@@ -235,6 +275,26 @@ export const env = createEnv({
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     DOCRAPTOR_API_KEY: process.env.DOCRAPTOR_API_KEY,
+    PDF_STUDIO_NATIVE_BUILDER_ENABLED:
+      process.env.PDF_STUDIO_NATIVE_BUILDER_ENABLED,
+    PDF_STUDIO_NATIVE_BUILDER_ROLLOUT:
+      process.env.PDF_STUDIO_NATIVE_BUILDER_ROLLOUT,
+    PDF_STUDIO_NATIVE_BUILDER_TENANTS:
+      process.env.PDF_STUDIO_NATIVE_BUILDER_TENANTS,
+    PDF_STUDIO_NATIVE_BUILDER_CATEGORIES:
+      process.env.PDF_STUDIO_NATIVE_BUILDER_CATEGORIES,
+    PDF_STUDIO_LEGACY_UNLAYER_FALLBACK_ENABLED:
+      process.env.PDF_STUDIO_LEGACY_UNLAYER_FALLBACK_ENABLED,
+    PDF_STUDIO_DOCRAPTOR_MODE: process.env.PDF_STUDIO_DOCRAPTOR_MODE,
+    PDF_STUDIO_DOCRAPTOR_TIMEOUT_MS:
+      process.env.PDF_STUDIO_DOCRAPTOR_TIMEOUT_MS,
+    PDF_STUDIO_RENDER_BASE_URL: process.env.PDF_STUDIO_RENDER_BASE_URL,
+    PDF_STUDIO_RENDER_ASSET_URL_TTL_SECONDS:
+      process.env.PDF_STUDIO_RENDER_ASSET_URL_TTL_SECONDS,
+    PDF_STUDIO_NATIVE_RENDER_CALLBACK_SECRET:
+      process.env.PDF_STUDIO_NATIVE_RENDER_CALLBACK_SECRET,
+    PDF_STUDIO_NATIVE_RENDER_CALLBACK_URL:
+      process.env.PDF_STUDIO_NATIVE_RENDER_CALLBACK_URL,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     RESEND_WEBHOOK_SECRET: process.env.RESEND_WEBHOOK_SECRET,
     RESEND_ENCRYPTION_KEY: process.env.RESEND_ENCRYPTION_KEY,
@@ -307,6 +367,8 @@ export const env = createEnv({
     NEXT_PUBLIC_BRAND_ACCENT_COLOR: process.env.NEXT_PUBLIC_BRAND_ACCENT_COLOR,
     NEXT_PUBLIC_EMAIL_FOOTER_TEXT: process.env.NEXT_PUBLIC_EMAIL_FOOTER_TEXT,
     NEXT_PUBLIC_PDF_FOOTER_TEXT: process.env.NEXT_PUBLIC_PDF_FOOTER_TEXT,
+    NEXT_PUBLIC_PDF_STUDIO_NATIVE_BUILDER_ENABLED:
+      process.env.NEXT_PUBLIC_PDF_STUDIO_NATIVE_BUILDER_ENABLED,
     NEXT_PUBLIC_CLOUDINARY_ENABLED: process.env.NEXT_PUBLIC_CLOUDINARY_ENABLED,
     NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME:
       process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,

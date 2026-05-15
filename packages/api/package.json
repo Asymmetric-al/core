@@ -80,6 +80,7 @@
     "./email/assets": "./src/email/assets.ts",
     "./email/webhooks/resend": "./src/email/webhooks/resend.ts",
     "./pdf-templates": "./src/pdf-templates/index.ts",
+    "./pdf-templates/docraptor": "./src/pdf-templates/docraptor.ts",
     "./pdf-templates/store": "./src/pdf-templates/store.ts",
     "./reads/member-care": "./src/reads/member-care.ts",
     "./admin/member-care/mutations": "./src/admin/member-care/mutations.ts",
@@ -102,6 +103,7 @@
   },
   "dependencies": {
     "@asym/auth": "workspace:*",
+    "@asym/config": "workspace:*",
     "@asym/database": "workspace:*",
     "@asym/docraptor-client": "file:../../vendor/react-pdf-packages/asym-docraptor-client-0.0.0.tgz",
     "@asym/email": "workspace:*",
