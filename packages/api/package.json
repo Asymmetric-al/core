@@ -81,6 +81,8 @@
     "./email/webhooks/resend": "./src/email/webhooks/resend.ts",
     "./pdf-templates": "./src/pdf-templates/index.ts",
     "./pdf-templates/docraptor": "./src/pdf-templates/docraptor.ts",
+    "./pdf-templates/native": "./src/pdf-templates/native.ts",
+    "./pdf-templates/native-adapter": "./src/pdf-templates/native-adapter.ts",
     "./pdf-templates/store": "./src/pdf-templates/store.ts",
     "./reads/member-care": "./src/reads/member-care.ts",
     "./admin/member-care/mutations": "./src/admin/member-care/mutations.ts",
