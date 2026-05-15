@@ -133,10 +133,11 @@ Route files under `apps/admin/app/api/**/*.ts` must be **thin re-exports** to `@
 
 ## 11. Common failures
 
-| Symptom                             | Likely cause                                      |
-| ----------------------------------- | ------------------------------------------------- |
-| `PAYLOAD_SECRET must be configured` | Set secret or `NODE_ENV=test` for importmap       |
-| Import map wrong paths              | Re-run `cms:importmap` + check postprocess script |
-| 404 on public CMS                   | Tenant not resolved or no published doc           |
-| Wizard POST 403                     | Not staff / wrong session                         |
-| `verify:data-boundary` fails        | Direct `@asym/database` import in `app/api`       |
+| Symptom                             | Likely cause                                                                                                          |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `PAYLOAD_SECRET must be configured` | Set secret or `NODE_ENV=test` for importmap                                                                           |
+| Import map wrong paths              | Re-run `cms:importmap` + check postprocess script                                                                     |
+| 404 on public CMS                   | Tenant not resolved or no published doc                                                                               |
+| Wizard POST 403                     | Not staff / wrong session                                                                                             |
+| `verify:data-boundary` fails        | Direct `@asym/database` import in `app/api`                                                                           |
+| Nested `<html>` / hydration warning | `(payload)/layout.tsx` must embed Payload `RootProvider`; do not use Payload `RootLayout` under the admin root layout |

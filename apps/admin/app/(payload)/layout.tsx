@@ -1,15 +1,36 @@
 import config from "@payload-config";
 import "@payloadcms/next/css";
-import { RootLayout, handleServerFunctions } from "@payloadcms/next/layouts";
+import { handleServerFunctions } from "@payloadcms/next/layouts";
+import { defaultTheme, ProgressBar, RootProvider } from "@payloadcms/ui";
+import { RenderServerComponent } from "@payloadcms/ui/elements/RenderServerComponent";
+import { getClientConfig } from "@payloadcms/ui/utilities/getClientConfig";
+import { cookies as nextCookies, headers as nextHeaders } from "next/headers";
+import {
+  createLocalReq,
+  executeAuthStrategies,
+  getAccessResults,
+  getLocalI18n,
+  getPayload,
+  getRequestLanguage,
+  parseCookies,
+} from "payload";
+import { applyLocaleFiltering, PREFERENCE_KEYS } from "payload/shared";
 import "@/src/styles/payloadStyles.css";
 
 import { importMap } from "./web-studio/importMap";
 
-import type { ServerFunctionClient } from "payload";
+import type { Theme } from "@payloadcms/ui";
+import type {
+  LanguageOptions,
+  PayloadRequest,
+  ServerFunctionClient,
+} from "payload";
 
 type Props = {
   children: React.ReactNode;
 };
+
+type PayloadConfig = Awaited<typeof config>;
 
 const serverFunction: ServerFunctionClient = async (args) => {
   "use server";
@@ -42,13 +63,244 @@ const serverFunction: ServerFunctionClient = async (args) => {
 };
 
 export default function PayloadLayout({ children }: Props) {
-  return (
-    <RootLayout
-      config={config}
-      importMap={importMap}
-      serverFunction={serverFunction}
-    >
-      {children}
-    </RootLayout>
+  return <PayloadEmbeddedLayout>{children}</PayloadEmbeddedLayout>;
+}
+
+async function PayloadEmbeddedLayout({ children }: Props) {
+  const headerStore = await nextHeaders();
+  const parsedCookies = parseCookies(headerStore);
+  const payload = await getPayload({
+    config,
+    cron: true,
+    importMap,
+  });
+  const languageCode = getRequestLanguage({
+    config: payload.config,
+    cookies: parsedCookies,
+    headers: headerStore,
+  });
+  const i18n = await getLocalI18n({
+    config: payload.config,
+    language: languageCode,
+  });
+  const { responseHeaders, user } = await executeAuthStrategies({
+    headers: headerStore,
+    payload,
+  });
+  const req = await createLocalReq(
+    {
+      req: {
+        headers: headerStore,
+        host: headerStore.get("host") ?? undefined,
+        i18n,
+        responseHeaders,
+        user,
+      },
+    },
+    payload,
   );
+  const permissions = await getAccessResults({ req });
+  const clientConfig = getClientConfig({
+    config: payload.config,
+    i18n: req.i18n,
+    importMap,
+    user: req.user as never,
+  });
+
+  await applyLocaleFiltering({
+    clientConfig,
+    config: payload.config,
+    req,
+  });
+
+  return (
+    <RootProvider
+      config={clientConfig}
+      dateFNSKey={req.i18n.dateFNSKey}
+      fallbackLang={payload.config.i18n.fallbackLanguage ?? "en"}
+      isNavOpen={(await getPayloadNavPreference(req))?.open ?? true}
+      languageCode={languageCode}
+      languageOptions={buildLanguageOptions(payload.config)}
+      locale={req.locale ?? undefined}
+      permissions={req.user ? permissions : (null as never)}
+      serverFunction={serverFunction}
+      switchLanguageServerAction={switchLanguageServerAction}
+      theme={getPayloadTheme({
+        config: payload.config,
+        cookies: parsedCookies,
+        headers: headerStore,
+      })}
+      translations={req.i18n.translations}
+      user={req.user}
+    >
+      <style>{`@layer payload-default, payload;`}</style>
+      <ProgressBar />
+      {renderPayloadProviders({
+        children,
+        permissions,
+        req,
+      })}
+      <div id="portal" />
+    </RootProvider>
+  );
+}
+
+async function switchLanguageServerAction(lang: string): Promise<void> {
+  "use server";
+
+  const cookieStore = await nextCookies();
+  const payload = await getPayload({
+    config,
+    cron: true,
+    importMap,
+  });
+
+  cookieStore.set({
+    name: `${payload.config.cookiePrefix || "payload"}-lng`,
+    path: "/",
+    value: lang,
+  });
+}
+
+function buildLanguageOptions(payloadConfig: PayloadConfig): LanguageOptions {
+  return Object.entries(
+    payloadConfig.i18n.supportedLanguages || {},
+  ).reduce<LanguageOptions>((acc, [language, languageConfig]) => {
+    if (Object.keys(payloadConfig.i18n.supportedLanguages).includes(language)) {
+      acc.push({
+        label: languageConfig.translations.general.thisLanguage,
+        value: language as LanguageOptions[number]["value"],
+      });
+    }
+
+    return acc;
+  }, []);
+}
+
+async function getPayloadNavPreference(req: PayloadRequest) {
+  if (!req.user?.collection) {
+    return null;
+  }
+
+  const result = await req.payload.find({
+    collection: "payload-preferences",
+    depth: 0,
+    limit: 1,
+    pagination: false,
+    req,
+    where: {
+      and: [
+        {
+          key: {
+            equals: PREFERENCE_KEYS.NAV,
+          },
+        },
+        {
+          "user.relationTo": {
+            equals: req.user.collection,
+          },
+        },
+        {
+          "user.value": {
+            equals: req.user.id,
+          },
+        },
+      ],
+    },
+  });
+
+  return result.docs[0]?.value as { open?: boolean } | null | undefined;
+}
+
+function getPayloadTheme({
+  config: payloadConfig,
+  cookies,
+  headers,
+}: {
+  config: PayloadConfig;
+  cookies: ReturnType<typeof parseCookies>;
+  headers: Headers;
+}): Theme {
+  const acceptedThemes = new Set<Theme>(["dark", "light"]);
+  if (
+    payloadConfig.admin.theme !== "all" &&
+    acceptedThemes.has(payloadConfig.admin.theme)
+  ) {
+    return payloadConfig.admin.theme;
+  }
+
+  const themeCookie = cookies.get(
+    `${payloadConfig.cookiePrefix || "payload"}-theme`,
+  );
+  const themeFromCookie = themeCookie;
+  if (acceptedThemes.has(themeFromCookie as Theme)) {
+    return themeFromCookie as Theme;
+  }
+
+  const themeFromHeader = headers.get("Sec-CH-Prefers-Color-Scheme");
+  if (acceptedThemes.has(themeFromHeader as Theme)) {
+    return themeFromHeader as Theme;
+  }
+
+  return defaultTheme;
+}
+
+function renderPayloadProviders({
+  children,
+  permissions,
+  req,
+}: {
+  children: React.ReactNode;
+  permissions: Awaited<ReturnType<typeof getAccessResults>>;
+  req: PayloadRequest;
+}) {
+  const providers = req.payload.config.admin.components?.providers;
+  if (!Array.isArray(providers) || providers.length === 0) {
+    return children;
+  }
+
+  return renderNestedPayloadProviders({
+    children,
+    permissions,
+    providers,
+    req,
+  });
+}
+
+function renderNestedPayloadProviders({
+  children,
+  permissions,
+  providers,
+  req,
+}: {
+  children: React.ReactNode;
+  permissions: Awaited<ReturnType<typeof getAccessResults>>;
+  providers: NonNullable<PayloadConfig["admin"]["components"]>["providers"];
+  req: PayloadRequest;
+}): React.ReactNode {
+  if (!providers?.length) {
+    return children;
+  }
+
+  return RenderServerComponent({
+    clientProps: {
+      children:
+        providers.length > 1
+          ? renderNestedPayloadProviders({
+              children,
+              permissions,
+              providers: providers.slice(1),
+              req,
+            })
+          : children,
+    },
+    Component: providers[0],
+    importMap,
+    serverProps: {
+      i18n: req.i18n,
+      payload: req.payload,
+      permissions,
+      user: req.user,
+    },
+  });
 }

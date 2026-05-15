@@ -8,6 +8,7 @@ This guide explains how to run and validate the Site Studio integration that liv
 
 - Payload admin UI mounted at `/web-studio` in Mission Control
 - Payload admin theming bridged to shared Maia + Zinc design tokens from `@asym/ui`
+- Payload provider shell embedded inside the Mission Control root layout, so `/web-studio` keeps Payload form/access context without rendering a second document shell
 - **Web Studio editorial shell:** Mission Control–native list/edit workspaces for:
   - `pages`
   - `navigation`

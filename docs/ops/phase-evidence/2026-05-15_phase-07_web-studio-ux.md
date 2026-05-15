@@ -36,6 +36,7 @@ not mutated during this proof.
 
 ```txt
 Native Web Studio shell:
+  apps/admin/app/(payload)/layout.tsx
   apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx
 
 Collection adapter and preview URL helpers:
@@ -70,6 +71,9 @@ CMS users.
 - Hardened the native edit shell with a state strip, primary status badge,
   authenticated preview URL wiring, and published-only public link behavior:
   `apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx`.
+- Embedded Payload's admin provider stack inside the Mission Control root
+  layout without rendering a second `<html>` / `<body>` document shell:
+  `apps/admin/app/(payload)/layout.tsx`.
 - Split authenticated Web Studio previews from public donor URLs:
   `apps/admin/src/cms-ui/web-studio/adapters/preview-url.ts`.
 - Added authenticated preview support for pages, project pages, missionary
@@ -139,10 +143,12 @@ Results:
   `apps/admin/app/(payload)/web-studio/importMap.js`.
 - `bun run cms:migrate`: passed against disposable local Payload Postgres; no
   Payload migrations were pending.
-- `bun run test:e2e:smoke:cms`: passed, 15 passed and 1 skipped. The native
+- `bun run test:e2e:smoke:cms`: passed, 16 passed in 2.2 minutes. The native
   shell assertions ran against a Payload-authenticated E2E user in the
-  disposable CMS database. The remaining skip was an environment guard outside
-  the native-shell proof.
+  disposable CMS database across desktop and mobile projects.
+- After the first smoke pass surfaced nested document-shell hydration warnings,
+  `(payload)/layout.tsx` was updated to embed Payload `RootProvider` directly;
+  the focused admin lint/typecheck/unit gates and CMS smoke were rerun.
 
 ## No-Secret Scan
 
