@@ -8,6 +8,11 @@ export const DONOR_DASHBOARD_BOOTSTRAP_KEY = [
   "bootstrap",
 ] as const;
 
+export const DONOR_DASHBOARD_BOOTSTRAP_READY = { ready: true } as const;
+
+export type DonorDashboardBootstrapResult =
+  typeof DONOR_DASHBOARD_BOOTSTRAP_READY;
+
 /**
  * Short async gate so Boneyard can show a real loading phase without setTimeout in the page.
  * Replace with real dashboard data fetches when wired.
@@ -21,19 +26,19 @@ export function fetchDonorDashboardBootstrap({
 }: {
   delayMs?: number;
   signal?: AbortSignal;
-} = {}): Promise<void> {
+} = {}): Promise<DonorDashboardBootstrapResult> {
   if (delayMs <= 0) {
-    return Promise.resolve();
+    return Promise.resolve(DONOR_DASHBOARD_BOOTSTRAP_READY);
   }
 
   if (signal?.aborted) {
-    return Promise.resolve();
+    return Promise.resolve(DONOR_DASHBOARD_BOOTSTRAP_READY);
   }
 
   return new Promise((resolve) => {
     const id = globalThis.setTimeout(() => {
       cleanup();
-      resolve();
+      resolve(DONOR_DASHBOARD_BOOTSTRAP_READY);
     }, delayMs);
 
     const cleanup = () => {
@@ -43,7 +48,7 @@ export function fetchDonorDashboardBootstrap({
 
     const onAbort = () => {
       cleanup();
-      resolve();
+      resolve(DONOR_DASHBOARD_BOOTSTRAP_READY);
     };
 
     signal?.addEventListener("abort", onAbort, { once: true });

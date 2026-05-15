@@ -1,13 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { fetchDonorDashboardBootstrap } from "../../../../apps/donor/app/(dashboard)/donor-dashboard/use-donor-dashboard-bootstrap";
+import {
+  DONOR_DASHBOARD_BOOTSTRAP_READY,
+  fetchDonorDashboardBootstrap,
+} from "../../../../apps/donor/app/(dashboard)/donor-dashboard/use-donor-dashboard-bootstrap";
 
 describe("fetchDonorDashboardBootstrap", () => {
   it("resolves after delay when not aborted", async () => {
     vi.useFakeTimers();
     const p = fetchDonorDashboardBootstrap({ delayMs: 100 });
     await vi.advanceTimersByTimeAsync(100);
-    await expect(p).resolves.toBeUndefined();
+    await expect(p).resolves.toBe(DONOR_DASHBOARD_BOOTSTRAP_READY);
     vi.useRealTimers();
   });
 
@@ -16,7 +19,7 @@ describe("fetchDonorDashboardBootstrap", () => {
     controller.abort();
     await expect(
       fetchDonorDashboardBootstrap({ delayMs: 50, signal: controller.signal }),
-    ).resolves.toBeUndefined();
+    ).resolves.toBe(DONOR_DASHBOARD_BOOTSTRAP_READY);
   });
 
   it("resolves when aborted before the delay completes", async () => {
@@ -28,7 +31,7 @@ describe("fetchDonorDashboardBootstrap", () => {
     });
     controller.abort();
     await vi.runAllTimersAsync();
-    await expect(p).resolves.toBeUndefined();
+    await expect(p).resolves.toBe(DONOR_DASHBOARD_BOOTSTRAP_READY);
     vi.useRealTimers();
   });
 });
