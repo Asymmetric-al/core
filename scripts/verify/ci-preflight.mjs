@@ -12,11 +12,15 @@ const ciSupabasePublicEnv = {
 
 /**
  * Mirrors blocking GitHub CI checks:
- * format -> skills:verify -> lint -> verify:data-boundary
+ * verify:git-attribution -> format -> skills:verify -> lint -> verify:data-boundary
  * -> verify:workspace-contract -> verify:eslint -> verify:shadcn-diff
  * -> typecheck -> build -> test-unit
  */
 const stages = [
+  {
+    id: "verify-git-attribution",
+    script: "verify:git-attribution",
+  },
   {
     id: "format",
     script: "format:check",

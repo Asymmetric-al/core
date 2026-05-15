@@ -26,18 +26,25 @@ bun run ci:preflight
 
 `ci:preflight` runs the same gate order as `.github/workflows/ci.yml`:
 
-1. `format:check`
-2. `skills:verify`
-3. `lint`
-4. `verify:data-boundary`
-5. `verify:workspace-contract`
-6. `verify:eslint`
-7. `verify:shadcn-diff`
-8. `typecheck`
-9. `build` (with CI-compatible env defaults for local parity)
-10. `test:unit`
+1. `verify:git-attribution`
+2. `format:check`
+3. `skills:verify`
+4. `lint`
+5. `verify:data-boundary`
+6. `verify:workspace-contract`
+7. `verify:eslint`
+8. `verify:shadcn-diff`
+9. `typecheck`
+10. `build` (with CI-compatible env defaults for local parity)
+11. `test:unit`
 
 This command is wired into `.husky/pre-push` so pushes fail fast when a blocking CI gate would fail in GitHub.
+
+`verify:git-attribution` blocks local pushes when Git is configured as
+`Codex <codex@example.com>`, when the latest commit uses that identity, or when
+GitHub resolves the latest commit to `abiatarprado`. The allowed identities are
+`Blake <blake@risencode.org>` and
+`Blake <116130409+II-ricky-bobby-II@users.noreply.github.com>`.
 
 ### Phase 11 reliability proof
 

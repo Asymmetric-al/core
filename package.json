@@ -79,6 +79,7 @@
     "verify:sentry-release": "node scripts/verify/sentry-release-sourcemaps.mjs",
     "verify:vercel-env-inventory": "node scripts/verify/vercel-env-inventory.mjs",
     "verify:vercel-production": "node scripts/verify/vercel-production-readiness.mjs",
+    "verify:git-attribution": "node scripts/verify/git-attribution.mjs",
     "verify:shadcn-diff": "node scripts/verify/shadcn-diff.mjs",
     "tsconfig:future-audit": "node scripts/tsconfig-future-audit.mjs",
     "verify:data-boundary": "node scripts/verify/data-boundary-check.mjs",
