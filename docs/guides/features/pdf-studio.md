@@ -4,7 +4,15 @@ A professional drag-and-drop document editor for tax receipts, donation statemen
 
 ## Current migration status
 
-PDF Studio is intentionally isolated on the legacy Unlayer document adapter while Email Studio migrates to React Email Editor. React Email Editor is not a PDF/document editor, and Resend is not a PDF export system, so removing Unlayer globally requires a separate PDF Studio migration or explicit product decision to disable PDF Studio.
+PDF Studio now has a native Asymmetric PDF Document Builder integration behind
+explicit rollout flags. Unlayer remains available and default unless native
+flags are enabled. The native path consumes the local Phase 47
+`@asym/pdf-*`/`@asym/docraptor-client` tarballs through Bun file dependencies;
+packages are not published.
+
+Browser preview in the native builder is authoring feedback only. DocRaptor is
+the production-fidelity and official output path, and every DocRaptor boundary
+is server-only.
 
 ## Overview
 
@@ -24,6 +32,10 @@ PDF Studio provides a visual document builder using Unlayer's `displayMode: 'doc
 | Template Save (API)            | Complete | `apps/admin/app/api/pdf-templates/**` thin routes                |
 | Template CRUD                  | Complete | `@asym/api/pdf-templates` with tenant-scoped storage             |
 | Database Storage               | Complete | `pdf_templates` table in Supabase                                |
+| Native Builder (flagged)       | Complete | `apps/admin/app/pdf/page-client.tsx`                             |
+| Native Adapter Routes          | Complete | `apps/admin/app/api/pdf-templates/native/**`                     |
+| Native Server Adapter          | Complete | `@asym/api/pdf-templates/native-adapter`                         |
+| Native Storage Migration       | Added    | `20260515140948_native_pdf_studio_foundation.sql`                |
 | Template Categories            | Complete | Tax receipt, donation receipt, statements, etc.                  |
 | Page Size Options              | Complete | Letter, A4, Legal                                                |
 | Orientation Options            | Complete | Portrait, Landscape                                              |
@@ -56,7 +68,11 @@ apps/admin/
 └── lib/pdf-studio.ts               # PDF Studio categories and options
 packages/
 ├── config/pdf-studio.ts            # Legacy Unlayer document config
+├── config/pdf-studio-native.ts     # Native rollout + DocRaptor server config
 ├── api/src/pdf-templates/           # Mission Control template handlers/store
+│   ├── native.ts                    # Native preview/render/report handlers
+│   ├── native-adapter.ts            # Core adapter around Phase 47 packages
+│   └── docraptor.ts                 # Lazy server-only DocRaptor getter
 └── ui/components/studio/
     ├── legacy/UnlayerDocumentEditor.tsx # Legacy document editor wrapper
     └── PDFStudioSetupStatus.tsx    # Setup status badge
@@ -161,6 +177,24 @@ NEXT_PUBLIC_PDF_FOOTER_TEXT=YourOrg | 123 Main St | City, ST 12345 | EIN: 12-345
 | `NEXT_PUBLIC_BRAND_ACCENT_COLOR`      | No                       | Accent color hex (default: "#2563eb")   |
 | `NEXT_PUBLIC_PDF_FOOTER_TEXT`         | No                       | Default footer text for PDFs            |
 
+### Native builder flags
+
+| Variable                                        | Required | Description                                                                                                  |
+| ----------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_PDF_STUDIO_NATIVE_BUILDER_ENABLED` | No       | Shows native authoring controls in admin                                                                     |
+| `PDF_STUDIO_NATIVE_BUILDER_ENABLED`             | No       | Enables server-side native adapter decisions                                                                 |
+| `PDF_STUDIO_NATIVE_BUILDER_ROLLOUT`             | No       | `legacy_only`, `native_preview`, `native_render_test`, `native_publish`, `native_batch`, or `native_default` |
+| `PDF_STUDIO_NATIVE_BUILDER_TENANTS`             | No       | Optional comma-separated tenant allowlist                                                                    |
+| `PDF_STUDIO_NATIVE_BUILDER_CATEGORIES`          | No       | Optional comma-separated category allowlist                                                                  |
+| `PDF_STUDIO_LEGACY_UNLAYER_FALLBACK_ENABLED`    | No       | Defaults to `true`; keep enabled during rollout                                                              |
+| `DOCRAPTOR_API_KEY`                             | No       | Server-only DocRaptor key for official native output                                                         |
+| `PDF_STUDIO_DOCRAPTOR_MODE`                     | No       | `test` or `production`; defaults to `test`                                                                   |
+| `PDF_STUDIO_DOCRAPTOR_TIMEOUT_MS`               | No       | Optional server render timeout                                                                               |
+| `PDF_STUDIO_RENDER_BASE_URL`                    | No       | Base URL for production render-safe assets                                                                   |
+| `PDF_STUDIO_RENDER_ASSET_URL_TTL_SECONDS`       | No       | Signed render asset URL TTL                                                                                  |
+| `PDF_STUDIO_NATIVE_RENDER_CALLBACK_SECRET`      | No       | Server-only callback verification secret                                                                     |
+| `PDF_STUDIO_NATIVE_RENDER_CALLBACK_URL`         | No       | DocRaptor callback URL for async/native render flows                                                         |
+
 ---
 
 ## Developer Guide
@@ -250,16 +284,17 @@ const { url } = await response.json();
 
 PDF Studio supports predefined template categories for common nonprofit use cases:
 
-| Category         | Value              | Description                         |
-| ---------------- | ------------------ | ----------------------------------- |
-| Tax Receipt      | `tax_receipt`      | Year-end tax receipts for donors    |
-| Donation Receipt | `donation_receipt` | Individual donation acknowledgments |
-| Annual Statement | `annual_statement` | Yearly giving statements            |
-| Letter           | `letter`           | General correspondence letters      |
-| Certificate      | `certificate`      | Certificates and awards             |
-| Report           | `report`           | Financial or ministry reports       |
-| Invoice          | `invoice`          | Billing and invoice documents       |
-| Custom           | `custom`           | Custom document templates           |
+| Category          | Value               | Description                             |
+| ----------------- | ------------------- | --------------------------------------- |
+| Tax Receipt       | `tax_receipt`       | Year-end tax receipts for donors        |
+| Donation Receipt  | `donation_receipt`  | Individual donation acknowledgments     |
+| Annual Statement  | `annual_statement`  | Yearly giving statements                |
+| Letter            | `letter`            | General correspondence letters          |
+| Certificate       | `certificate`       | Certificates and awards                 |
+| Missionary Report | `missionary_report` | Missionary support and ministry reports |
+| Report            | `report`            | Financial or ministry reports           |
+| Invoice           | `invoice`           | Billing and invoice documents           |
+| Custom            | `custom`            | Custom document templates               |
 
 ---
 
