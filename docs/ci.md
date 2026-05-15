@@ -39,6 +39,29 @@ bun run ci:preflight
 
 This command is wired into `.husky/pre-push` so pushes fail fast when a blocking CI gate would fail in GitHub.
 
+### Phase 11 reliability proof
+
+Run these focused checks when a change touches Sentry release wiring,
+release-health monitoring, Vercel deployment controls, or backup/restore proof:
+
+```bash
+bun run verify:sentry-release
+bun run verify:vercel-env-inventory
+bun run verify:backup-restore
+```
+
+`verify:sentry-release` proves all three Next.js configs use the shared Sentry
+build options, source map upload remains disabled without `SENTRY_AUTH_TOKEN`,
+release/source map upload turns on when the build-only token is present, and
+Turbo hashes the Sentry build inputs.
+
+`verify:vercel-env-inventory` prints Vercel variable names and value types by
+environment for `admin`, `donor`, and `missionary`. It does not print values.
+
+`verify:backup-restore` runs `pg_dump` and `pg_restore` between disposable
+Postgres containers and reports restored row counts and marker ranges. It must
+not be pointed at production data.
+
 ### CRM production cutover gate
 
 Twenty CRM production cutovers use the same fast CI gate plus OpenSpec and
@@ -141,7 +164,7 @@ Current coverage caveat: the repo's custom raw V8 fallback provider writes cover
 
 - _What it does:_ Starts `apps/donor` on port 3005 with `SKIP_ENV_VALIDATION=1` and stub Supabase values, polls `http://127.0.0.1:3005/api/health` for up to 60 seconds, then asserts the response contains `"status":"ok"`.
 - _Why it matters:_ Verifies the app boots without a crash — catches missing imports, broken middleware, and startup-time errors that build alone cannot catch.
-- _Debug locally:_ Run `bun run test:e2e` (default CI-equivalent env) or `bun run dev:donor` with real `.env.local` values, then `curl http://localhost:3005/api/health`. Expect `{"status":"ok","checks":{"supabase":"ok"}}`.
+- _Debug locally:_ Run `bun run test:e2e` (default CI-equivalent env) or `bun run dev:donor` with real `.env.local` values, then `curl http://localhost:3005/api/health`. Expect `{"status":"ok","checks":{"supabase":"ok"},"observability":{"surface":"donor",...}}`; `observability.release` carries the commit/ref/environment metadata when the deployment provides it.
 
 ### `test-e2e` (needs: `smoke`)
 

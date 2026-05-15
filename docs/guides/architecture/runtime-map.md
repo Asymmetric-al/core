@@ -12,6 +12,16 @@ For every `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}` file while
 - For API route handlers specifically, treat `export const runtime = ...` as build-breaking in this repo.
 - Rely on framework defaults and handler-level implementation constraints instead of segment config exports.
 
+## Shared Health Contract
+
+`admin`, `donor`, and `missionary` expose `/api/health` through
+`@asym/api/health/app`. The route stays thin in each app and returns both the
+legacy `status` / `checks.supabase` fields and Phase 11 release-health metadata
+under `observability`, including surface, checked time, release commit/ref,
+environment, runtime, and Supabase probe latency. The production readiness
+verifier reads that metadata to confirm the live release matches the target
+commit when the deployment exposes a non-`unknown` commit.
+
 ## Route Inventory
 
 | App        | Route family                                                   | Runtime policy                        | Reason                                     |
@@ -112,7 +122,7 @@ For every `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}` file while
 | admin      | `/api/email/templates/[templateId]/versions/[version]/restore` | Node.js (no `runtime` segment export) | Email Studio version restore               |
 | admin      | `/api/email/templates/test-send`                               | Node.js (no `runtime` segment export) | Email Studio draft test-send               |
 | admin      | `/api/email/webhooks/resend`                                   | Node.js (no `runtime` segment export) | Resend webhook handling                    |
-| admin      | `/api/health`                                                  | Node.js (no `runtime` segment export) | Health probe                               |
+| admin      | `/api/health`                                                  | Node.js (no `runtime` segment export) | Shared release-health probe                |
 | admin      | `/api/health/db`                                               | Node.js (no `runtime` segment export) | Database health probe                      |
 | admin      | `/api/missionaries/[id]/metrics`                               | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/pdf-templates`                                           | Node.js (no `runtime` segment export) | PDF Studio template store                  |
@@ -132,7 +142,7 @@ For every `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}` file while
 | donor      | `/api/follower-requests`                                       | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |
 | donor      | `/api/follower-requests/[requestId]`                           | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |
 | donor      | `/api/graphql`                                                 | Node.js (no `runtime` segment export) | graphql-yoga, `next/headers` cookies()     |
-| donor      | `/api/health`                                                  | Node.js (no `runtime` segment export) | Health probe                               |
+| donor      | `/api/health`                                                  | Node.js (no `runtime` segment export) | Shared release-health probe                |
 | donor      | `/api/posts`                                                   | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |
 | donor      | `/api/posts/[postId]`                                          | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |
 | donor      | `/api/posts/[postId]/comments`                                 | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |
@@ -146,7 +156,7 @@ For every `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}` file while
 | missionary | `/api/auth/signout`                                            | Node.js (no `runtime` segment export) | Auth/session cleanup                       |
 | missionary | `/api/follower-requests`                                       | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |
 | missionary | `/api/follower-requests/[requestId]`                           | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client    |
-| missionary | `/api/health`                                                  | Node.js (no `runtime` segment export) | Health probe                               |
+| missionary | `/api/health`                                                  | Node.js (no `runtime` segment export) | Shared release-health probe                |
 | missionary | `/api/missionary/portal`                                       | Node.js (no `runtime` segment export) | Missionary workspace BFF, admin client     |
 | missionary | `/api/missionary/tasks`                                        | Node.js (no `runtime` segment export) | Missionary task CRUD, admin client         |
 | missionary | `/api/missionary/tasks/[taskId]`                               | Node.js (no `runtime` segment export) | Missionary-owned task mutation             |

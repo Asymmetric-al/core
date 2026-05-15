@@ -56,6 +56,14 @@ const commonProviderEnv = [
     validate: isUrl,
   },
   {
+    vercelKey: "SENTRY_AUTH_TOKEN",
+    inputKey: "SENTRY_AUTH_TOKEN",
+    reason: "must be non-empty",
+    sensitive: true,
+    defaultSync: false,
+    validate: isNonEmpty,
+  },
+  {
     vercelKey: "RESEND_API_KEY",
     inputKey: "RESEND_API_KEY",
     reason: "must start with re_",

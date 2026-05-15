@@ -57,17 +57,55 @@ Set the following values in Vercel **Preview** scope for all three projects:
 
 `STRIPE_WEBHOOK_SECRET` is intentionally not set for preview. Preview URLs are ephemeral and do not receive Stripe webhooks; `@asym/env` allows this variable to be omitted when `VERCEL_ENV === "preview"`.
 
-### 4.2 `turbo-ignore` ignored build step
+### 4.2 Repo-owned ignored build step
 
-In each Vercel project (`Settings -> General -> Ignored Build Step`), configure:
+Each Vercel app owns its ignored-build command in `apps/*/vercel.json` so Git
+deployments are path-gated in source control instead of relying on dashboard-only
+settings.
 
-| Vercel project | Ignored Build Step command              |
-| -------------- | --------------------------------------- |
-| `admin`        | `npx turbo-ignore @asym/admin`          |
-| `donor`        | `npx turbo-ignore @asym/donor`          |
-| `missionary`   | `npx turbo-ignore @asym/missionary-app` |
+| Vercel project | App root          | `ignoreCommand`                                                |
+| -------------- | ----------------- | -------------------------------------------------------------- |
+| `admin`        | `apps/admin`      | `node ../../scripts/vercel/should-ignore-build.mjs admin`      |
+| `donor`        | `apps/donor`      | `node ../../scripts/vercel/should-ignore-build.mjs donor`      |
+| `missionary`   | `apps/missionary` | `node ../../scripts/vercel/should-ignore-build.mjs missionary` |
 
-This skips preview builds when the PR does not touch files relevant to that app or its workspace dependencies.
+Vercel runs this command from the app root. The helper returns `0` to skip the
+build and `1` to continue the build, matching Vercel's ignored-build contract.
+It intentionally fails closed: an unknown app name, first commit, missing diff,
+empty diff, or Git diff failure continues the build instead of skipping it.
+
+The helper builds only the projects affected by the changed files:
+
+- `apps/admin/**`, `apps/donor/**`, or `apps/missionary/**` builds only the
+  matching app.
+- Shared runtime/build inputs build all three apps, including `packages/**`,
+  `tooling/**`, `scripts/vercel/**`, `scripts/resolve-monorepo-root.mjs`,
+  `package.json`, lockfiles, `turbo.json`, root TypeScript/build config files,
+  and `.vercelignore`.
+- Docs, phase evidence, tests, OpenSpec-only text, GitHub workflow-only changes,
+  and other non-runtime files skip all three app builds.
+
+Local decision checks can import the helper directly:
+
+```bash
+node -e "import('./scripts/vercel/should-ignore-build.mjs').then(({resolveBuildDecision}) => console.log(resolveBuildDecision({app: 'admin', changedFiles: ['docs/ops/environments.md']})))"
+```
+
+Reserve controls if spend still needs tightening:
+
+- Use Vercel `git.deploymentEnabled` branch gating to disable deployment
+  creation for selected branches.
+- Move to manual release-only deployment with `vercel build` and
+  `vercel deploy --prebuilt --prod` after CI passes.
+- Validate a preview deployment once and use `vercel promote` to move it to
+  production without rebuilding.
+- Track deploy-related usage with `vercel usage` and the Vercel Usage dashboard.
+
+Official references:
+
+- [Vercel Git configuration](https://vercel.com/docs/project-configuration/git-configuration)
+- [Vercel `vercel.json` `ignoreCommand`](https://vercel.com/docs/project-configuration/vercel-json)
+- [Vercel CLI](https://vercel.com/docs/cli)
 
 ## 5. Staging Environment Setup (`develop`)
 
@@ -118,6 +156,10 @@ For each Vercel project (`admin`, `donor`, `missionary`):
 | `NEXT_PUBLIC_APP_URL`                |
 | `SENTRY_DSN`                         |
 | `NEXT_PUBLIC_SENTRY_DSN`             |
+| `SENTRY_AUTH_TOKEN`                  |
+| `SENTRY_ORG`                         |
+| `SENTRY_PROJECT`                     |
+| `SENTRY_RELEASE`                     |
 | `RESEND_API_KEY`                     |
 | `RESEND_WEBHOOK_SECRET`              |
 | `RESEND_ENCRYPTION_KEY`              |
@@ -170,26 +212,30 @@ contains the current `epic` lineage, update this guide, and only then disable
 
 Set these Vercel variables in the **Production** scope before deploying:
 
-| Variable                             | Admin | Donor | Missionary | Notes                                                                                 |
-| ------------------------------------ | ----- | ----- | ---------- | ------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`           | Yes   | Yes   | Yes        | Production Supabase project URL                                                       |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY`      | Yes   | Yes   | Yes        | Client-safe production key                                                            |
-| `SUPABASE_SERVICE_ROLE_KEY`          | Yes   | Yes   | Yes        | Server-only production key                                                            |
-| `STRIPE_SECRET_KEY`                  | Yes   | Yes   | Yes        | Stripe key; current deployment uses test-mode `sk_test_...` until go-live             |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Yes   | Yes   | Yes        | Stripe publishable key; current deployment uses test-mode `pk_test_...` until go-live |
-| `STRIPE_WEBHOOK_SECRET`              | Yes   | Yes   | Yes        | Signing secret for the app-specific production endpoint                               |
-| `SENTRY_DSN`                         | Yes   | Yes   | Yes        | Required by protected deployment env validation                                       |
-| `NEXT_PUBLIC_SENTRY_DSN`             | Yes   | Yes   | Yes        | Public client DSN when browser reporting is enabled                                   |
-| `RESEND_API_KEY`                     | Yes   | Yes   | Yes        | Production Resend API key; use `re_...`                                               |
-| `RESEND_WEBHOOK_SECRET`              | Yes   | Yes   | Yes        | Production Resend webhook signing secret                                              |
-| `RESEND_ENCRYPTION_KEY`              | Yes   | Yes   | Yes        | At least 32 characters; protects tenant email secrets                                 |
-| `NEXT_PUBLIC_APP_URL`                | Yes   | Yes   | Yes        | App canonical origin                                                                  |
-| `NEXT_PUBLIC_SITE_URL`               | Yes   | Yes   | Yes        | Same origin as the app unless a split site exists                                     |
-| `NEXT_PUBLIC_MAIN_DOMAIN`            | Yes   | Yes   | Yes        | `asymmetric.al`                                                                       |
-| `PAYLOAD_SECRET`                     | Yes   | No    | No         | Required by admin Web Studio outside local/test                                       |
-| `PAYLOAD_DATABASE_URI`               | Yes   | No    | No         | Prefer Supavisor session pooler for Vercel                                            |
-| `NEXT_PUBLIC_DONOR_URL`              | Yes   | No    | No         | `https://donor.asymmetric.al` for Web Studio previews                                 |
-| `DONOR_APP_URL`                      | Yes   | No    | No         | Server-side donor origin for Web Studio previews                                      |
+| Variable                             | Admin                    | Donor                    | Missionary               | Notes                                                                                 |
+| ------------------------------------ | ------------------------ | ------------------------ | ------------------------ | ------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`           | Yes                      | Yes                      | Yes                      | Production Supabase project URL                                                       |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`      | Yes                      | Yes                      | Yes                      | Client-safe production key                                                            |
+| `SUPABASE_SERVICE_ROLE_KEY`          | Yes                      | Yes                      | Yes                      | Server-only production key                                                            |
+| `STRIPE_SECRET_KEY`                  | Yes                      | Yes                      | Yes                      | Stripe key; current deployment uses test-mode `sk_test_...` until go-live             |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Yes                      | Yes                      | Yes                      | Stripe publishable key; current deployment uses test-mode `pk_test_...` until go-live |
+| `STRIPE_WEBHOOK_SECRET`              | Yes                      | Yes                      | Yes                      | Signing secret for the app-specific production endpoint                               |
+| `SENTRY_DSN`                         | Yes                      | Yes                      | Yes                      | Required by protected deployment env validation                                       |
+| `NEXT_PUBLIC_SENTRY_DSN`             | Yes                      | Yes                      | Yes                      | Public client DSN when browser reporting is enabled                                   |
+| `SENTRY_AUTH_TOKEN`                  | If uploading source maps | If uploading source maps | If uploading source maps | Build-only token; enables Sentry release creation and source map upload               |
+| `SENTRY_ORG`                         | Optional                 | Optional                 | Optional                 | Build-time Sentry org override; defaults to `asymmetrical-4w`                         |
+| `SENTRY_PROJECT`                     | Optional                 | Optional                 | Optional                 | Build-time Sentry project override; defaults to `javascript-nextjs`                   |
+| `SENTRY_RELEASE`                     | Optional                 | Optional                 | Optional                 | Manual release name override; otherwise the Vercel commit SHA is used                 |
+| `RESEND_API_KEY`                     | Yes                      | Yes                      | Yes                      | Production Resend API key; use `re_...`                                               |
+| `RESEND_WEBHOOK_SECRET`              | Yes                      | Yes                      | Yes                      | Production Resend webhook signing secret                                              |
+| `RESEND_ENCRYPTION_KEY`              | Yes                      | Yes                      | Yes                      | At least 32 characters; protects tenant email secrets                                 |
+| `NEXT_PUBLIC_APP_URL`                | Yes                      | Yes                      | Yes                      | App canonical origin                                                                  |
+| `NEXT_PUBLIC_SITE_URL`               | Yes                      | Yes                      | Yes                      | Same origin as the app unless a split site exists                                     |
+| `NEXT_PUBLIC_MAIN_DOMAIN`            | Yes                      | Yes                      | Yes                      | `asymmetric.al`                                                                       |
+| `PAYLOAD_SECRET`                     | Yes                      | No                       | No                       | Required by admin Web Studio outside local/test                                       |
+| `PAYLOAD_DATABASE_URI`               | Yes                      | No                       | No                       | Prefer Supavisor session pooler for Vercel                                            |
+| `NEXT_PUBLIC_DONOR_URL`              | Yes                      | No                       | No                       | `https://donor.asymmetric.al` for Web Studio previews                                 |
+| `DONOR_APP_URL`                      | Yes                      | No                       | No                       | Server-side donor origin for Web Studio previews                                      |
 
 Production Stripe webhook endpoints:
 
@@ -242,7 +288,19 @@ validates prefix/URL/length requirements for values Vercel exposes through
 present but unreadable by the CLI, confirms the live Vercel Production Branch is
 not disabled by the app-level `vercel.json`, confirms a READY Production
 deployment for the target commit, and checks `/api/health` on the production
-domain.
+domain. Phase 11 release-health responses include `observability.surface`,
+`observability.release`, and Supabase probe latency; the verifier blocks when a
+non-`unknown` release-health commit does not match the target commit.
+
+Inventory Vercel environment variable names without values:
+
+```bash
+bun run verify:vercel-env-inventory
+```
+
+Use this before provider or observability work to confirm which names exist in
+Production, Preview, Development, and the `staging` custom environment without
+printing secrets.
 
 After the real provider values exist as GitHub repository secrets, sync them to
 all three Vercel Production projects with the guarded manual workflow
@@ -256,6 +314,7 @@ defaults to dry-run. The workflow reads these GitHub secret names:
 - `MISSIONARY_STRIPE_WEBHOOK_SECRET`
 - `SENTRY_DSN`
 - `NEXT_PUBLIC_SENTRY_DSN`
+- `SENTRY_AUTH_TOKEN` (targeted only when source map upload is required)
 - `RESEND_API_KEY`
 - `RESEND_ENCRYPTION_KEY`
 - `VERCEL_TOKEN`
@@ -263,8 +322,10 @@ defaults to dry-run. The workflow reads these GitHub secret names:
 `RESEND_WEBHOOK_SECRET` is intentionally not required for the default full sync
 because the guarded `Configure Resend Production Webhook` workflow sources that
 value directly from Resend and writes it to Vercel Production without storing it
-as a GitHub repository secret. The sync script still supports
-`--keys RESEND_WEBHOOK_SECRET` for that targeted handoff path.
+as a GitHub repository secret. `SENTRY_AUTH_TOKEN` is also targeted-only because
+runtime Sentry DSNs do not require source map upload. The sync script supports
+`--keys RESEND_WEBHOOK_SECRET` and `--keys SENTRY_AUTH_TOKEN` for those handoff
+paths.
 
 Local equivalent:
 
@@ -290,6 +351,17 @@ Do not hand-enter or invent `RESEND_WEBHOOK_SECRET`. If it is missing, run
 `Configure Resend Production Webhook` dry-run first and then write mode after
 the dry-run confirms the endpoint action.
 
+If source map upload is required, add a Sentry auth token as a GitHub secret and
+sync it without printing the value:
+
+```bash
+bun run sync:vercel-production-env -- --dry-run --keys SENTRY_AUTH_TOKEN
+bun run sync:vercel-production-env -- --keys SENTRY_AUTH_TOKEN
+```
+
+Do not include `SENTRY_AUTH_TOKEN` in evidence output; record only that the name
+exists and whether `bun run verify:sentry-release` passed.
+
 ## 6. Deploy Flows
 
 Non-local environments are branch-triggered and map to deploy targets as follows:
@@ -303,21 +375,22 @@ sequenceDiagram
     participant Vercel as Vercel
 
     Dev->>PR: Open PR (feature branch)
-    PR->>Vercel: Preview deploy (*.vercel.app)
+    PR->>Vercel: Preview deploy or ignored build (*.vercel.app)
     Note over Vercel: Preview Supabase project
 
     PR->>Prod: Merge/push approved release to Vercel Production Branch
-    Prod->>Vercel: Production deploy (*.asymmetric.al)
+    Prod->>Vercel: Production deploy or ignored build (*.asymmetric.al)
     Note over Vercel: Production Supabase project
 
     Note over Prod,Develop: Optional best-effort sync for QA/demos
     Prod->>Develop: Merge/cherry-pick (best effort)
-    Develop->>Vercel: Staging deploy (staging-*.asymmetric.al)
+    Develop->>Vercel: Staging deploy or ignored build (staging-*.asymmetric.al)
     Note over Vercel: Staging Supabase project
 ```
 
 `develop` may drift from the Production Branch; best-effort sync is performed
-before QA/demo cycles.
+before QA/demo cycles. For docs/evidence-only releases, Vercel may record an
+ignored build rather than spend build minutes on all three apps.
 
 ## 7. Playwright `baseURL` Configuration
 
@@ -353,5 +426,6 @@ See also:
 
 - [docs/ops/rollback-plan.md](./rollback-plan.md) - code and database rollback procedures (T5)
 - [docs/ops/deploy-checklist.md](./deploy-checklist.md) - pre-deploy, deploy, and post-deploy smoke tests (T6)
+- [docs/ops/scale-observability-reliability.md](./scale-observability-reliability.md) - Phase 11 observability, release-health, and backup/restore runbook
 - [README.md](../../README.md) - full local quickstart and monorepo workspace contract
 - [supabase/config.toml](../../supabase/config.toml) - local Supabase configuration

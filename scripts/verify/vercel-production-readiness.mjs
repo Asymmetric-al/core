@@ -327,6 +327,10 @@ export function summarizeProjectReadiness({
   );
   const latestDeployment = deployments[0] ?? null;
   const healthOk = health ? health.status >= 200 && health.status < 300 : false;
+  const healthReleaseMatches =
+    !health?.releaseCommit ||
+    health.releaseCommit === "unknown" ||
+    health.releaseCommit === commit;
   const productionBranchReady =
     isNonEmpty(productionBranch) && productionBranchEnabled;
 
@@ -338,13 +342,15 @@ export function summarizeProjectReadiness({
       missingEnv.length === 0 &&
       invalidEnv.length === 0 &&
       Boolean(deploymentForCommit) &&
-      healthOk,
+      healthOk &&
+      healthReleaseMatches,
     missingEnv,
     invalidEnv,
     unreadableEnv,
     deploymentForCommit: deploymentForCommit ?? null,
     latestDeployment,
     health: health ?? null,
+    healthReleaseMatches,
     productionBranch: productionBranch ?? "",
     productionBranchEnabled,
     vercelConfigPath: project.vercelConfigPath,
@@ -424,6 +430,27 @@ export function formatReadinessReport({ commit, reports }) {
       lines.push(
         `Health check: HTTP ${report.health.status} at ${report.health.url}`,
       );
+      if (report.health.bodyStatus) {
+        lines.push(`Health body status: ${report.health.bodyStatus}`);
+      }
+      if (report.health.releaseCommit) {
+        lines.push(
+          `Release health commit: ${report.health.releaseCommit} (${report.healthReleaseMatches ? "matches target or legacy-unknown" : "does not match target"})`,
+        );
+      }
+      if (report.health.surface) {
+        lines.push(
+          `Release health surface: ${report.health.surface}; environment: ${report.health.releaseEnvironment || "unknown"}; ref: ${report.health.releaseRef || "unknown"}`,
+        );
+      }
+      if (report.health.supabaseCheck) {
+        lines.push(
+          `Release health Supabase check: ${report.health.supabaseCheck}`,
+        );
+      }
+      if (typeof report.health.latencyMs === "number") {
+        lines.push(`Health response latency: ${report.health.latencyMs}ms`);
+      }
     } else {
       lines.push("Health check: not run");
     }
@@ -579,16 +606,51 @@ function readDeployments(project, scope) {
 async function readHealth(project, skipHealth) {
   if (skipHealth) return null;
 
+  const startedAt = Date.now();
+
   try {
     const response = await fetch(project.healthUrl, { cache: "no-store" });
+    const text = await response.text();
+    const body = parseJson(text, null);
+    const observability =
+      body && typeof body === "object" ? body.observability : null;
+    const release =
+      observability && typeof observability === "object"
+        ? observability.release
+        : null;
+
     return {
       url: project.healthUrl,
       status: response.status,
+      latencyMs: Date.now() - startedAt,
+      bodyStatus:
+        body && typeof body.status === "string" ? body.status : undefined,
+      supabaseCheck:
+        body &&
+        typeof body.checks === "object" &&
+        typeof body.checks?.supabase === "string"
+          ? body.checks.supabase
+          : undefined,
+      surface:
+        observability && typeof observability.surface === "string"
+          ? observability.surface
+          : undefined,
+      releaseCommit:
+        release && typeof release.commit === "string"
+          ? release.commit
+          : undefined,
+      releaseRef:
+        release && typeof release.ref === "string" ? release.ref : undefined,
+      releaseEnvironment:
+        release && typeof release.environment === "string"
+          ? release.environment
+          : undefined,
     };
   } catch (error) {
     return {
       url: project.healthUrl,
       status: 0,
+      latencyMs: Date.now() - startedAt,
       error: error instanceof Error ? error.message : String(error),
     };
   }

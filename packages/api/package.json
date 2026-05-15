@@ -71,6 +71,7 @@
     "./reads/donor-history": "./src/reads/donor-history.ts",
     "./reads/tenant-contributions": "./src/reads/tenant-contributions.ts",
     "./shared/http-errors": "./src/shared/http-errors.ts",
+    "./health/app": "./src/health/app.ts",
     "./health/db": "./src/health/db.ts",
     "./email/connect": "./src/email/connect.ts",
     "./email/test-send": "./src/email/test-send.ts",

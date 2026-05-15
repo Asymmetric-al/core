@@ -234,6 +234,47 @@ export RESEND_API_KEY='re_hidden'
     ).toContain("Overall: READY");
   });
 
+  it("blocks when release health reports a different commit", () => {
+    const report = summarizeProjectReadiness({
+      project,
+      envValues: {
+        NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+        STRIPE_SECRET_KEY: "sk_test_hidden",
+      },
+      deployments: [
+        {
+          url: "donor.example.vercel.app",
+          state: "READY",
+          target: "production",
+          createdAt: 123,
+          commitSha: "abc123",
+          commitRef: "epic",
+        },
+      ],
+      commit: "abc123",
+      health: {
+        url: project.healthUrl,
+        status: 200,
+        bodyStatus: "ok",
+        releaseCommit: "older",
+        surface: "donor",
+        releaseEnvironment: "production",
+      },
+      productionBranch: "epic",
+      productionBranchEnabled: true,
+    });
+
+    const formatted = formatReadinessReport({
+      commit: "abc123",
+      reports: [report],
+    });
+
+    expect(report.ready).toBe(false);
+    expect(report.healthReleaseMatches).toBe(false);
+    expect(formatted).toContain("Release health commit: older");
+    expect(formatted).toContain("Overall: BLOCKED (donor)");
+  });
+
   it("blocks when the Vercel production branch is disabled locally", () => {
     const report = summarizeProjectReadiness({
       project,

@@ -59,6 +59,7 @@ describe("sync Vercel production env helpers", () => {
       "RESEND_API_KEY",
       "RESEND_ENCRYPTION_KEY",
       "RESEND_WEBHOOK_SECRET",
+      "SENTRY_AUTH_TOKEN",
       "SENTRY_DSN",
       "STRIPE_SECRET_KEY",
     ]);
@@ -150,6 +151,27 @@ describe("sync Vercel production env helpers", () => {
         vercelKey: "RESEND_WEBHOOK_SECRET",
         inputKey: "RESEND_WEBHOOK_SECRET",
         value: "whsec_resend",
+        sensitive: true,
+      },
+    ]);
+  });
+
+  it("can validate and map the targeted Sentry source map token path", () => {
+    const env = {
+      VERCEL_TOKEN: "vercel-token",
+      SENTRY_AUTH_TOKEN: "sntrys_test",
+    };
+    const options = { inputKeys: ["SENTRY_AUTH_TOKEN"] };
+
+    expect(validateInputEnv(env, options)).toEqual({
+      missing: [],
+      invalid: [],
+    });
+    expect(envEntriesForProject("admin", env, options)).toEqual([
+      {
+        vercelKey: "SENTRY_AUTH_TOKEN",
+        inputKey: "SENTRY_AUTH_TOKEN",
+        value: "sntrys_test",
         sensitive: true,
       },
     ]);

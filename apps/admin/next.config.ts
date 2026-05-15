@@ -3,6 +3,7 @@ import { withPayload } from "@payloadcms/next/withPayload";
 import { withSentryConfig } from "@sentry/nextjs";
 
 import { resolveMonorepoRoot } from "../../scripts/resolve-monorepo-root.mjs";
+import { buildSentryNextConfigOptions } from "../../scripts/sentry/next-config.mjs";
 
 import type { NextConfig } from "next";
 
@@ -73,18 +74,4 @@ const payloadConfig = withPayload(nextConfig, {
   devBundleServerPackages: false,
 });
 
-export default withSentryConfig(payloadConfig, {
-  authToken: process.env.SENTRY_AUTH_TOKEN,
-  org: "asymmetrical-4w",
-  project: "javascript-nextjs",
-  silent: !process.env.CI,
-  sourcemaps: {
-    disable: !process.env.SENTRY_AUTH_TOKEN,
-  },
-  widenClientFileUpload: Boolean(process.env.SENTRY_AUTH_TOKEN),
-  webpack: {
-    treeshake: {
-      removeDebugLogging: true,
-    },
-  },
-});
+export default withSentryConfig(payloadConfig, buildSentryNextConfigOptions());
