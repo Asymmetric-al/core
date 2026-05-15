@@ -1,5 +1,229 @@
 # Working Set
 
+## 2026-05-15 (Native PDF Studio release finalization)
+
+- Date: 2026-05-15
+- Repo: Asymmetric-al/core
+- Goal: Commit all remaining local release changes, merge the native PDF Studio
+  migration stack into the production branch, clean stale local branches, and
+  verify the Vercel production deployment.
+- Primary area:
+  - `apps/admin/app/pdf/**`
+  - `apps/admin/app/api/pdf-templates/native/**`
+  - `packages/api/src/pdf-templates/**`
+  - `packages/config/pdf-studio-native.ts`
+  - `packages/env/src/schema.ts`
+  - `supabase/migrations/*native_pdf_studio*.sql`
+  - `docs/features/pdf-studio/**`
+  - `docs/ops/**`
+  - `vendor/react-pdf-packages/**`
+  - `tests/unit/**pdf*`
+- Stack:
+  - Next.js 16 App Router
+  - React 19
+  - TypeScript
+  - Supabase Postgres
+  - Vercel
+  - Bun
+  - Turbo
+  - Vitest
+- Constraints:
+  - Production branch is `epic`.
+  - Use HTTPS Git transport because local SSH fetch is not currently
+    authenticated.
+  - Do not commit secrets or `.env.local` values.
+  - Clean only branches that are proven merged/stale or safely deletable.
+  - Keep the repo-owned Vercel ignored-build controls in place.
+  - Nia tools are unavailable in this session; use repo-scoped `rg`, direct file
+    reads, GitHub/Vercel connectors, `gh`, and local source evidence.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/ai/{working-set,stack-registry}.md`
+  - `docs/ai/rules/{general,testing}.md`
+  - `docs/ai/skills/repo-entry/SKILL.md`
+  - `docs/ops/{deploy-checklist,environments}.md`
+  - `node_modules/next/dist/docs/01-app/01-getting-started/17-deploying.md`
+  - `node_modules/next/dist/docs/01-app/02-guides/production-checklist.md`
+  - Vercel documentation search for deployment inspection and Git deployment
+    status.
+
+## 2026-05-15 (Phase 11 scale, observability, reliability)
+
+- Date: 2026-05-15
+- Repo: Asymmetric-al/core
+- Goal: Execute Phase 11 only by closing Sentry release/source map proof,
+  runtime release-health monitoring, Vercel deployment reliability controls,
+  isolated backup/restore proof, and operational evidence while preserving all
+  Phase 3-10 ownership boundaries.
+- Primary area:
+  - `apps/{admin,donor,missionary}/next.config.ts`
+  - `apps/{admin,donor,missionary}/app/api/health/route.ts`
+  - `packages/api/src/health/**`
+  - `scripts/sentry/**`
+  - `scripts/verify/**`
+  - `scripts/vercel/**`
+  - `apps/{admin,donor,missionary}/vercel.json`
+  - `docs/{ci.md,env-var-audit.md}`
+  - `docs/ops/{deploy-checklist,environments,scale-observability-reliability}.md`
+  - `docs/ops/phase-evidence/**`
+  - `tests/unit/**`
+- Stack:
+  - Next.js 16 App Router
+  - Sentry Next.js SDK
+  - Vercel
+  - Supabase Postgres
+  - PostgreSQL backup/restore tooling
+  - TypeScript
+  - Bun
+  - Turbo
+  - Vitest
+- Constraints:
+  - Do not reopen Phases 3-10 unless current verification proves a direct
+    Phase 11 blocker.
+  - Keep runtime Sentry DSNs separate from build-only `SENTRY_AUTH_TOKEN`.
+  - Do not print or commit provider tokens, DSNs, service-role keys, or
+    `.env.local` values.
+  - Backup/restore proof must use isolated disposable targets and must never
+    restore over production data.
+  - Keep donor, missionary, CMS, CRM, giving, payment, and Support Hub ownership
+    boundaries unchanged.
+  - Optional v2 providers remain out of scope because no provider was explicitly
+    selected with scope, secrets, and ownership boundaries.
+  - Nia tools are unavailable in this session; use repo-scoped `rg`, direct file
+    reads, bundled Next.js docs, official provider docs, and local source
+    evidence.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/ops/phase-handoffs/phase-11_scale-observability-v2-expansion_codex-handoff.md`
+  - `docs/ops/phase-evidence/*phase-03*` through `*phase-10*`
+  - `docs/ai/{working-set,stack-registry}.md`
+  - `docs/ai/rules/{general,backend,testing}.md`
+  - `docs/ai/skills/{repo-entry,nextjs-app-router,supabase,supabase-postgres-best-practices}/SKILL.md`
+  - `docs/guides/architecture/{data-access-boundary,runtime-map}.md`
+  - `node_modules/next/dist/docs/01-app/02-guides/instrumentation.md`
+  - `node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/instrumentation.md`
+  - `node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/instrumentation-client.md`
+  - `node_modules/next/dist/docs/01-app/02-guides/production-checklist.md`
+  - `node_modules/next/dist/docs/01-app/01-getting-started/17-deploying.md`
+  - Official Sentry, Vercel, and Supabase backup/restore docs
+
+## 2026-05-15 (Phase 9 donor and missionary portals)
+
+- Date: 2026-05-15
+- Repo: Asymmetric-al/core
+- Goal: Execute Phase 9 by hardening the donor portal into a donor
+  self-service surface and the missionary workspace into a support-raising and
+  communication surface, while preserving server-owned auth/data boundaries,
+  Stripe-owned payment management, Payload/public-surface ownership, and
+  role-scoped CRM projections.
+- Primary area:
+  - `apps/donor/**`
+  - `apps/missionary/**`
+  - `packages/api/src/giving/**`
+  - `packages/api/src/crm/**`
+  - `packages/api/src/email/**`
+  - `packages/auth/**`
+  - `packages/database/query-keys.ts`
+  - `packages/ui/**`
+  - `tests/unit/apps/donor/**`
+  - `tests/unit/apps/missionary/**`
+  - `tests/unit/packages/api/**`
+  - `tests/e2e/**`
+  - `docs/ops/phase-evidence/**`
+- Stack:
+  - Next.js 16 App Router
+  - React 19
+  - TypeScript
+  - Supabase Auth
+  - Supabase Postgres / RLS
+  - Stripe
+  - Resend
+  - Twenty CRM projections
+  - Payload CMS/public surfaces
+  - Bun
+  - Vitest
+  - Playwright
+- Constraints:
+  - Keep donor and missionary route handlers thin; business logic belongs in
+    `packages/api`.
+  - Donor access requires donor membership and missionary access requires
+    missionary membership; client-side checks are never security controls.
+  - Keep all provider credentials server-only; do not add
+    `NEXT_PUBLIC_TWENTY_*`.
+  - Keep Stripe as the payment execution and payment-method authority.
+  - Keep CMS public content separate from giving, CRM, payment, donor account,
+    and missionary account truth.
+  - CRM data shown in donor and missionary portals is role-scoped projection
+    only.
+  - Preserve Phase 8 Support Hub and Resend behavior.
+  - Nia tools are unavailable in this session; use repo-scoped `rg`, direct
+    file reads, bundled Next.js docs, and local package/source evidence.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `docs/ops/phase-handoffs/phase-09_donor-missionary-portals_codex-handoff.md`
+  - `docs/ops/phase-evidence/*phase-03*` through `*phase-08*`
+  - `openspec/specs/platform-surfaces/spec.md`
+  - `openspec/changes/integrate-twenty-crm-core/design.md`
+  - `docs/guides/architecture/{authz-memberships,data-access-boundary,runtime-map}.md`
+  - `docs/guides/development/getting-started.md`
+  - `docs/ai/{working-set,stack-registry}.md`
+  - `docs/ai/rules/{general,frontend,backend,testing}.md`
+  - `docs/ai/skills/{repo-entry,nextjs-app-router,react-component-dev,supabase,nextjs-supabase-auth}/SKILL.md`
+
+## 2026-05-15 (Phase 8 Mission Control Support Hub persistence)
+
+- Date: 2026-05-15
+- Repo: Asymmetric-al/core
+- Goal: Complete Phase 8 by moving Mission Control Support Hub data from
+  in-memory state to persistent tenant-scoped Supabase storage, wiring Resend
+  inbound `email.received` events into the Support Hub router, preserving thin
+  App Router handlers, and recording the implementation evidence.
+- Primary area:
+  - `apps/admin/app/api/admin/support/**`
+  - `apps/admin/features/support-hub/**`
+  - `packages/api/src/admin/support-hub/**`
+  - `packages/api/src/email/webhooks/resend.ts`
+  - `supabase/migrations/*support_hub*.sql`
+  - `supabase/seed.sql`
+  - `tests/unit/packages/api/admin/support-hub/**`
+  - `tests/unit/packages/api/email/**`
+  - `tests/e2e/support-hub.smoke.spec.ts`
+  - `docs/features/support-hub/**`
+  - `docs/ops/phase-evidence/*phase-08*`
+- Stack:
+  - Next.js 16 App Router route handlers
+  - React 19
+  - TypeScript
+  - Supabase Auth
+  - Supabase Postgres / RLS
+  - Resend webhooks
+  - Zod
+  - Bun
+  - Vitest
+  - Playwright
+- Constraints:
+  - Keep Support Hub API route handlers thin; business logic belongs in
+    `packages/api`.
+  - Keep tenant isolation server-side and database-enforced; do not trust
+    client filters for tenant boundaries.
+  - Never expose service-role keys or provider credentials to browser code.
+  - Preserve Resend webhook verification and existing email event persistence.
+  - Do not add `NEXT_PUBLIC_TWENTY_*` or enable production CRM writes.
+  - Keep CMS tenant IDs distinct from public Supabase tenant UUIDs.
+  - Keep production seeds safe: no demo data in production by default.
+  - Nia tools are unavailable in this session; use repo-scoped `rg`, direct
+    file reads, bundled Next.js docs, and local package/source evidence.
+- Evidence sources used:
+  - `AGENTS.md`
+  - `supabase/AGENTS.md`
+  - `docs/ai/{working-set,stack-registry}.md`
+  - `docs/ai/rules/{general,backend,testing}.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `docs/ai/skills/{repo-entry,supabase,supabase-postgres-best-practices,nextjs-app-router,nextjs-supabase-auth}/SKILL.md`
+  - `node_modules/next/dist/docs/01-app/01-getting-started/15-route-handlers.md`
+  - `node_modules/next/dist/docs/01-app/01-getting-started/06-fetching-data.md`
+  - `node_modules/next/dist/docs/01-app/02-guides/mcp.md`
+
 ## 2026-05-12 (Phase 3 payments and giving pipeline)
 
 - Date: 2026-05-12

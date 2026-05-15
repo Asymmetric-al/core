@@ -121,21 +121,41 @@ Staging is branch-bound to `develop` using Vercel Custom Environments and remain
 
 ### 5.2 Staging Supabase project
 
-Create one dedicated staging Supabase project (recommended name: `asym-staging`) and record:
+The canonical staging database is the visible Supabase project in the normal
+Asymmetrical Supabase organization. Its dashboard display name should be
+`staging`; if the Supabase dashboard still shows `develop`, rename only the
+display name and keep the project ref unchanged.
 
-- `project ref` (used by CLI commands)
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
+| Environment | Supabase project | Project ref            | Project URL                                | Policy                                |
+| ----------- | ---------------- | ---------------------- | ------------------------------------------ | ------------------------------------- |
+| Staging     | `staging`        | `pnmlrbgjiqzzsthsoikm` | `https://pnmlrbgjiqzzsthsoikm.supabase.co` | Demo/test data only                   |
+| Production  | `epic`           | `btewedpsxwsjczvmegby` | `https://btewedpsxwsjczvmegby.supabase.co` | Real donor/auth/payment-adjacent data |
+| Deleted     | Vercel-managed   | `uarazyactrqlxzmeygmr` | `https://uarazyactrqlxzmeygmr.supabase.co` | Exported, verified unused, deleted    |
 
-Apply schema + seed to staging:
+Do not point staging at the Vercel-managed Supabase project ref
+`uarazyactrqlxzmeygmr`. It was created by the Vercel/Supabase integration and
+is intentionally retired in favor of the team-owned Supabase project above.
 
-```bash
-npx supabase db push --project-ref <staging-project-ref>
-npx supabase db execute --project-ref <staging-project-ref> --file supabase/seed.sql
-```
+Cleanup state from the 2026-05-15 environment cutover:
 
-After applying migrations and seed, verify data writes from staging URLs land in this project only (never production).
+- `pnmlrbgjiqzzsthsoikm` received all repo migrations and the staging/demo seed.
+- `uarazyactrqlxzmeygmr` was exported, verified absent from active
+  production/staging Vercel env pulls, and deleted.
+- Completed exports are stored outside the repo at
+  `/Users/blake/Documents/asymmetrical/ops-backups/core-supabase-cleanup-2026-05-15T08-05-59-447Z`.
+- Remaining Supabase dashboard cleanup: rename display name `develop` to
+  `staging`.
+
+Configured staging Auth redirect URLs in the `pnmlrbgjiqzzsthsoikm` Supabase
+Auth config:
+
+- `https://staging-admin.asymmetric.al/**`
+- `https://staging-donor.asymmetric.al/**`
+- `https://staging-missionary.asymmetric.al/**`
+
+Access policy: do not recover or share existing passwords. Inventory
+admin-capable Auth users in Supabase and use Supabase invite/reset-password
+flows for staging access.
 
 ### 5.3 Vercel `staging` custom environment (all 3 projects)
 
@@ -168,7 +188,30 @@ For each Vercel project (`admin`, `donor`, `missionary`):
 | `CLOUDINARY_API_SECRET`              |
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`  |
 
+Supabase-specific staging values must resolve to project ref
+`pnmlrbgjiqzzsthsoikm`:
+
+| Variable                        | Admin | Donor | Missionary | Notes                                                |
+| ------------------------------- | ----- | ----- | ---------- | ---------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Yes   | Yes   | Yes        | `https://pnmlrbgjiqzzsthsoikm.supabase.co`           |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes   | Yes   | Yes        | Client-safe key from the staging Supabase project    |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Yes   | Yes   | Yes        | Server-only key from the staging Supabase project    |
+| `SUPABASE_DB_URL`               | Yes   | Yes   | Yes        | Supavisor session-pooler URL for staging Postgres    |
+| `PAYLOAD_DATABASE_URI`          | Yes   | No    | No         | Admin CMS database URL; same staging Postgres target |
+
 Trigger staging deploys by pushing to `develop`.
+
+Verify the staging Supabase/Vercel map without printing secrets:
+
+```bash
+bun run verify:vercel-env-inventory -- --environments production,staging
+```
+
+Expected refs:
+
+- Production remains `btewedpsxwsjczvmegby`.
+- Staging is `pnmlrbgjiqzzsthsoikm`.
+- No active Vercel environment variable should reference `uarazyactrqlxzmeygmr`.
 
 ### 5.4 DNS + domains
 
