@@ -94,6 +94,7 @@ export interface PdfTemplateRow {
 }
 
 export interface PdfTemplateMutationInput {
+  id?: string;
   name: string;
   description?: string | null;
   thumbnail?: string | null;
@@ -172,6 +173,7 @@ function toTemplatePayload(
 ) {
   const now = new Date().toISOString();
   return {
+    ...(input.id ? { id: input.id } : {}),
     tenant_id: tenantId,
     name: input.name,
     description: input.description ?? null,

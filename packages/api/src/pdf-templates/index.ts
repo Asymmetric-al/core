@@ -58,6 +58,7 @@ const pdfTemplateMarginsSchema = z.object({
 });
 
 const pdfTemplateMutationSchema = z.object({
+  id: z.string().uuid().optional(),
   name: z.string().min(1, "Template name is required").max(160),
   description: z.string().max(1000).nullable().optional(),
   thumbnail: z.string().url().nullable().optional(),
