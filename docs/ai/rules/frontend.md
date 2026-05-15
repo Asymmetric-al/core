@@ -11,6 +11,7 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 
 ### Architecture and organization
 
+- Foundational HTML, CSS, and vanilla JS craft (semantics, selector discipline, a11y hygiene, readable JS) are summarized for agents in **`docs/ai/skills/bendc-frontend-guidelines/SKILL.md`** (vendored from [`bendc/frontend-guidelines`](https://github.com/bendc/frontend-guidelines)). That skill is **subordinate to this file** and to motion skills when they conflict (tokens, Tailwind, TypeScript strictness, and motion gates in this doc always win).
 - Shared UI primitives live in `packages/ui`. Apps should consume them via `@asym/ui`.
 - Do not generate shadcn components inside `apps/*`.
 - Keep existing Radix-based shared components working while migration continues.
