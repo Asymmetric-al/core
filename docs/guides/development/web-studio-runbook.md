@@ -27,6 +27,8 @@ Minimum for Payload + admin (from `.env.local` symlinked per app if needed):
 | `PAYLOAD_DISABLE_SCHEMA_PUSH`               | Set to `1` for deterministic local CMS migrations                                           |
 | `NEXT_PUBLIC_DONOR_URL`                     | Origin for published public links from admin (optional; defaults in preview helper)         |
 | `CMS_BASE_URL`                              | On **donor**: admin origin for public CMS fetches                                           |
+| `RESEND_API_KEY`                            | Payload auth email adapter in production                                                    |
+| `BLOB_READ_WRITE_TOKEN`                     | Payload media storage adapter in production; set by connected Vercel Blob store             |
 
 **Per-collection rollback** (optional, default = native on):
 
@@ -136,8 +138,11 @@ Unauthenticated visit to `/web-studio` should redirect to login.
 1. In the Supabase production project, open **Connect** and copy the **Session pooler** Postgres URL. The host should look like `aws-0-<region>.pooler.supabase.com`; do not use the direct `db.<ref>.supabase.co` URL.
 2. For the admin Payload runtime on Vercel, set the pooler query string to `sslmode=no-verify`. `sslmode=require` can fail in Node `pg` with `SELF_SIGNED_CERT_IN_CHAIN` before Payload renders.
 3. In the **admin** Vercel project, update production `PAYLOAD_DATABASE_URI` to the session-pooler URL. If `SUPABASE_DB_URL` is also used by admin runtime or hosted scripts, update it to the same pooler URL.
-4. Redeploy the admin app from the current production branch/commit.
-5. Verify `https://admin.asymmetric.al/web-studio` while signed in, then run `vercel logs --environment production --since 30m --query web-studio --level fatal` and confirm no new Web Studio fatal entries appear.
+4. Connect a Vercel Blob store to the admin project so production receives `BLOB_READ_WRITE_TOKEN`; Web Studio media uploads use Payload's official Vercel Blob adapter in hosted deployments.
+5. Keep `RESEND_API_KEY` configured in production. Payload auth email uses Payload's official Resend adapter and defaults to `Mission Control <noreply@asymmetric.al>` unless `PAYLOAD_EMAIL_FROM_ADDRESS` / `PAYLOAD_EMAIL_FROM_NAME` override it.
+6. Redeploy the admin app from the current production branch/commit.
+7. Verify `https://admin.asymmetric.al/web-studio` while signed in, then run `vercel logs --environment production --since 30m --query web-studio --level fatal` and confirm no new Web Studio fatal entries appear.
+8. Run `vercel logs --environment production --since 30m --query "No email adapter" --limit 20` and `vercel logs --environment production --since 30m --query "storage adapter" --limit 20`; both should return no new Payload startup warnings.
 
 ### Admin dev: Contributions live query + stderr noise
 

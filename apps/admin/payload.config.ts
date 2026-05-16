@@ -18,6 +18,10 @@ import { ProjectPages } from "./src/cms/collections/project-pages";
 import { Tenants } from "./src/cms/collections/tenants";
 import { webStudioCreateFromTemplateEndpoint } from "./src/cms/create-from-template-endpoint";
 import { resolvePayloadDatabaseConfig } from "./src/cms/payload-database-config";
+import {
+  createPayloadStoragePlugins,
+  resolvePayloadEmailAdapter,
+} from "./src/cms/payload-runtime-integrations";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -114,6 +118,8 @@ export default buildConfig({
     },
   }),
   editor: lexicalEditor(),
+  email: resolvePayloadEmailAdapter(),
+  plugins: createPayloadStoragePlugins(),
   routes: {
     admin: "/web-studio",
   },
