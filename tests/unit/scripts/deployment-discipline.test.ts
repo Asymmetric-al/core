@@ -49,7 +49,7 @@ const branchProtection = {
   allow_force_pushes: { enabled: true },
   required_status_checks: {
     strict: true,
-    contexts: ["ci-gate", "integration-gate"],
+    contexts: ["ci-gate", "integration-gate", "e2e-gate"],
   },
   required_pull_request_reviews: {
     required_approving_review_count: 1,
@@ -113,14 +113,21 @@ describe("deployment discipline verifier", () => {
   });
 
   it("accepts protected GitHub branches with required checks and force pushes disabled", () => {
-    const checks = validateGitHubBranchProtection({
+    const developChecks = validateGitHubBranchProtection({
       branch: "develop",
       protection: branchProtection,
       branchRule: branchProtectionRule,
       requiredContexts: ["ci-gate", "integration-gate"],
     });
+    const epicChecks = validateGitHubBranchProtection({
+      branch: "epic",
+      protection: branchProtection,
+      branchRule: branchProtectionRule,
+      requiredContexts: ["ci-gate", "integration-gate", "e2e-gate"],
+    });
 
-    expect(checks.every((item) => item.ok)).toBe(true);
+    expect(developChecks.every((item) => item.ok)).toBe(true);
+    expect(epicChecks.every((item) => item.ok)).toBe(true);
   });
 
   it("detects missing GitHub status checks and enabled force pushes", () => {

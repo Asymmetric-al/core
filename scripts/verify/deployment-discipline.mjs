@@ -345,7 +345,7 @@ async function main() {
           args.repo,
           PRODUCTION_BRANCH,
         ),
-        requiredContexts: ["ci-gate"],
+        requiredContexts: ["ci-gate", "integration-gate", "e2e-gate"],
       }),
     );
     checks.push(
