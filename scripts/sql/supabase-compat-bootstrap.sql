@@ -50,10 +50,35 @@ CREATE TABLE IF NOT EXISTS auth.users (
   email VARCHAR(255) UNIQUE,
   encrypted_password VARCHAR(255),
   email_confirmed_at TIMESTAMPTZ,
+  confirmation_token VARCHAR(255) DEFAULT '',
+  recovery_token VARCHAR(255) DEFAULT '',
+  email_change_token_new VARCHAR(255) DEFAULT '',
+  email_change VARCHAR(255) DEFAULT '',
+  last_sign_in_at TIMESTAMPTZ,
   raw_app_meta_data JSONB DEFAULT '{}'::jsonb,
   raw_user_meta_data JSONB DEFAULT '{}'::jsonb,
+  is_super_admin BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  phone_change VARCHAR(255) DEFAULT '',
+  phone_change_token VARCHAR(255) DEFAULT '',
+  email_change_token_current VARCHAR(255) DEFAULT '',
+  email_change_confirm_status SMALLINT DEFAULT 0,
+  reauthentication_token VARCHAR(255) DEFAULT '',
+  is_sso_user BOOLEAN DEFAULT false,
+  is_anonymous BOOLEAN DEFAULT false
+);
+
+CREATE TABLE IF NOT EXISTS auth.identities (
+  id UUID PRIMARY KEY DEFAULT extensions.gen_random_uuid(),
+  provider_id TEXT NOT NULL,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  identity_data JSONB DEFAULT '{}'::jsonb,
+  provider TEXT NOT NULL,
+  last_sign_in_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (provider_id, provider)
 );
 
 CREATE OR REPLACE FUNCTION auth.uid()
