@@ -1,9 +1,14 @@
 import config from "@payload-config";
 import { getPayload } from "payload";
 
-let payloadPromise: ReturnType<typeof getPayload> | null = null;
+import {
+  assertPayloadDatabaseConfiguration,
+  isDirectSupabaseDatabaseHost,
+  PayloadDatabaseConfigurationError,
+  resolvePayloadDatabaseConfig,
+} from "./payload-database-config";
 
-const DIRECT_SUPABASE_HOST_RE = /^db\.[a-z0-9]+\.supabase\.co$/i;
+let payloadPromise: ReturnType<typeof getPayload> | null = null;
 
 export class PayloadClientInitializationError extends Error {
   readonly statusCode: number;
@@ -16,28 +21,6 @@ export class PayloadClientInitializationError extends Error {
     this.name = "PayloadClientInitializationError";
     this.statusCode = options?.statusCode ?? 503;
   }
-}
-
-function getCmsDatabaseConnectionString() {
-  return (
-    process.env.PAYLOAD_DATABASE_URI ?? process.env.SUPABASE_DB_URL ?? null
-  );
-}
-
-function getConnectionHost(connectionString: string | null) {
-  if (!connectionString) {
-    return null;
-  }
-
-  try {
-    return new URL(connectionString).hostname;
-  } catch {
-    return null;
-  }
-}
-
-function isDirectSupabaseDatabaseHost(hostname: string | null) {
-  return Boolean(hostname && DIRECT_SUPABASE_HOST_RE.test(hostname));
 }
 
 function isDnsLookupFailure(error: unknown) {
@@ -62,7 +45,14 @@ function normalizePayloadInitializationError(error: unknown) {
     return error;
   }
 
-  const host = getConnectionHost(getCmsDatabaseConnectionString());
+  if (error instanceof PayloadDatabaseConfigurationError) {
+    return new PayloadClientInitializationError(error.message, {
+      cause: error,
+      statusCode: error.statusCode,
+    });
+  }
+
+  const { host } = resolvePayloadDatabaseConfig();
 
   if (isDnsLookupFailure(error) && isDirectSupabaseDatabaseHost(host)) {
     return new PayloadClientInitializationError(
@@ -85,6 +75,12 @@ export function isPayloadClientInitializationError(
 
 export function getPayloadClient() {
   if (!payloadPromise) {
+    try {
+      assertPayloadDatabaseConfiguration();
+    } catch (error) {
+      return Promise.reject(normalizePayloadInitializationError(error));
+    }
+
     payloadPromise = getPayload({ config }).catch((error: unknown) => {
       payloadPromise = null;
       throw normalizePayloadInitializationError(error);

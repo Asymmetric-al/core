@@ -125,6 +125,19 @@ Unauthenticated visit to `/web-studio` should redirect to login.
 - **IPv4-only runners** often cannot open Supabase **direct** DB URLs (`db.<ref>.supabase.co` resolves to **IPv6**). Use a **Supavisor session pooler** connection string in `PAYLOAD_DATABASE_URI` (see root `.env.example` notes).
 - **`test:e2e:smoke:cms` / `test:e2e:cms`:** Web Studio specs skip when Payload cannot reach Postgres (see `tests/e2e/cms-skip-if-no-payload.ts`). With a working `PAYLOAD_DATABASE_URI`, the admin `E2E_AUTH_BYPASS` cookie is mirrored into a normal Payload CMS user/tenant in the local CMS database, so shell tests should **run** and still go through Payload access control.
 
+### Production Web Studio load failure
+
+**Symptom:** `/web-studio` redirects through login correctly, then shows the global "Something went wrong" page or the Web Studio database configuration screen. Vercel logs may include `cannot connect to Postgres`, `getaddrinfo ENOTFOUND db.<ref>.supabase.co`, `payloadInitError`, or `unhandledRejection: reason was undefined`.
+
+**Cause:** Payload initializes before Web Studio renders. In protected Vercel deployments, Payload must not use Supabase's direct `db.<ref>.supabase.co` database host because that host is often IPv6-only and Vercel functions cannot reliably resolve or reach it.
+
+**Fix:**
+
+1. In the Supabase production project, open **Connect** and copy the **Session pooler** Postgres URL. The host should look like `aws-0-<region>.pooler.supabase.com`; do not use the direct `db.<ref>.supabase.co` URL.
+2. In the **admin** Vercel project, update production `PAYLOAD_DATABASE_URI` to the session-pooler URL. If `SUPABASE_DB_URL` is also used by admin runtime or hosted scripts, update it to the same pooler URL.
+3. Redeploy the admin app from the current production branch/commit.
+4. Verify `https://admin.asymmetric.al/web-studio` while signed in, then run `vercel logs --environment production --since 30m --query web-studio --level fatal` and confirm no new Web Studio fatal entries appear.
+
 ### Admin dev: Contributions live query + stderr noise
 
 - **`QueryBuilderError: … alias "donation"`** was caused by **two physical copies** of `@tanstack/db` in `node_modules` (different `CollectionImpl` classes). The repo runs **`node scripts/dedupe-tanstack-db.mjs` on `postinstall`** to symlink nested copies to the workspace root package. Re-run `bun install` if the error returns after a bad install.

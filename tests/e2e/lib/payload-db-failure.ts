@@ -4,6 +4,7 @@ export const PAYLOAD_DB_FAILURE_MARKERS = [
   "payloadInitError",
   "ECONNREFUSED",
   "ENETUNREACH",
+  "Payload database configuration",
 ] as const;
 
 export function textMatchesPayloadDbFailure(text: string): boolean {

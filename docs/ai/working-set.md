@@ -1,5 +1,34 @@
 # Working Set
 
+## 2026-05-16 (Admin Web Studio navigation error)
+
+- Date: 2026-05-16
+- Repo: Asymmetric-al/core
+- Goal: Diagnose and fix the admin portal Web Studio sidebar navigation error
+  where `/web-studio` renders the production "Something went wrong" page.
+- Primary area:
+  - `apps/admin/app/(payload)/web-studio/**`
+  - `apps/admin/app/web-studio/**`
+  - `apps/admin/app/mc-shell.tsx`
+  - `apps/admin/payload.config.ts`
+  - `apps/admin/src/cms-ui/web-studio/**`
+  - `tests/**`
+- Stack:
+  - Next.js 16 App Router
+  - React 19
+  - Payload CMS 3
+  - TypeScript
+  - Bun
+  - Vitest
+  - Playwright
+- Constraints:
+  - Preserve `/web-studio` as the Payload CMS admin mount path.
+  - Keep Mission Control chrome hidden inside the Payload admin surface.
+  - Do not weaken admin auth or CMS tenant boundaries.
+  - Use bundled Next.js docs before changing App Router code.
+  - Nia tools are unavailable in this session; use repo-scoped `rg`, direct
+    file reads, bundled Next.js docs, and local command output.
+
 ## 2026-05-16 (Local Payload CMS developer workflow)
 
 - Date: 2026-05-16
