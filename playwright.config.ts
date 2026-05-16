@@ -62,6 +62,23 @@ function getWorkerCount(): number {
   return process.env.CI ? 1 : DEFAULT_LOCAL_WORKERS;
 }
 
+export function shouldReuseExistingServer(
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
+  const configuredValue =
+    env.PLAYWRIGHT_REUSE_EXISTING_SERVER?.trim().toLowerCase();
+
+  if (configuredValue === "1" || configuredValue === "true") {
+    return true;
+  }
+
+  if (configuredValue === "0" || configuredValue === "false") {
+    return false;
+  }
+
+  return !env.CI;
+}
+
 function getLocalBaseUrlAndPort(defaultPort: number): {
   baseURL: string;
   port: number;
@@ -128,6 +145,7 @@ const supabaseURL =
   resolvedEnv.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL;
 const supabaseAnonKey =
   resolvedEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
+const reuseExistingServer = shouldReuseExistingServer(process.env);
 
 const isRemoteBaseUrl = (() => {
   const envBase = process.env.PLAYWRIGHT_BASE_URL;
@@ -161,7 +179,7 @@ const donorServer = {
     DEMO_PASSWORD: resolvedEnv.DEMO_PASSWORD || "",
   },
   url: nextDevReadyURL(baseURL),
-  reuseExistingServer: !process.env.CI,
+  reuseExistingServer,
   timeout: PLAYWRIGHT_WEB_SERVER_TIMEOUT_MS,
 } as const;
 
@@ -180,7 +198,7 @@ const adminServer = {
     DEMO_PASSWORD: resolvedEnv.DEMO_PASSWORD || "",
   },
   url: nextDevReadyURL(adminBaseURL),
-  reuseExistingServer: !process.env.CI,
+  reuseExistingServer,
   timeout: PLAYWRIGHT_WEB_SERVER_TIMEOUT_MS,
 } as const;
 

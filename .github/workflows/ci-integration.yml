@@ -133,6 +133,8 @@ jobs:
       PAYLOAD_SECRET: ci-payload-secret
       SKIP_ENV_VALIDATION: "1"
       E2E_AUTH_BYPASS: "true"
+      PLAYWRIGHT_INCLUDE_ADMIN: "0"
+      PLAYWRIGHT_REUSE_EXISTING_SERVER: "1"
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
       DEMO_PASSWORD: ${{ secrets.DEMO_PASSWORD }}
@@ -199,9 +201,24 @@ jobs:
           PLAYWRIGHT_BONEYARD_TARGET: "donor"
           PLAYWRIGHT_DONOR_BASE_URL: "http://127.0.0.1:3005"
         run: bun run test:e2e:boneyard:donor
+      - name: Start admin app
+        run: bun run --cwd apps/admin dev -- --port 3030 --hostname 127.0.0.1 &
+      - name: Wait for admin health endpoint
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf http://127.0.0.1:3030/api/health >/dev/null; then
+              exit 0
+            fi
+            if [ "$i" -eq 60 ]; then
+              echo "Timed out waiting for admin health endpoint"
+              exit 1
+            fi
+            sleep 1
+          done
       - name: Run Playwright CMS E2E
         env:
           CI: "1"
+          PLAYWRIGHT_ADMIN_BASE_URL: "http://127.0.0.1:3030"
           PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
           PLAYWRIGHT_INCLUDE_ADMIN: "1"
         run: bun run test:e2e:cms --project=chromium

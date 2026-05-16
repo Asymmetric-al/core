@@ -205,9 +205,9 @@ Current coverage caveat: the repo's custom raw V8 fallback provider writes cover
 
 ### `test-e2e` (needs: `smoke`)
 
-- _What it does:_ Re-applies SQL migrations against a fresh Postgres container through `node scripts/verify/supabase-migrations.mjs`, runs Payload migrations + status checks, then applies seed data, starts `apps/donor` on port 3005, enables deterministic test auth mode (`E2E_AUTH_BYPASS=true`) for Playwright web servers, executes demo-auth preflight (`bun run test:e2e:auth-preflight`), then runs two suites:
+- _What it does:_ Re-applies SQL migrations against a fresh Postgres container through `node scripts/verify/supabase-migrations.mjs`, runs Payload migrations + status checks, then applies seed data, starts `apps/donor` on port 3005, enables deterministic test auth mode (`E2E_AUTH_BYPASS=true`) for Playwright web servers, and sets `PLAYWRIGHT_REUSE_EXISTING_SERVER=1` so Playwright reuses the already-started donor server instead of trying to bind port 3005 again. It executes demo-auth preflight (`bun run test:e2e:auth-preflight`), then runs two suites:
   1. `bun run test:e2e --project=chromium` (core donor suite, excludes `@cms`, `@perf`, `@manual`)
-  2. `bun run test:e2e:cms --project=chromium` (CMS/admin suite tagged `@cms`, excludes `@manual`)
+  2. `bun run test:e2e:cms --project=chromium` (CMS/admin suite tagged `@cms`, excludes `@manual`; CI starts `apps/admin` on port 3030 before this suite and reuses both manual servers)
      Uploads `playwright-report/` as an artifact on failure (retained 7 days).
 - _Branch behavior:_ On `develop`, this job is informational (`continue-on-error: true`). On `epic`, `e2e-gate` converts this job into a required production-bound signal.
 - _Debug locally:_ Run `bun run test:e2e:auth-preflight` first, then `bun run test:e2e` (core suite), `bun run test:e2e:cms` (CMS/admin suite), `bun run test:e2e:strict` (core strict env), `bun run test:e2e:cms:strict` (CMS strict env), `bun run test:perf` (perf-only suites), or `bun run test:e2e --project=chromium` (Chromium only). Use `bun run test:e2e:ui` for interactive debugging.
