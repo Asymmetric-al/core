@@ -27,7 +27,6 @@ const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
 const payloadDatabaseConfig = resolvePayloadDatabaseConfig();
-const payloadConnectionString = payloadDatabaseConfig.connectionString;
 
 if (payloadDatabaseConfig.warning) {
   console.warn(payloadDatabaseConfig.warning);
@@ -113,9 +112,7 @@ export default buildConfig({
   db: postgresAdapter({
     push: process.env.PAYLOAD_DISABLE_SCHEMA_PUSH === "1" ? false : undefined,
     schemaName: "cms",
-    pool: {
-      connectionString: payloadConnectionString,
-    },
+    pool: payloadDatabaseConfig.pool,
   }),
   editor: lexicalEditor(),
   email: resolvePayloadEmailAdapter(),

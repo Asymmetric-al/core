@@ -6,6 +6,10 @@ const PAYLOAD_DATABASE_ENV_KEYS = [
   "SUPABASE_DB_URL",
 ] as const;
 
+const DEFAULT_HOSTED_PAYLOAD_DATABASE_POOL_MAX = 2;
+const DEFAULT_HOSTED_PAYLOAD_DATABASE_POOL_IDLE_TIMEOUT_MS = 5_000;
+const DEFAULT_HOSTED_PAYLOAD_DATABASE_POOL_CONNECTION_TIMEOUT_MS = 5_000;
+const MIN_PAYLOAD_DATABASE_POOL_MAX = 2;
 const PROTECTED_TARGET_ENVIRONMENTS = new Set(["production", "staging"]);
 const DIRECT_SUPABASE_HOST_RE = /^db\.[a-z0-9]+\.supabase\.co$/i;
 const SUPAVISOR_POOLER_HOST_RE = /(?:^|\.)pooler\.supabase\.com$/i;
@@ -14,7 +18,12 @@ type PayloadDatabaseEnvKey = (typeof PAYLOAD_DATABASE_ENV_KEYS)[number];
 
 type PayloadDatabaseEnv = Partial<
   Record<
-    PayloadDatabaseEnvKey | "NODE_ENV" | "VERCEL_ENV" | "VERCEL_TARGET_ENV",
+    | PayloadDatabaseEnvKey
+    | "NODE_ENV"
+    | "PAYLOAD_DATABASE_POOL_MAX"
+    | "VERCEL"
+    | "VERCEL_ENV"
+    | "VERCEL_TARGET_ENV",
     string
   >
 >;
@@ -39,10 +48,19 @@ export type PayloadDatabaseConfig = {
   isDirectSupabaseHost: boolean;
   isProtectedDeployment: boolean;
   isSupavisorPoolerHost: boolean;
+  isVercelRuntime: boolean;
   issue: PayloadDatabaseConfigIssue | null;
+  pool: PayloadDatabasePoolOptions;
   sslMode: string | null;
   source: PayloadDatabaseSource;
   warning: string | null;
+};
+
+export type PayloadDatabasePoolOptions = {
+  connectionString: string;
+  connectionTimeoutMillis?: number;
+  idleTimeoutMillis?: number;
+  max?: number;
 };
 
 export class PayloadDatabaseConfigurationError extends Error {
@@ -90,6 +108,10 @@ export function isProtectedPayloadDeployment(
   );
 }
 
+export function isVercelPayloadRuntime(env: PayloadDatabaseEnv = process.env) {
+  return Boolean(env.VERCEL || env.VERCEL_ENV || env.VERCEL_TARGET_ENV);
+}
+
 export function getConnectionHost(connectionString: string | null) {
   if (!connectionString) {
     return null;
@@ -120,6 +142,87 @@ export function isDirectSupabaseDatabaseHost(hostname: string | null) {
 
 export function isSupavisorPoolerHost(hostname: string | null) {
   return Boolean(hostname && SUPAVISOR_POOLER_HOST_RE.test(hostname));
+}
+
+function parsePayloadDatabasePoolMax(value: string | undefined) {
+  if (!value || value.trim().length === 0) {
+    return null;
+  }
+
+  const parsedValue = Number(value);
+
+  if (!Number.isInteger(parsedValue)) {
+    return null;
+  }
+
+  if (parsedValue < MIN_PAYLOAD_DATABASE_POOL_MAX) {
+    return MIN_PAYLOAD_DATABASE_POOL_MAX;
+  }
+
+  return parsedValue;
+}
+
+function getPayloadDatabasePoolWarning(input: {
+  configuredPoolMax: string | undefined;
+}) {
+  const configuredPoolMax = input.configuredPoolMax?.trim();
+
+  if (!configuredPoolMax) {
+    return null;
+  }
+
+  const parsedValue = Number(configuredPoolMax);
+
+  if (!Number.isInteger(parsedValue)) {
+    return `[payload] Ignoring PAYLOAD_DATABASE_POOL_MAX because it is not an integer. Hosted Web Studio deployments will use ${DEFAULT_HOSTED_PAYLOAD_DATABASE_POOL_MAX}.`;
+  }
+
+  if (parsedValue < MIN_PAYLOAD_DATABASE_POOL_MAX) {
+    return `[payload] PAYLOAD_DATABASE_POOL_MAX must be at least ${MIN_PAYLOAD_DATABASE_POOL_MAX} because Payload keeps one startup Postgres client checked out. Using ${MIN_PAYLOAD_DATABASE_POOL_MAX}.`;
+  }
+
+  return null;
+}
+
+function resolvePayloadDatabasePoolOptions(input: {
+  connectionString: string;
+  env: PayloadDatabaseEnv;
+  isProtectedDeployment: boolean;
+  isVercelRuntime: boolean;
+}): PayloadDatabasePoolOptions {
+  const configuredPoolMax = parsePayloadDatabasePoolMax(
+    input.env.PAYLOAD_DATABASE_POOL_MAX,
+  );
+  const shouldBoundPool =
+    configuredPoolMax !== null ||
+    input.isProtectedDeployment ||
+    input.isVercelRuntime;
+
+  if (!shouldBoundPool) {
+    return {
+      connectionString: input.connectionString,
+    };
+  }
+
+  return {
+    connectionString: input.connectionString,
+    connectionTimeoutMillis:
+      DEFAULT_HOSTED_PAYLOAD_DATABASE_POOL_CONNECTION_TIMEOUT_MS,
+    idleTimeoutMillis: DEFAULT_HOSTED_PAYLOAD_DATABASE_POOL_IDLE_TIMEOUT_MS,
+    max: configuredPoolMax ?? DEFAULT_HOSTED_PAYLOAD_DATABASE_POOL_MAX,
+  };
+}
+
+function combineWarnings(...warnings: Array<null | string>) {
+  const filteredWarnings = warnings.filter((warning): warning is string =>
+    Boolean(warning),
+  );
+
+  if (filteredWarnings.length === 0) {
+    return null;
+  }
+
+  return filteredWarnings.join(" ");
 }
 
 function getPayloadDatabaseConfigurationIssue(input: {
@@ -202,6 +305,7 @@ export function resolvePayloadDatabaseConfig(
   const isDirectSupabaseHost = isDirectSupabaseDatabaseHost(host);
   const isProtectedDeployment = isProtectedPayloadDeployment(env);
   const isSupavisorPoolerDatabaseHost = isSupavisorPoolerHost(host);
+  const isVercelRuntime = isVercelPayloadRuntime(env);
   const issue = getPayloadDatabaseConfigurationIssue({
     host,
     isDefaultLocal,
@@ -211,12 +315,23 @@ export function resolvePayloadDatabaseConfig(
     source,
     sslMode,
   });
-  const warning = getPayloadDatabaseConfigurationWarning({
-    isDefaultLocal,
-    isDirectSupabaseHost,
-    issue,
-    nodeEnv: env.NODE_ENV,
+  const pool = resolvePayloadDatabasePoolOptions({
+    connectionString,
+    env,
+    isProtectedDeployment,
+    isVercelRuntime,
   });
+  const warning = combineWarnings(
+    getPayloadDatabaseConfigurationWarning({
+      isDefaultLocal,
+      isDirectSupabaseHost,
+      issue,
+      nodeEnv: env.NODE_ENV,
+    }),
+    getPayloadDatabasePoolWarning({
+      configuredPoolMax: env.PAYLOAD_DATABASE_POOL_MAX,
+    }),
+  );
 
   return {
     connectionString,
@@ -225,7 +340,9 @@ export function resolvePayloadDatabaseConfig(
     isDirectSupabaseHost,
     isProtectedDeployment,
     isSupavisorPoolerHost: isSupavisorPoolerDatabaseHost,
+    isVercelRuntime,
     issue,
+    pool,
     sslMode,
     source,
     warning,

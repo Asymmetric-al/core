@@ -32,6 +32,7 @@
         "PAYLOAD_SECRET",
         "DATABASE_URL",
         "PAYLOAD_DATABASE_URI",
+        "PAYLOAD_DATABASE_POOL_MAX",
         "DONOR_APP_URL",
         "SKIP_ENV_VALIDATION",
         "RESEND_API_KEY",

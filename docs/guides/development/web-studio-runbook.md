@@ -24,6 +24,7 @@ Minimum for Payload + admin (from `.env.local` symlinked per app if needed):
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY`             | Anon key                                                                                    |
 | `PAYLOAD_SECRET`                            | Payload signing (**required** in prod; dev/test may use defaults — see `payload.config.ts`) |
 | `PAYLOAD_DATABASE_URI` or `SUPABASE_DB_URL` | Postgres for Payload `cms` schema                                                           |
+| `PAYLOAD_DATABASE_POOL_MAX`                 | Optional hosted Payload Postgres pool cap; defaults to `2` on Vercel/protected deployments  |
 | `PAYLOAD_DISABLE_SCHEMA_PUSH`               | Set to `1` for deterministic local CMS migrations                                           |
 | `NEXT_PUBLIC_DONOR_URL`                     | Origin for published public links from admin (optional; defaults in preview helper)         |
 | `CMS_BASE_URL`                              | On **donor**: admin origin for public CMS fetches                                           |
@@ -133,7 +134,7 @@ Unauthenticated visit to `/web-studio` should redirect to login.
 
 ### Production Web Studio load failure
 
-**Symptom:** `/web-studio` redirects through login correctly, then shows the global "Something went wrong" page or the Web Studio database configuration screen. Vercel logs may include `cannot connect to Postgres`, `getaddrinfo ENOTFOUND db.<ref>.supabase.co`, `payloadInitError`, or `unhandledRejection: reason was undefined`.
+**Symptom:** `/web-studio` redirects through login correctly, then shows the global "Something went wrong" page or the Web Studio database configuration screen. Vercel logs may include `cannot connect to Postgres`, `getaddrinfo ENOTFOUND db.<ref>.supabase.co`, `EMAXCONNSESSION`, `max clients reached in session mode`, `payloadInitError`, or `unhandledRejection: reason was undefined`.
 
 **Blank screen variant:** if `/web-studio` loads a white screen and Vercel logs
 contain `getFromImportMap: PayloadComponent not found`, the generated Payload
@@ -142,18 +143,19 @@ import map is stale for the current `payload.config.ts` or plugin set. Run
 `apps/admin/app/(payload)/web-studio/importMap.js`, and run
 `bun run test:unit:cms` before redeploying.
 
-**Cause:** Payload initializes before Web Studio renders. In protected Vercel deployments, Payload must not use Supabase's direct `db.<ref>.supabase.co` database host because that host is often IPv6-only and Vercel functions cannot reliably resolve or reach it.
+**Cause:** Payload initializes before Web Studio renders. In protected Vercel deployments, Payload must not use Supabase's direct `db.<ref>.supabase.co` database host because that host is often IPv6-only and Vercel functions cannot reliably resolve or reach it. Hosted Payload also needs a bounded Postgres pool because the default node-postgres pool can open up to 10 clients per Vercel worker while the Supavisor session pool is finite.
 
 **Fix:**
 
 1. In the Supabase production project, open **Connect** and copy the **Session pooler** Postgres URL. The host should look like `aws-0-<region>.pooler.supabase.com`; do not use the direct `db.<ref>.supabase.co` URL.
 2. For the admin Payload runtime on Vercel, set the pooler query string to `sslmode=no-verify`. `sslmode=require` can fail in Node `pg` with `SELF_SIGNED_CERT_IN_CHAIN` before Payload renders.
 3. In the **admin** Vercel project, update production `PAYLOAD_DATABASE_URI` to the session-pooler URL. If `SUPABASE_DB_URL` is also used by admin runtime or hosted scripts, update it to the same pooler URL.
-4. Connect a Vercel Blob store to the admin project so production receives `BLOB_READ_WRITE_TOKEN`; Web Studio media uploads use Payload's official Vercel Blob adapter in hosted deployments.
-5. Keep `RESEND_API_KEY` configured in production. Payload auth email uses Payload's official Resend adapter and defaults to `Mission Control <noreply@asymmetric.al>` unless `PAYLOAD_EMAIL_FROM_ADDRESS` / `PAYLOAD_EMAIL_FROM_NAME` override it.
-6. Redeploy the admin app from the current production branch/commit.
-7. Verify `https://admin.asymmetric.al/web-studio` while signed in, then run `vercel logs --environment production --since 30m --query web-studio --level fatal` and confirm no new Web Studio fatal entries appear.
-8. Run `vercel logs --environment production --since 30m --query "No email adapter" --limit 20` and `vercel logs --environment production --since 30m --query "storage adapter" --limit 20`; both should return no new Payload startup warnings.
+4. Keep `PAYLOAD_DATABASE_POOL_MAX` unset unless the Supabase pool size is deliberately raised. The runtime defaults to `2` on Vercel/protected deployments because Payload keeps one startup Postgres client checked out and needs one query slot left open.
+5. Connect a Vercel Blob store to the admin project so production receives `BLOB_READ_WRITE_TOKEN`; Web Studio media uploads use Payload's official Vercel Blob adapter in hosted deployments.
+6. Keep `RESEND_API_KEY` configured in production. Payload auth email uses Payload's official Resend adapter and defaults to `Mission Control <noreply@asymmetric.al>` unless `PAYLOAD_EMAIL_FROM_ADDRESS` / `PAYLOAD_EMAIL_FROM_NAME` override it.
+7. Redeploy the admin app from the current production branch/commit.
+8. Verify `https://admin.asymmetric.al/web-studio` while signed in, then run `vercel logs --environment production --since 30m --query web-studio --level fatal` and confirm no new Web Studio fatal entries appear.
+9. Run `vercel logs --environment production --since 30m --query "No email adapter" --limit 20` and `vercel logs --environment production --since 30m --query "storage adapter" --limit 20`; both should return no new Payload startup warnings.
 
 ### Admin dev: Contributions live query + stderr noise
 

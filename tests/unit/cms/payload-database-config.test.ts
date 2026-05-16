@@ -28,6 +28,9 @@ describe("resolvePayloadDatabaseConfig", () => {
     expect(config.host).toBe("aws-0-us-west-2.pooler.supabase.com");
     expect(config.sslMode).toBe("no-verify");
     expect(config.isSupavisorPoolerHost).toBe(true);
+    expect(config.pool).toEqual({
+      connectionString: SUPAVISOR_POOLER_URL,
+    });
     expect(config.issue).toBeNull();
   });
 
@@ -48,6 +51,10 @@ describe("resolvePayloadDatabaseConfig", () => {
 
     expect(config.connectionString).toBe(DEFAULT_LOCAL_PAYLOAD_DATABASE_URL);
     expect(config.isDefaultLocal).toBe(true);
+    expect(config.isVercelRuntime).toBe(false);
+    expect(config.pool).toEqual({
+      connectionString: DEFAULT_LOCAL_PAYLOAD_DATABASE_URL,
+    });
     expect(config.issue).toBeNull();
     expect(config.warning).toContain("default local Postgres");
   });
@@ -82,9 +89,63 @@ describe("resolvePayloadDatabaseConfig", () => {
     });
 
     expect(config.isProtectedDeployment).toBe(true);
+    expect(config.isVercelRuntime).toBe(true);
     expect(config.isSupavisorPoolerHost).toBe(true);
+    expect(config.pool).toEqual({
+      connectionString: SUPAVISOR_POOLER_URL,
+      connectionTimeoutMillis: 5000,
+      idleTimeoutMillis: 5000,
+      max: 2,
+    });
     expect(config.issue).toBeNull();
     expect(assertPayloadDatabaseConfiguration(config)).toBe(config);
+  });
+
+  it("bounds the Payload Postgres pool on Vercel preview deployments", () => {
+    const config = resolvePayloadDatabaseConfig({
+      PAYLOAD_DATABASE_URI: SUPAVISOR_POOLER_URL,
+      VERCEL: "1",
+      VERCEL_ENV: "preview",
+    });
+
+    expect(config.isProtectedDeployment).toBe(false);
+    expect(config.isVercelRuntime).toBe(true);
+    expect(config.pool.max).toBe(2);
+    expect(config.pool.connectionTimeoutMillis).toBe(5000);
+    expect(config.pool.idleTimeoutMillis).toBe(5000);
+  });
+
+  it("allows hosted Payload pool max to be raised explicitly", () => {
+    const config = resolvePayloadDatabaseConfig({
+      PAYLOAD_DATABASE_POOL_MAX: "4",
+      PAYLOAD_DATABASE_URI: SUPAVISOR_POOLER_URL,
+      VERCEL_ENV: "production",
+    });
+
+    expect(config.pool.max).toBe(4);
+    expect(config.warning).toBeNull();
+  });
+
+  it("keeps at least one Payload query slot when pool max is set too low", () => {
+    const config = resolvePayloadDatabaseConfig({
+      PAYLOAD_DATABASE_POOL_MAX: "1",
+      PAYLOAD_DATABASE_URI: SUPAVISOR_POOLER_URL,
+      VERCEL_ENV: "production",
+    });
+
+    expect(config.pool.max).toBe(2);
+    expect(config.warning).toContain("must be at least 2");
+  });
+
+  it("uses the hosted Payload pool default when pool max is not an integer", () => {
+    const config = resolvePayloadDatabaseConfig({
+      PAYLOAD_DATABASE_POOL_MAX: "many",
+      PAYLOAD_DATABASE_URI: SUPAVISOR_POOLER_URL,
+      VERCEL_ENV: "production",
+    });
+
+    expect(config.pool.max).toBe(2);
+    expect(config.warning).toContain("not an integer");
   });
 
   it("blocks Supavisor pooler URLs without the Vercel-compatible SSL mode", () => {

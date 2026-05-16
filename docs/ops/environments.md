@@ -277,6 +277,7 @@ Set these Vercel variables in the **Production** scope before deploying:
 | `NEXT_PUBLIC_MAIN_DOMAIN`            | Yes                      | Yes                      | Yes                      | `asymmetric.al`                                                                       |
 | `PAYLOAD_SECRET`                     | Yes                      | No                       | No                       | Required by admin Web Studio outside local/test                                       |
 | `PAYLOAD_DATABASE_URI`               | Yes                      | No                       | No                       | Prefer Supavisor session pooler for Vercel                                            |
+| `PAYLOAD_DATABASE_POOL_MAX`          | Optional                 | No                       | No                       | Optional Payload Postgres pool override; hosted runtime defaults to `2`               |
 | `NEXT_PUBLIC_DONOR_URL`              | Yes                      | No                       | No                       | `https://donor.asymmetric.al` for Web Studio previews                                 |
 | `DONOR_APP_URL`                      | Yes                      | No                       | No                       | Server-side donor origin for Web Studio previews                                      |
 

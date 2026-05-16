@@ -44,6 +44,8 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 PAYLOAD_SECRET=local-payload-secret
 PAYLOAD_DATABASE_URI=<payload-database-uri>
+# Optional for hosted/Vercel runtime; defaults to 2 there.
+# PAYLOAD_DATABASE_POOL_MAX=2
 CMS_BASE_URL=http://127.0.0.1:3030
 # Optional: donor origin for published public links from editor chrome (defaults to http://127.0.0.1:3000)
 NEXT_PUBLIC_DONOR_URL=http://127.0.0.1:3000
@@ -60,7 +62,7 @@ NEXT_PUBLIC_DONOR_URL=http://127.0.0.1:3000
 # CMS_WEB_STUDIO_NATIVE_PROJECT_PAGES=false
 ```
 
-`PAYLOAD_DATABASE_URI` can point at local Supabase Postgres or a hosted Postgres test database.
+`PAYLOAD_DATABASE_URI` can point at local Supabase Postgres or a hosted Postgres test database. On Vercel and protected deployments, Web Studio bounds Payload's Postgres pool to `2` by default so the Supavisor session pool is not exhausted by node-postgres's default 10-client pool.
 
 ### Form stack note
 
