@@ -11,6 +11,18 @@ const DEFAULT_PAYLOAD_DATABASE_URI =
   "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
 const DEFAULT_PAYLOAD_SECRET = "playwright-secret";
 const DEFAULT_LOCAL_WORKERS = 1;
+const DEFAULT_PROJECT_TEST_IGNORE = Object.freeze([
+  "**/upload-crop.spec.ts",
+  "**/donor-giving-history.spec.ts",
+  "**/mc-contributions-live-query.spec.ts",
+]);
+const ADMIN_REQUIRED_TEST_IGNORE = Object.freeze([
+  "**/admin-*.spec.ts",
+  "**/auth-demo-admin.spec.ts",
+  "**/cms-*.spec.ts",
+  "**/site-studio-video-tour.spec.ts",
+  "**/support-hub.smoke.spec.ts",
+]);
 
 function withCiEquivalentEnvDefaults(
   env: NodeJS.ProcessEnv,
@@ -77,6 +89,12 @@ export function shouldReuseExistingServer(
   }
 
   return !env.CI;
+}
+
+export function getDefaultProjectTestIgnore(includeAdmin: boolean): string[] {
+  return includeAdmin
+    ? [...DEFAULT_PROJECT_TEST_IGNORE]
+    : [...DEFAULT_PROJECT_TEST_IGNORE, ...ADMIN_REQUIRED_TEST_IGNORE];
 }
 
 function getLocalBaseUrlAndPort(defaultPort: number): {
@@ -204,6 +222,8 @@ const adminServer = {
 
 const includeAdminServer =
   !isRemoteBaseUrl && process.env.PLAYWRIGHT_INCLUDE_ADMIN !== "0";
+const defaultProjectTestIgnore =
+  getDefaultProjectTestIgnore(includeAdminServer);
 
 const webServer = isRemoteBaseUrl
   ? undefined
@@ -239,20 +259,12 @@ export default defineConfig({
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
-      testIgnore: [
-        "**/upload-crop.spec.ts",
-        "**/donor-giving-history.spec.ts",
-        "**/mc-contributions-live-query.spec.ts",
-      ],
+      testIgnore: defaultProjectTestIgnore,
     },
     {
       name: "mobile-chrome",
       use: { ...devices["Pixel 5"] },
-      testIgnore: [
-        "**/upload-crop.spec.ts",
-        "**/donor-giving-history.spec.ts",
-        "**/mc-contributions-live-query.spec.ts",
-      ],
+      testIgnore: defaultProjectTestIgnore,
     },
     {
       name: "chromium-donor",
