@@ -134,9 +134,10 @@ Unauthenticated visit to `/web-studio` should redirect to login.
 **Fix:**
 
 1. In the Supabase production project, open **Connect** and copy the **Session pooler** Postgres URL. The host should look like `aws-0-<region>.pooler.supabase.com`; do not use the direct `db.<ref>.supabase.co` URL.
-2. In the **admin** Vercel project, update production `PAYLOAD_DATABASE_URI` to the session-pooler URL. If `SUPABASE_DB_URL` is also used by admin runtime or hosted scripts, update it to the same pooler URL.
-3. Redeploy the admin app from the current production branch/commit.
-4. Verify `https://admin.asymmetric.al/web-studio` while signed in, then run `vercel logs --environment production --since 30m --query web-studio --level fatal` and confirm no new Web Studio fatal entries appear.
+2. For the admin Payload runtime on Vercel, set the pooler query string to `sslmode=no-verify`. `sslmode=require` can fail in Node `pg` with `SELF_SIGNED_CERT_IN_CHAIN` before Payload renders.
+3. In the **admin** Vercel project, update production `PAYLOAD_DATABASE_URI` to the session-pooler URL. If `SUPABASE_DB_URL` is also used by admin runtime or hosted scripts, update it to the same pooler URL.
+4. Redeploy the admin app from the current production branch/commit.
+5. Verify `https://admin.asymmetric.al/web-studio` while signed in, then run `vercel logs --environment production --since 30m --query web-studio --level fatal` and confirm no new Web Studio fatal entries appear.
 
 ### Admin dev: Contributions live query + stderr noise
 

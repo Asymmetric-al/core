@@ -11,7 +11,10 @@ const DIRECT_SUPABASE_URL =
   "postgresql://postgres:super-secret@db.btewedpsxwsjczvmegby.supabase.co:5432/postgres";
 
 const SUPAVISOR_POOLER_URL =
-  "postgresql://postgres.btewedpsxwsjczvmegby:super-secret@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require";
+  "postgresql://postgres.btewedpsxwsjczvmegby:super-secret@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=no-verify";
+
+const SUPAVISOR_REQUIRE_SSL_URL =
+  "postgresql://postgres.btewedpsxwsjczvmegby:super-secret@aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require";
 
 describe("resolvePayloadDatabaseConfig", () => {
   it("uses PAYLOAD_DATABASE_URI before SUPABASE_DB_URL", () => {
@@ -22,7 +25,8 @@ describe("resolvePayloadDatabaseConfig", () => {
 
     expect(config.connectionString).toBe(SUPAVISOR_POOLER_URL);
     expect(config.source).toBe("PAYLOAD_DATABASE_URI");
-    expect(config.host).toBe("aws-0-us-east-1.pooler.supabase.com");
+    expect(config.host).toBe("aws-0-us-west-2.pooler.supabase.com");
+    expect(config.sslMode).toBe("no-verify");
     expect(config.isSupavisorPoolerHost).toBe(true);
     expect(config.issue).toBeNull();
   });
@@ -81,6 +85,17 @@ describe("resolvePayloadDatabaseConfig", () => {
     expect(config.isSupavisorPoolerHost).toBe(true);
     expect(config.issue).toBeNull();
     expect(assertPayloadDatabaseConfiguration(config)).toBe(config);
+  });
+
+  it("blocks Supavisor pooler URLs without the Vercel-compatible SSL mode", () => {
+    const config = resolvePayloadDatabaseConfig({
+      PAYLOAD_DATABASE_URI: SUPAVISOR_REQUIRE_SSL_URL,
+      VERCEL_ENV: "production",
+    });
+
+    expect(config.issue?.code).toBe("supavisor-ssl-mode");
+    expect(config.issue?.message).toContain("sslmode=no-verify");
+    expect(config.issue?.message).not.toContain("super-secret");
   });
 
   it("treats custom staging targets as protected deployments", () => {

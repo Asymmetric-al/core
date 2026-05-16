@@ -22,7 +22,8 @@ type PayloadDatabaseEnv = Partial<
 export type PayloadDatabaseConfigIssueCode =
   | "missing-protected-database-url"
   | "invalid-protected-database-url"
-  | "direct-supabase-host";
+  | "direct-supabase-host"
+  | "supavisor-ssl-mode";
 
 export type PayloadDatabaseSource = PayloadDatabaseEnvKey | "default-local";
 
@@ -39,6 +40,7 @@ export type PayloadDatabaseConfig = {
   isProtectedDeployment: boolean;
   isSupavisorPoolerHost: boolean;
   issue: PayloadDatabaseConfigIssue | null;
+  sslMode: string | null;
   source: PayloadDatabaseSource;
   warning: string | null;
 };
@@ -100,6 +102,18 @@ export function getConnectionHost(connectionString: string | null) {
   }
 }
 
+function getConnectionSslMode(connectionString: string | null) {
+  if (!connectionString) {
+    return null;
+  }
+
+  try {
+    return new URL(connectionString).searchParams.get("sslmode");
+  } catch {
+    return null;
+  }
+}
+
 export function isDirectSupabaseDatabaseHost(hostname: string | null) {
   return Boolean(hostname && DIRECT_SUPABASE_HOST_RE.test(hostname));
 }
@@ -113,7 +127,9 @@ function getPayloadDatabaseConfigurationIssue(input: {
   isDefaultLocal: boolean;
   isDirectSupabaseHost: boolean;
   isProtectedDeployment: boolean;
+  isSupavisorPoolerHost: boolean;
   source: PayloadDatabaseSource;
+  sslMode: string | null;
 }): PayloadDatabaseConfigIssue | null {
   if (!input.isProtectedDeployment) {
     return null;
@@ -138,6 +154,14 @@ function getPayloadDatabaseConfigurationIssue(input: {
     return {
       code: "direct-supabase-host",
       message: `Payload database configuration points at Supabase direct database host ${input.host}. Vercel cannot reliably resolve or reach that IPv6-only host; set PAYLOAD_DATABASE_URI to the Supavisor session pooler Postgres URL before opening Web Studio.`,
+    };
+  }
+
+  if (input.isSupavisorPoolerHost && input.sslMode !== "no-verify") {
+    return {
+      code: "supavisor-ssl-mode",
+      message:
+        "Payload database configuration uses a Supavisor pooler host, but the connection string must include sslmode=no-verify for the current Vercel/Node pg runtime. Otherwise Web Studio fails with SELF_SIGNED_CERT_IN_CHAIN before Payload can render.",
     };
   }
 
@@ -173,6 +197,7 @@ export function resolvePayloadDatabaseConfig(
     selectedEnv?.value ?? DEFAULT_LOCAL_PAYLOAD_DATABASE_URL;
   const source = selectedEnv?.key ?? "default-local";
   const host = getConnectionHost(connectionString);
+  const sslMode = getConnectionSslMode(connectionString);
   const isDefaultLocal = !selectedEnv;
   const isDirectSupabaseHost = isDirectSupabaseDatabaseHost(host);
   const isProtectedDeployment = isProtectedPayloadDeployment(env);
@@ -182,7 +207,9 @@ export function resolvePayloadDatabaseConfig(
     isDefaultLocal,
     isDirectSupabaseHost,
     isProtectedDeployment,
+    isSupavisorPoolerHost: isSupavisorPoolerDatabaseHost,
     source,
+    sslMode,
   });
   const warning = getPayloadDatabaseConfigurationWarning({
     isDefaultLocal,
@@ -199,6 +226,7 @@ export function resolvePayloadDatabaseConfig(
     isProtectedDeployment,
     isSupavisorPoolerHost: isSupavisorPoolerDatabaseHost,
     issue,
+    sslMode,
     source,
     warning,
   };
