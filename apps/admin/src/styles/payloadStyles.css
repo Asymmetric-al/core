@@ -396,7 +396,6 @@ html[data-theme="dark"] {
 }
 
 .payload-admin-wrapper {
-  min-height: 100vh;
   background: var(--theme-bg);
   color: var(--theme-text);
 }
