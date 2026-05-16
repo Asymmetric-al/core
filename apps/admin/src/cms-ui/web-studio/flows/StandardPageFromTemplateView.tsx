@@ -35,9 +35,9 @@ export function StandardPageFromTemplateView() {
 }
 
 function StandardPageFromTemplateViewContent() {
-  const { get } = useSearchParams();
+  const searchParams = useSearchParams();
   const { push } = useRouter();
-  const templateId = get("template") ?? "";
+  const templateId = searchParams.get("template") ?? "";
   const [submitError, setSubmitError] = useState<string | null>(null);
   const { user } = useAuth();
   const isSuperAdmin = isSuperAdminUser(user);

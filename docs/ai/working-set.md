@@ -1,5 +1,60 @@
 # Working Set
 
+## 2026-05-16 (Local Payload CMS developer workflow)
+
+- Date: 2026-05-16
+- Repo: Asymmetric-al/core
+- Goal: Make Payload CMS / Web Studio fully usable locally through
+  deterministic noninteractive commands for env repair, local Supabase reset
+  or bootstrap, Payload migrations, CMS seed data, verification, strict local
+  CMS E2E coverage, and developer runbook updates.
+- Primary area:
+  - `scripts/cms/**`
+  - `apps/admin/payload.config.ts`
+  - `apps/admin/src/cms/**`
+  - `apps/admin/src/cms-ui/web-studio/**`
+  - `apps/donor/lib/cms/client.ts`
+  - `supabase/migrations/**`
+  - `supabase/seed.sql`
+  - `tests/unit/cms/**`
+  - `tests/e2e/**cms**`
+  - `docs/guides/development/**`
+  - `.env.example`
+- Stack:
+  - Next.js 16 App Router
+  - Payload CMS 3
+  - Supabase Auth
+  - Supabase Postgres
+  - TypeScript
+  - Bun
+  - Turbo
+  - Vitest
+  - Playwright
+- Constraints:
+  - Preserve Payload runtime in `apps/admin`.
+  - Donor consumes CMS over HTTP and must not import Payload directly.
+  - Payload CMS tables stay in schema `cms`; public platform tables stay in
+    schema `public`.
+  - Payload tenant document IDs and public Supabase tenant UUIDs remain
+    separate.
+  - No hosted services or production/staging secrets for local happy path.
+  - Commands must be noninteractive, with destructive reset separate from
+    non-destructive bootstrap.
+  - E2E bypass may be used only for explicit local/test paths and must remain
+    disabled for product/production behavior.
+  - Nia tools are unavailable in this session; use repo-scoped `rg`, direct
+    file reads, bundled Next.js docs, vendor package source, and local command
+    output.
+- Evidence sources used:
+  - User-provided Payload CMS local Codex prompt
+  - `AGENTS.md`
+  - `docs/ai/{working-set,stack-registry}.md`
+  - `docs/ai/rules/{general,backend,frontend,testing}.md`
+  - `docs/ai/skills/{repo-entry,supabase,nextjs-supabase-auth,supabase-postgres-best-practices}/SKILL.md`
+  - `supabase/AGENTS.md`
+  - `node_modules/next/dist/docs/01-app/01-getting-started/15-route-handlers.md`
+  - `node_modules/next/dist/docs/01-app/02-guides/environment-variables.md`
+
 ## 2026-05-15 (Native PDF Studio release finalization)
 
 - Date: 2026-05-15

@@ -39,10 +39,10 @@ export function MissionaryGivingCreateView() {
 }
 
 function MissionaryGivingCreateViewContent() {
-  const { get } = useSearchParams();
+  const searchParams = useSearchParams();
   const { push } = useRouter();
-  const templateId = get("template") ?? "";
-  const preselectedMissionaryId = get("missionaryId") ?? "";
+  const templateId = searchParams.get("template") ?? "";
+  const preselectedMissionaryId = searchParams.get("missionaryId") ?? "";
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const {

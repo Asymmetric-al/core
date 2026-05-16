@@ -1,4 +1,12 @@
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 const { getPayloadClientMock } = vi.hoisted(() => ({
   getPayloadClientMock: vi.fn(),
@@ -43,6 +51,10 @@ beforeAll(async () => {
   resolvePublishedCmsPageRouteState =
     donorModule.resolvePublishedCmsPageRouteState;
   resolveTenantFromRequest = adminModule.resolveTenantFromRequest;
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
 });
 
 function createRequest(path: string, host?: string) {
@@ -147,6 +159,89 @@ describe("public cms tenant resolution", () => {
 
     expect(tenant).toMatchObject({ id: "tenant_4", slug: "gamma" });
     expect(find).toHaveBeenCalledTimes(2);
+  });
+
+  it("uses the local default tenant for localhost in development and test", async () => {
+    vi.stubEnv("CMS_LOCAL_DEFAULT_TENANT_SLUG", "give-hope-demo");
+    const find = vi
+      .fn()
+      .mockResolvedValueOnce({ docs: [] })
+      .mockResolvedValueOnce({
+        docs: [{ id: "tenant_local", slug: "give-hope-demo" }],
+      });
+    getPayloadClientMock.mockResolvedValue({ find });
+
+    const tenant = await resolveTenantFromRequest(
+      createRequest("/api/cms/public/pages/local-cms-home", "localhost:3000"),
+    );
+
+    expect(tenant).toMatchObject({
+      id: "tenant_local",
+      slug: "give-hope-demo",
+    });
+    expect(find).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        where: {
+          slug: {
+            equals: "give-hope-demo",
+          },
+        },
+      }),
+    );
+  });
+
+  it("uses the local default tenant for 127.0.0.1 in development and test", async () => {
+    vi.stubEnv("CMS_LOCAL_DEFAULT_TENANT_SLUG", "give-hope-demo");
+    const find = vi
+      .fn()
+      .mockResolvedValueOnce({ docs: [] })
+      .mockResolvedValueOnce({
+        docs: [{ id: "tenant_local", slug: "give-hope-demo" }],
+      });
+    getPayloadClientMock.mockResolvedValue({ find });
+
+    const tenant = await resolveTenantFromRequest(
+      createRequest("/api/cms/public/pages/local-cms-home", "127.0.0.1:3000"),
+    );
+
+    expect(tenant).toMatchObject({
+      id: "tenant_local",
+      slug: "give-hope-demo",
+    });
+    expect(find).toHaveBeenCalledTimes(2);
+  });
+
+  it("ignores the loopback fallback in production", async () => {
+    vi.stubEnv("CMS_LOCAL_DEFAULT_TENANT_SLUG", "give-hope-demo");
+    vi.stubEnv("NODE_ENV", "production");
+    const find = vi.fn().mockResolvedValueOnce({ docs: [] });
+    getPayloadClientMock.mockResolvedValue({ find });
+
+    const tenant = await resolveTenantFromRequest(
+      createRequest("/api/cms/public/pages/local-cms-home", "127.0.0.1:3000"),
+    );
+
+    expect(tenant).toBeNull();
+    expect(find).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps primary domain resolution ahead of the local fallback", async () => {
+    vi.stubEnv("CMS_LOCAL_DEFAULT_TENANT_SLUG", "give-hope-demo");
+    const find = vi.fn().mockResolvedValueOnce({
+      docs: [{ id: "tenant_domain", slug: "domain-tenant" }],
+    });
+    getPayloadClientMock.mockResolvedValue({ find });
+
+    const tenant = await resolveTenantFromRequest(
+      createRequest("/api/cms/public/pages/local-cms-home", "localhost:3000"),
+    );
+
+    expect(tenant).toMatchObject({
+      id: "tenant_domain",
+      slug: "domain-tenant",
+    });
+    expect(find).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -238,6 +238,11 @@ describe("CMS collection contracts", () => {
         "123e4567-e89b-42d3-a456-426614174111",
       ),
     ).toBe(true);
+    expect(
+      await missionaryProfileSourceField.validate?.(
+        "11111111-1111-1111-1111-111111111111",
+      ),
+    ).toBe(true);
     expect(await fundIdField.validate?.("not-a-uuid")).toBe(
       "Must be a valid UUID reference.",
     );

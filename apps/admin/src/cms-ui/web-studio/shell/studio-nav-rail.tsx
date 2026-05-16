@@ -18,14 +18,35 @@ import { useEffect, useMemo, useState } from "react";
 import { getEnabledWebStudioCollections } from "../collections/config";
 import { WEB_STUDIO_PREF_KEYS } from "../preferences/keys";
 
+type RecentDocLink = {
+  href: string;
+  id: string;
+  title: string;
+  updatedAt?: string;
+};
+
+function isRecentDocLink(value: unknown): value is RecentDocLink {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Partial<RecentDocLink>;
+  return (
+    typeof candidate.href === "string" &&
+    candidate.href.length > 0 &&
+    typeof candidate.id === "string" &&
+    candidate.id.length > 0 &&
+    typeof candidate.title === "string" &&
+    candidate.title.length > 0
+  );
+}
+
 export function StudioNavRail({ className }: { className?: string }) {
   const pathname = usePathname();
   const { getPreference, setPreference } = usePreferences();
   const [collapsed, setCollapsed] = useState(false);
   const [hydrated, setHydrated] = useState(false);
-  const [recentDocs, setRecentDocs] = useState<
-    Array<{ href: string; id: string; title: string; updatedAt?: string }>
-  >([]);
+  const [recentDocs, setRecentDocs] = useState<RecentDocLink[]>([]);
 
   /** Snapshot of collection rollout flags — stable string when env is unchanged (avoids new array ref every render). */
   const webStudioNativeRolloutKey = [
@@ -91,14 +112,9 @@ export function StudioNavRail({ className }: { className?: string }) {
         enabledCollections.map(async (collection) => {
           try {
             return (
-              (await getPreference<
-                Array<{
-                  href: string;
-                  id: string;
-                  title: string;
-                  updatedAt?: string;
-                }>
-              >(collection.preferences.recentDocs)) ?? []
+              (await getPreference<unknown[]>(
+                collection.preferences.recentDocs,
+              )) ?? []
             );
           } catch {
             return [];
@@ -110,6 +126,7 @@ export function StudioNavRail({ className }: { className?: string }) {
         setRecentDocs(
           entries
             .flat()
+            .filter(isRecentDocLink)
             .sort((a: { updatedAt?: string }, b: { updatedAt?: string }) =>
               (b.updatedAt ?? "").localeCompare(a.updatedAt ?? ""),
             )

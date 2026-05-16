@@ -58,6 +58,31 @@ function warnPreferenceDev(context: string, error: unknown) {
   }
 }
 
+type RecentDocPreferenceEntry = {
+  href: string;
+  id: string;
+  title: string;
+  updatedAt?: string;
+};
+
+function isRecentDocPreferenceEntry(
+  value: unknown,
+): value is RecentDocPreferenceEntry {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Partial<RecentDocPreferenceEntry>;
+  return (
+    typeof candidate.href === "string" &&
+    candidate.href.length > 0 &&
+    typeof candidate.id === "string" &&
+    candidate.id.length > 0 &&
+    typeof candidate.title === "string" &&
+    candidate.title.length > 0
+  );
+}
+
 export type NativeCollectionEditViewProps = DocumentViewClientProps & {
   studioCollection: WebStudioCollectionSlug;
 };
@@ -201,13 +226,16 @@ export function NativeCollectionEditView({
     }
 
     void (async () => {
-      const existing =
-        (await getPreference<Array<Record<string, string>>>(
+      const rawExisting =
+        (await getPreference<unknown>(
           studioConfig.preferences.recentDocs,
         ).catch((error: unknown) => {
           warnPreferenceDev("recent docs preference read failed", error);
           return [];
         })) ?? [];
+      const existing = Array.isArray(rawExisting)
+        ? rawExisting.filter(isRecentDocPreferenceEntry)
+        : [];
       const next = [
         {
           id: identifier,
@@ -215,9 +243,7 @@ export function NativeCollectionEditView({
           href: `${studioConfig.listPath}/${identifier}`,
           updatedAt: new Date().toISOString(),
         },
-        ...existing.filter(
-          (entry: Record<string, string>) => entry.id !== identifier,
-        ),
+        ...existing.filter((entry) => entry.id !== identifier),
       ].slice(0, 6);
 
       await setPreference(studioConfig.preferences.recentDocs, next).catch(

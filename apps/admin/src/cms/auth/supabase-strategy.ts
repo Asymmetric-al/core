@@ -5,6 +5,7 @@ import {
   parseE2EAuthCookieValue,
 } from "@asym/auth/e2e-auth";
 import { createServerClient } from "@supabase/ssr";
+import { createClient as createSupabaseJsClient } from "@supabase/supabase-js";
 
 import { CMS_USERS_SLUG } from "../constants";
 
@@ -52,7 +53,30 @@ type CmsAuthUser = CmsUserDoc & {
 
 type SupabaseStrategyDependencies = {
   createSupabaseClient?: typeof createServerClient;
+  createSupabaseDataClient?: () => Pick<
+    ReturnType<typeof createServerClient>,
+    "from" | "schema"
+  > | null;
 };
+
+function createTrustedSupabaseDataClient(): Pick<
+  ReturnType<typeof createServerClient>,
+  "from" | "schema"
+> | null {
+  const supabaseURL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseURL || !serviceRoleKey) {
+    return null;
+  }
+
+  return createSupabaseJsClient(supabaseURL, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}
 
 function parseCookieHeader(cookieHeader: string | null) {
   if (!cookieHeader) {
@@ -301,6 +325,8 @@ export function createSupabaseAuthStrategy(
 ): AuthStrategy {
   const createSupabaseClient =
     dependencies.createSupabaseClient ?? createServerClient;
+  const createSupabaseDataClient =
+    dependencies.createSupabaseDataClient ?? createTrustedSupabaseDataClient;
 
   return {
     name: STRATEGY_NAME,
@@ -351,7 +377,9 @@ export function createSupabaseAuthStrategy(
         };
       }
 
-      const { data: profile } = await supabase
+      const supabaseDataClient = createSupabaseDataClient() ?? supabase;
+
+      const { data: profile } = await supabaseDataClient
         .from("profiles")
         .select("tenant_id, role")
         .eq("user_id", supabaseUser.id)
@@ -367,7 +395,7 @@ export function createSupabaseAuthStrategy(
             : null;
 
       const { data: staffMembership } = publicTenantId
-        ? await supabase
+        ? await supabaseDataClient
             .schema("authz")
             .from("memberships")
             .select("staff_role")
@@ -389,7 +417,7 @@ export function createSupabaseAuthStrategy(
         return { user: null };
       }
 
-      const { data: publicTenantData } = await supabase
+      const { data: publicTenantData } = await supabaseDataClient
         .from("tenants")
         .select("id, name, slug")
         .eq("id", publicTenantId)

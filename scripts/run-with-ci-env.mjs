@@ -92,9 +92,14 @@ export function normalizeEnvForCommand(env, commandParts = []) {
   const launchesPlaywright = commandParts.some((part) =>
     part.includes("@playwright/test/cli.js"),
   );
+  const launchesBuild = commandParts.includes("build");
 
   if (launchesPlaywright || env.FORCE_COLOR !== undefined) {
     delete env.NO_COLOR;
+  }
+
+  if (launchesBuild) {
+    env.NODE_ENV = "production";
   }
 
   return env;

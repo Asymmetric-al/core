@@ -2,7 +2,7 @@
 
 This guide explains how to run and validate the Site Studio integration that lives inside `apps/admin`.
 
-**Canonical architecture & inventory:** [`web-studio-living-spec.md`](../architecture/web-studio-living-spec.md) · **Runbook:** [`web-studio-runbook.md`](./web-studio-runbook.md) · **Handoff:** [`web-studio-handoff.md`](./web-studio-handoff.md)
+**Canonical architecture & inventory:** [`web-studio-living-spec.md`](../architecture/web-studio-living-spec.md) · **Local CMS runbook:** [`site-studio-local.md`](./site-studio-local.md) · **Operations runbook:** [`web-studio-runbook.md`](./web-studio-runbook.md) · **Handoff:** [`web-studio-handoff.md`](./web-studio-handoff.md)
 
 ## What is included
 
@@ -68,6 +68,17 @@ NEXT_PUBLIC_DONOR_URL=http://127.0.0.1:3000
 - **Mission Control-only dialogs/settings** in this workstream: use **TanStack Form + Zod** via `@asym/ui` (`useAsymForm`), not React Hook Form. If an older doc mentions RHF for this workstream, treat **this guide + the Phase 1 prompt** as source of truth.
 
 ## Local startup workflow
+
+For the deterministic local Payload/Supabase path, prefer the local runbook:
+
+```bash
+bun run cms:local:reset
+bun run dev:admin
+bun run dev:donor
+```
+
+See [`site-studio-local.md`](./site-studio-local.md) for the generated env,
+seed data, strict verification, and troubleshooting path.
 
 1. Apply SQL migrations:
 
@@ -176,6 +187,7 @@ Tenant resolution priority:
 1. `x-forwarded-host` or `host` exact domain match
 2. subdomain slug fallback
 3. `?tenant=<slug>` only when the host does not resolve a tenant
+4. development/test only: loopback host fallback from `CMS_LOCAL_DEFAULT_TENANT_SLUG`
 
 ### Staff endpoints (auth required)
 

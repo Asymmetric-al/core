@@ -2,6 +2,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createE2EAuthCookieValue } from "@asym/auth/e2e-auth";
 
 type SupabaseAuthStrategyFactory = (dependencies?: {
+  createSupabaseDataClient?: unknown;
   createSupabaseClient?: unknown;
 }) => {
   authenticate: (...args: unknown[]) => Promise<{ user: unknown }>;
@@ -447,6 +448,45 @@ describe("createSupabaseAuthStrategy", () => {
       payload,
     } as never);
 
+    expect(result.user).toMatchObject({
+      collection: "cms-users",
+      publicTenantId: "tenant_1",
+      role: "admin",
+      tenantId: "17",
+    });
+  });
+
+  it("uses a trusted data client for tenant lookup after cookie auth", async () => {
+    const sessionClient = createSupabaseClientMock({
+      role: "admin",
+      publicTenant: null,
+    });
+    const trustedDataClient = createSupabaseClientMock({
+      role: "admin",
+      publicTenant: {
+        id: "tenant_1",
+        name: "Tenant One",
+        slug: "tenant-one",
+      },
+    });
+
+    const strategy = createSupabaseAuthStrategy({
+      createSupabaseClient: sessionClient.createServerClientMock as never,
+      createSupabaseDataClient: vi.fn(() => ({
+        from: trustedDataClient.from,
+        schema: trustedDataClient.schema,
+      })) as never,
+    });
+    const payload = createPayloadMock();
+
+    const result = await strategy.authenticate({
+      headers: new Headers({ cookie: "sb-access-token=test" }),
+      payload,
+    } as never);
+
+    expect(sessionClient.getUser).toHaveBeenCalledTimes(1);
+    expect(trustedDataClient.from).toHaveBeenCalledWith("profiles");
+    expect(trustedDataClient.from).toHaveBeenCalledWith("tenants");
     expect(result.user).toMatchObject({
       collection: "cms-users",
       publicTenantId: "tenant_1",

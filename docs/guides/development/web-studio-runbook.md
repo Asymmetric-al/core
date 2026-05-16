@@ -2,6 +2,7 @@
 
 **Audience:** engineers running or debugging Web Studio locally or in CI.  
 **Canonical architecture:** [`docs/guides/architecture/web-studio-living-spec.md`](../architecture/web-studio-living-spec.md)
+**Deterministic local CMS path:** [`site-studio-local.md`](./site-studio-local.md)
 
 ---
 
@@ -23,6 +24,7 @@ Minimum for Payload + admin (from `.env.local` symlinked per app if needed):
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY`             | Anon key                                                                                    |
 | `PAYLOAD_SECRET`                            | Payload signing (**required** in prod; dev/test may use defaults — see `payload.config.ts`) |
 | `PAYLOAD_DATABASE_URI` or `SUPABASE_DB_URL` | Postgres for Payload `cms` schema                                                           |
+| `PAYLOAD_DISABLE_SCHEMA_PUSH`               | Set to `1` for deterministic local CMS migrations                                           |
 | `NEXT_PUBLIC_DONOR_URL`                     | Origin for published public links from admin (optional; defaults in preview helper)         |
 | `CMS_BASE_URL`                              | On **donor**: admin origin for public CMS fetches                                           |
 
@@ -42,6 +44,18 @@ CMS_WEB_STUDIO_NATIVE_NAVIGATION=false
 2. **Payload migrations** — `bun run cms:migrate`, status: `bun run cms:migrate:status`.
 
 Order for a clean local machine: SQL migrations (or `supabase db reset`) → Payload migrate → seed if needed.
+
+For the one-command local path, use:
+
+```bash
+bun run cms:local:reset
+```
+
+For non-destructive repair, use:
+
+```bash
+bun run cms:local:bootstrap
+```
 
 ---
 
@@ -95,6 +109,8 @@ Unauthenticated visit to `/web-studio` should redirect to login.
 | `bun run lint:admin`                                                            | Before PR                                                 |
 | `bun run typecheck:admin`                                                       | Before PR                                                 |
 | `bun run test:unit:cms`                                                         | CMS unit tests                                            |
+| `bun run cms:local:verify`                                                      | Strict local DB/Payload/CMS seed verifier                 |
+| `bun run test:e2e:cms:local`                                                    | Strict local Web Studio + public CMS Playwright proof     |
 | `bun run test:unit`                                                             | Full unit suite                                           |
 | `node scripts/run-with-ci-env.mjs -- bunx turbo run build --filter=@asym/admin` | Strict admin build                                        |
 | `bun run test:e2e:cms`                                                          | Full CMS Playwright — needs **DB + ports 3005/3030 free** |
@@ -133,11 +149,12 @@ Route files under `apps/admin/app/api/**/*.ts` must be **thin re-exports** to `@
 
 ## 11. Common failures
 
-| Symptom                             | Likely cause                                                                                                          |
-| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `PAYLOAD_SECRET must be configured` | Set secret or `NODE_ENV=test` for importmap                                                                           |
-| Import map wrong paths              | Re-run `cms:importmap` + check postprocess script                                                                     |
-| 404 on public CMS                   | Tenant not resolved or no published doc                                                                               |
-| Wizard POST 403                     | Not staff / wrong session                                                                                             |
-| `verify:data-boundary` fails        | Direct `@asym/database` import in `app/api`                                                                           |
-| Nested `<html>` / hydration warning | `(payload)/layout.tsx` must embed Payload `RootProvider`; do not use Payload `RootLayout` under the admin root layout |
+| Symptom                                                   | Likely cause                                                                                                          |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `PAYLOAD_SECRET must be configured`                       | Set secret or `NODE_ENV=test` for importmap                                                                           |
+| `.env.local` still points at hosted DB during local setup | Run `bun run cms:local:reset -- --force-env` to rewrite local CMS values                                              |
+| Import map wrong paths                                    | Re-run `cms:importmap` + check postprocess script                                                                     |
+| 404 on public CMS                                         | Tenant not resolved or no published doc                                                                               |
+| Wizard POST 403                                           | Not staff / wrong session                                                                                             |
+| `verify:data-boundary` fails                              | Direct `@asym/database` import in `app/api`                                                                           |
+| Nested `<html>` / hydration warning                       | `(payload)/layout.tsx` must embed Payload `RootProvider`; do not use Payload `RootLayout` under the admin root layout |

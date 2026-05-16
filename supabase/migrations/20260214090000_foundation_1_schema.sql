@@ -195,6 +195,8 @@ ALTER TABLE public.notification_queue
 
 -- Prevent a race where new rows with NULL recipient_donor_id are inserted
 -- between backfill/cleanup and SET NOT NULL.
+BEGIN;
+
 LOCK TABLE public.notification_queue IN SHARE ROW EXCLUSIVE MODE;
 
 UPDATE public.notification_queue
@@ -266,6 +268,8 @@ WHERE recipient_donor_id IS NULL;
 
 ALTER TABLE public.notification_queue
     ALTER COLUMN recipient_donor_id SET NOT NULL;
+
+COMMIT;
 
 ALTER TABLE public.pledge_charge_attempts
     ADD COLUMN IF NOT EXISTS scheduled_for_date DATE,
@@ -698,4 +702,3 @@ CREATE INDEX IF NOT EXISTS idx_pledge_charge_attempts_donation_id
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_pledge_charge_attempts_tenant_pledge_schedule_attempt
     ON public.pledge_charge_attempts (tenant_id, pledge_id, scheduled_for_date, attempt_number);
-

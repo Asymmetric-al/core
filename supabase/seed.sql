@@ -91,29 +91,98 @@ INSERT INTO auth.users (
   email,
   encrypted_password,
   email_confirmed_at,
+  confirmation_token,
+  recovery_token,
+  email_change_token_new,
+  email_change,
+  last_sign_in_at,
   raw_app_meta_data,
   raw_user_meta_data,
+  is_super_admin,
   created_at,
-  updated_at
+  updated_at,
+  phone_change,
+  phone_change_token,
+  email_change_token_current,
+  email_change_confirm_status,
+  reauthentication_token,
+  is_sso_user,
+  is_anonymous
 )
 VALUES (
   '11111111-1111-1111-1111-111111111111',
-  (SELECT id FROM auth.instances LIMIT 1),
+  '00000000-0000-0000-0000-000000000000',
   'authenticated',
   'authenticated',
   'demo-owner@givehope.test',
   extensions.crypt('demo-password'::text, extensions.gen_salt('bf'::text)),
   '2025-11-01T09:00:00Z'::timestamptz,
+  '',
+  '',
+  '',
+  '',
+  '2025-11-01T09:00:00Z'::timestamptz,
   '{"provider":"email","providers":["email"],"tenant_id":"00000000-0000-0000-0000-000000000001"}'::jsonb,
   '{"first_name":"Jordan","last_name":"Hale","full_name":"Jordan Hale","display_name":"Jordan Hale","role":"admin","avatar_url":"https://images.unsplash.com/photo-1500648767791-00dcc994a43e"}'::jsonb,
+  false,
   '2025-11-01T09:00:00Z'::timestamptz,
-  '2026-02-16T09:00:00Z'::timestamptz
+  '2026-02-16T09:00:00Z'::timestamptz,
+  '',
+  '',
+  '',
+  0,
+  '',
+  false,
+  false
 )
 ON CONFLICT (id) DO UPDATE
 SET
+  instance_id = EXCLUDED.instance_id,
   email = EXCLUDED.email,
+  encrypted_password = EXCLUDED.encrypted_password,
+  email_confirmed_at = EXCLUDED.email_confirmed_at,
+  confirmation_token = EXCLUDED.confirmation_token,
+  recovery_token = EXCLUDED.recovery_token,
+  email_change_token_new = EXCLUDED.email_change_token_new,
+  email_change = EXCLUDED.email_change,
+  last_sign_in_at = EXCLUDED.last_sign_in_at,
   raw_app_meta_data = EXCLUDED.raw_app_meta_data,
   raw_user_meta_data = EXCLUDED.raw_user_meta_data,
+  is_super_admin = EXCLUDED.is_super_admin,
+  updated_at = EXCLUDED.updated_at,
+  phone_change = EXCLUDED.phone_change,
+  phone_change_token = EXCLUDED.phone_change_token,
+  email_change_token_current = EXCLUDED.email_change_token_current,
+  email_change_confirm_status = EXCLUDED.email_change_confirm_status,
+  reauthentication_token = EXCLUDED.reauthentication_token,
+  is_sso_user = EXCLUDED.is_sso_user,
+  is_anonymous = EXCLUDED.is_anonymous;
+
+INSERT INTO auth.identities (
+  id,
+  provider_id,
+  user_id,
+  identity_data,
+  provider,
+  last_sign_in_at,
+  created_at,
+  updated_at
+)
+VALUES (
+  '22222222-2222-2222-2222-222222222222',
+  '11111111-1111-1111-1111-111111111111',
+  '11111111-1111-1111-1111-111111111111',
+  '{"sub":"11111111-1111-1111-1111-111111111111","email":"demo-owner@givehope.test","email_verified":true,"phone_verified":false}'::jsonb,
+  'email',
+  '2025-11-01T09:00:00Z'::timestamptz,
+  '2025-11-01T09:00:00Z'::timestamptz,
+  '2026-02-16T09:00:00Z'::timestamptz
+)
+ON CONFLICT (provider_id, provider) DO UPDATE
+SET
+  user_id = EXCLUDED.user_id,
+  identity_data = EXCLUDED.identity_data,
+  last_sign_in_at = EXCLUDED.last_sign_in_at,
   updated_at = EXCLUDED.updated_at;
 
 -- Trigger-backed profile row (single identity for the whole demo dataset).

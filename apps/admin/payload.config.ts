@@ -117,6 +117,7 @@ export default buildConfig({
     Media,
   ],
   db: postgresAdapter({
+    push: process.env.PAYLOAD_DISABLE_SCHEMA_PUSH === "1" ? false : undefined,
     schemaName: "cms",
     pool: {
       connectionString: payloadConnectionString,

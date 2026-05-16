@@ -73,6 +73,7 @@ Payload remains authoritative for schema, access, list state, and the document f
   1. host / forwarded host primary-domain match
   2. subdomain slug fallback when the host is not `www` or `localhost`
   3. `?tenant=<slug>` fallback only when the host does not resolve a tenant
+  4. development/test-only loopback fallback from `CMS_LOCAL_DEFAULT_TENANT_SLUG`
 - Public endpoints use explicit tenant + published-only filters.
 
 ## Public rendering flow
