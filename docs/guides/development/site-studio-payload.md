@@ -99,7 +99,7 @@ bun run cms:migrate:status
 bun run cms:importmap
 ```
 
-`cms:importmap` runs Payload generation and post-processes **every** existing Payload import map under `apps/admin/app/(payload)/` — today `web-studio/importMap.js` and, if present, legacy `admin/importMap.js` — for eslint + typed export consistency.
+`cms:importmap` runs Payload generation and post-processes **every** existing Payload import map under `apps/admin/app/(payload)/` — today `web-studio/importMap.js` and, if present, legacy `admin/importMap.js` — for eslint, typed export, and formatting consistency.
 
 ### CMS smoke E2E and native shell
 
@@ -107,7 +107,9 @@ bun run cms:importmap
 
 If you run that spec locally with **`CMS_WEB_STUDIO_NATIVE_PAGES=false`** (or `0`), the native-shell tests **skip** because stock Payload views replace the Mission Control shell for Pages (and the spec targets native-only UI).
 
-**CI / agents:** if `PAYLOAD_SECRET` is missing, run with `NODE_ENV=test` so local dev defaults apply, e.g. `NODE_ENV=test bun run cms:importmap`.
+**CI / agents:** run `bun run cms:importmap` with the repo-root `.env.local`
+available. If you deliberately use `NODE_ENV=test`, export the required public
+Supabase env vars first because Next.js skips `.env.local` in test mode.
 
 ## Design-system alignment checks (Maia + Zinc)
 
@@ -215,18 +217,22 @@ These are guarded by Mission Control auth middleware and require `staff`, `admin
 Each editorial collection can be disabled independently:
 
 ```bash
-CMS_WEB_STUDIO_NATIVE_PAGES=false
-CMS_WEB_STUDIO_NATIVE_NAVIGATION=false
-CMS_WEB_STUDIO_NATIVE_MISSIONARY_PROFILES=false
-CMS_WEB_STUDIO_NATIVE_MINISTRY_UPDATES=false
-CMS_WEB_STUDIO_NATIVE_MEDIA=false
-CMS_WEB_STUDIO_NATIVE_PAGE_TEMPLATES=false
-CMS_WEB_STUDIO_NATIVE_MISSIONARY_GIVING_PAGES=false
-CMS_WEB_STUDIO_NATIVE_PROJECT_PAGES=false
-NODE_ENV=test bun run cms:importmap
+export CMS_WEB_STUDIO_NATIVE_PAGES=false
+export CMS_WEB_STUDIO_NATIVE_NAVIGATION=false
+export CMS_WEB_STUDIO_NATIVE_MISSIONARY_PROFILES=false
+export CMS_WEB_STUDIO_NATIVE_MINISTRY_UPDATES=false
+export CMS_WEB_STUDIO_NATIVE_MEDIA=false
+export CMS_WEB_STUDIO_NATIVE_PAGE_TEMPLATES=false
+export CMS_WEB_STUDIO_NATIVE_MISSIONARY_GIVING_PAGES=false
+export CMS_WEB_STUDIO_NATIVE_PROJECT_PAGES=false
+bun run cms:importmap
 ```
 
 Then redeploy. Disabled collections fall back to stock Payload list/edit views while the rest of Web Studio remains native.
+
+For import-map-only repairs, prefer `bun run cms:importmap` without
+`NODE_ENV=test` so the command sees `.env.local` and the same plugin/env shape as
+local development.
 
 If a deployment must be rolled back:
 

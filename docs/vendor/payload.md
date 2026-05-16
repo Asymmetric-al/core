@@ -50,7 +50,8 @@ git subtree pull --prefix=vendor/payload-upstream payload-upstream v3.78.0 --squ
 
 ## Import map regeneration
 
-When admin component overrides change, regenerate Payload import mappings:
+When admin component overrides, Payload admin views, editor features, or plugins
+with admin client components change, regenerate Payload import mappings:
 
 ```bash
 bun run cms:importmap
@@ -59,11 +60,16 @@ bun run cms:importmap
 The command:
 
 1. runs `payload generate:importmap`
-2. post-processes the generated output to keep lint/type compatibility stable
+2. post-processes and formats the generated output to keep lint/type compatibility stable
 
 Generated file location:
 
-- `apps/admin/app/(payload)/admin/importMap.js`
+- `apps/admin/app/(payload)/web-studio/importMap.js`
+
+Production guardrail: a stale import map can boot the route but leave
+`/web-studio` blank if a plugin-provided client component is missing. The
+`@payloadcms/storage-vercel-blob` upload handler is covered by
+`tests/unit/cms/payload-import-map.test.ts`.
 
 ## CI migration order
 

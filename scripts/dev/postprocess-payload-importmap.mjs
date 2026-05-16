@@ -1,6 +1,8 @@
 import { access, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
+import prettier from "prettier";
+
 /**
  * Payload may emit an import map under `web-studio/` (current) or `admin/` (legacy).
  * Long-term we ship a single canonical map per admin app; post-process every file
@@ -52,9 +54,14 @@ async function postProcessFile(importMapPath) {
   const current = await readFile(importMapPath, "utf8");
   const withHeader = ensureLintHeader(current);
   const withTypedExport = ensureTypedExport(withHeader);
+  const prettierConfig = (await prettier.resolveConfig(importMapPath)) ?? {};
+  const formatted = await prettier.format(withTypedExport, {
+    ...prettierConfig,
+    filepath: importMapPath,
+  });
 
-  if (withTypedExport !== current) {
-    await writeFile(importMapPath, withTypedExport, "utf8");
+  if (formatted !== current) {
+    await writeFile(importMapPath, formatted, "utf8");
     console.log(`Post-processed Payload import map at ${importMapPath}`);
   } else {
     console.log(`Payload import map already post-processed: ${importMapPath}`);

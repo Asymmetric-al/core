@@ -42,6 +42,7 @@ import { Header as Header_f8a8df1408c7374206a6393fbb1e2413 } from "../../../src/
 import { Icon as Icon_3e1d8f39fad9bddd5123caa2cad407ff } from "../../../src/cms-ui/brand/Icon.tsx";
 import { Logo as Logo_37789914a9261410f4d39d03c1022d2c } from "../../../src/cms-ui/brand/Logo.tsx";
 import { Nav as Nav_9db371ba9624687ac38a56dac5ca6a99 } from "../../../src/cms-ui/root/Nav.tsx";
+import { VercelBlobClientUploadHandler as VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e } from "@payloadcms/storage-vercel-blob/client";
 import { TemplateGalleryView as TemplateGalleryView_768d43e7a4e2dc95766864a09f585d0f } from "../../../src/cms-ui/web-studio/flows/TemplateGalleryView.tsx";
 import { MissionariesHubView as MissionariesHubView_649f31520254a31e388b194848dba548 } from "../../../src/cms-ui/web-studio/flows/MissionariesHubView.tsx";
 import { MissionaryGivingCreateView as MissionaryGivingCreateView_542909ad000c3c81038dd240f9785f00 } from "../../../src/cms-ui/web-studio/flows/MissionaryGivingCreateView.tsx";
@@ -135,6 +136,8 @@ export const importMap = {
   "/src/cms-ui/brand/Icon.tsx#Icon": Icon_3e1d8f39fad9bddd5123caa2cad407ff,
   "/src/cms-ui/brand/Logo.tsx#Logo": Logo_37789914a9261410f4d39d03c1022d2c,
   "/src/cms-ui/root/Nav.tsx#Nav": Nav_9db371ba9624687ac38a56dac5ca6a99,
+  "@payloadcms/storage-vercel-blob/client#VercelBlobClientUploadHandler":
+    VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e,
   "/src/cms-ui/web-studio/flows/TemplateGalleryView.tsx#TemplateGalleryView":
     TemplateGalleryView_768d43e7a4e2dc95766864a09f585d0f,
   "/src/cms-ui/web-studio/flows/MissionariesHubView.tsx#MissionariesHubView":

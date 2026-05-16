@@ -66,10 +66,14 @@ bun run cms:local:bootstrap
 After changing Payload component paths or `payload.config.ts` admin components:
 
 ```bash
-NODE_ENV=test bun run cms:importmap
+bun run cms:importmap
 ```
 
-`NODE_ENV=test` avoids missing `PAYLOAD_SECRET` in agents. Output: `apps/admin/app/(payload)/web-studio/importMap.js` (post-processed by `scripts/dev/postprocess-payload-importmap.mjs`).
+The command loads the repo-root `.env.local`, runs Payload generation, and writes
+`apps/admin/app/(payload)/web-studio/importMap.js` (post-processed by
+`scripts/dev/postprocess-payload-importmap.mjs`). Do not set `NODE_ENV=test` for
+the normal import-map workflow unless you also export the required public
+Supabase env vars; Next.js intentionally skips `.env.local` in test mode.
 
 ---
 
@@ -107,7 +111,7 @@ Unauthenticated visit to `/web-studio` should redirect to login.
 
 | Command                                                                         | When                                                      |
 | ------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `NODE_ENV=test bun run cms:importmap`                                           | After component path changes                              |
+| `bun run cms:importmap`                                                         | After component path, Payload plugin, or admin UI changes |
 | `bun run lint:admin`                                                            | Before PR                                                 |
 | `bun run typecheck:admin`                                                       | Before PR                                                 |
 | `bun run test:unit:cms`                                                         | CMS unit tests                                            |
@@ -130,6 +134,13 @@ Unauthenticated visit to `/web-studio` should redirect to login.
 ### Production Web Studio load failure
 
 **Symptom:** `/web-studio` redirects through login correctly, then shows the global "Something went wrong" page or the Web Studio database configuration screen. Vercel logs may include `cannot connect to Postgres`, `getaddrinfo ENOTFOUND db.<ref>.supabase.co`, `payloadInitError`, or `unhandledRejection: reason was undefined`.
+
+**Blank screen variant:** if `/web-studio` loads a white screen and Vercel logs
+contain `getFromImportMap: PayloadComponent not found`, the generated Payload
+import map is stale for the current `payload.config.ts` or plugin set. Run
+`bun run cms:importmap`, commit
+`apps/admin/app/(payload)/web-studio/importMap.js`, and run
+`bun run test:unit:cms` before redeploying.
 
 **Cause:** Payload initializes before Web Studio renders. In protected Vercel deployments, Payload must not use Supabase's direct `db.<ref>.supabase.co` database host because that host is often IPv6-only and Vercel functions cannot reliably resolve or reach it.
 
