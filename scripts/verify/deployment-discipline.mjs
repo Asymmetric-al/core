@@ -115,6 +115,21 @@ function contextNames(protection) {
   return Array.isArray(contexts) ? contexts : [];
 }
 
+function deploymentEnvironmentNames({ protection, branchRule }) {
+  if (Array.isArray(branchRule?.requiredDeploymentEnvironments)) {
+    return branchRule.requiredDeploymentEnvironments;
+  }
+
+  const environments = protection?.required_deployments?.environments;
+  if (Array.isArray(environments)) {
+    return environments
+      .map((environment) => environment?.name)
+      .filter((name) => typeof name === "string");
+  }
+
+  return [];
+}
+
 export function validateGitHubBranchProtection({
   branch,
   protection,
@@ -123,10 +138,18 @@ export function validateGitHubBranchProtection({
 }) {
   const checks = [];
   const contexts = contextNames(protection);
+  const requiredDeploymentEnvironments = deploymentEnvironmentNames({
+    protection,
+    branchRule,
+  });
   const forcePushesAllowed =
     typeof branchRule?.allowsForcePushes === "boolean"
       ? branchRule.allowsForcePushes
       : protection?.allow_force_pushes?.enabled;
+  const requiresDeployments =
+    typeof branchRule?.requiresDeployments === "boolean"
+      ? branchRule.requiresDeployments
+      : requiredDeploymentEnvironments.length > 0;
 
   requireCheck(
     checks,
@@ -157,6 +180,13 @@ export function validateGitHubBranchProtection({
     typeof reviewCount === "number" && reviewCount >= 1,
     `${branch} keeps review discipline`,
     `required_approving_review_count=${reviewCount ?? "unknown"}`,
+  );
+  requireCheck(
+    checks,
+    requiresDeployments === false &&
+      requiredDeploymentEnvironments.length === 0,
+    `${branch} does not require disabled Vercel Preview deployments`,
+    requiredDeploymentEnvironments.join(", ") || "requiresDeployments=false",
   );
 
   return checks;
@@ -252,7 +282,7 @@ function readGitHubBranchProtectionRule(repo, branch) {
     "-f",
     `name=${name}`,
     "-f",
-    "query=query($owner:String!, $name:String!) { repository(owner:$owner, name:$name) { branchProtectionRules(first: 50) { nodes { pattern allowsForcePushes } } } }",
+    "query=query($owner:String!, $name:String!) { repository(owner:$owner, name:$name) { branchProtectionRules(first: 50) { nodes { pattern allowsForcePushes requiresDeployments requiredDeploymentEnvironments } } } }",
   ]);
   const parsed = parseJson(output);
   const rules = parsed?.data?.repository?.branchProtectionRules?.nodes ?? [];

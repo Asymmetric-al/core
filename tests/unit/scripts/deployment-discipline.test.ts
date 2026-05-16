@@ -58,6 +58,8 @@ const branchProtection = {
 
 const branchProtectionRule = {
   allowsForcePushes: false,
+  requiresDeployments: false,
+  requiredDeploymentEnvironments: [],
 };
 
 const vercelSettings = {
@@ -150,6 +152,29 @@ describe("deployment discipline verifier", () => {
         "epic requires ci-gate",
         "epic requires integration-gate",
         "epic requires e2e-gate",
+      ]),
+    );
+  });
+
+  it("detects required deployments for disabled Vercel Preview environments", () => {
+    const checks = validateGitHubBranchProtection({
+      branch: "develop",
+      protection: branchProtection,
+      branchRule: {
+        ...branchProtectionRule,
+        requiresDeployments: true,
+        requiredDeploymentEnvironments: [
+          "Preview – admin",
+          "Preview – donor",
+          "Preview – missionary",
+        ],
+      },
+      requiredContexts: ["ci-gate", "integration-gate"],
+    });
+
+    expect(checks.filter((item) => !item.ok).map((item) => item.label)).toEqual(
+      expect.arrayContaining([
+        "develop does not require disabled Vercel Preview deployments",
       ]),
     );
   });
