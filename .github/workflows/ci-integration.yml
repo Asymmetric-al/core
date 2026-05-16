@@ -2,9 +2,9 @@ name: CI Integration
 
 on:
   pull_request:
-    branches: [develop, main]
+    branches: [develop, epic]
   push:
-    branches: [develop, main]
+    branches: [develop, epic]
 
 permissions:
   contents: read
@@ -241,13 +241,13 @@ jobs:
   e2e-gate:
     if: >
       always() && (
-        (github.event_name == 'pull_request' && github.base_ref == 'main') ||
-        (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        (github.event_name == 'pull_request' && github.base_ref == 'epic') ||
+        (github.event_name == 'push' && github.ref == 'refs/heads/epic')
       )
     needs: [test-e2e]
     runs-on: ubuntu-latest
     steps:
-      - name: Fail if E2E failed on main
+      - name: Fail if E2E failed on epic
         run: |
           echo "test-e2e: ${{ needs['test-e2e'].result }}"
 

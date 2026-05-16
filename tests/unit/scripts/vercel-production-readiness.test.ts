@@ -160,13 +160,60 @@ export RESEND_API_KEY='re_hidden'
           git: {
             deploymentEnabled: {
               "*": false,
-              main: true,
+              develop: true,
+              epic: true,
+              main: false,
+            },
+          },
+        },
+        "epic",
+      ),
+    ).toBe(true);
+    expect(
+      isBranchDeploymentEnabled(
+        {
+          git: {
+            deploymentEnabled: {
+              "*": false,
+              develop: true,
+              epic: true,
+              main: false,
+            },
+          },
+        },
+        "develop",
+      ),
+    ).toBe(true);
+    expect(
+      isBranchDeploymentEnabled(
+        {
+          git: {
+            deploymentEnabled: {
+              "*": false,
+              develop: true,
+              epic: true,
+              main: false,
             },
           },
         },
         "main",
       ),
-    ).toBe(true);
+    ).toBe(false);
+    expect(
+      isBranchDeploymentEnabled(
+        {
+          git: {
+            deploymentEnabled: {
+              "*": false,
+              develop: true,
+              epic: true,
+              main: false,
+            },
+          },
+        },
+        "feature/test",
+      ),
+    ).toBe(false);
   });
 
   it("blocks when env names, target deployment, or health checks are missing", () => {

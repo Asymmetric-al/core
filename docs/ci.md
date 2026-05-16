@@ -2,19 +2,24 @@
 
 ## Overview
 
-Two workflow files run on every PR to `develop`, `main`, and `epic`, and on every push to `main`, `develop`, and `epic`:
+Two workflow files run on every PR to `develop` and `epic`, and on every push to
+`develop` and `epic`:
 
-| Workflow          | File                                   | Branches                                  | Jobs                                            | Target time               |
-| ----------------- | -------------------------------------- | ----------------------------------------- | ----------------------------------------------- | ------------------------- |
-| Fast checks       | `.github/workflows/ci.yml`             | PRs + pushes on `develop`, `main`, `epic` | `format → lint → typecheck → build → test-unit` | < 4 min with remote cache |
-| Integration + E2E | `.github/workflows/ci-integration.yml` | PRs + pushes on `develop`, `main`         | `migrate → smoke → test-e2e`                    | ~5 min                    |
+| Workflow          | File                                   | Branches                          | Jobs                                            | Target time               |
+| ----------------- | -------------------------------------- | --------------------------------- | ----------------------------------------------- | ------------------------- |
+| Fast checks       | `.github/workflows/ci.yml`             | PRs + pushes on `develop`, `epic` | `format → lint → typecheck → build → test-unit` | < 4 min with remote cache |
+| Integration + E2E | `.github/workflows/ci-integration.yml` | PRs + pushes on `develop`, `epic` | `migrate → smoke → test-e2e`                    | ~5 min                    |
 
 Current workflow semantics:
 
-- `ci.yml` is the always-on fast gate for the active long-lived branches (`develop`, `main`, `epic`).
-- `ci-integration.yml` is intentionally skipped for `epic`.
+- `ci.yml` is the always-on fast gate for the active long-lived branches (`develop`, `epic`).
+- `ci-integration.yml` runs on the same active long-lived branches.
 - `test-e2e` is **informational on `develop`** (`continue-on-error: true` there).
-- `test-e2e` is **enforced on `main`** through the workflow's `e2e-gate`.
+- `test-e2e` is enforced on `epic` through the workflow's `e2e-gate`, and
+  branch protection must require `ci-gate`, `integration-gate`, and `e2e-gate`
+  before production release PRs can merge.
+- `main` is retired and protected historical history; active workflows do not
+  treat it as staging or production.
 
 ## Local CI parity (pre-push)
 
@@ -46,6 +51,30 @@ GitHub resolves the latest commit to `abiatarprado`. The allowed identities are
 `Blake <blake@risencode.org>` and
 `Blake <116130409+II-ricky-bobby-II@users.noreply.github.com>`.
 
+### Production release guard
+
+Direct pushes to `epic` are blocked by `.husky/pre-push` unless they come from
+the production release command:
+
+```bash
+bun run release:production
+```
+
+The release command checks deployment discipline, Git attribution, local CI
+preflight, and deployment impact before pushing `HEAD` to `origin/epic`.
+Emergency bypasses require an explicit reason:
+
+```bash
+ASYM_PRODUCTION_PUSH_BYPASS_REASON="restore previous production deploy" git push origin HEAD:epic
+```
+
+Run this verifier after deployment-control changes:
+
+```bash
+bun run verify:deployment-discipline
+bun run verify:vercel-build-controls
+```
+
 ### Phase 11 reliability proof
 
 Run these focused checks when a change touches Sentry release wiring,
@@ -53,6 +82,7 @@ release-health monitoring, Vercel deployment controls, or backup/restore proof:
 
 ```bash
 bun run verify:sentry-release
+bun run verify:vercel-build-controls
 bun run verify:vercel-env-inventory
 bun run verify:backup-restore
 ```
@@ -179,7 +209,7 @@ Current coverage caveat: the repo's custom raw V8 fallback provider writes cover
   1. `bun run test:e2e --project=chromium` (core donor suite, excludes `@cms`, `@perf`, `@manual`)
   2. `bun run test:e2e:cms --project=chromium` (CMS/admin suite tagged `@cms`, excludes `@manual`)
      Uploads `playwright-report/` as an artifact on failure (retained 7 days).
-- _Branch behavior:_ On `develop`, this job is informational (`continue-on-error: true`). On `main`, it is enforced by the workflow's `e2e-gate`. This workflow does not run on `epic`.
+- _Branch behavior:_ On `develop`, this job is informational (`continue-on-error: true`). On `epic`, `e2e-gate` converts this job into a required production-bound signal.
 - _Debug locally:_ Run `bun run test:e2e:auth-preflight` first, then `bun run test:e2e` (core suite), `bun run test:e2e:cms` (CMS/admin suite), `bun run test:e2e:strict` (core strict env), `bun run test:e2e:cms:strict` (CMS strict env), `bun run test:perf` (perf-only suites), or `bun run test:e2e --project=chromium` (Chromium only). Use `bun run test:e2e:ui` for interactive debugging.
 
 ---
@@ -188,30 +218,21 @@ Current coverage caveat: the repo's custom raw V8 fallback provider writes cover
 
 The workflow files are the source of truth for execution. Branch protection should mirror the behavior you want to enforce in GitHub.
 
-### Recommended baseline checks
+### Required checks by branch
 
-These are the fast checks that match the repository's default "must stay green" contract:
-
-- `CI / format`
-- `CI / lint`
-- `CI / typecheck`
-- `CI / build`
-- `CI / test-unit`
-
-### Integration checks by branch
-
-- `develop`: `CI Integration / migrate` and `CI Integration / smoke` run; `CI Integration / test-e2e` is visible but intentionally non-blocking.
-- `main`: `CI Integration / migrate`, `CI Integration / smoke`, and the workflow's `CI Integration / e2e-gate` represent the enforced path.
-- `epic`: only `ci.yml` runs; `ci-integration.yml` does not trigger.
+- `develop`: `ci-gate` and `integration-gate` are enforced; `CI Integration / test-e2e` is visible but intentionally non-blocking.
+- `epic`: `ci-gate`, `integration-gate`, and `e2e-gate` are enforced; production release is handled by `bun run release:production`.
+- `main`: retired/protected historical branch only; do not treat it as production or staging in this repo.
 
 ### GitHub branch rule guidance
 
 1. Go to _Settings → Branches → Branch protection rules_.
-2. Add a rule for each protected branch you care about (`main`, `develop`, and optionally `epic` if you want fast checks enforced there too).
+2. Keep rules for `epic` and `develop`.
 3. Enable **Require status checks to pass before merging**.
-4. Add the five fast checks listed above everywhere.
-5. For `main`, also consider requiring the integration workflow's gate job so E2E failures cannot be ignored.
-6. For `develop`, leave `CI Integration / test-e2e` optional if you want the current "signal, not blocker" behavior to remain intact.
+4. Require `ci-gate`, `integration-gate`, and `e2e-gate` on `epic`.
+5. Require `ci-gate` and `integration-gate` on `develop`.
+6. Disable force pushes on both branches.
+7. For `develop`, leave `CI Integration / test-e2e` optional if you want the current "signal, not blocker" behavior to remain intact.
 
 ---
 

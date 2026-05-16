@@ -18,11 +18,17 @@ Use this when adding tests, modifying critical flows, or verifying changes.
 
 ## Branch protection (required)
 
-- **Required PR checks:** `CI / format`, `CI / lint`, `CI / typecheck`, `CI / build`, `CI / test-unit`.
-- **Non-blocking informational checks:** `CI / test-e2e (non-blocking)` must **not** be required.
+- **Required PR checks on `epic`:** `ci-gate`, `integration-gate`, and
+  `e2e-gate`.
+- **Required PR checks on `develop`:** `ci-gate` and `integration-gate`.
+- **Non-blocking informational checks:** raw `CI Integration / test-e2e` on
+  `develop` must **not** be required; use the gate jobs as branch protection
+  requirements. `e2e-gate` is production-only and is required for `epic`.
 - **Repo admins:** Settings → Branches → Branch protection rules → Require status checks to pass:
   - Require the checks above.
-  - Do **not** require the E2E check.
+  - Disable force pushes on `epic` and `develop`.
+  - Keep owner emergency bypass available only for urgent production repair
+    after local `bun run ci:preflight`.
 
 See `docs/ci.md` for the full CI gate reference (what each check does, how to debug locally, and how to configure branch protection in GitHub).
 

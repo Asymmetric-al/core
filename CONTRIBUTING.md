@@ -11,7 +11,9 @@ Thanks for contributing to asymmetric.al. We welcome pull requests, bug reports,
 
 ## Development workflow (short)
 
-- **Base branch:** `develop` (open PRs against `develop`; `main` is protected).
+- **Base branches:** use `develop` for staging validation and `epic` only for
+  an intentional production release. `main` is retired/protected historical
+  history and is not an active deploy target.
 - **Package manager:** `bun` (see `package.json#packageManager`).
 - **Conventions:** `docs/conventions.md` (folder structure, code style, and pre-commit checklist).
 - **Setup (macOS/Linux):** `bun run setup` (creates/validates `.env.local`, installs deps, runs verification).

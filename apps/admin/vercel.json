@@ -1,4 +1,14 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "ignoreCommand": "node ../../scripts/vercel/should-ignore-build.mjs admin"
+  "installCommand": "bun install --cwd ../.. --frozen-lockfile",
+  "buildCommand": "cd ../.. && bun run build:admin",
+  "ignoreCommand": "node ../../scripts/vercel/should-ignore-build.mjs admin",
+  "git": {
+    "deploymentEnabled": {
+      "*": false,
+      "develop": true,
+      "epic": true,
+      "main": false
+    }
+  }
 }

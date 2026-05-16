@@ -8,7 +8,7 @@ This document is the canonical reference for how environments are defined and op
 
 | Property      | Local                                | Preview                  | Staging                                                                                          | Production                             |
 | ------------- | ------------------------------------ | ------------------------ | ------------------------------------------------------------------------------------------------ | -------------------------------------- |
-| Trigger       | `bun run dev:*`                      | PR opened/pushed         | Push to `develop`                                                                                | Push/merge to Vercel Production Branch |
+| Trigger       | `bun run dev:*`                      | Disabled by default      | Push to `develop`                                                                                | `bun run release:production` to `epic` |
 | URL           | `localhost:3000`                     | `*.vercel.app`           | `staging-admin.asymmetric.al`, `staging-donor.asymmetric.al`, `staging-missionary.asymmetric.al` | `*.asymmetric.al`                      |
 | Supabase      | `bun run supabase -- start` (Docker) | Shared preview project   | Dedicated staging project                                                                        | Production project                     |
 | Stripe        | Test-mode                            | Test-mode                | Test-mode                                                                                        | Live-mode                              |
@@ -57,33 +57,89 @@ Set the following values in Vercel **Preview** scope for all three projects:
 
 `STRIPE_WEBHOOK_SECRET` is intentionally not set for preview. Preview URLs are ephemeral and do not receive Stripe webhooks; `@asym/env` allows this variable to be omitted when `VERCEL_ENV === "preview"`.
 
-### 4.2 Repo-owned ignored build step
+### 4.2 Layered monorepo build controls
 
-Each Vercel app owns its ignored-build command in `apps/*/vercel.json` so Git
-deployments are path-gated in source control instead of relying on dashboard-only
-settings.
+The three Core Vercel projects use four build-control layers to contain Build
+CPU and on-demand deployment waste without changing runtime behavior or the
+production release branch.
 
-| Vercel project | App root          | `ignoreCommand`                                                |
-| -------------- | ----------------- | -------------------------------------------------------------- |
-| `admin`        | `apps/admin`      | `node ../../scripts/vercel/should-ignore-build.mjs admin`      |
-| `donor`        | `apps/donor`      | `node ../../scripts/vercel/should-ignore-build.mjs donor`      |
-| `missionary`   | `apps/missionary` | `node ../../scripts/vercel/should-ignore-build.mjs missionary` |
+1. **Vercel affected-project deployments:** preferred first layer because
+   Vercel can skip unchanged monorepo projects before they occupy build slots.
+2. **Repo `ignoreCommand`:** source-controlled fallback for docs-only,
+   evidence-only, tests-only, OpenSpec-only, and other non-runtime changes.
+3. **Root Turbo build commands:** app-scoped Vercel builds execute from the
+   monorepo root so Turbo can reuse the workspace graph and remote cache.
+4. **Verifier:** `bun run verify:vercel-build-controls` checks live Vercel
+   settings, Vercel Remote Cache status, app `vercel.json` controls, `.turbo`
+   ignore posture, and the local ignored-build decision matrix.
 
-Vercel runs this command from the app root. The helper returns `0` to skip the
-build and `1` to continue the build, matching Vercel's ignored-build contract.
-It intentionally fails closed: an unknown app name, first commit, missing diff,
-empty diff, or Git diff failure continues the build instead of skipping it.
+Vercel affected-project deployments are enabled on the three Core app projects:
 
-The helper builds only the projects affected by the changed files:
+| Vercel project | Project ID                         | App root          |
+| -------------- | ---------------------------------- | ----------------- |
+| `admin`        | `prj_SB9DucsrJOT0wF1v43SWMFsSNdn8` | `apps/admin`      |
+| `donor`        | `prj_dZG3XkklLVZyqm85FW5Vvv7ph3kL` | `apps/donor`      |
+| `missionary`   | `prj_6tXSJKsdv2JpK70GKkg9HIg5hiYN` | `apps/missionary` |
+
+Verify the Vercel-side gate without printing secrets:
+
+```bash
+bun run verify:vercel-affected-projects
+```
+
+Run the complete build-control verifier before and after deployment-control
+changes:
+
+```bash
+bun run verify:vercel-build-controls
+```
+
+Enable or repair the setting for all three projects:
+
+```bash
+bun run ops:vercel-enable-affected-projects
+```
+
+The enable command captures a sanitized `/tmp/asym-vercel-affected-projects-*`
+snapshot before mutating Vercel, patches only
+`enableAffectedProjectsDeployments: true`, then re-reads the three projects.
+This affected-project operation does not change branch gates, build queue
+behavior, or prebuilt deployment flow; those controls are adjacent deployment
+discipline settings and remain outside this phase.
+
+Each Vercel app also owns its install, build, and ignored-build commands in
+`apps/*/vercel.json`:
+
+| Vercel project | `installCommand`                            | `buildCommand`                         | `ignoreCommand`                                                |
+| -------------- | ------------------------------------------- | -------------------------------------- | -------------------------------------------------------------- |
+| `admin`        | `bun install --cwd ../.. --frozen-lockfile` | `cd ../.. && bun run build:admin`      | `node ../../scripts/vercel/should-ignore-build.mjs admin`      |
+| `donor`        | `bun install --cwd ../.. --frozen-lockfile` | `cd ../.. && bun run build:donor`      | `node ../../scripts/vercel/should-ignore-build.mjs donor`      |
+| `missionary`   | `bun install --cwd ../.. --frozen-lockfile` | `cd ../.. && bun run build:missionary` | `node ../../scripts/vercel/should-ignore-build.mjs missionary` |
+
+Vercel runs `ignoreCommand` from the app root. The helper returns `0` to skip
+the build and `1` to continue the build, matching Vercel's ignored-build
+contract. It intentionally fails closed: an unknown app name, first commit,
+missing diff, empty diff, or Git diff failure continues the build instead of
+skipping it.
+
+Current affected-project scope:
 
 - `apps/admin/**`, `apps/donor/**`, or `apps/missionary/**` builds only the
   matching app.
-- Shared runtime/build inputs build all three apps, including `packages/**`,
+- Shared runtime/build inputs can still build all three apps, including `packages/**`,
   `tooling/**`, `scripts/vercel/**`, `scripts/resolve-monorepo-root.mjs`,
   `package.json`, lockfiles, `turbo.json`, root TypeScript/build config files,
   and `.vercelignore`.
 - Docs, phase evidence, tests, OpenSpec-only text, GitHub workflow-only changes,
-  and other non-runtime files skip all three app builds.
+  and other non-runtime files should be skipped by Vercel's affected-project
+  gate before a build slot is occupied; the ignored-build command remains the
+  fallback layer.
+- Vercel build queue behavior should be `WAIT_FOR_NAMESPACE_QUEUE` on all three
+  projects so bursts serialize at the namespace queue instead of fanning out
+  avoidable concurrent builds.
+- `.turbo` remains ignored in Git and Vercel upload inputs. Do not commit
+  `.turbo/config.json`; Vercel Remote Cache plus `TURBO_TOKEN` / `TURBO_TEAM`
+  remains the shared cache path for Vercel and CI.
 
 Local decision checks can import the helper directly:
 
@@ -91,21 +147,36 @@ Local decision checks can import the helper directly:
 node -e "import('./scripts/vercel/should-ignore-build.mjs').then(({resolveBuildDecision}) => console.log(resolveBuildDecision({app: 'admin', changedFiles: ['docs/ops/environments.md']})))"
 ```
 
+Each app also keeps source-controlled Git deployment branch gates in
+`apps/*/vercel.json`:
+
+- `epic`: production deployments
+- `develop`: staging deployments
+- `main`: explicitly disabled retired history
+- all other branches: no Git deployment creation because `"*": false` closes
+  the default auto-deploy path
+
+The local release guard blocks accidental direct pushes to `epic`; use
+`bun run release:production` for production.
+
 Reserve controls if spend still needs tightening:
 
-- Use Vercel `git.deploymentEnabled` branch gating to disable deployment
-  creation for selected branches.
 - Move to manual release-only deployment with `vercel build` and
   `vercel deploy --prebuilt --prod` after CI passes.
-- Validate a preview deployment once and use `vercel promote` to move it to
-  production without rebuilding.
+- Treat `vercel promote` as a production-domain promotion workflow, not as the
+  first-line Build CPU reducer; current production discipline stays Git-based.
 - Track deploy-related usage with `vercel usage` and the Vercel Usage dashboard.
 
 Official references:
 
+- [Vercel monorepos](https://vercel.com/docs/monorepos)
+- [Vercel project update API](https://vercel.com/docs/rest-api/reference/endpoints/projects/update-an-existing-project)
+- [Vercel Turborepo](https://vercel.com/docs/monorepos/turborepo)
 - [Vercel Git configuration](https://vercel.com/docs/project-configuration/git-configuration)
 - [Vercel `vercel.json` `ignoreCommand`](https://vercel.com/docs/project-configuration/vercel-json)
 - [Vercel CLI](https://vercel.com/docs/cli)
+- [Turborepo remote caching](https://turborepo.dev/docs/core-concepts/remote-caching)
+- [Turborepo CI setup](https://turborepo.dev/docs/guides/ci-vendors)
 
 ## 5. Staging Environment Setup (`develop`)
 
@@ -231,27 +302,67 @@ Use Stripe test-mode endpoints per staging app:
 | Donor      | `https://staging-donor.asymmetric.al/api/webhooks/stripe`      |
 | Missionary | `https://staging-missionary.asymmetric.al/api/webhooks/stripe` |
 
-After creating each endpoint, copy its signing secret into that app's `STRIPE_WEBHOOK_SECRET` in Vercel `staging` scope, then redeploy.
+If the staging domain is protected by Vercel Authentication, Stripe cannot
+reach the endpoint directly. A protected endpoint returns Vercel `401`
+before the Next.js route runs, which Stripe records as a failed delivery.
+
+Preferred protected-staging setup:
+
+1. In the Vercel project for the app, generate a Protection Bypass for
+   Automation secret for staging webhook automation.
+2. In Stripe test mode, configure the endpoint URL with the bypass query
+   parameter:
+
+   ```text
+   https://staging-<app>.asymmetric.al/api/webhooks/stripe?x-vercel-protection-bypass=<VERCEL_AUTOMATION_BYPASS_SECRET>
+   ```
+
+3. Do not add `x-vercel-set-bypass-cookie` to Stripe webhook URLs; Stripe
+   needs a one-request server-to-server bypass, not a browser cookie.
+4. Copy the Stripe endpoint signing secret into that app's
+   `STRIPE_WEBHOOK_SECRET` in Vercel `staging` scope, then redeploy if either
+   the webhook signing secret or the Vercel bypass secret changed.
+5. Verify without exposing secrets:
+
+   ```bash
+   curl -i -X POST "https://staging-<app>.asymmetric.al/api/webhooks/stripe" \
+     -H "content-type: application/json" \
+     --data "{}"
+   ```
+
+   Without a bypass parameter, protected staging should return Vercel `401`.
+   With the bypass parameter and no Stripe signature, the request should reach
+   the app and return JSON `400` with `Missing Stripe signature.` A real Stripe
+   test event should then return `2xx` and appear as delivered in Stripe
+   Workbench.
+
+Alternative: add the staging custom domain as a Vercel Deployment Protection
+Exception. This makes the entire staging domain public, so only use it when
+that exposure is acceptable.
 
 ### 5.6 Staging sync policy and Inngest note
 
 - Staging deploy trigger: push to `develop`.
-- Production deploy trigger: push or merge to the Vercel Production Branch.
-- To refresh staging parity ahead of QA/demo cycles, perform best-effort sync from the Production Branch into `develop` (merge or cherry-pick).
+- Production deploy trigger: `bun run release:production` pushes a verified
+  commit to `epic`, the Vercel Production Branch.
+- `main` is retired/protected historical history; do not sync, merge, or deploy
+  from it for normal work.
+- To refresh staging parity ahead of QA/demo cycles, realign or merge from
+  `epic` into `develop`; staging should start from production truth.
 - Inngest staging is not integrated yet and remains a future placeholder.
 
 ## 5.7 Production Vercel requirements
 
 Production deploys are currently branch-bound to `epic` in all three live Vercel
 projects. This matches GitHub's current default branch for this repository. Do
-not disable `epic` in app-level `vercel.json` while Vercel project settings use
-`epic` as the Production Branch; doing so prevents Vercel from creating the
-intended Production deployments.
+not disable `epic` or `develop` in app-level `vercel.json`; `main` and all
+other Git branches should remain disabled to avoid accidental deployment
+creation.
 
-If the team later migrates Production to `main`, change the Vercel project
-Production Branch for `admin`, `donor`, and `missionary`, ensure `main`
-contains the current `epic` lineage, update this guide, and only then disable
-`epic` deployments.
+If the team later migrates Production away from `epic`, change the Vercel
+project Production Branch for `admin`, `donor`, and `missionary`, ensure the
+new branch contains the current `epic` lineage, update this guide, and only then
+adjust app-level deployment branch gates.
 
 Set these Vercel variables in the **Production** scope before deploying:
 
@@ -422,14 +533,17 @@ sequenceDiagram
     PR->>Vercel: Preview deploy or ignored build (*.vercel.app)
     Note over Vercel: Preview Supabase project
 
-    PR->>Prod: Merge/push approved release to Vercel Production Branch
+    PR->>Develop: Merge/push validated staging work
+    Develop->>Vercel: Staging deploy or ignored build (staging-*.asymmetric.al)
+    Note over Vercel: Staging Supabase project
+
+    PR->>Prod: Merge approved production release to epic
+    Dev->>Prod: Or run bun run release:production from a clean release checkout
     Prod->>Vercel: Production deploy or ignored build (*.asymmetric.al)
     Note over Vercel: Production Supabase project
 
     Note over Prod,Develop: Optional best-effort sync for QA/demos
     Prod->>Develop: Merge/cherry-pick (best effort)
-    Develop->>Vercel: Staging deploy or ignored build (staging-*.asymmetric.al)
-    Note over Vercel: Staging Supabase project
 ```
 
 `develop` may drift from the Production Branch; best-effort sync is performed

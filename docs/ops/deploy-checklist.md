@@ -1,24 +1,42 @@
 # Deploy Checklist
 
 Use this checklist for production deploys to the current Vercel Production
-Branch. As of 2026-05-10, all three live Vercel projects (`admin`, `donor`, and
-`missionary`) use `epic` as the Production Branch. If a release also affects
-staging validation, run the same checks against `develop` after deploy.
+Branch. As of 2026-05-16, all three live Vercel projects (`admin`, `donor`, and
+`missionary`) use `epic` as the Production Branch. The normal production path is
+`bun run release:production`; see [Production Release Guide](./production-release.md).
+If a release also affects staging validation, run the same checks against
+`develop` before production. `main` is retired/protected historical history and
+is not a deploy target.
 
 ## 1. Pre-deploy
 
 - [ ] CI checks pass (`lint`, `typecheck`, `unit tests`)
+- [ ] Deployment discipline verifier passes:
+      `bun run verify:deployment-discipline`
+- [ ] Monorepo build-control verifier passes:
+      `bun run verify:vercel-build-controls`
+- [ ] GitHub branch protection requires `ci-gate` on `epic`; `ci-gate` and
+      `integration-gate` on `develop`
 - [ ] Migrations reviewed (additive-only, or expand-then-contract followed)
 - [ ] Migrations tested on staging first
 - [ ] Vercel project Production Branch matches the intended release branch for all 3 projects
-- [ ] The app-level `vercel.json` files do not disable that Production Branch
+- [ ] The app-level `vercel.json` files allow only `epic` and `develop` Git
+      deployments
 - [ ] The app-level `vercel.json` files keep the repo-owned ignored-build
       commands:
   - `apps/admin`: `node ../../scripts/vercel/should-ignore-build.mjs admin`
   - `apps/donor`: `node ../../scripts/vercel/should-ignore-build.mjs donor`
   - `apps/missionary`: `node ../../scripts/vercel/should-ignore-build.mjs missionary`
+- [ ] Vercel affected-project deployments are enabled for `admin`, `donor`,
+      and `missionary`: `bun run verify:vercel-affected-projects`
+- [ ] The app-level `vercel.json` files keep root Turbo build commands:
+  - `apps/admin`: `cd ../.. && bun run build:admin`
+  - `apps/donor`: `cd ../.. && bun run build:donor`
+  - `apps/missionary`: `cd ../.. && bun run build:missionary`
+- [ ] Vercel build queue behavior is `WAIT_FOR_NAMESPACE_QUEUE` for `admin`,
+      `donor`, and `missionary`
 - [ ] If the release is docs/evidence/tests/ops-only, expect Vercel ignored
-      builds instead of three production builds
+      or affected-project skips instead of three production builds
 - [ ] New env vars added to all 3 Vercel projects in Production scope
 - [ ] Env var names inventoried without values:
       `bun run verify:vercel-env-inventory`
@@ -43,7 +61,8 @@ staging validation, run the same checks against `develop` after deploy.
 
 ## 2. Deploy
 
-- [ ] Merge or push the approved release commit to the current Vercel Production Branch
+- [ ] Run the release command from a clean `develop` or `epic` checkout:
+      `bun run release:production`
 - [ ] Monitor Vercel build or ignored-build status for all 3 projects:
   - `donor`
   - `missionary`

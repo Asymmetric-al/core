@@ -25,10 +25,8 @@ The repo uses gate jobs as merge controls. Gate jobs are summary checks that fai
 - `develop` requires:
   - `ci-gate`
   - `integration-gate`
-- `main` requires:
-  - `ci-gate`
-  - `integration-gate`
-  - `e2e-gate`
+- `main` is retired/protected historical history and is not an active PR or
+  deploy target.
 
 ## What Each Gate Covers
 
@@ -42,7 +40,10 @@ The repo uses gate jobs as merge controls. Gate jobs are summary checks that fai
   - `migrate` (DB migrations + seed verification)
   - `smoke` (app boot + health check)
 - `e2e-gate` covers:
-  - `test-e2e` on `main` only
+  - `test-e2e` when the integration workflow runs against production-bound
+    refs
+  - It is not part of the required `epic` branch-protection contract unless the
+    release policy is deliberately tightened later
   - On `develop`, E2E remains informational (non-blocking)
 
 ## Contributor PR Checklist
@@ -51,7 +52,8 @@ The repo uses gate jobs as merge controls. Gate jobs are summary checks that fai
   - `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
 - If your change affects user flows, also run:
   - `bun run test:e2e`
-- Confirm branch target is correct (`epic`, `develop`, or `main`).
+- Confirm branch target is correct: `develop` for staging validation, `epic`
+  only for an intentional production release, and never `main`.
 
 ## Changing Ownership
 

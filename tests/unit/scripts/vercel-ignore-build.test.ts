@@ -42,6 +42,22 @@ describe("Vercel ignored-build helper", () => {
     });
   });
 
+  it("builds only donor for donor app changes", () => {
+    expect(buildMatrix(["apps/donor/app/page.tsx"])).toEqual({
+      admin: false,
+      donor: true,
+      missionary: false,
+    });
+  });
+
+  it("builds only missionary for missionary app changes", () => {
+    expect(buildMatrix(["apps/missionary/app/page.tsx"])).toEqual({
+      admin: false,
+      donor: false,
+      missionary: true,
+    });
+  });
+
   it("builds all apps for shared packages and lockfile or build config changes", () => {
     for (const changedFile of [
       "packages/api/src/profile/queries.ts",

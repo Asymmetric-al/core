@@ -98,16 +98,45 @@ Official reference:
 
 ## Deployment Cost And Reliability Control
 
-The app-level `vercel.json` files own the ignored-build command for each Vercel
-project:
+Vercel affected-project deployments are the first monorepo spend-control gate
+for the three Core app projects. Verify the live project setting with:
+
+```bash
+bun run verify:vercel-affected-projects
+```
+
+Use the full build-control verifier when changing Vercel build controls:
+
+```bash
+bun run verify:vercel-build-controls
+```
+
+The app-level `vercel.json` files still own the ignored-build command for each
+Vercel project as the source-controlled fallback:
 
 - `apps/admin/vercel.json`: `node ../../scripts/vercel/should-ignore-build.mjs admin`
 - `apps/donor/vercel.json`: `node ../../scripts/vercel/should-ignore-build.mjs donor`
 - `apps/missionary/vercel.json`: `node ../../scripts/vercel/should-ignore-build.mjs missionary`
 
-The helper skips docs, tests, phase evidence, OpenSpec-only text, and other
-non-runtime changes while failing closed for unknown apps, missing diffs, empty
-diffs, or Git errors. Shared runtime inputs still build all three apps.
+The affected-project gate should skip unchanged projects before they occupy a
+Vercel build slot. The helper skips docs, tests, phase evidence, OpenSpec-only
+text, and other non-runtime changes while failing closed for unknown apps,
+missing diffs, empty diffs, or Git errors. Shared runtime inputs still build all
+affected apps.
+
+The same `vercel.json` files also pin Vercel builds to root Turbo scripts:
+
+- `apps/admin/vercel.json`: `cd ../.. && bun run build:admin`
+- `apps/donor/vercel.json`: `cd ../.. && bun run build:donor`
+- `apps/missionary/vercel.json`: `cd ../.. && bun run build:missionary`
+
+Those commands keep each project app-scoped while letting Turbo reuse the
+monorepo task graph and Vercel Remote Cache.
+
+The app-level branch gate allows only `epic` and `develop` Git deployments,
+explicitly disables retired `main`, and closes all other branches with
+`"*": false`. Vercel project settings should also keep Preview Deployments
+disabled and set build queue behavior to `WAIT_FOR_NAMESPACE_QUEUE`.
 
 ## Checklist
 
@@ -117,7 +146,9 @@ diffs, or Git errors. Shared runtime inputs still build all three apps.
 - [ ] `/api/health` returned release metadata for all three apps or the
       production readiness report documented legacy `unknown` releases.
 - [ ] Backup/restore proof ran against isolated disposable targets only.
-- [ ] Vercel ignored-build behavior was tested if deployment controls changed.
+- [ ] Vercel affected-project status, Remote Cache status, root Turbo build
+      commands, build queue behavior, branch gates, and ignored-build behavior
+      were tested if deployment controls changed.
 - [ ] `docs/ci.md`, `docs/ops/deploy-checklist.md`,
       `docs/ops/environments.md`, and `docs/env-var-audit.md` match the
       implemented gate.

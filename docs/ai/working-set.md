@@ -1,5 +1,50 @@
 # Working Set
 
+## 2026-05-16 (Monorepo Vercel build controls)
+
+- Date: 2026-05-16
+- Repo: Asymmetric-al/core
+- Goal: Implement monorepo build controls for the three Vercel app projects so
+  affected-project skipping, repo ignored-build fallback, root Turbo build
+  commands, Remote Cache verification, and deployment docs reduce unnecessary
+  Build CPU without changing runtime behavior.
+- Primary area:
+  - `apps/{admin,donor,missionary}/vercel.json`
+  - `scripts/vercel/**`
+  - `scripts/verify/**`
+  - `tests/unit/scripts/**vercel**`
+  - `docs/ops/{environments,deploy-checklist,scale-observability-reliability}.md`
+  - `docs/ci.md`
+  - `package.json`
+- Stack:
+  - Vercel
+  - Turborepo
+  - Next.js 16 App Router
+  - TypeScript
+  - Bun
+  - Vitest
+- Constraints:
+  - Preserve existing Vercel root directories, project names, domains, env vars,
+    Git provider settings, production release flow, and branch strategy.
+  - Keep `ignoreCommand` as a fallback after enabling Vercel affected-project
+    deployments.
+  - Do not commit `.turbo/config.json`; `.turbo` remains ignored.
+  - Do not add CI `--affected` pruning, manual prebuilt deployment, or broad
+    Turborepo architecture cleanup in this slice.
+  - Nia tools are unavailable in this session; use repo-scoped `rg`, direct file
+    reads, Vercel project API reads/patches, official Vercel docs, and bundled
+    Next.js docs.
+- Evidence sources used:
+  - User-provided Monorepo Build Controls Spend-Containment Plan
+  - `AGENTS.md`
+  - `docs/ai/{working-set,stack-registry}.md`
+  - `docs/ai/rules/{general,testing}.md`
+  - `docs/ai/skills/repo-entry/SKILL.md`
+  - Vercel docs search for monorepos, project update API, `vercel.json`, and
+    Turborepo Remote Cache
+  - `node_modules/next/dist/docs/01-app/01-getting-started/17-deploying.md`
+  - `node_modules/next/dist/docs/01-app/02-guides/ci-build-caching.md`
+
 ## 2026-05-16 (Admin Web Studio navigation error)
 
 - Date: 2026-05-16
@@ -2447,3 +2492,31 @@
   - `rg` scans for TanStack usage in `packages/database` and `packages/ui`
 - Notes:
   - `tanstack search-docs` currently fails in this environment (`fetch failed`), so docs verification uses direct official URLs + npm registry checks.
+
+## 2026-05-16 (Production deployment discipline automation)
+
+- Date: 2026-05-16
+- Repo: Asymmetric-al/core
+- Goal: Implement hard-gated production deployment discipline for Vercel spend containment.
+- Primary area:
+  - `scripts/verify/*`
+  - `scripts/git/*`
+  - `scripts/release/*`
+  - `apps/*/vercel.json`
+  - `.husky/pre-push`
+  - `docs/ops/*`
+- Constraints:
+  - Preserve `epic` as the production branch; another Codex session owns default-branch migration state.
+  - Keep `docs/ops/environments.md` pre-existing staging webhook edits intact.
+  - Prefer source-controlled gates, local release command, GitHub branch protection, and Vercel project settings over operator memory.
+  - Nia MCP is unavailable in-session; use repo-scoped `rg`, direct file reads, GitHub CLI, and Vercel CLI/API.
+- Stack:
+  - GitHub Actions
+  - Vercel
+  - Turborepo
+  - Bun
+  - Node.js
+  - Vitest
+- Notes:
+  - Current GitHub default branch is already `epic`.
+  - Existing `ci:preflight`, `verify:git-attribution`, Vercel production readiness, and ignored-build helper should be reused instead of duplicated.
