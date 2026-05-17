@@ -214,6 +214,26 @@ const webServer = isRemoteBaseUrl
 const donorAuthState = path.join(__dirname, ".auth", "donor.json");
 const adminAuthState = path.join(__dirname, ".auth", "admin.json");
 
+const donorProjectTestIgnore = [
+  "**/admin-*.spec.ts",
+  "**/auth-demo-admin.spec.ts",
+  "**/auth-login-screen-admin.spec.ts",
+  "**/auth-demo-missionary.spec.ts",
+  "**/auth-login-screen-missionary.spec.ts",
+  "**/boneyard-smoke.spec.ts",
+  "**/support-hub.smoke.spec.ts",
+  ...(process.env.CMS_LOCAL_STRICT === "1"
+    ? []
+    : ["**/cms-local-happy-path.spec.ts"]),
+];
+
+const defaultProjectTestIgnore = [
+  ...donorProjectTestIgnore,
+  "**/upload-crop.spec.ts",
+  "**/donor-giving-history.spec.ts",
+  "**/mc-contributions-live-query.spec.ts",
+];
+
 export default defineConfig({
   globalSetup: path.join(__dirname, "tests", "e2e", "global-setup.ts"),
   testDir: "./tests/e2e",
@@ -239,20 +259,12 @@ export default defineConfig({
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
-      testIgnore: [
-        "**/upload-crop.spec.ts",
-        "**/donor-giving-history.spec.ts",
-        "**/mc-contributions-live-query.spec.ts",
-      ],
+      testIgnore: defaultProjectTestIgnore,
     },
     {
       name: "mobile-chrome",
       use: { ...devices["Pixel 5"] },
-      testIgnore: [
-        "**/upload-crop.spec.ts",
-        "**/donor-giving-history.spec.ts",
-        "**/mc-contributions-live-query.spec.ts",
-      ],
+      testIgnore: defaultProjectTestIgnore,
     },
     {
       name: "chromium-donor",

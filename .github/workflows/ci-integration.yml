@@ -195,6 +195,15 @@ jobs:
           CI: "1"
           PLAYWRIGHT_BONEYARD_TARGET: "missionary"
         run: bun run test:e2e:boneyard:missionary
+      - name: Missionary auth smoke
+        env:
+          CI: "1"
+        run: >-
+          node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test
+          -c playwright.missionary.config.ts
+          tests/e2e/auth-demo-missionary.spec.ts
+          tests/e2e/auth-login-screen-missionary.spec.ts
+          --project=missionary-boneyard
       - name: Boneyard smoke (donor app)
         env:
           CI: "1"
