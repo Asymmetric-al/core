@@ -63,10 +63,10 @@ function compareDonors(a: Donor, b: Donor, sortBy: SortOption): number {
       const dateB = b.last_gift_date
         ? makeDisplayDate(b.last_gift_date).getTime()
         : 0;
-      return dateB - dateA;
+      return dateA - dateB;
     }
     case "total_given":
-      return (b.total_given || 0) - (a.total_given || 0);
+      return (a.total_given || 0) - (b.total_given || 0);
     case "joined_date": {
       const joinA = a.joined_date
         ? makeDisplayDate(a.joined_date).getTime()
@@ -74,7 +74,7 @@ function compareDonors(a: Donor, b: Donor, sortBy: SortOption): number {
       const joinB = b.joined_date
         ? makeDisplayDate(b.joined_date).getTime()
         : 0;
-      return joinB - joinA;
+      return joinA - joinB;
     }
   }
 }
@@ -83,7 +83,7 @@ export function filterAndSortDonors(
   donors: Donor[],
   filters: DonorListFilters,
 ): Donor[] {
-  const normalizedSearchTerm = filters.searchTerm.toLowerCase();
+  const normalizedSearchTerm = filters.searchTerm.trim().toLowerCase();
 
   return donors
     .filter((donor) => {
@@ -100,6 +100,6 @@ export function filterAndSortDonors(
     })
     .sort((a, b) => {
       const comparison = compareDonors(a, b, filters.sortBy);
-      return filters.sortAsc ? -comparison : comparison;
+      return filters.sortAsc ? comparison : -comparison;
     });
 }
