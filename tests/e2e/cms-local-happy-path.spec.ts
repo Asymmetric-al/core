@@ -97,7 +97,7 @@ async function findPayloadDoc<T extends DocWithId>(
   return body.docs![0];
 }
 
-test.describe("strict local CMS happy path", () => {
+test.describe("@cms-local strict local CMS happy path", () => {
   test("redirects unauthenticated Web Studio users to Mission Control login", async ({
     page,
   }) => {

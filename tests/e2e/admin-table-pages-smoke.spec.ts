@@ -12,10 +12,18 @@ async function ensureAdminDemo(page: Page) {
   const roles = getDemoRoleMap(await availability.json()) ?? {};
   test.skip(!roles.admin, "Admin demo account is not configured.");
 
-  const { ok, status } = await installDemoSessionInBrowser(page, "admin");
+  const { ok, status } = await installDemoSessionInBrowser(
+    page,
+    "admin",
+    adminBaseURL,
+  );
   if (!ok) {
     test.skip(true, `Demo admin session install failed (${status})`);
   }
+}
+
+function adminPath(path: string): string {
+  return new URL(path, adminBaseURL).toString();
 }
 
 async function ensureSupportHubDatabase(page: Page) {
@@ -84,7 +92,7 @@ test.describe("Admin table pages smoke", () => {
       page,
     }) => {
       await ensureAdminDemo(page);
-      await page.goto(path);
+      await page.goto(adminPath(path));
       await page.waitForLoadState("domcontentloaded");
 
       await expect(page.locator("#__next_error__")).toHaveCount(0);
@@ -98,7 +106,7 @@ test.describe("Admin table pages smoke", () => {
         page,
       }) => {
         await ensureAdminDemo(page);
-        await page.goto(path);
+        await page.goto(adminPath(path));
         await page.waitForLoadState("domcontentloaded");
 
         await expect(page.locator("#__next_error__")).toHaveCount(0);
@@ -122,7 +130,7 @@ test.describe("Admin table pages smoke", () => {
       page,
     }) => {
       await ensureAdminDemo(page);
-      await page.goto("/crm");
+      await page.goto(adminPath("/crm"));
       await page.waitForLoadState("domcontentloaded");
       await expect(page.locator("#__next_error__")).toHaveCount(0);
 
@@ -142,7 +150,7 @@ test.describe("Admin table pages smoke", () => {
 
     test("pagination advances and returns across pages", async ({ page }) => {
       await ensureAdminDemo(page);
-      await page.goto("/crm");
+      await page.goto(adminPath("/crm"));
       await page.waitForLoadState("domcontentloaded");
 
       await expect(page.getByText("Page 1 of 2")).toBeVisible();
@@ -178,7 +186,7 @@ test.describe("Admin table pages smoke", () => {
         if (path === "/support" || path === "/support/tickets") {
           await ensureSupportHubDatabase(page);
         }
-        await page.goto(path);
+        await page.goto(adminPath(path));
         await page.waitForLoadState("domcontentloaded");
 
         await expect(page.locator("#__next_error__")).toHaveCount(0);
@@ -192,7 +200,7 @@ test.describe("Admin table pages smoke", () => {
 
     test("new ticket exposes real form controls", async ({ page }) => {
       await ensureAdminDemo(page);
-      await page.goto("/support/tickets/new");
+      await page.goto(adminPath("/support/tickets/new"));
       await page.waitForLoadState("domcontentloaded");
 
       await expect(page.getByLabel("Contact")).toBeVisible();
@@ -209,7 +217,7 @@ test.describe("Admin table pages smoke", () => {
 
       await ensureAdminDemo(page);
       await ensureSupportHubDatabase(page);
-      await page.goto("/support/tickets/new");
+      await page.goto(adminPath("/support/tickets/new"));
       await page.waitForLoadState("domcontentloaded");
 
       await page.getByLabel("Contact").selectOption({ index: 1 });
@@ -233,7 +241,7 @@ test.describe("Admin table pages smoke", () => {
 
       await expect(page.getByText(`Created ticket ${ticket.id}`)).toBeVisible();
 
-      await page.goto("/support/tickets");
+      await page.goto(adminPath("/support/tickets"));
       const ticketRow = page.locator("article").filter({ hasText: subject });
       await expect(ticketRow).toBeVisible();
 
@@ -253,7 +261,7 @@ test.describe("Admin table pages smoke", () => {
       );
       await ensureAdminDemo(page);
       await ensureSupportHubDatabase(page);
-      await page.goto("/support");
+      await page.goto(adminPath("/support"));
       await page.waitForLoadState("domcontentloaded");
 
       await expect(page.getByText("Donor Care").first()).toBeVisible();

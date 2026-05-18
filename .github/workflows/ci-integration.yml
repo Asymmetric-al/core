@@ -113,6 +113,7 @@ jobs:
     needs: smoke
     continue-on-error: ${{ (github.event_name == 'pull_request' && github.base_ref == 'develop') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:15-alpine
@@ -195,28 +196,33 @@ jobs:
         env:
           PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
         run: bun run test:e2e:auth-preflight
-      - name: Run Playwright E2E
+      - name: Run Playwright production gate
+        timeout-minutes: 10
         env:
           CI: "1"
           PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
-        run: bun run test:e2e --project=chromium
+        run: bun run test:e2e:production-gate
       - name: Boneyard smoke (admin app)
+        timeout-minutes: 5
         env:
           CI: "1"
           PLAYWRIGHT_BONEYARD_TARGET: "admin"
         run: bun run test:e2e:boneyard:admin
       - name: Boneyard smoke (missionary app)
+        timeout-minutes: 5
         env:
           CI: "1"
           PLAYWRIGHT_BONEYARD_TARGET: "missionary"
         run: bun run test:e2e:boneyard:missionary
       - name: Boneyard smoke (donor app)
+        timeout-minutes: 5
         env:
           CI: "1"
           PLAYWRIGHT_BONEYARD_TARGET: "donor"
           PLAYWRIGHT_DONOR_BASE_URL: "http://127.0.0.1:3005"
         run: bun run test:e2e:boneyard:donor
       - name: Run Playwright CMS E2E
+        timeout-minutes: 10
         env:
           CI: "1"
           PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"

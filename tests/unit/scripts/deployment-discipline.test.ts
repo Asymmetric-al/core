@@ -76,6 +76,28 @@ const vercelSettings = {
 };
 
 describe("deployment discipline verifier", () => {
+  it("keeps the required production E2E gate bounded for CI spend control", () => {
+    const workflow = readFileSync(
+      ".github/workflows/ci-integration.yml",
+      "utf8",
+    );
+    const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as {
+      scripts: Record<string, string>;
+    };
+
+    expect(workflow).toContain("run: bun run test:e2e:production-gate");
+    expect(workflow).not.toContain("run: bun run test:e2e --project=chromium");
+    expect(workflow).toContain("timeout-minutes: 30");
+    expect(workflow).toContain("timeout-minutes: 10");
+    expect(packageJson.scripts["test:e2e:production-gate"]).toContain(
+      "tests/e2e/usability-smoke.spec.ts",
+    );
+    expect(packageJson.scripts["test:e2e:production-gate"]).toContain(
+      "tests/e2e/support-hub.smoke.spec.ts",
+    );
+    expect(packageJson.scripts["test:e2e:cms"]).toContain("@cms-local");
+  });
+
   it("accepts the source-controlled app Vercel configs", () => {
     for (const appProject of projects) {
       const config = JSON.parse(

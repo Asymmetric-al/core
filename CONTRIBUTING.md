@@ -23,7 +23,9 @@ Thanks for contributing to asymmetric.al. We welcome pull requests, bug reports,
   - `bun run ci:preflight`
 - **Local PR-readiness gate (matches blocking CI):**
   - `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
-- **Optional:** `bun run test:e2e` (non-blocking in CI; run when changes impact user flows).
+- **Production E2E:** `bun run test:e2e:production-gate` is the bounded
+  release gate required for `epic`; broader `bun run test:e2e` remains useful
+  for local feature validation.
 
 ## Code review and ownership
 

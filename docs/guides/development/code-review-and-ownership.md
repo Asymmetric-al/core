@@ -22,6 +22,8 @@ The repo uses gate jobs as merge controls. Gate jobs are summary checks that fai
 
 - `epic` requires:
   - `ci-gate`
+  - `integration-gate`
+  - `e2e-gate`
 - `develop` requires:
   - `ci-gate`
   - `integration-gate`
@@ -40,10 +42,11 @@ The repo uses gate jobs as merge controls. Gate jobs are summary checks that fai
   - `migrate` (DB migrations + seed verification)
   - `smoke` (app boot + health check)
 - `e2e-gate` covers:
-  - `test-e2e` when the integration workflow runs against production-bound
-    refs
-  - It is not part of the required `epic` branch-protection contract unless the
-    release policy is deliberately tightened later
+  - bounded production-release Playwright coverage through
+    `bun run test:e2e:production-gate`
+  - app-specific boneyard smoke checks
+  - portable `@cms` coverage; local-seed-only `@cms-local` proof stays in
+    `bun run test:e2e:cms:local`
   - On `develop`, E2E remains informational (non-blocking)
 
 ## Contributor PR Checklist
@@ -51,7 +54,8 @@ The repo uses gate jobs as merge controls. Gate jobs are summary checks that fai
 - Run local baseline checks before opening/updating PR:
   - `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
 - If your change affects user flows, also run:
-  - `bun run test:e2e`
+  - `bun run test:e2e:production-gate`
+  - `bun run test:e2e` for broader local coverage when the change needs it
 - Confirm branch target is correct: `develop` for staging validation, `epic`
   only for an intentional production release, and never `main`.
 

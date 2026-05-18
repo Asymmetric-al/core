@@ -32,6 +32,16 @@ Use this when adding tests, modifying critical flows, or verifying changes.
 
 See `docs/ci.md` for the full CI gate reference (what each check does, how to debug locally, and how to configure branch protection in GitHub).
 
+## Production E2E scope
+
+- The required `e2e-gate` must run a bounded production-release suite, not the
+  full broad local Playwright inventory. Use `bun run test:e2e:production-gate`
+  for the release gate and keep local-seed-only CMS proof under
+  `bun run test:e2e:cms:local`.
+- Broad local suites (`bun run test:e2e`, `bun run test:e2e:cms`,
+  `bun run test:perf`) remain useful for feature work, but do not replace the
+  required gate jobs in branch protection.
+
 ## Workflow
 
 1. Decide the test scope (unit, e2e, a11y, perf, or specific user flow).

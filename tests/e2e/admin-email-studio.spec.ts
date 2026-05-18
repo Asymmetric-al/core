@@ -26,10 +26,18 @@ async function ensureAdminDemo(page: Page) {
   const roles = getDemoRoleMap(await availability.json()) ?? {};
   test.skip(!roles.admin, "Admin demo account is not configured.");
 
-  const { ok, status } = await installDemoSessionInBrowser(page, "admin");
+  const { ok, status } = await installDemoSessionInBrowser(
+    page,
+    "admin",
+    adminBaseURL,
+  );
   if (!ok) {
     test.skip(true, `Demo admin session install failed (${status})`);
   }
+}
+
+function adminPath(path: string): string {
+  return new URL(path, adminBaseURL).toString();
 }
 
 test.describe("Admin Email Studio", () => {
@@ -137,7 +145,7 @@ test.describe("Admin Email Studio", () => {
     );
 
     await ensureAdminDemo(page);
-    await page.goto("/email");
+    await page.goto(adminPath("/email"));
     await page.waitForLoadState("domcontentloaded");
 
     await expect(page.locator("#__next_error__")).toHaveCount(0);
