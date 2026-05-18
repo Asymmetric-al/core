@@ -43,10 +43,46 @@ describe("getDefaultProjectTestIgnore", () => {
       expect.arrayContaining([
         "**/admin-*.spec.ts",
         "**/auth-demo-admin.spec.ts",
+        "**/auth-login-screen-admin.spec.ts",
+        "**/auth-demo-missionary.spec.ts",
+        "**/auth-login-screen-missionary.spec.ts",
+        "**/boneyard-smoke.spec.ts",
         "**/cms-*.spec.ts",
+        "**/cms-local-happy-path.spec.ts",
         "**/site-studio-video-tour.spec.ts",
         "**/support-hub.smoke.spec.ts",
       ]),
     );
+  });
+
+  it("excludes admin and non-donor specs when the admin server is disabled", () => {
+    expect(
+      getDefaultProjectTestIgnore({
+        PLAYWRIGHT_INCLUDE_ADMIN: "0",
+      }),
+    ).toEqual(
+      expect.arrayContaining([
+        "**/admin-*.spec.ts",
+        "**/auth-demo-admin.spec.ts",
+        "**/auth-login-screen-admin.spec.ts",
+        "**/auth-demo-missionary.spec.ts",
+        "**/auth-login-screen-missionary.spec.ts",
+        "**/boneyard-smoke.spec.ts",
+        "**/cms-*.spec.ts",
+        "**/site-studio-video-tour.spec.ts",
+        "**/support-hub.smoke.spec.ts",
+        "**/cms-local-happy-path.spec.ts",
+      ]),
+    );
+  });
+
+  it("keeps admin specs eligible when the admin server is enabled", () => {
+    expect(
+      getDefaultProjectTestIgnore({ PLAYWRIGHT_INCLUDE_ADMIN: "1" }),
+    ).toEqual([
+      "**/upload-crop.spec.ts",
+      "**/donor-giving-history.spec.ts",
+      "**/mc-contributions-live-query.spec.ts",
+    ]);
   });
 });

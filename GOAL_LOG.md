@@ -341,9 +341,14 @@ I will use test-driven development: add or update the focused test first, confir
   - `bunx prettier GOAL_LOG.md --check`: passed.
   - `bun run ci:preflight`: partially completed. Passed `verify-git-attribution`, `format`, `skills:verify`, `lint`, `verify:data-boundary`, `verify:workspace-contract`, `verify:eslint`, `verify:shadcn-diff`, `typecheck`; the admin Next.js build printed `10 successful, 10 total` and the route summary, then the Turbo/Next wrapper stayed open without proceeding to donor/missionary build or unit test stages. The idle preflight process tree was stopped to avoid leaving an orphaned validation session.
   - `bun run build:missionary`: the missionary Next.js build printed `10 successful, 10 total` and the route summary, then the Turbo wrapper stayed open without a clean exit. The idle wrapper was stopped. No stale `.next/**/lock` files were left behind.
+- PR CI follow-up:
+  - After rebuilding the PR branch from `origin/epic` to remove earlier CI workflow/script commits, GitHub `CI Integration` failed in `Run Playwright E2E` because the workflow starts only the donor app with `PLAYWRIGHT_INCLUDE_ADMIN=0`, while the default Playwright `chromium` project still collected admin and missionary specs that require `localhost:3030` or other app servers.
+  - Red test: `bunx vitest run tests/unit/playwright-config.test.ts` failed as expected because `getDefaultProjectTestIgnore()` did not exist.
+  - Fix: `playwright.config.ts` now makes the default `chromium` and `mobile-chrome` projects ignore admin, missionary, boneyard, support-hub, and local CMS specs only when `PLAYWRIGHT_INCLUDE_ADMIN=0`. No GitHub workflow or CI gate file was changed.
+  - Green test: `bunx vitest run tests/unit/playwright-config.test.ts` passed (`6` tests).
 - Final repository state:
   - `git status --short`: intended modified files only plus untracked `GOAL_LOG.md`.
-  - Changed files: `apps/admin/features/support-hub/lib/report-aggregations.ts`, `apps/missionary/app/donors/donors-list-model.ts`, `apps/missionary/app/donors/donors-page-model.ts`, `tests/unit/apps/admin/features/support-hub/report-aggregations.test.ts`, `tests/unit/apps/missionary/donors-list-model.test.ts`, `tests/unit/apps/missionary/donors-page-model.test.ts`, `GOAL_LOG.md`.
+  - Changed files: `apps/admin/features/support-hub/lib/report-aggregations.ts`, `apps/missionary/app/donors/donors-list-model.ts`, `apps/missionary/app/donors/donors-page-model.ts`, `playwright.config.ts`, `tests/unit/apps/admin/features/support-hub/report-aggregations.test.ts`, `tests/unit/apps/missionary/donors-list-model.test.ts`, `tests/unit/apps/missionary/donors-page-model.test.ts`, `tests/unit/playwright-config.test.ts`, `GOAL_LOG.md`.
   - Build artifact check: no tracked build artifacts and no stale Next lock files found.
 
 ## Revert Notes
@@ -352,12 +357,14 @@ I will use test-driven development: add or update the focused test first, confir
 - To revert finding 1: change `apps/admin/features/support-hub/lib/report-aggregations.ts` back to passing `scopedConversations` to `buildVolumeSeries()` and remove the new range regression from `tests/unit/apps/admin/features/support-hub/report-aggregations.test.ts`.
 - To revert finding 2: restore the previous donor sort comparison direction in `apps/missionary/app/donors/donors-list-model.ts` and restore the former inversion expectation in `tests/unit/apps/missionary/donors-list-model.test.ts`.
 - To revert finding 3: remove `.trim()` normalization from `apps/missionary/app/donors/donors-list-model.ts` and `apps/missionary/app/donors/donors-page-model.ts`, and remove the whitespace-search assertions from `tests/unit/apps/missionary/donors-list-model.test.ts` and `tests/unit/apps/missionary/donors-page-model.test.ts`.
+- To revert the PR CI follow-up: remove `getDefaultProjectTestIgnore()` and its two arrays from `playwright.config.ts`, restore the inline default `testIgnore` arrays on the `chromium` and `mobile-chrome` projects, and remove the `getDefaultProjectTestIgnore` tests from `tests/unit/playwright-config.test.ts`.
 
 ## Final Update Log
 
 - Support Hub volume reports now aggregate only `inRangeConversations`, so conversations with `createdAt` outside the selected report window no longer affect the `volume` total or buckets.
 - Missionary donor sort comparisons now use natural ascending comparisons and apply the `sortAsc` flag at the final comparator boundary, making the visible `Ascending` control match the list order.
 - Missionary donor search now trims the search term before matching donor identity fields and before deciding whether search makes filters active.
+- Playwright default projects now respect the existing `PLAYWRIGHT_INCLUDE_ADMIN=0` setting by not collecting specs that require non-donor app servers during the donor-only E2E phase.
 - No docs or generated files were changed beyond this task log.
 
 ## Remaining Risks
