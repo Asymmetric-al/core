@@ -31,6 +31,23 @@ function getWorkerCount(): number {
   return process.env.CI ? 1 : DEFAULT_LOCAL_WORKERS;
 }
 
+export function shouldReuseExistingServer(
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
+  const configuredValue =
+    env.PLAYWRIGHT_REUSE_EXISTING_SERVER?.trim().toLowerCase();
+
+  if (configuredValue === "1" || configuredValue === "true") {
+    return true;
+  }
+
+  if (configuredValue === "0" || configuredValue === "false") {
+    return false;
+  }
+
+  return !env.CI;
+}
+
 const baseURL = normalizeBaseUrl(
   process.env.PLAYWRIGHT_ADMIN_BASE_URL || DEFAULT_BASE_URL,
 );
@@ -70,7 +87,7 @@ export default defineConfig({
           // Align with scripts/run-with-ci-env.mjs when tests are run without it.
           E2E_AUTH_BYPASS: process.env.E2E_AUTH_BYPASS || "true",
         },
-        reuseExistingServer: !process.env.CI,
+        reuseExistingServer: shouldReuseExistingServer(process.env),
         timeout: 120000,
       }
     : undefined,
