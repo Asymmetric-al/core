@@ -36,7 +36,7 @@ export function hasDonorsActiveFilters(filters: DonorsPageFilterState) {
     filters.statusFilter !== "All" ||
     filters.tagFilter.length > 0 ||
     filters.pledgeFilter !== "All" ||
-    filters.searchTerm.length > 0
+    filters.searchTerm.trim().length > 0
   );
 }
 

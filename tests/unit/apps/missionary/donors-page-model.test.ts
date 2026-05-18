@@ -140,6 +140,12 @@ describe("donors page model helpers", () => {
         tagFilter: ["monthly-partner"],
       }),
     ).toBe(true);
+    expect(
+      hasDonorsActiveFilters({
+        ...filters,
+        searchTerm: "   ",
+      }),
+    ).toBe(false);
   });
 
   it("maps stat card clicks to the existing filter states and clears selection", () => {
