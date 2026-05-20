@@ -4,8 +4,8 @@ import {
   toApiErrorResponse,
 } from "@asym/api/admin/support-hub";
 
-export async function GET() {
-  return withSupportHubAccess(async () => {
+export async function GET(request: Request) {
+  return withSupportHubAccess(request, async () => {
     try {
       const inboxes = await listSupportInboxes();
       return Response.json({ inboxes });

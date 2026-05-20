@@ -31,6 +31,8 @@ describe("member care route helpers", () => {
     vi.clearAllMocks();
   });
 
+  const authRequest = new Request("https://example.org/api/admin/member-care");
+
   it("returns 401 when unauthenticated", async () => {
     getAuthContextMock.mockResolvedValue({
       isAuthenticated: false,
@@ -38,10 +40,11 @@ describe("member care route helpers", () => {
       tenantId: null,
     });
 
-    const result = await requireMemberCareAccess();
+    const result = await requireMemberCareAccess(authRequest);
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error("Expected auth failure");
     expect(result.response.status).toBe(401);
+    expect(getAuthContextMock).toHaveBeenCalledWith(authRequest);
   });
 
   it("returns 403 when authenticated but role is not allowed", async () => {
@@ -53,7 +56,7 @@ describe("member care route helpers", () => {
     });
     hasAnyContextRoleMock.mockReturnValue(false);
 
-    const result = await requireMemberCareAccess();
+    const result = await requireMemberCareAccess(authRequest);
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error("Expected auth failure");
     expect(result.response.status).toBe(403);
@@ -68,7 +71,7 @@ describe("member care route helpers", () => {
     });
     hasAnyContextRoleMock.mockReturnValue(true);
 
-    const result = await requireMemberCareAccess();
+    const result = await requireMemberCareAccess(authRequest);
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error("Expected auth success");
     expect(result.context).toEqual({

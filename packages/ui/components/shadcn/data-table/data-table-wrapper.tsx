@@ -6,7 +6,7 @@ import * as React from "react";
 import { cn } from "@asym/ui/lib/utils";
 
 import { Button } from "../button";
-import { DataTableResponsive } from "../data-table";
+import { DataTableResponsive } from "./data-table-responsive";
 import { DataTableSkeleton } from "./data-table-skeleton";
 import {
   Empty,

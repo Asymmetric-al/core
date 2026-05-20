@@ -7,8 +7,8 @@ import {
 } from "@asym/api/admin/support-hub";
 import { saveBusinessHoursSchema } from "@asym/api/admin/support-hub/schemas";
 
-export async function GET() {
-  return withSupportHubAccess(async () => {
+export async function GET(request: Request) {
+  return withSupportHubAccess(request, async () => {
     try {
       const businessHours = await listSupportBusinessHours();
       return Response.json({ businessHours });
@@ -19,7 +19,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  return withSupportHubAccess(async () => {
+  return withSupportHubAccess(request, async () => {
     const body = await readJsonBody(request, saveBusinessHoursSchema);
     if (!body.ok) return body.response;
     try {

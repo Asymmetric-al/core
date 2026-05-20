@@ -9,6 +9,7 @@
  */
 
 import { cookies, headers, draftMode } from 'next/headers'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 // ============================================================================
@@ -130,7 +131,9 @@ export async function DraftBanner() {
   return (
     <div style={{ background: 'yellow', padding: '1rem' }}>
       <p>🚧 Draft Mode Enabled</p>
-      <a href="/api/disable-draft">Exit Draft Mode</a>
+      <Link href="/api/disable-draft" prefetch={false}>
+        Exit Draft Mode
+      </Link>
     </div>
   )
 }

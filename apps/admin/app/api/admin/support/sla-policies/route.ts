@@ -7,8 +7,8 @@ import {
 } from "@asym/api/admin/support-hub";
 import { saveSlaPolicySchema } from "@asym/api/admin/support-hub/schemas";
 
-export async function GET() {
-  return withSupportHubAccess(async () => {
+export async function GET(request: Request) {
+  return withSupportHubAccess(request, async () => {
     try {
       const slaPolicies = await listSupportSlaPolicies();
       return Response.json({ slaPolicies });
@@ -19,7 +19,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  return withSupportHubAccess(async () => {
+  return withSupportHubAccess(request, async () => {
     const body = await readJsonBody(request, saveSlaPolicySchema);
     if (!body.ok) return body.response;
     try {

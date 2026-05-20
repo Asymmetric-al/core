@@ -436,7 +436,7 @@ function DetailDrawer({
                   </div>
                 ) : detailQuery.isLoading ? (
                   <div className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
-                    Loading donor workflow history...
+                    Loading donor workflow history…
                   </div>
                 ) : null}
 

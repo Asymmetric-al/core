@@ -23,15 +23,18 @@ import { getDataTableRowActionKey } from "./data-table-row-action-key";
 import { DataTableToolbarResponsive } from "./data-table-toolbar-responsive";
 import {
   type getKeyboardNavigationStyles,
-  useDataTableVirtualization,
   type UseDataTableKeyboardReturn,
-} from "./hooks";
+} from "./hooks/use-data-table-keyboard";
+import { useDataTableVirtualization } from "./hooks/use-data-table-virtualization";
 
 import type {
   DataTableResponsiveProps,
   ViewMode,
 } from "./data-table-responsive-types";
-import type { AdvancedFilterState, FilterFieldDefinition } from "./filters";
+import type {
+  AdvancedFilterState,
+  FilterFieldDefinition,
+} from "./filters/types";
 import type {
   DataTableConfig,
   DataTableFilterField,

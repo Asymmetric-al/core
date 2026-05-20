@@ -10,8 +10,8 @@ import {
  * the `/api/admin/support/reports` endpoint; this one is used by the inbox
  * stats strip and by smoke tests as a quick "is the API alive" probe.
  */
-export async function GET() {
-  return withSupportHubAccess(async () => {
+export async function GET(request: Request) {
+  return withSupportHubAccess(request, async () => {
     try {
       const conversations = await listSupportConversations({});
       const counts = {

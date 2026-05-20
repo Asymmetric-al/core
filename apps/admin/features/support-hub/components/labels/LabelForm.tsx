@@ -13,7 +13,7 @@ import {
   SUPPORT_LABEL_TONES,
   type SupportLabel,
   type SupportLabelTone,
-} from "../../types";
+} from "../../types/label";
 
 interface LabelFormProps {
   /** When set, the form edits an existing label; otherwise it creates one. */

@@ -21,16 +21,19 @@ afterEach(() => {
 });
 
 describe("requireSupportHubAccess", () => {
+  const authRequest = new Request("https://example.org/api/admin/support");
+
   it("returns 401 when the caller is not authenticated", async () => {
     getAuthContextMock.mockResolvedValue({
       isAuthenticated: false,
       userId: null,
       tenantId: null,
     });
-    const result = await requireSupportHubAccess();
+    const result = await requireSupportHubAccess(authRequest);
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.response.status).toBe(401);
+    expect(getAuthContextMock).toHaveBeenCalledWith(authRequest);
   });
 
   it("returns 403 when the caller lacks the support roles", async () => {
@@ -42,7 +45,7 @@ describe("requireSupportHubAccess", () => {
       profileRole: "donor",
     });
     hasAnyContextRoleMock.mockReturnValue(false);
-    const result = await requireSupportHubAccess();
+    const result = await requireSupportHubAccess(authRequest);
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.response.status).toBe(403);
@@ -58,7 +61,7 @@ describe("requireSupportHubAccess", () => {
       profileRole: "staff",
     });
     hasAnyContextRoleMock.mockReturnValue(true);
-    const result = await requireSupportHubAccess();
+    const result = await requireSupportHubAccess(authRequest);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.context).toEqual({

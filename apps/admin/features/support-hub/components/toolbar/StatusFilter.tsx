@@ -11,7 +11,7 @@ import {
 import {
   SUPPORT_CONVERSATION_STATUSES,
   type SupportConversationStatus,
-} from "../../types";
+} from "../../types/conversation";
 
 type StatusFilterValue = SupportConversationStatus | "all";
 
