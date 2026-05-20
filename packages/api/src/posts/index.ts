@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const auth = await getAuthContext();
+    const auth = await getAuthContext(request);
     requireAuth(auth);
     const ctx = auth as AuthenticatedContext;
 

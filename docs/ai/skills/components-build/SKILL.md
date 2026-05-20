@@ -11,6 +11,34 @@ metadata:
 
 Comprehensive guidelines for building modern, composable, and accessible UI components. Contains 16 rule categories covering everything from core principles to distribution, co-authored by Hayden Bleasel and shadcn.
 
+## This repository (Asymmetric-al/core)
+
+These repo-owned sections are intentionally kept on top of the vendored
+components.build skill. If upstream refreshes replace this file, reconcile this
+overlay before running `bun run skills:sync`.
+
+### Triggers
+
+- Creating, reviewing, or refactoring reusable React components, component APIs, slots, or composition patterns.
+- Design-system work in `packages/ui/`, shadcn-compatible primitives, or shared app UI surfaces.
+- Accessibility, controlled/uncontrolled state, polymorphism, or TypeScript prop contract decisions for components.
+
+### Workflow
+
+1. Read `docs/ai/rules/frontend.md` and any nested `AGENTS.md` for the target package/app.
+2. Search existing shared components before adding a new primitive or abstraction.
+3. Prefer repo patterns and shadcn-compatible composition over bespoke APIs.
+4. Keep behavior and accessibility test coverage proportional to the component's reuse surface.
+5. Run focused type/lint/unit checks for touched component packages.
+
+### Checklist
+
+- [ ] Existing components and exports were checked before adding new API surface.
+- [ ] Composition, keyboard, ARIA, focus, and disabled/loading states were considered.
+- [ ] Props/types follow the local package's public export pattern.
+- [ ] Styling uses repo tokens/utilities and avoids layout-shifting dynamic content.
+- [ ] Verification covered the touched component behavior or contract.
+
 ## When to Apply
 
 Reference these guidelines when:

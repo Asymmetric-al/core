@@ -28,8 +28,10 @@ type JsonResult<T = unknown> =
  * Roles allowed: staff, admin, super_admin. The `/support` nav entry already
  * gates on `member_care | admin` so admin demos with a staff role still pass.
  */
-export async function requireSupportHubAccess(): Promise<AuthResult> {
-  const auth = await getAuthContext();
+export async function requireSupportHubAccess(
+  request?: Request,
+): Promise<AuthResult> {
+  const auth = await getAuthContext(request);
 
   if (!auth.isAuthenticated || !auth.userId || !auth.tenantId) {
     return {
@@ -62,9 +64,10 @@ export async function requireSupportHubAccess(): Promise<AuthResult> {
  * authenticated tenant for adapter-level isolation (Phase 7 in-memory).
  */
 export async function withSupportHubAccess(
+  request: Request,
   handler: (context: SupportHubContext) => Promise<Response>,
 ): Promise<Response> {
-  const auth = await requireSupportHubAccess();
+  const auth = await requireSupportHubAccess(request);
   if (!auth.ok) return auth.response;
   return runWithSupportHubTenant(auth.context.tenantId, () =>
     handler(auth.context),

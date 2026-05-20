@@ -5,7 +5,7 @@ import {
 } from "@asym/api/admin/support-hub";
 
 export async function GET(request: Request) {
-  return withSupportHubAccess(async () => {
+  return withSupportHubAccess(request, async () => {
     try {
       const url = new URL(request.url);
       const conversations = await listSupportConversations({

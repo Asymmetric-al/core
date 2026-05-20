@@ -9,7 +9,7 @@ import { toggleConversationLabelSchema } from "@asym/api/admin/support-hub/schem
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, context: RouteContext) {
-  return withSupportHubAccess(async () => {
+  return withSupportHubAccess(request, async () => {
     const body = await readJsonBody(request, toggleConversationLabelSchema);
     if (!body.ok) return body.response;
     try {

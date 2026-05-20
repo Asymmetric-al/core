@@ -5,10 +5,10 @@ import {
 import { readMemberCarePersonDetail } from "@asym/api/reads/member-care";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  const auth = await requireMemberCareAccess();
+  const auth = await requireMemberCareAccess(request);
   if (!auth.ok) {
     return auth.response;
   }

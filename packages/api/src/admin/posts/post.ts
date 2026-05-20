@@ -7,7 +7,7 @@ import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ postId: string }> },
 ) {
   try {
@@ -16,7 +16,7 @@ export async function GET(
       return NextResponse.json({ error: adminError }, { status: 503 });
     }
 
-    const auth = await getAuthContext();
+    const auth = await getAuthContext(request);
     requireRole(auth, ["staff", "admin", "super_admin"]);
     const ctx = auth as AuthenticatedContext;
     const { postId } = await params;

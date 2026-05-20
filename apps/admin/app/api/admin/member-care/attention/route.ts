@@ -9,7 +9,7 @@ import {
 } from "@asym/api/admin/member-care/route-helpers";
 
 export async function PATCH(request: Request) {
-  const auth = await requireMemberCareAccess();
+  const auth = await requireMemberCareAccess(request);
   if (!auth.ok) {
     return auth.response;
   }

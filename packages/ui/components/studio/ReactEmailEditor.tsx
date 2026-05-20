@@ -255,7 +255,7 @@ export const ReactEmailEditor = forwardRef<
             <div className="w-full space-y-2">
               <div className="flex items-center justify-center gap-2 text-sm font-medium">
                 <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                Loading email editor...
+                Loading email editor…
               </div>
               <Progress value={65} className="h-1.5" />
             </div>
@@ -271,7 +271,7 @@ export const ReactEmailEditor = forwardRef<
         onUploadImage={handleUploadImage}
         extensions={extensions}
         theme="basic"
-        className="min-h-full w-full px-8 py-8 outline-none"
+        className="min-h-full w-full p-8 outline-none"
         placeholder="Press '/' for blocks"
       />
     </div>

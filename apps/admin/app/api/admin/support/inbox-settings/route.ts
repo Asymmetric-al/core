@@ -9,7 +9,7 @@ import {
 import { saveInboxSettingsSchema } from "@asym/api/admin/support-hub/schemas";
 
 export async function GET(request: Request) {
-  return withSupportHubAccess(async () => {
+  return withSupportHubAccess(request, async () => {
     try {
       const url = new URL(request.url);
       if (url.searchParams.get("list") === "true") {
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  return withSupportHubAccess(async () => {
+  return withSupportHubAccess(request, async () => {
     const body = await readJsonBody(request, saveInboxSettingsSchema);
     if (!body.ok) return body.response;
     try {

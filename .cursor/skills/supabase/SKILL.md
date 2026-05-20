@@ -18,9 +18,31 @@ license: MIT
 
 ## This repository (Asymmetric-al/core)
 
-- **Next.js App Router + Supabase Auth** (middleware, callbacks, client boundaries): `docs/ai/skills/nextjs-supabase-auth/SKILL.md`
-- **Postgres / RLS / query performance** (migrations under `supabase/migrations/`): `docs/ai/skills/supabase-postgres-best-practices/SKILL.md`
-- **Migrations, seed, demo RLS:** `supabase/AGENTS.md` and `docs/ai/rules/backend.md`
+These repo-owned sections are intentionally kept on top of the vendored
+Supabase skill. If upstream refreshes replace this file, reconcile this overlay
+before running `bun run skills:sync`.
+
+### Triggers
+
+- Any Supabase product surface: Database, Auth, Storage, Realtime, Edge Functions, Cron, Queues, Vectors, CLI, or MCP.
+- Any schema, migration, seed, RLS, SQL policy, Postgres function, view, trigger, or generated database type change.
+- Any Next.js App Router auth/session/cookie work that uses Supabase Auth.
+
+### Workflow
+
+1. Read `docs/ai/rules/backend.md`; also read `supabase/AGENTS.md` for migrations, seed, or demo RLS posture.
+2. For Next.js auth wiring, also load `docs/ai/skills/nextjs-supabase-auth/SKILL.md`.
+3. For Postgres, RLS, query, or schema performance, also load `docs/ai/skills/supabase-postgres-best-practices/SKILL.md`.
+4. Verify current Supabase CLI/MCP/docs behavior before changing SQL or auth code.
+5. Run the smallest meaningful SQL, type, or route test that proves the change.
+
+### Checklist
+
+- [ ] Loaded the matching backend and nested Supabase instructions.
+- [ ] Verified docs or CLI/MCP behavior for version-sensitive Supabase APIs.
+- [ ] Reviewed RLS/auth/session implications before touching exposed data.
+- [ ] Added or updated migration/type/test coverage when behavior changed.
+- [ ] Ran a focused verification command and captured any blocked checks.
 
 ## Core Principles
 

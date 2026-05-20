@@ -15,8 +15,10 @@ type JsonResult<T = unknown> =
   | { ok: true; body: T }
   | { ok: false; response: Response };
 
-export async function requireMemberCareAccess(): Promise<AuthResult> {
-  const auth = await getAuthContext();
+export async function requireMemberCareAccess(
+  request?: Request,
+): Promise<AuthResult> {
+  const auth = await getAuthContext(request);
 
   if (!auth.isAuthenticated || !auth.userId || !auth.tenantId) {
     return {

@@ -7,8 +7,8 @@ import {
 } from "@asym/api/admin/support-hub";
 import { saveNotificationPreferencesSchema } from "@asym/api/admin/support-hub/schemas";
 
-export async function GET() {
-  return withSupportHubAccess(async () => {
+export async function GET(request: Request) {
+  return withSupportHubAccess(request, async () => {
     try {
       const preferences = await listSupportNotificationPreferences();
       return Response.json({ preferences });
@@ -22,7 +22,7 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
-  return withSupportHubAccess(async () => {
+  return withSupportHubAccess(request, async () => {
     const body = await readJsonBody(request, saveNotificationPreferencesSchema);
     if (!body.ok) return body.response;
     try {

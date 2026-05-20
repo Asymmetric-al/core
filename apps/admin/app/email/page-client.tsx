@@ -763,7 +763,7 @@ function EmailTemplatePickerDialog({
           {isLoading ? (
             <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              Loading templates...
+              Loading templates…
             </div>
           ) : templates.length === 0 ? (
             <div className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
@@ -775,7 +775,7 @@ function EmailTemplatePickerDialog({
                 <button
                   key={template.id}
                   type="button"
-                  className="flex w-full items-center justify-between rounded-md border bg-background px-3 py-3 text-left transition-colors hover:bg-muted"
+                  className="flex w-full items-center justify-between rounded-md border bg-background p-3 text-left transition-colors hover:bg-muted"
                   onClick={() => onSelect(template)}
                 >
                   <div className="min-w-0">

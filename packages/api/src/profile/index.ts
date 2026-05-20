@@ -36,14 +36,14 @@ function fullNameFromProfilePatch(input: z.infer<typeof profilePatchSchema>) {
   return parts.length > 0 ? parts.join(" ") : undefined;
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const { client: supabaseAdmin, error: adminError } = getAdminClient();
     if (!supabaseAdmin) {
       return NextResponse.json({ error: adminError }, { status: 503 });
     }
 
-    const auth = await getAuthContext();
+    const auth = await getAuthContext(request);
     requireAuth(auth);
     const ctx = auth as AuthenticatedContext;
 

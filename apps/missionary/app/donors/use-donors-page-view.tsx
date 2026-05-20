@@ -112,6 +112,7 @@ import type {
   Donor,
   RecurringStatus,
 } from "./donor-types";
+import type { Profile } from "@asym/database/types";
 
 import { PageHeader } from "@/components/page-header";
 
@@ -354,7 +355,7 @@ async function updateDonorTags(options: {
   }
 }
 
-export type DonorsPageViewModel = {
+type DonorsPageViewModel = {
   activeCount: number;
   activePledgeCount: number;
   activeTab: string;
@@ -387,7 +388,7 @@ export type DonorsPageViewModel = {
   noteInput: string;
   openEditDialog: () => void;
   pledgeFilter: string;
-  profile: ReturnType<typeof useAuth>["profile"];
+  profile: Profile | null;
   searchTerm: string;
   selectedDonor: Donor | null;
   selectedTags: string[];

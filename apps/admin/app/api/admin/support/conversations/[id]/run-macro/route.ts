@@ -15,7 +15,7 @@ const runMacroSchema = z.object({
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function POST(request: Request, context: RouteContext) {
-  return withSupportHubAccess(async (supportContext) => {
+  return withSupportHubAccess(request, async (supportContext) => {
     const body = await readJsonBody(request, runMacroSchema);
     if (!body.ok) return body.response;
     try {

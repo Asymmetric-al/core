@@ -14,7 +14,7 @@ import {
  * same shape without going through the TanStack DB collections.
  */
 export async function GET(request: Request) {
-  return withSupportHubAccess(async () => {
+  return withSupportHubAccess(request, async () => {
     try {
       const url = new URL(request.url);
       const conversationId = url.searchParams.get("conversationId");

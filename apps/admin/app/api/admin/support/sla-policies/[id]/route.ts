@@ -11,7 +11,7 @@ import { saveSlaPolicySchema } from "@asym/api/admin/support-hub/schemas";
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, context: RouteContext) {
-  return withSupportHubAccess(async () => {
+  return withSupportHubAccess(request, async () => {
     const { id } = await context.params;
     const url = new URL(request.url);
     if (url.searchParams.get("default") === "true") {
@@ -33,8 +33,8 @@ export async function PATCH(request: Request, context: RouteContext) {
   });
 }
 
-export async function DELETE(_request: Request, context: RouteContext) {
-  return withSupportHubAccess(async () => {
+export async function DELETE(request: Request, context: RouteContext) {
+  return withSupportHubAccess(request, async () => {
     try {
       const { id } = await context.params;
       await deleteSupportSlaPolicy(id);
