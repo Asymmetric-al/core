@@ -16,7 +16,7 @@ Use this when adding tests, modifying critical flows, or verifying changes.
 - **Performance:** Playwright-based Web Vitals assertions.
 - **Local CI parity:** Run `bun run ci:preflight` before push/PR-ready to mirror blocking GitHub checks.
 - **Fast local gate:** `bun run check` runs `lint`, `typecheck`, and `test:unit` only. Use it for tight iteration loops.
-- **Pre-push mirror:** `bun run ci:preflight` runs the broader verifier in `scripts/verify/ci-preflight.mjs` (format, lint, typecheck, unit tests, deployment discipline, and other repo scripts). Prefer `ci:preflight` when you changed CI workflows, branch protection expectations, or cross-package integration surfaces.
+- **Pre-push mirror:** `bun run ci:preflight` runs `scripts/verify/ci-preflight.mjs`, which mirrors the blocking stages in `.github/workflows/ci.yml` (through `test:unit`). It does **not** run `verify:deployment-discipline`; use `bun run verify:deployment-discipline` or `bun run release:production` when branch-protection or Vercel release posture changes.
 
 ## Branch protection (required)
 
@@ -131,6 +131,24 @@ npx playwright show-report
   idempotent so retries remain meaningful.
 - `tests/unit/e2e/e2e-flake-guards.test.ts` fails if `waitForTimeout` re-enters
   `tests/e2e/**/*.spec.ts`.
+
+## Unit and gate regression guards (required)
+
+- `tests/unit/scripts/ci-preflight.contract.test.ts` locks `ci:preflight` stage
+  order against `docs/ci.md` and ensures deployment discipline stays out of
+  preflight.
+- `tests/unit/scripts/local-gates.contract.test.ts` locks `bun run check` and
+  per-app `lint:*` / `typecheck:*` scripts for donor and missionary.
+- `tests/unit/apps/donor-missionary-unit-smoke.contract.test.ts` keeps baseline
+  donor/missionary unit smoke files, `tests/setup/unit-env.ts`, and the
+  `importOriginal` `@asym/email` mock pattern in `connect.test.ts`.
+- `tests/unit/packages/api/email/resend-snapshot-contract.test.ts` guards the
+  Resend snapshot helpers used by `packages/api` email connect flows.
+- `tests/unit/scripts/deployment-discipline.test.ts` and
+  `scripts/verify/deployment-discipline.mjs` enforce `e2e-smoke-gate` on
+  `develop` and `e2e-gate` on `epic`.
+- `tests/unit/unit-test-harness.test.ts` and `tests/setup/unit-env.ts` keep unit
+  tests off live secrets (`SUPABASE_SERVICE_ROLE_KEY` cleared globally).
 
 ## Common mistakes / pitfalls
 
