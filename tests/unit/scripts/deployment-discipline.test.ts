@@ -91,7 +91,7 @@ describe("deployment discipline verifier", () => {
     expect(workflow).toContain("run: bun run test:e2e:production-gate");
     expect(workflow).not.toContain("run: bun run test:e2e --project=chromium");
     expect(workflow).toContain("timeout-minutes: 30");
-    expect(workflow).toContain("timeout-minutes: 20");
+    expect(workflow).toContain("timeout-minutes: 25");
     expect(workflow).toContain("timeout-minutes: 10");
     expect(packageJson.scripts["test:e2e:smoke"]).toContain(
       "tests/e2e/usability-smoke.spec.ts",
