@@ -1,5 +1,111 @@
 # Working Set
 
+## 2026-05-21 (React Doctor cleanup implementation)
+
+- Date: 2026-05-21
+- Repo: Asymmetric-al/core
+- Goal: Implement all safe, repo-verifiable React Doctor audit remediations,
+  starting with shared responsive data table state, then document or defer
+  higher-risk auth, bundle, large-component, and rule-family work with clear
+  blockers and owners.
+- Primary area:
+  - `packages/ui/components/shadcn/data-table/data-table-responsive-inner.tsx`
+  - `packages/lib/hooks/use-mobile.ts`
+  - `packages/ui/components/shadcn/rich-text-editor/image-view.tsx`
+  - `packages/lib/components/safe-html.tsx`
+  - `packages/lib/html/sanitize.ts`
+  - `apps/missionary/app/donors/use-donors-page-view.tsx`
+  - `docs/guides/development/react-doctor.md`
+  - `react-doctor.config.json`
+  - `GOAL_LOG.md`
+- Stack:
+  - Next.js App Router
+  - React
+  - TypeScript
+  - Bun
+  - Turborepo
+  - TanStack Table
+  - Supabase Auth/Postgres
+  - Vitest
+- Constraints:
+  - Use TDD for production code changes.
+  - Preserve user-facing behavior.
+  - Do not move Supabase/browser mutation boundaries without proving auth/RLS
+    behavior and adding focused regression coverage.
+  - Use the repo-owned React Doctor helper for audit validation.
+  - Keep changes staged, reviewable, and documented in `GOAL_LOG.md`.
+- Evidence sources planned:
+  - Prior React Doctor audit report and this working set
+  - `docs/guides/development/react-doctor.md`
+  - `AGENTS.md`
+  - `docs/ai/rules/{frontend,backend,testing}.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - bundled Next.js docs under `node_modules/next/dist/docs/`
+  - repo-scoped Nia advisory/search where available, otherwise `rg` and direct
+    source reads
+- Outcome:
+  - Implemented the shared responsive table media-query fix.
+  - Removed the global `react/no-danger` ignore and added contract coverage for
+    safe HTML/raw image exceptions.
+  - Moved missionary donor notes, tag updates, and edit saves behind scoped
+    missionary API handlers in `@asym/api`.
+  - Extracted donor mutation client fetch helpers from the large donors page
+    client.
+  - Captured deferred large-component, bundle, and rendered accessibility work
+    in `GOAL_LOG.md` with blockers and owners.
+  - Fixed the Windows CI build wrapper discovered during PR validation.
+  - Final configured React Doctor scan passes; broad format, lint, typecheck,
+    unit tests, and root build pass.
+
+## 2026-05-21 (React Doctor first-party audit planning)
+
+- Date: 2026-05-21
+- Repo: Asymmetric-al/core
+- Goal: Run the configured first-party React Doctor audit for apps and packages,
+  verify findings against source, review ignored rule families, and produce a
+  practical fix/PR plan without applying product code changes.
+- Primary area:
+  - `apps/admin/app`
+  - `apps/admin/features`
+  - `apps/admin/src/cms-ui`
+  - `apps/donor/app`
+  - `apps/donor/features`
+  - `apps/missionary/app`
+  - `apps/missionary/features`
+  - `packages/ui/components`
+  - `packages/lib/hooks`
+  - `packages/lib/mission-control`
+  - `packages/missionary/components`
+  - `scripts/react-doctor-first-party.mjs`
+  - `react-doctor.config.json`
+  - `docs/guides/development/react-doctor.md`
+- Stack:
+  - Next.js 16 App Router
+  - React 19
+  - TypeScript
+  - Bun
+  - Turborepo
+  - Tailwind CSS v4
+  - Supabase Auth/Postgres
+  - TanStack Table/Query/DB
+- Constraints:
+  - Run only `bun run react-doctor:first-party -- --full --offline --fail-on none`
+    for the React Doctor audit.
+  - Treat `failOn: none` as advisory and do not imply full repo cleanliness.
+  - Separate React Doctor findings from static review observations and
+    inferences.
+  - Do not modify product code, routes, components, package APIs, schemas, or
+    lockfiles.
+  - Use Bun and repo scripts.
+- Evidence sources planned:
+  - `AGENTS.md`
+  - `docs/ai/{working-set,stack-registry,nia}.md`
+  - `docs/ai/rules/{general,frontend,backend,testing}.md`
+  - `docs/ai/skills/{repo-entry,react-doctor,nextjs-app-router,react-component-dev,supabase,nextjs-supabase-auth}/SKILL.md`
+  - `docs/guides/development/{react-doctor,getting-started}.md`
+  - bundled Next.js docs under `node_modules/next/dist/docs/`
+  - repo-scoped Nia searches and direct source reads
+
 ## 2026-05-16 (Monorepo Vercel build controls)
 
 - Date: 2026-05-16

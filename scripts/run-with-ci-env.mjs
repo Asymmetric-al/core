@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -105,6 +105,10 @@ export function normalizeEnvForCommand(env, commandParts = []) {
   return env;
 }
 
+export function shouldSpawnWithShell(command, platform = process.platform) {
+  return platform === "win32" && /\.(?:cmd|bat)$/i.test(command);
+}
+
 function getEnv(commandParts = []) {
   loadLocalEnvFiles();
   const env = { ...process.env };
@@ -130,21 +134,23 @@ if (isDirectExecution) {
   }
 
   const [command, ...commandArgs] = commandParts;
-  const child = spawn(command, commandArgs, {
+  const result = spawnSync(command, commandArgs, {
     stdio: "inherit",
     env: getEnv(commandParts),
+    shell: shouldSpawnWithShell(command),
   });
 
-  child.on("error", (error) => {
-    console.error(`Failed to start command "${command}": ${error.message}`);
+  if (result.error) {
+    console.error(
+      `Failed to start command "${command}": ${result.error.message}`,
+    );
     process.exit(1);
-  });
+  }
 
-  child.on("close", (code, signal) => {
-    if (signal) {
-      process.kill(process.pid, signal);
-      return;
-    }
-    process.exit(code ?? 1);
-  });
+  if (result.signal) {
+    process.kill(process.pid, result.signal);
+    process.exit(1);
+  }
+
+  process.exit(result.status ?? 1);
 }

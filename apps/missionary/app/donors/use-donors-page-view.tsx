@@ -3,7 +3,6 @@
 
 import { useMissionaryDonorRows } from "@asym/database/hooks";
 import { invalidateSupabaseTableQuery } from "@asym/database/query-keys";
-import { createBrowserClient } from "@asym/database/supabase";
 import { useAuth } from "@asym/lib/hooks";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { AddPartnerDialog } from "@asym/missionary/components/add-partner-dialog";
@@ -88,6 +87,7 @@ import {
 import * as React from "react";
 import { toast } from "sonner";
 
+import { insertDonorActivity, updateDonorTags } from "./donor-mutation-client";
 import { DonorTasks } from "./donor-tasks";
 import { filterAndSortDonors, type SortOption } from "./donors-list-model";
 import {
@@ -302,59 +302,6 @@ function StatCard({
   return content;
 }
 
-type DonorActivityType = "note" | "call" | "meeting" | "email";
-type DonorMutationResult = { ok: true } | { ok: false; error: unknown };
-
-const DONOR_ACTIVITY_TITLES: Record<DonorActivityType, string> = {
-  note: "Note",
-  call: "Phone Call",
-  meeting: "Meeting",
-  email: "Email",
-};
-
-async function insertDonorActivity(options: {
-  supabase: ReturnType<typeof createBrowserClient>;
-  donorId: string;
-  activityType: DonorActivityType;
-  note: string;
-}): Promise<DonorMutationResult> {
-  try {
-    const { error: insertError } = await options.supabase
-      .from("donor_activities")
-      .insert({
-        donor_id: options.donorId,
-        type: options.activityType,
-        title: DONOR_ACTIVITY_TITLES[options.activityType],
-        description: options.note,
-        date: currentDisplayDate().toISOString(),
-      });
-    if (insertError) return { ok: false, error: insertError };
-    return { ok: true };
-  } catch (error) {
-    return { ok: false, error };
-  }
-}
-
-async function updateDonorTags(options: {
-  supabase: ReturnType<typeof createBrowserClient>;
-  donorId: string;
-  tags: string[];
-}): Promise<DonorMutationResult> {
-  try {
-    const { error: updateError } = await options.supabase
-      .from("donors")
-      .update({
-        tags: options.tags,
-        updated_at: currentDisplayDate().toISOString(),
-      })
-      .eq("id", options.donorId);
-    if (updateError) return { ok: false, error: updateError };
-    return { ok: true };
-  } catch (error) {
-    return { ok: false, error };
-  }
-}
-
 type DonorsPageViewModel = {
   activeCount: number;
   activePledgeCount: number;
@@ -418,10 +365,6 @@ type DonorsPageViewModel = {
 export function useDonorsPageView(): DonorsPageViewModel {
   const { profile, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
-  const supabase = React.useMemo(
-    () => (typeof window === "undefined" ? null : createBrowserClient()),
-    [],
-  );
   const donorsQuery = useMissionaryDonorRows(profile?.id);
   const [selectedDonorId, setSelectedDonorId] = React.useState<string | null>(
     null,
@@ -598,46 +541,50 @@ export function useDonorsPageView(): DonorsPageViewModel {
   }, []);
 
   const handleAddNote = React.useCallback(async () => {
-    if (!selectedDonor || !noteInput.trim() || !supabase) return;
+    if (!selectedDonor || !noteInput.trim()) return;
 
     setIsSavingNote(true);
-    const outcome = await insertDonorActivity({
-      supabase,
-      donorId: selectedDonor.id,
-      activityType,
-      note: noteInput.trim(),
-    });
-    if (outcome.ok) {
-      toast.success("Activity logged successfully");
-      setNoteInput("");
-      setIsNoteDialogOpen(false);
-      handleRefreshDonors();
-    } else {
-      toast.error("Failed to add activity");
-      console.error(outcome.error);
+    try {
+      const outcome = await insertDonorActivity({
+        donorId: selectedDonor.id,
+        activityType,
+        note: noteInput.trim(),
+      });
+      if (outcome.ok) {
+        toast.success("Activity logged successfully");
+        setNoteInput("");
+        setIsNoteDialogOpen(false);
+        handleRefreshDonors();
+      } else {
+        toast.error("Failed to add activity");
+        console.error(outcome.error);
+      }
+    } finally {
+      setIsSavingNote(false);
     }
-    setIsSavingNote(false);
-  }, [selectedDonor, noteInput, activityType, supabase, handleRefreshDonors]);
+  }, [selectedDonor, noteInput, activityType, handleRefreshDonors]);
 
   const handleSaveTags = React.useCallback(async () => {
-    if (!selectedDonor || !supabase) return;
+    if (!selectedDonor) return;
 
     setIsSavingTags(true);
-    const outcome = await updateDonorTags({
-      supabase,
-      donorId: selectedDonor.id,
-      tags: selectedTags,
-    });
-    if (outcome.ok) {
-      toast.success("Tags updated successfully");
-      setIsTagDialogOpen(false);
-      handleRefreshDonors();
-    } else {
-      toast.error("Failed to update tags");
-      console.error(outcome.error);
+    try {
+      const outcome = await updateDonorTags({
+        donorId: selectedDonor.id,
+        tags: selectedTags,
+      });
+      if (outcome.ok) {
+        toast.success("Tags updated successfully");
+        setIsTagDialogOpen(false);
+        handleRefreshDonors();
+      } else {
+        toast.error("Failed to update tags");
+        console.error(outcome.error);
+      }
+    } finally {
+      setIsSavingTags(false);
     }
-    setIsSavingTags(false);
-  }, [selectedDonor, selectedTags, supabase, handleRefreshDonors]);
+  }, [selectedDonor, selectedTags, handleRefreshDonors]);
 
   const toggleTag = React.useCallback((tagId: string) => {
     setSelectedTags((prev) =>

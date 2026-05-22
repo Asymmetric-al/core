@@ -8,6 +8,7 @@ import {
   loadLocalEnvFiles,
   normalizeEnvForCommand,
   parseEnvFile,
+  shouldSpawnWithShell,
 } from "../../../scripts/run-with-ci-env.mjs";
 import { applyMissionControlCloudEnvDefaults } from "../../../scripts/dev/setup-mission-control-cloud.mjs";
 
@@ -99,6 +100,16 @@ describe("run-with-ci-env", () => {
     );
 
     expect(env).toEqual({ FORCE_COLOR: "" });
+  });
+
+  it("uses a shell for Windows command shims", () => {
+    expect(shouldSpawnWithShell("node_modules/.bin/turbo.cmd", "win32")).toBe(
+      true,
+    );
+    expect(shouldSpawnWithShell("node", "win32")).toBe(false);
+    expect(shouldSpawnWithShell("node_modules/.bin/turbo.cmd", "linux")).toBe(
+      false,
+    );
   });
 });
 

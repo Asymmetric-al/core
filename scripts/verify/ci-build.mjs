@@ -11,23 +11,26 @@ const REPO_ROOT = path.resolve(
 const TURBO_BIN = path.join(
   "node_modules",
   ".bin",
-  process.platform === "win32" ? "turbo.cmd" : "turbo",
+  process.platform === "win32" ? "turbo.exe" : "turbo",
 );
 
 const NEXT_APPS = Object.freeze([
   {
     id: "admin",
     filter: "@asym/admin",
+    cwd: "apps/admin",
     nextDir: "apps/admin/.next",
   },
   {
     id: "donor",
     filter: "@asym/donor",
+    cwd: "apps/donor",
     nextDir: "apps/donor/.next",
   },
   {
     id: "missionary",
     filter: "@asym/missionary-app",
+    cwd: "apps/missionary",
     nextDir: "apps/missionary/.next",
   },
 ]);
@@ -150,19 +153,35 @@ run(
 
 for (const app of NEXT_APPS) {
   clearStaleNextLocks();
-  run(
-    "node",
-    [
-      "scripts/run-with-ci-env.mjs",
-      "--",
-      TURBO_BIN,
-      "run",
-      "build",
-      `--filter=${app.filter}`,
-      "--concurrency=1",
-    ],
-    app.id,
-  );
+  if (process.platform === "win32") {
+    run(
+      "node",
+      [
+        "scripts/run-with-ci-env.mjs",
+        "--",
+        "bun",
+        "run",
+        "--cwd",
+        app.cwd,
+        "build",
+      ],
+      app.id,
+    );
+  } else {
+    run(
+      "node",
+      [
+        "scripts/run-with-ci-env.mjs",
+        "--",
+        TURBO_BIN,
+        "run",
+        "build",
+        `--filter=${app.filter}`,
+        "--concurrency=1",
+      ],
+      app.id,
+    );
+  }
   clearStaleNextLocks();
 }
 
