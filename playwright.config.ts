@@ -16,7 +16,7 @@ const DEFAULT_PROJECT_TEST_IGNORE = Object.freeze([
   "**/donor-giving-history.spec.ts",
   "**/mc-contributions-live-query.spec.ts",
 ]);
-const ADMIN_REQUIRED_TEST_IGNORE = Object.freeze([
+const DONOR_ONLY_ADDITIONAL_TEST_IGNORE = Object.freeze([
   "**/admin-*.spec.ts",
   "**/auth-demo-admin.spec.ts",
   "**/auth-login-screen-admin.spec.ts",
@@ -106,7 +106,7 @@ export function getDefaultProjectTestIgnore(
 
   return includeAdmin
     ? [...DEFAULT_PROJECT_TEST_IGNORE]
-    : [...DEFAULT_PROJECT_TEST_IGNORE, ...ADMIN_REQUIRED_TEST_IGNORE];
+    : [...DEFAULT_PROJECT_TEST_IGNORE, ...DONOR_ONLY_ADDITIONAL_TEST_IGNORE];
 }
 
 function getLocalBaseUrlAndPort(defaultPort: number): {

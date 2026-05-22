@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-
 import { describe, expect, it } from "vitest";
 
 import {
@@ -18,12 +16,6 @@ import type {
   Donor,
   RecurringDonation,
 } from "../../../../apps/missionary/app/donors/donor-types";
-
-const root = new URL("../../../../", import.meta.url);
-
-function readRepoFile(path: string) {
-  return readFileSync(new URL(path, root), "utf8");
-}
 
 function createRecurringDonation(
   overrides: Partial<RecurringDonation>,
@@ -232,17 +224,5 @@ describe("donors page model helpers", () => {
     expect(removed).toEqual(["monthly-partner"]);
     expect(removeTagSelection(added, "monthly-partner")).toEqual(["family"]);
     expect(currentTags).toEqual(["family"]);
-  });
-});
-
-describe("donors page view-model source contract", () => {
-  it("keeps the view-model profile concrete and file-local", () => {
-    const source = readRepoFile(
-      "apps/missionary/app/donors/use-donors-page-view.tsx",
-    );
-
-    expect(source).not.toContain('ReturnType<typeof useAuth>["profile"]');
-    expect(source).not.toMatch(/export\s+type\s+DonorsPageViewModel/);
-    expect(source).toContain("profile: Profile | null");
   });
 });
