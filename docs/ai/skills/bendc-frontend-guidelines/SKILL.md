@@ -8,11 +8,11 @@ metadata:
   version: "1.0.0"
 ---
 
-# bendc Frontend Guidelines (repo skill)
+# bendc Frontend Guidelines
 
 ## Triggers
 
-Use this skill when the task benefits from **foundational HTML, CSS, and vanilla JS** craft guidance from Benjamin De Cock’s widely referenced checklist ([`bendc/frontend-guidelines`](https://github.com/bendc/frontend-guidelines)), including:
+Use this skill when the task benefits from **foundational HTML, CSS, and vanilla JS** craft guidance from the vendored [`bendc/frontend-guidelines`](https://github.com/bendc/frontend-guidelines) checklist, including:
 
 - Semantic HTML, document structure, `lang`, charset, and meaningful elements (`main`, `article`, `time`, etc.)
 - Accessibility basics called out upstream: `alt` text, real links and buttons, not relying on color alone, labelling controls
@@ -30,22 +30,23 @@ Use this skill when the task benefits from **foundational HTML, CSS, and vanilla
 
 ## Precedence (this repo wins)
 
-The full text of the upstream guide lives in **`references/readme-original.md`**. When anything below disagrees with that file, **follow this section**.
+The full text of the upstream guide lives in **`references/readme-original.md`**. When that reference conflicts with the **Precedence** table below, **follow the table**.
 
 | Topic                                                                               | Authoritative in this repo                                                                                                                  |
 | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | Tailwind, Maia/Zinc tokens, `cn()`, no arbitrary hex in components                  | `docs/ai/rules/frontend.md`                                                                                                                 |
 | Motion timing, tokens, reduced motion, `transition-all` ban, route view transitions | `docs/ai/rules/frontend.md`, `docs/ai/skills/emil-design-engineering/SKILL.md`, `docs/ai/skills/anim/SKILL.md`                              |
+| General JavaScript / TypeScript code shape, control flow, helper extraction         | Root `AGENTS.md` code style — prefer explicit, straightforward code over upstream terseness, loop avoidance, recursion, or shorthand        |
 | TypeScript types, `strict`, equality (`===`), linted patterns                       | ESLint / TS config and existing code style — **do not** adopt upstream examples that rely on loose equality or patterns that fail lint here |
 | React component structure, Server Components, hooks                                 | Next.js docs and `docs/ai/skills/react-component-dev/SKILL.md`                                                                              |
 
-Use the bendc guide as **a second opinion** on semantics, DOM clarity, CSS discipline, and readable JS — not as a reason to weaken types, tokens, or repo motion policy.
+Use the bendc guide as **a second opinion** on semantics, DOM clarity, CSS discipline, and readable JS. Do not copy upstream JavaScript advice about terseness, avoiding loops, recursion, composition, or shorthand unless it improves clarity under this repo's `AGENTS.md` conventions.
 
 ## Workflow
 
 1. Confirm the surface is in scope (markup, styles, or JS where the upstream checklist applies).
 2. Load **`references/readme-original.md`** (or skim the sections you need: HTML, CSS, JavaScript).
-3. Cross-check **Precedence** above before recommending a change that touches tokens, Tailwind, motion, or TS types.
+3. Cross-check **Precedence** above before recommending a change that touches tokens, Tailwind, motion, JS/TS code shape, or TS types.
 4. For shared UI or app routes, reconcile recommendations with **`docs/ai/rules/frontend.md`** and nearby components.
 5. Prefer small, evidence-based edits; do not rewrite large areas solely to match upstream brevity examples if repo style differs.
 
@@ -53,7 +54,7 @@ Use the bendc guide as **a second opinion** on semantics, DOM clarity, CSS disci
 
 - [ ] Confirmed triggers match (HTML/CSS/JS craft vs pure React/Next/backend).
 - [ ] Read the relevant sections of `references/readme-original.md` or the live upstream README.
-- [ ] Applied **Precedence**: repo frontend rules, motion skills, and TypeScript lint are satisfied.
+- [ ] Applied **Precedence**: repo frontend rules, motion skills, `AGENTS.md` code style, and TypeScript lint are satisfied.
 - [ ] Did not strip accessibility or semantics for brevity.
 - [ ] If you edited files under `docs/ai/skills/bendc-frontend-guidelines/`, ran `bun run skills:sync` and `bun run skills:verify` before committing.
 

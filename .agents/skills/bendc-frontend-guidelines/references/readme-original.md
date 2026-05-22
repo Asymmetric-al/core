@@ -12,9 +12,9 @@ HTML5 provides us with lots of semantic elements aimed to describe precisely the
 
 ```html
 <!-- bad -->
-<div id=main>
-  <div class=article>
-    <div class=header>
+<div id="main">
+  <div class="article">
+    <div class="header">
       <h1>Blog post</h1>
       <p>Published: <span>21st Feb, 2015</span></p>
     </div>
@@ -27,7 +27,7 @@ HTML5 provides us with lots of semantic elements aimed to describe precisely the
   <article>
     <header>
       <h1>Blog post</h1>
-      <p>Published: <time datetime=2015-02-21>21st Feb, 2015</time></p>
+      <p>Published: <time datetime="2015-02-21">21st Feb, 2015</time></p>
     </header>
     <p>…</p>
   </article>
@@ -41,13 +41,13 @@ element in a wrong way than staying neutral.
 <!-- bad -->
 <h1>
   <figure>
-    <img alt=Company src=logo.png>
+    <img alt="Company" src="logo.png" />
   </figure>
 </h1>
 
 <!-- good -->
 <h1>
-  <img alt=Company src=logo.png>
+  <img alt="Company" src="logo.png" />
 </h1>
 ```
 
@@ -95,17 +95,17 @@ Keep your code terse. Forget about your old XHTML habits.
 Accessibility shouldn't be an afterthought. You don't have to be a WCAG expert to improve your
 website, you can start immediately by fixing the little things that make a huge difference, such as:
 
-* learning to use the `alt` attribute properly
-* making sure your links and buttons are marked as such (no `<div class=button>` atrocities)
-* not relying exclusively on colors to communicate information
-* explicitly labelling form controls
+- learning to use the `alt` attribute properly
+- making sure your links and buttons are marked as such (no `<div class=button>` atrocities)
+- not relying exclusively on colors to communicate information
+- explicitly labelling form controls
 
 ```html
 <!-- bad -->
-<h1><img alt=Logo src=logo.png></h1>
+<h1><img alt="Logo" src="logo.png" /></h1>
 
 <!-- good -->
-<h1><img alt=Company src=logo.png></h1>
+<h1><img alt="Company" src="logo.png" /></h1>
 ```
 
 ### Language & character encoding
@@ -124,8 +124,8 @@ it is recommended to always declare it at the document level.
 
 <!-- good -->
 <!doctype html>
-<html lang=en>
-  <meta charset=utf-8>
+<html lang="en">
+  <meta charset="utf-8" />
   <title>Hello, world.</title>
 </html>
 ```
@@ -141,17 +141,17 @@ important factor.
 ```html
 <!-- bad -->
 <!doctype html>
-<meta charset=utf-8>
-<script src=analytics.js></script>
+<meta charset="utf-8" />
+<script src="analytics.js"></script>
 <title>Hello, world.</title>
 <p>...</p>
 
 <!-- good -->
 <!doctype html>
-<meta charset=utf-8>
+<meta charset="utf-8" />
 <title>Hello, world.</title>
 <p>...</p>
-<script src=analytics.js></script>
+<script src="analytics.js"></script>
 ```
 
 ## CSS
@@ -163,7 +163,7 @@ While the semicolon is technically a separator in CSS, always treat it as a term
 ```css
 /* bad */
 div {
-  color: red
+  color: red;
 }
 
 /* good */
@@ -251,12 +251,14 @@ Avoid overloading your selectors when you don't need to.
 
 ```css
 /* bad */
-img[src$=svg], ul > li:first-child {
+img[src$="svg"],
+ul > li:first-child {
   opacity: 0;
 }
 
 /* good */
-[src$=svg], ul > :first-child {
+[src$="svg"],
+ul > :first-child {
   opacity: 0;
 }
 ```
@@ -309,7 +311,8 @@ Don't duplicate style declarations that can be inherited.
 
 ```css
 /* bad */
-div h1, div p {
+div h1,
+div p {
   text-shadow: 0 1px 0 #fff;
 }
 
@@ -418,7 +421,7 @@ milliseconds.
 /* bad */
 div {
   margin: 0px;
-  font-size: .9em;
+  font-size: 0.9em;
   line-height: 22px;
   transition: 500ms;
 }
@@ -426,9 +429,9 @@ div {
 /* good */
 div {
   margin: 0;
-  font-size: .9rem;
+  font-size: 0.9rem;
   line-height: 1.5;
-  transition: .5s;
+  transition: 0.5s;
 }
 ```
 
@@ -509,8 +512,8 @@ while (++i < len) {
 
 // good
 const arr = [1, 2, 3, 4];
-const isEven = n => n % 2 == 0;
-const square = n => n * n;
+const isEven = (n) => n % 2 == 0;
+const square = (n) => n * n;
 
 const result = arr.filter(isEven).map(square);
 ```
@@ -535,12 +538,11 @@ Rely on native methods as much as possible.
 
 ```javascript
 // bad
-const toArray = obj => [].slice.call(obj);
+const toArray = (obj) => [].slice.call(obj);
 
 // good
 const toArray = (() =>
-  Array.from ? Array.from : obj => [].slice.call(obj)
-)();
+  Array.from ? Array.from : (obj) => [].slice.call(obj))();
 ```
 
 ### Coercion
@@ -561,10 +563,10 @@ Don't use loops as they force you to use mutable objects. Rely on `array.prototy
 
 ```javascript
 // bad
-const sum = arr => {
+const sum = (arr) => {
   var sum = 0;
   var i = -1;
-  for (;arr[++i];) {
+  for (; arr[++i]; ) {
     sum += arr[i];
   }
   return sum;
@@ -573,16 +575,16 @@ const sum = arr => {
 sum([1, 2, 3]); // => 6
 
 // good
-const sum = arr =>
-  arr.reduce((x, y) => x + y);
+const sum = (arr) => arr.reduce((x, y) => x + y);
 
 sum([1, 2, 3]); // => 6
 ```
+
 If you can't, or if using `array.prototype` methods is arguably abusive, use recursion.
 
 ```javascript
 // bad
-const createDivs = howMany => {
+const createDivs = (howMany) => {
   while (howMany--) {
     document.body.insertAdjacentHTML("beforeend", "<div></div>");
   }
@@ -590,14 +592,14 @@ const createDivs = howMany => {
 createDivs(5);
 
 // bad
-const createDivs = howMany =>
+const createDivs = (howMany) =>
   [...Array(howMany)].forEach(() =>
-    document.body.insertAdjacentHTML("beforeend", "<div></div>")
+    document.body.insertAdjacentHTML("beforeend", "<div></div>"),
   );
 createDivs(5);
 
 // good
-const createDivs = howMany => {
+const createDivs = (howMany) => {
   if (!howMany) return;
   document.body.insertAdjacentHTML("beforeend", "<div></div>");
   return createDivs(howMany - 1);
@@ -616,8 +618,7 @@ Forget about the `arguments` object. The rest parameter is always a better optio
 
 ```javascript
 // bad
-const sortNumbers = () =>
-  Array.prototype.slice.call(arguments).sort();
+const sortNumbers = () => Array.prototype.slice.call(arguments).sort();
 
 // good
 const sortNumbers = (...numbers) => numbers.sort();
@@ -649,18 +650,19 @@ Don't `bind()` when there's a more idiomatic approach.
 // good
 ["foo", "bar"].forEach(func, this);
 ```
+
 ```javascript
 // bad
 const person = {
   first: "John",
   last: "Doe",
   greet() {
-    const full = function() {
+    const full = function () {
       return `${this.first} ${this.last}`;
     }.bind(this);
     return `Hello ${full()}`;
-  }
-}
+  },
+};
 
 // good
 const person = {
@@ -669,8 +671,8 @@ const person = {
   greet() {
     const full = () => `${this.first} ${this.last}`;
     return `Hello ${full()}`;
-  }
-}
+  },
+};
 ```
 
 ### Higher-order functions
@@ -679,7 +681,7 @@ Avoid nesting functions when you don't have to.
 
 ```javascript
 // bad
-[1, 2, 3].map(num => String(num));
+[1, 2, 3].map((num) => String(num));
 
 // good
 [1, 2, 3].map(String);
@@ -690,14 +692,17 @@ Avoid nesting functions when you don't have to.
 Avoid multiple nested function calls. Use composition instead.
 
 ```javascript
-const plus1 = a => a + 1;
-const mult2 = a => a * 2;
+const plus1 = (a) => a + 1;
+const mult2 = (a) => a * 2;
 
 // bad
 mult2(plus1(5)); // => 12
 
 // good
-const pipeline = (...funcs) => val => funcs.reduce((a, b) => b(a), val);
+const pipeline =
+  (...funcs) =>
+  (val) =>
+    funcs.reduce((a, b) => b(a), val);
 const addThenMult = pipeline(plus1, mult2);
 addThenMult(5); // => 12
 ```
@@ -711,15 +716,14 @@ Cache feature tests, large data structures and any expensive operation.
 const contains = (arr, value) =>
   Array.prototype.includes
     ? arr.includes(value)
-    : arr.some(el => el === value);
+    : arr.some((el) => el === value);
 contains(["foo", "bar"], "baz"); // => false
 
 // good
 const contains = (() =>
   Array.prototype.includes
     ? (arr, value) => arr.includes(value)
-    : (arr, value) => arr.some(el => el === value)
-)();
+    : (arr, value) => arr.some((el) => el === value))();
 contains(["foo", "bar"], "baz"); // => false
 ```
 
@@ -744,19 +748,14 @@ Favor IIFE's and return statements over if, else if, else and switch statements.
 ```javascript
 // bad
 var grade;
-if (result < 50)
-  grade = "bad";
-else if (result < 90)
-  grade = "good";
-else
-  grade = "excellent";
+if (result < 50) grade = "bad";
+else if (result < 90) grade = "good";
+else grade = "excellent";
 
 // good
 const grade = (() => {
-  if (result < 50)
-    return "bad";
-  if (result < 90)
-    return "good";
+  if (result < 50) return "bad";
+  if (result < 90) return "good";
   return "excellent";
 })();
 ```
@@ -770,18 +769,17 @@ const shared = { foo: "foo" };
 const obj = Object.create(shared, {
   bar: {
     value: "bar",
-    enumerable: true
-  }
+    enumerable: true,
+  },
 });
 
 // bad
 for (var prop in obj) {
-  if (obj.hasOwnProperty(prop))
-    console.log(prop);
+  if (obj.hasOwnProperty(prop)) console.log(prop);
 }
 
 // good
-Object.keys(obj).forEach(prop => console.log(prop));
+Object.keys(obj).forEach((prop) => console.log(prop));
 ```
 
 ### Objects as Maps
@@ -793,7 +791,7 @@ doubt, use a `Map`.
 // bad
 const me = {
   name: "Ben",
-  age: 30
+  age: 30,
 };
 var meSize = Object.keys(me).length;
 meSize; // => 2
@@ -817,7 +815,7 @@ use cases are fairly unusual.
 
 ```javascript
 // bad
-const sum = a => b => a + b;
+const sum = (a) => (b) => a + b;
 sum(5)(3); // => 8
 
 // good
@@ -836,13 +834,19 @@ foo || doSomething();
 // good
 if (!foo) doSomething();
 ```
+
 ```javascript
 // bad
-void function() { /* IIFE */ }();
+void (function () {
+  /* IIFE */
+})();
 
 // good
-(function() { /* IIFE */ }());
+(function () {
+  /* IIFE */
+})();
 ```
+
 ```javascript
 // bad
 const n = ~~3.14;
@@ -860,14 +864,15 @@ Don't be afraid of creating lots of small, highly composable and reusable functi
 arr[arr.length - 1];
 
 // good
-const first = arr => arr[0];
-const last = arr => first(arr.slice(-1));
+const first = (arr) => arr[0];
+const last = (arr) => first(arr.slice(-1));
 last(arr);
 ```
+
 ```javascript
 // bad
 const product = (a, b) => a * b;
-const triple = n => n * 3;
+const triple = (n) => n * 3;
 
 // good
 const product = (a, b) => a * b;

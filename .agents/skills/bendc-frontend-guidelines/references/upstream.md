@@ -27,3 +27,4 @@ This skill is **not** installed via the Skills CLI and is **not** updated by `bu
 
 - Do not copy secrets or environment-specific values into skill content.
 - The skill’s `SKILL.md` is the router: it tells agents when to use bendc guidance and when repo rules (`docs/ai/rules/frontend.md`, motion skills, TypeScript/ESLint) take precedence.
+- Before refreshing or expanding the vendored copy, re-check upstream license or permission and keep the attribution block. If the license is still unknown, preserve `license: unknown` metadata and do not present the vendored text as licensed source material.
