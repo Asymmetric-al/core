@@ -15,6 +15,8 @@
     "nextjs-app-router",
     "nextjs-supabase-auth",
     "npm-deps-cleanup",
+    "payloadcms-cms-migration",
+    "payloadcms-payload",
     "react-component-dev",
     "react-doctor",
     "rechart",

@@ -53,6 +53,15 @@ Some extra ecosystem or tool-specific skills may exist only in `.cursor/skills/`
 
 **Example — bendc frontend guidelines:** semantic HTML, CSS discipline, and vanilla JS readability patterns from [`bendc/frontend-guidelines`](https://github.com/bendc/frontend-guidelines) are covered by `docs/ai/skills/bendc-frontend-guidelines/SKILL.md` (vendored `README.md` under `references/`); maintainer refresh notes are in `docs/ai/skills/bendc-frontend-guidelines/references/upstream.md`. Use **`docs/ai/rules/frontend.md`** first for `apps/*` and `packages/ui` work.
 
+**Example — Payload CMS:**
+
+- **Application skill:** `docs/ai/skills/payloadcms-payload/SKILL.md` for collections, fields, hooks, access, queries, adapters, plugins, and Payload app behavior.
+- **Migration skill:** `docs/ai/skills/payloadcms-cms-migration/SKILL.md` for CMS to Payload content-model migration.
+- **Upstream:** vendored from [`payloadcms/skills`](https://github.com/payloadcms/skills) (`skills/payload/`, `skills/cms-migration/`).
+- **Refresh notes:** `docs/ai/skills/payloadcms-payload/references/upstream.md` and `docs/ai/skills/payloadcms-cms-migration/references/upstream.md`.
+- **Optional Skills CLI install:** `npx skills add payloadcms/skills`.
+- **Pair with:** `docs/ai/rules/backend.md` for server and data boundaries.
+
 ## How to Help Users Find Skills
 
 ### Step 1: Understand What They Need

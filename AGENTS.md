@@ -266,6 +266,8 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 
 **`bendc-frontend-guidelines`** (`docs/ai/skills/bendc-frontend-guidelines/`) vendors [`bendc/frontend-guidelines`](https://github.com/bendc/frontend-guidelines) `README.md`. Refresh steps live in `docs/ai/skills/bendc-frontend-guidelines/references/upstream.md`; it is **not** updated by `bun run skills:refresh-upstream` today.
 
+**Payload CMS** ([`payloadcms/skills`](https://github.com/payloadcms/skills)) is vendored into `docs/ai/skills/payloadcms-payload/` and `docs/ai/skills/payloadcms-cms-migration/`. Refresh steps live in each skill's `references/upstream.md`; optional Skills CLI install is `npx skills add payloadcms/skills`; these skills are **not** updated by `bun run skills:refresh-upstream` today.
+
 - **Next.js App Router structure, rendering, data fetching:** `docs/ai/skills/nextjs-app-router/SKILL.md`
 - **Cache Components / PPR / cacheTag & invalidation:** `docs/ai/skills/cache-components/SKILL.md`
 - **React component design/refactor:** `docs/ai/skills/react-component-dev/SKILL.md`
@@ -286,6 +288,8 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 - **Supabase (platform-wide: Auth, DB API, Storage, Realtime, Edge Functions, CLI, MCP, RLS, migrations):** `docs/ai/skills/supabase/SKILL.md`
 - **Supabase Postgres tuning / query patterns:** `docs/ai/skills/supabase-postgres-best-practices/SKILL.md`
 - **Next.js + Supabase Auth integration:** `docs/ai/skills/nextjs-supabase-auth/SKILL.md`
+- **Payload CMS (config, collections, fields, hooks, access, queries, adapters, plugins — [`payloadcms/skills`](https://github.com/payloadcms/skills)):** `docs/ai/skills/payloadcms-payload/SKILL.md` (topic reference under `reference/`; subordinate to `docs/ai/rules/backend.md`, Supabase skills, and `docs/guides/architecture/data-access-boundary.md`)
+- **CMS → Payload migration workflow ([`payloadcms/skills`](https://github.com/payloadcms/skills) `cms-migration`):** `docs/ai/skills/payloadcms-cms-migration/SKILL.md`
 - **Vercel React + Next performance patterns:** `docs/ai/skills/vercel-react-best-practices/SKILL.md`
 - **React View Transitions + Next.js route / shared-element continuity:** `docs/ai/skills/vercel-react-view-transitions/SKILL.md`
 - **Discover/install agent skills (skills.sh, repo canonical skills):** `docs/ai/skills/find-skills/SKILL.md`
