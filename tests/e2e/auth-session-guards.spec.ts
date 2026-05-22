@@ -27,13 +27,11 @@ test("session guard flow: login, persistence, /login redirect, sign out", async 
     .toBe(expectedHomePath!);
 
   await page.reload({ waitUntil: "domcontentloaded" });
-  await page.waitForTimeout(1500);
   await expect
     .poll(() => new URL(page.url()).pathname, { timeout: 20000 })
     .toBe(expectedHomePath!);
 
   await page.goto("/login");
-  await page.waitForTimeout(1500);
   await expect
     .poll(() => new URL(page.url()).pathname, { timeout: 20000 })
     .toBe(expectedHomePath!);

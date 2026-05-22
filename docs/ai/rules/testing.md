@@ -15,15 +15,20 @@ Use this when adding tests, modifying critical flows, or verifying changes.
 - **Accessibility:** `@axe-core/playwright`.
 - **Performance:** Playwright-based Web Vitals assertions.
 - **Local CI parity:** Run `bun run ci:preflight` before push/PR-ready to mirror blocking GitHub checks.
+- **Fast local gate:** `bun run check` runs `lint`, `typecheck`, and `test:unit` only. Use it for tight iteration loops.
+- **Pre-push mirror:** `bun run ci:preflight` runs the broader verifier in `scripts/verify/ci-preflight.mjs` (format, lint, typecheck, unit tests, deployment discipline, and other repo scripts). Prefer `ci:preflight` when you changed CI workflows, branch protection expectations, or cross-package integration surfaces.
 
 ## Branch protection (required)
 
 - **Required PR checks on `epic`:** `ci-gate`, `integration-gate`, and
   `e2e-gate`.
-- **Required PR checks on `develop`:** `ci-gate` and `integration-gate`.
+- **Required PR checks on `develop`:** `ci-gate`, `integration-gate`, and
+  `e2e-smoke-gate`.
 - **Non-blocking informational checks:** raw `CI Integration / test-e2e` on
   `develop` must **not** be required; use the gate jobs as branch protection
   requirements. `e2e-gate` is production-only and is required for `epic`.
+  `e2e-smoke-gate` enforces the bounded `test-e2e-smoke` Playwright suite on
+  `develop`.
 - **Repo admins:** Settings → Branches → Branch protection rules → Require status checks to pass:
   - Require the checks above.
   - Disable force pushes on `epic` and `develop`.
@@ -34,7 +39,11 @@ See `docs/ci.md` for the full CI gate reference (what each check does, how to de
 
 ## Production E2E scope
 
-- The required `e2e-gate` must run a bounded production-release suite, not the
+- The required `e2e-smoke-gate` on `develop` runs `bun run test:e2e:smoke`
+  (demo auth preflight paths, usability smoke, donate, upload-crop, and Support
+  Hub smoke). It blocks merges without running the full broad Playwright
+  inventory.
+- The required `e2e-gate` on `epic` must run a bounded production-release suite, not the
   full broad local Playwright inventory. Use `bun run test:e2e:production-gate`
   for the release gate and keep local-seed-only CMS proof under
   `bun run test:e2e:cms:local`.

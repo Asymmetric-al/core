@@ -1,14 +1,10 @@
 import { type NextRequest } from "next/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
   getAuthContextMock,
   requireRoleMock,
   validateResendApiKeyMock,
-  createResendValidationSnapshotMock,
-  parseResendValidationSnapshotMock,
-  isResendValidationSendReadyMock,
-  getFirstBlockingDeliverabilityWarningMock,
   encryptResendApiKeyMock,
   decryptResendApiKeyMock,
   readTenantEmailSettingsMock,
@@ -19,70 +15,6 @@ const {
   getAuthContextMock: vi.fn(),
   requireRoleMock: vi.fn(),
   validateResendApiKeyMock: vi.fn(),
-  createResendValidationSnapshotMock: vi.fn(
-    (validation: {
-      senderIdentities?: unknown[];
-      domainAuthentication?: Array<{
-        valid?: boolean;
-        records?: Array<{
-          record?: string;
-          type?: string;
-          status?: string;
-        }>;
-      }>;
-      warnings?: Array<{ severity?: string }>;
-      deliverabilityScore?: number;
-    }) => {
-      const domainAuthentication = validation.domainAuthentication ?? [];
-
-      return {
-        senderIdentities: validation.senderIdentities ?? [],
-        domainAuthentication,
-        warnings: validation.warnings ?? [],
-        deliverabilityScore: validation.deliverabilityScore ?? 0,
-        validatedAt: "2026-04-02T12:00:00.000Z",
-        domainAuthenticated: domainAuthentication.some(
-          (domain) => domain.valid,
-        ),
-        dkimVerified: domainAuthentication.some((domain) =>
-          (domain.records ?? []).some(
-            (record) =>
-              record.record === "DKIM" && record.status === "verified",
-          ),
-        ),
-        spfVerified: domainAuthentication.some((domain) =>
-          (domain.records ?? []).some(
-            (record) =>
-              record.record === "SPF" &&
-              record.type === "TXT" &&
-              record.status === "verified",
-          ),
-        ),
-      };
-    },
-  ),
-  parseResendValidationSnapshotMock: vi.fn(
-    (snapshot: unknown) => snapshot ?? null,
-  ),
-  isResendValidationSendReadyMock: vi.fn(
-    (snapshot: {
-      domainAuthenticated?: boolean;
-      warnings?: Array<{ severity?: string }>;
-    }) =>
-      Boolean(snapshot.domainAuthenticated) &&
-      !(snapshot.warnings ?? []).some(
-        (warning) => warning.severity === "error",
-      ),
-  ),
-  getFirstBlockingDeliverabilityWarningMock: vi.fn(
-    (
-      warnings:
-        | Array<{
-            severity?: "info" | "warning" | "error";
-          }>
-        | undefined,
-    ) => warnings?.find((warning) => warning.severity === "error"),
-  ),
   encryptResendApiKeyMock: vi.fn(),
   decryptResendApiKeyMock: vi.fn(),
   readTenantEmailSettingsMock: vi.fn(),
@@ -102,23 +34,14 @@ vi.mock("@asym/auth/context", () => ({
   requireRole: requireRoleMock,
 }));
 
-vi.mock("@asym/email", () => ({
-  RESEND_ERROR_CODES: {
-    UNAUTHORIZED: "unauthorized",
-    FORBIDDEN: "forbidden",
-    RATE_LIMITED: "rate_limited",
-    CONFLICT: "conflict",
-    INVALID_API_KEY: "invalid_api_key",
-    VALIDATION_ERROR: "validation_error",
-    SERVER_ERROR: "server_error",
-  },
-  validateResendApiKey: validateResendApiKeyMock,
-  createResendValidationSnapshot: createResendValidationSnapshotMock,
-  parseResendValidationSnapshot: parseResendValidationSnapshotMock,
-  isResendValidationSendReady: isResendValidationSendReadyMock,
-  getFirstBlockingDeliverabilityWarning:
-    getFirstBlockingDeliverabilityWarningMock,
-}));
+vi.mock("@asym/email", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@asym/email")>();
+
+  return {
+    ...actual,
+    validateResendApiKey: validateResendApiKeyMock,
+  };
+});
 
 vi.mock("../../../../../packages/api/src/email/crypto", () => ({
   encryptResendApiKey: encryptResendApiKeyMock,
@@ -150,6 +73,7 @@ function createPostRequest(body: unknown): NextRequest {
 describe("api/email/connect", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
     getAuthContextMock.mockResolvedValue({
       tenantId: "tenant_1",
       role: "admin",
@@ -157,7 +81,14 @@ describe("api/email/connect", () => {
     requireRoleMock.mockReturnValue(undefined);
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("persists validated Resend connection settings", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-02T12:00:00.000Z"));
+
     validateResendApiKeyMock.mockResolvedValueOnce({
       valid: true,
       senderIdentities: [
@@ -230,6 +161,8 @@ describe("api/email/connect", () => {
         }),
       }),
     );
+
+    vi.useRealTimers();
   });
 
   it("hydrates disconnected state when settings do not exist", async () => {

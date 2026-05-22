@@ -383,7 +383,7 @@ async function main() {
         branch: STAGING_BRANCH,
         protection: readGitHubProtection(args.repo, STAGING_BRANCH),
         branchRule: readGitHubBranchProtectionRule(args.repo, STAGING_BRANCH),
-        requiredContexts: ["ci-gate", "integration-gate"],
+        requiredContexts: ["ci-gate", "integration-gate", "e2e-smoke-gate"],
       }),
     );
 

@@ -34,7 +34,9 @@ Playwright config sets this automatically when `ASYM_USE_CI_ENV_DEFAULTS=1` (see
 
 ## CI behavior
 
-The `test-e2e` job in `.github/workflows/ci-integration.yml` is configured with `continue-on-error: true`, so failures are informational and do not block merges. On failure, CI uploads `playwright-report/` as an artifact for debugging.
+- `test-e2e-smoke` runs `bun run test:e2e:smoke` and is **blocking** on `develop` through the `e2e-smoke-gate` required check.
+- `test-e2e` remains configured with `continue-on-error: true` on `develop`, so the full broad suite is informational there. On `epic`, `e2e-gate` makes the bounded production-release path required.
+- On failure, CI uploads `playwright-smoke-report/` (smoke job) or `playwright-report/` (full job) as artifacts for debugging.
 
 ## Growth plan - future tests to add
 

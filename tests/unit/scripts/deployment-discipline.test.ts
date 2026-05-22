@@ -49,7 +49,12 @@ const branchProtection = {
   allow_force_pushes: { enabled: true },
   required_status_checks: {
     strict: true,
-    contexts: ["ci-gate", "integration-gate", "e2e-gate"],
+    contexts: [
+      "ci-gate",
+      "integration-gate",
+      "e2e-gate",
+      "e2e-smoke-gate",
+    ],
   },
   required_pull_request_reviews: {
     required_approving_review_count: 1,
@@ -85,10 +90,20 @@ describe("deployment discipline verifier", () => {
       scripts: Record<string, string>;
     };
 
+    expect(workflow).toContain("test-e2e-smoke:");
+    expect(workflow).toContain("e2e-smoke-gate:");
+    expect(workflow).toContain("run: bun run test:e2e:smoke");
     expect(workflow).toContain("run: bun run test:e2e:production-gate");
     expect(workflow).not.toContain("run: bun run test:e2e --project=chromium");
     expect(workflow).toContain("timeout-minutes: 30");
+    expect(workflow).toContain("timeout-minutes: 20");
     expect(workflow).toContain("timeout-minutes: 10");
+    expect(packageJson.scripts["test:e2e:smoke"]).toContain(
+      "tests/e2e/usability-smoke.spec.ts",
+    );
+    expect(packageJson.scripts["test:e2e:smoke"]).toContain(
+      "tests/e2e/support-hub.smoke.spec.ts",
+    );
     expect(packageJson.scripts["test:e2e:production-gate"]).toContain(
       "tests/e2e/usability-smoke.spec.ts",
     );
@@ -141,7 +156,7 @@ describe("deployment discipline verifier", () => {
       branch: "develop",
       protection: branchProtection,
       branchRule: branchProtectionRule,
-      requiredContexts: ["ci-gate", "integration-gate"],
+      requiredContexts: ["ci-gate", "integration-gate", "e2e-smoke-gate"],
     });
     const epicChecks = validateGitHubBranchProtection({
       branch: "epic",
@@ -191,7 +206,7 @@ describe("deployment discipline verifier", () => {
           "Preview – missionary",
         ],
       },
-      requiredContexts: ["ci-gate", "integration-gate"],
+      requiredContexts: ["ci-gate", "integration-gate", "e2e-smoke-gate"],
     });
 
     expect(checks.filter((item) => !item.ok).map((item) => item.label)).toEqual(
