@@ -16,10 +16,15 @@ const DEFAULT_PROJECT_TEST_IGNORE = Object.freeze([
   "**/donor-giving-history.spec.ts",
   "**/mc-contributions-live-query.spec.ts",
 ]);
-const ADMIN_REQUIRED_TEST_IGNORE = Object.freeze([
+const DONOR_ONLY_ADDITIONAL_TEST_IGNORE = Object.freeze([
   "**/admin-*.spec.ts",
   "**/auth-demo-admin.spec.ts",
+  "**/auth-login-screen-admin.spec.ts",
+  "**/auth-demo-missionary.spec.ts",
+  "**/auth-login-screen-missionary.spec.ts",
+  "**/boneyard-smoke.spec.ts",
   "**/cms-*.spec.ts",
+  "**/cms-local-happy-path.spec.ts",
   "**/site-studio-video-tour.spec.ts",
   "**/support-hub.smoke.spec.ts",
 ]);
@@ -91,10 +96,17 @@ export function shouldReuseExistingServer(
   return !env.CI;
 }
 
-export function getDefaultProjectTestIgnore(includeAdmin: boolean): string[] {
+export function getDefaultProjectTestIgnore(
+  includeAdminOrEnv: boolean | NodeJS.ProcessEnv = process.env,
+): string[] {
+  const includeAdmin =
+    typeof includeAdminOrEnv === "boolean"
+      ? includeAdminOrEnv
+      : includeAdminOrEnv.PLAYWRIGHT_INCLUDE_ADMIN !== "0";
+
   return includeAdmin
     ? [...DEFAULT_PROJECT_TEST_IGNORE]
-    : [...DEFAULT_PROJECT_TEST_IGNORE, ...ADMIN_REQUIRED_TEST_IGNORE];
+    : [...DEFAULT_PROJECT_TEST_IGNORE, ...DONOR_ONLY_ADDITIONAL_TEST_IGNORE];
 }
 
 function getLocalBaseUrlAndPort(defaultPort: number): {
