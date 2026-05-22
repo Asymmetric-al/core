@@ -264,6 +264,8 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 
 **Resend CLI** (`docs/ai/skills/resend-cli/`) is vendored from the tagged [`resend/resend-cli`](https://github.com/resend/resend-cli) tree (`skills/resend-cli/`). Refresh steps live in `docs/ai/skills/resend-cli/references/upstream.md`; it is **not** updated by `bun run skills:refresh-upstream` today.
 
+**`bendc-frontend-guidelines`** (`docs/ai/skills/bendc-frontend-guidelines/`) vendors [`bendc/frontend-guidelines`](https://github.com/bendc/frontend-guidelines) `README.md`. Refresh steps live in `docs/ai/skills/bendc-frontend-guidelines/references/upstream.md`; it is **not** updated by `bun run skills:refresh-upstream` today.
+
 - **Next.js App Router structure, rendering, data fetching:** `docs/ai/skills/nextjs-app-router/SKILL.md`
 - **Cache Components / PPR / cacheTag & invalidation:** `docs/ai/skills/cache-components/SKILL.md`
 - **React component design/refactor:** `docs/ai/skills/react-component-dev/SKILL.md`
@@ -271,6 +273,7 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 - **Composable, accessible UI components (components.build spec):** `docs/ai/skills/components-build/SKILL.md`
 - **shadcn/ui system usage:** `docs/ai/skills/moai-library-shadcn/SKILL.md`
 - **Base UI:** `docs/ai/skills/base-ui/SKILL.md`
+- **Semantic HTML, CSS discipline, and vanilla JS readability ([bendc/frontend-guidelines](https://github.com/bendc/frontend-guidelines)):** `docs/ai/skills/bendc-frontend-guidelines/SKILL.md` (vendored upstream text under `references/`; subordinate to `docs/ai/rules/frontend.md`, motion skills, and TypeScript lint)
 - **Animation work, transitions, micro-interactions, or motion polish:** load `docs/ai/skills/emil-design-engineering/SKILL.md` first. Pair with `docs/ai/skills/motion/SKILL.md` only when `motion/react` API details are needed.
 - **Motion animations (`motion/react`) implementation details:** `docs/ai/skills/motion/SKILL.md`
 - **Tasteful UI animation (timing, easing, CSS/Motion patterns):** `docs/ai/skills/anim/SKILL.md`

@@ -51,6 +51,8 @@ Some extra ecosystem or tool-specific skills may exist only in `.cursor/skills/`
 
 **Example — Resend app integration:** app-level Resend integration in this monorepo is documented in `docs/guides/features/resend-integration.md`.
 
+**Example — bendc frontend guidelines:** semantic HTML, CSS discipline, and vanilla JS readability patterns from [`bendc/frontend-guidelines`](https://github.com/bendc/frontend-guidelines) are covered by `docs/ai/skills/bendc-frontend-guidelines/SKILL.md` (vendored `README.md` under `references/`); maintainer refresh notes are in `docs/ai/skills/bendc-frontend-guidelines/references/upstream.md`. Use **`docs/ai/rules/frontend.md`** first for `apps/*` and `packages/ui` work.
+
 ## How to Help Users Find Skills
 
 ### Step 1: Understand What They Need
