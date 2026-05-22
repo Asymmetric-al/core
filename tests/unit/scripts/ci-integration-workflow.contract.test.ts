@@ -44,7 +44,9 @@ describe("ci-integration workflow contract", () => {
     expect(testE2e).toContain("github.base_ref == 'develop'");
     expect(testE2e).toContain("refs/heads/develop");
 
-    expect(integrationGate).toContain("needs: [migrate, smoke, e2e-smoke-gate]");
+    expect(integrationGate).toContain(
+      "needs: [migrate, smoke, e2e-smoke-gate]",
+    );
     expect(integrationGate).not.toContain("test-e2e");
 
     expect(e2eSmokeGate).toContain("needs: [test-e2e-smoke]");

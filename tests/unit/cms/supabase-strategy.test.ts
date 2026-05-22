@@ -180,7 +180,10 @@ function createPayloadMock({
 
 function createStrategyWithMocks(
   mock: ReturnType<typeof createSupabaseClientMock>,
-  extra?: Omit<Parameters<SupabaseAuthStrategyFactory>[0], "createSupabaseClient">,
+  extra?: Omit<
+    Parameters<SupabaseAuthStrategyFactory>[0],
+    "createSupabaseClient"
+  >,
 ) {
   const dataClient = {
     from: mock.from,

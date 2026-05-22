@@ -5,9 +5,7 @@ import { describe, expect, it } from "vitest";
 const PACKAGE_JSON_PATH = "package.json";
 
 describe("local gates contract", () => {
-  const packageJson = JSON.parse(
-    readFileSync(PACKAGE_JSON_PATH, "utf8"),
-  ) as {
+  const packageJson = JSON.parse(readFileSync(PACKAGE_JSON_PATH, "utf8")) as {
     scripts: Record<string, string>;
   };
 

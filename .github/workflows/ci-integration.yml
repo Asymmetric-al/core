@@ -112,7 +112,7 @@ jobs:
   test-e2e-smoke:
     needs: smoke
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     services:
       postgres:
         image: postgres:15-alpine
@@ -155,18 +155,26 @@ jobs:
         run: bun run cms:migrate:status
       - name: Apply demo seed
         run: psql "$DATABASE_URL" -f supabase/seed.sql -v ON_ERROR_STOP=1
+      - name: Start donor app
+        run: |
+          nohup bun run --cwd apps/donor dev -- --port 3005 --hostname 127.0.0.1 > /tmp/donor-dev.log 2>&1 &
+          echo $! > /tmp/donor-dev.pid
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
-      - name: Start donor app
-        run: bun run --cwd apps/donor dev -- --port 3005 --hostname 127.0.0.1 &
       - name: Wait for health endpoint
         run: |
-          for i in $(seq 1 60); do
+          for i in $(seq 1 120); do
             if curl -sf http://127.0.0.1:3005/api/health >/dev/null; then
+              echo "Health endpoint ready after ${i}s"
               exit 0
             fi
-            if [ "$i" -eq 60 ]; then
+            if [ "$i" -eq 120 ]; then
               echo "Timed out waiting for health endpoint"
+              echo "--- donor dev log (tail) ---"
+              tail -n 100 /tmp/donor-dev.log || true
+              echo "--- curl verbose ---"
+              curl -v http://127.0.0.1:3005/api/health || true
+              kill "$(cat /tmp/donor-dev.pid)" 2>/dev/null || true
               exit 1
             fi
             sleep 1

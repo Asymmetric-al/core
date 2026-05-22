@@ -66,8 +66,12 @@ describe("donor and missionary unit smoke contract", () => {
       "utf8",
     );
 
-    expect(connectSource).toContain('vi.mock("@asym/email", async (importOriginal)');
-    expect(connectSource).toContain("validateResendApiKey: validateResendApiKeyMock");
+    expect(connectSource).toContain(
+      'vi.mock("@asym/email", async (importOriginal)',
+    );
+    expect(connectSource).toContain(
+      "validateResendApiKey: validateResendApiKeyMock",
+    );
     expect(connectSource).not.toMatch(
       /vi\.mock\("@asym\/email"\s*,\s*\(\)\s*=>\s*\(\{/,
     );

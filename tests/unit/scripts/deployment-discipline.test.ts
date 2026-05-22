@@ -49,12 +49,7 @@ const branchProtection = {
   allow_force_pushes: { enabled: true },
   required_status_checks: {
     strict: true,
-    contexts: [
-      "ci-gate",
-      "integration-gate",
-      "e2e-gate",
-      "e2e-smoke-gate",
-    ],
+    contexts: ["ci-gate", "integration-gate", "e2e-gate", "e2e-smoke-gate"],
   },
   required_pull_request_reviews: {
     required_approving_review_count: 1,

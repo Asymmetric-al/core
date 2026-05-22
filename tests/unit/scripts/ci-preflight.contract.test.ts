@@ -18,7 +18,9 @@ const EXPECTED_STAGES: Array<{ id: string; script: string }> = [
   { id: "test-unit", script: "test:unit" },
 ];
 
-function parsePreflightStages(source: string): Array<{ id: string; script: string }> {
+function parsePreflightStages(
+  source: string,
+): Array<{ id: string; script: string }> {
   const stages: Array<{ id: string; script: string }> = [];
 
   for (const match of source.matchAll(
