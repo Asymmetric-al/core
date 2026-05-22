@@ -35,6 +35,12 @@ Playwright config sets this automatically when `ASYM_USE_CI_ENV_DEFAULTS=1` (see
 ## CI behavior
 
 - `test-e2e-smoke` runs `bun run test:e2e:smoke` and is **blocking** on `develop` through the `e2e-smoke-gate` required check.
+
+## Deterministic waits
+
+- Prefer `expect.poll` or `page.waitForURL` over `page.waitForTimeout`.
+- Do not stack a fixed sleep after a poll that already waited for the same condition.
+- Unit guard: `tests/unit/e2e/e2e-flake-guards.test.ts` rejects `waitForTimeout` in `tests/e2e/**/*.spec.ts`.
 - `test-e2e` remains configured with `continue-on-error: true` on `develop`, so the full broad suite is informational there. On `epic`, `e2e-gate` makes the bounded production-release path required.
 - On failure, CI uploads `playwright-smoke-report/` (smoke job) or `playwright-report/` (full job) as artifacts for debugging.
 

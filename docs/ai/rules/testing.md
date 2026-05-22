@@ -121,9 +121,21 @@ bun run test:e2e --debug
 npx playwright show-report
 ```
 
+## E2E stability (required)
+
+- Prefer `expect.poll`, `page.waitForURL`, or `page.waitForLoadState` over
+  `page.waitForTimeout` fixed sleeps. Fixed sleeps hide race conditions and
+  slow CI without improving signal.
+- After an assertion already polls for readiness, do not add a redundant sleep.
+- CI enables Playwright retries (`retries: 2` when `CI=1`); keep specs
+  idempotent so retries remain meaningful.
+- `tests/unit/e2e/e2e-flake-guards.test.ts` fails if `waitForTimeout` re-enters
+  `tests/e2e/**/*.spec.ts`.
+
 ## Common mistakes / pitfalls
 
 - Adding Jest/Vitest without a request
 - Ignoring a11y failures
 - Writing brittle selectors or XPath
 - Allowing tests to depend on each other
+- Using `page.waitForTimeout` instead of polling for real UI or URL state
